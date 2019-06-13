@@ -1,0 +1,8 @@
+[package]
+name = "feather_server"
+version = "0.1.0"
+authors = ["caelunshun <caelum12321@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+lemio = { git = "https://github.com/caelunshun/lemio", version = "0.1.0" }

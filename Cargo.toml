@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "core",
+    "api",
+    "server"
+]
