@@ -16,6 +16,7 @@ pub enum PacketType {
     // Login
     LoginStart,
     EncryptionResponse,
+    LoginPluginResponse,
 
     // Play
     TeleportConfirm,
@@ -55,6 +56,7 @@ pub enum PacketType {
     UpdateCommandBlock,
     UpdateCommandBlockMinecart,
     CreativeInventoryAction,
+    UpdateStructureBlock,
     UpdateSign,
     AnimationServerbound,
     Spectate,
@@ -166,24 +168,241 @@ pub enum PacketType {
 
 lazy_static! {
     static ref PACKET_ID_MAPPINGS: im::HashMap<PacketId, PacketType> = {
+        let mut m = im::HashMap::new();
 
+        m.insert(
+            PacketId(0x00, PacketDirection::Serverbound, PacketStage::Handshake),
+            PacketType::Handshake,
+        );
+
+        m.insert(
+            PacketId(0x00, PacketDirection::Serverbound, PacketStage::Login),
+            PacketType::LoginStart,
+        );
+        m.insert(
+            PacketId(0x01, PacketDirection::Serverbound, PacketStage::Login),
+            PacketType::EncryptionResponse,
+        );
+        m.insert(
+            PacketId(0x02, PacketDirection::Serverbound, PacketStage::Login),
+            PacketType::LoginPluginResponse,
+        );
+
+        m.insert(
+            PacketId(0x00, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::TeleportConfirm,
+        );
+        m.insert(
+            PacketId(0x01, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::QueryBlockNBT,
+        );
+        m.insert(
+            PacketId(0x02, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::ChatMessageServerbound,
+        );
+        m.insert(
+            PacketId(0x03, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::ClientStatus,
+        );
+        m.insert(
+            PacketId(0x04, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::ClientSettings,
+        );
+        m.insert(
+            PacketId(0x05, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::TabCompleteServerbound,
+        );
+        m.insert(
+            PacketId(0x06, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::ConfirmTransactionServerbound,
+        );
+        m.insert(
+            PacketId(0x07, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::EnchantItem,
+        );
+        m.insert(
+            PacketId(0x08, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::ClickWindow,
+        );
+        m.insert(
+            PacketId(0x09, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::CloseWindowServerbound,
+        );
+        m.insert(
+            PacketId(0x0A, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::PluginMessageServerbound,
+        );
+        m.insert(
+            PacketId(0x0B, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::EditBook,
+        );
+        m.insert(
+            PacketId(0x0C, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::QueryEntityNBT,
+        );
+        m.insert(
+            PacketId(0x0D, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::UseEntity,
+        );
+        m.insert(
+            PacketId(0x0E, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::KeepAliveServerbound,
+        );
+        m.insert(
+            PacketId(0x0F, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::Player,
+        );
+        m.insert(
+            PacketId(0x10, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::PlayerPosition,
+        );
+        m.insert(
+            PacketId(0x11, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::PlayerPositionAndLookServerbound,
+        );
+        m.insert(
+            PacketId(0x12, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::PlayerLook,
+        );
+        m.insert(
+            PacketId(0x13, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::VehicleMoveServerbound,
+        );
+        m.insert(
+            PacketId(0x14, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::SteerBoat,
+        );
+        m.insert(
+            PacketId(0x15, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::PickItem,
+        );
+        m.insert(
+            PacketId(0x16, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::CraftRecipeRequest,
+        );
+        m.insert(
+            PacketId(0x17, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::PlayerAbilitiesServerbound,
+        );
+        m.insert(
+            PacketId(0x18, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::PlayerDigging,
+        );
+        m.insert(
+            PacketId(0x19, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::EntityAction,
+        );
+        m.insert(
+            PacketId(0x1A, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::SteerVehicle,
+        );
+        m.insert(
+            PacketId(0x1B, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::RecipeBookData,
+        );
+        m.insert(
+            PacketId(0x1C, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::NameItem,
+        );
+        m.insert(
+            PacketId(0x1D, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::ResourcePackStatus,
+        );
+        m.insert(
+            PacketId(0x1E, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::AdvancementTab,
+        );
+        m.insert(
+            PacketId(0x1F, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::SelectTrade,
+        );
+        m.insert(
+            PacketId(0x20, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::SetBeaconEffect,
+        );
+        m.insert(
+            PacketId(0x21, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::HeldItemChangeServerbound,
+        );
+        m.insert(
+            PacketId(0x22, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::UpdateCommandBlock,
+        );
+        m.insert(
+            PacketId(0x23, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::UpdateCommandBlockMinecart,
+        );
+        m.insert(
+            PacketId(0x24, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::CreativeInventoryAction,
+        );
+        m.insert(
+            PacketId(0x25, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::UpdateStructureBlock,
+        );
+        m.insert(
+            PacketId(0x26, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::UpdateSign,
+        );
+        m.insert(
+            PacketId(0x27, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::AnimationServerbound,
+        );
+        m.insert(
+            PacketId(0x28, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::Spectate,
+        );
+        m.insert(
+            PacketId(0x29, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::PlayerBlockPlacement,
+        );
+        m.insert(
+            PacketId(0x2A, PacketDirection::Serverbound, PacketStage::Play),
+            PacketType::UseItem,
+        );
+
+        m.insert(
+            PacketId(0x00, PacketDirection::Serverbound, PacketStage::Status),
+            PacketType::Request,
+        );
+        m.insert(
+            PacketId(0x01, PacketDirection::Serverbound, PacketStage::Status),
+            PacketType::Ping,
+        );
+
+        m.insert(
+            PacketId(0x00, PacketDirection::Clientbound, PacketStage::Login),
+            PacketType::DisconnectLogin,
+        );
+        m.insert(
+            PacketId(0x01, PacketDirection::Serverbound, PacketStage::Status),
+            PacketType::EncryptionRequest,
+        );
+        m.insert(
+            PacketId(0x02, PacketDirection::Serverbound, PacketStage::Status),
+            PacketType::LoginSuccess,
+        );
+        m.insert(
+            PacketId(0x03, PacketDirection::Serverbound, PacketStage::Status),
+            PacketType::SetCompression,
+        );
+        m.insert(
+            PacketId(0x04, PacketDirection::Serverbound, PacketStage::Status),
+            PacketType::LoginPluginRequest,
+        );
+
+        m
     };
-}
 
-fn insert_blas() {
-    let mut m = im::HashMap::new();
+    static ref PACKET_TYPE_MAPPINGS: im::HashMap<PacketType, PacketId> = {
+        let mut m = im::HashMap::new();
 
-    m.insert(PacketId(0x00, PacketDirection::Serverbound, PacketStage::Handshake), PacketType::Handshake);
+        for (key, val) in PACKET_ID_MAPPINGS.clone().into_iter() {
+            m.insert(val, key);
+        }
 
-    m.insert(PacketId(0x00, PacketDirection::Serverbound, PacketStage::Login), PacketType::LoginStart);
-    m.insert(PacketId(0x01, PacketDirection::Serverbound, PacketStage::Login), PacketType::EncryptionResponse);
-
-    m.insert(PacketId(0x00, PacketDirection::Serverbound, PacketStage::Play), PacketType::TeleportConfirm);
-    m.insert(PacketId(0x01, PacketDirection::Serverbound, PacketStage::Play), PacketType::QueryBlockNBT);
-    m.insert(PacketId(0x02, PacketDirection::Serverbound, PacketStage::Play), PacketType::ChatMessageServerbound);
-    m.insert(PacketId(0x03, PacketDirection::Serverbound, PacketStage::Play), PacketType::ClientStatus);
-    m.insert(PacketId(0x04, PacketDirection::Serverbound, PacketStage::Play), PacketType::ClientSettings);
-    m.insert(PacketId(0x05, PacketDirection::Serverbound, PacketStage::Play), PacketType::TabCompleteServerbound);
+        m
+    };
 }
 
 /// Certain packets have the same ID as
@@ -203,4 +422,5 @@ pub enum PacketStage {
     Handshake,
     Status,
     Login,
+    Play,
 }
