@@ -1,9 +1,26 @@
+pub mod implementation;
+
 use lemio::ByteBuf;
 
 pub trait Packet {
-    fn get_type() -> PacketType;
-    fn read_from(buf: ByteBuf) -> Self;
-    fn write_to(&self, buf: ByteBuf);
+    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()>;
+    fn write_to(&self, buf: &mut ByteBuf);
+}
+
+#[derive(Clone, Debug)]
+pub struct PacketBuilder {
+    pub init_fn: fn() -> Box<Packet>,
+}
+
+impl PacketBuilder {
+    pub fn build(&self) -> Box<Packet> {
+        let f = self.init_fn;
+        f()
+    }
+
+    pub fn with(f: fn() -> Box<Packet>) -> Self {
+        Self {init_fn: f}
+    }
 }
 
 #[derive(Debug, Hash, PartialEq, Eq, Copy, Clone)]
@@ -393,7 +410,6 @@ lazy_static! {
 
         m
     };
-
     static ref PACKET_TYPE_MAPPINGS: im::HashMap<PacketType, PacketId> = {
         let mut m = im::HashMap::new();
 
@@ -403,6 +419,20 @@ lazy_static! {
 
         m
     };
+}
+
+impl PacketType {
+    pub fn get_from_id(id: PacketId) -> Option<PacketType> {
+        PACKET_ID_MAPPINGS.get(&id).map(|v| v.clone())
+    }
+
+    pub fn get_id(&self) -> PacketId {
+        PACKET_TYPE_MAPPINGS.get(self).unwrap().clone()
+    }
+
+    pub fn get_implementation(&self) -> &PacketBuilder {
+        implementation::IMPL_MAP.get(self).unwrap()
+    }
 }
 
 /// Certain packets have the same ID as

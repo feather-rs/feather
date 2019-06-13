@@ -1,0 +1,15 @@
+[package]
+name = "feather_proc_macro"
+version = "0.1.0"
+authors = ["caelunshun <caelum12321@gmail.com>"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "0.15.35", features = ["full", "extra-traits"] }
+quote = "0.6.12"
+proc-macro2 = "0.4.30"
+lazy_static = "1.3.0"
+im = "13.0.0"
