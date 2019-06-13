@@ -1,5 +1,6 @@
-use super::super::mctypes::*;
+use super::super::mctypes::{McTypeWrite, McTypeRead};
 use super::*;
+use bytes::{Buf, BufMut};
 
 lazy_static! {
     pub static ref IMPL_MAP: im::HashMap<PacketType, PacketBuilder> = {
@@ -37,30 +38,23 @@ pub struct Handshake {
 }
 
 impl Packet for Handshake {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()> {
-        self.protocol_version = buf.read_u32();
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()> {
+        self.protocol_version = buf.get_u32_be();
         self.server_address = buf.read_string()?;
-        self.server_port = buf.read_u16();
+        self.server_port = buf.get_u16_be();
         let state = buf.read_var_int()?;
 
         self.next_state = match state {
             1 => HandshakeState::Status,
             2 => HandshakeState::Login,
-            _ => return None,
+            _ => return Err(()),
         };
 
-        Some(())
+        Ok(())
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_var_int(self.protocol_version as i32);
-        buf.write_string(self.server_address.as_str());
-        buf.write_u16(self.server_port);
-        let state = match self.next_state {
-            HandshakeState::Status => 1,
-            HandshakeState::Login => 2,
-        };
-        buf.write_var_int(state);
+    fn write_to(&self, mut buf: &mut BufMut) {
+        unimplemented!()
     }
 }
 
@@ -81,13 +75,13 @@ pub struct LoginStart {
 }
 
 impl Packet for LoginStart {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()> {
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()> {
         self.username = buf.read_string()?;
 
-        Some(())
+        Ok(())
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, mut buf: &mut BufMut) {
         unimplemented!()
     }
 }
@@ -101,12 +95,12 @@ pub struct EncryptionResponse {
 }
 
 impl Packet for EncryptionResponse {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()> {
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()> {
         self.secret_length = buf.read_var_int()?;
 
         let mut secret = vec![];
         for _ in 0..self.secret_length {
-            secret.push(buf.read_u8());
+            secret.push(buf.get_u8());
         }
         self.secret = secret;
 
@@ -114,14 +108,14 @@ impl Packet for EncryptionResponse {
 
         let mut verify_token = vec![];
         for _ in 0..self.secret_length {
-            verify_token.push(buf.read_u8());
+            verify_token.push(buf.get_u8());
         }
 
         self.verify_token = verify_token;
-        Some(())
+        Ok(())
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, mut buf: &mut BufMut) {
         unimplemented!()
     }
 }
@@ -130,11 +124,11 @@ impl Packet for EncryptionResponse {
 pub struct Request {}
 
 impl Packet for Request {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()> {
-        Some(())
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()>{
+        Ok(())
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, buf: &mut BufMut) {
         unimplemented!()
     }
 }
@@ -145,12 +139,12 @@ pub struct Ping {
 }
 
 impl Packet for Ping {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()> {
-        self.payload = buf.read_u64();
-        Some(())
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()> {
+        self.payload = buf.get_u64_be();
+        Ok(())
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, buf: &mut BufMut) {
         unimplemented!()
     }
 }
@@ -162,12 +156,12 @@ pub struct DisconnectLogin {
 }
 
 impl Packet for DisconnectLogin {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()> {
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()> {
         self.reason = buf.read_string()?;
-        Some(())
+        Ok(())
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, mut buf: &mut BufMut) {
         buf.write_string(self.reason.as_str());
     }
 }
@@ -182,21 +176,21 @@ pub struct EncryptionRequest {
 }
 
 impl Packet for EncryptionRequest {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()> {
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()>{
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self,mut  buf: &mut BufMut) {
         buf.write_string(self.server_id.as_str());
         buf.write_var_int(self.public_key_len);
 
         for val in self.public_key.iter() {
-            buf.write_u8(val.clone());
+            buf.put_u8(val.clone());
         }
 
         buf.write_var_int(self.verify_token_len);
         for val in self.verify_token.iter() {
-            buf.write_u8(val.clone());
+            buf.put_u8(val.clone());
         }
     }
 }
@@ -208,11 +202,11 @@ pub struct LoginSuccess {
 }
 
 impl Packet for LoginSuccess {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()> {
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()>{
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, mut buf: &mut BufMut) {
         buf.write_string(self.uuid.as_str());
         buf.write_string(self.username.as_str());
     }
@@ -224,11 +218,11 @@ pub struct SetCompression {
 }
 
 impl Packet for SetCompression {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()> {
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()>{
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, mut buf: &mut BufMut) {
         buf.write_var_int(self.threshold);
     }
 }
@@ -239,11 +233,11 @@ pub struct Response {
 }
 
 impl Packet for Response {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()> {
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, mut buf: &mut BufMut) {
         buf.write_string(self.json_response.as_str());
     }
 }
@@ -254,11 +248,11 @@ pub struct Pong {
 }
 
 impl Packet for Pong {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()> {
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_u64(self.payload);
+    fn write_to(&self, mut buf: &mut BufMut) {
+        buf.put_u64_be(self.payload);
     }
 }

@@ -5,8 +5,10 @@ authors = ["caelunshun <caelum12321@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-lemio = { git = "https://github.com/caelunshun/lemio", version = "0.1.0" }
 im = "13.0.0"
 lazy_static = "1.3.0"
 derive-new = "0.5.6"
 uuid = "0.7.4"
+openssl = { version = "0.10.23", features = ["vendored"] }
+flate2 = "1.0.7"
+bytes = "0.4.12"

@@ -1,10 +1,10 @@
 pub mod implementation;
 
-use lemio::ByteBuf;
+use bytes::{Buf, BufMut};
 
 pub trait Packet {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()>;
-    fn write_to(&self, buf: &mut ByteBuf);
+    fn read_from(&mut self, buf: &mut Buf) -> Result<(), ()>;
+    fn write_to(&self, buf: &mut BufMut);
 }
 
 #[derive(Clone, Debug)]

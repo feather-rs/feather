@@ -5,4 +5,6 @@ authors = ["caelunshun <caelum12321@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-lemio = { git = "https://github.com/caelunshun/lemio", version = "0.1.0" }
+mio = "0.6.19"
+mio-extras = "2.0.5"
+feather_core = { path = "../core" }
