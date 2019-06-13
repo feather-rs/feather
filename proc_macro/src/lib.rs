@@ -1,6 +1,7 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
+use quote::quote;
 use std::fmt;
 use syn::parse::{Parse, ParseStream};
 use syn::parse_macro_input;
@@ -8,7 +9,6 @@ use syn::punctuated::Punctuated;
 use syn::ItemFn;
 use syn::Result;
 use syn::Token;
-use quote::quote;
 
 #[macro_use]
 extern crate lazy_static;
@@ -74,7 +74,9 @@ impl Parse for PacketParameter {
         let _: Token![:] = input.parse()?;
 
         let type_name: syn::Ident = input.parse()?;
-        let ty = PARAMETER_MAPPINGS.get(type_name.to_string().as_str()).unwrap();
+        let ty = PARAMETER_MAPPINGS
+            .get(type_name.to_string().as_str())
+            .unwrap();
 
         Ok(PacketParameter {
             name,
@@ -96,10 +98,7 @@ impl Parse for Packet {
 
         let params = Punctuated::parse_separated_nonempty(input)?;
 
-        Ok(Packet {
-            name,
-            params,
-        })
+        Ok(Packet { name, params })
     }
 }
 

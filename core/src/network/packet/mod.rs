@@ -19,7 +19,7 @@ impl PacketBuilder {
     }
 
     pub fn with(f: fn() -> Box<Packet>) -> Self {
-        Self {init_fn: f}
+        Self { init_fn: f }
     }
 }
 
@@ -181,6 +181,10 @@ pub enum PacketType {
     EntityEffect,
     DeclareRecipes,
     Tags,
+
+    // Status
+    Response,
+    Pong,
 }
 
 lazy_static! {
@@ -392,20 +396,30 @@ lazy_static! {
             PacketType::DisconnectLogin,
         );
         m.insert(
-            PacketId(0x01, PacketDirection::Serverbound, PacketStage::Status),
+            PacketId(0x01, PacketDirection::Serverbound, PacketStage::Login),
             PacketType::EncryptionRequest,
         );
         m.insert(
-            PacketId(0x02, PacketDirection::Serverbound, PacketStage::Status),
+            PacketId(0x02, PacketDirection::Serverbound, PacketStage::Login),
             PacketType::LoginSuccess,
         );
         m.insert(
-            PacketId(0x03, PacketDirection::Serverbound, PacketStage::Status),
+            PacketId(0x03, PacketDirection::Serverbound, PacketStage::Login),
             PacketType::SetCompression,
         );
         m.insert(
-            PacketId(0x04, PacketDirection::Serverbound, PacketStage::Status),
+            PacketId(0x04, PacketDirection::Serverbound, PacketStage::Login),
             PacketType::LoginPluginRequest,
+        );
+
+        m.insert(
+            PacketId(0x00, PacketDirection::Clientbound, PacketStage::Status),
+            PacketType::Response,
+        );
+
+        m.insert(
+            PacketId(0x01, PacketDirection::Clientbound, PacketStage::Status),
+            PacketType::Pong,
         );
 
         m

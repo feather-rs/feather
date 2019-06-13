@@ -5,9 +5,22 @@ lazy_static! {
     pub static ref IMPL_MAP: im::HashMap<PacketType, PacketBuilder> = {
         let mut m = im::HashMap::new();
 
+        // Serverbound
         m.insert(PacketType::Handshake, PacketBuilder::with(|| Box::new(Handshake::default())));
         m.insert(PacketType::LoginStart, PacketBuilder::with(|| Box::new(LoginStart::default())));
         m.insert(PacketType::EncryptionResponse, PacketBuilder::with(|| Box::new(EncryptionResponse::default())));
+
+        m.insert(PacketType::Request, PacketBuilder::with(|| Box::new(Request::default())));
+        m.insert(PacketType::Ping, PacketBuilder::with(|| Box::new(Ping::default())));
+
+        // Clientbound
+        m.insert(PacketType::DisconnectLogin, PacketBuilder::with(|| Box::new(DisconnectLogin::default())));
+        m.insert(PacketType::EncryptionRequest, PacketBuilder::with(|| Box::new(EncryptionRequest::default())));
+        m.insert(PacketType::LoginSuccess, PacketBuilder::with(|| Box::new(LoginSuccess::default())));
+        m.insert(PacketType::SetCompression, PacketBuilder::with(|| Box::new(SetCompression::default())));
+
+        m.insert(PacketType::Response, PacketBuilder::with(|| Box::new(Response::default())));
+        m.insert(PacketType::Pong, PacketBuilder::with(|| Box::new(Pong::default())));
 
         m
     };
@@ -114,9 +127,7 @@ impl Packet for EncryptionResponse {
 }
 
 #[derive(Default)]
-pub struct Request {
-
-}
+pub struct Request {}
 
 impl Packet for Request {
     fn read_from(&mut self, buf: &mut ByteBuf) -> Option<()> {
@@ -179,13 +190,13 @@ impl Packet for EncryptionRequest {
         buf.write_string(self.server_id.as_str());
         buf.write_var_int(self.public_key_len);
 
-        for val in self.public_key {
-            buf.write_u8(val);
+        for val in self.public_key.iter() {
+            buf.write_u8(val.clone());
         }
 
         buf.write_var_int(self.verify_token_len);
-        for val in self.verify_token {
-            buf.write_u8(val);
+        for val in self.verify_token.iter() {
+            buf.write_u8(val.clone());
         }
     }
 }
