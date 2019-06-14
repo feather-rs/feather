@@ -56,6 +56,10 @@ impl Packet for Handshake {
     fn write_to(&self, mut buf: &mut BufMut) {
         unimplemented!()
     }
+
+    fn ty(&self) -> PacketType {
+        PacketType::Handshake
+    }
 }
 
 pub enum HandshakeState {

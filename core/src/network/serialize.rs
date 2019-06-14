@@ -146,7 +146,7 @@ impl ConnectionIOManager {
 
     pub fn serialize_packet(&mut self, packet: Box<Packet>) -> ByteBuf {
         let mut packet_data_buf = ByteBuf::new();
-        packet_data_buf.write_var_int(packet.ty().get_id() as i32);
+        packet_data_buf.write_var_int(packet.ty().get_id().0 as i32);
         packet.write_to(&mut packet_data_buf);
 
         let mut buf_without_length = ByteBuf::with_capacity(packet_data_buf.len());
@@ -154,7 +154,7 @@ impl ConnectionIOManager {
         if self.compression_enabled {
             let mut uncompressed_length = packet_data_buf.len();
 
-            if packet.len() < self.compression_threshold {
+            if packet_data_buf.len() < self.compression_threshold as usize {
                 uncompressed_length = 0;
                 buf_without_length.write_var_int(0);
                 buf_without_length.put(packet_data_buf);
@@ -164,7 +164,7 @@ impl ConnectionIOManager {
             }
         }
 
-        let mut buf = ByteBuf::with_capacity(buf_without_length + 4);
+        let mut buf = ByteBuf::with_capacity(buf_without_length.len() + 4);
         buf.write_var_int(buf_without_length.len() as i32);
         buf.put(buf_without_length.inner());
 
