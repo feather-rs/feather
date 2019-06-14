@@ -146,6 +146,7 @@ impl ConnectionIOManager {
 
     pub fn serialize_packet(&mut self, packet: Box<Packet>) -> ByteBuf {
         let mut packet_data_buf = ByteBuf::new();
+        packet_data_buf.write_var_int(packet.ty().get_id() as i32);
         packet.write_to(&mut packet_data_buf);
 
         let mut buf_without_length = ByteBuf::with_capacity(packet_data_buf.len());
