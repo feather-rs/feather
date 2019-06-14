@@ -436,16 +436,17 @@ lazy_static! {
 }
 
 impl PacketType {
-    pub fn get_from_id(id: PacketId) -> Option<PacketType> {
+    pub fn get_from_id(id: PacketId) -> Result<PacketType, ()> {
         PACKET_ID_MAPPINGS.get(&id).map(|v| v.clone())
+            .ok_or(())
     }
 
     pub fn get_id(&self) -> PacketId {
         PACKET_TYPE_MAPPINGS.get(self).unwrap().clone()
     }
 
-    pub fn get_implementation(&self) -> &PacketBuilder {
-        implementation::IMPL_MAP.get(self).unwrap()
+    pub fn get_implementation(&self) -> Box<Packet> {
+        implementation::IMPL_MAP.get(self).unwrap().build()
     }
 }
 
@@ -453,7 +454,7 @@ impl PacketType {
 /// another packet during a different login stage (blame Mojang),
 /// so this struct is used to differentiate between packets like that.
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
-pub struct PacketId(u32, PacketDirection, PacketStage);
+pub struct PacketId(pub u32, pub PacketDirection, pub PacketStage);
 
 #[derive(Debug, Hash, PartialEq, Eq, Copy, Clone)]
 pub enum PacketDirection {

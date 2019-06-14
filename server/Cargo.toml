@@ -8,3 +8,4 @@ edition = "2018"
 mio = "0.6.19"
 mio-extras = "2.0.5"
 feather_core = { path = "../core" }
+crossbeam = "0.7.1"
