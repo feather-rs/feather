@@ -438,8 +438,7 @@ lazy_static! {
 
 impl PacketType {
     pub fn get_from_id(id: PacketId) -> Result<PacketType, ()> {
-        PACKET_ID_MAPPINGS.get(&id).map(|v| v.clone())
-            .ok_or(())
+        PACKET_ID_MAPPINGS.get(&id).map(|v| v.clone()).ok_or(())
     }
 
     pub fn get_id(&self) -> PacketId {

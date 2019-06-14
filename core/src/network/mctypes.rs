@@ -29,7 +29,7 @@ pub trait McTypeRead {
     fn read_position(&mut self) -> Result<BlockPosition, ()>;
 }
 
-impl <T: BufMut> McTypeWrite for T {
+impl<T: BufMut> McTypeWrite for T {
     /// Writes a `VarInt` to the object. See wiki.vg for
     /// details on `VarInt`s and related types.
     fn write_var_int(&mut self, mut x: i32) {
@@ -65,7 +65,7 @@ impl <T: BufMut> McTypeWrite for T {
     }
 }
 
-impl <T: Buf> McTypeRead for T {
+impl<T: Buf> McTypeRead for T {
     /// Reads a `VarInt` from this object, returning
     /// `Some(x)` if successful or `None` if the object
     /// does not contain a valid `VarInt`.

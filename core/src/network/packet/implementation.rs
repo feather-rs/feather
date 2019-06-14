@@ -1,4 +1,4 @@
-use super::super::mctypes::{McTypeWrite, McTypeRead};
+use super::super::mctypes::{McTypeRead, McTypeWrite};
 use super::*;
 use bytes::{Buf, BufMut};
 
@@ -136,7 +136,7 @@ impl Packet for EncryptionResponse {
 pub struct Request {}
 
 impl Packet for Request {
-    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()>{
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()> {
         Ok(())
     }
 
@@ -200,11 +200,11 @@ pub struct EncryptionRequest {
 }
 
 impl Packet for EncryptionRequest {
-    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()>{
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self,mut  buf: &mut BufMut) {
+    fn write_to(&self, mut buf: &mut BufMut) {
         buf.write_string(self.server_id.as_str());
         buf.write_var_int(self.public_key_len);
 
@@ -230,7 +230,7 @@ pub struct LoginSuccess {
 }
 
 impl Packet for LoginSuccess {
-    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()>{
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()> {
         unimplemented!()
     }
 
@@ -250,7 +250,7 @@ pub struct SetCompression {
 }
 
 impl Packet for SetCompression {
-    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()>{
+    fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()> {
         unimplemented!()
     }
 

@@ -1,13 +1,16 @@
-use bytes::{Buf, BufMut};
-use super::mctypes::{McTypeWrite, McTypeRead};
+use super::mctypes::{McTypeRead, McTypeWrite};
 use super::packet;
-use super::packet::{Packet, PacketStage, PacketDirection, PacketType, PacketId};
+use super::packet::{Packet, PacketDirection, PacketId, PacketStage, PacketType};
+use crate::bytebuf::ByteBuf;
+use bytes::{Buf, BufMut};
+use flate2::{
+    read::{ZlibDecoder, ZlibEncoder},
+    Compression,
+};
 use openssl::symm::{Cipher, Crypter, Mode};
-use flate2::{read::{ZlibDecoder, ZlibEncoder}, Compression};
 use std::io;
 use std::io::prelude::*;
 use std::io::Cursor;
-use crate::bytebuf::ByteBuf;
 
 pub type PacketAcceptor = fn(Box<Packet>) -> ();
 
@@ -58,16 +61,8 @@ impl ConnectionIOManager {
         self.encryption_enabled = true;
         self.encryption_key = key;
 
-        self.encrypter = Some(Crypter::new(
-            self.cipher,
-            Mode::Encrypt,
-            &key,
-            Some(&key)).unwrap());
-        self.decrypter = Some(Crypter::new(
-            self.cipher,
-            Mode::Decrypt,
-            &key,
-            Some(&key)).unwrap());
+        self.encrypter = Some(Crypter::new(self.cipher, Mode::Encrypt, &key, Some(&key)).unwrap());
+        self.decrypter = Some(Crypter::new(self.cipher, Mode::Decrypt, &key, Some(&key)).unwrap());
     }
 
     pub fn enable_compression(&mut self, threshold: i32) {
@@ -130,7 +125,10 @@ impl ConnectionIOManager {
 
         let packet_type = PacketType::get_from_id(PacketId(packet_id as u32, direction, stage));
         if packet_type.is_err() {
-            warn!("Client sent packet with invalid id {} for stage {:?}", packet_id, stage);
+            warn!(
+                "Client sent packet with invalid id {} for stage {:?}",
+                packet_id, stage
+            );
         }
 
         let mut packet = packet_type.unwrap().get_implementation();
@@ -211,7 +209,8 @@ impl ConnectionIOManager {
             self.incoming_uncompressed.put(data.inner());
         }
         let mut coder = ZlibDecoder::new(data);
-        self.incoming_uncompressed.reserve(uncompressed_size as usize);
+        self.incoming_uncompressed
+            .reserve(uncompressed_size as usize);
         coder.read(self.incoming_uncompressed.inner_mut()).unwrap();
     }
 }
