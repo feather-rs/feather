@@ -168,7 +168,13 @@ impl ConnectionIOManager {
         buf.write_var_int(buf_without_length.len() as i32);
         buf.put(buf_without_length.inner());
 
-        buf
+        if !self.encryption_enabled {
+            buf
+        } else {
+            let mut encrypted_buf = ByteBuf::with_capacity(buf.len());
+            self.encrypt_data(buf.inner(), &mut encrypted_buf);
+            encrypted_buf
+        }
     }
 
     fn encrypt_data(&mut self, data: &[u8], output: &mut ByteBuf) {
