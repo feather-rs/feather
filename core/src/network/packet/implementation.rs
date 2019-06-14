@@ -84,6 +84,10 @@ impl Packet for LoginStart {
     fn write_to(&self, mut buf: &mut BufMut) {
         unimplemented!()
     }
+
+    fn ty(&self) -> PacketType {
+        PacketType::LoginStart
+    }
 }
 
 #[derive(Default)]
@@ -118,6 +122,10 @@ impl Packet for EncryptionResponse {
     fn write_to(&self, mut buf: &mut BufMut) {
         unimplemented!()
     }
+
+    fn ty(&self) -> PacketType {
+        PacketType::EncryptionResponse
+    }
 }
 
 #[derive(Default)]
@@ -130,6 +138,10 @@ impl Packet for Request {
 
     fn write_to(&self, buf: &mut BufMut) {
         unimplemented!()
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::Request
     }
 }
 
@@ -147,6 +159,10 @@ impl Packet for Ping {
     fn write_to(&self, buf: &mut BufMut) {
         unimplemented!()
     }
+
+    fn ty(&self) -> PacketType {
+        PacketType::Ping
+    }
 }
 
 // CLIENTBOUND
@@ -163,6 +179,10 @@ impl Packet for DisconnectLogin {
 
     fn write_to(&self, mut buf: &mut BufMut) {
         buf.write_string(self.reason.as_str());
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::DisconnectLogin
     }
 }
 
@@ -193,6 +213,10 @@ impl Packet for EncryptionRequest {
             buf.put_u8(val.clone());
         }
     }
+
+    fn ty(&self) -> PacketType {
+        PacketType::EncryptionRequest
+    }
 }
 
 #[derive(Default)]
@@ -210,6 +234,10 @@ impl Packet for LoginSuccess {
         buf.write_string(self.uuid.as_str());
         buf.write_string(self.username.as_str());
     }
+
+    fn ty(&self) -> PacketType {
+        PacketType::LoginSuccess
+    }
 }
 
 #[derive(Default)]
@@ -224,6 +252,10 @@ impl Packet for SetCompression {
 
     fn write_to(&self, mut buf: &mut BufMut) {
         buf.write_var_int(self.threshold);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::SetCompression
     }
 }
 
@@ -240,6 +272,10 @@ impl Packet for Response {
     fn write_to(&self, mut buf: &mut BufMut) {
         buf.write_string(self.json_response.as_str());
     }
+
+    fn ty(&self) -> PacketType {
+        PacketType::Response
+    }
 }
 
 #[derive(Default)]
@@ -254,5 +290,9 @@ impl Packet for Pong {
 
     fn write_to(&self, mut buf: &mut BufMut) {
         buf.put_u64_be(self.payload);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::Ping
     }
 }

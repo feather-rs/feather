@@ -5,6 +5,7 @@ use bytes::{Buf, BufMut};
 pub trait Packet {
     fn read_from(&mut self, buf: &mut Buf) -> Result<(), ()>;
     fn write_to(&self, buf: &mut BufMut);
+    fn ty(&self) -> PacketType;
 }
 
 #[derive(Clone, Debug)]

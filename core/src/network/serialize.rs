@@ -144,6 +144,32 @@ impl ConnectionIOManager {
         Ok(())
     }
 
+    pub fn serialize_packet(&mut self, packet: Box<Packet>) -> ByteBuf {
+        let mut packet_data_buf = ByteBuf::new();
+        packet.write_to(&mut packet_data_buf);
+
+        let mut buf_without_length = ByteBuf::with_capacity(packet_data_buf.len());
+
+        if self.compression_enabled {
+            let mut uncompressed_length = packet_data_buf.len();
+
+            if packet.len() < self.compression_threshold {
+                uncompressed_length = 0;
+                buf_without_length.write_var_int(0);
+                buf_without_length.put(packet_data_buf);
+            } else {
+                buf_without_length.write_var_int(uncompressed_length as i32);
+                self.compress_data(packet_data_buf.inner(), &mut buf_without_length);
+            }
+        }
+
+        let mut buf = ByteBuf::with_capacity(buf_without_length + 4);
+        buf.write_var_int(buf_without_length.len() as i32);
+        buf.put(buf_without_length.inner());
+
+        buf
+    }
+
     fn encrypt_data(&mut self, data: &[u8], output: &mut ByteBuf) {
         let crypter = self.encrypter.as_mut().unwrap();
 
