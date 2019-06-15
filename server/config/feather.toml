@@ -7,10 +7,8 @@ compression-threshold = 256
 io-worker-threads = 8
 
 [proxy]
-# IP forwarding using BungeeCord/Waterfall/Travertine
-bungeecord = false
-# IP forwarding using Velocity
-velocity = false
+# IP forwarding using either "bungee" (BungeeCord/Waterfall/Travertine) or "velocity" (Velocity)
+proxy-mode = "none"
 
 [server]
 online-mode = true

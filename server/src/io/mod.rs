@@ -1,8 +1,8 @@
 use feather_core::network::packet::{self, Packet};
 use mio_extras::channel::{channel, Receiver, Sender};
 use std::net::SocketAddr;
-use uuid::Uuid;
 use std::thread;
+use uuid::Uuid;
 
 mod listener;
 mod worker;
@@ -44,7 +44,10 @@ impl NetworkIoManager {
     /// Starts a new IO event loop with the specified number
     /// of worker threads.
     pub fn start_new(addr: SocketAddr, num_worker_threads: u16) -> Self {
-        info!("Starting IO event loop on {} with {} worker threads", addr, num_worker_threads);
+        info!(
+            "Starting IO event loop on {} with {} worker threads",
+            addr, num_worker_threads
+        );
         let mut workers = vec![];
 
         for i in 0..num_worker_threads {

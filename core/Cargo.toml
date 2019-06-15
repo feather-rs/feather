@@ -13,3 +13,5 @@ openssl = { version = "0.10.23", features = ["vendored"] }
 flate2 = "1.0.7"
 bytes = "0.4.12"
 log = "0.4.6"
+serde = "1.0.92"
+serde_derive = "1.0.92"
