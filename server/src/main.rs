@@ -6,7 +6,7 @@ pub mod io;
 pub struct Server {}
 
 fn main() {
-    simple_logger::init_with_level(log::Level::Trace);
+    simple_logger::init_with_level(log::Level::Trace).unwrap();
 
     info!("Starting Feather; please wait...");
 }

@@ -1,23 +1,37 @@
 use feather_core::network::packet::{self, Packet};
+use mio_extras::channel::{channel, Receiver, Sender};
+use std::net::SocketAddr;
 use uuid::Uuid;
-use mio_extras::channel::{channel, Sender, Receiver};
+
+mod listener;
 
 pub struct Client(usize);
 
-pub enum ServerIoThreadMessage {
-    SendPacket(Client, Box<Packet>),
-    NotifyPacketReceived(Client, Box<Packet>),
+pub enum ServerToWorkerMessage {
+    SendPacket(Box<Packet>),
+    NotifyPacketReceived(Box<Packet>),
+    NotifyDisconnect,
+    Disconnect,
+}
+
+pub enum ServerToListenerMessage {
+    ShutDown,
     NewClient(NewClientInfo),
-    NotifyDisconnect(Client),
-    Disconnect(Client),
+}
+
+pub enum ListenerToWorkerMessage {
+    ShutDown,
+    NewConnection(mio::net::TcpStream, SocketAddr),
 }
 
 pub struct NewClientInfo {
     uuid: Uuid,
     name: String,
     networked_client_id: Client,
-    sender: Sender<ServerIoThreadMessage>,
-    receiver: Receiver<ServerIoThreadMessage>,
+    ip: SocketAddr,
+
+    sender: Sender<ServerToWorkerMessage>,
+    receiver: Receiver<ServerToWorkerMessage>,
 }
 
 pub struct NetworkIoManager {}
