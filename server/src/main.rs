@@ -5,6 +5,7 @@ extern crate log;
 #[macro_use]
 extern crate mockers_derive;
 
+pub mod initialhandler;
 pub mod io;
 
 pub struct Server {}

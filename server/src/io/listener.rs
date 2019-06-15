@@ -14,7 +14,10 @@ pub fn start(
     address: String,
     sender: Sender<ServerToListenerMessage>,
     receiver: Receiver<ServerToListenerMessage>,
-    worker_senders: Vec<Sender<ListenerToWorkerMessage>>,
+    worker_channels: Vec<(
+        Sender<ListenerToWorkerMessage>,
+        Receiver<ListenerToWorkerMessage>,
+    )>,
 ) {
     let poll = Poll::new().unwrap();
 
@@ -25,8 +28,16 @@ pub fn start(
 
     let mut workers = vec![];
 
-    for (i, sender) in worker_senders.into_iter().enumerate() {
-        let worker = Worker { sender };
+    for (i, (sender, receiver)) in worker_channels.into_iter().enumerate() {
+        let worker = Worker { sender, receiver };
+
+        poll.register(
+            &worker.receiver,
+            Token(2 + i),
+            Ready::readable(),
+            PollOpt::edge(),
+        );
+
         workers.push(worker);
     }
 
@@ -39,7 +50,7 @@ pub fn start(
         for event in &events {
             if event.token() == SERVER {
                 // New connection
-                if let Ok((stream, addr)) = server.accept() {
+                while let Ok((stream, addr)) = server.accept() {
                     info!("Accepting connection from {}", addr);
                     debug!(
                         "Connection will be handled by worker #{}",
@@ -58,7 +69,7 @@ pub fn start(
                 }
             } else if event.token() == MESSAGE_RECEIVER {
                 // Message from server
-                if let Ok(message) = receiver.try_recv() {
+                while let Ok(message) = receiver.try_recv() {
                     match message {
                         ServerToListenerMessage::ShutDown => {
                             for worker in workers.iter() {
@@ -73,7 +84,17 @@ pub fn start(
                     }
                 }
             } else {
-                panic!("Invalid token");
+                let index = event.token().0 - 2;
+                let worker = &workers[index];
+
+                while let Ok(msg) = worker.receiver.try_recv() {
+                    match msg {
+                        ListenerToWorkerMessage::NewClient(info) => sender
+                            .send(ServerToListenerMessage::NewClient(info))
+                            .unwrap(),
+                        _ => panic!("Invalid message received by listener from worker"),
+                    }
+                }
             }
         }
     }
@@ -81,4 +102,5 @@ pub fn start(
 
 struct Worker {
     sender: Sender<ListenerToWorkerMessage>,
+    receiver: Receiver<ListenerToWorkerMessage>,
 }

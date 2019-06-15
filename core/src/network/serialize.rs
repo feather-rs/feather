@@ -72,7 +72,7 @@ impl ConnectionIOManager {
     /// `Err` is returned only if something happens that indicates
     /// a malicious client. If `Err` is returned, the client should
     /// be disconnected immediately.
-    pub fn accept_data(&mut self, data: &mut ByteBuf) -> Result<(), ()> {
+    pub fn accept_data(&mut self, mut data: ByteBuf) -> Result<(), ()> {
         // Decrypt if needed
         if self.encryption_enabled {
             self.decrypt_data(data.inner());

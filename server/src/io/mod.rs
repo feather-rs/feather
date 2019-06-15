@@ -24,12 +24,10 @@ pub enum ServerToListenerMessage {
 pub enum ListenerToWorkerMessage {
     ShutDown,
     NewConnection(mio::net::TcpStream, SocketAddr),
+    NewClient(NewClientInfo),
 }
 
 pub struct NewClientInfo {
-    uuid: Uuid,
-    name: String,
-    networked_client_id: Client,
     ip: SocketAddr,
 
     sender: Sender<ServerToWorkerMessage>,
