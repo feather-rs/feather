@@ -18,7 +18,7 @@ pub struct ConnectionIOManager {
     compression_enabled: bool,
     compression_threshold: i32,
 
-    pending_received_packets: Option<Vec<Box<Packet>>>,
+    pending_received_packets: Option<Vec<Box<Packet + Send>>>,
 
     incoming_compressed: ByteBuf,
     incoming_uncompressed: ByteBuf,
@@ -212,7 +212,7 @@ impl ConnectionIOManager {
         coder.read(self.incoming_uncompressed.inner_mut()).unwrap();
     }
 
-    pub fn take_pending_packets(&mut self) -> Vec<Box<Packet>> {
+    pub fn take_pending_packets(&mut self) -> Vec<Box<Packet + Send>> {
         self.pending_received_packets.replace(vec![]).unwrap()
     }
 }

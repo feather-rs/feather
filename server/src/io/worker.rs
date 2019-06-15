@@ -43,6 +43,7 @@ struct ClientHandle {
 /// blocking indefinitely until a `ShutDown` message
 /// is received from the listener.
 pub fn start(receiver: Receiver<ListenerToWorkerMessage>, sender: Sender<ListenerToWorkerMessage>) {
+    trace!("Starting IO worker thread");
     let poll = Poll::new().unwrap();
 
     let mut worker = Worker {
@@ -176,7 +177,7 @@ fn disconnect_client(worker: &mut Worker, client_id: Client) {
     worker.clients.remove(&client_id);
 }
 
-fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
+fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet + Send>) {
     let client = worker.clients.get_mut(&client_id).unwrap();
 
     let manager = &mut client.manager;
@@ -224,7 +225,7 @@ fn write_to_client(worker: &mut Worker, client_id: Client) {
     client.stream.write(buf.inner()).unwrap();
 }
 
-fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
+fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet + Send>) {
     let client = worker.clients.get_mut(&client_id).unwrap();
 
     let msg = ServerToWorkerMessage::NotifyPacketReceived(packet);

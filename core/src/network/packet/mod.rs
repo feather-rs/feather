@@ -10,16 +10,16 @@ pub trait Packet {
 
 #[derive(Clone, Debug)]
 pub struct PacketBuilder {
-    pub init_fn: fn() -> Box<Packet>,
+    pub init_fn: fn() -> Box<Packet + Send>,
 }
 
 impl PacketBuilder {
-    pub fn build(&self) -> Box<Packet> {
+    pub fn build(&self) -> Box<Packet + Send> {
         let f = self.init_fn;
         f()
     }
 
-    pub fn with(f: fn() -> Box<Packet>) -> Self {
+    pub fn with(f: fn() -> Box<Packet + Send>) -> Self {
         Self { init_fn: f }
     }
 }
@@ -445,7 +445,7 @@ impl PacketType {
         PACKET_TYPE_MAPPINGS.get(self).unwrap().clone()
     }
 
-    pub fn get_implementation(&self) -> Box<Packet> {
+    pub fn get_implementation(&self) -> Box<Packet + Send> {
         implementation::IMPL_MAP.get(self).unwrap().build()
     }
 }
