@@ -26,9 +26,7 @@ pub fn start(
     let mut workers = vec![];
 
     for (i, sender) in worker_senders.into_iter().enumerate() {
-        let worker = Worker {
-            sender,
-        };
+        let worker = Worker { sender };
         workers.push(worker);
     }
 
@@ -64,13 +62,18 @@ pub fn start(
                     match message {
                         ServerToListenerMessage::ShutDown => {
                             for worker in workers.iter() {
-                                worker.sender.send(ListenerToWorkerMessage::ShutDown).unwrap();
+                                worker
+                                    .sender
+                                    .send(ListenerToWorkerMessage::ShutDown)
+                                    .unwrap();
                             }
                             return;
                         }
                         _ => panic!("IO listener received invalid message from server"),
                     }
                 }
+            } else {
+                panic!("Invalid token");
             }
         }
     }
