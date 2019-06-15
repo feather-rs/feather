@@ -6,7 +6,7 @@ use uuid::Uuid;
 mod listener;
 mod worker;
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Client(usize);
 
 pub enum ServerToWorkerMessage {

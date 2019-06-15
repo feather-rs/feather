@@ -1,10 +1,12 @@
 use super::*;
 use feather_core::bytebuf::ByteBuf;
+use feather_core::network::serialize::ConnectionIOManager;
 use mio::Event;
 use mio::{
     net::{TcpListener, TcpStream},
     Events, Poll, PollOpt, Ready, Token,
 };
+use std::collections::HashMap;
 
 // The token used to listen on the channel receiving messages from the listener thread
 const LISTENER_TOKEN: Token = Token(0);
@@ -15,20 +17,22 @@ struct Worker {
     running: bool,
     client_id_counter: usize,
 
-    clients: Vec<ClientHandle>,
+    clients: HashMap<Client, ClientHandle>
 }
 
 struct ClientHandle {
     id: Client,
     stream: TcpStream,
+    addr: SocketAddr,
 
-    read_buffer: ByteBuf,
     write_buffer: ByteBuf,
 
     receiver: Receiver<ServerToWorkerMessage>,
 
     stream_token: Token,
     server_to_worker_token: Token,
+
+    manager: ConnectionIOManager,
 }
 
 /// Starts an IO worker on the current thread,
@@ -43,7 +47,7 @@ pub fn start(receiver: Receiver<ListenerToWorkerMessage>) {
         running: true,
 
         client_id_counter: 0,
-        clients: vec![],
+        clients: HashMap::new(),
     };
 
     run_loop(&mut worker);
@@ -79,6 +83,40 @@ fn handle_event(worker: &mut Worker, event: Event) {
     if readiness.is_writable() {}
 }
 
+fn accept_connection(worker: &mut Worker, stream: TcpStream, addr: SocketAddr) {
+    let id = Client(worker.client_id_counter);
+    worker.client_id_counter += 1;
+
+    let (send, recv) = channel();
+
+    let client = ClientHandle {
+        id,
+        stream,
+        addr,
+        write_buffer: ByteBuf::new(),
+        receiver: recv,
+        stream_token: get_stream_token(id),
+        server_to_worker_token: get_server_to_worker_token(id),
+        manager: ConnectionIOManager::new(|packet| accept_packet(worker, id, packet)),
+    };
+
+    worker.poll.register(
+        &client.stream,
+        client.stream_token,
+        Ready::readable(),
+        PollOpt::edge()
+    ).unwrap();
+
+    worker.poll.register(
+        &client.receiver,
+        client.server_to_worker_token,
+        Ready::readable(),
+        PollOpt::edge()
+    ).unwrap();
+
+    worker.clients.insert(id, client);
+}
+
 fn read_from_listener(worker: &mut Worker) {
     while let Ok(msg) = worker.receiver.try_recv() {
         match msg {
@@ -89,15 +127,47 @@ fn read_from_listener(worker: &mut Worker) {
 }
 
 fn read_from_server(worker: &mut Worker, token: Token) {
+    let client_id = get_client_from_server_to_worker_token(token);
+    let client = worker.clients.get_mut(&client_id).unwrap();
 
+    if let Ok(msg) = client.receiver.try_recv() {
+        match msg {
+            ServerToWorkerMessage::Disconnect => disconnect_client(worker, client_id),
+            ServerToWorkerMessage::SendPacket(packet) => send_packet(worker, client_id, packet),
+            _ => panic!("Invalid message received from server thread"),
+        }
+    }
+}
+
+fn disconnect_client(worker: &mut Worker, client_id: Client) {
+    let client = worker.clients.get(&client_id).unwrap();
+
+    worker.poll.deregister(&client.receiver);
+    worker.poll.deregister(&client.stream);
+
+    worker.clients.remove(&client_id);
+}
+
+fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
+    let client = worker.clients.get_mut(&client_id).unwrap();
+
+    let manager = &mut client.manager;
+    let buf = manager.serialize_packet(packet);
+    client.write_buffer = buf;
+
+    worker.poll.reregister(
+        &client.stream,
+        client.stream_token,
+        Ready::readable() | Ready::writable(),
+        PollOpt::edge()
+    ).unwrap();
 }
 
 fn read_from_stream(worker: &mut Worker, token: Token) {}
 
-fn accept_connection(worker: &mut Worker, stream: TcpStream, addr: SocketAddr) {
+fn accept_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
 
 }
-
 
 
 fn get_stream_token(client_id: Client) -> Token {
