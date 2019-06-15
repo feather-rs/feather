@@ -4,6 +4,7 @@ use std::net::SocketAddr;
 use uuid::Uuid;
 
 mod listener;
+mod worker;
 
 pub struct Client(usize);
 

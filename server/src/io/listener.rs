@@ -7,17 +7,6 @@ use mio::{
 const SERVER: Token = Token(0);
 const MESSAGE_RECEIVER: Token = Token(1);
 
-pub struct Listener {
-    address: String,
-    listener: TcpListener,
-    poll: Poll,
-
-    sender: Sender<ServerToListenerMessage>,
-    receiver: Receiver<ServerToListenerMessage>,
-
-    workers: Vec<Worker>,
-}
-
 /// Starts a listener in the current thread,
 /// blocking indefinitely until a`ShutDown` message
 /// is received.
