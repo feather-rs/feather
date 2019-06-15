@@ -97,7 +97,7 @@ fn accept_connection(worker: &mut Worker, stream: TcpStream, addr: SocketAddr) {
         receiver: recv,
         stream_token: get_stream_token(id),
         server_to_worker_token: get_server_to_worker_token(id),
-        manager: ConnectionIOManager::new(|packet| accept_packet(worker, id, packet)),
+        manager: ConnectionIOManager::new(),
     };
 
     worker.poll.register(
@@ -165,7 +165,7 @@ fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
 
 fn read_from_stream(worker: &mut Worker, token: Token) {}
 
-fn accept_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
+fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
 
 }
 

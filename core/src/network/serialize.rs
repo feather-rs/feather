@@ -12,14 +12,13 @@ use std::io;
 use std::io::prelude::*;
 use std::io::Cursor;
 
-pub type PacketAcceptor = fn(Box<Packet>) -> ();
-
 pub struct ConnectionIOManager {
     encryption_enabled: bool,
     encryption_key: [u8; 16],
     compression_enabled: bool,
     compression_threshold: i32,
-    packet_acceptor: PacketAcceptor,
+
+    pending_received_packets: Option<Vec<Box<Packet>>>,
 
     incoming_compressed: ByteBuf,
     incoming_uncompressed: ByteBuf,
@@ -33,13 +32,13 @@ pub struct ConnectionIOManager {
 }
 
 impl ConnectionIOManager {
-    pub fn new(packet_acceptor: PacketAcceptor) -> Self {
+    pub fn new() -> Self {
         Self {
             encryption_enabled: false,
             encryption_key: [0; 16],
             compression_enabled: false,
             compression_threshold: -1,
-            packet_acceptor,
+            pending_received_packets: Some(vec![]),
 
             incoming_compressed: ByteBuf::new(),
             incoming_uncompressed: ByteBuf::new(),
@@ -136,8 +135,7 @@ impl ConnectionIOManager {
 
         buf.remove_prior();
 
-        let f = self.packet_acceptor;
-        f(packet);
+        self.pending_received_packets.as_mut().unwrap().push(packet);
 
         Ok(())
     }
@@ -212,5 +210,9 @@ impl ConnectionIOManager {
         self.incoming_uncompressed
             .reserve(uncompressed_size as usize);
         coder.read(self.incoming_uncompressed.inner_mut()).unwrap();
+    }
+
+    pub fn take_pending_packets(&mut self) -> Vec<Box<Packet>> {
+        self.pending_received_packets.replace(vec![]).unwrap()
     }
 }
