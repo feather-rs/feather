@@ -11,14 +11,28 @@ pub mod config;
 pub mod initialhandler;
 pub mod io;
 
+pub use config::Config;
+
 pub struct Server {}
 
 fn main() {
     let config = config::load()
         .expect("Failed to load configuration. Please ensure that the file feather.toml exists and is correct.");
 
-
-    simple_logger::init_with_level(log::Level::Trace).unwrap();
+    init_log(&config);
 
     info!("Starting Feather; please wait...");
+}
+
+fn init_log(config: &Config) {
+    let level = match config.log.level.as_str() {
+        "trace" => log::Level::Trace,
+        "debug" => log::Level::Debug,
+        "info" => log::Level::Info,
+        "warn" => log::Level::Warn,
+        "error" => log::Level::Error,
+        _ => panic!("Unknown log level {}", config.log.level),
+    };
+
+    simple_logger::init_with_level(level);
 }
