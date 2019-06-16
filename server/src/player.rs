@@ -23,7 +23,7 @@ impl PlayerHandle {
     }
 
     pub fn send_packet<P: Packet + Send + 'static>(&self, packet: P) {
-        self.packet_sender.send(packet).unwrap();
+        self.packet_sender.send(ServerToWorkerMessage::SendPacket(Box::new(packet))).unwrap();
     }
 
     pub fn close_connection(self) {

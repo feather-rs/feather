@@ -2,7 +2,7 @@ use crate::io::NewClientInfo;
 use feather_core::network::packet::{Packet, PacketType, implementation::*};
 use crate::prelude::*;
 use std::rc::Rc;
-use openssl::rsa::Rsa;
+use openssl::rsa::{self, Rsa};
 use openssl::pkey::{Private, Public};
 
 const PROTOCOL_VERSION: u32 = 404;
@@ -15,13 +15,12 @@ pub struct InitialHandler {
     pub should_disconnect: bool,
     pub handle: Rc<PlayerHandle>,
     pub name: Option<String>,
-    key: Rsa,
+    key: Rsa<Private>,
     verify_token: [u8; 4],
 }
 
 impl InitialHandler {
     pub fn new(server: Rc<Server>, handle: Rc<PlayerHandle>) -> Self {
-        let (public)
         Self {
             server,
             sent_encryption_request: false,
@@ -30,22 +29,22 @@ impl InitialHandler {
             should_disconnect: false,
             handle,
             name: None,
-            key: PKey::from_rsa(rsa::generate(1024).unwrap()).unwrap(),
+            key: Rsa::generate(1024).unwrap(),
             verify_token: rand::random(),
         }
     }
 
     pub fn handle_packet(&mut self, packet: Box<Packet>) -> Result<(), ()> {
         if self.finished {
-            Err(());
+            return Err(());
         }
 
         if self.state == State::Handshake {
             return self.handle_handshake(packet);
         } else if self.state == State::Status {
             return self.handle_status(packet);
-        } else if self.state = State::Login {
-            return self.handle_login(packe);
+        } else if self.state == State::Login {
+            return self.handle_login(packet);
         }
 
         Ok(())
@@ -127,22 +126,26 @@ impl InitialHandler {
             PacketType::EncryptionResponse => {
 
             }
+            _ => {
+                self.disconnect_login("Client sent incorrect packet at stage LOGIN");
+                return Err(());
+            }
         }
 
         Ok(())
     }
 
     fn send_encryption_request(&self) {
-        let key_bytes = self.key.public_keu_to_der().unwrap();
+        let key_bytes = self.key.public_key_to_der().unwrap();
 
         let mut verify_token = Vec::with_capacity(4);
         verify_token.extend_from_slice(&self.verify_token);
 
         let packet = EncryptionRequest::new(
-            "", // Server ID - empty
-            key_bytes.len(),
+            "".to_string(), // Server ID - empty
+            key_bytes.len() as i32,
             key_bytes,
-            verify_token.len(),
+            verify_token.len() as i32,
             verify_token
         );
 
@@ -156,6 +159,7 @@ impl InitialHandler {
     }
 }
 
+#[derive(Debug, Eq, PartialEq)]
 pub enum State {
     Handshake,
     Status,
