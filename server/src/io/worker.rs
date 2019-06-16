@@ -24,7 +24,6 @@ struct Worker {
 }
 
 struct ClientHandle {
-    id: Client,
     stream: TcpStream,
     addr: SocketAddr,
 
@@ -62,7 +61,7 @@ pub fn start(receiver: Receiver<ListenerToWorkerMessage>, sender: Sender<Listene
 fn run_loop(worker: &mut Worker) {
     let mut events = Events::with_capacity(1024);
     while worker.running {
-        worker.poll.poll(&mut events, None);
+        worker.poll.poll(&mut events, None).unwrap();
 
         for event in &events {
             handle_event(worker, event);
@@ -100,7 +99,6 @@ fn accept_connection(worker: &mut Worker, stream: TcpStream, addr: SocketAddr) {
     let (send2, recv2) = channel();
 
     let client = ClientHandle {
-        id,
         stream,
         addr,
         write_buffer: None,
@@ -172,8 +170,10 @@ fn disconnect_client(worker: &mut Worker, client_id: Client) {
     debug!("Disconnnecting client {}", client_id.0);
     let client = worker.clients.get(&client_id).unwrap();
 
-    worker.poll.deregister(&client.receiver);
-    worker.poll.deregister(&client.stream);
+    worker.poll.deregister(&client.receiver).unwrap();
+    worker.poll.deregister(&client.stream).unwrap();
+
+    let _ = client.sender.send(ServerToWorkerMessage::NotifyDisconnect);
 
     worker.clients.remove(&client_id);
 }
@@ -211,9 +211,11 @@ fn read_from_stream(worker: &mut Worker, token: Token) {
         buf.reserve(32);
     }
 
-    client.manager.accept_data(buf);
+    if client.manager.accept_data(buf).is_err() {
+        disconnect_client(worker, client_id);
+    }
 
-    for packet in client.manager.take_pending_packets() {
+    for packet in worker.clients.get_mut(&client_id).unwrap().manager.take_pending_packets() {
         handle_packet(worker, client_id, packet);
     }
 }
@@ -230,7 +232,7 @@ fn write_to_client(worker: &mut Worker, client_id: Client) {
         get_stream_token(client_id),
         Ready::readable(),
         PollOpt::edge(),
-    );
+    ).unwrap();
 }
 
 fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet + Send>) {

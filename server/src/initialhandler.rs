@@ -8,29 +8,34 @@ use std::rc::Rc;
 const PROTOCOL_VERSION: u32 = 404;
 
 pub struct InitialHandler {
-    server: Rc<Server>,
     sent_encryption_request: bool,
     pub state: State,
     pub finished: bool,
     pub should_disconnect: bool,
-    pub handle: Rc<PlayerHandle>,
+    pub handle: Option<Rc<PlayerHandle>>,
     pub name: Option<String>,
     key: Rsa<Private>,
     verify_token: [u8; 4],
+
+    motd: String,
+    player_count: usize,
+    max_players: i32,
 }
 
 impl InitialHandler {
-    pub fn new(server: Rc<Server>, handle: Rc<PlayerHandle>) -> Self {
+    pub fn new(motd: String, player_count: usize, max_players: i32) -> Self {
         Self {
-            server,
             sent_encryption_request: false,
             state: State::Handshake,
             finished: false,
             should_disconnect: false,
-            handle,
+            handle: None,
             name: None,
             key: Rsa::generate(1024).unwrap(),
             verify_token: rand::random(),
+            motd,
+            player_count,
+            max_players,
         }
     }
 
@@ -78,12 +83,12 @@ impl InitialHandler {
         match packet.ty() {
             PacketType::Request => {
                 let response = Response::new(self.get_status_response());
-                self.handle.send_packet(response);
+                self.send_packet(response);
             }
             PacketType::Ping => {
                 let ping = cast_packet::<Ping>(&packet);
                 let pong = Pong::new(ping.payload);
-                self.handle.send_packet(pong);
+                self.send_packet(pong);
                 self.should_disconnect = true;
             }
             _ => {
@@ -102,11 +107,11 @@ impl InitialHandler {
                 "protocol": PROTOCOL_VERSION,
             },
            "players": {
-                "max": self.server.config.server.max_players,
-                "online": self.server.player_count,
+                "max": self.max_players,
+                "online": self.player_count,
            },
            "description": {
-                "text": self.server.config.server.motd,
+                "text": self.motd,
            }
         });
 
@@ -150,13 +155,17 @@ impl InitialHandler {
             verify_token,
         );
 
-        self.handle.send_packet(packet);
+        self.send_packet(packet)
     }
 
     pub fn disconnect_login(&mut self, reason: &str) {
         let packet = DisconnectLogin::new(reason.to_string());
-        self.handle.send_packet(packet);
+        self.send_packet(packet);
         self.should_disconnect = true;
+    }
+
+    fn send_packet<P: Packet + 'static + Send>(&self, packet: P) {
+        self.handle.as_ref().unwrap().send_packet(packet);
     }
 }
 

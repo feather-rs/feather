@@ -16,6 +16,7 @@ pub mod player;
 pub mod prelude;
 
 use prelude::*;
+use core::borrow::BorrowMut;
 
 pub struct Server {
     config: Config,
@@ -36,6 +37,14 @@ fn main() {
         player_count: 0,
         players: vec![],
     };
+
+    tick(&mut server);
+}
+
+fn tick(server: &mut Server) {
+    for player in server.players.iter_mut() {
+        player.tick(server);
+    }
 }
 
 fn init_log(config: &Config) {
@@ -48,5 +57,5 @@ fn init_log(config: &Config) {
         _ => panic!("Unknown log level {}", config.log.level),
     };
 
-    simple_logger::init_with_level(level);
+    simple_logger::init_with_level(level).unwrap();
 }

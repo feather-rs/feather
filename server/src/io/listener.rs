@@ -36,7 +36,7 @@ pub fn start(
             Token(2 + i),
             Ready::readable(),
             PollOpt::edge(),
-        );
+        ).unwrap();
 
         workers.push(worker);
     }

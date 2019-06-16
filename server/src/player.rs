@@ -15,11 +15,19 @@ pub struct PlayerHandle {
 
 impl PlayerHandle {
     pub fn accept_player_connection(
-        server: &Server,
         packet_sender: Sender<ServerToWorkerMessage>,
         packet_receiver: Receiver<ServerToWorkerMessage>,
-    ) {
+        motd: String,
+        player_count: usize,
+        max_players: i32,
+    ) -> Self {
+        Self {
+            gamemode: Gamemode::Survival, // TOOD
+            initial_handler: InitialHandler::new(motd, player_count, max_players),
 
+            packet_sender,
+            packet_receiver,
+        }
     }
 
     pub fn send_packet<P: Packet + Send + 'static>(&self, packet: P) {
@@ -29,6 +37,10 @@ impl PlayerHandle {
     }
 
     pub fn close_connection(self) {
-        self.packet_sender.send(ServerToWorkerMessage::Disconnect);
+        self.packet_sender.send(ServerToWorkerMessage::Disconnect).unwrap();
+    }
+
+    pub fn tick(&mut self, server: &Server) {
+
     }
 }
