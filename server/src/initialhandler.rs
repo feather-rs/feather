@@ -2,8 +2,8 @@ use crate::io::NewClientInfo;
 use feather_core::network::packet::Packet;
 
 pub struct InitialHandler {
-    state: State,
-    finished: bool,
+    pub state: State,
+    pub finished: bool,
 }
 
 impl InitialHandler {
@@ -12,6 +12,14 @@ impl InitialHandler {
             state: State::Handshake,
             finished: false,
         }
+    }
+
+    pub fn handle_packet(&mut self, packet: Box<Packet>) {
+        if self.finished {
+            return;
+        }
+
+
     }
 }
 

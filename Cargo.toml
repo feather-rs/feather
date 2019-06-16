@@ -3,5 +3,5 @@ members = [
     "core",
     "api",
     "server",
-    "proc_macro"
+    "codegen"
 ]

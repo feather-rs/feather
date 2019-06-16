@@ -10,10 +10,13 @@ extern crate mockers_derive;
 pub mod config;
 pub mod initialhandler;
 pub mod io;
+pub mod player;
 
 pub use config::Config;
 
-pub struct Server {}
+pub struct Server {
+    config: Config,
+}
 
 fn main() {
     let config = config::load()
@@ -22,6 +25,10 @@ fn main() {
     init_log(&config);
 
     info!("Starting Feather; please wait...");
+
+    let mut server = Server {
+        config,
+    };
 }
 
 fn init_log(config: &Config) {
