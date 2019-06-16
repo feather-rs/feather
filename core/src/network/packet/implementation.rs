@@ -39,7 +39,7 @@ pub struct Handshake {
 
 impl Packet for Handshake {
     fn read_from(&mut self, mut buf: &mut Buf) -> Result<(), ()> {
-        self.protocol_version = buf.get_u32_be();
+        self.protocol_version = buf.read_var_int().unwrap() as u32;
         self.server_address = buf.read_string()?;
         self.server_port = buf.get_u16_be();
         let state = buf.read_var_int()?;

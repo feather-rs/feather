@@ -8,7 +8,7 @@ pub trait AsAny {
     fn as_any(&self) -> &Any;
 }
 
-pub trait Packet: AsAny {
+pub trait Packet: AsAny + Send {
     fn read_from(&mut self, buf: &mut Buf) -> Result<(), ()>;
     fn write_to(&self, buf: &mut BufMut);
     fn ty(&self) -> PacketType;
@@ -16,16 +16,16 @@ pub trait Packet: AsAny {
 
 #[derive(Clone, Debug)]
 pub struct PacketBuilder {
-    pub init_fn: fn() -> Box<Packet + Send>,
+    pub init_fn: fn() -> Box<Packet>,
 }
 
 impl PacketBuilder {
-    pub fn build(&self) -> Box<Packet + Send> {
+    pub fn build(&self) -> Box<Packet> {
         let f = self.init_fn;
         f()
     }
 
-    pub fn with(f: fn() -> Box<Packet + Send>) -> Self {
+    pub fn with(f: fn() -> Box<Packet>) -> Self {
         Self { init_fn: f }
     }
 }
@@ -451,7 +451,7 @@ impl PacketType {
         PACKET_TYPE_MAPPINGS.get(self).unwrap().clone()
     }
 
-    pub fn get_implementation(&self) -> Box<Packet + Send> {
+    pub fn get_implementation(&self) -> Box<Packet> {
         implementation::IMPL_MAP.get(self).unwrap().build()
     }
 }

@@ -76,7 +76,6 @@ impl<T: Buf> McTypeRead for T {
             if self.remaining() == 0 {
                 return Err(());
             }
-            trace!("79");
             let read = self.get_u8();
             let value = read & 0b01111111;
             result |= (value as i32) << (7 * num_read);

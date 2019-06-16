@@ -8,6 +8,7 @@ use flate2::{
 };
 use openssl::symm::{Cipher, Crypter, Mode};
 use std::io::prelude::*;
+use crate::prelude::*;
 
 pub struct ConnectionIOManager {
     encryption_enabled: bool,
@@ -15,7 +16,7 @@ pub struct ConnectionIOManager {
     compression_enabled: bool,
     compression_threshold: i32,
 
-    pending_received_packets: Option<Vec<Box<Packet + Send>>>,
+    pending_received_packets: Option<Vec<Box<Packet>>>,
 
     incoming_compressed: ByteBuf,
     incoming_uncompressed: ByteBuf,
@@ -37,8 +38,8 @@ impl ConnectionIOManager {
             compression_threshold: -1,
             pending_received_packets: Some(vec![]),
 
-            incoming_compressed: ByteBuf::new(),
-            incoming_uncompressed: ByteBuf::new(),
+            incoming_compressed: ByteBuf::with_capacity(128),
+            incoming_uncompressed: ByteBuf::with_capacity(128),
 
             encrypter: None,
             decrypter: None,
@@ -69,7 +70,7 @@ impl ConnectionIOManager {
     /// `Err` is returned only if something happens that indicates
     /// a malicious client. If `Err` is returned, the client should
     /// be disconnected immediately.
-    pub fn accept_data(&mut self, mut data: ByteBuf) -> Result<(), ()> {
+    pub fn accept_data(&mut self, data: ByteBuf) -> Result<(), ()> {
         // Decrypt if needed
         if self.encryption_enabled {
             self.decrypt_data(data.inner());
@@ -78,70 +79,88 @@ impl ConnectionIOManager {
             self.incoming_compressed.put(data.inner());
         }
 
-        data.remove_prior();
+        loop {
+            let pending_buf = &mut self.incoming_compressed;
 
-        // Mark reader index so we can return to this
-        // position in the buffer if the packet is incomplete
-        let buf = &mut self.incoming_compressed;
-        buf.mark_read_position();
+            // Mark reader index so we can return to this
+            // position in the buffer if the packet is incomplete
+            pending_buf.mark_read_position();
 
-        trace!("88");
+            let packet_length = {
+                if let Ok(val) = pending_buf.read_var_int() {
+                    val
+                } else {
+                    pending_buf.reset_read_position();
+                    break;
+                }
+            };
 
-        // Read packet length field - return to wait for more data if failed
-        let packet_length = {
-            if let Ok(len) = buf.read_var_int() {
-                len
-            } else {
-                buf.reset_read_position();
+            trace!("Packet length: {}, buffer length: {}", packet_length, pending_buf.len());
+
+            // Check that the entire packet is received - otherwise, return and
+            // wait for more bytes
+            if (pending_buf.remaining() as i32) < packet_length {
+                pending_buf.reset_read_position();
                 return Ok(());
             }
-        };
 
-        trace!("100");
+            // If compression is enabled, read the uncompressed length
+            // and decompress - otherwise, copy bytes to incoming_uncompressed
+            if self.compression_enabled {
+                let uncompressed_size = pending_buf.read_var_int()?;
+                self.decompress_data(uncompressed_size);
+            } else {
+                let buf = &pending_buf.inner()[..(packet_length as usize)];
+                self.incoming_uncompressed.put(buf);
+                self.incoming_compressed.advance(packet_length as usize);
+            }
 
-        // Check that the entire packet is received - otherwise, return and
-        // wait for more bytes
-        if (buf.remaining() as i32) < packet_length {
-            buf.reset_read_position();
-            return Ok(());
+            self.incoming_compressed.remove_prior();
+
+            let buf = &mut self.incoming_uncompressed;
+
+            let packet_id = buf.read_var_int()?;
+            let stage = self.stage;
+            let direction = PacketDirection::Serverbound; // Have to change to implement client
+
+            let packet_type = PacketType::get_from_id(PacketId(packet_id as u32, direction, stage));
+            if packet_type.is_err() {
+                warn!(
+                    "Client sent packet with invalid id {} for stage {:?}",
+                    packet_id, stage
+                );
+
+                return Err(());
+            }
+
+            trace!("Received packet with type {:?}", packet_type.unwrap());
+
+            let mut packet = packet_type.unwrap().get_implementation();
+            packet.read_from(buf)?;
+
+            if packet.ty() == PacketType::Handshake {
+                let handshake = cast_packet::<crate::network::packet::implementation::Handshake>(&packet);
+                match handshake.next_state {
+                    crate::network::packet::implementation::HandshakeState::Login => self.stage = PacketStage::Login,
+                    crate::network::packet::implementation::HandshakeState::Status => self.stage = PacketStage::Status,
+                }
+            }
+
+            buf.remove_prior();
+
+            self.pending_received_packets.as_mut().unwrap().push(packet);
         }
-
-        // If compression is enabled, read the uncompressed length
-        // and decompress - otherwise, copy bytes to incoming_uncompressed
-        if self.compression_enabled {
-            let uncompressed_size = buf.read_var_int()?;
-            self.decompress_data(uncompressed_size);
-        } else {
-            self.incoming_uncompressed.put(buf.inner());
-        }
-
-        self.incoming_compressed.remove_prior();
-
-        let buf = &mut self.incoming_uncompressed;
-
-        let packet_id = buf.read_var_int()?;
-        let stage = self.stage;
-        let direction = PacketDirection::Serverbound; // Have to change to implement client
-
-        let packet_type = PacketType::get_from_id(PacketId(packet_id as u32, direction, stage));
-        if packet_type.is_err() {
-            warn!(
-                "Client sent packet with invalid id {} for stage {:?}",
-                packet_id, stage
-            );
-        }
-
-        let mut packet = packet_type.unwrap().get_implementation();
-        packet.read_from(buf)?;
-
-        buf.remove_prior();
-
-        self.pending_received_packets.as_mut().unwrap().push(packet);
 
         Ok(())
     }
 
     pub fn serialize_packet(&mut self, packet: Box<Packet>) -> ByteBuf {
+        if packet.ty() == PacketType::LoginSuccess {
+            self.stage = PacketStage::Play;
+        }
+
+        trace!("Sending packet with type {:?}", packet.ty());
+
         let mut packet_data_buf = ByteBuf::new();
         packet_data_buf.write_var_int(packet.ty().get_id().0 as i32);
         packet.write_to(&mut packet_data_buf);
@@ -225,7 +244,7 @@ impl ConnectionIOManager {
         }
     }
 
-    pub fn take_pending_packets(&mut self) -> Vec<Box<Packet + Send>> {
+    pub fn take_pending_packets(&mut self) -> Vec<Box<Packet>> {
         self.pending_received_packets.replace(vec![]).unwrap()
     }
 }

@@ -186,7 +186,7 @@ fn disconnect_client(worker: &mut Worker, client_id: Client) {
     worker.clients.remove(&client_id);
 }
 
-fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet + Send>) {
+fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
     let client = worker.clients.get_mut(&client_id).unwrap();
 
     let manager = &mut client.manager;
@@ -215,7 +215,6 @@ fn read_from_stream(worker: &mut Worker, token: Token) {
     let mut buf = ByteBuf::with_capacity(128);
     let mut tmp = [0u8; 32];
     while let Ok(amnt) = stream.read(&mut tmp) {
-        trace!("amnt {}", amnt);
         buf.reserve(amnt);
         buf.put(&mut tmp[0..amnt]);
 
@@ -223,8 +222,6 @@ fn read_from_stream(worker: &mut Worker, token: Token) {
             break;
         }
     }
-
-    trace!("length {}, cap {}", buf.len(), buf.capacity());
 
     if client.manager.accept_data(buf).is_err() {
         disconnect_client(worker, client_id);
@@ -259,7 +256,7 @@ fn write_to_client(worker: &mut Worker, client_id: Client) {
         .unwrap();
 }
 
-fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet + Send>) {
+fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
     trace!("Worker: handle_packet");
     let client = worker.clients.get_mut(&client_id).unwrap();
 

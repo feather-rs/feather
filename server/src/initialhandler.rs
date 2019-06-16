@@ -19,6 +19,8 @@ pub struct InitialHandler {
     motd: String,
     player_count: u32,
     max_players: i32,
+
+    packets_to_send: RefCell<Vec<Box<Packet>>>,
 }
 
 impl InitialHandler {
@@ -35,6 +37,8 @@ impl InitialHandler {
             motd,
             player_count,
             max_players,
+
+            packets_to_send: RefCell::new(vec![]),
         }
     }
 
@@ -196,8 +200,12 @@ impl InitialHandler {
         self.should_disconnect = true;
     }
 
-    fn send_packet<P: Packet + 'static + Send>(&self, packet: P) {
-        self.handle.as_ref().unwrap().send_packet(packet);
+    fn send_packet<P: Packet + 'static + Send>(&mut self, packet: P) {
+        self.packets_to_send.borrow_mut().push(Box::new(packet));
+    }
+
+    pub fn packets_to_send(&self) -> Vec<Box<Packet>> {
+        self.packets_to_send.borrow_mut().drain(..).collect()
     }
 }
 

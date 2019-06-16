@@ -36,6 +36,12 @@ impl PlayerHandle {
             .unwrap();
     }
 
+    pub fn send_packet_boxed(&self, packet: Box<Packet>) {
+        self.packet_sender
+            .send(ServerToWorkerMessage::SendPacket(packet))
+            .unwrap();
+    }
+
     pub fn close_connection(&mut self) {
         self.packet_sender
             .send(ServerToWorkerMessage::Disconnect)
@@ -46,7 +52,11 @@ impl PlayerHandle {
         while let Ok(msg) = self.packet_receiver.try_recv() {
             match msg {
                 ServerToWorkerMessage::NotifyPacketReceived(packet) => self.handle_packet(packet),
-                _ => unimplemented!(),
+                ServerToWorkerMessage::NotifyDisconnect => {
+                    trace!("Server removing player");
+                    self.should_remove = true;
+                }
+                _ => unreachable!(),
             }
         }
     }
@@ -58,6 +68,10 @@ impl PlayerHandle {
             if self.initial_handler.should_disconnect || r.is_err() {
                 self.should_remove = true;
                 self.close_connection();
+            }
+
+            for packet in self.initial_handler.packets_to_send() {
+                self.send_packet_boxed(packet);
             }
         } else {
             // TODO

@@ -33,10 +33,11 @@ impl ByteBuf {
         self.read_cursor_position
     }
 
-
     pub fn mark_read_position(&mut self) {
         self.marked_read_position = self.read_cursor_position;
     }
+
+    pub fn marked_read_position(&self) -> usize { self.marked_read_position }
 
     pub fn reset_read_position(&mut self) {
         self.read_cursor_position = self.marked_read_position;
@@ -60,7 +61,8 @@ impl ByteBuf {
         let new_capacity = self.inner.capacity() - self.read_cursor_position;
         let mut new_inner = Vec::with_capacity(new_capacity);
 
-        new_inner.extend_from_slice(&self.inner);
+        new_inner.extend_from_slice(&self.inner[self.read_cursor_position..]);
+        self.read_cursor_position = 0;
 
         self.inner = new_inner;
     }
@@ -74,7 +76,6 @@ impl ByteBuf {
 
 impl Buf for ByteBuf {
     fn remaining(&self) -> usize {
-        trace!("remaining {}", self.inner.len() - self.read_cursor_position);
         self.inner.len() - self.read_cursor_position
     }
 
@@ -91,7 +92,6 @@ impl Buf for ByteBuf {
 
 impl BufMut for ByteBuf {
     fn remaining_mut(&self) -> usize {
-        trace!("remaining_mut {}", self.inner.capacity() - self.inner.len());
         self.inner.capacity() - self.inner.len()
     }
 

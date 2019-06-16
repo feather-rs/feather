@@ -10,8 +10,8 @@ mod worker;
 pub struct Client(usize);
 
 pub enum ServerToWorkerMessage {
-    SendPacket(Box<Packet + Send>),
-    NotifyPacketReceived(Box<Packet + Send>),
+    SendPacket(Box<Packet>),
+    NotifyPacketReceived(Box<Packet>),
     NotifyDisconnect,
     Disconnect,
 }
@@ -74,8 +74,4 @@ impl NetworkIoManager {
 
         info!("Shut down IO event loop");
     }
-}
-
-pub fn cast_packet<'a, P: Packet + 'static>(packet: &'a Box<Packet>) -> &'a P {
-    packet.as_any().downcast_ref().unwrap()
 }
