@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
-use openssl::pkey::{Private};
+use openssl::pkey::Private;
 use openssl::rsa::{self, Rsa};
 use std::rc::Rc;
 
@@ -132,7 +132,9 @@ impl InitialHandler {
             }
             PacketType::EncryptionResponse => {
                 if !self.sent_encryption_request {
-                    self.disconnect_login("EncryptionResponse sent before server sent EncryptionRequest");
+                    self.disconnect_login(
+                        "EncryptionResponse sent before server sent EncryptionRequest",
+                    );
                     return Err(());
                 }
 
@@ -141,7 +143,10 @@ impl InitialHandler {
                 let verify_token = &response.verify_token;
 
                 if verify_token.len() != 4 {
-                    self.disconnect_login(&format!("Invalid verify token length {}", verify_token.len()));
+                    self.disconnect_login(&format!(
+                        "Invalid verify token length {}",
+                        verify_token.len()
+                    ));
                     return Err(());
                 }
 
@@ -151,7 +156,9 @@ impl InitialHandler {
                 }
 
                 let mut decrypted_buf = Vec::with_capacity(self.key.size() as usize);
-                self.key.private_decrypt(&shared_secret, &mut decrypted_buf, rsa::Padding::PKCS1).unwrap();
+                self.key
+                    .private_decrypt(&shared_secret, &mut decrypted_buf, rsa::Padding::PKCS1)
+                    .unwrap();
 
                 // TODO - enable encryption, send Login Success
             }

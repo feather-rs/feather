@@ -2,10 +2,7 @@ use super::*;
 use feather_core::bytebuf::ByteBuf;
 use feather_core::network::serialize::ConnectionIOManager;
 use mio::Event;
-use mio::{
-    net::{TcpStream},
-    Events, Poll, PollOpt, Ready, Token,
-};
+use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
 use std::collections::HashMap;
 use std::io::Read;
 use std::io::Write;
@@ -215,7 +212,13 @@ fn read_from_stream(worker: &mut Worker, token: Token) {
         disconnect_client(worker, client_id);
     }
 
-    for packet in worker.clients.get_mut(&client_id).unwrap().manager.take_pending_packets() {
+    for packet in worker
+        .clients
+        .get_mut(&client_id)
+        .unwrap()
+        .manager
+        .take_pending_packets()
+    {
         handle_packet(worker, client_id, packet);
     }
 }
@@ -227,12 +230,15 @@ fn write_to_client(worker: &mut Worker, client_id: Client) {
 
     client.stream.write(buf.inner()).unwrap();
 
-    worker.poll.reregister(
-        &client.stream,
-        get_stream_token(client_id),
-        Ready::readable(),
-        PollOpt::edge(),
-    ).unwrap();
+    worker
+        .poll
+        .reregister(
+            &client.stream,
+            get_stream_token(client_id),
+            Ready::readable(),
+            PollOpt::edge(),
+        )
+        .unwrap();
 }
 
 fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet + Send>) {

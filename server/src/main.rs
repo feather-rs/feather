@@ -35,7 +35,7 @@ fn main() {
 
     let io_manager = io::NetworkIoManager::start(
         format!("127.0.0.1:{}", config.server.port).parse().unwrap(),
-        config.io.io_worker_threads
+        config.io.io_worker_threads,
     );
 
     let mut server = Server {
@@ -59,7 +59,7 @@ fn main() {
                         server.config.server.max_players,
                     );
                     server.players.push(RefCell::new(new_player));
-                },
+                }
                 _ => unreachable!(),
             }
         }

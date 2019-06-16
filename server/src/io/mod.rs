@@ -1,4 +1,4 @@
-use feather_core::network::packet::{Packet};
+use feather_core::network::packet::Packet;
 use mio_extras::channel::{channel, Receiver, Sender};
 use std::net::SocketAddr;
 use std::thread;

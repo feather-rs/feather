@@ -1,7 +1,7 @@
 use super::initialhandler::InitialHandler;
-use crate::io::{ServerToWorkerMessage};
+use crate::io::ServerToWorkerMessage;
 use crate::prelude::*;
-use feather_core::network::packet::{Packet};
+use feather_core::network::packet::Packet;
 use mio_extras::channel::{Receiver, Sender};
 
 pub struct PlayerHandle {
@@ -37,7 +37,9 @@ impl PlayerHandle {
     }
 
     pub fn close_connection(&mut self) {
-        self.packet_sender.send(ServerToWorkerMessage::Disconnect).unwrap();
+        self.packet_sender
+            .send(ServerToWorkerMessage::Disconnect)
+            .unwrap();
     }
 
     pub fn tick(&mut self, _server: &Server) {
@@ -51,7 +53,7 @@ impl PlayerHandle {
 
     fn handle_packet(&mut self, packet: Box<Packet>) {
         if !self.initial_handler.finished {
-            let r =self.initial_handler.handle_packet(packet);
+            let r = self.initial_handler.handle_packet(packet);
             if self.initial_handler.should_disconnect || r.is_err() {
                 self.should_remove = true;
                 self.close_connection();

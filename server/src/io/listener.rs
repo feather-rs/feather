@@ -1,8 +1,5 @@
 use super::*;
-use mio::{
-    net::{TcpListener},
-    Events, Poll, PollOpt, Ready, Token,
-};
+use mio::{net::TcpListener, Events, Poll, PollOpt, Ready, Token};
 
 const SERVER: Token = Token(0);
 const MESSAGE_RECEIVER: Token = Token(1);
@@ -36,7 +33,8 @@ pub fn start(
             Token(2 + i),
             Ready::readable(),
             PollOpt::edge(),
-        ).unwrap();
+        )
+        .unwrap();
 
         workers.push(worker);
     }
