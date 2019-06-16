@@ -1,8 +1,13 @@
 pub mod implementation;
 
 use bytes::{Buf, BufMut};
+use std::any::Any;
 
-pub trait Packet {
+pub trait AsAny {
+    fn as_any(&self) -> &Any;
+}
+
+pub trait Packet: AsAny {
     fn read_from(&mut self, buf: &mut Buf) -> Result<(), ()>;
     fn write_to(&self, buf: &mut BufMut);
     fn ty(&self) -> PacketType;

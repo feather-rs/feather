@@ -169,6 +169,7 @@ fn read_from_server(worker: &mut Worker, token: Token) {
 }
 
 fn disconnect_client(worker: &mut Worker, client_id: Client) {
+    debug!("Disconnnecting client {}", client_id);
     let client = worker.clients.get(&client_id).unwrap();
 
     worker.poll.deregister(&client.receiver);

@@ -6,6 +6,8 @@ extern crate derive_new;
 extern crate log;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate feather_codegen;
 
 use serde::{Deserialize, Serialize};
 

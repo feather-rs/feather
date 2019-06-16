@@ -2,6 +2,8 @@
 extern crate log;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate serde_json;
 
 #[cfg(test)]
 #[macro_use]
@@ -11,11 +13,14 @@ pub mod config;
 pub mod initialhandler;
 pub mod io;
 pub mod player;
+pub mod prelude;
 
-pub use config::Config;
+use prelude::*;
 
 pub struct Server {
     config: Config,
+    player_count: u32,
+    players: Vec<PlayerHandle>,
 }
 
 fn main() {
@@ -28,6 +33,8 @@ fn main() {
 
     let mut server = Server {
         config,
+        player_count: 0,
+        players: vec![],
     };
 }
 

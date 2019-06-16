@@ -29,7 +29,7 @@ lazy_static! {
 
 // SERVERBOUND
 
-#[derive(Default)]
+#[derive(Default, AsAny, new)]
 pub struct Handshake {
     pub protocol_version: u32,
     pub server_address: String,
@@ -73,9 +73,9 @@ impl Default for HandshakeState {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, AsAny, new)]
 pub struct LoginStart {
-    username: String,
+    pub username: String,
 }
 
 impl Packet for LoginStart {
@@ -94,12 +94,12 @@ impl Packet for LoginStart {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, AsAny, new)]
 pub struct EncryptionResponse {
-    secret_length: i32,
-    secret: Vec<u8>,
-    verify_token_length: i32,
-    verify_token: Vec<u8>,
+    pub secret_length: i32,
+    pub secret: Vec<u8>,
+    pub verify_token_length: i32,
+    pub verify_token: Vec<u8>,
 }
 
 impl Packet for EncryptionResponse {
@@ -132,7 +132,7 @@ impl Packet for EncryptionResponse {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, AsAny, new)]
 pub struct Request {}
 
 impl Packet for Request {
@@ -149,9 +149,9 @@ impl Packet for Request {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, AsAny, new)]
 pub struct Ping {
-    payload: u64,
+    pub payload: u64,
 }
 
 impl Packet for Ping {
@@ -170,9 +170,9 @@ impl Packet for Ping {
 }
 
 // CLIENTBOUND
-#[derive(Default)]
+#[derive(Default, AsAny, new)]
 pub struct DisconnectLogin {
-    reason: String,
+    pub reason: String,
 }
 
 impl Packet for DisconnectLogin {
@@ -190,13 +190,13 @@ impl Packet for DisconnectLogin {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, AsAny, new)]
 pub struct EncryptionRequest {
-    server_id: String,
-    public_key_len: i32,
-    public_key: Vec<u8>,
-    verify_token_len: i32,
-    verify_token: Vec<u8>,
+    pub server_id: String,
+    pub public_key_len: i32,
+    pub public_key: Vec<u8>,
+    pub verify_token_len: i32,
+    pub verify_token: Vec<u8>,
 }
 
 impl Packet for EncryptionRequest {
@@ -223,10 +223,10 @@ impl Packet for EncryptionRequest {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, AsAny, new)]
 pub struct LoginSuccess {
-    uuid: String,
-    username: String,
+    pub uuid: String,
+    pub username: String,
 }
 
 impl Packet for LoginSuccess {
@@ -244,9 +244,9 @@ impl Packet for LoginSuccess {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, AsAny, new)]
 pub struct SetCompression {
-    threshold: i32,
+    pub threshold: i32,
 }
 
 impl Packet for SetCompression {
@@ -263,9 +263,9 @@ impl Packet for SetCompression {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, AsAny, new)]
 pub struct Response {
-    json_response: String,
+    pub json_response: String,
 }
 
 impl Packet for Response {
@@ -282,9 +282,9 @@ impl Packet for Response {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, AsAny, new)]
 pub struct Pong {
-    payload: u64,
+    pub payload: u64,
 }
 
 impl Packet for Pong {

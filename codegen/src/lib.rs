@@ -4,7 +4,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 use std::fmt;
 use syn::parse::{Parse, ParseStream};
-use syn::parse_macro_input;
+use syn::{parse_macro_input, DeriveInput};
 use syn::punctuated::Punctuated;
 use syn::ItemFn;
 use syn::Result;
@@ -13,7 +13,24 @@ use syn::Token;
 #[macro_use]
 extern crate lazy_static;
 
-#[derive(Clone, Copy, Debug)]
+#[proc_macro_derive(AsAny)]
+pub fn derive_as_any(_item: TokenStream) -> TokenStream {
+    let parsed: DeriveInput = parse_macro_input!(_item as DeriveInput);
+
+    let name = &parsed.ident;
+
+    let result = quote! {
+        impl AsAny for #name {
+            fn as_any(&self) -> &Any {
+                self
+            }
+        }
+    };
+
+    result.into()
+}
+
+/*#[derive(Clone, Copy, Debug)]
 enum PacketParameterType {
     Varint,
     Varlong,
@@ -109,4 +126,4 @@ pub fn gen_packet(_item: TokenStream) -> TokenStream {
     let name = &item.name;
 
     unimplemented!()
-}
+}*/

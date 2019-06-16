@@ -1,4 +1,4 @@
-use feather_core::network::packet::{self, Packet};
+use feather_core::network::packet::{self, Packet, AsAny};
 use mio_extras::channel::{channel, Receiver, Sender};
 use std::net::SocketAddr;
 use std::thread;
@@ -75,4 +75,8 @@ impl NetworkIoManager {
 
         info!("Shut down IO event loop");
     }
+}
+
+pub fn cast_packet<'a, P: Packet + 'static>(packet: &'a  Box<Packet>) -> &'a P {
+    packet.as_any().downcast_ref().unwrap()
 }
