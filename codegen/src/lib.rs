@@ -4,11 +4,11 @@ use proc_macro::TokenStream;
 use quote::quote;
 use std::fmt;
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, DeriveInput};
 use syn::punctuated::Punctuated;
 use syn::ItemFn;
 use syn::Result;
 use syn::Token;
+use syn::{parse_macro_input, DeriveInput};
 
 #[macro_use]
 extern crate lazy_static;

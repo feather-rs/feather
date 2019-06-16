@@ -1,9 +1,9 @@
-use crate::io::{ServerToWorkerMessage, NetworkIoManager};
-use feather_core::network::{packet::{Packet, self, implementation::*}};
-use feather_core::prelude::*;
 use super::initialhandler::InitialHandler;
-use mio_extras::channel::{Sender, Receiver};
+use crate::io::{NetworkIoManager, ServerToWorkerMessage};
 use crate::prelude::*;
+use feather_core::network::packet::{self, implementation::*, Packet};
+use feather_core::prelude::*;
+use mio_extras::channel::{Receiver, Sender};
 
 pub struct PlayerHandle {
     gamemode: Gamemode,
@@ -23,7 +23,9 @@ impl PlayerHandle {
     }
 
     pub fn send_packet<P: Packet + Send + 'static>(&self, packet: P) {
-        self.packet_sender.send(ServerToWorkerMessage::SendPacket(Box::new(packet))).unwrap();
+        self.packet_sender
+            .send(ServerToWorkerMessage::SendPacket(Box::new(packet)))
+            .unwrap();
     }
 
     pub fn close_connection(self) {

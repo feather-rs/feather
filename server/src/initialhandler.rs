@@ -1,9 +1,9 @@
 use crate::io::NewClientInfo;
-use feather_core::network::packet::{Packet, PacketType, implementation::*};
 use crate::prelude::*;
-use std::rc::Rc;
-use openssl::rsa::{self, Rsa};
+use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use openssl::pkey::{Private, Public};
+use openssl::rsa::{self, Rsa};
+use std::rc::Rc;
 
 const PROTOCOL_VERSION: u32 = 404;
 
@@ -64,7 +64,10 @@ impl InitialHandler {
         }
 
         if handshake.protocol_version != PROTOCOL_VERSION {
-            self.disconnect_login(&format!("Protocol version does not match: client is on {}, server on {}", handshake.protocol_version, PROTOCOL_VERSION));
+            self.disconnect_login(&format!(
+                "Protocol version does not match: client is on {}, server on {}",
+                handshake.protocol_version, PROTOCOL_VERSION
+            ));
             return Err(());
         }
 
@@ -76,13 +79,13 @@ impl InitialHandler {
             PacketType::Request => {
                 let response = Response::new(self.get_status_response());
                 self.handle.send_packet(response);
-            },
+            }
             PacketType::Ping => {
                 let ping = cast_packet::<Ping>(&packet);
                 let pong = Pong::new(ping.payload);
                 self.handle.send_packet(pong);
                 self.should_disconnect = true;
-            },
+            }
             _ => {
                 self.disconnect_login("Client sent incorrect packet at stage STATUS");
                 return Err(());
@@ -122,10 +125,8 @@ impl InitialHandler {
                 let login_start = cast_packet::<LoginStart>(&packet);
                 self.name = Some(login_start.username.clone());
                 self.send_encryption_request();
-            },
-            PacketType::EncryptionResponse => {
-
             }
+            PacketType::EncryptionResponse => {}
             _ => {
                 self.disconnect_login("Client sent incorrect packet at stage LOGIN");
                 return Err(());
@@ -146,7 +147,7 @@ impl InitialHandler {
             key_bytes.len() as i32,
             key_bytes,
             verify_token.len() as i32,
-            verify_token
+            verify_token,
         );
 
         self.handle.send_packet(packet);

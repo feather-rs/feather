@@ -225,7 +225,12 @@ fn write_to_client(worker: &mut Worker, client_id: Client) {
 
     client.stream.write(buf.inner()).unwrap();
 
-    worker.poll.reregister(&client.stream, get_stream_token(client_id), Ready::readable(), PollOpt::edge());
+    worker.poll.reregister(
+        &client.stream,
+        get_stream_token(client_id),
+        Ready::readable(),
+        PollOpt::edge(),
+    );
 }
 
 fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet + Send>) {
