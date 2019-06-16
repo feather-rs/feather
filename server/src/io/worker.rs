@@ -6,6 +6,7 @@ use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
 use std::collections::HashMap;
 use std::io::Read;
 use std::io::Write;
+use bytes::BufMut;
 
 // The token used to listen on the channel receiving messages from the listener thread
 const LISTENER_TOKEN: Token = Token(0);
@@ -52,6 +53,13 @@ pub fn start(receiver: Receiver<ListenerToWorkerMessage>, sender: Sender<Listene
         clients: HashMap::new(),
     };
 
+    worker.poll.register(
+        &worker.receiver,
+        LISTENER_TOKEN,
+        Ready::readable(),
+        PollOpt::edge()
+    ).unwrap();
+
     run_loop(&mut worker);
 }
 
@@ -61,6 +69,7 @@ fn run_loop(worker: &mut Worker) {
         worker.poll.poll(&mut events, None).unwrap();
 
         for event in &events {
+            trace!("Handling event with readiness {:?} and token {:?}", event.readiness(), event.token());
             handle_event(worker, event);
         }
     }
@@ -74,7 +83,7 @@ fn handle_event(worker: &mut Worker, event: Event) {
             t => {
                 // If even, the token is a server_to_worker token
                 // If odd, it's  a stream token
-                if t.0 % 2 == 1 {
+                if t.0 % 2 == 0 {
                     read_from_server(worker, t);
                 } else {
                     read_from_stream(worker, t);
@@ -136,6 +145,8 @@ fn accept_connection(worker: &mut Worker, stream: TcpStream, addr: SocketAddr) {
     worker.sender.send(msg).unwrap();
 
     worker.clients.insert(id, client);
+
+    trace!("Registered client with ID {}", id.0);
 }
 
 fn read_from_listener(worker: &mut Worker) {
@@ -195,18 +206,25 @@ fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet + Send
 
 fn read_from_stream(worker: &mut Worker, token: Token) {
     let client_id = get_client_from_stream_token(token);
+    trace!("Reading from stream on client #{}", client_id.0);
+
     let client = worker.clients.get_mut(&client_id).unwrap();
 
     let stream = &mut client.stream;
 
     let mut buf = ByteBuf::with_capacity(128);
-    while let Ok(amount_read) = stream.read(buf.inner_mut()) {
-        if amount_read == 0 {
+    let mut tmp = [0u8; 32];
+    while let Ok(amnt) = stream.read(&mut tmp) {
+        trace!("amnt {}", amnt);
+        buf.reserve(amnt);
+        buf.put(&mut tmp[0..amnt]);
+
+        if amnt == 0 {
             break;
         }
-
-        buf.reserve(32);
     }
+
+    trace!("length {}, cap {}", buf.len(), buf.capacity());
 
     if client.manager.accept_data(buf).is_err() {
         disconnect_client(worker, client_id);
@@ -242,6 +260,7 @@ fn write_to_client(worker: &mut Worker, client_id: Client) {
 }
 
 fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet + Send>) {
+    trace!("Worker: handle_packet");
     let client = worker.clients.get_mut(&client_id).unwrap();
 
     let msg = ServerToWorkerMessage::NotifyPacketReceived(packet);
@@ -261,6 +280,7 @@ fn get_client_from_stream_token(token: Token) -> Client {
 }
 
 fn get_client_from_server_to_worker_token(token: Token) -> Client {
+    trace!("{:?}", token);
     Client(token.0 / 2 - 1)
 }
 

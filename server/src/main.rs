@@ -51,6 +51,7 @@ fn main() {
         while let Ok(msg) = server.io_manager.receiver.try_recv() {
             match msg {
                 io::ServerToListenerMessage::NewClient(info) => {
+                    trace!("Server registered connection");
                     let new_player = PlayerHandle::accept_player_connection(
                         info.sender,
                         info.receiver,

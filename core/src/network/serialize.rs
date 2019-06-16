@@ -85,6 +85,8 @@ impl ConnectionIOManager {
         let buf = &mut self.incoming_compressed;
         buf.mark_read_position();
 
+        trace!("88");
+
         // Read packet length field - return to wait for more data if failed
         let packet_length = {
             if let Ok(len) = buf.read_var_int() {
@@ -94,6 +96,8 @@ impl ConnectionIOManager {
                 return Ok(());
             }
         };
+
+        trace!("100");
 
         // Check that the entire packet is received - otherwise, return and
         // wait for more bytes
@@ -176,7 +180,10 @@ impl ConnectionIOManager {
 
         output.reserve(needed_bytes);
 
-        crypter.update(data, output.inner_mut()).unwrap();
+        unsafe {
+            let amnt = crypter.update(data, output.inner_mut()).unwrap();
+            output.advance_mut(amnt);
+        }
     }
 
     fn decrypt_data(&mut self, data: &[u8]) {
@@ -187,13 +194,20 @@ impl ConnectionIOManager {
         let needed_bytes = self.cipher.block_size() + data.len();
         output.reserve(needed_bytes);
 
-        crypter.update(data, output.inner_mut()).unwrap();
+        unsafe {
+            let amnt = crypter.update(data, output.inner_mut()).unwrap();
+            output.advance_mut(amnt);
+        }
     }
 
     fn compress_data(&mut self, data: &[u8], output: &mut ByteBuf) {
         let mut coder = ZlibEncoder::new(data, Compression::default());
         output.reserve(coder.total_out() as usize);
-        coder.read(output.inner_mut()).unwrap();
+
+        unsafe {
+            let amnt = coder.read(output.inner_mut()).unwrap();
+            output.advance_mut(amnt);
+        }
     }
 
     fn decompress_data(&mut self, uncompressed_size: i32) {
@@ -205,7 +219,10 @@ impl ConnectionIOManager {
         let mut coder = ZlibDecoder::new(data);
         self.incoming_uncompressed
             .reserve(uncompressed_size as usize);
-        coder.read(self.incoming_uncompressed.inner_mut()).unwrap();
+        unsafe {
+            let amnt = coder.read(self.incoming_uncompressed.inner_mut()).unwrap();
+            self.incoming_uncompressed.advance_mut(amnt);
+        }
     }
 
     pub fn take_pending_packets(&mut self) -> Vec<Box<Packet + Send>> {

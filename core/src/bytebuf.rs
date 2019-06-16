@@ -6,10 +6,8 @@ use std::io::Read;
 pub struct ByteBuf {
     inner: Vec<u8>,
     read_cursor_position: usize,
-    write_cursor_position: usize,
 
     marked_read_position: usize,
-    marked_write_position: usize,
 }
 
 impl ByteBuf {
@@ -17,10 +15,8 @@ impl ByteBuf {
         Self {
             inner: Vec::with_capacity(capacity),
             read_cursor_position: 0,
-            write_cursor_position: 0,
 
             marked_read_position: 0,
-            marked_write_position: 0,
         }
     }
 
@@ -28,10 +24,8 @@ impl ByteBuf {
         Self {
             inner: vec![],
             read_cursor_position: 0,
-            write_cursor_position: 0,
 
             marked_read_position: 0,
-            marked_write_position: 0,
         }
     }
 
@@ -39,32 +33,22 @@ impl ByteBuf {
         self.read_cursor_position
     }
 
-    pub fn write_position(&self) -> usize {
-        self.write_cursor_position
-    }
 
     pub fn mark_read_position(&mut self) {
         self.marked_read_position = self.read_cursor_position;
-    }
-
-    pub fn mark_write_position(&mut self) {
-        self.marked_write_position = self.write_cursor_position;
     }
 
     pub fn reset_read_position(&mut self) {
         self.read_cursor_position = self.marked_read_position;
     }
 
-    pub fn reset_write_position(&mut self) {
-        self.write_cursor_position = self.marked_write_position;
-    }
-
     pub fn inner(&self) -> &[u8] {
         &self.inner[self.read_cursor_position..]
     }
 
-    pub fn inner_mut(&mut self) -> &mut [u8] {
-        &mut self.inner[self.write_cursor_position..]
+    pub unsafe fn inner_mut(&mut self) -> &mut [u8] {
+        let len = self.inner.len();
+        &mut self.inner[len..]
     }
 
     pub fn reserve(&mut self, additional: usize) {
@@ -84,15 +68,20 @@ impl ByteBuf {
     pub fn len(&self) -> usize {
         self.inner.len()
     }
+
+    pub fn capacity(&self) -> usize { self.inner.capacity() }
 }
 
 impl Buf for ByteBuf {
     fn remaining(&self) -> usize {
-        self.inner.capacity() - self.read_cursor_position
+        trace!("remaining {}", self.inner.len() - self.read_cursor_position);
+        self.inner.len() - self.read_cursor_position
     }
 
     fn bytes(&self) -> &[u8] {
-        &self.inner[self.read_cursor_position..]
+        unsafe {
+            &std::slice::from_raw_parts(self.inner.as_ptr(), self.inner.capacity())[self.read_cursor_position..]
+        }
     }
 
     fn advance(&mut self, cnt: usize) {
@@ -102,15 +91,17 @@ impl Buf for ByteBuf {
 
 impl BufMut for ByteBuf {
     fn remaining_mut(&self) -> usize {
-        self.inner.capacity() - self.write_cursor_position
+        trace!("remaining_mut {}", self.inner.capacity() - self.inner.len());
+        self.inner.capacity() - self.inner.len()
     }
 
     unsafe fn advance_mut(&mut self, cnt: usize) {
-        self.write_cursor_position += cnt;
+        self.inner.set_len(self.inner.len() + cnt);
     }
 
     unsafe fn bytes_mut(&mut self) -> &mut [u8] {
-        &mut self.inner[self.write_cursor_position..]
+        let r = &mut std::slice::from_raw_parts_mut(self.inner.as_mut_ptr(), self.inner.capacity())[self.inner.len()..];
+        r
     }
 }
 

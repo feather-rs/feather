@@ -52,6 +52,7 @@ impl PlayerHandle {
     }
 
     fn handle_packet(&mut self, packet: Box<Packet>) {
+        trace!("Handling packet");
         if !self.initial_handler.finished {
             let r = self.initial_handler.handle_packet(packet);
             if self.initial_handler.should_disconnect || r.is_err() {
