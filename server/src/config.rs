@@ -1,7 +1,3 @@
-use feather_core::prelude::*;
-use serde::Deserializer;
-use serde::Serializer;
-use serde::{Deserialize, Serialize};
 use std::fs::read_to_string;
 
 #[derive(Deserialize, Debug)]

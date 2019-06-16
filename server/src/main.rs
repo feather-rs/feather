@@ -16,12 +16,13 @@ pub mod player;
 pub mod prelude;
 
 use prelude::*;
-use core::borrow::BorrowMut;
+use std::time::Duration;
 
 pub struct Server {
     config: Config,
     player_count: u32,
-    players: Vec<PlayerHandle>,
+    players: Vec<RefCell<PlayerHandle>>,
+    io_manager: io::NetworkIoManager,
 }
 
 fn main() {
@@ -32,18 +33,44 @@ fn main() {
 
     info!("Starting Feather; please wait...");
 
+    let io_manager = io::NetworkIoManager::start(
+        format!("127.0.0.1:{}", config.server.port).parse().unwrap(),
+        config.io.io_worker_threads
+    );
+
     let mut server = Server {
         config,
         player_count: 0,
         players: vec![],
+        io_manager,
     };
 
-    tick(&mut server);
+    loop {
+        tick(&mut server);
+
+        while let Ok(msg) = server.io_manager.receiver.try_recv() {
+            match msg {
+                io::ServerToListenerMessage::NewClient(info) => {
+                    let new_player = PlayerHandle::accept_player_connection(
+                        info.sender,
+                        info.receiver,
+                        server.config.server.motd.clone(),
+                        server.player_count,
+                        server.config.server.max_players,
+                    );
+                    server.players.push(RefCell::new(new_player));
+                },
+                _ => unreachable!(),
+            }
+        }
+
+        std::thread::sleep(Duration::from_millis(50)); // TODO proper game loop
+    }
 }
 
 fn tick(server: &mut Server) {
-    for player in server.players.iter_mut() {
-        player.tick(server);
+    for player in server.players.iter() {
+        player.borrow_mut().tick(server);
     }
 }
 

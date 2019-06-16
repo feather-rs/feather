@@ -1,5 +1,4 @@
 use super::mctypes::{McTypeRead, McTypeWrite};
-use super::packet;
 use super::packet::{Packet, PacketDirection, PacketId, PacketStage, PacketType};
 use crate::bytebuf::ByteBuf;
 use bytes::{Buf, BufMut};
@@ -8,9 +7,7 @@ use flate2::{
     Compression,
 };
 use openssl::symm::{Cipher, Crypter, Mode};
-use std::io;
 use std::io::prelude::*;
-use std::io::Cursor;
 
 pub struct ConnectionIOManager {
     encryption_enabled: bool,
@@ -148,10 +145,9 @@ impl ConnectionIOManager {
         let mut buf_without_length = ByteBuf::with_capacity(packet_data_buf.len());
 
         if self.compression_enabled {
-            let mut uncompressed_length = packet_data_buf.len();
+            let uncompressed_length = packet_data_buf.len();
 
             if packet_data_buf.len() < self.compression_threshold as usize {
-                uncompressed_length = 0;
                 buf_without_length.write_var_int(0);
                 buf_without_length.put(packet_data_buf);
             } else {

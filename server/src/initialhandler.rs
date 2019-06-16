@@ -1,7 +1,6 @@
-use crate::io::NewClientInfo;
 use crate::prelude::*;
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
-use openssl::pkey::{Private, Public};
+use openssl::pkey::{Private};
 use openssl::rsa::{self, Rsa};
 use std::rc::Rc;
 
@@ -18,12 +17,12 @@ pub struct InitialHandler {
     verify_token: [u8; 4],
 
     motd: String,
-    player_count: usize,
+    player_count: u32,
     max_players: i32,
 }
 
 impl InitialHandler {
-    pub fn new(motd: String, player_count: usize, max_players: i32) -> Self {
+    pub fn new(motd: String, player_count: u32, max_players: i32) -> Self {
         Self {
             sent_encryption_request: false,
             state: State::Handshake,
@@ -131,7 +130,31 @@ impl InitialHandler {
                 self.name = Some(login_start.username.clone());
                 self.send_encryption_request();
             }
-            PacketType::EncryptionResponse => {}
+            PacketType::EncryptionResponse => {
+                if !self.sent_encryption_request {
+                    self.disconnect_login("EncryptionResponse sent before server sent EncryptionRequest");
+                    return Err(());
+                }
+
+                let response = cast_packet::<EncryptionResponse>(&packet);
+                let shared_secret = &response.secret;
+                let verify_token = &response.verify_token;
+
+                if verify_token.len() != 4 {
+                    self.disconnect_login(&format!("Invalid verify token length {}", verify_token.len()));
+                    return Err(());
+                }
+
+                if verify_token[..4] != self.verify_token {
+                    self.disconnect_login("Verify token does not match");
+                    return Err(());
+                }
+
+                let mut decrypted_buf = Vec::with_capacity(self.key.size() as usize);
+                self.key.private_decrypt(&shared_secret, &mut decrypted_buf, rsa::Padding::PKCS1).unwrap();
+
+                // TODO - enable encryption, send Login Success
+            }
             _ => {
                 self.disconnect_login("Client sent incorrect packet at stage LOGIN");
                 return Err(());
@@ -141,7 +164,7 @@ impl InitialHandler {
         Ok(())
     }
 
-    fn send_encryption_request(&self) {
+    fn send_encryption_request(&mut self) {
         let key_bytes = self.key.public_key_to_der().unwrap();
 
         let mut verify_token = Vec::with_capacity(4);
@@ -155,7 +178,9 @@ impl InitialHandler {
             verify_token,
         );
 
-        self.send_packet(packet)
+        self.send_packet(packet);
+
+        self.sent_encryption_request = true;
     }
 
     pub fn disconnect_login(&mut self, reason: &str) {

@@ -3,7 +3,7 @@ use feather_core::bytebuf::ByteBuf;
 use feather_core::network::serialize::ConnectionIOManager;
 use mio::Event;
 use mio::{
-    net::{TcpListener, TcpStream},
+    net::{TcpStream},
     Events, Poll, PollOpt, Ready, Token,
 };
 use std::collections::HashMap;

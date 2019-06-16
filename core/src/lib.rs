@@ -9,8 +9,6 @@ extern crate serde_derive;
 #[macro_use]
 extern crate feather_codegen;
 
-use serde::{Deserialize, Serialize};
-
 pub mod bytebuf;
 pub mod network;
 pub mod prelude;

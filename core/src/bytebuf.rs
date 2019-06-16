@@ -1,6 +1,6 @@
 use bytes::{Buf, BufMut};
 use std::io::Error;
-use std::io::{Read, Write};
+use std::io::{Read};
 
 #[derive(Clone, Debug)]
 pub struct ByteBuf {

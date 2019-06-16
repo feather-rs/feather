@@ -1,3 +1,4 @@
+#[allow(unused)]
 pub mod implementation;
 
 use bytes::{Buf, BufMut};

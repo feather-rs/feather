@@ -2,16 +2,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use std::fmt;
-use syn::parse::{Parse, ParseStream};
-use syn::punctuated::Punctuated;
-use syn::ItemFn;
-use syn::Result;
-use syn::Token;
 use syn::{parse_macro_input, DeriveInput};
-
-#[macro_use]
-extern crate lazy_static;
 
 #[proc_macro_derive(AsAny)]
 pub fn derive_as_any(_item: TokenStream) -> TokenStream {

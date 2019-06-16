@@ -1,8 +1,7 @@
-use feather_core::network::packet::{self, AsAny, Packet};
+use feather_core::network::packet::{Packet};
 use mio_extras::channel::{channel, Receiver, Sender};
 use std::net::SocketAddr;
 use std::thread;
-use uuid::Uuid;
 
 mod listener;
 mod worker;
@@ -29,28 +28,28 @@ pub enum ListenerToWorkerMessage {
 }
 
 pub struct NewClientInfo {
-    ip: SocketAddr,
+    pub ip: SocketAddr,
 
-    sender: Sender<ServerToWorkerMessage>,
-    receiver: Receiver<ServerToWorkerMessage>,
+    pub sender: Sender<ServerToWorkerMessage>,
+    pub receiver: Receiver<ServerToWorkerMessage>,
 }
 
 pub struct NetworkIoManager {
-    sender: Sender<ServerToListenerMessage>,
-    receiver: Receiver<ServerToListenerMessage>,
+    pub sender: Sender<ServerToListenerMessage>,
+    pub receiver: Receiver<ServerToListenerMessage>,
 }
 
 impl NetworkIoManager {
     /// Starts a new IO event loop with the specified number
     /// of worker threads.
-    pub fn start_new(addr: SocketAddr, num_worker_threads: u16) -> Self {
+    pub fn start(addr: SocketAddr, num_worker_threads: u16) -> Self {
         info!(
             "Starting IO event loop on {} with {} worker threads",
             addr, num_worker_threads
         );
         let mut workers = vec![];
 
-        for i in 0..num_worker_threads {
+        for _ in 0..num_worker_threads {
             let (send1, recv1) = channel();
             let (send2, recv2) = channel();
 

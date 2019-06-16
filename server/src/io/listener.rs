@@ -1,6 +1,6 @@
 use super::*;
 use mio::{
-    net::{TcpListener, TcpStream},
+    net::{TcpListener},
     Events, Poll, PollOpt, Ready, Token,
 };
 
