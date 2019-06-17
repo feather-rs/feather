@@ -1,6 +1,8 @@
 use super::world::BlockPosition;
 use crate::bytebuf::{BufMutAlloc, ByteBuf};
+use crate::prelude::*;
 use bytes::Buf;
+use std::io::Read;
 
 /// Identifies a type to which Minecraft-specific
 /// types (`VarInt`, `VarLong`, etc.) can be written.
@@ -17,6 +19,8 @@ pub trait McTypeWrite {
     fn write_position(&mut self, x: &BlockPosition);
 
     fn write_bool(&mut self, x: bool);
+
+    fn write_uuid(&mut self, x: &Uuid);
 }
 
 /// Identifies a type from which Minecraft-specified
@@ -32,6 +36,8 @@ pub trait McTypeRead {
     fn read_position(&mut self) -> Result<BlockPosition, ()>;
 
     fn read_bool(&mut self) -> Result<bool, ()>;
+
+    fn read_uuid(&mut self) -> Result<Uuid, ()>;
 }
 
 impl McTypeWrite for ByteBuf {
@@ -78,9 +84,13 @@ impl McTypeWrite for ByteBuf {
             self.write_u8(0);
         }
     }
+
+    fn write_uuid(&mut self, x: &Uuid) {
+        self.write(&x.as_bytes()[..]);
+    }
 }
 
-impl<T: Buf> McTypeRead for T {
+impl McTypeRead for ByteBuf {
     /// Reads a `VarInt` from this object, returning
     /// `Some(x)` if successful or `None` if the object
     /// does not contain a valid `VarInt`.
@@ -145,5 +155,11 @@ impl<T: Buf> McTypeRead for T {
             1 => Ok(true),
             _ => Err(()),
         }
+    }
+
+    fn read_uuid(&mut self) -> Result<Uuid, ()> {
+        let mut bytes = [0; 16];
+        self.read(&mut bytes).map_err(|_| ())?;
+        Ok(Uuid::from_bytes(bytes))
     }
 }

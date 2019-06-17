@@ -1,6 +1,7 @@
 use super::super::mctypes::{McTypeRead, McTypeWrite};
 use super::*;
 use crate::bytebuf::BufMutAlloc;
+use crate::prelude::*;
 use bytes::{Buf, BufMut};
 
 lazy_static! {
@@ -77,12 +78,12 @@ impl Default for HandshakeState {
     }
 }
 
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct LoginStart {
     pub username: String,
 }
 
-impl Packet for LoginStart {
+/*impl Packet for LoginStart {
     fn read_from(&mut self, mut buf: &mut ByteBuf) -> Result<(), ()> {
         self.username = buf.read_string()?;
 
@@ -96,7 +97,7 @@ impl Packet for LoginStart {
     fn ty(&self) -> PacketType {
         PacketType::LoginStart
     }
-}
+}*/
 
 #[derive(Default, AsAny, new)]
 pub struct EncryptionResponse {
@@ -170,38 +171,6 @@ impl Packet for Ping {
 
     fn ty(&self) -> PacketType {
         PacketType::Ping
-    }
-}
-
-// PLAY
-#[derive(Default, AsAny, new)]
-pub struct JoinGame {
-    entity_id: i32,
-    gamemode: u8,
-    dimension: i32,
-    difficulty: u8,
-    max_players: u8,
-    level_type: String,
-    reduced_debug_info: bool,
-}
-
-impl Packet for JoinGame {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
-        unimplemented!()
-    }
-
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_i32_be(self.entity_id);
-        buf.write_u8(self.gamemode);
-        buf.write_i32_be(self.dimension);
-        buf.write_u8(self.difficulty);
-        buf.write_u8(self.max_players);
-        buf.write_string(&self.level_type);
-        buf.write_bool(self.reduced_debug_info);
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::JoinGame
     }
 }
 
@@ -330,5 +299,178 @@ impl Packet for Pong {
 
     fn ty(&self) -> PacketType {
         PacketType::Pong
+    }
+}
+
+// PLAY
+#[derive(Default, AsAny, new)]
+pub struct SpawnObject {
+    pub entity_id: i32,
+    pub object_uuid: Uuid,
+    pub ty: i8,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub pitch: u8,
+    pub yaw: u8,
+    pub data: i32,
+    pub velocity_x: i16,
+    pub velocity_y: i16,
+    pub velocity_z: i16,
+}
+
+impl Packet for SpawnObject {
+    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_var_int(self.entity_id);
+        buf.write_uuid(&self.object_uuid);
+        buf.write_i8(self.ty);
+        buf.write_f64_be(self.x);
+        buf.write_f64_be(self.y);
+        buf.write_f64_be(self.z);
+        buf.write_u8(self.pitch);
+        buf.write_u8(self.yaw);
+        buf.write_i32_be(self.data);
+        buf.write_i16_be(self.velocity_x);
+        buf.write_i16_be(self.velocity_y);
+        buf.write_i16_be(self.velocity_z);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::SpawnObject
+    }
+}
+
+#[derive(Default, AsAny, new)]
+pub struct SpawnExperienceOrb {
+    pub entity_id: i32,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub count: i16,
+}
+
+impl Packet for SpawnExperienceOrb {
+    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_var_int(self.entity_id);
+        buf.write_f64_be(self.x);
+        buf.write_f64_be(self.y);
+        buf.write_f64_be(self.z);
+        buf.write_i16_be(self.count);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::SpawnExperienceOrb
+    }
+}
+
+#[derive(Default, AsAny, new)]
+pub struct SpawnGlobalEntity {
+    entity_id: i32,
+    ty: u8,
+    x: f64,
+    y: f64,
+    z: f64,
+}
+
+impl Packet for SpawnGlobalEntity {
+    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_var_int(self.entity_id);
+        buf.write_u8(self.ty);
+        buf.write_f64_be(self.x);
+        buf.write_f64_be(self.y);
+        buf.write_f64_be(self.z);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::SpawnGlobalEntity
+    }
+}
+
+#[derive(Default, AsAny, new)]
+pub struct SpawnMob {
+    entity_id: i32,
+    entity_uuid: Uuid,
+    ty: i32,
+    x: f64,
+    y: f64,
+    z: f64,
+    yaw: u8,
+    pitch: u8,
+    head_pitch: u8,
+    velocity_x: i16,
+    velocity_y: i16,
+    velocity_z: i16,
+    // TODO metadata
+}
+
+impl Packet for SpawnMob {
+    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_var_int(self.entity_id);
+        buf.write_uuid(&self.entity_uuid);
+        buf.write_var_int(self.ty);
+        buf.write_f64_be(self.x);
+        buf.write_f64_be(self.y);
+        buf.write_f64_be(self.z);
+        buf.write_u8(self.yaw);
+        buf.write_u8(self.pitch);
+        buf.write_u8(self.head_pitch);
+        buf.write_i16_be(self.velocity_x);
+        buf.write_i16_be(self.velocity_y);
+        buf.write_i16_be(self.velocity_z);
+        buf.write_u8(0xff); // TODO metadata
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::SpawnMob
+    }
+}
+
+#[derive(Default, AsAny, new)]
+pub struct SpawnPainting {}
+
+#[derive(Default, AsAny, new)]
+pub struct JoinGame {
+    pub entity_id: i32,
+    pub gamemode: u8,
+    pub dimension: i32,
+    pub difficulty: u8,
+    pub max_players: u8,
+    pub level_type: String,
+    pub reduced_debug_info: bool,
+}
+
+impl Packet for JoinGame {
+    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_i32_be(self.entity_id);
+        buf.write_u8(self.gamemode);
+        buf.write_i32_be(self.dimension);
+        buf.write_u8(self.difficulty);
+        buf.write_u8(self.max_players);
+        buf.write_string(&self.level_type);
+        buf.write_bool(self.reduced_debug_info);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::JoinGame
     }
 }

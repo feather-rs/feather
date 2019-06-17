@@ -1,7 +1,17 @@
 extern crate proc_macro;
 
+use core::fmt;
+use lazy_static::lazy_static;
 use proc_macro::TokenStream;
 use quote::quote;
+use syn::export::Span;
+use syn::parse::Parse;
+use syn::parse::ParseStream;
+use syn::punctuated::Punctuated;
+use syn::Data;
+use syn::Ident;
+use syn::Token;
+use syn::Type;
 use syn::{parse_macro_input, DeriveInput};
 
 #[proc_macro_derive(AsAny)]
@@ -21,7 +31,7 @@ pub fn derive_as_any(_item: TokenStream) -> TokenStream {
     result.into()
 }
 
-/*#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 enum PacketParameterType {
     Varint,
     Varlong,
@@ -38,15 +48,16 @@ enum PacketParameterType {
     Boolean,
     F32,
     F64,
+    Uuid,
 }
 
 lazy_static! {
     static ref PARAMETER_MAPPINGS: im::HashMap<&'static str, PacketParameterType> = {
         let mut m = im::HashMap::new();
 
-        m.insert("varint", PacketParameterType::Varint);
-        m.insert("varlong", PacketParameterType::Varlong);
-        m.insert("string", PacketParameterType::String);
+        m.insert("VarInt", PacketParameterType::Varint);
+        m.insert("VarLong", PacketParameterType::Varlong);
+        m.insert("String", PacketParameterType::String);
         m.insert("u64", PacketParameterType::U64);
         m.insert("u32", PacketParameterType::U32);
         m.insert("u16", PacketParameterType::U16);
@@ -55,66 +66,154 @@ lazy_static! {
         m.insert("i32", PacketParameterType::I32);
         m.insert("i16", PacketParameterType::I16);
         m.insert("i8", PacketParameterType::I8);
-        m.insert("position", PacketParameterType::Position);
-        m.insert("boolean", PacketParameterType::Boolean);
+        m.insert("BlockPosition", PacketParameterType::Position);
+        m.insert("bool", PacketParameterType::Boolean);
         m.insert("f32", PacketParameterType::F32);
         m.insert("f64", PacketParameterType::F64);
+        m.insert("uuid", PacketParameterType::Uuid);
 
         m
     };
+
+    static ref FUNCTION_MAPPINGS: im::HashMap<PacketParameterType, &'static str> = {
+        let mut m = im::HashMap::new();
+
+        m.insert("var_int", PacketParameterType::Varint);
+        m.insert("var_long", PacketParameterType::Varlong);
+        m.insert("string", PacketParameterType::String);
+        m.insert("u64_be", PacketParameterType::U64);
+        m.insert("u32_be", PacketParameterType::U32);
+        m.insert("u16_be", PacketParameterType::U16);
+        m.insert("u8", PacketParameterType::U8);
+        m.insert("i64_be", PacketParameterType::I64);
+        m.insert("i32_be", PacketParameterType::I32);
+        m.insert("i16_be", PacketParameterType::I16);
+        m.insert("i8", PacketParameterType::I8);
+        m.insert("position", PacketParameterType::Position);
+        m.insert("f32_be", PacketParameterType::F32);
+        m.insert("f64_be", PacketParameterType::F64);
+        m.insert("uuid", PacketParameterType::Uuid);
+
+        // I wrote them in the wrong order, so I'm just going to reverse
+        // the map.
+        let mut reversed = im::HashMap::new();
+
+        for (key, value) in m {
+            reversed.insert(value, key);
+        }
+
+        reversed
+    };
 }
 
-impl fmt::Display for PacketParameterType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
+fn bla() {}
 
-struct PacketParameter {
-    name: syn::Ident,
-    ty: PacketParameterType,
-}
+#[proc_macro_derive(Packet)]
+pub fn derive_packet(_item: TokenStream) -> TokenStream {
+    let item: DeriveInput = parse_macro_input!(_item as DeriveInput);
 
-impl Parse for PacketParameter {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let name = input.parse()?;
+    let ident = item.ident.clone();
 
-        let _: Token![:] = input.parse()?;
+    let fields = match &item.data {
+        Data::Struct(st) => &st.fields,
+        _ => panic!("Not a struct"),
+    };
 
-        let type_name: syn::Ident = input.parse()?;
-        let ty = PARAMETER_MAPPINGS
-            .get(type_name.to_string().as_str())
+    let mut write_code = vec![];
+    let mut read_code = vec![];
+
+    for field in fields {
+        let field_name = field.ident.as_ref().unwrap();
+        let ty = match &field.ty {
+            Type::Path(path) => &path.path.segments,
+            _ => panic!("Not a path field"),
+        };
+
+        if ty.len() != 1 {
+            panic!("Must not use paths");
+        }
+
+        let ty_ident = &ty.first().unwrap().value().ident;
+
+        let parameter_type = PARAMETER_MAPPINGS
+            .get(ty_ident.to_string().as_str())
             .unwrap();
+        let function_ident = Ident::new(
+            FUNCTION_MAPPINGS.get(parameter_type).unwrap(),
+            Span::call_site(),
+        );
 
-        Ok(PacketParameter {
-            name,
-            ty: ty.clone(),
-        })
+        println!("142");
+
+        let write_fn_ident = Ident::new(&format!("write_{}", function_ident), Span::call_site());
+        let read_fn_ident = Ident::new(&format!("read_{}", function_ident), Span::call_site());
+
+        let use_ref = {
+            vec![
+                PacketParameterType::Position,
+                PacketParameterType::String,
+                PacketParameterType::Uuid,
+            ]
+            .contains(parameter_type)
+        };
+
+        let write;
+
+        if use_ref {
+            write = quote! {
+                buf.#write_fn_ident(&self.#field_name);
+            };
+        } else {
+            write = quote! {
+                buf.#write_fn_ident(self.#field_name);
+            }
+        }
+
+        let use_unwrap = {
+            vec![
+                PacketParameterType::Uuid,
+                PacketParameterType::String,
+                PacketParameterType::Varint,
+                PacketParameterType::Varlong,
+                PacketParameterType::Boolean,
+            ]
+            .contains(parameter_type)
+        };
+
+        let read;
+
+        if use_unwrap {
+            read = quote! {
+                self.#field_name = buf.#read_fn_ident().unwrap();
+            }
+        } else {
+            read = quote! {
+                self.#field_name = buf.#read_fn_ident();
+            }
+        }
+
+        write_code.push(write);
+        read_code.push(read);
     }
+
+    let r = quote! {
+        impl Packet for #ident {
+            fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+                #(#read_code)*
+                Ok(())
+            }
+
+            fn write_to(&self, buf: &mut ByteBuf) {
+                #(#write_code)*
+            }
+
+            fn ty(&self) -> PacketType {
+                PacketType::#ident
+            }
+        }
+    };
+
+    println!("{}", r);
+
+    r.into()
 }
-
-struct Packet {
-    name: syn::Ident,
-    params: Punctuated<PacketParameter, Token![,]>,
-}
-
-impl Parse for Packet {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let name = input.parse()?;
-
-        let _: Token![,] = input.parse()?;
-
-        let params = Punctuated::parse_separated_nonempty(input)?;
-
-        Ok(Packet { name, params })
-    }
-}
-
-#[proc_macro]
-pub fn gen_packet(_item: TokenStream) -> TokenStream {
-    let item: Packet = parse_macro_input!(_item as Packet);
-
-    let name = &item.name;
-
-    unimplemented!()
-}*/

@@ -4,7 +4,7 @@
 compression_threshold = 256
 # The number of worker threads used for asynchronous IO.
 # Set to the number of cores on your CPU for optimal performance.
-io_worker_threads = 8
+io_worker_threads = 1
 
 [proxy]
 # IP forwarding using either "bungee" (BungeeCord/Waterfall/Travertine) or "velocity" (Velocity)
@@ -12,7 +12,7 @@ proxy_mode = "none"
 
 [server]
 online_mode = true
-motd = "&lMesa called Jar Jar Binks!\n           Mesa your humble servant!"
+motd = "          &lMesa called Jar Jar Binks!\n           Mesa your humble servant!"
 max_players = 16
 default_gamemode = "survival"
 difficulty = "none"
