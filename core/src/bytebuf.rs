@@ -123,3 +123,128 @@ impl Read for ByteBuf {
         Ok(amount_read)
     }
 }
+
+/// Trait which contains functions like those
+/// in `BufMut` but which allocate additional
+/// space rather than panicking when a buffer is full.
+pub trait BufMutAlloc {
+    fn write(&mut self, src: &[u8]);
+
+    fn write_f32_be(&mut self, x: f32);
+    fn write_f32_le(&mut self, x: f32);
+    fn write_f64_be(&mut self, x: f64);
+    fn write_f64_le(&mut self, x: f64);
+
+    fn write_u8(&mut self, x: u8);
+    fn write_u16_be(&mut self, x: u16);
+    fn write_u16_le(&mut self, x: u16);
+    fn write_u32_be(&mut self, x: u32);
+    fn write_u32_le(&mut self, x: u32);
+    fn write_u64_be(&mut self, x: u64);
+    fn write_u64_le(&mut self, x: u64);
+
+    fn write_i8(&mut self, x: i8);
+    fn write_i16_be(&mut self, x: i16);
+    fn write_i16_le(&mut self, x: i16);
+    fn write_i32_be(&mut self, x: i32);
+    fn write_i32_le(&mut self, x: i32);
+    fn write_i64_be(&mut self, x: i64);
+    fn write_i64_le(&mut self, x: i64);
+}
+
+impl BufMutAlloc for ByteBuf {
+    fn write(&mut self, src: &[u8]) {
+        self.reserve(src.len());
+        self.put(src);
+    }
+
+    fn write_f32_be(&mut self, x: f32) {
+        self.reserve(4);
+        self.put_f32_be(x);
+    }
+
+    fn write_f32_le(&mut self, x: f32) {
+        self.reserve(4);
+        self.put_f32_le(x);
+    }
+
+    fn write_f64_be(&mut self, x: f64) {
+        self.reserve(8);
+        self.put_f64_be(x);
+    }
+
+    fn write_f64_le(&mut self, x: f64) {
+        self.reserve(8);
+        self.put_f64_le(x);
+    }
+
+    fn write_u8(&mut self, x: u8) {
+        self.reserve(1);
+        self.put_u8(x);
+    }
+
+    fn write_u16_be(&mut self, x: u16) {
+        self.reserve(2);
+        self.put_u16_be(x);
+    }
+
+    fn write_u16_le(&mut self, x: u16) {
+        self.reserve(2);
+        self.put_u16_le(x);
+    }
+
+    fn write_u32_be(&mut self, x: u32) {
+        self.reserve(4);
+        self.put_u32_be(x);
+    }
+
+    fn write_u32_le(&mut self, x: u32) {
+        self.reserve(4);
+        self.put_u32_le(x);
+    }
+
+    fn write_u64_be(&mut self, x: u64) {
+        self.reserve(8);
+        self.put_u64_be(x);
+    }
+
+    fn write_u64_le(&mut self, x: u64) {
+        self.reserve(8);
+        self.put_u64_le(x);
+    }
+
+    fn write_i8(&mut self, x: i8) {
+        self.reserve(1);
+        self.put_i8(x);
+    }
+
+    fn write_i16_be(&mut self, x: i16) {
+        self.reserve(2);
+        self.put_i16_be(x);
+    }
+
+    fn write_i16_le(&mut self, x: i16) {
+        self.reserve(2);
+        self.put_i16_le(x);
+    }
+
+    fn write_i32_be(&mut self, x: i32) {
+        self.reserve(4);
+        self.put_i32_be(x);
+    }
+
+    fn write_i32_le(&mut self, x: i32) {
+        self.reserve(4);
+        self.put_i32_le(x);
+    }
+
+    fn write_i64_be(&mut self, x: i64) {
+        self.reserve(8);
+        self.put_i64_be(x);
+    }
+
+    fn write_i64_le(&mut self, x: i64) {
+        self.reserve(8);
+        self.put_i64_le(x);
+    }
+}

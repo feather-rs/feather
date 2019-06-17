@@ -161,7 +161,7 @@ impl ConnectionIOManager {
 
         trace!("Sending packet with type {:?}", packet.ty());
 
-        let mut packet_data_buf = ByteBuf::new();
+        let mut packet_data_buf = ByteBuf::with_capacity(16);
         packet_data_buf.write_var_int(packet.ty().get_id().0 as i32);
         packet.write_to(&mut packet_data_buf);
 

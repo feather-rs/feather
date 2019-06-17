@@ -1,5 +1,6 @@
 use super::world::BlockPosition;
-use bytes::{Buf, BufMut};
+use bytes::{Buf};
+use crate::bytebuf::{ByteBuf, BufMutAlloc};
 
 /// Identifies a type to which Minecraft-specific
 /// types (`VarInt`, `VarLong`, etc.) can be written.
@@ -29,7 +30,7 @@ pub trait McTypeRead {
     fn read_position(&mut self) -> Result<BlockPosition, ()>;
 }
 
-impl<T: BufMut> McTypeWrite for T {
+impl McTypeWrite for ByteBuf {
     /// Writes a `VarInt` to the object. See wiki.vg for
     /// details on `VarInt`s and related types.
     fn write_var_int(&mut self, mut x: i32) {
@@ -39,7 +40,7 @@ impl<T: BufMut> McTypeWrite for T {
             if x != 0 {
                 temp |= 0b10000000;
             }
-            self.put_u8(temp);
+            self.write_u8(temp);
             if x == 0 {
                 break;
             }
@@ -54,14 +55,16 @@ impl<T: BufMut> McTypeWrite for T {
         let len = x.len();
         self.write_var_int(len as i32);
         let bytes = x.as_bytes();
-        bytes.iter().for_each(|b| self.put_u8(b.clone()));
+
+        self.write(bytes);
     }
 
     fn write_position(&mut self, x: &BlockPosition) {
         let result: u64 = ((x.x as u64 & 0x3FFFFFF) << 38)
             | ((x.y as u64 & 0xFFF) << 26)
             | (x.z as u64 & 0x3FFFFFF);
-        self.put_u64_be(result);
+
+        self.write_u64_be(result);
     }
 }
 

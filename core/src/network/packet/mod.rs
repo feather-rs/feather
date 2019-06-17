@@ -1,7 +1,7 @@
 #[allow(unused)]
 pub mod implementation;
 
-use bytes::{Buf, BufMut};
+use crate::bytebuf::ByteBuf;
 use std::any::Any;
 
 pub trait AsAny {
@@ -9,8 +9,8 @@ pub trait AsAny {
 }
 
 pub trait Packet: AsAny + Send {
-    fn read_from(&mut self, buf: &mut Buf) -> Result<(), ()>;
-    fn write_to(&self, buf: &mut BufMut);
+    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()>;
+    fn write_to(&self, buf: &mut ByteBuf);
     fn ty(&self) -> PacketType;
 }
 
