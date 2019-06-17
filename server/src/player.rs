@@ -1,7 +1,7 @@
 use super::initialhandler::InitialHandler;
 use crate::io::ServerToWorkerMessage;
 use crate::prelude::*;
-use feather_core::network::packet::{Packet, implementation::*};
+use feather_core::network::packet::{implementation::*, Packet};
 use mio_extras::channel::{Receiver, Sender};
 
 pub struct PlayerHandle {
@@ -57,7 +57,9 @@ impl PlayerHandle {
     pub fn tick(&mut self, server: &Server) {
         while let Ok(msg) = self.packet_receiver.try_recv() {
             match msg {
-                ServerToWorkerMessage::NotifyPacketReceived(packet) => self.handle_packet(packet, server),
+                ServerToWorkerMessage::NotifyPacketReceived(packet) => {
+                    self.handle_packet(packet, server)
+                }
                 ServerToWorkerMessage::NotifyDisconnect => {
                     trace!("Server removing player");
                     self.should_remove = true;
@@ -72,11 +74,15 @@ impl PlayerHandle {
         if !self.initial_handler.finished {
             let r = self.initial_handler.handle_packet(packet);
             if let Some(threshold) = self.initial_handler.should_enable_compression() {
-                self.packet_sender.send(ServerToWorkerMessage::EnableCompression(threshold)).unwrap();
+                self.packet_sender
+                    .send(ServerToWorkerMessage::EnableCompression(threshold))
+                    .unwrap();
             }
             if let Some(key) = self.initial_handler.should_enable_encryption() {
                 trace!("Server: enabling encryption");
-                self.packet_sender.send(ServerToWorkerMessage::EnableEncryption(key)).unwrap();
+                self.packet_sender
+                    .send(ServerToWorkerMessage::EnableEncryption(key))
+                    .unwrap();
             }
 
             for pack in self.initial_handler.packets_to_send() {

@@ -1,6 +1,7 @@
 use super::mctypes::{McTypeRead, McTypeWrite};
 use super::packet::{Packet, PacketDirection, PacketId, PacketStage, PacketType};
 use crate::bytebuf::{BufMutAlloc, ByteBuf};
+use crate::prelude::*;
 use bytes::{Buf, BufMut};
 use flate2::{
     read::{ZlibDecoder, ZlibEncoder},
@@ -8,7 +9,6 @@ use flate2::{
 };
 use openssl::symm::{Cipher, Crypter, Mode};
 use std::io::prelude::*;
-use crate::prelude::*;
 
 pub struct ConnectionIOManager {
     encryption_enabled: bool,
@@ -146,10 +146,15 @@ impl ConnectionIOManager {
             packet.read_from(buf)?;
 
             if packet.ty() == PacketType::Handshake {
-                let handshake = cast_packet::<crate::network::packet::implementation::Handshake>(&packet);
+                let handshake =
+                    cast_packet::<crate::network::packet::implementation::Handshake>(&packet);
                 match handshake.next_state {
-                    crate::network::packet::implementation::HandshakeState::Login => self.stage = PacketStage::Login,
-                    crate::network::packet::implementation::HandshakeState::Status => self.stage = PacketStage::Status,
+                    crate::network::packet::implementation::HandshakeState::Login => {
+                        self.stage = PacketStage::Login
+                    }
+                    crate::network::packet::implementation::HandshakeState::Status => {
+                        self.stage = PacketStage::Status
+                    }
                 }
             }
 

@@ -37,7 +37,9 @@ impl ByteBuf {
         self.marked_read_position = self.read_cursor_position;
     }
 
-    pub fn marked_read_position(&self) -> usize { self.marked_read_position }
+    pub fn marked_read_position(&self) -> usize {
+        self.marked_read_position
+    }
 
     pub fn reset_read_position(&mut self) {
         self.read_cursor_position = self.marked_read_position;
@@ -48,7 +50,8 @@ impl ByteBuf {
     }
 
     pub unsafe fn inner_mut(&mut self) -> &mut [u8] {
-        &mut std::slice::from_raw_parts_mut(self.inner.as_mut_ptr(), self.inner.capacity())[self.inner.len()..]
+        &mut std::slice::from_raw_parts_mut(self.inner.as_mut_ptr(), self.inner.capacity())
+            [self.inner.len()..]
     }
 
     pub fn reserve(&mut self, additional: usize) {
@@ -70,7 +73,9 @@ impl ByteBuf {
         self.inner.len()
     }
 
-    pub fn capacity(&self) -> usize { self.inner.capacity() }
+    pub fn capacity(&self) -> usize {
+        self.inner.capacity()
+    }
 }
 
 impl Buf for ByteBuf {
@@ -80,7 +85,8 @@ impl Buf for ByteBuf {
 
     fn bytes(&self) -> &[u8] {
         unsafe {
-            &std::slice::from_raw_parts(self.inner.as_ptr(), self.inner.capacity())[self.read_cursor_position..]
+            &std::slice::from_raw_parts(self.inner.as_ptr(), self.inner.capacity())
+                [self.read_cursor_position..]
         }
     }
 
@@ -99,7 +105,8 @@ impl BufMut for ByteBuf {
     }
 
     unsafe fn bytes_mut(&mut self) -> &mut [u8] {
-        let r = &mut std::slice::from_raw_parts_mut(self.inner.as_mut_ptr(), self.inner.capacity())[self.inner.len()..];
+        let r = &mut std::slice::from_raw_parts_mut(self.inner.as_mut_ptr(), self.inner.capacity())
+            [self.inner.len()..];
         r
     }
 }

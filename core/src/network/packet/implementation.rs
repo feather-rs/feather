@@ -1,7 +1,7 @@
 use super::super::mctypes::{McTypeRead, McTypeWrite};
 use super::*;
+use crate::bytebuf::BufMutAlloc;
 use bytes::{Buf, BufMut};
-use crate::bytebuf::{BufMutAlloc};
 
 lazy_static! {
     pub static ref IMPL_MAP: im::HashMap<PacketType, PacketBuilder> = {

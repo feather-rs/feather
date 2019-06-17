@@ -183,9 +183,7 @@ impl InitialHandler {
 
     fn handle_encryption_response(&mut self, packet: Box<Packet>) -> Result<(), ()> {
         if !self.sent_encryption_request {
-            self.disconnect_login(
-                "EncryptionResponse sent before server sent EncryptionRequest",
-            );
+            self.disconnect_login("EncryptionResponse sent before server sent EncryptionRequest");
             return Err(());
         }
 
@@ -195,16 +193,28 @@ impl InitialHandler {
 
         let mut decrypted_shared_secret = vec![0; self.key.size() as usize];
         self.key
-            .private_decrypt(&shared_secret, &mut decrypted_shared_secret, rsa::Padding::PKCS1)
+            .private_decrypt(
+                &shared_secret,
+                &mut decrypted_shared_secret,
+                rsa::Padding::PKCS1,
+            )
             .unwrap();
 
         let mut decrypted_verify_token = vec![0; self.key.size() as usize];
         self.key
-            .private_decrypt(&verify_token, &mut decrypted_verify_token, rsa::Padding::PKCS1)
+            .private_decrypt(
+                &verify_token,
+                &mut decrypted_verify_token,
+                rsa::Padding::PKCS1,
+            )
             .unwrap();
 
         if decrypted_verify_token[..4] != self.verify_token {
-            trace!("Verify token mismatch: received {:?}, sent {:?}", &verify_token[..4], self.verify_token);
+            trace!(
+                "Verify token mismatch: received {:?}, sent {:?}",
+                &verify_token[..4],
+                self.verify_token
+            );
             self.disconnect_login("Verify token does not match");
             return Err(());
         }

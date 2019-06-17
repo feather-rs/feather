@@ -1,4 +1,5 @@
 use super::*;
+use bytes::BufMut;
 use feather_core::bytebuf::ByteBuf;
 use feather_core::network::serialize::ConnectionIOManager;
 use mio::Event;
@@ -6,7 +7,6 @@ use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
 use std::collections::HashMap;
 use std::io::Read;
 use std::io::Write;
-use bytes::BufMut;
 
 // The token used to listen on the channel receiving messages from the listener thread
 const LISTENER_TOKEN: Token = Token(0);
@@ -57,12 +57,15 @@ pub fn start(receiver: Receiver<ListenerToWorkerMessage>, sender: Sender<Listene
         pending_disconnects: vec![],
     };
 
-    worker.poll.register(
-        &worker.receiver,
-        LISTENER_TOKEN,
-        Ready::readable(),
-        PollOpt::edge()
-    ).unwrap();
+    worker
+        .poll
+        .register(
+            &worker.receiver,
+            LISTENER_TOKEN,
+            Ready::readable(),
+            PollOpt::edge(),
+        )
+        .unwrap();
 
     run_loop(&mut worker);
 }
@@ -73,7 +76,11 @@ fn run_loop(worker: &mut Worker) {
         worker.poll.poll(&mut events, None).unwrap();
 
         for event in &events {
-            trace!("Handling event with readiness {:?} and token {:?}", event.readiness(), event.token());
+            trace!(
+                "Handling event with readiness {:?} and token {:?}",
+                event.readiness(),
+                event.token()
+            );
             handle_event(worker, event);
         }
     }
@@ -168,15 +175,31 @@ fn read_from_listener(worker: &mut Worker) {
 fn read_from_server(worker: &mut Worker, token: Token) {
     let client_id = get_client_from_server_to_worker_token(token);
 
-    while let Ok(msg) = worker.clients.get_mut(&client_id).unwrap().receiver.try_recv() {
+    while let Ok(msg) = worker
+        .clients
+        .get_mut(&client_id)
+        .unwrap()
+        .receiver
+        .try_recv()
+    {
         match msg {
             ServerToWorkerMessage::Disconnect => {
                 disconnect_client(worker, client_id);
                 break;
-            },
+            }
             ServerToWorkerMessage::SendPacket(packet) => send_packet(worker, client_id, packet),
-            ServerToWorkerMessage::EnableCompression(threshold) => worker.clients.get_mut(&client_id).unwrap().manager.enable_compression(threshold),
-            ServerToWorkerMessage::EnableEncryption(key) => worker.clients.get_mut(&client_id).unwrap().manager.enable_encryption(key),
+            ServerToWorkerMessage::EnableCompression(threshold) => worker
+                .clients
+                .get_mut(&client_id)
+                .unwrap()
+                .manager
+                .enable_compression(threshold),
+            ServerToWorkerMessage::EnableEncryption(key) => worker
+                .clients
+                .get_mut(&client_id)
+                .unwrap()
+                .manager
+                .enable_encryption(key),
             _ => panic!("Invalid message received from server thread"),
         }
     }

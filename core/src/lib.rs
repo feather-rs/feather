@@ -53,7 +53,9 @@ impl Difficulty {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Dimension {
-    Nether, Overwold, End,
+    Nether,
+    Overwold,
+    End,
 }
 
 impl Dimension {

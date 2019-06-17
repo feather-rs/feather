@@ -1,6 +1,6 @@
 use super::world::BlockPosition;
-use bytes::{Buf};
-use crate::bytebuf::{ByteBuf, BufMutAlloc};
+use crate::bytebuf::{BufMutAlloc, ByteBuf};
+use bytes::Buf;
 
 /// Identifies a type to which Minecraft-specific
 /// types (`VarInt`, `VarLong`, etc.) can be written.
