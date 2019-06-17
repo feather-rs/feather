@@ -1,16 +1,11 @@
 extern crate proc_macro;
 
-use core::fmt;
 use lazy_static::lazy_static;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::export::Span;
-use syn::parse::Parse;
-use syn::parse::ParseStream;
-use syn::punctuated::Punctuated;
 use syn::Data;
 use syn::Ident;
-use syn::Token;
 use syn::Type;
 use syn::{parse_macro_input, DeriveInput};
 
@@ -70,7 +65,7 @@ lazy_static! {
         m.insert("bool", PacketParameterType::Boolean);
         m.insert("f32", PacketParameterType::F32);
         m.insert("f64", PacketParameterType::F64);
-        m.insert("uuid", PacketParameterType::Uuid);
+        m.insert("Uuid", PacketParameterType::Uuid);
 
         m
     };
@@ -90,6 +85,7 @@ lazy_static! {
         m.insert("i16_be", PacketParameterType::I16);
         m.insert("i8", PacketParameterType::I8);
         m.insert("position", PacketParameterType::Position);
+        m.insert("bool", PacketParameterType::Boolean);
         m.insert("f32_be", PacketParameterType::F32);
         m.insert("f64_be", PacketParameterType::F64);
         m.insert("uuid", PacketParameterType::Uuid);
@@ -105,8 +101,6 @@ lazy_static! {
         reversed
     };
 }
-
-fn bla() {}
 
 #[proc_macro_derive(Packet)]
 pub fn derive_packet(_item: TokenStream) -> TokenStream {
@@ -137,13 +131,14 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
 
         let parameter_type = PARAMETER_MAPPINGS
             .get(ty_ident.to_string().as_str())
-            .unwrap();
+            .expect(&format!(
+                "Couldn't find packet parameter type corresponding to {}",
+                ty_ident
+            ));
         let function_ident = Ident::new(
             FUNCTION_MAPPINGS.get(parameter_type).unwrap(),
             Span::call_site(),
         );
-
-        println!("142");
 
         let write_fn_ident = Ident::new(&format!("write_{}", function_ident), Span::call_site());
         let read_fn_ident = Ident::new(&format!("read_{}", function_ident), Span::call_site());
@@ -169,28 +164,11 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
             }
         }
 
-        let use_unwrap = {
-            vec![
-                PacketParameterType::Uuid,
-                PacketParameterType::String,
-                PacketParameterType::Varint,
-                PacketParameterType::Varlong,
-                PacketParameterType::Boolean,
-            ]
-            .contains(parameter_type)
-        };
-
         let read;
 
-        if use_unwrap {
-            read = quote! {
-                self.#field_name = buf.#read_fn_ident().unwrap();
-            }
-        } else {
-            read = quote! {
-                self.#field_name = buf.#read_fn_ident();
-            }
-        }
+        read = quote! {
+            self.#field_name = buf.#read_fn_ident()?;
+        };
 
         write_code.push(write);
         read_code.push(read);
@@ -212,8 +190,6 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
             }
         }
     };
-
-    println!("{}", r);
 
     r.into()
 }

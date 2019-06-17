@@ -1,8 +1,11 @@
 use super::super::mctypes::{McTypeRead, McTypeWrite};
 use super::*;
-use crate::bytebuf::BufMutAlloc;
+use crate::bytebuf::{BufMutAlloc, BufResulted};
 use crate::prelude::*;
 use bytes::{Buf, BufMut};
+
+type VarInt = i32;
+type VarLong = i64;
 
 lazy_static! {
     pub static ref IMPL_MAP: im::HashMap<PacketType, PacketBuilder> = {
@@ -83,27 +86,11 @@ pub struct LoginStart {
     pub username: String,
 }
 
-/*impl Packet for LoginStart {
-    fn read_from(&mut self, mut buf: &mut ByteBuf) -> Result<(), ()> {
-        self.username = buf.read_string()?;
-
-        Ok(())
-    }
-
-    fn write_to(&self, mut buf: &mut ByteBuf) {
-        unimplemented!()
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::LoginStart
-    }
-}*/
-
 #[derive(Default, AsAny, new)]
 pub struct EncryptionResponse {
-    pub secret_length: i32,
+    pub secret_length: VarInt,
     pub secret: Vec<u8>,
-    pub verify_token_length: i32,
+    pub verify_token_length: VarInt,
     pub verify_token: Vec<u8>,
 }
 
@@ -137,70 +124,26 @@ impl Packet for EncryptionResponse {
     }
 }
 
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct Request {}
 
-impl Packet for Request {
-    fn read_from(&mut self, mut buf: &mut ByteBuf) -> Result<(), ()> {
-        Ok(())
-    }
-
-    fn write_to(&self, buf: &mut ByteBuf) {
-        unimplemented!()
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::Request
-    }
-}
-
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct Ping {
     pub payload: u64,
 }
 
-impl Packet for Ping {
-    fn read_from(&mut self, mut buf: &mut ByteBuf) -> Result<(), ()> {
-        self.payload = buf.get_u64_be();
-        Ok(())
-    }
-
-    fn write_to(&self, buf: &mut ByteBuf) {
-        unimplemented!()
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::Ping
-    }
-}
-
 // CLIENTBOUND
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct DisconnectLogin {
     pub reason: String,
-}
-
-impl Packet for DisconnectLogin {
-    fn read_from(&mut self, mut buf: &mut ByteBuf) -> Result<(), ()> {
-        self.reason = buf.read_string()?;
-        Ok(())
-    }
-
-    fn write_to(&self, mut buf: &mut ByteBuf) {
-        buf.write_string(self.reason.as_str());
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::DisconnectLogin
-    }
 }
 
 #[derive(Default, AsAny, new)]
 pub struct EncryptionRequest {
     pub server_id: String,
-    pub public_key_len: i32,
+    pub public_key_len: VarInt,
     pub public_key: Vec<u8>,
-    pub verify_token_len: i32,
+    pub verify_token_len: VarInt,
     pub verify_token: Vec<u8>,
 }
 
@@ -224,88 +167,31 @@ impl Packet for EncryptionRequest {
     }
 }
 
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct LoginSuccess {
     pub uuid: String,
     pub username: String,
 }
 
-impl Packet for LoginSuccess {
-    fn read_from(&mut self, mut buf: &mut ByteBuf) -> Result<(), ()> {
-        unimplemented!()
-    }
-
-    fn write_to(&self, mut buf: &mut ByteBuf) {
-        buf.write_string(self.uuid.as_str());
-        buf.write_string(self.username.as_str());
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::LoginSuccess
-    }
-}
-
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct SetCompression {
-    pub threshold: i32,
+    pub threshold: VarInt,
 }
 
-impl Packet for SetCompression {
-    fn read_from(&mut self, mut buf: &mut ByteBuf) -> Result<(), ()> {
-        unimplemented!()
-    }
-
-    fn write_to(&self, mut buf: &mut ByteBuf) {
-        buf.write_var_int(self.threshold);
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::SetCompression
-    }
-}
-
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct Response {
     pub json_response: String,
 }
 
-impl Packet for Response {
-    fn read_from(&mut self, mut buf: &mut ByteBuf) -> Result<(), ()> {
-        unimplemented!()
-    }
-
-    fn write_to(&self, mut buf: &mut ByteBuf) {
-        buf.write_string(self.json_response.as_str());
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::Response
-    }
-}
-
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct Pong {
     pub payload: u64,
 }
 
-impl Packet for Pong {
-    fn read_from(&mut self, mut buf: &mut ByteBuf) -> Result<(), ()> {
-        unimplemented!()
-    }
-
-    fn write_to(&self, mut buf: &mut ByteBuf) {
-        buf.write_u64_be(self.payload);
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::Pong
-    }
-}
-
 // PLAY
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct SpawnObject {
-    pub entity_id: i32,
+    pub entity_id: VarInt,
     pub object_uuid: Uuid,
     pub ty: i8,
     pub x: f64,
@@ -319,90 +205,29 @@ pub struct SpawnObject {
     pub velocity_z: i16,
 }
 
-impl Packet for SpawnObject {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
-        unimplemented!()
-    }
-
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_var_int(self.entity_id);
-        buf.write_uuid(&self.object_uuid);
-        buf.write_i8(self.ty);
-        buf.write_f64_be(self.x);
-        buf.write_f64_be(self.y);
-        buf.write_f64_be(self.z);
-        buf.write_u8(self.pitch);
-        buf.write_u8(self.yaw);
-        buf.write_i32_be(self.data);
-        buf.write_i16_be(self.velocity_x);
-        buf.write_i16_be(self.velocity_y);
-        buf.write_i16_be(self.velocity_z);
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::SpawnObject
-    }
-}
-
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct SpawnExperienceOrb {
-    pub entity_id: i32,
+    pub entity_id: VarInt,
     pub x: f64,
     pub y: f64,
     pub z: f64,
     pub count: i16,
 }
 
-impl Packet for SpawnExperienceOrb {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
-        unimplemented!()
-    }
-
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_var_int(self.entity_id);
-        buf.write_f64_be(self.x);
-        buf.write_f64_be(self.y);
-        buf.write_f64_be(self.z);
-        buf.write_i16_be(self.count);
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::SpawnExperienceOrb
-    }
-}
-
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct SpawnGlobalEntity {
-    entity_id: i32,
+    entity_id: VarInt,
     ty: u8,
     x: f64,
     y: f64,
     z: f64,
 }
 
-impl Packet for SpawnGlobalEntity {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
-        unimplemented!()
-    }
-
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_var_int(self.entity_id);
-        buf.write_u8(self.ty);
-        buf.write_f64_be(self.x);
-        buf.write_f64_be(self.y);
-        buf.write_f64_be(self.z);
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::SpawnGlobalEntity
-    }
-}
-
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct SpawnMob {
-    entity_id: i32,
+    entity_id: VarInt,
     entity_uuid: Uuid,
-    ty: i32,
+    ty: VarInt,
     x: f64,
     y: f64,
     z: f64,
@@ -415,36 +240,7 @@ pub struct SpawnMob {
     // TODO metadata
 }
 
-impl Packet for SpawnMob {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
-        unimplemented!()
-    }
-
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_var_int(self.entity_id);
-        buf.write_uuid(&self.entity_uuid);
-        buf.write_var_int(self.ty);
-        buf.write_f64_be(self.x);
-        buf.write_f64_be(self.y);
-        buf.write_f64_be(self.z);
-        buf.write_u8(self.yaw);
-        buf.write_u8(self.pitch);
-        buf.write_u8(self.head_pitch);
-        buf.write_i16_be(self.velocity_x);
-        buf.write_i16_be(self.velocity_y);
-        buf.write_i16_be(self.velocity_z);
-        buf.write_u8(0xff); // TODO metadata
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::SpawnMob
-    }
-}
-
-#[derive(Default, AsAny, new)]
-pub struct SpawnPainting {}
-
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Packet)]
 pub struct JoinGame {
     pub entity_id: i32,
     pub gamemode: u8,
@@ -453,24 +249,4 @@ pub struct JoinGame {
     pub max_players: u8,
     pub level_type: String,
     pub reduced_debug_info: bool,
-}
-
-impl Packet for JoinGame {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
-        unimplemented!()
-    }
-
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_i32_be(self.entity_id);
-        buf.write_u8(self.gamemode);
-        buf.write_i32_be(self.dimension);
-        buf.write_u8(self.difficulty);
-        buf.write_u8(self.max_players);
-        buf.write_string(&self.level_type);
-        buf.write_bool(self.reduced_debug_info);
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::JoinGame
-    }
 }

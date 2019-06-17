@@ -254,3 +254,129 @@ impl BufMutAlloc for ByteBuf {
         self.put_i64_le(x);
     }
 }
+
+pub trait BufResulted {
+    fn byte_check(&self, amnt: usize) -> Result<(), ()>;
+
+    fn read_f32_be(&mut self) -> Result<f32, ()>;
+    fn read_f32_le(&mut self) -> Result<f32, ()>;
+    fn read_f64_be(&mut self) -> Result<f64, ()>;
+    fn read_f64_le(&mut self) -> Result<f64, ()>;
+
+    fn read_u8(&mut self) -> Result<u8, ()>;
+    fn read_u16_be(&mut self) -> Result<u16, ()>;
+    fn read_u16_le(&mut self) -> Result<u16, ()>;
+    fn read_u32_be(&mut self) -> Result<u32, ()>;
+    fn read_u32_le(&mut self) -> Result<u32, ()>;
+    fn read_u64_be(&mut self) -> Result<u64, ()>;
+    fn read_u64_le(&mut self) -> Result<u64, ()>;
+
+    fn read_i8(&mut self) -> Result<i8, ()>;
+    fn read_i16_be(&mut self) -> Result<i16, ()>;
+    fn read_i16_le(&mut self) -> Result<i16, ()>;
+    fn read_i32_be(&mut self) -> Result<i32, ()>;
+    fn read_i32_le(&mut self) -> Result<i32, ()>;
+    fn read_i64_be(&mut self) -> Result<i64, ()>;
+    fn read_i64_le(&mut self) -> Result<i64, ()>;
+}
+
+impl BufResulted for ByteBuf {
+    #[inline]
+    fn byte_check(&self, amnt: usize) -> Result<(), ()> {
+        if self.remaining() >= amnt {
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+
+    fn read_f32_be(&mut self) -> Result<f32, ()> {
+        self.byte_check(4)?;
+        Ok(self.get_f32_be())
+    }
+
+    fn read_f32_le(&mut self) -> Result<f32, ()> {
+        self.byte_check(4)?;
+        Ok(self.get_f32_le())
+    }
+
+    fn read_f64_be(&mut self) -> Result<f64, ()> {
+        self.byte_check(8)?;
+        Ok(self.get_f64_be())
+    }
+
+    fn read_f64_le(&mut self) -> Result<f64, ()> {
+        self.byte_check(8)?;
+        Ok(self.get_f64_le())
+    }
+
+    fn read_u8(&mut self) -> Result<u8, ()> {
+        self.byte_check(1)?;
+        Ok(self.get_u8())
+    }
+
+    fn read_u16_be(&mut self) -> Result<u16, ()> {
+        self.byte_check(2)?;
+        Ok(self.get_u16_be())
+    }
+
+    fn read_u16_le(&mut self) -> Result<u16, ()> {
+        self.byte_check(2)?;
+        Ok(self.get_u16_le())
+    }
+
+    fn read_u32_be(&mut self) -> Result<u32, ()> {
+        self.byte_check(4)?;
+        Ok(self.get_u32_be())
+    }
+
+    fn read_u32_le(&mut self) -> Result<u32, ()> {
+        self.byte_check(4)?;
+        Ok(self.get_u32_le())
+    }
+
+    fn read_u64_be(&mut self) -> Result<u64, ()> {
+        self.byte_check(8)?;
+        Ok(self.get_u64_be())
+    }
+
+    fn read_u64_le(&mut self) -> Result<u64, ()> {
+        self.byte_check(8)?;
+        Ok(self.get_u64_le())
+    }
+
+    fn read_i8(&mut self) -> Result<i8, ()> {
+        self.byte_check(1)?;
+        Ok(self.get_i8())
+    }
+
+    fn read_i16_be(&mut self) -> Result<i16, ()> {
+        self.byte_check(2)?;
+        Ok(self.get_i16_be())
+    }
+
+    fn read_i16_le(&mut self) -> Result<i16, ()> {
+        self.byte_check(2)?;
+        Ok(self.get_i16_le())
+    }
+
+    fn read_i32_be(&mut self) -> Result<i32, ()> {
+        self.byte_check(4)?;
+        Ok(self.get_i32_be())
+    }
+
+    fn read_i32_le(&mut self) -> Result<i32, ()> {
+        self.byte_check(4)?;
+        Ok(self.get_i32_le())
+    }
+
+    fn read_i64_be(&mut self) -> Result<i64, ()> {
+        self.byte_check(8)?;
+        Ok(self.get_i64_be())
+    }
+
+    fn read_i64_le(&mut self) -> Result<i64, ()> {
+        self.byte_check(8)?;
+        Ok(self.get_i64_le())
+    }
+}
