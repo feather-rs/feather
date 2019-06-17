@@ -65,13 +65,13 @@ impl PlayerHandle {
         trace!("Handling packet");
         if !self.initial_handler.finished {
             let r = self.initial_handler.handle_packet(packet);
+            for packet in self.initial_handler.packets_to_send() {
+                self.send_packet_boxed(packet);
+            }
+
             if self.initial_handler.should_disconnect || r.is_err() {
                 self.should_remove = true;
                 self.close_connection();
-            }
-
-            for packet in self.initial_handler.packets_to_send() {
-                self.send_packet_boxed(packet);
             }
         } else {
             // TODO

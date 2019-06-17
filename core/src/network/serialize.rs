@@ -1,6 +1,6 @@
 use super::mctypes::{McTypeRead, McTypeWrite};
 use super::packet::{Packet, PacketDirection, PacketId, PacketStage, PacketType};
-use crate::bytebuf::ByteBuf;
+use crate::bytebuf::{BufMutAlloc, ByteBuf};
 use bytes::{Buf, BufMut};
 use flate2::{
     read::{ZlibDecoder, ZlibEncoder},
@@ -95,6 +95,11 @@ impl ConnectionIOManager {
                 }
             };
 
+            if packet_length as usize > pending_buf.len() {
+                // Error (or legacy ping - we need to handle that)
+                return Err(());
+            }
+
             trace!("Packet length: {}, buffer length: {}", packet_length, pending_buf.len());
 
             // Check that the entire packet is received - otherwise, return and
@@ -172,16 +177,21 @@ impl ConnectionIOManager {
 
             if packet_data_buf.len() < self.compression_threshold as usize {
                 buf_without_length.write_var_int(0);
-                buf_without_length.put(packet_data_buf);
+                buf_without_length.write(packet_data_buf.inner());
             } else {
                 buf_without_length.write_var_int(uncompressed_length as i32);
                 self.compress_data(packet_data_buf.inner(), &mut buf_without_length);
             }
+        } else {
+            buf_without_length.write(packet_data_buf.inner()); // Lots of inefficient copying here - find a fix for this
         }
 
         let mut buf = ByteBuf::with_capacity(buf_without_length.len() + 4);
         buf.write_var_int(buf_without_length.len() as i32);
-        buf.put(buf_without_length.inner());
+        buf.write(buf_without_length.inner());
+
+        trace!("{:?}", packet_data_buf.inner());
+        trace!("{:?}", buf.inner());
 
         if !self.encryption_enabled {
             buf
