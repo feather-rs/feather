@@ -76,7 +76,7 @@ impl ConnectionIOManager {
             self.decrypt_data(data.inner());
         } else {
             // Copy to incoming_compressed without decrypting
-            self.incoming_compressed.put(data.inner());
+            self.incoming_compressed.write(data.inner());
         }
 
         loop {
@@ -116,7 +116,7 @@ impl ConnectionIOManager {
                 self.decompress_data(uncompressed_size);
             } else {
                 let buf = &pending_buf.inner()[..(packet_length as usize)];
-                self.incoming_uncompressed.put(buf);
+                self.incoming_uncompressed.write(buf);
                 self.incoming_compressed.advance(packet_length as usize);
             }
 

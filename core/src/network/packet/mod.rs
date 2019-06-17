@@ -403,19 +403,19 @@ lazy_static! {
             PacketType::DisconnectLogin,
         );
         m.insert(
-            PacketId(0x01, PacketDirection::Serverbound, PacketStage::Login),
+            PacketId(0x01, PacketDirection::Clientbound, PacketStage::Login),
             PacketType::EncryptionRequest,
         );
         m.insert(
-            PacketId(0x02, PacketDirection::Serverbound, PacketStage::Login),
+            PacketId(0x02, PacketDirection::Clientbound, PacketStage::Login),
             PacketType::LoginSuccess,
         );
         m.insert(
-            PacketId(0x03, PacketDirection::Serverbound, PacketStage::Login),
+            PacketId(0x03, PacketDirection::Clientbound, PacketStage::Login),
             PacketType::SetCompression,
         );
         m.insert(
-            PacketId(0x04, PacketDirection::Serverbound, PacketStage::Login),
+            PacketId(0x04, PacketDirection::Clientbound, PacketStage::Login),
             PacketType::LoginPluginRequest,
         );
 
