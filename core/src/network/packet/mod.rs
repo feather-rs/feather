@@ -429,6 +429,11 @@ lazy_static! {
             PacketType::Pong,
         );
 
+        m.insert(
+            PacketId(0x25, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::JoinGame,
+        );
+
         m
     };
     static ref PACKET_TYPE_MAPPINGS: im::HashMap<PacketType, PacketId> = {

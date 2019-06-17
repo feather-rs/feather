@@ -116,7 +116,7 @@ impl PlayerHandle {
             Dimension::Overwold.get_id(),
             Difficulty::Hard.get_id(),
             0, // Unused value - max players
-            "default",
+            "default".to_string(),
             false,
         );
 

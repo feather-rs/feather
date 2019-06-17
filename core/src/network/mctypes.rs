@@ -15,6 +15,8 @@ pub trait McTypeWrite {
     fn write_string(&mut self, x: &str);
 
     fn write_position(&mut self, x: &BlockPosition);
+
+    fn write_bool(&mut self, x: bool);
 }
 
 /// Identifies a type from which Minecraft-specified
@@ -28,6 +30,8 @@ pub trait McTypeRead {
     fn read_string(&mut self) -> Result<String, ()>;
 
     fn read_position(&mut self) -> Result<BlockPosition, ()>;
+
+    fn read_bool(&mut self) -> Result<bool, ()>;
 }
 
 impl McTypeWrite for ByteBuf {
@@ -65,6 +69,14 @@ impl McTypeWrite for ByteBuf {
             | (x.z as u64 & 0x3FFFFFF);
 
         self.write_u64_be(result);
+    }
+
+    fn write_bool(&mut self, x: bool) {
+        if x {
+            self.write_u8(1);
+        } else {
+            self.write_u8(0);
+        }
     }
 }
 
@@ -124,5 +136,14 @@ impl<T: Buf> McTypeRead for T {
         let z = val << 38 >> 38;
 
         Ok(BlockPosition::new(x as u32, y as u32, z as u32))
+    }
+
+    fn read_bool(&mut self) -> Result<bool, ()> {
+        let byte = self.get_u8();
+        match byte {
+            0 => Ok(false),
+            1 => Ok(true),
+            _ => Err(()),
+        }
     }
 }

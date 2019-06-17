@@ -1,6 +1,6 @@
 use super::*;
 use bytes::BufMut;
-use feather_core::bytebuf::ByteBuf;
+use feather_core::bytebuf::{BufMutAlloc, ByteBuf};
 use feather_core::network::serialize::ConnectionIOManager;
 use mio::Event;
 use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
@@ -229,7 +229,12 @@ fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
 
     let manager = &mut client.manager;
     let buf = manager.serialize_packet(packet);
-    client.write_buffer = Some(buf);
+
+    if client.write_buffer.is_some() {
+        client.write_buffer.as_mut().unwrap().write(buf.inner());
+    } else {
+        client.write_buffer = Some(buf);
+    }
 
     worker
         .poll

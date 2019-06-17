@@ -15,6 +15,9 @@ lazy_static! {
         m.insert(PacketType::Request, PacketBuilder::with(|| Box::new(Request::default())));
         m.insert(PacketType::Ping, PacketBuilder::with(|| Box::new(Ping::default())));
 
+        // Play
+        m.insert(PacketType::JoinGame, PacketBuilder::with(|| Box::new(JoinGame::default())));
+
         // Clientbound
         m.insert(PacketType::DisconnectLogin, PacketBuilder::with(|| Box::new(DisconnectLogin::default())));
         m.insert(PacketType::EncryptionRequest, PacketBuilder::with(|| Box::new(EncryptionRequest::default())));
@@ -167,6 +170,38 @@ impl Packet for Ping {
 
     fn ty(&self) -> PacketType {
         PacketType::Ping
+    }
+}
+
+// PLAY
+#[derive(Default, AsAny, new)]
+pub struct JoinGame {
+    entity_id: i32,
+    gamemode: u8,
+    dimension: i32,
+    difficulty: u8,
+    max_players: u8,
+    level_type: String,
+    reduced_debug_info: bool,
+}
+
+impl Packet for JoinGame {
+    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_i32_be(self.entity_id);
+        buf.write_u8(self.gamemode);
+        buf.write_i32_be(self.dimension);
+        buf.write_u8(self.difficulty);
+        buf.write_u8(self.max_players);
+        buf.write_string(&self.level_type);
+        buf.write_bool(self.reduced_debug_info);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::JoinGame
     }
 }
 

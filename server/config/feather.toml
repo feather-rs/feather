@@ -4,7 +4,7 @@
 compression_threshold = 256
 # The number of worker threads used for asynchronous IO.
 # Set to the number of cores on your CPU for optimal performance.
-io_worker_threads = 1
+io_worker_threads = 8
 
 [proxy]
 # IP forwarding using either "bungee" (BungeeCord/Waterfall/Travertine) or "velocity" (Velocity)

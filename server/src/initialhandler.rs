@@ -226,12 +226,20 @@ impl InitialHandler {
 
         self.enable_encryption(key);
 
+        // Enable compression, if needed
+        self.compression_threshold = Some(256);
+        let set_compression = SetCompression::new(self.compression_threshold.unwrap() as i32);
+        self.send_packet(set_compression);
+        self.enable_compression(self.compression_threshold.unwrap());
+
         // Send Login Success
         let login_success = LoginSuccess::new(
             self.uuid.to_hyphenated_ref().to_string(),
             self.name.as_ref().unwrap().clone(),
         );
         self.send_packet(login_success);
+
+        self.finished = true;
 
         Ok(())
     }
