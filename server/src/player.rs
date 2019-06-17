@@ -74,8 +74,8 @@ impl PlayerHandle {
                 self.packet_sender.send(ServerToWorkerMessage::EnableEncryption(key)).unwrap();
             }
 
-            for packet in self.initial_handler.packets_to_send() {
-                self.send_packet_boxed(packet);
+            for pack in self.initial_handler.packets_to_send() {
+                self.send_packet_boxed(pack);
             }
 
             if self.initial_handler.should_disconnect || r.is_err() {

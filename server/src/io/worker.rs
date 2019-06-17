@@ -19,6 +19,8 @@ struct Worker {
     client_id_counter: usize,
 
     clients: HashMap<Client, ClientHandle>,
+
+    pending_disconnects: Vec<Client>,
 }
 
 struct ClientHandle {
@@ -51,6 +53,8 @@ pub fn start(receiver: Receiver<ListenerToWorkerMessage>, sender: Sender<Listene
 
         client_id_counter: 0,
         clients: HashMap::new(),
+
+        pending_disconnects: vec![],
     };
 
     worker.poll.register(
@@ -166,7 +170,10 @@ fn read_from_server(worker: &mut Worker, token: Token) {
 
     while let Ok(msg) = worker.clients.get_mut(&client_id).unwrap().receiver.try_recv() {
         match msg {
-            ServerToWorkerMessage::Disconnect => disconnect_client(worker, client_id),
+            ServerToWorkerMessage::Disconnect => {
+                disconnect_client(worker, client_id);
+                break;
+            },
             ServerToWorkerMessage::SendPacket(packet) => send_packet(worker, client_id, packet),
             ServerToWorkerMessage::EnableCompression(threshold) => worker.clients.get_mut(&client_id).unwrap().manager.enable_compression(threshold),
             ServerToWorkerMessage::EnableEncryption(key) => worker.clients.get_mut(&client_id).unwrap().manager.enable_encryption(key),
@@ -176,13 +183,20 @@ fn read_from_server(worker: &mut Worker, token: Token) {
 }
 
 fn disconnect_client(worker: &mut Worker, client_id: Client) {
-    debug!("Disconnnecting client {}", client_id.0);
     let client = worker.clients.get(&client_id).unwrap();
+
+    if client.write_buffer.is_some() {
+        // Wait to write data before disconnecting
+        worker.pending_disconnects.push(client_id);
+        return;
+    }
 
     worker.poll.deregister(&client.receiver).unwrap();
     worker.poll.deregister(&client.stream).unwrap();
 
     let _ = client.sender.send(ServerToWorkerMessage::NotifyDisconnect);
+
+    debug!("Disconnnecting client {}", client_id.0);
 
     worker.clients.remove(&client_id);
 }
@@ -256,6 +270,14 @@ fn write_to_client(worker: &mut Worker, client_id: Client) {
             PollOpt::edge(),
         )
         .unwrap();
+
+    // If client is pending disconnecting, run disconnect() again
+    // This is done to allow for data to be written to the client
+    // before it is disconnected (otherwise, the client is deregistered
+    // from the poller before the data can be written)
+    if worker.pending_disconnects.contains(&client_id) {
+        disconnect_client(worker, client_id);
+    }
 }
 
 fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {

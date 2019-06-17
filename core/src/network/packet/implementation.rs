@@ -294,6 +294,6 @@ impl Packet for Pong {
     }
 
     fn ty(&self) -> PacketType {
-        PacketType::Ping
+        PacketType::Pong
     }
 }
