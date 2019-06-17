@@ -14,6 +14,9 @@ pub enum ServerToWorkerMessage {
     NotifyPacketReceived(Box<Packet>),
     NotifyDisconnect,
     Disconnect,
+
+    EnableCompression(usize),
+    EnableEncryption([u8; 16]),
 }
 
 pub enum ServerToListenerMessage {

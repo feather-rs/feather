@@ -21,6 +21,14 @@ pub struct InitialHandler {
     max_players: i32,
 
     packets_to_send: RefCell<Vec<Box<Packet>>>,
+
+    encryption_key: Option<[u8; 16]>,
+    compression_threshold: Option<usize>,
+
+    enable_encryption: bool,
+    enable_compression: bool,
+
+    uuid: Uuid,
 }
 
 impl InitialHandler {
@@ -39,6 +47,14 @@ impl InitialHandler {
             max_players,
 
             packets_to_send: RefCell::new(vec![]),
+
+            encryption_key: None,
+            compression_threshold: None,
+
+            enable_encryption: false,
+            enable_compression: false,
+
+            uuid: Uuid::new_v4(),
         }
     }
 
@@ -135,36 +151,7 @@ impl InitialHandler {
                 self.send_encryption_request();
             }
             PacketType::EncryptionResponse => {
-                if !self.sent_encryption_request {
-                    self.disconnect_login(
-                        "EncryptionResponse sent before server sent EncryptionRequest",
-                    );
-                    return Err(());
-                }
-
-                let response = cast_packet::<EncryptionResponse>(&packet);
-                let shared_secret = &response.secret;
-                let verify_token = &response.verify_token;
-
-                if verify_token.len() != 4 {
-                    self.disconnect_login(&format!(
-                        "Invalid verify token length {}",
-                        verify_token.len()
-                    ));
-                    return Err(());
-                }
-
-                if verify_token[..4] != self.verify_token {
-                    self.disconnect_login("Verify token does not match");
-                    return Err(());
-                }
-
-                let mut decrypted_buf = Vec::with_capacity(self.key.size() as usize);
-                self.key
-                    .private_decrypt(&shared_secret, &mut decrypted_buf, rsa::Padding::PKCS1)
-                    .unwrap();
-
-                // TODO - enable encryption, send Login Success
+                return self.handle_encryption_response(packet);
             }
             _ => {
                 self.disconnect_login("Client sent incorrect packet at stage LOGIN");
@@ -194,6 +181,51 @@ impl InitialHandler {
         self.sent_encryption_request = true;
     }
 
+    fn handle_encryption_response(&mut self, packet: Box<Packet>) -> Result<(), ()> {
+        if !self.sent_encryption_request {
+            self.disconnect_login(
+                "EncryptionResponse sent before server sent EncryptionRequest",
+            );
+            return Err(());
+        }
+
+        let response = cast_packet::<EncryptionResponse>(&packet);
+        let shared_secret = &response.secret;
+        let verify_token = &response.verify_token;
+
+        let mut decrypted_shared_secret = vec![0; self.key.size() as usize];
+        self.key
+            .private_decrypt(&shared_secret, &mut decrypted_shared_secret, rsa::Padding::PKCS1)
+            .unwrap();
+
+        let mut decrypted_verify_token = vec![0; self.key.size() as usize];
+        self.key
+            .private_decrypt(&verify_token, &mut decrypted_verify_token, rsa::Padding::PKCS1)
+            .unwrap();
+
+        if verify_token[..4] != self.verify_token {
+            trace!("Verify token mismatch: received {:?}, sent {:?}", &verify_token[..4], self.verify_token);
+            self.disconnect_login("Verify token does not match");
+            return Err(());
+        }
+
+        let mut key = [0; 16];
+        for (i, val) in decrypted_shared_secret.iter().enumerate() {
+            key[i] = val.clone();
+        }
+
+        self.enable_encryption(key);
+
+        // Send Login Success
+        let login_success = LoginSuccess::new(
+            self.uuid.to_hyphenated_ref().to_string(),
+            self.name.as_ref().unwrap().clone(),
+        );
+        self.send_packet(login_success);
+
+        Ok(())
+    }
+
     pub fn disconnect_login(&mut self, reason: &str) {
         let packet = DisconnectLogin::new(reason.to_string());
         self.send_packet(packet);
@@ -204,8 +236,36 @@ impl InitialHandler {
         self.packets_to_send.borrow_mut().push(Box::new(packet));
     }
 
-    pub fn packets_to_send(&self) -> Vec<Box<Packet>> {
+    fn enable_encryption(&mut self, key: [u8; 16]) {
+        self.encryption_key = Some(key);
+        self.enable_encryption = true;
+    }
+
+    fn enable_compression(&mut self, threshold: usize) {
+        self.compression_threshold = Some(threshold);
+        self.enable_compression = true;
+    }
+
+    pub fn packets_to_send(&mut self) -> Vec<Box<Packet>> {
         self.packets_to_send.borrow_mut().drain(..).collect()
+    }
+
+    pub fn should_enable_encryption(&mut self) -> Option<[u8; 16]> {
+        if self.enable_encryption {
+            self.enable_encryption = false;
+            Some(self.encryption_key.unwrap())
+        } else {
+            None
+        }
+    }
+
+    pub fn should_enable_compression(&mut self) -> Option<usize> {
+        if self.enable_compression {
+            self.enable_compression = false;
+            Some(self.compression_threshold).unwrap()
+        } else {
+            None
+        }
     }
 }
 

@@ -169,6 +169,8 @@ fn read_from_server(worker: &mut Worker, token: Token) {
         match msg {
             ServerToWorkerMessage::Disconnect => disconnect_client(worker, client_id),
             ServerToWorkerMessage::SendPacket(packet) => send_packet(worker, client_id, packet),
+            ServerToWorkerMessage::EnableCompression(threshold) => client.manager.enable_compression(threshold),
+            ServerToWorkerMessage::EnableEncryption(key) => client.manager.enable_encryption(key),
             _ => panic!("Invalid message received from server thread"),
         }
     }

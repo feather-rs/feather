@@ -65,6 +65,14 @@ impl PlayerHandle {
         trace!("Handling packet");
         if !self.initial_handler.finished {
             let r = self.initial_handler.handle_packet(packet);
+            if let Some(threshold) = self.initial_handler.should_enable_compression() {
+                self.packet_sender.send(ServerToWorkerMessage::EnableCompression(threshold)).unwrap();
+            }
+            if let Some(key) = self.initial_handler.should_enable_encryption() {
+                trace!("Server: enabling encryption");
+                self.packet_sender.send(ServerToWorkerMessage::EnableEncryption(key)).unwrap();
+            }
+
             for packet in self.initial_handler.packets_to_send() {
                 self.send_packet_boxed(packet);
             }

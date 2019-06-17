@@ -14,7 +14,7 @@ pub struct ConnectionIOManager {
     encryption_enabled: bool,
     encryption_key: [u8; 16],
     compression_enabled: bool,
-    compression_threshold: i32,
+    compression_threshold: usize,
 
     pending_received_packets: Option<Vec<Box<Packet>>>,
 
@@ -35,7 +35,7 @@ impl ConnectionIOManager {
             encryption_enabled: false,
             encryption_key: [0; 16],
             compression_enabled: false,
-            compression_threshold: -1,
+            compression_threshold: 0,
             pending_received_packets: Some(vec![]),
 
             incoming_compressed: ByteBuf::with_capacity(128),
@@ -60,11 +60,15 @@ impl ConnectionIOManager {
 
         self.encrypter = Some(Crypter::new(self.cipher, Mode::Encrypt, &key, Some(&key)).unwrap());
         self.decrypter = Some(Crypter::new(self.cipher, Mode::Decrypt, &key, Some(&key)).unwrap());
+
+        trace!("Enabling encryption");
     }
 
-    pub fn enable_compression(&mut self, threshold: i32) {
+    pub fn enable_compression(&mut self, threshold: usize) {
         self.compression_enabled = true;
         self.compression_threshold = threshold;
+
+        trace!("Enabling compression");
     }
 
     /// `Err` is returned only if something happens that indicates
@@ -198,6 +202,7 @@ impl ConnectionIOManager {
         } else {
             let mut encrypted_buf = ByteBuf::with_capacity(buf.len());
             self.encrypt_data(buf.inner(), &mut encrypted_buf);
+            trace!("{:?}", encrypted_buf.inner());
             encrypted_buf
         }
     }
