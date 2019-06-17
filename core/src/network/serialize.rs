@@ -104,8 +104,6 @@ impl ConnectionIOManager {
                 return Err(());
             }
 
-            trace!("Packet length: {}, buffer length: {}", packet_length, pending_buf.len());
-
             // Check that the entire packet is received - otherwise, return and
             // wait for more bytes
             if (pending_buf.remaining() as i32) < packet_length {
@@ -194,15 +192,11 @@ impl ConnectionIOManager {
         buf.write_var_int(buf_without_length.len() as i32);
         buf.write(buf_without_length.inner());
 
-        trace!("{:?}", packet_data_buf.inner());
-        trace!("{:?}", buf.inner());
-
         if !self.encryption_enabled {
             buf
         } else {
             let mut encrypted_buf = ByteBuf::with_capacity(buf.len());
             self.encrypt_data(buf.inner(), &mut encrypted_buf);
-            trace!("{:?}", encrypted_buf.inner());
             encrypted_buf
         }
     }

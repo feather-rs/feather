@@ -207,16 +207,12 @@ impl Packet for EncryptionRequest {
 
     fn write_to(&self, mut buf: &mut ByteBuf) {
         buf.write_string(self.server_id.as_str());
-        buf.write_var_int(self.public_key_len);
 
-        for val in self.public_key.iter() {
-            buf.write_u8(val.clone());
-        }
+        buf.write_var_int(self.public_key_len);
+        buf.write(&self.public_key);
 
         buf.write_var_int(self.verify_token_len);
-        for val in self.verify_token.iter() {
-            buf.write_u8(val.clone());
-        }
+        buf.write(&self.verify_token);
     }
 
     fn ty(&self) -> PacketType {

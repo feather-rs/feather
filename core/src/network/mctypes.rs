@@ -54,8 +54,8 @@ impl McTypeWrite for ByteBuf {
     fn write_string(&mut self, x: &str) {
         let len = x.len();
         self.write_var_int(len as i32);
-        let bytes = x.as_bytes();
 
+        let bytes = x.as_bytes();
         self.write(bytes);
     }
 

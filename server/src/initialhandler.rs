@@ -32,7 +32,7 @@ pub struct InitialHandler {
 }
 
 impl InitialHandler {
-    pub fn new(motd: String, player_count: u32, max_players: i32) -> Self {
+    pub fn new(motd: String, player_count: u32, max_players: i32, rsa_key: Rsa<Private>) -> Self {
         Self {
             sent_encryption_request: false,
             state: State::Handshake,
@@ -40,8 +40,8 @@ impl InitialHandler {
             should_disconnect: false,
             handle: None,
             name: None,
-            key: Rsa::generate(1024).unwrap(),
-            verify_token: rand::random(),
+            key: rsa_key,
+            verify_token: [100, 128, 255, 0],
             motd,
             player_count,
             max_players,
@@ -87,7 +87,7 @@ impl InitialHandler {
             HandshakeState::Status => self.state = State::Status,
         }
 
-        if handshake.protocol_version != PROTOCOL_VERSION {
+        if handshake.protocol_version != PROTOCOL_VERSION && self.state != State::Status {
             self.disconnect_login(&format!(
                 "Protocol version does not match: client is on {}, server on {}",
                 handshake.protocol_version, PROTOCOL_VERSION
@@ -172,7 +172,7 @@ impl InitialHandler {
             "".to_string(), // Server ID - empty
             key_bytes.len() as i32,
             key_bytes,
-            verify_token.len() as i32,
+            4,
             verify_token,
         );
 
@@ -203,14 +203,14 @@ impl InitialHandler {
             .private_decrypt(&verify_token, &mut decrypted_verify_token, rsa::Padding::PKCS1)
             .unwrap();
 
-        if verify_token[..4] != self.verify_token {
+        if decrypted_verify_token[..4] != self.verify_token {
             trace!("Verify token mismatch: received {:?}, sent {:?}", &verify_token[..4], self.verify_token);
             self.disconnect_login("Verify token does not match");
             return Err(());
         }
 
         let mut key = [0; 16];
-        for (i, val) in decrypted_shared_secret.iter().enumerate() {
+        for (i, val) in decrypted_shared_secret[..16].iter().enumerate() {
             key[i] = val.clone();
         }
 

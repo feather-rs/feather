@@ -163,14 +163,13 @@ fn read_from_listener(worker: &mut Worker) {
 
 fn read_from_server(worker: &mut Worker, token: Token) {
     let client_id = get_client_from_server_to_worker_token(token);
-    let client = worker.clients.get_mut(&client_id).unwrap();
 
-    if let Ok(msg) = client.receiver.try_recv() {
+    while let Ok(msg) = worker.clients.get_mut(&client_id).unwrap().receiver.try_recv() {
         match msg {
             ServerToWorkerMessage::Disconnect => disconnect_client(worker, client_id),
             ServerToWorkerMessage::SendPacket(packet) => send_packet(worker, client_id, packet),
-            ServerToWorkerMessage::EnableCompression(threshold) => client.manager.enable_compression(threshold),
-            ServerToWorkerMessage::EnableEncryption(key) => client.manager.enable_encryption(key),
+            ServerToWorkerMessage::EnableCompression(threshold) => worker.clients.get_mut(&client_id).unwrap().manager.enable_compression(threshold),
+            ServerToWorkerMessage::EnableEncryption(key) => worker.clients.get_mut(&client_id).unwrap().manager.enable_encryption(key),
             _ => panic!("Invalid message received from server thread"),
         }
     }
@@ -227,6 +226,7 @@ fn read_from_stream(worker: &mut Worker, token: Token) {
 
     if client.manager.accept_data(buf).is_err() {
         disconnect_client(worker, client_id);
+        return;
     }
 
     for packet in worker
@@ -259,7 +259,6 @@ fn write_to_client(worker: &mut Worker, client_id: Client) {
 }
 
 fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
-    trace!("Worker: handle_packet");
     let client = worker.clients.get_mut(&client_id).unwrap();
 
     let msg = ServerToWorkerMessage::NotifyPacketReceived(packet);
@@ -279,7 +278,6 @@ fn get_client_from_stream_token(token: Token) -> Client {
 }
 
 fn get_client_from_server_to_worker_token(token: Token) -> Client {
-    trace!("{:?}", token);
     Client(token.0 / 2 - 1)
 }
 

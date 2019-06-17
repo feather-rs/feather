@@ -20,9 +20,10 @@ impl PlayerHandle {
         motd: String,
         player_count: u32,
         max_players: i32,
+        rsa_key: openssl::rsa::Rsa<openssl::pkey::Private>,
     ) -> Self {
         Self {
-            initial_handler: InitialHandler::new(motd, player_count, max_players),
+            initial_handler: InitialHandler::new(motd, player_count, max_players, rsa_key),
 
             packet_sender,
             packet_receiver,

@@ -23,6 +23,7 @@ pub struct Server {
     player_count: u32,
     players: Vec<RefCell<PlayerHandle>>,
     io_manager: io::NetworkIoManager,
+    rsa_key: openssl::rsa::Rsa<openssl::pkey::Private>,
 }
 
 fn main() {
@@ -43,6 +44,7 @@ fn main() {
         player_count: 0,
         players: vec![],
         io_manager,
+        rsa_key: openssl::rsa::Rsa::generate(1024).unwrap(),
     };
 
     loop {
@@ -58,6 +60,7 @@ fn main() {
                         server.config.server.motd.clone(),
                         server.player_count,
                         server.config.server.max_players,
+                        server.rsa_key.clone(),
                     );
                     server.players.push(RefCell::new(new_player));
                 }
