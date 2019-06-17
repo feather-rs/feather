@@ -1,7 +1,7 @@
 use super::initialhandler::InitialHandler;
 use crate::io::ServerToWorkerMessage;
 use crate::prelude::*;
-use feather_core::network::packet::Packet;
+use feather_core::network::packet::{Packet, implementation::*};
 use mio_extras::channel::{Receiver, Sender};
 
 pub struct PlayerHandle {
@@ -9,6 +9,8 @@ pub struct PlayerHandle {
 
     packet_sender: Sender<ServerToWorkerMessage>,
     packet_receiver: Receiver<ServerToWorkerMessage>,
+
+    entity_id: i32,
 
     pub should_remove: bool,
 }
@@ -26,6 +28,9 @@ impl PlayerHandle {
             initial_handler: InitialHandler::new(motd, player_count, max_players, rsa_key),
 
             packet_sender,
+
+            entity_id: 0,
+
             packet_receiver,
             should_remove: false,
         }
@@ -49,10 +54,10 @@ impl PlayerHandle {
             .unwrap();
     }
 
-    pub fn tick(&mut self, _server: &Server) {
+    pub fn tick(&mut self, server: &Server) {
         while let Ok(msg) = self.packet_receiver.try_recv() {
             match msg {
-                ServerToWorkerMessage::NotifyPacketReceived(packet) => self.handle_packet(packet),
+                ServerToWorkerMessage::NotifyPacketReceived(packet) => self.handle_packet(packet, server),
                 ServerToWorkerMessage::NotifyDisconnect => {
                     trace!("Server removing player");
                     self.should_remove = true;
@@ -62,7 +67,7 @@ impl PlayerHandle {
         }
     }
 
-    fn handle_packet(&mut self, packet: Box<Packet>) {
+    fn handle_packet(&mut self, packet: Box<Packet>, server: &Server) {
         trace!("Handling packet");
         if !self.initial_handler.finished {
             let r = self.initial_handler.handle_packet(packet);
@@ -82,8 +87,33 @@ impl PlayerHandle {
                 self.should_remove = true;
                 self.close_connection();
             }
+
+            if self.initial_handler.finished {
+                // Run the play sequence to allow the player
+                // to join
+                self.run_play_sequence(server);
+            }
         } else {
             // TODO
         }
+    }
+
+    /// Sends the join packets, such as Join Game, Chunk
+    /// Data, etc.
+    fn run_play_sequence(&mut self, server: &Server) {
+        let entity_id = server.allocate_entity_id();
+        self.entity_id = entity_id;
+
+        let join_game = JoinGame::new(
+            entity_id,
+            Gamemode::Survival.get_id(),
+            Dimension::Overwold.get_id(),
+            Difficulty::Hard.get_id(),
+            0, // Unused value - max players
+            "default",
+            false,
+        );
+
+        self.send_packet(join_game);
     }
 }

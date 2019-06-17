@@ -18,12 +18,24 @@ pub mod prelude;
 use prelude::*;
 use std::time::Duration;
 
+pub type EntityId = i32;
+
 pub struct Server {
     config: Config,
     player_count: u32,
     players: Vec<RefCell<PlayerHandle>>,
     io_manager: io::NetworkIoManager,
     rsa_key: openssl::rsa::Rsa<openssl::pkey::Private>,
+
+    entity_id_counter: RefCell<EntityId>,
+}
+
+impl Server {
+    pub fn allocate_entity_id(&self) -> EntityId {
+        let mut counter = self.entity_id_counter.borrow_mut();
+        *counter += 1;
+        counter.clone()
+    }
 }
 
 fn main() {
@@ -45,6 +57,8 @@ fn main() {
         players: vec![],
         io_manager,
         rsa_key: openssl::rsa::Rsa::generate(1024).unwrap(),
+
+        entity_id_counter: RefCell::new(0),
     };
 
     loop {
