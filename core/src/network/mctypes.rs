@@ -1,6 +1,6 @@
-use super::world::BlockPosition;
 use crate::bytebuf::{BufMutAlloc, ByteBuf};
 use crate::prelude::*;
+use crate::world::BlockPosition;
 use bytes::Buf;
 use std::io::Read;
 

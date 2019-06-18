@@ -241,6 +241,190 @@ pub struct SpawnMob {
 }
 
 #[derive(Default, AsAny, new, Packet)]
+pub struct SpawnPainting {
+    entity_id: VarInt,
+    entity_uuid: Uuid,
+    motive: VarInt,
+    location: BlockPosition,
+    direction: u8,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct SpawnPlayer {
+    entity_id: VarInt,
+    palyer_uuid: Uuid,
+    x: f64,
+    y: f64,
+    z: f64,
+    yaw: u8,
+    pitch: u8,
+    // TODO metadata
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct AnimationClientbound {
+    entity_id: VarInt,
+    animation: u8,
+}
+
+#[derive(Default, AsAny, new)]
+pub struct Statistics {
+    statistics: Vec<(VarInt, VarInt)>,
+    value: VarInt,
+}
+
+impl Packet for Statistics {
+    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_var_int(self.statistics.len() as i32);
+        for stat in &self.statistics {
+            buf.write_var_int(stat.0);
+            buf.write_var_int(stat.1);
+        }
+        buf.write_var_int(self.value);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::Statistics
+    }
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct BlockBreakAnimation {
+    entity_id: VarInt,
+    location: BlockPosition,
+    destroy_stage: i8,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct UpdateBlockEntity {
+    location: BlockPosition,
+    action: u8,
+    // TODO NBT
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct BlockAction {
+    location: BlockPosition,
+    action_id: u8,
+    action_param: u8,
+    block_type: VarInt, // NOTE: block type ID, not the block state ID
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct BlockChange {
+    location: BlockPosition,
+    block_id: VarInt,
+}
+
+#[derive(Default, AsAny, new)]
+pub struct BossBar {
+    uuid: Uuid,
+    action: BossBarAction,
+}
+
+impl Packet for BossBar {
+    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_uuid(&self.uuid);
+        buf.write_var_int(self.action as i32);
+
+        match self.action.clone() {
+            BossBarAction::Add(title, health, color, division, flags) => {
+                buf.write_string(&title);
+                buf.write_f32_be(health);
+                buf.write_var_int(color as i32);
+                buf.write_var_int(division as i32);
+                buf.write_u8(flags);
+            }
+            BossBarAction::Remove => (),
+            BossBarAction::UpdateHealth(health) => {
+                buf.write_f32_be(health);
+            }
+            BossBarAction::UpdateTitle(title) => {
+                buf.write_string(&title);
+            }
+            BossBarAction::UpdateStyle(color, division) => {
+                buf.write_var_int(color as i32);
+                buf.write_var_int(division as i32);
+            }
+            BossBarAction::UpdateFlags(flags) => {
+                buf.write_u8(flags);
+            }
+        }
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::BossBar
+    }
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct ServerDifficulty {
+    difficulty: u8,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct ChatMessageClientbound {
+    json_data: String,
+    position: u8,
+}
+
+#[derive(Clone, Debug)]
+pub enum BossBarAction {
+    Add(String, f32, BossBarColor, BossBarDivision, u8),
+    Remove,
+    UpdateHealth(f32),
+    UpdateTitle(String),
+    UpdateStyle(BossBarColor, BossBarDivision),
+    UpdateFlags(u8),
+}
+
+impl Default for BossBarAction {
+    fn default() -> Self {
+        BossBarAction::Remove
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum BossBarColor {
+    Pink,
+    Blue,
+    Red,
+    Green,
+    Yellow,
+    Purple,
+    White,
+}
+
+impl Default for BossBarColor {
+    fn default() -> Self {
+        BossBarColor::Purple
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum BossBarDivision {
+    NoDivision,
+    SixNotches,
+    TenNotches,
+    TwelveNotches,
+    TwentyNotches,
+}
+
+impl Default for BossBarDivision {
+    fn default() -> Self {
+        BossBarDivision::NoDivision
+    }
+}
+
+#[derive(Default, AsAny, new, Packet)]
 pub struct JoinGame {
     pub entity_id: i32,
     pub gamemode: u8,

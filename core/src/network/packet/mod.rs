@@ -114,6 +114,7 @@ pub enum PacketType {
     AnimationClientbound,
     Statistics,
     BlockBreakAnimation,
+    UpdateBlockEntity,
     BlockAction,
     BlockChange,
     BossBar,

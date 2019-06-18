@@ -13,7 +13,7 @@ pub struct ChunkPosition {
     pub z: u32,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, new)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Default, new)]
 pub struct BlockPosition {
     pub x: u32,
     pub y: u32,

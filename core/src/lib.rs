@@ -12,6 +12,7 @@ extern crate feather_codegen;
 pub mod bytebuf;
 pub mod network;
 pub mod prelude;
+pub mod world;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Gamemode {
