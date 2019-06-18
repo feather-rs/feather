@@ -118,6 +118,7 @@ pub enum PacketType {
     BlockAction,
     BlockChange,
     BossBar,
+    ServerDifficulty,
     ChatMessageClientbound,
     MultiBlockChange,
     TabCompleteClientbound,

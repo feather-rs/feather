@@ -3,6 +3,7 @@ use super::*;
 use crate::bytebuf::{BufMutAlloc, BufResulted};
 use crate::prelude::*;
 use bytes::{Buf, BufMut};
+use num_traits::{FromPrimitive, ToPrimitive};
 
 type VarInt = i32;
 type VarLong = i64;
@@ -333,14 +334,14 @@ impl Packet for BossBar {
 
     fn write_to(&self, buf: &mut ByteBuf) {
         buf.write_uuid(&self.uuid);
-        buf.write_var_int(self.action as i32);
+        buf.write_var_int(self.action.id());
 
         match self.action.clone() {
             BossBarAction::Add(title, health, color, division, flags) => {
                 buf.write_string(&title);
                 buf.write_f32_be(health);
-                buf.write_var_int(color as i32);
-                buf.write_var_int(division as i32);
+                buf.write_var_int(ToPrimitive::to_i32(&color).unwrap());
+                buf.write_var_int(ToPrimitive::to_i32(&division).unwrap());
                 buf.write_u8(flags);
             }
             BossBarAction::Remove => (),
@@ -351,8 +352,8 @@ impl Packet for BossBar {
                 buf.write_string(&title);
             }
             BossBarAction::UpdateStyle(color, division) => {
-                buf.write_var_int(color as i32);
-                buf.write_var_int(division as i32);
+                buf.write_var_int(ToPrimitive::to_i32(&color).unwrap());
+                buf.write_var_int(ToPrimitive::to_i32(&division).unwrap());
             }
             BossBarAction::UpdateFlags(flags) => {
                 buf.write_u8(flags);
@@ -392,7 +393,20 @@ impl Default for BossBarAction {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+impl BossBarAction {
+    fn id(&self) -> i32 {
+        match &self {
+            BossBarAction::Add(_, _, _, _, _) => 0,
+            BossBarAction::Remove => 1,
+            BossBarAction::UpdateHealth(_) => 2,
+            BossBarAction::UpdateTitle(_) => 3,
+            BossBarAction::UpdateStyle(_, _) => 4,
+            BossBarAction::UpdateFlags(_) => 5,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, FromPrimitive, ToPrimitive)]
 pub enum BossBarColor {
     Pink,
     Blue,
@@ -409,7 +423,7 @@ impl Default for BossBarColor {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, FromPrimitive, ToPrimitive)]
 pub enum BossBarDivision {
     NoDivision,
     SixNotches,
