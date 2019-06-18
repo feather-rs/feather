@@ -83,12 +83,16 @@ impl ConnectionIOManager {
             self.incoming_compressed.write(data.inner());
         }
 
+        trace!("{:?}", self.incoming_compressed.inner());
+
         loop {
             let pending_buf = &mut self.incoming_compressed;
 
             // Mark reader index so we can return to this
             // position in the buffer if the packet is incomplete
             pending_buf.mark_read_position();
+
+            trace!("{:?}", pending_buf.inner());
 
             let packet_length = {
                 if let Ok(val) = pending_buf.read_var_int() {
@@ -99,17 +103,14 @@ impl ConnectionIOManager {
                 }
             };
 
-            if packet_length as usize > pending_buf.len() {
-                // Error (or legacy ping - we need to handle that)
-                return Err(());
-            }
-
             // Check that the entire packet is received - otherwise, return and
             // wait for more bytes
             if (pending_buf.remaining() as i32) < packet_length {
                 pending_buf.reset_read_position();
                 return Ok(());
             }
+
+            trace!("length {}: {:?}", packet_length, pending_buf.inner());
 
             // If compression is enabled, read the uncompressed length
             // and decompress - otherwise, copy bytes to incoming_uncompressed
@@ -120,7 +121,8 @@ impl ConnectionIOManager {
                     self.decompress_data(uncompressed_size);
                 } else {
                     self.incoming_uncompressed
-                        .write(&pending_buf.inner()[..(packet_length - 1) as usize])
+                        .write(&pending_buf.inner()[..(packet_length - 1) as usize]);
+                    pending_buf.advance((packet_length - 1) as usize);
                 }
             } else {
                 let buf = &pending_buf.inner()[..(packet_length as usize)];
