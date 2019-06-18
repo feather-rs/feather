@@ -1,9 +1,9 @@
+use super::initialhandler as ih;
 use super::initialhandler::InitialHandler;
 use crate::io::ServerToWorkerMessage;
 use crate::prelude::*;
 use feather_core::network::packet::{implementation::*, Packet};
 use mio_extras::channel::{Receiver, Sender};
-use super::initialhandler as ih;
 
 pub struct PlayerHandle {
     initial_handler: InitialHandler,
@@ -84,11 +84,15 @@ impl PlayerHandle {
                 match action {
                     ih::Action::SendPacket(packet) => self.send_packet_boxed(packet),
                     ih::Action::EnableEncryption(key) => {
-                        self.packet_sender.send(ServerToWorkerMessage::EnableEncryption(key)).unwrap();
-                    },
+                        self.packet_sender
+                            .send(ServerToWorkerMessage::EnableEncryption(key))
+                            .unwrap();
+                    }
                     ih::Action::EnableCompression(threshold) => {
-                        self.packet_sender.send(ServerToWorkerMessage::EnableCompression(threshold)).unwrap();
-                    },
+                        self.packet_sender
+                            .send(ServerToWorkerMessage::EnableCompression(threshold))
+                            .unwrap();
+                    }
                 }
             }
 

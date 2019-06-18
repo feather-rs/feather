@@ -4,6 +4,8 @@ use crate::bytebuf::{BufMutAlloc, BufResulted};
 use crate::prelude::*;
 use bytes::{Buf, BufMut};
 use num_traits::{FromPrimitive, ToPrimitive};
+use std::io::Read;
+use std::io::Write;
 
 type VarInt = i32;
 type VarLong = i64;
@@ -22,6 +24,49 @@ lazy_static! {
 
         // Play
         m.insert(PacketType::JoinGame, PacketBuilder::with(|| Box::new(JoinGame::default())));
+        m.insert(PacketType::TeleportConfirm, PacketBuilder::with(|| Box::new(TeleportConfirm::default())));
+        m.insert(PacketType::QueryBlockNBT, PacketBuilder::with(|| Box::new(QueryBlockNBT::default())));
+        m.insert(PacketType::ChatMessageServerbound, PacketBuilder::with(|| Box::new(ChatMessageServerbound::default())));
+        m.insert(PacketType::ClientStatus, PacketBuilder::with(|| Box::new(ClientStatus::default())));
+        m.insert(PacketType::ClientSettings, PacketBuilder::with(|| Box::new(ClientSettings::default())));
+        m.insert(PacketType::TabCompleteServerbound, PacketBuilder::with(|| Box::new(TabCompleteServerbound::default())));
+        m.insert(PacketType::ConfirmTransactionServerbound, PacketBuilder::with(|| Box::new(ConfirmTransactionServerbound::default())));
+        m.insert(PacketType::EnchantItem, PacketBuilder::with(|| Box::new(EnchantItem::default())));
+        m.insert(PacketType::ClickWindow, PacketBuilder::with(|| Box::new(ClickWindow::default())));
+        m.insert(PacketType::CloseWindowServerbound, PacketBuilder::with(|| Box::new(CloseWindowServerbound::default())));
+        m.insert(PacketType::PluginMessageServerbound, PacketBuilder::with(|| Box::new(PluginMessageServerbound::default())));
+        m.insert(PacketType::EditBook, PacketBuilder::with(|| Box::new(EditBook::default())));
+        m.insert(PacketType::QueryEntityNBT, PacketBuilder::with(|| Box::new(QueryEntityNBT::default())));
+        m.insert(PacketType::UseEntity, PacketBuilder::with(|| Box::new(UseEntity::default())));
+        m.insert(PacketType::KeepAliveServerbound, PacketBuilder::with(|| Box::new(KeepAliveServerbound::default())));
+        m.insert(PacketType::Player, PacketBuilder::with(|| Box::new(Player::default())));
+        m.insert(PacketType::PlayerPosition, PacketBuilder::with(|| Box::new(PlayerPosition::default())));
+        m.insert(PacketType::PlayerPositionAndLookServerbound, PacketBuilder::with(|| Box::new(PlayerPositionAndLookServerbound::default())));
+        m.insert(PacketType::PlayerLook, PacketBuilder::with(|| Box::new(PlayerLook::default())));
+        m.insert(PacketType::VehicleMoveServerbound, PacketBuilder::with(|| Box::new(VehicleMoveServerbound::default())));
+        m.insert(PacketType::SteerBoat, PacketBuilder::with(|| Box::new(SteerBoat::default())));
+        m.insert(PacketType::PickItem, PacketBuilder::with(|| Box::new(PickItem::default())));
+        m.insert(PacketType::CraftRecipeRequest, PacketBuilder::with(|| Box::new(CraftRecipeRequest::default())));
+        m.insert(PacketType::PlayerAbilitiesServerbound, PacketBuilder::with(|| Box::new(PlayerAbilitiesServerbound::default())));
+        m.insert(PacketType::PlayerDigging, PacketBuilder::with(|| Box::new(PlayerDigging::default())));
+        m.insert(PacketType::EntityAction, PacketBuilder::with(|| Box::new(EntityAction::default())));
+        m.insert(PacketType::SteerVehicle, PacketBuilder::with(|| Box::new(SteerVehicle::default())));
+        m.insert(PacketType::RecipeBookData, PacketBuilder::with(|| Box::new(RecipeBookData::default())));
+        m.insert(PacketType::NameItem, PacketBuilder::with(|| Box::new(NameItem::default())));
+        m.insert(PacketType::ResourcePackStatus, PacketBuilder::with(|| Box::new(ResourcePackStatus::default())));
+        m.insert(PacketType::AdvancementTab, PacketBuilder::with(|| Box::new(AdvancementTab::default())));
+        m.insert(PacketType::SelectTrade, PacketBuilder::with(|| Box::new(SelectTrade::default())));
+        m.insert(PacketType::SetBeaconEffect, PacketBuilder::with(|| Box::new(SetBeaconEffect::default())));
+        m.insert(PacketType::HeldItemChangeServerbound, PacketBuilder::with(|| Box::new(HeldItemChangeServerbound::default())));
+        m.insert(PacketType::UpdateCommandBlock, PacketBuilder::with(|| Box::new(UpdateCommandBlock::default())));
+        m.insert(PacketType::UpdateCommandBlockMinecart, PacketBuilder::with(|| Box::new(UpdateCommandBlockMinecart::default())));
+        m.insert(PacketType::CreativeInventoryAction, PacketBuilder::with(|| Box::new(CreativeInventoryAction::default())));
+        m.insert(PacketType::UpdateStructureBlock, PacketBuilder::with(|| Box::new(UpdateStructureBlock::default())));
+        m.insert(PacketType::UpdateSign, PacketBuilder::with(|| Box::new(UpdateSign::default())));
+        m.insert(PacketType::AnimationServerbound, PacketBuilder::with(|| Box::new(AnimationServerbound::default())));
+        m.insert(PacketType::Spectate, PacketBuilder::with(|| Box::new(Spectate::default())));
+        m.insert(PacketType::PlayerBlockPlacement, PacketBuilder::with(|| Box::new(PlayerBlockPlacement::default())));
+        m.insert(PacketType::UseItem, PacketBuilder::with(|| Box::new(UseItem::default())));
 
         // Clientbound
         m.insert(PacketType::DisconnectLogin, PacketBuilder::with(|| Box::new(DisconnectLogin::default())));
@@ -35,6 +80,8 @@ lazy_static! {
         m
     };
 }
+
+fn bla() {}
 
 // SERVERBOUND
 
@@ -131,6 +178,326 @@ pub struct Request {}
 #[derive(Default, AsAny, new, Packet)]
 pub struct Ping {
     pub payload: u64,
+}
+
+// PLAY
+#[derive(Default, AsAny, new, Packet)]
+pub struct TeleportConfirm {
+    pub teleport_id: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct QueryBlockNBT {
+    pub transaction_id: VarInt,
+    pub location: BlockPosition,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct ChatMessageServerbound {
+    pub message: String, // Raw string, not a chat component
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct ClientStatus {
+    pub action_id: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct ClientSettings {
+    locale: String,
+    view_distance: u8,
+    chat_mode: VarInt,
+    chat_colors: bool,
+    displayed_skin_parts: u8,
+    main_hand: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct TabCompleteServerbound {
+    transaction_id: VarInt,
+    text: String,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct ConfirmTransactionServerbound {
+    window_id: u8,
+    action_number: u16,
+    accepted: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct EnchantItem {
+    window_id: u8,
+    enchantment: u8,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct ClickWindow {
+    window_id: u8,
+    slot: u16,
+    button: u8,
+    action_number: i16,
+    mode: VarInt,
+    // TODO clicked_item: Slot,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct CloseWindowServerbound {
+    window_id: u8,
+}
+
+#[derive(Default, AsAny, new)]
+pub struct PluginMessageServerbound {
+    channel: String,
+    data: Vec<u8>,
+}
+
+impl Packet for PluginMessageServerbound {
+    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+        self.channel = buf.read_string()?;
+
+        let mut data = vec![];
+        let mut temp = [0u8; 8];
+        while let Ok(amnt) = buf.read(&mut data) {
+            data.write(&temp[..amnt]);
+        }
+
+        Ok(())
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        unimplemented!()
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::PluginMessageServerbound
+    }
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct EditBook {
+    // TODO new_book: Slot
+    is_signing: bool,
+    hand: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct QueryEntityNBT {
+    transaction_id: VarInt,
+    entity_id: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct UseEntity {
+    target: VarInt,
+    ty: VarInt, // TODO "only if type is interact at"
+    target_x: f32,
+    target_y: f32,
+    target_z: f32,
+    hand: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct KeepAliveServerbound {
+    id: i64,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct Player {
+    on_ground: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct PlayerPosition {
+    x: f64,
+    feet_y: f64,
+    z: f64,
+    on_ground: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct PlayerPositionAndLookServerbound {
+    pub x: f64,
+    pub feet_y: f64,
+    pub z: f64,
+    pub yaw: f32,
+    pub pitch: f32,
+    pub on_ground: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct PlayerLook {
+    yaw: f32,
+    pitch: f32,
+    on_ground: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct VehicleMoveServerbound {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub yaw: f32,
+    pub pitch: f32,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct SteerBoat {
+    left_paddle_turning: bool,
+    right_paddle_turning: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct PickItem {
+    slot_to_use: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct CraftRecipeRequest {
+    window_id: i8,
+    recipe: String,
+    make_all: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct PlayerAbilitiesServerbound {
+    pub flags: u8,
+    pub flying_speed: f32,
+    pub walking_speed: f32,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct PlayerDigging {
+    status: VarInt,
+    location: BlockPosition,
+    face: i8,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct EntityAction {
+    entity_id: VarInt,
+    action_id: VarInt,
+    jump_boost: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct SteerVehicle {
+    pub sideways: f32,
+    pub forward: f32,
+    pub flags: u8,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct RecipeBookData {
+    ty: VarInt,
+    // TODO
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct NameItem {
+    item_name: String,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct ResourcePackStatus {
+    result: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct AdvancementTab {
+    pub action: VarInt,
+    pub tab_id: String,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct SelectTrade {
+    selected_slot: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct SetBeaconEffect {
+    primary_effect: VarInt,
+    secondary_effect: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct HeldItemChangeServerbound {
+    slot: i16,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct UpdateCommandBlock {
+    location: BlockPosition,
+    command: String,
+    mode: VarInt,
+    flags: u8,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct UpdateCommandBlockMinecart {
+    pub entity_id: VarInt,
+    pub command: String,
+    pub track_output: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct CreativeInventoryAction {
+    slot: u16,
+    // TODO clicked_item: Slot
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct UpdateStructureBlock {
+    location: BlockPosition,
+    action: VarInt,
+    mode: VarInt,
+    name: String,
+    offset_x: i8,
+    offset_y: i8,
+    offset_z: i8,
+    size_x: i8,
+    size_y: i8,
+    size_z: i8,
+    mirror: VarInt,
+    rotation: VarInt,
+    metadata: String,
+    integrity: f32,
+    // TODO seed: VarLong,
+    flags: u8,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct UpdateSign {
+    location: BlockPosition,
+    line_1: String,
+    line_2: String,
+    line_3: String,
+    line_4: String,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct AnimationServerbound {
+    hand: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct Spectate {
+    target_player: Uuid,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct PlayerBlockPlacement {
+    location: BlockPosition,
+    face: VarInt,
+    hand: VarInt,
+    cursor_position_x: f32,
+    cursor_position_y: f32,
+    cursor_positiom_z: f32,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct UseItem {
+    hand: VarInt,
 }
 
 // CLIENTBOUND
