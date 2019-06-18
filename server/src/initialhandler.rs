@@ -6,6 +6,12 @@ use std::rc::Rc;
 
 const PROTOCOL_VERSION: u32 = 404;
 
+pub enum Action {
+    SendPacket(Box<Packet>),
+    EnableEncryption([u8; 16]),
+    EnableCompression(usize),
+}
+
 pub struct InitialHandler {
     sent_encryption_request: bool,
     pub state: State,
@@ -22,13 +28,9 @@ pub struct InitialHandler {
 
     packets_to_send: RefCell<Vec<Box<Packet>>>,
 
-    encryption_key: Option<[u8; 16]>,
-    compression_threshold: Option<usize>,
-
-    enable_encryption: bool,
-    enable_compression: bool,
-
     uuid: Uuid,
+
+    actions: Vec<Action>,
 }
 
 impl InitialHandler {
@@ -48,13 +50,9 @@ impl InitialHandler {
 
             packets_to_send: RefCell::new(vec![]),
 
-            encryption_key: None,
-            compression_threshold: None,
-
-            enable_encryption: false,
-            enable_compression: false,
-
             uuid: Uuid::new_v4(),
+
+            actions: vec![],
         }
     }
 
@@ -227,10 +225,10 @@ impl InitialHandler {
         self.enable_encryption(key);
 
         // Enable compression, if needed
-        self.compression_threshold = Some(256);
-        let set_compression = SetCompression::new(self.compression_threshold.unwrap() as i32);
+        let threshold = 256; // TODO don't hardcode
+        let set_compression = SetCompression::new(threshold);
         self.send_packet(set_compression);
-        self.enable_compression(self.compression_threshold.unwrap());
+        self.enable_compression(threshold as usize);
 
         // Send Login Success
         let login_success = LoginSuccess::new(
@@ -251,39 +249,23 @@ impl InitialHandler {
     }
 
     fn send_packet<P: Packet + 'static + Send>(&mut self, packet: P) {
-        self.packets_to_send.borrow_mut().push(Box::new(packet));
+        self.actions.push(Action::SendPacket(Box::new(packet)));
     }
 
     fn enable_encryption(&mut self, key: [u8; 16]) {
-        self.encryption_key = Some(key);
-        self.enable_encryption = true;
+        self.actions.push(Action::EnableEncryption(key));
     }
 
     fn enable_compression(&mut self, threshold: usize) {
-        self.compression_threshold = Some(threshold);
-        self.enable_compression = true;
+        self.actions.push(Action::EnableCompression(threshold));
     }
 
     pub fn packets_to_send(&mut self) -> Vec<Box<Packet>> {
         self.packets_to_send.borrow_mut().drain(..).collect()
     }
 
-    pub fn should_enable_encryption(&mut self) -> Option<[u8; 16]> {
-        if self.enable_encryption {
-            self.enable_encryption = false;
-            Some(self.encryption_key.unwrap())
-        } else {
-            None
-        }
-    }
-
-    pub fn should_enable_compression(&mut self) -> Option<usize> {
-        if self.enable_compression {
-            self.enable_compression = false;
-            Some(self.compression_threshold).unwrap()
-        } else {
-            None
-        }
+    pub fn actions(&mut self) -> Vec<Action> {
+        std::mem::replace(&mut self.actions, vec![])
     }
 }
 

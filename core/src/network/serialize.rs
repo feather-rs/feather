@@ -115,7 +115,11 @@ impl ConnectionIOManager {
             // and decompress - otherwise, copy bytes to incoming_uncompressed
             if self.compression_enabled {
                 let uncompressed_size = pending_buf.read_var_int()?;
-                self.decompress_data(uncompressed_size);
+                if uncompressed_size != 0 {
+                    self.decompress_data(uncompressed_size);
+                } else {
+                    self.incoming_uncompressed.write(&pending_buf.inner()[..(packet_length - 1) as usize])
+                }
             } else {
                 let buf = &pending_buf.inner()[..(packet_length as usize)];
                 self.incoming_uncompressed.write(buf);

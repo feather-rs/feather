@@ -3,6 +3,7 @@ use crate::io::ServerToWorkerMessage;
 use crate::prelude::*;
 use feather_core::network::packet::{implementation::*, Packet};
 use mio_extras::channel::{Receiver, Sender};
+use super::initialhandler as ih;
 
 pub struct PlayerHandle {
     initial_handler: InitialHandler,
@@ -73,25 +74,22 @@ impl PlayerHandle {
         trace!("Handling packet");
         if !self.initial_handler.finished {
             let r = self.initial_handler.handle_packet(packet);
-            if let Some(threshold) = self.initial_handler.should_enable_compression() {
-                self.packet_sender
-                    .send(ServerToWorkerMessage::EnableCompression(threshold))
-                    .unwrap();
-            }
-            if let Some(key) = self.initial_handler.should_enable_encryption() {
-                trace!("Server: enabling encryption");
-                self.packet_sender
-                    .send(ServerToWorkerMessage::EnableEncryption(key))
-                    .unwrap();
-            }
 
-            for pack in self.initial_handler.packets_to_send() {
-                self.send_packet_boxed(pack);
-            }
-
-            if self.initial_handler.should_disconnect || r.is_err() {
+            if r.is_err() {
                 self.should_remove = true;
                 self.close_connection();
+            }
+
+            for action in self.initial_handler.actions() {
+                match action {
+                    ih::Action::SendPacket(packet) => self.send_packet_boxed(packet),
+                    ih::Action::EnableEncryption(key) => {
+                        self.packet_sender.send(ServerToWorkerMessage::EnableEncryption(key)).unwrap();
+                    },
+                    ih::Action::EnableCompression(threshold) => {
+                        self.packet_sender.send(ServerToWorkerMessage::EnableCompression(threshold)).unwrap();
+                    },
+                }
             }
 
             if self.initial_handler.finished {
