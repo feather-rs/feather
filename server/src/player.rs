@@ -106,7 +106,9 @@ impl PlayerHandle {
         } else {
             // TODO perhaps use HashMap instead of match here?
             match packet.ty() {
-                PacketType::KeepAliveServerbound => self.handle_keep_alive(cast_packet::<KeepAliveServerbound>(&packet)),
+                PacketType::KeepAliveServerbound => {
+                    self.handle_keep_alive(cast_packet::<KeepAliveServerbound>(&packet))
+                }
                 _ => (), // TODO
             }
         }
