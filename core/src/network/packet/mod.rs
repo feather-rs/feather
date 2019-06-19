@@ -437,6 +437,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x21, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::KeepAliveClientbound,
+        );
+
+        m.insert(
             PacketId(0x25, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::JoinGame,
         );

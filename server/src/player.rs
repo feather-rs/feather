@@ -2,8 +2,11 @@ use super::initialhandler as ih;
 use super::initialhandler::InitialHandler;
 use crate::io::ServerToWorkerMessage;
 use crate::prelude::*;
-use feather_core::network::packet::{implementation::*, Packet};
+use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use mio_extras::channel::{Receiver, Sender};
+use std::time::{SystemTime, UNIX_EPOCH};
+
+const MAX_KEEP_ALIVE_TIME: u64 = 30;
 
 pub struct PlayerHandle {
     initial_handler: InitialHandler,
@@ -14,6 +17,13 @@ pub struct PlayerHandle {
     entity_id: i32,
 
     pub should_remove: bool,
+
+    /// The last time a keep alive packet
+    /// was received from the client. If this
+    /// value exceeds MAX_KEEP_ALIVE_TIME seconds,
+    /// the client should be disconnected with a "time out"
+    /// error as per the protocol specification.
+    last_keep_alive_time: u64,
 }
 
 impl PlayerHandle {
@@ -34,6 +44,8 @@ impl PlayerHandle {
 
             packet_receiver,
             should_remove: false,
+
+            last_keep_alive_time: current_time_in_secs(),
         }
     }
 
@@ -49,10 +61,16 @@ impl PlayerHandle {
             .unwrap();
     }
 
-    pub fn close_connection(&mut self) {
+    pub fn close_connection(&self) {
         self.packet_sender
             .send(ServerToWorkerMessage::Disconnect)
             .unwrap();
+    }
+
+    pub fn disconnect(&mut self, reason: &str) {
+        self.should_remove = true;
+        // TODO send Disconnect packet
+        self.close_connection();
     }
 
     pub fn tick(&mut self, server: &Server) {
@@ -68,41 +86,59 @@ impl PlayerHandle {
                 _ => unreachable!(),
             }
         }
+
+        if server.tick_count() % TPS == 0 && self.initial_handler.finished {
+            // Send keep alive every second as per the protocol specification
+            let keep_alive = KeepAliveClientbound::new(0);
+            self.send_packet(keep_alive);
+
+            if current_time_in_secs() - self.last_keep_alive_time >= MAX_KEEP_ALIVE_TIME {
+                self.disconnect("Timed out");
+            }
+        }
     }
 
     fn handle_packet(&mut self, packet: Box<Packet>, server: &Server) {
         trace!("Handling packet");
         if !self.initial_handler.finished {
-            let r = self.initial_handler.handle_packet(packet);
-
-            if r.is_err() {
-                self.should_remove = true;
-                self.close_connection();
+            self.forward_packet_to_initial_handler(packet, server);
+        } else {
+            // TODO perhaps use HashMap instead of match here?
+            match packet.ty() {
+                PacketType::KeepAliveServerbound => self.last_keep_alive_time = current_time_in_secs(),
+                _ => (), // TODO
             }
+        }
+    }
 
-            for action in self.initial_handler.actions() {
-                match action {
-                    ih::Action::SendPacket(packet) => self.send_packet_boxed(packet),
-                    ih::Action::EnableEncryption(key) => {
-                        self.packet_sender
-                            .send(ServerToWorkerMessage::EnableEncryption(key))
-                            .unwrap();
-                    }
-                    ih::Action::EnableCompression(threshold) => {
-                        self.packet_sender
-                            .send(ServerToWorkerMessage::EnableCompression(threshold))
-                            .unwrap();
-                    }
+    fn forward_packet_to_initial_handler(&mut self, packet: Box<Packet>, server: &Server) {
+        let r = self.initial_handler.handle_packet(packet);
+
+        if r.is_err() {
+            self.should_remove = true;
+            self.close_connection();
+        }
+
+        for action in self.initial_handler.actions() {
+            match action {
+                ih::Action::SendPacket(packet) => self.send_packet_boxed(packet),
+                ih::Action::EnableEncryption(key) => {
+                    self.packet_sender
+                        .send(ServerToWorkerMessage::EnableEncryption(key))
+                        .unwrap();
+                }
+                ih::Action::EnableCompression(threshold) => {
+                    self.packet_sender
+                        .send(ServerToWorkerMessage::EnableCompression(threshold))
+                        .unwrap();
                 }
             }
+        }
 
-            if self.initial_handler.finished {
-                // Run the play sequence to allow the player
-                // to join
-                self.run_play_sequence(server);
-            }
-        } else {
-            // TODO
+        if self.initial_handler.finished {
+            // Run the play sequence to allow the player
+            // to join
+            self.run_play_sequence(server);
         }
     }
 
@@ -131,4 +167,8 @@ impl PlayerHandle {
             PlayerPositionAndLookClientbound::new(0.0, 64.0, 0.0, 0.0, 0.0, 0, 0);
         self.send_packet(position_and_look);
     }
+}
+
+fn current_time_in_secs() -> u64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()
 }

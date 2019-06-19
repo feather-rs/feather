@@ -804,6 +804,11 @@ impl Default for BossBarDivision {
 }
 
 #[derive(Default, AsAny, new, Packet)]
+pub struct KeepAliveClientbound {
+    keep_alive_id: u64,
+}
+
+#[derive(Default, AsAny, new, Packet)]
 pub struct JoinGame {
     pub entity_id: i32,
     pub gamemode: u8,

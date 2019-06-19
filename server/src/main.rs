@@ -20,6 +20,8 @@ use std::time::Duration;
 
 pub type EntityId = i32;
 
+pub const TPS: u64 = 20;
+
 pub struct Server {
     config: Config,
     player_count: u32,
@@ -28,6 +30,7 @@ pub struct Server {
     rsa_key: openssl::rsa::Rsa<openssl::pkey::Private>,
 
     entity_id_counter: RefCell<EntityId>,
+    tick_counter: u64,
 }
 
 impl Server {
@@ -35,6 +38,10 @@ impl Server {
         let mut counter = self.entity_id_counter.borrow_mut();
         *counter += 1;
         counter.clone()
+    }
+
+    pub fn tick_count(&self) -> u64 {
+        self.tick_counter
     }
 }
 
@@ -59,6 +66,7 @@ fn main() {
         rsa_key: openssl::rsa::Rsa::generate(1024).unwrap(),
 
         entity_id_counter: RefCell::new(0),
+        tick_counter: 0,
     };
 
     loop {
@@ -90,6 +98,8 @@ fn tick(server: &mut Server) {
     for player in server.players.iter() {
         player.borrow_mut().tick(server);
     }
+
+    server.tick_counter += 1;
 }
 
 fn init_log(config: &Config) {
