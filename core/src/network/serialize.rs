@@ -76,7 +76,6 @@ impl ConnectionIOManager {
     /// a malicious client. If `Err` is returned, the client should
     /// be disconnected immediately.
     pub fn accept_data(&mut self, data: ByteBuf) -> Result<(), ()> {
-        trace!("78");
         // Decrypt if needed
         if self.encryption_enabled {
             self.decrypt_data(data.inner());
@@ -86,7 +85,6 @@ impl ConnectionIOManager {
         }
 
         loop {
-            trace!("88");
             let pending_buf = &mut self.incoming_compressed;
 
             // Mark reader index so we can return to this
@@ -108,7 +106,6 @@ impl ConnectionIOManager {
                 pending_buf.reset_read_position();
                 return Ok(());
             }
-            trace!("110");
 
             pending_buf.mark_read_position();
 
@@ -133,7 +130,6 @@ impl ConnectionIOManager {
                 self.incoming_uncompressed.write(buf);
                 self.incoming_compressed.advance(packet_length as usize);
             }
-            trace!("129");
 
             self.incoming_compressed.remove_prior();
 
@@ -156,7 +152,6 @@ impl ConnectionIOManager {
 
             trace!("Received packet with type {:?}", packet_type.unwrap());
 
-            trace!("151");
             let mut packet = packet_type.unwrap().get_implementation();
             let upper_index = packet_length as usize
                 - (buf.read_pos() - buf.marked_read_position())
@@ -174,8 +169,6 @@ impl ConnectionIOManager {
             }
             buf.advance(upper_index);
 
-            trace!("154");
-
             if packet.ty() == PacketType::Handshake {
                 let handshake =
                     cast_packet::<crate::network::packet::implementation::Handshake>(&packet);
@@ -188,14 +181,11 @@ impl ConnectionIOManager {
                     }
                 }
             }
-            trace!("168");
 
             buf.remove_prior();
 
             self.pending_received_packets.as_mut().unwrap().push(packet);
         }
-
-        trace!("169");
 
         Ok(())
     }
@@ -204,8 +194,6 @@ impl ConnectionIOManager {
         if packet.ty() == PacketType::LoginSuccess {
             self.stage = PacketStage::Play;
         }
-
-        trace!("177");
 
         trace!("Sending packet with type {:?}", packet.ty());
 
@@ -232,8 +220,6 @@ impl ConnectionIOManager {
         let mut buf = ByteBuf::with_capacity(buf_without_length.len() + 4);
         buf.write_var_int(buf_without_length.len() as i32);
         buf.write(buf_without_length.inner());
-
-        trace!("205");
 
         if !self.encryption_enabled {
             buf

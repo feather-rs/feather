@@ -49,22 +49,20 @@ impl PlayerHandle {
         }
     }
 
-    pub fn send_packet<P: Packet + Send + 'static>(&self, packet: P) {
+    pub fn send_packet<P: Packet + Send + 'static>(&self, packet: P) -> Result<(), ()> {
         self.packet_sender
             .send(ServerToWorkerMessage::SendPacket(Box::new(packet)))
-            .unwrap();
+            .map_err(|_| ())
     }
 
-    pub fn send_packet_boxed(&self, packet: Box<Packet>) {
+    pub fn send_packet_boxed(&self, packet: Box<Packet>) -> Result<(), ()> {
         self.packet_sender
             .send(ServerToWorkerMessage::SendPacket(packet))
-            .unwrap();
+            .map_err(|_| ())
     }
 
     pub fn close_connection(&self) {
-        self.packet_sender
-            .send(ServerToWorkerMessage::Disconnect)
-            .unwrap();
+        let _ = self.packet_sender.send(ServerToWorkerMessage::Disconnect);
     }
 
     pub fn disconnect(&mut self, reason: &str) {
@@ -73,15 +71,16 @@ impl PlayerHandle {
         self.close_connection();
     }
 
-    pub fn tick(&mut self, server: &Server) {
+    pub fn tick(&mut self, server: &Server) -> Result<(), ()> {
         while let Ok(msg) = self.packet_receiver.try_recv() {
             match msg {
                 ServerToWorkerMessage::NotifyPacketReceived(packet) => {
-                    self.handle_packet(packet, server)
+                    self.handle_packet(packet, server)?;
                 }
                 ServerToWorkerMessage::NotifyDisconnect => {
                     trace!("Server removing player");
                     self.should_remove = true;
+                    return Ok(());
                 }
                 _ => unreachable!(),
             }
@@ -90,28 +89,38 @@ impl PlayerHandle {
         if server.tick_count() % TPS == 0 && self.initial_handler.finished {
             // Send keep alive every second as per the protocol specification
             let keep_alive = KeepAliveClientbound::new(0);
-            self.send_packet(keep_alive);
+            self.send_packet(keep_alive)?;
 
             if current_time_in_secs() - self.last_keep_alive_time >= MAX_KEEP_ALIVE_TIME {
                 self.disconnect("Timed out");
             }
         }
+
+        Ok(())
     }
 
-    fn handle_packet(&mut self, packet: Box<Packet>, server: &Server) {
+    fn handle_packet(&mut self, packet: Box<Packet>, server: &Server) -> Result<(), ()> {
         trace!("Handling packet");
         if !self.initial_handler.finished {
-            self.forward_packet_to_initial_handler(packet, server);
+            self.forward_packet_to_initial_handler(packet, server)?;
         } else {
             // TODO perhaps use HashMap instead of match here?
             match packet.ty() {
-                PacketType::KeepAliveServerbound => self.last_keep_alive_time = current_time_in_secs(),
+                PacketType::KeepAliveServerbound => {
+                    self.last_keep_alive_time = current_time_in_secs()
+                }
                 _ => (), // TODO
             }
         }
+
+        Ok(())
     }
 
-    fn forward_packet_to_initial_handler(&mut self, packet: Box<Packet>, server: &Server) {
+    fn forward_packet_to_initial_handler(
+        &mut self,
+        packet: Box<Packet>,
+        server: &Server,
+    ) -> Result<(), ()> {
         let r = self.initial_handler.handle_packet(packet);
 
         if r.is_err() {
@@ -121,16 +130,16 @@ impl PlayerHandle {
 
         for action in self.initial_handler.actions() {
             match action {
-                ih::Action::SendPacket(packet) => self.send_packet_boxed(packet),
+                ih::Action::SendPacket(packet) => self.send_packet_boxed(packet)?,
                 ih::Action::EnableEncryption(key) => {
                     self.packet_sender
                         .send(ServerToWorkerMessage::EnableEncryption(key))
-                        .unwrap();
+                        .map_err(|_| ())?;
                 }
                 ih::Action::EnableCompression(threshold) => {
                     self.packet_sender
                         .send(ServerToWorkerMessage::EnableCompression(threshold))
-                        .unwrap();
+                        .map_err(|_| ())?;
                 }
             }
         }
@@ -138,13 +147,15 @@ impl PlayerHandle {
         if self.initial_handler.finished {
             // Run the play sequence to allow the player
             // to join
-            self.run_play_sequence(server);
+            self.run_play_sequence(server)?;
         }
+
+        Ok(())
     }
 
     /// Sends the join packets, such as Join Game, Chunk
     /// Data, etc.
-    fn run_play_sequence(&mut self, server: &Server) {
+    fn run_play_sequence(&mut self, server: &Server) -> Result<(), ()> {
         let entity_id = server.allocate_entity_id();
         self.entity_id = entity_id;
 
@@ -158,17 +169,22 @@ impl PlayerHandle {
             false,
         );
 
-        self.send_packet(join_game);
+        self.send_packet(join_game)?;
 
         let spawn_position = SpawnPosition::new(BlockPosition::new(0, 64, 0));
-        self.send_packet(spawn_position);
+        self.send_packet(spawn_position)?;
 
         let position_and_look =
             PlayerPositionAndLookClientbound::new(0.0, 64.0, 0.0, 0.0, 0.0, 0, 0);
-        self.send_packet(position_and_look);
+        self.send_packet(position_and_look)?;
+
+        Ok(())
     }
 }
 
 fn current_time_in_secs() -> u64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs()
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
 }

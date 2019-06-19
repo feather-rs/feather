@@ -25,12 +25,15 @@ pub const TPS: u64 = 20;
 pub struct Server {
     config: Config,
     player_count: u32,
-    players: Vec<RefCell<PlayerHandle>>,
     io_manager: io::NetworkIoManager,
     rsa_key: openssl::rsa::Rsa<openssl::pkey::Private>,
 
     entity_id_counter: RefCell<EntityId>,
     tick_counter: u64,
+}
+
+pub struct Players {
+    players: Vec<RefCell<PlayerHandle>>,
 }
 
 impl Server {
@@ -61,7 +64,6 @@ fn main() {
     let mut server = Server {
         config,
         player_count: 0,
-        players: vec![],
         io_manager,
         rsa_key: openssl::rsa::Rsa::generate(1024).unwrap(),
 
@@ -69,9 +71,9 @@ fn main() {
         tick_counter: 0,
     };
 
-    loop {
-        tick(&mut server);
+    let mut players = Players { players: vec![] };
 
+    loop {
         while let Ok(msg) = server.io_manager.receiver.try_recv() {
             match msg {
                 io::ServerToListenerMessage::NewClient(info) => {
@@ -84,20 +86,24 @@ fn main() {
                         server.config.server.max_players,
                         server.rsa_key.clone(),
                     );
-                    server.players.push(RefCell::new(new_player));
+                    players.players.push(RefCell::new(new_player));
                 }
                 _ => unreachable!(),
             }
         }
 
+        tick(&mut server, &mut players);
+
         std::thread::sleep(Duration::from_millis(50)); // TODO proper game loop
     }
 }
 
-fn tick(server: &mut Server) {
-    for player in server.players.iter() {
-        player.borrow_mut().tick(server);
-    }
+fn tick(server: &mut Server, players: &mut Players) {
+    players.players.retain(|player| {
+        let ok = player.borrow_mut().tick(server).is_ok();
+        let should_keep = !player.borrow().should_remove;
+        ok && should_keep
+    });
 
     server.tick_counter += 1;
 }

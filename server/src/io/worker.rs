@@ -97,14 +97,18 @@ fn handle_event(worker: &mut Worker, event: Event) {
                 if t.0 % 2 == 0 {
                     read_from_server(worker, t);
                 } else {
-                    read_from_stream(worker, t);
+                    if read_from_stream(worker, t).is_err() {
+                        disconnect_client(worker, get_client_from_stream_token(t));
+                    }
                 }
             }
         }
     }
     if readiness.is_writable() {
         let client_id = get_client_from_stream_token(event.token());
-        write_to_client(worker, client_id);
+        if write_to_client(worker, client_id).is_err() {
+            disconnect_client(worker, client_id);
+        }
     }
 }
 
@@ -247,7 +251,7 @@ fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
         .unwrap();
 }
 
-fn read_from_stream(worker: &mut Worker, token: Token) {
+fn read_from_stream(worker: &mut Worker, token: Token) -> Result<(), ()> {
     let client_id = get_client_from_stream_token(token);
     trace!("Reading from stream on client #{}", client_id.0);
 
@@ -257,6 +261,7 @@ fn read_from_stream(worker: &mut Worker, token: Token) {
 
     let mut buf = ByteBuf::with_capacity(128);
     let mut tmp = [0u8; 32];
+
     while let Ok(amnt) = stream.read(&mut tmp) {
         buf.reserve(amnt);
         buf.put(&mut tmp[0..amnt]);
@@ -266,10 +271,7 @@ fn read_from_stream(worker: &mut Worker, token: Token) {
         }
     }
 
-    if client.manager.accept_data(buf).is_err() {
-        disconnect_client(worker, client_id);
-        return;
-    }
+    client.manager.accept_data(buf)?;
 
     for packet in worker
         .clients
@@ -280,14 +282,16 @@ fn read_from_stream(worker: &mut Worker, token: Token) {
     {
         handle_packet(worker, client_id, packet);
     }
+
+    Ok(())
 }
 
-fn write_to_client(worker: &mut Worker, client_id: Client) {
+fn write_to_client(worker: &mut Worker, client_id: Client) -> Result<(), ()> {
     let client = worker.clients.get_mut(&client_id).unwrap();
 
     let buf = client.write_buffer.take().unwrap();
 
-    client.stream.write(buf.inner()).unwrap();
+    client.stream.write(buf.inner()).map_err(|_| ())?;
 
     worker
         .poll
@@ -306,6 +310,8 @@ fn write_to_client(worker: &mut Worker, client_id: Client) {
     if worker.pending_disconnects.contains(&client_id) {
         disconnect_client(worker, client_id);
     }
+
+    Ok(())
 }
 
 fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
