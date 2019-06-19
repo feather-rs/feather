@@ -9,6 +9,7 @@ use flate2::{
 };
 use openssl::symm::{Cipher, Crypter, Mode};
 use std::io::prelude::*;
+use std::io::Cursor;
 
 pub struct ConnectionIOManager {
     encryption_enabled: bool,
@@ -75,6 +76,7 @@ impl ConnectionIOManager {
     /// a malicious client. If `Err` is returned, the client should
     /// be disconnected immediately.
     pub fn accept_data(&mut self, data: ByteBuf) -> Result<(), ()> {
+        trace!("78");
         // Decrypt if needed
         if self.encryption_enabled {
             self.decrypt_data(data.inner());
@@ -83,16 +85,13 @@ impl ConnectionIOManager {
             self.incoming_compressed.write(data.inner());
         }
 
-        trace!("{:?}", self.incoming_compressed.inner());
-
         loop {
+            trace!("88");
             let pending_buf = &mut self.incoming_compressed;
 
             // Mark reader index so we can return to this
             // position in the buffer if the packet is incomplete
             pending_buf.mark_read_position();
-
-            trace!("{:?}", pending_buf.inner());
 
             let packet_length = {
                 if let Ok(val) = pending_buf.read_var_int() {
@@ -109,30 +108,36 @@ impl ConnectionIOManager {
                 pending_buf.reset_read_position();
                 return Ok(());
             }
+            trace!("110");
 
-            trace!("length {}: {:?}", packet_length, pending_buf.inner());
+            pending_buf.mark_read_position();
 
             // If compression is enabled, read the uncompressed length
             // and decompress - otherwise, copy bytes to incoming_uncompressed
+            let len_of_compressed_size_field;
             if self.compression_enabled {
                 let uncompressed_size = pending_buf.read_var_int()?;
                 if uncompressed_size != 0 {
-                    trace!("{}", uncompressed_size);
                     self.decompress_data(uncompressed_size);
+                    len_of_compressed_size_field = 0;
                 } else {
                     self.incoming_uncompressed
                         .write(&pending_buf.inner()[..(packet_length - 1) as usize]);
+                    len_of_compressed_size_field = pending_buf.read_pos() - pending_buf.marked_read_position();
                     pending_buf.advance((packet_length - 1) as usize);
                 }
             } else {
+                len_of_compressed_size_field = 0;
                 let buf = &pending_buf.inner()[..(packet_length as usize)];
                 self.incoming_uncompressed.write(buf);
                 self.incoming_compressed.advance(packet_length as usize);
             }
+            trace!("129");
 
             self.incoming_compressed.remove_prior();
 
             let buf = &mut self.incoming_uncompressed;
+            buf.mark_read_position();
 
             let packet_id = buf.read_var_int()?;
             let stage = self.stage;
@@ -150,8 +155,17 @@ impl ConnectionIOManager {
 
             trace!("Received packet with type {:?}", packet_type.unwrap());
 
+            trace!("151");
             let mut packet = packet_type.unwrap().get_implementation();
-            packet.read_from(buf)?;
+            let upper_index = packet_length as usize - (buf.read_pos() - buf.marked_read_position()) - len_of_compressed_size_field;
+            trace!("upper_index={}-({}-{})={}", packet_length, buf.read_pos(), buf.marked_read_position(), upper_index);
+            {
+                let mut slice = Cursor::new(&buf.inner()[..upper_index]);
+                packet.read_from(&mut slice)?;
+            }
+            buf.advance(upper_index);
+
+            trace!("154");
 
             if packet.ty() == PacketType::Handshake {
                 let handshake =
@@ -165,11 +179,14 @@ impl ConnectionIOManager {
                     }
                 }
             }
+            trace!("168");
 
             buf.remove_prior();
 
             self.pending_received_packets.as_mut().unwrap().push(packet);
         }
+
+        trace!("169");
 
         Ok(())
     }
@@ -178,6 +195,8 @@ impl ConnectionIOManager {
         if packet.ty() == PacketType::LoginSuccess {
             self.stage = PacketStage::Play;
         }
+
+        trace!("177");
 
         trace!("Sending packet with type {:?}", packet.ty());
 
@@ -204,6 +223,8 @@ impl ConnectionIOManager {
         let mut buf = ByteBuf::with_capacity(buf_without_length.len() + 4);
         buf.write_var_int(buf_without_length.len() as i32);
         buf.write(buf_without_length.inner());
+
+        trace!("205");
 
         if !self.encryption_enabled {
             buf

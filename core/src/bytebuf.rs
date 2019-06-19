@@ -29,7 +29,7 @@ impl ByteBuf {
         }
     }
 
-    pub fn read_position(&self) -> usize {
+    pub fn read_pos(&self) -> usize {
         self.read_cursor_position
     }
 
@@ -280,7 +280,7 @@ pub trait BufResulted {
     fn read_i64_le(&mut self) -> Result<i64, ()>;
 }
 
-impl BufResulted for ByteBuf {
+impl <T: Buf> BufResulted for T {
     #[inline]
     fn byte_check(&self, amnt: usize) -> Result<(), ()> {
         if self.remaining() >= amnt {

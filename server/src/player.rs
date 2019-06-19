@@ -123,5 +123,19 @@ impl PlayerHandle {
         );
 
         self.send_packet(join_game);
+
+        let spawn_position = SpawnPosition::new(BlockPosition::new(0, 64, 0));
+        self.send_packet(spawn_position);
+
+        let position_and_look = PlayerPositionAndLookClientbound::new(
+            0.0,
+            64.0,
+            0.0,
+            0.0,
+            0.0,
+            0,
+            0
+        );
+        self.send_packet(position_and_look);
     }
 }

@@ -90,7 +90,7 @@ impl McTypeWrite for ByteBuf {
     }
 }
 
-impl McTypeRead for ByteBuf {
+impl <T: Buf + Read> McTypeRead for T {
     /// Reads a `VarInt` from this object, returning
     /// `Some(x)` if successful or `None` if the object
     /// does not contain a valid `VarInt`.

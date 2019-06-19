@@ -94,7 +94,7 @@ pub struct Handshake {
 }
 
 impl Packet for Handshake {
-    fn read_from(&mut self, mut buf: &mut ByteBuf) -> Result<(), ()> {
+    fn read_from(&mut self, mut buf: &mut PacketBuf) -> Result<(), ()> {
         self.protocol_version = buf.read_var_int().unwrap() as u32;
         self.server_address = buf.read_string()?;
         self.server_port = buf.get_u16_be();
@@ -143,7 +143,7 @@ pub struct EncryptionResponse {
 }
 
 impl Packet for EncryptionResponse {
-    fn read_from(&mut self, mut buf: &mut ByteBuf) -> Result<(), ()> {
+    fn read_from(&mut self, mut buf: &mut PacketBuf) -> Result<(), ()> {
         self.secret_length = buf.read_var_int()?;
 
         let mut secret = vec![];
@@ -253,14 +253,12 @@ pub struct PluginMessageServerbound {
 }
 
 impl Packet for PluginMessageServerbound {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+    fn read_from(&mut self, mut buf: &mut PacketBuf) -> Result<(), ()> {
         self.channel = buf.read_string()?;
 
-        let mut data = vec![];
-        let mut temp = [0u8; 8];
-        while let Ok(amnt) = buf.read(&mut data) {
-            data.write(&temp[..amnt]);
-        }
+        let mut data = Vec::with_capacity(buf.remaining());
+        buf.read(&mut data).map_err(|_| ())?;
+        self.data = data;
 
         Ok(())
     }
@@ -516,7 +514,7 @@ pub struct EncryptionRequest {
 }
 
 impl Packet for EncryptionRequest {
-    fn read_from(&mut self, mut buf: &mut ByteBuf) -> Result<(), ()> {
+    fn read_from(&mut self, mut buf: &mut PacketBuf) -> Result<(), ()> {
         unimplemented!()
     }
 
@@ -642,7 +640,7 @@ pub struct Statistics {
 }
 
 impl Packet for Statistics {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()> {
         unimplemented!()
     }
 
@@ -695,7 +693,7 @@ pub struct BossBar {
 }
 
 impl Packet for BossBar {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()> {
         unimplemented!()
     }
 
@@ -814,4 +812,20 @@ pub struct JoinGame {
     pub max_players: u8,
     pub level_type: String,
     pub reduced_debug_info: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct SpawnPosition {
+    location: BlockPosition,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct PlayerPositionAndLookClientbound {
+    x: f64,
+    y: f64,
+    z: f64,
+    yaw: f32,
+    pitch: f32,
+    flags: u8,
+    teleport_id: VarInt,
 }

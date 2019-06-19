@@ -3,13 +3,18 @@ pub mod implementation;
 
 use crate::bytebuf::ByteBuf;
 use std::any::Any;
+use bytes::Buf;
+use std::io::Read;
+
+pub trait PacketBuf: Buf + Read {}
+impl <T: Buf + Read> PacketBuf for T {}
 
 pub trait AsAny {
     fn as_any(&self) -> &Any;
 }
 
 pub trait Packet: AsAny + Send {
-    fn read_from(&mut self, buf: &mut ByteBuf) -> Result<(), ()>;
+    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()>;
     fn write_to(&self, buf: &mut ByteBuf);
     fn ty(&self) -> PacketType;
 }
@@ -434,6 +439,16 @@ lazy_static! {
         m.insert(
             PacketId(0x25, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::JoinGame,
+        );
+
+        m.insert(
+            PacketId(0x32, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::PlayerPositionAndLookClientbound,
+        );
+
+        m.insert(
+            PacketId(0x49, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::SpawnPosition,
         );
 
         m
