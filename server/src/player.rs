@@ -106,9 +106,7 @@ impl PlayerHandle {
         } else {
             // TODO perhaps use HashMap instead of match here?
             match packet.ty() {
-                PacketType::KeepAliveServerbound => {
-                    self.last_keep_alive_time = current_time_in_secs()
-                }
+                PacketType::KeepAliveServerbound => self.handle_keep_alive(cast_packet::<KeepAliveServerbound>(&packet)),
                 _ => (), // TODO
             }
         }
@@ -179,6 +177,10 @@ impl PlayerHandle {
         self.send_packet(position_and_look)?;
 
         Ok(())
+    }
+
+    fn handle_keep_alive(&mut self, _packet: &KeepAliveServerbound) {
+        self.last_keep_alive_time = current_time_in_secs();
     }
 }
 

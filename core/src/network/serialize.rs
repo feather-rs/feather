@@ -156,13 +156,6 @@ impl ConnectionIOManager {
             let upper_index = packet_length as usize
                 - (buf.read_pos() - buf.marked_read_position())
                 - len_of_compressed_size_field;
-            trace!(
-                "upper_index={}-({}-{})={}",
-                packet_length,
-                buf.read_pos(),
-                buf.marked_read_position(),
-                upper_index
-            );
             {
                 let mut slice = Cursor::new(&buf.inner()[..upper_index]);
                 packet.read_from(&mut slice)?;
