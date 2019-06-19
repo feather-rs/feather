@@ -120,7 +120,7 @@ impl InitialHandler {
     fn get_status_response(&self) -> String {
         let json = json!({
             "version": {
-                "name": "1.13.2",
+                "name": "Feather 1.13.2",
                 "protocol": PROTOCOL_VERSION,
             },
            "players": {
@@ -243,7 +243,9 @@ impl InitialHandler {
     }
 
     pub fn disconnect_login(&mut self, reason: &str) {
-        let packet = DisconnectLogin::new(reason.to_string());
+        let packet = DisconnectLogin::new(json!({
+            "text": reason
+        }).to_string());
         self.send_packet(packet);
         self.should_disconnect = true;
     }

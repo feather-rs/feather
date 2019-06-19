@@ -123,11 +123,6 @@ impl PlayerHandle {
     ) -> Result<(), ()> {
         let r = self.initial_handler.handle_packet(packet);
 
-        if r.is_err() {
-            self.should_remove = true;
-            self.close_connection();
-        }
-
         for action in self.initial_handler.actions() {
             match action {
                 ih::Action::SendPacket(packet) => self.send_packet_boxed(packet)?,
@@ -142,6 +137,11 @@ impl PlayerHandle {
                         .map_err(|_| ())?;
                 }
             }
+        }
+
+        if r.is_err() {
+            self.should_remove = true;
+            self.close_connection();
         }
 
         if self.initial_handler.finished {
