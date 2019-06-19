@@ -123,7 +123,8 @@ impl ConnectionIOManager {
                 } else {
                     self.incoming_uncompressed
                         .write(&pending_buf.inner()[..(packet_length - 1) as usize]);
-                    len_of_compressed_size_field = pending_buf.read_pos() - pending_buf.marked_read_position();
+                    len_of_compressed_size_field =
+                        pending_buf.read_pos() - pending_buf.marked_read_position();
                     pending_buf.advance((packet_length - 1) as usize);
                 }
             } else {
@@ -157,8 +158,16 @@ impl ConnectionIOManager {
 
             trace!("151");
             let mut packet = packet_type.unwrap().get_implementation();
-            let upper_index = packet_length as usize - (buf.read_pos() - buf.marked_read_position()) - len_of_compressed_size_field;
-            trace!("upper_index={}-({}-{})={}", packet_length, buf.read_pos(), buf.marked_read_position(), upper_index);
+            let upper_index = packet_length as usize
+                - (buf.read_pos() - buf.marked_read_position())
+                - len_of_compressed_size_field;
+            trace!(
+                "upper_index={}-({}-{})={}",
+                packet_length,
+                buf.read_pos(),
+                buf.marked_read_position(),
+                upper_index
+            );
             {
                 let mut slice = Cursor::new(&buf.inner()[..upper_index]);
                 packet.read_from(&mut slice)?;

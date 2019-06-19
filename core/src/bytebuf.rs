@@ -280,7 +280,7 @@ pub trait BufResulted {
     fn read_i64_le(&mut self) -> Result<i64, ()>;
 }
 
-impl <T: Buf> BufResulted for T {
+impl<T: Buf> BufResulted for T {
     #[inline]
     fn byte_check(&self, amnt: usize) -> Result<(), ()> {
         if self.remaining() >= amnt {

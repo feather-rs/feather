@@ -2,12 +2,12 @@
 pub mod implementation;
 
 use crate::bytebuf::ByteBuf;
-use std::any::Any;
 use bytes::Buf;
+use std::any::Any;
 use std::io::Read;
 
 pub trait PacketBuf: Buf + Read {}
-impl <T: Buf + Read> PacketBuf for T {}
+impl<T: Buf + Read> PacketBuf for T {}
 
 pub trait AsAny {
     fn as_any(&self) -> &Any;
