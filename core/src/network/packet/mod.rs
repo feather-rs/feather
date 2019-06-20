@@ -4,6 +4,7 @@ pub mod implementation;
 use crate::bytebuf::ByteBuf;
 use bytes::Buf;
 use std::any::Any;
+use std::collections::HashMap;
 use std::io::Read;
 
 pub trait PacketBuf: Buf + Read {}
@@ -202,8 +203,8 @@ pub enum PacketType {
 }
 
 lazy_static! {
-    static ref PACKET_ID_MAPPINGS: im::HashMap<PacketId, PacketType> = {
-        let mut m = im::HashMap::new();
+    static ref PACKET_ID_MAPPINGS: HashMap<PacketId, PacketType> = {
+        let mut m = HashMap::new();
 
         m.insert(
             PacketId(0x00, PacketDirection::Serverbound, PacketStage::Handshake),
@@ -458,8 +459,8 @@ lazy_static! {
 
         m
     };
-    static ref PACKET_TYPE_MAPPINGS: im::HashMap<PacketType, PacketId> = {
-        let mut m = im::HashMap::new();
+    static ref PACKET_TYPE_MAPPINGS: HashMap<PacketType, PacketId> = {
+        let mut m = HashMap::new();
 
         for (key, val) in PACKET_ID_MAPPINGS.clone().into_iter() {
             m.insert(val, key);

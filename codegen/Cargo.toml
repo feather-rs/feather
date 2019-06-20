@@ -12,4 +12,3 @@ syn = { version = "0.15.35", features = ["full", "extra-traits", "derive"] }
 quote = "0.6.12"
 proc-macro2 = "0.4.30"
 lazy_static = "1.3.0"
-im = "13.0.0"

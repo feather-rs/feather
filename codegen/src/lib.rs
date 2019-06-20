@@ -3,6 +3,7 @@ extern crate proc_macro;
 use lazy_static::lazy_static;
 use proc_macro::TokenStream;
 use quote::quote;
+use std::collections::HashMap;
 use syn::export::Span;
 use syn::Data;
 use syn::Ident;
@@ -47,8 +48,8 @@ enum PacketParameterType {
 }
 
 lazy_static! {
-    static ref PARAMETER_MAPPINGS: im::HashMap<&'static str, PacketParameterType> = {
-        let mut m = im::HashMap::new();
+    static ref PARAMETER_MAPPINGS: HashMap<&'static str, PacketParameterType> = {
+        let mut m = HashMap::new();
 
         m.insert("VarInt", PacketParameterType::Varint);
         m.insert("VarLong", PacketParameterType::Varlong);
@@ -70,8 +71,8 @@ lazy_static! {
         m
     };
 
-    static ref FUNCTION_MAPPINGS: im::HashMap<PacketParameterType, &'static str> = {
-        let mut m = im::HashMap::new();
+    static ref FUNCTION_MAPPINGS: HashMap<PacketParameterType, &'static str> = {
+        let mut m = HashMap::new();
 
         m.insert("var_int", PacketParameterType::Varint);
         m.insert("var_long", PacketParameterType::Varlong);
@@ -92,7 +93,7 @@ lazy_static! {
 
         // I wrote them in the wrong order, so I'm just going to reverse
         // the map.
-        let mut reversed = im::HashMap::new();
+        let mut reversed = HashMap::new();
 
         for (key, value) in m {
             reversed.insert(value, key);

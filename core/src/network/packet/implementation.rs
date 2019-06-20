@@ -4,6 +4,7 @@ use crate::bytebuf::{BufMutAlloc, BufResulted};
 use crate::prelude::*;
 use bytes::{Buf, BufMut};
 use num_traits::{FromPrimitive, ToPrimitive};
+use std::collections::HashMap;
 use std::io::Read;
 use std::io::Write;
 
@@ -11,8 +12,8 @@ type VarInt = i32;
 type VarLong = i64;
 
 lazy_static! {
-    pub static ref IMPL_MAP: im::HashMap<PacketType, PacketBuilder> = {
-        let mut m = im::HashMap::new();
+    pub static ref IMPL_MAP: HashMap<PacketType, PacketBuilder> = {
+        let mut m = HashMap::new();
 
         // Serverbound
         m.insert(PacketType::Handshake, PacketBuilder::with(|| Box::new(Handshake::default())));
