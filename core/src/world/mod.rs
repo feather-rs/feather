@@ -23,5 +23,4 @@ pub struct BlockPosition {
     pub z: u32,
 }
 
-pub struct World {
-}
+pub struct World {}

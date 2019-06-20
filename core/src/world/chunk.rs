@@ -53,10 +53,7 @@ impl Chunk {
             ChunkSection::new(),
             ChunkSection::new(),
         ];
-        Self {
-            location,
-            sections,
-        }
+        Self { location, sections }
     }
 
     /// Gets the block at the specified
