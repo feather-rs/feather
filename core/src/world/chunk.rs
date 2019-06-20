@@ -18,9 +18,6 @@ const MIN_BITS_PER_BLOCK: usize = 4;
 /// instead.
 const MAX_BITS_PER_BLOCK: usize = 8;
 
-/// The number of bits in a `u64`
-const LONG_BITS: u16 = 64;
-
 /// A chunk column consisting
 /// of a 16x256x16 section of blocks.
 #[derive(Clone)]
@@ -88,14 +85,30 @@ impl ChunkSection {
     /// Returns the block at the given
     /// position, local to this chunk section.
     fn get_block_at(&self, x: u16, y: u16, z: u16) -> BlockType {
-        let bit_index = get_block_index_from_coords(x, y, z) * (self.bits_per_block as u16);
-        let long_index = bit_index / 64;
+        let bit_index = (get_block_index_from_coords(x, y, z) as u32) * (self.bits_per_block as u32);
+
+        let start_long_index = (bit_index / 64) as usize;
+        let end_long_index = ((bit_index + (self.bits_per_block as u32) - 1) / 64) as usize;
+
+        let start_long = self.data[start_long_index];
+        let end_long = self.data[end_long_index];
 
         let index_in_long = bit_index % 64;
+
         let mut result = 0;
 
-        // TODO
-        BlockType::Air
+        let mask = ((1 << self.bits_per_block) - 1) as u64;
+
+        result |= ((start_long >> index_in_long) & mask) as u16;
+
+        if start_long_index != end_long_index {
+            // Value stretches across multiple entries
+            // in the data array
+            let end_offset = 64 - index_in_long;
+            result |= (end_long << end_offset) as u16;
+        }
+
+        self.palette.get_type_from_index(result)
     }
 }
 
