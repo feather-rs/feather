@@ -99,7 +99,6 @@ impl ChunkSection {
         }
     }
 
-
     /// Returns the block at the given
     /// position, local to this chunk section.
     pub fn get_block_at(&self, x: u16, y: u16, z: u16) -> BlockType {
@@ -107,7 +106,8 @@ impl ChunkSection {
         assert!(y < 16);
         assert!(z < 16);
 
-        let bit_index = (get_block_index_from_coords(x, y, z) as u32) * (self.bits_per_block as u32);
+        let bit_index =
+            (get_block_index_from_coords(x, y, z) as u32) * (self.bits_per_block as u32);
 
         let start_long_index = (bit_index / 64) as usize;
         let end_long_index = ((bit_index + (self.bits_per_block as u32) - 1) / 64) as usize;
@@ -163,7 +163,8 @@ impl ChunkSection {
             self.update_palette(block);
         }
 
-        let bit_index = (get_block_index_from_coords(x, y, z) as u32) * (self.bits_per_block as u32);
+        let bit_index =
+            (get_block_index_from_coords(x, y, z) as u32) * (self.bits_per_block as u32);
 
         let start_long_index = (bit_index / 64) as usize;
         let end_long_index = ((bit_index + (self.bits_per_block as u32) - 1) / 64) as usize;
