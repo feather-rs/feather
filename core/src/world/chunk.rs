@@ -154,7 +154,7 @@ impl Palette {
     fn remove_block_mapping(&mut self, block_type: BlockType) {
         if !self.global {
             let global_id = block_type.block_state_id();
-            self.palette.retain(|val| val != global_id);
+            self.palette.retain(|val| val.clone() != global_id);
             self.mappings.remove(&global_id).unwrap();
         }
     }
@@ -166,7 +166,7 @@ impl Palette {
         if self.global {
             BlockType::from_block_state_id(index)
         } else {
-            BlockType::from_block_state_id(self.palette[index])
+            BlockType::from_block_state_id(self.palette[index as usize])
         }
     }
 }
