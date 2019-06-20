@@ -69,7 +69,7 @@ impl Chunk {
         assert!(y < 256);
         assert!(z < 16);
         let chunk_section = &self.sections[(y / 16) as usize];
-        chunk_section.get_block_at(x, y % 16, z)
+        chunk_section.block_at(x, y % 16, z)
     }
 
     /// Sets the block at the specified
@@ -163,7 +163,7 @@ impl ChunkSection {
 
     /// Returns the block at the given
     /// position, local to this chunk section.
-    pub fn get_block_at(&self, x: u16, y: u16, z: u16) -> BlockType {
+    pub fn block_at(&self, x: u16, y: u16, z: u16) -> BlockType {
         assert!(x < 16);
         assert!(y < 16);
         assert!(z < 16);
@@ -204,7 +204,7 @@ impl ChunkSection {
         assert!(y < 16);
         assert!(z < 16);
 
-        let old = self.get_block_at(x, y, z);
+        let old = self.block_at(x, y, z);
 
         {
             let new_amnt = self.occurrence_map[&old] - 1;
@@ -398,9 +398,9 @@ mod tests {
         section.set_block_at(0, 15, 0, BlockType::Andesite);
         section.set_block_at(4, 4, 4, BlockType::Stone);
 
-        assert_eq!(section.get_block_at(0, 0, 0), BlockType::Granite);
-        assert_eq!(section.get_block_at(0, 15, 0), BlockType::Andesite);
-        assert_eq!(section.get_block_at(4, 4, 4), BlockType::Stone);
+        assert_eq!(section.block_at(0, 0, 0), BlockType::Granite);
+        assert_eq!(section.block_at(0, 15, 0), BlockType::Andesite);
+        assert_eq!(section.block_at(4, 4, 4), BlockType::Stone);
     }
 
     #[test]
