@@ -22,3 +22,6 @@ pub struct BlockPosition {
     pub y: u32,
     pub z: u32,
 }
+
+pub struct World {
+}

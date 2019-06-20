@@ -27,6 +27,71 @@ pub struct Chunk {
     // TODO block entities
 }
 
+impl Chunk {
+    /// Creates a new empty chunk
+    /// with the specified location.
+    pub fn new(location: ChunkPosition) -> Self {
+        // Rust apparently forces you to implement
+        // `Copy` on types if you want to use the
+        // `[ChunkSection::new(); 16]` syntax,
+        // so I had to do this.
+        let sections = [
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+            ChunkSection::new(),
+        ];
+        Self {
+            location,
+            sections,
+        }
+    }
+
+    /// Gets the block at the specified
+    /// position in this chunk. The position
+    /// is in the chunk's local coordinate
+    /// space.
+    ///
+    /// The specified coordinates must be inside
+    /// this chunk, so the function will panic
+    /// if `x >= 16 || y >= 256 || z >= 16`.
+    pub fn block_at(&self, x: u16, y: u16, z: u16) -> BlockType {
+        assert!(x < 16);
+        assert!(y < 256);
+        assert!(z < 16);
+        let chunk_section = &self.sections[(y / 16) as usize];
+        chunk_section.get_block_at(x, y % 16, z)
+    }
+
+    /// Sets the block at the specified
+    /// position in this chunk. The position
+    /// is in the chunk's local coordinate
+    /// space.
+    ///
+    /// The specified coordinates must be inside
+    /// this chunk, so the function will panic
+    /// if `x >= 16 || y >= 256 || z >= 16`.
+    pub fn set_block_at(&mut self, x: u16, y: u16, z: u16, block: BlockType) {
+        assert!(x < 16);
+        assert!(y < 256);
+        assert!(z < 16);
+        let chunk_section = &mut self.sections[(y / 16) as usize];
+        chunk_section.set_block_at(x, y % 16, z, block);
+    }
+}
+
 /// A chunk section consisting of
 /// 16x16x16 blocks. A chunk section
 /// maintains an array of `u64` which
@@ -94,8 +159,8 @@ impl ChunkSection {
             occurrence_map,
             upper_threshold: 32,
             lower_threshold: 1,
-            block_light: [0; 2048],
-            sky_light: [0; 2048],
+            block_light: [15; 2048],
+            sky_light: [15; 2048],
         }
     }
 
@@ -339,5 +404,24 @@ mod tests {
         assert_eq!(section.get_block_at(0, 0, 0), BlockType::Granite);
         assert_eq!(section.get_block_at(0, 15, 0), BlockType::Andesite);
         assert_eq!(section.get_block_at(4, 4, 4), BlockType::Stone);
+    }
+
+    #[test]
+    fn test_chunk() {
+        let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
+        chunk.set_block_at(0, 0, 0, BlockType::Andesite);
+        chunk.set_block_at(0, 14, 0, BlockType::PolishedAndesite);
+        chunk.set_block_at(5, 12, 13, BlockType::Granite);
+
+        assert_eq!(chunk.block_at(0, 0, 0), BlockType::Andesite);
+        assert_eq!(chunk.block_at(0, 14, 0), BlockType::PolishedAndesite);
+        assert_eq!(chunk.block_at(5, 12, 13), BlockType::Granite);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_chunk_out_of_bounds() {
+        let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
+        chunk.set_block_at(0, 256, 0, BlockType::Andesite);
     }
 }

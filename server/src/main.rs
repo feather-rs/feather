@@ -5,10 +5,6 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 
-#[cfg(test)]
-#[macro_use]
-extern crate mockers_derive;
-
 pub mod config;
 pub mod initialhandler;
 pub mod io;

@@ -65,7 +65,7 @@ impl PlayerHandle {
         let _ = self.packet_sender.send(ServerToWorkerMessage::Disconnect);
     }
 
-    pub fn disconnect(&mut self, reason: &str) {
+    pub fn disconnect(&mut self, _reason: &str) {
         self.should_remove = true;
         // TODO send Disconnect packet
         self.close_connection();
