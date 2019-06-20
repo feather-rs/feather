@@ -96,10 +96,8 @@ fn handle_event(worker: &mut Worker, event: Event) {
                 // If odd, it's  a stream token
                 if t.0 % 2 == 0 {
                     read_from_server(worker, t);
-                } else {
-                    if read_from_stream(worker, t).is_err() {
-                        disconnect_client(worker, get_client_from_stream_token(t));
-                    }
+                } else if read_from_stream(worker, t).is_err() {
+                    disconnect_client(worker, get_client_from_stream_token(t));
                 }
             }
         }
@@ -151,7 +149,7 @@ fn accept_connection(worker: &mut Worker, stream: TcpStream, addr: SocketAddr) {
         .unwrap();
 
     let info = NewClientInfo {
-        ip: client.addr.clone(),
+        ip: client.addr,
         sender: send1,
         receiver: recv2,
     };

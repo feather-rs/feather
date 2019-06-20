@@ -12,7 +12,7 @@ pub enum BlockType {
 }
 
 impl BlockType {
-    pub fn block_state_id(&self) -> u16 {
+    pub fn block_state_id(self) -> u16 {
         match self {
             BlockType::Air => 0,
             BlockType::Stone => 1,

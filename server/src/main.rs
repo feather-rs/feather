@@ -36,7 +36,7 @@ impl Server {
     pub fn allocate_entity_id(&self) -> EntityId {
         let mut counter = self.entity_id_counter.borrow_mut();
         *counter += 1;
-        counter.clone()
+        *counter
     }
 
     pub fn tick_count(&self) -> u64 {

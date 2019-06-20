@@ -109,6 +109,9 @@ impl PlayerHandle {
                 PacketType::KeepAliveServerbound => {
                     self.handle_keep_alive(cast_packet::<KeepAliveServerbound>(&packet))
                 }
+                PacketType::ChatMessageServerbound => {
+                    // TODO
+                }
                 _ => (), // TODO
             }
         }

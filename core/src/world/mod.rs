@@ -1,4 +1,5 @@
 pub mod block;
+#[allow(clippy::cast_lossless)]
 pub mod chunk;
 
 #[derive(Clone, Debug, new)]

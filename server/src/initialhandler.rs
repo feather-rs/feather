@@ -219,7 +219,7 @@ impl InitialHandler {
 
         let mut key = [0; 16];
         for (i, val) in decrypted_shared_secret[..16].iter().enumerate() {
-            key[i] = val.clone();
+            key[i] = *val;
         }
 
         self.enable_encryption(key);

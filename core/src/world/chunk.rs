@@ -27,10 +27,8 @@ pub struct Chunk {
     // TODO block entities
 }
 
-impl Chunk {
-    /// Creates a new empty chunk
-    /// with the specified location.
-    pub fn new(location: ChunkPosition) -> Self {
+impl Default for Chunk {
+    fn default() -> Self {
         // Rust apparently forces you to implement
         // `Copy` on types if you want to use the
         // `[ChunkSection::new(); 16]` syntax,
@@ -53,7 +51,18 @@ impl Chunk {
             ChunkSection::new(),
             ChunkSection::new(),
         ];
-        Self { location, sections }
+        Self { location: ChunkPosition::new(0, 0), sections }
+    }
+}
+
+impl Chunk {
+    /// Creates a new empty chunk
+    /// with the specified location.
+    pub fn new(location: ChunkPosition) -> Self {
+        Self {
+            location,
+            ..Default::default()
+        }
     }
 
     /// Gets the block at the specified
@@ -135,6 +144,12 @@ pub struct ChunkSection {
     /// where 0 is darkest and 15 is brightest.
     /// Each block takes up half a byte in this array.
     sky_light: [u8; 16 * 16 * 16 / 2],
+}
+
+impl Default for ChunkSection {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ChunkSection {
@@ -349,7 +364,7 @@ impl Palette {
     fn remove_block_mapping(&mut self, block_type: BlockType) {
         if !self.global {
             let global_id = block_type.block_state_id();
-            self.palette.retain(|val| val.clone() != global_id);
+            self.palette.retain(|val| *val != global_id);
             self.mappings.remove(&global_id).unwrap();
         }
     }
