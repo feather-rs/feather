@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum BlockType {
     Air,
     Stone,
@@ -49,7 +49,7 @@ impl BlockType {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct GrassBlockData {
     snowy: bool,
 }

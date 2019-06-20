@@ -1,7 +1,5 @@
-mod block;
-mod chunk;
-pub use block::*;
-pub use chunk::*;
+pub mod block;
+pub mod chunk;
 
 #[derive(Clone, Debug, new)]
 pub struct Position {

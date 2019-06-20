@@ -4,24 +4,24 @@ use std::collections::HashMap;
 
 /// The number of bits used for each block
 /// in the global palette.
-const GLOBAL_BITS_PER_BLOCK: usize = 14;
+const GLOBAL_BITS_PER_BLOCK: u8 = 14;
 
 /// The minimum bits per block allowed when
 /// using a section palette.
 /// Bits per block values lower than this
 /// value will be offsetted to this value.
-const MIN_BITS_PER_BLOCK: usize = 4;
+const MIN_BITS_PER_BLOCK: u8 = 4;
 
 /// The maximum number of bits per block
 /// allowed when using a section pallette.
 /// Values above this will use the global pallette
 /// instead.
-const MAX_BITS_PER_BLOCK: usize = 8;
+const MAX_BITS_PER_BLOCK: u8 = 8;
 
 /// A chunk column consisting
 /// of a 16x256x16 section of blocks.
 #[derive(Clone)]
-struct Chunk {
+pub struct Chunk {
     location: ChunkPosition,
     sections: [ChunkSection; 16],
     // TODO block entities
@@ -34,7 +34,7 @@ struct Chunk {
 /// or a section palette to store
 /// block state information.
 #[derive(Clone)]
-struct ChunkSection {
+pub struct ChunkSection {
     /// If true, this chunk section
     /// consists only of air and will
     /// not be sent in the Chunk Data packet.
@@ -76,15 +76,37 @@ struct ChunkSection {
 }
 
 impl ChunkSection {
-    /// Recalculates the data and bits per block field
-    /// based on the current palette.
-    fn resize(&mut self) {
-        // TODO
+    /// Creates a new, empty chunk section.
+    pub fn new() -> Self {
+        let mut mappings = HashMap::new();
+        mappings.insert(0, 0);
+        let mut occurrence_map = HashMap::new();
+        occurrence_map.insert(BlockType::Air, 16 * 16 * 16);
+        Self {
+            empty: true,
+            bits_per_block: 4,
+            palette: Palette {
+                global: false,
+                palette: vec![0],
+                mappings,
+            },
+            data: vec![0; (4 * 16 * 16 * 16) / 64],
+            occurrence_map,
+            upper_threshold: 32,
+            lower_threshold: 1,
+            block_light: [0; 2048],
+            sky_light: [0; 2048],
+        }
     }
+
 
     /// Returns the block at the given
     /// position, local to this chunk section.
-    fn get_block_at(&self, x: u16, y: u16, z: u16) -> BlockType {
+    pub fn get_block_at(&self, x: u16, y: u16, z: u16) -> BlockType {
+        assert!(x < 16);
+        assert!(y < 16);
+        assert!(z < 16);
+
         let bit_index = (get_block_index_from_coords(x, y, z) as u32) * (self.bits_per_block as u32);
 
         let start_long_index = (bit_index / 64) as usize;
@@ -110,6 +132,101 @@ impl ChunkSection {
 
         self.palette.get_type_from_index(result)
     }
+
+    /// Sets the block type at the given position,
+    /// resizing the internal arrays as necessary.
+    /// Calling this function could incur significant
+    /// overhead if resizing is necessary.
+    pub fn set_block_at(&mut self, x: u16, y: u16, z: u16, block: BlockType) {
+        assert!(x < 16);
+        assert!(y < 16);
+        assert!(z < 16);
+
+        let old = self.get_block_at(x, y, z);
+
+        {
+            let new_amnt = self.occurrence_map[&old] - 1;
+            if new_amnt == 0 {
+                self.occurrence_map.remove(&old);
+                self.palette.remove_block_mapping(old);
+                self.resize_bits_per_block(self.occurrence_map.len() as u16); // Inefficient to recalculate the entire thing if a block type no longer exists - TODO perhaps better implementation?
+            } else {
+                self.occurrence_map.insert(old, new_amnt);
+            }
+        }
+
+        let amnt = self.occurrence_map.get(&block).cloned();
+        if let Some(amnt) = amnt {
+            self.occurrence_map.insert(block, amnt + 1);
+        } else {
+            // New block
+            self.update_palette(block);
+        }
+
+        let bit_index = (get_block_index_from_coords(x, y, z) as u32) * (self.bits_per_block as u32);
+
+        let start_long_index = (bit_index / 64) as usize;
+        let end_long_index = ((bit_index + (self.bits_per_block as u32) - 1) / 64) as usize;
+        let index_in_long = (bit_index % 64) as u64;
+
+        let paletted_id = self.palette.get_index_from_type(block) as u64;
+
+        self.data[start_long_index] |= (paletted_id << index_in_long) as u64;
+
+        if start_long_index != end_long_index {
+            self.data[end_long_index] |= (paletted_id >> (64 - index_in_long)) as u64;
+        }
+    }
+
+    /// Updates the palette to account for the new
+    /// block type and recalculates the data array
+    /// if necessary.
+    fn update_palette(&mut self, new_block_type: BlockType) {
+        if self.palette.global {
+            return;
+        }
+
+        self.palette.add_block_mapping(new_block_type);
+
+        let new_block_count = (self.occurrence_map.len() + 1) as u16;
+        if new_block_count >= self.upper_threshold || new_block_count < self.lower_threshold {
+            self.resize_bits_per_block(new_block_count);
+        }
+    }
+
+    fn resize_bits_per_block(&mut self, new_block_count: u16) {
+        // Resize
+        self.bits_per_block = bits_per_block_needed(new_block_count as u16);
+
+        if self.bits_per_block > MAX_BITS_PER_BLOCK {
+            self.palette.global = true;
+            self.bits_per_block = GLOBAL_BITS_PER_BLOCK;
+        } else if self.bits_per_block < MIN_BITS_PER_BLOCK {
+            self.bits_per_block = MIN_BITS_PER_BLOCK;
+        }
+
+        self.new_thresholds();
+
+        self.recalculate();
+    }
+
+    fn new_thresholds(&mut self) {
+        self.upper_threshold = 2u16.pow((self.bits_per_block + 1) as u32);
+        self.lower_threshold = 2u16.pow((self.bits_per_block - 1) as u32);
+    }
+
+    /// Recalculates the data field
+    /// based on the current palette.
+    fn recalculate(&mut self) {
+        // TODO
+    }
+}
+
+fn bits_per_block_needed(block_count: u16) -> u8 {
+    // The number of bits per block needed
+    // is the floored base-2 logarithm of
+    // the number of blocks in the chunk section
+    ((block_count as f32).log(2.0)) as u8
 }
 
 /// Returns the index into the data and light
@@ -119,6 +236,7 @@ fn get_block_index_from_coords(x: u16, y: u16, z: u16) -> u16 {
     (x + (z * 16)) + (y * (16 * 16))
 }
 
+/*
 /// The inverse of `get_block_index_from_coords`.
 /// The returned tuple is in the order (x, y, z).
 fn get_coords_from_block_index(index: u16) -> (u16, u16, u16) {
@@ -132,11 +250,12 @@ fn get_coords_from_block_index(index: u16) -> (u16, u16, u16) {
 
     (x, y, z)
 }
+*/
 
 /// A section palette as used by
 /// `ChunkSection`.
 #[derive(Clone)]
-struct Palette {
+pub struct Palette {
     /// If set to `true`, the global
     /// palette is used rather than this
     /// palette.
@@ -182,6 +301,16 @@ impl Palette {
             BlockType::from_block_state_id(self.palette[index as usize])
         }
     }
+
+    /// Returns the mapping for the specified
+    /// block type.
+    fn get_index_from_type(&self, block: BlockType) -> u16 {
+        if self.global {
+            block.block_state_id()
+        } else {
+            self.mappings[&block.block_state_id()]
+        }
+    }
 }
 
 #[cfg(test)]
@@ -193,9 +322,21 @@ mod tests {
         assert_eq!(get_block_index_from_coords(1, 1, 1), 256 + 16 + 1);
     }
 
-    #[test]
+    /*#[test]
     fn test_get_coords_from_block_index() {
         assert_eq!(get_coords_from_block_index(256), (0, 1, 0));
         assert_eq!(get_coords_from_block_index(256 + 16 + 1), (1, 1, 1));
+    }*/
+
+    #[test]
+    fn test_chunk_section() {
+        let mut section = ChunkSection::new();
+        section.set_block_at(0, 0, 0, BlockType::Granite);
+        section.set_block_at(0, 15, 0, BlockType::Andesite);
+        section.set_block_at(4, 4, 4, BlockType::Stone);
+
+        assert_eq!(section.get_block_at(0, 0, 0), BlockType::Granite);
+        assert_eq!(section.get_block_at(0, 15, 0), BlockType::Andesite);
+        assert_eq!(section.get_block_at(4, 4, 4), BlockType::Stone);
     }
 }
