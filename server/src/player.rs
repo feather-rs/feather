@@ -3,6 +3,7 @@ use super::initialhandler::InitialHandler;
 use crate::io::ServerToWorkerMessage;
 use crate::prelude::*;
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
+use feather_core::world::World;
 use mio_extras::channel::{Receiver, Sender};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -180,6 +181,11 @@ impl PlayerHandle {
         let position_and_look =
             PlayerPositionAndLookClientbound::new(0.0, 64.0, 0.0, 0.0, 0.0, 0, 0);
         self.send_packet(position_and_look)?;
+
+        let world = World::new(); // TODO
+                                  // Send chunk packets
+        let chunk_data = ChunkData::new(world.chunk_at(ChunkPosition::new(0, 0)).borrow().clone());
+        self.send_packet(chunk_data)?;
 
         Ok(())
     }

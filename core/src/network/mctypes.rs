@@ -145,7 +145,7 @@ impl<T: Buf + Read> McTypeRead for T {
         let y = (val >> 26) & 0xFFF;
         let z = val << 38 >> 38;
 
-        Ok(BlockPosition::new(x as u32, y as u32, z as u32))
+        Ok(BlockPosition::new(x as i32, y as i32, z as i32))
     }
 
     fn read_bool(&mut self) -> Result<bool, ()> {

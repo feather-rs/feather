@@ -51,7 +51,10 @@ impl Default for Chunk {
             ChunkSection::new(),
             ChunkSection::new(),
         ];
-        Self { location: ChunkPosition::new(0, 0), sections }
+        Self {
+            location: ChunkPosition::new(0, 0),
+            sections,
+        }
     }
 }
 
@@ -95,6 +98,16 @@ impl Chunk {
         assert!(z < 16);
         let chunk_section = &mut self.sections[(y / 16) as usize];
         chunk_section.set_block_at(x, y % 16, z, block);
+    }
+
+    /// Returns a slice of the 16
+    /// chunk sections in the chunk.
+    pub fn sections(&self) -> &[ChunkSection] {
+        &self.sections
+    }
+
+    pub fn position(&self) -> ChunkPosition {
+        self.location
     }
 }
 
@@ -219,9 +232,13 @@ impl ChunkSection {
         assert!(y < 16);
         assert!(z < 16);
 
+        if block != BlockType::Air {
+            self.empty = false;
+        }
+
         let old = self.block_at(x, y, z);
 
-        {
+        if self.occurrence_map.contains_key(&old) {
             let new_amnt = self.occurrence_map[&old] - 1;
             if new_amnt == 0 {
                 self.occurrence_map.remove(&old);
@@ -254,6 +271,22 @@ impl ChunkSection {
         if start_long_index != end_long_index {
             self.data[end_long_index] |= (paletted_id >> (64 - index_in_long)) as u64;
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.empty
+    }
+
+    pub fn data(&self) -> &[u64] {
+        &self.data
+    }
+
+    pub fn bits_per_block(&self) -> u8 {
+        self.bits_per_block
+    }
+
+    pub fn palette(&self) -> &Palette {
+        &self.palette
     }
 
     /// Updates the palette to account for the new
@@ -388,6 +421,14 @@ impl Palette {
         } else {
             self.mappings[&block.block_state_id()]
         }
+    }
+
+    pub fn data(&self) -> &[u16] {
+        &self.palette
+    }
+
+    pub fn global(&self) -> bool {
+        self.global
     }
 }
 

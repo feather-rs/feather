@@ -2,6 +2,7 @@ use super::super::mctypes::{McTypeRead, McTypeWrite};
 use super::*;
 use crate::bytebuf::{BufMutAlloc, BufResulted};
 use crate::prelude::*;
+use crate::world::chunk::Chunk;
 use bytes::{Buf, BufMut};
 use num_traits::{FromPrimitive, ToPrimitive};
 use std::collections::HashMap;
@@ -818,6 +819,82 @@ pub struct JoinGame {
     pub max_players: u8,
     pub level_type: String,
     pub reduced_debug_info: bool,
+}
+
+#[derive(Default, AsAny, new)]
+pub struct ChunkData {
+    chunk: Chunk,
+}
+
+impl Packet for ChunkData {
+    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_i32_be(self.chunk.position().x);
+        buf.write_i32_be(self.chunk.position().z);
+        buf.write_bool(true); // Full chunk - assume true
+
+        // Produce primary bit mask
+        let mut primary_mask = {
+            let mut r = 0;
+            for (i, section) in self.chunk.sections().iter().enumerate() {
+                if !section.is_empty() {
+                    r |= 1 << (15 - i);
+                }
+            }
+            r
+        };
+
+        trace!("{:b}", primary_mask);
+        buf.write_var_int(primary_mask as i32);
+
+        let mut temp_buf = ByteBuf::new();
+
+        for section in self.chunk.sections() {
+            if section.is_empty() {
+                continue;
+            }
+
+            temp_buf.write_u8(section.bits_per_block());
+
+            let palette = section.palette();
+            if !palette.global() {
+                let data = palette.data();
+
+                let mut palette_buf = ByteBuf::with_capacity(data.len() + 4);
+                for val in data {
+                    palette_buf.write_var_int((*val) as i32);
+                }
+
+                temp_buf.write_var_int(palette_buf.len() as i32);
+                temp_buf.write(palette_buf.inner());
+            }
+
+            let data = section.data();
+            temp_buf.write_var_int(data.len() as i32);
+
+            temp_buf.reserve(data.len());
+            for val in data {
+                temp_buf.write_u64_be(*val);
+            }
+
+            // Light — TODO
+            for _ in 0..4096 {
+                temp_buf.write_u8(0b11111111);
+            }
+        }
+
+        buf.write_var_int(temp_buf.len() as i32);
+        buf.write(temp_buf.inner());
+
+        buf.write_var_int(0) // Block entities — TODO
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::ChunkData
+    }
 }
 
 #[derive(Default, AsAny, new, Packet)]

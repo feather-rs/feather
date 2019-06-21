@@ -443,6 +443,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x22, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::ChunkData,
+        );
+
+        m.insert(
             PacketId(0x25, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::JoinGame,
         );
