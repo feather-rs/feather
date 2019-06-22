@@ -868,6 +868,8 @@ impl Packet for ChunkData {
                     palette_buf.write_var_int((*val) as i32);
                 }
 
+                trace!("Palette: {:?}", palette.data());
+
                 temp_buf.write_var_int(palette_buf.len() as i32);
                 temp_buf.write(palette_buf.inner());
             }
@@ -885,6 +887,15 @@ impl Packet for ChunkData {
                 temp_buf.write_u8(0b11111111);
             }
         }
+
+        // Biomes
+        // Just plains for now - TODO proper biome support
+        temp_buf.reserve(256 * 4);
+        for _ in 0..256 {
+            temp_buf.write_i32_be(1); // 1 = plains
+        }
+
+        trace!("Data length: {}, data: {:?}", temp_buf.len(), temp_buf.inner());
 
         buf.write_var_int(temp_buf.len() as i32);
         buf.write(temp_buf.inner());

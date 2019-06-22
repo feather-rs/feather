@@ -106,7 +106,6 @@ impl InitialHandler {
                 let ping = cast_packet::<Ping>(&packet);
                 let pong = Pong::new(ping.payload);
                 self.send_packet(pong);
-                self.should_disconnect = true;
             }
             _ => {
                 self.disconnect_login("Client sent incorrect packet at stage STATUS");

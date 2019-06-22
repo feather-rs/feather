@@ -255,6 +255,7 @@ impl ChunkSection {
         } else {
             // New block
             self.update_palette(block);
+            self.occurrence_map.insert(block, 1);
         }
 
         let bit_index =
