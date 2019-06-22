@@ -867,15 +867,10 @@ impl Packet for ChunkData {
                     palette_buf.write_var_int((*val) as i32);
                 }
 
-                trace!("Palette: {:?}", palette.data());
-
                 temp_buf.write_var_int(palette_buf.len() as i32);
                 temp_buf.write(palette_buf.inner());
             }
 
-            trace!("Data for section: {:?}", unsafe {
-                std::mem::transmute::<&[u64], &[u8]>(section.data())
-            });
             let data = section.data();
             temp_buf.write_var_int(data.len() as i32);
 
@@ -896,12 +891,6 @@ impl Packet for ChunkData {
         for _ in 0..256 {
             temp_buf.write_i32_be(1); // 1 = plains
         }
-
-        trace!(
-            "Data length: {}, data: {:?}",
-            temp_buf.len(),
-            temp_buf.inner()
-        );
 
         buf.write_var_int(temp_buf.len() as i32);
         buf.write(temp_buf.inner());

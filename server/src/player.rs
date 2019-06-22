@@ -180,17 +180,23 @@ impl PlayerHandle {
 
         self.send_packet(join_game)?;
 
-        let spawn_position = SpawnPosition::new(BlockPosition::new(0, 64, 0));
-        self.send_packet(spawn_position)?;
-
-        let position_and_look =
-            PlayerPositionAndLookClientbound::new(0.0, 64.0, 0.0, 0.0, 0.0, 0, 0);
-        self.send_packet(position_and_look)?;
-
         let world = World::new(); // TODO
-                                  // Send chunk packets
-        let chunk_data = ChunkData::new(world.chunk_at(ChunkPosition::new(0, 0)).borrow().clone());
-        self.send_packet(chunk_data)?;
+
+        // Send chunk packets
+        let view_distance = server.config.server.view_distance as i32;
+        for x in -view_distance..view_distance {
+            for y in -view_distance..view_distance {
+                let chunk_data =
+                    ChunkData::new(world.chunk_at(ChunkPosition::new(x, y)).borrow().clone());
+                self.send_packet(chunk_data)?;
+            }
+        }
+
+        // Spawn the player
+        let spawn_pos = SpawnPosition::new(BlockPosition::new(0, 0, 0));
+        self.send_packet(spawn_pos)?;
+        let pos = PlayerPositionAndLookClientbound::new(0.0, 64.0, 0.0, 0.0, 0.0, 0, 1);
+        self.send_packet(pos)?;
 
         Ok(())
     }
