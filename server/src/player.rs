@@ -148,6 +148,11 @@ impl PlayerHandle {
             self.close_connection();
         }
 
+        if self.initial_handler.should_disconnect {
+            self.should_remove = true;
+            self.close_connection();
+        }
+
         if self.initial_handler.finished {
             // Run the play sequence to allow the player
             // to join

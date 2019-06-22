@@ -847,7 +847,6 @@ impl Packet for ChunkData {
             r
         };
 
-        trace!("{:b}", primary_mask);
         buf.write_var_int(primary_mask as i32);
 
         let mut temp_buf = ByteBuf::new();
@@ -874,6 +873,7 @@ impl Packet for ChunkData {
                 temp_buf.write(palette_buf.inner());
             }
 
+            trace!("Data for section: {:?}", unsafe { std::mem::transmute::<&[u64], &[u8]>(section.data()) });
             let data = section.data();
             temp_buf.write_var_int(data.len() as i32);
 
