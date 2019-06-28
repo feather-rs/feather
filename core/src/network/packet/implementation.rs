@@ -841,7 +841,7 @@ impl Packet for ChunkData {
             let mut r = 0;
             for (i, section) in self.chunk.sections().iter().enumerate() {
                 if !section.is_empty() {
-                    r |= 1 << (15 - i);
+                    r |= 1 << i;
                 }
             }
             r
