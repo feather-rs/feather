@@ -88,7 +88,14 @@ mod tests {
         let _chunk = world.chunk_at(ChunkPosition::new(0, 0));
         let chunk = _chunk.borrow();
 
-        assert_eq!(chunk.block_at(8, 63, 8), BlockType::Stone);
+        for x in 0..16 {
+            for y in 0..64 {
+                for z in 0..16 {
+                    assert_eq!(chunk.block_at(x, y, z), BlockType::Stone);
+                }
+            }
+        }
+
         assert_eq!(chunk.block_at(8, 64, 8), BlockType::Air);
     }
 }
