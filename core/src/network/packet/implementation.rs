@@ -733,17 +733,6 @@ impl Packet for BossBar {
     }
 }
 
-#[derive(Default, AsAny, new, Packet)]
-pub struct ServerDifficulty {
-    difficulty: u8,
-}
-
-#[derive(Default, AsAny, new, Packet)]
-pub struct ChatMessageClientbound {
-    json_data: String,
-    position: u8,
-}
-
 #[derive(Clone, Debug)]
 pub enum BossBarAction {
     Add(String, f32, BossBarColor, BossBarDivision, u8),
@@ -806,19 +795,110 @@ impl Default for BossBarDivision {
 }
 
 #[derive(Default, AsAny, new, Packet)]
-pub struct KeepAliveClientbound {
-    keep_alive_id: u64,
+pub struct ServerDifficulty {
+    difficulty: u8,
 }
 
 #[derive(Default, AsAny, new, Packet)]
-pub struct JoinGame {
-    pub entity_id: i32,
-    pub gamemode: u8,
-    pub dimension: i32,
-    pub difficulty: u8,
-    pub max_players: u8,
-    pub level_type: String,
-    pub reduced_debug_info: bool,
+pub struct ChatMessageClientbound {
+    json_data: String,
+    position: u8,
+}
+
+// TODO MultiBlockChange
+// TODO TabCompleteClientbound
+// TODO DeclareCommands
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct ConfirmTransactionClientbound {
+    window_id: i8,
+    action_number: i16,
+    accepted: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct OpenWindow {
+    window_id: u8,
+    window_type: String,
+    window_title: String, // Chat
+    number_of_slots: u8,
+    entity_id: i32,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct WindowItems {
+    window_id: u8,
+    count: i16,
+    // TODO slot data
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct WindowProperty {
+    window_id: u8,
+    property: i16,
+    value: i16,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct SetSlot {
+    window_id: i8,
+    slot: i16,
+    // TOOD slot data
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct SetCooldown {
+    item_id: VarInt,
+    cooldown_ticks: VarInt,
+}
+
+// TODO PluginMessageClientbound
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct NamedSoundEffect {
+    sound_name: String,
+    sound_category: VarInt,
+    effect_pos_x: i32,
+    effect_pos_y: i32,
+    effect_pos_z: i32,
+    volume: f32,
+    pitch: f32,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct DisconnectPlay {
+    reason: String, // Chat
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct EntityStatus {
+    entity_id: i32,
+    entity_status: i8,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct NBTQueryResponse {
+    transaction_id: VarInt,
+    // TODO nbt
+}
+
+// TODO Explosion
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct UnloadChunk {
+    chunk_x: i32,
+    chunk_z: i32,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct ChangeGameState {
+    reason: u8,
+    value: f32,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct KeepAliveClientbound {
+    keep_alive_id: u64,
 }
 
 #[derive(Default, AsAny, new)]
@@ -902,6 +982,76 @@ impl Packet for ChunkData {
         PacketType::ChunkData
     }
 }
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct Effect {
+    effect_id: i32,
+    location: BlockPosition,
+    data: i32,
+    disable_relative_volume: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct Particle {
+    particle_id: i32,
+    long_distance: bool,
+    x: f32,
+    y: f32,
+    z: f32,
+    offset_x: f32,
+    offset_z: f32,
+    particle_data: f32,
+    particle_count: i32,
+    // TODO data
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct JoinGame {
+    pub entity_id: i32,
+    pub gamemode: u8,
+    pub dimension: i32,
+    pub difficulty: u8,
+    pub max_players: u8,
+    pub level_type: String,
+    pub reduced_debug_info: bool,
+}
+
+// TODO MapData
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct Entity {
+    entity_id: VarInt,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct EntityRelativeMove {
+    entity_id: VarInt,
+    delta_x: i16,
+    delta_y: i16,
+    delta_z: i16,
+    on_ground: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct EntityLookAndRelativeMove {
+    entity_id: VarInt,
+    delta_x: i16,
+    delta_y: i16,
+    delta_z: i16,
+    yaw: u8,
+    pitch: u8,
+    on_ground: bool,
+}
+
+#[derive(Default, AsAny, new, Packet)]
+pub struct EntityLook {
+    entity_id: VarInt,
+    yaw: u8,
+    pitch: u8,
+    on_ground: bool,
+}
+
+/// ...
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct SpawnPosition {

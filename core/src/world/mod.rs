@@ -16,6 +16,16 @@ pub struct Position {
     pub yaw: f32,
 }
 
+impl Position {
+    pub fn distance(&self, other: Position) -> f64 {
+        (square(self.x - other.x) - square(self.y - other.y) - square(self.z - other.z)).sqrt()
+    }
+}
+
+fn square(x: f64) -> f64 {
+    x * x
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, new)]
 pub struct ChunkPosition {
     pub x: i32,
@@ -109,4 +119,13 @@ mod tests {
 
         assert_eq!(chunk.block_at(8, 64, 8), BlockType::Air);
     }
+}
+
+/// Calculates the relative move fields
+/// as used in the EntityRelativeMove packets.
+pub fn calculate_relative_move(old: Position, current: Position) -> (u16, u16, u16) {
+    let x = ((current.x * 32.0 - old.x * 32.0) * 128.0) as u16;
+    let y = ((current.y * 32.0 - old.x * 32.0) * 128.0) as u16;
+    let z = ((current.z * 32.0 - old.z * 32.0) * 128.0) as u16;
+    (x, y, z)
 }
