@@ -8,7 +8,8 @@ A console client based on Feather's core code is also planned, and it may actual
 at some point in the future.
 
 ### Features
-- [x] Players can join and see a blank void
+- [x] Players can join
 - [x] Players can see MOTD and ping in server list (status ping)
+- [x] Players can see a blandly generated, superflat stone world upon joining
 
 Nothing else works yet.
