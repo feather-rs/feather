@@ -67,9 +67,9 @@ pub struct FlatChunkGenerator {}
 
 impl ChunkGenerator for FlatChunkGenerator {
     fn generate(&self, chunk: &mut Chunk) {
-        for x in 0..15 {
+        for x in 0..16 {
             for y in 0..64 {
-                for z in 0..15 {
+                for z in 0..16 {
                     chunk.set_block_at(x, y, z, BlockType::Stone);
                 }
             }
