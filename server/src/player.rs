@@ -185,8 +185,8 @@ impl PlayerHandle {
 
         // Send chunk packets
         let view_distance = server.config.server.view_distance as i32;
-        for x in -view_distance..view_distance {
-            for y in -view_distance..view_distance {
+        for x in -view_distance..view_distance + 1 {
+            for y in -view_distance..view_distance + 1 {
                 let chunk_data =
                     ChunkData::new(world.chunk_at(ChunkPosition::new(x, y)).borrow().clone());
                 self.send_packet(chunk_data)?;
