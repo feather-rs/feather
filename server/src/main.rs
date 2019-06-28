@@ -45,7 +45,7 @@ impl Server {
         self.tick_counter
     }
 
-    pub fn set_block_at(&self, pos: BlockPosition, block: BlockType) {
+    pub fn set_block_at(&self, pos: BlockPosition, block: Block) {
         self.action_queue.borrow_mut().push(Action::SetBlock(pos, block));
     }
 
@@ -146,6 +146,6 @@ fn init_log(config: &Config) {
 
 #[derive(Clone, Copy, Debug)]
 enum Action {
-    SetBlock(BlockPosition, BlockType),
+    SetBlock(BlockPosition, Block),
     MoveEntity(EntityId, Position),
 }

@@ -1,5 +1,5 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
-pub enum BlockType {
+pub enum Block {
     Air,
     Stone,
     Granite,
@@ -11,18 +11,18 @@ pub enum BlockType {
     GrassBlock(GrassBlockData),
 }
 
-impl BlockType {
+impl Block {
     pub fn block_state_id(self) -> u16 {
         match self {
-            BlockType::Air => 0,
-            BlockType::Stone => 1,
-            BlockType::Granite => 2,
-            BlockType::PolishedGranite => 3,
-            BlockType::Diorite => 4,
-            BlockType::PolishedDiorite => 5,
-            BlockType::Andesite => 6,
-            BlockType::PolishedAndesite => 7,
-            BlockType::GrassBlock(data) => {
+            Block::Air => 0,
+            Block::Stone => 1,
+            Block::Granite => 2,
+            Block::PolishedGranite => 3,
+            Block::Diorite => 4,
+            Block::PolishedDiorite => 5,
+            Block::Andesite => 6,
+            Block::PolishedAndesite => 7,
+            Block::GrassBlock(data) => {
                 if data.snowy {
                     8
                 } else {
@@ -34,16 +34,16 @@ impl BlockType {
 
     pub fn from_block_state_id(id: u16) -> Self {
         match id {
-            0 => BlockType::Air,
-            1 => BlockType::Stone,
-            2 => BlockType::Granite,
-            3 => BlockType::PolishedGranite,
-            4 => BlockType::Diorite,
-            5 => BlockType::PolishedDiorite,
-            6 => BlockType::Andesite,
-            7 => BlockType::PolishedAndesite,
-            8 => BlockType::GrassBlock(GrassBlockData { snowy: true }),
-            9 => BlockType::GrassBlock(GrassBlockData { snowy: false }),
+            0 => Block::Air,
+            1 => Block::Stone,
+            2 => Block::Granite,
+            3 => Block::PolishedGranite,
+            4 => Block::Diorite,
+            5 => Block::PolishedDiorite,
+            6 => Block::Andesite,
+            7 => Block::PolishedAndesite,
+            8 => Block::GrassBlock(GrassBlockData { snowy: true }),
+            9 => Block::GrassBlock(GrassBlockData { snowy: false }),
             _ => panic!("Unknown block state ID {}", id),
         }
     }

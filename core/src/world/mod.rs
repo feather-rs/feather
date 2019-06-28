@@ -1,4 +1,4 @@
-use crate::world::block::BlockType;
+use crate::world::block::Block;
 use crate::world::chunk::Chunk;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -68,7 +68,7 @@ impl World {
         }
     }
 
-    pub fn set_block_at(&self, pos: BlockPosition, block: BlockType) {
+    pub fn set_block_at(&self, pos: BlockPosition, block: Block) {
         let chunk = self.chunk_at(pos.chunk_pos());
         chunk.borrow_mut().set_block_at((pos.x % 16) as u16, pos.y as u16, (pos.z % 16) as u16, block);
     }
@@ -91,7 +91,7 @@ impl ChunkGenerator for FlatChunkGenerator {
         for x in 0..16 {
             for y in 0..64 {
                 for z in 0..16 {
-                    chunk.set_block_at(x, y, z, BlockType::Stone);
+                    chunk.set_block_at(x, y, z, Block::Stone);
                 }
             }
         }
@@ -112,12 +112,12 @@ mod tests {
         for x in 0..16 {
             for y in 0..64 {
                 for z in 0..16 {
-                    assert_eq!(chunk.block_at(x, y, z), BlockType::Stone);
+                    assert_eq!(chunk.block_at(x, y, z), Block::Stone);
                 }
             }
         }
 
-        assert_eq!(chunk.block_at(8, 64, 8), BlockType::Air);
+        assert_eq!(chunk.block_at(8, 64, 8), Block::Air);
     }
 }
 

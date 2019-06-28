@@ -1,4 +1,4 @@
-use super::block::BlockType;
+use super::block::Block;
 use super::ChunkPosition;
 use std::collections::HashMap;
 
@@ -76,7 +76,7 @@ impl Chunk {
     /// The specified coordinates must be inside
     /// this chunk, so the function will panic
     /// if `x >= 16 || y >= 256 || z >= 16`.
-    pub fn block_at(&self, x: u16, y: u16, z: u16) -> BlockType {
+    pub fn block_at(&self, x: u16, y: u16, z: u16) -> Block {
         assert!(x < 16);
         assert!(y < 256);
         assert!(z < 16);
@@ -92,7 +92,7 @@ impl Chunk {
     /// The specified coordinates must be inside
     /// this chunk, so the function will panic
     /// if `x >= 16 || y >= 256 || z >= 16`.
-    pub fn set_block_at(&mut self, x: u16, y: u16, z: u16, block: BlockType) {
+    pub fn set_block_at(&mut self, x: u16, y: u16, z: u16, block: Block) {
         assert!(x < 16);
         assert!(y < 256);
         assert!(z < 16);
@@ -140,7 +140,7 @@ pub struct ChunkSection {
     /// appears in this chunk section. This
     /// is used to determine when to resize
     /// the palette.
-    occurrence_map: HashMap<BlockType, u16>,
+    occurrence_map: HashMap<Block, u16>,
     /// The number of distinct block types
     /// needed in the chunk section before
     /// the bits per block value must be increased.
@@ -171,7 +171,7 @@ impl ChunkSection {
         let mut mappings = HashMap::new();
         mappings.insert(0, 0);
         let mut occurrence_map = HashMap::new();
-        occurrence_map.insert(BlockType::Air, 16 * 16 * 16);
+        occurrence_map.insert(Block::Air, 16 * 16 * 16);
         Self {
             empty: true,
             bits_per_block: 4,
@@ -191,7 +191,7 @@ impl ChunkSection {
 
     /// Returns the block at the given
     /// position, local to this chunk section.
-    pub fn block_at(&self, x: u16, y: u16, z: u16) -> BlockType {
+    pub fn block_at(&self, x: u16, y: u16, z: u16) -> Block {
         self.block_at_using_palette(&self.palette, x, y, z)
     }
 
@@ -199,12 +199,12 @@ impl ChunkSection {
     /// resizing the internal arrays as necessary.
     /// Calling this function could incur significant
     /// overhead if resizing is necessary.
-    pub fn set_block_at(&mut self, x: u16, y: u16, z: u16, block: BlockType) {
+    pub fn set_block_at(&mut self, x: u16, y: u16, z: u16, block: Block) {
         assert!(x < 16);
         assert!(y < 16);
         assert!(z < 16);
 
-        if block != BlockType::Air {
+        if block != Block::Air {
             self.empty = false;
         }
 
@@ -247,7 +247,7 @@ impl ChunkSection {
         }
     }
 
-    fn block_at_using_palette(&self, palette: &Palette, x: u16, y: u16, z: u16) -> BlockType {
+    fn block_at_using_palette(&self, palette: &Palette, x: u16, y: u16, z: u16) -> Block {
         assert!(x < 16);
         assert!(y < 16);
         assert!(z < 16);
@@ -298,7 +298,7 @@ impl ChunkSection {
     /// Updates the palette to account for the new
     /// block type and recalculates the data array
     /// if necessary.
-    fn add_block_to_palette(&mut self, new_block_type: BlockType) {
+    fn add_block_to_palette(&mut self, new_block_type: Block) {
         if self.palette.global {
             return;
         }
@@ -312,7 +312,7 @@ impl ChunkSection {
         }
     }
 
-    fn remove_block_from_palette(&mut self, block: BlockType) {
+    fn remove_block_from_palette(&mut self, block: Block) {
         if self.palette.global {
             return;
         }
@@ -428,7 +428,7 @@ impl Palette {
     /// Updates the palette to allow
     /// for a new block type to be added
     /// in.
-    fn add_block_mapping(&mut self, block_type: BlockType) {
+    fn add_block_mapping(&mut self, block_type: Block) {
         if !self.global {
             let global_id = block_type.block_state_id();
             self.palette.push(global_id);
@@ -437,7 +437,7 @@ impl Palette {
         }
     }
 
-    fn remove_block_mapping(&mut self, block_type: BlockType) {
+    fn remove_block_mapping(&mut self, block_type: Block) {
         if !self.global {
             let global_id = block_type.block_state_id();
             self.palette.retain(|val| *val != global_id);
@@ -448,17 +448,17 @@ impl Palette {
     /// Returns the block type corresponding to
     /// the index into this palette or from the global
     /// palette.
-    fn get_type_from_index(&self, index: u16) -> BlockType {
+    fn get_type_from_index(&self, index: u16) -> Block {
         if self.global {
-            BlockType::from_block_state_id(index)
+            Block::from_block_state_id(index)
         } else {
-            BlockType::from_block_state_id(self.palette[index as usize])
+            Block::from_block_state_id(self.palette[index as usize])
         }
     }
 
     /// Returns the mapping for the specified
     /// block type.
-    fn get_index_from_type(&self, block: BlockType) -> u16 {
+    fn get_index_from_type(&self, block: Block) -> u16 {
         if self.global {
             block.block_state_id()
         } else {
@@ -493,32 +493,32 @@ mod tests {
     #[test]
     fn test_chunk_section() {
         let mut section = ChunkSection::new();
-        section.set_block_at(0, 0, 0, BlockType::Granite);
-        section.set_block_at(0, 15, 0, BlockType::Andesite);
-        section.set_block_at(4, 4, 4, BlockType::Stone);
+        section.set_block_at(0, 0, 0, Block::Granite);
+        section.set_block_at(0, 15, 0, Block::Andesite);
+        section.set_block_at(4, 4, 4, Block::Stone);
 
-        assert_eq!(section.block_at(0, 0, 0), BlockType::Granite);
-        assert_eq!(section.block_at(0, 15, 0), BlockType::Andesite);
-        assert_eq!(section.block_at(4, 4, 4), BlockType::Stone);
+        assert_eq!(section.block_at(0, 0, 0), Block::Granite);
+        assert_eq!(section.block_at(0, 15, 0), Block::Andesite);
+        assert_eq!(section.block_at(4, 4, 4), Block::Stone);
     }
 
     #[test]
     fn test_chunk() {
         let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
-        chunk.set_block_at(0, 0, 0, BlockType::Andesite);
-        chunk.set_block_at(0, 14, 0, BlockType::PolishedAndesite);
-        chunk.set_block_at(5, 12, 13, BlockType::Granite);
+        chunk.set_block_at(0, 0, 0, Block::Andesite);
+        chunk.set_block_at(0, 14, 0, Block::PolishedAndesite);
+        chunk.set_block_at(5, 12, 13, Block::Granite);
 
-        assert_eq!(chunk.block_at(0, 0, 0), BlockType::Andesite);
-        assert_eq!(chunk.block_at(0, 14, 0), BlockType::PolishedAndesite);
-        assert_eq!(chunk.block_at(5, 12, 13), BlockType::Granite);
+        assert_eq!(chunk.block_at(0, 0, 0), Block::Andesite);
+        assert_eq!(chunk.block_at(0, 14, 0), Block::PolishedAndesite);
+        assert_eq!(chunk.block_at(5, 12, 13), Block::Granite);
     }
 
     #[test]
     #[should_panic]
     fn test_chunk_out_of_bounds() {
         let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
-        chunk.set_block_at(0, 256, 0, BlockType::Andesite);
+        chunk.set_block_at(0, 256, 0, Block::Andesite);
     }
 
     #[test]
@@ -527,8 +527,8 @@ mod tests {
         for x in 0..16 {
             for y in 0..16 {
                 for z in 0..16 {
-                    section.set_block_at(x ,y ,z, BlockType::Stone);
-                    assert_eq!(section.block_at(x, y, z), BlockType::Stone);
+                    section.set_block_at(x, y, z, Block::Stone);
+                    assert_eq!(section.block_at(x, y, z), Block::Stone);
                 }
             }
         }
