@@ -35,9 +35,10 @@ impl PlayerHandle {
         player_count: u32,
         max_players: i32,
         rsa_key: openssl::rsa::Rsa<openssl::pkey::Private>,
+        config: Rc<Config>,
     ) -> Self {
         Self {
-            initial_handler: InitialHandler::new(motd, player_count, max_players, rsa_key),
+            initial_handler: InitialHandler::new(motd, player_count, max_players, Rc::clone(&config), rsa_key),
 
             packet_sender,
 
@@ -170,7 +171,7 @@ impl PlayerHandle {
 
         let join_game = JoinGame::new(
             entity_id,
-            Gamemode::Survival.get_id(),
+            Gamemode::Creative.get_id(),
             Dimension::Overwold.get_id(),
             Difficulty::Hard.get_id(),
             0, // Unused value - max players

@@ -11,7 +11,7 @@ io_worker_threads = 2
 proxy_mode = "none"
 
 [server]
-online_mode = true
+online_mode = false
 motd = "          &lMesa called Jar Jar Binks!\n           Mesa your humble servant!"
 max_players = 16
 default_gamemode = "survival"

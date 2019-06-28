@@ -19,7 +19,7 @@ pub type EntityId = i32;
 pub const TPS: u64 = 20;
 
 pub struct Server {
-    config: Config,
+    config: Rc<Config>,
     player_count: u32,
     io_manager: io::NetworkIoManager,
     rsa_key: openssl::rsa::Rsa<openssl::pkey::Private>,
@@ -58,7 +58,7 @@ fn main() {
     );
 
     let mut server = Server {
-        config,
+        config: Rc::new(config),
         player_count: 0,
         io_manager,
         rsa_key: openssl::rsa::Rsa::generate(1024).unwrap(),
@@ -81,6 +81,7 @@ fn main() {
                         server.player_count,
                         server.config.server.max_players,
                         server.rsa_key.clone(),
+                        Rc::clone(&server.config),
                     );
                     players.players.push(RefCell::new(new_player));
                 }

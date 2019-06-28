@@ -22,6 +22,8 @@ pub struct InitialHandler {
     key: Rsa<Private>,
     verify_token: [u8; 4],
 
+    config: Rc<Config>,
+
     motd: String,
     player_count: u32,
     max_players: i32,
@@ -34,7 +36,7 @@ pub struct InitialHandler {
 }
 
 impl InitialHandler {
-    pub fn new(motd: String, player_count: u32, max_players: i32, rsa_key: Rsa<Private>) -> Self {
+    pub fn new(motd: String, player_count: u32, max_players: i32, config: Rc<Config>, rsa_key: Rsa<Private>) -> Self {
         Self {
             sent_encryption_request: false,
             state: State::Handshake,
@@ -44,6 +46,7 @@ impl InitialHandler {
             name: None,
             key: rsa_key,
             verify_token: [100, 128, 255, 0],
+            config,
             motd,
             player_count,
             max_players,
@@ -145,7 +148,14 @@ impl InitialHandler {
 
                 let login_start = cast_packet::<LoginStart>(&packet);
                 self.name = Some(login_start.username.clone());
-                self.send_encryption_request();
+
+                if self.config.server.online_mode {
+                    self.send_encryption_request();
+                } else {
+                    // Login sequence finished
+                    self.set_compression();
+                    self.send_login_success();
+                }
             }
             PacketType::EncryptionResponse => {
                 return self.handle_encryption_response(packet);
@@ -224,12 +234,26 @@ impl InitialHandler {
         self.enable_encryption(key);
 
         // Enable compression, if needed
-        let threshold = 256; // TODO don't hardcode
-        let set_compression = SetCompression::new(threshold);
-        self.send_packet(set_compression);
-        self.enable_compression(threshold as usize);
+        self.set_compression();
 
         // Send Login Success
+        self.send_login_success();
+
+        Ok(())
+    }
+
+    /// Enables compression if the compression threshold
+    /// is more than 0.
+    fn set_compression(&mut self) {
+        let threshold = self.config.io.compression_threshold;
+        if threshold > 0 {
+            let set_compression = SetCompression::new(threshold);
+            self.send_packet(set_compression);
+            self.enable_compression(threshold as usize);
+        }
+    }
+
+    fn send_login_success(&mut self) {
         let login_success = LoginSuccess::new(
             self.uuid.to_hyphenated_ref().to_string(),
             self.name.as_ref().unwrap().clone(),
@@ -237,8 +261,6 @@ impl InitialHandler {
         self.send_packet(login_success);
 
         self.finished = true;
-
-        Ok(())
     }
 
     pub fn disconnect_login(&mut self, reason: &str) {
