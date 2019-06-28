@@ -29,6 +29,12 @@ pub struct BlockPosition {
     pub z: i32,
 }
 
+impl BlockPosition {
+    pub fn chunk_pos(&self) -> ChunkPosition {
+        ChunkPosition::new(self.x % 16, self.z & 16)
+    }
+}
+
 pub struct World {
     generator: RefCell<Box<ChunkGenerator>>,
     chunk_map: RefCell<HashMap<ChunkPosition, RefCell<Chunk>>>,
@@ -50,6 +56,11 @@ impl World {
             self.load_chunk(pos);
             self.chunk_map.borrow().get(&pos).unwrap().clone()
         }
+    }
+
+    pub fn set_block_at(&self, pos: BlockPosition, block: BlockType) {
+        let chunk = self.chunk_at(pos.chunk_pos());
+        chunk.borrow_mut().set_block_at((pos.x % 16) as u16, pos.y as u16, (pos.z % 16) as u16, block);
     }
 
     fn load_chunk(&self, pos: ChunkPosition) {

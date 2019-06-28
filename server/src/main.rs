@@ -26,6 +26,8 @@ pub struct Server {
 
     entity_id_counter: RefCell<EntityId>,
     tick_counter: u64,
+
+    action_queue: RefCell<Vec<Action>>,
 }
 
 pub struct Players {
@@ -41,6 +43,10 @@ impl Server {
 
     pub fn tick_count(&self) -> u64 {
         self.tick_counter
+    }
+
+    pub fn set_block_at(&self, pos: BlockPosition, block: BlockType) {
+        self.action_queue.borrow_mut().push(Action::SetBlock(pos, block));
     }
 }
 
@@ -65,9 +71,12 @@ fn main() {
 
         entity_id_counter: RefCell::new(0),
         tick_counter: 0,
+        action_queue: RefCell::new(vec![]),
     };
 
     let mut players = Players { players: vec![] };
+
+    let mut world = World::new();
 
     loop {
         while let Ok(msg) = server.io_manager.receiver.try_recv() {
@@ -89,18 +98,24 @@ fn main() {
             }
         }
 
-        tick(&mut server, &mut players);
+        tick(&mut server, &mut players, &mut world);
 
         std::thread::sleep(Duration::from_millis(50)); // TODO proper game loop
     }
 }
 
-fn tick(server: &mut Server, players: &mut Players) {
+fn tick(server: &mut Server, players: &mut Players, world: &World) {
     players.players.retain(|player| {
-        let ok = player.borrow_mut().tick(server).is_ok();
+        let ok = player.borrow_mut().tick(server, world).is_ok();
         let should_keep = !player.borrow().should_remove;
         ok && should_keep
     });
+
+    for action in server.action_queue.borrow_mut().drain(..) {
+        match action {
+            Action::SetBlock(pos, block) => world.set_block_at(pos, block),
+        }
+    }
 
     server.tick_counter += 1;
 }
@@ -116,4 +131,9 @@ fn init_log(config: &Config) {
     };
 
     simple_logger::init_with_level(level).unwrap();
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+enum Action {
+    SetBlock(BlockPosition, BlockType),
 }

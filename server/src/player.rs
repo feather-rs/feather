@@ -73,11 +73,11 @@ impl PlayerHandle {
         self.close_connection();
     }
 
-    pub fn tick(&mut self, server: &Server) -> Result<(), ()> {
+    pub fn tick(&mut self, server: &Server, world: &World) -> Result<(), ()> {
         while let Ok(msg) = self.packet_receiver.try_recv() {
             match msg {
                 ServerToWorkerMessage::NotifyPacketReceived(packet) => {
-                    self.handle_packet(packet, server)?;
+                    self.handle_packet(packet, server, world)?;
                 }
                 ServerToWorkerMessage::NotifyDisconnect => {
                     trace!("Server removing player");
@@ -101,10 +101,10 @@ impl PlayerHandle {
         Ok(())
     }
 
-    fn handle_packet(&mut self, packet: Box<Packet>, server: &Server) -> Result<(), ()> {
+    fn handle_packet(&mut self, packet: Box<Packet>, server: &Server, world: &World) -> Result<(), ()> {
         trace!("Handling packet");
         if !self.initial_handler.finished {
-            self.forward_packet_to_initial_handler(packet, server)?;
+            self.forward_packet_to_initial_handler(packet, server, world)?;
         } else {
             // TODO perhaps use HashMap instead of match here?
             match packet.ty() {
@@ -125,6 +125,7 @@ impl PlayerHandle {
         &mut self,
         packet: Box<Packet>,
         server: &Server,
+        world: &World,
     ) -> Result<(), ()> {
         let r = self.initial_handler.handle_packet(packet);
 
@@ -157,7 +158,7 @@ impl PlayerHandle {
         if self.initial_handler.finished {
             // Run the play sequence to allow the player
             // to join
-            self.run_play_sequence(server)?;
+            self.run_play_sequence(server, world)?;
         }
 
         Ok(())
@@ -165,7 +166,7 @@ impl PlayerHandle {
 
     /// Sends the join packets, such as Join Game, Chunk
     /// Data, etc.
-    fn run_play_sequence(&mut self, server: &Server) -> Result<(), ()> {
+    fn run_play_sequence(&mut self, server: &Server, world: &World) -> Result<(), ()> {
         let entity_id = server.allocate_entity_id();
         self.entity_id = entity_id;
 
@@ -180,8 +181,6 @@ impl PlayerHandle {
         );
 
         self.send_packet(join_game)?;
-
-        let world = World::new(); // TODO
 
         // Send chunk packets
         let view_distance = server.config.server.view_distance as i32;
