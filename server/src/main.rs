@@ -48,6 +48,10 @@ impl Server {
     pub fn set_block_at(&self, pos: BlockPosition, block: BlockType) {
         self.action_queue.borrow_mut().push(Action::SetBlock(pos, block));
     }
+
+    pub fn move_entity(&self, entity: EntityId, new_pos: Position) {
+        self.action_queue.borrow_mut().push(Action::MoveEntity(entity, new_pos));
+    }
 }
 
 fn main() {
@@ -114,6 +118,13 @@ fn tick(server: &mut Server, players: &mut Players, world: &World) {
     for action in server.action_queue.borrow_mut().drain(..) {
         match action {
             Action::SetBlock(pos, block) => world.set_block_at(pos, block),
+            Action::MoveEntity(entity, pos) => {
+                // Notify all players of mvoement
+                // TODO check for only nearby players
+                players.players.iter().for_each(|player| {
+                    // TODO
+                })
+            }
         }
     }
 
@@ -133,7 +144,8 @@ fn init_log(config: &Config) {
     simple_logger::init_with_level(level).unwrap();
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug)]
 enum Action {
     SetBlock(BlockPosition, BlockType),
+    MoveEntity(EntityId, Position),
 }
