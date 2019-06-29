@@ -119,10 +119,13 @@ impl PlayerHandle {
             // TODO perhaps use HashMap instead of match here?
             match packet.ty() {
                 PacketType::KeepAliveServerbound => {
-                    self.handle_keep_alive(cast_packet::<KeepAliveServerbound>(&packet))
+                    self.handle_keep_alive(cast_packet::<KeepAliveServerbound>(&packet));
                 }
                 PacketType::ChatMessageServerbound => {
                     // TODO
+                }
+                PacketType::PlayerBlockPlacement => {
+                    self.handle_block_placement(cast_packet::<PlayerBlockPlacement>(&packet));
                 }
                 _ => (), // TODO
             }
@@ -223,6 +226,10 @@ impl PlayerHandle {
         *self.last_keep_alive_time.borrow_mut() = current_time_in_secs();
     }
 
+    fn handle_block_placement(&self, packet: &PlayerBlockPlacement) {
+        // TODO
+    }
+
     pub fn notify_block_update(&self, pos: BlockPosition, block: Block) -> Result<(), ()> {
         let packet = BlockChange::new(pos, block.block_state_id() as i32);
         self.send_packet(packet)?;
@@ -230,6 +237,7 @@ impl PlayerHandle {
     }
 
     pub fn notify_player_join(&self, player_entity: &Entity) {
+        debug_assert_ne!(player_entity.id, self.entity().id);
         // TODO
     }
 

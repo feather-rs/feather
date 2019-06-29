@@ -483,7 +483,7 @@ pub struct PlayerBlockPlacement {
     pub hand: VarInt,
     pub cursor_position_x: f32,
     pub cursor_position_y: f32,
-    pub cursor_positiom_z: f32,
+    pub cursor_position_z: f32,
 }
 
 #[derive(Default, AsAny, new, Packet)]
