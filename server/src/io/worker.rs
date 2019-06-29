@@ -76,11 +76,6 @@ fn run_loop(worker: &mut Worker) {
         worker.poll.poll(&mut events, None).unwrap();
 
         for event in &events {
-            trace!(
-                "Handling event with readiness {:?} and token {:?}",
-                event.readiness(),
-                event.token()
-            );
             handle_event(worker, event);
         }
     }
@@ -251,7 +246,6 @@ fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
 
 fn read_from_stream(worker: &mut Worker, token: Token) -> Result<(), ()> {
     let client_id = get_client_from_stream_token(token);
-    trace!("Reading from stream on client #{}", client_id.0);
 
     let client = worker.clients.get_mut(&client_id).unwrap();
 
