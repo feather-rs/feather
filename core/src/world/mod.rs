@@ -81,11 +81,7 @@ impl World {
     pub fn block_at(&self, pos: BlockPosition) -> Block {
         let _chunk = self.chunk_at(pos.chunk_pos());
         let chunk = _chunk.borrow();
-        chunk.block_at(
-            (pos.x % 16) as u16,
-            pos.y as u16,
-            (pos.z % 16) as u16,
-        )
+        chunk.block_at((pos.x % 16) as u16, pos.y as u16, (pos.z % 16) as u16)
     }
 
     fn load_chunk(&self, pos: ChunkPosition) {

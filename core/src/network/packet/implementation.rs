@@ -70,15 +70,6 @@ lazy_static! {
         m.insert(PacketType::PlayerBlockPlacement, PacketBuilder::with(|| Box::new(PlayerBlockPlacement::default())));
         m.insert(PacketType::UseItem, PacketBuilder::with(|| Box::new(UseItem::default())));
 
-        // Clientbound
-        m.insert(PacketType::DisconnectLogin, PacketBuilder::with(|| Box::new(DisconnectLogin::default())));
-        m.insert(PacketType::EncryptionRequest, PacketBuilder::with(|| Box::new(EncryptionRequest::default())));
-        m.insert(PacketType::LoginSuccess, PacketBuilder::with(|| Box::new(LoginSuccess::default())));
-        m.insert(PacketType::SetCompression, PacketBuilder::with(|| Box::new(SetCompression::default())));
-
-        m.insert(PacketType::Response, PacketBuilder::with(|| Box::new(Response::default())));
-        m.insert(PacketType::Pong, PacketBuilder::with(|| Box::new(Pong::default())));
-
         m
     };
 }
