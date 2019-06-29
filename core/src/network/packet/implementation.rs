@@ -197,52 +197,52 @@ pub struct ClientStatus {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct ClientSettings {
-    locale: String,
-    view_distance: u8,
-    chat_mode: VarInt,
-    chat_colors: bool,
-    displayed_skin_parts: u8,
-    main_hand: VarInt,
+    pub locale: String,
+    pub view_distance: u8,
+    pub chat_mode: VarInt,
+    pub chat_colors: bool,
+    pub displayed_skin_parts: u8,
+    pub main_hand: VarInt,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct TabCompleteServerbound {
-    transaction_id: VarInt,
-    text: String,
+    pub transaction_id: VarInt,
+    pub text: String,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct ConfirmTransactionServerbound {
-    window_id: u8,
-    action_number: u16,
-    accepted: bool,
+    pub window_id: u8,
+    pub action_number: u16,
+    pub accepted: bool,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct EnchantItem {
-    window_id: u8,
-    enchantment: u8,
+    pub window_id: u8,
+    pub enchantment: u8,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct ClickWindow {
-    window_id: u8,
-    slot: u16,
-    button: u8,
-    action_number: i16,
-    mode: VarInt,
+    pub window_id: u8,
+    pub slot: u16,
+    pub button: u8,
+    pub action_number: i16,
+    pub mode: VarInt,
     // TODO clicked_item: Slot,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct CloseWindowServerbound {
-    window_id: u8,
+    pub window_id: u8,
 }
 
 #[derive(Default, AsAny, new)]
 pub struct PluginMessageServerbound {
-    channel: String,
-    data: Vec<u8>,
+    pub channel: String,
+    pub data: Vec<u8>,
 }
 
 impl Packet for PluginMessageServerbound {
@@ -268,42 +268,42 @@ impl Packet for PluginMessageServerbound {
 #[derive(Default, AsAny, new, Packet)]
 pub struct EditBook {
     // TODO new_book: Slot
-    is_signing: bool,
-    hand: VarInt,
+    pub is_signing: bool,
+    pub hand: VarInt,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct QueryEntityNBT {
-    transaction_id: VarInt,
-    entity_id: VarInt,
+    pub transaction_id: VarInt,
+    pub entity_id: VarInt,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct UseEntity {
-    target: VarInt,
-    ty: VarInt, // TODO "only if type is interact at"
-    target_x: f32,
-    target_y: f32,
-    target_z: f32,
-    hand: VarInt,
+    pub target: VarInt,
+    pub ty: VarInt, // TODO "only if type is interact at"
+    pub target_x: f32,
+    pub target_y: f32,
+    pub target_z: f32,
+    pub hand: VarInt,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct KeepAliveServerbound {
-    id: i64,
+    pub id: i64,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct Player {
-    on_ground: bool,
+    pub on_ground: bool,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct PlayerPosition {
-    x: f64,
-    feet_y: f64,
-    z: f64,
-    on_ground: bool,
+    pub x: f64,
+    pub feet_y: f64,
+    pub z: f64,
+    pub on_ground: bool,
 }
 
 #[derive(Default, AsAny, new, Packet)]
@@ -318,9 +318,9 @@ pub struct PlayerPositionAndLookServerbound {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct PlayerLook {
-    yaw: f32,
-    pitch: f32,
-    on_ground: bool,
+    pub yaw: f32,
+    pub pitch: f32,
+    pub on_ground: bool,
 }
 
 #[derive(Default, AsAny, new, Packet)]
@@ -334,20 +334,20 @@ pub struct VehicleMoveServerbound {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct SteerBoat {
-    left_paddle_turning: bool,
-    right_paddle_turning: bool,
+    pub left_paddle_turning: bool,
+    pub right_paddle_turning: bool,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct PickItem {
-    slot_to_use: VarInt,
+    pub slot_to_use: VarInt,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct CraftRecipeRequest {
-    window_id: i8,
-    recipe: String,
-    make_all: bool,
+    pub window_id: i8,
+    pub recipe: String,
+    pub make_all: bool,
 }
 
 #[derive(Default, AsAny, new, Packet)]
@@ -359,16 +359,16 @@ pub struct PlayerAbilitiesServerbound {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct PlayerDigging {
-    status: VarInt,
-    location: BlockPosition,
-    face: i8,
+    pub status: VarInt,
+    pub location: BlockPosition,
+    pub face: i8,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct EntityAction {
-    entity_id: VarInt,
-    action_id: VarInt,
-    jump_boost: VarInt,
+    pub entity_id: VarInt,
+    pub action_id: VarInt,
+    pub jump_boost: VarInt,
 }
 
 #[derive(Default, AsAny, new, Packet)]
@@ -380,18 +380,18 @@ pub struct SteerVehicle {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct RecipeBookData {
-    ty: VarInt,
+    pub ty: VarInt,
     // TODO
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct NameItem {
-    item_name: String,
+    pub item_name: String,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct ResourcePackStatus {
-    result: VarInt,
+    pub result: VarInt,
 }
 
 #[derive(Default, AsAny, new, Packet)]
@@ -402,26 +402,26 @@ pub struct AdvancementTab {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct SelectTrade {
-    selected_slot: VarInt,
+    pub selected_slot: VarInt,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct SetBeaconEffect {
-    primary_effect: VarInt,
-    secondary_effect: VarInt,
+    pub primary_effect: VarInt,
+    pub secondary_effect: VarInt,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct HeldItemChangeServerbound {
-    slot: i16,
+    pub slot: i16,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct UpdateCommandBlock {
-    location: BlockPosition,
-    command: String,
-    mode: VarInt,
-    flags: u8,
+    pub location: BlockPosition,
+    pub command: String,
+    pub mode: VarInt,
+    pub flags: u8,
 }
 
 #[derive(Default, AsAny, new, Packet)]
@@ -433,62 +433,62 @@ pub struct UpdateCommandBlockMinecart {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct CreativeInventoryAction {
-    slot: u16,
+    pub slot: u16,
     // TODO clicked_item: Slot
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct UpdateStructureBlock {
-    location: BlockPosition,
-    action: VarInt,
-    mode: VarInt,
-    name: String,
-    offset_x: i8,
-    offset_y: i8,
-    offset_z: i8,
-    size_x: i8,
-    size_y: i8,
-    size_z: i8,
-    mirror: VarInt,
-    rotation: VarInt,
-    metadata: String,
-    integrity: f32,
+    pub location: BlockPosition,
+    pub action: VarInt,
+    pub mode: VarInt,
+    pub name: String,
+    pub offset_x: i8,
+    pub offset_y: i8,
+    pub offset_z: i8,
+    pub size_x: i8,
+    pub size_y: i8,
+    pub size_z: i8,
+    pub mirror: VarInt,
+    pub rotation: VarInt,
+    pub metadata: String,
+    pub integrity: f32,
     // TODO seed: VarLong,
-    flags: u8,
+    pub flags: u8,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct UpdateSign {
-    location: BlockPosition,
-    line_1: String,
-    line_2: String,
-    line_3: String,
-    line_4: String,
+    pub location: BlockPosition,
+    pub line_1: String,
+    pub line_2: String,
+    pub line_3: String,
+    pub line_4: String,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct AnimationServerbound {
-    hand: VarInt,
+    pub hand: VarInt,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct Spectate {
-    target_player: Uuid,
+    pub target_player: Uuid,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct PlayerBlockPlacement {
-    location: BlockPosition,
-    face: VarInt,
-    hand: VarInt,
-    cursor_position_x: f32,
-    cursor_position_y: f32,
-    cursor_positiom_z: f32,
+    pub location: BlockPosition,
+    pub face: VarInt,
+    pub hand: VarInt,
+    pub cursor_position_x: f32,
+    pub cursor_position_y: f32,
+    pub cursor_positiom_z: f32,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct UseItem {
-    hand: VarInt,
+    pub hand: VarInt,
 }
 
 // CLIENTBOUND
@@ -575,61 +575,61 @@ pub struct SpawnExperienceOrb {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct SpawnGlobalEntity {
-    entity_id: VarInt,
-    ty: u8,
-    x: f64,
-    y: f64,
-    z: f64,
+    pub entity_id: VarInt,
+    pub ty: u8,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct SpawnMob {
-    entity_id: VarInt,
-    entity_uuid: Uuid,
-    ty: VarInt,
-    x: f64,
-    y: f64,
-    z: f64,
-    yaw: u8,
-    pitch: u8,
-    head_pitch: u8,
-    velocity_x: i16,
-    velocity_y: i16,
-    velocity_z: i16,
+    pub entity_id: VarInt,
+    pub entity_uuid: Uuid,
+    pub ty: VarInt,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub yaw: u8,
+    pub pitch: u8,
+    pub head_pitch: u8,
+    pub velocity_x: i16,
+    pub velocity_y: i16,
+    pub velocity_z: i16,
     // TODO metadata
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct SpawnPainting {
-    entity_id: VarInt,
-    entity_uuid: Uuid,
-    motive: VarInt,
-    location: BlockPosition,
-    direction: u8,
+    pub entity_id: VarInt,
+    pub entity_uuid: Uuid,
+    pub motive: VarInt,
+    pub location: BlockPosition,
+    pub direction: u8,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct SpawnPlayer {
-    entity_id: VarInt,
-    palyer_uuid: Uuid,
-    x: f64,
-    y: f64,
-    z: f64,
-    yaw: u8,
-    pitch: u8,
+    pub entity_id: VarInt,
+    pub player_uuid: Uuid,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub yaw: u8,
+    pub pitch: u8,
     // TODO metadata
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct AnimationClientbound {
-    entity_id: VarInt,
-    animation: u8,
+    pub entity_id: VarInt,
+    pub animation: u8,
 }
 
 #[derive(Default, AsAny, new)]
 pub struct Statistics {
-    statistics: Vec<(VarInt, VarInt)>,
-    value: VarInt,
+    pub statistics: Vec<(VarInt, VarInt)>,
+    pub value: VarInt,
 }
 
 impl Packet for Statistics {
@@ -653,36 +653,36 @@ impl Packet for Statistics {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct BlockBreakAnimation {
-    entity_id: VarInt,
-    location: BlockPosition,
-    destroy_stage: i8,
+    pub entity_id: VarInt,
+    pub location: BlockPosition,
+    pub destroy_stage: i8,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct UpdateBlockEntity {
-    location: BlockPosition,
-    action: u8,
+    pub location: BlockPosition,
+    pub action: u8,
     // TODO NBT
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct BlockAction {
-    location: BlockPosition,
-    action_id: u8,
-    action_param: u8,
-    block_type: VarInt, // NOTE: block type ID, not the block state ID
+    pub location: BlockPosition,
+    pub action_id: u8,
+    pub action_param: u8,
+    pub block_type: VarInt, // NOTE: block type ID, not the block state ID
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct BlockChange {
-    location: BlockPosition,
-    block_id: VarInt,
+    pub location: BlockPosition,
+    pub block_id: VarInt,
 }
 
 #[derive(Default, AsAny, new)]
 pub struct BossBar {
-    uuid: Uuid,
-    action: BossBarAction,
+    pub uuid: Uuid,
+    pub action: BossBarAction,
 }
 
 impl Packet for BossBar {
@@ -787,13 +787,13 @@ impl Default for BossBarDivision {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct ServerDifficulty {
-    difficulty: u8,
+    pub difficulty: u8,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct ChatMessageClientbound {
-    json_data: String,
-    position: u8,
+    pub json_data: String,
+    pub position: u8,
 }
 
 // TODO MultiBlockChange
@@ -802,74 +802,74 @@ pub struct ChatMessageClientbound {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct ConfirmTransactionClientbound {
-    window_id: i8,
-    action_number: i16,
-    accepted: bool,
+    pub window_id: i8,
+    pub action_number: i16,
+    pub accepted: bool,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct OpenWindow {
-    window_id: u8,
-    window_type: String,
-    window_title: String, // Chat
-    number_of_slots: u8,
-    entity_id: i32,
+    pub window_id: u8,
+    pub window_type: String,
+    pub window_title: String, // Chat
+    pub number_of_slots: u8,
+    pub entity_id: i32,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct WindowItems {
-    window_id: u8,
-    count: i16,
+    pub window_id: u8,
+    pub count: i16,
     // TODO slot data
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct WindowProperty {
-    window_id: u8,
-    property: i16,
-    value: i16,
+    pub window_id: u8,
+    pub property: i16,
+    pub value: i16,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct SetSlot {
-    window_id: i8,
-    slot: i16,
+    pub window_id: i8,
+    pub slot: i16,
     // TOOD slot data
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct SetCooldown {
-    item_id: VarInt,
-    cooldown_ticks: VarInt,
+    pub item_id: VarInt,
+    pub cooldown_ticks: VarInt,
 }
 
 // TODO PluginMessageClientbound
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct NamedSoundEffect {
-    sound_name: String,
-    sound_category: VarInt,
-    effect_pos_x: i32,
-    effect_pos_y: i32,
-    effect_pos_z: i32,
-    volume: f32,
-    pitch: f32,
+    pub sound_name: String,
+    pub sound_category: VarInt,
+    pub effect_pos_x: i32,
+    pub effect_pos_y: i32,
+    pub effect_pos_z: i32,
+    pub volume: f32,
+    pub pitch: f32,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct DisconnectPlay {
-    reason: String, // Chat
+    pub reason: String, // Chat
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct EntityStatus {
-    entity_id: i32,
-    entity_status: i8,
+    pub entity_id: i32,
+    pub entity_status: i8,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct NBTQueryResponse {
-    transaction_id: VarInt,
+    pub transaction_id: VarInt,
     // TODO nbt
 }
 
@@ -877,24 +877,24 @@ pub struct NBTQueryResponse {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct UnloadChunk {
-    chunk_x: i32,
-    chunk_z: i32,
+    pub chunk_x: i32,
+    pub chunk_z: i32,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct ChangeGameState {
-    reason: u8,
-    value: f32,
+    pub reason: u8,
+    pub value: f32,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct KeepAliveClientbound {
-    keep_alive_id: u64,
+    pub keep_alive_id: u64,
 }
 
 #[derive(Default, AsAny, new)]
 pub struct ChunkData {
-    chunk: Chunk,
+    pub chunk: Chunk,
 }
 
 impl Packet for ChunkData {
@@ -976,23 +976,23 @@ impl Packet for ChunkData {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct Effect {
-    effect_id: i32,
-    location: BlockPosition,
-    data: i32,
-    disable_relative_volume: bool,
+    pub effect_id: i32,
+    pub location: BlockPosition,
+    pub data: i32,
+    pub disable_relative_volume: bool,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct Particle {
-    particle_id: i32,
-    long_distance: bool,
-    x: f32,
-    y: f32,
-    z: f32,
-    offset_x: f32,
-    offset_z: f32,
-    particle_data: f32,
-    particle_count: i32,
+    pub particle_id: i32,
+    pub long_distance: bool,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub offset_x: f32,
+    pub offset_z: f32,
+    pub particle_data: f32,
+    pub particle_count: i32,
     // TODO data
 }
 
@@ -1013,46 +1013,46 @@ pub struct JoinGame {
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct EntityRelativeMove {
-    entity_id: VarInt,
-    delta_x: i16,
-    delta_y: i16,
-    delta_z: i16,
-    on_ground: bool,
+    pub entity_id: VarInt,
+    pub delta_x: i16,
+    pub delta_y: i16,
+    pub delta_z: i16,
+    pub on_ground: bool,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct EntityLookAndRelativeMove {
-    entity_id: VarInt,
-    delta_x: i16,
-    delta_y: i16,
-    delta_z: i16,
-    yaw: u8,
-    pitch: u8,
-    on_ground: bool,
+    pub entity_id: VarInt,
+    pub delta_x: i16,
+    pub delta_y: i16,
+    pub delta_z: i16,
+    pub yaw: u8,
+    pub pitch: u8,
+    pub on_ground: bool,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct EntityLook {
-    entity_id: VarInt,
-    yaw: u8,
-    pitch: u8,
-    on_ground: bool,
+    pub entity_id: VarInt,
+    pub yaw: u8,
+    pub pitch: u8,
+    pub on_ground: bool,
 }
 
 /// ...
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct SpawnPosition {
-    location: BlockPosition,
+    pub location: BlockPosition,
 }
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct PlayerPositionAndLookClientbound {
-    x: f64,
-    y: f64,
-    z: f64,
-    yaw: f32,
-    pitch: f32,
-    flags: u8,
-    teleport_id: VarInt,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub yaw: f32,
+    pub pitch: f32,
+    pub flags: u8,
+    pub teleport_id: VarInt,
 }
