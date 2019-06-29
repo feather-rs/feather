@@ -1,6 +1,9 @@
 language: rust
 rust: stable
-os: linux
+os:
+  - linux
+  - windows
+  - osx
 sudo: false
 
 cache: cargo

@@ -5,6 +5,11 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 
+use std::alloc::System;
+
+#[global_allocator]
+static ALLOC: System = System;
+
 pub mod config;
 pub mod initialhandler;
 pub mod io;
