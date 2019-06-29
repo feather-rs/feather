@@ -31,11 +31,12 @@ pub struct Server {
     tick_counter: RefCell<u64>,
 
     players: Players, // Server reference
+    world: Rc<World>,
 }
 
 #[derive(Clone)]
 pub struct Players {
-    players: Rc<RefCell<Vec<Rc<RefCell<PlayerHandle>>>>>,
+    players: Rc<RefCell<Vec<Rc<PlayerHandle>>>>,
 }
 
 impl Server {
@@ -49,14 +50,16 @@ impl Server {
         *self.tick_counter.borrow()
     }
 
-    pub fn set_block_at(&self, _pos: BlockPosition, _block: Block) {
-        for _player in self.players.players.borrow().iter() {
-            // TODO
+    pub fn set_block_at(&self, pos: BlockPosition, block: Block) {
+        for player in self.players.players.borrow().iter() {
+            if let Err(()) = player.notify_block_update(pos, block) {
+                *player.should_remove.borrow_mut() = true;
+            }
         }
     }
 
     pub fn move_entity(&self, _entity: EntityId, _new_pos: Position) {
-        // TODO
+        unimplemented!()
     }
 }
 
@@ -86,9 +89,8 @@ fn main() {
         entity_id_counter: RefCell::new(0),
         tick_counter: RefCell::new(0),
         players: players.clone(),
+        world: Rc::new(World::new()),
     });
-
-    let world = Rc::new(World::new());
 
     loop {
         while let Ok(msg) = server.io_manager.receiver.try_recv() {
@@ -105,26 +107,23 @@ fn main() {
                         Rc::clone(&server.config),
                         Rc::clone(&server),
                     );
-                    players
-                        .players
-                        .borrow_mut()
-                        .push(Rc::new(RefCell::new(new_player)));
+                    players.players.borrow_mut().push(Rc::new(new_player));
                 }
                 _ => unreachable!(),
             }
         }
 
-        tick(Rc::clone(&server), &mut players, Rc::clone(&world));
+        tick(Rc::clone(&server), &mut players);
 
         std::thread::sleep(Duration::from_millis(50)); // TODO proper game loop
     }
 }
 
-fn tick(server: Rc<Server>, players: &mut Players, world: Rc<World>) {
+fn tick(server: Rc<Server>, players: &mut Players) {
     let mut remove_indices = Vec::with_capacity(0);
     for (i, player) in players.players.borrow().iter().enumerate() {
-        let ok = player.borrow_mut().tick(&world).is_ok();
-        let should_keep = !*player.borrow().should_remove.borrow();
+        let ok = player.tick().is_ok();
+        let should_keep = !*player.should_remove.borrow();
         if !(ok && should_keep) {
             remove_indices.push(i);
         }
@@ -152,10 +151,4 @@ fn init_log(config: &Config) {
     };
 
     simple_logger::init_with_level(level).unwrap();
-}
-
-#[derive(Clone, Copy, Debug)]
-enum Action {
-    SetBlock(BlockPosition, Block),
-    MoveEntity(EntityId, Position),
 }

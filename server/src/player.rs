@@ -3,7 +3,6 @@ use super::initialhandler::InitialHandler;
 use crate::io::ServerToWorkerMessage;
 use crate::prelude::*;
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
-use feather_core::world::World;
 use mio_extras::channel::{Receiver, Sender};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -15,7 +14,7 @@ pub struct PlayerHandle {
     packet_sender: Sender<ServerToWorkerMessage>,
     packet_receiver: Receiver<ServerToWorkerMessage>,
 
-    entity_id: i32,
+    entity_id: RefCell<i32>,
 
     pub should_remove: RefCell<bool>,
 
@@ -50,7 +49,7 @@ impl PlayerHandle {
 
             packet_sender,
 
-            entity_id: 0,
+            entity_id: RefCell::new(0),
 
             packet_receiver,
             should_remove: RefCell::new(false),
@@ -76,17 +75,17 @@ impl PlayerHandle {
         let _ = self.packet_sender.send(ServerToWorkerMessage::Disconnect);
     }
 
-    pub fn disconnect(&mut self, _reason: &str) {
+    pub fn disconnect(&self, _reason: &str) {
         *self.should_remove.borrow_mut() = true;
         // TODO send Disconnect packet
         self.close_connection();
     }
 
-    pub fn tick(&mut self, world: &World) -> Result<(), ()> {
+    pub fn tick(&self) -> Result<(), ()> {
         while let Ok(msg) = self.packet_receiver.try_recv() {
             match msg {
                 ServerToWorkerMessage::NotifyPacketReceived(packet) => {
-                    self.handle_packet(packet, world)?;
+                    self.handle_packet(packet)?;
                 }
                 ServerToWorkerMessage::NotifyDisconnect => {
                     *self.should_remove.borrow_mut() = true;
@@ -109,10 +108,10 @@ impl PlayerHandle {
         Ok(())
     }
 
-    fn handle_packet(&mut self, packet: Box<Packet>, world: &World) -> Result<(), ()> {
+    fn handle_packet(&self, packet: Box<Packet>) -> Result<(), ()> {
         trace!("Handling packet");
         if !self.initial_handler.borrow().finished {
-            self.forward_packet_to_initial_handler(packet, world)?;
+            self.forward_packet_to_initial_handler(packet)?;
         } else {
             // TODO perhaps use HashMap instead of match here?
             match packet.ty() {
@@ -129,11 +128,7 @@ impl PlayerHandle {
         Ok(())
     }
 
-    fn forward_packet_to_initial_handler(
-        &mut self,
-        packet: Box<Packet>,
-        world: &World,
-    ) -> Result<(), ()> {
+    fn forward_packet_to_initial_handler(&self, packet: Box<Packet>) -> Result<(), ()> {
         let r = self.initial_handler.borrow_mut().handle_packet(packet);
 
         for action in self.initial_handler.borrow_mut().actions() {
@@ -165,7 +160,7 @@ impl PlayerHandle {
         if self.initial_handler.borrow().finished {
             // Run the play sequence to allow the player
             // to join
-            self.run_play_sequence(world)?;
+            self.run_play_sequence()?;
         }
 
         Ok(())
@@ -173,9 +168,9 @@ impl PlayerHandle {
 
     /// Sends the join packets, such as Join Game, Chunk
     /// Data, etc.
-    fn run_play_sequence(&mut self, world: &World) -> Result<(), ()> {
+    fn run_play_sequence(&self) -> Result<(), ()> {
         let entity_id = self.server.allocate_entity_id();
-        self.entity_id = entity_id;
+        *self.entity_id.borrow_mut() = entity_id;
 
         let join_game = JoinGame::new(
             entity_id,
@@ -193,8 +188,13 @@ impl PlayerHandle {
         let view_distance = self.server.config.server.view_distance as i32;
         for x in -view_distance..view_distance + 1 {
             for y in -view_distance..view_distance + 1 {
-                let chunk_data =
-                    ChunkData::new(world.chunk_at(ChunkPosition::new(x, y)).borrow().clone());
+                let chunk_data = ChunkData::new(
+                    self.server
+                        .world
+                        .chunk_at(ChunkPosition::new(x, y))
+                        .borrow()
+                        .clone(),
+                );
                 self.send_packet(chunk_data)?;
             }
         }
@@ -208,8 +208,14 @@ impl PlayerHandle {
         Ok(())
     }
 
-    fn handle_keep_alive(&mut self, _packet: &KeepAliveServerbound) {
+    fn handle_keep_alive(&self, _packet: &KeepAliveServerbound) {
         *self.last_keep_alive_time.borrow_mut() = current_time_in_secs();
+    }
+
+    pub fn notify_block_update(&self, pos: BlockPosition, block: Block) -> Result<(), ()> {
+        let packet = BlockChange::new(pos, block.block_state_id() as i32);
+        self.send_packet(packet)?;
+        Ok(())
     }
 }
 
