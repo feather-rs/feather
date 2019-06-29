@@ -1,5 +1,6 @@
 /target
 **/*.rs.bk
-.idea
+**/.idea
 feather.toml
 massif.out*
+scripts/test.rs
