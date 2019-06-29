@@ -56,6 +56,17 @@ impl Server {
                 *player.should_remove.borrow_mut() = true;
             }
         }
+        self.world.set_block_at(pos, block);
+    }
+
+    pub fn add_entity(&self, entity: Rc<Entity>) {
+        self.world.add_entity(entity.id, entity);
+    }
+
+    pub fn register_player(&self, player: Rc<PlayerHandle>) {
+        for player in self.players.players.borrow().iter() {
+            player.notify_player_join(&player.entity());
+        }
     }
 
     pub fn move_entity(&self, _entity: EntityId, _new_pos: Position) {

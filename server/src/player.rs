@@ -4,6 +4,7 @@ use crate::io::ServerToWorkerMessage;
 use crate::prelude::*;
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use mio_extras::channel::{Receiver, Sender};
+use std::ops::Deref;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const MAX_KEEP_ALIVE_TIME: u64 = 30;
@@ -14,7 +15,7 @@ pub struct PlayerHandle {
     packet_sender: Sender<ServerToWorkerMessage>,
     packet_receiver: Receiver<ServerToWorkerMessage>,
 
-    entity_id: RefCell<i32>,
+    entity: RefCell<Option<Rc<Entity>>>,
 
     pub should_remove: RefCell<bool>,
 
@@ -49,7 +50,7 @@ impl PlayerHandle {
 
             packet_sender,
 
-            entity_id: RefCell::new(0),
+            entity: RefCell::new(None),
 
             packet_receiver,
             should_remove: RefCell::new(false),
@@ -169,11 +170,17 @@ impl PlayerHandle {
     /// Sends the join packets, such as Join Game, Chunk
     /// Data, etc.
     fn run_play_sequence(&self) -> Result<(), ()> {
-        let entity_id = self.server.allocate_entity_id();
-        *self.entity_id.borrow_mut() = entity_id;
+        let entity = Entity::new(
+            Position::new(0.0, 0.0, 0.0, 0.0, 0.0),
+            self.server.allocate_entity_id(),
+        );
+        *self.entity.borrow_mut() = Some(Rc::new(entity));
+
+        self.server
+            .add_entity(Rc::clone(self.entity.borrow().as_ref().unwrap()));
 
         let join_game = JoinGame::new(
-            entity_id,
+            self.entity.borrow().as_ref().unwrap().deref().id,
             Gamemode::Creative.get_id(),
             Dimension::Overwold.get_id(),
             Difficulty::Hard.get_id(),
@@ -216,6 +223,14 @@ impl PlayerHandle {
         let packet = BlockChange::new(pos, block.block_state_id() as i32);
         self.send_packet(packet)?;
         Ok(())
+    }
+
+    pub fn notify_player_join(&self, player_entity: &Entity) {
+        unimplemented!()
+    }
+
+    pub fn entity(&self) -> Rc<Entity> {
+        Rc::clone(self.entity.borrow().as_ref().unwrap())
     }
 }
 

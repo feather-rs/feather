@@ -1009,10 +1009,7 @@ pub struct JoinGame {
 
 // TODO MapData
 
-#[derive(Default, AsAny, new, Packet)]
-pub struct Entity {
-    entity_id: VarInt,
-}
+// TODO entity
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct EntityRelativeMove {

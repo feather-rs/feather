@@ -54,7 +54,16 @@ pub struct World {
     entities: RefCell<HashMap<EntityId, Rc<Entity>>>,
 }
 
-pub struct Entity {}
+pub struct Entity {
+    pub pos: Position,
+    pub id: EntityId,
+}
+
+impl Entity {
+    pub fn new(pos: Position, id: EntityId) -> Self {
+        Self { pos, id }
+    }
+}
 
 impl World {
     pub fn new() -> Self {
@@ -105,8 +114,8 @@ impl World {
         }
     }
 
-    pub fn add_entity(&self, id: EntityId, entity: Entity) {
-        self.entities.borrow_mut().insert(id, Rc::new(entity));
+    pub fn add_entity(&self, id: EntityId, entity: Rc<Entity>) {
+        self.entities.borrow_mut().insert(id, entity);
     }
 }
 
