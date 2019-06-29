@@ -53,7 +53,7 @@ pub struct World {
 impl World {
     pub fn new() -> Self {
         Self {
-            generator: RefCell::new(Box::new(FlatChunkGenerator {})),
+            generator: RefCell::new(Box::new(GridChunkGenerator {})),
             chunk_map: RefCell::new(HashMap::new()),
         }
     }
@@ -76,6 +76,16 @@ impl World {
             (pos.z % 16) as u16,
             block,
         );
+    }
+
+    pub fn block_at(&self, pos: BlockPosition) -> Block {
+        let _chunk = self.chunk_at(pos.chunk_pos());
+        let chunk = _chunk.borrow();
+        chunk.block_at(
+            (pos.x % 16) as u16,
+            pos.y as u16,
+            (pos.z % 16) as u16,
+        )
     }
 
     fn load_chunk(&self, pos: ChunkPosition) {
@@ -103,6 +113,20 @@ impl ChunkGenerator for FlatChunkGenerator {
     }
 }
 
+pub struct GridChunkGenerator {}
+
+impl ChunkGenerator for GridChunkGenerator {
+    fn generate(&self, chunk: &mut Chunk) {
+        for x in 0..15 {
+            for y in 0..64 {
+                for z in 0..15 {
+                    chunk.set_block_at(x, y, z, Block::Stone);
+                }
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -114,9 +138,9 @@ mod tests {
         let _chunk = world.chunk_at(ChunkPosition::new(0, 0));
         let chunk = _chunk.borrow();
 
-        for x in 0..16 {
+        for x in 0..15 {
             for y in 0..64 {
-                for z in 0..16 {
+                for z in 0..15 {
                     assert_eq!(chunk.block_at(x, y, z), Block::Stone);
                 }
             }
@@ -124,13 +148,4 @@ mod tests {
 
         assert_eq!(chunk.block_at(8, 64, 8), Block::Air);
     }
-}
-
-/// Calculates the relative move fields
-/// as used in the EntityRelativeMove packets.
-pub fn calculate_relative_move(old: Position, current: Position) -> (u16, u16, u16) {
-    let x = ((current.x * 32.0 - old.x * 32.0) * 128.0) as u16;
-    let y = ((current.y * 32.0 - old.x * 32.0) * 128.0) as u16;
-    let z = ((current.z * 32.0 - old.z * 32.0) * 128.0) as u16;
-    (x, y, z)
 }

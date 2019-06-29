@@ -223,3 +223,12 @@ fn current_time_in_secs() -> u64 {
         .unwrap()
         .as_secs()
 }
+
+/// Calculates the relative move fields
+/// as used in the EntityRelativeMove packets.
+pub fn calculate_relative_move(old: Position, current: Position) -> (u16, u16, u16) {
+    let x = ((current.x * 32.0 - old.x * 32.0) * 128.0) as u16;
+    let y = ((current.y * 32.0 - old.x * 32.0) * 128.0) as u16;
+    let z = ((current.z * 32.0 - old.z * 32.0) * 128.0) as u16;
+    (x, y, z)
+}
