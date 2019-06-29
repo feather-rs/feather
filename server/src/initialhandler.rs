@@ -36,7 +36,13 @@ pub struct InitialHandler {
 }
 
 impl InitialHandler {
-    pub fn new(motd: String, player_count: u32, max_players: i32, config: Rc<Config>, rsa_key: Rsa<Private>) -> Self {
+    pub fn new(
+        motd: String,
+        player_count: u32,
+        max_players: i32,
+        config: Rc<Config>,
+        rsa_key: Rsa<Private>,
+    ) -> Self {
         Self {
             sent_encryption_request: false,
             state: State::Handshake,

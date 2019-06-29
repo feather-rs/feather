@@ -371,7 +371,7 @@ impl ChunkSection {
         for x in 0..16 {
             for y in 0..16 {
                 for z in 0..16 {
-                    self.set_block_at(x, y ,z, old.block_at(x, y, z));
+                    self.set_block_at(x, y, z, old.block_at(x, y, z));
                 }
             }
         }

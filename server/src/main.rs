@@ -51,11 +51,15 @@ impl Server {
     }
 
     pub fn set_block_at(&self, pos: BlockPosition, block: Block) {
-        self.action_queue.borrow_mut().push(Action::SetBlock(pos, block));
+        self.action_queue
+            .borrow_mut()
+            .push(Action::SetBlock(pos, block));
     }
 
     pub fn move_entity(&self, entity: EntityId, new_pos: Position) {
-        self.action_queue.borrow_mut().push(Action::MoveEntity(entity, new_pos));
+        self.action_queue
+            .borrow_mut()
+            .push(Action::MoveEntity(entity, new_pos));
     }
 }
 

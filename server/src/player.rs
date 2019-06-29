@@ -38,7 +38,13 @@ impl PlayerHandle {
         config: Rc<Config>,
     ) -> Self {
         Self {
-            initial_handler: InitialHandler::new(motd, player_count, max_players, Rc::clone(&config), rsa_key),
+            initial_handler: InitialHandler::new(
+                motd,
+                player_count,
+                max_players,
+                Rc::clone(&config),
+                rsa_key,
+            ),
 
             packet_sender,
 
@@ -101,7 +107,12 @@ impl PlayerHandle {
         Ok(())
     }
 
-    fn handle_packet(&mut self, packet: Box<Packet>, server: &Server, world: &World) -> Result<(), ()> {
+    fn handle_packet(
+        &mut self,
+        packet: Box<Packet>,
+        server: &Server,
+        world: &World,
+    ) -> Result<(), ()> {
         trace!("Handling packet");
         if !self.initial_handler.finished {
             self.forward_packet_to_initial_handler(packet, server, world)?;

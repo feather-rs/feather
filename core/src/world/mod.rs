@@ -70,7 +70,12 @@ impl World {
 
     pub fn set_block_at(&self, pos: BlockPosition, block: Block) {
         let chunk = self.chunk_at(pos.chunk_pos());
-        chunk.borrow_mut().set_block_at((pos.x % 16) as u16, pos.y as u16, (pos.z % 16) as u16, block);
+        chunk.borrow_mut().set_block_at(
+            (pos.x % 16) as u16,
+            pos.y as u16,
+            (pos.z % 16) as u16,
+            block,
+        );
     }
 
     fn load_chunk(&self, pos: ChunkPosition) {

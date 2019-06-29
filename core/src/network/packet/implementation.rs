@@ -4,8 +4,8 @@ use crate::bytebuf::{BufMutAlloc, BufResulted};
 use crate::prelude::*;
 use crate::world::chunk::Chunk;
 use bytes::{Buf, BufMut};
-use num_traits::{FromPrimitive, ToPrimitive};
 use hashbrown::HashMap;
+use num_traits::{FromPrimitive, ToPrimitive};
 use std::io::Read;
 use std::io::Write;
 

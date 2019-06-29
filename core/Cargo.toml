@@ -16,6 +16,7 @@ log = "0.4.6"
 serde = "1.0.92"
 serde_derive = "1.0.92"
 num-traits = "0.2.8"
+
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
 num-derive = "0.2.5"
 hashbrown = "0.5.0"

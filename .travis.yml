@@ -5,7 +5,6 @@ os:
   - windows
   - osx
 sudo: false
-
 cache: cargo
 
 script:
