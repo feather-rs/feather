@@ -210,14 +210,16 @@ impl ChunkSection {
 
         let old = self.block_at(x, y, z);
 
-        if self.occurrence_map.contains_key(&old) && self.block_at(x, y, z) != old {
-            let new_amnt = self.occurrence_map[&old] - 1;
-            if new_amnt == 0 {
-                self.occurrence_map.remove(&old);
+        if let Some(amnt) = self.occurrence_map.get(&old) {
+            if self.block_at(x, y, z) != old {
+                let new_amnt = amnt - 1;
+                if new_amnt == 0 {
+                    self.occurrence_map.remove(&old);
 
-                self.remove_block_from_palette(old);
-            } else {
-                self.occurrence_map.insert(old, new_amnt);
+                    self.remove_block_from_palette(old);
+                } else {
+                    self.occurrence_map.insert(old, new_amnt);
+                }
             }
         }
 
