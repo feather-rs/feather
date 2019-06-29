@@ -1,6 +1,6 @@
 use super::block::Block;
 use super::ChunkPosition;
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 /// The number of bits used for each block
 /// in the global palette.

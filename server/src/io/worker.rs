@@ -4,7 +4,7 @@ use feather_core::bytebuf::{BufMutAlloc, ByteBuf};
 use feather_core::network::serialize::ConnectionIOManager;
 use mio::Event;
 use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
-use std::collections::HashMap;
+use hashbrown::HashMap;
 use std::io::Read;
 use std::io::Write;
 

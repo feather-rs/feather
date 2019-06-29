@@ -4,7 +4,7 @@ pub mod implementation;
 use crate::bytebuf::ByteBuf;
 use bytes::Buf;
 use std::any::Any;
-use std::collections::HashMap;
+use hashbrown::HashMap;
 use std::io::Read;
 
 pub trait PacketBuf: Buf + Read {}
