@@ -1,11 +1,14 @@
 use crate::world::block::Block;
 use crate::world::chunk::Chunk;
+use hashbrown::HashMap;
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::rc::Rc;
 
 pub mod block;
 #[allow(clippy::cast_lossless)]
 pub mod chunk;
+
+pub type EntityId = i32;
 
 #[derive(Clone, Copy, Debug, new)]
 pub struct Position {
@@ -48,13 +51,17 @@ impl BlockPosition {
 pub struct World {
     generator: RefCell<Box<ChunkGenerator>>,
     chunk_map: RefCell<HashMap<ChunkPosition, RefCell<Chunk>>>,
+    entities: RefCell<HashMap<EntityId, Rc<Entity>>>,
 }
+
+pub struct Entity {}
 
 impl World {
     pub fn new() -> Self {
         Self {
             generator: RefCell::new(Box::new(GridChunkGenerator {})),
             chunk_map: RefCell::new(HashMap::new()),
+            entities: RefCell::new(HashMap::new()),
         }
     }
 
@@ -88,6 +95,18 @@ impl World {
         let mut chunk = Chunk::new(pos);
         self.generator.borrow_mut().generate(&mut chunk);
         self.chunk_map.borrow_mut().insert(pos, RefCell::new(chunk));
+    }
+
+    pub fn entity_by_id(&self, id: EntityId) -> Option<Rc<Entity>> {
+        if let Some(entity) = self.entities.borrow().get(&id) {
+            Some(Rc::clone(entity))
+        } else {
+            None
+        }
+    }
+
+    pub fn add_entity(&self, id: EntityId, entity: Entity) {
+        self.entities.borrow_mut().insert(id, Rc::new(entity));
     }
 }
 

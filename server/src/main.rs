@@ -19,8 +19,6 @@ pub mod prelude;
 use prelude::*;
 use std::time::Duration;
 
-pub type EntityId = i32;
-
 pub const TPS: u64 = 20;
 
 pub struct Server {
@@ -30,13 +28,14 @@ pub struct Server {
     rsa_key: openssl::rsa::Rsa<openssl::pkey::Private>,
 
     entity_id_counter: RefCell<EntityId>,
-    tick_counter: u64,
+    tick_counter: RefCell<u64>,
 
-    action_queue: RefCell<Vec<Action>>,
+    players: Players, // Server reference
 }
 
+#[derive(Clone)]
 pub struct Players {
-    players: Vec<RefCell<PlayerHandle>>,
+    players: Rc<RefCell<Vec<Rc<RefCell<PlayerHandle>>>>>,
 }
 
 impl Server {
@@ -47,19 +46,17 @@ impl Server {
     }
 
     pub fn tick_count(&self) -> u64 {
-        self.tick_counter
+        *self.tick_counter.borrow()
     }
 
-    pub fn set_block_at(&self, pos: BlockPosition, block: Block) {
-        self.action_queue
-            .borrow_mut()
-            .push(Action::SetBlock(pos, block));
+    pub fn set_block_at(&self, _pos: BlockPosition, _block: Block) {
+        for _player in self.players.players.borrow().iter() {
+            // TODO
+        }
     }
 
-    pub fn move_entity(&self, entity: EntityId, new_pos: Position) {
-        self.action_queue
-            .borrow_mut()
-            .push(Action::MoveEntity(entity, new_pos));
+    pub fn move_entity(&self, _entity: EntityId, _new_pos: Position) {
+        // TODO
     }
 }
 
@@ -76,26 +73,28 @@ fn main() {
         config.io.io_worker_threads,
     );
 
-    let mut server = Server {
+    let mut players = Players {
+        players: Rc::new(RefCell::new(vec![])),
+    };
+
+    let server = Rc::new(Server {
         config: Rc::new(config),
         player_count: 0,
         io_manager,
         rsa_key: openssl::rsa::Rsa::generate(1024).unwrap(),
 
         entity_id_counter: RefCell::new(0),
-        tick_counter: 0,
-        action_queue: RefCell::new(vec![]),
-    };
+        tick_counter: RefCell::new(0),
+        players: players.clone(),
+    });
 
-    let mut players = Players { players: vec![] };
-
-    let mut world = World::new();
+    let world = Rc::new(World::new());
 
     loop {
         while let Ok(msg) = server.io_manager.receiver.try_recv() {
             match msg {
                 io::ServerToListenerMessage::NewClient(info) => {
-                    trace!("Server registered connection");
+                    debug!("Server registered connection");
                     let new_player = PlayerHandle::accept_player_connection(
                         info.sender,
                         info.receiver,
@@ -104,40 +103,42 @@ fn main() {
                         server.config.server.max_players,
                         server.rsa_key.clone(),
                         Rc::clone(&server.config),
+                        Rc::clone(&server),
                     );
-                    players.players.push(RefCell::new(new_player));
+                    players
+                        .players
+                        .borrow_mut()
+                        .push(Rc::new(RefCell::new(new_player)));
                 }
                 _ => unreachable!(),
             }
         }
 
-        tick(&mut server, &mut players, &mut world);
+        tick(Rc::clone(&server), &mut players, Rc::clone(&world));
 
         std::thread::sleep(Duration::from_millis(50)); // TODO proper game loop
     }
 }
 
-fn tick(server: &mut Server, players: &mut Players, world: &World) {
-    players.players.retain(|player| {
-        let ok = player.borrow_mut().tick(server, world).is_ok();
-        let should_keep = !player.borrow().should_remove;
-        ok && should_keep
-    });
-
-    for action in server.action_queue.borrow_mut().drain(..) {
-        match action {
-            Action::SetBlock(pos, block) => world.set_block_at(pos, block),
-            Action::MoveEntity(entity, pos) => {
-                // Notify all players of mvoement
-                // TODO check for only nearby players
-                players.players.iter().for_each(|player| {
-                    // TODO
-                })
-            }
+fn tick(server: Rc<Server>, players: &mut Players, world: Rc<World>) {
+    let mut remove_indices = Vec::with_capacity(0);
+    for (i, player) in players.players.borrow().iter().enumerate() {
+        let ok = player.borrow_mut().tick(&world).is_ok();
+        let should_keep = !*player.borrow().should_remove.borrow();
+        if !(ok && should_keep) {
+            remove_indices.push(i);
         }
     }
 
-    server.tick_counter += 1;
+    {
+        let mut count = 0;
+        for i in remove_indices {
+            players.players.borrow_mut().remove(i - count);
+            count += 1;
+        }
+    }
+
+    *server.tick_counter.borrow_mut() += 1;
 }
 
 fn init_log(config: &Config) {
