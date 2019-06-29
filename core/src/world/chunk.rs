@@ -228,7 +228,6 @@ impl ChunkSection {
             self.occurrence_map.insert(block, amnt + 1);
         } else {
             // New block
-            trace!("230");
             self.add_block_to_palette(block);
             self.occurrence_map.insert(block, 1);
         }

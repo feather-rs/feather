@@ -17,6 +17,7 @@ pub struct PlayerHandle {
 
     entity: RefCell<Option<Rc<Entity>>>,
 
+    pub should_register: RefCell<bool>,
     pub should_remove: RefCell<bool>,
 
     /// The last time a keep alive packet
@@ -53,6 +54,7 @@ impl PlayerHandle {
             entity: RefCell::new(None),
 
             packet_receiver,
+            should_register: RefCell::new(false),
             should_remove: RefCell::new(false),
 
             last_keep_alive_time: RefCell::new(current_time_in_secs()),
@@ -212,6 +214,8 @@ impl PlayerHandle {
         let pos = PlayerPositionAndLookClientbound::new(0.0, 64.0, 0.0, 0.0, 0.0, 0, 1);
         self.send_packet(pos)?;
 
+        *self.should_register.borrow_mut() = true;
+
         Ok(())
     }
 
@@ -226,7 +230,7 @@ impl PlayerHandle {
     }
 
     pub fn notify_player_join(&self, player_entity: &Entity) {
-        unimplemented!()
+        // TODO
     }
 
     pub fn entity(&self) -> Rc<Entity> {

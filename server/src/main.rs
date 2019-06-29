@@ -64,8 +64,10 @@ impl Server {
     }
 
     pub fn register_player(&self, player: Rc<PlayerHandle>) {
-        for player in self.players.players.borrow().iter() {
-            player.notify_player_join(&player.entity());
+        for p in self.players.players.borrow().iter() {
+            if p.entity().id != player.entity().id {
+                p.notify_player_join(&player.entity());
+            }
         }
     }
 
@@ -138,12 +140,18 @@ fn tick(server: Rc<Server>, players: &mut Players) {
         if !(ok && should_keep) {
             remove_indices.push(i);
         }
+
+        if *player.should_register.borrow() {
+            server.register_player(Rc::clone(player));
+            *player.should_register.borrow_mut() = false;
+        }
     }
 
     {
         let mut count = 0;
         for i in remove_indices {
             players.players.borrow_mut().remove(i - count);
+            debug!("Server deregistering player");
             count += 1;
         }
     }
