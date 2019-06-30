@@ -87,23 +87,41 @@ impl<T> GenerationalArray<T> {
         });
     }
 
-    pub fn get(&self, index: GenerationalIndex) -> &T {
-        let entry = &self.0[index.index()];
+    pub fn get(&self, index: GenerationalIndex) -> Option<&T> {
+        let entry = self.0.get(index.index());
+
+        if entry.is_none() {
+            return None;
+        }
+
+        let entry = entry.unwrap();
         if let Some(entry) = entry {
-            assert_eq!(entry.generation, index.generation);
-            &entry.value
+            if entry.generation != index.generation {
+                return None;
+            }
+
+            Some(&entry.value)
         } else {
-            panic!("No entry for index {} in array", index.index());
+            None
         }
     }
 
-    pub fn get_mut(&mut self, index: GenerationalIndex) -> &mut T {
-        let entry = &mut self.0[index.index()];
+    pub fn get_mut(&mut self, index: GenerationalIndex) -> Option<&mut T> {
+        let entry = self.0.get_mut(index.index());
+
+        if entry.is_none() {
+            return None;
+        }
+
+        let entry = entry.unwrap();
         if let Some(entry) = entry {
-            assert_eq!(entry.generation, index.generation);
-            &mut entry.value
+            if entry.generation != index.generation {
+                return None;
+            }
+
+            Some(&mut entry.value)
         } else {
-            panic!("No entry for index {} in array", index.index());
+            None
         }
     }
 }
@@ -112,13 +130,13 @@ impl<T> Index<GenerationalIndex> for GenerationalArray<T> {
     type Output = T;
 
     fn index(&self, index: GenerationalIndex) -> &Self::Output {
-        self.get(index)
+        self.get(index).unwrap()
     }
 }
 
 impl<T> IndexMut<GenerationalIndex> for GenerationalArray<T> {
     fn index_mut(&mut self, index: GenerationalIndex) -> &mut Self::Output {
-        self.get_mut(index)
+        self.get_mut(index).unwrap()
     }
 }
 
@@ -151,12 +169,13 @@ mod tests {
 
         let index1 = alloc.allocate();
         arr.set(index1, "test");
-        assert_eq!(arr.get(index1).to_string(), "test");
+        assert_eq!(arr.get(index1), Some(&"test"));
 
         alloc.deallocate(index1);
 
         let index2 = alloc.allocate();
         arr.set(index2, "test2");
-        assert_eq!(arr.get(index2).to_string(), "test2");
+        assert_eq!(arr.get(index2), Some(&"test2"));
+        assert_eq!(arr.get(index1), None);
     }
 }
