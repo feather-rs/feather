@@ -3,5 +3,7 @@ members = [
     "core",
     "api",
     "server",
-    "codegen"
+    "codegen",
+    "client/core",
+    "client/wrapper/console",
 ]

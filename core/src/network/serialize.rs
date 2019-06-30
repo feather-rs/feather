@@ -141,7 +141,8 @@ impl ConnectionIOManager {
             let packet_id = buf.read_var_int()?;
             let stage = self.stage;
 
-            let packet_type = PacketType::get_from_id(PacketId(packet_id as u32, self.direction, stage));
+            let packet_type =
+                PacketType::get_from_id(PacketId(packet_id as u32, self.direction, stage));
             if packet_type.is_err() {
                 warn!(
                     "Client sent packet with invalid id {} for stage {:?}",

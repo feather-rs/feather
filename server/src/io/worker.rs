@@ -1,13 +1,13 @@
 use super::*;
 use bytes::BufMut;
 use feather_core::bytebuf::{BufMutAlloc, ByteBuf};
+use feather_core::network::packet::PacketDirection;
 use feather_core::network::serialize::ConnectionIOManager;
 use hashbrown::HashMap;
 use mio::Event;
 use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
 use std::io::Read;
 use std::io::Write;
-use feather_core::network::packet::PacketDirection;
 
 // The token used to listen on the channel receiving messages from the listener thread
 const LISTENER_TOKEN: Token = Token(0);
