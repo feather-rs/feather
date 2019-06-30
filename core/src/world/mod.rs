@@ -1,8 +1,6 @@
 use crate::world::block::Block;
 use crate::world::chunk::Chunk;
 use hashbrown::HashMap;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 pub mod block;
 #[allow(clippy::cast_lossless)]
@@ -49,74 +47,8 @@ impl BlockPosition {
 }
 
 pub struct World {
-    generator: RefCell<Box<ChunkGenerator>>,
-    chunk_map: RefCell<HashMap<ChunkPosition, RefCell<Chunk>>>,
-    entities: RefCell<HashMap<EntityId, Rc<Entity>>>,
-}
-
-pub struct Entity {
-    pub pos: Position,
-    pub id: EntityId,
-}
-
-impl Entity {
-    pub fn new(pos: Position, id: EntityId) -> Self {
-        Self { pos, id }
-    }
-}
-
-impl World {
-    pub fn new() -> Self {
-        Self {
-            generator: RefCell::new(Box::new(GridChunkGenerator {})),
-            chunk_map: RefCell::new(HashMap::new()),
-            entities: RefCell::new(HashMap::new()),
-        }
-    }
-
-    pub fn chunk_at(&self, pos: ChunkPosition) -> RefCell<Chunk> {
-        if let Some(chunk) = self.chunk_map.borrow().get(&pos) {
-            return chunk.clone();
-        }
-        {
-            self.load_chunk(pos);
-            self.chunk_map.borrow().get(&pos).unwrap().clone()
-        }
-    }
-
-    pub fn set_block_at(&self, pos: BlockPosition, block: Block) {
-        let chunk = self.chunk_at(pos.chunk_pos());
-        chunk.borrow_mut().set_block_at(
-            (pos.x % 16) as u16,
-            pos.y as u16,
-            (pos.z % 16) as u16,
-            block,
-        );
-    }
-
-    pub fn block_at(&self, pos: BlockPosition) -> Block {
-        let _chunk = self.chunk_at(pos.chunk_pos());
-        let chunk = _chunk.borrow();
-        chunk.block_at((pos.x % 16) as u16, pos.y as u16, (pos.z % 16) as u16)
-    }
-
-    fn load_chunk(&self, pos: ChunkPosition) {
-        let mut chunk = Chunk::new(pos);
-        self.generator.borrow_mut().generate(&mut chunk);
-        self.chunk_map.borrow_mut().insert(pos, RefCell::new(chunk));
-    }
-
-    pub fn entity_by_id(&self, id: EntityId) -> Option<Rc<Entity>> {
-        if let Some(entity) = self.entities.borrow().get(&id) {
-            Some(Rc::clone(entity))
-        } else {
-            None
-        }
-    }
-
-    pub fn add_entity(&self, id: EntityId, entity: Rc<Entity>) {
-        self.entities.borrow_mut().insert(id, entity);
-    }
+    generator: Box<ChunkGenerator>,
+    chunk_map: HashMap<ChunkPosition, Chunk>,
 }
 
 trait ChunkGenerator {
