@@ -11,6 +11,28 @@ import sys
 from collections import OrderedDict
 
 
+# List of Rust keywords which should
+# be suffixed with an underscore when
+# used as a variable name
+KEYWORDS = [
+    "type",
+    "in",
+]
+
+# These property names are properties
+# for which an enum is pre-created.
+# This avoids duplicate enums with names
+# "DarkOakLogAxis", "OakLogAxis", "BirchLogAxis", etc.
+KNOWN_PROPERTIES = [
+    "facing",
+    "axis",
+    "half",
+    "face"
+]
+
+
+DERIVES = "#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]\n"
+
 # Strips the "minecraft:" prefix from
 # a block identifier, leaving only the snake_case
 # block name.
@@ -23,6 +45,16 @@ def strip_minecraft_identifier(s):
 def snake_to_upper_camel(s):
     components = s.split("_")
     return "".join(x.title() for x in components)
+
+
+def get_type_from_value(val):
+    if val == "true" or val == "false":
+        return "bool"
+
+    if val.isdigit():
+        return "i32"
+
+    return "_enum"
 
 
 in_path = sys.argv[1]
@@ -39,7 +71,7 @@ data = json.load(fin, object_pairs_hook=OrderedDict)
 
 enum_code = ""
 
-enum_code += "#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]\n" \
+enum_code += DERIVES + \
         "pub enum Block {\n"
 
 block_state_id_code = ""
@@ -53,6 +85,21 @@ from_block_state_id_code += "pub fn from_block_state_id(id: u16) -> Self {\n" \
                             "match id {" \
 
 state_code = ""
+
+end_code = ""
+
+# Known properties - facing and axis
+end_code += DERIVES + "pub enum Facing {" \
+            "North, South, East, West, }\n\n"
+
+end_code += DERIVES + "pub enum Axis {" \
+            "X, Y, Z, }\n\n"
+
+end_code += DERIVES + "pub enum Half {" \
+            "Top, Bottom, }\n\n"
+
+end_code += DERIVES + "pub enum Face {" \
+            "Floor, Wall, Celing, }\n\n"
 
 for block_identifier in data:
     print("Reading for block %s", block_identifier)
@@ -71,12 +118,29 @@ for block_identifier in data:
         from_block_state_id_code += id + " => Block::" + camel + ",\n"
 
     else:
-        state_code += "pub struct " + camel + "Data {"
+        state_code += DERIVES + "pub struct " + camel + "Data {"
         props = obj["properties"]
         for prop_name in props:
             vals = props[prop_name]
+            ty = get_type_from_value(vals[0])
 
-        state_code += "}"
+            if prop_name in KNOWN_PROPERTIES:
+                ty = snake_to_upper_camel(prop_name)  # e.g. facing -> Facing, axis -> Axis
+
+            if ty == "_enum":
+                # Create enum for custom value type
+                ty = camel + snake_to_upper_camel(prop_name)
+                end_code += DERIVES + "pub enum " + ty + " {"
+                for val in vals:
+                    end_code += snake_to_upper_camel(val) + ",\n"
+                end_code += "}\n\n"
+
+            if prop_name in KEYWORDS:
+                prop_name += "_"
+
+            state_code += "pub " + prop_name + ": " + ty + ",\n"
+
+        state_code += "}\n\n"
 
 enum_code += "}"
 
@@ -94,3 +158,4 @@ fout.write("\n\n")
 fout.write(from_block_state_id_code)
 fout.write("}")
 fout.write("\n" + state_code)
+fout.write("\n" + end_code)
