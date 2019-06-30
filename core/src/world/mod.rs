@@ -61,7 +61,7 @@ impl World {
     /// If the chunk is not loaded, `None` will be returned.
     pub fn chunk_at(&mut self, pos: ChunkPosition) -> Option<&Chunk> {
         if let Some(chunk) = self.chunk_map.get(&pos) {
-            return Some(chunk)
+            return Some(chunk);
         }
 
         None
@@ -101,7 +101,11 @@ impl World {
 }
 
 fn chunk_relative_pos(block_pos: BlockPosition) -> (u16, u16, u16) {
-    ((block_pos.x % 16) as u16, block_pos.y as u16, (block_pos.z % 16) as u16)
+    (
+        (block_pos.x % 16) as u16,
+        block_pos.y as u16,
+        (block_pos.z % 16) as u16,
+    )
 }
 
 pub trait ChunkGenerator {

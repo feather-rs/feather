@@ -71,7 +71,7 @@ struct ArrayEntry<T> {
 
 pub struct GenerationalArray<T>(Vec<Option<ArrayEntry<T>>>);
 
-impl <T> GenerationalArray<T> {
+impl<T> GenerationalArray<T> {
     pub fn new() -> Self {
         Self(vec![])
     }
@@ -108,7 +108,7 @@ impl <T> GenerationalArray<T> {
     }
 }
 
-impl <T> Index<GenerationalIndex> for GenerationalArray<T> {
+impl<T> Index<GenerationalIndex> for GenerationalArray<T> {
     type Output = T;
 
     fn index(&self, index: GenerationalIndex) -> &Self::Output {
@@ -116,7 +116,7 @@ impl <T> Index<GenerationalIndex> for GenerationalArray<T> {
     }
 }
 
-impl <T> IndexMut<GenerationalIndex> for GenerationalArray<T> {
+impl<T> IndexMut<GenerationalIndex> for GenerationalArray<T> {
     fn index_mut(&mut self, index: GenerationalIndex) -> &mut Self::Output {
         self.get_mut(index)
     }
@@ -139,7 +139,7 @@ mod tests {
         assert_eq!(index2.index(), 1);
 
         allocator.deallocate(index);
-        let index3= allocator.allocate();
+        let index3 = allocator.allocate();
         assert_eq!(index.index(), index3.index());
         assert_eq!(index3.generation, 1);
     }

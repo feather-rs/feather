@@ -11,11 +11,11 @@ use std::alloc::System;
 static ALLOC: System = System;
 
 pub mod config;
+pub mod genindex;
 pub mod initialhandler;
 pub mod io;
 pub mod player;
 pub mod prelude;
-pub mod genindex;
 
 use prelude::*;
 use std::time::Duration;
@@ -25,8 +25,6 @@ pub const TPS: u64 = 20;
 pub struct State {
     world: World,
     config: Config,
-
-
 }
 
 fn main() {
