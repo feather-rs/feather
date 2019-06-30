@@ -54,11 +54,11 @@ from_block_state_id_code += "pub fn from_block_state_id(id: u16) -> Self {\n" \
 
 state_code = ""
 
-for block_prop_name in data:
-    print("Reading for block %s", block_prop_name)
-    block_name = strip_minecraft_identifier(block_prop_name)
+for block_identifier in data:
+    print("Reading for block %s", block_identifier)
+    block_name = strip_minecraft_identifier(block_identifier)
     print("Block name: %s", block_name)
-    obj = data[block_prop_name]
+    obj = data[block_identifier]
 
     states = obj["states"]
     single_state = len(states) == 1

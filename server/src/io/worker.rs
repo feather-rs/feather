@@ -7,6 +7,7 @@ use mio::Event;
 use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
 use std::io::Read;
 use std::io::Write;
+use feather_core::network::packet::PacketDirection;
 
 // The token used to listen on the channel receiving messages from the listener thread
 const LISTENER_TOKEN: Token = Token(0);
@@ -120,7 +121,7 @@ fn accept_connection(worker: &mut Worker, stream: TcpStream, addr: SocketAddr) {
         sender: send2,
         stream_token: get_stream_token(id),
         server_to_worker_token: get_server_to_worker_token(id),
-        manager: ConnectionIOManager::new(),
+        manager: ConnectionIOManager::new(PacketDirection::Serverbound),
     };
 
     worker

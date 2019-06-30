@@ -28,10 +28,11 @@ pub struct ConnectionIOManager {
     stage: PacketStage,
 
     cipher: Cipher,
+    direction: PacketDirection,
 }
 
 impl ConnectionIOManager {
-    pub fn new() -> Self {
+    pub fn new(direction: PacketDirection) -> Self {
         Self {
             encryption_enabled: false,
             encryption_key: [0; 16],
@@ -48,6 +49,7 @@ impl ConnectionIOManager {
             stage: PacketStage::Handshake,
 
             cipher: Cipher::aes_128_cfb8(),
+            direction,
         }
     }
 
@@ -138,9 +140,8 @@ impl ConnectionIOManager {
 
             let packet_id = buf.read_var_int()?;
             let stage = self.stage;
-            let direction = PacketDirection::Serverbound; // Have to change to implement client
 
-            let packet_type = PacketType::get_from_id(PacketId(packet_id as u32, direction, stage));
+            let packet_type = PacketType::get_from_id(PacketId(packet_id as u32, self.direction, stage));
             if packet_type.is_err() {
                 warn!(
                     "Client sent packet with invalid id {} for stage {:?}",
