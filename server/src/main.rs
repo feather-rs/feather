@@ -14,17 +14,33 @@ pub mod config;
 pub mod genindex;
 pub mod initialhandler;
 pub mod io;
-pub mod player;
+pub mod network;
 pub mod prelude;
 
+use crate::genindex::{GenerationalArray, GenerationalIndex, GenerationalIndexAllocator};
+use crate::initialhandler::InitialHandlerComponent;
+use crate::network::NetworkComponent;
+use feather_core::world::GridChunkGenerator;
 use prelude::*;
 use std::time::Duration;
 
 pub const TPS: u64 = 20;
 
+type EntityMap<T> = GenerationalArray<T>;
+type Entity = GenerationalIndex;
+
 pub struct State {
-    world: World,
-    config: Config,
+    pub world: World,
+    pub config: Config,
+
+    pub allocator: GenerationalIndexAllocator,
+
+    pub network_components: EntityMap<NetworkComponent>,
+    pub ih_components: EntityMap<InitialHandlerComponent>,
+
+    pub players: Vec<Entity>,
+
+    pub running: bool,
 }
 
 fn main() {
@@ -39,6 +55,30 @@ fn main() {
         format!("127.0.0.1:{}", config.server.port).parse().unwrap(),
         config.io.io_worker_threads,
     );
+
+    let mut state = init_state(config);
+
+    info!("Initialized server state");
+
+    run_loop(&mut state);
+}
+
+fn run_loop(state: &mut State) {
+    while state.running {}
+}
+
+fn init_state(config: Config) -> State {
+    State {
+        world: World::new(Box::new(GridChunkGenerator {})),
+        config,
+
+        allocator: GenerationalIndexAllocator::new(),
+
+        network_components: EntityMap::new(),
+
+        players: vec![],
+        running: true,
+    }
 }
 
 fn init_log(config: &Config) {

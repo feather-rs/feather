@@ -7,9 +7,13 @@ use std::rc::Rc;
 const PROTOCOL_VERSION: u32 = 404;
 
 #[derive(Debug, Eq, PartialEq)]
-pub enum State {
+pub enum IHState {
     Handshake,
     Status,
     Login,
     Play,
+}
+
+pub struct InitialHandlerComponent {
+    state: IHState,
 }
