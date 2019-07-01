@@ -43,7 +43,7 @@ impl InitialHandlerComponent {
 
 pub enum Error {
     InvalidPacket(PacketType),
-    MalformedData,
+    MalformedData(String),
     InvalidProtocolVersion(u32, u32),
 }
 
@@ -53,7 +53,9 @@ impl std::fmt::Display for Error {
             Error::InvalidPacket(ty) => f
                 .write_str(&format!("Sent invalid packet type {:?}", ty))
                 .unwrap(),
-            Error::MalformedData => f.write_str("Sent invalid data").unwrap(),
+            Error::MalformedData(details) => f
+                .write_str(&format!("Sent invalid data: {}", details))
+                .unwrap(),
             Error::InvalidProtocolVersion(server, client) => f
                 .write_str(&format!(
                     "Protocol versions do not match: client is on {}; server is on {}",
@@ -208,7 +210,10 @@ fn handle_encryption_response(
 
         if let Ok(amnt) = rsa.private_decrypt(&packet.secret, &mut buf, Padding::PKCS1) {
             if amnt != 16 {
-                return Err(Error::MalformedData);
+                return Err(Error::MalformedData(format!(
+                    "Invalid shared secret length {}",
+                    amnt
+                )));
             }
 
             let mut res = [0u8; 16];
@@ -217,7 +222,9 @@ fn handle_encryption_response(
             }
             res
         } else {
-            return Err(Error::MalformedData);
+            return Err(Error::MalformedData(
+                "Error decrypting shared secret".to_string(),
+            ));
         }
     };
 
@@ -226,7 +233,10 @@ fn handle_encryption_response(
 
         if let Ok(amnt) = rsa.private_decrypt(&packet.verify_token, &mut buf, Padding::PKCS1) {
             if amnt != VERIFY_TOKEN_LEN {
-                return Err(Error::MalformedData);
+                return Err(Error::MalformedData(format!(
+                    "Invalid verify token length {}",
+                    amnt
+                )));
             }
 
             let mut res = [0u8; VERIFY_TOKEN_LEN];
@@ -235,12 +245,16 @@ fn handle_encryption_response(
             }
             res
         } else {
-            return Err(Error::MalformedData);
+            return Err(Error::MalformedData(
+                "Error decrypting verify token".to_string(),
+            ));
         }
     };
 
     if !compare_verify_tokens(ih.verify_token.clone(), verify_token) {
-        return Err(Error::MalformedData);
+        return Err(Error::MalformedData(
+            "Verify tokens do not match".to_string(),
+        ));
     }
 
     enable_encryption_for_player(state, player, secret);
