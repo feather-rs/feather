@@ -77,7 +77,7 @@ impl<T> GenerationalArray<T> {
     }
 
     pub fn set(&mut self, index: GenerationalIndex, value: T) {
-        if self.0.len() >= index.index() {
+        while self.0.len() <= index.index() {
             self.0.push(None);
         }
 
