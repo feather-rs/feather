@@ -1,9 +1,9 @@
-use crate::io::{ServerToWorkerMessage, ServerToListenerMessage};
+use crate::initialhandler::InitialHandlerComponent;
+use crate::io::{ServerToListenerMessage, ServerToWorkerMessage};
 use crate::prelude::*;
-use crate::{initialhandler as ih, remove_player, Entity, State, add_player};
+use crate::{add_player, initialhandler as ih, remove_player, Entity, State};
 use feather_core::network::packet::Packet;
 use mio_extras::channel::{Receiver, Sender};
-use crate::initialhandler::InitialHandlerComponent;
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
 
@@ -14,11 +14,11 @@ pub struct NetworkComponent {
 }
 
 impl NetworkComponent {
-    pub fn new(sender: Sender<ServerToWorkerMessage>, receiver: Receiver<ServerToWorkerMessage>) -> Self {
-        Self {
-            sender,
-            receiver,
-        }
+    pub fn new(
+        sender: Sender<ServerToWorkerMessage>,
+        receiver: Receiver<ServerToWorkerMessage>,
+    ) -> Self {
+        Self { sender, receiver }
     }
 }
 
@@ -38,6 +38,7 @@ fn handle_connections(state: &mut State) {
                     if let Some(_) = state.ih_components.get(player) {
                         if let Err(e) = ih::handle_packet(state, player, packet) {
                             info!("Disconnecting player: {}", e);
+                            ih::disconnect_login(state, player, &e.to_string());
                             remove_player(state, player);
                         }
                     } else {
@@ -69,7 +70,7 @@ fn poll_for_new_players(state: &mut State) {
 
                 let netc = NetworkComponent::new(info.sender, info.receiver);
                 state.network_components.set(player, netc);
-            },
+            }
             _ => panic!("Invalid message received from listener thread"),
         }
     }
@@ -94,6 +95,11 @@ pub fn enable_encryption_for_player(state: &State, player: Entity, key: [u8; 16]
     let _ = comp
         .sender
         .send(ServerToWorkerMessage::EnableEncryption(key));
+}
+
+pub fn handle_player_remove(state: &mut State, player: Entity) {
+    let comp = &state.network_components[player];
+    let _ = comp.sender.send(ServerToWorkerMessage::Disconnect);
 }
 
 /// Calculates the relative move fields

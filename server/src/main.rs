@@ -19,12 +19,12 @@ pub mod prelude;
 
 use crate::genindex::{GenerationalArray, GenerationalIndex, GenerationalIndexAllocator};
 use crate::initialhandler::InitialHandlerComponent;
+use crate::io::NetworkIoManager;
 use crate::network::NetworkComponent;
 use feather_core::world::GridChunkGenerator;
 use prelude::*;
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
 use std::thread::sleep;
-use crate::io::NetworkIoManager;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub const TPS: u64 = 20;
 pub const PROTOCOL_VERSION: u32 = 404;
@@ -130,6 +130,8 @@ pub fn remove_entity(state: &mut State, entity: Entity) {
 }
 
 pub fn remove_player(state: &mut State, entity: Entity) {
+    network::handle_player_remove(state, entity);
+
     remove_entity(state, entity);
     state.players.retain(|e| *e != entity);
 }

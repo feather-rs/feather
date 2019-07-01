@@ -51,9 +51,9 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         match self {
             Error::InvalidPacket(ty) => f
-                .write_str(&format!("Dent invalid packet type {:?}", ty))
+                .write_str(&format!("Sent invalid packet type {:?}", ty))
                 .unwrap(),
-            Error::MalformedData => f.write_str("Dent invalid data").unwrap(),
+            Error::MalformedData => f.write_str("Sent invalid data").unwrap(),
             Error::InvalidProtocolVersion(server, client) => f
                 .write_str(&format!(
                     "Protocol versions do not match: client is on {}; server is on {}",
@@ -120,7 +120,7 @@ fn handle_request(state: &mut State, player: Entity, _packet: &Request) -> Resul
         },
         "players": {
             "max": state.config.server.max_players,
-            "online": state.players.len(),
+            "online": state.players.len() - 1, // Hack — the connecting player is already registered
         },
         "description": state.config.server.motd,
     });
@@ -159,15 +159,6 @@ fn handle_login_start(
 
     if ih.stage != Stage::AwaitLoginStart {
         return Err(Error::InvalidPacket(PacketType::Ping));
-    }
-
-    // Enable compression if needed
-    let threshold = state.config.io.compression_threshold;
-    if threshold > 0 {
-        let set_compression = SetCompression::new(threshold);
-        send_packet_to_player(state, player, set_compression);
-
-        enable_compression_for_player(state, player, threshold as usize);
     }
 
     // If in online mode, enable encryption
@@ -233,7 +224,7 @@ fn handle_encryption_response(
     let verify_token: [u8; VERIFY_TOKEN_LEN] = {
         let mut buf = vec![0u8; rsa.size() as usize];
 
-        if let Ok(amnt) = rsa.private_decrypt(&packet.secret, &mut buf, Padding::PKCS1) {
+        if let Ok(amnt) = rsa.private_decrypt(&packet.verify_token, &mut buf, Padding::PKCS1) {
             if amnt != VERIFY_TOKEN_LEN {
                 return Err(Error::MalformedData);
             }
@@ -260,17 +251,30 @@ fn handle_encryption_response(
 }
 
 fn finish(state: &mut State, player: Entity) {
+    // Enable compression if needed
+    let threshold = state.config.io.compression_threshold;
+    if threshold > 0 {
+        let set_compression = SetCompression::new(threshold);
+        send_packet_to_player(state, player, set_compression);
+
+        enable_compression_for_player(state, player, threshold as usize);
+    }
+
     // TODO authentication
     let username = "JarJarBinks";
     let uuid = Uuid::new_v4();
 
     let login_success =
-        LoginSuccess::new(username.to_string(), uuid.to_hyphenated_ref().to_string());
+        LoginSuccess::new(uuid.to_hyphenated_ref().to_string(), username.to_string());
     send_packet_to_player(state, player, login_success);
 
-    state
-        .entity_components
-        .set(player, EntityComponent { uuid, display_name: username.to_string() });
+    state.entity_components.set(
+        player,
+        EntityComponent {
+            uuid,
+            display_name: username.to_string(),
+        },
+    );
     state.ih_components.remove(player);
     debug!("InitialHandler finished");
 }
@@ -289,6 +293,4 @@ pub fn disconnect_login(state: &mut State, player: Entity, reason: &str) {
     let packet = DisconnectLogin::new(json!({ "text": reason }).to_string());
 
     send_packet_to_player(state, player, packet);
-
-    info!("Player disconnected: {}", reason);
 }
