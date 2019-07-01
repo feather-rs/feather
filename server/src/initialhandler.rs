@@ -130,7 +130,7 @@ fn handle_request(state: &mut State, player: Entity, _packet: &Request) -> Resul
         },
         "players": {
             "max": state.config.server.max_players,
-            "online": state.players.len() - 1, // Hack — the connecting player is already registered
+            "online": state.player_count,
         },
         "description": state.config.server.motd,
     });
@@ -364,6 +364,8 @@ fn join_game(state: &mut State, player: Entity) {
     send_packet_to_player(state, player, pos_and_look);
 
     broadcast_player_join(state, player);
+
+    state.player_count += 1;
 
     info!("A player joined the game");
 }

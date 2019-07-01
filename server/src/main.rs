@@ -22,10 +22,10 @@ use crate::initialhandler::InitialHandlerComponent;
 use crate::io::NetworkIoManager;
 use crate::network::NetworkComponent;
 use feather_core::world::GridChunkGenerator;
+use multimap::MultiMap;
 use prelude::*;
 use std::thread::sleep;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use multimap::MultiMap;
 
 pub const TPS: u64 = 20;
 pub const PROTOCOL_VERSION: u32 = 404;
@@ -47,6 +47,13 @@ pub struct State {
     pub player_components: EntityMap<PlayerComponent>,
 
     pub players: Vec<Entity>,
+
+    /// Although players.len() can be used to find
+    /// the player count, that would also include
+    /// clients which are performing a status
+    /// ping. Instead, this value is incremented
+    /// whenever a player joins the server.
+    pub player_count: u32,
 
     /// Each entity which requires its chunks and chunks
     /// around it to be loaded can insert an entry into
@@ -115,6 +122,7 @@ fn init_state(config: Config, io_manager: NetworkIoManager) -> State {
         player_components: EntityMap::new(),
 
         players: vec![],
+        player_count: 0,
 
         chunk_holders: MultiMap::new(),
 
@@ -155,6 +163,12 @@ pub fn remove_player(state: &mut State, entity: Entity) {
     network::handle_player_remove(state, entity);
 
     remove_entity(state, entity);
+
+    // Only decrement player count if player has joined
+    if state.ih_components.get(entity).is_none() {
+        state.player_count -= 1;
+    }
+
     state.players.retain(|e| *e != entity);
 }
 
