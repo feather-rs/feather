@@ -1042,7 +1042,7 @@ pub struct EntityLook {
 
 // ...
 
-#[derive(AsAny, new)]
+#[derive(AsAny, new, Clone)]
 pub struct PlayerInfo {
     action: PlayerInfoAction,
     uuid: Uuid,
@@ -1092,7 +1092,7 @@ impl Packet for PlayerInfo {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PlayerInfoAction {
     AddPlayer(
         String,

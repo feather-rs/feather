@@ -1,6 +1,4 @@
-use crate::network::{
-    enable_compression_for_player, enable_encryption_for_player, send_packet_to_player,
-};
+use crate::network::{enable_compression_for_player, enable_encryption_for_player, send_packet_to_player, broadcast_player_join};
 use crate::prelude::*;
 use crate::{remove_player, Entity, EntityComponent, PlayerComponent, State};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
@@ -359,7 +357,10 @@ fn join_game(state: &mut State, player: Entity) {
 
     let pos_and_look = PlayerPositionAndLookClientbound::new(0.0, 64.0, 0.0, 0.0, 0.0, 0, 0);
     send_packet_to_player(state, player, pos_and_look);
-    debug!("Player joined game");
+
+    broadcast_player_join(state, player);
+
+    info!("A player joined the game");
 }
 
 /// Authenticates a client.

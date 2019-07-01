@@ -118,6 +118,35 @@ pub fn handle_player_remove(state: &mut State, player: Entity) {
     let _ = comp.sender.send(ServerToWorkerMessage::Disconnect);
 }
 
+/// Broadcasts to all clients that the specified player
+/// has joined the game. This should be called
+/// whenever a player joins.
+///
+/// This function is currently called by the initial handler.
+pub fn broadcast_player_join(state: &mut State, player: Entity) {
+    let entity = state.entity_components.get(player).unwrap();
+    let player_comp = state.player_components.get(player).unwrap();
+
+    let mut props = vec![];
+    for prop in &player_comp.profile_properties {
+        props.push((prop.name.clone(), prop.value.clone(), prop.signature.clone()));
+    }
+
+    let display_name = json!({
+        "text": entity.display_name
+    }).to_string();
+
+    let action = PlayerInfoAction::AddPlayer(entity.display_name.clone(), props, Gamemode::Creative, 50, display_name);
+    let player_info = PlayerInfo::new(
+        action,
+        entity.uuid.clone(),
+    );
+
+    for p in &state.players {
+        send_packet_to_player(state, *p, player_info.clone());
+    }
+}
+
 /// Calculates the relative move fields
 /// as used in the EntityRelativeMove packets.
 pub fn calculate_relative_move(old: Position, current: Position) -> (u16, u16, u16) {

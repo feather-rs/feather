@@ -453,6 +453,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x30, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::PlayerInfo,
+        );
+
+        m.insert(
             PacketId(0x32, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::PlayerPositionAndLookClientbound,
         );
