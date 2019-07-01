@@ -1,14 +1,10 @@
 use crate::world::block::Block;
 use crate::world::chunk::Chunk;
 use hashbrown::HashMap;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 pub mod block;
 #[allow(clippy::cast_lossless)]
 pub mod chunk;
-
-pub type EntityId = i32;
 
 #[derive(Clone, Copy, Debug, new)]
 pub struct Position {
@@ -49,77 +45,69 @@ impl BlockPosition {
 }
 
 pub struct World {
-    generator: RefCell<Box<ChunkGenerator>>,
-    chunk_map: RefCell<HashMap<ChunkPosition, RefCell<Chunk>>>,
-    entities: RefCell<HashMap<EntityId, Rc<Entity>>>,
-}
-
-pub struct Entity {
-    pub pos: Position,
-    pub id: EntityId,
-}
-
-impl Entity {
-    pub fn new(pos: Position, id: EntityId) -> Self {
-        Self { pos, id }
-    }
+    pub generator: Box<ChunkGenerator>,
+    chunk_map: HashMap<ChunkPosition, Chunk>,
 }
 
 impl World {
-    pub fn new() -> Self {
+    pub fn new(generator: Box<ChunkGenerator>) -> Self {
         Self {
-            generator: RefCell::new(Box::new(GridChunkGenerator {})),
-            chunk_map: RefCell::new(HashMap::new()),
-            entities: RefCell::new(HashMap::new()),
+            generator,
+            chunk_map: HashMap::new(),
         }
     }
 
-    pub fn chunk_at(&self, pos: ChunkPosition) -> RefCell<Chunk> {
-        if let Some(chunk) = self.chunk_map.borrow().get(&pos) {
-            return chunk.clone();
+    /// Retrieves the chunk at the specified location.
+    /// If the chunk is not loaded, `None` will be returned.
+    pub fn chunk_at(&mut self, pos: ChunkPosition) -> Option<&Chunk> {
+        if let Some(chunk) = self.chunk_map.get(&pos) {
+            return Some(chunk);
         }
-        {
-            self.load_chunk(pos);
-            self.chunk_map.borrow().get(&pos).unwrap().clone()
-        }
+
+        None
     }
 
-    pub fn set_block_at(&self, pos: BlockPosition, block: Block) {
-        let chunk = self.chunk_at(pos.chunk_pos());
-        chunk.borrow_mut().set_block_at(
-            (pos.x % 16) as u16,
-            pos.y as u16,
-            (pos.z % 16) as u16,
-            block,
-        );
-    }
+    /// Queues the chunk at the specified
+    /// position for loading, indicating
+    /// that the chunk will be loaded at some
+    /// point in the future. If the chunk is already
+    /// queued for loading, this function will return.
+    /// If the chunk is already loaded, this function
+    /// will do nothing.
+    pub fn load_chunk(&mut self, pos: ChunkPosition) {
+        // TODO - in the future this will load chunks
+        // from the filesystem and insert a future
+        // into a pending_chunks map
 
-    pub fn block_at(&self, pos: BlockPosition) -> Block {
-        let _chunk = self.chunk_at(pos.chunk_pos());
-        let chunk = _chunk.borrow();
-        chunk.block_at((pos.x % 16) as u16, pos.y as u16, (pos.z % 16) as u16)
-    }
-
-    fn load_chunk(&self, pos: ChunkPosition) {
         let mut chunk = Chunk::new(pos);
-        self.generator.borrow_mut().generate(&mut chunk);
-        self.chunk_map.borrow_mut().insert(pos, RefCell::new(chunk));
+        self.generator.generate(&mut chunk);
+        self.chunk_map.insert(pos, chunk);
     }
 
-    pub fn entity_by_id(&self, id: EntityId) -> Option<Rc<Entity>> {
-        if let Some(entity) = self.entities.borrow().get(&id) {
-            Some(Rc::clone(entity))
+    /// Retrieves the block at the specified
+    /// location. If the chunk in which the block
+    /// exists is not laoded, `None` is returned.
+    pub fn block_at(&mut self, pos: BlockPosition) -> Option<Block> {
+        let chunk_pos = pos.chunk_pos();
+
+        if let Some(chunk) = self.chunk_at(chunk_pos) {
+            let rpos = chunk_relative_pos(pos);
+            Some(chunk.block_at(rpos.0, rpos.1, rpos.2))
         } else {
             None
         }
     }
-
-    pub fn add_entity(&self, id: EntityId, entity: Rc<Entity>) {
-        self.entities.borrow_mut().insert(id, entity);
-    }
 }
 
-trait ChunkGenerator {
+fn chunk_relative_pos(block_pos: BlockPosition) -> (u16, u16, u16) {
+    (
+        (block_pos.x % 16) as u16,
+        block_pos.y as u16,
+        (block_pos.z % 16) as u16,
+    )
+}
+
+pub trait ChunkGenerator {
     fn generate(&self, chunk: &mut Chunk);
 }
 
@@ -157,10 +145,16 @@ mod tests {
 
     #[test]
     fn test_chunk_map() {
-        let world = World::new();
+        let mut world = World::new(Box::new(GridChunkGenerator {}));
 
-        let _chunk = world.chunk_at(ChunkPosition::new(0, 0));
-        let chunk = _chunk.borrow();
+        let chunk = world.chunk_at(ChunkPosition::new(0, 0));
+        if chunk.is_some() {
+            panic!();
+        }
+
+        world.load_chunk(ChunkPosition::new(0, 0));
+
+        let chunk = world.chunk_at(ChunkPosition::new(0, 0)).unwrap();
 
         for x in 0..15 {
             for y in 0..64 {

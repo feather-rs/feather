@@ -11,69 +11,48 @@ use std::alloc::System;
 static ALLOC: System = System;
 
 pub mod config;
+pub mod genindex;
 pub mod initialhandler;
 pub mod io;
-pub mod player;
+pub mod network;
 pub mod prelude;
 
+use crate::genindex::{GenerationalArray, GenerationalIndex, GenerationalIndexAllocator};
+use crate::initialhandler::InitialHandlerComponent;
+use crate::io::NetworkIoManager;
+use crate::network::NetworkComponent;
+use feather_core::world::GridChunkGenerator;
 use prelude::*;
-use std::time::Duration;
+use std::thread::sleep;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub const TPS: u64 = 20;
+pub const PROTOCOL_VERSION: u32 = 404;
+pub const SERVER_VERSION: &'static str = "Feather 1.13.2";
 
-pub struct Server {
-    config: Rc<Config>,
-    player_count: u32,
-    io_manager: io::NetworkIoManager,
-    rsa_key: openssl::rsa::Rsa<openssl::pkey::Private>,
+type EntityMap<T> = GenerationalArray<T>;
+type Entity = GenerationalIndex;
 
-    entity_id_counter: RefCell<EntityId>,
-    tick_counter: RefCell<u64>,
+pub struct State {
+    pub world: World,
+    pub config: Config,
 
-    players: Players, // Server reference
-    world: Rc<World>,
+    pub allocator: GenerationalIndexAllocator,
+    pub io_manager: NetworkIoManager,
+
+    pub network_components: EntityMap<NetworkComponent>,
+    pub ih_components: EntityMap<InitialHandlerComponent>,
+    pub entity_components: EntityMap<EntityComponent>,
+
+    pub players: Vec<Entity>,
+
+    pub running: bool,
+    pub tick_count: u64,
 }
 
-#[derive(Clone)]
-pub struct Players {
-    players: Rc<RefCell<Vec<Rc<PlayerHandle>>>>,
-}
-
-impl Server {
-    pub fn allocate_entity_id(&self) -> EntityId {
-        let mut counter = self.entity_id_counter.borrow_mut();
-        *counter += 1;
-        *counter
-    }
-
-    pub fn tick_count(&self) -> u64 {
-        *self.tick_counter.borrow()
-    }
-
-    pub fn set_block_at(&self, pos: BlockPosition, block: Block) {
-        for player in self.players.players.borrow().iter() {
-            if let Err(()) = player.notify_block_update(pos, block) {
-                *player.should_remove.borrow_mut() = true;
-            }
-        }
-        self.world.set_block_at(pos, block);
-    }
-
-    pub fn add_entity(&self, entity: Rc<Entity>) {
-        self.world.add_entity(entity.id, entity);
-    }
-
-    pub fn register_player(&self, player: Rc<PlayerHandle>) {
-        for p in self.players.players.borrow().iter() {
-            if p.entity().id != player.entity().id {
-                p.notify_player_join(&player.entity());
-            }
-        }
-    }
-
-    pub fn move_entity(&self, _entity: EntityId, _new_pos: Position) {
-        unimplemented!()
-    }
+pub struct EntityComponent {
+    pub uuid: Uuid,
+    pub display_name: String,
 }
 
 fn main() {
@@ -89,74 +68,41 @@ fn main() {
         config.io.io_worker_threads,
     );
 
-    let mut players = Players {
-        players: Rc::new(RefCell::new(vec![])),
-    };
+    let mut state = init_state(config, io_manager);
 
-    let server = Rc::new(Server {
-        config: Rc::new(config),
-        player_count: 0,
-        io_manager,
-        rsa_key: openssl::rsa::Rsa::generate(1024).unwrap(),
+    info!("Initialized server state");
 
-        entity_id_counter: RefCell::new(0),
-        tick_counter: RefCell::new(0),
-        players: players.clone(),
-        world: Rc::new(World::new()),
-    });
+    run_loop(&mut state);
 
-    loop {
-        while let Ok(msg) = server.io_manager.receiver.try_recv() {
-            match msg {
-                io::ServerToListenerMessage::NewClient(info) => {
-                    debug!("Server registered connection");
-                    let new_player = PlayerHandle::accept_player_connection(
-                        info.sender,
-                        info.receiver,
-                        server.config.server.motd.clone(),
-                        server.player_count,
-                        server.config.server.max_players,
-                        server.rsa_key.clone(),
-                        Rc::clone(&server.config),
-                        Rc::clone(&server),
-                    );
-                    players.players.borrow_mut().push(Rc::new(new_player));
-                }
-                _ => unreachable!(),
-            }
-        }
+    state.io_manager.stop();
+}
 
-        tick(Rc::clone(&server), &mut players);
+fn run_loop(state: &mut State) {
+    while state.running {
+        network::network_system(state);
 
-        std::thread::sleep(Duration::from_millis(50)); // TODO proper game loop
+        state.tick_count += 1;
+        sleep(Duration::from_millis(1000 / 20)); // TODO - proper game loop
     }
 }
 
-fn tick(server: Rc<Server>, players: &mut Players) {
-    let mut remove_indices = Vec::with_capacity(0);
-    for (i, player) in players.players.borrow().iter().enumerate() {
-        let ok = player.tick().is_ok();
-        let should_keep = !*player.should_remove.borrow();
-        if !(ok && should_keep) {
-            remove_indices.push(i);
-        }
+fn init_state(config: Config, io_manager: NetworkIoManager) -> State {
+    State {
+        world: World::new(Box::new(GridChunkGenerator {})),
+        config,
 
-        if *player.should_register.borrow() {
-            server.register_player(Rc::clone(player));
-            *player.should_register.borrow_mut() = false;
-        }
+        allocator: GenerationalIndexAllocator::new(),
+        io_manager,
+
+        network_components: EntityMap::new(),
+        ih_components: EntityMap::new(),
+        entity_components: EntityMap::new(),
+
+        players: vec![],
+
+        running: true,
+        tick_count: 0,
     }
-
-    {
-        let mut count = 0;
-        for i in remove_indices {
-            players.players.borrow_mut().remove(i - count);
-            debug!("Server deregistering player");
-            count += 1;
-        }
-    }
-
-    *server.tick_counter.borrow_mut() += 1;
 }
 
 fn init_log(config: &Config) {
@@ -170,4 +116,33 @@ fn init_log(config: &Config) {
     };
 
     simple_logger::init_with_level(level).unwrap();
+}
+
+pub fn add_entity(state: &mut State) -> Entity {
+    let e = state.allocator.allocate();
+    e
+}
+
+pub fn add_player(state: &mut State) -> Entity {
+    let e = add_entity(state);
+    state.players.push(e);
+    e
+}
+
+pub fn remove_entity(state: &mut State, entity: Entity) {
+    state.allocator.deallocate(entity);
+}
+
+pub fn remove_player(state: &mut State, entity: Entity) {
+    network::handle_player_remove(state, entity);
+
+    remove_entity(state, entity);
+    state.players.retain(|e| *e != entity);
+}
+
+pub fn current_time_in_secs() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
 }
