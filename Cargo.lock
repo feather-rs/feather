@@ -375,6 +375,7 @@ dependencies = [
  "mockers 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "mockers_derive 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "mojang_api 0.1.0 (git+https://github.com/caelunshun/mojang-api-rs)",
+ "multimap 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.10.23 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.94 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -814,6 +815,14 @@ dependencies = [
  "serde_derive 1.0.94 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.40 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.7.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "multimap"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "serde 1.0.94 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1888,6 +1897,7 @@ dependencies = [
 "checksum mockers 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1534e2f6e41e75e90fc2732a69848e473ab8bba84e54e907649011329c6ee8ab"
 "checksum mockers_derive 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1e680ba61e47db30d0e7249f94b77ab279c2d2079356d1fd506d4caad149e339"
 "checksum mojang_api 0.1.0 (git+https://github.com/caelunshun/mojang-api-rs)" = "<none>"
+"checksum multimap 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1838fe05e64c53b9a62579020e4a12ec5947af5d703c56962d0e3b7b923bf3ba"
 "checksum native-tls 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "4b2df1a4c22fd44a62147fd8f13dd0f95c9d8ca7b2610299b2a2f9cf8964274e"
 "checksum net2 0.2.33 (registry+https://github.com/rust-lang/crates.io-index)" = "42550d9fb7b6684a6d404d9fa7250c2eb2646df731d1c06afc06dcee9e1bcf88"
 "checksum nodrop 0.1.13 (registry+https://github.com/rust-lang/crates.io-index)" = "2f9667ddcc6cc8a43afc9b7917599d7216aa09c463919ea32c59ed6cac8bc945"

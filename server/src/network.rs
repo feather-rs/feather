@@ -124,7 +124,7 @@ pub fn handle_player_remove(state: &mut State, player: Entity) {
 ///
 /// This function is currently called by the initial handler.
 pub fn broadcast_player_join(state: &mut State, player: Entity) {
-    let entity = state.entity_components.get(player).unwrap();
+    let entity_comp = state.entity_components.get(player).unwrap();
     let player_comp = state.player_components.get(player).unwrap();
 
     let mut props = vec![];
@@ -137,22 +137,43 @@ pub fn broadcast_player_join(state: &mut State, player: Entity) {
     }
 
     let display_name = json!({
-        "text": entity.display_name
+        "text": entity_comp.display_name
     })
     .to_string();
 
     let action = PlayerInfoAction::AddPlayer(
-        entity.display_name.clone(),
+        entity_comp.display_name.clone(),
         props,
         Gamemode::Creative,
         50,
         display_name,
     );
-    let player_info = PlayerInfo::new(action, entity.uuid.clone());
+    let player_info = PlayerInfo::new(action, entity_comp.uuid.clone());
 
     for p in &state.players {
         send_packet_to_player(state, *p, player_info.clone());
     }
+
+    // TODO only do this for players within the view distance
+    let spawn_player = SpawnPlayer::new(
+        player.index() as i32,
+        entity_comp.uuid.clone(),
+        entity_comp.position.x,
+        entity_comp.position.y,
+        entity_comp.position.z,
+        degrees_to_stops(entity_comp.position.pitch),
+        degrees_to_stops(entity_comp.position.yaw),
+    );
+
+    for p in &state.players {
+        if *p != player {
+            send_packet_to_player(state, *p, spawn_player.clone());
+        }
+    }
+}
+
+pub fn degrees_to_stops(degs: f32) -> u8 {
+    ((degs / 360.0) * 256.) as u8
 }
 
 /// Calculates the relative move fields

@@ -609,7 +609,7 @@ pub struct SpawnPainting {
     pub direction: u8,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct SpawnPlayer {
     pub entity_id: VarInt,
     pub player_uuid: Uuid,
@@ -619,6 +619,29 @@ pub struct SpawnPlayer {
     pub yaw: u8,
     pub pitch: u8,
     // TODO metadata
+}
+
+impl Packet for SpawnPlayer {
+    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_var_int(self.entity_id);
+        buf.write_uuid(&self.player_uuid);
+        buf.write_f64_be(self.x);
+        buf.write_f64_be(self.y);
+        buf.write_f64_be(self.z);
+        buf.write_u8(self.yaw);
+        buf.write_u8(self.pitch);
+
+        // Metadata - just write 0xff to terminate
+        buf.write_u8(0xff);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::SpawnPlayer
+    }
 }
 
 #[derive(Default, AsAny, new, Packet)]

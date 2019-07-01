@@ -199,6 +199,7 @@ fn handle_login_start(state: &mut State, player: Entity, packet: &LoginStart) ->
         state.player_components.set(player, player_comp);
 
         let entity_comp = EntityComponent {
+            position: Position::new(0.0, 0.0, 0.0, 0.0, 0.0),
             uuid: Uuid::new_v4(),
             display_name: ih.username.as_ref().unwrap().clone(),
         };
@@ -288,6 +289,7 @@ fn handle_encryption_response(
         state.player_components.set(player, player_comp);
 
         let entity_comp = EntityComponent {
+            position: Position::new(0.0, 0.0, 0.0, 0.0, 0.0),
             uuid: Uuid::from_str(&res.id).unwrap(),
             display_name: ih.username.as_ref().unwrap().clone(),
         };

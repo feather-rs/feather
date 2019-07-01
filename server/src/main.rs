@@ -25,6 +25,7 @@ use feather_core::world::GridChunkGenerator;
 use prelude::*;
 use std::thread::sleep;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use multimap::MultiMap;
 
 pub const TPS: u64 = 20;
 pub const PROTOCOL_VERSION: u32 = 404;
@@ -47,6 +48,14 @@ pub struct State {
 
     pub players: Vec<Entity>,
 
+    /// Each entity which requires its chunks and chunks
+    /// around it to be loaded can insert an entry into
+    /// this map. For example, a player will have
+    /// an entry for every chunk within the view distance.
+    /// When a loaded chunk has no more holders, it will
+    /// be queued for unloading.
+    pub chunk_holders: MultiMap<ChunkPosition, Entity>,
+
     pub running: bool,
     pub tick_count: u64,
 }
@@ -58,6 +67,7 @@ pub struct PlayerComponent {
 pub struct EntityComponent {
     pub uuid: Uuid,
     pub display_name: String,
+    pub position: Position,
 }
 
 fn main() {
@@ -105,6 +115,8 @@ fn init_state(config: Config, io_manager: NetworkIoManager) -> State {
         player_components: EntityMap::new(),
 
         players: vec![],
+
+        chunk_holders: MultiMap::new(),
 
         running: true,
         tick_count: 0,
