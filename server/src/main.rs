@@ -25,6 +25,8 @@ use prelude::*;
 use std::time::Duration;
 
 pub const TPS: u64 = 20;
+pub const PROTOCOL_VERSION: u32 = 404;
+pub const SERVER_VERSION: &'static str = "Feather 1.13.2";
 
 type EntityMap<T> = GenerationalArray<T>;
 type Entity = GenerationalIndex;
