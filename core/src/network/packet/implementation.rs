@@ -1040,7 +1040,85 @@ pub struct EntityLook {
     pub on_ground: bool,
 }
 
-/// ...
+// ...
+
+#[derive(AsAny, new)]
+pub struct PlayerInfo {
+    action: PlayerInfoAction,
+    uuid: Uuid,
+}
+
+impl Packet for PlayerInfo {
+    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_var_int(self.action.id());
+        buf.write_var_int(1); // Number of players - just use 1 for now
+
+        buf.write_uuid(&self.uuid);
+
+        match &self.action {
+            PlayerInfoAction::AddPlayer(name, props, gamemode, ping, display_name) => {
+                buf.write_string(name);
+                buf.write_var_int(props.len() as i32);
+                for prop in props {
+                    buf.write_string(&prop.0);
+                    buf.write_string(&prop.1);
+                    buf.write_bool(true);
+                    buf.write_string(&prop.2);
+                }
+
+                buf.write_var_int(gamemode.get_id() as i32);
+                buf.write_var_int(*ping);
+                buf.write_bool(true);
+                buf.write_string(display_name);
+            }
+            PlayerInfoAction::UpdateGamemode(gamemode) => {
+                buf.write_var_int(gamemode.get_id() as i32)
+            }
+            PlayerInfoAction::UpdateLatency(ping) => buf.write_var_int(*ping),
+            PlayerInfoAction::UpdateDisplayName(display_name) => {
+                buf.write_bool(true);
+                buf.write_string(&display_name);
+            }
+            PlayerInfoAction::RemovePlayer => (),
+        }
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::PlayerInfo
+    }
+}
+
+#[derive(Debug)]
+pub enum PlayerInfoAction {
+    AddPlayer(
+        String,
+        Vec<(String, String, String)>,
+        Gamemode,
+        VarInt,
+        String,
+    ),
+    UpdateGamemode(Gamemode),
+    UpdateLatency(VarInt),
+    UpdateDisplayName(String),
+    RemovePlayer,
+}
+
+impl PlayerInfoAction {
+    pub fn id(&self) -> VarInt {
+        match self {
+            PlayerInfoAction::AddPlayer(_, _, _, _, _) => 0,
+            PlayerInfoAction::UpdateGamemode(_) => 1,
+            PlayerInfoAction::UpdateLatency(_) => 2,
+            PlayerInfoAction::UpdateDisplayName(_) => 3,
+            PlayerInfoAction::RemovePlayer => 4,
+        }
+    }
+}
+// ...
 
 #[derive(Default, AsAny, new, Packet)]
 pub struct SpawnPosition {
