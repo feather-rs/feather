@@ -129,18 +129,26 @@ pub fn broadcast_player_join(state: &mut State, player: Entity) {
 
     let mut props = vec![];
     for prop in &player_comp.profile_properties {
-        props.push((prop.name.clone(), prop.value.clone(), prop.signature.clone()));
+        props.push((
+            prop.name.clone(),
+            prop.value.clone(),
+            prop.signature.clone(),
+        ));
     }
 
     let display_name = json!({
         "text": entity.display_name
-    }).to_string();
+    })
+    .to_string();
 
-    let action = PlayerInfoAction::AddPlayer(entity.display_name.clone(), props, Gamemode::Creative, 50, display_name);
-    let player_info = PlayerInfo::new(
-        action,
-        entity.uuid.clone(),
+    let action = PlayerInfoAction::AddPlayer(
+        entity.display_name.clone(),
+        props,
+        Gamemode::Creative,
+        50,
+        display_name,
     );
+    let player_info = PlayerInfo::new(action, entity.uuid.clone());
 
     for p in &state.players {
         send_packet_to_player(state, *p, player_info.clone());

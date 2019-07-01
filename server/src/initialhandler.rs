@@ -1,4 +1,7 @@
-use crate::network::{enable_compression_for_player, enable_encryption_for_player, send_packet_to_player, broadcast_player_join};
+use crate::network::{
+    broadcast_player_join, enable_compression_for_player, enable_encryption_for_player,
+    send_packet_to_player,
+};
 use crate::prelude::*;
 use crate::{remove_player, Entity, EntityComponent, PlayerComponent, State};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
