@@ -87,6 +87,18 @@ impl<T> GenerationalArray<T> {
         });
     }
 
+    pub fn remove(&mut self, index: GenerationalIndex) -> Option<T> {
+        let entry = &mut self.0[index.index()];
+        if let Some(entry) = entry {
+            if entry.generation == index.generation {
+                let entry = self.0.get_mut(index.index()).unwrap().take().unwrap();
+                return Some(entry.value)
+            }
+        }
+
+        None
+    }
+
     pub fn get(&self, index: GenerationalIndex) -> Option<&T> {
         let entry = self.0.get(index.index());
 

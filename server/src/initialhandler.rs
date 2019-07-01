@@ -1,9 +1,9 @@
 use crate::prelude::*;
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use openssl::pkey::Private;
-use openssl::rsa::{self, Rsa};
+use openssl::rsa::{self, Rsa, Padding};
 use std::rc::Rc;
-use crate::{State, Entity};
+use crate::{State, Entity, EntityComponent};
 use std::fmt::Formatter;
 use crate::io::ServerToWorkerMessage;
 use crate::network::{send_packet_to_player, enable_compression_for_player, enable_encryption_for_player};
@@ -63,7 +63,7 @@ pub fn handle_packet(state: &mut State, player: Entity, packet: Box<Packet>) -> 
         PacketType::Request => handle_request(state, player,  cast_packet::<Request>(&packet))?,
         PacketType::Ping => handle_ping(state, player, cast_packet::<Ping>(&packet))?,
         PacketType::LoginStart => handle_login_start(state, player, cast_packet::<LoginStart>(&packet))?,
-        //PacketType::EncryptionResponse => handle_encryption_response(state, player, cast_packet::<EncryptionResponse>(&packet))?,
+        PacketType::EncryptionResponse => handle_encryption_response(state, player, cast_packet::<EncryptionResponse>(&packet))?,
         _ => return Err(Error::InvalidPacket(packet.ty())),
     }
     Ok(())
@@ -77,7 +77,7 @@ fn handle_handshake(state: &mut State, player: Entity, packet: &Handshake) -> Re
     }
 
     if packet.protocol_version != PROTOCOL_VERSION && packet.next_state != HandshakeState::Status {
-        disconnect(state, player, &format!("Bad protocol version {} - this server is on {}", packet.protocol_version, PROTOCOL_VERSION));
+        disconnect_login(state, player, &format!("Bad protocol version {} - this server is on {}", packet.protocol_version, PROTOCOL_VERSION));
         return Ok(());
     }
 
@@ -172,13 +172,92 @@ fn handle_login_start(state: &mut State, player: Entity, packet: &LoginStart) ->
         send_packet_to_player(state, player, encryption_request);
     } else {
         // Login completed
-        unimplemented!()
+        finish(state, player);
     }
 
     Ok(())
 }
 
-fn disconnect(state: &mut State, player: Entity, reason: &str) {
+fn handle_encryption_response(state: &mut State, player: Entity, packet: &EncryptionResponse) -> Result<(), Error> {
+    let ih = state.ih_components.get(player).unwrap();
+
+    if ih.stage != Stage::AwaitEncryptionResponse {
+        return Err(Error::InvalidPacket(PacketType::Ping));
+    }
+
+    let rsa = ih.rsa_key.as_ref().unwrap();
+
+    let secret: [u8; 16] = {
+        let mut buf = vec![0u8; rsa.size() as usize];
+
+        if let Ok(amnt) = rsa.private_decrypt(&packet.secret, &mut buf, Padding::PKCS1) {
+            if amnt != 16 {
+                return Err(Error::MalformedData);
+            }
+
+            let mut res = [0u8; 16];
+            for (i, val) in buf[..16].iter().enumerate() {
+                res[i] = *val;
+            }
+            res
+        } else {
+            return Err(Error::MalformedData);
+        }
+    };
+
+    let verify_token: [u8; VERIFY_TOKEN_LEN] = {
+        let mut buf = vec![0u8; rsa.size() as usize];
+
+        if let Ok(amnt) = rsa.private_decrypt(&packet.secret, &mut buf, Padding::PKCS1) {
+            if amnt != VERIFY_TOKEN_LEN {
+                return Err(Error::MalformedData);
+            }
+
+            let mut res = [0u8; VERIFY_TOKEN_LEN];
+            for (i, val) in buf[..VERIFY_TOKEN_LEN].iter().enumerate() {
+                res[i] = *val;
+            }
+            res
+        } else {
+            return Err(Error::MalformedData);
+        }
+    };
+
+    if !compare_verify_tokens(ih.verify_token.clone(), verify_token) {
+        return Err(Error::MalformedData);
+    }
+
+    enable_encryption_for_player(state, player, secret);
+
+    finish(state, player);
+
+    Ok(())
+}
+
+fn finish(state: &mut State, player: Entity) {
+    // TODO authentication
+    let username = "JarJarBinks";
+    let uuid = Uuid::new_v4();
+
+    let login_success = LoginSuccess::new(username.to_string(), uuid.to_hyphenated_ref().to_string());
+    send_packet_to_player(state, player, login_success);
+
+    state.entity_components.set(player, EntityComponent { uuid });
+    state.ih_components.remove(player);
+    debug!("InitialHandler finished");
+}
+
+fn compare_verify_tokens(x: [u8; VERIFY_TOKEN_LEN], y: [u8; VERIFY_TOKEN_LEN]) -> bool {
+    for i in 0..VERIFY_TOKEN_LEN {
+        if x[i] != y[i] {
+            return false;
+        }
+    }
+
+    true
+}
+
+pub fn disconnect_login(state: &mut State, player: Entity, reason: &str) {
     let packet = DisconnectLogin::new(
         json!({
             "text": reason
@@ -187,6 +266,5 @@ fn disconnect(state: &mut State, player: Entity, reason: &str) {
 
     send_packet_to_player(state, player, packet);
 
-    state.remove_entity(player);
     info!("Player disconnected: {}", reason);
 }

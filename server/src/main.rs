@@ -39,10 +39,15 @@ pub struct State {
 
     pub network_components: EntityMap<NetworkComponent>,
     pub ih_components: EntityMap<InitialHandlerComponent>,
+    pub entity_components: EntityMap<EntityComponent>,
 
     pub players: Vec<Entity>,
 
     pub running: bool,
+}
+
+pub struct EntityComponent {
+    uuid: Uuid,
 }
 
 impl State {
@@ -84,6 +89,7 @@ fn init_state(config: Config) -> State {
 
         network_components: EntityMap::new(),
         ih_components: EntityMap::new(),
+        entity_components: EntityMap::new(),
 
         players: vec![],
         running: true,
