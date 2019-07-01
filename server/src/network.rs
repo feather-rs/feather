@@ -1,7 +1,7 @@
 use crate::io::ServerToWorkerMessage;
 use crate::prelude::*;
-use crate::{initialhandler as ih, Entity, State, remove_player};
-use feather_core::network::packet::{Packet};
+use crate::{initialhandler as ih, remove_player, Entity, State};
+use feather_core::network::packet::Packet;
 use mio_extras::channel::{Receiver, Sender};
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
@@ -9,7 +9,6 @@ use mio_extras::channel::{Receiver, Sender};
 pub struct NetworkComponent {
     sender: Sender<ServerToWorkerMessage>,
     receiver: Receiver<ServerToWorkerMessage>,
-
     //last_keep_alive_time: u64,
 }
 
@@ -28,11 +27,11 @@ pub fn network_system(state: &mut State) {
                     } else {
                         // TODO
                     }
-                },
+                }
                 ServerToWorkerMessage::NotifyDisconnect => {
                     players_to_remove.push(player);
                     info!("Player disconnected");
-                },
+                }
                 _ => panic!("Invalid message received from worker thread"),
             }
         }
@@ -45,17 +44,23 @@ pub fn network_system(state: &mut State) {
 
 pub fn send_packet_to_player<P: Packet + 'static>(state: &State, player: Entity, packet: P) {
     let comp = &state.network_components[player];
-    let _ = comp.sender.send(ServerToWorkerMessage::SendPacket(Box::new(packet)));
+    let _ = comp
+        .sender
+        .send(ServerToWorkerMessage::SendPacket(Box::new(packet)));
 }
 
 pub fn enable_compression_for_player(state: &State, player: Entity, threshold: usize) {
     let comp = &state.network_components[player];
-    let _ = comp.sender.send(ServerToWorkerMessage::EnableCompression(threshold));
+    let _ = comp
+        .sender
+        .send(ServerToWorkerMessage::EnableCompression(threshold));
 }
 
 pub fn enable_encryption_for_player(state: &State, player: Entity, key: [u8; 16]) {
     let comp = &state.network_components[player];
-    let _ = comp.sender.send(ServerToWorkerMessage::EnableEncryption(key));
+    let _ = comp
+        .sender
+        .send(ServerToWorkerMessage::EnableEncryption(key));
 }
 
 /// Calculates the relative move fields

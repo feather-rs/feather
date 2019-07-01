@@ -92,7 +92,7 @@ impl<T> GenerationalArray<T> {
         if let Some(entry) = entry {
             if entry.generation == index.generation {
                 let entry = self.0.get_mut(index.index()).unwrap().take().unwrap();
-                return Some(entry.value)
+                return Some(entry.value);
             }
         }
 

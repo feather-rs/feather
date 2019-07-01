@@ -111,7 +111,6 @@ impl Packet for Handshake {
     }
 }
 
-
 #[derive(PartialEq, Eq)]
 pub enum HandshakeState {
     Status,

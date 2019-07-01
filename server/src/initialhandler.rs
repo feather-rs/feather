@@ -1,10 +1,12 @@
+use crate::network::{
+    enable_compression_for_player, enable_encryption_for_player, send_packet_to_player,
+};
 use crate::prelude::*;
+use crate::{remove_player, Entity, EntityComponent, State};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use openssl::pkey::Private;
-use openssl::rsa::{Rsa, Padding};
-use crate::{State, Entity, EntityComponent, remove_player};
+use openssl::rsa::{Padding, Rsa};
 use std::fmt::Formatter;
-use crate::network::{send_packet_to_player, enable_compression_for_player, enable_encryption_for_player};
 
 use super::{PROTOCOL_VERSION, SERVER_VERSION};
 
@@ -48,9 +50,16 @@ pub enum Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         match self {
-            Error::InvalidPacket(ty) => f.write_str(&format!("Dent invalid packet type {:?}", ty)).unwrap(),
+            Error::InvalidPacket(ty) => f
+                .write_str(&format!("Dent invalid packet type {:?}", ty))
+                .unwrap(),
             Error::MalformedData => f.write_str("Dent invalid data").unwrap(),
-            Error::InvalidProtocolVersion(server, client) => f.write_str(&format!("Protocol versions do not match: client is on {}; server is on {}", client, server)).unwrap(),
+            Error::InvalidProtocolVersion(server, client) => f
+                .write_str(&format!(
+                    "Protocol versions do not match: client is on {}; server is on {}",
+                    client, server
+                ))
+                .unwrap(),
         };
 
         Ok(())
@@ -59,11 +68,17 @@ impl std::fmt::Display for Error {
 
 pub fn handle_packet(state: &mut State, player: Entity, packet: Box<Packet>) -> Result<(), Error> {
     match packet.ty() {
-        PacketType::Handshake => handle_handshake(state, player, cast_packet::<Handshake>(&packet))?,
-        PacketType::Request => handle_request(state, player,  cast_packet::<Request>(&packet))?,
+        PacketType::Handshake => {
+            handle_handshake(state, player, cast_packet::<Handshake>(&packet))?
+        }
+        PacketType::Request => handle_request(state, player, cast_packet::<Request>(&packet))?,
         PacketType::Ping => handle_ping(state, player, cast_packet::<Ping>(&packet))?,
-        PacketType::LoginStart => handle_login_start(state, player, cast_packet::<LoginStart>(&packet))?,
-        PacketType::EncryptionResponse => handle_encryption_response(state, player, cast_packet::<EncryptionResponse>(&packet))?,
+        PacketType::LoginStart => {
+            handle_login_start(state, player, cast_packet::<LoginStart>(&packet))?
+        }
+        PacketType::EncryptionResponse => {
+            handle_encryption_response(state, player, cast_packet::<EncryptionResponse>(&packet))?
+        }
         _ => return Err(Error::InvalidPacket(packet.ty())),
     }
     Ok(())
@@ -77,7 +92,10 @@ fn handle_handshake(state: &mut State, player: Entity, packet: &Handshake) -> Re
     }
 
     if packet.protocol_version != PROTOCOL_VERSION && packet.next_state != HandshakeState::Status {
-        return Err(Error::InvalidProtocolVersion(PROTOCOL_VERSION, packet.protocol_version));
+        return Err(Error::InvalidProtocolVersion(
+            PROTOCOL_VERSION,
+            packet.protocol_version,
+        ));
     }
 
     match packet.next_state {
@@ -132,7 +150,11 @@ fn handle_ping(state: &mut State, player: Entity, packet: &Ping) -> Result<(), E
     Ok(())
 }
 
-fn handle_login_start(state: &mut State, player: Entity, _packet: &LoginStart) -> Result<(), Error> {
+fn handle_login_start(
+    state: &mut State,
+    player: Entity,
+    _packet: &LoginStart,
+) -> Result<(), Error> {
     let ih = state.ih_components.get(player).unwrap();
 
     if ih.stage != Stage::AwaitLoginStart {
@@ -177,7 +199,11 @@ fn handle_login_start(state: &mut State, player: Entity, _packet: &LoginStart) -
     Ok(())
 }
 
-fn handle_encryption_response(state: &mut State, player: Entity, packet: &EncryptionResponse) -> Result<(), Error> {
+fn handle_encryption_response(
+    state: &mut State,
+    player: Entity,
+    packet: &EncryptionResponse,
+) -> Result<(), Error> {
     let ih = state.ih_components.get(player).unwrap();
 
     if ih.stage != Stage::AwaitEncryptionResponse {
@@ -238,10 +264,13 @@ fn finish(state: &mut State, player: Entity) {
     let username = "JarJarBinks";
     let uuid = Uuid::new_v4();
 
-    let login_success = LoginSuccess::new(username.to_string(), uuid.to_hyphenated_ref().to_string());
+    let login_success =
+        LoginSuccess::new(username.to_string(), uuid.to_hyphenated_ref().to_string());
     send_packet_to_player(state, player, login_success);
 
-    state.entity_components.set(player, EntityComponent { uuid });
+    state
+        .entity_components
+        .set(player, EntityComponent { uuid });
     state.ih_components.remove(player);
     debug!("InitialHandler finished");
 }
@@ -257,11 +286,7 @@ fn compare_verify_tokens(x: [u8; VERIFY_TOKEN_LEN], y: [u8; VERIFY_TOKEN_LEN]) -
 }
 
 pub fn disconnect_login(state: &mut State, player: Entity, reason: &str) {
-    let packet = DisconnectLogin::new(
-        json!({
-            "text": reason
-        }).to_string()
-    );
+    let packet = DisconnectLogin::new(json!({ "text": reason }).to_string());
 
     send_packet_to_player(state, player, packet);
 
