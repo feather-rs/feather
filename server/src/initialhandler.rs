@@ -270,7 +270,7 @@ fn finish(state: &mut State, player: Entity) {
 
     state
         .entity_components
-        .set(player, EntityComponent { uuid });
+        .set(player, EntityComponent { uuid, display_name: username.to_string() });
     state.ih_components.remove(player);
     debug!("InitialHandler finished");
 }

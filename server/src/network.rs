@@ -1,8 +1,9 @@
-use crate::io::ServerToWorkerMessage;
+use crate::io::{ServerToWorkerMessage, ServerToListenerMessage};
 use crate::prelude::*;
-use crate::{initialhandler as ih, remove_player, Entity, State};
+use crate::{initialhandler as ih, remove_player, Entity, State, add_player};
 use feather_core::network::packet::Packet;
 use mio_extras::channel::{Receiver, Sender};
+use crate::initialhandler::InitialHandlerComponent;
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
 
@@ -12,7 +13,22 @@ pub struct NetworkComponent {
     //last_keep_alive_time: u64,
 }
 
+impl NetworkComponent {
+    pub fn new(sender: Sender<ServerToWorkerMessage>, receiver: Receiver<ServerToWorkerMessage>) -> Self {
+        Self {
+            sender,
+            receiver,
+        }
+    }
+}
+
 pub fn network_system(state: &mut State) {
+    handle_connections(state);
+
+    poll_for_new_players(state);
+}
+
+fn handle_connections(state: &mut State) {
     let mut players_to_remove = vec![];
 
     for player in state.players.clone() {
@@ -39,6 +55,23 @@ pub fn network_system(state: &mut State) {
 
     for _player in players_to_remove {
         remove_player(state, _player);
+    }
+}
+
+fn poll_for_new_players(state: &mut State) {
+    while let Ok(msg) = state.io_manager.receiver.try_recv() {
+        match msg {
+            ServerToListenerMessage::NewClient(info) => {
+                debug!("Server registering player");
+                let player = add_player(state);
+                let ih = InitialHandlerComponent::new();
+                state.ih_components.set(player, ih);
+
+                let netc = NetworkComponent::new(info.sender, info.receiver);
+                state.network_components.set(player, netc);
+            },
+            _ => panic!("Invalid message received from listener thread"),
+        }
     }
 }
 

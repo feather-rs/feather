@@ -22,7 +22,9 @@ use crate::initialhandler::InitialHandlerComponent;
 use crate::network::NetworkComponent;
 use feather_core::world::GridChunkGenerator;
 use prelude::*;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use std::thread::sleep;
+use crate::io::NetworkIoManager;
 
 pub const TPS: u64 = 20;
 pub const PROTOCOL_VERSION: u32 = 404;
@@ -36,6 +38,7 @@ pub struct State {
     pub config: Config,
 
     pub allocator: GenerationalIndexAllocator,
+    pub io_manager: NetworkIoManager,
 
     pub network_components: EntityMap<NetworkComponent>,
     pub ih_components: EntityMap<InitialHandlerComponent>,
@@ -48,6 +51,7 @@ pub struct State {
 
 pub struct EntityComponent {
     pub uuid: Uuid,
+    pub display_name: String,
 }
 
 fn main() {
@@ -63,25 +67,30 @@ fn main() {
         config.io.io_worker_threads,
     );
 
-    let mut state = init_state(config);
+    let mut state = init_state(config, io_manager);
 
     info!("Initialized server state");
 
     run_loop(&mut state);
 
-    io_manager.stop();
+    state.io_manager.stop();
 }
 
 fn run_loop(state: &mut State) {
-    while state.running {}
+    while state.running {
+        network::network_system(state);
+
+        sleep(Duration::from_millis(1000 / 20)); // TODO - proper game loop
+    }
 }
 
-fn init_state(config: Config) -> State {
+fn init_state(config: Config, io_manager: NetworkIoManager) -> State {
     State {
         world: World::new(Box::new(GridChunkGenerator {})),
         config,
 
         allocator: GenerationalIndexAllocator::new(),
+        io_manager,
 
         network_components: EntityMap::new(),
         ih_components: EntityMap::new(),
@@ -103,6 +112,17 @@ fn init_log(config: &Config) {
     };
 
     simple_logger::init_with_level(level).unwrap();
+}
+
+pub fn add_entity(state: &mut State) -> Entity {
+    let e = state.allocator.allocate();
+    e
+}
+
+pub fn add_player(state: &mut State) -> Entity {
+    let e = add_entity(state);
+    state.players.push(e);
+    e
 }
 
 pub fn remove_entity(state: &mut State, entity: Entity) {
