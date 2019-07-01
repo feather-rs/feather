@@ -322,20 +322,10 @@ fn join_game(state: &mut State, player: Entity) {
 
     // Send spawn position + player position
     // TODO proper persistence
-    let spawn_position = SpawnPosition::new(
-        BlockPosition::new(0, 64, 0)
-    );
+    let spawn_position = SpawnPosition::new(BlockPosition::new(0, 64, 0));
     send_packet_to_player(state, player, spawn_position);
 
-    let pos_and_look = PlayerPositionAndLookClientbound::new(
-        0.0,
-        64.0,
-        0.0,
-        0.0,
-        0.0,
-        0,
-        0
-    );
+    let pos_and_look = PlayerPositionAndLookClientbound::new(0.0, 64.0, 0.0, 0.0, 0.0, 0, 0);
     send_packet_to_player(state, player, pos_and_look);
     debug!("Player joined game");
 }

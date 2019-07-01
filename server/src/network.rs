@@ -47,7 +47,6 @@ fn handle_connections(state: &mut State) {
                 }
                 ServerToWorkerMessage::NotifyDisconnect => {
                     players_to_remove.push(player);
-                    info!("Player disconnected");
                 }
                 _ => panic!("Invalid message received from worker thread"),
             }

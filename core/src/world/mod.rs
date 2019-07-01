@@ -73,12 +73,11 @@ impl World {
     /// point in the future. If the chunk is already
     /// queued for loading, this function will return.
     /// If the chunk is already loaded, this function
-    /// will panic.
+    /// will do nothing.
     pub fn load_chunk(&mut self, pos: ChunkPosition) {
         // TODO - in the future this will load chunks
         // from the filesystem and insert a future
         // into a pending_chunks map
-        assert!(!self.chunk_map.contains_key(&pos));
 
         let mut chunk = Chunk::new(pos);
         self.generator.generate(&mut chunk);

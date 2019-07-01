@@ -84,6 +84,7 @@ fn run_loop(worker: &mut Worker) {
 
 fn handle_event(worker: &mut Worker, event: Event) {
     let readiness = event.readiness();
+    trace!("Handling event with readiness {:?}", readiness);
     if readiness.is_readable() {
         match event.token() {
             LISTENER_TOKEN => read_from_listener(worker),
@@ -217,7 +218,7 @@ fn disconnect_client(worker: &mut Worker, client_id: Client) {
 
     let _ = client.sender.send(ServerToWorkerMessage::NotifyDisconnect);
 
-    debug!("Disconnnecting client {}", client_id.0);
+    debug!("Disconnecting client {}", client_id.0);
 
     worker.clients.remove(&client_id);
 }
