@@ -2,7 +2,7 @@ use crate::initialhandler::InitialHandlerComponent;
 use crate::io::{ServerToListenerMessage, ServerToWorkerMessage};
 use crate::prelude::*;
 use crate::{add_player, initialhandler as ih, remove_player, Entity, State};
-use feather_core::network::packet::{Packet, implementation::*};
+use feather_core::network::packet::{implementation::*, Packet};
 use mio_extras::channel::{Receiver, Sender};
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
@@ -66,8 +66,12 @@ fn send_keep_alives(state: &mut State) {
     }
 
     for player in state.players.clone() {
-        let keep_alive = KeepAliveClientbound::new(0);
-        send_packet_to_player(state, player, keep_alive);
+        // Don't send keepalives during login - this will
+        // result in an invalid packet on the client
+        if state.ih_components.get(player).is_none() {
+            let keep_alive = KeepAliveClientbound::new(0);
+            send_packet_to_player(state, player, keep_alive);
+        }
     }
 }
 

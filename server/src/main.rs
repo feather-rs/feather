@@ -43,11 +43,16 @@ pub struct State {
     pub network_components: EntityMap<NetworkComponent>,
     pub ih_components: EntityMap<InitialHandlerComponent>,
     pub entity_components: EntityMap<EntityComponent>,
+    pub player_components: EntityMap<PlayerComponent>,
 
     pub players: Vec<Entity>,
 
     pub running: bool,
     pub tick_count: u64,
+}
+
+pub struct PlayerComponent {
+    pub profile_properties: Vec<mojang_api::ServerAuthProperty>,
 }
 
 pub struct EntityComponent {
@@ -97,6 +102,7 @@ fn init_state(config: Config, io_manager: NetworkIoManager) -> State {
         network_components: EntityMap::new(),
         ih_components: EntityMap::new(),
         entity_components: EntityMap::new(),
+        player_components: EntityMap::new(),
 
         players: vec![],
 

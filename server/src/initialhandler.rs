@@ -2,13 +2,15 @@ use crate::network::{
     enable_compression_for_player, enable_encryption_for_player, send_packet_to_player,
 };
 use crate::prelude::*;
-use crate::{remove_player, Entity, EntityComponent, State};
+use crate::{remove_player, Entity, EntityComponent, PlayerComponent, State};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use openssl::pkey::Private;
 use openssl::rsa::{Padding, Rsa};
 use std::fmt::Formatter;
+use std::str::FromStr;
 
 use super::{PROTOCOL_VERSION, SERVER_VERSION};
+use mojang_api::ServerAuthResponse;
 
 const RSA_BITS: u32 = 1024; // Yes, very secure
 
@@ -29,6 +31,8 @@ pub struct InitialHandlerComponent {
     stage: Stage,
     rsa_key: Option<Rsa<Private>>,
     verify_token: [u8; VERIFY_TOKEN_LEN],
+    /// Sent in Login Start
+    username: Option<String>,
 }
 
 impl InitialHandlerComponent {
@@ -37,6 +41,7 @@ impl InitialHandlerComponent {
             stage: Stage::AwaitHandshake,
             rsa_key: None,
             verify_token: rand::random(),
+            username: None,
         }
     }
 }
@@ -45,6 +50,7 @@ pub enum Error {
     InvalidPacket(PacketType),
     MalformedData(String),
     InvalidProtocolVersion(u32, u32),
+    AuthenticationFailed,
 }
 
 impl std::fmt::Display for Error {
@@ -62,6 +68,7 @@ impl std::fmt::Display for Error {
                     client, server
                 ))
                 .unwrap(),
+            Error::AuthenticationFailed => f.write_str("Authentication failed").unwrap(),
         };
 
         Ok(())
@@ -152,11 +159,9 @@ fn handle_ping(state: &mut State, player: Entity, packet: &Ping) -> Result<(), E
     Ok(())
 }
 
-fn handle_login_start(
-    state: &mut State,
-    player: Entity,
-    _packet: &LoginStart,
-) -> Result<(), Error> {
+fn handle_login_start(state: &mut State, player: Entity, packet: &LoginStart) -> Result<(), Error> {
+    state.ih_components[player].username = Some(packet.username.clone());
+
     let ih = state.ih_components.get(player).unwrap();
 
     if ih.stage != Stage::AwaitLoginStart {
@@ -185,7 +190,19 @@ fn handle_login_start(
 
         send_packet_to_player(state, player, encryption_request);
     } else {
-        // Login completed
+        // Login completed - initialize entity and player components
+        // This would otherwise be done in `handle_encryption_response`
+        let player_comp = PlayerComponent {
+            profile_properties: vec![],
+        };
+        state.player_components.set(player, player_comp);
+
+        let entity_comp = EntityComponent {
+            uuid: Uuid::new_v4(),
+            display_name: ih.username.as_ref().unwrap().clone(),
+        };
+        state.entity_components.set(player, entity_comp);
+
         finish(state, player);
     }
 
@@ -257,6 +274,28 @@ fn handle_encryption_response(
         ));
     }
 
+    // Authenticate
+    let auth_res = authenticate(
+        secret.clone(),
+        &ih.rsa_key.as_ref().unwrap().public_key_to_der().unwrap(),
+        ih.username.as_ref().unwrap(),
+    );
+    if let Ok(res) = auth_res {
+        let player_comp = PlayerComponent {
+            profile_properties: res.properties,
+        };
+        state.player_components.set(player, player_comp);
+
+        let entity_comp = EntityComponent {
+            uuid: Uuid::from_str(&res.id).unwrap(),
+            display_name: ih.username.as_ref().unwrap().clone(),
+        };
+        state.entity_components.set(player, entity_comp);
+        debug!("Authentication successful");
+    } else {
+        return Err(Error::AuthenticationFailed);
+    }
+
     enable_encryption_for_player(state, player, secret);
 
     finish(state, player);
@@ -274,21 +313,14 @@ fn finish(state: &mut State, player: Entity) {
         enable_compression_for_player(state, player, threshold as usize);
     }
 
-    // TODO authentication
-    let username = "JarJarBinks";
-    let uuid = Uuid::new_v4();
+    let entity_comp = state.entity_components.get(player).unwrap();
 
-    let login_success =
-        LoginSuccess::new(uuid.to_hyphenated_ref().to_string(), username.to_string());
+    let login_success = LoginSuccess::new(
+        entity_comp.uuid.to_hyphenated_ref().to_string(),
+        entity_comp.display_name.to_string(),
+    );
     send_packet_to_player(state, player, login_success);
 
-    state.entity_components.set(
-        player,
-        EntityComponent {
-            uuid,
-            display_name: username.to_string(),
-        },
-    );
     state.ih_components.remove(player);
     join_game(state, player);
     debug!("InitialHandler finished");
@@ -328,6 +360,14 @@ fn join_game(state: &mut State, player: Entity) {
     let pos_and_look = PlayerPositionAndLookClientbound::new(0.0, 64.0, 0.0, 0.0, 0.0, 0, 0);
     send_packet_to_player(state, player, pos_and_look);
     debug!("Player joined game");
+}
+
+/// Authenticates a client.
+fn authenticate(secret: [u8; 16], pubkey: &[u8], username: &str) -> Result<ServerAuthResponse, ()> {
+    let server_hash = mojang_api::server_hash("", secret, pubkey);
+    let res = mojang_api::server_auth(username, &server_hash);
+
+    res.map_err(|_| ())
 }
 
 fn compare_verify_tokens(x: [u8; VERIFY_TOKEN_LEN], y: [u8; VERIFY_TOKEN_LEN]) -> bool {
