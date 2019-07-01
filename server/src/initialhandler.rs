@@ -290,7 +290,54 @@ fn finish(state: &mut State, player: Entity) {
         },
     );
     state.ih_components.remove(player);
+    join_game(state, player);
     debug!("InitialHandler finished");
+}
+
+fn join_game(state: &mut State, player: Entity) {
+    let join_game = JoinGame::new(
+        player.index() as i32,
+        Gamemode::Creative.get_id(),
+        Dimension::Overwold.get_id(),
+        Difficulty::Medium.get_id(),
+        0,
+        "default".to_string(),
+        false,
+    );
+    send_packet_to_player(state, player, join_game);
+
+    // Send chunk data
+    let view_distance = state.config.server.view_distance as i32;
+    for x in -view_distance..view_distance + 1 {
+        for y in -view_distance..view_distance + 1 {
+            // TODO proper chunk polling
+            let pos = ChunkPosition::new(x, y);
+            state.world.load_chunk(pos);
+            let chunk = state.world.chunk_at(pos).unwrap().clone(); // hmmm... really efficient
+
+            let chunk_data = ChunkData::new(chunk);
+            send_packet_to_player(state, player, chunk_data);
+        }
+    }
+
+    // Send spawn position + player position
+    // TODO proper persistence
+    let spawn_position = SpawnPosition::new(
+        BlockPosition::new(0, 64, 0)
+    );
+    send_packet_to_player(state, player, spawn_position);
+
+    let pos_and_look = PlayerPositionAndLookClientbound::new(
+        0.0,
+        64.0,
+        0.0,
+        0.0,
+        0.0,
+        0,
+        0
+    );
+    send_packet_to_player(state, player, pos_and_look);
+    debug!("Player joined game");
 }
 
 fn compare_verify_tokens(x: [u8; VERIFY_TOKEN_LEN], y: [u8; VERIFY_TOKEN_LEN]) -> bool {
