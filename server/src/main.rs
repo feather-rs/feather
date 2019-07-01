@@ -22,7 +22,7 @@ use crate::initialhandler::InitialHandlerComponent;
 use crate::network::NetworkComponent;
 use feather_core::world::GridChunkGenerator;
 use prelude::*;
-use std::time::Duration;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub const TPS: u64 = 20;
 pub const PROTOCOL_VERSION: u32 = 404;
@@ -47,13 +47,7 @@ pub struct State {
 }
 
 pub struct EntityComponent {
-    uuid: Uuid,
-}
-
-impl State {
-    pub fn remove_entity(&mut self, entity: Entity) {
-        self.allocator.deallocate(entity);
-    }
+    pub uuid: Uuid,
 }
 
 fn main() {
@@ -74,6 +68,8 @@ fn main() {
     info!("Initialized server state");
 
     run_loop(&mut state);
+
+    io_manager.stop();
 }
 
 fn run_loop(state: &mut State) {
@@ -107,4 +103,20 @@ fn init_log(config: &Config) {
     };
 
     simple_logger::init_with_level(level).unwrap();
+}
+
+pub fn remove_entity(state: &mut State, entity: Entity) {
+    state.allocator.deallocate(entity);
+}
+
+pub fn remove_player(state: &mut State, entity: Entity) {
+    remove_entity(state, entity);
+    state.players.retain(|e| *e != entity);
+}
+
+pub fn current_time_in_secs() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
 }

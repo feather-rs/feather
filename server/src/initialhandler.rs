@@ -1,11 +1,9 @@
 use crate::prelude::*;
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use openssl::pkey::Private;
-use openssl::rsa::{self, Rsa, Padding};
-use std::rc::Rc;
-use crate::{State, Entity, EntityComponent};
+use openssl::rsa::{Rsa, Padding};
+use crate::{State, Entity, EntityComponent, remove_player};
 use std::fmt::Formatter;
-use crate::io::ServerToWorkerMessage;
 use crate::network::{send_packet_to_player, enable_compression_for_player, enable_encryption_for_player};
 
 use super::{PROTOCOL_VERSION, SERVER_VERSION};
@@ -44,13 +42,15 @@ impl InitialHandlerComponent {
 pub enum Error {
     InvalidPacket(PacketType),
     MalformedData,
+    InvalidProtocolVersion(u32, u32),
 }
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
         match self {
-            Error::InvalidPacket(ty) => f.write_str(&format!("Client sent invalid packet type {:?}", ty)),
-            Error::MalformedData => f.write_str("Client sent invalid data"),
+            Error::InvalidPacket(ty) => f.write_str(&format!("Dent invalid packet type {:?}", ty)).unwrap(),
+            Error::MalformedData => f.write_str("Dent invalid data").unwrap(),
+            Error::InvalidProtocolVersion(server, client) => f.write_str(&format!("Protocol versions do not match: client is on {}; server is on {}", client, server)).unwrap(),
         };
 
         Ok(())
@@ -77,8 +77,7 @@ fn handle_handshake(state: &mut State, player: Entity, packet: &Handshake) -> Re
     }
 
     if packet.protocol_version != PROTOCOL_VERSION && packet.next_state != HandshakeState::Status {
-        disconnect_login(state, player, &format!("Bad protocol version {} - this server is on {}", packet.protocol_version, PROTOCOL_VERSION));
-        return Ok(());
+        return Err(Error::InvalidProtocolVersion(PROTOCOL_VERSION, packet.protocol_version));
     }
 
     match packet.next_state {
@@ -89,7 +88,7 @@ fn handle_handshake(state: &mut State, player: Entity, packet: &Handshake) -> Re
     Ok(())
 }
 
-fn handle_request(state: &mut State, player: Entity, packet: &Request) -> Result<(), Error> {
+fn handle_request(state: &mut State, player: Entity, _packet: &Request) -> Result<(), Error> {
     let ih = state.ih_components.get_mut(player).unwrap();
 
     if ih.stage != Stage::AwaitRequest {
@@ -127,13 +126,13 @@ fn handle_ping(state: &mut State, player: Entity, packet: &Ping) -> Result<(), E
     let pong = Pong::new(packet.payload);
     send_packet_to_player(state, player, pong);
 
-    state.remove_entity(player);
+    remove_player(state, player);
     debug!("Status handling success");
 
     Ok(())
 }
 
-fn handle_login_start(state: &mut State, player: Entity, packet: &LoginStart) -> Result<(), Error> {
+fn handle_login_start(state: &mut State, player: Entity, _packet: &LoginStart) -> Result<(), Error> {
     let ih = state.ih_components.get(player).unwrap();
 
     if ih.stage != Stage::AwaitLoginStart {

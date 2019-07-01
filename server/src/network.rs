@@ -1,17 +1,16 @@
 use crate::io::ServerToWorkerMessage;
 use crate::prelude::*;
-use crate::{initialhandler as ih, Entity, State};
-use feather_core::network::packet::{implementation::*, Packet, PacketType};
+use crate::{initialhandler as ih, Entity, State, remove_player};
+use feather_core::network::packet::{Packet};
 use mio_extras::channel::{Receiver, Sender};
-use std::time::{SystemTime, UNIX_EPOCH};
 
-const MAX_KEEP_ALIVE_TIME: u64 = 30;
+//const MAX_KEEP_ALIVE_TIME: u64 = 30;
 
 pub struct NetworkComponent {
     sender: Sender<ServerToWorkerMessage>,
     receiver: Receiver<ServerToWorkerMessage>,
 
-    last_keep_alive_time: u64,
+    //last_keep_alive_time: u64,
 }
 
 pub fn network_system(state: &mut State) {
@@ -21,8 +20,11 @@ pub fn network_system(state: &mut State) {
         while let Ok(msg) = state.network_components[player].receiver.try_recv() {
             match msg {
                 ServerToWorkerMessage::NotifyPacketReceived(packet) => {
-                    if let Some(ih) = state.ih_components.get(player) {
-                        ih::handle_packet(state, player, packet);
+                    if let Some(_) = state.ih_components.get(player) {
+                        if let Err(e) = ih::handle_packet(state, player, packet) {
+                            info!("Disconnecting player: {}", e);
+                            remove_player(state, player);
+                        }
                     } else {
                         // TODO
                     }
@@ -37,8 +39,7 @@ pub fn network_system(state: &mut State) {
     }
 
     for _player in players_to_remove {
-        state.remove_entity(_player);
-        state.players.retain(|p| *p != _player);
+        remove_player(state, _player);
     }
 }
 
@@ -55,13 +56,6 @@ pub fn enable_compression_for_player(state: &State, player: Entity, threshold: u
 pub fn enable_encryption_for_player(state: &State, player: Entity, key: [u8; 16]) {
     let comp = &state.network_components[player];
     let _ = comp.sender.send(ServerToWorkerMessage::EnableEncryption(key));
-}
-
-fn current_time_in_secs() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs()
 }
 
 /// Calculates the relative move fields
