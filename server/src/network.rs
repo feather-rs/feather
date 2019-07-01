@@ -2,7 +2,7 @@ use crate::initialhandler::InitialHandlerComponent;
 use crate::io::{ServerToListenerMessage, ServerToWorkerMessage};
 use crate::prelude::*;
 use crate::{add_player, initialhandler as ih, remove_player, Entity, State};
-use feather_core::network::packet::Packet;
+use feather_core::network::packet::{Packet, implementation::*};
 use mio_extras::channel::{Receiver, Sender};
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
@@ -24,6 +24,8 @@ impl NetworkComponent {
 
 pub fn network_system(state: &mut State) {
     handle_connections(state);
+
+    send_keep_alives(state);
 
     poll_for_new_players(state);
 }
@@ -55,6 +57,17 @@ fn handle_connections(state: &mut State) {
 
     for _player in players_to_remove {
         remove_player(state, _player);
+    }
+}
+
+fn send_keep_alives(state: &mut State) {
+    if state.tick_count % TPS != 0 {
+        return; // Only run once per second
+    }
+
+    for player in state.players.clone() {
+        let keep_alive = KeepAliveClientbound::new(0);
+        send_packet_to_player(state, player, keep_alive);
     }
 }
 

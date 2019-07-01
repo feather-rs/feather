@@ -47,6 +47,7 @@ pub struct State {
     pub players: Vec<Entity>,
 
     pub running: bool,
+    pub tick_count: u64,
 }
 
 pub struct EntityComponent {
@@ -80,6 +81,7 @@ fn run_loop(state: &mut State) {
     while state.running {
         network::network_system(state);
 
+        state.tick_count += 1;
         sleep(Duration::from_millis(1000 / 20)); // TODO - proper game loop
     }
 }
@@ -97,7 +99,9 @@ fn init_state(config: Config, io_manager: NetworkIoManager) -> State {
         entity_components: EntityMap::new(),
 
         players: vec![],
+
         running: true,
+        tick_count: 0,
     }
 }
 
