@@ -43,6 +43,12 @@ pub struct State {
     pub running: bool,
 }
 
+impl State {
+    pub fn remove_entity(&mut self, entity: Entity) {
+        self.allocator.deallocate(entity);
+    }
+}
+
 fn main() {
     let config = config::load()
         .expect("Failed to load configuration. Please ensure that the file feather.toml exists and is correct.");
@@ -75,6 +81,7 @@ fn init_state(config: Config) -> State {
         allocator: GenerationalIndexAllocator::new(),
 
         network_components: EntityMap::new(),
+        ih_components: EntityMap::new(),
 
         players: vec![],
         running: true,

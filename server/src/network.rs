@@ -15,22 +15,26 @@ pub struct NetworkComponent {
 }
 
 pub fn network_system(state: &mut State) {
+    let mut players_to_remove = vec![];
+
     for player in &state.players {
-        handle_comp(state, *player);
-    }
-}
+        while let Ok(msg) = state.network_components[*player].receiver.try_recv() {
+            match msg {
+                ServerToWorkerMessage::NotifyPacketReceived(packet) => {
 
-fn handle_comp(state: &mut State, player: Entity) {
-    handle_packets(state, player);
-}
-
-fn handle_packets(state: &mut State, player: Entity) {
-    let comp = &mut state.network_components[player];
-
-    while let Ok(msg) = comp.receiver.try_recv() {
-        match msg {
-            _ => unimplemented!(), // TODO
+                },
+                ServerToWorkerMessage::NotifyDisconnect => {
+                    players_to_remove.push(*player);
+                    info!("Player disconnected");
+                },
+                _ => panic!("Invalid message received from worker thread"),
+            }
         }
+    }
+
+    for _player in players_to_remove {
+        state.remove_entity(_player);
+        state.players.retain(|p| *p != _player);
     }
 }
 
