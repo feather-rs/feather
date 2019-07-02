@@ -374,7 +374,7 @@ dependencies = [
  "mio-extras 2.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "mockers 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "mockers_derive 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "mojang_api 0.1.0 (git+https://github.com/caelunshun/mojang-api-rs)",
+ "mojang-api 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "multimap 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.10.23 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -802,9 +802,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "mojang_api"
+name = "mojang-api"
 version = "0.1.0"
-source = "git+https://github.com/caelunshun/mojang-api-rs#cdde2c9def1d8f289c48e0d57d21c048b82dc66c"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "lazy_static 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1896,7 +1896,7 @@ dependencies = [
 "checksum miow 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8c1f2f3b1cf331de6896aabf6e9d55dca90356cc9960cca7eaaf408a355ae919"
 "checksum mockers 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1534e2f6e41e75e90fc2732a69848e473ab8bba84e54e907649011329c6ee8ab"
 "checksum mockers_derive 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1e680ba61e47db30d0e7249f94b77ab279c2d2079356d1fd506d4caad149e339"
-"checksum mojang_api 0.1.0 (git+https://github.com/caelunshun/mojang-api-rs)" = "<none>"
+"checksum mojang-api 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "302346739e3406934f993b82d19f8f0a4985a20386c52ea04a3979929510a892"
 "checksum multimap 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1838fe05e64c53b9a62579020e4a12ec5947af5d703c56962d0e3b7b923bf3ba"
 "checksum native-tls 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "4b2df1a4c22fd44a62147fd8f13dd0f95c9d8ca7b2610299b2a2f9cf8964274e"
 "checksum net2 0.2.33 (registry+https://github.com/rust-lang/crates.io-index)" = "42550d9fb7b6684a6d404d9fa7250c2eb2646df731d1c06afc06dcee9e1bcf88"
