@@ -75,6 +75,7 @@ pub struct EntityComponent {
     pub uuid: Uuid,
     pub display_name: String,
     pub position: Position,
+    pub on_ground: bool,
 }
 
 fn main() {

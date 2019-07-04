@@ -96,6 +96,11 @@ pub fn send_packet_to_player<P: Packet + 'static>(state: &State, player: Entity,
         .send(ServerToWorkerMessage::SendPacket(Box::new(packet)));
 }
 
+pub fn send_packet_boxed_to_player(state: &State, player: Entity, packet: Box<Packet>) {
+    let comp = &state.network_components[player];
+    let _ = comp.sender.send(ServerToWorkerMessage::SendPacket(packet));
+}
+
 pub fn enable_compression_for_player(state: &State, player: Entity, threshold: usize) {
     let comp = &state.network_components[player];
     let _ = comp
@@ -196,15 +201,85 @@ pub fn get_player_initialization_packets(
     (player_info, spawn_player)
 }
 
+/// Notifies all players within range
+/// that an entity has moved. This
+/// entity can be a player.
+///
+/// The `has_moved` and `has_moved` indicate
+/// whether the entity has moved its position
+/// or changed its pitch/yaw. These values
+/// are used to determine which packet to send:
+/// for example, if an entity has only moved and not looked,
+/// an Entity Relative Move packet is sent
+/// rather than an Entity Look and Relative Move.
+///
+/// In the event that the entity has moved
+/// more than 8 blocks, an Entity Teleport packet
+/// is sent instead.
+pub fn broadcast_entity_movement(
+    state: &mut State,
+    entity: Entity,
+    old_pos: Position,
+    has_moved: bool,
+    has_looked: bool,
+) {
+    let ecomp = &state.entity_components[entity];
+    let current_pos = ecomp.position;
+
+    let dist = current_pos.distance(old_pos).abs();
+
+    if dist <= 8.0 {
+        if has_moved && has_looked {
+            // Entity Look and Relative Move
+            let (dx, dy, dz) = calculate_relative_move(old_pos, current_pos);
+            let packet = EntityLookAndRelativeMove::new(
+                entity.index() as i32,
+                dx,
+                dy,
+                dz,
+                degrees_to_stops(current_pos.yaw),
+                degrees_to_stops(current_pos.pitch),
+                ecomp.on_ground,
+            );
+            send_packet_to_all_players(state, packet, entity);
+        } else if has_moved {
+            // Entity Relative Move
+            let (dx, dy, dz) = calculate_relative_move(old_pos, current_pos);
+            let packet =
+                EntityRelativeMove::new(entity.index() as i32, dx, dy, dz, ecomp.on_ground);
+            send_packet_to_all_players(state, packet, entity);
+        } else if has_looked {
+            // Entity Look
+            let packet = EntityLook::new(
+                entity.index() as i32,
+                degrees_to_stops(current_pos.yaw),
+                degrees_to_stops(current_pos.pitch),
+                ecomp.on_ground,
+            );
+            send_packet_to_all_players(state, packet, entity);
+        }
+    } else {
+        unimplemented!()
+    }
+}
+
+fn send_packet_to_all_players<P: Packet + Clone + 'static>(state: &State, packet: P, neq: Entity) {
+    for player in &state.joined_players {
+        if *player != neq {
+            send_packet_to_player(state, *player, packet.clone());
+        }
+    }
+}
+
 pub fn degrees_to_stops(degs: f32) -> u8 {
     ((degs / 360.0) * 256.) as u8
 }
 
 /// Calculates the relative move fields
-/// as used in the EntityRelativeMove packets.
-pub fn calculate_relative_move(old: Position, current: Position) -> (u16, u16, u16) {
-    let x = ((current.x * 32.0 - old.x * 32.0) * 128.0) as u16;
-    let y = ((current.y * 32.0 - old.x * 32.0) * 128.0) as u16;
-    let z = ((current.z * 32.0 - old.z * 32.0) * 128.0) as u16;
+/// as used in the Entity Relative Move packets.
+pub fn calculate_relative_move(old: Position, current: Position) -> (i16, i16, i16) {
+    let x = ((current.x * 32.0 - old.x * 32.0) * 128.0) as i16;
+    let y = ((current.y * 32.0 - old.x * 32.0) * 128.0) as i16;
+    let z = ((current.z * 32.0 - old.z * 32.0) * 128.0) as i16;
     (x, y, z)
 }

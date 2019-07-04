@@ -202,6 +202,7 @@ fn handle_login_start(state: &mut State, player: Entity, packet: &LoginStart) ->
             position: Position::new(0.0, 0.0, 0.0, 0.0, 0.0),
             uuid: Uuid::new_v4(),
             display_name: ih.username.as_ref().unwrap().clone(),
+            on_ground: true,
         };
         state.entity_components.set(player, entity_comp);
 
@@ -292,6 +293,7 @@ fn handle_encryption_response(
             position: Position::new(0.0, 64.0, 0.0, 0.0, 0.0),
             uuid: Uuid::from_str(&res.id).unwrap(),
             display_name: ih.username.as_ref().unwrap().clone(),
+            on_ground: true,
         };
         state.entity_components.set(player, entity_comp);
         debug!("Authentication successful");
