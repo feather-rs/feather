@@ -488,6 +488,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x39, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::EntityHeadLook,
+        );
+
+        m.insert(
             PacketId(0x49, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::SpawnPosition,
         );

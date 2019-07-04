@@ -337,6 +337,12 @@ pub fn broadcast_entity_movement(
     } else {
         unimplemented!()
     }
+
+    // Send Entity Head Look for head yaw
+    if has_looked {
+        let packet = EntityHeadLook::new(entity.index() as i32, degrees_to_stops(new_pos.yaw));
+        send_packet_to_all_players(state, packet, entity);
+    }
 }
 
 fn send_packet_to_all_players<P: Packet + Clone + 'static>(state: &State, packet: P, neq: Entity) {

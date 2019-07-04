@@ -1144,11 +1144,6 @@ impl PlayerInfoAction {
 // ...
 
 #[derive(Default, AsAny, new, Packet, Clone)]
-pub struct SpawnPosition {
-    pub location: BlockPosition,
-}
-
-#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct PlayerPositionAndLookClientbound {
     pub x: f64,
     pub y: f64,
@@ -1180,4 +1175,15 @@ impl Packet for DestroyEntities {
     fn ty(&self) -> PacketType {
         PacketType::DestroyEntities
     }
+}
+
+#[derive(Default, AsAny, new, Packet, Clone)]
+pub struct EntityHeadLook {
+    pub entity_id: VarInt,
+    pub head_yaw: u8,
+}
+
+#[derive(Default, AsAny, new, Packet, Clone)]
+pub struct SpawnPosition {
+    pub location: BlockPosition,
 }
