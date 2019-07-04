@@ -1,6 +1,7 @@
 use super::super::mctypes::{McTypeRead, McTypeWrite};
 use super::*;
 use crate::bytebuf::{BufMutAlloc, BufResulted};
+use crate::entitymeta::{EntityMetaIo, EntityMetadata};
 use crate::prelude::*;
 use crate::world::chunk::Chunk;
 use bytes::{Buf, BufMut};
@@ -8,7 +9,6 @@ use hashbrown::HashMap;
 use num_traits::{FromPrimitive, ToPrimitive};
 use std::io::Read;
 use std::io::Write;
-use crate::entitymeta::{EntityMetaIo, EntityMetadata};
 
 type VarInt = i32;
 type VarLong = i64;

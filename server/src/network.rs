@@ -2,9 +2,9 @@ use crate::initialhandler::InitialHandlerComponent;
 use crate::io::{ServerToListenerMessage, ServerToWorkerMessage};
 use crate::prelude::*;
 use crate::{add_player, initialhandler as ih, remove_player, Entity, State};
+use feather_core::entitymeta::{EntityMetadata, MetaEntry};
 use feather_core::network::packet::{implementation::*, Packet};
 use mio_extras::channel::{Receiver, Sender};
-use feather_core::entitymeta::{EntityMetadata, MetaEntry};
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
 
@@ -121,22 +121,38 @@ pub fn handle_player_remove(state: &mut State, player: Entity) {
 ///
 /// This function is currently called by the initial handler.
 pub fn broadcast_player_join(state: &mut State, player: Entity) {
+    let (player_info, spawn_player) = get_player_initialization_packets(state, player);
+
+    for p in &state.joined_players {
+        send_packet_to_player(state, *p, player_info.clone());
+        if *p != player {
+            send_packet_to_player(state, *p, spawn_player.clone());
+        }
+    }
+}
+
+/// Returns the player info and spawn player packets
+/// for the given player.
+pub fn get_player_initialization_packets(
+    state: &State,
+    player: Entity,
+) -> (PlayerInfo, SpawnPlayer) {
     let entity_comp = state.entity_components.get(player).unwrap();
     let player_comp = state.player_components.get(player).unwrap();
 
+    let display_name = json!({
+        "text": entity_comp.display_name
+    })
+        .to_string();
+
     let mut props = vec![];
-    for prop in &player_comp.profile_properties {
+    for prop in player_comp.profile_properties.iter() {
         props.push((
             prop.name.clone(),
             prop.value.clone(),
             prop.signature.clone(),
         ));
     }
-
-    let display_name = json!({
-        "text": entity_comp.display_name
-    })
-    .to_string();
 
     let action = PlayerInfoAction::AddPlayer(
         entity_comp.display_name.clone(),
@@ -147,31 +163,25 @@ pub fn broadcast_player_join(state: &mut State, player: Entity) {
     );
     let player_info = PlayerInfo::new(action, entity_comp.uuid.clone());
 
-    for p in &state.joined_players {
-        send_packet_to_player(state, *p, player_info.clone());
-    }
+    let metadata = EntityMetadata::new().with(&[
+        (0, MetaEntry::Byte(0)),
+        (1, MetaEntry::VarInt(300)),
+        (2, MetaEntry::OptChat(None)),
+        (3, MetaEntry::Boolean(false)),
+        (4, MetaEntry::Boolean(false)),
+        (5, MetaEntry::Boolean(false)),
+        (6, MetaEntry::Byte(0)),
+        (7, MetaEntry::Float(1.0)),
+        (8, MetaEntry::VarInt(0)),
+        (9, MetaEntry::Boolean(false)),
+        (10, MetaEntry::VarInt(0)),
+        (11, MetaEntry::Float(0.0)),
+        (12, MetaEntry::VarInt(0)),
+        (13, MetaEntry::Byte(0)),
+        (14, MetaEntry::Byte(1)),
+        // TODO NBT
+    ]);
 
-    let metadata = EntityMetadata::new()
-        .with(&[
-            (0, MetaEntry::Byte(0)),
-            (1, MetaEntry::VarInt(300)),
-            (2, MetaEntry::OptChat(None)),
-            (3, MetaEntry::Boolean(false)),
-            (4, MetaEntry::Boolean(false)),
-            (5, MetaEntry::Boolean(false)),
-            (6, MetaEntry::Byte(0)),
-            (7, MetaEntry::Float(1.0)),
-            (8, MetaEntry::VarInt(0)),
-            (9, MetaEntry::Boolean(false)),
-            (10, MetaEntry::VarInt(0)),
-            (11, MetaEntry::Float(0.0)),
-            (12, MetaEntry::VarInt(0)),
-            (13, MetaEntry::Byte(0)),
-            (14, MetaEntry::Byte(1)),
-            // TODO NBT
-        ]);
-
-    // TODO only do this for players within the view distance
     let spawn_player = SpawnPlayer::new(
         player.index() as i32,
         entity_comp.uuid.clone(),
@@ -183,11 +193,7 @@ pub fn broadcast_player_join(state: &mut State, player: Entity) {
         metadata,
     );
 
-    for p in &state.joined_players {
-        if *p != player {
-            send_packet_to_player(state, *p, spawn_player.clone());
-        }
-    }
+    (player_info, spawn_player)
 }
 
 pub fn degrees_to_stops(degs: f32) -> u8 {
