@@ -15,6 +15,7 @@ pub mod bytebuf;
 pub mod network;
 pub mod prelude;
 pub mod world;
+pub mod entitymeta;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum Gamemode {
