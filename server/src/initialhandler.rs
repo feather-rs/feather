@@ -363,9 +363,9 @@ fn join_game(state: &mut State, player: Entity) {
     let pos_and_look = PlayerPositionAndLookClientbound::new(0.0, 64.0, 0.0, 0.0, 0.0, 0, 0);
     send_packet_to_player(state, player, pos_and_look);
 
-    broadcast_player_join(state, player);
-
     state.joined_players.push(player);
+
+    broadcast_player_join(state, player);
 
     info!("A player joined the game");
 }
