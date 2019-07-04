@@ -1158,3 +1158,26 @@ pub struct PlayerPositionAndLookClientbound {
     pub flags: u8,
     pub teleport_id: VarInt,
 }
+
+#[derive(Default, AsAny, new, Clone)]
+pub struct DestroyEntities {
+    entity_ids: Vec<VarInt>,
+}
+
+impl Packet for DestroyEntities {
+    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_var_int(self.entity_ids.len() as i32);
+
+        for e in &self.entity_ids {
+            buf.write_var_int(*e);
+        }
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::DestroyEntities
+    }
+}

@@ -483,6 +483,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x35, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::DestroyEntities,
+        );
+
+        m.insert(
             PacketId(0x49, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::SpawnPosition,
         );

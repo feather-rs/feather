@@ -161,6 +161,11 @@ pub fn remove_entity(state: &mut State, entity: Entity) {
 }
 
 pub fn remove_player(state: &mut State, entity: Entity) {
+    // If player was joined, broadcast disconnect
+    if state.joined_players.contains(&entity) {
+        network::broadcast_player_leave(state, entity);
+    }
+
     network::handle_player_remove(state, entity);
 
     remove_entity(state, entity);

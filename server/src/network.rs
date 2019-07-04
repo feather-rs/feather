@@ -264,6 +264,19 @@ pub fn get_player_initialization_packets(
     (player_info, spawn_player)
 }
 
+/// Broadcasts to all joined players that the
+/// given player has left the server. This should
+/// remove the player from the tablist.
+pub fn broadcast_player_leave(state: &mut State, player: Entity) {
+    let ecomp = &state.entity_components[player];
+
+    let player_info = PlayerInfo::new(PlayerInfoAction::RemovePlayer, ecomp.uuid.clone());
+    send_packet_to_all_players(state, player_info, player);
+
+    let destroy_entities = DestroyEntities::new(vec![player.index() as i32]);
+    send_packet_to_all_players(state, destroy_entities, player);
+}
+
 /// Notifies all players within range
 /// that an entity has moved. This
 /// entity can be a player.
@@ -287,7 +300,6 @@ pub fn broadcast_entity_movement(
     has_moved: bool,
     has_looked: bool,
 ) {
-    debug!("Broadcasting new player position: {:?}", new_pos);
     let ecomp = &state.entity_components[entity];
 
     let dist = new_pos.distance(old_pos).abs();
