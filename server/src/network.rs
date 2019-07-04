@@ -65,13 +65,9 @@ fn send_keep_alives(state: &mut State) {
         return; // Only run once per second
     }
 
-    for player in state.players.clone() {
-        // Don't send keepalives during login - this will
-        // result in an invalid packet on the client
-        if state.ih_components.get(player).is_none() {
-            let keep_alive = KeepAliveClientbound::new(0);
-            send_packet_to_player(state, player, keep_alive);
-        }
+    for player in state.joined_players.clone() {
+        let keep_alive = KeepAliveClientbound::new(0);
+        send_packet_to_player(state, player, keep_alive);
     }
 }
 
@@ -150,7 +146,7 @@ pub fn broadcast_player_join(state: &mut State, player: Entity) {
     );
     let player_info = PlayerInfo::new(action, entity_comp.uuid.clone());
 
-    for p in &state.players {
+    for p in &state.joined_players {
         send_packet_to_player(state, *p, player_info.clone());
     }
 
@@ -165,7 +161,7 @@ pub fn broadcast_player_join(state: &mut State, player: Entity) {
         degrees_to_stops(entity_comp.position.yaw),
     );
 
-    for p in &state.players {
+    for p in &state.joined_players {
         if *p != player {
             send_packet_to_player(state, *p, spawn_player.clone());
         }

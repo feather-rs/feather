@@ -130,7 +130,7 @@ fn handle_request(state: &mut State, player: Entity, _packet: &Request) -> Resul
         },
         "players": {
             "max": state.config.server.max_players,
-            "online": state.player_count,
+            "online": state.joined_players.len(),
         },
         "description": state.config.server.motd,
     });
@@ -365,7 +365,7 @@ fn join_game(state: &mut State, player: Entity) {
 
     broadcast_player_join(state, player);
 
-    state.player_count += 1;
+    state.joined_players.push(player);
 
     info!("A player joined the game");
 }

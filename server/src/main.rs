@@ -46,14 +46,14 @@ pub struct State {
     pub entity_components: EntityMap<EntityComponent>,
     pub player_components: EntityMap<PlayerComponent>,
 
+    /// Difference between players and joined_players:
+    /// `players` includes all clients connected
+    /// to the server, including those in the login
+    /// or status phase, while `joined_players` only
+    /// includes those who have joined the server (whose
+    /// state is Play).
     pub players: Vec<Entity>,
-
-    /// Although players.len() can be used to find
-    /// the player count, that would also include
-    /// clients which are performing a status
-    /// ping. Instead, this value is incremented
-    /// whenever a player joins the server.
-    pub player_count: u32,
+    pub joined_players: Vec<Entity>,
 
     /// Each entity which requires its chunks and chunks
     /// around it to be loaded can insert an entry into
@@ -122,7 +122,7 @@ fn init_state(config: Config, io_manager: NetworkIoManager) -> State {
         player_components: EntityMap::new(),
 
         players: vec![],
-        player_count: 0,
+        joined_players: vec![],
 
         chunk_holders: MultiMap::new(),
 
@@ -164,11 +164,7 @@ pub fn remove_player(state: &mut State, entity: Entity) {
 
     remove_entity(state, entity);
 
-    // Only decrement player count if player has joined
-    if state.ih_components.get(entity).is_none() {
-        state.player_count -= 1;
-    }
-
+    state.joined_players.retain(|e| *e != entity);
     state.players.retain(|e| *e != entity);
 }
 
