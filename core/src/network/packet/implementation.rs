@@ -79,7 +79,7 @@ fn bla() {}
 
 // SERVERBOUND
 
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct Handshake {
     pub protocol_version: u32,
     pub server_address: String,
@@ -112,7 +112,7 @@ impl Packet for Handshake {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum HandshakeState {
     Status,
     Login,
@@ -124,12 +124,12 @@ impl Default for HandshakeState {
     }
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct LoginStart {
     pub username: String,
 }
 
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct EncryptionResponse {
     pub secret_length: VarInt,
     pub secret: Vec<u8>,
@@ -167,37 +167,37 @@ impl Packet for EncryptionResponse {
     }
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct Request {}
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct Ping {
     pub payload: u64,
 }
 
 // PLAY
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct TeleportConfirm {
     pub teleport_id: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct QueryBlockNBT {
     pub transaction_id: VarInt,
     pub location: BlockPosition,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct ChatMessageServerbound {
     pub message: String, // Raw string, not a chat component
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct ClientStatus {
     pub action_id: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct ClientSettings {
     pub locale: String,
     pub view_distance: u8,
@@ -207,26 +207,26 @@ pub struct ClientSettings {
     pub main_hand: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct TabCompleteServerbound {
     pub transaction_id: VarInt,
     pub text: String,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct ConfirmTransactionServerbound {
     pub window_id: u8,
     pub action_number: u16,
     pub accepted: bool,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct EnchantItem {
     pub window_id: u8,
     pub enchantment: u8,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct ClickWindow {
     pub window_id: u8,
     pub slot: u16,
@@ -236,12 +236,12 @@ pub struct ClickWindow {
     // TODO clicked_item: Slot,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct CloseWindowServerbound {
     pub window_id: u8,
 }
 
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct PluginMessageServerbound {
     pub channel: String,
     pub data: Vec<u8>,
@@ -267,20 +267,20 @@ impl Packet for PluginMessageServerbound {
     }
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct EditBook {
     // TODO new_book: Slot
     pub is_signing: bool,
     pub hand: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct QueryEntityNBT {
     pub transaction_id: VarInt,
     pub entity_id: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct UseEntity {
     pub target: VarInt,
     pub ty: VarInt, // TODO "only if type is interact at"
@@ -290,17 +290,17 @@ pub struct UseEntity {
     pub hand: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct KeepAliveServerbound {
     pub id: i64,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct Player {
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct PlayerPosition {
     pub x: f64,
     pub feet_y: f64,
@@ -308,7 +308,7 @@ pub struct PlayerPosition {
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct PlayerPositionAndLookServerbound {
     pub x: f64,
     pub feet_y: f64,
@@ -318,14 +318,14 @@ pub struct PlayerPositionAndLookServerbound {
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct PlayerLook {
     pub yaw: f32,
     pub pitch: f32,
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct VehicleMoveServerbound {
     pub x: f64,
     pub y: f64,
@@ -334,91 +334,91 @@ pub struct VehicleMoveServerbound {
     pub pitch: f32,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SteerBoat {
     pub left_paddle_turning: bool,
     pub right_paddle_turning: bool,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct PickItem {
     pub slot_to_use: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct CraftRecipeRequest {
     pub window_id: i8,
     pub recipe: String,
     pub make_all: bool,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct PlayerAbilitiesServerbound {
     pub flags: u8,
     pub flying_speed: f32,
     pub walking_speed: f32,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct PlayerDigging {
     pub status: VarInt,
     pub location: BlockPosition,
     pub face: i8,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct EntityAction {
     pub entity_id: VarInt,
     pub action_id: VarInt,
     pub jump_boost: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SteerVehicle {
     pub sideways: f32,
     pub forward: f32,
     pub flags: u8,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct RecipeBookData {
     pub ty: VarInt,
     // TODO
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct NameItem {
     pub item_name: String,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct ResourcePackStatus {
     pub result: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct AdvancementTab {
     pub action: VarInt,
     pub tab_id: String,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SelectTrade {
     pub selected_slot: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SetBeaconEffect {
     pub primary_effect: VarInt,
     pub secondary_effect: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct HeldItemChangeServerbound {
     pub slot: i16,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct UpdateCommandBlock {
     pub location: BlockPosition,
     pub command: String,
@@ -426,20 +426,20 @@ pub struct UpdateCommandBlock {
     pub flags: u8,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct UpdateCommandBlockMinecart {
     pub entity_id: VarInt,
     pub command: String,
     pub track_output: bool,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct CreativeInventoryAction {
     pub slot: u16,
     // TODO clicked_item: Slot
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct UpdateStructureBlock {
     pub location: BlockPosition,
     pub action: VarInt,
@@ -459,7 +459,7 @@ pub struct UpdateStructureBlock {
     pub flags: u8,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct UpdateSign {
     pub location: BlockPosition,
     pub line_1: String,
@@ -468,17 +468,17 @@ pub struct UpdateSign {
     pub line_4: String,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct AnimationServerbound {
     pub hand: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct Spectate {
     pub target_player: Uuid,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct PlayerBlockPlacement {
     pub location: BlockPosition,
     pub face: VarInt,
@@ -488,18 +488,18 @@ pub struct PlayerBlockPlacement {
     pub cursor_position_z: f32,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct UseItem {
     pub hand: VarInt,
 }
 
 // CLIENTBOUND
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct DisconnectLogin {
     pub reason: String,
 }
 
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct EncryptionRequest {
     pub server_id: String,
     pub public_key_len: VarInt,
@@ -528,29 +528,29 @@ impl Packet for EncryptionRequest {
     }
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct LoginSuccess {
     pub uuid: String,
     pub username: String,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SetCompression {
     pub threshold: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct Response {
     pub json_response: String,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct Pong {
     pub payload: u64,
 }
 
 // PLAY
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SpawnObject {
     pub entity_id: VarInt,
     pub object_uuid: Uuid,
@@ -566,7 +566,7 @@ pub struct SpawnObject {
     pub velocity_z: i16,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SpawnExperienceOrb {
     pub entity_id: VarInt,
     pub x: f64,
@@ -575,7 +575,7 @@ pub struct SpawnExperienceOrb {
     pub count: i16,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SpawnGlobalEntity {
     pub entity_id: VarInt,
     pub ty: u8,
@@ -584,7 +584,7 @@ pub struct SpawnGlobalEntity {
     pub z: f64,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SpawnMob {
     pub entity_id: VarInt,
     pub entity_uuid: Uuid,
@@ -601,7 +601,7 @@ pub struct SpawnMob {
     // TODO metadata
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SpawnPainting {
     pub entity_id: VarInt,
     pub entity_uuid: Uuid,
@@ -644,13 +644,13 @@ impl Packet for SpawnPlayer {
     }
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct AnimationClientbound {
     pub entity_id: VarInt,
     pub animation: u8,
 }
 
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct Statistics {
     pub statistics: Vec<(VarInt, VarInt)>,
     pub value: VarInt,
@@ -675,21 +675,21 @@ impl Packet for Statistics {
     }
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct BlockBreakAnimation {
     pub entity_id: VarInt,
     pub location: BlockPosition,
     pub destroy_stage: i8,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct UpdateBlockEntity {
     pub location: BlockPosition,
     pub action: u8,
     // TODO NBT
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct BlockAction {
     pub location: BlockPosition,
     pub action_id: u8,
@@ -697,13 +697,13 @@ pub struct BlockAction {
     pub block_type: VarInt, // NOTE: block type ID, not the block state ID
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct BlockChange {
     pub location: BlockPosition,
     pub block_id: VarInt,
 }
 
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct BossBar {
     pub uuid: Uuid,
     pub action: BossBarAction,
@@ -809,12 +809,12 @@ impl Default for BossBarDivision {
     }
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct ServerDifficulty {
     pub difficulty: u8,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct ChatMessageClientbound {
     pub json_data: String,
     pub position: u8,
@@ -824,14 +824,14 @@ pub struct ChatMessageClientbound {
 // TODO TabCompleteClientbound
 // TODO DeclareCommands
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct ConfirmTransactionClientbound {
     pub window_id: i8,
     pub action_number: i16,
     pub accepted: bool,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct OpenWindow {
     pub window_id: u8,
     pub window_type: String,
@@ -840,28 +840,28 @@ pub struct OpenWindow {
     pub entity_id: i32,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct WindowItems {
     pub window_id: u8,
     pub count: i16,
     // TODO slot data
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct WindowProperty {
     pub window_id: u8,
     pub property: i16,
     pub value: i16,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SetSlot {
     pub window_id: i8,
     pub slot: i16,
     // TOOD slot data
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SetCooldown {
     pub item_id: VarInt,
     pub cooldown_ticks: VarInt,
@@ -869,7 +869,7 @@ pub struct SetCooldown {
 
 // TODO PluginMessageClientbound
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct NamedSoundEffect {
     pub sound_name: String,
     pub sound_category: VarInt,
@@ -880,18 +880,18 @@ pub struct NamedSoundEffect {
     pub pitch: f32,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct DisconnectPlay {
     pub reason: String, // Chat
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct EntityStatus {
     pub entity_id: i32,
     pub entity_status: i8,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct NBTQueryResponse {
     pub transaction_id: VarInt,
     // TODO nbt
@@ -899,24 +899,24 @@ pub struct NBTQueryResponse {
 
 // TODO Explosion
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct UnloadChunk {
     pub chunk_x: i32,
     pub chunk_z: i32,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct ChangeGameState {
     pub reason: u8,
     pub value: f32,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct KeepAliveClientbound {
     pub keep_alive_id: u64,
 }
 
-#[derive(Default, AsAny, new)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct ChunkData {
     pub chunk: Chunk,
 }
@@ -998,7 +998,7 @@ impl Packet for ChunkData {
     }
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct Effect {
     pub effect_id: i32,
     pub location: BlockPosition,
@@ -1006,7 +1006,7 @@ pub struct Effect {
     pub disable_relative_volume: bool,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct Particle {
     pub particle_id: i32,
     pub long_distance: bool,
@@ -1020,7 +1020,7 @@ pub struct Particle {
     // TODO data
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct JoinGame {
     pub entity_id: i32,
     pub gamemode: u8,
@@ -1035,7 +1035,7 @@ pub struct JoinGame {
 
 // TODO entity
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct EntityRelativeMove {
     pub entity_id: VarInt,
     pub delta_x: i16,
@@ -1044,7 +1044,7 @@ pub struct EntityRelativeMove {
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct EntityLookAndRelativeMove {
     pub entity_id: VarInt,
     pub delta_x: i16,
@@ -1055,7 +1055,7 @@ pub struct EntityLookAndRelativeMove {
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct EntityLook {
     pub entity_id: VarInt,
     pub yaw: u8,
@@ -1143,12 +1143,12 @@ impl PlayerInfoAction {
 }
 // ...
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SpawnPosition {
     pub location: BlockPosition,
 }
 
-#[derive(Default, AsAny, new, Packet)]
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct PlayerPositionAndLookClientbound {
     pub x: f64,
     pub y: f64,
