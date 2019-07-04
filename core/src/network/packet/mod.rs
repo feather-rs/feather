@@ -458,6 +458,21 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x28, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::EntityRelativeMove,
+        );
+
+        m.insert(
+            PacketId(0x29, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::EntityLookAndRelativeMove,
+        );
+
+        m.insert(
+            PacketId(0x2A, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::EntityLook,
+        );
+
+        m.insert(
             PacketId(0x30, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::PlayerInfo,
         );

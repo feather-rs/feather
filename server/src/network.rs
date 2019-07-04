@@ -3,10 +3,11 @@ use crate::io::{ServerToListenerMessage, ServerToWorkerMessage};
 use crate::prelude::*;
 use crate::{add_player, initialhandler as ih, remove_player, Entity, State};
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
-use feather_core::network::packet::{implementation::*, Packet};
+use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use mio_extras::channel::{Receiver, Sender};
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
+//const HEAD_OFFSET: f64 = 1.62; // Offset from feet pos to head pos
 
 pub struct NetworkComponent {
     sender: Sender<ServerToWorkerMessage>,
@@ -45,7 +46,7 @@ fn handle_connections(state: &mut State) {
                             remove_player(state, player);
                         }
                     } else {
-                        // TODO
+                        handle_player_packet(state, player, packet);
                     }
                 }
                 ServerToWorkerMessage::NotifyDisconnect => {
@@ -59,6 +60,68 @@ fn handle_connections(state: &mut State) {
     for _player in players_to_remove {
         remove_player(state, _player);
     }
+}
+
+fn handle_player_packet(state: &mut State, player: Entity, packet: Box<Packet>) {
+    match packet.ty() {
+        PacketType::PlayerPositionAndLookServerbound => handle_player_pos_and_look(
+            state,
+            player,
+            cast_packet::<PlayerPositionAndLookServerbound>(&packet),
+        ),
+        PacketType::PlayerPosition => {
+            handle_player_pos(state, player, cast_packet::<PlayerPosition>(&packet))
+        }
+        PacketType::PlayerLook => {
+            handle_player_look(state, player, cast_packet::<PlayerLook>(&packet))
+        }
+        _ => (), // TODO
+    }
+}
+
+// TODO proper validation of new position
+
+fn handle_player_pos_and_look(
+    state: &mut State,
+    player: Entity,
+    packet: &PlayerPositionAndLookServerbound,
+) {
+    let ecomp = &state.entity_components[player];
+    let old_pos = ecomp.position;
+
+    let new_pos = Position::new(packet.x, packet.feet_y, packet.z, packet.pitch, packet.yaw);
+
+    broadcast_entity_movement(state, player, old_pos, new_pos, true, true);
+
+    state.entity_components[player].position = new_pos;
+}
+
+fn handle_player_pos(state: &mut State, player: Entity, packet: &PlayerPosition) {
+    let ecomp = &state.entity_components[player];
+    let old_pos = ecomp.position;
+
+    let new_pos = Position::new(
+        packet.x,
+        packet.feet_y,
+        packet.z,
+        old_pos.pitch,
+        old_pos.yaw,
+    );
+
+    broadcast_entity_movement(state, player, old_pos, new_pos, true, false);
+
+    state.entity_components[player].position = new_pos;
+}
+
+fn handle_player_look(state: &mut State, player: Entity, packet: &PlayerLook) {
+    let ecomp = &state.entity_components[player];
+    let old_pos = ecomp.position;
+
+    let new_pos = Position::new(old_pos.x, old_pos.y, old_pos.z, packet.pitch, packet.yaw);
+
+    broadcast_entity_movement(state, player, old_pos, new_pos, false, true);
+
+    state.entity_components[player].position = new_pos;
 }
 
 fn send_keep_alives(state: &mut State) {
@@ -205,7 +268,7 @@ pub fn get_player_initialization_packets(
 /// that an entity has moved. This
 /// entity can be a player.
 ///
-/// The `has_moved` and `has_moved` indicate
+/// The `has_moved` and `has_moved` fields indicate
 /// whether the entity has moved its position
 /// or changed its pitch/yaw. These values
 /// are used to determine which packet to send:
@@ -220,31 +283,32 @@ pub fn broadcast_entity_movement(
     state: &mut State,
     entity: Entity,
     old_pos: Position,
+    new_pos: Position,
     has_moved: bool,
     has_looked: bool,
 ) {
+    debug!("Broadcasting new player position: {:?}", new_pos);
     let ecomp = &state.entity_components[entity];
-    let current_pos = ecomp.position;
 
-    let dist = current_pos.distance(old_pos).abs();
+    let dist = new_pos.distance(old_pos).abs();
 
     if dist <= 8.0 {
         if has_moved && has_looked {
             // Entity Look and Relative Move
-            let (dx, dy, dz) = calculate_relative_move(old_pos, current_pos);
+            let (dx, dy, dz) = calculate_relative_move(old_pos, new_pos);
             let packet = EntityLookAndRelativeMove::new(
                 entity.index() as i32,
                 dx,
                 dy,
                 dz,
-                degrees_to_stops(current_pos.yaw),
-                degrees_to_stops(current_pos.pitch),
+                degrees_to_stops(new_pos.yaw),
+                degrees_to_stops(new_pos.pitch),
                 ecomp.on_ground,
             );
             send_packet_to_all_players(state, packet, entity);
         } else if has_moved {
             // Entity Relative Move
-            let (dx, dy, dz) = calculate_relative_move(old_pos, current_pos);
+            let (dx, dy, dz) = calculate_relative_move(old_pos, new_pos);
             let packet =
                 EntityRelativeMove::new(entity.index() as i32, dx, dy, dz, ecomp.on_ground);
             send_packet_to_all_players(state, packet, entity);
@@ -252,8 +316,8 @@ pub fn broadcast_entity_movement(
             // Entity Look
             let packet = EntityLook::new(
                 entity.index() as i32,
-                degrees_to_stops(current_pos.yaw),
-                degrees_to_stops(current_pos.pitch),
+                degrees_to_stops(new_pos.yaw),
+                degrees_to_stops(new_pos.pitch),
                 ecomp.on_ground,
             );
             send_packet_to_all_players(state, packet, entity);
@@ -279,7 +343,7 @@ pub fn degrees_to_stops(degs: f32) -> u8 {
 /// as used in the Entity Relative Move packets.
 pub fn calculate_relative_move(old: Position, current: Position) -> (i16, i16, i16) {
     let x = ((current.x * 32.0 - old.x * 32.0) * 128.0) as i16;
-    let y = ((current.y * 32.0 - old.x * 32.0) * 128.0) as i16;
+    let y = ((current.y * 32.0 - old.y * 32.0) * 128.0) as i16;
     let z = ((current.z * 32.0 - old.z * 32.0) * 128.0) as i16;
     (x, y, z)
 }
