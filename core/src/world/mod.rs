@@ -17,7 +17,7 @@ pub struct Position {
 
 impl Position {
     pub fn distance(&self, other: Position) -> f64 {
-        (square(self.x - other.x) - square(self.y - other.y) - square(self.z - other.z)).sqrt()
+        (square(self.x - other.x) + square(self.y - other.y) + square(self.z - other.z)).sqrt()
     }
 }
 
