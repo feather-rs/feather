@@ -2,11 +2,11 @@
 //! metadata format. See https://wiki.vg/Entity_metadata
 //! for the specification.
 
-use crate::world::BlockPosition;
-use uuid::Uuid;
-use crate::bytebuf::{ByteBuf, BufMutAlloc};
+use crate::bytebuf::{BufMutAlloc, ByteBuf};
 use crate::network::mctypes::McTypeWrite;
+use crate::world::BlockPosition;
 use hashbrown::HashMap;
+use uuid::Uuid;
 
 pub enum MetaEntry {
     Byte(i8),
@@ -23,7 +23,7 @@ pub enum MetaEntry {
     Direction(Direction),
     OptUuid(Option<Uuid>),
     OptBlockId(Option<i32>),
-    Nbt, // TODO
+    Nbt,      // TODO
     Particle, // TODO
 }
 
@@ -96,7 +96,7 @@ fn write_entry_to_buf(entry: MetaEntry, buf: &mut ByteBuf) {
             buf.write_f32_be(x);
             buf.write_f32_be(y);
             buf.write_f32_be(z);
-        },
+        }
         MetaEntry::Position(x) => buf.write_position(&x),
         MetaEntry::OptPosition(ox) => {
             if let Some(x) = ox {
@@ -105,7 +105,7 @@ fn write_entry_to_buf(entry: MetaEntry, buf: &mut ByteBuf) {
             } else {
                 buf.write_bool(false);
             }
-        },
+        }
         MetaEntry::Direction(x) => buf.write_var_int(x.id()),
         MetaEntry::OptUuid(ox) => {
             if let Some(x) = ox {
@@ -114,14 +114,14 @@ fn write_entry_to_buf(entry: MetaEntry, buf: &mut ByteBuf) {
             } else {
                 buf.write_bool(false);
             }
-        },
+        }
         MetaEntry::OptBlockId(ox) => {
             if let Some(x) = ox {
                 buf.write_var_int(x);
             } else {
                 buf.write_var_int(0); // No value implies air
             }
-        },
+        }
         MetaEntry::Nbt => unimplemented!(),
         MetaEntry::Particle => unimplemented!(),
     }

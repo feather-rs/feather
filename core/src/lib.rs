@@ -12,10 +12,10 @@ extern crate feather_codegen;
 extern crate num_derive;
 
 pub mod bytebuf;
+pub mod entitymeta;
 pub mod network;
 pub mod prelude;
 pub mod world;
-pub mod entitymeta;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum Gamemode {
