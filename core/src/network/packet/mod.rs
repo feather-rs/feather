@@ -448,6 +448,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x0B, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::BlockChange,
+        );
+
+        m.insert(
             PacketId(0x22, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::ChunkData,
         );

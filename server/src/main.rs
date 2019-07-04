@@ -69,6 +69,7 @@ pub struct State {
 
 pub struct PlayerComponent {
     pub profile_properties: Vec<mojang_api::ServerAuthProperty>,
+    pub gamemode: Gamemode,
 }
 
 pub struct EntityComponent {

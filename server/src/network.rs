@@ -2,6 +2,7 @@ use crate::initialhandler::InitialHandlerComponent;
 use crate::io::{ServerToListenerMessage, ServerToWorkerMessage};
 use crate::prelude::*;
 use crate::{add_player, initialhandler as ih, remove_player, Entity, State};
+use feather_blocks::Block;
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use mio_extras::channel::{Receiver, Sender};
@@ -70,10 +71,13 @@ fn handle_player_packet(state: &mut State, player: Entity, packet: Box<Packet>) 
             cast_packet::<PlayerPositionAndLookServerbound>(&packet),
         ),
         PacketType::PlayerPosition => {
-            handle_player_pos(state, player, cast_packet::<PlayerPosition>(&packet))
+            handle_player_pos(state, player, cast_packet::<PlayerPosition>(&packet));
         }
         PacketType::PlayerLook => {
-            handle_player_look(state, player, cast_packet::<PlayerLook>(&packet))
+            handle_player_look(state, player, cast_packet::<PlayerLook>(&packet));
+        }
+        PacketType::PlayerDigging => {
+            handle_player_digging(state, player, cast_packet::<PlayerDigging>(&packet));
         }
         _ => (), // TODO
     }
@@ -122,6 +126,37 @@ fn handle_player_look(state: &mut State, player: Entity, packet: &PlayerLook) {
     broadcast_entity_movement(state, player, old_pos, new_pos, false, true);
 
     state.entity_components[player].position = new_pos;
+}
+
+fn handle_player_digging(state: &mut State, player: Entity, packet: &PlayerDigging) {
+    debug!("{:?}", packet.status);
+    match packet.status {
+        PlayerDiggingStatus::FinishedDigging => {
+            if state
+                .world
+                .set_block_at(packet.location, Block::Air)
+                .is_err()
+            {
+                // TODO kick player
+            }
+            broadcast_block_update(state, packet.location);
+        }
+        PlayerDiggingStatus::StartedDigging => {
+            let pcomp = &state.player_components[player];
+            if pcomp.gamemode == Gamemode::Creative {
+                // Break block instantly - TODO not with sword in hand
+                if state
+                    .world
+                    .set_block_at(packet.location, Block::Air)
+                    .is_err()
+                {
+                    // TODO kick player
+                }
+                broadcast_block_update(state, packet.location);
+            }
+        }
+        _ => (), // TODO
+    }
 }
 
 fn send_keep_alives(state: &mut State) {
@@ -271,10 +306,10 @@ pub fn broadcast_player_leave(state: &mut State, player: Entity) {
     let ecomp = &state.entity_components[player];
 
     let player_info = PlayerInfo::new(PlayerInfoAction::RemovePlayer, ecomp.uuid.clone());
-    send_packet_to_all_players(state, player_info, player);
+    send_packet_to_all_players(state, player_info, Some(player));
 
     let destroy_entities = DestroyEntities::new(vec![player.index() as i32]);
-    send_packet_to_all_players(state, destroy_entities, player);
+    send_packet_to_all_players(state, destroy_entities, Some(player));
 }
 
 /// Notifies all players within range
@@ -317,13 +352,13 @@ pub fn broadcast_entity_movement(
                 degrees_to_stops(new_pos.pitch),
                 ecomp.on_ground,
             );
-            send_packet_to_all_players(state, packet, entity);
+            send_packet_to_all_players(state, packet, Some(entity));
         } else if has_moved {
             // Entity Relative Move
             let (dx, dy, dz) = calculate_relative_move(old_pos, new_pos);
             let packet =
                 EntityRelativeMove::new(entity.index() as i32, dx, dy, dz, ecomp.on_ground);
-            send_packet_to_all_players(state, packet, entity);
+            send_packet_to_all_players(state, packet, Some(entity));
         } else if has_looked {
             // Entity Look
             let packet = EntityLook::new(
@@ -332,7 +367,7 @@ pub fn broadcast_entity_movement(
                 degrees_to_stops(new_pos.pitch),
                 ecomp.on_ground,
             );
-            send_packet_to_all_players(state, packet, entity);
+            send_packet_to_all_players(state, packet, Some(entity));
         }
     } else {
         unimplemented!()
@@ -341,13 +376,25 @@ pub fn broadcast_entity_movement(
     // Send Entity Head Look for head yaw
     if has_looked {
         let packet = EntityHeadLook::new(entity.index() as i32, degrees_to_stops(new_pos.yaw));
-        send_packet_to_all_players(state, packet, entity);
+        send_packet_to_all_players(state, packet, Some(entity));
     }
 }
 
-fn send_packet_to_all_players<P: Packet + Clone + 'static>(state: &State, packet: P, neq: Entity) {
+pub fn broadcast_block_update(state: &mut State, pos: BlockPosition) {
+    // TODO only send for players in range
+    let block = state.world.block_at(pos).unwrap();
+    let packet = BlockChange::new(pos, block.block_state_id() as i32);
+
+    send_packet_to_all_players(state, packet, None);
+}
+
+fn send_packet_to_all_players<P: Packet + Clone + 'static>(
+    state: &State,
+    packet: P,
+    neq: Option<Entity>,
+) {
     for player in &state.joined_players {
-        if *player != neq {
+        if neq.is_none() || *player != neq.unwrap() {
             send_packet_to_player(state, *player, packet.clone());
         }
     }

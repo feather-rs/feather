@@ -195,6 +195,7 @@ fn handle_login_start(state: &mut State, player: Entity, packet: &LoginStart) ->
         // This would otherwise be done in `handle_encryption_response`
         let player_comp = PlayerComponent {
             profile_properties: vec![],
+            gamemode: Gamemode::Creative,
         };
         state.player_components.set(player, player_comp);
 
@@ -286,6 +287,7 @@ fn handle_encryption_response(
     if let Ok(res) = auth_res {
         let player_comp = PlayerComponent {
             profile_properties: res.properties,
+            gamemode: Gamemode::Creative,
         };
         state.player_components.set(player, player_comp);
 

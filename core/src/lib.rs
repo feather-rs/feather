@@ -17,7 +17,7 @@ pub mod network;
 pub mod prelude;
 pub mod world;
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Gamemode {
     Survival,
     Creative,
@@ -36,7 +36,7 @@ impl Gamemode {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Difficulty {
     Peaceful,
     Easy,
@@ -55,7 +55,7 @@ impl Difficulty {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Dimension {
     Nether,
     Overwold,
@@ -72,7 +72,7 @@ impl Dimension {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PvpStyle {
     Classic,
     New,

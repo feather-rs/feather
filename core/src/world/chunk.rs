@@ -240,6 +240,7 @@ impl ChunkSection {
         let index_in_long = (bit_index % 64) as u64;
 
         let paletted_id = self.palette.get_index_from_type(block) as u64;
+        println!("paletted_id {}", paletted_id);
 
         self.data[start_long_index] |= (paletted_id << index_in_long) as u64;
 
@@ -277,6 +278,7 @@ impl ChunkSection {
             result |= (end_long << end_offset) as u16;
         }
 
+        println!("block_at result {}", result);
         palette.get_type_from_index(result)
     }
 

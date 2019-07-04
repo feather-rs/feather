@@ -97,6 +97,18 @@ impl World {
             None
         }
     }
+
+    pub fn set_block_at(&mut self, pos: BlockPosition, block: Block) -> Result<(), ()> {
+        let chunk_pos = pos.chunk_pos();
+
+        if let Some(chunk) = self.chunk_map.get_mut(&chunk_pos) {
+            let (x, y, z) = chunk_relative_pos(pos);
+            chunk.set_block_at(x, y, z, block);
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
 }
 
 fn chunk_relative_pos(block_pos: BlockPosition) -> (u16, u16, u16) {
@@ -165,5 +177,22 @@ mod tests {
         }
 
         assert_eq!(chunk.block_at(8, 64, 8), Block::Air);
+    }
+
+    #[test]
+    fn test_set_block_at() {
+        let mut world = World::new(Box::new(GridChunkGenerator {}));
+        world.load_chunk(BlockPosition::new(1, 63, 1).chunk_pos());
+
+        println!("-----");
+        world
+            .set_block_at(BlockPosition::new(1, 63, 1), Block::Air)
+            .unwrap();
+
+        println!("-----");
+        assert_eq!(
+            world.block_at(BlockPosition::new(1, 63, 1)).unwrap(),
+            Block::Air
+        );
     }
 }

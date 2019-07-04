@@ -2,6 +2,7 @@ use super::super::mctypes::{McTypeRead, McTypeWrite};
 use super::*;
 use crate::bytebuf::{BufMutAlloc, BufResulted};
 use crate::entitymeta::{EntityMetaIo, EntityMetadata};
+use crate::network::packet::PacketStage::Play;
 use crate::prelude::*;
 use crate::world::chunk::Chunk;
 use bytes::{Buf, BufMut};
@@ -359,11 +360,60 @@ pub struct PlayerAbilitiesServerbound {
     pub walking_speed: f32,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(AsAny, new, Clone, Default)]
 pub struct PlayerDigging {
-    pub status: VarInt,
+    pub status: PlayerDiggingStatus,
     pub location: BlockPosition,
     pub face: i8,
+}
+
+impl Packet for PlayerDigging {
+    fn read_from(&mut self, mut buf: &mut PacketBuf) -> Result<(), ()> {
+        self.status = {
+            let id = buf.read_var_int()?;
+            match id {
+                0 => PlayerDiggingStatus::StartedDigging,
+                1 => PlayerDiggingStatus::CancelledDigging,
+                2 => PlayerDiggingStatus::FinishedDigging,
+                3 => PlayerDiggingStatus::DropItemStack,
+                4 => PlayerDiggingStatus::DropItem,
+                5 => PlayerDiggingStatus::ShootArrow,
+                6 => PlayerDiggingStatus::SwapItemInHand,
+                _ => return Err(()),
+            }
+        };
+
+        self.location = buf.read_position()?;
+        self.face = buf.read_i8()?;
+
+        Ok(())
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        unimplemented!()
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::PlayerDigging
+    }
+}
+
+#[derive(Clone, Debug, Copy)]
+#[repr(i32)]
+pub enum PlayerDiggingStatus {
+    StartedDigging = 0,
+    CancelledDigging = 1,
+    FinishedDigging = 2,
+    DropItemStack = 3,
+    DropItem = 4,
+    ShootArrow = 5,
+    SwapItemInHand = 6,
+}
+
+impl Default for PlayerDiggingStatus {
+    fn default() -> Self {
+        PlayerDiggingStatus::StartedDigging
+    }
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
