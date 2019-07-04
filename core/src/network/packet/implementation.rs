@@ -8,6 +8,7 @@ use hashbrown::HashMap;
 use num_traits::{FromPrimitive, ToPrimitive};
 use std::io::Read;
 use std::io::Write;
+use crate::entitymeta::{EntityMetaIo, EntityMetadata};
 
 type VarInt = i32;
 type VarLong = i64;
@@ -609,7 +610,7 @@ pub struct SpawnPainting {
     pub direction: u8,
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(AsAny, new, Clone)]
 pub struct SpawnPlayer {
     pub entity_id: VarInt,
     pub player_uuid: Uuid,
@@ -618,7 +619,7 @@ pub struct SpawnPlayer {
     pub z: f64,
     pub yaw: u8,
     pub pitch: u8,
-    // TODO metadata
+    pub metadata: EntityMetadata,
 }
 
 impl Packet for SpawnPlayer {
@@ -635,8 +636,7 @@ impl Packet for SpawnPlayer {
         buf.write_u8(self.yaw);
         buf.write_u8(self.pitch);
 
-        // Metadata - just write 0xff to terminate
-        buf.write_u8(0xff);
+        buf.write_metadata(&self.metadata);
     }
 
     fn ty(&self) -> PacketType {

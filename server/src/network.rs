@@ -4,6 +4,7 @@ use crate::prelude::*;
 use crate::{add_player, initialhandler as ih, remove_player, Entity, State};
 use feather_core::network::packet::{implementation::*, Packet};
 use mio_extras::channel::{Receiver, Sender};
+use feather_core::entitymeta::{EntityMetadata, MetaEntry};
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
 
@@ -150,6 +151,26 @@ pub fn broadcast_player_join(state: &mut State, player: Entity) {
         send_packet_to_player(state, *p, player_info.clone());
     }
 
+    let metadata = EntityMetadata::new()
+        .with(&[
+            (0, MetaEntry::Byte(0)),
+            (1, MetaEntry::VarInt(300)),
+            (2, MetaEntry::OptChat(None)),
+            (3, MetaEntry::Boolean(false)),
+            (4, MetaEntry::Boolean(false)),
+            (5, MetaEntry::Boolean(false)),
+            (6, MetaEntry::Byte(0)),
+            (7, MetaEntry::Float(1.0)),
+            (8, MetaEntry::VarInt(0)),
+            (9, MetaEntry::Boolean(false)),
+            (10, MetaEntry::VarInt(0)),
+            (11, MetaEntry::Float(0.0)),
+            (12, MetaEntry::VarInt(0)),
+            (13, MetaEntry::Byte(0)),
+            (14, MetaEntry::Byte(1)),
+            // TODO NBT
+        ]);
+
     // TODO only do this for players within the view distance
     let spawn_player = SpawnPlayer::new(
         player.index() as i32,
@@ -159,6 +180,7 @@ pub fn broadcast_player_join(state: &mut State, player: Entity) {
         entity_comp.position.z,
         degrees_to_stops(entity_comp.position.pitch),
         degrees_to_stops(entity_comp.position.yaw),
+        metadata,
     );
 
     for p in &state.joined_players {

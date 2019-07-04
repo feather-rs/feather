@@ -8,6 +8,7 @@ use crate::world::BlockPosition;
 use hashbrown::HashMap;
 use uuid::Uuid;
 
+#[derive(Clone)]
 pub enum MetaEntry {
     Byte(i8),
     VarInt(i32),
@@ -50,19 +51,36 @@ impl MetaEntry {
     }
 }
 
+#[derive(Clone)]
 pub struct EntityMetadata {
     values: HashMap<u8, MetaEntry>,
 }
 
+impl EntityMetadata {
+    pub fn new() -> Self {
+        Self {
+            values: HashMap::new(),
+        }
+    }
+
+    pub fn with(mut self, values: &[(u8, MetaEntry)]) -> Self {
+        for val in values {
+            self.values.insert(val.0, val.1.clone());
+        }
+
+        self
+    }
+}
+
 pub trait EntityMetaIo {
-    fn write_metadata(&mut self, meta: EntityMetadata);
+    fn write_metadata(&mut self, meta: &EntityMetadata);
     fn read_metadata(&mut self) -> EntityMetadata;
 }
 
 impl EntityMetaIo for ByteBuf {
-    fn write_metadata(&mut self, meta: EntityMetadata) {
-        for (index, entry) in meta.values {
-            self.write_u8(index);
+    fn write_metadata(&mut self, meta: &EntityMetadata) {
+        for (index, entry) in meta.values.iter() {
+            self.write_u8(*index);
             self.write_var_int(entry.id());
             write_entry_to_buf(entry, self);
         }
@@ -75,33 +93,33 @@ impl EntityMetaIo for ByteBuf {
     }
 }
 
-fn write_entry_to_buf(entry: MetaEntry, buf: &mut ByteBuf) {
+fn write_entry_to_buf(entry: &MetaEntry, buf: &mut ByteBuf) {
     match entry {
-        MetaEntry::Byte(x) => buf.write_i8(x),
-        MetaEntry::VarInt(x) => buf.write_var_int(x),
-        MetaEntry::Float(x) => buf.write_f32_be(x),
-        MetaEntry::String(x) => buf.write_string(&x),
-        MetaEntry::Chat(x) => buf.write_string(&x),
+        MetaEntry::Byte(x) => buf.write_i8(*x),
+        MetaEntry::VarInt(x) => buf.write_var_int(*x),
+        MetaEntry::Float(x) => buf.write_f32_be(*x),
+        MetaEntry::String(x) => buf.write_string(x),
+        MetaEntry::Chat(x) => buf.write_string(x),
         MetaEntry::OptChat(ox) => {
             if let Some(x) = ox {
                 buf.write_bool(true);
-                buf.write_string(&x);
+                buf.write_string(x);
             } else {
                 buf.write_bool(false);
             }
         }
         MetaEntry::Slot => unimplemented!(),
-        MetaEntry::Boolean(x) => buf.write_bool(x),
+        MetaEntry::Boolean(x) => buf.write_bool(*x),
         MetaEntry::Rotation(x, y, z) => {
-            buf.write_f32_be(x);
-            buf.write_f32_be(y);
-            buf.write_f32_be(z);
+            buf.write_f32_be(*x);
+            buf.write_f32_be(*y);
+            buf.write_f32_be(*z);
         }
-        MetaEntry::Position(x) => buf.write_position(&x),
+        MetaEntry::Position(x) => buf.write_position(x),
         MetaEntry::OptPosition(ox) => {
             if let Some(x) = ox {
                 buf.write_bool(true);
-                buf.write_position(&x);
+                buf.write_position(x);
             } else {
                 buf.write_bool(false);
             }
@@ -110,14 +128,14 @@ fn write_entry_to_buf(entry: MetaEntry, buf: &mut ByteBuf) {
         MetaEntry::OptUuid(ox) => {
             if let Some(x) = ox {
                 buf.write_bool(true);
-                buf.write_uuid(&x);
+                buf.write_uuid(x);
             } else {
                 buf.write_bool(false);
             }
         }
         MetaEntry::OptBlockId(ox) => {
             if let Some(x) = ox {
-                buf.write_var_int(x);
+                buf.write_var_int(*x);
             } else {
                 buf.write_var_int(0); // No value implies air
             }
@@ -127,6 +145,7 @@ fn write_entry_to_buf(entry: MetaEntry, buf: &mut ByteBuf) {
     }
 }
 
+#[derive(Clone)]
 pub enum Direction {
     Down,
     Up,
