@@ -1,6 +1,6 @@
 use crate::network::{
     broadcast_player_join, enable_compression_for_player, enable_encryption_for_player,
-    send_packet_to_player,
+    get_player_initialization_packets, send_packet_to_player,
 };
 use crate::prelude::*;
 use crate::{remove_player, Entity, EntityComponent, PlayerComponent, State};
@@ -362,6 +362,13 @@ fn join_game(state: &mut State, player: Entity) {
 
     let pos_and_look = PlayerPositionAndLookClientbound::new(0.0, 64.0, 0.0, 0.0, 0.0, 0, 0);
     send_packet_to_player(state, player, pos_and_look);
+
+    // Send other players on the server
+    for other_player in &state.joined_players {
+        let (player_info, spawn_player) = get_player_initialization_packets(state, *other_player);
+        send_packet_to_player(state, player, player_info);
+        send_packet_to_player(state, player, spawn_player);
+    }
 
     state.joined_players.push(player);
 

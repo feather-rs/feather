@@ -143,7 +143,7 @@ pub fn get_player_initialization_packets(
     let display_name = json!({
         "text": entity_comp.display_name
     })
-        .to_string();
+    .to_string();
 
     let mut props = vec![];
     for prop in player_comp.profile_properties.iter() {
