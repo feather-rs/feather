@@ -1214,7 +1214,7 @@ impl Packet for CombatEvent {
             CombatEventType::EndCombat(duration, entity_id) => {
                 buf.write_var_int(*duration);
                 buf.write_i32_be(*entity_id);
-            },
+            }
             CombatEventType::EntityDead(player_id, entity_id, message) => {
                 buf.write_var_int(*player_id);
                 buf.write_i32_be(*entity_id);
