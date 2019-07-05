@@ -918,7 +918,26 @@ pub struct SetCooldown {
     pub cooldown_ticks: VarInt,
 }
 
-// TODO PluginMessageClientbound
+#[derive(Default, AsAny, new, Clone)]
+pub struct PluginMessageClientbound {
+    pub channel: String,
+    pub data: Vec<u8>,
+}
+
+impl Packet for PluginMessageClientbound {
+    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_string(&self.channel);
+        buf.write(&self.data);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::PluginMessageClientbound
+    }
+}
 
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct NamedSoundEffect {
@@ -948,7 +967,46 @@ pub struct NBTQueryResponse {
     pub nbt: NbtValue,
 }
 
-// TODO Explosion
+#[derive(Default, AsAny, new, Clone)]
+pub struct Explosion {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub radius: f32,
+    pub records: Vec<(i8, i8, i8)>,
+    pub player_motion_x: f32,
+    pub player_motion_y: f32,
+    pub player_motion_z: f32,
+}
+
+impl Packet for Explosion {
+    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_f32_be(self.x);
+        buf.write_f32_be(self.y);
+        buf.write_f32_be(self.z);
+        buf.write_f32_be(self.radius);
+
+        buf.write_i32_be(self.records.len() as i32);
+
+        for (x, y, z) in self.records.iter() {
+            buf.write_i8(*x);
+            buf.write_i8(*y);
+            buf.write_i8(*z);
+        }
+
+        buf.write_f32_be(self.player_motion_x);
+        buf.write_f32_be(self.player_motion_y);
+        buf.write_f32_be(self.player_motion_z);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::Explosion
+    }
+}
 
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct UnloadChunk {
@@ -1083,8 +1141,7 @@ pub struct JoinGame {
 }
 
 // TODO MapData
-
-// TODO entity
+// TODO EntityPacket
 
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct EntityRelativeMove {
@@ -1114,7 +1171,75 @@ pub struct EntityLook {
     pub on_ground: bool,
 }
 
-// ...
+#[derive(Default, AsAny, new, Packet, Clone)]
+pub struct VehicleMoveClientbound {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub yaw: f32,
+    pub pitch: f32,
+}
+
+#[derive(Default, AsAny, new, Packet, Clone)]
+pub struct OpenSignEditor {
+    pub location: BlockPosition,
+}
+
+#[derive(Default, AsAny, new, Packet, Clone)]
+pub struct CraftRecipeResponse {
+    pub window_id: i8,
+    pub recipe: String,
+}
+
+#[derive(Default, AsAny, new, Packet, Clone)]
+pub struct PlayerAbilitiesClientbound {
+    flags: u8,
+    flying_speed: f32,
+    field_of_view_modifier: f32,
+}
+
+#[derive(Default, AsAny, new, Clone)]
+pub struct CombatEvent {
+    pub event: CombatEventType,
+}
+
+impl Packet for CombatEvent {
+    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        match &self.event {
+            CombatEventType::EnterCombat => (),
+            CombatEventType::EndCombat(duration, entity_id) => {
+                buf.write_var_int(*duration);
+                buf.write_i32_be(*entity_id);
+            },
+            CombatEventType::EntityDead(player_id, entity_id, message) => {
+                buf.write_var_int(*player_id);
+                buf.write_i32_be(*entity_id);
+                buf.write_string(message);
+            }
+        }
+    }
+
+    fn ty(&self) -> PacketType {
+        unimplemented!()
+    }
+}
+
+#[derive(new, Clone)]
+pub enum CombatEventType {
+    EnterCombat,
+    EndCombat(VarInt, i32),
+    EntityDead(VarInt, i32, String),
+}
+
+impl Default for CombatEventType {
+    fn default() -> Self {
+        CombatEventType::EnterCombat
+    }
+}
 
 #[derive(AsAny, new, Clone)]
 pub struct PlayerInfo {
@@ -1192,7 +1317,8 @@ impl PlayerInfoAction {
         }
     }
 }
-// ...
+
+// TODO Face Player
 
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct PlayerPositionAndLookClientbound {
@@ -1204,6 +1330,14 @@ pub struct PlayerPositionAndLookClientbound {
     pub flags: u8,
     pub teleport_id: VarInt,
 }
+
+#[derive(Default, AsAny, new, Packet, Clone)]
+pub struct UseBed {
+    pub entity_id: VarInt,
+    pub location: BlockPosition,
+}
+
+// TODO Unlock Recipes
 
 #[derive(Default, AsAny, new, Clone)]
 pub struct DestroyEntities {
@@ -1229,10 +1363,33 @@ impl Packet for DestroyEntities {
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
+pub struct RemoveEntityEffect {
+    pub entity_id: VarInt,
+    pub effect_id: i8,
+}
+
+#[derive(Default, AsAny, new, Packet, Clone)]
+pub struct ResourcePackSend {
+    pub url: String,
+    pub hash: String,
+}
+
+#[derive(Default, AsAny, new, Packet, Clone)]
+pub struct Respawn {
+    pub dimension: i32,
+    pub difficulty: u8,
+    pub gamemode: u8,
+    pub level_type: String,
+}
+
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct EntityHeadLook {
     pub entity_id: VarInt,
     pub head_yaw: u8,
 }
+
+// TODO Select Advancement Tab
+// TODO World Border
 
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SpawnPosition {
