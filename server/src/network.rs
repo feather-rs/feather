@@ -150,6 +150,8 @@ fn handle_player_digging(state: &mut State, player: Entity, packet: &PlayerDiggi
                     .is_err()
                 {
                     // TODO kick player
+                    warn!("Client sent invalid Player Digging packet");
+                    return;
                 }
                 broadcast_block_update(state, packet.location);
             }

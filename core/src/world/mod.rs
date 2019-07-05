@@ -78,6 +78,9 @@ impl World {
         // TODO - in the future this will load chunks
         // from the filesystem and insert a future
         // into a pending_chunks map
+        if self.chunk_map.contains_key(&pos) {
+            return;
+        }
 
         let mut chunk = Chunk::new(pos);
         self.generator.generate(&mut chunk);
