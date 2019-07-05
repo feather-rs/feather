@@ -24,6 +24,7 @@ bytes = "0.4.12"
 hashbrown = "0.5.0"
 mojang-api = "0.1.0"
 multimap = "0.5.0"
+rnbt = { git = "https://github.com/caelunshun/nbt-rs", version = "0.1.0" }
 
 [dev-dependencies]
 mockers = "0.20.0"

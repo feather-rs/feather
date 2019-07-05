@@ -2,7 +2,8 @@ use crate::bytebuf::{BufMutAlloc, ByteBuf};
 use crate::prelude::*;
 use crate::world::BlockPosition;
 use bytes::Buf;
-use std::io::Read;
+use rnbt::NbtValue;
+use std::io::{Cursor, Read};
 
 /// Identifies a type to which Minecraft-specific
 /// types (`VarInt`, `VarLong`, etc.) can be written.
@@ -21,6 +22,8 @@ pub trait McTypeWrite {
     fn write_bool(&mut self, x: bool);
 
     fn write_uuid(&mut self, x: &Uuid);
+
+    fn write_nbt(&mut self, x: &NbtValue);
 }
 
 /// Identifies a type from which Minecraft-specified
@@ -38,6 +41,8 @@ pub trait McTypeRead {
     fn read_bool(&mut self) -> Result<bool, ()>;
 
     fn read_uuid(&mut self) -> Result<Uuid, ()>;
+
+    fn read_nbt(&mut self) -> Result<NbtValue, ()>;
 }
 
 impl McTypeWrite for ByteBuf {
@@ -87,6 +92,10 @@ impl McTypeWrite for ByteBuf {
 
     fn write_uuid(&mut self, x: &Uuid) {
         self.write(&x.as_bytes()[..]);
+    }
+
+    fn write_nbt(&mut self, _x: &NbtValue) {
+        unimplemented!() // TODO wait for rnbt to support this
     }
 }
 
@@ -161,5 +170,14 @@ impl<T: Buf + Read> McTypeRead for T {
         let mut bytes = [0; 16];
         self.read(&mut bytes).map_err(|_| ())?;
         Ok(Uuid::from_bytes(bytes))
+    }
+
+    fn read_nbt(&mut self) -> Result<NbtValue, ()> {
+        let mut cursor: Cursor<&[u8]> = Cursor::new(Buf::bytes(self));
+        let r = rnbt::parse(&mut cursor);
+        let advance_count = cursor.position() as usize;
+        self.advance(advance_count);
+
+        r
     }
 }
