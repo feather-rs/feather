@@ -210,26 +210,30 @@ impl ChunkSection {
 
         let old = self.block_at(x, y, z);
 
+        let mut should_remove = false;
+
         if let Some(amnt) = self.occurrence_map.get(&old) {
-            if self.block_at(x, y, z) != old {
+            if block != old {
                 let new_amnt = amnt - 1;
                 if new_amnt == 0 {
                     self.occurrence_map.remove(&old);
 
-                    self.remove_block_from_palette(old);
+                    should_remove = true;
                 } else {
                     self.occurrence_map.insert(old, new_amnt);
                 }
             }
         }
 
-        let amnt = self.occurrence_map.get(&block).cloned();
-        if let Some(amnt) = amnt {
-            self.occurrence_map.insert(block, amnt + 1);
-        } else {
-            // New block
-            self.add_block_to_palette(block);
-            self.occurrence_map.insert(block, 1);
+        if block != old {
+            let amnt = self.occurrence_map.get(&block).cloned();
+            if let Some(amnt) = amnt {
+                self.occurrence_map.insert(block, amnt + 1);
+            } else {
+                // New block
+                self.add_block_to_palette(block);
+                self.occurrence_map.insert(block, 1);
+            }
         }
 
         let bit_index =
@@ -240,12 +244,19 @@ impl ChunkSection {
         let index_in_long = (bit_index % 64) as u64;
 
         let paletted_id = self.palette.get_index_from_type(block) as u64;
-        println!("paletted_id {}", paletted_id);
 
+        self.data[start_long_index] &=
+            !((((1 << self.bits_per_block) - 1) as u64) << index_in_long as u64);
         self.data[start_long_index] |= (paletted_id << index_in_long) as u64;
 
         if start_long_index != end_long_index {
+            self.data[start_long_index] &=
+                !((((1 << self.bits_per_block) - 1) as u64) << (64 - index_in_long) as u64);
             self.data[end_long_index] |= (paletted_id >> (64 - index_in_long)) as u64;
+        }
+
+        if should_remove {
+            self.remove_block_from_palette(old);
         }
     }
 
@@ -278,7 +289,6 @@ impl ChunkSection {
             result |= (end_long << end_offset) as u16;
         }
 
-        println!("block_at result {}", result);
         palette.get_type_from_index(result)
     }
 
@@ -444,7 +454,13 @@ impl Palette {
         if !self.global {
             let global_id = block_type.block_state_id();
             self.palette.retain(|val| *val != global_id);
-            self.mappings.remove(&global_id).unwrap();
+
+            // Recalculate the mappings map
+            self.mappings = HashMap::new();
+
+            for (index, global) in self.palette.iter().enumerate() {
+                self.mappings.insert(*global, index as u16);
+            }
         }
     }
 
@@ -530,6 +546,7 @@ mod tests {
         for x in 0..16 {
             for y in 0..16 {
                 for z in 0..16 {
+                    println!("------------------({}, {}, {})------------------", x, y, z);
                     section.set_block_at(x, y, z, Block::Stone);
                     assert_eq!(section.block_at(x, y, z), Block::Stone);
                 }

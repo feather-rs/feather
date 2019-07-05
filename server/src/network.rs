@@ -129,7 +129,6 @@ fn handle_player_look(state: &mut State, player: Entity, packet: &PlayerLook) {
 }
 
 fn handle_player_digging(state: &mut State, player: Entity, packet: &PlayerDigging) {
-    debug!("{:?}", packet.status);
     match packet.status {
         PlayerDiggingStatus::FinishedDigging => {
             if state
@@ -370,7 +369,7 @@ pub fn broadcast_entity_movement(
             send_packet_to_all_players(state, packet, Some(entity));
         }
     } else {
-        unimplemented!()
+        // TODO
     }
 
     // Send Entity Head Look for head yaw
