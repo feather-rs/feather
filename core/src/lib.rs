@@ -15,6 +15,7 @@ pub mod bytebuf;
 pub mod entitymeta;
 pub mod network;
 pub mod prelude;
+pub mod region;
 pub mod world;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
