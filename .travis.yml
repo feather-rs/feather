@@ -7,5 +7,5 @@ sudo: false
 cache: cargo
 
 script:
-  - travis_wait 45 cargo build # Blocks crate takes a while to compile - but it should be cached after the first run
-  - travis_wait 45 cargo test
+  - travis_wait 60 cargo build # Blocks crate takes a while to compile - but it should be cached after the first run
+  - travis_wait 60 cargo test
