@@ -107,7 +107,7 @@ name_code = "pub fn name(&self) -> &'static str {\n" \
 # Code for the function that returns a map of
 # property names to property values, both as nasty,
 # inefficient strings.
-property_names_code = "pub fn property_names(&self) -> HashMap<&'static str, &'static str> {\n" \
+property_names_code = "pub fn property_names(&self) -> HashMap<&'static str, String> {\n" \
                       "let mut m = HashMap::new();\n" \
                       "match self {\n"
 
@@ -192,8 +192,8 @@ for block_identifier in data:
             # for property names, so we need to convert
             # to snake_case at runtime. This is performed
             # using the heck crate (https://github.com/withoutboats/heck).
-            property_names_code += "m.insert(\"" + prop_name + "\", (&format!(\"{:?}\", data." + prop_name \
-                                   + ")).to_snake_case().as_str());"
+            property_names_code += "m.insert(\"" + prop_name + "\", format!(\"{:?}\", data." + prop_name \
+                                   + ").to_snake_case());"
 
         state_code += "}\n\n"
 
