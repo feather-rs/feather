@@ -8,6 +8,8 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::path::PathBuf;
+use crate::world::chunk::Chunk;
+use std::io::SeekFrom;
 
 /// The length and width of a region, in chunks.
 const REGION_SIZE: usize = 32;
@@ -22,10 +24,57 @@ pub struct RegionHandle {
     header: RegionHeader,
 }
 
+impl RegionHandle {
+    /// Loads the chunk at the given position (global, not region-relative).
+    ///
+    /// The specified chunk is expected to be contained within this region.
+    ///
+    /// # Panics
+    /// If the specified chunk position is not within this
+    /// region file.
+    pub fn load_chunk(&mut self, pos: ChunkPosition) -> Result<Chunk, Error> {
+        // Get the offset of the chunk within the file
+        // so that it can be read.
+        let offset = self.header.location_for_chunk(pos).offset;
+
+        // Seek to the offset position. Note that since the offset in the header
+        // is in "sectors" of 4KiB each, the value needs to be multiplied by 4096
+        // to get the offset in bytes.
+        self.file.seek(SeekFrom::Start(offset as u64 * 4096)).map_err(|e| Error::Io(e))?;
+
+        // A chunk begins with a four-byte, big-endian value
+        // indicating the exact length of the chunk's data
+        // in bytes.
+        let len = self.file.read_u32::<BigEndian>().map_err(|e| Error::Io(e))?;
+
+        // Avoid DoS attacks
+        if len > 1048576 {
+            return Err(Error::ChunkTooLarge(len as usize));
+        }
+
+        // Read `len` bytes into memory.
+        let mut buf = Vec::with_capacity(len as usize);
+        let amnt_read = self.file.read(&mut buf).map_err(|e| Error::Io(e))?;
+
+        if amnt_read != len as usize {
+            return Err(Error::ChunkTooLarge(0));
+        }
+
+        let parsed_nbt = rnbt::parse
+    }
+}
+
+/// An error which occurred during region file processing.
 #[derive(Debug)]
 pub enum Error {
+    /// An IO error occurred.
     Io(io::Error),
+    /// The region file header was invalid.
     Header(&'static str),
+    /// The region file contained invalid NBT data.
+    Nbt,
+    /// The chunk was too large
+    ChunkTooLarge(usize),
 }
 
 impl Display for Error {
@@ -33,6 +82,8 @@ impl Display for Error {
         match self {
             Error::Io(ierr) => ierr.fmt(f)?,
             Error::Header(msg) => f.write_str(msg)?,
+            Error::Nbt => f.write_str("Region file contains invalid NBT")?,
+            Error::ChunkTooLarge(size) => f.write_str(&format!("Chunk was too large: {} bytes", size))?,
         }
 
         Ok(())
