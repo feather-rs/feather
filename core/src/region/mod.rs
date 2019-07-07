@@ -40,6 +40,11 @@ impl RegionHandle {
         // so that it can be read.
         let offset = self.header.location_for_chunk(pos).offset;
 
+        // If the chunk doesn't exist, return early
+        if !self.header.location_for_chunk(pos).exists() {
+            return Err(Error::ChunkNotExist);
+        }
+
         // Seek to the offset position. Note that since the offset in the header
         // is in "sectors" of 4KiB each, the value needs to be multiplied by 4096
         // to get the offset in bytes.
@@ -193,6 +198,8 @@ pub enum Error {
     BadCompression(io::Error),
     /// There was an invalid block in the chunk
     InvalidBlock,
+    /// The chunk does not exist
+    ChunkNotExist,
 }
 
 impl Display for Error {
@@ -212,6 +219,7 @@ impl Display for Error {
                 err.fmt(f)?;
             }
             Error::InvalidBlock => f.write_str("Chunk contains invalid block")?,
+            Error::ChunkNotExist => f.write_str("The chunk does not exist")?,
         }
 
         Ok(())
@@ -330,7 +338,7 @@ impl ChunkLocation {
 }
 
 /// A region contains a 32x32 grid of chunk columns.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct RegionPosition {
     x: i32,
     z: i32,
@@ -339,7 +347,7 @@ pub struct RegionPosition {
 impl RegionPosition {
     /// Returns the coordinates of the region corresponding
     /// to the specified chunk position.
-    fn from_chunk(chunk_coords: ChunkPosition) -> Self {
+    pub fn from_chunk(chunk_coords: ChunkPosition) -> Self {
         Self {
             x: chunk_coords.x / 32,
             z: chunk_coords.z / 32,
