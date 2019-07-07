@@ -474,6 +474,18 @@ pub struct Palette {
 }
 
 impl Palette {
+    pub fn new(palette: Vec<u16>) -> Self {
+        let mut mappings = HashMap::new();
+        for (index, val) in palette.iter().enumerate() {
+            mappings.insert(index as u16, *val);
+        }
+
+        Self {
+            global: false,
+            palette,
+            mappings,
+        }
+    }
     /// Updates the palette to allow
     /// for a new block type to be added
     /// in.

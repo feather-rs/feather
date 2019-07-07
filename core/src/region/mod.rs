@@ -1,10 +1,12 @@
 //! This module implements the loading and saving
 //! of Anvil region files.
 
-use crate::world::chunk::Chunk;
+use crate::world::chunk::{Chunk, Palette};
 use crate::world::ChunkPosition;
 use byteorder::{BigEndian, ReadBytesExt};
+use feather_blocks::Block;
 use flate2::bufread::{GzDecoder, ZlibDecoder};
+use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io;
@@ -136,11 +138,38 @@ impl RegionHandle {
                 block_state_buf.push(x as u64);
             }
 
+            let mut palette_buf = vec![];
+
             // Read palette. Unfortunately, Mojang
             // insists on using string IDs instead of numerical
             // IDs in the world format palette. This seems like
             // a horrible waste of space, but too bad.
-            // TODO
+            for palette_entry in palette.values {
+                let palette_entry = palette_entry.compound().ok_or_else(|| Error::Nbt)?;
+                let name = palette_entry
+                    .get("Name")
+                    .ok_or_else(|| Error::Nbt)?
+                    .string()
+                    .ok_or_else(|| Error::Nbt)?
+                    .value;
+                let mut props = HashMap::new();
+
+                let props_compound = palette_entry.get("Properties");
+                if let Some(nbt_props) = props_compound {
+                    let nbt_props = nbt_props.compound().ok_or_else(|| Error::Nbt)?;
+                    for (name, value) in nbt_props.values {
+                        let value = value.string().ok_or_else(|| Error::Nbt)?.value;
+                        props.insert(name.as_str(), value.as_str());
+                    }
+                }
+
+                let block =
+                    Block::from_name_and_props(&name, &props).ok_or_else(|| Error::InvalidBlock)?;
+                palette_buf.push(block.block_state_id());
+            }
+
+            let palette = Palette::new(palette_buf);
+            mem_section.set_data(palette, block_state_buf);
         }
 
         Ok(chunk)
@@ -162,6 +191,8 @@ pub enum Error {
     InvalidCompression(u8),
     /// We were unable to decompress the chunk
     BadCompression(io::Error),
+    /// There was an invalid block in the chunk
+    InvalidBlock,
 }
 
 impl Display for Error {
@@ -180,6 +211,7 @@ impl Display for Error {
                 f.write_str("Unable to decompress chunk data: ")?;
                 err.fmt(f)?;
             }
+            Error::InvalidBlock => f.write_str("Chunk contains invalid block")?,
         }
 
         Ok(())
