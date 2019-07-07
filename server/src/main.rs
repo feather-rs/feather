@@ -10,6 +10,7 @@ use std::alloc::System;
 #[global_allocator]
 static ALLOC: System = System;
 
+pub mod chunkworker;
 pub mod config;
 pub mod genindex;
 pub mod initialhandler;
