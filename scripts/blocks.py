@@ -8,7 +8,6 @@
 
 import json
 import sys
-import re
 from collections import OrderedDict
 
 
@@ -188,7 +187,7 @@ end_code += DERIVES + "pub enum Hinge {" \
 end_code += DERIVES + "pub enum Part {" \
                       "Head, Foot, }\n\n" \
                       'impl Part { pub fn from_identifier(i: &str) -> Option<Self> {' \
-                      'match o {' \
+                      'match i {' \
                       '"head" => Some(Part::Head),' \
                       '"foot" => Some(Part::Foot),' \
                       '_ => None,}}}'
@@ -216,7 +215,7 @@ for block_identifier in data:
         block_state_id_code += "Block::" + camel + " => return " + id + ",\n"
         from_block_state_id_code += id + " => return Block::" + camel + ",\n"
 
-        from_name_and_props_code += "\"" + block_identifier + "\" => Block::" + camel + ",\n"
+        from_name_and_props_code += "\"" + block_identifier + "\" => Some(Block::" + camel + "),\n"
 
     else:
         # Generate a bunch of mappings to account
@@ -255,6 +254,7 @@ for block_identifier in data:
 
                 end_code += "_ => None,\n}\n}\n}"
 
+            if not(ty == "bool" or ty == "i32"):
                 from_name_and_props_code += prop_name + ": match props[\"" + original_prop_name + "\"] {\n"
                 for val in vals:
                     from_name_and_props_code += "\"" + val + "\" => " + ty + "::" + snake_to_upper_camel(val) + ",\n"
@@ -280,7 +280,7 @@ for block_identifier in data:
         state_code += "}\n\n"
 
         property_names_code += "},\n"
-        from_name_and_props_code += "}\nBlock::" + camel + "(data)}\n"
+        from_name_and_props_code += "};\nSome(Block::" + camel + "(data))},\n"
 
         enum_code += camel + "(" + data_struct_name + "),\n"
 
