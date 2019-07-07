@@ -8,7 +8,7 @@ use crate::world::chunk::Chunk;
 use bytes::{Buf, BufMut};
 use hashbrown::HashMap;
 use num_traits::{FromPrimitive, ToPrimitive};
-use rnbt::NbtValue;
+use rnbt::NbtTag;
 use std::io::Read;
 use std::io::Write;
 
@@ -737,7 +737,7 @@ pub struct BlockBreakAnimation {
 pub struct UpdateBlockEntity {
     pub location: BlockPosition,
     pub action: u8,
-    pub data: NbtValue,
+    pub data: NbtTag,
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
@@ -964,7 +964,7 @@ pub struct EntityStatus {
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct NBTQueryResponse {
     pub transaction_id: VarInt,
-    pub nbt: NbtValue,
+    pub nbt: NbtTag,
 }
 
 #[derive(Default, AsAny, new, Clone)]

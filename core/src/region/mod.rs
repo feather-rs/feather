@@ -10,6 +10,7 @@ use std::io::prelude::*;
 use std::path::PathBuf;
 use crate::world::chunk::Chunk;
 use std::io::SeekFrom;
+use flate2::read::{ZlibDecoder, GzDecoder};
 
 /// The length and width of a region, in chunks.
 const REGION_SIZE: usize = 32;
@@ -60,7 +61,59 @@ impl RegionHandle {
             return Err(Error::ChunkTooLarge(0));
         }
 
-        let parsed_nbt = rnbt::parse
+        // The compression type is indicated by a byte,
+        // 1 corresponds to gzip compression, while 2
+        // corresponds to zlib.
+        let compression_type = self.file.read_u8().map_err(|e| Error::Io(e))?;
+
+        let mut uncompressed = vec![];
+
+        // Uncompress the data
+        match compression_type {
+            1 => {
+                let mut decoder = GzDecoder::new(&buf);
+                decoder.read(&mut uncompressed).map_err(|e| Error::BadCompression(e))?;
+            },
+            2 => {
+                let mut decoder = ZlibDecoder::new(&buf);
+                decoder.read(&mut uncompressed).map_err(|e| Error::BadCompression(e))?;
+            },
+            _ => return Err(Error::InvalidCompression(compression_type)),
+        }
+
+        // Read NBT-encoded chunk
+        let nbt = rnbt::parse_bytes(&uncompressed).map_err(|_| Error::Nbt)?;
+        let root = nbt.compound().ok_or_else(|| Error::Nbt)?;
+
+        let level = root.get("Level").ok_or_else(|| Error::Nbt)?.compound().ok_or_else(|| Error::Nbt)?;
+
+        let mut chunk = Chunk::new(pos);
+
+        let sections = level.get("Sections").ok_or_else(|| Error::Nbt)?.list().ok_or_else(|| Error::Nbt)?;
+        for section in sections.values {
+            let section = section.compound().ok_or_else(|| Error::Nbt)?;
+
+            let index = section.get("Y").ok_or_else(|| Error::Nbt)?.int().ok_or_else(|| Error::Nbt)?.value as usize;
+
+            let mem_section = chunk.section_mut(index);
+
+            // Set blocks + palette in section.
+            let block_states = section.get("BlockStates").ok_or_else(|| Error::Nbt)?.long_array().ok_or_else(|| Error::Nbt)?;
+            let palette = section.get("Palette").ok_or_else(|| Error::Nbt)?.list().ok_or_else(|| Error::Nbt)?;
+
+            let mut block_state_buf = Vec::with_capacity(block_states.values.len());
+            for x in block_states.values {
+                block_state_buf.push(x as u64);
+            }
+
+            // Read palette. Unfortunately, Mojang
+            // insists on using string IDs instead of numerical
+            // IDs in the world format palette. This seems like
+            // a horrible waste of space, but too bad.
+            // TODO
+        }
+
+        Ok(chunk)
     }
 }
 
@@ -75,6 +128,10 @@ pub enum Error {
     Nbt,
     /// The chunk was too large
     ChunkTooLarge(usize),
+    /// The chunk contained an invalid compression type
+    InvalidCompression(u8),
+    /// We were unable to decompress the chunk
+    BadCompression(io::Error),
 }
 
 impl Display for Error {
@@ -83,7 +140,12 @@ impl Display for Error {
             Error::Io(ierr) => ierr.fmt(f)?,
             Error::Header(msg) => f.write_str(msg)?,
             Error::Nbt => f.write_str("Region file contains invalid NBT")?,
-            Error::ChunkTooLarge(size) => f.write_str(&format!("Chunk was too large: {} bytes", size))?,
+            Error::ChunkTooLarge(size) => f.write_str(&format!("Chunk is too large: {} bytes", size))?,
+            Error::InvalidCompression(id) => f.write_str(&format!("Chunk uses invalid compression type {}", id))?,
+            Error::BadCompression(err) => {
+                f.write_str("Unable to decompress chunk data: ")?;
+                err.fmt(f)?;
+            }
         }
 
         Ok(())

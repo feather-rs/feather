@@ -109,6 +109,11 @@ impl Chunk {
     pub fn position(&self) -> ChunkPosition {
         self.location
     }
+
+    pub fn section_mut(&mut self, index: usize) -> &mut ChunkSection {
+        assert!(index < 16);
+        &mut self.sections[index]
+    }
 }
 
 /// A chunk section consisting of
@@ -300,6 +305,36 @@ impl ChunkSection {
         &self.data
     }
 
+    pub fn set_data(&mut self, palette: Palette, data: Vec<u64>) {
+        self.data = data;
+        self.palette = palette;
+        self.bits_per_block = ((self.data.len() * 64) / 4096) as u8;
+
+        if self.data.len() * 64 % 4096 > 0 {
+            self.bits_per_block += 1;
+        }
+
+        // Recalculate occurrence map
+        let mut new_map = HashMap::new();
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    let block = self.block_at(x, y, z);
+                    if let Some(amnt) = self.occurrence_map.get(block) {
+                        self.occurrence_map.insert(block, *amnt + 1);
+                    } else {
+                        self.occurrence_map.insert(block, 1);
+                    }
+                }
+            }
+        }
+        self.new_thresholds();
+    }
+
+    pub fn set_empty(&mut self, empty: bool) {
+        self.empty = empty;
+    }
+
     pub fn bits_per_block(&self) -> u8 {
         self.bits_per_block
     }
@@ -441,7 +476,7 @@ impl Palette {
     /// Updates the palette to allow
     /// for a new block type to be added
     /// in.
-    fn add_block_mapping(&mut self, block_type: Block) {
+    pub fn add_block_mapping(&mut self, block_type: Block) {
         if !self.global {
             let global_id = block_type.block_state_id();
             self.palette.push(global_id);
@@ -450,7 +485,7 @@ impl Palette {
         }
     }
 
-    fn remove_block_mapping(&mut self, block_type: Block) {
+    pub fn remove_block_mapping(&mut self, block_type: Block) {
         if !self.global {
             let global_id = block_type.block_state_id();
             self.palette.retain(|val| *val != global_id);
@@ -467,7 +502,7 @@ impl Palette {
     /// Returns the block type corresponding to
     /// the index into this palette or from the global
     /// palette.
-    fn get_type_from_index(&self, index: u16) -> Block {
+    pub fn get_type_from_index(&self, index: u16) -> Block {
         if self.global {
             Block::from_block_state_id(index)
         } else {
@@ -477,7 +512,7 @@ impl Palette {
 
     /// Returns the mapping for the specified
     /// block type.
-    fn get_index_from_type(&self, block: Block) -> u16 {
+    pub fn get_index_from_type(&self, block: Block) -> u16 {
         if self.global {
             block.block_state_id()
         } else {
