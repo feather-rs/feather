@@ -320,14 +320,15 @@ impl ChunkSection {
             for y in 0..16 {
                 for z in 0..16 {
                     let block = self.block_at(x, y, z);
-                    if let Some(amnt) = self.occurrence_map.get(block) {
-                        self.occurrence_map.insert(block, *amnt + 1);
+                    if let Some(amnt) = self.occurrence_map.get(&block) {
+                        new_map.insert(block, *amnt + 1);
                     } else {
-                        self.occurrence_map.insert(block, 1);
+                        new_map.insert(block, 1);
                     }
                 }
             }
         }
+        self.occurrence_map = new_map;
         self.new_thresholds();
     }
 

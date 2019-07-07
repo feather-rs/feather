@@ -10,7 +10,7 @@ use std::io::prelude::*;
 use std::path::PathBuf;
 use crate::world::chunk::Chunk;
 use std::io::SeekFrom;
-use flate2::read::{ZlibDecoder, GzDecoder};
+use flate2::bufread::{ZlibDecoder, GzDecoder};
 
 /// The length and width of a region, in chunks.
 const REGION_SIZE: usize = 32;
@@ -71,11 +71,11 @@ impl RegionHandle {
         // Uncompress the data
         match compression_type {
             1 => {
-                let mut decoder = GzDecoder::new(&buf);
+                let mut decoder = GzDecoder::new(buf.as_slice());
                 decoder.read(&mut uncompressed).map_err(|e| Error::BadCompression(e))?;
             },
             2 => {
-                let mut decoder = ZlibDecoder::new(&buf);
+                let mut decoder = ZlibDecoder::new(buf.as_slice());
                 decoder.read(&mut uncompressed).map_err(|e| Error::BadCompression(e))?;
             },
             _ => return Err(Error::InvalidCompression(compression_type)),
