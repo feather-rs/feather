@@ -111,29 +111,88 @@ property_names_code = "pub fn property_names(&self) -> HashMap<&'static str, Str
                       "let mut m = HashMap::new();\n" \
                       "match self {\n"
 
+# The inverse of property_names_code.
+set_properties_code = "pub fn set_properties(&mut self, props: &HashMap<&str, &str>) {\n" \
+                      "match self {\n"
 
-# Known properties - facing and axis
+
+# Known properties
 end_code += DERIVES + "pub enum Facing {" \
-            "North, South, East, West, Up, Down, }\n\n"
+            "North, South, East, West, Up, Down, }\n\n" \
+            "impl Facing { pub fn from_identifier(i: &str) -> Option<Self> {" \
+                      "match i {" \
+                      '"north" => Some(Facing::North),' \
+                      '"south" => Some(Facing::South),' \
+                      '"east" => Some(Facing::East),' \
+                      '"west" => Some(Facing::West),' \
+                      '"up" => Some(Facing::Up),' \
+                      '"down" => Some(Facing::Down),' \
+                      '_ => None,}}}'
 
 end_code += DERIVES + "pub enum Axis {" \
-            "X, Y, Z, }\n\n"
+            "X, Y, Z, }\n\n" \
+                      "impl Axis { pub fn from_identifier(i: &str) -> Option<Self> {" \
+                      "match i {" \
+                      '"x" => Some(Axis::X),' \
+                      '"y" => Some(Axis::Y),' \
+                      '"z" => Some(Axis::Z),' \
+                      '_ => None,}}}'
 
 end_code += DERIVES + "pub enum Half {" \
-            "Upper, Lower, Top, Bottom, }\n\n"
+            "Upper, Lower, Top, Bottom, }\n\n" \
+                      'impl Half { pub fn from_identifier(i: &str) -> Option<Self> {' \
+                      'match i {' \
+                      '"upper" => Some(Half::Upper),' \
+                      '"lower" => Some(Half::Lower),' \
+                      '"top" => Some(Half::Top),' \
+                      '"bottom" => Some(Half::Bottom),' \
+                      '_ => None,}}}'
 
 end_code += DERIVES + "pub enum Face {" \
-            "Floor, Wall, Ceiling, }\n\n"
+            "Floor, Wall, Ceiling, }\n\n" \
+                      'impl Face { pub fn from_identifier(i: &str) -> Option<Self> {' \
+                      'match i {' \
+                      '"floor" => Some(Face::Floor),' \
+                      '"wall" => Some(Face::Wall),' \
+                      '"ceiling" => Some(Face::Ceiling),' \
+                      '_ => None,}}}'
 
 end_code += DERIVES + "pub enum Shape {" \
             "Straight, InnerLeft, InnerRight, OuterLeft, OuterRight, AscendingNorth, AscendingEast, AscendingSouth, " \
-                      "AscendingWest, NorthEast, NorthWest, SouthEast, SouthWest, NorthSouth, EastWest,\n\n}"
+                      "AscendingWest, NorthEast, NorthWest, SouthEast, SouthWest, NorthSouth, EastWest,\n\n}" \
+                      'impl Shape { pub fn from_identifier(i: &str) -> Option<Self> {' \
+                      'match i {' \
+                      '"straight" => Some(Shape::Straight),' \
+                      '"inner_left" => Some(Shape::InnerLeft),' \
+                      '"inner_right" => Some(Shape::InnerRight),' \
+                      '"outer_left" => Some(Shape::OuterLeft),' \
+                      '"ascending_north" => Some(Shape::AscendingNorth),' \
+                      '"ascending_east" => Some(Shape::AscendingEast),' \
+                      '"ascending_south" => Some(Shape::AscendingSouth),' \
+                      '"ascending_west" => Some(Shape::AscendingWest),' \
+                      '"north_east" => Some(Shape::NorthEast),' \
+                      '"north_west" => Some(Shape::NorthWest),' \
+                      '"south_east" => Some(Shape::SouthEast),' \
+                      '"south_west" => Some(Shape::SouthWest),' \
+                      '"north_south" => Some(Shape::NorthSouth),' \
+                      '"east_west" => Some(Shape::EastWest),' \
+                      '_ => None,}}}'
 
 end_code += DERIVES + "pub enum Hinge {" \
-                      "Left, Right, }\n\n"
+                      "Left, Right, }\n\n" \
+                      'impl Hinge { pub fn from_identifier(i: &str) -> Option<Self> {' \
+                      'match i {' \
+                      '"left" => Some(Hinge::Left),' \
+                      '"right" => Some(Hinge::Right),' \
+                      '_ => None,}}}'
 
 end_code += DERIVES + "pub enum Part {" \
-                      "Head, Foot, }\n\n"
+                      "Head, Foot, }\n\n" \
+                      'impl Part { pub fn from_identifier(i: &str) -> Option<Self> {' \
+                      'match o {' \
+                      '"head" => Some(Part::Head),' \
+                      '"foot" => Some(Part::Foot),' \
+                      '_ => None,}}}'
 
 for block_identifier in data:
     print("Reading for block %s", block_identifier)
@@ -165,6 +224,7 @@ for block_identifier in data:
         state_code += DERIVES + "pub struct " + data_struct_name + " {"
 
         property_names_code += "Block::" + camel + "(data) => {\n"
+        set_properties_code += "Block::" + camel + "(data) => {\n"
 
         props = obj["properties"]
         for prop_name in props:
@@ -182,6 +242,15 @@ for block_identifier in data:
                     end_code += snake_to_upper_camel(val) + ",\n"
                 end_code += "}\n\n"
 
+                end_code += "impl " + ty + " {\n" \
+                                           "pub fn from_identifier(i: &str) -> Option<Self> {\n" \
+                                           "match i {\n"
+
+                for val in vals:
+                    end_code += '"' + val + '" => Some(' + ty + '::' + snake_to_upper_camel(val) + '),\n'
+
+                end_code += "_ => None,\n}\n}\n}"
+
             prop_name = process_property_name(prop_name)
 
             state_code += "pub " + prop_name + ": " + ty + ",\n"
@@ -195,9 +264,13 @@ for block_identifier in data:
             property_names_code += "m.insert(\"" + prop_name + "\", format!(\"{:?}\", data." + prop_name \
                                    + ").to_snake_case());"
 
+            set_properties_code += "data." + prop_name + " = " + ty \
+                                   + "::from_identifier(props[\"" + prop_name + "\"].clone()).unwrap();\n"
+
         state_code += "}\n\n"
 
         property_names_code += "},\n"
+        set_properties_code += "},\n"
 
         enum_code += camel + "(" + data_struct_name + "),\n"
 
@@ -258,6 +331,11 @@ property_names_code += "m\n"
 # End of function
 property_names_code += "}\n"
 
+# Likewise, see above
+set_properties_code += "_ => (),\n"
+set_properties_code += "}\n"
+set_properties_code += "}\n"
+
 name_code += "}\n}\n"
 
 fout.write("// This file was generated by /scripts/blocks.py\n\n")
@@ -272,6 +350,7 @@ fout.write(from_block_state_id_code)
 fout.write(name_code)
 fout.write("\n")
 fout.write(property_names_code)
+fout.write(set_properties_code)
 
 # End of impl block
 fout.write("}")
