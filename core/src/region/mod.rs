@@ -1,16 +1,16 @@
 //! This module implements the loading and saving
 //! of Anvil region files.
 
+use crate::world::chunk::Chunk;
 use crate::world::ChunkPosition;
 use byteorder::{BigEndian, ReadBytesExt};
+use flate2::bufread::{GzDecoder, ZlibDecoder};
 use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
-use std::path::PathBuf;
-use crate::world::chunk::Chunk;
 use std::io::SeekFrom;
-use flate2::bufread::{ZlibDecoder, GzDecoder};
+use std::path::PathBuf;
 
 /// The length and width of a region, in chunks.
 const REGION_SIZE: usize = 32;
@@ -41,12 +41,17 @@ impl RegionHandle {
         // Seek to the offset position. Note that since the offset in the header
         // is in "sectors" of 4KiB each, the value needs to be multiplied by 4096
         // to get the offset in bytes.
-        self.file.seek(SeekFrom::Start(offset as u64 * 4096)).map_err(|e| Error::Io(e))?;
+        self.file
+            .seek(SeekFrom::Start(offset as u64 * 4096))
+            .map_err(|e| Error::Io(e))?;
 
         // A chunk begins with a four-byte, big-endian value
         // indicating the exact length of the chunk's data
         // in bytes.
-        let len = self.file.read_u32::<BigEndian>().map_err(|e| Error::Io(e))?;
+        let len = self
+            .file
+            .read_u32::<BigEndian>()
+            .map_err(|e| Error::Io(e))?;
 
         // Avoid DoS attacks
         if len > 1048576 {
@@ -72,12 +77,16 @@ impl RegionHandle {
         match compression_type {
             1 => {
                 let mut decoder = GzDecoder::new(buf.as_slice());
-                decoder.read(&mut uncompressed).map_err(|e| Error::BadCompression(e))?;
-            },
+                decoder
+                    .read(&mut uncompressed)
+                    .map_err(|e| Error::BadCompression(e))?;
+            }
             2 => {
                 let mut decoder = ZlibDecoder::new(buf.as_slice());
-                decoder.read(&mut uncompressed).map_err(|e| Error::BadCompression(e))?;
-            },
+                decoder
+                    .read(&mut uncompressed)
+                    .map_err(|e| Error::BadCompression(e))?;
+            }
             _ => return Err(Error::InvalidCompression(compression_type)),
         }
 
@@ -85,21 +94,42 @@ impl RegionHandle {
         let nbt = rnbt::parse_bytes(&uncompressed).map_err(|_| Error::Nbt)?;
         let root = nbt.compound().ok_or_else(|| Error::Nbt)?;
 
-        let level = root.get("Level").ok_or_else(|| Error::Nbt)?.compound().ok_or_else(|| Error::Nbt)?;
+        let level = root
+            .get("Level")
+            .ok_or_else(|| Error::Nbt)?
+            .compound()
+            .ok_or_else(|| Error::Nbt)?;
 
         let mut chunk = Chunk::new(pos);
 
-        let sections = level.get("Sections").ok_or_else(|| Error::Nbt)?.list().ok_or_else(|| Error::Nbt)?;
+        let sections = level
+            .get("Sections")
+            .ok_or_else(|| Error::Nbt)?
+            .list()
+            .ok_or_else(|| Error::Nbt)?;
         for section in sections.values {
             let section = section.compound().ok_or_else(|| Error::Nbt)?;
 
-            let index = section.get("Y").ok_or_else(|| Error::Nbt)?.int().ok_or_else(|| Error::Nbt)?.value as usize;
+            let index = section
+                .get("Y")
+                .ok_or_else(|| Error::Nbt)?
+                .int()
+                .ok_or_else(|| Error::Nbt)?
+                .value as usize;
 
             let mem_section = chunk.section_mut(index);
 
             // Set blocks + palette in section.
-            let block_states = section.get("BlockStates").ok_or_else(|| Error::Nbt)?.long_array().ok_or_else(|| Error::Nbt)?;
-            let palette = section.get("Palette").ok_or_else(|| Error::Nbt)?.list().ok_or_else(|| Error::Nbt)?;
+            let block_states = section
+                .get("BlockStates")
+                .ok_or_else(|| Error::Nbt)?
+                .long_array()
+                .ok_or_else(|| Error::Nbt)?;
+            let palette = section
+                .get("Palette")
+                .ok_or_else(|| Error::Nbt)?
+                .list()
+                .ok_or_else(|| Error::Nbt)?;
 
             let mut block_state_buf = Vec::with_capacity(block_states.values.len());
             for x in block_states.values {
@@ -140,8 +170,12 @@ impl Display for Error {
             Error::Io(ierr) => ierr.fmt(f)?,
             Error::Header(msg) => f.write_str(msg)?,
             Error::Nbt => f.write_str("Region file contains invalid NBT")?,
-            Error::ChunkTooLarge(size) => f.write_str(&format!("Chunk is too large: {} bytes", size))?,
-            Error::InvalidCompression(id) => f.write_str(&format!("Chunk uses invalid compression type {}", id))?,
+            Error::ChunkTooLarge(size) => {
+                f.write_str(&format!("Chunk is too large: {} bytes", size))?
+            }
+            Error::InvalidCompression(id) => {
+                f.write_str(&format!("Chunk uses invalid compression type {}", id))?
+            }
             Error::BadCompression(err) => {
                 f.write_str("Unable to decompress chunk data: ")?;
                 err.fmt(f)?;
