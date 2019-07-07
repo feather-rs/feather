@@ -159,12 +159,12 @@ impl RegionHandle {
                     let nbt_props = nbt_props.compound().ok_or_else(|| Error::Nbt)?;
                     for (name, value) in nbt_props.values {
                         let value = value.string().ok_or_else(|| Error::Nbt)?.value;
-                        props.insert(name.as_str(), value.as_str());
+                        props.insert(name, value);
                     }
                 }
 
                 let block =
-                    Block::from_name_and_props(&name, &props).ok_or_else(|| Error::InvalidBlock)?;
+                    Block::from_name_and_props(&name, props).ok_or_else(|| Error::InvalidBlock)?;
                 palette_buf.push(block.block_state_id());
             }
 

@@ -110,7 +110,7 @@ property_names_code = "pub fn property_names(&self) -> HashMap<&'static str, Str
                       "let mut m = HashMap::new();\n" \
                       "match self {\n"
 
-from_name_and_props_code = "pub fn from_name_and_props(name: &str, props: &HashMap<&str, &str>) -> Option<Self> {\n" \
+from_name_and_props_code = "pub fn from_name_and_props(name: &str, props: HashMap<String, String>) -> Option<Self> {\n" \
                       "match name {\n"
 
 
@@ -255,13 +255,13 @@ for block_identifier in data:
                 end_code += "_ => None,\n}\n}\n}"
 
             if not(ty == "bool" or ty == "i32"):
-                from_name_and_props_code += prop_name + ": match props[\"" + original_prop_name + "\"] {\n"
+                from_name_and_props_code += prop_name + ": match props[\"" + original_prop_name + "\"].as_str() {\n"
                 for val in vals:
                     from_name_and_props_code += "\"" + val + "\" => " + ty + "::" + snake_to_upper_camel(val) + ",\n"
                 from_name_and_props_code += "_ => return None,"
                 from_name_and_props_code += "\n},"
             else:
-                from_name_and_props_code += prop_name + ": match props[\"" + original_prop_name + "\"] {\n"
+                from_name_and_props_code += prop_name + ": match props[\"" + original_prop_name + "\"].as_str() {\n"
                 for val in vals:
                     from_name_and_props_code += "\"" + val + "\" => " + val + ",\n"
                 from_name_and_props_code += "_ => return None,\n}\n,"
