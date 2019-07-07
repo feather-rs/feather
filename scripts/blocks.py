@@ -111,9 +111,8 @@ property_names_code = "pub fn property_names(&self) -> HashMap<&'static str, Str
                       "let mut m = HashMap::new();\n" \
                       "match self {\n"
 
-# The inverse of property_names_code.
-set_properties_code = "pub fn set_properties(&mut self, props: &HashMap<&str, &str>) {\n" \
-                      "match self {\n"
+from_name_and_props_code = "pub fn from_name_and_props(&mut self, name: &str, props: &HashMap<&str, &str>) -> Option<Self> {\n" \
+                      "match name {\n"
 
 
 # Known properties
@@ -217,6 +216,8 @@ for block_identifier in data:
         block_state_id_code += "Block::" + camel + " => return " + id + ",\n"
         from_block_state_id_code += id + " => return Block::" + camel + ",\n"
 
+        from_name_and_props_code += "\"" + block_identifier + "\" => Block::" + camel + ",\n"
+
     else:
         # Generate a bunch of mappings to account
         # for property data.
@@ -224,15 +225,18 @@ for block_identifier in data:
         state_code += DERIVES + "pub struct " + data_struct_name + " {"
 
         property_names_code += "Block::" + camel + "(data) => {\n"
-        set_properties_code += "Block::" + camel + "(data) => {\n"
+        from_name_and_props_code += "\"" + block_identifier + "\" => {\n" \
+                                                              "let data = " + data_struct_name + " {\n"
 
         props = obj["properties"]
-        for prop_name in props:
-            vals = props[prop_name]
+        for original_prop_name in props:
+            vals = props[original_prop_name]
             ty = get_type_from_value(vals[0])
 
-            if prop_name in KNOWN_PROPERTIES:
-                ty = snake_to_upper_camel(prop_name)  # e.g. facing -> Facing, axis -> Axis
+            if original_prop_name in KNOWN_PROPERTIES:
+                ty = snake_to_upper_camel(original_prop_name)  # e.g. facing -> Facing, axis -> Axis
+
+            prop_name = process_property_name(original_prop_name)
 
             if ty == "_enum":
                 # Create enum for custom value type
@@ -251,7 +255,16 @@ for block_identifier in data:
 
                 end_code += "_ => None,\n}\n}\n}"
 
-            prop_name = process_property_name(prop_name)
+                from_name_and_props_code += prop_name + ": match props[\"" + original_prop_name + "\"] {\n"
+                for val in vals:
+                    from_name_and_props_code += "\"" + val + "\" => " + ty + "::" + snake_to_upper_camel(val) + ",\n"
+                from_name_and_props_code += "_ => return None,"
+                from_name_and_props_code += "\n},"
+            else:
+                from_name_and_props_code += prop_name + ": match props[\"" + original_prop_name + "\"] {\n"
+                for val in vals:
+                    from_name_and_props_code += "\"" + val + "\" => " + val + ",\n"
+                from_name_and_props_code += "_ => return None,\n}\n,"
 
             state_code += "pub " + prop_name + ": " + ty + ",\n"
 
@@ -264,13 +277,10 @@ for block_identifier in data:
             property_names_code += "m.insert(\"" + prop_name + "\", format!(\"{:?}\", data." + prop_name \
                                    + ").to_snake_case());"
 
-            set_properties_code += "data." + prop_name + " = " + ty \
-                                   + "::from_identifier(props[\"" + prop_name + "\"].clone()).unwrap();\n"
-
         state_code += "}\n\n"
 
         property_names_code += "},\n"
-        set_properties_code += "},\n"
+        from_name_and_props_code += "}\nBlock::" + camel + "(data)}\n"
 
         enum_code += camel + "(" + data_struct_name + "),\n"
 
@@ -332,9 +342,9 @@ property_names_code += "m\n"
 property_names_code += "}\n"
 
 # Likewise, see above
-set_properties_code += "_ => (),\n"
-set_properties_code += "}\n"
-set_properties_code += "}\n"
+from_name_and_props_code += "_ => None,\n"
+from_name_and_props_code += "}\n"
+from_name_and_props_code += "}\n"
 
 name_code += "}\n}\n"
 
@@ -350,7 +360,7 @@ fout.write(from_block_state_id_code)
 fout.write(name_code)
 fout.write("\n")
 fout.write(property_names_code)
-fout.write(set_properties_code)
+fout.write(from_name_and_props_code)
 
 # End of impl block
 fout.write("}")
