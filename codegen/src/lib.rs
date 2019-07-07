@@ -68,7 +68,7 @@ lazy_static! {
         m.insert("f32", PacketParameterType::F32);
         m.insert("f64", PacketParameterType::F64);
         m.insert("Uuid", PacketParameterType::Uuid);
-        m.insert("NbtValue", PacketParameterType::Nbt);
+        m.insert("NbtTag", PacketParameterType::Nbt);
 
         m
     };

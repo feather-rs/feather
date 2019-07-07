@@ -23,7 +23,7 @@ pub trait McTypeWrite {
 
     fn write_uuid(&mut self, x: &Uuid);
 
-    fn write_nbt(&mut self, x: &NbtValue);
+    fn write_nbt(&mut self, x: &NbtTag);
 }
 
 /// Identifies a type from which Minecraft-specified
@@ -42,7 +42,7 @@ pub trait McTypeRead {
 
     fn read_uuid(&mut self) -> Result<Uuid, ()>;
 
-    fn read_nbt(&mut self) -> Result<NbtValue, ()>;
+    fn read_nbt(&mut self) -> Result<NbtTag, ()>;
 }
 
 impl McTypeWrite for ByteBuf {
@@ -94,7 +94,7 @@ impl McTypeWrite for ByteBuf {
         self.write(&x.as_bytes()[..]);
     }
 
-    fn write_nbt(&mut self, _x: &NbtValue) {
+    fn write_nbt(&mut self, _x: &NbtTag) {
         unimplemented!() // TODO wait for rnbt to support this
     }
 }
@@ -172,7 +172,7 @@ impl<T: Buf + Read> McTypeRead for T {
         Ok(Uuid::from_bytes(bytes))
     }
 
-    fn read_nbt(&mut self) -> Result<NbtValue, ()> {
+    fn read_nbt(&mut self) -> Result<NbtTag, ()> {
         let mut cursor: Cursor<&[u8]> = Cursor::new(Buf::bytes(self));
         let r = rnbt::parse(&mut cursor);
         let advance_count = cursor.position() as usize;
