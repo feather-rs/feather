@@ -12,8 +12,6 @@ use feather_core::region::{RegionHandle, RegionPosition};
 use feather_core::world::chunk::Chunk;
 use feather_core::world::ChunkPosition;
 use hashbrown::HashMap;
-use serde_json::error::Category::Syntax;
-use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub type Reply = (ChunkPosition, Result<Chunk, Error>);

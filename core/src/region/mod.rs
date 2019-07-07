@@ -21,8 +21,6 @@ const REGION_SIZE: usize = 32;
 pub struct RegionHandle {
     /// The region file.
     file: File,
-    /// The position of this region.
-    pos: RegionPosition,
     /// The region file's header, pre-loaded into memory.
     header: RegionHeader,
 }
@@ -246,7 +244,7 @@ pub fn load_region(dir: &str, pos: RegionPosition) -> Result<RegionHandle, Error
 
     let header = read_header(&mut file)?;
 
-    Ok(RegionHandle { pos, file, header })
+    Ok(RegionHandle { file, header })
 }
 
 /// Reads the region header from the given file.
