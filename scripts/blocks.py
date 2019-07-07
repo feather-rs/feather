@@ -110,7 +110,7 @@ property_names_code = "pub fn property_names(&self) -> HashMap<&'static str, Str
                       "let mut m = HashMap::new();\n" \
                       "match self {\n"
 
-from_name_and_props_code = "pub fn from_name_and_props(&mut self, name: &str, props: &HashMap<&str, &str>) -> Option<Self> {\n" \
+from_name_and_props_code = "pub fn from_name_and_props(name: &str, props: &HashMap<&str, &str>) -> Option<Self> {\n" \
                       "match name {\n"
 
 
