@@ -63,31 +63,31 @@ impl RegionHandle {
             return Err(Error::ChunkTooLarge(len as usize));
         }
 
+        if len == 0 {
+            return Err(Error::ChunkTooLarge(0));
+        }
+
         // Read `len` bytes into memory.
         let mut buf = vec![0u8; len as usize];
         self.file.read_exact(&mut buf).map_err(|e| Error::Io(e))?;
 
-        let mut cursor = Cursor::new(buf);
-
         // The compression type is indicated by a byte.
         // 1 corresponds to gzip compression, while 2
         // corresponds to zlib.
-        let compression_type = cursor.read_u8().map_err(|e| Error::Io(e))?;
+        let compression_type = buf[0];
 
         let mut uncompressed = vec![];
-
-        let buf = cursor.into_inner();
 
         // Uncompress the data
         match compression_type {
             1 => {
-                let mut decoder = GzDecoder::new(buf.as_slice());
+                let mut decoder = GzDecoder::new(&buf[1..]);
                 decoder
                     .read(&mut uncompressed)
                     .map_err(|e| Error::BadCompression(e))?;
             }
             2 => {
-                let mut decoder = ZlibDecoder::new(buf.as_slice());
+                let mut decoder = ZlibDecoder::new(&buf[1..]);
                 decoder
                     .read(&mut uncompressed)
                     .map_err(|e| Error::BadCompression(e))?;
