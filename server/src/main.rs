@@ -147,7 +147,7 @@ fn chunk_worker_system(state: &mut State) {
 }
 
 fn init_state(config: Config, io_manager: NetworkIoManager) -> State {
-    // Initialize chunk worker thread
+    info!("Starting chunk worker thread");
     let (tx, rx) = chunkworker::start("world");
     State {
         world: World::new(),

@@ -86,9 +86,14 @@ pub fn start(world_dir: &str) -> (Sender<Request>, Receiver<Reply>) {
         open_regions: HashMap::new(),
     };
 
-    std::thread::spawn(move || {
-        run(worker);
-    });
+    // Without changing the stack size,
+    // a stack overflow occurs here.
+    // This seeks to solve that.
+    std::thread::Builder::new()
+        .stack_size(1024 * 1024 * 4)
+        .name("Chunk Worker Thread".to_string())
+        .spawn(move || run(worker))
+        .expect("Unable to start chunk worker thread");
 
     (request_tx, reply_rx)
 }
