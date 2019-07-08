@@ -13,6 +13,10 @@ use mio_extras::channel::{Receiver, Sender};
 pub struct NetworkComponent {
     sender: Sender<ServerToWorkerMessage>,
     receiver: Receiver<ServerToWorkerMessage>,
+    /// A vector of all chunks that are currently
+    /// being loaded and should be sent to the player
+    /// once they have been loaded.
+    pub chunks_to_send: Vec<ChunkPosition>,
     //last_keep_alive_time: u64,
 }
 
@@ -21,7 +25,11 @@ impl NetworkComponent {
         sender: Sender<ServerToWorkerMessage>,
         receiver: Receiver<ServerToWorkerMessage>,
     ) -> Self {
-        Self { sender, receiver }
+        Self {
+            sender,
+            receiver,
+            chunks_to_send: vec![],
+        }
     }
 }
 
@@ -54,6 +62,16 @@ fn handle_connections(state: &mut State) {
                     players_to_remove.push(player);
                 }
                 _ => panic!("Invalid message received from worker thread"),
+            }
+        }
+
+        let comp = &mut state.network_components[player];
+
+        // Send all pending chunks which have been loaded
+        for chunk_pos in &comp.chunks_to_send.clone() {
+            if let Some(chunk) = state.world.chunk_at(*chunk_pos) {
+                let packet = ChunkData::new(chunk.clone());
+                send_packet_to_player(state, player, packet);
             }
         }
     }

@@ -22,7 +22,6 @@ use crate::genindex::{GenerationalArray, GenerationalIndex, GenerationalIndexAll
 use crate::initialhandler::InitialHandlerComponent;
 use crate::io::NetworkIoManager;
 use crate::network::NetworkComponent;
-use feather_core::world::GridChunkGenerator;
 use multimap::MultiMap;
 use prelude::*;
 use std::thread::sleep;
@@ -64,8 +63,19 @@ pub struct State {
     /// be queued for unloading.
     pub chunk_holders: MultiMap<ChunkPosition, Entity>,
 
+    pub chunk_worker_handle: ChunkWorkerHandle,
+
     pub running: bool,
     pub tick_count: u64,
+}
+
+/// A handle for interacting
+/// with the chunk worker IO thread.
+pub struct ChunkWorkerHandle {
+    /// Channel used to send chunk requests
+    sender: crossbeam::channel::Sender<chunkworker::Request>,
+    /// Channel used to receive replies from the worker thread
+    receiver: crossbeam::channel::Receiver<chunkworker::Reply>,
 }
 
 pub struct PlayerComponent {
@@ -100,10 +110,18 @@ fn main() {
     run_loop(&mut state);
 
     state.io_manager.stop();
+    state
+        .chunk_worker_handle
+        .sender
+        .send(chunkworker::Request::ShutDown)
+        .unwrap();
 }
 
 fn run_loop(state: &mut State) {
     while state.running {
+        // For optimal latency, the chunk worker system
+        // should run before all other systems
+        chunk_worker_system(state);
         network::network_system(state);
 
         state.tick_count += 1;
@@ -111,9 +129,28 @@ fn run_loop(state: &mut State) {
     }
 }
 
+/// System for emptying queue of loaded chunks.
+fn chunk_worker_system(state: &mut State) {
+    // Receive all replies from chunk worker thread and load into world
+    while let Ok((pos, result)) = state.chunk_worker_handle.receiver.try_recv() {
+        match result {
+            Ok(chunk) => {
+                state.world.chunk_map.insert(pos, chunk);
+                debug!("Loaded chunk at {:?}", pos);
+            }
+            Err(e) => {
+                // TODO generate new chunk if it wasn't found
+                warn!("Error occurred while loading chunk at {:?}: {:?}", pos, e);
+            }
+        }
+    }
+}
+
 fn init_state(config: Config, io_manager: NetworkIoManager) -> State {
+    // Initialize chunk worker thread
+    let (tx, rx) = chunkworker::start("world");
     State {
-        world: World::new(Box::new(GridChunkGenerator {})),
+        world: World::new(),
         config,
 
         allocator: GenerationalIndexAllocator::new(),
@@ -128,6 +165,11 @@ fn init_state(config: Config, io_manager: NetworkIoManager) -> State {
         joined_players: vec![],
 
         chunk_holders: MultiMap::new(),
+
+        chunk_worker_handle: ChunkWorkerHandle {
+            sender: tx,
+            receiver: rx,
+        },
 
         running: true,
         tick_count: 0,
@@ -174,6 +216,21 @@ pub fn remove_player(state: &mut State, entity: Entity) {
 
     state.joined_players.retain(|e| *e != entity);
     state.players.retain(|e| *e != entity);
+}
+
+/// Asynchronously loads the chunk at the given position.
+/// At some point in time after this function is called,
+/// the chunk will appear in the chunk map.
+///
+/// In the event that the requested chunk does not exist
+/// in the world save, it will be generated asynchronously.
+pub fn load_chunk(state: &mut State, pos: ChunkPosition) {
+    // Send request to chunk worker thread
+    state
+        .chunk_worker_handle
+        .sender
+        .send(chunkworker::Request::LoadChunk(pos))
+        .unwrap();
 }
 
 pub fn current_time_in_secs() -> u64 {

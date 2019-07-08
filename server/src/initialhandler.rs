@@ -3,7 +3,7 @@ use crate::network::{
     get_player_initialization_packets, send_packet_to_player,
 };
 use crate::prelude::*;
-use crate::{remove_player, Entity, EntityComponent, PlayerComponent, State};
+use crate::{load_chunk, remove_player, Entity, EntityComponent, PlayerComponent, State};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use openssl::pkey::Private;
 use openssl::rsa::{Padding, Rsa};
@@ -345,17 +345,22 @@ fn join_game(state: &mut State, player: Entity) {
     );
     send_packet_to_player(state, player, join_game);
 
-    // Send chunk data
+    // Send chunk data. If a chunk in the view distance
+    // hasn't been loaded, a load request will be queued.
     let view_distance = state.config.server.view_distance as i32;
     for x in -view_distance..view_distance + 1 {
         for y in -view_distance..view_distance + 1 {
-            // TODO proper chunk polling
             let pos = ChunkPosition::new(x, y);
-            state.world.load_chunk(pos);
-            let chunk = state.world.chunk_at(pos).unwrap().clone(); // hmmm... really efficient
 
-            let chunk_data = ChunkData::new(chunk);
-            send_packet_to_player(state, player, chunk_data);
+            if let Some(chunk) = state.world.chunk_at(pos) {
+                let chunk_data = ChunkData::new(chunk.clone());
+                send_packet_to_player(state, player, chunk_data);
+            } else {
+                // Queue chunk for loading.
+                load_chunk(state, pos);
+                // Make sure that the chunk is sent once loaded
+                state.network_components[player].chunks_to_send.push(pos);
+            }
         }
     }
 

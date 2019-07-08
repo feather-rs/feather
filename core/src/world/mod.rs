@@ -45,14 +45,12 @@ impl BlockPosition {
 }
 
 pub struct World {
-    pub generator: Box<ChunkGenerator>,
-    chunk_map: HashMap<ChunkPosition, Chunk>,
+    pub chunk_map: HashMap<ChunkPosition, Chunk>,
 }
 
 impl World {
-    pub fn new(generator: Box<ChunkGenerator>) -> Self {
+    pub fn new() -> Self {
         Self {
-            generator,
             chunk_map: HashMap::new(),
         }
     }
@@ -65,26 +63,6 @@ impl World {
         }
 
         None
-    }
-
-    /// Queues the chunk at the specified
-    /// position for loading, indicating
-    /// that the chunk will be loaded at some
-    /// point in the future. If the chunk is already
-    /// queued for loading, this function will return.
-    /// If the chunk is already loaded, this function
-    /// will do nothing.
-    pub fn load_chunk(&mut self, pos: ChunkPosition) {
-        // TODO - in the future this will load chunks
-        // from the filesystem and insert a future
-        // into a pending_chunks map
-        if self.chunk_map.contains_key(&pos) {
-            return;
-        }
-
-        let mut chunk = Chunk::new(pos);
-        self.generator.generate(&mut chunk);
-        self.chunk_map.insert(pos, chunk);
     }
 
     /// Retrieves the block at the specified
@@ -101,6 +79,10 @@ impl World {
         }
     }
 
+    /// Sets the block at the given position.
+    /// If the chunk in which the position resides
+    /// does not exist, `Err` is returned. In all
+    /// other cases, `Ok` is returned.
     pub fn set_block_at(&mut self, pos: BlockPosition, block: Block) -> Result<(), ()> {
         let chunk_pos = pos.chunk_pos();
 
@@ -160,14 +142,16 @@ mod tests {
 
     #[test]
     fn test_chunk_map() {
-        let mut world = World::new(Box::new(GridChunkGenerator {}));
+        let mut world = World::new();
 
         let chunk = world.chunk_at(ChunkPosition::new(0, 0));
         if chunk.is_some() {
             panic!();
         }
 
-        world.load_chunk(ChunkPosition::new(0, 0));
+        let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
+        FlatChunkGenerator {}.generate(&mut chunk);
+        world.chunk_map.insert(ChunkPosition::new(0, 0), chunk);
 
         let chunk = world.chunk_at(ChunkPosition::new(0, 0)).unwrap();
 
@@ -184,8 +168,11 @@ mod tests {
 
     #[test]
     fn test_set_block_at() {
-        let mut world = World::new(Box::new(GridChunkGenerator {}));
-        world.load_chunk(BlockPosition::new(1, 63, 1).chunk_pos());
+        let mut world = World::new();
+
+        let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
+        GridChunkGenerator {}.generate(&mut chunk);
+        world.chunk_map.insert(ChunkPosition::new(0, 0), chunk);
 
         println!("-----");
         world
