@@ -11,7 +11,7 @@ use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
-use std::io::SeekFrom;
+use std::io::{Cursor, SeekFrom};
 use std::path::PathBuf;
 
 /// The length and width of a region, in chunks.
@@ -64,19 +64,19 @@ impl RegionHandle {
         }
 
         // Read `len` bytes into memory.
-        let mut buf = Vec::with_capacity(len as usize);
-        let amnt_read = self.file.read(&mut buf).map_err(|e| Error::Io(e))?;
+        let mut buf = vec![0u8; len as usize];
+        self.file.read_exact(&mut buf).map_err(|e| Error::Io(e))?;
 
-        if amnt_read != len as usize {
-            return Err(Error::ChunkTooLarge(0));
-        }
+        let mut cursor = Cursor::new(buf);
 
-        // The compression type is indicated by a byte,
+        // The compression type is indicated by a byte.
         // 1 corresponds to gzip compression, while 2
         // corresponds to zlib.
-        let compression_type = self.file.read_u8().map_err(|e| Error::Io(e))?;
+        let compression_type = cursor.read_u8().map_err(|e| Error::Io(e))?;
 
         let mut uncompressed = vec![];
+
+        let buf = cursor.into_inner();
 
         // Uncompress the data
         match compression_type {
@@ -269,7 +269,7 @@ fn read_header(file: &mut File) -> Result<RegionHeader, Error> {
     // and sector length data. The first three
     // bytes of a 4-byte value contain the offset,
     // while the next byte contains the sector length.
-    for _ in 0..4096 {
+    for _ in 0..1024 {
         let val = file.read_u32::<BigEndian>().map_err(|e| Error::Io(e))?;
         let offset = val >> 8;
         let sector_count = (val & 0b11111111) as u8;
@@ -282,7 +282,7 @@ fn read_header(file: &mut File) -> Result<RegionHeader, Error> {
 
     // The next 4 KiB contains timestamp data - one
     // for each chunk.
-    for _ in 0..4096 {
+    for _ in 0..1024 {
         let timestamp = file.read_u32::<BigEndian>().map_err(|e| Error::Io(e))?;
         header.timestamps.push(timestamp);
     }
