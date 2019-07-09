@@ -18,7 +18,7 @@ const RSA_BITS: u32 = 1024; // Yes, very secure
 const VERIFY_TOKEN_LEN: usize = 4;
 
 #[derive(Debug, Eq, PartialEq)]
-enum Stage {
+pub enum Stage {
     AwaitHandshake,
 
     AwaitRequest,
@@ -26,10 +26,11 @@ enum Stage {
 
     AwaitLoginStart,
     AwaitEncryptionResponse,
+    AwaitChunkLoad,
 }
 
 pub struct InitialHandlerComponent {
-    stage: Stage,
+    pub stage: Stage,
     rsa_key: Option<Rsa<Private>>,
     verify_token: [u8; VERIFY_TOKEN_LEN],
     /// Sent in Login Start
@@ -328,9 +329,7 @@ fn finish(state: &mut State, player: Entity) {
     );
     send_packet_to_player(state, player, login_success);
 
-    state.ih_components.remove(player);
     join_game(state, player);
-    debug!("InitialHandler finished");
 }
 
 fn join_game(state: &mut State, player: Entity) {
@@ -364,8 +363,21 @@ fn join_game(state: &mut State, player: Entity) {
         }
     }
 
+    if state.network_components[player].chunks_to_send.is_empty() {
+        complete_join_game(state, player);
+    } else {
+        // If not all chunks have been sent, we need to wait
+        // until they're loaded and sent before spawning the player.
+        // The network system will call `complete_join_game` upon
+        // sending all chunks.
+        state.ih_components[player].stage = Stage::AwaitChunkLoad;
+    }
+}
+
+pub fn complete_join_game(state: &mut State, player: Entity) {
     // Send spawn position + player position
     // TODO proper persistence
+
     let spawn_position = SpawnPosition::new(BlockPosition::new(0, 64, 0));
     send_packet_to_player(state, player, spawn_position);
 
@@ -380,6 +392,8 @@ fn join_game(state: &mut State, player: Entity) {
     }
 
     state.joined_players.push(player);
+
+    state.ih_components.remove(player);
 
     broadcast_player_join(state, player);
 

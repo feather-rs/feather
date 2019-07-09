@@ -5,6 +5,8 @@ use crate::{add_player, initialhandler as ih, remove_player, Entity, State};
 use feather_blocks::Block;
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
+use feather_core::world::chunk::Chunk;
+use feather_core::world::{ChunkGenerator, GridChunkGenerator};
 use mio_extras::channel::{Receiver, Sender};
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
@@ -48,11 +50,14 @@ fn handle_connections(state: &mut State) {
         while let Ok(msg) = state.network_components[player].receiver.try_recv() {
             match msg {
                 ServerToWorkerMessage::NotifyPacketReceived(packet) => {
-                    if let Some(_) = state.ih_components.get(player) {
-                        if let Err(e) = ih::handle_packet(state, player, packet) {
-                            info!("Disconnecting player: {}", e);
-                            ih::disconnect_login(state, player, &e.to_string());
-                            remove_player(state, player);
+                    if let Some(ih) = state.ih_components.get(player) {
+                        // Skip if initial handler is awaiting chunks
+                        if ih.stage != ih::Stage::AwaitChunkLoad {
+                            if let Err(e) = ih::handle_packet(state, player, packet) {
+                                info!("Disconnecting player: {}", e);
+                                ih::disconnect_login(state, player, &e.to_string());
+                                remove_player(state, player);
+                            }
                         }
                     } else {
                         handle_player_packet(state, player, packet);
@@ -65,14 +70,36 @@ fn handle_connections(state: &mut State) {
             }
         }
 
-        let comp = &mut state.network_components[player];
-
         // Send all pending chunks which have been loaded
-        for chunk_pos in &comp.chunks_to_send.clone() {
+        let mut to_remove = vec![];
+        for (i, chunk_pos) in state.network_components[player]
+            .chunks_to_send
+            .clone()
+            .iter()
+            .enumerate()
+        {
             if let Some(chunk) = state.world.chunk_at(*chunk_pos) {
                 let packet = ChunkData::new(chunk.clone());
                 send_packet_to_player(state, player, packet);
+                to_remove.push(i);
+            } else {
             }
+        }
+        let mut count = 0;
+        for i in to_remove {
+            state.network_components[player]
+                .chunks_to_send
+                .remove(i - count);
+            count += 1;
+        }
+
+        // If the player has yet to receive their spawn position,
+        // send it if all their chunks have been loaded
+        if state.network_components[player].chunks_to_send.is_empty()
+            && state.ih_components.get(player).is_some()
+            && state.ih_components[player].stage == ih::Stage::AwaitChunkLoad
+        {
+            ih::complete_join_game(state, player);
         }
     }
 
