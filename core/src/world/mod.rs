@@ -1,4 +1,4 @@
-use crate::world::block::Block;
+use crate::world::block::*;
 use crate::world::chunk::Chunk;
 use hashbrown::HashMap;
 

@@ -5,8 +5,6 @@ use crate::{add_player, initialhandler as ih, remove_player, Entity, State};
 use feather_blocks::Block;
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
-use feather_core::world::chunk::Chunk;
-use feather_core::world::{ChunkGenerator, GridChunkGenerator};
 use mio_extras::channel::{Receiver, Sender};
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;

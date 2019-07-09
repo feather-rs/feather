@@ -1071,7 +1071,7 @@ impl Packet for ChunkData {
                     palette_buf.write_var_int((*val) as i32);
                 }
 
-                temp_buf.write_var_int(palette_buf.len() as i32);
+                temp_buf.write_var_int(data.len() as i32);
                 temp_buf.write(palette_buf.inner());
             }
 
