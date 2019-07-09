@@ -1,5 +1,5 @@
 pub use super::{
-    world::{block::*, BlockPosition, ChunkPosition, Position, World},
+    world::{block::*, BlockPosition, ChunkMap, ChunkPosition, Position},
     Difficulty, Dimension, Gamemode, PvpStyle,
 };
 pub use crate::network::cast_packet;

@@ -76,7 +76,7 @@ fn handle_connections(state: &mut State) {
             .iter()
             .enumerate()
         {
-            if let Some(chunk) = state.world.chunk_at(*chunk_pos) {
+            if let Some(chunk) = state.chunk_map.chunk_at(*chunk_pos) {
                 let packet = ChunkData::new(chunk.clone());
                 send_packet_to_player(state, player, packet);
                 to_remove.push(i);
@@ -175,7 +175,7 @@ fn handle_player_digging(state: &mut State, player: Entity, packet: &PlayerDiggi
     match packet.status {
         PlayerDiggingStatus::FinishedDigging => {
             if state
-                .world
+                .chunk_map
                 .set_block_at(packet.location, Block::Air)
                 .is_err()
             {
@@ -188,7 +188,7 @@ fn handle_player_digging(state: &mut State, player: Entity, packet: &PlayerDiggi
             if pcomp.gamemode == Gamemode::Creative {
                 // Break block instantly - TODO not with sword in hand
                 if state
-                    .world
+                    .chunk_map
                     .set_block_at(packet.location, Block::Air)
                     .is_err()
                 {
@@ -426,7 +426,7 @@ pub fn broadcast_entity_movement(
 
 pub fn broadcast_block_update(state: &mut State, pos: BlockPosition) {
     // TODO only send for players in range
-    let block = state.world.block_at(pos).unwrap();
+    let block = state.chunk_map.block_at(pos).unwrap();
     let packet = BlockChange::new(pos, block.block_state_id() as i32);
 
     send_packet_to_all_players(state, packet, None);

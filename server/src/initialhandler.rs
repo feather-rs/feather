@@ -351,7 +351,7 @@ fn join_game(state: &mut State, player: Entity) {
         for y in -view_distance..view_distance + 1 {
             let pos = ChunkPosition::new(x, y);
 
-            if let Some(chunk) = state.world.chunk_at(pos) {
+            if let Some(chunk) = state.chunk_map.chunk_at(pos) {
                 let chunk_data = ChunkData::new(chunk.clone());
                 send_packet_to_player(state, player, chunk_data);
             } else {

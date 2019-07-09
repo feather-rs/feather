@@ -11,7 +11,6 @@ env:
     - RUST_BACKTRACE=1
     - RUSTFLAGS="-C link-dead-code"
     - CARGO_MAKE_RUN_CODECOV="true"
-    - CODECOV_TOKEN=6ba7ddc6-ae93-413b-a7cd-d66c80f9028c
 
 script:
   - cargo install --debug cargo-make
