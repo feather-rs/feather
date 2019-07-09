@@ -6,33 +6,13 @@ os:
 sudo: false
 cache: cargo
 
-addons:
-  apt:
-    packages:
-      - libcurl4-openssl-dev
-      - libelf-dev
-      - libdw-dev
-      - cmake
-      - gcc
-      - binutils-dev
-      - libiberty-dev
-
+env:
+  global:
+    - RUST_BACKTRACE=1
+    - RUSTFLAGS="-C link-dead-code"
+    - CARGO_MAKE_RUN_CODECOV="true"
+    - CODECOV_TOKEN=6ba7ddc6-ae93-413b-a7cd-d66c80f9028c
 
 script:
-  - travis_wait 60 cargo build # Blocks crate takes a while to compile - but it should be cached after the first run
-  - travis_wait 60 cargo test
-
-after_success: |
-  wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
-  tar xzf master.tar.gz &&
-  cd kcov-master &&
-  mkdir build &&
-  cd build &&
-  cmake .. &&
-  make &&
-  make install DESTDIR=../../kcov-build &&
-  cd ../.. &&
-  rm -rf kcov-master &&
-  for file in target/debug/examplerust-*; do [ -x "${file}" ] || continue; mkdir -p "target/cov/$(basename $file)"; ./kcov-build/usr/local/bin/kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
-  bash <(curl -s https://codecov.io/bash) &&
-  echo "Uploaded code coverage"
+  - cargo install --debug cargo-make
+  - cargo make ci-flow
