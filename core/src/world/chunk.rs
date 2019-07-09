@@ -306,13 +306,10 @@ impl ChunkSection {
     }
 
     pub fn set_data(&mut self, palette: Palette, data: Vec<u64>) {
+        self.empty = false;
         self.data = data;
         self.palette = palette;
         self.bits_per_block = ((self.data.len() as f32 * 64.0) / 4096.0).ceil() as u8;
-
-        if self.data.len() * 64 % 4096 > 0 {
-            self.bits_per_block += 1;
-        }
 
         // Recalculate occurrence map
         let mut new_map = HashMap::new();
