@@ -5,12 +5,29 @@ os:
 sudo: false
 cache: cargo
 
+addons:
+  apt:
+    packages:
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libdw-dev
+      - binutils-dev
+      - libiberty-dev
+      - g++
+
+install:
+  - mkdir -p ~/.cargo/bin
+  - sh src/install_kcov.sh
+  - export PATH=$HOME/.local/bin:$HOME/.cargo/bin:$HOME/Library/Python/2.7/bin:$PATH
+  - kcov --version
+
 env:
   global:
     - RUST_BACKTRACE=1
     - RUSTFLAGS="-C link-dead-code"
-    - CARGO_MAKE_RUN_CODECOV="true"
 
 script:
-  - cargo install --debug --force cargo-make
-  - travis_wait 60 cargo make ci-flow
+  - cargo install --debug --force cargo-kcov
+  - travis_wait 60 cargo build
+  - travis_wait 60 cargo test
+  - cargo kcov --coveralls
