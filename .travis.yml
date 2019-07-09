@@ -14,4 +14,4 @@ env:
 
 script:
   - cargo install --debug cargo-make
-  - cargo make ci-flow
+  - travis_wait 60 cargo make ci-flow

@@ -91,7 +91,7 @@ pub struct EntityComponent {
 }
 
 fn main() {
-    let config = config::load()
+    let config = config::load_from_file("feather.toml")
         .expect("Failed to load configuration. Please ensure that the file feather.toml exists and is correct.");
 
     init_log(&config);
