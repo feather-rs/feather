@@ -291,7 +291,7 @@ impl ChunkSection {
             // Value stretches across multiple entries
             // in the data array
             let end_offset = 64 - index_in_long;
-            result |= (end_long << end_offset) as u16;
+            result |= ((end_long << end_offset) & mask) as u16;
         }
 
         palette.get_type_from_index(result)
@@ -308,7 +308,7 @@ impl ChunkSection {
     pub fn set_data(&mut self, palette: Palette, data: Vec<u64>) {
         self.data = data;
         self.palette = palette;
-        self.bits_per_block = ((self.data.len() * 64) / 4096) as u8;
+        self.bits_per_block = ((self.data.len() as f32 * 64.0) / 4096.0).ceil() as u8;
 
         if self.data.len() * 64 % 4096 > 0 {
             self.bits_per_block += 1;

@@ -11,7 +11,7 @@ use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
-use std::io::{Cursor, SeekFrom};
+use std::io::SeekFrom;
 use std::path::PathBuf;
 
 /// The length and width of a region, in chunks.
@@ -83,43 +83,47 @@ impl RegionHandle {
             1 => {
                 let mut decoder = GzDecoder::new(&buf[1..]);
                 decoder
-                    .read(&mut uncompressed)
+                    .read_to_end(&mut uncompressed)
                     .map_err(|e| Error::BadCompression(e))?;
             }
             2 => {
                 let mut decoder = ZlibDecoder::new(&buf[1..]);
                 decoder
-                    .read(&mut uncompressed)
+                    .read_to_end(&mut uncompressed)
                     .map_err(|e| Error::BadCompression(e))?;
             }
             _ => return Err(Error::InvalidCompression(compression_type)),
         }
 
         // Read NBT-encoded chunk
-        let nbt = rnbt::parse_bytes(&uncompressed).map_err(|_| Error::Nbt)?;
-        let root = nbt.compound().ok_or_else(|| Error::Nbt)?;
+        let nbt = rnbt::parse_bytes(&uncompressed).map_err(|_| Error::Nbt("Failed to parse"))?;
+        let root = nbt
+            .compound()
+            .ok_or_else(|| Error::Nbt("Root tag not a compound"))?;
 
         let level = root
             .get("Level")
-            .ok_or_else(|| Error::Nbt)?
+            .ok_or_else(|| Error::Nbt("Level tag not found"))?
             .compound()
-            .ok_or_else(|| Error::Nbt)?;
+            .ok_or_else(|| Error::Nbt("Level tag not a compound"))?;
 
         let mut chunk = Chunk::new(pos);
 
         let sections = level
             .get("Sections")
-            .ok_or_else(|| Error::Nbt)?
+            .ok_or_else(|| Error::Nbt("Sections tag not found"))?
             .list()
-            .ok_or_else(|| Error::Nbt)?;
+            .ok_or_else(|| Error::Nbt("Sections not a compound"))?;
         for section in sections.values {
-            let section = section.compound().ok_or_else(|| Error::Nbt)?;
+            let section = section
+                .compound()
+                .ok_or_else(|| Error::Nbt("Section not a compound"))?;
 
             let index = section
                 .get("Y")
-                .ok_or_else(|| Error::Nbt)?
-                .int()
-                .ok_or_else(|| Error::Nbt)?
+                .ok_or_else(|| Error::Nbt("Y tag not found"))?
+                .byte()
+                .ok_or_else(|| Error::Nbt("Y tag not a byte"))?
                 .value as usize;
 
             let mem_section = chunk.section_mut(index);
@@ -127,14 +131,14 @@ impl RegionHandle {
             // Set blocks + palette in section.
             let block_states = section
                 .get("BlockStates")
-                .ok_or_else(|| Error::Nbt)?
+                .ok_or_else(|| Error::Nbt("Block state tag not found"))?
                 .long_array()
-                .ok_or_else(|| Error::Nbt)?;
+                .ok_or_else(|| Error::Nbt("Block states not a long array"))?;
             let palette = section
                 .get("Palette")
-                .ok_or_else(|| Error::Nbt)?
+                .ok_or_else(|| Error::Nbt("Palette tag not found"))?
                 .list()
-                .ok_or_else(|| Error::Nbt)?;
+                .ok_or_else(|| Error::Nbt("Palette tag not a list"))?;
 
             let mut block_state_buf = Vec::with_capacity(block_states.values.len());
             for x in block_states.values {
@@ -148,20 +152,27 @@ impl RegionHandle {
             // IDs in the world format palette. This seems like
             // a horrible waste of space, but too bad.
             for palette_entry in palette.values {
-                let palette_entry = palette_entry.compound().ok_or_else(|| Error::Nbt)?;
+                let palette_entry = palette_entry
+                    .compound()
+                    .ok_or_else(|| Error::Nbt("Palette entry not a compound"))?;
                 let name = palette_entry
                     .get("Name")
-                    .ok_or_else(|| Error::Nbt)?
+                    .ok_or_else(|| Error::Nbt("Palette name tag not found"))?
                     .string()
-                    .ok_or_else(|| Error::Nbt)?
+                    .ok_or_else(|| Error::Nbt("Palette name tag not a string"))?
                     .value;
                 let mut props = HashMap::new();
 
                 let props_compound = palette_entry.get("Properties");
                 if let Some(nbt_props) = props_compound {
-                    let nbt_props = nbt_props.compound().ok_or_else(|| Error::Nbt)?;
+                    let nbt_props = nbt_props
+                        .compound()
+                        .ok_or_else(|| Error::Nbt("NBT properties not a compound"))?;
                     for (name, value) in nbt_props.values {
-                        let value = value.string().ok_or_else(|| Error::Nbt)?.value;
+                        let value = value
+                            .string()
+                            .ok_or_else(|| Error::Nbt("Property not a string"))?
+                            .value;
                         props.insert(name, value);
                     }
                 }
@@ -187,7 +198,7 @@ pub enum Error {
     /// The region file header was invalid.
     Header(&'static str),
     /// The region file contained invalid NBT data.
-    Nbt,
+    Nbt(&'static str),
     /// The chunk was too large
     ChunkTooLarge(usize),
     /// The chunk contained an invalid compression type
@@ -205,7 +216,7 @@ impl Display for Error {
         match self {
             Error::Io(ierr) => ierr.fmt(f)?,
             Error::Header(msg) => f.write_str(msg)?,
-            Error::Nbt => f.write_str("Region file contains invalid NBT")?,
+            Error::Nbt(m) => f.write_str(&format!("Region file contains invalid NBT: {}", m))?,
             Error::ChunkTooLarge(size) => {
                 f.write_str(&format!("Chunk is too large: {} bytes", size))?
             }

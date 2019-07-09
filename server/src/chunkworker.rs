@@ -90,7 +90,7 @@ pub fn start(world_dir: &str) -> (Sender<Request>, Receiver<Reply>) {
     // a stack overflow occurs here.
     // This seeks to solve that.
     std::thread::Builder::new()
-        .stack_size(1024 * 1024 * 4)
+        .stack_size(1024 * 1024 * 5)
         .name("Chunk Worker Thread".to_string())
         .spawn(move || run(worker))
         .expect("Unable to start chunk worker thread");
