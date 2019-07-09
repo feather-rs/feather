@@ -12,5 +12,5 @@ env:
     - CARGO_MAKE_RUN_CODECOV="true"
 
 script:
-  - cargo install --debug cargo-make
+  - cargo install --debug --force cargo-make
   - travis_wait 60 cargo make ci-flow
