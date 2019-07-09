@@ -10,8 +10,8 @@ at some point in the future.
 ### "Features"
 - [x] Players can join
 - [x] Players can see MOTD and ping in server list (status ping)
-- [x] Players can see a superflat stone world upon joining
 - [x] Players can see each other in the world and tablist
 - [x] Players can see other players breaking blocks and moving around
+- [x] Anvil world loading
 
 Nothing else works yet.
