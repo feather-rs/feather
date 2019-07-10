@@ -309,10 +309,13 @@ impl ChunkSection {
         self.palette = Some(new_palette);
 
         // Recalculate bits per block value.
-        let new_bits_per_block = needed_bits((self.palette.as_ref().unwrap().len() - 1) as u64);
+        let mut new_bits_per_block = needed_bits((self.palette.as_ref().unwrap().len() - 1) as u64);
         if new_bits_per_block > MAX_BITS_PER_BLOCK {
             self.palette = None;
         } else {
+            if new_bits_per_block < MIN_BITS_PER_BLOCK {
+                new_bits_per_block = MIN_BITS_PER_BLOCK;
+            }
             self.data = self.data.resize_to(new_bits_per_block).unwrap();
         }
     }
@@ -368,7 +371,7 @@ impl BitArray {
         );
         assert!(bits_per_value > 0, "Bits per value must be positive");
         let data = {
-            let len = (((capacity * (bits_per_value as usize)) as f32) / 64.0).ceil() as usize;
+            let len = (((capacity * (bits_per_value as usize)) as f64) / 64.0).ceil() as usize;
             vec![0u64; len]
         };
 
@@ -413,18 +416,18 @@ impl BitArray {
         let bit_index = index * (self.bits_per_value as usize);
 
         let start_long_index = bit_index / 64;
-        let end_long_index = (bit_index + (self.bits_per_value as usize)) / 64;
+        let end_long_index = (bit_index + (self.bits_per_value as usize - 1)) / 64;
 
         let start_long = self.data[start_long_index];
         let end_long = self.data[end_long_index];
 
         let index_in_start_long = (bit_index % 64) as u64;
 
-        let mut result = start_long >> index_in_start_long;
+        let mut result = (start_long >> index_in_start_long) & self.value_mask;
 
         if start_long_index != end_long_index {
             // Value stretches across multiple longs
-            result |= end_long << (64 - index_in_start_long);
+            result |= (end_long >> (64 - index_in_start_long)) & self.value_mask;
         }
 
         result
@@ -441,7 +444,7 @@ impl BitArray {
         let bit_index = index * (self.bits_per_value as usize);
 
         let start_long_index = bit_index / 64;
-        let end_long_index = (bit_index + (self.bits_per_value as usize)) / 64;
+        let end_long_index = (bit_index + (self.bits_per_value as usize - 1)) / 64;
 
         let index_in_start_long = (bit_index % 64) as u64;
 
@@ -455,7 +458,7 @@ impl BitArray {
             // Value stretches across multiple longs
             self.data[end_long_index] &=
                 !((((1 << self.bits_per_value) - 1) as u64) << (64 - index_in_start_long) as u64);
-            self.data[end_long_index] |= val << (64 - index_in_start_long);
+            self.data[end_long_index] |= val >> (64 - index_in_start_long);
         }
     }
 
