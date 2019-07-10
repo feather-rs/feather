@@ -173,6 +173,15 @@ impl Chunk {
         assert!(index < NUM_SECTIONS);
         self.sections[index] = section;
     }
+
+    /// Optimizes each section in this chunk.
+    pub fn optimize(&mut self) {
+        for s in &mut self.sections {
+            if let Some(section) = s {
+                section.optimize();
+            }
+        }
+    }
 }
 
 /// A chunk section consisting of a 16x16x16
@@ -270,10 +279,10 @@ impl ChunkSection {
                         } else {
                             // Switch to the global palette
                             let mut new_data = BitArray::new(GLOBAL_BITS_PER_BLOCK, SECTION_VOLUME);
-                            for x in 0..16 {
-                                for y in 0..16 {
-                                    for z in 0..16 {
-                                        let block = self.block_at(x, y, z);
+                            for _x in 0..16 {
+                                for _y in 0..16 {
+                                    for _z in 0..16 {
+                                        let block = self.block_at(_x, _y, _z);
                                         new_data.set(
                                             block_index(x, y, z),
                                             block.block_state_id() as u64,
@@ -435,21 +444,22 @@ impl BitArray {
         let bit_index = index * (self.bits_per_value as usize);
 
         let start_long_index = bit_index / 64;
-        let end_long_index = ((index + 1) * self.bits_per_value as usize - 1) / 64;
 
         let start_long = self.data[start_long_index];
 
         let index_in_start_long = (bit_index % 64) as u64;
 
-        let mut result = (start_long >> index_in_start_long) & self.value_mask;
+        let mut result = (start_long >> index_in_start_long);
 
-        if start_long_index != end_long_index {
+        let end_bit_offset = index_in_start_long + self.bits_per_value as u64;
+
+        if end_bit_offset > 64 {
             // Value stretches across multiple longs
-            let end_long = self.data[end_long_index];
-            result |= (end_long << (64 - index_in_start_long)) & self.value_mask;
+            let end_long = self.data[start_long_index + 1];
+            result |= end_long << (64 - index_in_start_long);
         }
 
-        result
+        result & self.value_mask
     }
 
     /// Sets the value at the given index into this `BitArray`
@@ -463,22 +473,23 @@ impl BitArray {
         let bit_index = index * (self.bits_per_value as usize);
 
         let start_long_index = bit_index / 64;
-        let end_long_index = ((index + 1) * self.bits_per_value as usize - 1) / 64;
 
         let index_in_start_long = (bit_index % 64) as u64;
 
         // Clear bits of this value first
-        self.data[start_long_index] &=
-            !((((1 << self.bits_per_value) - 1) as u64) << index_in_start_long as u64);
+        self.data[start_long_index] = (self.data[start_long_index]
+            & !(self.value_mask << index_in_start_long))
+            | ((val & self.value_mask) << index_in_start_long);
 
-        self.data[start_long_index] |= val << index_in_start_long;
-
-        if start_long_index != end_long_index {
+        let end_bit_offset = index_in_start_long + self.bits_per_value as u64;
+        if end_bit_offset > 64 {
             // Value stretches across multiple longs
-            self.data[end_long_index] &=
-                !((((1 << self.bits_per_value) - 1) as u64) << (64 - index_in_start_long) as u64);
-            self.data[end_long_index] |= val >> (64 - index_in_start_long);
+            self.data[start_long_index + 1] = (self.data[start_long_index + 1]
+                & !((1 << end_bit_offset - 64) - 1))
+                | val >> (64 - index_in_start_long);
         }
+
+        debug_assert_eq!(self.get(index), val);
     }
 
     /// Produces a `BitArray` with the same values
@@ -621,6 +632,8 @@ mod tests {
 
         // Now, empty the chunk, call optimize(), and ensure
         // that the sections become empty.
+        chunk.optimize();
+
         for x in 0..16 {
             for y in 0..256 {
                 for z in 0..16 {
@@ -695,6 +708,26 @@ mod tests {
         }
 
         assert!(barr.resize_to(4).is_err());
+    }
+
+    #[test]
+    fn bit_array_big_test() {
+        let mut barr = BitArray::new(14, 4096);
+
+        for i in 0..4096 {
+            barr.set(i, i as u64);
+            assert_eq!(barr.get(i), i as u64);
+            if i != 4095 {
+                assert_eq!(barr.get(i + 1), 0);
+            }
+            if i != 0 {
+                assert_eq!(barr.get(i - 1), (i - 1) as u64);
+            }
+        }
+
+        for i in 0..4096 {
+            assert_eq!(barr.get(i), i as u64);
+        }
     }
 
     #[test]
