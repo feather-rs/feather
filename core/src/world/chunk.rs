@@ -64,22 +64,8 @@ impl Default for Chunk {
         // `[ChunkSection::new(); 16]` syntax,
         // so I had to do this.
         let sections = [
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
+            None, None, None, None, None, None, None, None, None, None, None, None, None, None,
+            None, None,
         ];
 
         Self {
@@ -128,7 +114,22 @@ impl Chunk {
         assert!(y < CHUNK_HEIGHT);
         assert!(z < CHUNK_WIDTH);
         let chunk_section = &mut self.sections[(y / 16) as usize];
-        chunk_section.set_block_at(x, y % 16, z, block);
+
+        let section;
+        if let Some(sec) = chunk_section {
+            section = sec;
+        } else {
+            // The section is empty - create it
+            if block == Block::Air {
+                return; // Nothing to do - section already empty
+            }
+
+            let new_section = ChunkSection::new();
+            self.set_section_at((y / 16) as usize, new_section);
+            section = self.section_mut((y / 16) as usize);
+        }
+
+        section.set_block_at(x, y % 16, z, block);
     }
 
     /// Returns a slice of the 16
@@ -164,6 +165,149 @@ impl Chunk {
         assert!(index < NUM_SECTIONS);
         self.sections[index].as_mut()
     }
+
+    /// Sets the section at the given section index.
+    pub fn set_section_at(&mut self, index: usize, section: Option<ChunkSection>) {
+        assert!(index < NUM_SECTIONS);
+        self.sections[index] = section;
+    }
+}
+
+/// A chunk section consisting of a 16x16x16
+/// cube of blocks.
+pub struct ChunkSection {}
+
+/// A "bit array." This struct manages
+/// an internal array of `u64` to which
+/// values of arbitrary bit length can be written.
+pub struct BitArray {
+    /// The internal data array containing all values
+    data: Vec<u64>,
+    /// The capacity, in values, of this array
+    capacity: usize,
+    /// The number of bits used to represent each value
+    bits_per_value: u8,
+    /// The maximum value represented by an entry in this array
+    value_mask: u64,
+}
+
+impl BitArray {
+    /// Creates a new `BitArray` with the given
+    /// bits per value and capacity. The array
+    /// will be initialized with zeroes.
+    pub fn new(bits_per_value: u8, capacity: usize) -> Self {
+        assert!(
+            bits_per_value <= 64,
+            "Bits per value cannot be more than 64"
+        );
+        assert!(bits_per_value > 0, "Bits per value must be positive");
+        let data = {
+            let len = (((capacity * (bits_per_value as usize)) as f32) / 64.0).ceil() as usize;
+            vec![0u64; len]
+        };
+
+        let value_mask = (1 << (bits_per_value as u64)) - 1;
+
+        Self {
+            data,
+            capacity,
+            bits_per_value,
+            value_mask,
+        }
+    }
+
+    /// Returns the value at the given location in this `BitArray`.
+    pub fn get(&self, index: usize) -> u64 {
+        assert!(index < self.capacity, "Index out of bounds");
+
+        let bit_index = index * (self.bits_per_value as usize);
+
+        let start_long_index = bit_index / 64;
+        let end_long_index = (bit_index + (self.bits_per_value as usize)) / 64;
+
+        let start_long = self.data[start_long_index];
+        let end_long = self.data[end_long_index];
+
+        let index_in_start_long = (bit_index % 64) as u64;
+
+        let mut result = start_long >> index_in_start_long;
+
+        if start_long_index != end_long_index {
+            // Value stretches across multiple longs
+            result |= (end_long << (64 - index_in_start_long));
+        }
+
+        result
+    }
+
+    /// Sets the value at the given index into this `BitArray`
+    pub fn set(&mut self, index: usize, mut val: u64) {
+        assert!(index < self.capacity, "Index out of bounds");
+        assert!(
+            val <= self.value_mask,
+            "Value does not fit into bits_per_value"
+        );
+
+        let bit_index = index * (self.bits_per_value as usize);
+
+        let start_long_index = bit_index / 64;
+        let end_long_index = (bit_index + (self.bits_per_value as usize)) / 64;
+
+        let index_in_start_long = (bit_index % 64) as u64;
+
+        // Clear bits of this value first
+        self.data[start_long_index] &=
+            !((((1 << self.bits_per_value) - 1) as u64) << index_in_start_long as u64);
+
+        self.data[start_long_index] |= val << index_in_start_long;
+
+        if start_long_index != end_long_index {
+            // Value stretches across multiple longs
+            self.data[end_long_index] &=
+                !((((1 << self.bits_per_value) - 1) as u64) << (64 - index_in_start_long) as u64);
+            self.data[end_long_index] |= val << (64 - index_in_start_long);
+        }
+    }
+
+    /// Produces a `BitArray` with the same values
+    /// as this `BitArray` but with a new bits per value.
+    /// If a value in this `BitArray` cannot be represented
+    /// by the new bits per value, `Err` is returned.
+    pub fn resize_to(&self, new_bits_per_value: u8) -> Result<BitArray, ()> {
+        assert!(
+            new_bits_per_value <= 64,
+            "Bits per value cannot be more than 64"
+        );
+
+        let mut new_arr = BitArray::new(new_bits_per_value, self.capacity);
+
+        for i in 0..self.capacity {
+            let val = self.get(i);
+            if needed_bits(val) > new_bits_per_value {
+                return Err(());
+            }
+
+            new_arr.set(i, val);
+        }
+
+        Ok(new_arr)
+    }
+}
+
+/// Returns the number of bits
+/// needed to represent the given value.
+fn needed_bits(mut val: u64) -> u8 {
+    let mut result = 0;
+    loop {
+        val >>= 1;
+        result += 1;
+
+        if val == 0 {
+            break;
+        }
+    }
+
+    result
 }
 
 #[cfg(test)]
@@ -171,7 +315,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_chunk_new() {
+    fn chunk_new() {
         let pos = ChunkPosition::new(0, 0);
         let mut chunk = Chunk::new(pos);
 
@@ -183,8 +327,13 @@ mod tests {
 
         assert_eq!(chunk.position(), pos);
 
-        assert_eq!(chunk.sections(), &[None, None, None, None, None, None, None,
-            None, None, None, None, None, None, None, None, None]);
+        assert_eq!(
+            chunk.sections(),
+            &[
+                None, None, None, None, None, None, None, None, None, None, None, None, None, None,
+                None, None
+            ]
+        );
     }
 
     #[test]
@@ -230,7 +379,7 @@ mod tests {
         // to 0-4095 in order, testing that
         // resizing, etc. works correctly.
 
-        let pos = ChunkPosition::new(0, 0,);
+        let pos = ChunkPosition::new(0, 0);
         let mut chunk = Chunk::new(pos);
 
         for section in 0..16 {
@@ -274,5 +423,68 @@ mod tests {
         for section in chunk.sections() {
             assert_eq!(section, None);
         }
+    }
+
+    #[test]
+    fn section_from_data_and_palette() {
+        let pos = ChunkPosition::new(0, 0);
+        let mut chunk = Chunk::new(pos);
+
+        let data = [0u64; 4096 / 16];
+        let palette = Palette::from_slice(&[1]);
+        let section = ChunkSection::from_data_and_palette(data, palette);
+        chunk.set_section_at(0, Some(section));
+
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    assert_eq!(chunk.block_at(x, y, z), Block::Stone);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn bit_array() {
+        let mut barr = BitArray::new(5, 4096);
+        assert_eq!(barr.highest_possible_value(), 31);
+
+        for i in 0..4096 {
+            barr.set(i, 8);
+            assert_eq!(barr.get(i), 8);
+        }
+
+        for i in 0..4096 {
+            assert_eq!(barr.get(i), 8);
+        }
+
+        let resized = barr.resize_to(8).unwrap();
+        for i in 0..4096 {
+            assert_eq!(resized.get(i), 8);
+        }
+
+        let resized = barr.resize_to(4).unwrap();
+        for i in 0..4096 {
+            assert_eq!(resized.get(i), 8);
+        }
+    }
+
+    #[test]
+    fn bit_array_resize_fail() {
+        let mut barr = BitArray::new(5, 4096);
+
+        for i in 0..4096 {
+            barr.set(i, 31);
+        }
+
+        assert(barr.resize_to(4).is_err());
+    }
+
+    #[test]
+    fn test_needed_bits() {
+        assert_eq!(needed_bits(31), 5);
+        assert_eq!(needed_bits(255), 8);
+        assert_eq!(needed_bits(256), 9);
+        assert_eq!(needed_bits(1), 1);
     }
 }
