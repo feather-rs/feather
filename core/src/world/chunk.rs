@@ -235,7 +235,12 @@ impl ChunkSection {
         let index = block_index(x, y, z);
         let block_id = self.data.get(index);
 
-        Block::from_block_state_id(block_id as u16)
+        let global_id = match &self.palette {
+            Some(palette) => palette[block_id as usize] as u16,
+            None => block_id as u16,
+        };
+
+        Block::from_block_state_id(global_id)
     }
 
     /// Sets the block at the given position in this chunk section.
@@ -245,7 +250,7 @@ impl ChunkSection {
         let block_id = block.block_state_id();
 
         // The value that will be put into the
-        let mut paletted_index = 0;
+        let mut paletted_index;
         if let Some(palette) = self.palette.as_mut() {
             // Retrieve the block index from the palette.
 
@@ -254,6 +259,7 @@ impl ChunkSection {
                 Ok(index) => paletted_index = index,
                 Err(insertion_index) => {
                     palette.insert(insertion_index, block_id);
+                    paletted_index = insertion_index;
 
                     // Resize if necessary
                     if needed_bits((palette.len() - 1) as u64) > self.data.bits_per_value {
@@ -263,9 +269,22 @@ impl ChunkSection {
                             paletted_index = insertion_index;
                         } else {
                             // Switch to the global palette
+                            let mut new_data = BitArray::new(GLOBAL_BITS_PER_BLOCK, SECTION_VOLUME);
+                            for x in 0..16 {
+                                for y in 0..16 {
+                                    for z in 0..16 {
+                                        let block = self.block_at(x, y, z);
+                                        new_data.set(
+                                            block_index(x, y, z),
+                                            block.block_state_id() as u64,
+                                        );
+                                    }
+                                }
+                            }
+
                             self.palette = None;
-                            self.data = self.data.resize_to(GLOBAL_BITS_PER_BLOCK).unwrap();
                             paletted_index = block_id as usize;
+                            self.data = new_data;
                         }
                     }
                 }
@@ -624,7 +643,7 @@ mod tests {
         for x in 0..16 {
             for y in 0..16 {
                 for z in 0..16 {
-                    data.set(block_index(x, y, z), 1);
+                    data.set(block_index(x, y, z), 0);
                 }
             }
         }
