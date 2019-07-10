@@ -1,7 +1,7 @@
 //! This module implements the loading and saving
 //! of Anvil region files.
 
-use crate::world::chunk::{Chunk, Palette};
+use crate::world::chunk::{BitArray, Chunk, ChunkSection};
 use crate::world::ChunkPosition;
 use byteorder::{BigEndian, ReadBytesExt};
 use feather_blocks::Block;
@@ -126,8 +126,6 @@ impl RegionHandle {
                 .ok_or_else(|| Error::Nbt("Y tag not a byte"))?
                 .value as usize;
 
-            let mem_section = chunk.section_mut(index);
-
             // Set blocks + palette in section.
             let block_states = section
                 .get("BlockStates")
@@ -182,8 +180,18 @@ impl RegionHandle {
                 palette_buf.push(block.block_state_id());
             }
 
-            let palette = Palette::new(palette_buf);
-            mem_section.set_data(palette, block_state_buf);
+            let len = block_state_buf.len();
+
+            let section = ChunkSection::from_data_and_palette(
+                BitArray::from_raw(
+                    block_state_buf,
+                    ((len as f32 * 64.0) / 4096.0).ceil() as u8,
+                    4096,
+                ),
+                Some(palette_buf),
+            );
+
+            chunk.set_section_at(index, Some(section));
         }
 
         Ok(chunk)

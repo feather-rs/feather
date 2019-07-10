@@ -1,6 +1,5 @@
 use super::block::Block;
 use super::ChunkPosition;
-use hashbrown::HashMap;
 
 /// The number of bits used for each block
 /// in the global palette.
@@ -19,20 +18,20 @@ const MIN_BITS_PER_BLOCK: u8 = 4;
 const MAX_BITS_PER_BLOCK: u8 = 8;
 
 /// The height in blocks of a chunk column.
-const CHUNK_HEIGHT: u16 = 256;
+const CHUNK_HEIGHT: usize = 256;
 /// The width in blocks of a chunk column.
-const CHUNK_WIDTH: u16 = 16;
+const CHUNK_WIDTH: usize = 16;
 /// The volume in blocks of a chunk column
-const CHUNK_VOLUME: u16 = CHUNK_HEIGHT * CHUNK_WIDTH * CHUNK_WIDTH;
+const CHUNK_VOLUME: usize = CHUNK_HEIGHT * CHUNK_WIDTH * CHUNK_WIDTH;
 
 /// The height in blocks of a chunk section.
-const SECTION_HEIGHT: u16 = 16;
+const SECTION_HEIGHT: usize = 16;
 
 /// The width in blocks of a chunk section.
-const SECTION_WIDTH: u16 = CHUNK_WIDTH;
+const SECTION_WIDTH: usize = CHUNK_WIDTH;
 
 /// The volume in blocks of a chunk section.
-const SECTION_VOLUME: u16 = SECTION_HEIGHT * SECTION_WIDTH * SECTION_WIDTH;
+const SECTION_VOLUME: usize = (SECTION_HEIGHT * SECTION_WIDTH * SECTION_WIDTH) as usize;
 
 /// The number of chunk sections in a column.
 const NUM_SECTIONS: usize = 16;
@@ -93,12 +92,15 @@ impl Chunk {
     /// The specified coordinates must be inside
     /// this chunk, so the function will panic
     /// if `x >= 16 || y >= 256 || z >= 16`.
-    pub fn block_at(&self, x: u16, y: u16, z: u16) -> Block {
+    pub fn block_at(&self, x: usize, y: usize, z: usize) -> Block {
         assert!(x < CHUNK_WIDTH);
         assert!(y < CHUNK_HEIGHT);
         assert!(z < CHUNK_WIDTH);
         let chunk_section = &self.sections[(y / 16) as usize];
-        chunk_section.block_at(x, y % 16, z)
+        match chunk_section {
+            Some(section) => section.block_at(x, y % 16, z),
+            None => Block::Air,
+        }
     }
 
     /// Sets the block at the specified
@@ -109,11 +111,11 @@ impl Chunk {
     /// The specified coordinates must be inside
     /// this chunk, so the function will panic
     /// if `x >= 16 || y >= 256 || z >= 16`.
-    pub fn set_block_at(&mut self, x: u16, y: u16, z: u16, block: Block) {
+    pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: Block) {
         assert!(x < CHUNK_WIDTH);
         assert!(y < CHUNK_HEIGHT);
         assert!(z < CHUNK_WIDTH);
-        let chunk_section = &mut self.sections[(y / 16) as usize];
+        let chunk_section = &mut self.sections[y / 16];
 
         let section;
         if let Some(sec) = chunk_section {
@@ -125,8 +127,8 @@ impl Chunk {
             }
 
             let new_section = ChunkSection::new();
-            self.set_section_at((y / 16) as usize, new_section);
-            section = self.section_mut((y / 16) as usize);
+            self.set_section_at(y / 16, Some(new_section));
+            section = self.section_mut(y / 16).unwrap();
         }
 
         section.set_block_at(x, y % 16, z, block);
@@ -134,8 +136,8 @@ impl Chunk {
 
     /// Returns a slice of the 16
     /// chunk sections in the chunk.
-    pub fn sections(&self) -> &[Option<ChunkSection>] {
-        &self.sections
+    pub fn sections(&self) -> Vec<Option<&ChunkSection>> {
+        self.sections.iter().map(|sec| sec.as_ref()).collect()
     }
 
     /// Returns the position in chunk coordinates
@@ -151,7 +153,7 @@ impl Chunk {
     /// If this function returns `None`, the section is assumed
     /// to be empty, meaning it consists only of air.
     pub fn section(&self, index: usize) -> Option<&ChunkSection> {
-        assert_eq!(index < NUM_SECTIONS);
+        assert!(index < NUM_SECTIONS);
         self.sections[index].as_ref()
     }
 
@@ -175,11 +177,175 @@ impl Chunk {
 
 /// A chunk section consisting of a 16x16x16
 /// cube of blocks.
-pub struct ChunkSection {}
+#[derive(Clone, Debug)]
+pub struct ChunkSection {
+    /// The block state data for this chunk section.
+    data: BitArray,
+    /// This section's palette. `None` if using the global palette.
+    /// The palette should always remain sorted so that a binary
+    /// search can be performed on it.
+    palette: Option<Vec<u16>>,
+    /// The number of solid blocks in this chunk, i.e. those
+    /// that are not air. This value is used to figure out when
+    /// the section becomes empty.
+    solid_block_count: u16,
+}
+
+impl ChunkSection {
+    /// Creates a new, empty `ChunkSection`.
+    pub fn new() -> Self {
+        let air_id = Block::Air.block_state_id();
+        Self {
+            data: BitArray::new(4, SECTION_VOLUME),
+            palette: Some(vec![air_id]),
+            solid_block_count: 0,
+        }
+    }
+
+    /// Creates a new `ChunkSection` based on the given
+    /// data and palette.
+    pub fn from_data_and_palette(data: BitArray, palette: Option<Vec<u16>>) -> Self {
+        // Count solid blocks
+        let mut solid_block_count = 0;
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    if data.get(block_index(x, y, z)) != 0 {
+                        solid_block_count += 1;
+                    }
+                }
+            }
+        }
+
+        Self {
+            data,
+            palette,
+            solid_block_count,
+        }
+    }
+
+    /// Returns whether this chunk section is empty.
+    pub fn empty(&self) -> bool {
+        self.solid_block_count == 0
+    }
+
+    /// Retrieves the block at the given position in this chunk section.
+    /// The position is local to this section.
+    pub fn block_at(&self, x: usize, y: usize, z: usize) -> Block {
+        let index = block_index(x, y, z);
+        let block_id = self.data.get(index);
+
+        Block::from_block_state_id(block_id as u16)
+    }
+
+    /// Sets the block at the given position in this chunk section.
+    /// The position is local to this section.
+    pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: Block) {
+        let index = block_index(x, y, z);
+        let block_id = block.block_state_id();
+
+        // The value that will be put into the
+        let mut paletted_index = 0;
+        if let Some(palette) = self.palette.as_mut() {
+            // Retrieve the block index from the palette.
+
+            // If necessary, add the block to the palette.
+            match palette.binary_search(&block_id) {
+                Ok(index) => paletted_index = index,
+                Err(insertion_index) => {
+                    palette.insert(insertion_index, block_id);
+
+                    // Resize if necessary
+                    if needed_bits((palette.len() - 1) as u64) > self.data.bits_per_value {
+                        let new_bits_per_value = self.data.bits_per_value + 1;
+                        if new_bits_per_value <= MAX_BITS_PER_BLOCK {
+                            self.data = self.data.resize_to(self.data.bits_per_value + 1).unwrap();
+                            paletted_index = insertion_index;
+                        } else {
+                            // Switch to the global palette
+                            self.palette = None;
+                            self.data = self.data.resize_to(GLOBAL_BITS_PER_BLOCK).unwrap();
+                            paletted_index = block_id as usize;
+                        }
+                    }
+                }
+            }
+        } else {
+            // Use the global palette.
+            paletted_index = block_id as usize;
+        }
+
+        let old_block = self.block_at(x, y, z);
+        if block == Block::Air && old_block != Block::Air {
+            self.solid_block_count -= 1;
+        } else if block != Block::Air && old_block == Block::Air {
+            self.solid_block_count += 1;
+        }
+
+        self.data.set(index, paletted_index as u64);
+    }
+
+    /// Optimizes this chunk section, reducing the bits
+    /// per block value as much as possible and removing unused
+    /// entries from the palette.
+    pub fn optimize(&mut self) {
+        // Replace palette with new one.
+        let mut new_palette = vec![];
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    let block = self.block_at(x, y, z).block_state_id();
+                    match new_palette.binary_search(&block) {
+                        Ok(_) => (),
+                        Err(insert_index) => {
+                            new_palette.insert(insert_index, block);
+                            self.data.set(block_index(x, y, z), insert_index as u64);
+                        }
+                    }
+                }
+            }
+        }
+
+        self.palette = Some(new_palette);
+
+        // Recalculate bits per block value.
+        let new_bits_per_block = needed_bits((self.palette.as_ref().unwrap().len() - 1) as u64);
+        if new_bits_per_block > MAX_BITS_PER_BLOCK {
+            self.palette = None;
+        } else {
+            self.data = self.data.resize_to(new_bits_per_block).unwrap();
+        }
+    }
+
+    /// Returns the internal data array for this section.
+    pub fn data(&self) -> &BitArray {
+        &self.data
+    }
+
+    /// Returns the palette for this section.
+    pub fn palette(&self) -> Option<&Vec<u16>> {
+        self.palette.as_ref()
+    }
+
+    /// Returns the number of bits used to store each block.
+    pub fn bits_per_block(&self) -> u8 {
+        self.data.bits_per_value
+    }
+}
+
+/// Returns the index into a block state array
+/// for the given block position.
+fn block_index(x: usize, y: usize, z: usize) -> usize {
+    assert!(x < 16);
+    assert!(y < 16);
+    assert!(z < 16);
+    (x + (z * 16)) + (y * (16 * 16))
+}
 
 /// A "bit array." This struct manages
 /// an internal array of `u64` to which
 /// values of arbitrary bit length can be written.
+#[derive(Clone, Debug)]
 pub struct BitArray {
     /// The internal data array containing all values
     data: Vec<u64>,
@@ -216,6 +382,30 @@ impl BitArray {
         }
     }
 
+    /// Creates a new `BitArray` based on the given raw parts.
+    pub fn from_raw(data: Vec<u64>, bits_per_value: u8, capacity: usize) -> Self {
+        assert!(
+            bits_per_value <= 64,
+            "Bits per value cannot be more than 64"
+        );
+        assert!(bits_per_value > 0, "Bits per value must be positive");
+
+        let value_mask = (1 << (bits_per_value as u64)) - 1;
+
+        Self {
+            data,
+            capacity,
+            bits_per_value,
+            value_mask,
+        }
+    }
+
+    /// Returns the highest possible value represented
+    /// by and entry in this `BitArray`.
+    pub fn highest_possible_value(&self) -> u64 {
+        self.value_mask
+    }
+
     /// Returns the value at the given location in this `BitArray`.
     pub fn get(&self, index: usize) -> u64 {
         assert!(index < self.capacity, "Index out of bounds");
@@ -234,14 +424,14 @@ impl BitArray {
 
         if start_long_index != end_long_index {
             // Value stretches across multiple longs
-            result |= (end_long << (64 - index_in_start_long));
+            result |= end_long << (64 - index_in_start_long);
         }
 
         result
     }
 
     /// Sets the value at the given index into this `BitArray`
-    pub fn set(&mut self, index: usize, mut val: u64) {
+    pub fn set(&mut self, index: usize, val: u64) {
         assert!(index < self.capacity, "Index out of bounds");
         assert!(
             val <= self.value_mask,
@@ -292,6 +482,11 @@ impl BitArray {
 
         Ok(new_arr)
     }
+
+    /// Returns the internal array.
+    pub fn inner(&self) -> &Vec<u64> {
+        &self.data
+    }
 }
 
 /// Returns the number of bits
@@ -317,23 +512,15 @@ mod tests {
     #[test]
     fn chunk_new() {
         let pos = ChunkPosition::new(0, 0);
-        let mut chunk = Chunk::new(pos);
+        let chunk = Chunk::new(pos);
 
         // Confirm that chunk is empty
         for x in 0..16 {
-            assert_eq!(chunk.section(x), None);
-            assert_eq!(chunk.section_mut(x), None);
+            assert!(chunk.section(x).is_none());
+            assert!(chunk.section(x).is_none());
         }
 
         assert_eq!(chunk.position(), pos);
-
-        assert_eq!(
-            chunk.sections(),
-            &[
-                None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                None, None
-            ]
-        );
     }
 
     #[test]
@@ -421,7 +608,7 @@ mod tests {
         }
 
         for section in chunk.sections() {
-            assert_eq!(section, None);
+            assert!(section.is_none());
         }
     }
 
@@ -430,9 +617,17 @@ mod tests {
         let pos = ChunkPosition::new(0, 0);
         let mut chunk = Chunk::new(pos);
 
-        let data = [0u64; 4096 / 16];
-        let palette = Palette::from_slice(&[1]);
-        let section = ChunkSection::from_data_and_palette(data, palette);
+        let mut data = BitArray::new(5, 4096);
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    data.set(block_index(x, y, z), 1);
+                }
+            }
+        }
+
+        let palette = vec![1];
+        let section = ChunkSection::from_data_and_palette(data, Some(palette));
         chunk.set_section_at(0, Some(section));
 
         for x in 0..16 {
@@ -477,7 +672,7 @@ mod tests {
             barr.set(i, 31);
         }
 
-        assert(barr.resize_to(4).is_err());
+        assert!(barr.resize_to(4).is_err());
     }
 
     #[test]
@@ -486,5 +681,11 @@ mod tests {
         assert_eq!(needed_bits(255), 8);
         assert_eq!(needed_bits(256), 9);
         assert_eq!(needed_bits(1), 1);
+    }
+
+    #[test]
+    fn test_block_index() {
+        assert_eq!(block_index(0, 1, 0), 256);
+        assert_eq!(block_index(1, 1, 1), 256 + 16 + 1);
     }
 }
