@@ -416,10 +416,9 @@ impl BitArray {
         let bit_index = index * (self.bits_per_value as usize);
 
         let start_long_index = bit_index / 64;
-        let end_long_index = (bit_index + (self.bits_per_value as usize - 1)) / 64;
+        let end_long_index = ((index + 1) * self.bits_per_value as usize - 1) / 64;
 
         let start_long = self.data[start_long_index];
-        let end_long = self.data[end_long_index];
 
         let index_in_start_long = (bit_index % 64) as u64;
 
@@ -427,7 +426,8 @@ impl BitArray {
 
         if start_long_index != end_long_index {
             // Value stretches across multiple longs
-            result |= (end_long >> (64 - index_in_start_long)) & self.value_mask;
+            let end_long = self.data[end_long_index];
+            result |= (end_long << (64 - index_in_start_long)) & self.value_mask;
         }
 
         result
@@ -444,7 +444,7 @@ impl BitArray {
         let bit_index = index * (self.bits_per_value as usize);
 
         let start_long_index = bit_index / 64;
-        let end_long_index = (bit_index + (self.bits_per_value as usize - 1)) / 64;
+        let end_long_index = ((index + 1) * self.bits_per_value as usize - 1) / 64;
 
         let index_in_start_long = (bit_index % 64) as u64;
 
