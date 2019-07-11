@@ -33,7 +33,11 @@ impl RegionHandle {
     /// # Panics
     /// If the specified chunk position is not within this
     /// region file.
-    pub fn load_chunk(&mut self, pos: ChunkPosition) -> Result<Chunk, Error> {
+    pub fn load_chunk(&mut self, mut pos: ChunkPosition) -> Result<Chunk, Error> {
+        // Clip chunk position to region-local coordinates.
+        pos.x %= 32;
+        pos.z %= 32;
+
         // Get the offset of the chunk within the file
         // so that it can be read.
         let offset = self.header.location_for_chunk(pos).offset;
@@ -366,8 +370,8 @@ impl RegionPosition {
     /// to the specified chunk position.
     pub fn from_chunk(chunk_coords: ChunkPosition) -> Self {
         Self {
-            x: chunk_coords.x / 32,
-            z: chunk_coords.z / 32,
+            x: chunk_coords.x >> 5,
+            z: chunk_coords.z >> 5,
         }
     }
 }
