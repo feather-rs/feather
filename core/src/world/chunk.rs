@@ -284,7 +284,7 @@ impl ChunkSection {
                                     for _z in 0..16 {
                                         let block = self.block_at(_x, _y, _z);
                                         new_data.set(
-                                            block_index(x, y, z),
+                                            block_index(_x, _y, _z),
                                             block.block_state_id() as u64,
                                         );
                                     }
@@ -311,6 +311,7 @@ impl ChunkSection {
         }
 
         self.data.set(index, paletted_index as u64);
+        debug_assert_eq!(self.block_at(x, y, z), block);
     }
 
     /// Optimizes this chunk section, reducing the bits
@@ -511,6 +512,7 @@ impl BitArray {
             }
 
             new_arr.set(i, val);
+            debug_assert_eq!(new_arr.get(i), val);
         }
 
         Ok(new_arr)
@@ -602,14 +604,21 @@ mod tests {
         let pos = ChunkPosition::new(0, 0);
         let mut chunk = Chunk::new(pos);
 
+        for section in chunk.sections() {
+            assert!(section.is_none());
+        }
+
         for section in 0..16 {
             let mut counter = 0;
             for x in 0..16 {
                 for y in 0..16 {
                     for z in 0..16 {
                         let block = Block::from_block_state_id(counter);
-                        chunk.set_block_at(x, y * section, z, block);
-                        assert_eq!(chunk.block_at(x, y * section, z), block);
+                        chunk.set_block_at(x, (section * 16) + y, z, block);
+                        assert_eq!(chunk.block_at(x, (section * 16) + y, z), block);
+                        if counter != 0 {
+                            assert!(chunk.section(section).is_some(), "Section {} bad", section);
+                        }
                         counter += 1;
                     }
                 }
@@ -618,12 +627,14 @@ mod tests {
 
         // Go through again to be sure
         for section in 0..16 {
+            assert!(chunk.section(section).is_some());
             let mut counter = 0;
             for x in 0..16 {
                 for y in 0..16 {
                     for z in 0..16 {
                         let block = Block::from_block_state_id(counter);
-                        assert_eq!(chunk.block_at(x, y * section, z), block);
+                        assert_eq!(chunk.block_at(x, (section * 16) + y, z), block);
+                        assert!(chunk.section(section).is_some());
                         counter += 1;
                     }
                 }
@@ -632,8 +643,6 @@ mod tests {
 
         // Now, empty the chunk, call optimize(), and ensure
         // that the sections become empty.
-        chunk.optimize();
-
         for x in 0..16 {
             for y in 0..256 {
                 for z in 0..16 {
@@ -641,6 +650,8 @@ mod tests {
                 }
             }
         }
+
+        chunk.optimize();
 
         for section in chunk.sections() {
             assert!(section.is_none());
@@ -723,6 +734,39 @@ mod tests {
             if i != 0 {
                 assert_eq!(barr.get(i - 1), (i - 1) as u64);
             }
+        }
+
+        for i in 0..4096 {
+            assert_eq!(barr.get(i), i as u64);
+        }
+    }
+
+    #[test]
+    fn bit_array_resize() {
+        let mut barr = BitArray::new(12, 4096);
+        assert_eq!(barr.bits_per_value, 12);
+
+        for i in 0..4096 {
+            barr.set(i, i as u64);
+            assert_eq!(barr.get(i), i as u64);
+        }
+
+        let mut barr = barr.resize_to(13).unwrap();
+        assert_eq!(barr.bits_per_value, 13);
+
+        for i in 0..4096 {
+            assert_eq!(barr.get(i), i as u64);
+            barr.set(i, (i + 1) as u64);
+            assert_eq!(barr.get(i), (i + 1) as u64);
+        }
+
+        let mut barr = barr.resize_to(14).unwrap();
+        assert_eq!(barr.bits_per_value, 14);
+
+        for i in 0..4096 {
+            assert_eq!(barr.get(i), (i + 1) as u64);
+            barr.set(i, i as u64);
+            assert_eq!(barr.get(i), i as u64);
         }
 
         for i in 0..4096 {
