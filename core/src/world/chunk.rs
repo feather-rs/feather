@@ -21,8 +21,6 @@ const MAX_BITS_PER_BLOCK: u8 = 8;
 const CHUNK_HEIGHT: usize = 256;
 /// The width in blocks of a chunk column.
 const CHUNK_WIDTH: usize = 16;
-/// The volume in blocks of a chunk column
-const CHUNK_VOLUME: usize = CHUNK_HEIGHT * CHUNK_WIDTH * CHUNK_WIDTH;
 
 /// The height in blocks of a chunk section.
 const SECTION_HEIGHT: usize = 16;
@@ -176,10 +174,19 @@ impl Chunk {
 
     /// Optimizes each section in this chunk.
     pub fn optimize(&mut self) {
-        for s in &mut self.sections {
+        let mut to_remove = vec![];
+        for (i, s) in self.sections.iter_mut().enumerate() {
             if let Some(section) = s {
                 section.optimize();
+
+                if section.empty() {
+                    to_remove.push(i);
+                }
             }
+        }
+
+        for i in to_remove {
+            self.set_section_at(i, None);
         }
     }
 }
@@ -450,7 +457,7 @@ impl BitArray {
 
         let index_in_start_long = (bit_index % 64) as u64;
 
-        let mut result = (start_long >> index_in_start_long);
+        let mut result = start_long >> index_in_start_long;
 
         let end_bit_offset = index_in_start_long + self.bits_per_value as u64;
 
