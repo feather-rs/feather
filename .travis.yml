@@ -2,17 +2,26 @@ language: rust
 rust: stable
 os:
   - linux
-  - osx
-sudo: false
+sudo: required
 cache: cargo
+
+addons:
+  apt:
+    packages:
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libdw-dev
+      - cmake
+      - gcc
+      - binutils-dev
+      - libiberty-dev
 
 env:
   global:
     - RUST_BACKTRACE=1
     - RUSTFLAGS="-C link-dead-code"
     - CARGO_MAKE_RUN_CODECOV="true"
-    - CODECOV_TOKEN=6ba7ddc6-ae93-413b-a7cd-d66c80f9028c
 
 script:
-  - cargo install --debug cargo-make
-  - cargo make ci-flow
+  - cargo install --debug --force cargo-make
+  - travis_wait 90 cargo make workspace-ci-flow --no-workspace

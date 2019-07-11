@@ -1044,7 +1044,7 @@ impl Packet for ChunkData {
         let mut primary_mask = {
             let mut r = 0;
             for (i, section) in self.chunk.sections().iter().enumerate() {
-                if !section.is_empty() {
+                if section.is_some() {
                     r |= 1 << i;
                 }
             }
@@ -1056,36 +1056,33 @@ impl Packet for ChunkData {
         let mut temp_buf = ByteBuf::new();
 
         for section in self.chunk.sections() {
-            if section.is_empty() {
-                continue;
-            }
+            if let Some(section) = section {
+                temp_buf.write_u8(section.bits_per_block());
 
-            temp_buf.write_u8(section.bits_per_block());
+                let palette = section.palette();
+                if let Some(palette) = palette {
+                    let mut palette_buf = ByteBuf::with_capacity(palette.len() + 4);
+                    for val in palette {
+                        palette_buf.write_var_int((*val) as i32);
+                    }
 
-            let palette = section.palette();
-            if !palette.global() {
-                let data = palette.data();
-
-                let mut palette_buf = ByteBuf::with_capacity(data.len() + 4);
-                for val in data {
-                    palette_buf.write_var_int((*val) as i32);
+                    temp_buf.write_var_int(palette.len() as i32);
+                    temp_buf.write(palette_buf.inner());
                 }
 
+                let _data = section.data();
+                let data = _data.inner();
                 temp_buf.write_var_int(data.len() as i32);
-                temp_buf.write(palette_buf.inner());
-            }
 
-            let data = section.data();
-            temp_buf.write_var_int(data.len() as i32);
+                temp_buf.reserve(data.len());
+                for val in data {
+                    temp_buf.write_u64_be(*val);
+                }
 
-            temp_buf.reserve(data.len());
-            for val in data {
-                temp_buf.write_u64_be(*val);
-            }
-
-            // Light — TODO
-            for _ in 0..4096 {
-                temp_buf.write_u8(0b11111111);
+                // Light — TODO
+                for _ in 0..4096 {
+                    temp_buf.write_u8(0b11111111);
+                }
             }
         }
 

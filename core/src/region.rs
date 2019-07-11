@@ -1,7 +1,7 @@
 //! This module implements the loading and saving
 //! of Anvil region files.
 
-use crate::world::chunk::{Chunk, Palette};
+use crate::world::chunk::{BitArray, Chunk, ChunkSection};
 use crate::world::ChunkPosition;
 use byteorder::{BigEndian, ReadBytesExt};
 use feather_blocks::Block;
@@ -33,7 +33,11 @@ impl RegionHandle {
     /// # Panics
     /// If the specified chunk position is not within this
     /// region file.
-    pub fn load_chunk(&mut self, pos: ChunkPosition) -> Result<Chunk, Error> {
+    pub fn load_chunk(&mut self, mut pos: ChunkPosition) -> Result<Chunk, Error> {
+        // Clip chunk position to region-local coordinates.
+        pos.x %= 32;
+        pos.z %= 32;
+
         // Get the offset of the chunk within the file
         // so that it can be read.
         let offset = self.header.location_for_chunk(pos).offset;
@@ -126,8 +130,6 @@ impl RegionHandle {
                 .ok_or_else(|| Error::Nbt("Y tag not a byte"))?
                 .value as usize;
 
-            let mem_section = chunk.section_mut(index);
-
             // Set blocks + palette in section.
             let block_states = section
                 .get("BlockStates")
@@ -182,8 +184,18 @@ impl RegionHandle {
                 palette_buf.push(block.block_state_id());
             }
 
-            let palette = Palette::new(palette_buf);
-            mem_section.set_data(palette, block_state_buf);
+            let len = block_state_buf.len();
+
+            let section = ChunkSection::from_data_and_palette(
+                BitArray::from_raw(
+                    block_state_buf,
+                    ((len as f32 * 64.0) / 4096.0).ceil() as u8,
+                    4096,
+                ),
+                Some(palette_buf),
+            );
+
+            chunk.set_section_at(index, Some(section));
         }
 
         Ok(chunk)
@@ -358,8 +370,8 @@ impl RegionPosition {
     /// to the specified chunk position.
     pub fn from_chunk(chunk_coords: ChunkPosition) -> Self {
         Self {
-            x: chunk_coords.x / 32,
-            z: chunk_coords.z / 32,
+            x: chunk_coords.x >> 5,
+            z: chunk_coords.z >> 5,
         }
     }
 }

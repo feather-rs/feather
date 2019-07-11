@@ -35,7 +35,7 @@ type EntityMap<T> = GenerationalArray<T>;
 type Entity = GenerationalIndex;
 
 pub struct State {
-    pub world: World,
+    pub chunk_map: ChunkMap,
     pub config: Config,
 
     pub allocator: GenerationalIndexAllocator,
@@ -91,7 +91,7 @@ pub struct EntityComponent {
 }
 
 fn main() {
-    let config = config::load()
+    let config = config::load_from_file("feather.toml")
         .expect("Failed to load configuration. Please ensure that the file feather.toml exists and is correct.");
 
     init_log(&config);
@@ -135,7 +135,7 @@ fn chunk_worker_system(state: &mut State) {
     while let Ok((pos, result)) = state.chunk_worker_handle.receiver.try_recv() {
         match result {
             Ok(chunk) => {
-                state.world.chunk_map.insert(pos, chunk);
+                state.chunk_map.inner_mut().insert(pos, chunk);
                 debug!("Loaded chunk at {:?}", pos);
             }
             Err(e) => {
@@ -150,7 +150,7 @@ fn init_state(config: Config, io_manager: NetworkIoManager) -> State {
     info!("Starting chunk worker thread");
     let (tx, rx) = chunkworker::start("world");
     State {
-        world: World::new(),
+        chunk_map: ChunkMap::new(),
         config,
 
         allocator: GenerationalIndexAllocator::new(),
