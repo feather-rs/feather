@@ -24,6 +24,4 @@ env:
 
 script:
   - cargo install --debug --force cargo-make
-  - travis_wait 90 cargo build
-  - travis_wait 90 cargo test
-  - sudo cargo make --no-workspace workspace-coverage
+  - travis_wait 90 cargo make --no-workspace workspace-ci-flow
