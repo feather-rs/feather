@@ -6,6 +6,8 @@ members = [
     "blocks/enum",
     "blocks/from_id",
     "blocks/to_id",
+    "blocks/to_id0",
+    "blocks/to_id1",
     "blocks/to_name_and_props",
     "blocks/from_name_and_props",
     "blocks/lib",

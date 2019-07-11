@@ -6,3 +6,5 @@ edition = "2018"
 
 [dependencies]
 feather_blocks_enum = { path = "../enum" }
+feather_blocks_to_id0 = { path = "../to_id0" }
+feather_blocks_to_id1 = { path = "../to_id1" }

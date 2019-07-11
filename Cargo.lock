@@ -369,6 +369,22 @@ name = "feather_blocks_to_id"
 version = "0.1.0"
 dependencies = [
  "feather_blocks_enum 0.1.0",
+ "feather_blocks_to_id0 0.1.0",
+ "feather_blocks_to_id1 0.1.0",
+]
+
+[[package]]
+name = "feather_blocks_to_id0"
+version = "0.1.0"
+dependencies = [
+ "feather_blocks_enum 0.1.0",
+]
+
+[[package]]
+name = "feather_blocks_to_id1"
+version = "0.1.0"
+dependencies = [
+ "feather_blocks_enum 0.1.0",
 ]
 
 [[package]]
