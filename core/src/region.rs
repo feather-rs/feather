@@ -1,10 +1,10 @@
 //! This module implements the loading and saving
 //! of Anvil region files.
 
+use super::world::block::*;
 use crate::world::chunk::{BitArray, Chunk, ChunkSection};
 use crate::world::ChunkPosition;
 use byteorder::{BigEndian, ReadBytesExt};
-use feather_blocks::Block;
 use flate2::bufread::{GzDecoder, ZlibDecoder};
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};

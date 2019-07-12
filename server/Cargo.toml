@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 feather_core = { path = "../core" }
-feather_blocks = { path = "../blocks" }
+feather_blocks = { path = "../blocks/lib" }
 mio = "0.6.19"
 mio-extras = "2.0.5"
 crossbeam = "0.7.1"

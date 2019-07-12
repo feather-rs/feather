@@ -1,4 +1,4 @@
-use super::block::Block;
+use super::block::*;
 use super::ChunkPosition;
 
 /// The number of bits used for each block
