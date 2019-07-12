@@ -1,0 +1,12 @@
+[package]
+name = "feather_blocks"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather_blocks_enum = { path = "../enum" }
+feather_blocks_from_id = { path = "../from_id" }
+feather_blocks_from_name_and_props = { path = "../from_name_and_props" }
+feather_blocks_to_id = { path = "../to_id" }
+feather_blocks_to_name_and_props = { path = "../to_name_and_props" }
