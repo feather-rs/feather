@@ -20,10 +20,9 @@ env:
   global:
     - RUST_BACKTRACE=1
     - RUSTFLAGS="-C link-dead-code"
-    - CODECOV_TOKEN="6ba7ddc6-ae93-413b-a7cd-d66c80f9028c"
 
 script:
   - cargo install --debug --force cargo-make
-  - travis_wait 90 cargo build
-  - travis_wait 90 cargo test
-  - sudo cargo make --no-workspace workspace-coverage
+  - travis_wait 90 cargo build -j 1
+  - travis_wait 90 cargo test -j 1
+  - sudo /home/travis/.cargo/bin/cargo make --no-workspace workspace-coverage

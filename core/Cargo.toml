@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 feather_codegen = { path = "../codegen" }
-feather_blocks = { path = "../blocks" }
+feather_blocks = { path = "../blocks/lib" }
 lazy_static = "1.3.0"
 derive-new = "0.5.6"
 uuid = "0.7.4"
