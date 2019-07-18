@@ -9,6 +9,35 @@ pub struct Config {
     pub log: Log,
 }
 
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            io: IO {
+                compression_threshold: 256,
+                io_worker_threads: 4,
+            },
+            proxy: Proxy {},
+            server: Server {
+                online_mode: true,
+                motd: "A Feather server".to_string(),
+                max_players: 256,
+                view_distance: 6,
+                address: "126.0.0.1".to_string(),
+                port: 25565,
+            },
+            gameplay: Gameplay {
+                monster_spawning: true,
+                animal_spawning: true,
+                pvp: true,
+                nerf_spawner_mobs: false,
+            },
+            log: Log {
+                level: "debug".to_string(),
+            },
+        }
+    }
+}
+
 #[derive(Deserialize, Debug)]
 pub struct IO {
     pub compression_threshold: i32,

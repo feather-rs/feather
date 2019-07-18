@@ -102,6 +102,11 @@ impl ChunkMap {
             Err(())
         }
     }
+
+    /// Sets the chunk at the given location.
+    pub fn set_chunk_at(&mut self, pos: ChunkPosition, chunk: Chunk) {
+        self.chunk_map.insert(pos, chunk);
+    }
 }
 
 fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
