@@ -4,7 +4,8 @@
 
 use feather_core::world::Position;
 use feather_core::Gamemode;
-use specs::{Component, DenseVecStorage, VecStorage};
+use specs::storage::BTreeStorage;
+use specs::{Component, VecStorage};
 use uuid::Uuid;
 
 pub struct PlayerComponent {
@@ -13,7 +14,7 @@ pub struct PlayerComponent {
 }
 
 impl Component for PlayerComponent {
-    type Storage = DenseVecStorage<Self>;
+    type Storage = BTreeStorage<Self>;
 }
 
 pub struct EntityComponent {

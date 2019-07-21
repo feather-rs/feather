@@ -19,11 +19,16 @@ pub mod io;
 pub mod network;
 pub mod prelude;
 
+use crate::entity::EntityComponent;
 use crate::initialhandler::InitialHandlerComponent;
-use crate::network::NetworkComponent;
+use crate::network::{send_packet_to_player, NetworkComponent};
+use feather_core::network::packet::PacketType::DisconnectPlay;
 use multimap::MultiMap;
 use prelude::*;
-use specs::{Component, DenseVecStorage, Dispatcher, DispatcherBuilder, VecStorage, World};
+use specs::{
+    Component, DenseVecStorage, Dispatcher, DispatcherBuilder, Entity, LazyUpdate, VecStorage,
+    World, WorldExt,
+};
 use std::thread::sleep;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -31,6 +36,8 @@ pub const TPS: u64 = 20;
 pub const PROTOCOL_VERSION: u32 = 404;
 pub const SERVER_VERSION: &'static str = "Feather 1.13.2";
 pub const TICK_TIME: u64 = 1000 / TPS;
+
+pub struct PlayerCount(u32);
 
 fn main() {
     let config = config::load_from_file("feather.toml")
@@ -60,6 +67,7 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
         let start_time = current_time_in_millis();
 
         dispatcher.dispatch(world);
+        world.maintain();
 
         // Sleep correct amount
         let end_time = current_time_in_millis();
@@ -89,9 +97,27 @@ fn init_io_manager(config: &Config) -> io::NetworkIoManager {
 /// Initializes the Specs world.
 fn init_world(config: Config, ioman: io::NetworkIoManager) -> (World, Dispatcher) {
     let mut world = World::new();
+    world.insert(config);
+    world.insert(ioman);
 
     let mut dispatcher = DispatcherBuilder::new()
-        .with(chunkclient::ChunkSystem, "chunk", &[])
+        .with(chunkclient::ChunkSystem, "chunk_load", &[])
+        .with(network::NetworkSystem, "network", &[])
+        .with(
+            initialhandler::InitialHandlerSystem,
+            "initial_handler",
+            &["network", "chunk_load"],
+        )
+        .with(
+            worldupdate::WorldUpdateSystem,
+            "world_update",
+            &["network", "chunk_load"],
+        )
+        .with(
+            entity::PlayerUpdateSystem,
+            "player_update",
+            &["network", "chunk_load"],
+        )
         .build();
 
     dispatcher.setup(&mut world);
@@ -128,6 +154,23 @@ pub fn current_time_in_millis() -> u64 {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_millis() as u64
+}
+
+/// Disconnects the given player, removing them from the world.
+/// This operation is performed lazily.
+pub fn disconnect_player(player: Entity, reason: &str, lazy: &LazyUpdate) {
+    lazy.exec_mut(|world| {
+        let packet = DisconnectPlay::new(reason.to_string());
+        send_packet_to_player(world.read_component().get(player), packet);
+
+        network::broadcast_player_leave(world.read_component(), player);
+
+        if let Some(ecomp) = world.read_component::<EntityComponent>().get(player) {
+            info!("Disconnected player {}: {}", ecomp.display_name, reason);
+        }
+
+        world.delete_entity(player).unwrap();
+    })
 }
 
 #[cfg(test)]

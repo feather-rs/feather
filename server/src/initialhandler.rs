@@ -1,9 +1,10 @@
+use crate::entity::{EntityComponent, PlayerComponent};
 use crate::network::{
     broadcast_player_join, enable_compression_for_player, enable_encryption_for_player,
-    get_player_initialization_packets, send_packet_to_player,
+    get_player_initialization_packets, send_packet_to_player, NetworkComponent,
+    PacketQueueComponent,
 };
 use crate::prelude::*;
-use crate::{load_chunk, remove_player, Entity, EntityComponent, PlayerComponent, State};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use openssl::pkey::Private;
 use openssl::rsa::{Padding, Rsa};
@@ -11,7 +12,12 @@ use std::fmt::Formatter;
 use std::str::FromStr;
 
 use super::{PROTOCOL_VERSION, SERVER_VERSION};
+use crate::{disconnect_player, PlayerCount};
 use mojang_api::ServerAuthResponse;
+use specs::{
+    Component, Entities, Entity, HashMapStorage, LazyUpdate, Read, ReadStorage, System, Write,
+    WriteStorage,
+};
 
 const RSA_BITS: u32 = 1024; // Yes, very secure
 
@@ -33,12 +39,16 @@ pub struct InitialHandlerComponent {
     pub stage: Stage,
     rsa_key: Option<Rsa<Private>>,
     verify_token: [u8; VERIFY_TOKEN_LEN],
-    /// Sent in Login Start
+    /// Sent to server in Login Start
     username: Option<String>,
 }
 
-impl InitialHandlerComponent {
-    pub fn new() -> Self {
+impl Component for InitialHandlerComponent {
+    type Storage = HashMapStorage<Self>;
+}
+
+impl Default for InitialHandlerComponent {
+    fn default() -> Self {
         Self {
             stage: Stage::AwaitHandshake,
             rsa_key: None,
@@ -48,7 +58,77 @@ impl InitialHandlerComponent {
     }
 }
 
-pub enum Error {
+/// System for handling the login sequence.
+pub struct InitialHandlerSystem;
+
+impl<'a> System for InitialHandlerSystem {
+    type SystemData = (
+        Entities<'a>,
+        WriteStorage<'a, IntitialHandlerComponent>,
+        ReadStorage<'a, NetworkComponent>,
+        ReadStorage<'a, PacketQueueComponent>,
+        Read<'a, Config>,
+        Write<'a, PlayerCount>,
+        // LazyUpdate is used to add player + entity
+        // components when a player joins. This prevents
+        // other systems from being blocked by the initial
+        // handler because of a dependency on WriteStorage<PlayerComponent>.
+        Read<'a, LazyUpdate>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (entities, ih_comps, net_comps, packet_queue, config, player_count, lazy) = data;
+
+        let mut packets = vec![];
+        packets.append(packet_queue.for_packet(PacketType::Handshake));
+        packets.append(packet_queue.for_packet(PacketType::LoginStart));
+        packets.append(packet_queue.for_packet(PacketType::Request));
+        packets.append(packet_queue.for_packet(PacketType::Ping));
+        packets.append(packet_queue.for_packet(PacketType::EncryptionResponse));
+
+        for (player, packet) in packets {
+            if !player_check(player, &ih_comps, &lazy) {
+                continue; // Bad player - kicked
+            }
+
+            if let Err(e) = handle_packet(
+                player,
+                packet,
+                &entities,
+                &ih_comps,
+                &net_comps,
+                &config,
+                &player_count,
+                &lazy,
+            ) {
+                disconnect_player(
+                    player,
+                    &format!("InitialHandler: error occurred: {}", e),
+                    &lazy,
+                );
+                info!("InitialHandler: player was kicked: {}", e);
+            }
+        }
+    }
+}
+
+/// Verifies that the given player is still in the login phase,
+/// disconnecting them and returning `false` if they are not.
+fn player_check(
+    player: Entity,
+    ih_comps: &WriteStorage<InitialHandlerComponent>,
+    lazy: &LazyUpdate,
+) -> bool {
+    if !ih_comps.contains(player) {
+        disconnect_player(player, "Sent invalid packet while in play", lazy);
+        return false;
+    }
+    true
+}
+
+/// An eror which occurred during initial handling
+/// for a player
+enum Error {
     InvalidPacket(PacketType),
     MalformedData(String),
     InvalidProtocolVersion(u32, u32),
@@ -77,28 +157,8 @@ impl std::fmt::Display for Error {
     }
 }
 
-pub fn handle_packet(state: &mut State, player: Entity, packet: Box<Packet>) -> Result<(), Error> {
-    match packet.ty() {
-        PacketType::Handshake => {
-            handle_handshake(state, player, cast_packet::<Handshake>(&packet))?
-        }
-        PacketType::Request => handle_request(state, player, cast_packet::<Request>(&packet))?,
-        PacketType::Ping => handle_ping(state, player, cast_packet::<Ping>(&packet))?,
-        PacketType::LoginStart => {
-            handle_login_start(state, player, cast_packet::<LoginStart>(&packet))?
-        }
-        PacketType::EncryptionResponse => {
-            handle_encryption_response(state, player, cast_packet::<EncryptionResponse>(&packet))?
-        }
-        _ => return Err(Error::InvalidPacket(packet.ty())),
-    }
-    Ok(())
-}
-
-fn handle_handshake(state: &mut State, player: Entity, packet: &Handshake) -> Result<(), Error> {
-    let ih = state.ih_components.get_mut(player).unwrap();
-
-    if ih.stage != Stage::AwaitHandshake {
+fn handle_handshake(comp: &mut InitialHandlerComponent, packet: &Handshake) -> Result<(), Error> {
+    if comp.stage != Stage::AwaitHandshake {
         return Err(Error::InvalidPacket(PacketType::Handshake));
     }
 
@@ -110,17 +170,20 @@ fn handle_handshake(state: &mut State, player: Entity, packet: &Handshake) -> Re
     }
 
     match packet.next_state {
-        HandshakeState::Login => ih.stage = Stage::AwaitLoginStart,
-        HandshakeState::Status => ih.stage = Stage::AwaitRequest,
+        HandshakeState::Login => comp.stage = Stage::AwaitLoginStart,
+        HandshakeState::Status => comp.stage = Stage::AwaitRequest,
     }
 
     Ok(())
 }
 
-fn handle_request(state: &mut State, player: Entity, _packet: &Request) -> Result<(), Error> {
-    let ih = state.ih_components.get_mut(player).unwrap();
-
-    if ih.stage != Stage::AwaitRequest {
+fn handle_request(
+    comp: &mut InitialHandlerComponent,
+    config: &Config,
+    player_count: &PlayerCount,
+    packet: &Request,
+) -> Result<(), Error> {
+    if comp.stage != Stage::AwaitRequest {
         return Err(Error::InvalidPacket(PacketType::Request));
     }
 
@@ -130,48 +193,56 @@ fn handle_request(state: &mut State, player: Entity, _packet: &Request) -> Resul
             "protocol": PROTOCOL_VERSION,
         },
         "players": {
-            "max": state.config.server.max_players,
-            "online": state.joined_players.len(),
+            "max": config.server.max_players,
+            "online": joined_players.len(),
         },
-        "description": state.config.server.motd,
+        "description": config.server.motd,
     });
 
     let response = Response::new(payload.to_string());
 
-    ih.stage = Stage::AwaitPing;
+    comp.stage = Stage::AwaitPing;
 
     send_packet_to_player(state, player, response);
 
     Ok(())
 }
 
-fn handle_ping(state: &mut State, player: Entity, packet: &Ping) -> Result<(), Error> {
-    let ih = state.ih_components.get_mut(player).unwrap();
-
-    if ih.stage != Stage::AwaitPing {
+fn handle_ping(
+    comp: &mut InitialHandlerComponent,
+    player: Entity,
+    entities: Entities,
+    packet: &Ping,
+) -> Result<(), Error> {
+    if comp.stage != Stage::AwaitPing {
         return Err(Error::InvalidPacket(PacketType::Ping));
     }
 
     let pong = Pong::new(packet.payload);
     send_packet_to_player(state, player, pong);
 
-    remove_player(state, player);
+    entities.delete(player);
     debug!("Status handling success");
 
     Ok(())
 }
 
-fn handle_login_start(state: &mut State, player: Entity, packet: &LoginStart) -> Result<(), Error> {
-    state.ih_components[player].username = Some(packet.username.clone());
+fn handle_login_start<'a>(
+    comp: &mut IntiialHandlerComponent,
+    player: Entity,
+    config: &Config,
+    player_comps: &mut WriteStorage<'a, PlayerComponent>,
+    entity_comps: &mut WriteStorage<'a, EntityComponent>,
+    packet: &LoginStart,
+) -> Result<(), Error> {
+    comp.username = Some(packet.username.clone());
 
-    let ih = state.ih_components.get(player).unwrap();
-
-    if ih.stage != Stage::AwaitLoginStart {
+    if comp.stage != Stage::AwaitLoginStart {
         return Err(Error::InvalidPacket(PacketType::Ping));
     }
 
     // If in online mode, enable encryption
-    if state.config.server.online_mode {
+    if config.server.online_mode {
         let rsa_key = Rsa::generate(RSA_BITS).unwrap();
 
         let key_bytes = rsa_key.public_key_to_der().unwrap();
@@ -187,8 +258,8 @@ fn handle_login_start(state: &mut State, player: Entity, packet: &LoginStart) ->
             verify_token,
         );
 
-        state.ih_components[player].rsa_key = Some(rsa_key);
-        state.ih_components[player].stage = Stage::AwaitEncryptionResponse;
+        comp.rsa_key = Some(rsa_key);
+        comp.stage = Stage::AwaitEncryptionResponse;
 
         send_packet_to_player(state, player, encryption_request);
     } else {
@@ -198,7 +269,7 @@ fn handle_login_start(state: &mut State, player: Entity, packet: &LoginStart) ->
             profile_properties: vec![],
             gamemode: Gamemode::Creative,
         };
-        state.player_components.set(player, player_comp);
+        player_comps.insert(player, player_comp);
 
         let entity_comp = EntityComponent {
             position: Position::new(0.0, 0.0, 0.0, 0.0, 0.0),
@@ -206,7 +277,7 @@ fn handle_login_start(state: &mut State, player: Entity, packet: &LoginStart) ->
             display_name: ih.username.as_ref().unwrap().clone(),
             on_ground: true,
         };
-        state.entity_components.set(player, entity_comp);
+        entity_comps.insert(player, entity_comp);
 
         finish(state, player);
     }
@@ -214,18 +285,19 @@ fn handle_login_start(state: &mut State, player: Entity, packet: &LoginStart) ->
     Ok(())
 }
 
-fn handle_encryption_response(
-    state: &mut State,
+fn handle_encryption_response<'a>(
+    comp: &mut IntiialHandlerComponent,
     player: Entity,
+    config: &Config,
+    player_comps: &mut WriteStorage<'a, PlayerComponent>,
+    entity_comps: &mut WriteStorage<'a, EntityComponent>,
     packet: &EncryptionResponse,
 ) -> Result<(), Error> {
-    let ih = state.ih_components.get(player).unwrap();
-
-    if ih.stage != Stage::AwaitEncryptionResponse {
+    if comp.stage != Stage::AwaitEncryptionResponse {
         return Err(Error::InvalidPacket(PacketType::Ping));
     }
 
-    let rsa = ih.rsa_key.as_ref().unwrap();
+    let rsa = comp.rsa_key.as_ref().unwrap();
 
     let secret: [u8; 16] = {
         let mut buf = vec![0u8; rsa.size() as usize];
@@ -282,15 +354,15 @@ fn handle_encryption_response(
     // Authenticate
     let auth_res = authenticate(
         secret.clone(),
-        &ih.rsa_key.as_ref().unwrap().public_key_to_der().unwrap(),
-        ih.username.as_ref().unwrap(),
+        &comp.rsa_key.as_ref().unwrap().public_key_to_der().unwrap(),
+        comp.username.as_ref().unwrap(),
     );
     if let Ok(res) = auth_res {
         let player_comp = PlayerComponent {
             profile_properties: res.properties,
             gamemode: Gamemode::Creative,
         };
-        state.player_components.set(player, player_comp);
+        player_comps.insert(player, player_comp);
 
         let entity_comp = EntityComponent {
             position: Position::new(0.0, 64.0, 0.0, 0.0, 0.0),
@@ -298,7 +370,7 @@ fn handle_encryption_response(
             display_name: ih.username.as_ref().unwrap().clone(),
             on_ground: true,
         };
-        state.entity_components.set(player, entity_comp);
+        entity_comps.insert(player, entity_comp);
         debug!("Authentication successful");
     } else {
         return Err(Error::AuthenticationFailed);
@@ -311,9 +383,9 @@ fn handle_encryption_response(
     Ok(())
 }
 
-fn finish(state: &mut State, player: Entity) {
+fn finish(player: Entity, config: &Config) {
     // Enable compression if needed
-    let threshold = state.config.io.compression_threshold;
+    let threshold = config.io.compression_threshold;
     if threshold > 0 {
         let set_compression = SetCompression::new(threshold);
         send_packet_to_player(state, player, set_compression);
@@ -335,6 +407,7 @@ fn finish(state: &mut State, player: Entity) {
 fn join_game(state: &mut State, player: Entity) {
     let join_game = JoinGame::new(
         player.index() as i32,
+        is: open,
         Gamemode::Creative.get_id(),
         Dimension::Overwold.get_id(),
         Difficulty::Medium.get_id(),

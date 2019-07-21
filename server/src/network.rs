@@ -1,14 +1,66 @@
+use crate::entity::PlayerComponent;
+use crate::initialhandler as ih;
 use crate::initialhandler::InitialHandlerComponent;
 use crate::io::{ServerToListenerMessage, ServerToWorkerMessage};
 use crate::prelude::*;
-use crate::{add_player, initialhandler as ih, remove_player, Entity, State};
 use feather_blocks::Block;
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use mio_extras::channel::{Receiver, Sender};
+use specs::{Entities, Entity, ReadStorage};
+use std::sync::Mutex;
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
 //const HEAD_OFFSET: f64 = 1.62; // Offset from feet pos to head pos
+/// A component which contains the received packets
+/// for this tick.
+pub struct PacketQueueComponent {
+    queue: Mutex<Vec<Vec<(Entity, Box<Packet>)>>>,
+}
+
+impl PacketQueueComponent {
+    /// Returns the packets queued for handling
+    /// of the given type, draining the queue of this
+    /// type of packet.
+    pub fn for_packet(&self, ty: PacketType) -> Vec<(Entity, Box<Packet>)> {
+        let mut queue = self.queue.lock().unwrap();
+
+        let ordinal = ty.ordinal();
+        if ordinal >= queue.len() {
+            self.expand(&mut queue, ordinal);
+        }
+
+        let mut result = vec![];
+        std::mem::swap(&mut result, queue.get_mut(ordinal).unwrap());
+
+        result
+    }
+
+    fn expand(
+        &self,
+        queue: &mut std::sync::MutexGuard<Vec<Vec<(Entity, Box<Packet>)>>>,
+        to: usize,
+    ) {
+        if to < queue.len() {
+            return;
+        }
+
+        for _ in queue.len()..(to + 1) {
+            queue.push(Vec::new());
+        }
+    }
+
+    fn add_for_packet(&self, player: Entity, packet: Box<Packet>) {
+        let mut queue = self.queue.lock().unwrap();
+
+        let ordinal = packet.ty().ordinal();
+        if ordinal >= queue.len() {
+            self.expand(&mut queue, ordinal);
+        }
+
+        self.queue[ordinal].push((player, packet));
+    }
+}
 
 pub struct NetworkComponent {
     sender: Sender<ServerToWorkerMessage>,
@@ -231,18 +283,6 @@ fn poll_for_new_players(state: &mut State) {
     }
 }
 
-pub fn send_packet_to_player<P: Packet + 'static>(state: &State, player: Entity, packet: P) {
-    let comp = &state.network_components[player];
-    let _ = comp
-        .sender
-        .send(ServerToWorkerMessage::SendPacket(Box::new(packet)));
-}
-
-pub fn send_packet_boxed_to_player(state: &State, player: Entity, packet: Box<Packet>) {
-    let comp = &state.network_components[player];
-    let _ = comp.sender.send(ServerToWorkerMessage::SendPacket(packet));
-}
-
 pub fn enable_compression_for_player(state: &State, player: Entity, threshold: usize) {
     let comp = &state.network_components[player];
     let _ = comp
@@ -432,16 +472,36 @@ pub fn broadcast_block_update(state: &mut State, pos: BlockPosition) {
     send_packet_to_all_players(state, packet, None);
 }
 
+/// Sends a packet to all (joined) players on the server, excluding
+/// `neq`, if it exists.
 fn send_packet_to_all_players<P: Packet + Clone + 'static>(
-    state: &State,
+    net_comps: &ReadStorage<NetworkComponent>,
+    player_comps: &ReadStorage<PlayerComponent>,
+    entities: &Entities,
     packet: P,
     neq: Option<Entity>,
 ) {
-    for player in &state.joined_players {
-        if neq.is_none() || *player != neq.unwrap() {
-            send_packet_to_player(state, *player, packet.clone());
+    for (entity, net, player) in (entities, net_comps, player_comps).join() {
+        if let Some(e) = neq.as_ref() {
+            if e == entity {
+                continue; // Exclude this entity
+            }
         }
+
+        send_packet_to_player(net, packet.clone());
     }
+}
+
+/// Sends a packet to the given player.
+pub fn send_packet_to_player<P: Packet + 'static>(comp: &NetworkComponent, packet: P) {
+    let _ = comp
+        .sender
+        .send(ServerToWorkerMessage::SendPacket(Box::new(packet)));
+}
+
+/// Sends a packet to the given player.
+pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<Packet>) {
+    let _ = comp.sender.send(ServerToWorkerMessage::SendPacket(packet));
 }
 
 pub fn degrees_to_stops(degs: f32) -> u8 {
