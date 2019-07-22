@@ -42,8 +42,6 @@ pub struct InitialHandlerComponent {
     verify_token: [u8; VERIFY_TOKEN_LEN],
     /// Sent to server in Login Start
     username: Option<String>,
-    /// Whether the finish() function should be called on the player
-    should_finish: bool,
 }
 
 impl Component for InitialHandlerComponent {
@@ -113,11 +111,9 @@ impl<'a> System for InitialHandlerSystem {
                 );
                 info!("InitialHandler: player was kicked: {}", e);
             }
-
-            if ih_comps.get(player).unwrap().should_finish {
-                finish()
-            }
         }
+
+        // TODO send chunks
     }
 }
 
@@ -170,23 +166,56 @@ fn handle_packet(
     player: Entity,
     packet: Box<Packet>,
     entities: &Entities,
-    ih_comps: &mut WriteStorage<InitialHandlerComponent>,
-    net_comps: &ReadStorage<NetworkComponent>,
+    ihcomps: &mut WriteStorage<InitialHandlerComponent>,
+    netcomps: &ReadStorage<NetworkComponent>,
     config: &Config,
     player_count: &mut Write<PlayerCount>,
     lazy: &LazyUpdate,
 ) -> Result<(), Error> {
-    let ih_comp = ih_comps.get_mut(player).unwrap();
+    let ihcomp = ihcomps.get_mut(player).unwrap();
+    let netcomp = netcomps.get(player).unwrap();
+
     match packet.ty() {
-        PacketType::Handshake => handle_handshake(ih_comp, cast_packet::<Handshake>(&packet)),
+        PacketType::Handshake => handle_handshake(ihcomp, cast_packet::<Handshake>(&packet))?,
         PacketType::Request => handle_request(
-            ih_comp,
+            ihcomp,
+            netcomp,
             config,
             player_count,
             cast_packet::<Request>(&packet),
+        )?,
+        PacketType::Ping => {
+            handle_ping(ihcomp, netcomp, player, lazy, cast_packet::<Ping>(&packet))?
+        }
+        PacketType::LoginStart => handle_login_start(
+            netcomp,
+            config,
+            player,
+            ihcomps,
+            ecomps,
+            pcomps,
+            netcomps,
+            chunk_handle,
+            chunk_map,
+            lazy,
+            cast_packet::<LoginStart>(&packet),
         ),
-        PacketType::Ping => handle_ping,
+        PacketType::EncryptionResponse => handle_encryption_response(
+            player,
+            config,
+            ihcomps,
+            ecomps,
+            pcomps,
+            netcomps,
+            chunk_handle,
+            lazy,
+            chunk_map,
+            cast_packet::<EncryptionResponse>(&packet),
+        ),
+        _ => panic!("Invalid packet"),
     }
+
+    Ok(())
 }
 
 fn handle_handshake(comp: &mut InitialHandlerComponent, packet: &Handshake) -> Result<(), Error> {
@@ -262,13 +291,19 @@ fn handle_ping(
 }
 
 fn handle_login_start<'a>(
-    comp: &mut InitialHandlerComponent,
     net: &NetworkComponent,
-    player: Entity,
     config: &Config,
+    player: Entity,
+    ihcomps: &mut WriteStorage<InitialHandlerComponent>,
+    ecomps: &ReadStorage<EntityComponent>,
+    pcomps: &ReadStorage<PlayerComponent>,
+    netcomps: &ReadStorage<NetworkComponent>,
+    chunk_handle: &ChunkWorkerHandle,
+    chunk_map: &ChunkMap,
     lazy: &LazyUpdate,
     packet: &LoginStart,
 ) -> Result<(), Error> {
+    let comp = ihcomps.get_mut(player).unwrap();
     comp.username = Some(packet.username.clone());
 
     if comp.stage != Stage::AwaitLoginStart {
@@ -313,19 +348,35 @@ fn handle_login_start<'a>(
         };
         lazy.insert(player, entity_comp);
 
-        finish(state, player);
+        finish(
+            player,
+            ihcomps,
+            ecomps,
+            pcomps,
+            netcomps,
+            chunk_handle,
+            lazy,
+            chunk_map,
+            config,
+        );
     }
 
     Ok(())
 }
 
-fn handle_encryption_response<'a>(
-    comp: &mut InitialHandlerComponent,
+fn handle_encryption_response(
     player: Entity,
     config: &Config,
+    ihcomps: &mut WriteStorage<InitialHandlerComponent>,
+    ecomps: &ReadStorage<EntityComponent>,
+    pcomps: &ReadStorage<PlayerComponent>,
+    netcomps: &ReadStorage<NetworkComponent>,
+    chunk_handle: &ChunkWorkerHandle,
     lazy: &LazyUpdate,
+    chunk_map: &ChunkMap,
     packet: &EncryptionResponse,
 ) -> Result<(), Error> {
+    let comp = ihcomps.get_mut(player).unwrap();
     if comp.stage != Stage::AwaitEncryptionResponse {
         return Err(Error::InvalidPacket(PacketType::Ping));
     }
@@ -411,7 +462,17 @@ fn handle_encryption_response<'a>(
 
     enable_encryption_for_player(state, player, secret);
 
-    finish(state, player);
+    finish(
+        player,
+        ihcomps,
+        ecomps,
+        pcomps,
+        netcomps,
+        chunk_handle,
+        lazy,
+        chunk_map,
+        config,
+    );
 
     Ok(())
 }
