@@ -37,7 +37,10 @@ pub const PROTOCOL_VERSION: u32 = 404;
 pub const SERVER_VERSION: &'static str = "Feather 1.13.2";
 pub const TICK_TIME: u64 = 1000 / TPS;
 
+#[derive(Default)]
 pub struct PlayerCount(u32);
+#[derive(Default)]
+pub struct TickCount(u64);
 
 fn main() {
     let config = config::load_from_file("feather.toml")
@@ -69,6 +72,9 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
         dispatcher.dispatch(world);
         world.maintain();
 
+        // Increment tick count
+        *world.write_resource::<TickCount>().0 += 1;
+
         // Sleep correct amount
         let end_time = current_time_in_millis();
         let elapsed = start_time - end_time;
@@ -99,6 +105,7 @@ fn init_world(config: Config, ioman: io::NetworkIoManager) -> (World, Dispatcher
     let mut world = World::new();
     world.insert(config);
     world.insert(ioman);
+    world.insert(TickCount::default());
 
     let mut dispatcher = DispatcherBuilder::new()
         .with(chunkclient::ChunkSystem, "chunk_load", &[])

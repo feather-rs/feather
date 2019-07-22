@@ -1,8 +1,7 @@
 use crate::entity::{EntityComponent, PlayerComponent};
 use crate::network::{
     broadcast_player_join, enable_compression_for_player, enable_encryption_for_player,
-    get_player_initialization_packets, send_packet_to_player, NetworkComponent,
-    PacketQueueComponent,
+    get_player_initialization_packets, send_packet_to_player, NetworkComponent, PacketQueue,
 };
 use crate::prelude::*;
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
@@ -55,8 +54,13 @@ impl Default for InitialHandlerComponent {
             rsa_key: None,
             verify_token: rand::random(),
             username: None,
-            should_finish: false,
         }
+    }
+}
+
+impl InitialHandlerComponent {
+    pub fn new() -> Self {
+        Default::default()
     }
 }
 
@@ -68,7 +72,7 @@ impl<'a> System for InitialHandlerSystem {
         Entities<'a>,
         WriteStorage<'a, IntitialHandlerComponent>,
         ReadStorage<'a, NetworkComponent>,
-        ReadStorage<'a, PacketQueueComponent>,
+        ReadStorage<'a, PacketQueue>,
         Read<'a, Config>,
         Write<'a, PlayerCount>,
         // LazyUpdate is used to add player + entity
