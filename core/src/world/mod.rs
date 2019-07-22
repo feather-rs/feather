@@ -91,6 +91,10 @@ impl ChunkMap {
     /// If the chunk in which the position resides
     /// does not exist, `Err` is returned. In all
     /// other cases, `Ok` is returned.
+    ///
+    /// Note that on the server side, calling this function
+    /// does not broadcast the update in any way. As such,
+    /// the according function should be called instead.
     pub fn set_block_at(&mut self, pos: BlockPosition, block: Block) -> Result<(), ()> {
         let chunk_pos = pos.chunk_pos();
 
@@ -106,6 +110,14 @@ impl ChunkMap {
     /// Sets the chunk at the given location.
     pub fn set_chunk_at(&mut self, pos: ChunkPosition, chunk: Chunk) {
         self.chunk_map.insert(pos, chunk);
+    }
+}
+
+impl Default for ChunkMap {
+    pub fn default() -> Self {
+        Self {
+            chunk_map: HashMap::new(),
+        }
     }
 }
 

@@ -18,6 +18,7 @@ pub mod initialhandler;
 pub mod io;
 pub mod network;
 pub mod prelude;
+pub mod worldupdate;
 
 use crate::entity::EntityComponent;
 use crate::initialhandler::InitialHandlerComponent;
