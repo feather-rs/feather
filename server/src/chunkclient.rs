@@ -3,7 +3,7 @@
 use crate::chunkworker;
 use crossbeam::channel::{Receiver, Sender};
 use feather_core::world::{ChunkMap, ChunkPosition};
-use specs::{prelude::Resources, Read, System, World, Write};
+use specs::{Read, System, World, Write};
 
 pub struct ChunkWorkerHandle {
     sender: Sender<chunkworker::Request>,

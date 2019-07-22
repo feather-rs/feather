@@ -1,4 +1,4 @@
-use crate::entity::PlayerComponent;
+use crate::entity::{EntityComponent, PlayerComponent};
 use crate::initialhandler as ih;
 use crate::initialhandler::InitialHandlerComponent;
 use crate::io::{ServerToListenerMessage, ServerToWorkerMessage};
@@ -307,13 +307,20 @@ pub fn handle_player_remove(state: &mut State, player: Entity) {
 /// whenever a player joins.
 ///
 /// This function is currently called by the initial handler.
-pub fn broadcast_player_join(state: &mut State, player: Entity) {
-    let (player_info, spawn_player) = get_player_initialization_packets(state, player);
+pub fn broadcast_player_join(
+    player: Entity,
+    netcomps: &ReadStorage<NetworkComponent>,
+    pcomps: &ReadStorage<PlayerComponent>,
+    ecomps: &ReadStorage<EntityComponent>,
+) {
+    let ecomp = ecomps.get(player).unwrap();
+    let pcomp = pcomps.get(player).unwrap();
+    let (player_info, spawn_player) = get_player_initialization_packets(ecomp, pcomp, player);
 
-    for p in &state.joined_players {
-        send_packet_to_player(state, *p, player_info.clone());
+    for (net, _) in (netcomps, pcomps).join() {
+        send_packet_to_player(net, player_info.clone());
         if *p != player {
-            send_packet_to_player(state, *p, spawn_player.clone());
+            send_packet_to_player(net, spawn_player.clone());
         }
     }
 }
@@ -321,19 +328,17 @@ pub fn broadcast_player_join(state: &mut State, player: Entity) {
 /// Returns the player info and spawn player packets
 /// for the given player.
 pub fn get_player_initialization_packets(
-    state: &State,
+    ecomp: &EntityComponent,
+    pcomp: &PlayerComponent,
     player: Entity,
 ) -> (PlayerInfo, SpawnPlayer) {
-    let entity_comp = state.entity_components.get(player).unwrap();
-    let player_comp = state.player_components.get(player).unwrap();
-
     let display_name = json!({
-        "text": entity_comp.display_name
+        "text": ecomp.display_name
     })
     .to_string();
 
     let mut props = vec![];
-    for prop in player_comp.profile_properties.iter() {
+    for prop in pcomp.profile_properties.iter() {
         props.push((
             prop.name.clone(),
             prop.value.clone(),
@@ -342,13 +347,13 @@ pub fn get_player_initialization_packets(
     }
 
     let action = PlayerInfoAction::AddPlayer(
-        entity_comp.display_name.clone(),
+        ecomp.display_name.clone(),
         props,
         Gamemode::Creative,
         50,
         display_name,
     );
-    let player_info = PlayerInfo::new(action, entity_comp.uuid.clone());
+    let player_info = PlayerInfo::new(action, ecomp.uuid.clone());
 
     let metadata = EntityMetadata::new().with(&[
         (0, MetaEntry::Byte(0)),
@@ -371,12 +376,12 @@ pub fn get_player_initialization_packets(
 
     let spawn_player = SpawnPlayer::new(
         player.index() as i32,
-        entity_comp.uuid.clone(),
-        entity_comp.position.x,
-        entity_comp.position.y,
-        entity_comp.position.z,
-        degrees_to_stops(entity_comp.position.pitch),
-        degrees_to_stops(entity_comp.position.yaw),
+        ecomp.uuid.clone(),
+        ecomp.position.x,
+        ecomp.position.y,
+        ecomp.position.z,
+        degrees_to_stops(ecomp.position.pitch),
+        degrees_to_stops(ecomp.position.yaw),
         metadata,
     );
 

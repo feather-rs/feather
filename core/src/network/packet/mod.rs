@@ -531,7 +531,7 @@ impl PacketType {
     /// Returns a unique ID, allocated
     /// consecutively for each packet type.
     pub fn ordinal(&self) -> usize {
-        self as usize
+        *self as usize
     }
 }
 
