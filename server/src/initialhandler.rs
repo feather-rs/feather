@@ -268,7 +268,7 @@ fn handle_request(
     net: &NetworkComponent,
     config: &Config,
     player_count: &PlayerCount,
-    packet: &Request,
+    _packet: &Request,
 ) -> Result<(), Error> {
     if comp.stage != Stage::AwaitRequest {
         return Err(Error::InvalidPacket(PacketType::Request));

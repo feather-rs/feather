@@ -74,7 +74,7 @@ mod tests {
 
     #[test]
     fn test_chunk_system() {
-        let (send1, recv1) = crossbeam::channel::unbounded();
+        let (send1, _recv1) = crossbeam::channel::unbounded();
         let (send2, recv2) = crossbeam::channel::unbounded();
         let handle = ChunkWorkerHandle {
             sender: send1,
@@ -83,7 +83,7 @@ mod tests {
 
         let chunk_map = ChunkMap::new();
         let pos = ChunkPosition::new(0, 0);
-        send2.send((pos, Ok(Chunk::new(pos))));
+        send2.send((pos, Ok(Chunk::new(pos)))).unwrap();
 
         let mut system = ChunkSystem;
         let mut world = World::new();
@@ -103,7 +103,7 @@ mod tests {
     #[test]
     fn test_load_chunk() {
         let (send1, recv1) = crossbeam::channel::unbounded();
-        let (send2, recv2) = crossbeam::channel::unbounded();
+        let (_send2, recv2) = crossbeam::channel::unbounded();
         let handle = ChunkWorkerHandle {
             sender: send1,
             receiver: recv2,

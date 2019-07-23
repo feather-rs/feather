@@ -3,15 +3,13 @@
 //! provide entity-specific components and systems.
 
 use crate::disconnect_player;
-use crate::network::{
-    send_packet_boxed_to_player, send_packet_to_player, NetworkComponent, PacketQueue,
-};
+use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue};
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
     EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, PlayerLook, PlayerPosition,
     PlayerPositionAndLookServerbound,
 };
-use feather_core::network::packet::{Packet, PacketType};
+use feather_core::network::packet::PacketType;
 use feather_core::world::Position;
 use feather_core::Gamemode;
 use specs::storage::BTreeStorage;
@@ -56,7 +54,7 @@ impl<'a> System<'a> for PlayerUpdateSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut ecomps, pcomps, packet_queue, netcomps, entities, lazy) = data;
+        let (mut ecomps, pcomps, packet_queue, netcomps, entities, _) = data;
 
         // Take movement packets
         let mut packets = vec![];

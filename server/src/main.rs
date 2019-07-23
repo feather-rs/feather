@@ -21,15 +21,10 @@ pub mod prelude;
 pub mod worldupdate;
 
 use crate::entity::EntityComponent;
-use crate::initialhandler::InitialHandlerComponent;
-use crate::network::{send_packet_to_player, NetworkComponent};
+use crate::network::send_packet_to_player;
 use feather_core::network::packet::implementation::DisconnectPlay;
-use multimap::MultiMap;
 use prelude::*;
-use specs::{
-    Component, DenseVecStorage, Dispatcher, DispatcherBuilder, Entity, LazyUpdate, VecStorage,
-    World, WorldExt,
-};
+use specs::{Dispatcher, DispatcherBuilder, Entity, LazyUpdate, World, WorldExt};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub const TPS: u64 = 20;
@@ -192,6 +187,7 @@ mod tests {
         let config = Default::default();
         let ioman = init_io_manager(&config);
 
-        let (world, dispatcher) = init_world(config, ioman);
+        let (world, mut dispatcher) = init_world(config, ioman);
+        dispatcher.dispatch(&world);
     }
 }

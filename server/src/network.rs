@@ -2,8 +2,7 @@ use crate::entity::{EntityComponent, PlayerComponent};
 use crate::initialhandler::InitialHandlerComponent;
 use crate::io::{NetworkIoManager, ServerToListenerMessage, ServerToWorkerMessage};
 use crate::prelude::*;
-use crate::{initialhandler as ih, TickCount};
-use feather_blocks::Block;
+use crate::TickCount;
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use mio_extras::channel::{Receiver, Sender};
@@ -123,7 +122,7 @@ impl<'a> System<'a> for NetworkSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut netcomps, mut ihcomps, pcomps, packet_queue, ioman, entities, tick_count, lazy) =
+        let (mut netcomps, mut ihcomps, pcomps, packet_queue, ioman, entities, tick_count, _) =
             data;
         // Poll for new connections
         while let Ok(msg) = ioman.receiver.try_recv() {
@@ -135,11 +134,11 @@ impl<'a> System<'a> for NetworkSystem {
 
                     // Create entity
                     let new_entity = entities.create();
-                    netcomps.insert(new_entity, netcomp);
+                    netcomps.insert(new_entity, netcomp).unwrap();
 
                     // Create initial handler
                     let ih = InitialHandlerComponent::new();
-                    ihcomps.insert(new_entity, ih);
+                    ihcomps.insert(new_entity, ih).unwrap();
                 }
                 _ => panic!("Network system received invalid message from IO listener"),
             }
@@ -154,9 +153,9 @@ impl<'a> System<'a> for NetworkSystem {
                     }
                     ServerToWorkerMessage::NotifyDisconnect => {
                         // TODO broadcast disconnect
-                        entities.delete(player);
+                        entities.delete(player).unwrap();
                     }
-                    msg => panic!("Network system received invalid message from IO worker}"),
+                    _ => panic!("Network system received invalid message from IO worker}"),
                 }
             }
         }
