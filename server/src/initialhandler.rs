@@ -67,12 +67,12 @@ impl InitialHandlerComponent {
 /// System for handling the login sequence.
 pub struct InitialHandlerSystem;
 
-impl<'a> System for InitialHandlerSystem {
+impl<'a> System<'a> for InitialHandlerSystem {
     type SystemData = (
         Entities<'a>,
         WriteStorage<'a, IntitialHandlerComponent>,
         ReadStorage<'a, NetworkComponent>,
-        ReadStorage<'a, PacketQueue>,
+        Read<'a, PacketQueue>,
         Read<'a, Config>,
         Write<'a, PlayerCount>,
         // LazyUpdate is used to add player + entity
@@ -87,11 +87,11 @@ impl<'a> System for InitialHandlerSystem {
             data;
 
         let mut packets = vec![];
-        packets.append(packet_queue.for_packet(PacketType::Handshake));
-        packets.append(packet_queue.for_packet(PacketType::LoginStart));
-        packets.append(packet_queue.for_packet(PacketType::Request));
-        packets.append(packet_queue.for_packet(PacketType::Ping));
-        packets.append(packet_queue.for_packet(PacketType::EncryptionResponse));
+        packets.append(&mut packet_queue.for_packet(PacketType::Handshake));
+        packets.append(&mut packet_queue.for_packet(PacketType::LoginStart));
+        packets.append(&mut packet_queue.for_packet(PacketType::Request));
+        packets.append(&mut packet_queue.for_packet(PacketType::Ping));
+        packets.append(&mut packet_queue.for_packet(PacketType::EncryptionResponse));
 
         for (player, packet) in packets {
             if !player_check(player, &ih_comps, &lazy) {

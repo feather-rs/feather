@@ -30,7 +30,6 @@ use specs::{
     Component, DenseVecStorage, Dispatcher, DispatcherBuilder, Entity, LazyUpdate, VecStorage,
     World, WorldExt,
 };
-use std::thread::sleep;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub const TPS: u64 = 20;
@@ -102,7 +101,7 @@ fn init_io_manager(config: &Config) -> io::NetworkIoManager {
 }
 
 /// Initializes the Specs world.
-fn init_world(config: Config, ioman: io::NetworkIoManager) -> (World, Dispatcher) {
+fn init_world<'a, 'b>(config: Config, ioman: io::NetworkIoManager) -> (World, Dispatcher<'a, 'b>) {
     let mut world = World::new();
     world.insert(config);
     world.insert(ioman);

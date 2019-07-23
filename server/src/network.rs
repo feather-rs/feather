@@ -7,7 +7,10 @@ use feather_blocks::Block;
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use mio_extras::channel::{Receiver, Sender};
-use specs::{Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System, Write, WriteStorage};
+use specs::{
+    Component, DenseVecStorage, Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System,
+    Write, WriteStorage,
+};
 use std::sync::Mutex;
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
@@ -75,7 +78,7 @@ impl Default for PacketQueue {
 
 pub struct NetworkComponent {
     sender: Sender<ServerToWorkerMessage>,
-    receiver: Receiver<ServerToWorkerMessage>,
+    receiver: crossbeam::channel::Receiver<ServerToWorkerMessage>,
     /// A vector of all chunks that are currently
     /// being loaded and should be sent to the player
     /// once they have been loaded.
@@ -86,7 +89,7 @@ pub struct NetworkComponent {
 impl NetworkComponent {
     pub fn new(
         sender: Sender<ServerToWorkerMessage>,
-        receiver: Receiver<ServerToWorkerMessage>,
+        receiver: crossbeam::channel::Receiver<ServerToWorkerMessage>,
     ) -> Self {
         Self {
             sender,
@@ -94,6 +97,10 @@ impl NetworkComponent {
             chunks_to_send: vec![],
         }
     }
+}
+
+impl Component for NetworkComponent {
+    type Storage = DenseVecStorage<Self>;
 }
 
 /// The network system, responsible for
@@ -170,82 +177,6 @@ impl<'a> System<'a> for NetworkSystem {
     }
 }
 
-// TODO proper validation of new position
-fn handle_player_pos_and_look(
-    state: &mut State,
-    player: Entity,
-    packet: &PlayerPositionAndLookServerbound,
-) {
-    let ecomp = &state.entity_components[player];
-    let old_pos = ecomp.position;
-
-    let new_pos = Position::new(packet.x, packet.feet_y, packet.z, packet.pitch, packet.yaw);
-
-    broadcast_entity_movement(state, player, old_pos, new_pos, true, true);
-
-    state.entity_components[player].position = new_pos;
-}
-
-fn handle_player_pos(state: &mut State, player: Entity, packet: &PlayerPosition) {
-    let ecomp = &state.entity_components[player];
-    let old_pos = ecomp.position;
-
-    let new_pos = Position::new(
-        packet.x,
-        packet.feet_y,
-        packet.z,
-        old_pos.pitch,
-        old_pos.yaw,
-    );
-
-    broadcast_entity_movement(state, player, old_pos, new_pos, true, false);
-
-    state.entity_components[player].position = new_pos;
-}
-
-fn handle_player_look(state: &mut State, player: Entity, packet: &PlayerLook) {
-    let ecomp = &state.entity_components[player];
-    let old_pos = ecomp.position;
-
-    let new_pos = Position::new(old_pos.x, old_pos.y, old_pos.z, packet.pitch, packet.yaw);
-
-    broadcast_entity_movement(state, player, old_pos, new_pos, false, true);
-
-    state.entity_components[player].position = new_pos;
-}
-
-fn handle_player_digging(state: &mut State, player: Entity, packet: &PlayerDigging) {
-    match packet.status {
-        PlayerDiggingStatus::FinishedDigging => {
-            if state
-                .chunk_map
-                .set_block_at(packet.location, Block::Air)
-                .is_err()
-            {
-                // TODO kick player
-            }
-            broadcast_block_update(state, packet.location);
-        }
-        PlayerDiggingStatus::StartedDigging => {
-            let pcomp = &state.player_components[player];
-            if pcomp.gamemode == Gamemode::Creative {
-                // Break block instantly - TODO not with sword in hand
-                if state
-                    .chunk_map
-                    .set_block_at(packet.location, Block::Air)
-                    .is_err()
-                {
-                    // TODO kick player
-                    warn!("Client sent invalid Player Digging packet");
-                    return;
-                }
-                broadcast_block_update(state, packet.location);
-            }
-        }
-        _ => (), // TODO
-    }
-}
-
 pub fn enable_compression_for_player(net: &NetworkComponent, threshold: usize) {
     let _ = net
         .sender
@@ -256,29 +187,6 @@ pub fn enable_encryption_for_player(net: &NetworkComponent, key: [u8; 16]) {
     let _ = net
         .sender
         .send(ServerToWorkerMessage::EnableEncryption(key));
-}
-
-/// Broadcasts to all clients that the specified player
-/// has joined the game. This should be called
-/// whenever a player joins.
-///
-/// This function is currently called by the initial handler.
-pub fn broadcast_player_join(
-    player: Entity,
-    netcomps: &ReadStorage<NetworkComponent>,
-    pcomps: &ReadStorage<PlayerComponent>,
-    ecomps: &ReadStorage<EntityComponent>,
-) {
-    let ecomp = ecomps.get(player).unwrap();
-    let pcomp = pcomps.get(player).unwrap();
-    let (player_info, spawn_player) = get_player_initialization_packets(ecomp, pcomp, player);
-
-    for (net, _) in (netcomps, pcomps).join() {
-        send_packet_to_player(net, player_info.clone());
-        if *p != player {
-            send_packet_to_player(net, spawn_player.clone());
-        }
-    }
 }
 
 /// Returns the player info and spawn player packets
@@ -344,115 +252,6 @@ pub fn get_player_initialization_packets(
     (player_info, spawn_player)
 }
 
-/// Broadcasts to all joined players that the
-/// given player has left the server. This should
-/// remove the player from the tablist.
-pub fn broadcast_player_leave(state: &mut State, player: Entity) {
-    let ecomp = &state.entity_components[player];
-
-    let player_info = PlayerInfo::new(PlayerInfoAction::RemovePlayer, ecomp.uuid.clone());
-    send_packet_to_all_players(state, player_info, Some(player));
-
-    let destroy_entities = DestroyEntities::new(vec![player.index() as i32]);
-    send_packet_to_all_players(state, destroy_entities, Some(player));
-}
-
-/// Notifies all players within range
-/// that an entity has moved. This
-/// entity can be a player.
-///
-/// The `has_moved` and `has_moved` fields indicate
-/// whether the entity has moved its position
-/// or changed its pitch/yaw. These values
-/// are used to determine which packet to send:
-/// for example, if an entity has only moved and not looked,
-/// an Entity Relative Move packet is sent
-/// rather than an Entity Look and Relative Move.
-///
-/// In the event that the entity has moved
-/// more than 8 blocks, an Entity Teleport packet
-/// is sent instead.
-pub fn broadcast_entity_movement(
-    state: &mut State,
-    entity: Entity,
-    old_pos: Position,
-    new_pos: Position,
-    has_moved: bool,
-    has_looked: bool,
-) {
-    let ecomp = &state.entity_components[entity];
-
-    let dist = new_pos.distance(old_pos).abs();
-
-    if dist <= 8.0 {
-        if has_moved && has_looked {
-            // Entity Look and Relative Move
-            let (dx, dy, dz) = calculate_relative_move(old_pos, new_pos);
-            let packet = EntityLookAndRelativeMove::new(
-                entity.index() as i32,
-                dx,
-                dy,
-                dz,
-                degrees_to_stops(new_pos.yaw),
-                degrees_to_stops(new_pos.pitch),
-                ecomp.on_ground,
-            );
-            send_packet_to_all_players(state, packet, Some(entity));
-        } else if has_moved {
-            // Entity Relative Move
-            let (dx, dy, dz) = calculate_relative_move(old_pos, new_pos);
-            let packet =
-                EntityRelativeMove::new(entity.index() as i32, dx, dy, dz, ecomp.on_ground);
-            send_packet_to_all_players(state, packet, Some(entity));
-        } else if has_looked {
-            // Entity Look
-            let packet = EntityLook::new(
-                entity.index() as i32,
-                degrees_to_stops(new_pos.yaw),
-                degrees_to_stops(new_pos.pitch),
-                ecomp.on_ground,
-            );
-            send_packet_to_all_players(state, packet, Some(entity));
-        }
-    } else {
-        // TODO
-    }
-
-    // Send Entity Head Look for head yaw
-    if has_looked {
-        let packet = EntityHeadLook::new(entity.index() as i32, degrees_to_stops(new_pos.yaw));
-        send_packet_to_all_players(state, packet, Some(entity));
-    }
-}
-
-pub fn broadcast_block_update(state: &mut State, pos: BlockPosition) {
-    // TODO only send for players in range
-    let block = state.chunk_map.block_at(pos).unwrap();
-    let packet = BlockChange::new(pos, block.block_state_id() as i32);
-
-    send_packet_to_all_players(state, packet, None);
-}
-
-/// Sends a packet to all (joined) players on the server, excluding
-/// `neq`, if it exists.
-fn send_packet_to_all_players<P: Packet + Clone + 'static>(
-    net_comps: &ReadStorage<NetworkComponent>,
-    player_comps: &ReadStorage<PlayerComponent>,
-    entities: &Entities,
-    packet: P,
-    neq: Option<Entity>,
-) {
-    for (entity, net, player) in (entities, net_comps, player_comps).join() {
-        if let Some(e) = neq.as_ref() {
-            if e == entity {
-                continue; // Exclude this entity
-            }
-        }
-
-        send_packet_to_player(net, packet.clone());
-    }
-}
-
 /// Sends a packet to the given player.
 pub fn send_packet_to_player<P: Packet + 'static>(comp: &NetworkComponent, packet: P) {
     let _ = comp
@@ -467,13 +266,4 @@ pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<Packet>)
 
 pub fn degrees_to_stops(degs: f32) -> u8 {
     ((degs / 360.0) * 256.) as u8
-}
-
-/// Calculates the relative move fields
-/// as used in the Entity Relative Move packets.
-pub fn calculate_relative_move(old: Position, current: Position) -> (i16, i16, i16) {
-    let x = ((current.x * 32.0 - old.x * 32.0) * 128.0) as i16;
-    let y = ((current.y * 32.0 - old.y * 32.0) * 128.0) as i16;
-    let z = ((current.z * 32.0 - old.z * 32.0) * 128.0) as i16;
-    (x, y, z)
 }

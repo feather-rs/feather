@@ -114,7 +114,7 @@ impl ChunkMap {
 }
 
 impl Default for ChunkMap {
-    pub fn default() -> Self {
+    fn default() -> Self {
         Self {
             chunk_map: HashMap::new(),
         }

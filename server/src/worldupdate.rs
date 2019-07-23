@@ -30,7 +30,7 @@ impl<'a> System<'a> for WorldUpdateSystem {
         let (mut chunk_map, pcomps, netcomps, packet_queue, lazy) = data;
 
         let mut packets = vec![];
-        packets.push(packet_queue.for_packet(PacketType::PlayerDigging));
+        packets.append(&mut packet_queue.for_packet(PacketType::PlayerDigging));
 
         // Handle packets
         for (player, _packet) in packets {

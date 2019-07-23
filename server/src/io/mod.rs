@@ -34,12 +34,12 @@ pub struct NewClientInfo {
     pub ip: SocketAddr,
 
     pub sender: Sender<ServerToWorkerMessage>,
-    pub receiver: Receiver<ServerToWorkerMessage>,
+    pub receiver: crossbeam::channel::Receiver<ServerToWorkerMessage>,
 }
 
 pub struct NetworkIoManager {
     pub sender: Sender<ServerToListenerMessage>,
-    pub receiver: Receiver<ServerToListenerMessage>,
+    pub receiver: crossbeam::channel::Receiver<ServerToListenerMessage>,
 }
 
 impl NetworkIoManager {
@@ -60,7 +60,7 @@ impl NetworkIoManager {
             workers.push((send1, recv2));
         }
 
-        let (sender1, receiver1) = channel();
+        let (sender1, receiver1) = crossbeam::channel::unbounded();
         let (sender2, receiver2) = channel();
         thread::spawn(move || listener::start(addr.to_string(), sender1, receiver2, workers));
 
