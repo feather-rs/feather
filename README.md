@@ -29,7 +29,6 @@ Then, simply run the binary: ```./feather_server```.
 
 The server currently only supports 1.13.2 clients and world saves. In the future, additional versions will be added.
 
-**Note: the ```feather_blocks``` crate contains 130K lines of generated
-code and can take up to an hour to compile in release mode. In addition,
-it tends to take up around 8GiB RAM. In the future, we will provide
-precompiled binaries so you don't have to wait for that.**
+Note: the ```feather_blocks``` crate contains 130K lines of generated
+code and can take up to an hour to compile in release mode. In the future, precompiled binaries
+will be made available to avoid this.
