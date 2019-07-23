@@ -55,7 +55,7 @@ impl PacketQueue {
     }
 
     /// Adds a packet to the queue.
-    fn add_for_packet(&self, player: Entity, packet: Box<Packet>) {
+    pub fn add_for_packet(&self, player: Entity, packet: Box<Packet>) {
         let mut queue = self.queue.lock().unwrap();
 
         let ordinal = packet.ty().ordinal();

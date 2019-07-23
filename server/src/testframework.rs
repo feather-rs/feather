@@ -3,7 +3,7 @@
 use crate::config::Config;
 use crate::entity::{EntityComponent, PlayerComponent};
 use crate::io::ServerToWorkerMessage;
-use crate::network::NetworkComponent;
+use crate::network::{NetworkComponent, PacketQueue};
 use feather_core::network::packet::{Packet, PacketType};
 use feather_core::world::Position;
 use feather_core::Gamemode;
@@ -93,6 +93,13 @@ pub fn received_packets(player: &Player, cap: Option<usize>) -> Vec<Box<Packet>>
     }
 
     result
+}
+
+/// Adds a received packet to the packet queue
+/// for a given player.
+pub fn receive_packet<P: Packet + 'static>(player: &Player, world: &World, packet: P) {
+    let queue = world.fetch_mut::<PacketQueue>();
+    queue.add_for_packet(player.entity, Box::new(packet));
 }
 
 /// Attempts to find an available port.

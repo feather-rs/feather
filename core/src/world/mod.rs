@@ -76,7 +76,7 @@ impl ChunkMap {
     /// Retrieves the block at the specified
     /// location. If the chunk in which the block
     /// exists is not laoded, `None` is returned.
-    pub fn block_at(&mut self, pos: BlockPosition) -> Option<Block> {
+    pub fn block_at(&self, pos: BlockPosition) -> Option<Block> {
         let chunk_pos = pos.chunk_pos();
 
         if let Some(chunk) = self.chunk_at(chunk_pos) {
@@ -115,9 +115,7 @@ impl ChunkMap {
 
 impl Default for ChunkMap {
     fn default() -> Self {
-        Self {
-            chunk_map: HashMap::new(),
-        }
+        Self::new()
     }
 }
 

@@ -81,6 +81,6 @@ impl NetworkIoManager {
 
 impl Default for NetworkIoManager {
     fn default() -> Self {
-        Self::start("127.0.0.1".parse().unwrap(), 8)
+        Self::start("127.0.0.1:25565".parse().unwrap(), 8)
     }
 }

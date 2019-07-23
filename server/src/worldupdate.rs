@@ -97,8 +97,116 @@ fn broadcast_block_update(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::entity::PlayerUpdateSystem;
     use crate::testframework as t;
-    use specs::WorldExt;
+    use feather_core::world::chunk::Chunk;
+    use feather_core::world::ChunkPosition;
+    use specs::{RunNow, WorldExt};
+
+    #[test]
+    fn test_system() {
+        let (mut w, _) = t::init_world();
+        let player = t::add_player(&mut w);
+
+        t::receive_packet(
+            &player,
+            &w,
+            PlayerDigging::new(
+                PlayerDiggingStatus::StartedDigging,
+                BlockPosition::new(0, 0, 0),
+                0,
+            ),
+        );
+
+        let mut system = PlayerUpdateSystem;
+        system.run_now(&w);
+    }
+
+    #[test]
+    fn test_handle_player_digging() {
+        let (mut w, _) = t::init_world();
+
+        let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
+        chunk.set_block_at(0, 0, 0, Block::Stone);
+        w.write_resource::<ChunkMap>()
+            .set_chunk_at(ChunkPosition::new(0, 0), chunk);
+
+        let pos = BlockPosition::new(0, 0, 0);
+
+        // Test with creative mode player
+        let player = t::add_player(&mut w);
+
+        let packet = PlayerDigging::new(PlayerDiggingStatus::StartedDigging, pos, 0);
+        handle_player_digging(
+            &mut w.fetch_mut(),
+            &packet,
+            player.entity,
+            &w.read_component(),
+            &w.read_component(),
+            &w.read_resource(),
+        );
+
+        // Call lazily updated disconnect
+        w.maintain();
+
+        // Make sure player wasn't disconnected
+        let packets = t::received_packets(&player, None);
+        packets
+            .iter()
+            .for_each(|packet| assert_ne!(packet.ty(), PacketType::DisconnectPlay));
+
+        // Make sure player was notified of block update
+        let _block_change = packets
+            .iter()
+            .find(|packet| packet.ty() == PacketType::BlockChange)
+            .unwrap();
+        let block_change = cast_packet::<BlockChange>(&_block_change);
+        assert_eq!(block_change.location, pos);
+        assert_eq!(block_change.block_id, Block::Air.block_state_id() as i32);
+
+        // Make sure block was actually updated
+        assert_eq!(
+            w.read_resource::<ChunkMap>().block_at(pos).unwrap(),
+            Block::Air
+        );
+    }
+
+    #[test]
+    fn test_handle_block_break() {
+        let (mut w, _) = t::init_world();
+
+        // Confirm that breaking block in unloaded chunk fails
+        let _player = t::add_player(&mut w);
+        assert!(handle_block_break(
+            &mut w.fetch_mut(),
+            BlockPosition::new(1024, 9, 1024),
+            &w.read_component(),
+            &w.read_component(),
+        )
+        .is_err());
+
+        // Break block in known chunk
+        let _player = t::add_player(&mut w);
+
+        let pos = ChunkPosition::new(0, 0);
+        let mut chunk = Chunk::new(pos);
+        chunk.set_block_at(0, 0, 0, Block::Stone);
+        w.write_resource::<ChunkMap>().set_chunk_at(pos, chunk);
+
+        assert!(handle_block_break(
+            &mut w.write_resource(),
+            BlockPosition::new(0, 0, 0),
+            &w.read_component(),
+            &w.read_component(),
+        )
+        .is_ok());
+        assert_eq!(
+            w.read_resource::<ChunkMap>()
+                .block_at(BlockPosition::new(0, 0, 0))
+                .unwrap(),
+            Block::Air
+        );
+    }
 
     #[test]
     fn test_broadcast_block_update() {
