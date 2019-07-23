@@ -18,6 +18,8 @@ pub mod initialhandler;
 pub mod io;
 pub mod network;
 pub mod prelude;
+#[cfg(test)]
+pub mod testframework;
 pub mod worldupdate;
 
 use crate::entity::EntityComponent;

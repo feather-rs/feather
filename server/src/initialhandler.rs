@@ -77,10 +77,6 @@ impl<'a> System<'a> for InitialHandlerSystem {
         Read<'a, PacketQueue>,
         Read<'a, Config>,
         Write<'a, PlayerCount>,
-        // LazyUpdate is used to add player + entity
-        // components when a player joins. This prevents
-        // other systems from being blocked by the initial
-        // handler because of a dependency on WriteStorage<PlayerComponent>.
         Read<'a, LazyUpdate>,
         Read<'a, ChunkMap>,
         Read<'a, ChunkWorkerHandle>,
