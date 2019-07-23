@@ -72,8 +72,8 @@ impl<'a> System<'a> for InitialHandlerSystem {
         Entities<'a>,
         WriteStorage<'a, InitialHandlerComponent>,
         ReadStorage<'a, NetworkComponent>,
-        ReadStorage<'a, PlayerComponent>,
-        ReadStorage<'a, EntityComponent>,
+        WriteStorage<'a, PlayerComponent>,
+        WriteStorage<'a, EntityComponent>,
         Read<'a, PacketQueue>,
         Read<'a, Config>,
         Write<'a, PlayerCount>,
@@ -91,8 +91,8 @@ impl<'a> System<'a> for InitialHandlerSystem {
             entities,
             mut ih_comps,
             net_comps,
-            pcomps,
-            ecomps,
+            mut pcomps,
+            mut ecomps,
             packet_queue,
             config,
             mut player_count,
@@ -119,8 +119,8 @@ impl<'a> System<'a> for InitialHandlerSystem {
                 &entities,
                 &mut ih_comps,
                 &net_comps,
-                &pcomps,
-                &ecomps,
+                &mut pcomps,
+                &mut ecomps,
                 &config,
                 &mut player_count,
                 &lazy,
@@ -187,8 +187,8 @@ fn handle_packet(
     entities: &Entities,
     ihcomps: &mut WriteStorage<InitialHandlerComponent>,
     netcomps: &ReadStorage<NetworkComponent>,
-    pcomps: &ReadStorage<PlayerComponent>,
-    ecomps: &ReadStorage<EntityComponent>,
+    pcomps: &mut WriteStorage<PlayerComponent>,
+    ecomps: &mut WriteStorage<EntityComponent>,
     config: &Config,
     player_count: &mut Write<PlayerCount>,
     lazy: &LazyUpdate,
@@ -320,8 +320,8 @@ fn handle_login_start<'a>(
     config: &Config,
     player: Entity,
     ihcomps: &mut WriteStorage<InitialHandlerComponent>,
-    ecomps: &ReadStorage<EntityComponent>,
-    pcomps: &ReadStorage<PlayerComponent>,
+    ecomps: &mut WriteStorage<EntityComponent>,
+    pcomps: &mut WriteStorage<PlayerComponent>,
     netcomps: &ReadStorage<NetworkComponent>,
     chunk_handle: &ChunkWorkerHandle,
     chunk_map: &ChunkMap,
@@ -364,7 +364,7 @@ fn handle_login_start<'a>(
             profile_properties: vec![],
             gamemode: Gamemode::Creative,
         };
-        lazy.insert(player, player_comp);
+        pcomps.insert(player, player_comp).unwrap();
 
         let entity_comp = EntityComponent {
             position: Position::new(0.0, 0.0, 0.0, 0.0, 0.0),
@@ -372,7 +372,7 @@ fn handle_login_start<'a>(
             display_name: comp.username.as_ref().unwrap().clone(),
             on_ground: true,
         };
-        lazy.insert(player, entity_comp);
+        ecomps.insert(player, entity_comp).unwrap();
 
         finish(
             player,
@@ -395,8 +395,8 @@ fn handle_encryption_response(
     player: Entity,
     config: &Config,
     ihcomps: &mut WriteStorage<InitialHandlerComponent>,
-    ecomps: &ReadStorage<EntityComponent>,
-    pcomps: &ReadStorage<PlayerComponent>,
+    ecomps: &mut WriteStorage<EntityComponent>,
+    pcomps: &mut WriteStorage<PlayerComponent>,
     netcomps: &ReadStorage<NetworkComponent>,
     chunk_handle: &ChunkWorkerHandle,
     entities: &Entities,
@@ -476,7 +476,7 @@ fn handle_encryption_response(
             profile_properties: res.properties,
             gamemode: Gamemode::Creative,
         };
-        lazy.insert(player, player_comp);
+        pcomps.insert(player, player_comp).unwrap();
 
         let entity_comp = EntityComponent {
             position: Position::new(0.0, 64.0, 0.0, 0.0, 0.0),
@@ -484,7 +484,7 @@ fn handle_encryption_response(
             display_name: comp.username.as_ref().unwrap().clone(),
             on_ground: true,
         };
-        lazy.insert(player, entity_comp);
+        ecomps.insert(player, entity_comp).unwrap();
         debug!("Authentication successful");
     } else {
         return Err(Error::AuthenticationFailed);
@@ -511,8 +511,8 @@ fn handle_encryption_response(
 fn finish(
     player: Entity,
     ihcomps: &mut WriteStorage<InitialHandlerComponent>,
-    ecomps: &ReadStorage<EntityComponent>,
-    pcomps: &ReadStorage<PlayerComponent>,
+    ecomps: &WriteStorage<EntityComponent>,
+    pcomps: &WriteStorage<PlayerComponent>,
     netcomps: &ReadStorage<NetworkComponent>,
     chunk_handle: &ChunkWorkerHandle,
     entities: &Entities,
@@ -555,8 +555,8 @@ fn finish(
 fn join_game(
     player: Entity,
     ihcomps: &mut WriteStorage<InitialHandlerComponent>,
-    ecomps: &ReadStorage<EntityComponent>,
-    pcomps: &ReadStorage<PlayerComponent>,
+    ecomps: &WriteStorage<EntityComponent>,
+    pcomps: &WriteStorage<PlayerComponent>,
     netcomps: &ReadStorage<NetworkComponent>,
     chunk_handle: &ChunkWorkerHandle,
     entities: &Entities,
@@ -618,8 +618,8 @@ fn join_game(
 pub fn complete_join_game(
     player: Entity,
     ihcomps: &mut WriteStorage<InitialHandlerComponent>,
-    ecomps: &ReadStorage<EntityComponent>,
-    pcomps: &ReadStorage<PlayerComponent>,
+    ecomps: &WriteStorage<EntityComponent>,
+    pcomps: &WriteStorage<PlayerComponent>,
     netcomps: &ReadStorage<NetworkComponent>,
     entities: &Entities,
 ) {

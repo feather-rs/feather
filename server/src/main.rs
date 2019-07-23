@@ -45,10 +45,7 @@ fn main() {
 
     info!("Starting Feather; please wait...");
 
-    let io_manager = io::NetworkIoManager::start(
-        format!("127.0.0.1:{}", config.server.port).parse().unwrap(),
-        config.io.io_worker_threads,
-    );
+    let io_manager = init_io_manager(&config);
 
     let (mut world, mut dispatcher) = init_world(config, io_manager);
 
