@@ -6,17 +6,16 @@ use crate::disconnect_player;
 use crate::network::{send_packet_boxed_to_player, NetworkComponent, PacketQueue};
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
-    EntityLook, EntityLookAndRelativeMove, EntityRelativeMove,
-};
-use feather_core::network::packet::implementation::{
-    EntityLook, PlayerLook, PlayerPosition, PlayerPositionAndLookServerbound,
+    EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, PlayerLook, PlayerPosition,
+    PlayerPositionAndLookServerbound,
 };
 use feather_core::network::packet::{Packet, PacketType};
 use feather_core::world::Position;
 use feather_core::Gamemode;
 use specs::storage::BTreeStorage;
 use specs::{
-    Component, Entities, Entity, LazyUpdate, Read, ReadStorage, System, VecStorage, WriteStorage,
+    Component, Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System, VecStorage,
+    WriteStorage,
 };
 use uuid::Uuid;
 
@@ -166,7 +165,7 @@ fn broadcast_entity_movement(
                 degrees_to_stops(new_pos.yaw),
                 degrees_to_stops(new_pos.pitch),
                 true,
-            ));
+            ))
         }
     };
 

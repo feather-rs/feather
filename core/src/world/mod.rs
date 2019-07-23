@@ -65,7 +65,7 @@ impl ChunkMap {
 
     /// Retrieves the chunk at the specified location.
     /// If the chunk is not loaded, `None` will be returned.
-    pub fn chunk_at(&mut self, pos: ChunkPosition) -> Option<&Chunk> {
+    pub fn chunk_at(&self, pos: ChunkPosition) -> Option<&Chunk> {
         if let Some(chunk) = self.chunk_map.get(&pos) {
             return Some(chunk);
         }

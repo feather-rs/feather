@@ -1,7 +1,7 @@
 use crate::entity::{EntityComponent, PlayerComponent};
 use crate::network::{
-    broadcast_player_join, enable_compression_for_player, enable_encryption_for_player,
-    get_player_initialization_packets, send_packet_to_player, NetworkComponent, PacketQueue,
+    enable_compression_for_player, enable_encryption_for_player, get_player_initialization_packets,
+    send_packet_to_player, NetworkComponent, PacketQueue,
 };
 use crate::prelude::*;
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
@@ -70,8 +70,10 @@ pub struct InitialHandlerSystem;
 impl<'a> System<'a> for InitialHandlerSystem {
     type SystemData = (
         Entities<'a>,
-        WriteStorage<'a, IntitialHandlerComponent>,
+        WriteStorage<'a, InitialHandlerComponent>,
         ReadStorage<'a, NetworkComponent>,
+        ReadStorage<'a, PlayerComponent>,
+        ReadStorage<'a, EntityComponent>,
         Read<'a, PacketQueue>,
         Read<'a, Config>,
         Write<'a, PlayerCount>,
@@ -80,11 +82,24 @@ impl<'a> System<'a> for InitialHandlerSystem {
         // other systems from being blocked by the initial
         // handler because of a dependency on WriteStorage<PlayerComponent>.
         Read<'a, LazyUpdate>,
+        Read<'a, ChunkMap>,
+        Read<'a, ChunkWorkerHandle>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, mut ih_comps, net_comps, packet_queue, config, mut player_count, lazy) =
-            data;
+        let (
+            entities,
+            mut ih_comps,
+            net_comps,
+            pcomps,
+            ecomps,
+            packet_queue,
+            config,
+            mut player_count,
+            lazy,
+            chunk_map,
+            chunk_handle,
+        ) = data;
 
         let mut packets = vec![];
         packets.append(&mut packet_queue.for_packet(PacketType::Handshake));
@@ -104,9 +119,13 @@ impl<'a> System<'a> for InitialHandlerSystem {
                 &entities,
                 &mut ih_comps,
                 &net_comps,
+                &pcomps,
+                &ecomps,
                 &config,
                 &mut player_count,
                 &lazy,
+                &chunk_map,
+                &chunk_handle,
             ) {
                 disconnect_player(
                     player,
@@ -172,9 +191,13 @@ fn handle_packet(
     entities: &Entities,
     ihcomps: &mut WriteStorage<InitialHandlerComponent>,
     netcomps: &ReadStorage<NetworkComponent>,
+    pcomps: &ReadStorage<PlayerComponent>,
+    ecomps: &ReadStorage<EntityComponent>,
     config: &Config,
     player_count: &mut Write<PlayerCount>,
     lazy: &LazyUpdate,
+    chunk_map: &ChunkMap,
+    chunk_handle: &ChunkWorkerHandle,
 ) -> Result<(), Error> {
     let ihcomp = ihcomps.get_mut(player).unwrap();
     let netcomp = netcomps.get(player).unwrap();
@@ -201,9 +224,10 @@ fn handle_packet(
             netcomps,
             chunk_handle,
             chunk_map,
+            entities,
             lazy,
             cast_packet::<LoginStart>(&packet),
-        ),
+        )?,
         PacketType::EncryptionResponse => handle_encryption_response(
             player,
             config,
@@ -212,10 +236,11 @@ fn handle_packet(
             pcomps,
             netcomps,
             chunk_handle,
+            entities,
             lazy,
             chunk_map,
             cast_packet::<EncryptionResponse>(&packet),
-        ),
+        )?,
         _ => panic!("Invalid packet"),
     }
 
@@ -260,7 +285,7 @@ fn handle_request(
         },
         "players": {
             "max": config.server.max_players,
-            "online": joined_players.len(),
+            "online": player_count.0,
         },
         "description": config.server.motd,
     });
@@ -288,7 +313,7 @@ fn handle_ping(
     let pong = Pong::new(packet.payload);
     send_packet_to_player(net, pong);
 
-    lazy.remove(player);
+    lazy.exec_mut(|world| world.delete_entity(player).unwrap());
     debug!("Status handling success");
 
     Ok(())
@@ -304,6 +329,7 @@ fn handle_login_start<'a>(
     netcomps: &ReadStorage<NetworkComponent>,
     chunk_handle: &ChunkWorkerHandle,
     chunk_map: &ChunkMap,
+    entities: &Entities,
     lazy: &LazyUpdate,
     packet: &LoginStart,
 ) -> Result<(), Error> {
@@ -321,7 +347,7 @@ fn handle_login_start<'a>(
         let key_bytes = rsa_key.public_key_to_der().unwrap();
 
         let mut verify_token = vec![];
-        verify_token.extend_from_slice(&ih.verify_token);
+        verify_token.extend_from_slice(&comp.verify_token);
 
         let encryption_request = EncryptionRequest::new(
             "".to_string(), // Server ID - always empty nowadays
@@ -347,7 +373,7 @@ fn handle_login_start<'a>(
         let entity_comp = EntityComponent {
             position: Position::new(0.0, 0.0, 0.0, 0.0, 0.0),
             uuid: Uuid::new_v4(),
-            display_name: ih.username.as_ref().unwrap().clone(),
+            display_name: comp.username.as_ref().unwrap().clone(),
             on_ground: true,
         };
         lazy.insert(player, entity_comp);
@@ -359,6 +385,7 @@ fn handle_login_start<'a>(
             pcomps,
             netcomps,
             chunk_handle,
+            entities,
             lazy,
             chunk_map,
             config,
@@ -376,6 +403,7 @@ fn handle_encryption_response(
     pcomps: &ReadStorage<PlayerComponent>,
     netcomps: &ReadStorage<NetworkComponent>,
     chunk_handle: &ChunkWorkerHandle,
+    entities: &Entities,
     lazy: &LazyUpdate,
     chunk_map: &ChunkMap,
     packet: &EncryptionResponse,
@@ -384,6 +412,8 @@ fn handle_encryption_response(
     if comp.stage != Stage::AwaitEncryptionResponse {
         return Err(Error::InvalidPacket(PacketType::Ping));
     }
+
+    let net = netcomps.get(player).unwrap();
 
     let rsa = comp.rsa_key.as_ref().unwrap();
 
@@ -433,7 +463,7 @@ fn handle_encryption_response(
         }
     };
 
-    if !compare_verify_tokens(ih.verify_token.clone(), verify_token) {
+    if !compare_verify_tokens(comp.verify_token.clone(), verify_token) {
         return Err(Error::MalformedData(
             "Verify tokens do not match".to_string(),
         ));
@@ -455,7 +485,7 @@ fn handle_encryption_response(
         let entity_comp = EntityComponent {
             position: Position::new(0.0, 64.0, 0.0, 0.0, 0.0),
             uuid: Uuid::from_str(&res.id).unwrap(),
-            display_name: ih.username.as_ref().unwrap().clone(),
+            display_name: comp.username.as_ref().unwrap().clone(),
             on_ground: true,
         };
         lazy.insert(player, entity_comp);
@@ -464,7 +494,7 @@ fn handle_encryption_response(
         return Err(Error::AuthenticationFailed);
     }
 
-    enable_encryption_for_player(state, player, secret);
+    enable_encryption_for_player(net, secret);
 
     finish(
         player,
@@ -473,6 +503,7 @@ fn handle_encryption_response(
         pcomps,
         netcomps,
         chunk_handle,
+        entities,
         lazy,
         chunk_map,
         config,
@@ -488,25 +519,26 @@ fn finish(
     pcomps: &ReadStorage<PlayerComponent>,
     netcomps: &ReadStorage<NetworkComponent>,
     chunk_handle: &ChunkWorkerHandle,
+    entities: &Entities,
     lazy: &LazyUpdate,
     chunk_map: &ChunkMap,
     config: &Config,
 ) {
-    let net = ncomps.get(player).unwrap();
+    let net = netcomps.get(player).unwrap();
     // Enable compression if needed
     let threshold = config.io.compression_threshold;
     if threshold > 0 {
         let set_compression = SetCompression::new(threshold);
         send_packet_to_player(net, set_compression);
 
-        enable_compression_for_player(state, player, threshold as usize);
+        enable_compression_for_player(net, threshold as usize);
     }
 
-    let entity_comp = state.entity_components.get(player).unwrap();
+    let ecomp = ecomps.get(player).unwrap();
 
     let login_success = LoginSuccess::new(
-        entity_comp.uuid.to_hyphenated_ref().to_string(),
-        entity_comp.display_name.to_string(),
+        ecomp.uuid.to_hyphenated_ref().to_string(),
+        ecomp.display_name.to_string(),
     );
     send_packet_to_player(net, login_success);
 
@@ -517,8 +549,10 @@ fn finish(
         pcomps,
         netcomps,
         chunk_handle,
+        entities,
         lazy,
         chunk_map,
+        config,
     );
 }
 
@@ -529,12 +563,13 @@ fn join_game(
     pcomps: &ReadStorage<PlayerComponent>,
     netcomps: &ReadStorage<NetworkComponent>,
     chunk_handle: &ChunkWorkerHandle,
+    entities: &Entities,
     lazy: &LazyUpdate,
     chunk_map: &ChunkMap,
+    config: &Config,
 ) {
     let join_game = JoinGame::new(
-        player.index() as i32,
-        is: open,
+        player.id() as i32,
         Gamemode::Creative.get_id(),
         Dimension::Overwold.get_id(),
         Difficulty::Medium.get_id(),
@@ -549,22 +584,23 @@ fn join_game(
 
     // Send chunk data. If a chunk in the view distance
     // hasn't been loaded, a load request will be queued.
-    let view_distance = state.config.server.view_distance as i32;
+    let view_distance = config.server.view_distance as i32;
     for x in -view_distance..view_distance + 1 {
         for y in -view_distance..view_distance + 1 {
             let pos = ChunkPosition::new(x, y);
 
-            if let Some(chunk) = state.chunk_map.chunk_at(pos) {
+            if let Some(chunk) = chunk_map.chunk_at(pos) {
                 let chunk_data = ChunkData::new(chunk.clone());
                 send_packet_to_player(net, chunk_data);
             } else {
                 // Queue chunk for loading.
-                load_chunk(handle, pos);
+                load_chunk(chunk_handle, pos);
                 // Make sure that the chunk is sent once loaded
                 lazy.exec_mut(|world| {
                     world
                         .write_component::<NetworkComponent>()
                         .get_mut(player)
+                        .unwrap()
                         .chunks_to_send
                         .push(pos);
                 });
@@ -573,7 +609,7 @@ fn join_game(
     }
 
     if net.chunks_to_send.is_empty() {
-        complete_join_game(player, ihcomps, ecomps, pcomps, netcomps);
+        complete_join_game(player, ihcomps, ecomps, pcomps, netcomps, entities);
     } else {
         // If not all chunks have been sent, we need to wait
         // until they're loaded and sent before spawning the player.
@@ -589,9 +625,11 @@ pub fn complete_join_game(
     ecomps: &ReadStorage<EntityComponent>,
     pcomps: &ReadStorage<PlayerComponent>,
     netcomps: &ReadStorage<NetworkComponent>,
+    entities: &Entities,
 ) {
     // Send spawn position + player position
     // TODO proper persistence
+    let net = netcomps.get(player).unwrap();
 
     let spawn_position = SpawnPosition::new(BlockPosition::new(0, 64, 0));
     send_packet_to_player(net, spawn_position);
@@ -600,16 +638,16 @@ pub fn complete_join_game(
     send_packet_to_player(net, pos_and_look);
 
     // Send other players on the server
-    for (ecomp, pcomp, net) in (ecomps, pcomps, netcomps).join() {
+    for (ecomp, pcomp, net, other_player) in (ecomps, pcomps, netcomps, entities).join() {
         let (player_info, spawn_player) =
-            get_player_initialization_packets(ecomp, pcomp, *other_player);
+            get_player_initialization_packets(ecomp, pcomp, other_player);
         send_packet_to_player(net, player_info);
         send_packet_to_player(net, spawn_player);
     }
 
     ihcomps.remove(player);
 
-    broadcast_player_join(player, netcomps, pcomps, ecomps);
+    //broadcast_player_join(player, netcomps, pcomps, ecomps);
 
     info!("A player joined the game");
 }

@@ -94,7 +94,7 @@ fn broadcast_block_update(
     pcomps: &ReadStorage<PlayerComponent>,
 ) {
     for (net, _) in (netcomps, pcomps).join() {
-        let block_update = BlockChange::new(pos, new_block.block_state_id());
+        let block_update = BlockChange::new(pos, new_block.block_state_id() as i32);
         send_packet_to_player(net, block_update);
     }
 }

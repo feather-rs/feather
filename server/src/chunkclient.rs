@@ -10,6 +10,13 @@ pub struct ChunkWorkerHandle {
     receiver: Receiver<chunkworker::Reply>,
 }
 
+impl Default for ChunkWorkerHandle {
+    fn default() -> Self {
+        let (sender, receiver) = chunkworker::start("world");
+        Self { sender, receiver }
+    }
+}
+
 /// System for receiving loaded chunks from the chunk worker thread.
 pub struct ChunkSystem;
 

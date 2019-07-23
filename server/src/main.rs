@@ -23,7 +23,7 @@ pub mod worldupdate;
 use crate::entity::EntityComponent;
 use crate::initialhandler::InitialHandlerComponent;
 use crate::network::{send_packet_to_player, NetworkComponent};
-use feather_core::network::packet::PacketType::DisconnectPlay;
+use feather_core::network::packet::implementation::DisconnectPlay;
 use multimap::MultiMap;
 use prelude::*;
 use specs::{
@@ -73,7 +73,8 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
         world.maintain();
 
         // Increment tick count
-        *world.write_resource::<TickCount>().0 += 1;
+        let old_tick_count = world.read_resource::<TickCount>();
+        world.insert(TickCount(old_tick_count.0 + 1));
 
         // Sleep correct amount
         let end_time = current_time_in_millis();
@@ -95,8 +96,10 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
 
 /// Starts the IO threads.
 fn init_io_manager(config: &Config) -> io::NetworkIoManager {
-    let ioman =
-        io::NetworkIoManager::start(config.server.addresss.into(), config.io.io_worker_threads);
+    let ioman = io::NetworkIoManager::start(
+        format!("127.0.0.1:{}", config.server.port).parse().unwrap(),
+        config.io.io_worker_threads,
+    );
     ioman
 }
 
@@ -165,12 +168,12 @@ pub fn current_time_in_millis() -> u64 {
 
 /// Disconnects the given player, removing them from the world.
 /// This operation is performed lazily.
-pub fn disconnect_player(player: Entity, reason: &str, lazy: &LazyUpdate) {
+pub fn disconnect_player(player: Entity, reason: &'static str, lazy: &LazyUpdate) {
     lazy.exec_mut(|world| {
         let packet = DisconnectPlay::new(reason.to_string());
-        send_packet_to_player(world.read_component().get(player), packet);
+        send_packet_to_player(world.read_component().get(player).unwrap(), packet);
 
-        network::broadcast_player_leave(world.read_component(), player);
+        //network::broadcast_player_leave(world.read_component(), player);
 
         if let Some(ecomp) = world.read_component::<EntityComponent>().get(player) {
             info!("Disconnected player {}: {}", ecomp.display_name, reason);

@@ -64,7 +64,7 @@ impl PacketQueue {
             self.expand(&mut queue, ordinal);
         }
 
-        self.queue[ordinal].push((player, packet));
+        queue[ordinal].push((player, packet));
     }
 }
 
@@ -78,7 +78,7 @@ impl Default for PacketQueue {
 
 pub struct NetworkComponent {
     sender: Sender<ServerToWorkerMessage>,
-    receiver: crossbeam::channel::Receiver<ServerToWorkerMessage>,
+    receiver: Receiver<ServerToWorkerMessage>,
     /// A vector of all chunks that are currently
     /// being loaded and should be sent to the player
     /// once they have been loaded.
@@ -89,7 +89,7 @@ pub struct NetworkComponent {
 impl NetworkComponent {
     pub fn new(
         sender: Sender<ServerToWorkerMessage>,
-        receiver: crossbeam::channel::Receiver<ServerToWorkerMessage>,
+        receiver: Receiver<ServerToWorkerMessage>,
     ) -> Self {
         Self {
             sender,
@@ -156,10 +156,7 @@ impl<'a> System<'a> for NetworkSystem {
                         // TODO broadcast disconnect
                         entities.delete(player);
                     }
-                    msg => panic!(
-                        "Network system received invalid message from IO worker: {:?}",
-                        msg
-                    ),
+                    msg => panic!("Network system received invalid message from IO worker}"),
                 }
             }
         }
@@ -239,7 +236,7 @@ pub fn get_player_initialization_packets(
     ]);
 
     let spawn_player = SpawnPlayer::new(
-        player.index() as i32,
+        player.id() as i32,
         ecomp.uuid.clone(),
         ecomp.position.x,
         ecomp.position.y,

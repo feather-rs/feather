@@ -8,7 +8,7 @@ edition = "2018"
 feather_core = { path = "../core" }
 feather_blocks = { path = "../blocks/lib" }
 mio = "0.6.19"
-mio-extras = "2.0.5"
+mio-extras = { git = "https://github.com/caelunshun/mio-extras", rev = "e5dca5d" }
 crossbeam = "0.7.1"
 log = "0.4.6"
 simple_logger = "1.3.0"
