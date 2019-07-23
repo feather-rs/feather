@@ -3,7 +3,9 @@
 //! provide entity-specific components and systems.
 
 use crate::disconnect_player;
-use crate::network::{send_packet_boxed_to_player, NetworkComponent, PacketQueue};
+use crate::network::{
+    send_packet_boxed_to_player, send_packet_to_player, NetworkComponent, PacketQueue,
+};
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
     EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, PlayerLook, PlayerPosition,
@@ -136,42 +138,43 @@ fn broadcast_entity_movement(
 ) {
     assert!(has_moved || has_looked);
 
-    let packet: Box<dyn Packet> = {
-        if has_moved {
-            let (rx, ry, rz) = calculate_relative_move(old_pos, new_pos);
+    if has_moved {
+        let (rx, ry, rz) = calculate_relative_move(old_pos, new_pos);
 
-            if has_looked {
-                Box::new(EntityLookAndRelativeMove::new(
-                    entity.id() as i32,
-                    rx,
-                    ry,
-                    rz,
-                    degrees_to_stops(new_pos.yaw),
-                    degrees_to_stops(new_pos.pitch),
-                    true,
-                ))
-            } else {
-                Box::new(EntityRelativeMove::new(
-                    entity.id() as i32,
-                    rx,
-                    ry,
-                    rz,
-                    true,
-                ))
-            }
-        } else {
-            Box::new(EntityLook::new(
+        if has_looked {
+            let packet = EntityLookAndRelativeMove::new(
                 entity.id() as i32,
+                rx,
+                ry,
+                rz,
                 degrees_to_stops(new_pos.yaw),
                 degrees_to_stops(new_pos.pitch),
                 true,
-            ))
+            );
+            for (net, _, e) in (netcomps, pcomps, entities).join() {
+                if entity != e {
+                    send_packet_to_player(net, packet.clone());
+                }
+            }
+        } else {
+            let packet = EntityRelativeMove::new(entity.id() as i32, rx, ry, rz, true);
+            for (net, _, e) in (netcomps, pcomps, entities).join() {
+                if entity != e {
+                    send_packet_to_player(net, packet.clone());
+                }
+            }
         }
-    };
-
-    for (net, _, e) in (netcomps, pcomps, entities).join() {
-        if entity != e {
-            send_packet_boxed_to_player(net, packet);
+    } else {
+        let packet = EntityLook::new(
+            entity.id() as i32,
+            degrees_to_stops(new_pos.yaw),
+            degrees_to_stops(new_pos.pitch),
+            true,
+        );
+        for (net, _, e) in (netcomps, pcomps, entities).join() {
+            if entity != e {
+                send_packet_to_player(net, packet.clone());
+            }
         }
     }
 }

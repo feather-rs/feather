@@ -127,11 +127,7 @@ impl<'a> System<'a> for InitialHandlerSystem {
                 &chunk_map,
                 &chunk_handle,
             ) {
-                disconnect_player(
-                    player,
-                    &format!("InitialHandler: error occurred: {}", e),
-                    &lazy,
-                );
+                disconnect_player(player, "InitialHandler: error occurred", &lazy);
                 info!("InitialHandler: player was kicked: {}", e);
             }
         }
@@ -313,7 +309,7 @@ fn handle_ping(
     let pong = Pong::new(packet.payload);
     send_packet_to_player(net, pong);
 
-    lazy.exec_mut(|world| world.delete_entity(player).unwrap());
+    lazy.exec_mut(move |world| world.delete_entity(player).unwrap());
     debug!("Status handling success");
 
     Ok(())
@@ -596,7 +592,7 @@ fn join_game(
                 // Queue chunk for loading.
                 load_chunk(chunk_handle, pos);
                 // Make sure that the chunk is sent once loaded
-                lazy.exec_mut(|world| {
+                lazy.exec_mut(move |world| {
                     world
                         .write_component::<NetworkComponent>()
                         .get_mut(player)

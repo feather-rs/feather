@@ -90,10 +90,11 @@ mod tests {
         world.insert(chunk_map);
         world.insert(handle);
 
-        system.run_now(&world.res);
+        system.run_now(&world);
 
         // Confirm that chunk was loaded
-        let chunk = world.read_resource::<ChunkMap>().chunk_at(pos);
+        let chunk_map = world.read_resource::<ChunkMap>();
+        let chunk = chunk_map.chunk_at(pos);
 
         assert!(chunk.is_some());
         assert!(chunk.unwrap().position() == pos);

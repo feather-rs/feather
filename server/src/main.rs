@@ -37,9 +37,9 @@ pub const PROTOCOL_VERSION: u32 = 404;
 pub const SERVER_VERSION: &'static str = "Feather 1.13.2";
 pub const TICK_TIME: u64 = 1000 / TPS;
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct PlayerCount(u32);
-#[derive(Default)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct TickCount(u64);
 
 fn main() {
@@ -73,8 +73,8 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
         world.maintain();
 
         // Increment tick count
-        let old_tick_count = world.read_resource::<TickCount>();
-        world.insert(TickCount(old_tick_count.0 + 1));
+        let mut tick_count = world.write_resource::<TickCount>();
+        tick_count.0 += 1;
 
         // Sleep correct amount
         let end_time = current_time_in_millis();
@@ -169,7 +169,7 @@ pub fn current_time_in_millis() -> u64 {
 /// Disconnects the given player, removing them from the world.
 /// This operation is performed lazily.
 pub fn disconnect_player(player: Entity, reason: &'static str, lazy: &LazyUpdate) {
-    lazy.exec_mut(|world| {
+    lazy.exec_mut(move |world| {
         let packet = DisconnectPlay::new(reason.to_string());
         send_packet_to_player(world.read_component().get(player).unwrap(), packet);
 
