@@ -123,6 +123,7 @@ fn init_world<'a, 'b>(config: Config, ioman: io::NetworkIoManager) -> (World, Di
             "player_movement",
             &["network"],
         )
+        .with(player::ChunkSendSystem, "chunk_send", &["chunk_load"])
         .build();
 
     dispatcher.setup(&mut world);
