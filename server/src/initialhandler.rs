@@ -1,23 +1,26 @@
+use std::fmt::Formatter;
+use std::str::FromStr;
+
+use mojang_api::ServerAuthResponse;
+use openssl::pkey::Private;
+use openssl::rsa::{Padding, Rsa};
+use specs::{
+    Component, Entities, Entity, HashMapStorage, Join, LazyUpdate, Read, ReadStorage, System,
+    WorldExt, Write, WriteStorage,
+};
+
+use feather_core::network::packet::{implementation::*, Packet, PacketType};
+
+use crate::chunkclient::{load_chunk, ChunkWorkerHandle};
 use crate::entity::{EntityComponent, PlayerComponent};
 use crate::network::{
     enable_compression_for_player, enable_encryption_for_player, get_player_initialization_packets,
     send_packet_to_player, NetworkComponent, PacketQueue,
 };
 use crate::prelude::*;
-use feather_core::network::packet::{implementation::*, Packet, PacketType};
-use openssl::pkey::Private;
-use openssl::rsa::{Padding, Rsa};
-use std::fmt::Formatter;
-use std::str::FromStr;
+use crate::{disconnect_player, PlayerCount};
 
 use super::{PROTOCOL_VERSION, SERVER_VERSION};
-use crate::chunkclient::{load_chunk, ChunkWorkerHandle};
-use crate::{disconnect_player, PlayerCount};
-use mojang_api::ServerAuthResponse;
-use specs::{
-    Component, Entities, Entity, HashMapStorage, Join, LazyUpdate, Read, ReadStorage, System,
-    WorldExt, Write, WriteStorage,
-};
 
 const RSA_BITS: u32 = 1024; // Yes, very secure
 
@@ -574,29 +577,11 @@ fn join_game(
 
     send_packet_to_player(net, join_game);
 
-    // Send chunk data. If a chunk in the view distance
-    // hasn't been loaded, a load request will be queued.
+    // Load chunks and queue them for sending.
     let view_distance = config.server.view_distance as i32;
     for x in -view_distance..view_distance + 1 {
         for y in -view_distance..view_distance + 1 {
             let pos = ChunkPosition::new(x, y);
-
-            if let Some(chunk) = chunk_map.chunk_at(pos) {
-                let chunk_data = ChunkData::new(chunk.clone());
-                send_packet_to_player(net, chunk_data);
-            } else {
-                // Queue chunk for loading.
-                load_chunk(chunk_handle, pos);
-                // Make sure that the chunk is sent once loaded
-                lazy.exec_mut(move |world| {
-                    world
-                        .write_component::<NetworkComponent>()
-                        .get_mut(player)
-                        .unwrap()
-                        .chunks_to_send
-                        .push(pos);
-                });
-            }
         }
     }
 

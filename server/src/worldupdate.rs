@@ -14,10 +14,10 @@ use feather_core::Gamemode;
 use specs::{Entity, Join, LazyUpdate, Read, ReadStorage, System, Write};
 
 /// System responsible for polling for PlayerDigging
-/// packets and the like and handling them accordingly.
-pub struct WorldUpdateSystem;
+/// packets and handling them accordingly.
+pub struct PlayerDiggingSystem;
 
-impl<'a> System<'a> for WorldUpdateSystem {
+impl<'a> System<'a> for PlayerDiggingSystem {
     type SystemData = (
         Write<'a, ChunkMap>,
         ReadStorage<'a, PlayerComponent>,
@@ -97,7 +97,6 @@ fn broadcast_block_update(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::PlayerUpdateSystem;
     use crate::testframework as t;
     use feather_core::world::chunk::Chunk;
     use feather_core::world::ChunkPosition;
@@ -118,7 +117,7 @@ mod tests {
             ),
         );
 
-        let mut system = PlayerUpdateSystem;
+        let mut system = PlayerDiggingSystem;
         system.run_now(&w);
     }
 

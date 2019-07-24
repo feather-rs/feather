@@ -17,6 +17,7 @@ pub mod entity;
 pub mod initialhandler;
 pub mod io;
 pub mod network;
+pub mod player;
 pub mod prelude;
 #[cfg(test)]
 pub mod testframework;
@@ -105,7 +106,7 @@ fn init_world<'a, 'b>(config: Config, ioman: io::NetworkIoManager) -> (World, Di
     world.insert(TickCount::default());
 
     let mut dispatcher = DispatcherBuilder::new()
-        .with(chunkclient::ChunkSystem, "chunk_load", &[])
+        .with(chunkclient::ChunkLoadSystem, "chunk_load", &[])
         .with(network::NetworkSystem, "network", &[])
         .with(
             initialhandler::InitialHandlerSystem,
@@ -113,14 +114,14 @@ fn init_world<'a, 'b>(config: Config, ioman: io::NetworkIoManager) -> (World, Di
             &["network", "chunk_load"],
         )
         .with(
-            worldupdate::WorldUpdateSystem,
-            "world_update",
-            &["network", "chunk_load"],
+            worldupdate::PlayerDiggingSystem,
+            "player_digging",
+            &["network"],
         )
         .with(
-            entity::PlayerUpdateSystem,
-            "player_update",
-            &["network", "chunk_load"],
+            player::PlayerMovementSystem,
+            "player_movement",
+            &["network"],
         )
         .build();
 

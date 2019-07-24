@@ -18,9 +18,9 @@ impl Default for ChunkWorkerHandle {
 }
 
 /// System for receiving loaded chunks from the chunk worker thread.
-pub struct ChunkSystem;
+pub struct ChunkLoadSystem;
 
-impl<'a> System<'a> for ChunkSystem {
+impl<'a> System<'a> for ChunkLoadSystem {
     type SystemData = (Write<'a, ChunkMap>, Read<'a, ChunkWorkerHandle>);
 
     fn run(&mut self, data: Self::SystemData) {
@@ -85,7 +85,7 @@ mod tests {
         let pos = ChunkPosition::new(0, 0);
         send2.send((pos, Ok(Chunk::new(pos)))).unwrap();
 
-        let mut system = ChunkSystem;
+        let mut system = ChunkLoadSystem;
         let mut world = World::new();
         world.insert(chunk_map);
         world.insert(handle);
