@@ -14,7 +14,6 @@ pub mod chunkclient;
 pub mod chunkworker;
 pub mod config;
 pub mod entity;
-pub mod initialhandler;
 pub mod io;
 pub mod network;
 pub mod player;
@@ -36,7 +35,7 @@ pub const SERVER_VERSION: &'static str = "Feather 1.13.2";
 pub const TICK_TIME: u64 = 1000 / TPS;
 
 #[derive(Default, Debug, Clone, Copy)]
-pub struct PlayerCount(u32);
+pub struct PlayerCount(usize);
 #[derive(Default, Debug, Clone, Copy)]
 pub struct TickCount(u64);
 
@@ -108,11 +107,6 @@ fn init_world<'a, 'b>(config: Config, ioman: io::NetworkIoManager) -> (World, Di
     let mut dispatcher = DispatcherBuilder::new()
         .with(chunkclient::ChunkLoadSystem, "chunk_load", &[])
         .with(network::NetworkSystem, "network", &[])
-        .with(
-            initialhandler::InitialHandlerSystem,
-            "initial_handler",
-            &["network", "chunk_load"],
-        )
         .with(
             worldupdate::PlayerDiggingSystem,
             "player_digging",

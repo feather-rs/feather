@@ -2,7 +2,9 @@ use feather_core::network::packet::Packet;
 use mio_extras::channel::{channel, Receiver, Sender};
 use std::net::SocketAddr;
 use std::thread;
+use uuid::Uuid;
 
+mod initialhandler;
 mod listener;
 mod worker;
 
@@ -14,9 +16,6 @@ pub enum ServerToWorkerMessage {
     NotifyPacketReceived(Box<Packet>),
     NotifyDisconnect,
     Disconnect,
-
-    EnableCompression(usize),
-    EnableEncryption([u8; 16]),
 }
 
 pub enum ServerToListenerMessage {
@@ -32,6 +31,9 @@ pub enum ListenerToWorkerMessage {
 
 pub struct NewClientInfo {
     pub ip: SocketAddr,
+    pub username: String,
+    pub profile: Vec<mojang_api::ServerAuthProperty>,
+    pub uuid: Uuid,
 
     pub sender: Sender<ServerToWorkerMessage>,
     pub receiver: Receiver<ServerToWorkerMessage>,

@@ -137,8 +137,7 @@ impl<'a> System<'a> for ChunkSendSystem {
                         // Chunk has been loaded - send it
                         to_remove.push(*pos);
 
-                        let packet = ChunkData::new(chunk.clone());
-                        send_packet_to_player(net, packet);
+                        send_chunk_data(chunk, net);
                     }
                 }
 

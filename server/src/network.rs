@@ -1,5 +1,4 @@
 use crate::entity::{EntityComponent, PlayerComponent};
-use crate::initialhandler::InitialHandlerComponent;
 use crate::io::{NetworkIoManager, ServerToListenerMessage, ServerToWorkerMessage};
 use crate::prelude::*;
 use crate::TickCount;
@@ -171,18 +170,6 @@ impl<'a> System<'a> for NetworkSystem {
             }
         }
     }
-}
-
-pub fn enable_compression_for_player(net: &NetworkComponent, threshold: usize) {
-    let _ = net
-        .sender
-        .send(ServerToWorkerMessage::EnableCompression(threshold));
-}
-
-pub fn enable_encryption_for_player(net: &NetworkComponent, key: [u8; 16]) {
-    let _ = net
-        .sender
-        .send(ServerToWorkerMessage::EnableEncryption(key));
 }
 
 /// Returns the player info and spawn player packets

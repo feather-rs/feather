@@ -553,9 +553,7 @@ pub struct DisconnectLogin {
 #[derive(Default, AsAny, new, Clone)]
 pub struct EncryptionRequest {
     pub server_id: String,
-    pub public_key_len: VarInt,
     pub public_key: Vec<u8>,
-    pub verify_token_len: VarInt,
     pub verify_token: Vec<u8>,
 }
 
@@ -567,10 +565,10 @@ impl Packet for EncryptionRequest {
     fn write_to(&self, mut buf: &mut ByteBuf) {
         buf.write_string(self.server_id.as_str());
 
-        buf.write_var_int(self.public_key_len);
+        buf.write_var_int(self.public_key.len()) as i32;
         buf.write(&self.public_key);
 
-        buf.write_var_int(self.verify_token_len);
+        buf.write_var_int(self.verify_token.len() as i32);
         buf.write(&self.verify_token);
     }
 

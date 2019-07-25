@@ -1,3 +1,4 @@
+use super::initialhandler as ih;
 use super::*;
 use bytes::BufMut;
 use feather_core::bytebuf::{BufMutAlloc, ByteBuf};
@@ -186,18 +187,6 @@ fn read_from_server(worker: &mut Worker, token: Token) {
                 break;
             }
             ServerToWorkerMessage::SendPacket(packet) => send_packet(worker, client_id, packet),
-            ServerToWorkerMessage::EnableCompression(threshold) => worker
-                .clients
-                .get_mut(&client_id)
-                .unwrap()
-                .manager
-                .enable_compression(threshold),
-            ServerToWorkerMessage::EnableEncryption(key) => worker
-                .clients
-                .get_mut(&client_id)
-                .unwrap()
-                .manager
-                .enable_encryption(key),
             _ => panic!("Invalid message received from server thread"),
         }
     }
