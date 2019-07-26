@@ -253,7 +253,8 @@ impl<'a> System<'a> for ChunkSendSystem {
 }
 
 /// System for broadcasting when a player joins
-/// the game.
+/// the game. Also spawns other players to
+/// the player's client.
 pub struct JoinBroadcastSystem {
     reader: Option<ReaderId<PlayerJoinEvent>>,
 }
@@ -291,6 +292,20 @@ impl<'a> System<'a> for JoinBroadcastSystem {
                 send_packet_to_player(net, player_info.clone());
                 if player != event.player {
                     send_packet_to_player(net, spawn_player.clone());
+                }
+            }
+
+            let net_comp = net_comps.get(event.player).unwrap();
+
+            // Send existing players to new player
+            for (entity_comp, player_comp, entity) in
+                (&entity_comps, &player_comps, &entities).join()
+            {
+                if entity != event.player {
+                    let (player_info, spawn_player) =
+                        get_player_initialization_packets(entity_comp, player_comp, entity);
+                    send_packet_to_player(net_comp, player_info);
+                    send_packet_to_player(net_comp, spawn_player);
                 }
             }
         }
