@@ -200,10 +200,11 @@ mod tests {
 
     #[test]
     fn test_init_world() {
-        let config = Default::default();
-        let ioman = init_io_manager(&config);
+        let config = Arc::new(Config::default());
+        let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
+        let ioman = init_io_manager(Arc::clone(&config), Arc::clone(&player_count));
 
-        let (world, mut dispatcher) = init_world(config, ioman);
+        let (world, mut dispatcher) = init_world(config, player_count, ioman);
         dispatcher.dispatch(&world);
     }
 }

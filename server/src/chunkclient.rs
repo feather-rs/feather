@@ -101,10 +101,13 @@ mod tests {
         let pos = ChunkPosition::new(0, 0);
         send2.send((pos, Ok(Chunk::new(pos)))).unwrap();
 
+        let event_channel = EventChannel::<ChunkLoadEvent>::new();
+
         let mut system = ChunkLoadSystem;
         let mut world = World::new();
         world.insert(chunk_map);
         world.insert(handle);
+        world.insert(event_channel);
 
         system.run_now(&world);
 

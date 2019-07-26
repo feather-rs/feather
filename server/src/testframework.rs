@@ -4,6 +4,7 @@ use crate::config::Config;
 use crate::entity::{EntityComponent, PlayerComponent};
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
+use crate::PlayerCount;
 use feather_core::network::packet::{Packet, PacketType};
 use feather_core::world::Position;
 use feather_core::Gamemode;
@@ -11,19 +12,23 @@ use mio_extras::channel::{channel, Receiver, Sender};
 use rand::Rng;
 use specs::{Builder, Dispatcher, Entity, World, WorldExt};
 use std::net::TcpListener;
+use std::sync::atomic::AtomicUsize;
+use std::sync::Arc;
 use uuid::Uuid;
 
 /// Initializes a Specs world and dispatcher
 /// using default configuration options and an
 /// available server port.
 pub fn init_world<'a, 'b>() -> (World, Dispatcher<'a, 'b>) {
-    let mut config: Config = Default::default();
-
+    let mut config = Config::default();
     config.server.port = find_open_port().unwrap();
 
-    let ioman = super::init_io_manager(&config);
+    let config = Arc::new(config);
 
-    super::init_world(config, ioman)
+    let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
+    let ioman = super::init_io_manager(Arc::clone(&config), Arc::clone(&player_count));
+
+    super::init_world(config, player_count, ioman)
 }
 
 pub struct Player {

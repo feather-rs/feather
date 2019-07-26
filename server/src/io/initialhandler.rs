@@ -509,16 +509,16 @@ mod tests {
         Handshake, HandshakeState, LoginSuccess, Ping, Pong, Request, Response, SetCompression,
     };
     use feather_core::network::packet::PacketType;
-    use feather_core::network::packet::PacketType::{ConfirmTransactionClientbound, LoginStart};
+    use std::sync::atomic::AtomicUsize;
 
     #[test]
     fn test_initial_handler_new() {
         let mut ih = ih();
 
         assert!(ih.packets_to_send().is_empty());
-        assert(!ih.should_disconnect());
+        assert!(!ih.should_disconnect());
         assert!(ih.should_enable_encryption().is_none());
-        assert!(ih.should_enable_compression().is_some());
+        assert!(ih.should_enable_compression().is_none());
     }
 
     #[test]
@@ -526,7 +526,8 @@ mod tests {
         let mut ih = ih();
 
         // Fake some packets
-        ih.packets_to_send.push(Response::new(0));
+        ih.packets_to_send
+            .push(Box::new(Response::new("foo".to_string())));
 
         let queue = ih.packets_to_send();
         assert_eq!(queue.len(), 1);
@@ -537,9 +538,9 @@ mod tests {
     fn test_should_enable_encryption() {
         let mut ih = ih();
 
-        assert!(ih.should_enable_encryption().is_none);
+        assert!(ih.should_enable_encryption().is_none());
 
-        let key = rand::random();
+        let key: Key = rand::random();
         ih.key = Some(key.clone());
 
         assert_eq!(key, ih.should_enable_encryption().unwrap());
@@ -564,7 +565,7 @@ mod tests {
 
         let handshake = Handshake::new(
             PROTOCOL_VERSION,
-            "", // Unused - server address
+            "".to_string(), // Unused - server address
             25565,
             HandshakeState::Status,
         );
@@ -588,7 +589,7 @@ mod tests {
         assert_eq!(sent_packets.len(), 1);
 
         let _response = sent_packets.first().unwrap();
-        assert_eq!(_request.ty(), PacketType::Response);
+        assert_eq!(_response.ty(), PacketType::Response);
 
         let response = cast_packet::<Response>(&_response);
         let _: serde_json::Value = serde_json::from_str(&response.json_response).unwrap();
@@ -619,7 +620,7 @@ mod tests {
 
         let handshake = Handshake::new(
             PROTOCOL_VERSION,
-            "", // Unused - server address
+            "".to_string(), // Unused - server address
             25565,
             HandshakeState::Login,
         );
@@ -642,10 +643,10 @@ mod tests {
             Some(config.io.compression_threshold)
         );
 
-        let sent_packets = ih.packets_to_send();
+        let mut sent_packets = ih.packets_to_send();
         assert_eq!(sent_packets.len(), 2);
 
-        let _set_compression = sent_packets.first().unwrap();
+        let _set_compression = sent_packets.remove(0);
         assert_eq!(_set_compression.ty(), PacketType::SetCompression);
 
         let set_compression = cast_packet::<SetCompression>(&_set_compression);
@@ -660,14 +661,20 @@ mod tests {
     }
 
     fn ih() -> InitialHandler {
-        InitialHandler::new(Arc::new(Config::default()), Arc::new(PlayerCount(0)))
+        InitialHandler::new(
+            Arc::new(Config::default()),
+            Arc::new(PlayerCount(AtomicUsize::new(0))),
+        )
     }
 
     fn ih_with_player_count(count: usize) -> InitialHandler {
-        InitialHandler::new(Arc::new(Config::default()), Arc::new(PlayerCount(count)))
+        InitialHandler::new(
+            Arc::new(Config::default()),
+            Arc::new(PlayerCount(AtomicUsize::new(count))),
+        )
     }
 
     fn ih_with_config(config: Config) -> InitialHandler {
-        InitialHandler::new(Arc::new(config), Arc::new(PlayerCount(0)))
+        InitialHandler::new(Arc::new(config), Arc::new(PlayerCount(AtomicUsize::new(0))))
     }
 }

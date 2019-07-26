@@ -1,6 +1,6 @@
 use std::fs::read_to_string;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Config {
     pub io: IO,
     pub proxy: Proxy,
@@ -38,16 +38,16 @@ impl Default for Config {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct IO {
     pub compression_threshold: i32,
     pub io_worker_threads: u16,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Proxy {}
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Server {
     pub online_mode: bool,
     pub motd: String,
@@ -57,7 +57,7 @@ pub struct Server {
     pub port: u16,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Gameplay {
     pub monster_spawning: bool,
     pub animal_spawning: bool,
@@ -65,7 +65,7 @@ pub struct Gameplay {
     pub nerf_spawner_mobs: bool,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Log {
     pub level: String,
 }
@@ -83,7 +83,7 @@ pub fn load(input: String) -> Result<Config, ()> {
     Ok(config)
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub enum ProxyMode {
     None,
     Bungee,
