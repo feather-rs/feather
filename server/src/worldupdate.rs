@@ -56,13 +56,27 @@ fn handle_player_digging(
         PlayerDiggingStatus::StartedDigging => {
             if pcomp.gamemode == Gamemode::Creative {
                 if handle_block_break(chunk_map, packet.location, &netcomps, &pcomps).is_err() {
-                    disconnect_player(player, "Attempted to break block in unloaded chunk", &lazy);
+                    disconnect_player(
+                        player,
+                        format!(
+                            "Attempted to break block in unloaded chunk ({:?})",
+                            packet.location
+                        ),
+                        &lazy,
+                    );
                 }
             }
         }
         PlayerDiggingStatus::FinishedDigging => {
             if handle_block_break(chunk_map, packet.location, &netcomps, &pcomps).is_err() {
-                disconnect_player(player, "Attempted to break block in unloaded chunk", &lazy);
+                disconnect_player(
+                    player,
+                    format!(
+                        "Attempted to break block in unloaded chunk ({:?})",
+                        packet.location
+                    ),
+                    &lazy,
+                );
             }
         }
         status => warn!("Unhandled Player Digging status: {:?}", status),

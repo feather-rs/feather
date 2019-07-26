@@ -182,12 +182,14 @@ pub fn current_time_in_millis() -> u64 {
 
 /// Disconnects the given player, removing them from the world.
 /// This operation is performed lazily.
-pub fn disconnect_player(player: Entity, reason: &'static str, lazy: &LazyUpdate) {
+pub fn disconnect_player(player: Entity, reason: String, lazy: &LazyUpdate) {
     lazy.exec_mut(move |world| {
-        let packet = DisconnectPlay::new(reason.to_string());
-        send_packet_to_player(world.read_component().get(player).unwrap(), packet);
+        let json = json!({
+            "text": reason,
+        });
 
-        //network::broadcast_player_leave(world.read_component(), player);
+        let packet = DisconnectPlay::new(json.to_string());
+        send_packet_to_player(world.read_component().get(player).unwrap(), packet);
 
         if let Some(ecomp) = world.read_component::<EntityComponent>().get(player) {
             info!("Disconnected player {}: {}", ecomp.display_name, reason);

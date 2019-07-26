@@ -438,6 +438,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x1B, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::DisconnectPlay,
+        );
+
+        m.insert(
             PacketId(0x21, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::KeepAliveClientbound,
         );

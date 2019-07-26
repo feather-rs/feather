@@ -22,7 +22,7 @@ use feather_core::world::chunk::Chunk;
 use feather_core::world::{ChunkMap, ChunkPosition, Position};
 use feather_core::Gamemode;
 
-use crate::chunkclient::{ChunkLoadEvent, ChunkWorkerHandle};
+use crate::chunkclient::{load_chunk, ChunkLoadEvent, ChunkWorkerHandle};
 use crate::entity::{broadcast_entity_movement, EntityComponent, PlayerComponent};
 use crate::joinhandler::SPAWN_POSITION;
 use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue, PlayerJoinEvent};
@@ -271,6 +271,7 @@ pub fn send_chunk_to_player(
         send_chunk_data(chunk, net);
     } else {
         // Queue for loading
+        load_chunk(chunk_handle, chunk_pos);
         lazy.exec_mut(move |world| {
             world
                 .write_component::<ChunkPendingComponent>()

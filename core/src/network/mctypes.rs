@@ -150,11 +150,11 @@ impl<T: Buf + Read> McTypeRead for T {
             return Err(());
         }
         let val = self.get_u64_be();
-        let x = val >> 38;
-        let y = (val >> 26) & 0xFFF;
-        let z = val << 38 >> 38;
+        let x = val as i32 >> 38;
+        let y = (val as i32 >> 26) & 0xFFF;
+        let z = (val as i32) << 38 >> 38;
 
-        Ok(BlockPosition::new(x as i32, y as i32, z as i32))
+        Ok(BlockPosition::new(x, y, z))
     }
 
     fn read_bool(&mut self) -> Result<bool, ()> {

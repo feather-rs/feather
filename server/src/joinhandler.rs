@@ -93,7 +93,9 @@ impl<'a> System<'a> for JoinHandlerSystem {
 
         let mut to_remove = vec![];
 
-        for (player, net, join_handler) in (&entities, &netcomps, &mut joincomps).join() {
+        for (player, net, join_handler, pending_chunks) in
+            (&entities, &netcomps, &mut joincomps, &pending_chunks).join()
+        {
             match join_handler.stage {
                 Stage::Initial => {
                     // Send Join Game, then queue chunks for loading + sending.
@@ -132,6 +134,9 @@ impl<'a> System<'a> for JoinHandlerSystem {
                 Stage::AwaitChunkSends => {
                     // If 0 chunks have yet to be sent, join the player by sending spawn position.
                     // See https://wiki.vg/Protocol_FAQ
+                    if pending_chunks.len() != 0 {
+                        continue;
+                    }
                     let spawn_position = SpawnPosition::new(COMPASS_SPAWN_POSITION);
                     crate::network::send_packet_to_player(net, spawn_position);
 
