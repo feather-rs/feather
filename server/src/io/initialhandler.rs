@@ -14,21 +14,24 @@
 //! speeding up the login process and making the latency calculation in
 //! the server list ping as low as possible.
 
-use crate::config::Config;
-use crate::io::NewClientInfo;
-use crate::{PlayerCount, PROTOCOL_VERSION, SERVER_VERSION};
+use std::str::FromStr;
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
+
+use openssl::pkey::Private;
+use openssl::rsa::{Padding, Rsa};
+use uuid::Uuid;
+
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
     DisconnectLogin, EncryptionRequest, EncryptionResponse, Handshake, HandshakeState, LoginStart,
     LoginSuccess, Ping, Pong, Request, Response, SetCompression,
 };
 use feather_core::network::packet::{Packet, PacketType};
-use openssl::pkey::Private;
-use openssl::rsa::{Padding, Rsa};
-use std::str::FromStr;
-use std::sync::atomic::Ordering;
-use std::sync::Arc;
-use uuid::Uuid;
+
+use crate::config::Config;
+use crate::io::NewClientInfo;
+use crate::{PlayerCount, PROTOCOL_VERSION, SERVER_VERSION};
 
 /// The key used for symmetric encryption.
 pub type Key = [u8; 16];
@@ -40,6 +43,16 @@ type VerifyToken = [u8; 4];
 const RSA_KEY_BITS: u32 = 1024;
 /// The number of bytes in the shared secret
 const SHARED_SECRET_LEN: usize = 128 / 8;
+
+/// An action for the worker thread to execute
+/// after `InitialHandler::handle_packet` is called.
+pub enum Action {
+    EnableCompression(i32),
+    EnableEncryption(Key),
+    SendPacket(Box<dyn Packet>),
+    Disconnect,
+    JoinGame(JoinResult),
+}
 
 /// The type returned for when a player has completed the login process.
 #[derive(Clone, Debug)]
@@ -57,18 +70,14 @@ pub struct JoinResult {
 /// login sequence or the server list ping.
 ///
 /// The initial handler is able to communicate with the worker
-/// implementation by exposing a number of methods which are
-/// used to poll for actions. For example, `packets_to_send` returns
-/// a vector of packets that should be sent to the client, and `should_disconnect`
-/// returns whether the client should be disconnected.
+/// implementation by exposing the `actions_to_execute` method,
+/// which returns a vector of actions for the worker to execute.
+/// These may include, for example, enabling encryption or sending
+/// a packet.
 pub struct InitialHandler {
-    /// A queue of packets to send to the client.
-    /// When `packets_to_send` is called, this queue
-    /// is drained.
-    packets_to_send: Vec<Box<dyn Packet>>,
-    /// Whether the client registered with this
-    /// initial handler should be disconnected.
-    should_disconnect: bool,
+    /// A queue of actions to perform. When `actions_to_execute`
+    /// is called, the queue is flushed.
+    action_queue: Vec<Action>,
 
     /// If set to a value, indicates that encryption
     /// should be enabled with the given key.
@@ -104,8 +113,7 @@ pub struct InitialHandler {
 impl InitialHandler {
     pub fn new(config: Arc<Config>, player_count: Arc<PlayerCount>) -> Self {
         Self {
-            packets_to_send: vec![],
-            should_disconnect: false,
+            action_queue: vec![],
 
             key: None,
             compression_threshold: None,
@@ -126,10 +134,8 @@ impl InitialHandler {
 
     /// Notifies this initial handler of a packet
     /// received from the client. After calling this
-    /// function, `should_enable_encryption`, `packets_to_send`, `should_disconnect`,
-    /// `should_enable_compression`,
-    /// and `should_join`, in that order,
-    /// should be called to handle those various events.
+    /// function, `action_queue` should be called
+    /// and the actions should be executed in order.
     pub fn handle_packet(&mut self, packet: Box<dyn Packet>) {
         if self.stage == Stage::Finished {
             panic!("Called InitialHandler::handle_packet() after completion");
@@ -146,70 +152,12 @@ impl InitialHandler {
         }
     }
 
-    /// Returns a vector of packets to send to
-    /// the client. The internal queue is flushed
-    /// upon calling this function, meaning that
-    /// future calls to this function will return
-    /// an empty vector until `handle_packet` is called
-    /// again.
-    pub fn packets_to_send(&mut self) -> Vec<Box<dyn Packet>> {
+    /// Returns a vector of actions to perform.
+    pub fn actions_to_execute(&mut self) -> Vec<Action> {
         let mut new_vec = vec![];
-        std::mem::swap(&mut new_vec, &mut self.packets_to_send);
+        std::mem::swap(&mut new_vec, &mut self.action_queue);
 
         new_vec
-    }
-
-    /// Returns a boolean indicating whether
-    /// the client should be disconnected.
-    ///
-    /// If `true` is returned, the initial
-    /// handler should not be used further.
-    /// It should be dropped.
-    pub fn should_disconnect(&self) -> bool {
-        self.should_disconnect
-    }
-
-    /// Returns an option indicating whether encryption should
-    /// be enabled.
-    ///
-    /// If `Some(key)` is returned, encryption should be enabled
-    /// with the given key. Future calls to this function will
-    /// return `None` to avoid enabling encryption multiple times.
-    ///
-    /// If `None` is returned, nothing needs to be done.
-    pub fn should_enable_encryption(&mut self) -> Option<Key> {
-        if let Some(key) = self.key {
-            self.key = None;
-            Some(key)
-        } else {
-            None
-        }
-    }
-
-    /// Returns an option indicating whether compression should
-    /// be enabled.
-    ///
-    /// If `Some(threshold)` is returned, compression should be enabled
-    /// with the given threshold. Future calls to this function will
-    /// return `None` in order to avoid enabling compression multiple
-    /// times.
-    ///
-    /// if `None` is returned, nothing needs to be done.
-    pub fn should_enable_compression(&mut self) -> Option<i32> {
-        if let Some(threshold) = self.compression_threshold {
-            self.compression_threshold = None;
-            Some(threshold)
-        } else {
-            None
-        }
-    }
-
-    /// Returns whether the player should be joined.
-    ///
-    /// If `Some` is returned, no further calls to `handle_packet`
-    /// should be made.
-    pub fn should_join(&self) -> Option<JoinResult> {
-        self.info.clone()
     }
 }
 
@@ -285,7 +233,7 @@ fn handle_ping(ih: &mut InitialHandler, packet: &Ping) -> Result<(), Error> {
     send_packet(ih, pong);
 
     // After sending pong, we should disconnect.
-    ih.should_disconnect = true;
+    ih.action_queue.push(Action::Disconnect);
     ih.stage = Stage::Finished;
 
     Ok(())
@@ -302,7 +250,7 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
     // already finished, so we can call `finish` after
     // setting the player's info.
     if ih.config.server.online_mode {
-        // Enable encryption
+        // Start enabling encryption
         let encryption_request = EncryptionRequest::new(
             "".to_string(), // Server ID - always empty
             ih.rsa.public_key_to_der().unwrap(),
@@ -353,6 +301,8 @@ fn handle_encryption_response(
     }
 
     ih.key = Some(key);
+    ih.action_queue
+        .push(Action::EnableEncryption(ih.key.clone().unwrap()));
 
     // Perform authentication
     let auth_result = mojang_api::server_auth(
@@ -417,6 +367,8 @@ fn finish(ih: &mut InitialHandler) {
         info.username.clone(),
     );
     send_packet(ih, login_success);
+    ih.action_queue
+        .push(Action::JoinGame(ih.info.clone().unwrap()));
 }
 
 /// Enables compression, sending the Set Compression
@@ -424,6 +376,7 @@ fn finish(ih: &mut InitialHandler) {
 fn enable_compression(ih: &mut InitialHandler, threshold: i32) {
     ih.compression_threshold = Some(threshold);
     send_packet(ih, SetCompression::new(threshold));
+    ih.action_queue.push(Action::EnableCompression(threshold));
 }
 
 /// Checks that the initial handler stage matches
@@ -440,7 +393,7 @@ fn check_stage(ih: &InitialHandler, expected: Stage, packet_ty: PacketType) -> R
 /// Disconnects the initial handler, sending
 /// a disconnect packet containing the reason.
 fn disconnect_login(ih: &mut InitialHandler, reason: &str) {
-    ih.should_disconnect = true;
+    ih.action_queue.push(Action::Disconnect);
 
     let json = json!({
         "text": reason,
@@ -453,7 +406,7 @@ fn disconnect_login(ih: &mut InitialHandler, reason: &str) {
 
 /// Adds a packet to the internal packet queue.
 fn send_packet<P: Packet + 'static>(ih: &mut InitialHandler, packet: P) {
-    ih.packets_to_send.push(Box::new(packet));
+    ih.action_queue.push(Action::SendPacket(Box::new(packet)));
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -502,66 +455,29 @@ enum Stage {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::PROTOCOL_VERSION;
+    use std::sync::atomic::AtomicUsize;
+
     use feather_core::network::cast_packet;
     use feather_core::network::packet::implementation::{
         Handshake, HandshakeState, LoginSuccess, Ping, Pong, Request, Response, SetCompression,
     };
     use feather_core::network::packet::PacketType;
-    use std::sync::atomic::AtomicUsize;
+
+    use crate::PROTOCOL_VERSION;
+
+    use super::*;
 
     #[test]
     fn test_initial_handler_new() {
         let mut ih = ih();
 
-        assert!(ih.packets_to_send().is_empty());
-        assert!(!ih.should_disconnect());
-        assert!(ih.should_enable_encryption().is_none());
-        assert!(ih.should_enable_compression().is_none());
-    }
-
-    #[test]
-    fn test_packets_to_send_empty() {
-        let mut ih = ih();
-
-        // Fake some packets
-        ih.packets_to_send
-            .push(Box::new(Response::new("foo".to_string())));
-
-        let queue = ih.packets_to_send();
-        assert_eq!(queue.len(), 1);
-        assert_eq!(queue.first().unwrap().ty(), PacketType::Response);
-    }
-
-    #[test]
-    fn test_should_enable_encryption() {
-        let mut ih = ih();
-
-        assert!(ih.should_enable_encryption().is_none());
-
-        let key: Key = rand::random();
-        ih.key = Some(key.clone());
-
-        assert_eq!(key, ih.should_enable_encryption().unwrap());
-    }
-
-    #[test]
-    fn test_should_disconnect() {
-        let mut ih = ih();
-
-        assert!(!ih.should_disconnect());
-        ih.should_disconnect = true;
-
-        assert!(ih.should_disconnect());
+        assert!(ih.actions_to_execute().is_empty());
     }
 
     #[test]
     fn test_status_ping() {
         let player_count = 24;
         let mut ih = ih_with_player_count(player_count);
-
-        assert!(!ih.should_disconnect());
 
         let handshake = Handshake::new(
             PROTOCOL_VERSION,
@@ -572,44 +488,50 @@ mod tests {
         ih.handle_packet(Box::new(handshake));
 
         // Confirm that no packets were sent and the player wasn't disconnected
-        assert!(ih.packets_to_send().is_empty());
-        assert!(!ih.should_disconnect());
-        assert!(ih.should_enable_encryption().is_none());
-        assert!(ih.should_enable_compression().is_none());
+        assert!(ih.actions_to_execute().is_empty());
 
         let request = Request::new();
         ih.handle_packet(Box::new(request));
 
-        assert!(!ih.should_disconnect());
-        assert!(ih.should_enable_encryption().is_none());
-        assert!(ih.should_enable_compression().is_none());
+        let actions = ih.actions_to_execute();
 
         // Confirm that correct response was received
-        let sent_packets = ih.packets_to_send();
-        assert_eq!(sent_packets.len(), 1);
+        assert_eq!(actions.len(), 1);
 
-        let _response = sent_packets.first().unwrap();
-        assert_eq!(_response.ty(), PacketType::Response);
+        let _response = actions.first().unwrap();
+        match _response {
+            Action::SendPacket(_response) => {
+                assert_eq!(_response.ty(), PacketType::Response);
 
-        let response = cast_packet::<Response>(&_response);
-        let _: serde_json::Value = serde_json::from_str(&response.json_response).unwrap();
+                let response = cast_packet::<Response>(&_response);
+                let _: serde_json::Value = serde_json::from_str(&response.json_response).unwrap();
+            }
+            _ => panic!(),
+        }
 
         // Send ping
         let payload = 39842;
         let ping = Ping::new(payload);
         ih.handle_packet(Box::new(ping));
 
-        assert!(ih.should_disconnect());
-        assert!(ih.should_enable_encryption().is_none());
-        assert!(ih.should_enable_compression().is_none());
+        let mut actions = ih.actions_to_execute();
 
-        let sent_packets = ih.packets_to_send();
-        assert_eq!(sent_packets.len(), 1);
-        let _pong = sent_packets.first().unwrap();
+        assert_eq!(actions.len(), 2);
+        let _pong = actions.remove(0);
+        match _pong {
+            Action::SendPacket(_pong) => {
+                assert_eq!(_pong.ty(), PacketType::Pong);
+                let pong = cast_packet::<Pong>(&_pong);
+                assert_eq!(pong.payload, payload);
+            }
+            _ => panic!(),
+        }
 
-        assert_eq!(_pong.ty(), PacketType::Pong);
-        let pong = cast_packet::<Pong>(&_pong);
-        assert_eq!(pong.payload, payload);
+        let disconnect = actions.remove(0);
+        match disconnect {
+            Action::Disconnect => (),
+            _ => panic!(),
+        }
     }
 
     #[test]
@@ -626,38 +548,52 @@ mod tests {
         );
         ih.handle_packet(Box::new(handshake));
 
-        let sent_packets = ih.packets_to_send();
-        assert!(sent_packets.is_empty());
-        assert!(!ih.should_disconnect());
-        assert!(ih.should_enable_encryption().is_none());
-        assert!(ih.should_enable_compression().is_none());
+        assert!(ih.actions_to_execute().is_empty());
 
         let username = "test";
         let login_start = LoginStart::new(username.to_string());
         ih.handle_packet(Box::new(login_start));
 
-        assert!(!ih.should_disconnect());
-        assert!(ih.should_enable_encryption().is_none());
-        assert_eq!(
-            ih.should_enable_compression(),
-            Some(config.io.compression_threshold)
-        );
+        let mut actions = ih.actions_to_execute();
+        assert_eq!(actions.len(), 4);
 
-        let mut sent_packets = ih.packets_to_send();
-        assert_eq!(sent_packets.len(), 2);
+        let _set_compression = actions.remove(0);
 
-        let _set_compression = sent_packets.remove(0);
-        assert_eq!(_set_compression.ty(), PacketType::SetCompression);
+        match _set_compression {
+            Action::SendPacket(_set_compression) => {
+                assert_eq!(_set_compression.ty(), PacketType::SetCompression);
 
-        let set_compression = cast_packet::<SetCompression>(&_set_compression);
-        assert_eq!(set_compression.threshold, config.io.compression_threshold);
+                let set_compression = cast_packet::<SetCompression>(&_set_compression);
+                assert_eq!(set_compression.threshold, config.io.compression_threshold);
+            }
+            _ => panic!(),
+        }
 
-        let _login_success = sent_packets.first().unwrap();
-        assert_eq!(_login_success.ty(), PacketType::LoginSuccess);
+        let enable_compression = actions.remove(0);
+        match enable_compression {
+            Action::EnableCompression(threshold) => {
+                assert_eq!(threshold, config.io.compression_threshold);
+            }
+            _ => panic!(),
+        }
 
-        let login_success = cast_packet::<LoginSuccess>(&_login_success);
-        assert_eq!(login_success.username, username.to_string());
-        assert!(ih.should_join().is_some());
+        let _login_success = actions.remove(0);
+
+        match _login_success {
+            Action::SendPacket(_login_success) => {
+                assert_eq!(_login_success.ty(), PacketType::LoginSuccess);
+
+                let login_success = cast_packet::<LoginSuccess>(&_login_success);
+                assert_eq!(login_success.username, username.to_string());
+            }
+            _ => panic!(),
+        }
+
+        let join = actions.remove(0);
+        match join {
+            Action::JoinGame(_) => (),
+            _ => panic!(),
+        }
     }
 
     fn ih() -> InitialHandler {

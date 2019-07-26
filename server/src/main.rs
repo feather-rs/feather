@@ -6,6 +6,17 @@ extern crate serde_derive;
 extern crate serde_json;
 
 use std::alloc::System;
+use std::sync::atomic::AtomicUsize;
+use std::sync::Arc;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
+use specs::{Dispatcher, DispatcherBuilder, Entity, LazyUpdate, World, WorldExt};
+
+use feather_core::network::packet::implementation::DisconnectPlay;
+use prelude::*;
+
+use crate::entity::EntityComponent;
+use crate::network::send_packet_to_player;
 
 #[global_allocator]
 static ALLOC: System = System;
@@ -22,15 +33,6 @@ pub mod prelude;
 #[cfg(test)]
 pub mod testframework;
 pub mod worldupdate;
-
-use crate::entity::EntityComponent;
-use crate::network::send_packet_to_player;
-use feather_core::network::packet::implementation::DisconnectPlay;
-use prelude::*;
-use specs::{Dispatcher, DispatcherBuilder, Entity, LazyUpdate, World, WorldExt};
-use std::sync::atomic::AtomicUsize;
-use std::sync::Arc;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub const TPS: u64 = 20;
 pub const PROTOCOL_VERSION: u32 = 404;

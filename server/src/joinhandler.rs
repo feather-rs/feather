@@ -5,23 +5,26 @@
 //! packets to join the player. After completion, the component is
 //! removed.
 
-use crate::chunkclient::{ChunkLoadEvent, ChunkWorkerHandle};
-use crate::config::Config;
-use crate::network::NetworkComponent;
-use crate::player::ChunkPendingComponent;
-use crate::PlayerCount;
-use feather_core::network::packet::implementation::{
-    JoinGame, PlayerPositionAndLookClientbound, SpawnPosition,
-};
-use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
-use feather_core::{Difficulty, Dimension, Gamemode};
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
+
 use shrev::EventChannel;
 use specs::{
     Component, Entities, HashMapStorage, Join, LazyUpdate, Read, ReadStorage, ReaderId, System,
     World, WriteStorage,
 };
-use std::sync::atomic::Ordering;
-use std::sync::Arc;
+
+use feather_core::network::packet::implementation::{
+    JoinGame, PlayerPositionAndLookClientbound, SpawnPosition,
+};
+use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
+use feather_core::{Difficulty, Dimension, Gamemode};
+
+use crate::chunkclient::{ChunkLoadEvent, ChunkWorkerHandle};
+use crate::config::Config;
+use crate::network::NetworkComponent;
+use crate::player::ChunkPendingComponent;
+use crate::PlayerCount;
 
 /// For now, we use a fixed spawn position.
 /// In the future, the spawn position should

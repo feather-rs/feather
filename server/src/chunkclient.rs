@@ -1,10 +1,12 @@
 //! Module for interacting with the chunk worker thread
 //! from the server threads.
-use crate::chunkworker;
 use crossbeam::channel::{Receiver, Sender};
-use feather_core::world::{ChunkMap, ChunkPosition};
 use shrev::EventChannel;
 use specs::{Read, System, World, Write};
+
+use feather_core::world::{ChunkMap, ChunkPosition};
+
+use crate::chunkworker;
 
 pub struct ChunkWorkerHandle {
     sender: Sender<chunkworker::Request>,
@@ -83,10 +85,12 @@ pub fn load_chunk(handle: &ChunkWorkerHandle, pos: ChunkPosition) {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use specs::{RunNow, World, WorldExt};
+
     use feather_core::world::chunk::Chunk;
     use feather_core::world::ChunkPosition;
-    use specs::{RunNow, World, WorldExt};
+
+    use super::*;
 
     #[test]
     fn test_chunk_system() {

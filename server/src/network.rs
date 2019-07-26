@@ -1,17 +1,20 @@
-use crate::entity::{EntityComponent, PlayerComponent};
-use crate::io::{NetworkIoManager, NewClientInfo, ServerToListenerMessage, ServerToWorkerMessage};
-use crate::joinhandler::JoinHandlerComponent;
-use crate::prelude::*;
-use crate::TickCount;
-use feather_core::entitymeta::{EntityMetadata, MetaEntry};
-use feather_core::network::packet::{implementation::*, Packet, PacketType};
+use std::sync::Mutex;
+
 use mio_extras::channel::{Receiver, Sender};
 use shrev::EventChannel;
 use specs::{
     Component, DenseVecStorage, Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System,
     WorldExt, Write, WriteStorage,
 };
-use std::sync::Mutex;
+
+use feather_core::entitymeta::{EntityMetadata, MetaEntry};
+use feather_core::network::packet::{implementation::*, Packet, PacketType};
+
+use crate::entity::{EntityComponent, PlayerComponent};
+use crate::io::{NetworkIoManager, NewClientInfo, ServerToListenerMessage, ServerToWorkerMessage};
+use crate::joinhandler::JoinHandlerComponent;
+use crate::prelude::*;
+use crate::TickCount;
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
 //const HEAD_OFFSET: f64 = 1.62; // Offset from feet pos to head pos

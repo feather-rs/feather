@@ -1,9 +1,8 @@
 //! This module handles packets relating to world updates,
 //! including block update packets.
 
-use crate::disconnect_player;
-use crate::entity::PlayerComponent;
-use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue};
+use specs::{Entity, Join, LazyUpdate, Read, ReadStorage, System, Write};
+
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::BlockChange;
 use feather_core::network::packet::implementation::{PlayerDigging, PlayerDiggingStatus};
@@ -11,7 +10,10 @@ use feather_core::network::packet::PacketType;
 use feather_core::world::block::{Block, BlockToId};
 use feather_core::world::{BlockPosition, ChunkMap};
 use feather_core::Gamemode;
-use specs::{Entity, Join, LazyUpdate, Read, ReadStorage, System, Write};
+
+use crate::disconnect_player;
+use crate::entity::PlayerComponent;
+use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue};
 
 /// System responsible for polling for PlayerDigging
 /// packets and handling them accordingly.
@@ -96,11 +98,14 @@ fn broadcast_block_update(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::testframework as t;
+    use specs::{RunNow, WorldExt};
+
     use feather_core::world::chunk::Chunk;
     use feather_core::world::ChunkPosition;
-    use specs::{RunNow, WorldExt};
+
+    use crate::testframework as t;
+
+    use super::*;
 
     #[test]
     fn test_system() {

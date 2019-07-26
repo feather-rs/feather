@@ -1,20 +1,23 @@
 //! Helper framework for writing unit tests.
 
+use std::net::TcpListener;
+use std::sync::atomic::AtomicUsize;
+use std::sync::Arc;
+
+use mio_extras::channel::{channel, Receiver, Sender};
+use rand::Rng;
+use specs::{Builder, Dispatcher, Entity, World, WorldExt};
+use uuid::Uuid;
+
+use feather_core::network::packet::{Packet, PacketType};
+use feather_core::world::Position;
+use feather_core::Gamemode;
+
 use crate::config::Config;
 use crate::entity::{EntityComponent, PlayerComponent};
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
 use crate::PlayerCount;
-use feather_core::network::packet::{Packet, PacketType};
-use feather_core::world::Position;
-use feather_core::Gamemode;
-use mio_extras::channel::{channel, Receiver, Sender};
-use rand::Rng;
-use specs::{Builder, Dispatcher, Entity, World, WorldExt};
-use std::net::TcpListener;
-use std::sync::atomic::AtomicUsize;
-use std::sync::Arc;
-use uuid::Uuid;
 
 /// Initializes a Specs world and dispatcher
 /// using default configuration options and an
@@ -118,9 +121,10 @@ fn find_open_port() -> Option<u16> {
 /// all other tests would fail if the testing
 /// framework didn't work.
 mod tests {
-    use super::*;
     use crate::entity::{EntityComponent, PlayerComponent};
     use crate::network::NetworkComponent;
+
+    use super::*;
 
     #[test]
     fn test_find_open_port() {

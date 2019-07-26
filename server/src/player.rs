@@ -2,18 +2,8 @@
 //! relating to players, including player movement
 //! and inventory handling.
 
-use crate::chunkclient::{ChunkLoadEvent, ChunkWorkerHandle};
-use crate::entity::{broadcast_entity_movement, EntityComponent, PlayerComponent};
-use crate::joinhandler::SPAWN_POSITION;
-use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue, PlayerJoinEvent};
-use feather_core::network::cast_packet;
-use feather_core::network::packet::implementation::{
-    ChunkData, PlayerLook, PlayerPosition, PlayerPositionAndLookServerbound,
-};
-use feather_core::network::packet::{Packet, PacketType};
-use feather_core::world::chunk::Chunk;
-use feather_core::world::{ChunkMap, ChunkPosition, Position};
-use feather_core::Gamemode;
+use std::ops::{Deref, DerefMut};
+
 use hashbrown::HashSet;
 use rayon::prelude::*;
 use shrev::EventChannel;
@@ -22,7 +12,20 @@ use specs::{
     Component, Entities, Entity, LazyUpdate, ParJoin, Read, ReadStorage, ReaderId, System, World,
     WorldExt, WriteStorage,
 };
-use std::ops::{Deref, DerefMut};
+
+use feather_core::network::cast_packet;
+use feather_core::network::packet::implementation::{
+    ChunkData, PlayerLook, PlayerPosition, PlayerPositionAndLookServerbound,
+};
+use feather_core::network::packet::{Packet, PacketType};
+use feather_core::world::chunk::Chunk;
+use feather_core::world::{ChunkMap, ChunkPosition, Position};
+use feather_core::Gamemode;
+
+use crate::chunkclient::{ChunkLoadEvent, ChunkWorkerHandle};
+use crate::entity::{broadcast_entity_movement, EntityComponent, PlayerComponent};
+use crate::joinhandler::SPAWN_POSITION;
+use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue, PlayerJoinEvent};
 
 /// System for handling player movement
 /// packets.

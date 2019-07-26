@@ -1,18 +1,22 @@
-use super::initialhandler as ih;
-use super::*;
-use crate::config::Config;
-use crate::io::initialhandler::InitialHandler;
-use crate::PlayerCount;
-use bytes::BufMut;
-use feather_core::bytebuf::{BufMutAlloc, ByteBuf};
-use feather_core::network::packet::PacketDirection;
-use feather_core::network::serialize::ConnectionIOManager;
-use hashbrown::HashMap;
-use mio::Event;
-use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
 use std::io::Read;
 use std::io::Write;
 use std::sync::Arc;
+
+use bytes::BufMut;
+use hashbrown::HashMap;
+use mio::Event;
+use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
+
+use feather_core::bytebuf::{BufMutAlloc, ByteBuf};
+use feather_core::network::packet::PacketDirection;
+use feather_core::network::serialize::ConnectionIOManager;
+
+use crate::config::Config;
+use crate::io::initialhandler::{Action, InitialHandler};
+use crate::PlayerCount;
+
+use super::initialhandler as ih;
+use super::*;
 
 // The token used to listen on the channel receiving messages from the listener thread
 const LISTENER_TOKEN: Token = Token(0);
@@ -217,7 +221,7 @@ fn disconnect_client(worker: &mut Worker, client_id: Client) {
     worker.clients.remove(&client_id);
 }
 
-fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
+fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<dyn Packet>) {
     let client = worker.clients.get_mut(&client_id).unwrap();
 
     let manager = &mut client.manager;
@@ -302,81 +306,69 @@ fn write_to_client(worker: &mut Worker, client_id: Client) -> Result<(), ()> {
     Ok(())
 }
 
-fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
+fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<dyn Packet>) {
     let client = worker.clients.get_mut(&client_id).unwrap();
 
-    let mut packets_to_send = vec![];
-    let mut should_disconnect = false;
-    let mut encryption_key = None;
-    let mut compression_threshold = None;
-    let mut should_join = None;
+    let mut action_queue = vec![];
 
     if let Some(ih) = client.initial_handler.as_mut() {
         // Forward packet to the initial handler.
         ih.handle_packet(packet);
 
-        encryption_key = ih.should_enable_encryption();
-        packets_to_send = ih.packets_to_send();
-        should_disconnect = ih.should_disconnect();
-        compression_threshold = ih.should_enable_compression();
-        should_join = ih.should_join();
+        action_queue = ih.actions_to_execute();
     } else {
         // Forward packet to the server.
         let msg = ServerToWorkerMessage::NotifyPacketReceived(packet);
         client.sender.as_ref().unwrap().send(msg).unwrap();
     }
 
-    if let Some(key) = encryption_key {
-        client.manager.enable_encryption(key);
-    }
+    for action in action_queue {
+        let client = worker.clients.get_mut(&client_id).unwrap();
 
-    packets_to_send
-        .into_iter()
-        .for_each(|packet| send_packet(worker, client_id, packet));
+        match action {
+            Action::Disconnect => {
+                disconnect_client(worker, client_id);
+                return;
+            }
+            Action::EnableCompression(threshold) => {
+                client.manager.enable_compression(threshold as usize);
+            }
+            Action::JoinGame(info) => {
+                let (send1, recv1) = channel();
+                let (send2, recv2) = channel();
 
-    let client = worker.clients.get_mut(&client_id).unwrap();
+                let player_info = NewClientInfo {
+                    ip: client.addr.clone(),
+                    username: info.username,
+                    profile: info.props,
+                    uuid: info.uuid,
+                    sender: send1,
+                    receiver: recv2,
+                };
 
-    if should_disconnect {
-        disconnect_client(worker, client_id);
-        return;
-    }
+                worker
+                    .sender
+                    .send(ListenerToWorkerMessage::NewClient(player_info))
+                    .unwrap();
 
-    if let Some(threshold) = compression_threshold {
-        client.manager.enable_compression(threshold as usize);
-    }
+                client.initial_handler = None;
 
-    if let Some(info) = should_join {
-        let (send1, recv1) = channel();
-        let (send2, recv2) = channel();
+                client.sender = Some(send2);
+                client.receiver = Some(recv1);
 
-        let player_info = NewClientInfo {
-            ip: client.addr.clone(),
-            username: info.username,
-            profile: info.props,
-            uuid: info.uuid,
-            sender: send1,
-            receiver: recv2,
-        };
-
-        worker
-            .sender
-            .send(ListenerToWorkerMessage::NewClient(player_info))
-            .unwrap();
-
-        client.initial_handler = None;
-
-        client.sender = Some(send2);
-        client.receiver = Some(recv1);
-
-        worker
-            .poll
-            .register(
-                client.receiver.as_ref().unwrap(),
-                client.server_to_worker_token,
-                Ready::readable(),
-                PollOpt::edge(),
-            )
-            .unwrap();
+                worker
+                    .poll
+                    .register(
+                        client.receiver.as_ref().unwrap(),
+                        client.server_to_worker_token,
+                        Ready::readable(),
+                        PollOpt::edge(),
+                    )
+                    .unwrap();
+            }
+            Action::EnableEncryption(key) => client.manager.enable_encryption(key),
+            Action::SendPacket(packet) => send_packet(worker, client_id, packet),
+        }
     }
 }
 
