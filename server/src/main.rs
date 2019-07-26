@@ -6,7 +6,7 @@ extern crate serde_derive;
 extern crate serde_json;
 
 use std::alloc::System;
-use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -196,12 +196,22 @@ pub fn disconnect_player(player: Entity, reason: String, lazy: &LazyUpdate) {
         let packet = DisconnectPlay::new(json.to_string());
         send_packet_to_player(world.read_component().get(player).unwrap(), packet);
 
-        if let Some(ecomp) = world.read_component::<EntityComponent>().get(player) {
-            info!("Disconnected player {}: {}", ecomp.display_name, reason);
-        }
-
-        world.delete_entity(player).unwrap();
+        disconnect_player_without_packet(player, world, reason);
     })
+}
+
+/// Disconnects a player without sending Disconnect Play.
+/// This should be used when the client disconnects.
+pub fn disconnect_player_without_packet(player: Entity, world: &mut World, reason: String) {
+    if let Some(ecomp) = world.read_component::<EntityComponent>().get(player) {
+        info!("Disconnected player {}: {}", ecomp.display_name, reason);
+    }
+
+    world.delete_entity(player).unwrap();
+
+    // Decrement player count
+    let player_count = world.fetch_mut::<Arc<PlayerCount>>();
+    player_count.0.fetch_sub(1, Ordering::SeqCst);
 }
 
 #[cfg(test)]

@@ -14,7 +14,7 @@ use crate::entity::{EntityComponent, PlayerComponent};
 use crate::io::{NetworkIoManager, NewClientInfo, ServerToListenerMessage, ServerToWorkerMessage};
 use crate::joinhandler::JoinHandlerComponent;
 use crate::prelude::*;
-use crate::TickCount;
+use crate::{disconnect_player_without_packet, TickCount};
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
 //const HEAD_OFFSET: f64 = 1.62; // Offset from feet pos to head pos
@@ -188,7 +188,13 @@ impl<'a> System<'a> for NetworkSystem {
                     }
                     ServerToWorkerMessage::NotifyDisconnect => {
                         // TODO broadcast disconnect
-                        entities.delete(player).unwrap();
+                        lazy.exec_mut(move |world| {
+                            disconnect_player_without_packet(
+                                player,
+                                world,
+                                "Client disconnected".to_string(),
+                            )
+                        });
                     }
                     _ => panic!("Network system received invalid message from IO worker}"),
                 }
