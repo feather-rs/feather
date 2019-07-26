@@ -25,7 +25,7 @@ use feather_core::network::packet::implementation::{
 use feather_core::network::packet::PacketType::DisconnectLogin;
 use feather_core::network::packet::{Packet, PacketType};
 use openssl::pkey::Private;
-use openssl::rsa::Rsa;
+use openssl::rsa::{Padding, Rsa};
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -38,6 +38,8 @@ type VerifyToken = [u8; 4];
 
 /// The number of bits used for the RSA key.
 const RSA_KEY_BITS: u32 = 1024;
+/// The number of bytes in the shared secret
+const SHARED_SECRET_LEN: usize = 128 / 8;
 
 /// The type returned for when a player has completed the login process.
 pub struct JoinResult {
@@ -123,8 +125,8 @@ impl InitialHandler {
 
     /// Notifies this initial handler of a packet
     /// received from the client. After calling this
-    /// function, `packets_to_send`, `should_disconnect`,
-    /// `should_enable_compression`, `should_enable_encryption`,
+    /// function, `should_enable_encryption`, `packets_to_send`, `should_disconnect`,
+    /// `should_enable_compression`,
     /// and `should_join`, in that order,
     /// should be called to handle those various events.
     pub fn handle_packet(&mut self, packet: Box<dyn Packet>) {
@@ -305,15 +307,57 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
         ih.stage = Stage::AwaitEncryptionResponse;
     } else {
         // Finished - set info and join
-        ih.info = JoinResult {
+        ih.info = Some(JoinResult {
             username: ih.username.unwrap(),
             uuid: Uuid::new_v4(),
             props: vec![],
-        };
+        });
         finish(ih);
     }
 
     Ok(())
+}
+
+fn handle_encryption_response(
+    ih: &mut InitialHandler,
+    packet: &EncryptionResponse,
+) -> Result<(), Error> {
+    check_stage(ih, Stage::AwaitEncryptionResponse, packet.ty())?;
+
+    // Decrypt verify token + shared secret
+    let shared_secret = decrypt_using_rsa(&packet.secret, &ih.rsa)?;
+    if shared_secret.len() != SHARED_SECRET_LEN {
+        return Err(Error::BadSecretLength);
+    }
+
+    let verify_token = decrypt_using_rsa(&packet.verify_token, &ih.rsa)?;
+    if verify_token.len() != ih.verify_token.len() {
+        return Err(Error::VerifyTokenMismatch);
+    }
+
+    // Check that verify token matches
+    if verify_token.as_slice() != &ih.verify_token {
+        return Err(Error::VerifyTokenMismatch);
+    }
+
+    // Enable encryption
+    ih.key = Some(shared_secret[..SHARED_SECRET_LEN].clone());
+
+    finish(ih);
+
+    Ok(())
+}
+
+fn decrypt_using_rsa(data: &[u8], key: &Rsa<Private>) -> Result<Vec<u8>, Error> {
+    let mut buf = vec![0u8; key.size() as usize];
+
+    let len = key
+        .private_decrypt(data, &mut buf, Padding::PKCS1)
+        .map_err(|e| Error::BadEncryption)?;
+
+    buf.truncate(len);
+
+    Ok(buf)
 }
 
 /// Terminates the login process, sending Set Compression (if necessary)
@@ -383,6 +427,9 @@ fn send_packet<P: Packet>(ih: &mut InitialHandler, packet: P) {
 enum Error {
     InvalidPacket(PacketType, Stage),
     InvalidProtocol(u32),
+    BadEncryption,
+    VerifyTokenMismatch,
+    BadSecretLength,
 }
 
 impl std::fmt::Display for Error {
@@ -398,6 +445,9 @@ impl std::fmt::Display for Error {
                 "Invalid protocol version {} - this server is on {}",
                 *protocol, PROTOCOL_VERSION
             )?,
+            Error::BadEncryption => write!(f, "Failed to decrypt value")?,
+            Error::VerifyTokenMismatch => write!(f, "Verify token does not match")?,
+            Error::BadSecretLength => write!(f, "Invalid shared secret length")?,
         }
 
         Ok(())
