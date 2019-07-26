@@ -9,13 +9,14 @@ use rayon::prelude::*;
 use shrev::EventChannel;
 use specs::storage::BTreeStorage;
 use specs::{
-    Component, Entities, Entity, LazyUpdate, ParJoin, Read, ReadStorage, ReaderId, System, World,
-    WorldExt, WriteStorage,
+    Component, Entities, Entity, Join, LazyUpdate, ParJoin, Read, ReadStorage, ReaderId, System,
+    World, WorldExt, WriteStorage,
 };
 
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
-    ChunkData, PlayerLook, PlayerPosition, PlayerPositionAndLookServerbound,
+    ChunkData, PlayerInfo, PlayerInfoAction, PlayerLook, PlayerPosition,
+    PlayerPositionAndLookServerbound, SpawnPlayer,
 };
 use feather_core::network::packet::{Packet, PacketType};
 use feather_core::world::chunk::Chunk;
@@ -24,8 +25,9 @@ use feather_core::Gamemode;
 
 use crate::chunkclient::{load_chunk, ChunkLoadEvent, ChunkWorkerHandle};
 use crate::entity::{broadcast_entity_movement, EntityComponent, PlayerComponent};
-use crate::joinhandler::SPAWN_POSITION;
-use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue, PlayerJoinEvent};
+use crate::joinhandler::{PlayerJoinEvent, SPAWN_POSITION};
+use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue, PlayerPreJoinEvent};
+use feather_core::entitymeta::{EntityMetadata, MetaEntry};
 
 /// System for handling player movement
 /// packets.
@@ -139,7 +141,7 @@ impl Component for ChunkPendingComponent {
 /// System for initializing the necessary components
 /// when a player joins.
 pub struct PlayerInitSystem {
-    join_event_reader: Option<ReaderId<PlayerJoinEvent>>,
+    join_event_reader: Option<ReaderId<PlayerPreJoinEvent>>,
 }
 
 impl PlayerInitSystem {
@@ -152,7 +154,7 @@ impl PlayerInitSystem {
 
 impl<'a> System<'a> for PlayerInitSystem {
     type SystemData = (
-        Read<'a, EventChannel<PlayerJoinEvent>>,
+        Read<'a, EventChannel<PlayerPreJoinEvent>>,
         WriteStorage<'a, PlayerComponent>,
         WriteStorage<'a, EntityComponent>,
         WriteStorage<'a, ChunkPendingComponent>,
@@ -190,7 +192,7 @@ impl<'a> System<'a> for PlayerInitSystem {
 
         self.join_event_reader = Some(
             world
-                .fetch_mut::<EventChannel<PlayerJoinEvent>>()
+                .fetch_mut::<EventChannel<PlayerPreJoinEvent>>()
                 .register_reader(),
         );
     }
@@ -250,6 +252,125 @@ impl<'a> System<'a> for ChunkSendSystem {
     }
 }
 
+/// System for broadcasting when a player joins
+/// the game.
+pub struct JoinBroadcastSystem {
+    reader: Option<ReaderId<PlayerJoinEvent>>,
+}
+
+impl JoinBroadcastSystem {
+    pub fn new() -> Self {
+        Self { reader: None }
+    }
+}
+
+impl<'a> System<'a> for JoinBroadcastSystem {
+    type SystemData = (
+        Read<'a, EventChannel<PlayerJoinEvent>>,
+        ReadStorage<'a, EntityComponent>,
+        ReadStorage<'a, PlayerComponent>,
+        ReadStorage<'a, NetworkComponent>,
+        Entities<'a>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (join_events, entity_comps, player_comps, net_comps, entities) = data;
+
+        for event in join_events.read(&mut self.reader.as_mut().unwrap()) {
+            // Broadcast join
+            let entity_comp = entity_comps.get(event.player).unwrap();
+            let player_comp = player_comps.get(event.player).unwrap();
+
+            let (player_info, spawn_player) =
+                get_player_initialization_packets(entity_comp, player_comp, event.player);
+
+            for (player, net) in (&entities, &net_comps).join() {
+                // Send player info to the player who joined
+                // so they can see themselves in the tablist,
+                // but don't send spawn player.
+                send_packet_to_player(net, player_info.clone());
+                if player != event.player {
+                    send_packet_to_player(net, spawn_player.clone());
+                }
+            }
+        }
+    }
+
+    fn setup(&mut self, world: &mut World) {
+        use specs::SystemData;
+        Self::SystemData::setup(world);
+
+        self.reader = Some(
+            world
+                .fetch_mut::<EventChannel<PlayerJoinEvent>>()
+                .register_reader(),
+        );
+    }
+}
+
+/// Returns the player info and spawn player packets
+/// for the given player.
+fn get_player_initialization_packets(
+    ecomp: &EntityComponent,
+    pcomp: &PlayerComponent,
+    player: Entity,
+) -> (PlayerInfo, SpawnPlayer) {
+    let display_name = json!({
+        "text": ecomp.display_name
+    })
+    .to_string();
+
+    let mut props = vec![];
+    for prop in pcomp.profile_properties.iter() {
+        props.push((
+            prop.name.clone(),
+            prop.value.clone(),
+            prop.signature.clone(),
+        ));
+    }
+
+    let action = PlayerInfoAction::AddPlayer(
+        ecomp.display_name.clone(),
+        props,
+        Gamemode::Creative,
+        50,
+        display_name,
+    );
+    let player_info = PlayerInfo::new(action, ecomp.uuid.clone());
+
+    let metadata = EntityMetadata::new().with(&[
+        (0, MetaEntry::Byte(0)),
+        (1, MetaEntry::VarInt(300)),
+        (2, MetaEntry::OptChat(None)),
+        (3, MetaEntry::Boolean(false)),
+        (4, MetaEntry::Boolean(false)),
+        (5, MetaEntry::Boolean(false)),
+        (6, MetaEntry::Byte(0)),
+        (7, MetaEntry::Float(1.0)),
+        (8, MetaEntry::VarInt(0)),
+        (9, MetaEntry::Boolean(false)),
+        (10, MetaEntry::VarInt(0)),
+        (11, MetaEntry::Float(0.0)),
+        (12, MetaEntry::VarInt(0)),
+        (13, MetaEntry::Byte(0)),
+        (14, MetaEntry::Byte(1)),
+        // TODO NBT
+    ]);
+
+    let spawn_player = SpawnPlayer::new(
+        player.id() as i32,
+        ecomp.uuid.clone(),
+        ecomp.position.x,
+        ecomp.position.y,
+        ecomp.position.z,
+        degrees_to_stops(ecomp.position.pitch),
+        degrees_to_stops(ecomp.position.yaw),
+        metadata,
+    );
+
+    (player_info, spawn_player)
+}
+
 fn send_chunk_data(chunk: &Chunk, net: &NetworkComponent) {
     let packet = ChunkData::new(chunk.clone());
     send_packet_to_player(net, packet);
@@ -281,4 +402,8 @@ pub fn send_chunk_to_player(
                 .insert(chunk_pos);
         });
     }
+}
+
+fn degrees_to_stops(degs: f32) -> u8 {
+    ((degs / 360.0) * 256.) as u8
 }

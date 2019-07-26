@@ -113,8 +113,9 @@ impl Component for NetworkComponent {
 /// other systems can handle them.
 pub struct NetworkSystem;
 
-/// Event which is triggered when a player joins.
-pub struct PlayerJoinEvent {
+/// Event which is triggered when a player joins
+/// but before the join handler is completed.
+pub struct PlayerPreJoinEvent {
     pub player: Entity,
     pub username: String,
     pub uuid: Uuid,
@@ -125,7 +126,7 @@ impl<'a> System<'a> for NetworkSystem {
     type SystemData = (
         WriteStorage<'a, NetworkComponent>,
         ReadStorage<'a, PlayerComponent>,
-        Write<'a, EventChannel<PlayerJoinEvent>>,
+        Write<'a, EventChannel<PlayerPreJoinEvent>>,
         Write<'a, PacketQueue>,
         Read<'a, NetworkIoManager>,
         Entities<'a>,
@@ -166,7 +167,7 @@ impl<'a> System<'a> for NetworkSystem {
                     });
 
                     // Queue event
-                    let event = PlayerJoinEvent {
+                    let event = PlayerPreJoinEvent {
                         player: new_entity,
                         username: info.username.clone(),
                         uuid: info.uuid.clone(),
@@ -207,69 +208,6 @@ impl<'a> System<'a> for NetworkSystem {
     }
 }
 
-/// Returns the player info and spawn player packets
-/// for the given player.
-pub fn get_player_initialization_packets(
-    ecomp: &EntityComponent,
-    pcomp: &PlayerComponent,
-    player: Entity,
-) -> (PlayerInfo, SpawnPlayer) {
-    let display_name = json!({
-        "text": ecomp.display_name
-    })
-    .to_string();
-
-    let mut props = vec![];
-    for prop in pcomp.profile_properties.iter() {
-        props.push((
-            prop.name.clone(),
-            prop.value.clone(),
-            prop.signature.clone(),
-        ));
-    }
-
-    let action = PlayerInfoAction::AddPlayer(
-        ecomp.display_name.clone(),
-        props,
-        Gamemode::Creative,
-        50,
-        display_name,
-    );
-    let player_info = PlayerInfo::new(action, ecomp.uuid.clone());
-
-    let metadata = EntityMetadata::new().with(&[
-        (0, MetaEntry::Byte(0)),
-        (1, MetaEntry::VarInt(300)),
-        (2, MetaEntry::OptChat(None)),
-        (3, MetaEntry::Boolean(false)),
-        (4, MetaEntry::Boolean(false)),
-        (5, MetaEntry::Boolean(false)),
-        (6, MetaEntry::Byte(0)),
-        (7, MetaEntry::Float(1.0)),
-        (8, MetaEntry::VarInt(0)),
-        (9, MetaEntry::Boolean(false)),
-        (10, MetaEntry::VarInt(0)),
-        (11, MetaEntry::Float(0.0)),
-        (12, MetaEntry::VarInt(0)),
-        (13, MetaEntry::Byte(0)),
-        (14, MetaEntry::Byte(1)),
-        // TODO NBT
-    ]);
-
-    let spawn_player = SpawnPlayer::new(
-        player.id() as i32,
-        ecomp.uuid.clone(),
-        ecomp.position.x,
-        ecomp.position.y,
-        ecomp.position.z,
-        degrees_to_stops(ecomp.position.pitch),
-        degrees_to_stops(ecomp.position.yaw),
-        metadata,
-    );
-
-    (player_info, spawn_player)
-}
-
 /// Sends a packet to all (joined) players on the server, excluding
 /// `neq`, if it exists.
 pub fn send_packet_to_all_players<P: Packet + Clone + 'static>(
@@ -300,8 +238,4 @@ pub fn send_packet_to_player<P: Packet + 'static>(comp: &NetworkComponent, packe
 /// Sends a packet to the given player.
 pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<Packet>) {
     let _ = comp.sender.send(ServerToWorkerMessage::SendPacket(packet));
-}
-
-pub fn degrees_to_stops(degs: f32) -> u8 {
-    ((degs / 360.0) * 256.) as u8
 }

@@ -142,6 +142,11 @@ fn init_world<'a, 'b>(
             &["chunk_send"],
         )
         .with(player::PlayerInitSystem::new(), "player_init", &["network"])
+        .with(
+            player::JoinBroadcastSystem::new(),
+            "join_broadcast",
+            &["join_handler", "player_init"],
+        )
         .build();
 
     dispatcher.setup(&mut world);

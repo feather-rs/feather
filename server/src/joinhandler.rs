@@ -10,13 +10,14 @@ use std::sync::Arc;
 
 use shrev::EventChannel;
 use specs::{
-    Component, Entities, HashMapStorage, Join, LazyUpdate, Read, ReadStorage, ReaderId, System,
-    World, WriteStorage,
+    Component, Entities, Entity, HashMapStorage, Join, LazyUpdate, Read, ReadStorage, ReaderId,
+    System, World, Write, WriteStorage,
 };
 
 use feather_core::network::packet::implementation::{
     JoinGame, PlayerPositionAndLookClientbound, SpawnPosition,
 };
+use feather_core::network::packet::PacketType::Player;
 use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
 use feather_core::{Difficulty, Dimension, Gamemode};
 
@@ -62,6 +63,13 @@ impl Component for JoinHandlerComponent {
     type Storage = HashMapStorage<Self>;
 }
 
+/// Event which is triggered when a player
+/// completes the join process (i.e. when
+/// all chunks have been sent).
+pub struct PlayerJoinEvent {
+    pub player: Entity,
+}
+
 /// System for join handling.
 pub struct JoinHandlerSystem;
 
@@ -70,6 +78,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
         WriteStorage<'a, JoinHandlerComponent>,
         ReadStorage<'a, NetworkComponent>,
         ReadStorage<'a, ChunkPendingComponent>,
+        Write<'a, EventChannel<PlayerJoinEvent>>,
         Read<'a, ChunkWorkerHandle>,
         Entities<'a>,
         Read<'a, LazyUpdate>,
@@ -83,6 +92,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
             mut joincomps,
             netcomps,
             pending_chunks,
+            mut join_events,
             worker_handle,
             entities,
             lazy,
@@ -150,6 +160,10 @@ impl<'a> System<'a> for JoinHandlerSystem {
                         0, // Teleport ID - unused by us
                     );
                     crate::network::send_packet_to_player(net, position_and_look);
+
+                    // Trigger event
+                    let event = PlayerJoinEvent { player };
+                    join_events.single_write(event);
 
                     // We're finished here.
                     to_remove.push(player);
