@@ -86,22 +86,6 @@ pub fn broadcast_entity_movement(
     }
 }
 
-/// Confirms that a player is past the login
-/// sequence and has joined the server, disconnecting
-/// them and returning `false` if they have not.
-pub fn check_player_joined(
-    player: Entity,
-    pcomps: &ReadStorage<PlayerComponent>,
-    lazy: &LazyUpdate,
-) -> bool {
-    if !pcomps.contains(player) {
-        disconnect_player(player, "You have not yet joined!", lazy);
-        return false;
-    }
-
-    true
-}
-
 /// Calculates the relative move fields
 /// as used in the Entity Relative Move packets.
 pub fn calculate_relative_move(old: Position, current: Position) -> (i16, i16, i16) {

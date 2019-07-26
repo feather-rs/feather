@@ -3,6 +3,7 @@
 use crate::chunkworker;
 use crossbeam::channel::{Receiver, Sender};
 use feather_core::world::{ChunkMap, ChunkPosition};
+use shrev::EventChannel;
 use specs::{Read, System, World, Write};
 
 pub struct ChunkWorkerHandle {
@@ -17,24 +18,39 @@ impl Default for ChunkWorkerHandle {
     }
 }
 
+/// Event which is triggered when a chunk is loaded.
+#[derive(Debug, Clone, Copy)]
+pub struct ChunkLoadEvent {
+    pub pos: ChunkPosition,
+}
+
 /// System for receiving loaded chunks from the chunk worker thread.
 pub struct ChunkLoadSystem;
 
 impl<'a> System<'a> for ChunkLoadSystem {
-    type SystemData = (Write<'a, ChunkMap>, Read<'a, ChunkWorkerHandle>);
+    type SystemData = (
+        Write<'a, ChunkMap>,
+        Write<'a, EventChannel<ChunkLoadEvent>>,
+        Read<'a, ChunkWorkerHandle>,
+    );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut chunk_map, handle) = data;
+        let (mut chunk_map, mut events, handle) = data;
 
         while let Ok((pos, result)) = handle.receiver.try_recv() {
             match result {
                 Ok(chunk) => {
                     chunk_map.set_chunk_at(pos, chunk);
+
+                    // Trigger event
+                    let event = ChunkLoadEvent { pos };
+                    events.single_write(event);
+
                     trace!("Loaded chunk at {:?}", pos);
                 }
                 Err(err) => {
                     // TODO generate chunk if it didn't exist
-                    warn!("Failed to load chunk at {:?}: {:?}", pos, err);
+                    warn!("Failed to load chunk at {:?}: {}", pos, err);
                 }
             }
         }

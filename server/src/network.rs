@@ -1,5 +1,6 @@
 use crate::entity::{EntityComponent, PlayerComponent};
 use crate::io::{NetworkIoManager, ServerToListenerMessage, ServerToWorkerMessage};
+use crate::joinhandler::JoinHandlerComponent;
 use crate::prelude::*;
 use crate::TickCount;
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
@@ -7,7 +8,7 @@ use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use mio_extras::channel::{Receiver, Sender};
 use specs::{
     Component, DenseVecStorage, Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System,
-    Write, WriteStorage,
+    WorldExt, Write, WriteStorage,
 };
 use std::sync::Mutex;
 
@@ -111,7 +112,6 @@ pub struct NetworkSystem;
 impl<'a> System<'a> for NetworkSystem {
     type SystemData = (
         WriteStorage<'a, NetworkComponent>,
-        WriteStorage<'a, InitialHandlerComponent>,
         ReadStorage<'a, PlayerComponent>,
         Write<'a, PacketQueue>,
         Read<'a, NetworkIoManager>,
@@ -121,8 +121,7 @@ impl<'a> System<'a> for NetworkSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut netcomps, mut ihcomps, pcomps, packet_queue, ioman, entities, tick_count, _) =
-            data;
+        let (mut netcomps, pcomps, packet_queue, ioman, entities, tick_count, lazy) = data;
         // Poll for new connections
         while let Ok(msg) = ioman.receiver.try_recv() {
             match msg {
@@ -135,9 +134,14 @@ impl<'a> System<'a> for NetworkSystem {
                     let new_entity = entities.create();
                     netcomps.insert(new_entity, netcomp).unwrap();
 
-                    // Create initial handler
-                    let ih = InitialHandlerComponent::new();
-                    ihcomps.insert(new_entity, ih).unwrap();
+                    // Create join handler
+                    let join_handler = JoinHandlerComponent::new();
+                    lazy.exec_mut(move |world| {
+                        world
+                            .write_component::<JoinHandlerComponent>()
+                            .insert(new_entity, join_handler)
+                            .unwrap();
+                    });
                 }
                 _ => panic!("Network system received invalid message from IO listener"),
             }

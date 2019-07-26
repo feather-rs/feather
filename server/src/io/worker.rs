@@ -1,5 +1,8 @@
 use super::initialhandler as ih;
 use super::*;
+use crate::config::Config;
+use crate::io::initialhandler::InitialHandler;
+use crate::PlayerCount;
 use bytes::BufMut;
 use feather_core::bytebuf::{BufMutAlloc, ByteBuf};
 use feather_core::network::packet::PacketDirection;
@@ -9,6 +12,7 @@ use mio::Event;
 use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
 use std::io::Read;
 use std::io::Write;
+use std::sync::Arc;
 
 // The token used to listen on the channel receiving messages from the listener thread
 const LISTENER_TOKEN: Token = Token(0);
@@ -23,6 +27,9 @@ struct Worker {
     clients: HashMap<Client, ClientHandle>,
 
     pending_disconnects: Vec<Client>,
+
+    config: Arc<Config>,
+    player_count: Arc<PlayerCount>,
 }
 
 struct ClientHandle {
@@ -31,19 +38,26 @@ struct ClientHandle {
 
     write_buffer: Option<ByteBuf>,
 
-    receiver: Receiver<ServerToWorkerMessage>,
-    sender: Sender<ServerToWorkerMessage>,
+    receiver: Option<Receiver<ServerToWorkerMessage>>,
+    sender: Option<Sender<ServerToWorkerMessage>>,
 
     stream_token: Token,
     server_to_worker_token: Token,
 
     manager: ConnectionIOManager,
+
+    initial_handler: Option<InitialHandler>,
 }
 
 /// Starts an IO worker on the current thread,
 /// blocking indefinitely until a `ShutDown` message
 /// is received from the listener.
-pub fn start(receiver: Receiver<ListenerToWorkerMessage>, sender: Sender<ListenerToWorkerMessage>) {
+pub fn start(
+    receiver: Receiver<ListenerToWorkerMessage>,
+    sender: Sender<ListenerToWorkerMessage>,
+    config: Arc<Config>,
+    player_count: Arc<PlayerCount>,
+) {
     trace!("Starting IO worker thread");
     let poll = Poll::new().unwrap();
 
@@ -57,6 +71,8 @@ pub fn start(receiver: Receiver<ListenerToWorkerMessage>, sender: Sender<Listene
         clients: HashMap::new(),
 
         pending_disconnects: vec![],
+        config,
+        player_count,
     };
 
     worker
@@ -111,18 +127,19 @@ fn accept_connection(worker: &mut Worker, stream: TcpStream, addr: SocketAddr) {
     let id = Client(worker.client_id_counter);
     worker.client_id_counter += 1;
 
-    let (send1, recv1) = channel();
-    let (send2, recv2) = channel();
-
     let client = ClientHandle {
         stream,
         addr,
         write_buffer: None,
-        receiver: recv1,
-        sender: send2,
+        receiver: None,
+        sender: None,
         stream_token: get_stream_token(id),
         server_to_worker_token: get_server_to_worker_token(id),
         manager: ConnectionIOManager::new(PacketDirection::Serverbound),
+        initial_handler: Some(InitialHandler::new(
+            Arc::clone(&worker.config),
+            Arc::clone(&worker.player_count),
+        )),
     };
 
     worker
@@ -134,25 +151,6 @@ fn accept_connection(worker: &mut Worker, stream: TcpStream, addr: SocketAddr) {
             PollOpt::edge(),
         )
         .unwrap();
-
-    worker
-        .poll
-        .register(
-            &client.receiver,
-            client.server_to_worker_token,
-            Ready::readable(),
-            PollOpt::edge(),
-        )
-        .unwrap();
-
-    let info = NewClientInfo {
-        ip: client.addr,
-        sender: send1,
-        receiver: recv2,
-    };
-
-    let msg = ListenerToWorkerMessage::NewClient(info);
-    worker.sender.send(msg).unwrap();
 
     worker.clients.insert(id, client);
 
@@ -179,6 +177,8 @@ fn read_from_server(worker: &mut Worker, token: Token) {
         .get_mut(&client_id)
         .unwrap()
         .receiver
+        .as_ref()
+        .unwrap()
         .try_recv()
     {
         match msg {
@@ -201,10 +201,17 @@ fn disconnect_client(worker: &mut Worker, client_id: Client) {
         return;
     }
 
-    worker.poll.deregister(&client.receiver).unwrap();
+    worker
+        .poll
+        .deregister(client.receiver.as_ref().unwrap())
+        .unwrap();
     worker.poll.deregister(&client.stream).unwrap();
 
-    let _ = client.sender.send(ServerToWorkerMessage::NotifyDisconnect);
+    let _ = client
+        .sender
+        .as_ref()
+        .unwrap()
+        .send(ServerToWorkerMessage::NotifyDisconnect);
 
     debug!("Disconnecting client {}", client_id.0);
 
@@ -299,8 +306,79 @@ fn write_to_client(worker: &mut Worker, client_id: Client) -> Result<(), ()> {
 fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<Packet>) {
     let client = worker.clients.get_mut(&client_id).unwrap();
 
-    let msg = ServerToWorkerMessage::NotifyPacketReceived(packet);
-    client.sender.send(msg).unwrap();
+    let mut packets_to_send = vec![];
+    let mut should_disconnect = false;
+    let mut encryption_key = None;
+    let mut compression_threshold = None;
+    let mut should_join = None;
+
+    if let Some(ih) = client.initial_handler.as_mut() {
+        // Forward packet to the initial handler.
+        ih.handle_packet(packet);
+
+        encryption_key = ih.should_enable_encryption();
+        packets_to_send = ih.packets_to_send();
+        should_disconnect = ih.should_disconnect();
+        compression_threshold = ih.should_enable_compression();
+        should_join = ih.should_join();
+    } else {
+        // Forward packet to the server.
+        let msg = ServerToWorkerMessage::NotifyPacketReceived(packet);
+        client.sender.as_ref().unwrap().send(msg).unwrap();
+    }
+
+    if let Some(key) = encryption_key {
+        client.manager.enable_encryption(key);
+    }
+
+    packets_to_send
+        .into_iter()
+        .for_each(|packet| send_packet(worker, client_id, packet));
+
+    let client = worker.clients.get_mut(&client_id).unwrap();
+
+    if should_disconnect {
+        disconnect_client(worker, client_id);
+        return;
+    }
+
+    if let Some(threshold) = compression_threshold {
+        client.manager.enable_compression(threshold as usize);
+    }
+
+    if let Some(info) = should_join {
+        let (send1, recv1) = channel();
+        let (send2, recv2) = channel();
+
+        let player_info = NewClientInfo {
+            ip: client.addr.clone(),
+            username: info.username,
+            profile: info.props,
+            uuid: info.uuid,
+            sender: send1,
+            receiver: recv2,
+        };
+
+        worker
+            .sender
+            .send(ListenerToWorkerMessage::NewClient(player_info))
+            .unwrap();
+
+        client.initial_handler = None;
+
+        client.sender = Some(send2);
+        client.receiver = Some(recv1);
+
+        worker
+            .poll
+            .register(
+                client.receiver.as_ref().unwrap(),
+                client.server_to_worker_token,
+                Ready::readable(),
+                PollOpt::edge(),
+            )
+            .unwrap();
+    }
 }
 
 fn get_stream_token(client_id: Client) -> Token {

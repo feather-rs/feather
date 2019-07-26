@@ -15,6 +15,7 @@ pub mod chunkworker;
 pub mod config;
 pub mod entity;
 pub mod io;
+pub mod joinhandler;
 pub mod network;
 pub mod player;
 pub mod prelude;
@@ -27,6 +28,8 @@ use crate::network::send_packet_to_player;
 use feather_core::network::packet::implementation::DisconnectPlay;
 use prelude::*;
 use specs::{Dispatcher, DispatcherBuilder, Entity, LazyUpdate, World, WorldExt};
+use std::sync::atomic::AtomicUsize;
+use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub const TPS: u64 = 20;
@@ -34,22 +37,24 @@ pub const PROTOCOL_VERSION: u32 = 404;
 pub const SERVER_VERSION: &'static str = "Feather 1.13.2";
 pub const TICK_TIME: u64 = 1000 / TPS;
 
-#[derive(Default, Debug, Clone, Copy)]
-pub struct PlayerCount(usize);
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug)]
+pub struct PlayerCount(AtomicUsize);
+#[derive(Default, Debug)]
 pub struct TickCount(u64);
 
 fn main() {
-    let config = config::load_from_file("feather.toml")
-        .expect("Failed to load configuration. Please ensure that the file feather.toml exists and is correct.");
+    let config = Arc::new(config::load_from_file("feather.toml")
+        .expect("Failed to load configuration. Please ensure that the file feather.toml exists and is correct."));
 
     init_log(&config);
 
     info!("Starting Feather; please wait...");
 
-    let io_manager = init_io_manager(&config);
+    let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
 
-    let (mut world, mut dispatcher) = init_world(config, io_manager);
+    let io_manager = init_io_manager(Arc::clone(&config), Arc::clone(&player_count));
+
+    let (mut world, mut dispatcher) = init_world(config, player_count, io_manager);
 
     info!("Initialized world");
 
@@ -89,18 +94,25 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
 }
 
 /// Starts the IO threads.
-fn init_io_manager(config: &Config) -> io::NetworkIoManager {
+fn init_io_manager(config: Arc<Config>, player_count: Arc<PlayerCount>) -> io::NetworkIoManager {
     let ioman = io::NetworkIoManager::start(
         format!("127.0.0.1:{}", config.server.port).parse().unwrap(),
         config.io.io_worker_threads,
+        config,
+        player_count,
     );
     ioman
 }
 
 /// Initializes the Specs world.
-fn init_world<'a, 'b>(config: Config, ioman: io::NetworkIoManager) -> (World, Dispatcher<'a, 'b>) {
+fn init_world<'a, 'b>(
+    config: Arc<Config>,
+    player_count: Arc<PlayerCount>,
+    ioman: io::NetworkIoManager,
+) -> (World, Dispatcher<'a, 'b>) {
     let mut world = World::new();
     world.insert(config);
+    world.insert(player_count);
     world.insert(ioman);
     world.insert(TickCount::default());
 
@@ -117,7 +129,16 @@ fn init_world<'a, 'b>(config: Config, ioman: io::NetworkIoManager) -> (World, Di
             "player_movement",
             &["network"],
         )
-        .with(player::ChunkSendSystem, "chunk_send", &["chunk_load"])
+        .with(
+            player::ChunkSendSystem::new(),
+            "chunk_send",
+            &["chunk_load"],
+        )
+        .with(
+            joinhandler::JoinHandlerSystem,
+            "join)handler",
+            &["chunk_send"],
+        )
         .build();
 
     dispatcher.setup(&mut world);

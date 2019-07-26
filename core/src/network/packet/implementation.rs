@@ -565,7 +565,7 @@ impl Packet for EncryptionRequest {
     fn write_to(&self, mut buf: &mut ByteBuf) {
         buf.write_string(self.server_id.as_str());
 
-        buf.write_var_int(self.public_key.len()) as i32;
+        buf.write_var_int(self.public_key.len() as i32);
         buf.write(&self.public_key);
 
         buf.write_var_int(self.verify_token.len() as i32);

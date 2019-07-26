@@ -1,0 +1,156 @@
+//! The join handler, in contrast to the initial handler,
+//! takes over after the login sequence has completed.
+//! It's responsible for asyncrhonously loading the player's
+//! data (inventory, chunks, etc.) and then sending the necessary
+//! packets to join the player. After completion, the component is
+//! removed.
+
+use crate::chunkclient::{ChunkLoadEvent, ChunkWorkerHandle};
+use crate::config::Config;
+use crate::network::NetworkComponent;
+use crate::player::ChunkPendingComponent;
+use crate::PlayerCount;
+use feather_core::network::packet::implementation::{
+    JoinGame, PlayerPositionAndLookClientbound, SpawnPosition,
+};
+use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
+use feather_core::{Difficulty, Dimension, Gamemode};
+use shrev::EventChannel;
+use specs::{
+    Component, Entities, HashMapStorage, Join, LazyUpdate, Read, ReadStorage, ReaderId, System,
+    World, WriteStorage,
+};
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
+
+/// For now, we use a fixed spawn position.
+/// In the future, the spawn position should
+/// be loaded asynchronously from the world save.
+const SPAWN_POSITION: Position = Position {
+    x: 0.0,
+    y: 64.0,
+    z: 0.0,
+    pitch: 0.0,
+    yaw: 0.0,
+};
+
+/// See `SPAWN_POSITION`
+const COMPASS_SPAWN_POSITION: BlockPosition = BlockPosition { x: 0, y: 64, z: 0 };
+
+pub struct JoinHandlerComponent {
+    stage: Stage,
+}
+
+impl JoinHandlerComponent {
+    pub fn new() -> Self {
+        Self {
+            stage: Stage::Initial,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum Stage {
+    Initial,
+    AwaitChunkSends,
+}
+
+impl Component for JoinHandlerComponent {
+    type Storage = HashMapStorage<Self>;
+}
+
+/// System for join handling.
+pub struct JoinHandlerSystem;
+
+impl<'a> System<'a> for JoinHandlerSystem {
+    type SystemData = (
+        WriteStorage<'a, JoinHandlerComponent>,
+        ReadStorage<'a, NetworkComponent>,
+        ReadStorage<'a, ChunkPendingComponent>,
+        Read<'a, ChunkWorkerHandle>,
+        Entities<'a>,
+        Read<'a, LazyUpdate>,
+        Read<'a, Arc<Config>>,
+        Read<'a, Arc<PlayerCount>>,
+        Read<'a, ChunkMap>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (
+            mut joincomps,
+            netcomps,
+            pending_chunks,
+            worker_handle,
+            entities,
+            lazy,
+            config,
+            player_count,
+            chunk_map,
+        ) = data;
+
+        let mut to_remove = vec![];
+
+        for (player, net, join_handler) in (&entities, &netcomps, &mut joincomps).join() {
+            match join_handler.stage {
+                Stage::Initial => {
+                    // Send Join Game, then queue chunks for loading + sending.
+                    let join_game = JoinGame::new(
+                        player.id() as i32,
+                        Gamemode::Creative.get_id(),
+                        Dimension::Overwold.get_id(),
+                        Difficulty::Medium.get_id(),
+                        0,                     // Max players - not used
+                        "default".to_string(), // Level type
+                        false,                 // Reduced debug info
+                    );
+                    crate::network::send_packet_to_player(net, join_game);
+
+                    // Queue chunks
+                    let view_distance = config.server.view_distance as i32;
+                    for x in -view_distance..=view_distance {
+                        for y in -view_distance..=view_distance {
+                            let pos = ChunkPosition::new(x, y);
+                            crate::player::send_chunk_to_player(
+                                pos,
+                                net,
+                                player,
+                                &chunk_map,
+                                &worker_handle,
+                                &lazy,
+                            );
+                        }
+                    }
+
+                    // Increment player count
+                    player_count.0.fetch_add(1, Ordering::SeqCst);
+
+                    join_handler.stage = Stage::AwaitChunkSends;
+                }
+                Stage::AwaitChunkSends => {
+                    // If 0 chunks have yet to be sent, join the player by sending spawn position.
+                    // See https://wiki.vg/Protocol_FAQ
+                    let spawn_position = SpawnPosition::new(COMPASS_SPAWN_POSITION);
+                    crate::network::send_packet_to_player(net, spawn_position);
+
+                    let position_and_look = PlayerPositionAndLookClientbound::new(
+                        SPAWN_POSITION.x,
+                        SPAWN_POSITION.y,
+                        SPAWN_POSITION.z,
+                        SPAWN_POSITION.yaw,
+                        SPAWN_POSITION.pitch,
+                        0, // Flags - unused by us
+                        0, // Teleport ID - unused by us
+                    );
+                    crate::network::send_packet_to_player(net, position_and_look);
+
+                    // We're finished here.
+                    to_remove.push(player);
+                }
+            }
+        }
+
+        to_remove.into_iter().for_each(|player| {
+            joincomps.remove(player);
+        });
+    }
+}

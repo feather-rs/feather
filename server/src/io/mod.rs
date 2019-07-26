@@ -1,6 +1,9 @@
+use crate::config::Config;
+use crate::PlayerCount;
 use feather_core::network::packet::Packet;
 use mio_extras::channel::{channel, Receiver, Sender};
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::thread;
 use uuid::Uuid;
 
@@ -47,7 +50,12 @@ pub struct NetworkIoManager {
 impl NetworkIoManager {
     /// Starts a new IO event loop with the specified number
     /// of worker threads.
-    pub fn start(addr: SocketAddr, num_worker_threads: u16) -> Self {
+    pub fn start(
+        addr: SocketAddr,
+        num_worker_threads: u16,
+        config: Arc<Config>,
+        player_count: Arc<PlayerCount>,
+    ) -> Self {
         info!(
             "Starting IO event loop on {} with {} worker threads",
             addr, num_worker_threads
@@ -57,8 +65,10 @@ impl NetworkIoManager {
         for _ in 0..num_worker_threads {
             let (send1, recv1) = channel();
             let (send2, recv2) = channel();
+            let player_count = Arc::clone(&player_count);
+            let config = Arc::clone(&config);
 
-            thread::spawn(move || worker::start(recv1, send2));
+            thread::spawn(move || worker::start(recv1, send2, config, player_count));
             workers.push((send1, recv2));
         }
 
@@ -83,6 +93,6 @@ impl NetworkIoManager {
 
 impl Default for NetworkIoManager {
     fn default() -> Self {
-        Self::start("127.0.0.1:25565".parse().unwrap(), 8)
+        panic!("Nope, don't call default() on the IO manager. That won't work.");
     }
 }

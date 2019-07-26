@@ -19,13 +19,13 @@ use crate::io::NewClientInfo;
 use crate::{PlayerCount, PROTOCOL_VERSION, SERVER_VERSION};
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
-    EncryptionRequest, EncryptionResponse, Handshake, HandshakeState, LoginStart, LoginSuccess,
-    Ping, Pong, Request, Response,
+    DisconnectLogin, EncryptionRequest, EncryptionResponse, Handshake, HandshakeState, LoginStart,
+    LoginSuccess, Ping, Pong, Request, Response, SetCompression,
 };
-use feather_core::network::packet::PacketType::DisconnectLogin;
 use feather_core::network::packet::{Packet, PacketType};
 use openssl::pkey::Private;
 use openssl::rsa::{Padding, Rsa};
+use std::str::FromStr;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -42,6 +42,7 @@ const RSA_KEY_BITS: u32 = 1024;
 const SHARED_SECRET_LEN: usize = 128 / 8;
 
 /// The type returned for when a player has completed the login process.
+#[derive(Clone, Debug)]
 pub struct JoinResult {
     pub username: String,
     pub uuid: Uuid,
@@ -137,6 +138,11 @@ impl InitialHandler {
         if let Err(e) = _handle_packet(self, packet) {
             // Disconnect
             disconnect_login(self, &format!("{}", e));
+            info!(
+                "Player {} disconnected: {}",
+                self.username.as_ref().unwrap_or(&"unknown".to_string()),
+                e
+            );
         }
     }
 
@@ -203,7 +209,7 @@ impl InitialHandler {
     /// If `Some` is returned, no further calls to `handle_packet`
     /// should be made.
     pub fn should_join(&self) -> Option<JoinResult> {
-        self.info
+        self.info.clone()
     }
 }
 
@@ -257,7 +263,7 @@ fn handle_request(ih: &mut InitialHandler, packet: &Request) -> Result<(), Error
         },
         "players": {
             "max": ih.config.server.max_players,
-            "online": ih.player_count.load(Ordering::SeqCst),
+            "online": ih.player_count.0.load(Ordering::SeqCst),
         },
         "description": {
             "text": ih.config.server.motd,
@@ -298,7 +304,7 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
     if ih.config.server.online_mode {
         // Enable encryption
         let encryption_request = EncryptionRequest::new(
-            "", // Server ID - always empty
+            "".to_string(), // Server ID - always empty
             ih.rsa.public_key_to_der().unwrap(),
             ih.verify_token.to_vec(),
         );
@@ -308,7 +314,7 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
     } else {
         // Finished - set info and join
         ih.info = Some(JoinResult {
-            username: ih.username.unwrap(),
+            username: ih.username.clone().unwrap(),
             uuid: Uuid::new_v4(),
             props: vec![],
         });
@@ -341,7 +347,34 @@ fn handle_encryption_response(
     }
 
     // Enable encryption
-    ih.key = Some(shared_secret[..SHARED_SECRET_LEN].clone());
+    let mut key = [0u8; SHARED_SECRET_LEN];
+    for (i, x) in shared_secret[..SHARED_SECRET_LEN].into_iter().enumerate() {
+        key[i] = *x;
+    }
+
+    ih.key = Some(key);
+
+    // Perform authentication
+    let auth_result = mojang_api::server_auth(
+        ih.username.as_ref().unwrap(),
+        &mojang_api::server_hash(
+            "",
+            ih.key.clone().unwrap(),
+            ih.rsa.public_key_to_der().unwrap().as_slice(),
+        ),
+    );
+
+    match auth_result {
+        Ok(auth) => {
+            let info = JoinResult {
+                username: auth.name,
+                uuid: Uuid::from_str(&auth.id).unwrap(),
+                props: auth.properties,
+            };
+            ih.info = Some(info);
+        }
+        Err(_) => return Err(Error::AuthenticationFailed),
+    }
 
     finish(ih);
 
@@ -406,7 +439,7 @@ fn check_stage(ih: &InitialHandler, expected: Stage, packet_ty: PacketType) -> R
 
 /// Disconnects the initial handler, sending
 /// a disconnect packet containing the reason.
-fn disconnect_login(ih: &mut IntitialHandler, reason: &str) {
+fn disconnect_login(ih: &mut InitialHandler, reason: &str) {
     ih.should_disconnect = true;
 
     let json = json!({
@@ -419,7 +452,7 @@ fn disconnect_login(ih: &mut IntitialHandler, reason: &str) {
 }
 
 /// Adds a packet to the internal packet queue.
-fn send_packet<P: Packet>(ih: &mut InitialHandler, packet: P) {
+fn send_packet<P: Packet + 'static>(ih: &mut InitialHandler, packet: P) {
     ih.packets_to_send.push(Box::new(packet));
 }
 
@@ -430,6 +463,7 @@ enum Error {
     BadEncryption,
     VerifyTokenMismatch,
     BadSecretLength,
+    AuthenticationFailed,
 }
 
 impl std::fmt::Display for Error {
@@ -448,6 +482,7 @@ impl std::fmt::Display for Error {
             Error::BadEncryption => write!(f, "Failed to decrypt value")?,
             Error::VerifyTokenMismatch => write!(f, "Verify token does not match")?,
             Error::BadSecretLength => write!(f, "Invalid shared secret length")?,
+            Error::AuthenticationFailed => write!(f, "Authentication failed")?,
         }
 
         Ok(())

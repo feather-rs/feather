@@ -2,7 +2,7 @@
 //! relating to players, including player movement
 //! and inventory handling.
 
-use crate::chunkclient::ChunkWorkerHandle;
+use crate::chunkclient::{ChunkLoadEvent, ChunkWorkerHandle};
 use crate::entity::{broadcast_entity_movement, EntityComponent, PlayerComponent};
 use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue};
 use feather_core::network::cast_packet;
@@ -14,11 +14,13 @@ use feather_core::world::chunk::Chunk;
 use feather_core::world::{ChunkMap, ChunkPosition, Position};
 use hashbrown::HashSet;
 use rayon::prelude::*;
+use shrev::EventChannel;
 use specs::storage::BTreeStorage;
 use specs::{
-    Component, Entities, Entity, LazyUpdate, ParJoin, Read, ReadStorage, System, WorldExt,
-    WriteStorage,
+    Component, Entities, Entity, LazyUpdate, ParJoin, Read, ReadStorage, ReaderId, System, World,
+    WorldExt, WriteStorage,
 };
+use std::ops::{Deref, DerefMut};
 
 /// System for handling player movement
 /// packets.
@@ -111,40 +113,75 @@ pub struct ChunkPendingComponent {
     pub pending: HashSet<ChunkPosition>,
 }
 
+impl Deref for ChunkPendingComponent {
+    type Target = HashSet<ChunkPosition>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pending
+    }
+}
+
+impl DerefMut for ChunkPendingComponent {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.pending
+    }
+}
+
 impl Component for ChunkPendingComponent {
     type Storage = BTreeStorage<Self>;
 }
 
 /// System for sending chunks to players once they're loaded.
-pub struct ChunkSendSystem;
+///
+/// This system listens to `ChunkLoadEvent`s.
+pub struct ChunkSendSystem {
+    load_event_reader: Option<ReaderId<ChunkLoadEvent>>,
+}
+
+impl ChunkSendSystem {
+    pub fn new() -> Self {
+        Self {
+            load_event_reader: None,
+        }
+    }
+}
 
 impl<'a> System<'a> for ChunkSendSystem {
     type SystemData = (
         WriteStorage<'a, ChunkPendingComponent>,
         ReadStorage<'a, NetworkComponent>,
         Read<'a, ChunkMap>,
+        Read<'a, EventChannel<ChunkLoadEvent>>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut pendings, netcomps, chunk_map) = data;
+        let (mut pendings, netcomps, chunk_map, load_events) = data;
 
-        (&mut pendings, &netcomps)
-            .par_join()
-            .for_each(|(pending, net)| {
-                let mut to_remove = vec![];
-                for pos in &pending.pending {
-                    if let Some(chunk) = chunk_map.chunk_at(*pos) {
-                        // Chunk has been loaded - send it
-                        to_remove.push(*pos);
-
+        for event in load_events.read(&mut self.load_event_reader.as_mut().unwrap()) {
+            // TODO perhaps this is slightly inefficient?
+            (&netcomps, &mut pendings)
+                .par_join()
+                .for_each(|(net, pending)| {
+                    if pending.contains(&event.pos) {
+                        // It's safe to unwrap the chunk value now,
+                        // because we know it's been loaded.
+                        let chunk = chunk_map.chunk_at(event.pos).unwrap();
                         send_chunk_data(chunk, net);
-                    }
-                }
 
-                to_remove.into_iter().for_each(|pos| {
-                    pending.pending.remove(&pos);
+                        pending.remove(&event.pos);
+                    }
                 });
-            });
+        }
+    }
+
+    fn setup(&mut self, world: &mut World) {
+        use specs::SystemData;
+        Self::SystemData::setup(world);
+        self.load_event_reader = Some(
+            world
+                .fetch_mut::<EventChannel<ChunkLoadEvent>>()
+                .register_reader(),
+        );
     }
 }
 
