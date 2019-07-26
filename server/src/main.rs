@@ -77,7 +77,7 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
 
         // Sleep correct amount
         let end_time = current_time_in_millis();
-        let elapsed = start_time - end_time;
+        let elapsed = end_time - start_time;
         if elapsed > TICK_TIME {
             continue; // Behind - start next tick immediately
         }
@@ -136,9 +136,10 @@ fn init_world<'a, 'b>(
         )
         .with(
             joinhandler::JoinHandlerSystem,
-            "join)handler",
+            "join_handler",
             &["chunk_send"],
         )
+        .with(player::PlayerInitSystem::new(), "player_init", &["network"])
         .build();
 
     dispatcher.setup(&mut world);

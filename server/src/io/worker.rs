@@ -201,17 +201,16 @@ fn disconnect_client(worker: &mut Worker, client_id: Client) {
         return;
     }
 
-    worker
-        .poll
-        .deregister(client.receiver.as_ref().unwrap())
-        .unwrap();
     worker.poll.deregister(&client.stream).unwrap();
 
-    let _ = client
-        .sender
-        .as_ref()
-        .unwrap()
-        .send(ServerToWorkerMessage::NotifyDisconnect);
+    if let Some(sender) = client.sender.as_ref() {
+        worker
+            .poll
+            .deregister(client.receiver.as_ref().unwrap())
+            .unwrap();
+
+        let _ = sender.send(ServerToWorkerMessage::NotifyDisconnect);
+    }
 
     debug!("Disconnecting client {}", client_id.0);
 

@@ -4,7 +4,8 @@
 
 use crate::chunkclient::{ChunkLoadEvent, ChunkWorkerHandle};
 use crate::entity::{broadcast_entity_movement, EntityComponent, PlayerComponent};
-use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue};
+use crate::joinhandler::SPAWN_POSITION;
+use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue, PlayerJoinEvent};
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
     ChunkData, PlayerLook, PlayerPosition, PlayerPositionAndLookServerbound,
@@ -12,6 +13,7 @@ use feather_core::network::packet::implementation::{
 use feather_core::network::packet::{Packet, PacketType};
 use feather_core::world::chunk::Chunk;
 use feather_core::world::{ChunkMap, ChunkPosition, Position};
+use feather_core::Gamemode;
 use hashbrown::HashSet;
 use rayon::prelude::*;
 use shrev::EventChannel;
@@ -129,6 +131,66 @@ impl DerefMut for ChunkPendingComponent {
 
 impl Component for ChunkPendingComponent {
     type Storage = BTreeStorage<Self>;
+}
+
+/// System for initializing the necessary components
+/// when a player joins.
+pub struct PlayerInitSystem {
+    join_event_reader: Option<ReaderId<PlayerJoinEvent>>,
+}
+
+impl PlayerInitSystem {
+    pub fn new() -> Self {
+        Self {
+            join_event_reader: None,
+        }
+    }
+}
+
+impl<'a> System<'a> for PlayerInitSystem {
+    type SystemData = (
+        Read<'a, EventChannel<PlayerJoinEvent>>,
+        WriteStorage<'a, PlayerComponent>,
+        WriteStorage<'a, EntityComponent>,
+        WriteStorage<'a, ChunkPendingComponent>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (events, mut player_comps, mut entity_comps, mut chunk_pending_comps) = data;
+
+        // Run through events
+        for event in events.read(&mut self.join_event_reader.as_mut().unwrap()) {
+            let player_comp = PlayerComponent {
+                profile_properties: event.profile_properties.clone(),
+                gamemode: Gamemode::Creative,
+            };
+            player_comps.insert(event.player, player_comp);
+
+            let entity_comp = EntityComponent {
+                uuid: event.uuid.clone(),
+                display_name: event.username.clone(),
+                position: SPAWN_POSITION,
+                on_ground: true,
+            };
+            entity_comps.insert(event.player, entity_comp);
+
+            let chunk_pending_comp = ChunkPendingComponent {
+                pending: HashSet::new(),
+            };
+            chunk_pending_comps.insert(event.player, chunk_pending_comp);
+        }
+    }
+
+    fn setup(&mut self, world: &mut World) {
+        use specs::SystemData;
+        Self::SystemData::setup(world);
+
+        self.join_event_reader = Some(
+            world
+                .fetch_mut::<EventChannel<PlayerJoinEvent>>()
+                .register_reader(),
+        );
+    }
 }
 
 /// System for sending chunks to players once they're loaded.

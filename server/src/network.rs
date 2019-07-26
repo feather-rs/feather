@@ -1,11 +1,12 @@
 use crate::entity::{EntityComponent, PlayerComponent};
-use crate::io::{NetworkIoManager, ServerToListenerMessage, ServerToWorkerMessage};
+use crate::io::{NetworkIoManager, NewClientInfo, ServerToListenerMessage, ServerToWorkerMessage};
 use crate::joinhandler::JoinHandlerComponent;
 use crate::prelude::*;
 use crate::TickCount;
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 use mio_extras::channel::{Receiver, Sender};
+use shrev::EventChannel;
 use specs::{
     Component, DenseVecStorage, Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System,
     WorldExt, Write, WriteStorage,
@@ -109,10 +110,19 @@ impl Component for NetworkComponent {
 /// other systems can handle them.
 pub struct NetworkSystem;
 
+/// Event which is triggered when a player joins.
+pub struct PlayerJoinEvent {
+    pub player: Entity,
+    pub username: String,
+    pub uuid: Uuid,
+    pub profile_properties: Vec<mojang_api::ServerAuthProperty>,
+}
+
 impl<'a> System<'a> for NetworkSystem {
     type SystemData = (
         WriteStorage<'a, NetworkComponent>,
         ReadStorage<'a, PlayerComponent>,
+        Write<'a, EventChannel<PlayerJoinEvent>>,
         Write<'a, PacketQueue>,
         Read<'a, NetworkIoManager>,
         Entities<'a>,
@@ -121,7 +131,16 @@ impl<'a> System<'a> for NetworkSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut netcomps, pcomps, packet_queue, ioman, entities, tick_count, lazy) = data;
+        let (
+            mut netcomps,
+            pcomps,
+            mut join_events,
+            packet_queue,
+            ioman,
+            entities,
+            tick_count,
+            lazy,
+        ) = data;
         // Poll for new connections
         while let Ok(msg) = ioman.receiver.try_recv() {
             match msg {
@@ -142,6 +161,15 @@ impl<'a> System<'a> for NetworkSystem {
                             .insert(new_entity, join_handler)
                             .unwrap();
                     });
+
+                    // Queue event
+                    let event = PlayerJoinEvent {
+                        player: new_entity,
+                        username: info.username.clone(),
+                        uuid: info.uuid.clone(),
+                        profile_properties: info.profile.clone(),
+                    };
+                    join_events.single_write(event);
                 }
                 _ => panic!("Network system received invalid message from IO listener"),
             }

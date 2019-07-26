@@ -26,7 +26,7 @@ use std::sync::Arc;
 /// For now, we use a fixed spawn position.
 /// In the future, the spawn position should
 /// be loaded asynchronously from the world save.
-const SPAWN_POSITION: Position = Position {
+pub const SPAWN_POSITION: Position = Position {
     x: 0.0,
     y: 64.0,
     z: 0.0,
