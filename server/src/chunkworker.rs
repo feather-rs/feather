@@ -16,7 +16,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 pub type Reply = (ChunkPosition, Result<Chunk, Error>);
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Request {
     LoadChunk(ChunkPosition),
     ShutDown,

@@ -1,6 +1,6 @@
 use std::fs::read_to_string;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Config {
     pub io: IO,
     pub proxy: Proxy,
@@ -9,16 +9,45 @@ pub struct Config {
     pub log: Log,
 }
 
-#[derive(Deserialize, Debug)]
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            io: IO {
+                compression_threshold: 256,
+                io_worker_threads: 4,
+            },
+            proxy: Proxy {},
+            server: Server {
+                online_mode: true,
+                motd: "A Feather server".to_string(),
+                max_players: 256,
+                view_distance: 6,
+                address: "126.0.0.1".to_string(),
+                port: 25565,
+            },
+            gameplay: Gameplay {
+                monster_spawning: true,
+                animal_spawning: true,
+                pvp: true,
+                nerf_spawner_mobs: false,
+            },
+            log: Log {
+                level: "debug".to_string(),
+            },
+        }
+    }
+}
+
+#[derive(Deserialize, Debug, Clone)]
 pub struct IO {
     pub compression_threshold: i32,
     pub io_worker_threads: u16,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Proxy {}
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Server {
     pub online_mode: bool,
     pub motd: String,
@@ -28,7 +57,7 @@ pub struct Server {
     pub port: u16,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Gameplay {
     pub monster_spawning: bool,
     pub animal_spawning: bool,
@@ -36,7 +65,7 @@ pub struct Gameplay {
     pub nerf_spawner_mobs: bool,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Log {
     pub level: String,
 }
@@ -54,7 +83,7 @@ pub fn load(input: String) -> Result<Config, ()> {
     Ok(config)
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub enum ProxyMode {
     None,
     Bungee,

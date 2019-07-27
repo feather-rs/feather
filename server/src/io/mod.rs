@@ -1,8 +1,13 @@
+use crate::config::Config;
+use crate::PlayerCount;
 use feather_core::network::packet::Packet;
 use mio_extras::channel::{channel, Receiver, Sender};
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::thread;
+use uuid::Uuid;
 
+mod initialhandler;
 mod listener;
 mod worker;
 
@@ -14,9 +19,6 @@ pub enum ServerToWorkerMessage {
     NotifyPacketReceived(Box<Packet>),
     NotifyDisconnect,
     Disconnect,
-
-    EnableCompression(usize),
-    EnableEncryption([u8; 16]),
 }
 
 pub enum ServerToListenerMessage {
@@ -32,6 +34,9 @@ pub enum ListenerToWorkerMessage {
 
 pub struct NewClientInfo {
     pub ip: SocketAddr,
+    pub username: String,
+    pub profile: Vec<mojang_api::ServerAuthProperty>,
+    pub uuid: Uuid,
 
     pub sender: Sender<ServerToWorkerMessage>,
     pub receiver: Receiver<ServerToWorkerMessage>,
@@ -45,7 +50,12 @@ pub struct NetworkIoManager {
 impl NetworkIoManager {
     /// Starts a new IO event loop with the specified number
     /// of worker threads.
-    pub fn start(addr: SocketAddr, num_worker_threads: u16) -> Self {
+    pub fn start(
+        addr: SocketAddr,
+        num_worker_threads: u16,
+        config: Arc<Config>,
+        player_count: Arc<PlayerCount>,
+    ) -> Self {
         info!(
             "Starting IO event loop on {} with {} worker threads",
             addr, num_worker_threads
@@ -55,8 +65,10 @@ impl NetworkIoManager {
         for _ in 0..num_worker_threads {
             let (send1, recv1) = channel();
             let (send2, recv2) = channel();
+            let player_count = Arc::clone(&player_count);
+            let config = Arc::clone(&config);
 
-            thread::spawn(move || worker::start(recv1, send2));
+            thread::spawn(move || worker::start(recv1, send2, config, player_count));
             workers.push((send1, recv2));
         }
 
@@ -76,5 +88,11 @@ impl NetworkIoManager {
         self.sender.send(msg).unwrap();
 
         info!("Shut down IO event loop");
+    }
+}
+
+impl Default for NetworkIoManager {
+    fn default() -> Self {
+        panic!("Nope, don't call default() on the IO manager. That won't work.");
     }
 }

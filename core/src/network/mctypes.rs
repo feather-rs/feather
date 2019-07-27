@@ -1,4 +1,4 @@
-use crate::bytebuf::{BufMutAlloc, ByteBuf};
+use crate::bytebuf::{BufMutAlloc, BufResulted, ByteBuf};
 use crate::prelude::*;
 use crate::world::BlockPosition;
 use bytes::Buf;
@@ -110,7 +110,7 @@ impl<T: Buf + Read> McTypeRead for T {
             if self.remaining() == 0 {
                 return Err(());
             }
-            let read = self.get_u8();
+            let read = self.read_u8()?;
             let value = read & 0b01111111;
             result |= (value as i32) << (7 * num_read);
 
@@ -149,7 +149,7 @@ impl<T: Buf + Read> McTypeRead for T {
         if self.remaining() < 8 {
             return Err(());
         }
-        let val = self.get_u64_be();
+        let val = self.read_i64_be()?;
         let x = val >> 38;
         let y = (val >> 26) & 0xFFF;
         let z = val << 38 >> 38;
@@ -158,7 +158,7 @@ impl<T: Buf + Read> McTypeRead for T {
     }
 
     fn read_bool(&mut self) -> Result<bool, ()> {
-        let byte = self.get_u8();
+        let byte = self.read_u8()?;
         match byte {
             0 => Ok(false),
             1 => Ok(true),

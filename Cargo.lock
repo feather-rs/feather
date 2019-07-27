@@ -399,7 +399,7 @@ dependencies = [
 name = "feather_client_core"
 version = "0.1.0"
 dependencies = [
- "feather_core 0.1.0",
+ "feather_core 0.3.0",
 ]
 
 [[package]]
@@ -421,7 +421,7 @@ dependencies = [
 
 [[package]]
 name = "feather_core"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -444,27 +444,29 @@ dependencies = [
 
 [[package]]
 name = "feather_server"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossbeam 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "derive-new 0.5.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "feather_blocks 0.1.0",
- "feather_core 0.1.0",
+ "feather_core 0.3.0",
  "hashbrown 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "mio 0.6.19 (registry+https://github.com/rust-lang/crates.io-index)",
- "mio-extras 2.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mio-extras 2.0.5 (git+https://github.com/caelunshun/mio-extras?rev=e5dca5d)",
  "mockers 0.21.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "mockers_derive 0.21.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "mojang-api 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "multimap 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.10.23 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rayon 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rnbt 0.1.0 (git+https://github.com/caelunshun/rnbt)",
  "serde 1.0.94 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.94 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.40 (registry+https://github.com/rust-lang/crates.io-index)",
+ "shrev 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "simple_logger 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -862,8 +864,9 @@ dependencies = [
 [[package]]
 name = "mio-extras"
 version = "2.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/caelunshun/mio-extras?rev=e5dca5d#e5dca5d385b6e111810330a315b1fb2ae9bff244"
 dependencies = [
+ "crossbeam 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazycell 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "mio 0.6.19 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2076,7 +2079,7 @@ dependencies = [
 "checksum miniz_oxide 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "b6c3756d66cf286314d5f7ebe74886188a9a92f5eee68b06f31ac2b4f314c99d"
 "checksum miniz_oxide_c_api 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "5b78ca5446dd9fe0dab00e058731b6b08a8c1d2b9cdb8efb10876e24e9ae2494"
 "checksum mio 0.6.19 (registry+https://github.com/rust-lang/crates.io-index)" = "83f51996a3ed004ef184e16818edc51fadffe8e7ca68be67f9dee67d84d0ff23"
-"checksum mio-extras 2.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "46e73a04c2fa6250b8d802134d56d554a9ec2922bf977777c805ea5def61ce40"
+"checksum mio-extras 2.0.5 (git+https://github.com/caelunshun/mio-extras?rev=e5dca5d)" = "<none>"
 "checksum miow 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8c1f2f3b1cf331de6896aabf6e9d55dca90356cc9960cca7eaaf408a355ae919"
 "checksum mockers 0.21.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8bf36d14570661eebd299640fff1fae157c6d7da34bcbf4e4eba1c3b47b46ec9"
 "checksum mockers_derive 0.21.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a53c3de46bf8e9cbe2b80e5086bbc8659bdf508c3719d50c2f366c9368d5726c"

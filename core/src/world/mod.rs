@@ -65,7 +65,7 @@ impl ChunkMap {
 
     /// Retrieves the chunk at the specified location.
     /// If the chunk is not loaded, `None` will be returned.
-    pub fn chunk_at(&mut self, pos: ChunkPosition) -> Option<&Chunk> {
+    pub fn chunk_at(&self, pos: ChunkPosition) -> Option<&Chunk> {
         if let Some(chunk) = self.chunk_map.get(&pos) {
             return Some(chunk);
         }
@@ -76,7 +76,7 @@ impl ChunkMap {
     /// Retrieves the block at the specified
     /// location. If the chunk in which the block
     /// exists is not laoded, `None` is returned.
-    pub fn block_at(&mut self, pos: BlockPosition) -> Option<Block> {
+    pub fn block_at(&self, pos: BlockPosition) -> Option<Block> {
         let chunk_pos = pos.chunk_pos();
 
         if let Some(chunk) = self.chunk_at(chunk_pos) {
@@ -91,6 +91,10 @@ impl ChunkMap {
     /// If the chunk in which the position resides
     /// does not exist, `Err` is returned. In all
     /// other cases, `Ok` is returned.
+    ///
+    /// Note that on the server side, calling this function
+    /// does not broadcast the update in any way. As such,
+    /// the according function should be called instead.
     pub fn set_block_at(&mut self, pos: BlockPosition, block: Block) -> Result<(), ()> {
         let chunk_pos = pos.chunk_pos();
 
@@ -102,13 +106,24 @@ impl ChunkMap {
             Err(())
         }
     }
+
+    /// Sets the chunk at the given location.
+    pub fn set_chunk_at(&mut self, pos: ChunkPosition, chunk: Chunk) {
+        self.chunk_map.insert(pos, chunk);
+    }
+}
+
+impl Default for ChunkMap {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
     (
-        (block_pos.x % 16) as usize,
+        block_pos.x as usize & 0xf,
         block_pos.y as usize,
-        (block_pos.z % 16) as usize,
+        block_pos.z as usize & 0xf,
     )
 }
 

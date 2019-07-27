@@ -1,14 +1,82 @@
-use crate::initialhandler::InitialHandlerComponent;
-use crate::io::{ServerToListenerMessage, ServerToWorkerMessage};
-use crate::prelude::*;
-use crate::{add_player, initialhandler as ih, remove_player, Entity, State};
-use feather_blocks::Block;
-use feather_core::entitymeta::{EntityMetadata, MetaEntry};
-use feather_core::network::packet::{implementation::*, Packet, PacketType};
+use std::sync::Mutex;
+
 use mio_extras::channel::{Receiver, Sender};
+use shrev::EventChannel;
+use specs::{
+    Component, DenseVecStorage, Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System,
+    WorldExt, Write, WriteStorage,
+};
+
+use feather_core::network::packet::{implementation::*, Packet, PacketType};
+
+use crate::entity::PlayerComponent;
+use crate::io::{NetworkIoManager, ServerToListenerMessage, ServerToWorkerMessage};
+use crate::joinhandler::JoinHandlerComponent;
+use crate::prelude::*;
+use crate::{disconnect_player_without_packet, TickCount};
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
 //const HEAD_OFFSET: f64 = 1.62; // Offset from feet pos to head pos
+
+/// A component which contains the received packets
+/// for this tick.
+pub struct PacketQueue {
+    queue: Mutex<Vec<Vec<(Entity, Box<Packet>)>>>,
+}
+
+impl PacketQueue {
+    /// Returns the packets queued for handling
+    /// of the given type, draining the queue of this
+    /// type of packet.
+    pub fn for_packet(&self, ty: PacketType) -> Vec<(Entity, Box<Packet>)> {
+        let mut queue = self.queue.lock().unwrap();
+
+        let ordinal = ty.ordinal();
+        if ordinal >= queue.len() {
+            self.expand(&mut queue, ordinal);
+        }
+
+        let mut result = vec![];
+        std::mem::swap(&mut result, queue.get_mut(ordinal).unwrap());
+
+        result
+    }
+
+    /// Expands the internal vector to allow for additional packet types.
+    fn expand(
+        &self,
+        queue: &mut std::sync::MutexGuard<Vec<Vec<(Entity, Box<Packet>)>>>,
+        to: usize,
+    ) {
+        if to < queue.len() {
+            return;
+        }
+
+        for _ in queue.len()..(to + 1) {
+            queue.push(Vec::new());
+        }
+    }
+
+    /// Adds a packet to the queue.
+    pub fn add_for_packet(&self, player: Entity, packet: Box<Packet>) {
+        let mut queue = self.queue.lock().unwrap();
+
+        let ordinal = packet.ty().ordinal();
+        if ordinal >= queue.len() {
+            self.expand(&mut queue, ordinal);
+        }
+
+        queue[ordinal].push((player, packet));
+    }
+}
+
+impl Default for PacketQueue {
+    fn default() -> Self {
+        Self {
+            queue: Mutex::new(vec![]),
+        }
+    }
+}
 
 pub struct NetworkComponent {
     sender: Sender<ServerToWorkerMessage>,
@@ -33,426 +101,146 @@ impl NetworkComponent {
     }
 }
 
-pub fn network_system(state: &mut State) {
-    handle_connections(state);
-
-    send_keep_alives(state);
-
-    poll_for_new_players(state);
+impl Component for NetworkComponent {
+    type Storage = DenseVecStorage<Self>;
 }
 
-fn handle_connections(state: &mut State) {
-    let mut players_to_remove = vec![];
+/// The network system, responsible for
+/// receiving and buffering packets received
+/// from players. Received packets
+/// are added to a queue (`PacketQueue`) so that
+/// other systems can handle them.
+pub struct NetworkSystem;
 
-    for player in state.players.clone() {
-        while let Ok(msg) = state.network_components[player].receiver.try_recv() {
-            match msg {
-                ServerToWorkerMessage::NotifyPacketReceived(packet) => {
-                    if let Some(ih) = state.ih_components.get(player) {
-                        // Skip if initial handler is awaiting chunks
-                        if ih.stage != ih::Stage::AwaitChunkLoad {
-                            if let Err(e) = ih::handle_packet(state, player, packet) {
-                                info!("Disconnecting player: {}", e);
-                                ih::disconnect_login(state, player, &e.to_string());
-                                remove_player(state, player);
-                            }
-                        }
-                    } else {
-                        handle_player_packet(state, player, packet);
-                    }
-                }
-                ServerToWorkerMessage::NotifyDisconnect => {
-                    players_to_remove.push(player);
-                }
-                _ => panic!("Invalid message received from worker thread"),
-            }
-        }
-
-        // Send all pending chunks which have been loaded
-        let mut to_remove = vec![];
-        for (i, chunk_pos) in state.network_components[player]
-            .chunks_to_send
-            .clone()
-            .iter()
-            .enumerate()
-        {
-            if let Some(chunk) = state.chunk_map.chunk_at(*chunk_pos) {
-                let packet = ChunkData::new(chunk.clone());
-                send_packet_to_player(state, player, packet);
-                to_remove.push(i);
-            } else {
-            }
-        }
-        let mut count = 0;
-        for i in to_remove {
-            state.network_components[player]
-                .chunks_to_send
-                .remove(i - count);
-            count += 1;
-        }
-
-        // If the player has yet to receive their spawn position,
-        // send it if all their chunks have been loaded
-        if state.network_components[player].chunks_to_send.is_empty()
-            && state.ih_components.get(player).is_some()
-            && state.ih_components[player].stage == ih::Stage::AwaitChunkLoad
-        {
-            ih::complete_join_game(state, player);
-        }
-    }
-
-    for _player in players_to_remove {
-        remove_player(state, _player);
-    }
+/// Event which is triggered when a player joins
+/// but before the join handler is completed.
+pub struct PlayerPreJoinEvent {
+    pub player: Entity,
+    pub username: String,
+    pub uuid: Uuid,
+    pub profile_properties: Vec<mojang_api::ServerAuthProperty>,
 }
 
-fn handle_player_packet(state: &mut State, player: Entity, packet: Box<Packet>) {
-    match packet.ty() {
-        PacketType::PlayerPositionAndLookServerbound => handle_player_pos_and_look(
-            state,
-            player,
-            cast_packet::<PlayerPositionAndLookServerbound>(&packet),
-        ),
-        PacketType::PlayerPosition => {
-            handle_player_pos(state, player, cast_packet::<PlayerPosition>(&packet));
-        }
-        PacketType::PlayerLook => {
-            handle_player_look(state, player, cast_packet::<PlayerLook>(&packet));
-        }
-        PacketType::PlayerDigging => {
-            handle_player_digging(state, player, cast_packet::<PlayerDigging>(&packet));
-        }
-        _ => (), // TODO
-    }
-}
-
-// TODO proper validation of new position
-
-fn handle_player_pos_and_look(
-    state: &mut State,
-    player: Entity,
-    packet: &PlayerPositionAndLookServerbound,
-) {
-    let ecomp = &state.entity_components[player];
-    let old_pos = ecomp.position;
-
-    let new_pos = Position::new(packet.x, packet.feet_y, packet.z, packet.pitch, packet.yaw);
-
-    broadcast_entity_movement(state, player, old_pos, new_pos, true, true);
-
-    state.entity_components[player].position = new_pos;
-}
-
-fn handle_player_pos(state: &mut State, player: Entity, packet: &PlayerPosition) {
-    let ecomp = &state.entity_components[player];
-    let old_pos = ecomp.position;
-
-    let new_pos = Position::new(
-        packet.x,
-        packet.feet_y,
-        packet.z,
-        old_pos.pitch,
-        old_pos.yaw,
+impl<'a> System<'a> for NetworkSystem {
+    type SystemData = (
+        WriteStorage<'a, NetworkComponent>,
+        ReadStorage<'a, PlayerComponent>,
+        Write<'a, EventChannel<PlayerPreJoinEvent>>,
+        Write<'a, PacketQueue>,
+        Read<'a, NetworkIoManager>,
+        Entities<'a>,
+        Read<'a, TickCount>,
+        Read<'a, LazyUpdate>,
     );
 
-    broadcast_entity_movement(state, player, old_pos, new_pos, true, false);
+    fn run(&mut self, data: Self::SystemData) {
+        let (
+            mut netcomps,
+            pcomps,
+            mut join_events,
+            packet_queue,
+            ioman,
+            entities,
+            tick_count,
+            lazy,
+        ) = data;
+        // Poll for new connections
+        while let Ok(msg) = ioman.receiver.try_recv() {
+            match msg {
+                ServerToListenerMessage::NewClient(info) => {
+                    // New connection - handle it
+                    info!("Accepting connection from {}", info.ip);
+                    let netcomp = NetworkComponent::new(info.sender, info.receiver);
 
-    state.entity_components[player].position = new_pos;
-}
+                    // Create entity
+                    let new_entity = entities.create();
+                    netcomps.insert(new_entity, netcomp).unwrap();
 
-fn handle_player_look(state: &mut State, player: Entity, packet: &PlayerLook) {
-    let ecomp = &state.entity_components[player];
-    let old_pos = ecomp.position;
+                    // Create join handler
+                    let join_handler = JoinHandlerComponent::new();
+                    lazy.exec_mut(move |world| {
+                        world
+                            .write_component::<JoinHandlerComponent>()
+                            .insert(new_entity, join_handler)
+                            .unwrap();
+                    });
 
-    let new_pos = Position::new(old_pos.x, old_pos.y, old_pos.z, packet.pitch, packet.yaw);
-
-    broadcast_entity_movement(state, player, old_pos, new_pos, false, true);
-
-    state.entity_components[player].position = new_pos;
-}
-
-fn handle_player_digging(state: &mut State, player: Entity, packet: &PlayerDigging) {
-    match packet.status {
-        PlayerDiggingStatus::FinishedDigging => {
-            if state
-                .chunk_map
-                .set_block_at(packet.location, Block::Air)
-                .is_err()
-            {
-                // TODO kick player
-            }
-            broadcast_block_update(state, packet.location);
-        }
-        PlayerDiggingStatus::StartedDigging => {
-            let pcomp = &state.player_components[player];
-            if pcomp.gamemode == Gamemode::Creative {
-                // Break block instantly - TODO not with sword in hand
-                if state
-                    .chunk_map
-                    .set_block_at(packet.location, Block::Air)
-                    .is_err()
-                {
-                    // TODO kick player
-                    warn!("Client sent invalid Player Digging packet");
-                    return;
+                    // Queue event
+                    let event = PlayerPreJoinEvent {
+                        player: new_entity,
+                        username: info.username.clone(),
+                        uuid: info.uuid.clone(),
+                        profile_properties: info.profile.clone(),
+                    };
+                    join_events.single_write(event);
                 }
-                broadcast_block_update(state, packet.location);
+                _ => panic!("Network system received invalid message from IO listener"),
             }
         }
-        _ => (), // TODO
-    }
-}
 
-fn send_keep_alives(state: &mut State) {
-    if state.tick_count % TPS != 0 {
-        return; // Only run once per second
-    }
-
-    for player in state.joined_players.clone() {
-        let keep_alive = KeepAliveClientbound::new(0);
-        send_packet_to_player(state, player, keep_alive);
-    }
-}
-
-fn poll_for_new_players(state: &mut State) {
-    while let Ok(msg) = state.io_manager.receiver.try_recv() {
-        match msg {
-            ServerToListenerMessage::NewClient(info) => {
-                debug!("Server registering player");
-                let player = add_player(state);
-                let ih = InitialHandlerComponent::new();
-                state.ih_components.set(player, ih);
-
-                let netc = NetworkComponent::new(info.sender, info.receiver);
-                state.network_components.set(player, netc);
+        // Receive packets + disconnects from players
+        for (player, netcomp) in (&entities, &netcomps).join() {
+            while let Ok(msg) = netcomp.receiver.try_recv() {
+                match msg {
+                    ServerToWorkerMessage::NotifyPacketReceived(packet) => {
+                        packet_queue.add_for_packet(player, packet);
+                    }
+                    ServerToWorkerMessage::NotifyDisconnect => {
+                        // TODO broadcast disconnect
+                        lazy.exec_mut(move |world| {
+                            disconnect_player_without_packet(
+                                player,
+                                world,
+                                "Client disconnected".to_string(),
+                            )
+                        });
+                    }
+                    _ => panic!("Network system received invalid message from IO worker}"),
+                }
             }
-            _ => panic!("Invalid message received from listener thread"),
+        }
+
+        // Send keepalives every second. The dependency on the player
+        // component is required because keepalives should
+        // only be sent to players who have joined (completed
+        // the login process).
+        // TODO check that player hasn't timed out
+        if tick_count.0 % TPS == 0 {
+            for (netcomp, _) in (&netcomps, &pcomps).join() {
+                send_packet_to_player(netcomp, KeepAliveClientbound::new(0));
+            }
         }
     }
 }
 
-pub fn send_packet_to_player<P: Packet + 'static>(state: &State, player: Entity, packet: P) {
-    let comp = &state.network_components[player];
+/// Sends a packet to all (joined) players on the server, excluding
+/// `neq`, if it exists.
+pub fn send_packet_to_all_players<P: Packet + Clone + 'static>(
+    net_comps: &ReadStorage<NetworkComponent>,
+    player_comps: &ReadStorage<PlayerComponent>,
+    entities: &Entities,
+    packet: P,
+    neq: Option<Entity>,
+) {
+    for (entity, net, _) in (entities, net_comps, player_comps).join() {
+        if let Some(e) = neq.as_ref() {
+            if *e == entity {
+                continue; // Exclude this entity
+            }
+        }
+
+        send_packet_to_player(net, packet.clone());
+    }
+}
+
+/// Sends a packet to the given player.
+pub fn send_packet_to_player<P: Packet + 'static>(comp: &NetworkComponent, packet: P) {
     let _ = comp
         .sender
         .send(ServerToWorkerMessage::SendPacket(Box::new(packet)));
 }
 
-pub fn send_packet_boxed_to_player(state: &State, player: Entity, packet: Box<Packet>) {
-    let comp = &state.network_components[player];
+/// Sends a packet to the given player.
+pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<Packet>) {
     let _ = comp.sender.send(ServerToWorkerMessage::SendPacket(packet));
-}
-
-pub fn enable_compression_for_player(state: &State, player: Entity, threshold: usize) {
-    let comp = &state.network_components[player];
-    let _ = comp
-        .sender
-        .send(ServerToWorkerMessage::EnableCompression(threshold));
-}
-
-pub fn enable_encryption_for_player(state: &State, player: Entity, key: [u8; 16]) {
-    let comp = &state.network_components[player];
-    let _ = comp
-        .sender
-        .send(ServerToWorkerMessage::EnableEncryption(key));
-}
-
-pub fn handle_player_remove(state: &mut State, player: Entity) {
-    let comp = &state.network_components[player];
-    let _ = comp.sender.send(ServerToWorkerMessage::Disconnect);
-}
-
-/// Broadcasts to all clients that the specified player
-/// has joined the game. This should be called
-/// whenever a player joins.
-///
-/// This function is currently called by the initial handler.
-pub fn broadcast_player_join(state: &mut State, player: Entity) {
-    let (player_info, spawn_player) = get_player_initialization_packets(state, player);
-
-    for p in &state.joined_players {
-        send_packet_to_player(state, *p, player_info.clone());
-        if *p != player {
-            send_packet_to_player(state, *p, spawn_player.clone());
-        }
-    }
-}
-
-/// Returns the player info and spawn player packets
-/// for the given player.
-pub fn get_player_initialization_packets(
-    state: &State,
-    player: Entity,
-) -> (PlayerInfo, SpawnPlayer) {
-    let entity_comp = state.entity_components.get(player).unwrap();
-    let player_comp = state.player_components.get(player).unwrap();
-
-    let display_name = json!({
-        "text": entity_comp.display_name
-    })
-    .to_string();
-
-    let mut props = vec![];
-    for prop in player_comp.profile_properties.iter() {
-        props.push((
-            prop.name.clone(),
-            prop.value.clone(),
-            prop.signature.clone(),
-        ));
-    }
-
-    let action = PlayerInfoAction::AddPlayer(
-        entity_comp.display_name.clone(),
-        props,
-        Gamemode::Creative,
-        50,
-        display_name,
-    );
-    let player_info = PlayerInfo::new(action, entity_comp.uuid.clone());
-
-    let metadata = EntityMetadata::new().with(&[
-        (0, MetaEntry::Byte(0)),
-        (1, MetaEntry::VarInt(300)),
-        (2, MetaEntry::OptChat(None)),
-        (3, MetaEntry::Boolean(false)),
-        (4, MetaEntry::Boolean(false)),
-        (5, MetaEntry::Boolean(false)),
-        (6, MetaEntry::Byte(0)),
-        (7, MetaEntry::Float(1.0)),
-        (8, MetaEntry::VarInt(0)),
-        (9, MetaEntry::Boolean(false)),
-        (10, MetaEntry::VarInt(0)),
-        (11, MetaEntry::Float(0.0)),
-        (12, MetaEntry::VarInt(0)),
-        (13, MetaEntry::Byte(0)),
-        (14, MetaEntry::Byte(1)),
-        // TODO NBT
-    ]);
-
-    let spawn_player = SpawnPlayer::new(
-        player.index() as i32,
-        entity_comp.uuid.clone(),
-        entity_comp.position.x,
-        entity_comp.position.y,
-        entity_comp.position.z,
-        degrees_to_stops(entity_comp.position.pitch),
-        degrees_to_stops(entity_comp.position.yaw),
-        metadata,
-    );
-
-    (player_info, spawn_player)
-}
-
-/// Broadcasts to all joined players that the
-/// given player has left the server. This should
-/// remove the player from the tablist.
-pub fn broadcast_player_leave(state: &mut State, player: Entity) {
-    let ecomp = &state.entity_components[player];
-
-    let player_info = PlayerInfo::new(PlayerInfoAction::RemovePlayer, ecomp.uuid.clone());
-    send_packet_to_all_players(state, player_info, Some(player));
-
-    let destroy_entities = DestroyEntities::new(vec![player.index() as i32]);
-    send_packet_to_all_players(state, destroy_entities, Some(player));
-}
-
-/// Notifies all players within range
-/// that an entity has moved. This
-/// entity can be a player.
-///
-/// The `has_moved` and `has_moved` fields indicate
-/// whether the entity has moved its position
-/// or changed its pitch/yaw. These values
-/// are used to determine which packet to send:
-/// for example, if an entity has only moved and not looked,
-/// an Entity Relative Move packet is sent
-/// rather than an Entity Look and Relative Move.
-///
-/// In the event that the entity has moved
-/// more than 8 blocks, an Entity Teleport packet
-/// is sent instead.
-pub fn broadcast_entity_movement(
-    state: &mut State,
-    entity: Entity,
-    old_pos: Position,
-    new_pos: Position,
-    has_moved: bool,
-    has_looked: bool,
-) {
-    let ecomp = &state.entity_components[entity];
-
-    let dist = new_pos.distance(old_pos).abs();
-
-    if dist <= 8.0 {
-        if has_moved && has_looked {
-            // Entity Look and Relative Move
-            let (dx, dy, dz) = calculate_relative_move(old_pos, new_pos);
-            let packet = EntityLookAndRelativeMove::new(
-                entity.index() as i32,
-                dx,
-                dy,
-                dz,
-                degrees_to_stops(new_pos.yaw),
-                degrees_to_stops(new_pos.pitch),
-                ecomp.on_ground,
-            );
-            send_packet_to_all_players(state, packet, Some(entity));
-        } else if has_moved {
-            // Entity Relative Move
-            let (dx, dy, dz) = calculate_relative_move(old_pos, new_pos);
-            let packet =
-                EntityRelativeMove::new(entity.index() as i32, dx, dy, dz, ecomp.on_ground);
-            send_packet_to_all_players(state, packet, Some(entity));
-        } else if has_looked {
-            // Entity Look
-            let packet = EntityLook::new(
-                entity.index() as i32,
-                degrees_to_stops(new_pos.yaw),
-                degrees_to_stops(new_pos.pitch),
-                ecomp.on_ground,
-            );
-            send_packet_to_all_players(state, packet, Some(entity));
-        }
-    } else {
-        // TODO
-    }
-
-    // Send Entity Head Look for head yaw
-    if has_looked {
-        let packet = EntityHeadLook::new(entity.index() as i32, degrees_to_stops(new_pos.yaw));
-        send_packet_to_all_players(state, packet, Some(entity));
-    }
-}
-
-pub fn broadcast_block_update(state: &mut State, pos: BlockPosition) {
-    // TODO only send for players in range
-    let block = state.chunk_map.block_at(pos).unwrap();
-    let packet = BlockChange::new(pos, block.block_state_id() as i32);
-
-    send_packet_to_all_players(state, packet, None);
-}
-
-fn send_packet_to_all_players<P: Packet + Clone + 'static>(
-    state: &State,
-    packet: P,
-    neq: Option<Entity>,
-) {
-    for player in &state.joined_players {
-        if neq.is_none() || *player != neq.unwrap() {
-            send_packet_to_player(state, *player, packet.clone());
-        }
-    }
-}
-
-pub fn degrees_to_stops(degs: f32) -> u8 {
-    ((degs / 360.0) * 256.) as u8
-}
-
-/// Calculates the relative move fields
-/// as used in the Entity Relative Move packets.
-pub fn calculate_relative_move(old: Position, current: Position) -> (i16, i16, i16) {
-    let x = ((current.x * 32.0 - old.x * 32.0) * 128.0) as i16;
-    let y = ((current.y * 32.0 - old.y * 32.0) * 128.0) as i16;
-    let z = ((current.z * 32.0 - old.z * 32.0) * 128.0) as i16;
-    (x, y, z)
 }
