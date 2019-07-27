@@ -121,9 +121,9 @@ impl Default for ChunkMap {
 
 fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
     (
-        (block_pos.x % 16) as usize,
+        block_pos.x as usize & 0xf,
         block_pos.y as usize,
-        (block_pos.z % 16) as usize,
+        block_pos.z as usize & 0xf,
     )
 }
 
