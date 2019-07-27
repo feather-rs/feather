@@ -30,7 +30,6 @@ use feather_core::network::packet::implementation::{
 use feather_core::network::packet::{Packet, PacketType};
 
 use crate::config::Config;
-use crate::io::NewClientInfo;
 use crate::{PlayerCount, PROTOCOL_VERSION, SERVER_VERSION};
 
 /// The key used for symmetric encryption.
@@ -336,7 +335,7 @@ fn decrypt_using_rsa(data: &[u8], key: &Rsa<Private>) -> Result<Vec<u8>, Error> 
 
     let len = key
         .private_decrypt(data, &mut buf, Padding::PKCS1)
-        .map_err(|e| Error::BadEncryption)?;
+        .map_err(|_| Error::BadEncryption)?;
 
     buf.truncate(len);
 

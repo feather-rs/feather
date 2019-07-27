@@ -8,17 +8,14 @@ use mio::Event;
 use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
 
 use feather_core::bytebuf::{BufMutAlloc, ByteBuf};
-use feather_core::network::packet::{PacketDirection, PacketType};
+use feather_core::network::packet::PacketDirection;
 use feather_core::network::serialize::ConnectionIOManager;
 
 use crate::config::Config;
 use crate::io::initialhandler::{Action, InitialHandler};
 use crate::PlayerCount;
 
-use super::initialhandler as ih;
 use super::*;
-use feather_core::network::cast_packet;
-use feather_core::network::packet::implementation::PlayerDigging;
 
 // The token used to listen on the channel receiving messages from the listener thread
 const LISTENER_TOKEN: Token = Token(0);

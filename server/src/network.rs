@@ -7,11 +7,10 @@ use specs::{
     WorldExt, Write, WriteStorage,
 };
 
-use feather_core::entitymeta::{EntityMetadata, MetaEntry};
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 
-use crate::entity::{EntityComponent, PlayerComponent};
-use crate::io::{NetworkIoManager, NewClientInfo, ServerToListenerMessage, ServerToWorkerMessage};
+use crate::entity::PlayerComponent;
+use crate::io::{NetworkIoManager, ServerToListenerMessage, ServerToWorkerMessage};
 use crate::joinhandler::JoinHandlerComponent;
 use crate::prelude::*;
 use crate::{disconnect_player_without_packet, TickCount};

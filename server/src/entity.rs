@@ -3,20 +3,16 @@
 //! provide entity-specific components and systems.
 
 use specs::storage::BTreeStorage;
-use specs::{Component, Entities, Entity, LazyUpdate, ReadStorage, VecStorage};
+use specs::{Component, Entities, Entity, ReadStorage, VecStorage};
 use uuid::Uuid;
 
 use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove,
 };
-use feather_core::network::packet::PacketType;
 use feather_core::world::Position;
 use feather_core::Gamemode;
 
-use crate::disconnect_player;
-use crate::network::{
-    send_packet_to_all_players, send_packet_to_player, NetworkComponent, PacketQueue,
-};
+use crate::network::{send_packet_to_all_players, NetworkComponent};
 
 pub struct PlayerComponent {
     pub profile_properties: Vec<mojang_api::ServerAuthProperty>,

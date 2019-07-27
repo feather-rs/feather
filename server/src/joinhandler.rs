@@ -10,18 +10,17 @@ use std::sync::Arc;
 
 use shrev::EventChannel;
 use specs::{
-    Component, Entities, Entity, HashMapStorage, Join, LazyUpdate, Read, ReadStorage, ReaderId,
-    System, World, Write, WriteStorage,
+    Component, Entities, Entity, HashMapStorage, Join, LazyUpdate, Read, ReadStorage, System,
+    Write, WriteStorage,
 };
 
 use feather_core::network::packet::implementation::{
     JoinGame, PlayerPositionAndLookClientbound, SpawnPosition,
 };
-use feather_core::network::packet::PacketType::Player;
 use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
 use feather_core::{Difficulty, Dimension, Gamemode};
 
-use crate::chunkclient::{ChunkLoadEvent, ChunkWorkerHandle};
+use crate::chunkclient::ChunkWorkerHandle;
 use crate::config::Config;
 use crate::network::NetworkComponent;
 use crate::player::ChunkPendingComponent;

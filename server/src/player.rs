@@ -177,7 +177,7 @@ impl<'a> System<'a> for PlayerInitSystem {
                 profile_properties: event.profile_properties.clone(),
                 gamemode: Gamemode::Creative,
             };
-            player_comps.insert(event.player, player_comp);
+            player_comps.insert(event.player, player_comp).unwrap();
 
             let entity_comp = EntityComponent {
                 uuid: event.uuid.clone(),
@@ -185,12 +185,14 @@ impl<'a> System<'a> for PlayerInitSystem {
                 position: SPAWN_POSITION,
                 on_ground: true,
             };
-            entity_comps.insert(event.player, entity_comp);
+            entity_comps.insert(event.player, entity_comp).unwrap();
 
             let chunk_pending_comp = ChunkPendingComponent {
                 pending: HashSet::new(),
             };
-            chunk_pending_comps.insert(event.player, chunk_pending_comp);
+            chunk_pending_comps
+                .insert(event.player, chunk_pending_comp)
+                .unwrap();
         }
     }
 
