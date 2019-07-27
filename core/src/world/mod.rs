@@ -111,6 +111,17 @@ impl ChunkMap {
     pub fn set_chunk_at(&mut self, pos: ChunkPosition, chunk: Chunk) {
         self.chunk_map.insert(pos, chunk);
     }
+
+    /// Returns an immutable reference to the internal map.
+    pub fn chunks(&self) -> &HashMap<ChunkPosition, Chunk> {
+        &self.chunk_map
+    }
+
+    /// Returns a mutable reference to the internal
+    /// map.
+    pub fn chunks_mut(&mut self) -> &mut HashMap<ChunkPosition, Chunk> {
+        &mut self.chunk_map
+    }
 }
 
 impl Default for ChunkMap {

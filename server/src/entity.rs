@@ -73,6 +73,7 @@ impl<'a> System<'a> for EntityDestroyBroadcastSystem {
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
             let destroy_entities = DestroyEntities::new(vec![event.entity.id() as i32]);
 
+            // TODO only broadcast to nearby
             for net in net_comps.join() {
                 send_packet_to_player(net, destroy_entities.clone());
             }

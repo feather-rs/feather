@@ -6,7 +6,9 @@ use specs::{Read, System, World, Write};
 
 use feather_core::world::{ChunkMap, ChunkPosition};
 
-use crate::chunkworker;
+use rayon::prelude::*;
+
+use crate::{chunkworker, current_time_in_millis, TickCount, TPS};
 
 pub struct ChunkWorkerHandle {
     sender: Sender<chunkworker::Request>,
@@ -81,6 +83,58 @@ pub fn load_chunk(handle: &ChunkWorkerHandle, pos: ChunkPosition) {
         .sender
         .send(chunkworker::Request::LoadChunk(pos))
         .unwrap();
+}
+
+/// The interval, in ticks, at which
+/// chunks will be optimized.
+const CHUNK_OPTIMIZE_INTERVAL: u64 = TPS * 60 * 5; // 5 minutes
+
+/// System which optimizes chunks periodically.
+/// This allows for more efficient memory use
+/// at the cost of the occasional CPU spike
+/// when optimization happens.
+///
+/// For optimal performance, this system is fully
+/// concurrent - each chunk optimization is split
+/// into a separate job and fed into `rayon`.
+pub struct ChunkOptimizeSystem;
+
+impl<'a> System<'a> for ChunkOptimizeSystem {
+    type SystemData = (Write<'a, ChunkMap>, Read<'a, TickCount>);
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (mut chunk_map, tick_count) = data;
+
+        // Only run every CHUNK_OPTIMIZE_INTERVAL ticks
+        if tick_count.0 % CHUNK_OPTIMIZE_INTERVAL != 0 {
+            return;
+        }
+
+        let chunks = chunk_map.chunks_mut();
+
+        // Don't run if there aren't any chunks loaded
+        if chunks.len() == 0 {
+            return;
+        }
+
+        debug!("Optimizing chunks");
+
+        let start_time = current_time_in_millis();
+
+        chunks.par_iter_mut().for_each(|(_, chunk)| {
+            chunk.optimize();
+        });
+
+        let end_time = current_time_in_millis();
+        let elapsed = end_time - start_time;
+
+        debug!(
+            "Optimized {} chunks (took {}ms - {:.2}ms/chunk)",
+            chunks.len(),
+            elapsed,
+            elapsed as f64 / chunks.len() as f64
+        );
+    }
 }
 
 #[cfg(test)]

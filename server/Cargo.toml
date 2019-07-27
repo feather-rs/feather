@@ -21,7 +21,7 @@ toml = "0.5.1"
 openssl = { version = "0.10.24", features = ["vendored"] }
 rand = "0.7.0"
 bytes = "0.4.12"
-hashbrown = "0.5.0"
+hashbrown = { version = "0.5.0", features = ["rayon"] }
 mojang-api = "0.1.0"
 multimap = "0.5.0"
 rnbt = { git = "https://github.com/caelunshun/rnbt", version = "0.1.0" }

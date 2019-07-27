@@ -335,9 +335,21 @@ impl ChunkSection {
                         Ok(_) => (),
                         Err(insert_index) => {
                             new_palette.insert(insert_index, block);
-                            self.data.set(block_index(x, y, z), insert_index as u64);
                         }
                     }
+                }
+            }
+        }
+
+        // Recalculate all block IDs to match with the new palette.
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    let block = self.block_at(x, y, z).block_state_id();
+                    self.data.set(
+                        block_index(x, y, z),
+                        new_palette.binary_search(&block).unwrap() as u64,
+                    );
                 }
             }
         }
@@ -345,7 +357,7 @@ impl ChunkSection {
         self.palette = Some(new_palette);
 
         // Recalculate bits per block value.
-        let mut new_bits_per_block = needed_bits((self.palette.as_ref().unwrap().len() - 1) as u64);
+        let mut new_bits_per_block = needed_bits(self.palette.as_ref().unwrap().len() as u64);
         if new_bits_per_block > MAX_BITS_PER_BLOCK {
             self.palette = None;
         } else {

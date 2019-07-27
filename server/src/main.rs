@@ -159,6 +159,7 @@ fn init_world<'a, 'b>(
             "entity_destroy_broadcast",
             &[],
         )
+        .with(chunkclient::ChunkOptimizeSystem, "chunk_optimize", &[])
         .build();
 
     dispatcher.setup(&mut world);
