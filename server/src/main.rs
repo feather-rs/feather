@@ -17,6 +17,8 @@ use prelude::*;
 
 use crate::entity::EntityComponent;
 use crate::network::send_packet_to_player;
+use crate::player::PlayerDisconnectEvent;
+use shrev::EventChannel;
 
 #[global_allocator]
 static ALLOC: System = System;
@@ -147,6 +149,11 @@ fn init_world<'a, 'b>(
             "join_broadcast",
             &["join_handler", "player_init"],
         )
+        .with(
+            player::DisconnectBroadcastSystem::new(),
+            "disconnect_broadcast",
+            &[],
+        )
         .build();
 
     dispatcher.setup(&mut world);
@@ -203,15 +210,28 @@ pub fn disconnect_player(player: Entity, reason: String, lazy: &LazyUpdate) {
 /// Disconnects a player without sending Disconnect Play.
 /// This should be used when the client disconnects.
 pub fn disconnect_player_without_packet(player: Entity, world: &mut World, reason: String) {
-    if let Some(ecomp) = world.read_component::<EntityComponent>().get(player) {
-        info!("Disconnected player {}: {}", ecomp.display_name, reason);
+    {
+        let ecomps = world.write_component::<EntityComponent>();
+        let ecomp = ecomps.get(player).unwrap();
+
+        info!("Disconnecting player {}: {}", ecomp.display_name, reason);
+
+        // Decrement player count
+        let player_count = world.fetch_mut::<Arc<PlayerCount>>();
+        player_count.0.fetch_sub(1, Ordering::SeqCst);
+
+        // Trigger disconnect event
+        let event = PlayerDisconnectEvent {
+            player,
+            uuid: ecomp.uuid.clone(),
+            reason,
+        };
+        world
+            .fetch_mut::<EventChannel<PlayerDisconnectEvent>>()
+            .single_write(event);
     }
 
     world.delete_entity(player).unwrap();
-
-    // Decrement player count
-    let player_count = world.fetch_mut::<Arc<PlayerCount>>();
-    player_count.0.fetch_sub(1, Ordering::SeqCst);
 }
 
 #[cfg(test)]

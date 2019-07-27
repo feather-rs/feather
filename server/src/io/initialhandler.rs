@@ -393,8 +393,6 @@ fn check_stage(ih: &InitialHandler, expected: Stage, packet_ty: PacketType) -> R
 /// Disconnects the initial handler, sending
 /// a disconnect packet containing the reason.
 fn disconnect_login(ih: &mut InitialHandler, reason: &str) {
-    ih.action_queue.push(Action::Disconnect);
-
     let json = json!({
         "text": reason,
     })
@@ -402,6 +400,8 @@ fn disconnect_login(ih: &mut InitialHandler, reason: &str) {
 
     let packet = DisconnectLogin::new(json);
     send_packet(ih, packet);
+
+    ih.action_queue.push(Action::Disconnect);
 }
 
 /// Adds a packet to the internal packet queue.

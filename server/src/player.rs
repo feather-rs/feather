@@ -15,7 +15,7 @@ use specs::{
 
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
-    ChunkData, PlayerInfo, PlayerInfoAction, PlayerLook, PlayerPosition,
+    ChunkData, DestroyEntities, PlayerInfo, PlayerInfoAction, PlayerLook, PlayerPosition,
     PlayerPositionAndLookServerbound, SpawnPlayer,
 };
 use feather_core::network::packet::{Packet, PacketType};
@@ -28,6 +28,14 @@ use crate::entity::{broadcast_entity_movement, EntityComponent, PlayerComponent}
 use crate::joinhandler::{PlayerJoinEvent, SPAWN_POSITION};
 use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue, PlayerPreJoinEvent};
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
+use uuid::Uuid;
+
+/// Event which is called when a player disconnected.
+pub struct PlayerDisconnectEvent {
+    pub player: Entity,
+    pub reason: String,
+    pub uuid: Uuid,
+}
 
 /// System for handling player movement
 /// packets.
@@ -384,6 +392,51 @@ fn get_player_initialization_packets(
     );
 
     (player_info, spawn_player)
+}
+
+/// System for broadcasting when a player disconnects.
+pub struct DisconnectBroadcastSystem {
+    reader: Option<ReaderId<PlayerDisconnectEvent>>,
+}
+
+impl DisconnectBroadcastSystem {
+    pub fn new() -> Self {
+        Self { reader: None }
+    }
+}
+
+impl<'a> System<'a> for DisconnectBroadcastSystem {
+    type SystemData = (
+        Read<'a, EventChannel<PlayerDisconnectEvent>>,
+        ReadStorage<'a, NetworkComponent>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (events, net_comps) = data;
+
+        for event in events.read(&mut self.reader.as_mut().unwrap()) {
+            // Broadcast disconnect.
+            let player_info = PlayerInfo::new(PlayerInfoAction::RemovePlayer, event.uuid.clone());
+
+            let destroy_entities = DestroyEntities::new(vec![event.player.id() as i32]);
+
+            for net in net_comps.join() {
+                send_packet_to_player(net, player_info.clone());
+                send_packet_to_player(net, destroy_entities.clone());
+            }
+        }
+    }
+
+    fn setup(&mut self, world: &mut World) {
+        use specs::SystemData;
+        Self::SystemData::setup(world);
+
+        self.reader = Some(
+            world
+                .fetch_mut::<EventChannel<PlayerDisconnectEvent>>()
+                .register_reader(),
+        );
+    }
 }
 
 fn send_chunk_data(chunk: &Chunk, net: &NetworkComponent) {

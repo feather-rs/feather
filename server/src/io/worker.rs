@@ -275,6 +275,10 @@ fn read_from_stream(worker: &mut Worker, token: Token) -> Result<(), ()> {
         .take_pending_packets()
     {
         handle_packet(worker, client_id, packet);
+        if !worker.clients.contains_key(&client_id) {
+            // Client was disconnected
+            return Ok(());
+        }
     }
 
     Ok(())
