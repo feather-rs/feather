@@ -282,14 +282,53 @@ pub struct QueryEntityNBT {
     pub entity_id: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct UseEntity {
     pub target: VarInt,
-    pub ty: VarInt, // TODO "only if type is interact at"
-    pub target_x: f32,
-    pub target_y: f32,
-    pub target_z: f32,
-    pub hand: VarInt,
+    pub ty: UseEntityType,
+}
+
+impl Packet for UseEntity {
+    fn read_from(&mut self, mut buf: &mut PacketBuf) -> Result<(), ()> {
+        self.target = buf.read_var_int()?;
+
+        let ty_id = buf.read_var_int()?;
+        self.ty = match ty_id {
+            0 => UseEntityType::Interact,
+            1 => UseEntityType::Attack,
+            2 => {
+                let x = buf.read_f32_be()?;
+                let y = buf.read_f32_be()?;
+                let z = buf.read_f32_be()?;
+                let hand = buf.read_var_int()?;
+                UseEntityType::InteractAt(x, y, z, hand)
+            }
+            _ => return Err(()), // Invalid type
+        };
+
+        Ok(())
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        unimplemented!()
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::UseEntity
+    }
+}
+
+#[derive(AsAny, new, Clone)]
+pub enum UseEntityType {
+    Interact,
+    Attack,
+    InteractAt(f32, f32, f32, VarInt),
+}
+
+impl Default for UseEntityType {
+    fn default() -> Self {
+        UseEntityType::Interact
+    }
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
