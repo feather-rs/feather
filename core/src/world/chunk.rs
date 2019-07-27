@@ -173,11 +173,20 @@ impl Chunk {
     }
 
     /// Optimizes each section in this chunk.
-    pub fn optimize(&mut self) {
+    ///
+    /// Returns the number of sections which were actually
+    /// optimized - sections which have not been
+    /// modified since the last time they were optimized
+    /// are not optimized.
+    pub fn optimize(&mut self) -> u32 {
+        let mut count = 0;
         let mut to_remove = vec![];
         for (i, s) in self.sections.iter_mut().enumerate() {
             if let Some(section) = s {
-                section.optimize();
+                if section.optimize() {
+                    // Section was optimized - increment count
+                    count += 1;
+                }
 
                 if section.empty() {
                     to_remove.push(i);
@@ -188,6 +197,8 @@ impl Chunk {
         for i in to_remove {
             self.set_section_at(i, None);
         }
+
+        count
     }
 }
 
@@ -205,6 +216,10 @@ pub struct ChunkSection {
     /// that are not air. This value is used to figure out when
     /// the section becomes empty.
     solid_block_count: u16,
+
+    /// A section is considered dirty when it has been
+    /// modified since the last time it was optimized.
+    dirty: bool,
 }
 
 impl ChunkSection {
@@ -215,6 +230,7 @@ impl ChunkSection {
             data: BitArray::new(4, SECTION_VOLUME),
             palette: Some(vec![air_id]),
             solid_block_count: 0,
+            dirty: false,
         }
     }
 
@@ -237,6 +253,7 @@ impl ChunkSection {
             data,
             palette,
             solid_block_count,
+            dirty: false,
         }
     }
 
@@ -262,6 +279,8 @@ impl ChunkSection {
     /// Sets the block at the given position in this chunk section.
     /// The position is local to this section.
     pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: Block) {
+        self.dirty = true;
+
         let index = block_index(x, y, z);
         let block_id = block.block_state_id();
 
@@ -324,7 +343,19 @@ impl ChunkSection {
     /// Optimizes this chunk section, reducing the bits
     /// per block value as much as possible and removing unused
     /// entries from the palette.
-    pub fn optimize(&mut self) {
+    ///
+    /// This function only optimizes the chunk if it is dirt,
+    /// i.e. if it has been modified since the last time
+    /// it was optimized. The returned value is `true` when
+    /// the chunk was optimized and `false` when it wasn't.
+    pub fn optimize(&mut self) -> bool {
+        // Only optimize the chunk if it has been modified.
+        if !self.dirty {
+            return false;
+        }
+
+        self.dirty = false;
+
         // Replace palette with new one.
         let mut new_palette = vec![];
         for x in 0..16 {
@@ -366,6 +397,8 @@ impl ChunkSection {
             }
             self.data = self.data.resize_to(new_bits_per_block).unwrap();
         }
+
+        true // Chunk was optimized
     }
 
     /// Returns the internal data array for this section.

@@ -3,6 +3,7 @@
 use crossbeam::channel::{Receiver, Sender};
 use shrev::EventChannel;
 use specs::{Read, System, World, Write};
+use std::sync::atomic::{AtomicU32, Ordering};
 
 use feather_core::world::{ChunkMap, ChunkPosition};
 
@@ -120,19 +121,20 @@ impl<'a> System<'a> for ChunkOptimizeSystem {
         debug!("Optimizing chunks");
 
         let start_time = current_time_in_millis();
+        let count = AtomicU32::new(0);
 
         chunks.par_iter_mut().for_each(|(_, chunk)| {
-            chunk.optimize();
+            count.fetch_add(chunk.optimize(), Ordering::SeqCst);
         });
 
         let end_time = current_time_in_millis();
         let elapsed = end_time - start_time;
 
         debug!(
-            "Optimized {} chunks (took {}ms - {:.2}ms/chunk)",
-            chunks.len(),
+            "Optimized {} chunk sections (took {}ms - {:.2}ms/section)",
+            count.load(Ordering::SeqCst),
             elapsed,
-            elapsed as f64 / chunks.len() as f64
+            elapsed as f64 / count.load(Ordering::SeqCst) as f64
         );
     }
 }
