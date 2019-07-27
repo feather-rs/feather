@@ -20,7 +20,7 @@ use feather_core::network::packet::implementation::{
 use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
 use feather_core::{Difficulty, Dimension, Gamemode};
 
-use crate::chunkclient::ChunkWorkerHandle;
+use crate::chunk_logic::ChunkWorkerHandle;
 use crate::config::Config;
 use crate::network::NetworkComponent;
 use crate::player::ChunkPendingComponent;

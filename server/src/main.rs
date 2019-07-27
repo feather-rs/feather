@@ -23,7 +23,7 @@ use shrev::EventChannel;
 #[global_allocator]
 static ALLOC: System = System;
 
-pub mod chunkclient;
+pub mod chunk_logic;
 pub mod chunkworker;
 pub mod config;
 pub mod entity;
@@ -121,7 +121,7 @@ fn init_world<'a, 'b>(
     world.insert(TickCount::default());
 
     let mut dispatcher = DispatcherBuilder::new()
-        .with(chunkclient::ChunkLoadSystem, "chunk_load", &[])
+        .with(chunk_logic::ChunkLoadSystem, "chunk_load", &[])
         .with(network::NetworkSystem, "network", &[])
         .with(
             worldupdate::PlayerDiggingSystem,
@@ -159,7 +159,7 @@ fn init_world<'a, 'b>(
             "entity_destroy_broadcast",
             &[],
         )
-        .with(chunkclient::ChunkOptimizeSystem, "chunk_optimize", &[])
+        .with(chunk_logic::ChunkOptimizeSystem, "chunk_optimize", &[])
         .build();
 
     dispatcher.setup(&mut world);

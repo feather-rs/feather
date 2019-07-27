@@ -23,7 +23,7 @@ use feather_core::world::chunk::Chunk;
 use feather_core::world::{ChunkMap, ChunkPosition, Position};
 use feather_core::Gamemode;
 
-use crate::chunkclient::{load_chunk, ChunkLoadEvent, ChunkWorkerHandle};
+use crate::chunk_logic::{load_chunk, ChunkLoadEvent, ChunkWorkerHandle};
 use crate::entity::{broadcast_entity_movement, EntityComponent, PlayerComponent};
 use crate::joinhandler::{PlayerJoinEvent, SPAWN_POSITION};
 use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue, PlayerPreJoinEvent};
