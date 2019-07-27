@@ -15,7 +15,7 @@ use specs::{
 
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
-    ChunkData, DestroyEntities, PlayerInfo, PlayerInfoAction, PlayerLook, PlayerPosition,
+    ChunkData, PlayerInfo, PlayerInfoAction, PlayerLook, PlayerPosition,
     PlayerPositionAndLookServerbound, SpawnPlayer,
 };
 use feather_core::network::packet::{Packet, PacketType};
@@ -418,13 +418,13 @@ impl<'a> System<'a> for DisconnectBroadcastSystem {
 
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
             // Broadcast disconnect.
+            // Note that the Destroy Entity packet is sent
+            // in a separate system (crate::entity::EntityDestroyBroadcastSystem).
+            // This system only updates the tablist for all clients.
             let player_info = PlayerInfo::new(PlayerInfoAction::RemovePlayer, event.uuid.clone());
-
-            let destroy_entities = DestroyEntities::new(vec![event.player.id() as i32]);
 
             for net in net_comps.join() {
                 send_packet_to_player(net, player_info.clone());
-                send_packet_to_player(net, destroy_entities.clone());
             }
         }
     }

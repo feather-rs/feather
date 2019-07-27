@@ -3,16 +3,20 @@
 //! provide entity-specific components and systems.
 
 use specs::storage::BTreeStorage;
-use specs::{Component, Entities, Entity, ReadStorage, VecStorage};
+use specs::{
+    Component, Entities, Entity, Join, Read, ReadStorage, ReaderId, System, SystemData, VecStorage,
+    World,
+};
 use uuid::Uuid;
 
 use feather_core::network::packet::implementation::{
-    EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove,
+    DestroyEntities, EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove,
 };
 use feather_core::world::Position;
 use feather_core::Gamemode;
 
-use crate::network::{send_packet_to_all_players, NetworkComponent};
+use crate::network::{send_packet_to_all_players, send_packet_to_player, NetworkComponent};
+use shrev::EventChannel;
 
 pub struct PlayerComponent {
     pub profile_properties: Vec<mojang_api::ServerAuthProperty>,
@@ -32,6 +36,58 @@ pub struct EntityComponent {
 
 impl Component for EntityComponent {
     type Storage = VecStorage<Self>;
+}
+
+/// Event triggered when an entity
+/// of any type is destroyed.
+pub struct EntityDestroyEvent {
+    /// Note that by the time this event
+    /// is handled, the entity will already
+    /// have been destroyed and removed from
+    /// the world. This field is only provided
+    /// to access the entity's ID for sending
+    /// to clients.
+    pub entity: Entity,
+}
+
+/// System for broadcasting when an entity is destroyed.
+pub struct EntityDestroyBroadcastSystem {
+    reader: Option<ReaderId<EntityDestroyEvent>>,
+}
+
+impl EntityDestroyBroadcastSystem {
+    pub fn new() -> Self {
+        Self { reader: None }
+    }
+}
+
+impl<'a> System<'a> for EntityDestroyBroadcastSystem {
+    type SystemData = (
+        ReadStorage<'a, NetworkComponent>,
+        Read<'a, EventChannel<EntityDestroyEvent>>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (net_comps, events) = data;
+
+        for event in events.read(&mut self.reader.as_mut().unwrap()) {
+            let destroy_entities = DestroyEntities::new(vec![event.entity.id() as i32]);
+
+            for net in net_comps.join() {
+                send_packet_to_player(net, destroy_entities.clone());
+            }
+        }
+    }
+
+    fn setup(&mut self, world: &mut World) {
+        Self::SystemData::setup(world);
+
+        self.reader = Some(
+            world
+                .fetch_mut::<EventChannel<EntityDestroyEvent>>()
+                .register_reader(),
+        );
+    }
 }
 
 /// Broadcasts to all joined players that an entity has moved.

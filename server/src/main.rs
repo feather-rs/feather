@@ -15,7 +15,7 @@ use specs::{Dispatcher, DispatcherBuilder, Entity, LazyUpdate, World, WorldExt};
 use feather_core::network::packet::implementation::DisconnectPlay;
 use prelude::*;
 
-use crate::entity::EntityComponent;
+use crate::entity::{EntityComponent, EntityDestroyEvent};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
 use shrev::EventChannel;
@@ -154,6 +154,11 @@ fn init_world<'a, 'b>(
             "disconnect_broadcast",
             &[],
         )
+        .with(
+            entity::EntityDestroyBroadcastSystem::new(),
+            "entity_destroy_broadcast",
+            &[],
+        )
         .build();
 
     dispatcher.setup(&mut world);
@@ -228,6 +233,12 @@ pub fn disconnect_player_without_packet(player: Entity, world: &mut World, reaso
         };
         world
             .fetch_mut::<EventChannel<PlayerDisconnectEvent>>()
+            .single_write(event);
+
+        // Trigger entity destroy event
+        let event = EntityDestroyEvent { entity: player };
+        world
+            .fetch_mut::<EventChannel<EntityDestroyEvent>>()
             .single_write(event);
     }
 
