@@ -136,10 +136,7 @@ level = "debug"
 
         let server = &config.server;
         assert_eq!(server.online_mode, true);
-        assert_eq!(
-            server.motd,
-            "          &lMesa called Jar Jar Binks!\n           Mesa your humble servant!"
-        );
+        assert_eq!(server.motd, "A Feather server");
         assert_eq!(server.max_players, 16);
         assert_eq!(server.view_distance, 6);
         assert_eq!(server.address, "127.0.0.1");
