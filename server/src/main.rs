@@ -171,6 +171,16 @@ fn init_world<'a, 'b>(
             "entity_destroy",
             &["chunk_hold_remove"],
         )
+        .with(
+            player::ChunkCrossSystem::default(),
+            "chunk_cross",
+            &["player_movement"],
+        )
+        .with(
+            player::ClientChunkUnloadSystem,
+            "client_chunk_unload",
+            &["chunk_cross"],
+        )
         .build();
 
     dispatcher.setup(&mut world);

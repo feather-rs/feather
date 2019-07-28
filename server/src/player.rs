@@ -9,8 +9,8 @@ use rayon::prelude::*;
 use shrev::EventChannel;
 use specs::storage::BTreeStorage;
 use specs::{
-    Component, Entities, Entity, Join, LazyUpdate, ParJoin, ParJoin, Read, ReadStorage, ReaderId,
-    System, World, WorldExt, Write, WriteStorage,
+    Component, Entities, Entity, Join, LazyUpdate, ParJoin, Read, ReadStorage, ReaderId, System,
+    World, WorldExt, Write, WriteStorage,
 };
 
 use feather_core::network::cast_packet;
@@ -24,7 +24,8 @@ use feather_core::world::{ChunkMap, ChunkPosition, Position};
 use feather_core::Gamemode;
 
 use crate::chunk_logic::{
-    load_chunk, ChunkHolderComponent, ChunkHolders, ChunkLoadEvent, ChunkWorkerHandle,
+    load_chunk, ChunkHolderComponent, ChunkHolderReleaseEvent, ChunkHolders, ChunkLoadEvent,
+    ChunkWorkerHandle,
 };
 use crate::config::Config;
 use crate::entity::{broadcast_entity_movement, EntityComponent, PlayerComponent};
@@ -32,7 +33,7 @@ use crate::joinhandler::{PlayerJoinEvent, SPAWN_POSITION};
 use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue, PlayerPreJoinEvent};
 use crate::{TickCount, TPS};
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
-use feather_core::network::packet::PacketType::Player;
+use specs::SystemData;
 use std::collections::VecDeque;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -233,7 +234,6 @@ impl<'a> System<'a> for PlayerInitSystem {
     }
 
     fn setup(&mut self, world: &mut World) {
-        use specs::SystemData;
         Self::SystemData::setup(world);
 
         self.join_event_reader = Some(
@@ -288,7 +288,6 @@ impl<'a> System<'a> for ChunkSendSystem {
     }
 
     fn setup(&mut self, world: &mut World) {
-        use specs::SystemData;
         Self::SystemData::setup(world);
         self.load_event_reader = Some(
             world
@@ -373,14 +372,14 @@ impl<'a> System<'a> for ChunkCrossSystem {
 
                 let chunks = chunks_within_view_distance(&config, new_chunk_pos);
 
-                for chunk in chunks {
-                    if loaded_chunks.loaded_chunks.contains(&chunk) {
+                for chunk in &chunks {
+                    if loaded_chunks.loaded_chunks.contains(chunk) {
                         // Already sent - nothing to do.
                         continue;
                     }
 
                     send_chunk_to_player(
-                        chunk,
+                        *chunk,
                         net,
                         event.player,
                         &chunk_map,
@@ -427,38 +426,74 @@ impl<'a> System<'a> for ClientChunkUnloadSystem {
     type SystemData = (
         WriteStorage<'a, LoadedChunksComponent>,
         ReadStorage<'a, NetworkComponent>,
+        ReadStorage<'a, EntityComponent>,
+        WriteStorage<'a, ChunkHolderComponent>,
+        Entities<'a>,
+        Write<'a, ChunkHolders>,
         Read<'a, TickCount>,
+        Read<'a, Arc<Config>>,
+        Write<'a, EventChannel<ChunkHolderReleaseEvent>>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut loaded_chunks_comps, net_comps, tick_count) = data;
+        let (
+            mut loaded_chunks_comps,
+            net_comps,
+            entity_comps,
+            mut chunk_holder_comps,
+            entities,
+            mut chunk_holders,
+            tick_count,
+            config,
+            mut holder_release_events,
+        ) = data;
 
-        (&mut loaded_chunks_comps, &net_comps).par_join().for_each(
-            |(loaded_chunks_comp, net_comp)| {
-                // Go through queue and see if it's time to unload any chunks.
-                while let Ok((chunk, time)) = loaded_chunks_comp.unload_queue.front() {
-                    if tick_count.0 >= time {
-                        // Unload if needed.
+        (
+            &mut loaded_chunks_comps,
+            &net_comps,
+            &entity_comps,
+            &mut chunk_holder_comps,
+            &entities,
+        )
+            .join()
+            .for_each(
+                |(loaded_chunks_comp, net_comp, entity_comp, chunk_holder_comp, player)| {
+                    // Go through queue and see if it's time to unload any chunks.
+                    while let Some((chunk, time)) = loaded_chunks_comp.unload_queue.front() {
+                        let chunk = *chunk;
+                        if tick_count.0 >= *time {
+                            // Unload if needed.
 
-                        if loaded_chunks_comp.loaded_chunks.contains(&chunk) {
-                            // Chunk is within view distance again - don't send it.
+                            let chunks_within_view_distance = chunks_within_view_distance(
+                                &config,
+                                entity_comp.position.chunk_pos(),
+                            );
+
+                            if chunks_within_view_distance.contains(&chunk) {
+                                // Chunk is within view distance again - don't unload it.
+                                loaded_chunks_comp.unload_queue.pop_front();
+                                continue;
+                            }
+
+                            let unload_chunk = UnloadChunk::new(chunk.x, chunk.z);
+                            send_packet_to_player(net_comp, unload_chunk);
+
+                            // Remove chunk from queue.
                             loaded_chunks_comp.unload_queue.pop_front();
-                            continue;
+                            // Remove from loaded chunk list.
+                            loaded_chunks_comp.loaded_chunks.remove(&chunk);
+                            // Remove hold on chunk so it can be unloaded.
+                            chunk_holders.remove_holder(chunk, player, &mut holder_release_events);
+                            // Remove hold from chunk holder component.
+                            chunk_holder_comp.holds.remove(&chunk);
+                        } else {
+                            // No more chunks in queue that should
+                            // be unloaded - finished.
+                            break;
                         }
-
-                        let unload_chunk = UnloadChunk::new(chunk);
-                        send_packet_to_player(net_comp, unload_chunk);
-
-                        // Remove chunk from queue.
-                        loaded_chunks_comp
-                    } else {
-                        // No more chunks in queue that should
-                        // be unloaded - finished.
-                        break;
                     }
-                }
-            },
-        );
+                },
+            );
     }
 }
 
@@ -538,7 +573,6 @@ impl<'a> System<'a> for JoinBroadcastSystem {
     }
 
     fn setup(&mut self, world: &mut World) {
-        use specs::SystemData;
         Self::SystemData::setup(world);
 
         self.reader = Some(
@@ -646,7 +680,6 @@ impl<'a> System<'a> for DisconnectBroadcastSystem {
     }
 
     fn setup(&mut self, world: &mut World) {
-        use specs::SystemData;
         Self::SystemData::setup(world);
 
         self.reader = Some(
