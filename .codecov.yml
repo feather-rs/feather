@@ -4,3 +4,4 @@ codecov:
 
 ignore:
   - "blocks"
+  - "scripts"

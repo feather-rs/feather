@@ -4,3 +4,4 @@
 feather.toml
 massif.out*
 scripts/test.rs
+**/venv/
