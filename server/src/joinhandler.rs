@@ -23,7 +23,7 @@ use feather_core::{Difficulty, Dimension, Gamemode};
 use crate::chunk_logic::{ChunkHolderComponent, ChunkHolders, ChunkWorkerHandle};
 use crate::config::Config;
 use crate::network::NetworkComponent;
-use crate::player::ChunkPendingComponent;
+use crate::player::{ChunkPendingComponent, LoadedChunksComponent};
 use crate::PlayerCount;
 
 /// For now, we use a fixed spawn position.
@@ -86,6 +86,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
         Read<'a, ChunkMap>,
         Write<'a, ChunkHolders>,
         WriteStorage<'a, ChunkHolderComponent>,
+        WriteStorage<'a, LoadedChunksComponent>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -102,6 +103,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
             chunk_map,
             mut holders,
             mut holder_comps,
+            mut loaded_chunks_comps,
         ) = data;
 
         let mut to_remove = vec![];
@@ -124,6 +126,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     crate::network::send_packet_to_player(net, join_game);
 
                     let mut holder_comp = ChunkHolderComponent::new();
+                    let mut loaded_chunks_comp = LoadedChunksComponent::default();
 
                     // Queue chunks
                     let view_distance = config.server.view_distance as i32;
@@ -138,12 +141,16 @@ impl<'a> System<'a> for JoinHandlerSystem {
                                 &worker_handle,
                                 &mut holders,
                                 &mut holder_comp,
+                                &mut loaded_chunks_comp,
                                 &lazy,
                             );
                         }
                     }
 
                     holder_comps.insert(player, holder_comp).unwrap();
+                    loaded_chunks_comps
+                        .insert(player, loaded_chunks_comp)
+                        .unwrap();
 
                     // Increment player count
                     player_count.0.fetch_add(1, Ordering::SeqCst);

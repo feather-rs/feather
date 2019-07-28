@@ -109,7 +109,7 @@ proxy_mode = "none"
 
 [server]
 online_mode = true
-motd = "          &lMesa called Jar Jar Binks!\n           Mesa your humble servant!"
+motd = "A Feather server"
 max_players = 16
 default_gamemode = "survival"
 difficulty = "none"

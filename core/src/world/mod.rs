@@ -19,6 +19,12 @@ impl Position {
     pub fn distance(&self, other: Position) -> f64 {
         (square(self.x - other.x) + square(self.y - other.y) + square(self.z - other.z)).sqrt()
     }
+
+    /// Returns the position of the chunk
+    /// this position is in.
+    pub fn chunk_pos(&self) -> ChunkPosition {
+        ChunkPosition::new(self.x as i32 / 16, self.z as i32 / 16)
+    }
 }
 
 fn square(x: f64) -> f64 {

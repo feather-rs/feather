@@ -3,6 +3,7 @@ name = "feather_core"
 version = "0.3.0"
 authors = ["caelunshun <caelum12321@gmail.com>"]
 edition = "2018"
+publish = false
 
 [dependencies]
 feather_codegen = { path = "../codegen" }
