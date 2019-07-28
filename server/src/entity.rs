@@ -5,7 +5,7 @@
 use specs::storage::BTreeStorage;
 use specs::{
     Component, Entities, Entity, Join, Read, ReadStorage, ReaderId, System, SystemData, VecStorage,
-    World,
+    World, Write,
 };
 use uuid::Uuid;
 
@@ -41,13 +41,49 @@ impl Component for EntityComponent {
 /// Event triggered when an entity
 /// of any type is destroyed.
 pub struct EntityDestroyEvent {
-    /// Note that by the time this event
-    /// is handled, the entity will already
-    /// have been destroyed and removed from
-    /// the world. This field is only provided
-    /// to access the entity's ID for sending
-    /// to clients.
+    /// Note that when this event is triggered,
+    /// the entity isn't actually removed from the world
+    /// yet. This allows systems to access the entity's
+    /// data before it is destroyed.
+    ///
+    /// `EntityDestroySystem` is responsible for removing
+    /// entities once the `EntityDestroyEvent` has been
+    /// handled by all readers.
     pub entity: Entity,
+}
+
+/// System for removing entities from the world when they
+/// are destroyed.
+pub struct EntityDestroySystem {
+    reader: Option<ReaderId<EntityDestroyEvent>>,
+}
+
+impl EntityDestroySystem {
+    pub fn new() -> Self {
+        Self { reader: None }
+    }
+}
+
+impl<'a> System<'a> for EntityDestroySystem {
+    type SystemData = (Write<'a, EventChannel<EntityDestroyEvent>>, Entities<'a>);
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (events, entities) = data;
+
+        for event in events.read(&mut self.reader.as_mut().unwrap()) {
+            entities.delete(event.entity).unwrap();
+        }
+    }
+
+    fn setup(&mut self, world: &mut World) {
+        Self::SystemData::setup(world);
+
+        self.reader = Some(
+            world
+                .fetch_mut::<EventChannel<EntityDestroyEvent>>()
+                .register_reader(),
+        );
+    }
 }
 
 /// System for broadcasting when an entity is destroyed.

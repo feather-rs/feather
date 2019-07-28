@@ -6,7 +6,7 @@ pub mod block;
 #[allow(clippy::cast_lossless)]
 pub mod chunk;
 
-#[derive(Clone, Copy, Debug, new)]
+#[derive(Clone, Copy, Debug, Default, new)]
 pub struct Position {
     pub x: f64,
     pub y: f64,
@@ -25,7 +25,7 @@ fn square(x: f64) -> f64 {
     x * x
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, new)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default, new)]
 pub struct ChunkPosition {
     pub x: i32,
     pub z: i32,
@@ -110,6 +110,12 @@ impl ChunkMap {
     /// Sets the chunk at the given location.
     pub fn set_chunk_at(&mut self, pos: ChunkPosition, chunk: Chunk) {
         self.chunk_map.insert(pos, chunk);
+    }
+
+    /// Removes the chunk at the given location,
+    /// effectively unloading it.
+    pub fn unload_chunk_at(&mut self, pos: ChunkPosition) {
+        self.chunk_map.remove(&pos);
     }
 
     /// Returns an immutable reference to the internal map.

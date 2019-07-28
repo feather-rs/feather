@@ -160,6 +160,17 @@ fn init_world<'a, 'b>(
             &[],
         )
         .with(chunk_logic::ChunkOptimizeSystem, "chunk_optimize", &[])
+        .with(chunk_logic::ChunkUnloadSystem::new(), "chunk_unload", &[])
+        .with(
+            chunk_logic::ChunkHoldRemoveSystem::new(),
+            "chunk_hold_remove",
+            &[],
+        )
+        .with(
+            entity::EntityDestroySystem::new(),
+            "entity_destroy",
+            &["chunk_hold_remove"],
+        )
         .build();
 
     dispatcher.setup(&mut world);
@@ -216,34 +227,32 @@ pub fn disconnect_player(player: Entity, reason: String, lazy: &LazyUpdate) {
 /// Disconnects a player without sending Disconnect Play.
 /// This should be used when the client disconnects.
 pub fn disconnect_player_without_packet(player: Entity, world: &mut World, reason: String) {
-    {
-        let ecomps = world.write_component::<EntityComponent>();
-        let ecomp = ecomps.get(player).unwrap();
+    let ecomps = world.write_component::<EntityComponent>();
+    let ecomp = ecomps.get(player).unwrap();
 
-        info!("Disconnecting player {}: {}", ecomp.display_name, reason);
+    info!("Disconnecting player {}: {}", ecomp.display_name, reason);
 
-        // Decrement player count
-        let player_count = world.fetch_mut::<Arc<PlayerCount>>();
-        player_count.0.fetch_sub(1, Ordering::SeqCst);
+    // Decrement player count
+    let player_count = world.fetch_mut::<Arc<PlayerCount>>();
+    player_count.0.fetch_sub(1, Ordering::SeqCst);
 
-        // Trigger disconnect event
-        let event = PlayerDisconnectEvent {
-            player,
-            uuid: ecomp.uuid.clone(),
-            reason,
-        };
-        world
-            .fetch_mut::<EventChannel<PlayerDisconnectEvent>>()
-            .single_write(event);
+    // Trigger disconnect event
+    let event = PlayerDisconnectEvent {
+        player,
+        uuid: ecomp.uuid.clone(),
+        reason,
+    };
+    world
+        .fetch_mut::<EventChannel<PlayerDisconnectEvent>>()
+        .single_write(event);
 
-        // Trigger entity destroy event
-        let event = EntityDestroyEvent { entity: player };
-        world
-            .fetch_mut::<EventChannel<EntityDestroyEvent>>()
-            .single_write(event);
-    }
+    // Trigger entity destroy event
+    let event = EntityDestroyEvent { entity: player };
+    world
+        .fetch_mut::<EventChannel<EntityDestroyEvent>>()
+        .single_write(event);
 
-    world.delete_entity(player).unwrap();
+    // The entity is removed from the world by `entity::EntityDestroySystem`.
 }
 
 #[cfg(test)]

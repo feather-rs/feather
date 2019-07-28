@@ -23,7 +23,9 @@ use feather_core::world::chunk::Chunk;
 use feather_core::world::{ChunkMap, ChunkPosition, Position};
 use feather_core::Gamemode;
 
-use crate::chunk_logic::{load_chunk, ChunkLoadEvent, ChunkWorkerHandle};
+use crate::chunk_logic::{
+    load_chunk, ChunkHolderComponent, ChunkHolders, ChunkLoadEvent, ChunkWorkerHandle,
+};
 use crate::entity::{broadcast_entity_movement, EntityComponent, PlayerComponent};
 use crate::joinhandler::{PlayerJoinEvent, SPAWN_POSITION};
 use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue, PlayerPreJoinEvent};
@@ -456,8 +458,13 @@ pub fn send_chunk_to_player(
     player: Entity,
     chunk_map: &ChunkMap,
     chunk_handle: &ChunkWorkerHandle,
+    holders: &mut ChunkHolders,
+    holder: &mut ChunkHolderComponent,
     lazy: &LazyUpdate,
 ) {
+    holders.insert_holder(chunk_pos, player);
+    holder.holds.insert(chunk_pos);
+
     if let Some(chunk) = chunk_map.chunk_at(chunk_pos) {
         send_chunk_data(chunk, net);
     } else {

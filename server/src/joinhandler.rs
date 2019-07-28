@@ -20,7 +20,7 @@ use feather_core::network::packet::implementation::{
 use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
 use feather_core::{Difficulty, Dimension, Gamemode};
 
-use crate::chunk_logic::ChunkWorkerHandle;
+use crate::chunk_logic::{ChunkHolderComponent, ChunkHolders, ChunkWorkerHandle};
 use crate::config::Config;
 use crate::network::NetworkComponent;
 use crate::player::ChunkPendingComponent;
@@ -84,6 +84,8 @@ impl<'a> System<'a> for JoinHandlerSystem {
         Read<'a, Arc<Config>>,
         Read<'a, Arc<PlayerCount>>,
         Read<'a, ChunkMap>,
+        Write<'a, ChunkHolders>,
+        WriteStorage<'a, ChunkHolderComponent>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -98,6 +100,8 @@ impl<'a> System<'a> for JoinHandlerSystem {
             config,
             player_count,
             chunk_map,
+            mut holders,
+            mut holder_comps,
         ) = data;
 
         let mut to_remove = vec![];
@@ -119,6 +123,8 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     );
                     crate::network::send_packet_to_player(net, join_game);
 
+                    let mut holder_comp = ChunkHolderComponent::new();
+
                     // Queue chunks
                     let view_distance = config.server.view_distance as i32;
                     for x in -view_distance..=view_distance {
@@ -130,10 +136,14 @@ impl<'a> System<'a> for JoinHandlerSystem {
                                 player,
                                 &chunk_map,
                                 &worker_handle,
+                                &mut holders,
+                                &mut holder_comp,
                                 &lazy,
                             );
                         }
                     }
+
+                    holder_comps.insert(player, holder_comp).unwrap();
 
                     // Increment player count
                     player_count.0.fetch_add(1, Ordering::SeqCst);
