@@ -1335,7 +1335,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "rnbt"
 version = "0.1.0"
-source = "git+https://github.com/caelunshun/rnbt#28372bc2050419b9e043d96b59e9888a4368c02e"
+source = "git+https://github.com/caelunshun/rnbt#f3b136ae7935659bc91e9164945d38a698af2bf3"
 dependencies = [
  "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "derive-new 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
