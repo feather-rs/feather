@@ -1,5 +1,6 @@
 extern crate proc_macro;
 
+use heck::SnakeCase;
 use lazy_static::lazy_static;
 use proc_macro::TokenStream;
 use quote::quote;
@@ -197,4 +198,71 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
     };
 
     r.into()
+}
+
+#[proc_macro_derive(FromSnakeCase)]
+pub fn derive_from_snake_case(input: TokenStream) -> TokenStream {
+    let input: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &input.ident;
+
+    let mut match_arms = vec![];
+
+    match &input.data {
+        syn::Data::Enum(en) => {
+            for variant in &en.variants {
+                let snake_case = variant.ident.to_string().to_snake_case();
+                let ident = &variant.ident;
+                match_arms.push(quote! {
+                    #snake_case => Some(#name::#ident)
+                });
+            }
+        }
+        _ => panic!("Can only derive `FromSnakeCase` on enums"),
+    }
+
+    let result = quote! {
+        impl #name {
+            pub fn from_snake_case(val: &str) -> Option<Self> {
+                match val {
+                    #(#match_arms),*
+                    _ = None,
+                }
+            }
+        }
+    };
+
+    result.into()
+}
+
+#[proc_macro_derive(ToSnakeCase)]
+pub fn derive_to_snake_case(input: TokenStream) -> TokenStream {
+    let input: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &input.ident;
+
+    let mut match_arms = vec![];
+
+    match &input.data {
+        syn::Data::Enum(en) => {
+            for variant in &en.variants {
+                let snake_case = variant.ident.to_string().to_snake_case();
+                let ident = &variant.ident;
+                match_arms.push(quote! {
+                    #name::#ident => #snake_case
+                });
+            }
+        }
+        _ => panic!("Can only derive `ToSnakeCase` on enums"),
+    }
+
+    let result = quote! {
+        impl #name {
+            pub fn to_snake_case(&self) -> &'static str {
+                match val {
+                    #(#match_arms),*
+                }
+            }
+        }
+    };
+
+    result.into()
 }

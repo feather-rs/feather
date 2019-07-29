@@ -20,8 +20,11 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
     let mut data_structs = vec![];
     let mut property_enums = vec![];
 
+    let mut native_type_id_entries = vec![];
+
     info!("Generating code");
 
+    let mut count = 0;
     for (block_name, block) in &report.blocks {
         generate_block_code(
             block,
@@ -29,15 +32,48 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
             &mut property_enums,
             &mut data_structs,
             &mut enum_entries,
+            &mut native_type_id_entries,
+            count,
         );
+
+        count += 1;
     }
 
     let known_enums = generate_known_enums();
 
     let result = quote! {
+        use feather_codegen::{ToSnakeCase, FromSnakeCase};
+
         #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
         pub enum Block {
             #(#enum_entries),*
+        }
+
+        impl Block {
+            pub fn native_type_id(&self) -> usize {
+                match self {
+                    #(#native_type_id_entries),*
+                }
+            }
+        }
+
+        pub trait Value {
+            fn value(&self) -> usize;
+        }
+
+        impl Value for i32 {
+            fn value(&self) -> usize {
+                self as usize
+            }
+        }
+
+        impl Value for bool {
+            fn value(&self) -> usize {
+                match self {
+                    true => 1,
+                    false => 0,
+                }
+            }
         }
 
         #(#data_structs)*
@@ -72,6 +108,8 @@ fn generate_block_code(
     property_enums: &mut Vec<TokenStream>,
     data_structs: &mut Vec<TokenStream>,
     enum_entries: &mut Vec<TokenStream>,
+    native_type_id_entries: &mut Vec<TokenStream>,
+    count: usize,
 ) {
     let variant_name = block_name[10..].to_camel_case();
     let variant_ident = Ident::new(&variant_name, Span::call_site());
@@ -85,10 +123,17 @@ fn generate_block_code(
         enum_entries.push(quote! {
             #variant_ident(#data_struct_ident)
         });
+        native_type_id_entries.push(quote! {
+            Block::#variant_ident(_) => #count
+        });
     } else {
         enum_entries.push(quote! {
             #variant_ident
-        })
+        });
+
+        native_type_id_entries.push(quote! {
+            Block::#variant_ident => #count
+        });
     }
 }
 
@@ -157,17 +202,31 @@ fn create_property_enum(
     );
 
     let mut enum_variants = vec![];
-    for possible_value in possible_values {
-        let possible_value = Ident::new(possible_value.to_camel_case().as_str(), Span::call_site());
+    let mut from_snake_case = vec![];
+    for possible_value_str in possible_values {
+        let possible_value = Ident::new(
+            possible_value_str.to_camel_case().as_str(),
+            Span::call_site(),
+        );
         enum_variants.push(quote! {
               #possible_value
+        });
+
+        from_snake_case.push(quote! {
+            #possible_value_str => Some(#enum_ident::#possible_value)
         });
     }
 
     let en = quote! {
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase)]
         pub enum #enum_ident {
             #(#enum_variants),*
+        }
+
+        impl Value for #enum_ident {
+            fn value(&self) -> usize {
+                self as usize
+            }
         }
     };
 
@@ -183,68 +242,136 @@ fn correct_variable_name(name: &str) -> &str {
 }
 
 fn generate_known_enums() -> TokenStream {
+    let facing = quote! {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase)]
+    pub enum Facing {
+        North,
+        South,
+        East,
+        West,
+        Up,
+        Down,
+    }
+
+
+    impl Value for Facing {
+        fn value(&self) -> usize {
+            self as usize
+        }
+    }
+    };
+    let axis = quote! {
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase)]
+    pub enum Axis {
+        X,
+        Y,
+        Z,
+    }
+
+    impl Value for Axis {
+        fn value(&self) -> usize {
+            self as usize
+        }
+    }
+    };
+
+    let half = quote! {
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase)]
+    pub enum Half {
+        Upper,
+        Lower,
+        Top,
+        Bottom,
+    }
+
+    impl Value for Half {
+        fn value(&self) -> usize {
+            self as usize
+        }
+    }
+    };
+
+    let face = quote! {
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase)]
+    pub enum Face {
+        Floor,
+        Wall,
+        Ceiling,
+    }
+
+    impl Value for Face {
+        fn value(&self) -> usize {
+            self as usize
+        }
+    }
+    };
+
+    let shape = quote! {
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase)]
+    pub enum Shape {
+        Straight,
+        InnerLeft,
+        InnerRight,
+        OuterLeft,
+        AscendingNorth,
+        AscendingSouth,
+        AscendingEast,
+        AscendingWest,
+        NorthEast,
+        NorthWest,
+        SouthEast,
+        SouthWest,
+        NorthSouth,
+        EastWest,
+    }
+
+    impl Value for Shape {
+        fn value(&self) -> usize {
+            self as usize
+        }
+    }
+    };
+    let hinge = quote! {
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase)]
+    pub enum Hinge {
+        Left,
+        Right,
+    }
+
+    impl Value for Hinge {
+        fn value(&self) -> usize {
+            self as usize
+        }
+    }
+    };
+
+    let part = quote! {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase)]
+    pub enum Part {
+        Head,
+        Foot,
+    }
+
+    impl Value for Part {
+        fn value(&self) -> usize {
+            self as usize
+        }
+    }
+    };
+
     quote! {
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-        pub enum Facing {
-            North,
-            South,
-            East,
-            West,
-            Up,
-            Down,
-        }
-
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-        pub enum Axis {
-            X,
-            Y,
-            Z,
-        }
-
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-        pub enum Half {
-            Upper,
-            Lower,
-            Top,
-            Bottom,
-        }
-
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-        pub enum Face {
-            Floor,
-            Wall,
-            Ceiling,
-        }
-
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-        pub enum Shape {
-            Straight,
-            InnerLeft,
-            InnerRight,
-            OuterLeft,
-            AscendingNorth,
-            AscendingSouth,
-            AscendingEast,
-            AscendingWest,
-            NorthEast,
-            NorthWest,
-            SouthEast,
-            SouthWest,
-            NorthSouth,
-            EastWest,
-        }
-
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-        pub enum Hinge {
-            Left,
-            Right,
-        }
-
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-        pub enum Part {
-            Head,
-            Foot,
-        }
+        #facing
+        #axis
+        #half
+        #face
+        #hinge
+        #shape
+        #part
     }
 }
 
