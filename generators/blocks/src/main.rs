@@ -17,6 +17,7 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use clap::App;
 use failure::Error;
 use heck::CamelCase;
+use indexmap::IndexMap;
 use proc_macro2::TokenStream;
 use quote::quote;
 use std::collections::HashMap;
@@ -39,7 +40,7 @@ const DEFAULT_STATE_ID: u16 = 1; // Stone
 #[derive(Clone, Debug, Deserialize, Deref, DerefMut)]
 struct BlockReport {
     #[serde(flatten)]
-    blocks: HashMap<String, Block>,
+    blocks: IndexMap<String, Block>,
 }
 
 /// A block entry in the data report.
