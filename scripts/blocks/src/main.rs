@@ -15,16 +15,18 @@ use clap::App;
 use std::collections::HashMap;
 use std::fs::File;
 
+use byteorder::{LittleEndian, WriteBytesExt};
 use failure::Error;
-use std::io::{BufReader, BufWriter};
+use std::io::{BufReader, BufWriter, Write};
 use std::process::exit;
+use std::str::FromStr;
 
 /// The block state ID to use when a block
 /// in the native file was not found
 /// in the input file. This would happen
 /// when the input file is an older version
 /// than the native version.
-const DEFAULT_STATE_ID: u32 = 1; // Stone
+const DEFAULT_STATE_ID: u16 = 1; // Stone
 
 /// Deserializable struct representing a block
 /// data report from Vanilla.
@@ -51,12 +53,12 @@ struct BlockProperties {
 /// A block state from the data report.
 #[derive(Clone, Debug, Deserialize)]
 struct State {
-    id: u32,
+    id: u16,
     properties: Option<StateProperties>,
 }
 
 /// Properties of a block state from the data report.
-#[derive(Clone, Debug, Deserialize, Deref, DerefMut)]
+#[derive(Clone, Debug, Deserialize, Deref, DerefMut, Default)]
 struct StateProperties {
     #[serde(flatten)]
     props: HashMap<String, String>,
@@ -82,6 +84,8 @@ fn run() -> Result<(), Error> {
                 args.value_of("input").unwrap(),
                 args.value_of("output").unwrap(),
                 args.value_of("native").unwrap(),
+                u32::from_str(args.value_of("proto").unwrap())?,
+                args.value_of("ver").unwrap(),
             )?;
         }
         Some(s) => {
@@ -97,7 +101,13 @@ fn run() -> Result<(), Error> {
     Ok(())
 }
 
-fn generate_mappings_file(input: &str, output: &str, native_input: &str) -> Result<(), Error> {
+fn generate_mappings_file(
+    input: &str,
+    output: &str,
+    native_input: &str,
+    proto: u32,
+    version: &str,
+) -> Result<(), Error> {
     info!(
         "Generating mappings file {} using input report {} and native report {}",
         output, input, native_input
@@ -114,15 +124,70 @@ fn generate_mappings_file(input: &str, output: &str, native_input: &str) -> Resu
 
     info!("Parsing successful");
 
-    let out = BufWriter::new(&out_file);
+    let mut out = BufWriter::new(&out_file);
 
     // Write header to output file
     // See format.md
+    out.write_all(b"FEATHER_BLOCK_DATA_FILE")?;
+    out.write_string(version)?;
+    out.write_u32::<LittleEndian>(proto)?;
 
-    // Go through block types in native
-    // file and attempt to find corresponding
-    // entry in input file.
-    for (string_id, block) in &native_report.blocks {}
+    // Go through native block types and attempt
+    // to find corresponding state ID in report.
+    // If it doesn't exist, just set to `DEFAULT_STATE_ID`.
+    let mut state_bufs = vec![];
+    for (string_id, block) in &native_report.blocks {
+        for state in &block.states {
+            let mut state_buf = vec![];
 
+            let props = state.properties.clone().unwrap_or_default();
+            let props = props.props;
+
+            // Try to find corresponding state ID, defaulting to `DEFAULT_STATE_ID`
+            let state_id = find_state_in_report(&report, string_id.as_str(), &props)
+                .unwrap_or(DEFAULT_STATE_ID);
+
+            state_buf.write_u16::<LittleEndian>(state.id)?; // Native ID
+            state_buf.write_u16::<LittleEndian>(state_id)?;
+            state_bufs.push(state_buf);
+        }
+    }
+
+    out.write_u32::<LittleEndian>(state_bufs.len() as u32)?;
+    for buf in state_bufs {
+        out.write_all(&buf)?;
+    }
+
+    out.flush()?;
+
+    info!("Mappings file generated successfully");
     Ok(())
+}
+
+fn find_state_in_report(
+    report: &BlockReport,
+    name: &str,
+    props: &HashMap<String, String>,
+) -> Option<u16> {
+    let block = report.blocks.get(name)?;
+
+    let state = block.states.iter().find(|state| match &state.properties {
+        None => props.is_empty(),
+        Some(state_props) => props == &state_props.props,
+    })?;
+
+    Some(state.id)
+}
+
+trait WriteExt {
+    fn write_string(&mut self, x: &str) -> std::io::Result<()>;
+}
+
+impl<W: Write> WriteExt for W {
+    fn write_string(&mut self, x: &str) -> std::io::Result<()> {
+        self.write_u32::<LittleEndian>(x.len() as u32)?;
+        self.write_all(x.as_bytes())?;
+
+        Ok(())
+    }
 }

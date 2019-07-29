@@ -14,5 +14,5 @@ members = [
     "codegen",
     "client/core",
     "client/wrapper/console",
-    "scripts/blocks/generator"
+    "scripts/blocks"
 ]

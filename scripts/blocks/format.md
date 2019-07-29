@@ -27,13 +27,7 @@ The following is the file format used for the block data files.
     * Raw bytes corresponding to FEATHER_BLOCK_DATA_FILE in ASCII
     * Version name: `string` (e.g. "1.14.4")
     * Protocol version: `u32` (e.g. 498 for 1.14.4)
-    * Native version name used for this file: `string` (e.g. "1.13.2")
-    * Native protocol version used for this file: `u32` (e.g. 404 for 1.13.2)
 * State ID mappings
     * Array of struct, stored in order of block types
-        * Name of block type, e.g. "minecraft:stone" - `string`
-        * Array of struct - states
-            * Array of struct: name-value keypairs for properties
-                * name - name of property: `string`
-                * value - value of property: `string`
-            * Global state ID - `u32`
+        * Native block state ID for block: `u16`
+        * Block state ID for block in this version: `u16`

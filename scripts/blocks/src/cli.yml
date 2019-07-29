@@ -22,6 +22,16 @@ subcommands:
             help: "the data report corresponding to the server's native version to refer to"
             required: true
             takes_value: true
+        - proto:
+            short: p
+            help: "the protocol version ID corresponding to the input file's version"
+            required: true
+            takes_value: true
+        - ver:
+            short: v
+            help: "the name of the Minecraft version of the input file"
+            required: true
+            takes_value: true
 
   - rust:
       about: "Generates Rust enum and block data structs for the server's native version"
