@@ -41,9 +41,7 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
 
     let known_enums = generate_known_enums();
 
-    let result = quote! {
-        use feather_codegen::{ToSnakeCase, FromSnakeCase};
-
+    let block = quote! {
         #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
         pub enum Block {
             #(#enum_entries),*
@@ -56,26 +54,82 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
                 }
             }
         }
+    };
 
+    let value = quote! {
         pub trait Value {
             fn value(&self) -> usize;
         }
 
         impl Value for i32 {
             fn value(&self) -> usize {
-                self as usize
+                *self as usize
             }
         }
 
         impl Value for bool {
             fn value(&self) -> usize {
-                match self {
+                match *self {
                     true => 1,
                     false => 0,
                 }
             }
         }
+    };
 
+    let from_snake_case = quote! {
+        pub trait FromSnakeCase {
+            fn from_snake_case(val: &str) -> Option<Self>
+                where Self: Sized;
+        }
+
+        impl FromSnakeCase for i32 {
+            fn from_snake_case(val: &str) -> Option<Self> {
+                use std::str::FromStr;
+                match i32::from_str(val) {
+                    Ok(x) => Some(x),
+                    Err(_) => None,
+                }
+            }
+        }
+
+        impl FromSnakeCase for bool {
+            fn from_snake_case(val: &str) -> Option<Self> {
+                use std::str::FromStr;
+                match bool::from_str(val) {
+                    Ok(x) => Some(x),
+                    Err(_) => None,
+                }
+            }
+        }
+    };
+
+    let to_snake_case = quote! {
+        pub trait ToSnakeCase {
+            fn to_snake_case(&self) -> String;
+        }
+
+        impl ToSnakeCase for i32 {
+            fn to_snake_case(&self) -> String {
+                self.to_string()
+            }
+        }
+
+        impl ToSnakeCase for bool {
+            fn to_snake_case(&self) -> String {
+                self.to_string()
+            }
+        }
+    };
+
+    let result = quote! {
+        use feather_codegen::{ToSnakeCase, FromSnakeCase};
+        use std::collections::HashMap;
+
+        #block
+        #value
+        #from_snake_case
+        #to_snake_case
         #(#data_structs)*
         #(#property_enums)*
         #known_enums
@@ -144,16 +198,18 @@ fn create_block_data_struct(
     data_structs: &mut Vec<TokenStream>,
 ) {
     let mut data_struct_entries = vec![];
+    let mut from_map_entries = vec![];
+    let mut to_map_entries = vec![];
 
-    for (prop_name, possible_values) in &props.props {
+    for (prop_name_str, possible_values) in &props.props {
         let ty = PropValueType::guess_from_value(&possible_values[0]);
 
         // If type is a custom enum, create the enum type
         if ty == PropValueType::Enum {
-            create_property_enum(variant_name, prop_name, possible_values, property_enums);
+            create_property_enum(variant_name, prop_name_str, possible_values, property_enums);
         }
 
-        let enum_name = format!("{}{}", variant_name, prop_name.to_camel_case());
+        let enum_name = format!("{}{}", variant_name, prop_name_str.to_camel_case());
 
         let ty_ident = Ident::new(
             match ty {
@@ -171,12 +227,23 @@ fn create_block_data_struct(
             Span::call_site(),
         );
 
-        let prop_name = Ident::new(correct_variable_name(prop_name.as_str()), Span::call_site());
+        let prop_name = Ident::new(
+            correct_variable_name(prop_name_str.as_str()),
+            Span::call_site(),
+        );
 
         let entry = quote! {
             #prop_name: #ty_ident
         };
         data_struct_entries.push(entry);
+
+        from_map_entries.push(quote! {
+            #prop_name: #ty_ident::from_snake_case(map.get(#prop_name_str)?)?
+        });
+
+        to_map_entries.push(quote! {
+            m.insert(#prop_name_str.to_string(), self.#prop_name.to_snake_case());
+        });
     }
 
     let data_ident = Ident::new(&format!("{}Data", variant_name), Span::call_site());
@@ -185,6 +252,20 @@ fn create_block_data_struct(
         #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
         pub struct #data_ident {
             #(#data_struct_entries),*
+        }
+
+        impl #data_ident {
+            pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+                Some(Self {
+                    #(#from_map_entries),*
+                })
+            }
+
+            pub fn to_map(&self) -> HashMap<String, String> {
+                let mut m = HashMap::new();
+                #(#to_map_entries)*
+                m
+            }
         }
     };
     data_structs.push(data_struct);
@@ -225,7 +306,7 @@ fn create_property_enum(
 
         impl Value for #enum_ident {
             fn value(&self) -> usize {
-                self as usize
+                *self as usize
             }
         }
     };
@@ -253,10 +334,9 @@ fn generate_known_enums() -> TokenStream {
         Down,
     }
 
-
     impl Value for Facing {
         fn value(&self) -> usize {
-            self as usize
+            *self as usize
         }
     }
     };
@@ -271,7 +351,7 @@ fn generate_known_enums() -> TokenStream {
 
     impl Value for Axis {
         fn value(&self) -> usize {
-            self as usize
+            *self as usize
         }
     }
     };
@@ -288,7 +368,7 @@ fn generate_known_enums() -> TokenStream {
 
     impl Value for Half {
         fn value(&self) -> usize {
-            self as usize
+            *self as usize
         }
     }
     };
@@ -304,7 +384,7 @@ fn generate_known_enums() -> TokenStream {
 
     impl Value for Face {
         fn value(&self) -> usize {
-            self as usize
+            *self as usize
         }
     }
     };
@@ -331,7 +411,7 @@ fn generate_known_enums() -> TokenStream {
 
     impl Value for Shape {
         fn value(&self) -> usize {
-            self as usize
+            *self as usize
         }
     }
     };
@@ -345,7 +425,7 @@ fn generate_known_enums() -> TokenStream {
 
     impl Value for Hinge {
         fn value(&self) -> usize {
-            self as usize
+            *self as usize
         }
     }
     };
@@ -359,7 +439,7 @@ fn generate_known_enums() -> TokenStream {
 
     impl Value for Part {
         fn value(&self) -> usize {
-            self as usize
+            *self as usize
         }
     }
     };

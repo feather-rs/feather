@@ -7,7 +7,7 @@ publish = false
 
 [dependencies]
 feather_codegen = { path = "../codegen" }
-feather_blocks = { path = "../blocks/lib" }
+feather_blocks = { path = "../blocks" }
 lazy_static = "1.3.0"
 derive-new = "0.5.7"
 uuid = "0.7.4"
