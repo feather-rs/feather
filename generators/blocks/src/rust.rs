@@ -227,26 +227,28 @@ fn create_block_data_struct(
             Span::call_site(),
         );
 
-        let prop_name = Ident::new(
+        let field_name = Ident::new(
             correct_variable_name(prop_name_str.as_str()),
             Span::call_site(),
         );
 
         let entry = quote! {
-            #prop_name: #ty_ident
+            #field_name: #ty_ident
         };
         data_struct_entries.push(entry);
 
         from_map_entries.push(quote! {
-            #prop_name: #ty_ident::from_snake_case(map.get(#prop_name_str)?)?
+            #field_name: #ty_ident::from_snake_case(map.get(#prop_name_str)?)?
         });
 
         to_map_entries.push(quote! {
-            m.insert(#prop_name_str.to_string(), self.#prop_name.to_snake_case());
+            m.insert(#prop_name_str.to_string(), self.#field_name.to_snake_case());
         });
     }
 
     let data_ident = Ident::new(&format!("{}Data", variant_name), Span::call_site());
+
+    let value_impl = generate_value_implementation(&data_ident, props);
 
     let data_struct = quote! {
         #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -267,7 +269,10 @@ fn create_block_data_struct(
                 m
             }
         }
+
+        #value_impl
     };
+
     data_structs.push(data_struct);
 }
 
@@ -283,7 +288,7 @@ fn create_property_enum(
     );
 
     let mut enum_variants = vec![];
-    let mut from_snake_case = vec![];
+
     for possible_value_str in possible_values {
         let possible_value = Ident::new(
             possible_value_str.to_camel_case().as_str(),
@@ -291,10 +296,6 @@ fn create_property_enum(
         );
         enum_variants.push(quote! {
               #possible_value
-        });
-
-        from_snake_case.push(quote! {
-            #possible_value_str => Some(#enum_ident::#possible_value)
         });
     }
 
@@ -415,8 +416,8 @@ fn generate_known_enums() -> TokenStream {
         }
     }
     };
-    let hinge = quote! {
 
+    let hinge = quote! {
     #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase)]
     pub enum Hinge {
         Left,
@@ -523,4 +524,49 @@ impl PropValueType {
             PropValueType::Enum // Custom enum
         }
     }
+}
+
+/// Generates a `Value` implementation for
+/// a data struct.
+///
+/// This uses a special algorithm to generate
+/// consecutive values in constant time.
+fn generate_value_implementation(
+    data_struct_ident: &Ident,
+    props: &BlockProperties,
+) -> TokenStream {
+    use crate::util::slice_product;
+
+    let mut terms = vec![];
+
+    let possible_value_lens: Vec<usize> = props
+        .props
+        .iter()
+        .map(|(_, possible_values)| possible_values.len())
+        .collect();
+
+    for (count, (prop_name, _)) in props.props.iter().enumerate() {
+        let multiplier = if count == props.props.len() - 1 {
+            // This is the last property - just multiply by 1.
+            1
+        } else {
+            slice_product(&possible_value_lens[count + 1..])
+        };
+
+        let prop_field = Ident::new(correct_variable_name(prop_name.as_str()), Span::call_site());
+
+        terms.push(quote! {
+            (self.#prop_field.value() * #multiplier)
+        })
+    }
+
+    let result = quote! {
+        impl Value for #data_struct_ident {
+            fn value(&self) -> usize {
+                #(#terms)+*
+            }
+        }
+    };
+
+    result
 }

@@ -12,6 +12,7 @@ extern crate clap;
 extern crate log;
 
 mod rust;
+mod util;
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use clap::App;
