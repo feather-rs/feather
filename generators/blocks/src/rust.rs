@@ -43,6 +43,7 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
     let internal_id_data_offset_fn = generate_internal_id_data_offset_fn(&report);
     let internal_id_offsets = generate_internal_id_offsets(&report);
     let native_state_id_fn = generate_native_state_id_fn();
+    let from_name_and_props_fn = generate_from_name_and_props_fn(&report);
 
     let block = quote! {
         #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -58,6 +59,7 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
             }
             #internal_id_data_offset_fn
             #native_state_id_fn
+            #from_name_and_props_fn
         }
     };
 
@@ -645,4 +647,39 @@ fn generate_native_state_id_fn() -> TokenStream {
             type_offset + data_offset
         }
     }
+}
+
+/// Generates the `from_name_and_props` function.
+fn generate_from_name_and_props_fn(report: &BlockReport) -> TokenStream {
+    let mut match_arms = vec![];
+    for (block_name, block) in &report.blocks {
+        let variant_name = block_name[10..].to_camel_case();
+        let variant_ident = Ident::new(&variant_name, Span::call_site());
+
+        if block.properties.is_some() {
+            let data_struct_str = format!("{}Data", variant_name);
+            let data_struct_ident = Ident::new(&data_struct_str, Span::call_site());
+
+            match_arms.push(quote! {
+                #block_name => {
+                    let data = #data_struct_ident::from_map(props)?;
+                    Some(Block::#variant_ident(data))
+                }
+            });
+        } else {
+            match_arms.push(quote! {
+                #block_name => Some(Block::#variant_ident)
+            });
+        }
+    }
+
+    let result = quote! {
+        pub fn from_name_and_props(name: &str, props: &HashMap<String, String>) -> Option<Self> {
+            match name {
+                #(#match_arms ,)*
+                _ => None,
+            }
+        }
+    };
+    result
 }
