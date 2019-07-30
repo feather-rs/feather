@@ -40,6 +40,9 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
     }
 
     let known_enums = generate_known_enums();
+    let internal_id_data_offset_fn = generate_internal_id_data_offset_fn(&report);
+    let internal_id_offsets = generate_internal_id_offsets(&report);
+    let native_state_id_fn = generate_native_state_id_fn();
 
     let block = quote! {
         #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -48,11 +51,13 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
         }
 
         impl Block {
-            pub fn native_type_id(&self) -> usize {
+            fn internal_type_id(&self) -> usize {
                 match self {
                     #(#native_type_id_entries),*
                 }
             }
+            #internal_id_data_offset_fn
+            #native_state_id_fn
         }
     };
 
@@ -125,6 +130,8 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
     let result = quote! {
         use feather_codegen::{ToSnakeCase, FromSnakeCase};
         use std::collections::HashMap;
+
+        #internal_id_offsets
 
         #block
         #value
@@ -569,4 +576,73 @@ fn generate_value_implementation(
     };
 
     result
+}
+
+/// Generates the function which retrieves the offset
+/// from the block type's internal ID to the block state
+/// internal ID.
+fn generate_internal_id_data_offset_fn(report: &BlockReport) -> TokenStream {
+    let mut match_arms = vec![];
+
+    for (block_name, block) in &report.blocks {
+        let ident = Ident::new(&block_name[10..].to_camel_case(), Span::call_site());
+        match_arms.push(if block.properties.is_some() {
+            quote! {
+                Block::#ident(data) => data.value()
+            }
+        } else {
+            quote! {
+                Block::#ident => 0
+            }
+        });
+    }
+
+    let result = quote! {
+        fn internal_id_data_offset(&self) -> usize {
+            match self {
+                #(#match_arms ,)*
+            }
+        }
+    };
+    result
+}
+
+/// Generates the global internal ID offsets array
+/// which contains mappings from internal block type
+/// IDs to their respective offsets.
+/// To calculate the internal state ID of a block state,
+/// add the block type ID offset from this from this array
+/// to the internal_id_data_offset generated above.
+fn generate_internal_id_offsets(report: &BlockReport) -> TokenStream {
+    let mut entries = vec![];
+
+    let mut count = 0usize;
+    for (_, block) in &report.blocks {
+        entries.push(quote! {
+            #count
+        });
+
+        count += block.states.len();
+    }
+
+    let amnt = report.blocks.len();
+
+    let result = quote! {
+        const INTERNAL_ID_OFFSETS: [usize; #amnt] = [
+            #(#entries ,)*
+        ];
+    };
+    result
+}
+
+/// Generates the `native_state_id` function.
+fn generate_native_state_id_fn() -> TokenStream {
+    quote! {
+        pub fn native_state_id(&self) -> usize {
+            let type_offset = INTERNAL_ID_OFFSETS[self.internal_type_id()];
+            let data_offset = self.internal_id_data_offset();
+
+            type_offset + data_offset
+        }
+    }
 }
