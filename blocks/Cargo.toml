@@ -6,3 +6,6 @@ edition = "2018"
 
 [dependencies]
 feather_codegen = { path = "../codegen" }
+lazy_static = "1.3.0"
+byteorder = "1.3.2"
+failure = "0.1.5"

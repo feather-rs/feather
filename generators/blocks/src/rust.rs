@@ -42,7 +42,7 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
     let known_enums = generate_known_enums();
     let internal_id_data_offset_fn = generate_internal_id_data_offset_fn(&report);
     let internal_id_offsets = generate_internal_id_offsets(&report);
-    let native_state_id_fn = generate_native_state_id_fn();
+    let internal_state_id_fn = generate_internal_state_id_fn();
     let from_name_and_props_fn = generate_from_name_and_props_fn(&report);
 
     let block = quote! {
@@ -58,7 +58,7 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
                 }
             }
             #internal_id_data_offset_fn
-            #native_state_id_fn
+            #internal_state_id_fn
             #from_name_and_props_fn
         }
     };
@@ -637,10 +637,10 @@ fn generate_internal_id_offsets(report: &BlockReport) -> TokenStream {
     result
 }
 
-/// Generates the `native_state_id` function.
-fn generate_native_state_id_fn() -> TokenStream {
+/// Generates the `internal_state_id` function.
+fn generate_internal_state_id_fn() -> TokenStream {
     quote! {
-        pub fn native_state_id(&self) -> usize {
+        pub fn internal_state_id(&self) -> usize {
             let type_offset = INTERNAL_ID_OFFSETS[self.internal_type_id()];
             let data_offset = self.internal_id_data_offset();
 
