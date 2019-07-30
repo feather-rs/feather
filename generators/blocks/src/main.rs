@@ -210,12 +210,14 @@ fn generate_native_mappings_file(
 
     write_header(&mut out, version, proto, true)?;
 
+    let mut count = 0;
+    let mut buf = vec![];
     // Go through blocks and write to mappings
     // file.
     for (block_name, block) in &report.blocks {
         for state in &block.states {
             // Write name
-            out.write_string(block_name.as_str())?;
+            buf.write_string(block_name.as_str())?;
 
             // Write properties
             let len = {
@@ -226,18 +228,23 @@ fn generate_native_mappings_file(
                 }
             };
 
-            out.write_u32::<LittleEndian>(len as u32)?;
+            buf.write_u32::<LittleEndian>(len as u32)?;
             if let Some(props) = state.properties.as_ref() {
                 for (name, value) in &props.props {
-                    out.write_string(name.as_str())?;
-                    out.write_string(value.as_str())?;
+                    buf.write_string(name.as_str())?;
+                    buf.write_string(value.as_str())?;
                 }
             }
 
             // Write ID
-            out.write_u16::<LittleEndian>(state.id)?;
+            buf.write_u16::<LittleEndian>(state.id)?;
+
+            count += 1;
         }
     }
+
+    out.write_u32::<LittleEndian>(count)?;
+    out.write(&buf)?;
 
     info!("Mappings file generated successfully");
     Ok(())

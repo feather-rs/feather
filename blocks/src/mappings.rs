@@ -1,5 +1,5 @@
 //! Module for reading from block mappings files.
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
+use byteorder::{LittleEndian, ReadBytesExt};
 use failure::Error;
 use std::collections::HashMap;
 use std::io::{Cursor, Read};
@@ -38,6 +38,7 @@ pub fn load_native(bytes: &[u8]) -> Result<NativeMappings, Error> {
 
     let mut blocks = HashMap::with_capacity(len as usize);
 
+    // Read mappings
     for _ in 0..len {
         // Read mapping
         let block_name = cursor.read_string()?;
@@ -136,7 +137,7 @@ trait ReadExt {
 
 impl<R: Read> ReadExt for R {
     fn read_string(&mut self) -> Result<String, Error> {
-        let len = self.read_u32::<BigEndian>()?;
+        let len = self.read_u32::<LittleEndian>()?;
         let mut buf = vec![0; len as usize];
 
         self.read(&mut buf)?;

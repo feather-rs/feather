@@ -242,7 +242,7 @@ fn create_block_data_struct(
         );
 
         let entry = quote! {
-            #field_name: #ty_ident
+            pub #field_name: #ty_ident
         };
         data_struct_entries.push(entry);
 
@@ -342,6 +342,8 @@ fn generate_known_enums() -> TokenStream {
         West,
         Up,
         Down,
+        Side,
+        None,
     }
 
     impl Value for Facing {
@@ -374,6 +376,8 @@ fn generate_known_enums() -> TokenStream {
         Lower,
         Top,
         Bottom,
+        Double,
+        Single,
     }
 
     impl Value for Half {
@@ -407,6 +411,7 @@ fn generate_known_enums() -> TokenStream {
         InnerLeft,
         InnerRight,
         OuterLeft,
+        OuterRight,
         AscendingNorth,
         AscendingSouth,
         AscendingEast,

@@ -12,10 +12,10 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 const MAPPINGS_1_13_2: &'static [u8] = include_bytes!("../data/1.13.2.dat");
-const MAPPINGS_1_14_4: &'static [u8] = include_bytes!("../data/1.14.4.dat");
+//const MAPPINGS_1_14_4: &'static [u8] = include_bytes!("../data/1.14.4.dat");
 
 const P1_13_2: u32 = 404;
-const P1_14_4: u32 = 498;
+//const P1_14_4: u32 = 498;
 
 lazy_static! {
     static ref NATIVE_MAPPINGS: NativeMappings =
@@ -28,11 +28,19 @@ pub trait BlockExt {
     fn from_state_id(id: u16, proto_version: u32) -> Option<Self>
     where
         Self: Sized;
+    fn from_native_state_id(id: u16) -> Option<Self>
+    where
+        Self: Sized;
     fn state_id(&self, proto_version: u32) -> u16;
+    fn native_state_id(&self) -> u16;
 }
 
 impl BlockExt for Block {
     fn from_state_id(id: u16, proto_version: u32) -> Option<Self> {
+        unimplemented!()
+    }
+
+    fn from_native_state_id(id: u16) -> Option<Self> {
         unimplemented!()
     }
 
@@ -42,6 +50,11 @@ impl BlockExt for Block {
             P1_13_2 => INTERNAL_TO_NATIVE[internal],
             _ => panic!("Invalid protocol version {}", proto_version),
         }
+    }
+
+    fn native_state_id(&self) -> u16 {
+        let internal = self.internal_state_id();
+        INTERNAL_TO_NATIVE[internal]
     }
 }
 
@@ -76,4 +89,19 @@ where
     }
 
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::blocks::GrassBlockData;
+
+    #[test]
+    fn test_native_state_id() {
+        let block = Block::Stone;
+        assert_eq!(block.native_state_id(), 1);
+
+        let block = Block::GrassBlock(GrassBlockData { snowy: true });
+        assert_eq!(block.native_state_id(), 8);
+    }
 }
