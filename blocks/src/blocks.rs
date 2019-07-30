@@ -1887,6 +1887,1659 @@ impl Block {
         let data_offset = self.internal_id_data_offset();
         type_offset + data_offset
     }
+    pub fn from_name_and_props(name: &str, props: &HashMap<String, String>) -> Option<Self> {
+        match name {
+            "minecraft:air" => Some(Block::Air),
+            "minecraft:stone" => Some(Block::Stone),
+            "minecraft:granite" => Some(Block::Granite),
+            "minecraft:polished_granite" => Some(Block::PolishedGranite),
+            "minecraft:diorite" => Some(Block::Diorite),
+            "minecraft:polished_diorite" => Some(Block::PolishedDiorite),
+            "minecraft:andesite" => Some(Block::Andesite),
+            "minecraft:polished_andesite" => Some(Block::PolishedAndesite),
+            "minecraft:grass_block" => {
+                let data = GrassBlockData::from_map(props)?;
+                Some(Block::GrassBlock(data))
+            }
+            "minecraft:dirt" => Some(Block::Dirt),
+            "minecraft:coarse_dirt" => Some(Block::CoarseDirt),
+            "minecraft:podzol" => {
+                let data = PodzolData::from_map(props)?;
+                Some(Block::Podzol(data))
+            }
+            "minecraft:cobblestone" => Some(Block::Cobblestone),
+            "minecraft:oak_planks" => Some(Block::OakPlanks),
+            "minecraft:spruce_planks" => Some(Block::SprucePlanks),
+            "minecraft:birch_planks" => Some(Block::BirchPlanks),
+            "minecraft:jungle_planks" => Some(Block::JunglePlanks),
+            "minecraft:acacia_planks" => Some(Block::AcaciaPlanks),
+            "minecraft:dark_oak_planks" => Some(Block::DarkOakPlanks),
+            "minecraft:oak_sapling" => {
+                let data = OakSaplingData::from_map(props)?;
+                Some(Block::OakSapling(data))
+            }
+            "minecraft:spruce_sapling" => {
+                let data = SpruceSaplingData::from_map(props)?;
+                Some(Block::SpruceSapling(data))
+            }
+            "minecraft:birch_sapling" => {
+                let data = BirchSaplingData::from_map(props)?;
+                Some(Block::BirchSapling(data))
+            }
+            "minecraft:jungle_sapling" => {
+                let data = JungleSaplingData::from_map(props)?;
+                Some(Block::JungleSapling(data))
+            }
+            "minecraft:acacia_sapling" => {
+                let data = AcaciaSaplingData::from_map(props)?;
+                Some(Block::AcaciaSapling(data))
+            }
+            "minecraft:dark_oak_sapling" => {
+                let data = DarkOakSaplingData::from_map(props)?;
+                Some(Block::DarkOakSapling(data))
+            }
+            "minecraft:bedrock" => Some(Block::Bedrock),
+            "minecraft:water" => {
+                let data = WaterData::from_map(props)?;
+                Some(Block::Water(data))
+            }
+            "minecraft:lava" => {
+                let data = LavaData::from_map(props)?;
+                Some(Block::Lava(data))
+            }
+            "minecraft:sand" => Some(Block::Sand),
+            "minecraft:red_sand" => Some(Block::RedSand),
+            "minecraft:gravel" => Some(Block::Gravel),
+            "minecraft:gold_ore" => Some(Block::GoldOre),
+            "minecraft:iron_ore" => Some(Block::IronOre),
+            "minecraft:coal_ore" => Some(Block::CoalOre),
+            "minecraft:oak_log" => {
+                let data = OakLogData::from_map(props)?;
+                Some(Block::OakLog(data))
+            }
+            "minecraft:spruce_log" => {
+                let data = SpruceLogData::from_map(props)?;
+                Some(Block::SpruceLog(data))
+            }
+            "minecraft:birch_log" => {
+                let data = BirchLogData::from_map(props)?;
+                Some(Block::BirchLog(data))
+            }
+            "minecraft:jungle_log" => {
+                let data = JungleLogData::from_map(props)?;
+                Some(Block::JungleLog(data))
+            }
+            "minecraft:acacia_log" => {
+                let data = AcaciaLogData::from_map(props)?;
+                Some(Block::AcaciaLog(data))
+            }
+            "minecraft:dark_oak_log" => {
+                let data = DarkOakLogData::from_map(props)?;
+                Some(Block::DarkOakLog(data))
+            }
+            "minecraft:stripped_spruce_log" => {
+                let data = StrippedSpruceLogData::from_map(props)?;
+                Some(Block::StrippedSpruceLog(data))
+            }
+            "minecraft:stripped_birch_log" => {
+                let data = StrippedBirchLogData::from_map(props)?;
+                Some(Block::StrippedBirchLog(data))
+            }
+            "minecraft:stripped_jungle_log" => {
+                let data = StrippedJungleLogData::from_map(props)?;
+                Some(Block::StrippedJungleLog(data))
+            }
+            "minecraft:stripped_acacia_log" => {
+                let data = StrippedAcaciaLogData::from_map(props)?;
+                Some(Block::StrippedAcaciaLog(data))
+            }
+            "minecraft:stripped_dark_oak_log" => {
+                let data = StrippedDarkOakLogData::from_map(props)?;
+                Some(Block::StrippedDarkOakLog(data))
+            }
+            "minecraft:stripped_oak_log" => {
+                let data = StrippedOakLogData::from_map(props)?;
+                Some(Block::StrippedOakLog(data))
+            }
+            "minecraft:oak_wood" => {
+                let data = OakWoodData::from_map(props)?;
+                Some(Block::OakWood(data))
+            }
+            "minecraft:spruce_wood" => {
+                let data = SpruceWoodData::from_map(props)?;
+                Some(Block::SpruceWood(data))
+            }
+            "minecraft:birch_wood" => {
+                let data = BirchWoodData::from_map(props)?;
+                Some(Block::BirchWood(data))
+            }
+            "minecraft:jungle_wood" => {
+                let data = JungleWoodData::from_map(props)?;
+                Some(Block::JungleWood(data))
+            }
+            "minecraft:acacia_wood" => {
+                let data = AcaciaWoodData::from_map(props)?;
+                Some(Block::AcaciaWood(data))
+            }
+            "minecraft:dark_oak_wood" => {
+                let data = DarkOakWoodData::from_map(props)?;
+                Some(Block::DarkOakWood(data))
+            }
+            "minecraft:stripped_oak_wood" => {
+                let data = StrippedOakWoodData::from_map(props)?;
+                Some(Block::StrippedOakWood(data))
+            }
+            "minecraft:stripped_spruce_wood" => {
+                let data = StrippedSpruceWoodData::from_map(props)?;
+                Some(Block::StrippedSpruceWood(data))
+            }
+            "minecraft:stripped_birch_wood" => {
+                let data = StrippedBirchWoodData::from_map(props)?;
+                Some(Block::StrippedBirchWood(data))
+            }
+            "minecraft:stripped_jungle_wood" => {
+                let data = StrippedJungleWoodData::from_map(props)?;
+                Some(Block::StrippedJungleWood(data))
+            }
+            "minecraft:stripped_acacia_wood" => {
+                let data = StrippedAcaciaWoodData::from_map(props)?;
+                Some(Block::StrippedAcaciaWood(data))
+            }
+            "minecraft:stripped_dark_oak_wood" => {
+                let data = StrippedDarkOakWoodData::from_map(props)?;
+                Some(Block::StrippedDarkOakWood(data))
+            }
+            "minecraft:oak_leaves" => {
+                let data = OakLeavesData::from_map(props)?;
+                Some(Block::OakLeaves(data))
+            }
+            "minecraft:spruce_leaves" => {
+                let data = SpruceLeavesData::from_map(props)?;
+                Some(Block::SpruceLeaves(data))
+            }
+            "minecraft:birch_leaves" => {
+                let data = BirchLeavesData::from_map(props)?;
+                Some(Block::BirchLeaves(data))
+            }
+            "minecraft:jungle_leaves" => {
+                let data = JungleLeavesData::from_map(props)?;
+                Some(Block::JungleLeaves(data))
+            }
+            "minecraft:acacia_leaves" => {
+                let data = AcaciaLeavesData::from_map(props)?;
+                Some(Block::AcaciaLeaves(data))
+            }
+            "minecraft:dark_oak_leaves" => {
+                let data = DarkOakLeavesData::from_map(props)?;
+                Some(Block::DarkOakLeaves(data))
+            }
+            "minecraft:sponge" => Some(Block::Sponge),
+            "minecraft:wet_sponge" => Some(Block::WetSponge),
+            "minecraft:glass" => Some(Block::Glass),
+            "minecraft:lapis_ore" => Some(Block::LapisOre),
+            "minecraft:lapis_block" => Some(Block::LapisBlock),
+            "minecraft:dispenser" => {
+                let data = DispenserData::from_map(props)?;
+                Some(Block::Dispenser(data))
+            }
+            "minecraft:sandstone" => Some(Block::Sandstone),
+            "minecraft:chiseled_sandstone" => Some(Block::ChiseledSandstone),
+            "minecraft:cut_sandstone" => Some(Block::CutSandstone),
+            "minecraft:note_block" => {
+                let data = NoteBlockData::from_map(props)?;
+                Some(Block::NoteBlock(data))
+            }
+            "minecraft:white_bed" => {
+                let data = WhiteBedData::from_map(props)?;
+                Some(Block::WhiteBed(data))
+            }
+            "minecraft:orange_bed" => {
+                let data = OrangeBedData::from_map(props)?;
+                Some(Block::OrangeBed(data))
+            }
+            "minecraft:magenta_bed" => {
+                let data = MagentaBedData::from_map(props)?;
+                Some(Block::MagentaBed(data))
+            }
+            "minecraft:light_blue_bed" => {
+                let data = LightBlueBedData::from_map(props)?;
+                Some(Block::LightBlueBed(data))
+            }
+            "minecraft:yellow_bed" => {
+                let data = YellowBedData::from_map(props)?;
+                Some(Block::YellowBed(data))
+            }
+            "minecraft:lime_bed" => {
+                let data = LimeBedData::from_map(props)?;
+                Some(Block::LimeBed(data))
+            }
+            "minecraft:pink_bed" => {
+                let data = PinkBedData::from_map(props)?;
+                Some(Block::PinkBed(data))
+            }
+            "minecraft:gray_bed" => {
+                let data = GrayBedData::from_map(props)?;
+                Some(Block::GrayBed(data))
+            }
+            "minecraft:light_gray_bed" => {
+                let data = LightGrayBedData::from_map(props)?;
+                Some(Block::LightGrayBed(data))
+            }
+            "minecraft:cyan_bed" => {
+                let data = CyanBedData::from_map(props)?;
+                Some(Block::CyanBed(data))
+            }
+            "minecraft:purple_bed" => {
+                let data = PurpleBedData::from_map(props)?;
+                Some(Block::PurpleBed(data))
+            }
+            "minecraft:blue_bed" => {
+                let data = BlueBedData::from_map(props)?;
+                Some(Block::BlueBed(data))
+            }
+            "minecraft:brown_bed" => {
+                let data = BrownBedData::from_map(props)?;
+                Some(Block::BrownBed(data))
+            }
+            "minecraft:green_bed" => {
+                let data = GreenBedData::from_map(props)?;
+                Some(Block::GreenBed(data))
+            }
+            "minecraft:red_bed" => {
+                let data = RedBedData::from_map(props)?;
+                Some(Block::RedBed(data))
+            }
+            "minecraft:black_bed" => {
+                let data = BlackBedData::from_map(props)?;
+                Some(Block::BlackBed(data))
+            }
+            "minecraft:powered_rail" => {
+                let data = PoweredRailData::from_map(props)?;
+                Some(Block::PoweredRail(data))
+            }
+            "minecraft:detector_rail" => {
+                let data = DetectorRailData::from_map(props)?;
+                Some(Block::DetectorRail(data))
+            }
+            "minecraft:sticky_piston" => {
+                let data = StickyPistonData::from_map(props)?;
+                Some(Block::StickyPiston(data))
+            }
+            "minecraft:cobweb" => Some(Block::Cobweb),
+            "minecraft:grass" => Some(Block::Grass),
+            "minecraft:fern" => Some(Block::Fern),
+            "minecraft:dead_bush" => Some(Block::DeadBush),
+            "minecraft:seagrass" => Some(Block::Seagrass),
+            "minecraft:tall_seagrass" => {
+                let data = TallSeagrassData::from_map(props)?;
+                Some(Block::TallSeagrass(data))
+            }
+            "minecraft:piston" => {
+                let data = PistonData::from_map(props)?;
+                Some(Block::Piston(data))
+            }
+            "minecraft:piston_head" => {
+                let data = PistonHeadData::from_map(props)?;
+                Some(Block::PistonHead(data))
+            }
+            "minecraft:white_wool" => Some(Block::WhiteWool),
+            "minecraft:orange_wool" => Some(Block::OrangeWool),
+            "minecraft:magenta_wool" => Some(Block::MagentaWool),
+            "minecraft:light_blue_wool" => Some(Block::LightBlueWool),
+            "minecraft:yellow_wool" => Some(Block::YellowWool),
+            "minecraft:lime_wool" => Some(Block::LimeWool),
+            "minecraft:pink_wool" => Some(Block::PinkWool),
+            "minecraft:gray_wool" => Some(Block::GrayWool),
+            "minecraft:light_gray_wool" => Some(Block::LightGrayWool),
+            "minecraft:cyan_wool" => Some(Block::CyanWool),
+            "minecraft:purple_wool" => Some(Block::PurpleWool),
+            "minecraft:blue_wool" => Some(Block::BlueWool),
+            "minecraft:brown_wool" => Some(Block::BrownWool),
+            "minecraft:green_wool" => Some(Block::GreenWool),
+            "minecraft:red_wool" => Some(Block::RedWool),
+            "minecraft:black_wool" => Some(Block::BlackWool),
+            "minecraft:moving_piston" => {
+                let data = MovingPistonData::from_map(props)?;
+                Some(Block::MovingPiston(data))
+            }
+            "minecraft:dandelion" => Some(Block::Dandelion),
+            "minecraft:poppy" => Some(Block::Poppy),
+            "minecraft:blue_orchid" => Some(Block::BlueOrchid),
+            "minecraft:allium" => Some(Block::Allium),
+            "minecraft:azure_bluet" => Some(Block::AzureBluet),
+            "minecraft:red_tulip" => Some(Block::RedTulip),
+            "minecraft:orange_tulip" => Some(Block::OrangeTulip),
+            "minecraft:white_tulip" => Some(Block::WhiteTulip),
+            "minecraft:pink_tulip" => Some(Block::PinkTulip),
+            "minecraft:oxeye_daisy" => Some(Block::OxeyeDaisy),
+            "minecraft:brown_mushroom" => Some(Block::BrownMushroom),
+            "minecraft:red_mushroom" => Some(Block::RedMushroom),
+            "minecraft:gold_block" => Some(Block::GoldBlock),
+            "minecraft:iron_block" => Some(Block::IronBlock),
+            "minecraft:bricks" => Some(Block::Bricks),
+            "minecraft:tnt" => {
+                let data = TntData::from_map(props)?;
+                Some(Block::Tnt(data))
+            }
+            "minecraft:bookshelf" => Some(Block::Bookshelf),
+            "minecraft:mossy_cobblestone" => Some(Block::MossyCobblestone),
+            "minecraft:obsidian" => Some(Block::Obsidian),
+            "minecraft:torch" => Some(Block::Torch),
+            "minecraft:wall_torch" => {
+                let data = WallTorchData::from_map(props)?;
+                Some(Block::WallTorch(data))
+            }
+            "minecraft:fire" => {
+                let data = FireData::from_map(props)?;
+                Some(Block::Fire(data))
+            }
+            "minecraft:spawner" => Some(Block::Spawner),
+            "minecraft:oak_stairs" => {
+                let data = OakStairsData::from_map(props)?;
+                Some(Block::OakStairs(data))
+            }
+            "minecraft:chest" => {
+                let data = ChestData::from_map(props)?;
+                Some(Block::Chest(data))
+            }
+            "minecraft:redstone_wire" => {
+                let data = RedstoneWireData::from_map(props)?;
+                Some(Block::RedstoneWire(data))
+            }
+            "minecraft:diamond_ore" => Some(Block::DiamondOre),
+            "minecraft:diamond_block" => Some(Block::DiamondBlock),
+            "minecraft:crafting_table" => Some(Block::CraftingTable),
+            "minecraft:wheat" => {
+                let data = WheatData::from_map(props)?;
+                Some(Block::Wheat(data))
+            }
+            "minecraft:farmland" => {
+                let data = FarmlandData::from_map(props)?;
+                Some(Block::Farmland(data))
+            }
+            "minecraft:furnace" => {
+                let data = FurnaceData::from_map(props)?;
+                Some(Block::Furnace(data))
+            }
+            "minecraft:sign" => {
+                let data = SignData::from_map(props)?;
+                Some(Block::Sign(data))
+            }
+            "minecraft:oak_door" => {
+                let data = OakDoorData::from_map(props)?;
+                Some(Block::OakDoor(data))
+            }
+            "minecraft:ladder" => {
+                let data = LadderData::from_map(props)?;
+                Some(Block::Ladder(data))
+            }
+            "minecraft:rail" => {
+                let data = RailData::from_map(props)?;
+                Some(Block::Rail(data))
+            }
+            "minecraft:cobblestone_stairs" => {
+                let data = CobblestoneStairsData::from_map(props)?;
+                Some(Block::CobblestoneStairs(data))
+            }
+            "minecraft:wall_sign" => {
+                let data = WallSignData::from_map(props)?;
+                Some(Block::WallSign(data))
+            }
+            "minecraft:lever" => {
+                let data = LeverData::from_map(props)?;
+                Some(Block::Lever(data))
+            }
+            "minecraft:stone_pressure_plate" => {
+                let data = StonePressurePlateData::from_map(props)?;
+                Some(Block::StonePressurePlate(data))
+            }
+            "minecraft:iron_door" => {
+                let data = IronDoorData::from_map(props)?;
+                Some(Block::IronDoor(data))
+            }
+            "minecraft:oak_pressure_plate" => {
+                let data = OakPressurePlateData::from_map(props)?;
+                Some(Block::OakPressurePlate(data))
+            }
+            "minecraft:spruce_pressure_plate" => {
+                let data = SprucePressurePlateData::from_map(props)?;
+                Some(Block::SprucePressurePlate(data))
+            }
+            "minecraft:birch_pressure_plate" => {
+                let data = BirchPressurePlateData::from_map(props)?;
+                Some(Block::BirchPressurePlate(data))
+            }
+            "minecraft:jungle_pressure_plate" => {
+                let data = JunglePressurePlateData::from_map(props)?;
+                Some(Block::JunglePressurePlate(data))
+            }
+            "minecraft:acacia_pressure_plate" => {
+                let data = AcaciaPressurePlateData::from_map(props)?;
+                Some(Block::AcaciaPressurePlate(data))
+            }
+            "minecraft:dark_oak_pressure_plate" => {
+                let data = DarkOakPressurePlateData::from_map(props)?;
+                Some(Block::DarkOakPressurePlate(data))
+            }
+            "minecraft:redstone_ore" => {
+                let data = RedstoneOreData::from_map(props)?;
+                Some(Block::RedstoneOre(data))
+            }
+            "minecraft:redstone_torch" => {
+                let data = RedstoneTorchData::from_map(props)?;
+                Some(Block::RedstoneTorch(data))
+            }
+            "minecraft:redstone_wall_torch" => {
+                let data = RedstoneWallTorchData::from_map(props)?;
+                Some(Block::RedstoneWallTorch(data))
+            }
+            "minecraft:stone_button" => {
+                let data = StoneButtonData::from_map(props)?;
+                Some(Block::StoneButton(data))
+            }
+            "minecraft:snow" => {
+                let data = SnowData::from_map(props)?;
+                Some(Block::Snow(data))
+            }
+            "minecraft:ice" => Some(Block::Ice),
+            "minecraft:snow_block" => Some(Block::SnowBlock),
+            "minecraft:cactus" => {
+                let data = CactusData::from_map(props)?;
+                Some(Block::Cactus(data))
+            }
+            "minecraft:clay" => Some(Block::Clay),
+            "minecraft:sugar_cane" => {
+                let data = SugarCaneData::from_map(props)?;
+                Some(Block::SugarCane(data))
+            }
+            "minecraft:jukebox" => {
+                let data = JukeboxData::from_map(props)?;
+                Some(Block::Jukebox(data))
+            }
+            "minecraft:oak_fence" => {
+                let data = OakFenceData::from_map(props)?;
+                Some(Block::OakFence(data))
+            }
+            "minecraft:pumpkin" => Some(Block::Pumpkin),
+            "minecraft:netherrack" => Some(Block::Netherrack),
+            "minecraft:soul_sand" => Some(Block::SoulSand),
+            "minecraft:glowstone" => Some(Block::Glowstone),
+            "minecraft:nether_portal" => {
+                let data = NetherPortalData::from_map(props)?;
+                Some(Block::NetherPortal(data))
+            }
+            "minecraft:carved_pumpkin" => {
+                let data = CarvedPumpkinData::from_map(props)?;
+                Some(Block::CarvedPumpkin(data))
+            }
+            "minecraft:jack_o_lantern" => {
+                let data = JackOLanternData::from_map(props)?;
+                Some(Block::JackOLantern(data))
+            }
+            "minecraft:cake" => {
+                let data = CakeData::from_map(props)?;
+                Some(Block::Cake(data))
+            }
+            "minecraft:repeater" => {
+                let data = RepeaterData::from_map(props)?;
+                Some(Block::Repeater(data))
+            }
+            "minecraft:white_stained_glass" => Some(Block::WhiteStainedGlass),
+            "minecraft:orange_stained_glass" => Some(Block::OrangeStainedGlass),
+            "minecraft:magenta_stained_glass" => Some(Block::MagentaStainedGlass),
+            "minecraft:light_blue_stained_glass" => Some(Block::LightBlueStainedGlass),
+            "minecraft:yellow_stained_glass" => Some(Block::YellowStainedGlass),
+            "minecraft:lime_stained_glass" => Some(Block::LimeStainedGlass),
+            "minecraft:pink_stained_glass" => Some(Block::PinkStainedGlass),
+            "minecraft:gray_stained_glass" => Some(Block::GrayStainedGlass),
+            "minecraft:light_gray_stained_glass" => Some(Block::LightGrayStainedGlass),
+            "minecraft:cyan_stained_glass" => Some(Block::CyanStainedGlass),
+            "minecraft:purple_stained_glass" => Some(Block::PurpleStainedGlass),
+            "minecraft:blue_stained_glass" => Some(Block::BlueStainedGlass),
+            "minecraft:brown_stained_glass" => Some(Block::BrownStainedGlass),
+            "minecraft:green_stained_glass" => Some(Block::GreenStainedGlass),
+            "minecraft:red_stained_glass" => Some(Block::RedStainedGlass),
+            "minecraft:black_stained_glass" => Some(Block::BlackStainedGlass),
+            "minecraft:oak_trapdoor" => {
+                let data = OakTrapdoorData::from_map(props)?;
+                Some(Block::OakTrapdoor(data))
+            }
+            "minecraft:spruce_trapdoor" => {
+                let data = SpruceTrapdoorData::from_map(props)?;
+                Some(Block::SpruceTrapdoor(data))
+            }
+            "minecraft:birch_trapdoor" => {
+                let data = BirchTrapdoorData::from_map(props)?;
+                Some(Block::BirchTrapdoor(data))
+            }
+            "minecraft:jungle_trapdoor" => {
+                let data = JungleTrapdoorData::from_map(props)?;
+                Some(Block::JungleTrapdoor(data))
+            }
+            "minecraft:acacia_trapdoor" => {
+                let data = AcaciaTrapdoorData::from_map(props)?;
+                Some(Block::AcaciaTrapdoor(data))
+            }
+            "minecraft:dark_oak_trapdoor" => {
+                let data = DarkOakTrapdoorData::from_map(props)?;
+                Some(Block::DarkOakTrapdoor(data))
+            }
+            "minecraft:infested_stone" => Some(Block::InfestedStone),
+            "minecraft:infested_cobblestone" => Some(Block::InfestedCobblestone),
+            "minecraft:infested_stone_bricks" => Some(Block::InfestedStoneBricks),
+            "minecraft:infested_mossy_stone_bricks" => Some(Block::InfestedMossyStoneBricks),
+            "minecraft:infested_cracked_stone_bricks" => Some(Block::InfestedCrackedStoneBricks),
+            "minecraft:infested_chiseled_stone_bricks" => Some(Block::InfestedChiseledStoneBricks),
+            "minecraft:stone_bricks" => Some(Block::StoneBricks),
+            "minecraft:mossy_stone_bricks" => Some(Block::MossyStoneBricks),
+            "minecraft:cracked_stone_bricks" => Some(Block::CrackedStoneBricks),
+            "minecraft:chiseled_stone_bricks" => Some(Block::ChiseledStoneBricks),
+            "minecraft:brown_mushroom_block" => {
+                let data = BrownMushroomBlockData::from_map(props)?;
+                Some(Block::BrownMushroomBlock(data))
+            }
+            "minecraft:red_mushroom_block" => {
+                let data = RedMushroomBlockData::from_map(props)?;
+                Some(Block::RedMushroomBlock(data))
+            }
+            "minecraft:mushroom_stem" => {
+                let data = MushroomStemData::from_map(props)?;
+                Some(Block::MushroomStem(data))
+            }
+            "minecraft:iron_bars" => {
+                let data = IronBarsData::from_map(props)?;
+                Some(Block::IronBars(data))
+            }
+            "minecraft:glass_pane" => {
+                let data = GlassPaneData::from_map(props)?;
+                Some(Block::GlassPane(data))
+            }
+            "minecraft:melon" => Some(Block::Melon),
+            "minecraft:attached_pumpkin_stem" => {
+                let data = AttachedPumpkinStemData::from_map(props)?;
+                Some(Block::AttachedPumpkinStem(data))
+            }
+            "minecraft:attached_melon_stem" => {
+                let data = AttachedMelonStemData::from_map(props)?;
+                Some(Block::AttachedMelonStem(data))
+            }
+            "minecraft:pumpkin_stem" => {
+                let data = PumpkinStemData::from_map(props)?;
+                Some(Block::PumpkinStem(data))
+            }
+            "minecraft:melon_stem" => {
+                let data = MelonStemData::from_map(props)?;
+                Some(Block::MelonStem(data))
+            }
+            "minecraft:vine" => {
+                let data = VineData::from_map(props)?;
+                Some(Block::Vine(data))
+            }
+            "minecraft:oak_fence_gate" => {
+                let data = OakFenceGateData::from_map(props)?;
+                Some(Block::OakFenceGate(data))
+            }
+            "minecraft:brick_stairs" => {
+                let data = BrickStairsData::from_map(props)?;
+                Some(Block::BrickStairs(data))
+            }
+            "minecraft:stone_brick_stairs" => {
+                let data = StoneBrickStairsData::from_map(props)?;
+                Some(Block::StoneBrickStairs(data))
+            }
+            "minecraft:mycelium" => {
+                let data = MyceliumData::from_map(props)?;
+                Some(Block::Mycelium(data))
+            }
+            "minecraft:lily_pad" => Some(Block::LilyPad),
+            "minecraft:nether_bricks" => Some(Block::NetherBricks),
+            "minecraft:nether_brick_fence" => {
+                let data = NetherBrickFenceData::from_map(props)?;
+                Some(Block::NetherBrickFence(data))
+            }
+            "minecraft:nether_brick_stairs" => {
+                let data = NetherBrickStairsData::from_map(props)?;
+                Some(Block::NetherBrickStairs(data))
+            }
+            "minecraft:nether_wart" => {
+                let data = NetherWartData::from_map(props)?;
+                Some(Block::NetherWart(data))
+            }
+            "minecraft:enchanting_table" => Some(Block::EnchantingTable),
+            "minecraft:brewing_stand" => {
+                let data = BrewingStandData::from_map(props)?;
+                Some(Block::BrewingStand(data))
+            }
+            "minecraft:cauldron" => {
+                let data = CauldronData::from_map(props)?;
+                Some(Block::Cauldron(data))
+            }
+            "minecraft:end_portal" => Some(Block::EndPortal),
+            "minecraft:end_portal_frame" => {
+                let data = EndPortalFrameData::from_map(props)?;
+                Some(Block::EndPortalFrame(data))
+            }
+            "minecraft:end_stone" => Some(Block::EndStone),
+            "minecraft:dragon_egg" => Some(Block::DragonEgg),
+            "minecraft:redstone_lamp" => {
+                let data = RedstoneLampData::from_map(props)?;
+                Some(Block::RedstoneLamp(data))
+            }
+            "minecraft:cocoa" => {
+                let data = CocoaData::from_map(props)?;
+                Some(Block::Cocoa(data))
+            }
+            "minecraft:sandstone_stairs" => {
+                let data = SandstoneStairsData::from_map(props)?;
+                Some(Block::SandstoneStairs(data))
+            }
+            "minecraft:emerald_ore" => Some(Block::EmeraldOre),
+            "minecraft:ender_chest" => {
+                let data = EnderChestData::from_map(props)?;
+                Some(Block::EnderChest(data))
+            }
+            "minecraft:tripwire_hook" => {
+                let data = TripwireHookData::from_map(props)?;
+                Some(Block::TripwireHook(data))
+            }
+            "minecraft:tripwire" => {
+                let data = TripwireData::from_map(props)?;
+                Some(Block::Tripwire(data))
+            }
+            "minecraft:emerald_block" => Some(Block::EmeraldBlock),
+            "minecraft:spruce_stairs" => {
+                let data = SpruceStairsData::from_map(props)?;
+                Some(Block::SpruceStairs(data))
+            }
+            "minecraft:birch_stairs" => {
+                let data = BirchStairsData::from_map(props)?;
+                Some(Block::BirchStairs(data))
+            }
+            "minecraft:jungle_stairs" => {
+                let data = JungleStairsData::from_map(props)?;
+                Some(Block::JungleStairs(data))
+            }
+            "minecraft:command_block" => {
+                let data = CommandBlockData::from_map(props)?;
+                Some(Block::CommandBlock(data))
+            }
+            "minecraft:beacon" => Some(Block::Beacon),
+            "minecraft:cobblestone_wall" => {
+                let data = CobblestoneWallData::from_map(props)?;
+                Some(Block::CobblestoneWall(data))
+            }
+            "minecraft:mossy_cobblestone_wall" => {
+                let data = MossyCobblestoneWallData::from_map(props)?;
+                Some(Block::MossyCobblestoneWall(data))
+            }
+            "minecraft:flower_pot" => Some(Block::FlowerPot),
+            "minecraft:potted_oak_sapling" => Some(Block::PottedOakSapling),
+            "minecraft:potted_spruce_sapling" => Some(Block::PottedSpruceSapling),
+            "minecraft:potted_birch_sapling" => Some(Block::PottedBirchSapling),
+            "minecraft:potted_jungle_sapling" => Some(Block::PottedJungleSapling),
+            "minecraft:potted_acacia_sapling" => Some(Block::PottedAcaciaSapling),
+            "minecraft:potted_dark_oak_sapling" => Some(Block::PottedDarkOakSapling),
+            "minecraft:potted_fern" => Some(Block::PottedFern),
+            "minecraft:potted_dandelion" => Some(Block::PottedDandelion),
+            "minecraft:potted_poppy" => Some(Block::PottedPoppy),
+            "minecraft:potted_blue_orchid" => Some(Block::PottedBlueOrchid),
+            "minecraft:potted_allium" => Some(Block::PottedAllium),
+            "minecraft:potted_azure_bluet" => Some(Block::PottedAzureBluet),
+            "minecraft:potted_red_tulip" => Some(Block::PottedRedTulip),
+            "minecraft:potted_orange_tulip" => Some(Block::PottedOrangeTulip),
+            "minecraft:potted_white_tulip" => Some(Block::PottedWhiteTulip),
+            "minecraft:potted_pink_tulip" => Some(Block::PottedPinkTulip),
+            "minecraft:potted_oxeye_daisy" => Some(Block::PottedOxeyeDaisy),
+            "minecraft:potted_red_mushroom" => Some(Block::PottedRedMushroom),
+            "minecraft:potted_brown_mushroom" => Some(Block::PottedBrownMushroom),
+            "minecraft:potted_dead_bush" => Some(Block::PottedDeadBush),
+            "minecraft:potted_cactus" => Some(Block::PottedCactus),
+            "minecraft:carrots" => {
+                let data = CarrotsData::from_map(props)?;
+                Some(Block::Carrots(data))
+            }
+            "minecraft:potatoes" => {
+                let data = PotatoesData::from_map(props)?;
+                Some(Block::Potatoes(data))
+            }
+            "minecraft:oak_button" => {
+                let data = OakButtonData::from_map(props)?;
+                Some(Block::OakButton(data))
+            }
+            "minecraft:spruce_button" => {
+                let data = SpruceButtonData::from_map(props)?;
+                Some(Block::SpruceButton(data))
+            }
+            "minecraft:birch_button" => {
+                let data = BirchButtonData::from_map(props)?;
+                Some(Block::BirchButton(data))
+            }
+            "minecraft:jungle_button" => {
+                let data = JungleButtonData::from_map(props)?;
+                Some(Block::JungleButton(data))
+            }
+            "minecraft:acacia_button" => {
+                let data = AcaciaButtonData::from_map(props)?;
+                Some(Block::AcaciaButton(data))
+            }
+            "minecraft:dark_oak_button" => {
+                let data = DarkOakButtonData::from_map(props)?;
+                Some(Block::DarkOakButton(data))
+            }
+            "minecraft:skeleton_wall_skull" => {
+                let data = SkeletonWallSkullData::from_map(props)?;
+                Some(Block::SkeletonWallSkull(data))
+            }
+            "minecraft:skeleton_skull" => {
+                let data = SkeletonSkullData::from_map(props)?;
+                Some(Block::SkeletonSkull(data))
+            }
+            "minecraft:wither_skeleton_wall_skull" => {
+                let data = WitherSkeletonWallSkullData::from_map(props)?;
+                Some(Block::WitherSkeletonWallSkull(data))
+            }
+            "minecraft:wither_skeleton_skull" => {
+                let data = WitherSkeletonSkullData::from_map(props)?;
+                Some(Block::WitherSkeletonSkull(data))
+            }
+            "minecraft:zombie_wall_head" => {
+                let data = ZombieWallHeadData::from_map(props)?;
+                Some(Block::ZombieWallHead(data))
+            }
+            "minecraft:zombie_head" => {
+                let data = ZombieHeadData::from_map(props)?;
+                Some(Block::ZombieHead(data))
+            }
+            "minecraft:player_wall_head" => {
+                let data = PlayerWallHeadData::from_map(props)?;
+                Some(Block::PlayerWallHead(data))
+            }
+            "minecraft:player_head" => {
+                let data = PlayerHeadData::from_map(props)?;
+                Some(Block::PlayerHead(data))
+            }
+            "minecraft:creeper_wall_head" => {
+                let data = CreeperWallHeadData::from_map(props)?;
+                Some(Block::CreeperWallHead(data))
+            }
+            "minecraft:creeper_head" => {
+                let data = CreeperHeadData::from_map(props)?;
+                Some(Block::CreeperHead(data))
+            }
+            "minecraft:dragon_wall_head" => {
+                let data = DragonWallHeadData::from_map(props)?;
+                Some(Block::DragonWallHead(data))
+            }
+            "minecraft:dragon_head" => {
+                let data = DragonHeadData::from_map(props)?;
+                Some(Block::DragonHead(data))
+            }
+            "minecraft:anvil" => {
+                let data = AnvilData::from_map(props)?;
+                Some(Block::Anvil(data))
+            }
+            "minecraft:chipped_anvil" => {
+                let data = ChippedAnvilData::from_map(props)?;
+                Some(Block::ChippedAnvil(data))
+            }
+            "minecraft:damaged_anvil" => {
+                let data = DamagedAnvilData::from_map(props)?;
+                Some(Block::DamagedAnvil(data))
+            }
+            "minecraft:trapped_chest" => {
+                let data = TrappedChestData::from_map(props)?;
+                Some(Block::TrappedChest(data))
+            }
+            "minecraft:light_weighted_pressure_plate" => {
+                let data = LightWeightedPressurePlateData::from_map(props)?;
+                Some(Block::LightWeightedPressurePlate(data))
+            }
+            "minecraft:heavy_weighted_pressure_plate" => {
+                let data = HeavyWeightedPressurePlateData::from_map(props)?;
+                Some(Block::HeavyWeightedPressurePlate(data))
+            }
+            "minecraft:comparator" => {
+                let data = ComparatorData::from_map(props)?;
+                Some(Block::Comparator(data))
+            }
+            "minecraft:daylight_detector" => {
+                let data = DaylightDetectorData::from_map(props)?;
+                Some(Block::DaylightDetector(data))
+            }
+            "minecraft:redstone_block" => Some(Block::RedstoneBlock),
+            "minecraft:nether_quartz_ore" => Some(Block::NetherQuartzOre),
+            "minecraft:hopper" => {
+                let data = HopperData::from_map(props)?;
+                Some(Block::Hopper(data))
+            }
+            "minecraft:quartz_block" => Some(Block::QuartzBlock),
+            "minecraft:chiseled_quartz_block" => Some(Block::ChiseledQuartzBlock),
+            "minecraft:quartz_pillar" => {
+                let data = QuartzPillarData::from_map(props)?;
+                Some(Block::QuartzPillar(data))
+            }
+            "minecraft:quartz_stairs" => {
+                let data = QuartzStairsData::from_map(props)?;
+                Some(Block::QuartzStairs(data))
+            }
+            "minecraft:activator_rail" => {
+                let data = ActivatorRailData::from_map(props)?;
+                Some(Block::ActivatorRail(data))
+            }
+            "minecraft:dropper" => {
+                let data = DropperData::from_map(props)?;
+                Some(Block::Dropper(data))
+            }
+            "minecraft:white_terracotta" => Some(Block::WhiteTerracotta),
+            "minecraft:orange_terracotta" => Some(Block::OrangeTerracotta),
+            "minecraft:magenta_terracotta" => Some(Block::MagentaTerracotta),
+            "minecraft:light_blue_terracotta" => Some(Block::LightBlueTerracotta),
+            "minecraft:yellow_terracotta" => Some(Block::YellowTerracotta),
+            "minecraft:lime_terracotta" => Some(Block::LimeTerracotta),
+            "minecraft:pink_terracotta" => Some(Block::PinkTerracotta),
+            "minecraft:gray_terracotta" => Some(Block::GrayTerracotta),
+            "minecraft:light_gray_terracotta" => Some(Block::LightGrayTerracotta),
+            "minecraft:cyan_terracotta" => Some(Block::CyanTerracotta),
+            "minecraft:purple_terracotta" => Some(Block::PurpleTerracotta),
+            "minecraft:blue_terracotta" => Some(Block::BlueTerracotta),
+            "minecraft:brown_terracotta" => Some(Block::BrownTerracotta),
+            "minecraft:green_terracotta" => Some(Block::GreenTerracotta),
+            "minecraft:red_terracotta" => Some(Block::RedTerracotta),
+            "minecraft:black_terracotta" => Some(Block::BlackTerracotta),
+            "minecraft:white_stained_glass_pane" => {
+                let data = WhiteStainedGlassPaneData::from_map(props)?;
+                Some(Block::WhiteStainedGlassPane(data))
+            }
+            "minecraft:orange_stained_glass_pane" => {
+                let data = OrangeStainedGlassPaneData::from_map(props)?;
+                Some(Block::OrangeStainedGlassPane(data))
+            }
+            "minecraft:magenta_stained_glass_pane" => {
+                let data = MagentaStainedGlassPaneData::from_map(props)?;
+                Some(Block::MagentaStainedGlassPane(data))
+            }
+            "minecraft:light_blue_stained_glass_pane" => {
+                let data = LightBlueStainedGlassPaneData::from_map(props)?;
+                Some(Block::LightBlueStainedGlassPane(data))
+            }
+            "minecraft:yellow_stained_glass_pane" => {
+                let data = YellowStainedGlassPaneData::from_map(props)?;
+                Some(Block::YellowStainedGlassPane(data))
+            }
+            "minecraft:lime_stained_glass_pane" => {
+                let data = LimeStainedGlassPaneData::from_map(props)?;
+                Some(Block::LimeStainedGlassPane(data))
+            }
+            "minecraft:pink_stained_glass_pane" => {
+                let data = PinkStainedGlassPaneData::from_map(props)?;
+                Some(Block::PinkStainedGlassPane(data))
+            }
+            "minecraft:gray_stained_glass_pane" => {
+                let data = GrayStainedGlassPaneData::from_map(props)?;
+                Some(Block::GrayStainedGlassPane(data))
+            }
+            "minecraft:light_gray_stained_glass_pane" => {
+                let data = LightGrayStainedGlassPaneData::from_map(props)?;
+                Some(Block::LightGrayStainedGlassPane(data))
+            }
+            "minecraft:cyan_stained_glass_pane" => {
+                let data = CyanStainedGlassPaneData::from_map(props)?;
+                Some(Block::CyanStainedGlassPane(data))
+            }
+            "minecraft:purple_stained_glass_pane" => {
+                let data = PurpleStainedGlassPaneData::from_map(props)?;
+                Some(Block::PurpleStainedGlassPane(data))
+            }
+            "minecraft:blue_stained_glass_pane" => {
+                let data = BlueStainedGlassPaneData::from_map(props)?;
+                Some(Block::BlueStainedGlassPane(data))
+            }
+            "minecraft:brown_stained_glass_pane" => {
+                let data = BrownStainedGlassPaneData::from_map(props)?;
+                Some(Block::BrownStainedGlassPane(data))
+            }
+            "minecraft:green_stained_glass_pane" => {
+                let data = GreenStainedGlassPaneData::from_map(props)?;
+                Some(Block::GreenStainedGlassPane(data))
+            }
+            "minecraft:red_stained_glass_pane" => {
+                let data = RedStainedGlassPaneData::from_map(props)?;
+                Some(Block::RedStainedGlassPane(data))
+            }
+            "minecraft:black_stained_glass_pane" => {
+                let data = BlackStainedGlassPaneData::from_map(props)?;
+                Some(Block::BlackStainedGlassPane(data))
+            }
+            "minecraft:acacia_stairs" => {
+                let data = AcaciaStairsData::from_map(props)?;
+                Some(Block::AcaciaStairs(data))
+            }
+            "minecraft:dark_oak_stairs" => {
+                let data = DarkOakStairsData::from_map(props)?;
+                Some(Block::DarkOakStairs(data))
+            }
+            "minecraft:slime_block" => Some(Block::SlimeBlock),
+            "minecraft:barrier" => Some(Block::Barrier),
+            "minecraft:iron_trapdoor" => {
+                let data = IronTrapdoorData::from_map(props)?;
+                Some(Block::IronTrapdoor(data))
+            }
+            "minecraft:prismarine" => Some(Block::Prismarine),
+            "minecraft:prismarine_bricks" => Some(Block::PrismarineBricks),
+            "minecraft:dark_prismarine" => Some(Block::DarkPrismarine),
+            "minecraft:prismarine_stairs" => {
+                let data = PrismarineStairsData::from_map(props)?;
+                Some(Block::PrismarineStairs(data))
+            }
+            "minecraft:prismarine_brick_stairs" => {
+                let data = PrismarineBrickStairsData::from_map(props)?;
+                Some(Block::PrismarineBrickStairs(data))
+            }
+            "minecraft:dark_prismarine_stairs" => {
+                let data = DarkPrismarineStairsData::from_map(props)?;
+                Some(Block::DarkPrismarineStairs(data))
+            }
+            "minecraft:prismarine_slab" => {
+                let data = PrismarineSlabData::from_map(props)?;
+                Some(Block::PrismarineSlab(data))
+            }
+            "minecraft:prismarine_brick_slab" => {
+                let data = PrismarineBrickSlabData::from_map(props)?;
+                Some(Block::PrismarineBrickSlab(data))
+            }
+            "minecraft:dark_prismarine_slab" => {
+                let data = DarkPrismarineSlabData::from_map(props)?;
+                Some(Block::DarkPrismarineSlab(data))
+            }
+            "minecraft:sea_lantern" => Some(Block::SeaLantern),
+            "minecraft:hay_block" => {
+                let data = HayBlockData::from_map(props)?;
+                Some(Block::HayBlock(data))
+            }
+            "minecraft:white_carpet" => Some(Block::WhiteCarpet),
+            "minecraft:orange_carpet" => Some(Block::OrangeCarpet),
+            "minecraft:magenta_carpet" => Some(Block::MagentaCarpet),
+            "minecraft:light_blue_carpet" => Some(Block::LightBlueCarpet),
+            "minecraft:yellow_carpet" => Some(Block::YellowCarpet),
+            "minecraft:lime_carpet" => Some(Block::LimeCarpet),
+            "minecraft:pink_carpet" => Some(Block::PinkCarpet),
+            "minecraft:gray_carpet" => Some(Block::GrayCarpet),
+            "minecraft:light_gray_carpet" => Some(Block::LightGrayCarpet),
+            "minecraft:cyan_carpet" => Some(Block::CyanCarpet),
+            "minecraft:purple_carpet" => Some(Block::PurpleCarpet),
+            "minecraft:blue_carpet" => Some(Block::BlueCarpet),
+            "minecraft:brown_carpet" => Some(Block::BrownCarpet),
+            "minecraft:green_carpet" => Some(Block::GreenCarpet),
+            "minecraft:red_carpet" => Some(Block::RedCarpet),
+            "minecraft:black_carpet" => Some(Block::BlackCarpet),
+            "minecraft:terracotta" => Some(Block::Terracotta),
+            "minecraft:coal_block" => Some(Block::CoalBlock),
+            "minecraft:packed_ice" => Some(Block::PackedIce),
+            "minecraft:sunflower" => {
+                let data = SunflowerData::from_map(props)?;
+                Some(Block::Sunflower(data))
+            }
+            "minecraft:lilac" => {
+                let data = LilacData::from_map(props)?;
+                Some(Block::Lilac(data))
+            }
+            "minecraft:rose_bush" => {
+                let data = RoseBushData::from_map(props)?;
+                Some(Block::RoseBush(data))
+            }
+            "minecraft:peony" => {
+                let data = PeonyData::from_map(props)?;
+                Some(Block::Peony(data))
+            }
+            "minecraft:tall_grass" => {
+                let data = TallGrassData::from_map(props)?;
+                Some(Block::TallGrass(data))
+            }
+            "minecraft:large_fern" => {
+                let data = LargeFernData::from_map(props)?;
+                Some(Block::LargeFern(data))
+            }
+            "minecraft:white_banner" => {
+                let data = WhiteBannerData::from_map(props)?;
+                Some(Block::WhiteBanner(data))
+            }
+            "minecraft:orange_banner" => {
+                let data = OrangeBannerData::from_map(props)?;
+                Some(Block::OrangeBanner(data))
+            }
+            "minecraft:magenta_banner" => {
+                let data = MagentaBannerData::from_map(props)?;
+                Some(Block::MagentaBanner(data))
+            }
+            "minecraft:light_blue_banner" => {
+                let data = LightBlueBannerData::from_map(props)?;
+                Some(Block::LightBlueBanner(data))
+            }
+            "minecraft:yellow_banner" => {
+                let data = YellowBannerData::from_map(props)?;
+                Some(Block::YellowBanner(data))
+            }
+            "minecraft:lime_banner" => {
+                let data = LimeBannerData::from_map(props)?;
+                Some(Block::LimeBanner(data))
+            }
+            "minecraft:pink_banner" => {
+                let data = PinkBannerData::from_map(props)?;
+                Some(Block::PinkBanner(data))
+            }
+            "minecraft:gray_banner" => {
+                let data = GrayBannerData::from_map(props)?;
+                Some(Block::GrayBanner(data))
+            }
+            "minecraft:light_gray_banner" => {
+                let data = LightGrayBannerData::from_map(props)?;
+                Some(Block::LightGrayBanner(data))
+            }
+            "minecraft:cyan_banner" => {
+                let data = CyanBannerData::from_map(props)?;
+                Some(Block::CyanBanner(data))
+            }
+            "minecraft:purple_banner" => {
+                let data = PurpleBannerData::from_map(props)?;
+                Some(Block::PurpleBanner(data))
+            }
+            "minecraft:blue_banner" => {
+                let data = BlueBannerData::from_map(props)?;
+                Some(Block::BlueBanner(data))
+            }
+            "minecraft:brown_banner" => {
+                let data = BrownBannerData::from_map(props)?;
+                Some(Block::BrownBanner(data))
+            }
+            "minecraft:green_banner" => {
+                let data = GreenBannerData::from_map(props)?;
+                Some(Block::GreenBanner(data))
+            }
+            "minecraft:red_banner" => {
+                let data = RedBannerData::from_map(props)?;
+                Some(Block::RedBanner(data))
+            }
+            "minecraft:black_banner" => {
+                let data = BlackBannerData::from_map(props)?;
+                Some(Block::BlackBanner(data))
+            }
+            "minecraft:white_wall_banner" => {
+                let data = WhiteWallBannerData::from_map(props)?;
+                Some(Block::WhiteWallBanner(data))
+            }
+            "minecraft:orange_wall_banner" => {
+                let data = OrangeWallBannerData::from_map(props)?;
+                Some(Block::OrangeWallBanner(data))
+            }
+            "minecraft:magenta_wall_banner" => {
+                let data = MagentaWallBannerData::from_map(props)?;
+                Some(Block::MagentaWallBanner(data))
+            }
+            "minecraft:light_blue_wall_banner" => {
+                let data = LightBlueWallBannerData::from_map(props)?;
+                Some(Block::LightBlueWallBanner(data))
+            }
+            "minecraft:yellow_wall_banner" => {
+                let data = YellowWallBannerData::from_map(props)?;
+                Some(Block::YellowWallBanner(data))
+            }
+            "minecraft:lime_wall_banner" => {
+                let data = LimeWallBannerData::from_map(props)?;
+                Some(Block::LimeWallBanner(data))
+            }
+            "minecraft:pink_wall_banner" => {
+                let data = PinkWallBannerData::from_map(props)?;
+                Some(Block::PinkWallBanner(data))
+            }
+            "minecraft:gray_wall_banner" => {
+                let data = GrayWallBannerData::from_map(props)?;
+                Some(Block::GrayWallBanner(data))
+            }
+            "minecraft:light_gray_wall_banner" => {
+                let data = LightGrayWallBannerData::from_map(props)?;
+                Some(Block::LightGrayWallBanner(data))
+            }
+            "minecraft:cyan_wall_banner" => {
+                let data = CyanWallBannerData::from_map(props)?;
+                Some(Block::CyanWallBanner(data))
+            }
+            "minecraft:purple_wall_banner" => {
+                let data = PurpleWallBannerData::from_map(props)?;
+                Some(Block::PurpleWallBanner(data))
+            }
+            "minecraft:blue_wall_banner" => {
+                let data = BlueWallBannerData::from_map(props)?;
+                Some(Block::BlueWallBanner(data))
+            }
+            "minecraft:brown_wall_banner" => {
+                let data = BrownWallBannerData::from_map(props)?;
+                Some(Block::BrownWallBanner(data))
+            }
+            "minecraft:green_wall_banner" => {
+                let data = GreenWallBannerData::from_map(props)?;
+                Some(Block::GreenWallBanner(data))
+            }
+            "minecraft:red_wall_banner" => {
+                let data = RedWallBannerData::from_map(props)?;
+                Some(Block::RedWallBanner(data))
+            }
+            "minecraft:black_wall_banner" => {
+                let data = BlackWallBannerData::from_map(props)?;
+                Some(Block::BlackWallBanner(data))
+            }
+            "minecraft:red_sandstone" => Some(Block::RedSandstone),
+            "minecraft:chiseled_red_sandstone" => Some(Block::ChiseledRedSandstone),
+            "minecraft:cut_red_sandstone" => Some(Block::CutRedSandstone),
+            "minecraft:red_sandstone_stairs" => {
+                let data = RedSandstoneStairsData::from_map(props)?;
+                Some(Block::RedSandstoneStairs(data))
+            }
+            "minecraft:oak_slab" => {
+                let data = OakSlabData::from_map(props)?;
+                Some(Block::OakSlab(data))
+            }
+            "minecraft:spruce_slab" => {
+                let data = SpruceSlabData::from_map(props)?;
+                Some(Block::SpruceSlab(data))
+            }
+            "minecraft:birch_slab" => {
+                let data = BirchSlabData::from_map(props)?;
+                Some(Block::BirchSlab(data))
+            }
+            "minecraft:jungle_slab" => {
+                let data = JungleSlabData::from_map(props)?;
+                Some(Block::JungleSlab(data))
+            }
+            "minecraft:acacia_slab" => {
+                let data = AcaciaSlabData::from_map(props)?;
+                Some(Block::AcaciaSlab(data))
+            }
+            "minecraft:dark_oak_slab" => {
+                let data = DarkOakSlabData::from_map(props)?;
+                Some(Block::DarkOakSlab(data))
+            }
+            "minecraft:stone_slab" => {
+                let data = StoneSlabData::from_map(props)?;
+                Some(Block::StoneSlab(data))
+            }
+            "minecraft:sandstone_slab" => {
+                let data = SandstoneSlabData::from_map(props)?;
+                Some(Block::SandstoneSlab(data))
+            }
+            "minecraft:petrified_oak_slab" => {
+                let data = PetrifiedOakSlabData::from_map(props)?;
+                Some(Block::PetrifiedOakSlab(data))
+            }
+            "minecraft:cobblestone_slab" => {
+                let data = CobblestoneSlabData::from_map(props)?;
+                Some(Block::CobblestoneSlab(data))
+            }
+            "minecraft:brick_slab" => {
+                let data = BrickSlabData::from_map(props)?;
+                Some(Block::BrickSlab(data))
+            }
+            "minecraft:stone_brick_slab" => {
+                let data = StoneBrickSlabData::from_map(props)?;
+                Some(Block::StoneBrickSlab(data))
+            }
+            "minecraft:nether_brick_slab" => {
+                let data = NetherBrickSlabData::from_map(props)?;
+                Some(Block::NetherBrickSlab(data))
+            }
+            "minecraft:quartz_slab" => {
+                let data = QuartzSlabData::from_map(props)?;
+                Some(Block::QuartzSlab(data))
+            }
+            "minecraft:red_sandstone_slab" => {
+                let data = RedSandstoneSlabData::from_map(props)?;
+                Some(Block::RedSandstoneSlab(data))
+            }
+            "minecraft:purpur_slab" => {
+                let data = PurpurSlabData::from_map(props)?;
+                Some(Block::PurpurSlab(data))
+            }
+            "minecraft:smooth_stone" => Some(Block::SmoothStone),
+            "minecraft:smooth_sandstone" => Some(Block::SmoothSandstone),
+            "minecraft:smooth_quartz" => Some(Block::SmoothQuartz),
+            "minecraft:smooth_red_sandstone" => Some(Block::SmoothRedSandstone),
+            "minecraft:spruce_fence_gate" => {
+                let data = SpruceFenceGateData::from_map(props)?;
+                Some(Block::SpruceFenceGate(data))
+            }
+            "minecraft:birch_fence_gate" => {
+                let data = BirchFenceGateData::from_map(props)?;
+                Some(Block::BirchFenceGate(data))
+            }
+            "minecraft:jungle_fence_gate" => {
+                let data = JungleFenceGateData::from_map(props)?;
+                Some(Block::JungleFenceGate(data))
+            }
+            "minecraft:acacia_fence_gate" => {
+                let data = AcaciaFenceGateData::from_map(props)?;
+                Some(Block::AcaciaFenceGate(data))
+            }
+            "minecraft:dark_oak_fence_gate" => {
+                let data = DarkOakFenceGateData::from_map(props)?;
+                Some(Block::DarkOakFenceGate(data))
+            }
+            "minecraft:spruce_fence" => {
+                let data = SpruceFenceData::from_map(props)?;
+                Some(Block::SpruceFence(data))
+            }
+            "minecraft:birch_fence" => {
+                let data = BirchFenceData::from_map(props)?;
+                Some(Block::BirchFence(data))
+            }
+            "minecraft:jungle_fence" => {
+                let data = JungleFenceData::from_map(props)?;
+                Some(Block::JungleFence(data))
+            }
+            "minecraft:acacia_fence" => {
+                let data = AcaciaFenceData::from_map(props)?;
+                Some(Block::AcaciaFence(data))
+            }
+            "minecraft:dark_oak_fence" => {
+                let data = DarkOakFenceData::from_map(props)?;
+                Some(Block::DarkOakFence(data))
+            }
+            "minecraft:spruce_door" => {
+                let data = SpruceDoorData::from_map(props)?;
+                Some(Block::SpruceDoor(data))
+            }
+            "minecraft:birch_door" => {
+                let data = BirchDoorData::from_map(props)?;
+                Some(Block::BirchDoor(data))
+            }
+            "minecraft:jungle_door" => {
+                let data = JungleDoorData::from_map(props)?;
+                Some(Block::JungleDoor(data))
+            }
+            "minecraft:acacia_door" => {
+                let data = AcaciaDoorData::from_map(props)?;
+                Some(Block::AcaciaDoor(data))
+            }
+            "minecraft:dark_oak_door" => {
+                let data = DarkOakDoorData::from_map(props)?;
+                Some(Block::DarkOakDoor(data))
+            }
+            "minecraft:end_rod" => {
+                let data = EndRodData::from_map(props)?;
+                Some(Block::EndRod(data))
+            }
+            "minecraft:chorus_plant" => {
+                let data = ChorusPlantData::from_map(props)?;
+                Some(Block::ChorusPlant(data))
+            }
+            "minecraft:chorus_flower" => {
+                let data = ChorusFlowerData::from_map(props)?;
+                Some(Block::ChorusFlower(data))
+            }
+            "minecraft:purpur_block" => Some(Block::PurpurBlock),
+            "minecraft:purpur_pillar" => {
+                let data = PurpurPillarData::from_map(props)?;
+                Some(Block::PurpurPillar(data))
+            }
+            "minecraft:purpur_stairs" => {
+                let data = PurpurStairsData::from_map(props)?;
+                Some(Block::PurpurStairs(data))
+            }
+            "minecraft:end_stone_bricks" => Some(Block::EndStoneBricks),
+            "minecraft:beetroots" => {
+                let data = BeetrootsData::from_map(props)?;
+                Some(Block::Beetroots(data))
+            }
+            "minecraft:grass_path" => Some(Block::GrassPath),
+            "minecraft:end_gateway" => Some(Block::EndGateway),
+            "minecraft:repeating_command_block" => {
+                let data = RepeatingCommandBlockData::from_map(props)?;
+                Some(Block::RepeatingCommandBlock(data))
+            }
+            "minecraft:chain_command_block" => {
+                let data = ChainCommandBlockData::from_map(props)?;
+                Some(Block::ChainCommandBlock(data))
+            }
+            "minecraft:frosted_ice" => {
+                let data = FrostedIceData::from_map(props)?;
+                Some(Block::FrostedIce(data))
+            }
+            "minecraft:magma_block" => Some(Block::MagmaBlock),
+            "minecraft:nether_wart_block" => Some(Block::NetherWartBlock),
+            "minecraft:red_nether_bricks" => Some(Block::RedNetherBricks),
+            "minecraft:bone_block" => {
+                let data = BoneBlockData::from_map(props)?;
+                Some(Block::BoneBlock(data))
+            }
+            "minecraft:structure_void" => Some(Block::StructureVoid),
+            "minecraft:observer" => {
+                let data = ObserverData::from_map(props)?;
+                Some(Block::Observer(data))
+            }
+            "minecraft:shulker_box" => {
+                let data = ShulkerBoxData::from_map(props)?;
+                Some(Block::ShulkerBox(data))
+            }
+            "minecraft:white_shulker_box" => {
+                let data = WhiteShulkerBoxData::from_map(props)?;
+                Some(Block::WhiteShulkerBox(data))
+            }
+            "minecraft:orange_shulker_box" => {
+                let data = OrangeShulkerBoxData::from_map(props)?;
+                Some(Block::OrangeShulkerBox(data))
+            }
+            "minecraft:magenta_shulker_box" => {
+                let data = MagentaShulkerBoxData::from_map(props)?;
+                Some(Block::MagentaShulkerBox(data))
+            }
+            "minecraft:light_blue_shulker_box" => {
+                let data = LightBlueShulkerBoxData::from_map(props)?;
+                Some(Block::LightBlueShulkerBox(data))
+            }
+            "minecraft:yellow_shulker_box" => {
+                let data = YellowShulkerBoxData::from_map(props)?;
+                Some(Block::YellowShulkerBox(data))
+            }
+            "minecraft:lime_shulker_box" => {
+                let data = LimeShulkerBoxData::from_map(props)?;
+                Some(Block::LimeShulkerBox(data))
+            }
+            "minecraft:pink_shulker_box" => {
+                let data = PinkShulkerBoxData::from_map(props)?;
+                Some(Block::PinkShulkerBox(data))
+            }
+            "minecraft:gray_shulker_box" => {
+                let data = GrayShulkerBoxData::from_map(props)?;
+                Some(Block::GrayShulkerBox(data))
+            }
+            "minecraft:light_gray_shulker_box" => {
+                let data = LightGrayShulkerBoxData::from_map(props)?;
+                Some(Block::LightGrayShulkerBox(data))
+            }
+            "minecraft:cyan_shulker_box" => {
+                let data = CyanShulkerBoxData::from_map(props)?;
+                Some(Block::CyanShulkerBox(data))
+            }
+            "minecraft:purple_shulker_box" => {
+                let data = PurpleShulkerBoxData::from_map(props)?;
+                Some(Block::PurpleShulkerBox(data))
+            }
+            "minecraft:blue_shulker_box" => {
+                let data = BlueShulkerBoxData::from_map(props)?;
+                Some(Block::BlueShulkerBox(data))
+            }
+            "minecraft:brown_shulker_box" => {
+                let data = BrownShulkerBoxData::from_map(props)?;
+                Some(Block::BrownShulkerBox(data))
+            }
+            "minecraft:green_shulker_box" => {
+                let data = GreenShulkerBoxData::from_map(props)?;
+                Some(Block::GreenShulkerBox(data))
+            }
+            "minecraft:red_shulker_box" => {
+                let data = RedShulkerBoxData::from_map(props)?;
+                Some(Block::RedShulkerBox(data))
+            }
+            "minecraft:black_shulker_box" => {
+                let data = BlackShulkerBoxData::from_map(props)?;
+                Some(Block::BlackShulkerBox(data))
+            }
+            "minecraft:white_glazed_terracotta" => {
+                let data = WhiteGlazedTerracottaData::from_map(props)?;
+                Some(Block::WhiteGlazedTerracotta(data))
+            }
+            "minecraft:orange_glazed_terracotta" => {
+                let data = OrangeGlazedTerracottaData::from_map(props)?;
+                Some(Block::OrangeGlazedTerracotta(data))
+            }
+            "minecraft:magenta_glazed_terracotta" => {
+                let data = MagentaGlazedTerracottaData::from_map(props)?;
+                Some(Block::MagentaGlazedTerracotta(data))
+            }
+            "minecraft:light_blue_glazed_terracotta" => {
+                let data = LightBlueGlazedTerracottaData::from_map(props)?;
+                Some(Block::LightBlueGlazedTerracotta(data))
+            }
+            "minecraft:yellow_glazed_terracotta" => {
+                let data = YellowGlazedTerracottaData::from_map(props)?;
+                Some(Block::YellowGlazedTerracotta(data))
+            }
+            "minecraft:lime_glazed_terracotta" => {
+                let data = LimeGlazedTerracottaData::from_map(props)?;
+                Some(Block::LimeGlazedTerracotta(data))
+            }
+            "minecraft:pink_glazed_terracotta" => {
+                let data = PinkGlazedTerracottaData::from_map(props)?;
+                Some(Block::PinkGlazedTerracotta(data))
+            }
+            "minecraft:gray_glazed_terracotta" => {
+                let data = GrayGlazedTerracottaData::from_map(props)?;
+                Some(Block::GrayGlazedTerracotta(data))
+            }
+            "minecraft:light_gray_glazed_terracotta" => {
+                let data = LightGrayGlazedTerracottaData::from_map(props)?;
+                Some(Block::LightGrayGlazedTerracotta(data))
+            }
+            "minecraft:cyan_glazed_terracotta" => {
+                let data = CyanGlazedTerracottaData::from_map(props)?;
+                Some(Block::CyanGlazedTerracotta(data))
+            }
+            "minecraft:purple_glazed_terracotta" => {
+                let data = PurpleGlazedTerracottaData::from_map(props)?;
+                Some(Block::PurpleGlazedTerracotta(data))
+            }
+            "minecraft:blue_glazed_terracotta" => {
+                let data = BlueGlazedTerracottaData::from_map(props)?;
+                Some(Block::BlueGlazedTerracotta(data))
+            }
+            "minecraft:brown_glazed_terracotta" => {
+                let data = BrownGlazedTerracottaData::from_map(props)?;
+                Some(Block::BrownGlazedTerracotta(data))
+            }
+            "minecraft:green_glazed_terracotta" => {
+                let data = GreenGlazedTerracottaData::from_map(props)?;
+                Some(Block::GreenGlazedTerracotta(data))
+            }
+            "minecraft:red_glazed_terracotta" => {
+                let data = RedGlazedTerracottaData::from_map(props)?;
+                Some(Block::RedGlazedTerracotta(data))
+            }
+            "minecraft:black_glazed_terracotta" => {
+                let data = BlackGlazedTerracottaData::from_map(props)?;
+                Some(Block::BlackGlazedTerracotta(data))
+            }
+            "minecraft:white_concrete" => Some(Block::WhiteConcrete),
+            "minecraft:orange_concrete" => Some(Block::OrangeConcrete),
+            "minecraft:magenta_concrete" => Some(Block::MagentaConcrete),
+            "minecraft:light_blue_concrete" => Some(Block::LightBlueConcrete),
+            "minecraft:yellow_concrete" => Some(Block::YellowConcrete),
+            "minecraft:lime_concrete" => Some(Block::LimeConcrete),
+            "minecraft:pink_concrete" => Some(Block::PinkConcrete),
+            "minecraft:gray_concrete" => Some(Block::GrayConcrete),
+            "minecraft:light_gray_concrete" => Some(Block::LightGrayConcrete),
+            "minecraft:cyan_concrete" => Some(Block::CyanConcrete),
+            "minecraft:purple_concrete" => Some(Block::PurpleConcrete),
+            "minecraft:blue_concrete" => Some(Block::BlueConcrete),
+            "minecraft:brown_concrete" => Some(Block::BrownConcrete),
+            "minecraft:green_concrete" => Some(Block::GreenConcrete),
+            "minecraft:red_concrete" => Some(Block::RedConcrete),
+            "minecraft:black_concrete" => Some(Block::BlackConcrete),
+            "minecraft:white_concrete_powder" => Some(Block::WhiteConcretePowder),
+            "minecraft:orange_concrete_powder" => Some(Block::OrangeConcretePowder),
+            "minecraft:magenta_concrete_powder" => Some(Block::MagentaConcretePowder),
+            "minecraft:light_blue_concrete_powder" => Some(Block::LightBlueConcretePowder),
+            "minecraft:yellow_concrete_powder" => Some(Block::YellowConcretePowder),
+            "minecraft:lime_concrete_powder" => Some(Block::LimeConcretePowder),
+            "minecraft:pink_concrete_powder" => Some(Block::PinkConcretePowder),
+            "minecraft:gray_concrete_powder" => Some(Block::GrayConcretePowder),
+            "minecraft:light_gray_concrete_powder" => Some(Block::LightGrayConcretePowder),
+            "minecraft:cyan_concrete_powder" => Some(Block::CyanConcretePowder),
+            "minecraft:purple_concrete_powder" => Some(Block::PurpleConcretePowder),
+            "minecraft:blue_concrete_powder" => Some(Block::BlueConcretePowder),
+            "minecraft:brown_concrete_powder" => Some(Block::BrownConcretePowder),
+            "minecraft:green_concrete_powder" => Some(Block::GreenConcretePowder),
+            "minecraft:red_concrete_powder" => Some(Block::RedConcretePowder),
+            "minecraft:black_concrete_powder" => Some(Block::BlackConcretePowder),
+            "minecraft:kelp" => {
+                let data = KelpData::from_map(props)?;
+                Some(Block::Kelp(data))
+            }
+            "minecraft:kelp_plant" => Some(Block::KelpPlant),
+            "minecraft:dried_kelp_block" => Some(Block::DriedKelpBlock),
+            "minecraft:turtle_egg" => {
+                let data = TurtleEggData::from_map(props)?;
+                Some(Block::TurtleEgg(data))
+            }
+            "minecraft:dead_tube_coral_block" => Some(Block::DeadTubeCoralBlock),
+            "minecraft:dead_brain_coral_block" => Some(Block::DeadBrainCoralBlock),
+            "minecraft:dead_bubble_coral_block" => Some(Block::DeadBubbleCoralBlock),
+            "minecraft:dead_fire_coral_block" => Some(Block::DeadFireCoralBlock),
+            "minecraft:dead_horn_coral_block" => Some(Block::DeadHornCoralBlock),
+            "minecraft:tube_coral_block" => Some(Block::TubeCoralBlock),
+            "minecraft:brain_coral_block" => Some(Block::BrainCoralBlock),
+            "minecraft:bubble_coral_block" => Some(Block::BubbleCoralBlock),
+            "minecraft:fire_coral_block" => Some(Block::FireCoralBlock),
+            "minecraft:horn_coral_block" => Some(Block::HornCoralBlock),
+            "minecraft:dead_tube_coral" => {
+                let data = DeadTubeCoralData::from_map(props)?;
+                Some(Block::DeadTubeCoral(data))
+            }
+            "minecraft:dead_brain_coral" => {
+                let data = DeadBrainCoralData::from_map(props)?;
+                Some(Block::DeadBrainCoral(data))
+            }
+            "minecraft:dead_bubble_coral" => {
+                let data = DeadBubbleCoralData::from_map(props)?;
+                Some(Block::DeadBubbleCoral(data))
+            }
+            "minecraft:dead_fire_coral" => {
+                let data = DeadFireCoralData::from_map(props)?;
+                Some(Block::DeadFireCoral(data))
+            }
+            "minecraft:dead_horn_coral" => {
+                let data = DeadHornCoralData::from_map(props)?;
+                Some(Block::DeadHornCoral(data))
+            }
+            "minecraft:tube_coral" => {
+                let data = TubeCoralData::from_map(props)?;
+                Some(Block::TubeCoral(data))
+            }
+            "minecraft:brain_coral" => {
+                let data = BrainCoralData::from_map(props)?;
+                Some(Block::BrainCoral(data))
+            }
+            "minecraft:bubble_coral" => {
+                let data = BubbleCoralData::from_map(props)?;
+                Some(Block::BubbleCoral(data))
+            }
+            "minecraft:fire_coral" => {
+                let data = FireCoralData::from_map(props)?;
+                Some(Block::FireCoral(data))
+            }
+            "minecraft:horn_coral" => {
+                let data = HornCoralData::from_map(props)?;
+                Some(Block::HornCoral(data))
+            }
+            "minecraft:dead_tube_coral_wall_fan" => {
+                let data = DeadTubeCoralWallFanData::from_map(props)?;
+                Some(Block::DeadTubeCoralWallFan(data))
+            }
+            "minecraft:dead_brain_coral_wall_fan" => {
+                let data = DeadBrainCoralWallFanData::from_map(props)?;
+                Some(Block::DeadBrainCoralWallFan(data))
+            }
+            "minecraft:dead_bubble_coral_wall_fan" => {
+                let data = DeadBubbleCoralWallFanData::from_map(props)?;
+                Some(Block::DeadBubbleCoralWallFan(data))
+            }
+            "minecraft:dead_fire_coral_wall_fan" => {
+                let data = DeadFireCoralWallFanData::from_map(props)?;
+                Some(Block::DeadFireCoralWallFan(data))
+            }
+            "minecraft:dead_horn_coral_wall_fan" => {
+                let data = DeadHornCoralWallFanData::from_map(props)?;
+                Some(Block::DeadHornCoralWallFan(data))
+            }
+            "minecraft:tube_coral_wall_fan" => {
+                let data = TubeCoralWallFanData::from_map(props)?;
+                Some(Block::TubeCoralWallFan(data))
+            }
+            "minecraft:brain_coral_wall_fan" => {
+                let data = BrainCoralWallFanData::from_map(props)?;
+                Some(Block::BrainCoralWallFan(data))
+            }
+            "minecraft:bubble_coral_wall_fan" => {
+                let data = BubbleCoralWallFanData::from_map(props)?;
+                Some(Block::BubbleCoralWallFan(data))
+            }
+            "minecraft:fire_coral_wall_fan" => {
+                let data = FireCoralWallFanData::from_map(props)?;
+                Some(Block::FireCoralWallFan(data))
+            }
+            "minecraft:horn_coral_wall_fan" => {
+                let data = HornCoralWallFanData::from_map(props)?;
+                Some(Block::HornCoralWallFan(data))
+            }
+            "minecraft:dead_tube_coral_fan" => {
+                let data = DeadTubeCoralFanData::from_map(props)?;
+                Some(Block::DeadTubeCoralFan(data))
+            }
+            "minecraft:dead_brain_coral_fan" => {
+                let data = DeadBrainCoralFanData::from_map(props)?;
+                Some(Block::DeadBrainCoralFan(data))
+            }
+            "minecraft:dead_bubble_coral_fan" => {
+                let data = DeadBubbleCoralFanData::from_map(props)?;
+                Some(Block::DeadBubbleCoralFan(data))
+            }
+            "minecraft:dead_fire_coral_fan" => {
+                let data = DeadFireCoralFanData::from_map(props)?;
+                Some(Block::DeadFireCoralFan(data))
+            }
+            "minecraft:dead_horn_coral_fan" => {
+                let data = DeadHornCoralFanData::from_map(props)?;
+                Some(Block::DeadHornCoralFan(data))
+            }
+            "minecraft:tube_coral_fan" => {
+                let data = TubeCoralFanData::from_map(props)?;
+                Some(Block::TubeCoralFan(data))
+            }
+            "minecraft:brain_coral_fan" => {
+                let data = BrainCoralFanData::from_map(props)?;
+                Some(Block::BrainCoralFan(data))
+            }
+            "minecraft:bubble_coral_fan" => {
+                let data = BubbleCoralFanData::from_map(props)?;
+                Some(Block::BubbleCoralFan(data))
+            }
+            "minecraft:fire_coral_fan" => {
+                let data = FireCoralFanData::from_map(props)?;
+                Some(Block::FireCoralFan(data))
+            }
+            "minecraft:horn_coral_fan" => {
+                let data = HornCoralFanData::from_map(props)?;
+                Some(Block::HornCoralFan(data))
+            }
+            "minecraft:sea_pickle" => {
+                let data = SeaPickleData::from_map(props)?;
+                Some(Block::SeaPickle(data))
+            }
+            "minecraft:blue_ice" => Some(Block::BlueIce),
+            "minecraft:conduit" => {
+                let data = ConduitData::from_map(props)?;
+                Some(Block::Conduit(data))
+            }
+            "minecraft:void_air" => Some(Block::VoidAir),
+            "minecraft:cave_air" => Some(Block::CaveAir),
+            "minecraft:bubble_column" => {
+                let data = BubbleColumnData::from_map(props)?;
+                Some(Block::BubbleColumn(data))
+            }
+            "minecraft:structure_block" => {
+                let data = StructureBlockData::from_map(props)?;
+                Some(Block::StructureBlock(data))
+            }
+            _ => None,
+        }
+    }
 }
 pub trait Value {
     fn value(&self) -> usize;
@@ -2680,26 +4333,26 @@ impl Value for OakLeavesData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpruceLeavesData {
-    distance: i32,
     persistent: bool,
+    distance: i32,
 }
 impl SpruceLeavesData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            distance: i32::from_snake_case(map.get("distance")?)?,
             persistent: bool::from_snake_case(map.get("persistent")?)?,
+            distance: i32::from_snake_case(map.get("distance")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("distance".to_string(), self.distance.to_snake_case());
         m.insert("persistent".to_string(), self.persistent.to_snake_case());
+        m.insert("distance".to_string(), self.distance.to_snake_case());
         m
     }
 }
 impl Value for SpruceLeavesData {
     fn value(&self) -> usize {
-        (self.distance.value() * 2usize) + (self.persistent.value() * 1usize)
+        (self.persistent.value() * 7usize) + (self.distance.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -2752,26 +4405,26 @@ impl Value for JungleLeavesData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaLeavesData {
-    distance: i32,
     persistent: bool,
+    distance: i32,
 }
 impl AcaciaLeavesData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            distance: i32::from_snake_case(map.get("distance")?)?,
             persistent: bool::from_snake_case(map.get("persistent")?)?,
+            distance: i32::from_snake_case(map.get("distance")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("distance".to_string(), self.distance.to_snake_case());
         m.insert("persistent".to_string(), self.persistent.to_snake_case());
+        m.insert("distance".to_string(), self.distance.to_snake_case());
         m
     }
 }
 impl Value for AcaciaLeavesData {
     fn value(&self) -> usize {
-        (self.distance.value() * 2usize) + (self.persistent.value() * 1usize)
+        (self.persistent.value() * 7usize) + (self.distance.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -2824,60 +4477,60 @@ impl Value for DispenserData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct NoteBlockData {
-    instrument: NoteBlockInstrument,
     note: i32,
     powered: bool,
+    instrument: NoteBlockInstrument,
 }
 impl NoteBlockData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            instrument: NoteBlockInstrument::from_snake_case(map.get("instrument")?)?,
             note: i32::from_snake_case(map.get("note")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
+            instrument: NoteBlockInstrument::from_snake_case(map.get("instrument")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("instrument".to_string(), self.instrument.to_snake_case());
         m.insert("note".to_string(), self.note.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("instrument".to_string(), self.instrument.to_snake_case());
         m
     }
 }
 impl Value for NoteBlockData {
     fn value(&self) -> usize {
-        (self.instrument.value() * 50usize)
-            + (self.note.value() * 2usize)
-            + (self.powered.value() * 1usize)
+        (self.note.value() * 20usize)
+            + (self.powered.value() * 10usize)
+            + (self.instrument.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct WhiteBedData {
     facing: Facing,
-    occupied: bool,
     part: Part,
+    occupied: bool,
 }
 impl WhiteBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             facing: Facing::from_snake_case(map.get("facing")?)?,
-            occupied: bool::from_snake_case(map.get("occupied")?)?,
             part: Part::from_snake_case(map.get("part")?)?,
+            occupied: bool::from_snake_case(map.get("occupied")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m.insert("part".to_string(), self.part.to_snake_case());
+        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m
     }
 }
 impl Value for WhiteBedData {
     fn value(&self) -> usize {
         (self.facing.value() * 4usize)
-            + (self.occupied.value() * 2usize)
-            + (self.part.value() * 1usize)
+            + (self.part.value() * 2usize)
+            + (self.occupied.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -2940,31 +4593,31 @@ impl Value for MagentaBedData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct LightBlueBedData {
-    part: Part,
     occupied: bool,
     facing: Facing,
+    part: Part,
 }
 impl LightBlueBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            part: Part::from_snake_case(map.get("part")?)?,
             occupied: bool::from_snake_case(map.get("occupied")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            part: Part::from_snake_case(map.get("part")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("part".to_string(), self.part.to_snake_case());
         m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("part".to_string(), self.part.to_snake_case());
         m
     }
 }
 impl Value for LightBlueBedData {
     fn value(&self) -> usize {
-        (self.part.value() * 8usize)
-            + (self.occupied.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.occupied.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.part.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -2998,175 +4651,175 @@ impl Value for YellowBedData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct LimeBedData {
-    facing: Facing,
     occupied: bool,
     part: Part,
+    facing: Facing,
 }
 impl LimeBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             occupied: bool::from_snake_case(map.get("occupied")?)?,
             part: Part::from_snake_case(map.get("part")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m.insert("part".to_string(), self.part.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for LimeBedData {
     fn value(&self) -> usize {
-        (self.facing.value() * 4usize)
-            + (self.occupied.value() * 2usize)
-            + (self.part.value() * 1usize)
+        (self.occupied.value() * 8usize)
+            + (self.part.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PinkBedData {
+    facing: Facing,
     part: Part,
     occupied: bool,
-    facing: Facing,
 }
 impl PinkBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            facing: Facing::from_snake_case(map.get("facing")?)?,
             part: Part::from_snake_case(map.get("part")?)?,
             occupied: bool::from_snake_case(map.get("occupied")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("part".to_string(), self.part.to_snake_case());
         m.insert("occupied".to_string(), self.occupied.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for PinkBedData {
     fn value(&self) -> usize {
-        (self.part.value() * 8usize)
-            + (self.occupied.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.facing.value() * 4usize)
+            + (self.part.value() * 2usize)
+            + (self.occupied.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct GrayBedData {
     occupied: bool,
-    facing: Facing,
     part: Part,
+    facing: Facing,
 }
 impl GrayBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             occupied: bool::from_snake_case(map.get("occupied")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             part: Part::from_snake_case(map.get("part")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("occupied".to_string(), self.occupied.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("part".to_string(), self.part.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for GrayBedData {
     fn value(&self) -> usize {
         (self.occupied.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.part.value() * 1usize)
+            + (self.part.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct LightGrayBedData {
+    occupied: bool,
     part: Part,
     facing: Facing,
-    occupied: bool,
 }
 impl LightGrayBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            occupied: bool::from_snake_case(map.get("occupied")?)?,
             part: Part::from_snake_case(map.get("part")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
-            occupied: bool::from_snake_case(map.get("occupied")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m.insert("part".to_string(), self.part.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m
     }
 }
 impl Value for LightGrayBedData {
     fn value(&self) -> usize {
-        (self.part.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.occupied.value() * 1usize)
+        (self.occupied.value() * 8usize)
+            + (self.part.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct CyanBedData {
+    occupied: bool,
     part: Part,
     facing: Facing,
-    occupied: bool,
 }
 impl CyanBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            occupied: bool::from_snake_case(map.get("occupied")?)?,
             part: Part::from_snake_case(map.get("part")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
-            occupied: bool::from_snake_case(map.get("occupied")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m.insert("part".to_string(), self.part.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m
     }
 }
 impl Value for CyanBedData {
     fn value(&self) -> usize {
-        (self.part.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.occupied.value() * 1usize)
+        (self.occupied.value() * 8usize)
+            + (self.part.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PurpleBedData {
-    occupied: bool,
     facing: Facing,
+    occupied: bool,
     part: Part,
 }
 impl PurpleBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            occupied: bool::from_snake_case(map.get("occupied")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            occupied: bool::from_snake_case(map.get("occupied")?)?,
             part: Part::from_snake_case(map.get("part")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m.insert("part".to_string(), self.part.to_snake_case());
         m
     }
 }
 impl Value for PurpleBedData {
     fn value(&self) -> usize {
-        (self.occupied.value() * 8usize)
-            + (self.facing.value() * 2usize)
+        (self.facing.value() * 4usize)
+            + (self.occupied.value() * 2usize)
             + (self.part.value() * 1usize)
     }
 }
@@ -3201,11 +4854,69 @@ impl Value for BlueBedData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BrownBedData {
+    facing: Facing,
+    occupied: bool,
+    part: Part,
+}
+impl BrownBedData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            facing: Facing::from_snake_case(map.get("facing")?)?,
+            occupied: bool::from_snake_case(map.get("occupied")?)?,
+            part: Part::from_snake_case(map.get("part")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("occupied".to_string(), self.occupied.to_snake_case());
+        m.insert("part".to_string(), self.part.to_snake_case());
+        m
+    }
+}
+impl Value for BrownBedData {
+    fn value(&self) -> usize {
+        (self.facing.value() * 4usize)
+            + (self.occupied.value() * 2usize)
+            + (self.part.value() * 1usize)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct GreenBedData {
+    facing: Facing,
+    part: Part,
+    occupied: bool,
+}
+impl GreenBedData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            facing: Facing::from_snake_case(map.get("facing")?)?,
+            part: Part::from_snake_case(map.get("part")?)?,
+            occupied: bool::from_snake_case(map.get("occupied")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("part".to_string(), self.part.to_snake_case());
+        m.insert("occupied".to_string(), self.occupied.to_snake_case());
+        m
+    }
+}
+impl Value for GreenBedData {
+    fn value(&self) -> usize {
+        (self.facing.value() * 4usize)
+            + (self.part.value() * 2usize)
+            + (self.occupied.value() * 1usize)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct RedBedData {
     occupied: bool,
     facing: Facing,
     part: Part,
 }
-impl BrownBedData {
+impl RedBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             occupied: bool::from_snake_case(map.get("occupied")?)?,
@@ -3221,7 +4932,7 @@ impl BrownBedData {
         m
     }
 }
-impl Value for BrownBedData {
+impl Value for RedBedData {
     fn value(&self) -> usize {
         (self.occupied.value() * 8usize)
             + (self.facing.value() * 2usize)
@@ -3229,41 +4940,12 @@ impl Value for BrownBedData {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct GreenBedData {
-    part: Part,
-    occupied: bool,
-    facing: Facing,
-}
-impl GreenBedData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            part: Part::from_snake_case(map.get("part")?)?,
-            occupied: bool::from_snake_case(map.get("occupied")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("part".to_string(), self.part.to_snake_case());
-        m.insert("occupied".to_string(), self.occupied.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m
-    }
-}
-impl Value for GreenBedData {
-    fn value(&self) -> usize {
-        (self.part.value() * 8usize)
-            + (self.occupied.value() * 4usize)
-            + (self.facing.value() * 1usize)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct RedBedData {
+pub struct BlackBedData {
     occupied: bool,
     part: Part,
     facing: Facing,
 }
-impl RedBedData {
+impl BlackBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             occupied: bool::from_snake_case(map.get("occupied")?)?,
@@ -3279,7 +4961,7 @@ impl RedBedData {
         m
     }
 }
-impl Value for RedBedData {
+impl Value for BlackBedData {
     fn value(&self) -> usize {
         (self.occupied.value() * 8usize)
             + (self.part.value() * 4usize)
@@ -3287,56 +4969,27 @@ impl Value for RedBedData {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct BlackBedData {
-    part: Part,
-    facing: Facing,
-    occupied: bool,
-}
-impl BlackBedData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            part: Part::from_snake_case(map.get("part")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
-            occupied: bool::from_snake_case(map.get("occupied")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("part".to_string(), self.part.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("occupied".to_string(), self.occupied.to_snake_case());
-        m
-    }
-}
-impl Value for BlackBedData {
-    fn value(&self) -> usize {
-        (self.part.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.occupied.value() * 1usize)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PoweredRailData {
-    powered: bool,
     shape: Shape,
+    powered: bool,
 }
 impl PoweredRailData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
             shape: Shape::from_snake_case(map.get("shape")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for PoweredRailData {
     fn value(&self) -> usize {
-        (self.powered.value() * 6usize) + (self.shape.value() * 1usize)
+        (self.shape.value() * 2usize) + (self.powered.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -3434,29 +5087,29 @@ impl Value for PistonData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PistonHeadData {
-    short: bool,
-    facing: Facing,
     ty: PistonHeadType,
+    facing: Facing,
+    short: bool,
 }
 impl PistonHeadData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            short: bool::from_snake_case(map.get("short")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             ty: PistonHeadType::from_snake_case(map.get("type")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
+            short: bool::from_snake_case(map.get("short")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("short".to_string(), self.short.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("type".to_string(), self.ty.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("short".to_string(), self.short.to_snake_case());
         m
     }
 }
 impl Value for PistonHeadData {
     fn value(&self) -> usize {
-        (self.short.value() * 12usize) + (self.facing.value() * 2usize) + (self.ty.value() * 1usize)
+        (self.ty.value() * 12usize) + (self.facing.value() * 2usize) + (self.short.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -3527,76 +5180,76 @@ impl Value for WallTorchData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct FireData {
-    east: bool,
-    south: bool,
-    up: bool,
-    north: bool,
     west: bool,
+    north: bool,
+    up: bool,
+    east: bool,
     age: i32,
+    south: bool,
 }
 impl FireData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            up: bool::from_snake_case(map.get("up")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            up: bool::from_snake_case(map.get("up")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
             age: i32::from_snake_case(map.get("age")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("up".to_string(), self.up.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("up".to_string(), self.up.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("age".to_string(), self.age.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m
     }
 }
 impl Value for FireData {
     fn value(&self) -> usize {
-        (self.east.value() * 256usize)
-            + (self.south.value() * 128usize)
+        (self.west.value() * 256usize)
+            + (self.north.value() * 128usize)
             + (self.up.value() * 64usize)
-            + (self.north.value() * 32usize)
-            + (self.west.value() * 16usize)
-            + (self.age.value() * 1usize)
+            + (self.east.value() * 32usize)
+            + (self.age.value() * 2usize)
+            + (self.south.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OakStairsData {
     waterlogged: bool,
+    shape: Shape,
     facing: Facing,
     half: Half,
-    shape: Shape,
 }
 impl OakStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            shape: Shape::from_snake_case(map.get("shape")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
-            shape: Shape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("shape".to_string(), self.shape.to_snake_case());
         m
     }
 }
 impl Value for OakStairsData {
     fn value(&self) -> usize {
         (self.waterlogged.value() * 40usize)
-            + (self.facing.value() * 10usize)
-            + (self.half.value() * 5usize)
-            + (self.shape.value() * 1usize)
+            + (self.shape.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.half.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -3631,38 +5284,38 @@ impl Value for ChestData {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RedstoneWireData {
     power: i32,
-    south: Facing,
-    west: Facing,
     east: Facing,
     north: Facing,
+    south: Facing,
+    west: Facing,
 }
 impl RedstoneWireData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             power: i32::from_snake_case(map.get("power")?)?,
-            south: Facing::from_snake_case(map.get("south")?)?,
-            west: Facing::from_snake_case(map.get("west")?)?,
             east: Facing::from_snake_case(map.get("east")?)?,
             north: Facing::from_snake_case(map.get("north")?)?,
+            south: Facing::from_snake_case(map.get("south")?)?,
+            west: Facing::from_snake_case(map.get("west")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("power".to_string(), self.power.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m
     }
 }
 impl Value for RedstoneWireData {
     fn value(&self) -> usize {
         (self.power.value() * 81usize)
-            + (self.south.value() * 27usize)
-            + (self.west.value() * 9usize)
-            + (self.east.value() * 3usize)
-            + (self.north.value() * 1usize)
+            + (self.east.value() * 27usize)
+            + (self.north.value() * 9usize)
+            + (self.south.value() * 3usize)
+            + (self.west.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -3759,27 +5412,27 @@ impl Value for SignData {
 pub struct OakDoorData {
     powered: bool,
     half: Half,
-    facing: Facing,
     open: bool,
     hinge: Hinge,
+    facing: Facing,
 }
 impl OakDoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             powered: bool::from_snake_case(map.get("powered")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
             hinge: Hinge::from_snake_case(map.get("hinge")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("hinge".to_string(), self.hinge.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
@@ -3787,9 +5440,9 @@ impl Value for OakDoorData {
     fn value(&self) -> usize {
         (self.powered.value() * 32usize)
             + (self.half.value() * 16usize)
-            + (self.facing.value() * 4usize)
-            + (self.open.value() * 2usize)
-            + (self.hinge.value() * 1usize)
+            + (self.open.value() * 8usize)
+            + (self.hinge.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -3839,59 +5492,59 @@ impl Value for RailData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct CobblestoneStairsData {
-    shape: Shape,
     facing: Facing,
-    half: Half,
     waterlogged: bool,
+    half: Half,
+    shape: Shape,
 }
 impl CobblestoneStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            shape: Shape::from_snake_case(map.get("shape")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
-            half: Half::from_snake_case(map.get("half")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            half: Half::from_snake_case(map.get("half")?)?,
+            shape: Shape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("shape".to_string(), self.shape.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
         m
     }
 }
 impl Value for CobblestoneStairsData {
     fn value(&self) -> usize {
-        (self.shape.value() * 16usize)
-            + (self.facing.value() * 4usize)
-            + (self.half.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
+        (self.facing.value() * 20usize)
+            + (self.waterlogged.value() * 10usize)
+            + (self.half.value() * 5usize)
+            + (self.shape.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct WallSignData {
-    facing: Facing,
     waterlogged: bool,
+    facing: Facing,
 }
 impl WallSignData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for WallSignData {
     fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        (self.waterlogged.value() * 4usize) + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -3946,39 +5599,39 @@ impl Value for StonePressurePlateData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct IronDoorData {
-    half: Half,
-    hinge: Hinge,
-    facing: Facing,
     open: bool,
+    facing: Facing,
+    half: Half,
     powered: bool,
+    hinge: Hinge,
 }
 impl IronDoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            half: Half::from_snake_case(map.get("half")?)?,
-            hinge: Hinge::from_snake_case(map.get("hinge")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
+            half: Half::from_snake_case(map.get("half")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
+            hinge: Hinge::from_snake_case(map.get("hinge")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("hinge".to_string(), self.hinge.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("hinge".to_string(), self.hinge.to_snake_case());
         m
     }
 }
 impl Value for IronDoorData {
     fn value(&self) -> usize {
-        (self.half.value() * 32usize)
-            + (self.hinge.value() * 16usize)
-            + (self.facing.value() * 4usize)
-            + (self.open.value() * 2usize)
-            + (self.powered.value() * 1usize)
+        (self.open.value() * 32usize)
+            + (self.facing.value() * 8usize)
+            + (self.half.value() * 4usize)
+            + (self.powered.value() * 2usize)
+            + (self.hinge.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -4151,55 +5804,55 @@ impl Value for RedstoneTorchData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RedstoneWallTorchData {
-    facing: Facing,
     lit: bool,
+    facing: Facing,
 }
 impl RedstoneWallTorchData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             lit: bool::from_snake_case(map.get("lit")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("lit".to_string(), self.lit.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for RedstoneWallTorchData {
     fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.lit.value() * 1usize)
+        (self.lit.value() * 4usize) + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct StoneButtonData {
+    facing: Facing,
     powered: bool,
     face: Face,
-    facing: Facing,
 }
 impl StoneButtonData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            facing: Facing::from_snake_case(map.get("facing")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
             face: Face::from_snake_case(map.get("face")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("face".to_string(), self.face.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for StoneButtonData {
     fn value(&self) -> usize {
-        (self.powered.value() * 12usize)
-            + (self.face.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.facing.value() * 6usize)
+            + (self.powered.value() * 3usize)
+            + (self.face.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -4288,39 +5941,39 @@ impl Value for JukeboxData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OakFenceData {
-    south: bool,
     waterlogged: bool,
-    west: bool,
     east: bool,
     north: bool,
+    south: bool,
+    west: bool,
 }
 impl OakFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            south: bool::from_snake_case(map.get("south")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m
     }
 }
 impl Value for OakFenceData {
     fn value(&self) -> usize {
-        (self.south.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
-            + (self.west.value() * 4usize)
-            + (self.east.value() * 2usize)
-            + (self.north.value() * 1usize)
+        (self.waterlogged.value() * 16usize)
+            + (self.east.value() * 8usize)
+            + (self.north.value() * 4usize)
+            + (self.south.value() * 2usize)
+            + (self.west.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -4409,134 +6062,134 @@ impl Value for CakeData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RepeaterData {
-    powered: bool,
     delay: i32,
-    locked: bool,
     facing: Facing,
+    powered: bool,
+    locked: bool,
 }
 impl RepeaterData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
             delay: i32::from_snake_case(map.get("delay")?)?,
-            locked: bool::from_snake_case(map.get("locked")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            locked: bool::from_snake_case(map.get("locked")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("delay".to_string(), self.delay.to_snake_case());
-        m.insert("locked".to_string(), self.locked.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("locked".to_string(), self.locked.to_snake_case());
         m
     }
 }
 impl Value for RepeaterData {
     fn value(&self) -> usize {
-        (self.powered.value() * 32usize)
-            + (self.delay.value() * 8usize)
-            + (self.locked.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.delay.value() * 16usize)
+            + (self.facing.value() * 4usize)
+            + (self.powered.value() * 2usize)
+            + (self.locked.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OakTrapdoorData {
-    half: Half,
-    powered: bool,
-    waterlogged: bool,
     facing: Facing,
+    half: Half,
     open: bool,
+    waterlogged: bool,
+    powered: bool,
 }
 impl OakTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            half: Half::from_snake_case(map.get("half")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            half: Half::from_snake_case(map.get("half")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for OakTrapdoorData {
     fn value(&self) -> usize {
-        (self.half.value() * 32usize)
-            + (self.powered.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.open.value() * 1usize)
+        (self.facing.value() * 16usize)
+            + (self.half.value() * 8usize)
+            + (self.open.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.powered.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpruceTrapdoorData {
-    facing: Facing,
-    powered: bool,
-    waterlogged: bool,
     half: Half,
     open: bool,
+    powered: bool,
+    waterlogged: bool,
+    facing: Facing,
 }
 impl SpruceTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for SpruceTrapdoorData {
     fn value(&self) -> usize {
-        (self.facing.value() * 16usize)
+        (self.half.value() * 32usize)
+            + (self.open.value() * 16usize)
             + (self.powered.value() * 8usize)
             + (self.waterlogged.value() * 4usize)
-            + (self.half.value() * 2usize)
-            + (self.open.value() * 1usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BirchTrapdoorData {
+    half: Half,
     facing: Facing,
     waterlogged: bool,
-    half: Half,
     open: bool,
     powered: bool,
 }
 impl BirchTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            half: Half::from_snake_case(map.get("half")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            half: Half::from_snake_case(map.get("half")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
         m
@@ -4544,85 +6197,85 @@ impl BirchTrapdoorData {
 }
 impl Value for BirchTrapdoorData {
     fn value(&self) -> usize {
-        (self.facing.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
-            + (self.half.value() * 4usize)
+        (self.half.value() * 32usize)
+            + (self.facing.value() * 8usize)
+            + (self.waterlogged.value() * 4usize)
             + (self.open.value() * 2usize)
             + (self.powered.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct JungleTrapdoorData {
+    powered: bool,
+    open: bool,
     facing: Facing,
     half: Half,
-    powered: bool,
     waterlogged: bool,
-    open: bool,
 }
 impl JungleTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
         m
     }
 }
 impl Value for JungleTrapdoorData {
     fn value(&self) -> usize {
-        (self.facing.value() * 16usize)
-            + (self.half.value() * 8usize)
-            + (self.powered.value() * 4usize)
-            + (self.waterlogged.value() * 2usize)
-            + (self.open.value() * 1usize)
+        (self.powered.value() * 32usize)
+            + (self.open.value() * 16usize)
+            + (self.facing.value() * 4usize)
+            + (self.half.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaTrapdoorData {
-    powered: bool,
-    facing: Facing,
     waterlogged: bool,
-    open: bool,
+    powered: bool,
     half: Half,
+    facing: Facing,
+    open: bool,
 }
 impl AcaciaTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
         m
     }
 }
 impl Value for AcaciaTrapdoorData {
     fn value(&self) -> usize {
-        (self.powered.value() * 32usize)
-            + (self.facing.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.open.value() * 2usize)
-            + (self.half.value() * 1usize)
+        (self.waterlogged.value() * 32usize)
+            + (self.powered.value() * 16usize)
+            + (self.half.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.open.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -4630,8 +6283,8 @@ pub struct DarkOakTrapdoorData {
     open: bool,
     powered: bool,
     half: Half,
-    waterlogged: bool,
     facing: Facing,
+    waterlogged: bool,
 }
 impl DarkOakTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
@@ -4639,8 +6292,8 @@ impl DarkOakTrapdoorData {
             open: bool::from_snake_case(map.get("open")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
@@ -4648,8 +6301,8 @@ impl DarkOakTrapdoorData {
         m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
@@ -4658,205 +6311,205 @@ impl Value for DarkOakTrapdoorData {
         (self.open.value() * 32usize)
             + (self.powered.value() * 16usize)
             + (self.half.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.facing.value() * 1usize)
+            + (self.facing.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BrownMushroomBlockData {
     east: bool,
-    up: bool,
-    north: bool,
-    south: bool,
-    west: bool,
     down: bool,
+    up: bool,
+    west: bool,
+    south: bool,
+    north: bool,
 }
 impl BrownMushroomBlockData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             east: bool::from_snake_case(map.get("east")?)?,
-            up: bool::from_snake_case(map.get("up")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
             down: bool::from_snake_case(map.get("down")?)?,
+            up: bool::from_snake_case(map.get("up")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("up".to_string(), self.up.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("down".to_string(), self.down.to_snake_case());
+        m.insert("up".to_string(), self.up.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m
     }
 }
 impl Value for BrownMushroomBlockData {
     fn value(&self) -> usize {
         (self.east.value() * 32usize)
-            + (self.up.value() * 16usize)
-            + (self.north.value() * 8usize)
-            + (self.south.value() * 4usize)
-            + (self.west.value() * 2usize)
-            + (self.down.value() * 1usize)
+            + (self.down.value() * 16usize)
+            + (self.up.value() * 8usize)
+            + (self.west.value() * 4usize)
+            + (self.south.value() * 2usize)
+            + (self.north.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RedMushroomBlockData {
-    east: bool,
     up: bool,
-    west: bool,
+    east: bool,
+    north: bool,
     down: bool,
     south: bool,
-    north: bool,
+    west: bool,
 }
 impl RedMushroomBlockData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
             up: bool::from_snake_case(map.get("up")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
             down: bool::from_snake_case(map.get("down")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("up".to_string(), self.up.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("down".to_string(), self.down.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m
     }
 }
 impl Value for RedMushroomBlockData {
     fn value(&self) -> usize {
-        (self.east.value() * 32usize)
-            + (self.up.value() * 16usize)
-            + (self.west.value() * 8usize)
+        (self.up.value() * 32usize)
+            + (self.east.value() * 16usize)
+            + (self.north.value() * 8usize)
             + (self.down.value() * 4usize)
-            + (self.south.value() * 2usize)
-            + (self.north.value() * 1usize)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct MushroomStemData {
-    east: bool,
-    up: bool,
-    down: bool,
-    north: bool,
-    south: bool,
-    west: bool,
-}
-impl MushroomStemData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
-            up: bool::from_snake_case(map.get("up")?)?,
-            down: bool::from_snake_case(map.get("down")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("up".to_string(), self.up.to_snake_case());
-        m.insert("down".to_string(), self.down.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m
-    }
-}
-impl Value for MushroomStemData {
-    fn value(&self) -> usize {
-        (self.east.value() * 32usize)
-            + (self.up.value() * 16usize)
-            + (self.down.value() * 8usize)
-            + (self.north.value() * 4usize)
             + (self.south.value() * 2usize)
             + (self.west.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct IronBarsData {
-    waterlogged: bool,
-    west: bool,
-    east: bool,
+pub struct MushroomStemData {
+    down: bool,
     south: bool,
+    east: bool,
+    up: bool,
+    west: bool,
     north: bool,
 }
-impl IronBarsData {
+impl MushroomStemData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
+            down: bool::from_snake_case(map.get("down")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            up: bool::from_snake_case(map.get("up")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("down".to_string(), self.down.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("up".to_string(), self.up.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m
+    }
+}
+impl Value for MushroomStemData {
+    fn value(&self) -> usize {
+        (self.down.value() * 32usize)
+            + (self.south.value() * 16usize)
+            + (self.east.value() * 8usize)
+            + (self.up.value() * 4usize)
+            + (self.west.value() * 2usize)
+            + (self.north.value() * 1usize)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct IronBarsData {
+    east: bool,
+    waterlogged: bool,
+    south: bool,
+    north: bool,
+    west: bool,
+}
+impl IronBarsData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            east: bool::from_snake_case(map.get("east")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m
     }
 }
 impl Value for IronBarsData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 16usize)
-            + (self.west.value() * 8usize)
-            + (self.east.value() * 4usize)
-            + (self.south.value() * 2usize)
-            + (self.north.value() * 1usize)
+        (self.east.value() * 16usize)
+            + (self.waterlogged.value() * 8usize)
+            + (self.south.value() * 4usize)
+            + (self.north.value() * 2usize)
+            + (self.west.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct GlassPaneData {
+    east: bool,
     west: bool,
     north: bool,
-    waterlogged: bool,
     south: bool,
-    east: bool,
+    waterlogged: bool,
 }
 impl GlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            east: bool::from_snake_case(map.get("east")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for GlassPaneData {
     fn value(&self) -> usize {
-        (self.west.value() * 16usize)
-            + (self.north.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
+        (self.east.value() * 16usize)
+            + (self.west.value() * 8usize)
+            + (self.north.value() * 4usize)
             + (self.south.value() * 2usize)
-            + (self.east.value() * 1usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -4945,71 +6598,71 @@ impl Value for MelonStemData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct VineData {
-    south: bool,
-    up: bool,
-    north: bool,
     west: bool,
     east: bool,
+    up: bool,
+    north: bool,
+    south: bool,
 }
 impl VineData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            south: bool::from_snake_case(map.get("south")?)?,
-            up: bool::from_snake_case(map.get("up")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
+            up: bool::from_snake_case(map.get("up")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("up".to_string(), self.up.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("up".to_string(), self.up.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m
     }
 }
 impl Value for VineData {
     fn value(&self) -> usize {
-        (self.south.value() * 16usize)
-            + (self.up.value() * 8usize)
-            + (self.north.value() * 4usize)
-            + (self.west.value() * 2usize)
-            + (self.east.value() * 1usize)
+        (self.west.value() * 16usize)
+            + (self.east.value() * 8usize)
+            + (self.up.value() * 4usize)
+            + (self.north.value() * 2usize)
+            + (self.south.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OakFenceGateData {
+    facing: Facing,
     in_wall: bool,
     open: bool,
-    facing: Facing,
     powered: bool,
 }
 impl OakFenceGateData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            facing: Facing::from_snake_case(map.get("facing")?)?,
             in_wall: bool::from_snake_case(map.get("in_wall")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for OakFenceGateData {
     fn value(&self) -> usize {
-        (self.in_wall.value() * 16usize)
-            + (self.open.value() * 8usize)
-            + (self.facing.value() * 2usize)
+        (self.facing.value() * 8usize)
+            + (self.in_wall.value() * 4usize)
+            + (self.open.value() * 2usize)
             + (self.powered.value() * 1usize)
     }
 }
@@ -5049,24 +6702,24 @@ impl Value for BrickStairsData {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct StoneBrickStairsData {
     half: Half,
-    facing: Facing,
     shape: Shape,
+    facing: Facing,
     waterlogged: bool,
 }
 impl StoneBrickStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             half: Half::from_snake_case(map.get("half")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             shape: Shape::from_snake_case(map.get("shape")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
@@ -5074,8 +6727,8 @@ impl StoneBrickStairsData {
 impl Value for StoneBrickStairsData {
     fn value(&self) -> usize {
         (self.half.value() * 40usize)
-            + (self.facing.value() * 10usize)
-            + (self.shape.value() * 2usize)
+            + (self.shape.value() * 8usize)
+            + (self.facing.value() * 2usize)
             + (self.waterlogged.value() * 1usize)
     }
 }
@@ -5102,72 +6755,72 @@ impl Value for MyceliumData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct NetherBrickFenceData {
-    east: bool,
     west: bool,
-    waterlogged: bool,
     north: bool,
+    east: bool,
     south: bool,
+    waterlogged: bool,
 }
 impl NetherBrickFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for NetherBrickFenceData {
     fn value(&self) -> usize {
-        (self.east.value() * 16usize)
-            + (self.west.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.north.value() * 2usize)
-            + (self.south.value() * 1usize)
+        (self.west.value() * 16usize)
+            + (self.north.value() * 8usize)
+            + (self.east.value() * 4usize)
+            + (self.south.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct NetherBrickStairsData {
-    waterlogged: bool,
+    facing: Facing,
     half: Half,
     shape: Shape,
-    facing: Facing,
+    waterlogged: bool,
 }
 impl NetherBrickStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
             shape: Shape::from_snake_case(map.get("shape")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for NetherBrickStairsData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 40usize)
-            + (self.half.value() * 20usize)
-            + (self.shape.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.facing.value() * 20usize)
+            + (self.half.value() * 10usize)
+            + (self.shape.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -5193,24 +6846,20 @@ impl Value for NetherWartData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BrewingStandData {
-    has_bottle_0: bool,
     has_bottle_1: bool,
     has_bottle_2: bool,
+    has_bottle_0: bool,
 }
 impl BrewingStandData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            has_bottle_0: bool::from_snake_case(map.get("has_bottle_0")?)?,
             has_bottle_1: bool::from_snake_case(map.get("has_bottle_1")?)?,
             has_bottle_2: bool::from_snake_case(map.get("has_bottle_2")?)?,
+            has_bottle_0: bool::from_snake_case(map.get("has_bottle_0")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert(
-            "has_bottle_0".to_string(),
-            self.has_bottle_0.to_snake_case(),
-        );
         m.insert(
             "has_bottle_1".to_string(),
             self.has_bottle_1.to_snake_case(),
@@ -5219,14 +6868,18 @@ impl BrewingStandData {
             "has_bottle_2".to_string(),
             self.has_bottle_2.to_snake_case(),
         );
+        m.insert(
+            "has_bottle_0".to_string(),
+            self.has_bottle_0.to_snake_case(),
+        );
         m
     }
 }
 impl Value for BrewingStandData {
     fn value(&self) -> usize {
-        (self.has_bottle_0.value() * 4usize)
-            + (self.has_bottle_1.value() * 2usize)
-            + (self.has_bottle_2.value() * 1usize)
+        (self.has_bottle_1.value() * 4usize)
+            + (self.has_bottle_2.value() * 2usize)
+            + (self.has_bottle_0.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -5297,59 +6950,59 @@ impl Value for RedstoneLampData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct CocoaData {
-    age: i32,
     facing: Facing,
+    age: i32,
 }
 impl CocoaData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            age: i32::from_snake_case(map.get("age")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            age: i32::from_snake_case(map.get("age")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("age".to_string(), self.age.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("age".to_string(), self.age.to_snake_case());
         m
     }
 }
 impl Value for CocoaData {
     fn value(&self) -> usize {
-        (self.age.value() * 4usize) + (self.facing.value() * 1usize)
+        (self.facing.value() * 3usize) + (self.age.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SandstoneStairsData {
-    half: Half,
     facing: Facing,
-    shape: Shape,
+    half: Half,
     waterlogged: bool,
+    shape: Shape,
 }
 impl SandstoneStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            half: Half::from_snake_case(map.get("half")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
-            shape: Shape::from_snake_case(map.get("shape")?)?,
+            half: Half::from_snake_case(map.get("half")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            shape: Shape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
         m
     }
 }
 impl Value for SandstoneStairsData {
     fn value(&self) -> usize {
-        (self.half.value() * 40usize)
-            + (self.facing.value() * 10usize)
-            + (self.shape.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
+        (self.facing.value() * 20usize)
+            + (self.half.value() * 10usize)
+            + (self.waterlogged.value() * 5usize)
+            + (self.shape.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -5379,169 +7032,136 @@ impl Value for EnderChestData {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TripwireHookData {
     attached: bool,
-    facing: Facing,
     powered: bool,
+    facing: Facing,
 }
 impl TripwireHookData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             attached: bool::from_snake_case(map.get("attached")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("attached".to_string(), self.attached.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for TripwireHookData {
     fn value(&self) -> usize {
         (self.attached.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.powered.value() * 1usize)
+            + (self.powered.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TripwireData {
-    disarmed: bool,
+    south: bool,
+    west: bool,
+    powered: bool,
     east: bool,
     attached: bool,
-    powered: bool,
-    south: bool,
     north: bool,
-    west: bool,
+    disarmed: bool,
 }
 impl TripwireData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            disarmed: bool::from_snake_case(map.get("disarmed")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
             attached: bool::from_snake_case(map.get("attached")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
+            disarmed: bool::from_snake_case(map.get("disarmed")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("disarmed".to_string(), self.disarmed.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("attached".to_string(), self.attached.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("disarmed".to_string(), self.disarmed.to_snake_case());
         m
     }
 }
 impl Value for TripwireData {
     fn value(&self) -> usize {
-        (self.disarmed.value() * 64usize)
-            + (self.east.value() * 32usize)
-            + (self.attached.value() * 16usize)
-            + (self.powered.value() * 8usize)
-            + (self.south.value() * 4usize)
+        (self.south.value() * 64usize)
+            + (self.west.value() * 32usize)
+            + (self.powered.value() * 16usize)
+            + (self.east.value() * 8usize)
+            + (self.attached.value() * 4usize)
             + (self.north.value() * 2usize)
-            + (self.west.value() * 1usize)
+            + (self.disarmed.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpruceStairsData {
-    half: Half,
     waterlogged: bool,
-    shape: Shape,
+    half: Half,
     facing: Facing,
+    shape: Shape,
 }
 impl SpruceStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            half: Half::from_snake_case(map.get("half")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            shape: Shape::from_snake_case(map.get("shape")?)?,
+            half: Half::from_snake_case(map.get("half")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            shape: Shape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
         m
     }
 }
 impl Value for SpruceStairsData {
     fn value(&self) -> usize {
-        (self.half.value() * 40usize)
-            + (self.waterlogged.value() * 20usize)
-            + (self.shape.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.waterlogged.value() * 40usize)
+            + (self.half.value() * 20usize)
+            + (self.facing.value() * 5usize)
+            + (self.shape.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BirchStairsData {
     half: Half,
-    waterlogged: bool,
     facing: Facing,
+    waterlogged: bool,
     shape: Shape,
 }
 impl BirchStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             half: Half::from_snake_case(map.get("half")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             shape: Shape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
         m
     }
 }
 impl Value for BirchStairsData {
-    fn value(&self) -> usize {
-        (self.half.value() * 40usize)
-            + (self.waterlogged.value() * 20usize)
-            + (self.facing.value() * 5usize)
-            + (self.shape.value() * 1usize)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct JungleStairsData {
-    half: Half,
-    facing: Facing,
-    waterlogged: bool,
-    shape: Shape,
-}
-impl JungleStairsData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            half: Half::from_snake_case(map.get("half")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            shape: Shape::from_snake_case(map.get("shape")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("shape".to_string(), self.shape.to_snake_case());
-        m
-    }
-}
-impl Value for JungleStairsData {
     fn value(&self) -> usize {
         (self.half.value() * 40usize)
             + (self.facing.value() * 10usize)
@@ -5550,98 +7170,131 @@ impl Value for JungleStairsData {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct CommandBlockData {
-    facing: Facing,
-    conditional: bool,
-}
-impl CommandBlockData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
-            conditional: bool::from_snake_case(map.get("conditional")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("conditional".to_string(), self.conditional.to_snake_case());
-        m
-    }
-}
-impl Value for CommandBlockData {
-    fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.conditional.value() * 1usize)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct CobblestoneWallData {
+pub struct JungleStairsData {
     waterlogged: bool,
-    north: bool,
-    east: bool,
-    west: bool,
-    south: bool,
-    up: bool,
+    half: Half,
+    facing: Facing,
+    shape: Shape,
 }
-impl CobblestoneWallData {
+impl JungleStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            up: bool::from_snake_case(map.get("up")?)?,
+            half: Half::from_snake_case(map.get("half")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
+            shape: Shape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
+        m
+    }
+}
+impl Value for JungleStairsData {
+    fn value(&self) -> usize {
+        (self.waterlogged.value() * 40usize)
+            + (self.half.value() * 20usize)
+            + (self.facing.value() * 5usize)
+            + (self.shape.value() * 1usize)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct CommandBlockData {
+    conditional: bool,
+    facing: Facing,
+}
+impl CommandBlockData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            conditional: bool::from_snake_case(map.get("conditional")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("conditional".to_string(), self.conditional.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m
+    }
+}
+impl Value for CommandBlockData {
+    fn value(&self) -> usize {
+        (self.conditional.value() * 6usize) + (self.facing.value() * 1usize)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct CobblestoneWallData {
+    west: bool,
+    up: bool,
+    east: bool,
+    south: bool,
+    waterlogged: bool,
+    north: bool,
+}
+impl CobblestoneWallData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            west: bool::from_snake_case(map.get("west")?)?,
+            up: bool::from_snake_case(map.get("up")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
         m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("up".to_string(), self.up.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m
     }
 }
 impl Value for CobblestoneWallData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 32usize)
-            + (self.north.value() * 16usize)
+        (self.west.value() * 32usize)
+            + (self.up.value() * 16usize)
             + (self.east.value() * 8usize)
-            + (self.west.value() * 4usize)
-            + (self.south.value() * 2usize)
-            + (self.up.value() * 1usize)
+            + (self.south.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.north.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct MossyCobblestoneWallData {
     up: bool,
     west: bool,
-    waterlogged: bool,
     north: bool,
     east: bool,
     south: bool,
+    waterlogged: bool,
 }
 impl MossyCobblestoneWallData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             up: bool::from_snake_case(map.get("up")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("up".to_string(), self.up.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
@@ -5649,10 +7302,10 @@ impl Value for MossyCobblestoneWallData {
     fn value(&self) -> usize {
         (self.up.value() * 32usize)
             + (self.west.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
-            + (self.north.value() * 4usize)
-            + (self.east.value() * 2usize)
-            + (self.south.value() * 1usize)
+            + (self.north.value() * 8usize)
+            + (self.east.value() * 4usize)
+            + (self.south.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -5699,11 +7352,40 @@ impl Value for PotatoesData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OakButtonData {
+    powered: bool,
+    facing: Facing,
+    face: Face,
+}
+impl OakButtonData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
+            face: Face::from_snake_case(map.get("face")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("face".to_string(), self.face.to_snake_case());
+        m
+    }
+}
+impl Value for OakButtonData {
+    fn value(&self) -> usize {
+        (self.powered.value() * 12usize)
+            + (self.facing.value() * 3usize)
+            + (self.face.value() * 1usize)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct SpruceButtonData {
     facing: Facing,
     face: Face,
     powered: bool,
 }
-impl OakButtonData {
+impl SpruceButtonData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             facing: Facing::from_snake_case(map.get("facing")?)?,
@@ -5719,7 +7401,7 @@ impl OakButtonData {
         m
     }
 }
-impl Value for OakButtonData {
+impl Value for SpruceButtonData {
     fn value(&self) -> usize {
         (self.facing.value() * 6usize)
             + (self.face.value() * 2usize)
@@ -5727,61 +7409,32 @@ impl Value for OakButtonData {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct SpruceButtonData {
-    facing: Facing,
-    powered: bool,
-    face: Face,
-}
-impl SpruceButtonData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            face: Face::from_snake_case(map.get("face")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("face".to_string(), self.face.to_snake_case());
-        m
-    }
-}
-impl Value for SpruceButtonData {
-    fn value(&self) -> usize {
-        (self.facing.value() * 6usize)
-            + (self.powered.value() * 3usize)
-            + (self.face.value() * 1usize)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BirchButtonData {
     face: Face,
-    powered: bool,
     facing: Facing,
+    powered: bool,
 }
 impl BirchButtonData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             face: Face::from_snake_case(map.get("face")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("face".to_string(), self.face.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for BirchButtonData {
     fn value(&self) -> usize {
         (self.face.value() * 8usize)
-            + (self.powered.value() * 4usize)
-            + (self.facing.value() * 1usize)
+            + (self.facing.value() * 2usize)
+            + (self.powered.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -5816,58 +7469,58 @@ impl Value for JungleButtonData {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaButtonData {
     face: Face,
-    powered: bool,
     facing: Facing,
+    powered: bool,
 }
 impl AcaciaButtonData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             face: Face::from_snake_case(map.get("face")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("face".to_string(), self.face.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for AcaciaButtonData {
     fn value(&self) -> usize {
         (self.face.value() * 8usize)
-            + (self.powered.value() * 4usize)
-            + (self.facing.value() * 1usize)
+            + (self.facing.value() * 2usize)
+            + (self.powered.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkOakButtonData {
-    face: Face,
     facing: Facing,
+    face: Face,
     powered: bool,
 }
 impl DarkOakButtonData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            face: Face::from_snake_case(map.get("face")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            face: Face::from_snake_case(map.get("face")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("face".to_string(), self.face.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("face".to_string(), self.face.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for DarkOakButtonData {
     fn value(&self) -> usize {
-        (self.face.value() * 8usize)
-            + (self.facing.value() * 2usize)
+        (self.facing.value() * 6usize)
+            + (self.face.value() * 2usize)
             + (self.powered.value() * 1usize)
     }
 }
@@ -6259,55 +7912,55 @@ impl Value for HeavyWeightedPressurePlateData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ComparatorData {
+    mode: ComparatorMode,
     powered: bool,
     facing: Facing,
-    mode: ComparatorMode,
 }
 impl ComparatorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            mode: ComparatorMode::from_snake_case(map.get("mode")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
-            mode: ComparatorMode::from_snake_case(map.get("mode")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("mode".to_string(), self.mode.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("mode".to_string(), self.mode.to_snake_case());
         m
     }
 }
 impl Value for ComparatorData {
     fn value(&self) -> usize {
-        (self.powered.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.mode.value() * 1usize)
+        (self.mode.value() * 8usize)
+            + (self.powered.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DaylightDetectorData {
-    power: i32,
     inverted: bool,
+    power: i32,
 }
 impl DaylightDetectorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            power: i32::from_snake_case(map.get("power")?)?,
             inverted: bool::from_snake_case(map.get("inverted")?)?,
+            power: i32::from_snake_case(map.get("power")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("power".to_string(), self.power.to_snake_case());
         m.insert("inverted".to_string(), self.inverted.to_snake_case());
+        m.insert("power".to_string(), self.power.to_snake_case());
         m
     }
 }
 impl Value for DaylightDetectorData {
     fn value(&self) -> usize {
-        (self.power.value() * 2usize) + (self.inverted.value() * 1usize)
+        (self.inverted.value() * 16usize) + (self.power.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -6357,35 +8010,35 @@ impl Value for QuartzPillarData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct QuartzStairsData {
-    half: Half,
     facing: Facing,
-    waterlogged: bool,
     shape: Shape,
+    waterlogged: bool,
+    half: Half,
 }
 impl QuartzStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            half: Half::from_snake_case(map.get("half")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             shape: Shape::from_snake_case(map.get("shape")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            half: Half::from_snake_case(map.get("half")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m
     }
 }
 impl Value for QuartzStairsData {
     fn value(&self) -> usize {
-        (self.half.value() * 40usize)
-            + (self.facing.value() * 10usize)
-            + (self.waterlogged.value() * 5usize)
-            + (self.shape.value() * 1usize)
+        (self.facing.value() * 20usize)
+            + (self.shape.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.half.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -6414,316 +8067,131 @@ impl Value for ActivatorRailData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DropperData {
-    facing: Facing,
     triggered: bool,
+    facing: Facing,
 }
 impl DropperData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             triggered: bool::from_snake_case(map.get("triggered")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("triggered".to_string(), self.triggered.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for DropperData {
     fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.triggered.value() * 1usize)
+        (self.triggered.value() * 6usize) + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct WhiteStainedGlassPaneData {
-    south: bool,
     east: bool,
-    north: bool,
     west: bool,
     waterlogged: bool,
+    north: bool,
+    south: bool,
 }
 impl WhiteStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            south: bool::from_snake_case(map.get("south")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m
     }
 }
 impl Value for WhiteStainedGlassPaneData {
     fn value(&self) -> usize {
-        (self.south.value() * 16usize)
-            + (self.east.value() * 8usize)
-            + (self.north.value() * 4usize)
-            + (self.west.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
+        (self.east.value() * 16usize)
+            + (self.west.value() * 8usize)
+            + (self.waterlogged.value() * 4usize)
+            + (self.north.value() * 2usize)
+            + (self.south.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OrangeStainedGlassPaneData {
-    south: bool,
-    waterlogged: bool,
-    west: bool,
-    east: bool,
     north: bool,
+    south: bool,
+    west: bool,
+    waterlogged: bool,
+    east: bool,
 }
 impl OrangeStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            south: bool::from_snake_case(map.get("south")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
         m
     }
 }
 impl Value for OrangeStainedGlassPaneData {
     fn value(&self) -> usize {
-        (self.south.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
+        (self.north.value() * 16usize)
+            + (self.south.value() * 8usize)
             + (self.west.value() * 4usize)
-            + (self.east.value() * 2usize)
-            + (self.north.value() * 1usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.east.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct MagentaStainedGlassPaneData {
-    waterlogged: bool,
-    north: bool,
     east: bool,
-    south: bool,
     west: bool,
+    north: bool,
+    waterlogged: bool,
+    south: bool,
 }
 impl MagentaStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m
     }
 }
 impl Value for MagentaStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.waterlogged.value() * 16usize)
-            + (self.north.value() * 8usize)
-            + (self.east.value() * 4usize)
-            + (self.south.value() * 2usize)
-            + (self.west.value() * 1usize)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct LightBlueStainedGlassPaneData {
-    east: bool,
-    south: bool,
-    waterlogged: bool,
-    north: bool,
-    west: bool,
-}
-impl LightBlueStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m
-    }
-}
-impl Value for LightBlueStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.east.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.north.value() * 2usize)
-            + (self.west.value() * 1usize)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct YellowStainedGlassPaneData {
-    west: bool,
-    south: bool,
-    east: bool,
-    north: bool,
-    waterlogged: bool,
-}
-impl YellowStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            west: bool::from_snake_case(map.get("west")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m
-    }
-}
-impl Value for YellowStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.west.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.east.value() * 4usize)
-            + (self.north.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct LimeStainedGlassPaneData {
-    waterlogged: bool,
-    south: bool,
-    east: bool,
-    north: bool,
-    west: bool,
-}
-impl LimeStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m
-    }
-}
-impl Value for LimeStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.waterlogged.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.east.value() * 4usize)
-            + (self.north.value() * 2usize)
-            + (self.west.value() * 1usize)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct PinkStainedGlassPaneData {
-    north: bool,
-    south: bool,
-    east: bool,
-    waterlogged: bool,
-    west: bool,
-}
-impl PinkStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            north: bool::from_snake_case(map.get("north")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m
-    }
-}
-impl Value for PinkStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.north.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.east.value() * 4usize)
-            + (self.waterlogged.value() * 2usize)
-            + (self.west.value() * 1usize)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct GrayStainedGlassPaneData {
-    east: bool,
-    west: bool,
-    north: bool,
-    waterlogged: bool,
-    south: bool,
-}
-impl GrayStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m
-    }
-}
-impl Value for GrayStainedGlassPaneData {
     fn value(&self) -> usize {
         (self.east.value() * 16usize)
             + (self.west.value() * 8usize)
@@ -6733,51 +8201,51 @@ impl Value for GrayStainedGlassPaneData {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct LightGrayStainedGlassPaneData {
-    south: bool,
-    north: bool,
-    waterlogged: bool,
+pub struct LightBlueStainedGlassPaneData {
     east: bool,
+    waterlogged: bool,
     west: bool,
+    north: bool,
+    south: bool,
 }
-impl LightGrayStainedGlassPaneData {
+impl LightBlueStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            south: bool::from_snake_case(map.get("south")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m
     }
 }
-impl Value for LightGrayStainedGlassPaneData {
+impl Value for LightBlueStainedGlassPaneData {
     fn value(&self) -> usize {
-        (self.south.value() * 16usize)
-            + (self.north.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.east.value() * 2usize)
-            + (self.west.value() * 1usize)
+        (self.east.value() * 16usize)
+            + (self.waterlogged.value() * 8usize)
+            + (self.west.value() * 4usize)
+            + (self.north.value() * 2usize)
+            + (self.south.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct CyanStainedGlassPaneData {
+pub struct YellowStainedGlassPaneData {
     north: bool,
     south: bool,
     waterlogged: bool,
     west: bool,
     east: bool,
 }
-impl CyanStainedGlassPaneData {
+impl YellowStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             north: bool::from_snake_case(map.get("north")?)?,
@@ -6797,7 +8265,7 @@ impl CyanStainedGlassPaneData {
         m
     }
 }
-impl Value for CyanStainedGlassPaneData {
+impl Value for YellowStainedGlassPaneData {
     fn value(&self) -> usize {
         (self.north.value() * 16usize)
             + (self.south.value() * 8usize)
@@ -6807,14 +8275,88 @@ impl Value for CyanStainedGlassPaneData {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct PurpleStainedGlassPaneData {
+pub struct LimeStainedGlassPaneData {
+    south: bool,
+    east: bool,
+    north: bool,
+    west: bool,
+    waterlogged: bool,
+}
+impl LimeStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            south: bool::from_snake_case(map.get("south")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m
+    }
+}
+impl Value for LimeStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.south.value() * 16usize)
+            + (self.east.value() * 8usize)
+            + (self.north.value() * 4usize)
+            + (self.west.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct PinkStainedGlassPaneData {
+    west: bool,
+    north: bool,
+    south: bool,
+    east: bool,
+    waterlogged: bool,
+}
+impl PinkStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            west: bool::from_snake_case(map.get("west")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m
+    }
+}
+impl Value for PinkStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.west.value() * 16usize)
+            + (self.north.value() * 8usize)
+            + (self.south.value() * 4usize)
+            + (self.east.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct GrayStainedGlassPaneData {
     west: bool,
     north: bool,
     east: bool,
     south: bool,
     waterlogged: bool,
 }
-impl PurpleStainedGlassPaneData {
+impl GrayStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             west: bool::from_snake_case(map.get("west")?)?,
@@ -6834,7 +8376,7 @@ impl PurpleStainedGlassPaneData {
         m
     }
 }
-impl Value for PurpleStainedGlassPaneData {
+impl Value for GrayStainedGlassPaneData {
     fn value(&self) -> usize {
         (self.west.value() * 16usize)
             + (self.north.value() * 8usize)
@@ -6844,66 +8386,177 @@ impl Value for PurpleStainedGlassPaneData {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct BlueStainedGlassPaneData {
-    north: bool,
+pub struct LightGrayStainedGlassPaneData {
     east: bool,
-    waterlogged: bool,
+    south: bool,
     west: bool,
+    waterlogged: bool,
+    north: bool,
+}
+impl LightGrayStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            east: bool::from_snake_case(map.get("east")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m
+    }
+}
+impl Value for LightGrayStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.east.value() * 16usize)
+            + (self.south.value() * 8usize)
+            + (self.west.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.north.value() * 1usize)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct CyanStainedGlassPaneData {
+    south: bool,
+    east: bool,
+    west: bool,
+    waterlogged: bool,
+    north: bool,
+}
+impl CyanStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            south: bool::from_snake_case(map.get("south")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m
+    }
+}
+impl Value for CyanStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.south.value() * 16usize)
+            + (self.east.value() * 8usize)
+            + (self.west.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.north.value() * 1usize)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct PurpleStainedGlassPaneData {
+    west: bool,
+    waterlogged: bool,
+    east: bool,
+    south: bool,
+    north: bool,
+}
+impl PurpleStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            west: bool::from_snake_case(map.get("west")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m
+    }
+}
+impl Value for PurpleStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.west.value() * 16usize)
+            + (self.waterlogged.value() * 8usize)
+            + (self.east.value() * 4usize)
+            + (self.south.value() * 2usize)
+            + (self.north.value() * 1usize)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct BlueStainedGlassPaneData {
+    east: bool,
+    north: bool,
+    west: bool,
+    waterlogged: bool,
     south: bool,
 }
 impl BlueStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            north: bool::from_snake_case(map.get("north")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
         m
     }
 }
 impl Value for BlueStainedGlassPaneData {
     fn value(&self) -> usize {
-        (self.north.value() * 16usize)
-            + (self.east.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.west.value() * 2usize)
+        (self.east.value() * 16usize)
+            + (self.north.value() * 8usize)
+            + (self.west.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
             + (self.south.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BrownStainedGlassPaneData {
     north: bool,
-    waterlogged: bool,
-    east: bool,
     south: bool,
+    east: bool,
+    waterlogged: bool,
     west: bool,
 }
 impl BrownStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             north: bool::from_snake_case(map.get("north")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
         m
     }
@@ -6911,35 +8564,35 @@ impl BrownStainedGlassPaneData {
 impl Value for BrownStainedGlassPaneData {
     fn value(&self) -> usize {
         (self.north.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
+            + (self.south.value() * 8usize)
             + (self.east.value() * 4usize)
-            + (self.south.value() * 2usize)
+            + (self.waterlogged.value() * 2usize)
             + (self.west.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct GreenStainedGlassPaneData {
+    north: bool,
     east: bool,
     waterlogged: bool,
-    north: bool,
     west: bool,
     south: bool,
 }
 impl GreenStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            north: bool::from_snake_case(map.get("north")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
         m
@@ -6947,36 +8600,36 @@ impl GreenStainedGlassPaneData {
 }
 impl Value for GreenStainedGlassPaneData {
     fn value(&self) -> usize {
-        (self.east.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
-            + (self.north.value() * 4usize)
+        (self.north.value() * 16usize)
+            + (self.east.value() * 8usize)
+            + (self.waterlogged.value() * 4usize)
             + (self.west.value() * 2usize)
             + (self.south.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RedStainedGlassPaneData {
+    north: bool,
     west: bool,
     east: bool,
-    north: bool,
     south: bool,
     waterlogged: bool,
 }
 impl RedStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            north: bool::from_snake_case(map.get("north")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
@@ -6984,274 +8637,274 @@ impl RedStainedGlassPaneData {
 }
 impl Value for RedStainedGlassPaneData {
     fn value(&self) -> usize {
-        (self.west.value() * 16usize)
-            + (self.east.value() * 8usize)
-            + (self.north.value() * 4usize)
+        (self.north.value() * 16usize)
+            + (self.west.value() * 8usize)
+            + (self.east.value() * 4usize)
             + (self.south.value() * 2usize)
             + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BlackStainedGlassPaneData {
-    east: bool,
-    waterlogged: bool,
     south: bool,
-    west: bool,
     north: bool,
+    east: bool,
+    west: bool,
+    waterlogged: bool,
 }
 impl BlackStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for BlackStainedGlassPaneData {
     fn value(&self) -> usize {
-        (self.east.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
-            + (self.south.value() * 4usize)
+        (self.south.value() * 16usize)
+            + (self.north.value() * 8usize)
+            + (self.east.value() * 4usize)
             + (self.west.value() * 2usize)
-            + (self.north.value() * 1usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaStairsData {
+    waterlogged: bool,
     half: Half,
     facing: Facing,
-    waterlogged: bool,
     shape: Shape,
 }
 impl AcaciaStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             shape: Shape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
         m
     }
 }
 impl Value for AcaciaStairsData {
     fn value(&self) -> usize {
-        (self.half.value() * 40usize)
-            + (self.facing.value() * 10usize)
-            + (self.waterlogged.value() * 5usize)
+        (self.waterlogged.value() * 40usize)
+            + (self.half.value() * 20usize)
+            + (self.facing.value() * 5usize)
             + (self.shape.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkOakStairsData {
-    waterlogged: bool,
-    facing: Facing,
     half: Half,
+    waterlogged: bool,
     shape: Shape,
+    facing: Facing,
 }
 impl DarkOakStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             shape: Shape::from_snake_case(map.get("shape")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for DarkOakStairsData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 40usize)
-            + (self.facing.value() * 10usize)
-            + (self.half.value() * 5usize)
-            + (self.shape.value() * 1usize)
+        (self.half.value() * 40usize)
+            + (self.waterlogged.value() * 20usize)
+            + (self.shape.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct IronTrapdoorData {
     powered: bool,
-    facing: Facing,
-    open: bool,
     half: Half,
+    facing: Facing,
     waterlogged: bool,
+    open: bool,
 }
 impl IronTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             powered: bool::from_snake_case(map.get("powered")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
         m
     }
 }
 impl Value for IronTrapdoorData {
     fn value(&self) -> usize {
         (self.powered.value() * 32usize)
-            + (self.facing.value() * 8usize)
-            + (self.open.value() * 4usize)
-            + (self.half.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
+            + (self.half.value() * 16usize)
+            + (self.facing.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.open.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PrismarineStairsData {
-    half: Half,
-    shape: Shape,
     waterlogged: bool,
     facing: Facing,
+    shape: Shape,
+    half: Half,
 }
 impl PrismarineStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            half: Half::from_snake_case(map.get("half")?)?,
-            shape: Shape::from_snake_case(map.get("shape")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            shape: Shape::from_snake_case(map.get("shape")?)?,
+            half: Half::from_snake_case(map.get("half")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("shape".to_string(), self.shape.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m
     }
 }
 impl Value for PrismarineStairsData {
     fn value(&self) -> usize {
-        (self.half.value() * 40usize)
-            + (self.shape.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.waterlogged.value() * 40usize)
+            + (self.facing.value() * 10usize)
+            + (self.shape.value() * 2usize)
+            + (self.half.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PrismarineBrickStairsData {
-    waterlogged: bool,
     shape: Shape,
     facing: Facing,
     half: Half,
+    waterlogged: bool,
 }
 impl PrismarineBrickStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             shape: Shape::from_snake_case(map.get("shape")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for PrismarineBrickStairsData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 40usize)
-            + (self.shape.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.half.value() * 1usize)
+        (self.shape.value() * 16usize)
+            + (self.facing.value() * 4usize)
+            + (self.half.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkPrismarineStairsData {
-    facing: Facing,
-    shape: Shape,
-    waterlogged: bool,
     half: Half,
+    shape: Shape,
+    facing: Facing,
+    waterlogged: bool,
 }
 impl DarkPrismarineStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
-            shape: Shape::from_snake_case(map.get("shape")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
+            shape: Shape::from_snake_case(map.get("shape")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("shape".to_string(), self.shape.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for DarkPrismarineStairsData {
     fn value(&self) -> usize {
-        (self.facing.value() * 20usize)
-            + (self.shape.value() * 4usize)
-            + (self.waterlogged.value() * 2usize)
-            + (self.half.value() * 1usize)
+        (self.half.value() * 40usize)
+            + (self.shape.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PrismarineSlabData {
-    ty: Half,
     waterlogged: bool,
+    ty: Half,
 }
 impl PrismarineSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            ty: Half::from_snake_case(map.get("type")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            ty: Half::from_snake_case(map.get("type")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("type".to_string(), self.ty.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("type".to_string(), self.ty.to_snake_case());
         m
     }
 }
 impl Value for PrismarineSlabData {
     fn value(&self) -> usize {
-        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -7280,26 +8933,26 @@ impl Value for PrismarineBrickSlabData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkPrismarineSlabData {
-    ty: Half,
     waterlogged: bool,
+    ty: Half,
 }
 impl DarkPrismarineSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            ty: Half::from_snake_case(map.get("type")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            ty: Half::from_snake_case(map.get("type")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("type".to_string(), self.ty.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("type".to_string(), self.ty.to_snake_case());
         m
     }
 }
 impl Value for DarkPrismarineSlabData {
     fn value(&self) -> usize {
-        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -8123,35 +9776,35 @@ impl Value for BlackWallBannerData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RedSandstoneStairsData {
-    half: Half,
     facing: Facing,
-    waterlogged: bool,
+    half: Half,
     shape: Shape,
+    waterlogged: bool,
 }
 impl RedSandstoneStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            half: Half::from_snake_case(map.get("half")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            half: Half::from_snake_case(map.get("half")?)?,
             shape: Shape::from_snake_case(map.get("shape")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for RedSandstoneStairsData {
     fn value(&self) -> usize {
-        (self.half.value() * 40usize)
-            + (self.facing.value() * 10usize)
-            + (self.waterlogged.value() * 5usize)
-            + (self.shape.value() * 1usize)
+        (self.facing.value() * 20usize)
+            + (self.half.value() * 10usize)
+            + (self.shape.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -8228,26 +9881,26 @@ impl Value for BirchSlabData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct JungleSlabData {
-    ty: Half,
     waterlogged: bool,
+    ty: Half,
 }
 impl JungleSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            ty: Half::from_snake_case(map.get("type")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            ty: Half::from_snake_case(map.get("type")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("type".to_string(), self.ty.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("type".to_string(), self.ty.to_snake_case());
         m
     }
 }
 impl Value for JungleSlabData {
     fn value(&self) -> usize {
-        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -8300,26 +9953,26 @@ impl Value for DarkOakSlabData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct StoneSlabData {
-    waterlogged: bool,
     ty: Half,
+    waterlogged: bool,
 }
 impl StoneSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             ty: Half::from_snake_case(map.get("type")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("type".to_string(), self.ty.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for StoneSlabData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
+        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -8348,26 +10001,26 @@ impl Value for SandstoneSlabData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PetrifiedOakSlabData {
-    waterlogged: bool,
     ty: Half,
+    waterlogged: bool,
 }
 impl PetrifiedOakSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             ty: Half::from_snake_case(map.get("type")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("type".to_string(), self.ty.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for PetrifiedOakSlabData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
+        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -8420,50 +10073,50 @@ impl Value for BrickSlabData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct StoneBrickSlabData {
-    waterlogged: bool,
     ty: Half,
+    waterlogged: bool,
 }
 impl StoneBrickSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             ty: Half::from_snake_case(map.get("type")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("type".to_string(), self.ty.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for StoneBrickSlabData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
+        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct NetherBrickSlabData {
-    waterlogged: bool,
     ty: Half,
+    waterlogged: bool,
 }
 impl NetherBrickSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             ty: Half::from_snake_case(map.get("type")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("type".to_string(), self.ty.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for NetherBrickSlabData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
+        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -8540,537 +10193,537 @@ impl Value for PurpurSlabData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpruceFenceGateData {
-    powered: bool,
-    open: bool,
     facing: Facing,
+    open: bool,
+    powered: bool,
     in_wall: bool,
 }
 impl SpruceFenceGateData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
             in_wall: bool::from_snake_case(map.get("in_wall")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
         m
     }
 }
 impl Value for SpruceFenceGateData {
     fn value(&self) -> usize {
-        (self.powered.value() * 16usize)
-            + (self.open.value() * 8usize)
-            + (self.facing.value() * 2usize)
+        (self.facing.value() * 8usize)
+            + (self.open.value() * 4usize)
+            + (self.powered.value() * 2usize)
             + (self.in_wall.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BirchFenceGateData {
-    in_wall: bool,
     open: bool,
-    facing: Facing,
     powered: bool,
+    in_wall: bool,
+    facing: Facing,
 }
 impl BirchFenceGateData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
+            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for BirchFenceGateData {
     fn value(&self) -> usize {
-        (self.in_wall.value() * 16usize)
-            + (self.open.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.powered.value() * 1usize)
+        (self.open.value() * 16usize)
+            + (self.powered.value() * 8usize)
+            + (self.in_wall.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct JungleFenceGateData {
-    facing: Facing,
-    in_wall: bool,
     open: bool,
+    in_wall: bool,
     powered: bool,
+    facing: Facing,
 }
 impl JungleFenceGateData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
-            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
+            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for JungleFenceGateData {
     fn value(&self) -> usize {
-        (self.facing.value() * 8usize)
-            + (self.in_wall.value() * 4usize)
-            + (self.open.value() * 2usize)
-            + (self.powered.value() * 1usize)
+        (self.open.value() * 16usize)
+            + (self.in_wall.value() * 8usize)
+            + (self.powered.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaFenceGateData {
     facing: Facing,
-    powered: bool,
-    open: bool,
     in_wall: bool,
+    open: bool,
+    powered: bool,
 }
 impl AcaciaFenceGateData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             facing: Facing::from_snake_case(map.get("facing")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
             in_wall: bool::from_snake_case(map.get("in_wall")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for AcaciaFenceGateData {
     fn value(&self) -> usize {
         (self.facing.value() * 8usize)
-            + (self.powered.value() * 4usize)
-            + (self.open.value() * 2usize)
-            + (self.in_wall.value() * 1usize)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct DarkOakFenceGateData {
-    facing: Facing,
-    in_wall: bool,
-    open: bool,
-    powered: bool,
-}
-impl DarkOakFenceGateData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
-            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m
-    }
-}
-impl Value for DarkOakFenceGateData {
-    fn value(&self) -> usize {
-        (self.facing.value() * 8usize)
             + (self.in_wall.value() * 4usize)
             + (self.open.value() * 2usize)
             + (self.powered.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct SpruceFenceData {
-    north: bool,
-    south: bool,
-    waterlogged: bool,
-    west: bool,
-    east: bool,
+pub struct DarkOakFenceGateData {
+    facing: Facing,
+    powered: bool,
+    open: bool,
+    in_wall: bool,
 }
-impl SpruceFenceData {
+impl DarkOakFenceGateData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            north: bool::from_snake_case(map.get("north")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
+            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
+        m
+    }
+}
+impl Value for DarkOakFenceGateData {
+    fn value(&self) -> usize {
+        (self.facing.value() * 8usize)
+            + (self.powered.value() * 4usize)
+            + (self.open.value() * 2usize)
+            + (self.in_wall.value() * 1usize)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct SpruceFenceData {
+    south: bool,
+    north: bool,
+    east: bool,
+    west: bool,
+    waterlogged: bool,
+}
+impl SpruceFenceData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            south: bool::from_snake_case(map.get("south")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
         m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for SpruceFenceData {
     fn value(&self) -> usize {
-        (self.north.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
+        (self.south.value() * 16usize)
+            + (self.north.value() * 8usize)
+            + (self.east.value() * 4usize)
             + (self.west.value() * 2usize)
-            + (self.east.value() * 1usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BirchFenceData {
-    east: bool,
     west: bool,
-    south: bool,
-    waterlogged: bool,
     north: bool,
+    waterlogged: bool,
+    south: bool,
+    east: bool,
 }
 impl BirchFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
         m
     }
 }
 impl Value for BirchFenceData {
     fn value(&self) -> usize {
-        (self.east.value() * 16usize)
-            + (self.west.value() * 8usize)
-            + (self.south.value() * 4usize)
-            + (self.waterlogged.value() * 2usize)
-            + (self.north.value() * 1usize)
+        (self.west.value() * 16usize)
+            + (self.north.value() * 8usize)
+            + (self.waterlogged.value() * 4usize)
+            + (self.south.value() * 2usize)
+            + (self.east.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct JungleFenceData {
-    east: bool,
-    west: bool,
-    waterlogged: bool,
-    north: bool,
     south: bool,
+    north: bool,
+    east: bool,
+    waterlogged: bool,
+    west: bool,
 }
 impl JungleFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m
     }
 }
 impl Value for JungleFenceData {
     fn value(&self) -> usize {
-        (self.east.value() * 16usize)
-            + (self.west.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.north.value() * 2usize)
-            + (self.south.value() * 1usize)
+        (self.south.value() * 16usize)
+            + (self.north.value() * 8usize)
+            + (self.east.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.west.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaFenceData {
-    south: bool,
-    waterlogged: bool,
-    west: bool,
     north: bool,
+    west: bool,
+    south: bool,
     east: bool,
+    waterlogged: bool,
 }
 impl AcaciaFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            south: bool::from_snake_case(map.get("south")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for AcaciaFenceData {
     fn value(&self) -> usize {
-        (self.south.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
-            + (self.west.value() * 4usize)
-            + (self.north.value() * 2usize)
-            + (self.east.value() * 1usize)
+        (self.north.value() * 16usize)
+            + (self.west.value() * 8usize)
+            + (self.south.value() * 4usize)
+            + (self.east.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkOakFenceData {
-    south: bool,
     west: bool,
+    south: bool,
     east: bool,
-    waterlogged: bool,
     north: bool,
+    waterlogged: bool,
 }
 impl DarkOakFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            south: bool::from_snake_case(map.get("south")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for DarkOakFenceData {
     fn value(&self) -> usize {
-        (self.south.value() * 16usize)
-            + (self.west.value() * 8usize)
+        (self.west.value() * 16usize)
+            + (self.south.value() * 8usize)
             + (self.east.value() * 4usize)
-            + (self.waterlogged.value() * 2usize)
-            + (self.north.value() * 1usize)
+            + (self.north.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpruceDoorData {
-    facing: Facing,
     open: bool,
-    powered: bool,
-    hinge: Hinge,
     half: Half,
+    hinge: Hinge,
+    facing: Facing,
+    powered: bool,
 }
 impl SpruceDoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            hinge: Hinge::from_snake_case(map.get("hinge")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
+            hinge: Hinge::from_snake_case(map.get("hinge")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("hinge".to_string(), self.hinge.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("hinge".to_string(), self.hinge.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for SpruceDoorData {
     fn value(&self) -> usize {
-        (self.facing.value() * 16usize)
-            + (self.open.value() * 8usize)
-            + (self.powered.value() * 4usize)
-            + (self.hinge.value() * 2usize)
-            + (self.half.value() * 1usize)
+        (self.open.value() * 32usize)
+            + (self.half.value() * 16usize)
+            + (self.hinge.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.powered.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BirchDoorData {
-    facing: Facing,
     hinge: Hinge,
-    powered: bool,
     open: bool,
     half: Half,
+    powered: bool,
+    facing: Facing,
 }
 impl BirchDoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             hinge: Hinge::from_snake_case(map.get("hinge")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("hinge".to_string(), self.hinge.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for BirchDoorData {
     fn value(&self) -> usize {
-        (self.facing.value() * 16usize)
-            + (self.hinge.value() * 8usize)
+        (self.hinge.value() * 32usize)
+            + (self.open.value() * 16usize)
+            + (self.half.value() * 8usize)
             + (self.powered.value() * 4usize)
-            + (self.open.value() * 2usize)
-            + (self.half.value() * 1usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct JungleDoorData {
-    powered: bool,
+    hinge: Hinge,
     open: bool,
     half: Half,
+    powered: bool,
     facing: Facing,
-    hinge: Hinge,
 }
 impl JungleDoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
+            hinge: Hinge::from_snake_case(map.get("hinge")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
-            hinge: Hinge::from_snake_case(map.get("hinge")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("hinge".to_string(), self.hinge.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("hinge".to_string(), self.hinge.to_snake_case());
         m
     }
 }
 impl Value for JungleDoorData {
     fn value(&self) -> usize {
-        (self.powered.value() * 32usize)
+        (self.hinge.value() * 32usize)
             + (self.open.value() * 16usize)
             + (self.half.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.hinge.value() * 1usize)
+            + (self.powered.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaDoorData {
-    powered: bool,
+    open: bool,
     facing: Facing,
     hinge: Hinge,
     half: Half,
-    open: bool,
+    powered: bool,
 }
 impl AcaciaDoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
             hinge: Hinge::from_snake_case(map.get("hinge")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("hinge".to_string(), self.hinge.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for AcaciaDoorData {
     fn value(&self) -> usize {
-        (self.powered.value() * 32usize)
+        (self.open.value() * 32usize)
             + (self.facing.value() * 8usize)
             + (self.hinge.value() * 4usize)
             + (self.half.value() * 2usize)
-            + (self.open.value() * 1usize)
+            + (self.powered.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkOakDoorData {
-    open: bool,
     facing: Facing,
     hinge: Hinge,
-    powered: bool,
     half: Half,
+    open: bool,
+    powered: bool,
 }
 impl DarkOakDoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            open: bool::from_snake_case(map.get("open")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
             hinge: Hinge::from_snake_case(map.get("hinge")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("hinge".to_string(), self.hinge.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for DarkOakDoorData {
     fn value(&self) -> usize {
-        (self.open.value() * 32usize)
-            + (self.facing.value() * 8usize)
-            + (self.hinge.value() * 4usize)
-            + (self.powered.value() * 2usize)
-            + (self.half.value() * 1usize)
+        (self.facing.value() * 16usize)
+            + (self.hinge.value() * 8usize)
+            + (self.half.value() * 4usize)
+            + (self.open.value() * 2usize)
+            + (self.powered.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -9096,43 +10749,43 @@ impl Value for EndRodData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ChorusPlantData {
-    up: bool,
-    north: bool,
     east: bool,
-    west: bool,
+    north: bool,
     south: bool,
     down: bool,
+    west: bool,
+    up: bool,
 }
 impl ChorusPlantData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            up: bool::from_snake_case(map.get("up")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
             down: bool::from_snake_case(map.get("down")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            up: bool::from_snake_case(map.get("up")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("up".to_string(), self.up.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("down".to_string(), self.down.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("up".to_string(), self.up.to_snake_case());
         m
     }
 }
 impl Value for ChorusPlantData {
     fn value(&self) -> usize {
-        (self.up.value() * 32usize)
+        (self.east.value() * 32usize)
             + (self.north.value() * 16usize)
-            + (self.east.value() * 8usize)
-            + (self.west.value() * 4usize)
-            + (self.south.value() * 2usize)
-            + (self.down.value() * 1usize)
+            + (self.south.value() * 8usize)
+            + (self.down.value() * 4usize)
+            + (self.west.value() * 2usize)
+            + (self.up.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -9179,35 +10832,35 @@ impl Value for PurpurPillarData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PurpurStairsData {
-    waterlogged: bool,
     half: Half,
-    facing: Facing,
     shape: Shape,
+    facing: Facing,
+    waterlogged: bool,
 }
 impl PurpurStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             half: Half::from_snake_case(map.get("half")?)?,
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             shape: Shape::from_snake_case(map.get("shape")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for PurpurStairsData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 40usize)
-            + (self.half.value() * 20usize)
-            + (self.facing.value() * 5usize)
-            + (self.shape.value() * 1usize)
+        (self.half.value() * 40usize)
+            + (self.shape.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -9257,26 +10910,26 @@ impl Value for RepeatingCommandBlockData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ChainCommandBlockData {
-    facing: Facing,
     conditional: bool,
+    facing: Facing,
 }
 impl ChainCommandBlockData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             conditional: bool::from_snake_case(map.get("conditional")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("conditional".to_string(), self.conditional.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for ChainCommandBlockData {
     fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.conditional.value() * 1usize)
+        (self.conditional.value() * 6usize) + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -9323,26 +10976,26 @@ impl Value for BoneBlockData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ObserverData {
-    powered: bool,
     facing: Facing,
+    powered: bool,
 }
 impl ObserverData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for ObserverData {
     fn value(&self) -> usize {
-        (self.powered.value() * 6usize) + (self.facing.value() * 1usize)
+        (self.facing.value() * 2usize) + (self.powered.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -10343,26 +11996,26 @@ impl Value for DeadBrainCoralWallFanData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DeadBubbleCoralWallFanData {
-    waterlogged: bool,
     facing: Facing,
+    waterlogged: bool,
 }
 impl DeadBubbleCoralWallFanData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             facing: Facing::from_snake_case(map.get("facing")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for DeadBubbleCoralWallFanData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 4usize) + (self.facing.value() * 1usize)
+        (self.facing.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -10391,98 +12044,98 @@ impl Value for DeadFireCoralWallFanData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DeadHornCoralWallFanData {
-    facing: Facing,
     waterlogged: bool,
+    facing: Facing,
 }
 impl DeadHornCoralWallFanData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for DeadHornCoralWallFanData {
     fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        (self.waterlogged.value() * 4usize) + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TubeCoralWallFanData {
-    facing: Facing,
     waterlogged: bool,
+    facing: Facing,
 }
 impl TubeCoralWallFanData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for TubeCoralWallFanData {
     fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        (self.waterlogged.value() * 4usize) + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BrainCoralWallFanData {
-    facing: Facing,
     waterlogged: bool,
+    facing: Facing,
 }
 impl BrainCoralWallFanData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for BrainCoralWallFanData {
     fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        (self.waterlogged.value() * 4usize) + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BubbleCoralWallFanData {
-    facing: Facing,
     waterlogged: bool,
+    facing: Facing,
 }
 impl BubbleCoralWallFanData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: Facing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            facing: Facing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for BubbleCoralWallFanData {
     fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        (self.waterlogged.value() * 4usize) + (self.facing.value() * 1usize)
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
