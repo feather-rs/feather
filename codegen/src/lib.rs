@@ -221,11 +221,11 @@ pub fn derive_from_snake_case(input: TokenStream) -> TokenStream {
     }
 
     let result = quote! {
-        impl #name {
-            pub fn from_snake_case(val: &str) -> Option<Self> {
+        impl FromSnakeCase for #name {
+            fn from_snake_case(val: &str) -> Option<Self> {
                 match val {
-                    #(#match_arms),*
-                    _ = None,
+                    #(#match_arms ,)*
+                    _ => None,
                 }
             }
         }
@@ -247,7 +247,7 @@ pub fn derive_to_snake_case(input: TokenStream) -> TokenStream {
                 let snake_case = variant.ident.to_string().to_snake_case();
                 let ident = &variant.ident;
                 match_arms.push(quote! {
-                    #name::#ident => #snake_case
+                    #name::#ident => #snake_case.to_string()
                 });
             }
         }
@@ -255,9 +255,9 @@ pub fn derive_to_snake_case(input: TokenStream) -> TokenStream {
     }
 
     let result = quote! {
-        impl #name {
-            pub fn to_snake_case(&self) -> &'static str {
-                match val {
+        impl ToSnakeCase for #name {
+            fn to_snake_case(&self) -> String {
+                match self {
                     #(#match_arms),*
                 }
             }

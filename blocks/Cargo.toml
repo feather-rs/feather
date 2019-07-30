@@ -1,8 +1,8 @@
 [package]
-name = "feather_blocks_from_id"
+name = "feather_blocks"
 version = "0.1.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-feather_blocks_enum = { path = "../enum" }
+feather_codegen = { path = "../codegen" }
