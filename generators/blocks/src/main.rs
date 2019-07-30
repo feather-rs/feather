@@ -96,6 +96,15 @@ fn run() -> Result<(), Error> {
                 args.value_of("ver").unwrap(),
             )?;
         }
+        Some("native-mappings") => {
+            let args = matches.subcommand_matches("native-mappings").unwrap();
+            generate_native_mappings_file(
+                args.value_of("input").unwrap(),
+                args.value_of("output").unwrap(),
+                u32::from_str(args.value_of("proto").unwrap())?,
+                args.value_of("ver").unwrap(),
+            )?;
+        }
         Some("rust") => {
             let args = matches.subcommand_matches("rust").unwrap();
             rust::generate_rust_code(
@@ -143,9 +152,7 @@ fn generate_mappings_file(
 
     // Write header to output file
     // See format.md
-    out.write_all(b"FEATHER_BLOCK_DATA_FILE")?;
-    out.write_string(version)?;
-    out.write_u32::<LittleEndian>(proto)?;
+    write_header(&mut out, version, proto, false)?;
 
     // Go through native block types and attempt
     // to find corresponding state ID in report.
@@ -179,6 +186,63 @@ fn generate_mappings_file(
     Ok(())
 }
 
+fn generate_native_mappings_file(
+    input: &str,
+    output: &str,
+    proto: u32,
+    version: &str,
+) -> Result<(), Error> {
+    info!(
+        "Generating native mappings file {} using input report {}",
+        output, input
+    );
+
+    let in_file = File::open(input)?;
+    let out_file = File::create(output)?;
+
+    info!("Parsing data file");
+
+    let report: BlockReport = serde_json::from_reader(BufReader::new(&in_file))?;
+
+    info!("Parsing successful");
+
+    let mut out = BufWriter::new(&out_file);
+
+    write_header(&mut out, version, proto, true)?;
+
+    // Go through blocks and write to mappings
+    // file.
+    for (block_name, block) in &report.blocks {
+        for state in &block.states {
+            // Write name
+            out.write_string(block_name.as_str())?;
+
+            // Write properties
+            let len = {
+                if let Some(props) = state.properties.as_ref() {
+                    props.props.len()
+                } else {
+                    0
+                }
+            };
+
+            out.write_u32::<LittleEndian>(len as u32)?;
+            if let Some(props) = state.properties.as_ref() {
+                for (name, value) in &props.props {
+                    out.write_string(name.as_str())?;
+                    out.write_string(value.as_str())?;
+                }
+            }
+
+            // Write ID
+            out.write_u16::<LittleEndian>(state.id)?;
+        }
+    }
+
+    info!("Mappings file generated successfully");
+    Ok(())
+}
+
 fn find_state_in_report(
     report: &BlockReport,
     name: &str,
@@ -192,6 +256,19 @@ fn find_state_in_report(
     })?;
 
     Some(state.id)
+}
+
+fn write_header<W: Write>(
+    out: &mut W,
+    version: &str,
+    proto: u32,
+    native: bool,
+) -> Result<(), Error> {
+    out.write_all(b"FEATHER_BLOCK_DATA_FILE")?;
+    out.write_string(version)?;
+    out.write_u32::<LittleEndian>(proto)?;
+    out.write_u8(native as u8)?;
+    Ok(())
 }
 
 trait WriteExt {
