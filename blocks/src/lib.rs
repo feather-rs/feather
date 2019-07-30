@@ -1,3 +1,28 @@
+//! The block system used by Feather is a rather
+//! complex topic.
+//!
+//! There are three different sets of block state IDs,
+//! native IDs, internal IDs, and versioned IDs.
+//!
+//! Native IDs are the block state IDs used by the Minecraft
+//! version corresponding to Feather's "native" version, 1.13.2.
+//! Native IDs are used across the codebase—for example, the `Chunk`
+//! struct in `feather_core` uses native IDs to store blocks.
+//!
+//! "Internal" IDs are only used inside the `feather_blocks` crate.
+//! The benefit of internal IDs is that they are calculated based on
+//! the block's data in constant time - there is no need for any sort
+//! of lookup. As a result, these internal IDs are used to find versioned and native IDs
+//! in a vector. (The internal ID is used as an index into the vector, allowing
+//! for efficient constant-time lookup).
+//!
+//! Versioned IDs mean any set of block state IDs used by Minecraft versions
+//! other than the native version (1.13.2). For example, when a Chunk Data packet
+//! is sent to a non-native client (e.g. a client on 1.14.4), the block state IDs
+//! in the chunk need to be converted to 1.14.4 block state IDs, which may differ
+//! from those in the native version. As a result, `feather_blocks` also provides
+//! functions to efficiently convert native IDs to versioned IDs.
+
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
