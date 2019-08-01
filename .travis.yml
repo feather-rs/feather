@@ -3,7 +3,10 @@ rust: stable
 os:
   - linux
 sudo: required
-cache: cargo
+cache:
+  cargo: true
+  directories:
+    - $HOME/.kcov
 
 addons:
   apt:
@@ -20,9 +23,14 @@ env:
   global:
     - RUST_BACKTRACE=1
     - RUSTFLAGS="-C link-dead-code"
+    - CARGO_MAKE_KCOV_INSTALLATION_DIRECTORY=$HOME/.kcov
+
+install:
+  - rustup component add rustfmt
 
 script:
-  - cargo install --debug --force cargo-make
+  - which cargo-make || cargo install cargo-make
+  - cargo fmt --all -- --check
   - travis_wait 90 cargo build -j 1
   - travis_wait 90 cargo test -j 1
   - sudo /home/travis/.cargo/bin/cargo make --no-workspace workspace-coverage
