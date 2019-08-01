@@ -88,10 +88,6 @@ impl BlockExt for Block {
 
     fn native_state_id(&self) -> u16 {
         let internal = self.internal_state_id();
-        println!(
-            "Retrieved native ID {}, internal ID {} for block {:?}",
-            INTERNAL_TO_NATIVE[internal], internal, self
-        );
         INTERNAL_TO_NATIVE[internal]
     }
 }
@@ -109,10 +105,6 @@ fn init_native_id_mappings(mappings: &NativeMappings) -> (Vec<u16>, Vec<u16>) {
     for ((name, props), native_id) in mappings.blocks.clone() {
         let block = Block::from_name_and_props(&name, &vec_to_hash_map(props)).unwrap();
         let internal_id = block.internal_state_id() as u16;
-        println!(
-            "Block {:?} - native ID {}, internal ID {}",
-            block, native_id, internal_id
-        );
 
         // Confirm we're not overwriting
         assert_eq!(internal_to_native[internal_id as usize], 1);
