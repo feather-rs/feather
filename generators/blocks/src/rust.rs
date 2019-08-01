@@ -377,7 +377,7 @@ fn generate_value_implementation(
     props: &BlockProperties,
     variant_name: &str,
 ) -> TokenStream {
-    use crate::util::slice_product;
+    use crate::util::{min_in_slice, slice_product};
 
     let mut terms = vec![];
 
@@ -389,7 +389,7 @@ fn generate_value_implementation(
 
     let total_permutations = slice_product(&possible_value_lens);
 
-    for (count, (prop_name, _)) in props.props.iter().enumerate() {
+    for (count, (prop_name, vals)) in props.props.iter().enumerate() {
         let multiplier = if count == props.props.len() - 1 {
             // This is the last property - just multiply by 1.
             1
@@ -397,11 +397,31 @@ fn generate_value_implementation(
             slice_product(&possible_value_lens[count + 1..])
         };
 
+        // If the property is an integer and it starts at 1 rather
+        // than 0, we need to subtract 1 for the function to work correctly.
+        let mut should_subtract = false;
+        let prop_type = PropValueType::guess_from_value(&vals[0]);
+        if prop_type == PropValueType::I32 {
+            let vals: Vec<i32> = vals.iter().map(|val| i32::from_str(val).unwrap()).collect();
+            if min_in_slice(&vals) == 1 {
+                should_subtract = true;
+            }
+            // TODO account for values which start at neither 0 nor 1 -
+            // this hasn't been observed yet
+            assert!(min_in_slice(&vals) <= 1);
+        }
+
         let prop_field = Ident::new(correct_variable_name(prop_name.as_str()), Span::call_site());
 
-        terms.push(quote! {
-            (self.#prop_field.value() * #multiplier)
-        })
+        if should_subtract {
+            terms.push(quote! {
+                ((self.#prop_field.value() - 1) * #multiplier)
+            });
+        } else {
+            terms.push(quote! {
+                (self.#prop_field.value() * #multiplier)
+            })
+        }
     }
 
     // Calculate from_value function
@@ -429,14 +449,37 @@ fn generate_value_implementation(
             Span::call_site(),
         );
 
-        variable_setters.push(quote! {
-           let #prop_field = #ty_ident::from_value(val / #prop_stride).unwrap();
-        });
-        if count != props.props.len() - 1 {
+        // If the property is an integer and it starts at 1 rather
+        // than 0, we need to subtract 1 for the function to work correctly.
+        let mut should_subtract = false;
+        let prop_type = PropValueType::guess_from_value(&vals[0]);
+        if prop_type == PropValueType::I32 {
+            let vals: Vec<i32> = vals.iter().map(|val| i32::from_str(val).unwrap()).collect();
+            if min_in_slice(&vals) == 1 {
+                should_subtract = true;
+            }
+            // TODO account for values which start at neither 0 nor 1 -
+            // this hasn't been observed yet
+            assert!(min_in_slice(&vals) <= 1);
+        }
+
+        let add: i32 = if should_subtract { 1 } else { 0 };
+        let subtract: usize = if should_subtract { 1 } else { 0 };
+
+        if should_subtract {
             variable_setters.push(quote! {
-                val -= #prop_field.value() * #prop_stride;
+                let #prop_field = #ty_ident::from_value(val / #prop_stride).unwrap() + #add;
+            });
+        } else {
+            variable_setters.push(quote! {
+                let #prop_field = #ty_ident::from_value(val / #prop_stride).unwrap();
             });
         }
+
+        variable_setters.push(quote! {
+            val -= (#prop_field.value() - #subtract) * #prop_stride;
+        });
+
         field_setters.push(quote! {
             #prop_field
         });
@@ -450,7 +493,7 @@ fn generate_value_implementation(
 
             #[allow(warnings)]
             fn from_value(mut val: usize) -> Option<Self> {
-                if val > #total_permutations {
+                if val >= #total_permutations {
                     return None;
                 }
 

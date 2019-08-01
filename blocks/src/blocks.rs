@@ -5632,10 +5632,11 @@ impl Value for GrassBlockData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let snowy = bool::from_value(val / 1usize).unwrap();
+        val -= (snowy.value() - 0usize) * 1usize;
         Some(Self { snowy })
     }
 }
@@ -5661,10 +5662,11 @@ impl Value for PodzolData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let snowy = bool::from_value(val / 1usize).unwrap();
+        val -= (snowy.value() - 0usize) * 1usize;
         Some(Self { snowy })
     }
 }
@@ -5690,10 +5692,11 @@ impl Value for OakSaplingData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let stage = i32::from_value(val / 1usize).unwrap();
+        val -= (stage.value() - 0usize) * 1usize;
         Some(Self { stage })
     }
 }
@@ -5719,10 +5722,11 @@ impl Value for SpruceSaplingData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let stage = i32::from_value(val / 1usize).unwrap();
+        val -= (stage.value() - 0usize) * 1usize;
         Some(Self { stage })
     }
 }
@@ -5748,10 +5752,11 @@ impl Value for BirchSaplingData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let stage = i32::from_value(val / 1usize).unwrap();
+        val -= (stage.value() - 0usize) * 1usize;
         Some(Self { stage })
     }
 }
@@ -5777,10 +5782,11 @@ impl Value for JungleSaplingData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let stage = i32::from_value(val / 1usize).unwrap();
+        val -= (stage.value() - 0usize) * 1usize;
         Some(Self { stage })
     }
 }
@@ -5806,10 +5812,11 @@ impl Value for AcaciaSaplingData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let stage = i32::from_value(val / 1usize).unwrap();
+        val -= (stage.value() - 0usize) * 1usize;
         Some(Self { stage })
     }
 }
@@ -5835,10 +5842,11 @@ impl Value for DarkOakSaplingData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let stage = i32::from_value(val / 1usize).unwrap();
+        val -= (stage.value() - 0usize) * 1usize;
         Some(Self { stage })
     }
 }
@@ -5864,10 +5872,11 @@ impl Value for WaterData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let level = i32::from_value(val / 1usize).unwrap();
+        val -= (level.value() - 0usize) * 1usize;
         Some(Self { level })
     }
 }
@@ -5893,10 +5902,11 @@ impl Value for LavaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let level = i32::from_value(val / 1usize).unwrap();
+        val -= (level.value() - 0usize) * 1usize;
         Some(Self { level })
     }
 }
@@ -5922,10 +5932,11 @@ impl Value for OakLogData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = OakLogAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -5951,10 +5962,11 @@ impl Value for SpruceLogData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = SpruceLogAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -5980,10 +5992,11 @@ impl Value for BirchLogData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = BirchLogAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6009,10 +6022,11 @@ impl Value for JungleLogData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = JungleLogAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6038,10 +6052,11 @@ impl Value for AcaciaLogData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = AcaciaLogAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6067,10 +6082,11 @@ impl Value for DarkOakLogData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = DarkOakLogAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6096,10 +6112,11 @@ impl Value for StrippedSpruceLogData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = StrippedSpruceLogAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6125,10 +6142,11 @@ impl Value for StrippedBirchLogData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = StrippedBirchLogAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6154,10 +6172,11 @@ impl Value for StrippedJungleLogData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = StrippedJungleLogAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6183,10 +6202,11 @@ impl Value for StrippedAcaciaLogData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = StrippedAcaciaLogAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6212,10 +6232,11 @@ impl Value for StrippedDarkOakLogData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = StrippedDarkOakLogAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6241,10 +6262,11 @@ impl Value for StrippedOakLogData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = StrippedOakLogAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6270,10 +6292,11 @@ impl Value for OakWoodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = OakWoodAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6299,10 +6322,11 @@ impl Value for SpruceWoodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = SpruceWoodAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6328,10 +6352,11 @@ impl Value for BirchWoodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = BirchWoodAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6357,10 +6382,11 @@ impl Value for JungleWoodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = JungleWoodAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6386,10 +6412,11 @@ impl Value for AcaciaWoodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = AcaciaWoodAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6415,10 +6442,11 @@ impl Value for DarkOakWoodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = DarkOakWoodAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6444,10 +6472,11 @@ impl Value for StrippedOakWoodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = StrippedOakWoodAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6473,10 +6502,11 @@ impl Value for StrippedSpruceWoodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = StrippedSpruceWoodAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6502,10 +6532,11 @@ impl Value for StrippedBirchWoodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = StrippedBirchWoodAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6531,10 +6562,11 @@ impl Value for StrippedJungleWoodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = StrippedJungleWoodAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6560,10 +6592,11 @@ impl Value for StrippedAcaciaWoodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = StrippedAcaciaWoodAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6589,10 +6622,11 @@ impl Value for StrippedDarkOakWoodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = StrippedDarkOakWoodAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -6617,16 +6651,17 @@ impl OakLeavesData {
 }
 impl Value for OakLeavesData {
     fn value(&self) -> usize {
-        (self.persistent.value() * 7usize) + (self.distance.value() * 1usize)
+        (self.persistent.value() * 7usize) + ((self.distance.value() - 1) * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 14usize {
+        if val >= 14usize {
             return None;
         }
         let persistent = bool::from_value(val / 7usize).unwrap();
-        val -= persistent.value() * 7usize;
-        let distance = i32::from_value(val / 1usize).unwrap();
+        val -= (persistent.value() - 0usize) * 7usize;
+        let distance = i32::from_value(val / 1usize).unwrap() + 1i32;
+        val -= (distance.value() - 1usize) * 1usize;
         Some(Self {
             persistent,
             distance,
@@ -6635,38 +6670,39 @@ impl Value for OakLeavesData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpruceLeavesData {
-    pub persistent: bool,
     pub distance: i32,
+    pub persistent: bool,
 }
 impl SpruceLeavesData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            persistent: bool::from_snake_case(map.get("persistent")?)?,
             distance: i32::from_snake_case(map.get("distance")?)?,
+            persistent: bool::from_snake_case(map.get("persistent")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("persistent".to_string(), self.persistent.to_snake_case());
         m.insert("distance".to_string(), self.distance.to_snake_case());
+        m.insert("persistent".to_string(), self.persistent.to_snake_case());
         m
     }
 }
 impl Value for SpruceLeavesData {
     fn value(&self) -> usize {
-        (self.persistent.value() * 7usize) + (self.distance.value() * 1usize)
+        ((self.distance.value() - 1) * 2usize) + (self.persistent.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 14usize {
+        if val >= 14usize {
             return None;
         }
-        let persistent = bool::from_value(val / 7usize).unwrap();
-        val -= persistent.value() * 7usize;
-        let distance = i32::from_value(val / 1usize).unwrap();
+        let distance = i32::from_value(val / 2usize).unwrap() + 1i32;
+        val -= (distance.value() - 1usize) * 2usize;
+        let persistent = bool::from_value(val / 1usize).unwrap();
+        val -= (persistent.value() - 0usize) * 1usize;
         Some(Self {
-            persistent,
             distance,
+            persistent,
         })
     }
 }
@@ -6691,16 +6727,17 @@ impl BirchLeavesData {
 }
 impl Value for BirchLeavesData {
     fn value(&self) -> usize {
-        (self.distance.value() * 2usize) + (self.persistent.value() * 1usize)
+        ((self.distance.value() - 1) * 2usize) + (self.persistent.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 14usize {
+        if val >= 14usize {
             return None;
         }
-        let distance = i32::from_value(val / 2usize).unwrap();
-        val -= distance.value() * 2usize;
+        let distance = i32::from_value(val / 2usize).unwrap() + 1i32;
+        val -= (distance.value() - 1usize) * 2usize;
         let persistent = bool::from_value(val / 1usize).unwrap();
+        val -= (persistent.value() - 0usize) * 1usize;
         Some(Self {
             distance,
             persistent,
@@ -6728,16 +6765,17 @@ impl JungleLeavesData {
 }
 impl Value for JungleLeavesData {
     fn value(&self) -> usize {
-        (self.distance.value() * 2usize) + (self.persistent.value() * 1usize)
+        ((self.distance.value() - 1) * 2usize) + (self.persistent.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 14usize {
+        if val >= 14usize {
             return None;
         }
-        let distance = i32::from_value(val / 2usize).unwrap();
-        val -= distance.value() * 2usize;
+        let distance = i32::from_value(val / 2usize).unwrap() + 1i32;
+        val -= (distance.value() - 1usize) * 2usize;
         let persistent = bool::from_value(val / 1usize).unwrap();
+        val -= (persistent.value() - 0usize) * 1usize;
         Some(Self {
             distance,
             persistent,
@@ -6746,270 +6784,230 @@ impl Value for JungleLeavesData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaLeavesData {
-    pub distance: i32,
     pub persistent: bool,
+    pub distance: i32,
 }
 impl AcaciaLeavesData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            distance: i32::from_snake_case(map.get("distance")?)?,
             persistent: bool::from_snake_case(map.get("persistent")?)?,
+            distance: i32::from_snake_case(map.get("distance")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("distance".to_string(), self.distance.to_snake_case());
         m.insert("persistent".to_string(), self.persistent.to_snake_case());
+        m.insert("distance".to_string(), self.distance.to_snake_case());
         m
     }
 }
 impl Value for AcaciaLeavesData {
     fn value(&self) -> usize {
-        (self.distance.value() * 2usize) + (self.persistent.value() * 1usize)
+        (self.persistent.value() * 7usize) + ((self.distance.value() - 1) * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 14usize {
+        if val >= 14usize {
             return None;
         }
-        let distance = i32::from_value(val / 2usize).unwrap();
-        val -= distance.value() * 2usize;
-        let persistent = bool::from_value(val / 1usize).unwrap();
+        let persistent = bool::from_value(val / 7usize).unwrap();
+        val -= (persistent.value() - 0usize) * 7usize;
+        let distance = i32::from_value(val / 1usize).unwrap() + 1i32;
+        val -= (distance.value() - 1usize) * 1usize;
         Some(Self {
-            distance,
             persistent,
+            distance,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkOakLeavesData {
-    pub persistent: bool,
     pub distance: i32,
+    pub persistent: bool,
 }
 impl DarkOakLeavesData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            persistent: bool::from_snake_case(map.get("persistent")?)?,
             distance: i32::from_snake_case(map.get("distance")?)?,
+            persistent: bool::from_snake_case(map.get("persistent")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("persistent".to_string(), self.persistent.to_snake_case());
         m.insert("distance".to_string(), self.distance.to_snake_case());
+        m.insert("persistent".to_string(), self.persistent.to_snake_case());
         m
     }
 }
 impl Value for DarkOakLeavesData {
     fn value(&self) -> usize {
-        (self.persistent.value() * 7usize) + (self.distance.value() * 1usize)
+        ((self.distance.value() - 1) * 2usize) + (self.persistent.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 14usize {
+        if val >= 14usize {
             return None;
         }
-        let persistent = bool::from_value(val / 7usize).unwrap();
-        val -= persistent.value() * 7usize;
-        let distance = i32::from_value(val / 1usize).unwrap();
+        let distance = i32::from_value(val / 2usize).unwrap() + 1i32;
+        val -= (distance.value() - 1usize) * 2usize;
+        let persistent = bool::from_value(val / 1usize).unwrap();
+        val -= (persistent.value() - 0usize) * 1usize;
         Some(Self {
-            persistent,
             distance,
+            persistent,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DispenserData {
-    pub triggered: bool,
     pub facing: DispenserFacing,
+    pub triggered: bool,
 }
 impl DispenserData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            triggered: bool::from_snake_case(map.get("triggered")?)?,
             facing: DispenserFacing::from_snake_case(map.get("facing")?)?,
+            triggered: bool::from_snake_case(map.get("triggered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("triggered".to_string(), self.triggered.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("triggered".to_string(), self.triggered.to_snake_case());
         m
     }
 }
 impl Value for DispenserData {
     fn value(&self) -> usize {
-        (self.triggered.value() * 6usize) + (self.facing.value() * 1usize)
+        (self.facing.value() * 2usize) + (self.triggered.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
-        let triggered = bool::from_value(val / 6usize).unwrap();
-        val -= triggered.value() * 6usize;
-        let facing = DispenserFacing::from_value(val / 1usize).unwrap();
-        Some(Self { triggered, facing })
+        let facing = DispenserFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let triggered = bool::from_value(val / 1usize).unwrap();
+        val -= (triggered.value() - 0usize) * 1usize;
+        Some(Self { facing, triggered })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct NoteBlockData {
+    pub powered: bool,
     pub instrument: NoteBlockInstrument,
     pub note: i32,
-    pub powered: bool,
 }
 impl NoteBlockData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            powered: bool::from_snake_case(map.get("powered")?)?,
             instrument: NoteBlockInstrument::from_snake_case(map.get("instrument")?)?,
             note: i32::from_snake_case(map.get("note")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("instrument".to_string(), self.instrument.to_snake_case());
         m.insert("note".to_string(), self.note.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for NoteBlockData {
     fn value(&self) -> usize {
-        (self.instrument.value() * 50usize)
-            + (self.note.value() * 2usize)
-            + (self.powered.value() * 1usize)
+        (self.powered.value() * 250usize)
+            + (self.instrument.value() * 25usize)
+            + (self.note.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 500usize {
+        if val >= 500usize {
             return None;
         }
-        let instrument = NoteBlockInstrument::from_value(val / 50usize).unwrap();
-        val -= instrument.value() * 50usize;
-        let note = i32::from_value(val / 2usize).unwrap();
-        val -= note.value() * 2usize;
-        let powered = bool::from_value(val / 1usize).unwrap();
+        let powered = bool::from_value(val / 250usize).unwrap();
+        val -= (powered.value() - 0usize) * 250usize;
+        let instrument = NoteBlockInstrument::from_value(val / 25usize).unwrap();
+        val -= (instrument.value() - 0usize) * 25usize;
+        let note = i32::from_value(val / 1usize).unwrap();
+        val -= (note.value() - 0usize) * 1usize;
         Some(Self {
+            powered,
             instrument,
             note,
-            powered,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct WhiteBedData {
-    pub occupied: bool,
     pub part: WhiteBedPart,
+    pub occupied: bool,
     pub facing: WhiteBedFacing,
 }
 impl WhiteBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            occupied: bool::from_snake_case(map.get("occupied")?)?,
             part: WhiteBedPart::from_snake_case(map.get("part")?)?,
+            occupied: bool::from_snake_case(map.get("occupied")?)?,
             facing: WhiteBedFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m.insert("part".to_string(), self.part.to_snake_case());
+        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for WhiteBedData {
     fn value(&self) -> usize {
-        (self.occupied.value() * 8usize)
-            + (self.part.value() * 4usize)
+        (self.part.value() * 8usize)
+            + (self.occupied.value() * 4usize)
             + (self.facing.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
-        let occupied = bool::from_value(val / 8usize).unwrap();
-        val -= occupied.value() * 8usize;
-        let part = WhiteBedPart::from_value(val / 4usize).unwrap();
-        val -= part.value() * 4usize;
+        let part = WhiteBedPart::from_value(val / 8usize).unwrap();
+        val -= (part.value() - 0usize) * 8usize;
+        let occupied = bool::from_value(val / 4usize).unwrap();
+        val -= (occupied.value() - 0usize) * 4usize;
         let facing = WhiteBedFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
-            occupied,
             part,
+            occupied,
             facing,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OrangeBedData {
-    pub facing: OrangeBedFacing,
-    pub part: OrangeBedPart,
     pub occupied: bool,
+    pub part: OrangeBedPart,
+    pub facing: OrangeBedFacing,
 }
 impl OrangeBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: OrangeBedFacing::from_snake_case(map.get("facing")?)?,
-            part: OrangeBedPart::from_snake_case(map.get("part")?)?,
             occupied: bool::from_snake_case(map.get("occupied")?)?,
+            part: OrangeBedPart::from_snake_case(map.get("part")?)?,
+            facing: OrangeBedFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("part".to_string(), self.part.to_snake_case());
         m.insert("occupied".to_string(), self.occupied.to_snake_case());
+        m.insert("part".to_string(), self.part.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for OrangeBedData {
-    fn value(&self) -> usize {
-        (self.facing.value() * 4usize)
-            + (self.part.value() * 2usize)
-            + (self.occupied.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
-            return None;
-        }
-        let facing = OrangeBedFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let part = OrangeBedPart::from_value(val / 2usize).unwrap();
-        val -= part.value() * 2usize;
-        let occupied = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            facing,
-            part,
-            occupied,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct MagentaBedData {
-    pub occupied: bool,
-    pub part: MagentaBedPart,
-    pub facing: MagentaBedFacing,
-}
-impl MagentaBedData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            occupied: bool::from_snake_case(map.get("occupied")?)?,
-            part: MagentaBedPart::from_snake_case(map.get("part")?)?,
-            facing: MagentaBedFacing::from_snake_case(map.get("facing")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("occupied".to_string(), self.occupied.to_snake_case());
-        m.insert("part".to_string(), self.part.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m
-    }
-}
-impl Value for MagentaBedData {
     fn value(&self) -> usize {
         (self.occupied.value() * 8usize)
             + (self.part.value() * 4usize)
@@ -7017,14 +7015,15 @@ impl Value for MagentaBedData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let occupied = bool::from_value(val / 8usize).unwrap();
-        val -= occupied.value() * 8usize;
-        let part = MagentaBedPart::from_value(val / 4usize).unwrap();
-        val -= part.value() * 4usize;
-        let facing = MagentaBedFacing::from_value(val / 1usize).unwrap();
+        val -= (occupied.value() - 0usize) * 8usize;
+        let part = OrangeBedPart::from_value(val / 4usize).unwrap();
+        val -= (part.value() - 0usize) * 4usize;
+        let facing = OrangeBedFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
             occupied,
             part,
@@ -7033,107 +7032,17 @@ impl Value for MagentaBedData {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct LightBlueBedData {
-    pub part: LightBlueBedPart,
+pub struct MagentaBedData {
+    pub facing: MagentaBedFacing,
     pub occupied: bool,
-    pub facing: LightBlueBedFacing,
+    pub part: MagentaBedPart,
 }
-impl LightBlueBedData {
+impl MagentaBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            part: LightBlueBedPart::from_snake_case(map.get("part")?)?,
+            facing: MagentaBedFacing::from_snake_case(map.get("facing")?)?,
             occupied: bool::from_snake_case(map.get("occupied")?)?,
-            facing: LightBlueBedFacing::from_snake_case(map.get("facing")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("part".to_string(), self.part.to_snake_case());
-        m.insert("occupied".to_string(), self.occupied.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m
-    }
-}
-impl Value for LightBlueBedData {
-    fn value(&self) -> usize {
-        (self.part.value() * 8usize)
-            + (self.occupied.value() * 4usize)
-            + (self.facing.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
-            return None;
-        }
-        let part = LightBlueBedPart::from_value(val / 8usize).unwrap();
-        val -= part.value() * 8usize;
-        let occupied = bool::from_value(val / 4usize).unwrap();
-        val -= occupied.value() * 4usize;
-        let facing = LightBlueBedFacing::from_value(val / 1usize).unwrap();
-        Some(Self {
-            part,
-            occupied,
-            facing,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct YellowBedData {
-    pub part: YellowBedPart,
-    pub occupied: bool,
-    pub facing: YellowBedFacing,
-}
-impl YellowBedData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            part: YellowBedPart::from_snake_case(map.get("part")?)?,
-            occupied: bool::from_snake_case(map.get("occupied")?)?,
-            facing: YellowBedFacing::from_snake_case(map.get("facing")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("part".to_string(), self.part.to_snake_case());
-        m.insert("occupied".to_string(), self.occupied.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m
-    }
-}
-impl Value for YellowBedData {
-    fn value(&self) -> usize {
-        (self.part.value() * 8usize)
-            + (self.occupied.value() * 4usize)
-            + (self.facing.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
-            return None;
-        }
-        let part = YellowBedPart::from_value(val / 8usize).unwrap();
-        val -= part.value() * 8usize;
-        let occupied = bool::from_value(val / 4usize).unwrap();
-        val -= occupied.value() * 4usize;
-        let facing = YellowBedFacing::from_value(val / 1usize).unwrap();
-        Some(Self {
-            part,
-            occupied,
-            facing,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct LimeBedData {
-    pub facing: LimeBedFacing,
-    pub occupied: bool,
-    pub part: LimeBedPart,
-}
-impl LimeBedData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            facing: LimeBedFacing::from_snake_case(map.get("facing")?)?,
-            occupied: bool::from_snake_case(map.get("occupied")?)?,
-            part: LimeBedPart::from_snake_case(map.get("part")?)?,
+            part: MagentaBedPart::from_snake_case(map.get("part")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
@@ -7144,7 +7053,7 @@ impl LimeBedData {
         m
     }
 }
-impl Value for LimeBedData {
+impl Value for MagentaBedData {
     fn value(&self) -> usize {
         (self.facing.value() * 4usize)
             + (self.occupied.value() * 2usize)
@@ -7152,14 +7061,15 @@ impl Value for LimeBedData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
-        let facing = LimeBedFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
+        let facing = MagentaBedFacing::from_value(val / 4usize).unwrap();
+        val -= (facing.value() - 0usize) * 4usize;
         let occupied = bool::from_value(val / 2usize).unwrap();
-        val -= occupied.value() * 2usize;
-        let part = LimeBedPart::from_value(val / 1usize).unwrap();
+        val -= (occupied.value() - 0usize) * 2usize;
+        let part = MagentaBedPart::from_value(val / 1usize).unwrap();
+        val -= (part.value() - 0usize) * 1usize;
         Some(Self {
             facing,
             occupied,
@@ -7168,17 +7078,109 @@ impl Value for LimeBedData {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct PinkBedData {
+pub struct LightBlueBedData {
+    pub facing: LightBlueBedFacing,
     pub occupied: bool,
-    pub part: PinkBedPart,
-    pub facing: PinkBedFacing,
+    pub part: LightBlueBedPart,
 }
-impl PinkBedData {
+impl LightBlueBedData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            facing: LightBlueBedFacing::from_snake_case(map.get("facing")?)?,
+            occupied: bool::from_snake_case(map.get("occupied")?)?,
+            part: LightBlueBedPart::from_snake_case(map.get("part")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("occupied".to_string(), self.occupied.to_snake_case());
+        m.insert("part".to_string(), self.part.to_snake_case());
+        m
+    }
+}
+impl Value for LightBlueBedData {
+    fn value(&self) -> usize {
+        (self.facing.value() * 4usize)
+            + (self.occupied.value() * 2usize)
+            + (self.part.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 16usize {
+            return None;
+        }
+        let facing = LightBlueBedFacing::from_value(val / 4usize).unwrap();
+        val -= (facing.value() - 0usize) * 4usize;
+        let occupied = bool::from_value(val / 2usize).unwrap();
+        val -= (occupied.value() - 0usize) * 2usize;
+        let part = LightBlueBedPart::from_value(val / 1usize).unwrap();
+        val -= (part.value() - 0usize) * 1usize;
+        Some(Self {
+            facing,
+            occupied,
+            part,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct YellowBedData {
+    pub occupied: bool,
+    pub facing: YellowBedFacing,
+    pub part: YellowBedPart,
+}
+impl YellowBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             occupied: bool::from_snake_case(map.get("occupied")?)?,
-            part: PinkBedPart::from_snake_case(map.get("part")?)?,
-            facing: PinkBedFacing::from_snake_case(map.get("facing")?)?,
+            facing: YellowBedFacing::from_snake_case(map.get("facing")?)?,
+            part: YellowBedPart::from_snake_case(map.get("part")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("occupied".to_string(), self.occupied.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("part".to_string(), self.part.to_snake_case());
+        m
+    }
+}
+impl Value for YellowBedData {
+    fn value(&self) -> usize {
+        (self.occupied.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.part.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 16usize {
+            return None;
+        }
+        let occupied = bool::from_value(val / 8usize).unwrap();
+        val -= (occupied.value() - 0usize) * 8usize;
+        let facing = YellowBedFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let part = YellowBedPart::from_value(val / 1usize).unwrap();
+        val -= (part.value() - 0usize) * 1usize;
+        Some(Self {
+            occupied,
+            facing,
+            part,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct LimeBedData {
+    pub occupied: bool,
+    pub part: LimeBedPart,
+    pub facing: LimeBedFacing,
+}
+impl LimeBedData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            occupied: bool::from_snake_case(map.get("occupied")?)?,
+            part: LimeBedPart::from_snake_case(map.get("part")?)?,
+            facing: LimeBedFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
@@ -7189,7 +7191,7 @@ impl PinkBedData {
         m
     }
 }
-impl Value for PinkBedData {
+impl Value for LimeBedData {
     fn value(&self) -> usize {
         (self.occupied.value() * 8usize)
             + (self.part.value() * 4usize)
@@ -7197,18 +7199,65 @@ impl Value for PinkBedData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let occupied = bool::from_value(val / 8usize).unwrap();
-        val -= occupied.value() * 8usize;
-        let part = PinkBedPart::from_value(val / 4usize).unwrap();
-        val -= part.value() * 4usize;
-        let facing = PinkBedFacing::from_value(val / 1usize).unwrap();
+        val -= (occupied.value() - 0usize) * 8usize;
+        let part = LimeBedPart::from_value(val / 4usize).unwrap();
+        val -= (part.value() - 0usize) * 4usize;
+        let facing = LimeBedFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
             occupied,
             part,
             facing,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct PinkBedData {
+    pub part: PinkBedPart,
+    pub facing: PinkBedFacing,
+    pub occupied: bool,
+}
+impl PinkBedData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            part: PinkBedPart::from_snake_case(map.get("part")?)?,
+            facing: PinkBedFacing::from_snake_case(map.get("facing")?)?,
+            occupied: bool::from_snake_case(map.get("occupied")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("part".to_string(), self.part.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("occupied".to_string(), self.occupied.to_snake_case());
+        m
+    }
+}
+impl Value for PinkBedData {
+    fn value(&self) -> usize {
+        (self.part.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.occupied.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 16usize {
+            return None;
+        }
+        let part = PinkBedPart::from_value(val / 8usize).unwrap();
+        val -= (part.value() - 0usize) * 8usize;
+        let facing = PinkBedFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let occupied = bool::from_value(val / 1usize).unwrap();
+        val -= (occupied.value() - 0usize) * 1usize;
+        Some(Self {
+            part,
+            facing,
+            occupied,
         })
     }
 }
@@ -7242,14 +7291,15 @@ impl Value for GrayBedData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let facing = GrayBedFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
+        val -= (facing.value() - 0usize) * 4usize;
         let occupied = bool::from_value(val / 2usize).unwrap();
-        val -= occupied.value() * 2usize;
+        val -= (occupied.value() - 0usize) * 2usize;
         let part = GrayBedPart::from_value(val / 1usize).unwrap();
+        val -= (part.value() - 0usize) * 1usize;
         Some(Self {
             facing,
             occupied,
@@ -7260,89 +7310,91 @@ impl Value for GrayBedData {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct LightGrayBedData {
     pub facing: LightGrayBedFacing,
-    pub occupied: bool,
     pub part: LightGrayBedPart,
+    pub occupied: bool,
 }
 impl LightGrayBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             facing: LightGrayBedFacing::from_snake_case(map.get("facing")?)?,
-            occupied: bool::from_snake_case(map.get("occupied")?)?,
             part: LightGrayBedPart::from_snake_case(map.get("part")?)?,
+            occupied: bool::from_snake_case(map.get("occupied")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m.insert("part".to_string(), self.part.to_snake_case());
+        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m
     }
 }
 impl Value for LightGrayBedData {
     fn value(&self) -> usize {
         (self.facing.value() * 4usize)
-            + (self.occupied.value() * 2usize)
-            + (self.part.value() * 1usize)
+            + (self.part.value() * 2usize)
+            + (self.occupied.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let facing = LightGrayBedFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let occupied = bool::from_value(val / 2usize).unwrap();
-        val -= occupied.value() * 2usize;
-        let part = LightGrayBedPart::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 4usize;
+        let part = LightGrayBedPart::from_value(val / 2usize).unwrap();
+        val -= (part.value() - 0usize) * 2usize;
+        let occupied = bool::from_value(val / 1usize).unwrap();
+        val -= (occupied.value() - 0usize) * 1usize;
         Some(Self {
             facing,
-            occupied,
             part,
+            occupied,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct CyanBedData {
-    pub part: CyanBedPart,
     pub occupied: bool,
+    pub part: CyanBedPart,
     pub facing: CyanBedFacing,
 }
 impl CyanBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            part: CyanBedPart::from_snake_case(map.get("part")?)?,
             occupied: bool::from_snake_case(map.get("occupied")?)?,
+            part: CyanBedPart::from_snake_case(map.get("part")?)?,
             facing: CyanBedFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("part".to_string(), self.part.to_snake_case());
         m.insert("occupied".to_string(), self.occupied.to_snake_case());
+        m.insert("part".to_string(), self.part.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for CyanBedData {
     fn value(&self) -> usize {
-        (self.part.value() * 8usize)
-            + (self.occupied.value() * 4usize)
+        (self.occupied.value() * 8usize)
+            + (self.part.value() * 4usize)
             + (self.facing.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
-        let part = CyanBedPart::from_value(val / 8usize).unwrap();
-        val -= part.value() * 8usize;
-        let occupied = bool::from_value(val / 4usize).unwrap();
-        val -= occupied.value() * 4usize;
+        let occupied = bool::from_value(val / 8usize).unwrap();
+        val -= (occupied.value() - 0usize) * 8usize;
+        let part = CyanBedPart::from_value(val / 4usize).unwrap();
+        val -= (part.value() - 0usize) * 4usize;
         let facing = CyanBedFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
-            part,
             occupied,
+            part,
             facing,
         })
     }
@@ -7350,45 +7402,46 @@ impl Value for CyanBedData {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PurpleBedData {
     pub facing: PurpleBedFacing,
-    pub occupied: bool,
     pub part: PurpleBedPart,
+    pub occupied: bool,
 }
 impl PurpleBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             facing: PurpleBedFacing::from_snake_case(map.get("facing")?)?,
-            occupied: bool::from_snake_case(map.get("occupied")?)?,
             part: PurpleBedPart::from_snake_case(map.get("part")?)?,
+            occupied: bool::from_snake_case(map.get("occupied")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m.insert("part".to_string(), self.part.to_snake_case());
+        m.insert("occupied".to_string(), self.occupied.to_snake_case());
         m
     }
 }
 impl Value for PurpleBedData {
     fn value(&self) -> usize {
         (self.facing.value() * 4usize)
-            + (self.occupied.value() * 2usize)
-            + (self.part.value() * 1usize)
+            + (self.part.value() * 2usize)
+            + (self.occupied.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let facing = PurpleBedFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let occupied = bool::from_value(val / 2usize).unwrap();
-        val -= occupied.value() * 2usize;
-        let part = PurpleBedPart::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 4usize;
+        let part = PurpleBedPart::from_value(val / 2usize).unwrap();
+        val -= (part.value() - 0usize) * 2usize;
+        let occupied = bool::from_value(val / 1usize).unwrap();
+        val -= (occupied.value() - 0usize) * 1usize;
         Some(Self {
             facing,
-            occupied,
             part,
+            occupied,
         })
     }
 }
@@ -7422,14 +7475,15 @@ impl Value for BlueBedData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let part = BlueBedPart::from_value(val / 8usize).unwrap();
-        val -= part.value() * 8usize;
+        val -= (part.value() - 0usize) * 8usize;
         let facing = BlueBedFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (facing.value() - 0usize) * 2usize;
         let occupied = bool::from_value(val / 1usize).unwrap();
+        val -= (occupied.value() - 0usize) * 1usize;
         Some(Self {
             part,
             facing,
@@ -7467,14 +7521,15 @@ impl Value for BrownBedData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let occupied = bool::from_value(val / 8usize).unwrap();
-        val -= occupied.value() * 8usize;
+        val -= (occupied.value() - 0usize) * 8usize;
         let part = BrownBedPart::from_value(val / 4usize).unwrap();
-        val -= part.value() * 4usize;
+        val -= (part.value() - 0usize) * 4usize;
         let facing = BrownBedFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
             occupied,
             part,
@@ -7484,136 +7539,139 @@ impl Value for BrownBedData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct GreenBedData {
-    pub facing: GreenBedFacing,
-    pub part: GreenBedPart,
     pub occupied: bool,
+    pub part: GreenBedPart,
+    pub facing: GreenBedFacing,
 }
 impl GreenBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: GreenBedFacing::from_snake_case(map.get("facing")?)?,
-            part: GreenBedPart::from_snake_case(map.get("part")?)?,
             occupied: bool::from_snake_case(map.get("occupied")?)?,
+            part: GreenBedPart::from_snake_case(map.get("part")?)?,
+            facing: GreenBedFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("part".to_string(), self.part.to_snake_case());
         m.insert("occupied".to_string(), self.occupied.to_snake_case());
+        m.insert("part".to_string(), self.part.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for GreenBedData {
     fn value(&self) -> usize {
-        (self.facing.value() * 4usize)
-            + (self.part.value() * 2usize)
-            + (self.occupied.value() * 1usize)
+        (self.occupied.value() * 8usize)
+            + (self.part.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
-        let facing = GreenBedFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let part = GreenBedPart::from_value(val / 2usize).unwrap();
-        val -= part.value() * 2usize;
-        let occupied = bool::from_value(val / 1usize).unwrap();
+        let occupied = bool::from_value(val / 8usize).unwrap();
+        val -= (occupied.value() - 0usize) * 8usize;
+        let part = GreenBedPart::from_value(val / 4usize).unwrap();
+        val -= (part.value() - 0usize) * 4usize;
+        let facing = GreenBedFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
-            facing,
-            part,
             occupied,
+            part,
+            facing,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RedBedData {
-    pub facing: RedBedFacing,
     pub occupied: bool,
+    pub facing: RedBedFacing,
     pub part: RedBedPart,
 }
 impl RedBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: RedBedFacing::from_snake_case(map.get("facing")?)?,
             occupied: bool::from_snake_case(map.get("occupied")?)?,
+            facing: RedBedFacing::from_snake_case(map.get("facing")?)?,
             part: RedBedPart::from_snake_case(map.get("part")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("occupied".to_string(), self.occupied.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("part".to_string(), self.part.to_snake_case());
         m
     }
 }
 impl Value for RedBedData {
     fn value(&self) -> usize {
-        (self.facing.value() * 4usize)
-            + (self.occupied.value() * 2usize)
+        (self.occupied.value() * 8usize)
+            + (self.facing.value() * 2usize)
             + (self.part.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
-        let facing = RedBedFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let occupied = bool::from_value(val / 2usize).unwrap();
-        val -= occupied.value() * 2usize;
+        let occupied = bool::from_value(val / 8usize).unwrap();
+        val -= (occupied.value() - 0usize) * 8usize;
+        let facing = RedBedFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
         let part = RedBedPart::from_value(val / 1usize).unwrap();
+        val -= (part.value() - 0usize) * 1usize;
         Some(Self {
-            facing,
             occupied,
+            facing,
             part,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BlackBedData {
+    pub part: BlackBedPart,
     pub facing: BlackBedFacing,
     pub occupied: bool,
-    pub part: BlackBedPart,
 }
 impl BlackBedData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            part: BlackBedPart::from_snake_case(map.get("part")?)?,
             facing: BlackBedFacing::from_snake_case(map.get("facing")?)?,
             occupied: bool::from_snake_case(map.get("occupied")?)?,
-            part: BlackBedPart::from_snake_case(map.get("part")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("part".to_string(), self.part.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("occupied".to_string(), self.occupied.to_snake_case());
-        m.insert("part".to_string(), self.part.to_snake_case());
         m
     }
 }
 impl Value for BlackBedData {
     fn value(&self) -> usize {
-        (self.facing.value() * 4usize)
-            + (self.occupied.value() * 2usize)
-            + (self.part.value() * 1usize)
+        (self.part.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.occupied.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
-        let facing = BlackBedFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let occupied = bool::from_value(val / 2usize).unwrap();
-        val -= occupied.value() * 2usize;
-        let part = BlackBedPart::from_value(val / 1usize).unwrap();
+        let part = BlackBedPart::from_value(val / 8usize).unwrap();
+        val -= (part.value() - 0usize) * 8usize;
+        let facing = BlackBedFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let occupied = bool::from_value(val / 1usize).unwrap();
+        val -= (occupied.value() - 0usize) * 1usize;
         Some(Self {
+            part,
             facing,
             occupied,
-            part,
         })
     }
 }
@@ -7642,47 +7700,49 @@ impl Value for PoweredRailData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
         let powered = bool::from_value(val / 6usize).unwrap();
-        val -= powered.value() * 6usize;
+        val -= (powered.value() - 0usize) * 6usize;
         let shape = PoweredRailShape::from_value(val / 1usize).unwrap();
+        val -= (shape.value() - 0usize) * 1usize;
         Some(Self { powered, shape })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DetectorRailData {
-    pub shape: DetectorRailShape,
     pub powered: bool,
+    pub shape: DetectorRailShape,
 }
 impl DetectorRailData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            shape: DetectorRailShape::from_snake_case(map.get("shape")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
+            shape: DetectorRailShape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("shape".to_string(), self.shape.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
         m
     }
 }
 impl Value for DetectorRailData {
     fn value(&self) -> usize {
-        (self.shape.value() * 2usize) + (self.powered.value() * 1usize)
+        (self.powered.value() * 6usize) + (self.shape.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
-        let shape = DetectorRailShape::from_value(val / 2usize).unwrap();
-        val -= shape.value() * 2usize;
-        let powered = bool::from_value(val / 1usize).unwrap();
-        Some(Self { shape, powered })
+        let powered = bool::from_value(val / 6usize).unwrap();
+        val -= (powered.value() - 0usize) * 6usize;
+        let shape = DetectorRailShape::from_value(val / 1usize).unwrap();
+        val -= (shape.value() - 0usize) * 1usize;
+        Some(Self { powered, shape })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -7710,12 +7770,13 @@ impl Value for StickyPistonData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
         let facing = StickyPistonFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (facing.value() - 0usize) * 2usize;
         let extended = bool::from_value(val / 1usize).unwrap();
+        val -= (extended.value() - 0usize) * 1usize;
         Some(Self { facing, extended })
     }
 }
@@ -7741,10 +7802,11 @@ impl Value for TallSeagrassData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let half = TallSeagrassHalf::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 1usize;
         Some(Self { half })
     }
 }
@@ -7773,86 +7835,89 @@ impl Value for PistonData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
         let extended = bool::from_value(val / 6usize).unwrap();
-        val -= extended.value() * 6usize;
+        val -= (extended.value() - 0usize) * 6usize;
         let facing = PistonFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { extended, facing })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PistonHeadData {
+    pub ty: PistonHeadType,
     pub facing: PistonHeadFacing,
     pub short: bool,
-    pub ty: PistonHeadType,
 }
 impl PistonHeadData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            ty: PistonHeadType::from_snake_case(map.get("type")?)?,
             facing: PistonHeadFacing::from_snake_case(map.get("facing")?)?,
             short: bool::from_snake_case(map.get("short")?)?,
-            ty: PistonHeadType::from_snake_case(map.get("type")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("type".to_string(), self.ty.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("short".to_string(), self.short.to_snake_case());
-        m.insert("type".to_string(), self.ty.to_snake_case());
         m
     }
 }
 impl Value for PistonHeadData {
     fn value(&self) -> usize {
-        (self.facing.value() * 4usize) + (self.short.value() * 2usize) + (self.ty.value() * 1usize)
+        (self.ty.value() * 12usize) + (self.facing.value() * 2usize) + (self.short.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 24usize {
+        if val >= 24usize {
             return None;
         }
-        let facing = PistonHeadFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let short = bool::from_value(val / 2usize).unwrap();
-        val -= short.value() * 2usize;
-        let ty = PistonHeadType::from_value(val / 1usize).unwrap();
-        Some(Self { facing, short, ty })
+        let ty = PistonHeadType::from_value(val / 12usize).unwrap();
+        val -= (ty.value() - 0usize) * 12usize;
+        let facing = PistonHeadFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let short = bool::from_value(val / 1usize).unwrap();
+        val -= (short.value() - 0usize) * 1usize;
+        Some(Self { ty, facing, short })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct MovingPistonData {
-    pub facing: MovingPistonFacing,
     pub ty: MovingPistonType,
+    pub facing: MovingPistonFacing,
 }
 impl MovingPistonData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: MovingPistonFacing::from_snake_case(map.get("facing")?)?,
             ty: MovingPistonType::from_snake_case(map.get("type")?)?,
+            facing: MovingPistonFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("type".to_string(), self.ty.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for MovingPistonData {
     fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.ty.value() * 1usize)
+        (self.ty.value() * 6usize) + (self.facing.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
-        let facing = MovingPistonFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
-        let ty = MovingPistonType::from_value(val / 1usize).unwrap();
-        Some(Self { facing, ty })
+        let ty = MovingPistonType::from_value(val / 6usize).unwrap();
+        val -= (ty.value() - 0usize) * 6usize;
+        let facing = MovingPistonFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
+        Some(Self { ty, facing })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -7877,10 +7942,11 @@ impl Value for TntData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let unstable = bool::from_value(val / 1usize).unwrap();
+        val -= (unstable.value() - 0usize) * 1usize;
         Some(Self { unstable })
     }
 }
@@ -7906,232 +7972,237 @@ impl Value for WallTorchData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = WallTorchFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct FireData {
-    pub east: bool,
-    pub north: bool,
+    pub west: bool,
     pub age: i32,
+    pub east: bool,
     pub south: bool,
     pub up: bool,
-    pub west: bool,
+    pub north: bool,
 }
 impl FireData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
             age: i32::from_snake_case(map.get("age")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
             up: bool::from_snake_case(map.get("up")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("age".to_string(), self.age.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("up".to_string(), self.up.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m
     }
 }
 impl Value for FireData {
     fn value(&self) -> usize {
-        (self.east.value() * 256usize)
-            + (self.north.value() * 128usize)
-            + (self.age.value() * 8usize)
+        (self.west.value() * 256usize)
+            + (self.age.value() * 16usize)
+            + (self.east.value() * 8usize)
             + (self.south.value() * 4usize)
             + (self.up.value() * 2usize)
-            + (self.west.value() * 1usize)
+            + (self.north.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 512usize {
+        if val >= 512usize {
             return None;
         }
-        let east = bool::from_value(val / 256usize).unwrap();
-        val -= east.value() * 256usize;
-        let north = bool::from_value(val / 128usize).unwrap();
-        val -= north.value() * 128usize;
-        let age = i32::from_value(val / 8usize).unwrap();
-        val -= age.value() * 8usize;
+        let west = bool::from_value(val / 256usize).unwrap();
+        val -= (west.value() - 0usize) * 256usize;
+        let age = i32::from_value(val / 16usize).unwrap();
+        val -= (age.value() - 0usize) * 16usize;
+        let east = bool::from_value(val / 8usize).unwrap();
+        val -= (east.value() - 0usize) * 8usize;
         let south = bool::from_value(val / 4usize).unwrap();
-        val -= south.value() * 4usize;
+        val -= (south.value() - 0usize) * 4usize;
         let up = bool::from_value(val / 2usize).unwrap();
-        val -= up.value() * 2usize;
-        let west = bool::from_value(val / 1usize).unwrap();
+        val -= (up.value() - 0usize) * 2usize;
+        let north = bool::from_value(val / 1usize).unwrap();
+        val -= (north.value() - 0usize) * 1usize;
         Some(Self {
-            east,
-            north,
+            west,
             age,
+            east,
             south,
             up,
-            west,
+            north,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OakStairsData {
-    pub facing: OakStairsFacing,
     pub shape: OakStairsShape,
-    pub half: OakStairsHalf,
+    pub facing: OakStairsFacing,
     pub waterlogged: bool,
+    pub half: OakStairsHalf,
 }
 impl OakStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: OakStairsFacing::from_snake_case(map.get("facing")?)?,
             shape: OakStairsShape::from_snake_case(map.get("shape")?)?,
-            half: OakStairsHalf::from_snake_case(map.get("half")?)?,
+            facing: OakStairsFacing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            half: OakStairsHalf::from_snake_case(map.get("half")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m
     }
 }
 impl Value for OakStairsData {
     fn value(&self) -> usize {
-        (self.facing.value() * 20usize)
-            + (self.shape.value() * 4usize)
-            + (self.half.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
+        (self.shape.value() * 16usize)
+            + (self.facing.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.half.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
-        let facing = OakStairsFacing::from_value(val / 20usize).unwrap();
-        val -= facing.value() * 20usize;
-        let shape = OakStairsShape::from_value(val / 4usize).unwrap();
-        val -= shape.value() * 4usize;
-        let half = OakStairsHalf::from_value(val / 2usize).unwrap();
-        val -= half.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        let shape = OakStairsShape::from_value(val / 16usize).unwrap();
+        val -= (shape.value() - 0usize) * 16usize;
+        let facing = OakStairsFacing::from_value(val / 4usize).unwrap();
+        val -= (facing.value() - 0usize) * 4usize;
+        let waterlogged = bool::from_value(val / 2usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 2usize;
+        let half = OakStairsHalf::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 1usize;
         Some(Self {
-            facing,
             shape,
-            half,
+            facing,
             waterlogged,
+            half,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ChestData {
-    pub waterlogged: bool,
     pub facing: ChestFacing,
     pub ty: ChestType,
+    pub waterlogged: bool,
 }
 impl ChestData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             facing: ChestFacing::from_snake_case(map.get("facing")?)?,
             ty: ChestType::from_snake_case(map.get("type")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("type".to_string(), self.ty.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for ChestData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 12usize)
-            + (self.facing.value() * 3usize)
-            + (self.ty.value() * 1usize)
+        (self.facing.value() * 6usize)
+            + (self.ty.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 24usize {
+        if val >= 24usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 12usize).unwrap();
-        val -= waterlogged.value() * 12usize;
-        let facing = ChestFacing::from_value(val / 3usize).unwrap();
-        val -= facing.value() * 3usize;
-        let ty = ChestType::from_value(val / 1usize).unwrap();
+        let facing = ChestFacing::from_value(val / 6usize).unwrap();
+        val -= (facing.value() - 0usize) * 6usize;
+        let ty = ChestType::from_value(val / 2usize).unwrap();
+        val -= (ty.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
             facing,
             ty,
+            waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RedstoneWireData {
-    pub north: RedstoneWireNorth,
+    pub south: RedstoneWireSouth,
     pub power: i32,
     pub east: RedstoneWireEast,
-    pub south: RedstoneWireSouth,
     pub west: RedstoneWireWest,
+    pub north: RedstoneWireNorth,
 }
 impl RedstoneWireData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            north: RedstoneWireNorth::from_snake_case(map.get("north")?)?,
+            south: RedstoneWireSouth::from_snake_case(map.get("south")?)?,
             power: i32::from_snake_case(map.get("power")?)?,
             east: RedstoneWireEast::from_snake_case(map.get("east")?)?,
-            south: RedstoneWireSouth::from_snake_case(map.get("south")?)?,
             west: RedstoneWireWest::from_snake_case(map.get("west")?)?,
+            north: RedstoneWireNorth::from_snake_case(map.get("north")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("power".to_string(), self.power.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m
     }
 }
 impl Value for RedstoneWireData {
     fn value(&self) -> usize {
-        (self.north.value() * 432usize)
+        (self.south.value() * 432usize)
             + (self.power.value() * 27usize)
             + (self.east.value() * 9usize)
-            + (self.south.value() * 3usize)
-            + (self.west.value() * 1usize)
+            + (self.west.value() * 3usize)
+            + (self.north.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 1296usize {
+        if val >= 1296usize {
             return None;
         }
-        let north = RedstoneWireNorth::from_value(val / 432usize).unwrap();
-        val -= north.value() * 432usize;
+        let south = RedstoneWireSouth::from_value(val / 432usize).unwrap();
+        val -= (south.value() - 0usize) * 432usize;
         let power = i32::from_value(val / 27usize).unwrap();
-        val -= power.value() * 27usize;
+        val -= (power.value() - 0usize) * 27usize;
         let east = RedstoneWireEast::from_value(val / 9usize).unwrap();
-        val -= east.value() * 9usize;
-        let south = RedstoneWireSouth::from_value(val / 3usize).unwrap();
-        val -= south.value() * 3usize;
-        let west = RedstoneWireWest::from_value(val / 1usize).unwrap();
+        val -= (east.value() - 0usize) * 9usize;
+        let west = RedstoneWireWest::from_value(val / 3usize).unwrap();
+        val -= (west.value() - 0usize) * 3usize;
+        let north = RedstoneWireNorth::from_value(val / 1usize).unwrap();
+        val -= (north.value() - 0usize) * 1usize;
         Some(Self {
-            north,
+            south,
             power,
             east,
-            south,
             west,
+            north,
         })
     }
 }
@@ -8157,10 +8228,11 @@ impl Value for WheatData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
         Some(Self { age })
     }
 }
@@ -8186,140 +8258,144 @@ impl Value for FarmlandData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let moisture = i32::from_value(val / 1usize).unwrap();
+        val -= (moisture.value() - 0usize) * 1usize;
         Some(Self { moisture })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct FurnaceData {
-    pub lit: bool,
     pub facing: FurnaceFacing,
+    pub lit: bool,
 }
 impl FurnaceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            lit: bool::from_snake_case(map.get("lit")?)?,
             facing: FurnaceFacing::from_snake_case(map.get("facing")?)?,
+            lit: bool::from_snake_case(map.get("lit")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("lit".to_string(), self.lit.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("lit".to_string(), self.lit.to_snake_case());
         m
     }
 }
 impl Value for FurnaceData {
     fn value(&self) -> usize {
-        (self.lit.value() * 4usize) + (self.facing.value() * 1usize)
+        (self.facing.value() * 2usize) + (self.lit.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
-        let lit = bool::from_value(val / 4usize).unwrap();
-        val -= lit.value() * 4usize;
-        let facing = FurnaceFacing::from_value(val / 1usize).unwrap();
-        Some(Self { lit, facing })
+        let facing = FurnaceFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let lit = bool::from_value(val / 1usize).unwrap();
+        val -= (lit.value() - 0usize) * 1usize;
+        Some(Self { facing, lit })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SignData {
-    pub rotation: i32,
     pub waterlogged: bool,
+    pub rotation: i32,
 }
 impl SignData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            rotation: i32::from_snake_case(map.get("rotation")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            rotation: i32::from_snake_case(map.get("rotation")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("rotation".to_string(), self.rotation.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("rotation".to_string(), self.rotation.to_snake_case());
         m
     }
 }
 impl Value for SignData {
     fn value(&self) -> usize {
-        (self.rotation.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        (self.waterlogged.value() * 16usize) + (self.rotation.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let rotation = i32::from_value(val / 2usize).unwrap();
-        val -= rotation.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        let waterlogged = bool::from_value(val / 16usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 16usize;
+        let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self {
-            rotation,
             waterlogged,
+            rotation,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OakDoorData {
+    pub facing: OakDoorFacing,
     pub half: OakDoorHalf,
     pub hinge: OakDoorHinge,
     pub open: bool,
     pub powered: bool,
-    pub facing: OakDoorFacing,
 }
 impl OakDoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            facing: OakDoorFacing::from_snake_case(map.get("facing")?)?,
             half: OakDoorHalf::from_snake_case(map.get("half")?)?,
             hinge: OakDoorHinge::from_snake_case(map.get("hinge")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
-            facing: OakDoorFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("hinge".to_string(), self.hinge.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for OakDoorData {
     fn value(&self) -> usize {
-        (self.half.value() * 32usize)
-            + (self.hinge.value() * 16usize)
-            + (self.open.value() * 8usize)
-            + (self.powered.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.facing.value() * 16usize)
+            + (self.half.value() * 8usize)
+            + (self.hinge.value() * 4usize)
+            + (self.open.value() * 2usize)
+            + (self.powered.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let half = OakDoorHalf::from_value(val / 32usize).unwrap();
-        val -= half.value() * 32usize;
-        let hinge = OakDoorHinge::from_value(val / 16usize).unwrap();
-        val -= hinge.value() * 16usize;
-        let open = bool::from_value(val / 8usize).unwrap();
-        val -= open.value() * 8usize;
-        let powered = bool::from_value(val / 4usize).unwrap();
-        val -= powered.value() * 4usize;
-        let facing = OakDoorFacing::from_value(val / 1usize).unwrap();
+        let facing = OakDoorFacing::from_value(val / 16usize).unwrap();
+        val -= (facing.value() - 0usize) * 16usize;
+        let half = OakDoorHalf::from_value(val / 8usize).unwrap();
+        val -= (half.value() - 0usize) * 8usize;
+        let hinge = OakDoorHinge::from_value(val / 4usize).unwrap();
+        val -= (hinge.value() - 0usize) * 4usize;
+        let open = bool::from_value(val / 2usize).unwrap();
+        val -= (open.value() - 0usize) * 2usize;
+        let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self {
+            facing,
             half,
             hinge,
             open,
             powered,
-            facing,
         })
     }
 }
@@ -8348,12 +8424,13 @@ impl Value for LadderData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let facing = LadderFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (facing.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
             facing,
             waterlogged,
@@ -8382,33 +8459,34 @@ impl Value for RailData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 10usize {
+        if val >= 10usize {
             return None;
         }
         let shape = RailShape::from_value(val / 1usize).unwrap();
+        val -= (shape.value() - 0usize) * 1usize;
         Some(Self { shape })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct CobblestoneStairsData {
-    pub half: CobblestoneStairsHalf,
     pub waterlogged: bool,
+    pub half: CobblestoneStairsHalf,
     pub shape: CobblestoneStairsShape,
     pub facing: CobblestoneStairsFacing,
 }
 impl CobblestoneStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            half: CobblestoneStairsHalf::from_snake_case(map.get("half")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            half: CobblestoneStairsHalf::from_snake_case(map.get("half")?)?,
             shape: CobblestoneStairsShape::from_snake_case(map.get("shape")?)?,
             facing: CobblestoneStairsFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m
@@ -8416,26 +8494,27 @@ impl CobblestoneStairsData {
 }
 impl Value for CobblestoneStairsData {
     fn value(&self) -> usize {
-        (self.half.value() * 40usize)
-            + (self.waterlogged.value() * 20usize)
+        (self.waterlogged.value() * 40usize)
+            + (self.half.value() * 20usize)
             + (self.shape.value() * 4usize)
             + (self.facing.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
-        let half = CobblestoneStairsHalf::from_value(val / 40usize).unwrap();
-        val -= half.value() * 40usize;
-        let waterlogged = bool::from_value(val / 20usize).unwrap();
-        val -= waterlogged.value() * 20usize;
+        let waterlogged = bool::from_value(val / 40usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 40usize;
+        let half = CobblestoneStairsHalf::from_value(val / 20usize).unwrap();
+        val -= (half.value() - 0usize) * 20usize;
         let shape = CobblestoneStairsShape::from_value(val / 4usize).unwrap();
-        val -= shape.value() * 4usize;
+        val -= (shape.value() - 0usize) * 4usize;
         let facing = CobblestoneStairsFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
-            half,
             waterlogged,
+            half,
             shape,
             facing,
         })
@@ -8443,83 +8522,85 @@ impl Value for CobblestoneStairsData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct WallSignData {
-    pub waterlogged: bool,
     pub facing: WallSignFacing,
+    pub waterlogged: bool,
 }
 impl WallSignData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             facing: WallSignFacing::from_snake_case(map.get("facing")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for WallSignData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 4usize) + (self.facing.value() * 1usize)
+        (self.facing.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
-        let facing = WallSignFacing::from_value(val / 1usize).unwrap();
+        let facing = WallSignFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
             facing,
+            waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct LeverData {
-    pub powered: bool,
     pub facing: LeverFacing,
     pub face: LeverFace,
+    pub powered: bool,
 }
 impl LeverData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
             facing: LeverFacing::from_snake_case(map.get("facing")?)?,
             face: LeverFace::from_snake_case(map.get("face")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("face".to_string(), self.face.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for LeverData {
     fn value(&self) -> usize {
-        (self.powered.value() * 12usize)
-            + (self.facing.value() * 3usize)
-            + (self.face.value() * 1usize)
+        (self.facing.value() * 6usize)
+            + (self.face.value() * 2usize)
+            + (self.powered.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 24usize {
+        if val >= 24usize {
             return None;
         }
-        let powered = bool::from_value(val / 12usize).unwrap();
-        val -= powered.value() * 12usize;
-        let facing = LeverFacing::from_value(val / 3usize).unwrap();
-        val -= facing.value() * 3usize;
-        let face = LeverFace::from_value(val / 1usize).unwrap();
+        let facing = LeverFacing::from_value(val / 6usize).unwrap();
+        val -= (facing.value() - 0usize) * 6usize;
+        let face = LeverFace::from_value(val / 2usize).unwrap();
+        val -= (face.value() - 0usize) * 2usize;
+        let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self {
-            powered,
             facing,
             face,
+            powered,
         })
     }
 }
@@ -8545,69 +8626,71 @@ impl Value for StonePressurePlateData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self { powered })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct IronDoorData {
-    pub open: bool,
     pub powered: bool,
-    pub half: IronDoorHalf,
     pub hinge: IronDoorHinge,
+    pub half: IronDoorHalf,
     pub facing: IronDoorFacing,
+    pub open: bool,
 }
 impl IronDoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            open: bool::from_snake_case(map.get("open")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
-            half: IronDoorHalf::from_snake_case(map.get("half")?)?,
             hinge: IronDoorHinge::from_snake_case(map.get("hinge")?)?,
+            half: IronDoorHalf::from_snake_case(map.get("half")?)?,
             facing: IronDoorFacing::from_snake_case(map.get("facing")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("hinge".to_string(), self.hinge.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
         m
     }
 }
 impl Value for IronDoorData {
     fn value(&self) -> usize {
-        (self.open.value() * 32usize)
-            + (self.powered.value() * 16usize)
+        (self.powered.value() * 32usize)
+            + (self.hinge.value() * 16usize)
             + (self.half.value() * 8usize)
-            + (self.hinge.value() * 4usize)
-            + (self.facing.value() * 1usize)
+            + (self.facing.value() * 2usize)
+            + (self.open.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let open = bool::from_value(val / 32usize).unwrap();
-        val -= open.value() * 32usize;
-        let powered = bool::from_value(val / 16usize).unwrap();
-        val -= powered.value() * 16usize;
+        let powered = bool::from_value(val / 32usize).unwrap();
+        val -= (powered.value() - 0usize) * 32usize;
+        let hinge = IronDoorHinge::from_value(val / 16usize).unwrap();
+        val -= (hinge.value() - 0usize) * 16usize;
         let half = IronDoorHalf::from_value(val / 8usize).unwrap();
-        val -= half.value() * 8usize;
-        let hinge = IronDoorHinge::from_value(val / 4usize).unwrap();
-        val -= hinge.value() * 4usize;
-        let facing = IronDoorFacing::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 8usize;
+        let facing = IronDoorFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let open = bool::from_value(val / 1usize).unwrap();
+        val -= (open.value() - 0usize) * 1usize;
         Some(Self {
-            open,
             powered,
-            half,
             hinge,
+            half,
             facing,
+            open,
         })
     }
 }
@@ -8633,10 +8716,11 @@ impl Value for OakPressurePlateData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self { powered })
     }
 }
@@ -8662,10 +8746,11 @@ impl Value for SprucePressurePlateData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self { powered })
     }
 }
@@ -8691,10 +8776,11 @@ impl Value for BirchPressurePlateData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self { powered })
     }
 }
@@ -8720,10 +8806,11 @@ impl Value for JunglePressurePlateData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self { powered })
     }
 }
@@ -8749,10 +8836,11 @@ impl Value for AcaciaPressurePlateData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self { powered })
     }
 }
@@ -8778,10 +8866,11 @@ impl Value for DarkOakPressurePlateData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self { powered })
     }
 }
@@ -8807,10 +8896,11 @@ impl Value for RedstoneOreData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let lit = bool::from_value(val / 1usize).unwrap();
+        val -= (lit.value() - 0usize) * 1usize;
         Some(Self { lit })
     }
 }
@@ -8836,10 +8926,11 @@ impl Value for RedstoneTorchData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let lit = bool::from_value(val / 1usize).unwrap();
+        val -= (lit.value() - 0usize) * 1usize;
         Some(Self { lit })
     }
 }
@@ -8868,57 +8959,59 @@ impl Value for RedstoneWallTorchData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let facing = RedstoneWallTorchFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (facing.value() - 0usize) * 2usize;
         let lit = bool::from_value(val / 1usize).unwrap();
+        val -= (lit.value() - 0usize) * 1usize;
         Some(Self { facing, lit })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct StoneButtonData {
+    pub powered: bool,
     pub face: StoneButtonFace,
     pub facing: StoneButtonFacing,
-    pub powered: bool,
 }
 impl StoneButtonData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            powered: bool::from_snake_case(map.get("powered")?)?,
             face: StoneButtonFace::from_snake_case(map.get("face")?)?,
             facing: StoneButtonFacing::from_snake_case(map.get("facing")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("face".to_string(), self.face.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for StoneButtonData {
     fn value(&self) -> usize {
-        (self.face.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.powered.value() * 1usize)
+        (self.powered.value() * 12usize)
+            + (self.face.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 24usize {
+        if val >= 24usize {
             return None;
         }
-        let face = StoneButtonFace::from_value(val / 8usize).unwrap();
-        val -= face.value() * 8usize;
-        let facing = StoneButtonFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
-        let powered = bool::from_value(val / 1usize).unwrap();
+        let powered = bool::from_value(val / 12usize).unwrap();
+        val -= (powered.value() - 0usize) * 12usize;
+        let face = StoneButtonFace::from_value(val / 4usize).unwrap();
+        val -= (face.value() - 0usize) * 4usize;
+        let facing = StoneButtonFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
+            powered,
             face,
             facing,
-            powered,
         })
     }
 }
@@ -8940,14 +9033,15 @@ impl SnowData {
 }
 impl Value for SnowData {
     fn value(&self) -> usize {
-        (self.layers.value() * 1usize)
+        ((self.layers.value() - 1) * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
-        let layers = i32::from_value(val / 1usize).unwrap();
+        let layers = i32::from_value(val / 1usize).unwrap() + 1i32;
+        val -= (layers.value() - 1usize) * 1usize;
         Some(Self { layers })
     }
 }
@@ -8973,10 +9067,11 @@ impl Value for CactusData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
         Some(Self { age })
     }
 }
@@ -9002,10 +9097,11 @@ impl Value for SugarCaneData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
         Some(Self { age })
     }
 }
@@ -9031,69 +9127,71 @@ impl Value for JukeboxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let has_record = bool::from_value(val / 1usize).unwrap();
+        val -= (has_record.value() - 0usize) * 1usize;
         Some(Self { has_record })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OakFenceData {
-    pub east: bool,
-    pub south: bool,
-    pub north: bool,
     pub west: bool,
+    pub east: bool,
     pub waterlogged: bool,
+    pub north: bool,
+    pub south: bool,
 }
 impl OakFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m
     }
 }
 impl Value for OakFenceData {
     fn value(&self) -> usize {
-        (self.east.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.north.value() * 4usize)
-            + (self.west.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
+        (self.west.value() * 16usize)
+            + (self.east.value() * 8usize)
+            + (self.waterlogged.value() * 4usize)
+            + (self.north.value() * 2usize)
+            + (self.south.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let east = bool::from_value(val / 16usize).unwrap();
-        val -= east.value() * 16usize;
-        let south = bool::from_value(val / 8usize).unwrap();
-        val -= south.value() * 8usize;
-        let north = bool::from_value(val / 4usize).unwrap();
-        val -= north.value() * 4usize;
-        let west = bool::from_value(val / 2usize).unwrap();
-        val -= west.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        let west = bool::from_value(val / 16usize).unwrap();
+        val -= (west.value() - 0usize) * 16usize;
+        let east = bool::from_value(val / 8usize).unwrap();
+        val -= (east.value() - 0usize) * 8usize;
+        let waterlogged = bool::from_value(val / 4usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 4usize;
+        let north = bool::from_value(val / 2usize).unwrap();
+        val -= (north.value() - 0usize) * 2usize;
+        let south = bool::from_value(val / 1usize).unwrap();
+        val -= (south.value() - 0usize) * 1usize;
         Some(Self {
-            east,
-            south,
-            north,
             west,
+            east,
             waterlogged,
+            north,
+            south,
         })
     }
 }
@@ -9119,10 +9217,11 @@ impl Value for NetherPortalData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let axis = NetherPortalAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -9148,10 +9247,11 @@ impl Value for CarvedPumpkinData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = CarvedPumpkinFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -9177,10 +9277,11 @@ impl Value for JackOLanternData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = JackOLanternFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -9206,120 +9307,123 @@ impl Value for CakeData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 7usize {
+        if val >= 7usize {
             return None;
         }
         let bites = i32::from_value(val / 1usize).unwrap();
+        val -= (bites.value() - 0usize) * 1usize;
         Some(Self { bites })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RepeaterData {
+    pub facing: RepeaterFacing,
+    pub locked: bool,
     pub powered: bool,
     pub delay: i32,
-    pub locked: bool,
-    pub facing: RepeaterFacing,
 }
 impl RepeaterData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            facing: RepeaterFacing::from_snake_case(map.get("facing")?)?,
+            locked: bool::from_snake_case(map.get("locked")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
             delay: i32::from_snake_case(map.get("delay")?)?,
-            locked: bool::from_snake_case(map.get("locked")?)?,
-            facing: RepeaterFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("locked".to_string(), self.locked.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("delay".to_string(), self.delay.to_snake_case());
-        m.insert("locked".to_string(), self.locked.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for RepeaterData {
     fn value(&self) -> usize {
-        (self.powered.value() * 32usize)
-            + (self.delay.value() * 8usize)
-            + (self.locked.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.facing.value() * 16usize)
+            + (self.locked.value() * 8usize)
+            + (self.powered.value() * 4usize)
+            + ((self.delay.value() - 1) * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let powered = bool::from_value(val / 32usize).unwrap();
-        val -= powered.value() * 32usize;
-        let delay = i32::from_value(val / 8usize).unwrap();
-        val -= delay.value() * 8usize;
-        let locked = bool::from_value(val / 4usize).unwrap();
-        val -= locked.value() * 4usize;
-        let facing = RepeaterFacing::from_value(val / 1usize).unwrap();
+        let facing = RepeaterFacing::from_value(val / 16usize).unwrap();
+        val -= (facing.value() - 0usize) * 16usize;
+        let locked = bool::from_value(val / 8usize).unwrap();
+        val -= (locked.value() - 0usize) * 8usize;
+        let powered = bool::from_value(val / 4usize).unwrap();
+        val -= (powered.value() - 0usize) * 4usize;
+        let delay = i32::from_value(val / 1usize).unwrap() + 1i32;
+        val -= (delay.value() - 1usize) * 1usize;
         Some(Self {
+            facing,
+            locked,
             powered,
             delay,
-            locked,
-            facing,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OakTrapdoorData {
+    pub facing: OakTrapdoorFacing,
+    pub powered: bool,
     pub waterlogged: bool,
     pub half: OakTrapdoorHalf,
-    pub powered: bool,
-    pub facing: OakTrapdoorFacing,
     pub open: bool,
 }
 impl OakTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            facing: OakTrapdoorFacing::from_snake_case(map.get("facing")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             half: OakTrapdoorHalf::from_snake_case(map.get("half")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            facing: OakTrapdoorFacing::from_snake_case(map.get("facing")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
         m
     }
 }
 impl Value for OakTrapdoorData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 32usize)
-            + (self.half.value() * 16usize)
+        (self.facing.value() * 16usize)
             + (self.powered.value() * 8usize)
-            + (self.facing.value() * 2usize)
+            + (self.waterlogged.value() * 4usize)
+            + (self.half.value() * 2usize)
             + (self.open.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 32usize).unwrap();
-        val -= waterlogged.value() * 32usize;
-        let half = OakTrapdoorHalf::from_value(val / 16usize).unwrap();
-        val -= half.value() * 16usize;
+        let facing = OakTrapdoorFacing::from_value(val / 16usize).unwrap();
+        val -= (facing.value() - 0usize) * 16usize;
         let powered = bool::from_value(val / 8usize).unwrap();
-        val -= powered.value() * 8usize;
-        let facing = OakTrapdoorFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (powered.value() - 0usize) * 8usize;
+        let waterlogged = bool::from_value(val / 4usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 4usize;
+        let half = OakTrapdoorHalf::from_value(val / 2usize).unwrap();
+        val -= (half.value() - 0usize) * 2usize;
         let open = bool::from_value(val / 1usize).unwrap();
+        val -= (open.value() - 0usize) * 1usize;
         Some(Self {
+            facing,
+            powered,
             waterlogged,
             half,
-            powered,
-            facing,
             open,
         })
     }
@@ -9327,611 +9431,621 @@ impl Value for OakTrapdoorData {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpruceTrapdoorData {
     pub powered: bool,
-    pub waterlogged: bool,
-    pub facing: SpruceTrapdoorFacing,
     pub open: bool,
+    pub facing: SpruceTrapdoorFacing,
     pub half: SpruceTrapdoorHalf,
+    pub waterlogged: bool,
 }
 impl SpruceTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             powered: bool::from_snake_case(map.get("powered")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            facing: SpruceTrapdoorFacing::from_snake_case(map.get("facing")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
+            facing: SpruceTrapdoorFacing::from_snake_case(map.get("facing")?)?,
             half: SpruceTrapdoorHalf::from_snake_case(map.get("half")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for SpruceTrapdoorData {
     fn value(&self) -> usize {
         (self.powered.value() * 32usize)
-            + (self.waterlogged.value() * 16usize)
+            + (self.open.value() * 16usize)
             + (self.facing.value() * 4usize)
-            + (self.open.value() * 2usize)
-            + (self.half.value() * 1usize)
+            + (self.half.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
         let powered = bool::from_value(val / 32usize).unwrap();
-        val -= powered.value() * 32usize;
-        let waterlogged = bool::from_value(val / 16usize).unwrap();
-        val -= waterlogged.value() * 16usize;
+        val -= (powered.value() - 0usize) * 32usize;
+        let open = bool::from_value(val / 16usize).unwrap();
+        val -= (open.value() - 0usize) * 16usize;
         let facing = SpruceTrapdoorFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let open = bool::from_value(val / 2usize).unwrap();
-        val -= open.value() * 2usize;
-        let half = SpruceTrapdoorHalf::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 4usize;
+        let half = SpruceTrapdoorHalf::from_value(val / 2usize).unwrap();
+        val -= (half.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
             powered,
-            waterlogged,
-            facing,
             open,
+            facing,
             half,
+            waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BirchTrapdoorData {
-    pub waterlogged: bool,
-    pub half: BirchTrapdoorHalf,
     pub facing: BirchTrapdoorFacing,
-    pub powered: bool,
     pub open: bool,
+    pub half: BirchTrapdoorHalf,
+    pub powered: bool,
+    pub waterlogged: bool,
 }
 impl BirchTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            half: BirchTrapdoorHalf::from_snake_case(map.get("half")?)?,
             facing: BirchTrapdoorFacing::from_snake_case(map.get("facing")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
+            half: BirchTrapdoorHalf::from_snake_case(map.get("half")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for BirchTrapdoorData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 32usize)
-            + (self.half.value() * 16usize)
-            + (self.facing.value() * 4usize)
+        (self.facing.value() * 16usize)
+            + (self.open.value() * 8usize)
+            + (self.half.value() * 4usize)
             + (self.powered.value() * 2usize)
-            + (self.open.value() * 1usize)
+            + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 32usize).unwrap();
-        val -= waterlogged.value() * 32usize;
-        let half = BirchTrapdoorHalf::from_value(val / 16usize).unwrap();
-        val -= half.value() * 16usize;
-        let facing = BirchTrapdoorFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
+        let facing = BirchTrapdoorFacing::from_value(val / 16usize).unwrap();
+        val -= (facing.value() - 0usize) * 16usize;
+        let open = bool::from_value(val / 8usize).unwrap();
+        val -= (open.value() - 0usize) * 8usize;
+        let half = BirchTrapdoorHalf::from_value(val / 4usize).unwrap();
+        val -= (half.value() - 0usize) * 4usize;
         let powered = bool::from_value(val / 2usize).unwrap();
-        val -= powered.value() * 2usize;
-        let open = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
-            half,
             facing,
-            powered,
             open,
+            half,
+            powered,
+            waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct JungleTrapdoorData {
-    pub open: bool,
-    pub half: JungleTrapdoorHalf,
-    pub waterlogged: bool,
     pub powered: bool,
     pub facing: JungleTrapdoorFacing,
+    pub half: JungleTrapdoorHalf,
+    pub open: bool,
+    pub waterlogged: bool,
 }
 impl JungleTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            open: bool::from_snake_case(map.get("open")?)?,
-            half: JungleTrapdoorHalf::from_snake_case(map.get("half")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
             facing: JungleTrapdoorFacing::from_snake_case(map.get("facing")?)?,
+            half: JungleTrapdoorHalf::from_snake_case(map.get("half")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("open".to_string(), self.open.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for JungleTrapdoorData {
     fn value(&self) -> usize {
-        (self.open.value() * 32usize)
-            + (self.half.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
-            + (self.powered.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.powered.value() * 32usize)
+            + (self.facing.value() * 8usize)
+            + (self.half.value() * 4usize)
+            + (self.open.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let open = bool::from_value(val / 32usize).unwrap();
-        val -= open.value() * 32usize;
-        let half = JungleTrapdoorHalf::from_value(val / 16usize).unwrap();
-        val -= half.value() * 16usize;
-        let waterlogged = bool::from_value(val / 8usize).unwrap();
-        val -= waterlogged.value() * 8usize;
-        let powered = bool::from_value(val / 4usize).unwrap();
-        val -= powered.value() * 4usize;
-        let facing = JungleTrapdoorFacing::from_value(val / 1usize).unwrap();
+        let powered = bool::from_value(val / 32usize).unwrap();
+        val -= (powered.value() - 0usize) * 32usize;
+        let facing = JungleTrapdoorFacing::from_value(val / 8usize).unwrap();
+        val -= (facing.value() - 0usize) * 8usize;
+        let half = JungleTrapdoorHalf::from_value(val / 4usize).unwrap();
+        val -= (half.value() - 0usize) * 4usize;
+        let open = bool::from_value(val / 2usize).unwrap();
+        val -= (open.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            open,
-            half,
-            waterlogged,
             powered,
             facing,
+            half,
+            open,
+            waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaTrapdoorData {
-    pub powered: bool,
-    pub open: bool,
-    pub waterlogged: bool,
     pub facing: AcaciaTrapdoorFacing,
+    pub open: bool,
     pub half: AcaciaTrapdoorHalf,
+    pub powered: bool,
+    pub waterlogged: bool,
 }
 impl AcaciaTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             facing: AcaciaTrapdoorFacing::from_snake_case(map.get("facing")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
             half: AcaciaTrapdoorHalf::from_snake_case(map.get("half")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for AcaciaTrapdoorData {
     fn value(&self) -> usize {
-        (self.powered.value() * 32usize)
-            + (self.open.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.half.value() * 1usize)
+        (self.facing.value() * 16usize)
+            + (self.open.value() * 8usize)
+            + (self.half.value() * 4usize)
+            + (self.powered.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let powered = bool::from_value(val / 32usize).unwrap();
-        val -= powered.value() * 32usize;
-        let open = bool::from_value(val / 16usize).unwrap();
-        val -= open.value() * 16usize;
-        let waterlogged = bool::from_value(val / 8usize).unwrap();
-        val -= waterlogged.value() * 8usize;
-        let facing = AcaciaTrapdoorFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
-        let half = AcaciaTrapdoorHalf::from_value(val / 1usize).unwrap();
+        let facing = AcaciaTrapdoorFacing::from_value(val / 16usize).unwrap();
+        val -= (facing.value() - 0usize) * 16usize;
+        let open = bool::from_value(val / 8usize).unwrap();
+        val -= (open.value() - 0usize) * 8usize;
+        let half = AcaciaTrapdoorHalf::from_value(val / 4usize).unwrap();
+        val -= (half.value() - 0usize) * 4usize;
+        let powered = bool::from_value(val / 2usize).unwrap();
+        val -= (powered.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            powered,
-            open,
-            waterlogged,
             facing,
+            open,
             half,
+            powered,
+            waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkOakTrapdoorData {
+    pub half: DarkOakTrapdoorHalf,
     pub open: bool,
     pub powered: bool,
-    pub half: DarkOakTrapdoorHalf,
-    pub facing: DarkOakTrapdoorFacing,
     pub waterlogged: bool,
+    pub facing: DarkOakTrapdoorFacing,
 }
 impl DarkOakTrapdoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            half: DarkOakTrapdoorHalf::from_snake_case(map.get("half")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
-            half: DarkOakTrapdoorHalf::from_snake_case(map.get("half")?)?,
-            facing: DarkOakTrapdoorFacing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            facing: DarkOakTrapdoorFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for DarkOakTrapdoorData {
     fn value(&self) -> usize {
-        (self.open.value() * 32usize)
-            + (self.powered.value() * 16usize)
-            + (self.half.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
+        (self.half.value() * 32usize)
+            + (self.open.value() * 16usize)
+            + (self.powered.value() * 8usize)
+            + (self.waterlogged.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let open = bool::from_value(val / 32usize).unwrap();
-        val -= open.value() * 32usize;
-        let powered = bool::from_value(val / 16usize).unwrap();
-        val -= powered.value() * 16usize;
-        let half = DarkOakTrapdoorHalf::from_value(val / 8usize).unwrap();
-        val -= half.value() * 8usize;
-        let facing = DarkOakTrapdoorFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        let half = DarkOakTrapdoorHalf::from_value(val / 32usize).unwrap();
+        val -= (half.value() - 0usize) * 32usize;
+        let open = bool::from_value(val / 16usize).unwrap();
+        val -= (open.value() - 0usize) * 16usize;
+        let powered = bool::from_value(val / 8usize).unwrap();
+        val -= (powered.value() - 0usize) * 8usize;
+        let waterlogged = bool::from_value(val / 4usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 4usize;
+        let facing = DarkOakTrapdoorFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
+            half,
             open,
             powered,
-            half,
-            facing,
             waterlogged,
+            facing,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BrownMushroomBlockData {
-    pub up: bool,
-    pub south: bool,
-    pub down: bool,
-    pub east: bool,
-    pub north: bool,
     pub west: bool,
+    pub east: bool,
+    pub south: bool,
+    pub north: bool,
+    pub down: bool,
+    pub up: bool,
 }
 impl BrownMushroomBlockData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            up: bool::from_snake_case(map.get("up")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            down: bool::from_snake_case(map.get("down")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            down: bool::from_snake_case(map.get("down")?)?,
+            up: bool::from_snake_case(map.get("up")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("up".to_string(), self.up.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("down".to_string(), self.down.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("down".to_string(), self.down.to_snake_case());
+        m.insert("up".to_string(), self.up.to_snake_case());
         m
     }
 }
 impl Value for BrownMushroomBlockData {
     fn value(&self) -> usize {
-        (self.up.value() * 32usize)
-            + (self.south.value() * 16usize)
-            + (self.down.value() * 8usize)
-            + (self.east.value() * 4usize)
-            + (self.north.value() * 2usize)
-            + (self.west.value() * 1usize)
+        (self.west.value() * 32usize)
+            + (self.east.value() * 16usize)
+            + (self.south.value() * 8usize)
+            + (self.north.value() * 4usize)
+            + (self.down.value() * 2usize)
+            + (self.up.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let up = bool::from_value(val / 32usize).unwrap();
-        val -= up.value() * 32usize;
-        let south = bool::from_value(val / 16usize).unwrap();
-        val -= south.value() * 16usize;
-        let down = bool::from_value(val / 8usize).unwrap();
-        val -= down.value() * 8usize;
-        let east = bool::from_value(val / 4usize).unwrap();
-        val -= east.value() * 4usize;
-        let north = bool::from_value(val / 2usize).unwrap();
-        val -= north.value() * 2usize;
-        let west = bool::from_value(val / 1usize).unwrap();
+        let west = bool::from_value(val / 32usize).unwrap();
+        val -= (west.value() - 0usize) * 32usize;
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
+        let south = bool::from_value(val / 8usize).unwrap();
+        val -= (south.value() - 0usize) * 8usize;
+        let north = bool::from_value(val / 4usize).unwrap();
+        val -= (north.value() - 0usize) * 4usize;
+        let down = bool::from_value(val / 2usize).unwrap();
+        val -= (down.value() - 0usize) * 2usize;
+        let up = bool::from_value(val / 1usize).unwrap();
+        val -= (up.value() - 0usize) * 1usize;
         Some(Self {
-            up,
-            south,
-            down,
-            east,
-            north,
             west,
+            east,
+            south,
+            north,
+            down,
+            up,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RedMushroomBlockData {
-    pub west: bool,
-    pub north: bool,
-    pub east: bool,
     pub down: bool,
+    pub west: bool,
     pub south: bool,
     pub up: bool,
+    pub east: bool,
+    pub north: bool,
 }
 impl RedMushroomBlockData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            west: bool::from_snake_case(map.get("west")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
             down: bool::from_snake_case(map.get("down")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
             up: bool::from_snake_case(map.get("up")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("down".to_string(), self.down.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("up".to_string(), self.up.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m
     }
 }
 impl Value for RedMushroomBlockData {
     fn value(&self) -> usize {
-        (self.west.value() * 32usize)
-            + (self.north.value() * 16usize)
-            + (self.east.value() * 8usize)
-            + (self.down.value() * 4usize)
-            + (self.south.value() * 2usize)
-            + (self.up.value() * 1usize)
+        (self.down.value() * 32usize)
+            + (self.west.value() * 16usize)
+            + (self.south.value() * 8usize)
+            + (self.up.value() * 4usize)
+            + (self.east.value() * 2usize)
+            + (self.north.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let west = bool::from_value(val / 32usize).unwrap();
-        val -= west.value() * 32usize;
-        let north = bool::from_value(val / 16usize).unwrap();
-        val -= north.value() * 16usize;
-        let east = bool::from_value(val / 8usize).unwrap();
-        val -= east.value() * 8usize;
-        let down = bool::from_value(val / 4usize).unwrap();
-        val -= down.value() * 4usize;
-        let south = bool::from_value(val / 2usize).unwrap();
-        val -= south.value() * 2usize;
-        let up = bool::from_value(val / 1usize).unwrap();
+        let down = bool::from_value(val / 32usize).unwrap();
+        val -= (down.value() - 0usize) * 32usize;
+        let west = bool::from_value(val / 16usize).unwrap();
+        val -= (west.value() - 0usize) * 16usize;
+        let south = bool::from_value(val / 8usize).unwrap();
+        val -= (south.value() - 0usize) * 8usize;
+        let up = bool::from_value(val / 4usize).unwrap();
+        val -= (up.value() - 0usize) * 4usize;
+        let east = bool::from_value(val / 2usize).unwrap();
+        val -= (east.value() - 0usize) * 2usize;
+        let north = bool::from_value(val / 1usize).unwrap();
+        val -= (north.value() - 0usize) * 1usize;
         Some(Self {
-            west,
-            north,
-            east,
             down,
+            west,
             south,
             up,
+            east,
+            north,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct MushroomStemData {
-    pub west: bool,
-    pub up: bool,
     pub east: bool,
-    pub south: bool,
     pub north: bool,
+    pub south: bool,
+    pub west: bool,
     pub down: bool,
+    pub up: bool,
 }
 impl MushroomStemData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            west: bool::from_snake_case(map.get("west")?)?,
-            up: bool::from_snake_case(map.get("up")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
             down: bool::from_snake_case(map.get("down")?)?,
+            up: bool::from_snake_case(map.get("up")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("up".to_string(), self.up.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("down".to_string(), self.down.to_snake_case());
+        m.insert("up".to_string(), self.up.to_snake_case());
         m
     }
 }
 impl Value for MushroomStemData {
     fn value(&self) -> usize {
-        (self.west.value() * 32usize)
-            + (self.up.value() * 16usize)
-            + (self.east.value() * 8usize)
-            + (self.south.value() * 4usize)
-            + (self.north.value() * 2usize)
-            + (self.down.value() * 1usize)
+        (self.east.value() * 32usize)
+            + (self.north.value() * 16usize)
+            + (self.south.value() * 8usize)
+            + (self.west.value() * 4usize)
+            + (self.down.value() * 2usize)
+            + (self.up.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let west = bool::from_value(val / 32usize).unwrap();
-        val -= west.value() * 32usize;
-        let up = bool::from_value(val / 16usize).unwrap();
-        val -= up.value() * 16usize;
-        let east = bool::from_value(val / 8usize).unwrap();
-        val -= east.value() * 8usize;
-        let south = bool::from_value(val / 4usize).unwrap();
-        val -= south.value() * 4usize;
-        let north = bool::from_value(val / 2usize).unwrap();
-        val -= north.value() * 2usize;
-        let down = bool::from_value(val / 1usize).unwrap();
+        let east = bool::from_value(val / 32usize).unwrap();
+        val -= (east.value() - 0usize) * 32usize;
+        let north = bool::from_value(val / 16usize).unwrap();
+        val -= (north.value() - 0usize) * 16usize;
+        let south = bool::from_value(val / 8usize).unwrap();
+        val -= (south.value() - 0usize) * 8usize;
+        let west = bool::from_value(val / 4usize).unwrap();
+        val -= (west.value() - 0usize) * 4usize;
+        let down = bool::from_value(val / 2usize).unwrap();
+        val -= (down.value() - 0usize) * 2usize;
+        let up = bool::from_value(val / 1usize).unwrap();
+        val -= (up.value() - 0usize) * 1usize;
         Some(Self {
-            west,
-            up,
             east,
-            south,
             north,
+            south,
+            west,
             down,
+            up,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct IronBarsData {
-    pub waterlogged: bool,
-    pub west: bool,
     pub east: bool,
-    pub north: bool,
+    pub west: bool,
     pub south: bool,
+    pub north: bool,
+    pub waterlogged: bool,
 }
 impl IronBarsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for IronBarsData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 16usize)
+        (self.east.value() * 16usize)
             + (self.west.value() * 8usize)
-            + (self.east.value() * 4usize)
+            + (self.south.value() * 4usize)
             + (self.north.value() * 2usize)
-            + (self.south.value() * 1usize)
+            + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 16usize).unwrap();
-        val -= waterlogged.value() * 16usize;
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
         let west = bool::from_value(val / 8usize).unwrap();
-        val -= west.value() * 8usize;
-        let east = bool::from_value(val / 4usize).unwrap();
-        val -= east.value() * 4usize;
+        val -= (west.value() - 0usize) * 8usize;
+        let south = bool::from_value(val / 4usize).unwrap();
+        val -= (south.value() - 0usize) * 4usize;
         let north = bool::from_value(val / 2usize).unwrap();
-        val -= north.value() * 2usize;
-        let south = bool::from_value(val / 1usize).unwrap();
+        val -= (north.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
-            west,
             east,
-            north,
+            west,
             south,
+            north,
+            waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct GlassPaneData {
-    pub waterlogged: bool,
-    pub south: bool,
     pub north: bool,
-    pub west: bool,
+    pub south: bool,
+    pub waterlogged: bool,
     pub east: bool,
+    pub west: bool,
 }
 impl GlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m
     }
 }
 impl Value for GlassPaneData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 16usize)
+        (self.north.value() * 16usize)
             + (self.south.value() * 8usize)
-            + (self.north.value() * 4usize)
-            + (self.west.value() * 2usize)
-            + (self.east.value() * 1usize)
+            + (self.waterlogged.value() * 4usize)
+            + (self.east.value() * 2usize)
+            + (self.west.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 16usize).unwrap();
-        val -= waterlogged.value() * 16usize;
+        let north = bool::from_value(val / 16usize).unwrap();
+        val -= (north.value() - 0usize) * 16usize;
         let south = bool::from_value(val / 8usize).unwrap();
-        val -= south.value() * 8usize;
-        let north = bool::from_value(val / 4usize).unwrap();
-        val -= north.value() * 4usize;
-        let west = bool::from_value(val / 2usize).unwrap();
-        val -= west.value() * 2usize;
-        let east = bool::from_value(val / 1usize).unwrap();
+        val -= (south.value() - 0usize) * 8usize;
+        let waterlogged = bool::from_value(val / 4usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 4usize;
+        let east = bool::from_value(val / 2usize).unwrap();
+        val -= (east.value() - 0usize) * 2usize;
+        let west = bool::from_value(val / 1usize).unwrap();
+        val -= (west.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
-            south,
             north,
-            west,
+            south,
+            waterlogged,
             east,
+            west,
         })
     }
 }
@@ -9957,10 +10071,11 @@ impl Value for AttachedPumpkinStemData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = AttachedPumpkinStemFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -9986,10 +10101,11 @@ impl Value for AttachedMelonStemData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = AttachedMelonStemFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -10015,10 +10131,11 @@ impl Value for PumpkinStemData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
         Some(Self { age })
     }
 }
@@ -10044,93 +10161,95 @@ impl Value for MelonStemData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
         Some(Self { age })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct VineData {
+    pub west: bool,
+    pub up: bool,
     pub south: bool,
     pub east: bool,
-    pub up: bool,
     pub north: bool,
-    pub west: bool,
 }
 impl VineData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            west: bool::from_snake_case(map.get("west")?)?,
+            up: bool::from_snake_case(map.get("up")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
-            up: bool::from_snake_case(map.get("up")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("up".to_string(), self.up.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("up".to_string(), self.up.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
         m
     }
 }
 impl Value for VineData {
     fn value(&self) -> usize {
-        (self.south.value() * 16usize)
-            + (self.east.value() * 8usize)
-            + (self.up.value() * 4usize)
-            + (self.north.value() * 2usize)
-            + (self.west.value() * 1usize)
+        (self.west.value() * 16usize)
+            + (self.up.value() * 8usize)
+            + (self.south.value() * 4usize)
+            + (self.east.value() * 2usize)
+            + (self.north.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let south = bool::from_value(val / 16usize).unwrap();
-        val -= south.value() * 16usize;
-        let east = bool::from_value(val / 8usize).unwrap();
-        val -= east.value() * 8usize;
-        let up = bool::from_value(val / 4usize).unwrap();
-        val -= up.value() * 4usize;
-        let north = bool::from_value(val / 2usize).unwrap();
-        val -= north.value() * 2usize;
-        let west = bool::from_value(val / 1usize).unwrap();
+        let west = bool::from_value(val / 16usize).unwrap();
+        val -= (west.value() - 0usize) * 16usize;
+        let up = bool::from_value(val / 8usize).unwrap();
+        val -= (up.value() - 0usize) * 8usize;
+        let south = bool::from_value(val / 4usize).unwrap();
+        val -= (south.value() - 0usize) * 4usize;
+        let east = bool::from_value(val / 2usize).unwrap();
+        val -= (east.value() - 0usize) * 2usize;
+        let north = bool::from_value(val / 1usize).unwrap();
+        val -= (north.value() - 0usize) * 1usize;
         Some(Self {
+            west,
+            up,
             south,
             east,
-            up,
             north,
-            west,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OakFenceGateData {
     pub facing: OakFenceGateFacing,
-    pub in_wall: bool,
     pub open: bool,
+    pub in_wall: bool,
     pub powered: bool,
 }
 impl OakFenceGateData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             facing: OakFenceGateFacing::from_snake_case(map.get("facing")?)?,
-            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
+            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
@@ -10138,131 +10257,134 @@ impl OakFenceGateData {
 impl Value for OakFenceGateData {
     fn value(&self) -> usize {
         (self.facing.value() * 8usize)
-            + (self.in_wall.value() * 4usize)
-            + (self.open.value() * 2usize)
+            + (self.open.value() * 4usize)
+            + (self.in_wall.value() * 2usize)
             + (self.powered.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
         let facing = OakFenceGateFacing::from_value(val / 8usize).unwrap();
-        val -= facing.value() * 8usize;
-        let in_wall = bool::from_value(val / 4usize).unwrap();
-        val -= in_wall.value() * 4usize;
-        let open = bool::from_value(val / 2usize).unwrap();
-        val -= open.value() * 2usize;
+        val -= (facing.value() - 0usize) * 8usize;
+        let open = bool::from_value(val / 4usize).unwrap();
+        val -= (open.value() - 0usize) * 4usize;
+        let in_wall = bool::from_value(val / 2usize).unwrap();
+        val -= (in_wall.value() - 0usize) * 2usize;
         let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self {
             facing,
-            in_wall,
             open,
+            in_wall,
             powered,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BrickStairsData {
-    pub half: BrickStairsHalf,
-    pub facing: BrickStairsFacing,
     pub shape: BrickStairsShape,
+    pub facing: BrickStairsFacing,
+    pub half: BrickStairsHalf,
     pub waterlogged: bool,
 }
 impl BrickStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            half: BrickStairsHalf::from_snake_case(map.get("half")?)?,
-            facing: BrickStairsFacing::from_snake_case(map.get("facing")?)?,
             shape: BrickStairsShape::from_snake_case(map.get("shape")?)?,
+            facing: BrickStairsFacing::from_snake_case(map.get("facing")?)?,
+            half: BrickStairsHalf::from_snake_case(map.get("half")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for BrickStairsData {
     fn value(&self) -> usize {
-        (self.half.value() * 40usize)
-            + (self.facing.value() * 10usize)
-            + (self.shape.value() * 2usize)
+        (self.shape.value() * 16usize)
+            + (self.facing.value() * 4usize)
+            + (self.half.value() * 2usize)
             + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
-        let half = BrickStairsHalf::from_value(val / 40usize).unwrap();
-        val -= half.value() * 40usize;
-        let facing = BrickStairsFacing::from_value(val / 10usize).unwrap();
-        val -= facing.value() * 10usize;
-        let shape = BrickStairsShape::from_value(val / 2usize).unwrap();
-        val -= shape.value() * 2usize;
+        let shape = BrickStairsShape::from_value(val / 16usize).unwrap();
+        val -= (shape.value() - 0usize) * 16usize;
+        let facing = BrickStairsFacing::from_value(val / 4usize).unwrap();
+        val -= (facing.value() - 0usize) * 4usize;
+        let half = BrickStairsHalf::from_value(val / 2usize).unwrap();
+        val -= (half.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            half,
-            facing,
             shape,
+            facing,
+            half,
             waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct StoneBrickStairsData {
-    pub waterlogged: bool,
-    pub shape: StoneBrickStairsShape,
     pub facing: StoneBrickStairsFacing,
     pub half: StoneBrickStairsHalf,
+    pub shape: StoneBrickStairsShape,
+    pub waterlogged: bool,
 }
 impl StoneBrickStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            shape: StoneBrickStairsShape::from_snake_case(map.get("shape")?)?,
             facing: StoneBrickStairsFacing::from_snake_case(map.get("facing")?)?,
             half: StoneBrickStairsHalf::from_snake_case(map.get("half")?)?,
+            shape: StoneBrickStairsShape::from_snake_case(map.get("shape")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("shape".to_string(), self.shape.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for StoneBrickStairsData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 40usize)
-            + (self.shape.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.half.value() * 1usize)
+        (self.facing.value() * 20usize)
+            + (self.half.value() * 10usize)
+            + (self.shape.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 40usize).unwrap();
-        val -= waterlogged.value() * 40usize;
-        let shape = StoneBrickStairsShape::from_value(val / 8usize).unwrap();
-        val -= shape.value() * 8usize;
-        let facing = StoneBrickStairsFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
-        let half = StoneBrickStairsHalf::from_value(val / 1usize).unwrap();
+        let facing = StoneBrickStairsFacing::from_value(val / 20usize).unwrap();
+        val -= (facing.value() - 0usize) * 20usize;
+        let half = StoneBrickStairsHalf::from_value(val / 10usize).unwrap();
+        val -= (half.value() - 0usize) * 10usize;
+        let shape = StoneBrickStairsShape::from_value(val / 2usize).unwrap();
+        val -= (shape.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
-            shape,
             facing,
             half,
+            shape,
+            waterlogged,
         })
     }
 }
@@ -10288,121 +10410,124 @@ impl Value for MyceliumData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let snowy = bool::from_value(val / 1usize).unwrap();
+        val -= (snowy.value() - 0usize) * 1usize;
         Some(Self { snowy })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct NetherBrickFenceData {
-    pub west: bool,
     pub east: bool,
     pub south: bool,
-    pub north: bool,
     pub waterlogged: bool,
+    pub west: bool,
+    pub north: bool,
 }
 impl NetherBrickFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            west: bool::from_snake_case(map.get("west")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m
     }
 }
 impl Value for NetherBrickFenceData {
     fn value(&self) -> usize {
-        (self.west.value() * 16usize)
-            + (self.east.value() * 8usize)
-            + (self.south.value() * 4usize)
-            + (self.north.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
+        (self.east.value() * 16usize)
+            + (self.south.value() * 8usize)
+            + (self.waterlogged.value() * 4usize)
+            + (self.west.value() * 2usize)
+            + (self.north.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let west = bool::from_value(val / 16usize).unwrap();
-        val -= west.value() * 16usize;
-        let east = bool::from_value(val / 8usize).unwrap();
-        val -= east.value() * 8usize;
-        let south = bool::from_value(val / 4usize).unwrap();
-        val -= south.value() * 4usize;
-        let north = bool::from_value(val / 2usize).unwrap();
-        val -= north.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
+        let south = bool::from_value(val / 8usize).unwrap();
+        val -= (south.value() - 0usize) * 8usize;
+        let waterlogged = bool::from_value(val / 4usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 4usize;
+        let west = bool::from_value(val / 2usize).unwrap();
+        val -= (west.value() - 0usize) * 2usize;
+        let north = bool::from_value(val / 1usize).unwrap();
+        val -= (north.value() - 0usize) * 1usize;
         Some(Self {
-            west,
             east,
             south,
-            north,
             waterlogged,
+            west,
+            north,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct NetherBrickStairsData {
-    pub shape: NetherBrickStairsShape,
-    pub facing: NetherBrickStairsFacing,
     pub half: NetherBrickStairsHalf,
     pub waterlogged: bool,
+    pub facing: NetherBrickStairsFacing,
+    pub shape: NetherBrickStairsShape,
 }
 impl NetherBrickStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            shape: NetherBrickStairsShape::from_snake_case(map.get("shape")?)?,
-            facing: NetherBrickStairsFacing::from_snake_case(map.get("facing")?)?,
             half: NetherBrickStairsHalf::from_snake_case(map.get("half")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            facing: NetherBrickStairsFacing::from_snake_case(map.get("facing")?)?,
+            shape: NetherBrickStairsShape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("shape".to_string(), self.shape.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
         m
     }
 }
 impl Value for NetherBrickStairsData {
     fn value(&self) -> usize {
-        (self.shape.value() * 16usize)
-            + (self.facing.value() * 4usize)
-            + (self.half.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
+        (self.half.value() * 40usize)
+            + (self.waterlogged.value() * 20usize)
+            + (self.facing.value() * 5usize)
+            + (self.shape.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
-        let shape = NetherBrickStairsShape::from_value(val / 16usize).unwrap();
-        val -= shape.value() * 16usize;
-        let facing = NetherBrickStairsFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let half = NetherBrickStairsHalf::from_value(val / 2usize).unwrap();
-        val -= half.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        let half = NetherBrickStairsHalf::from_value(val / 40usize).unwrap();
+        val -= (half.value() - 0usize) * 40usize;
+        let waterlogged = bool::from_value(val / 20usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 20usize;
+        let facing = NetherBrickStairsFacing::from_value(val / 5usize).unwrap();
+        val -= (facing.value() - 0usize) * 5usize;
+        let shape = NetherBrickStairsShape::from_value(val / 1usize).unwrap();
+        val -= (shape.value() - 0usize) * 1usize;
         Some(Self {
-            shape,
-            facing,
             half,
             waterlogged,
+            facing,
+            shape,
         })
     }
 }
@@ -10428,10 +10553,11 @@ impl Value for NetherWartData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
         Some(Self { age })
     }
 }
@@ -10474,14 +10600,15 @@ impl Value for BrewingStandData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let has_bottle_1 = bool::from_value(val / 4usize).unwrap();
-        val -= has_bottle_1.value() * 4usize;
+        val -= (has_bottle_1.value() - 0usize) * 4usize;
         let has_bottle_2 = bool::from_value(val / 2usize).unwrap();
-        val -= has_bottle_2.value() * 2usize;
+        val -= (has_bottle_2.value() - 0usize) * 2usize;
         let has_bottle_0 = bool::from_value(val / 1usize).unwrap();
+        val -= (has_bottle_0.value() - 0usize) * 1usize;
         Some(Self {
             has_bottle_1,
             has_bottle_2,
@@ -10511,10 +10638,11 @@ impl Value for CauldronData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let level = i32::from_value(val / 1usize).unwrap();
+        val -= (level.value() - 0usize) * 1usize;
         Some(Self { level })
     }
 }
@@ -10543,12 +10671,13 @@ impl Value for EndPortalFrameData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let facing = EndPortalFrameFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (facing.value() - 0usize) * 2usize;
         let eye = bool::from_value(val / 1usize).unwrap();
+        val -= (eye.value() - 0usize) * 1usize;
         Some(Self { facing, eye })
     }
 }
@@ -10574,95 +10703,98 @@ impl Value for RedstoneLampData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let lit = bool::from_value(val / 1usize).unwrap();
+        val -= (lit.value() - 0usize) * 1usize;
         Some(Self { lit })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct CocoaData {
-    pub age: i32,
     pub facing: CocoaFacing,
+    pub age: i32,
 }
 impl CocoaData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            age: i32::from_snake_case(map.get("age")?)?,
             facing: CocoaFacing::from_snake_case(map.get("facing")?)?,
+            age: i32::from_snake_case(map.get("age")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("age".to_string(), self.age.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("age".to_string(), self.age.to_snake_case());
         m
     }
 }
 impl Value for CocoaData {
     fn value(&self) -> usize {
-        (self.age.value() * 4usize) + (self.facing.value() * 1usize)
+        (self.facing.value() * 3usize) + (self.age.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
-        let age = i32::from_value(val / 4usize).unwrap();
-        val -= age.value() * 4usize;
-        let facing = CocoaFacing::from_value(val / 1usize).unwrap();
-        Some(Self { age, facing })
+        let facing = CocoaFacing::from_value(val / 3usize).unwrap();
+        val -= (facing.value() - 0usize) * 3usize;
+        let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
+        Some(Self { facing, age })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SandstoneStairsData {
-    pub waterlogged: bool,
-    pub half: SandstoneStairsHalf,
     pub facing: SandstoneStairsFacing,
+    pub half: SandstoneStairsHalf,
+    pub waterlogged: bool,
     pub shape: SandstoneStairsShape,
 }
 impl SandstoneStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            half: SandstoneStairsHalf::from_snake_case(map.get("half")?)?,
             facing: SandstoneStairsFacing::from_snake_case(map.get("facing")?)?,
+            half: SandstoneStairsHalf::from_snake_case(map.get("half")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             shape: SandstoneStairsShape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
         m
     }
 }
 impl Value for SandstoneStairsData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 40usize)
-            + (self.half.value() * 20usize)
-            + (self.facing.value() * 5usize)
+        (self.facing.value() * 20usize)
+            + (self.half.value() * 10usize)
+            + (self.waterlogged.value() * 5usize)
             + (self.shape.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 40usize).unwrap();
-        val -= waterlogged.value() * 40usize;
-        let half = SandstoneStairsHalf::from_value(val / 20usize).unwrap();
-        val -= half.value() * 20usize;
-        let facing = SandstoneStairsFacing::from_value(val / 5usize).unwrap();
-        val -= facing.value() * 5usize;
+        let facing = SandstoneStairsFacing::from_value(val / 20usize).unwrap();
+        val -= (facing.value() - 0usize) * 20usize;
+        let half = SandstoneStairsHalf::from_value(val / 10usize).unwrap();
+        val -= (half.value() - 0usize) * 10usize;
+        let waterlogged = bool::from_value(val / 5usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 5usize;
         let shape = SandstoneStairsShape::from_value(val / 1usize).unwrap();
+        val -= (shape.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
-            half,
             facing,
+            half,
+            waterlogged,
             shape,
         })
     }
@@ -10692,12 +10824,13 @@ impl Value for EnderChestData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
+        val -= (waterlogged.value() - 0usize) * 4usize;
         let facing = EnderChestFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
             waterlogged,
             facing,
@@ -10706,222 +10839,226 @@ impl Value for EnderChestData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TripwireHookData {
-    pub powered: bool,
     pub attached: bool,
     pub facing: TripwireHookFacing,
+    pub powered: bool,
 }
 impl TripwireHookData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
             attached: bool::from_snake_case(map.get("attached")?)?,
             facing: TripwireHookFacing::from_snake_case(map.get("facing")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("attached".to_string(), self.attached.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for TripwireHookData {
     fn value(&self) -> usize {
-        (self.powered.value() * 8usize)
-            + (self.attached.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.attached.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.powered.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
-        let powered = bool::from_value(val / 8usize).unwrap();
-        val -= powered.value() * 8usize;
-        let attached = bool::from_value(val / 4usize).unwrap();
-        val -= attached.value() * 4usize;
-        let facing = TripwireHookFacing::from_value(val / 1usize).unwrap();
+        let attached = bool::from_value(val / 8usize).unwrap();
+        val -= (attached.value() - 0usize) * 8usize;
+        let facing = TripwireHookFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self {
-            powered,
             attached,
             facing,
+            powered,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TripwireData {
+    pub attached: bool,
+    pub powered: bool,
+    pub west: bool,
+    pub disarmed: bool,
+    pub south: bool,
     pub east: bool,
     pub north: bool,
-    pub powered: bool,
-    pub south: bool,
-    pub west: bool,
-    pub attached: bool,
-    pub disarmed: bool,
 }
 impl TripwireData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            attached: bool::from_snake_case(map.get("attached")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            disarmed: bool::from_snake_case(map.get("disarmed")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            attached: bool::from_snake_case(map.get("attached")?)?,
-            disarmed: bool::from_snake_case(map.get("disarmed")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("attached".to_string(), self.attached.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("disarmed".to_string(), self.disarmed.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("attached".to_string(), self.attached.to_snake_case());
-        m.insert("disarmed".to_string(), self.disarmed.to_snake_case());
         m
     }
 }
 impl Value for TripwireData {
     fn value(&self) -> usize {
-        (self.east.value() * 64usize)
-            + (self.north.value() * 32usize)
-            + (self.powered.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.west.value() * 4usize)
-            + (self.attached.value() * 2usize)
-            + (self.disarmed.value() * 1usize)
+        (self.attached.value() * 64usize)
+            + (self.powered.value() * 32usize)
+            + (self.west.value() * 16usize)
+            + (self.disarmed.value() * 8usize)
+            + (self.south.value() * 4usize)
+            + (self.east.value() * 2usize)
+            + (self.north.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 128usize {
+        if val >= 128usize {
             return None;
         }
-        let east = bool::from_value(val / 64usize).unwrap();
-        val -= east.value() * 64usize;
-        let north = bool::from_value(val / 32usize).unwrap();
-        val -= north.value() * 32usize;
-        let powered = bool::from_value(val / 16usize).unwrap();
-        val -= powered.value() * 16usize;
-        let south = bool::from_value(val / 8usize).unwrap();
-        val -= south.value() * 8usize;
-        let west = bool::from_value(val / 4usize).unwrap();
-        val -= west.value() * 4usize;
-        let attached = bool::from_value(val / 2usize).unwrap();
-        val -= attached.value() * 2usize;
-        let disarmed = bool::from_value(val / 1usize).unwrap();
+        let attached = bool::from_value(val / 64usize).unwrap();
+        val -= (attached.value() - 0usize) * 64usize;
+        let powered = bool::from_value(val / 32usize).unwrap();
+        val -= (powered.value() - 0usize) * 32usize;
+        let west = bool::from_value(val / 16usize).unwrap();
+        val -= (west.value() - 0usize) * 16usize;
+        let disarmed = bool::from_value(val / 8usize).unwrap();
+        val -= (disarmed.value() - 0usize) * 8usize;
+        let south = bool::from_value(val / 4usize).unwrap();
+        val -= (south.value() - 0usize) * 4usize;
+        let east = bool::from_value(val / 2usize).unwrap();
+        val -= (east.value() - 0usize) * 2usize;
+        let north = bool::from_value(val / 1usize).unwrap();
+        val -= (north.value() - 0usize) * 1usize;
         Some(Self {
+            attached,
+            powered,
+            west,
+            disarmed,
+            south,
             east,
             north,
-            powered,
-            south,
-            west,
-            attached,
-            disarmed,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpruceStairsData {
-    pub facing: SpruceStairsFacing,
-    pub half: SpruceStairsHalf,
     pub shape: SpruceStairsShape,
+    pub half: SpruceStairsHalf,
+    pub facing: SpruceStairsFacing,
     pub waterlogged: bool,
 }
 impl SpruceStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: SpruceStairsFacing::from_snake_case(map.get("facing")?)?,
-            half: SpruceStairsHalf::from_snake_case(map.get("half")?)?,
             shape: SpruceStairsShape::from_snake_case(map.get("shape")?)?,
+            half: SpruceStairsHalf::from_snake_case(map.get("half")?)?,
+            facing: SpruceStairsFacing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for SpruceStairsData {
     fn value(&self) -> usize {
-        (self.facing.value() * 20usize)
-            + (self.half.value() * 10usize)
-            + (self.shape.value() * 2usize)
+        (self.shape.value() * 16usize)
+            + (self.half.value() * 8usize)
+            + (self.facing.value() * 2usize)
             + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
-        let facing = SpruceStairsFacing::from_value(val / 20usize).unwrap();
-        val -= facing.value() * 20usize;
-        let half = SpruceStairsHalf::from_value(val / 10usize).unwrap();
-        val -= half.value() * 10usize;
-        let shape = SpruceStairsShape::from_value(val / 2usize).unwrap();
-        val -= shape.value() * 2usize;
+        let shape = SpruceStairsShape::from_value(val / 16usize).unwrap();
+        val -= (shape.value() - 0usize) * 16usize;
+        let half = SpruceStairsHalf::from_value(val / 8usize).unwrap();
+        val -= (half.value() - 0usize) * 8usize;
+        let facing = SpruceStairsFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            facing,
-            half,
             shape,
+            half,
+            facing,
             waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BirchStairsData {
-    pub waterlogged: bool,
     pub half: BirchStairsHalf,
     pub facing: BirchStairsFacing,
+    pub waterlogged: bool,
     pub shape: BirchStairsShape,
 }
 impl BirchStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             half: BirchStairsHalf::from_snake_case(map.get("half")?)?,
             facing: BirchStairsFacing::from_snake_case(map.get("facing")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             shape: BirchStairsShape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
         m
     }
 }
 impl Value for BirchStairsData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 40usize)
-            + (self.half.value() * 20usize)
-            + (self.facing.value() * 5usize)
+        (self.half.value() * 40usize)
+            + (self.facing.value() * 10usize)
+            + (self.waterlogged.value() * 5usize)
             + (self.shape.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 40usize).unwrap();
-        val -= waterlogged.value() * 40usize;
-        let half = BirchStairsHalf::from_value(val / 20usize).unwrap();
-        val -= half.value() * 20usize;
-        let facing = BirchStairsFacing::from_value(val / 5usize).unwrap();
-        val -= facing.value() * 5usize;
+        let half = BirchStairsHalf::from_value(val / 40usize).unwrap();
+        val -= (half.value() - 0usize) * 40usize;
+        let facing = BirchStairsFacing::from_value(val / 10usize).unwrap();
+        val -= (facing.value() - 0usize) * 10usize;
+        let waterlogged = bool::from_value(val / 5usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 5usize;
         let shape = BirchStairsShape::from_value(val / 1usize).unwrap();
+        val -= (shape.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
             half,
             facing,
+            waterlogged,
             shape,
         })
     }
@@ -10929,52 +11066,53 @@ impl Value for BirchStairsData {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct JungleStairsData {
     pub shape: JungleStairsShape,
-    pub facing: JungleStairsFacing,
-    pub waterlogged: bool,
     pub half: JungleStairsHalf,
+    pub waterlogged: bool,
+    pub facing: JungleStairsFacing,
 }
 impl JungleStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             shape: JungleStairsShape::from_snake_case(map.get("shape")?)?,
-            facing: JungleStairsFacing::from_snake_case(map.get("facing")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             half: JungleStairsHalf::from_snake_case(map.get("half")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            facing: JungleStairsFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("shape".to_string(), self.shape.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for JungleStairsData {
     fn value(&self) -> usize {
         (self.shape.value() * 16usize)
-            + (self.facing.value() * 4usize)
-            + (self.waterlogged.value() * 2usize)
-            + (self.half.value() * 1usize)
+            + (self.half.value() * 8usize)
+            + (self.waterlogged.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
         let shape = JungleStairsShape::from_value(val / 16usize).unwrap();
-        val -= shape.value() * 16usize;
-        let facing = JungleStairsFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let waterlogged = bool::from_value(val / 2usize).unwrap();
-        val -= waterlogged.value() * 2usize;
-        let half = JungleStairsHalf::from_value(val / 1usize).unwrap();
+        val -= (shape.value() - 0usize) * 16usize;
+        let half = JungleStairsHalf::from_value(val / 8usize).unwrap();
+        val -= (half.value() - 0usize) * 8usize;
+        let waterlogged = bool::from_value(val / 4usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 4usize;
+        let facing = JungleStairsFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
             shape,
-            facing,
-            waterlogged,
             half,
+            waterlogged,
+            facing,
         })
     }
 }
@@ -11003,12 +11141,13 @@ impl Value for CommandBlockData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
         let facing = CommandBlockFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (facing.value() - 0usize) * 2usize;
         let conditional = bool::from_value(val / 1usize).unwrap();
+        val -= (conditional.value() - 0usize) * 1usize;
         Some(Self {
             facing,
             conditional,
@@ -11017,133 +11156,135 @@ impl Value for CommandBlockData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct CobblestoneWallData {
-    pub west: bool,
-    pub waterlogged: bool,
-    pub up: bool,
-    pub east: bool,
     pub north: bool,
+    pub east: bool,
     pub south: bool,
+    pub up: bool,
+    pub waterlogged: bool,
+    pub west: bool,
 }
 impl CobblestoneWallData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            west: bool::from_snake_case(map.get("west")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            up: bool::from_snake_case(map.get("up")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
+            up: bool::from_snake_case(map.get("up")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("up".to_string(), self.up.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("up".to_string(), self.up.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m
     }
 }
 impl Value for CobblestoneWallData {
     fn value(&self) -> usize {
-        (self.west.value() * 32usize)
-            + (self.waterlogged.value() * 16usize)
-            + (self.up.value() * 8usize)
-            + (self.east.value() * 4usize)
-            + (self.north.value() * 2usize)
-            + (self.south.value() * 1usize)
+        (self.north.value() * 32usize)
+            + (self.east.value() * 16usize)
+            + (self.south.value() * 8usize)
+            + (self.up.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.west.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let west = bool::from_value(val / 32usize).unwrap();
-        val -= west.value() * 32usize;
-        let waterlogged = bool::from_value(val / 16usize).unwrap();
-        val -= waterlogged.value() * 16usize;
-        let up = bool::from_value(val / 8usize).unwrap();
-        val -= up.value() * 8usize;
-        let east = bool::from_value(val / 4usize).unwrap();
-        val -= east.value() * 4usize;
-        let north = bool::from_value(val / 2usize).unwrap();
-        val -= north.value() * 2usize;
-        let south = bool::from_value(val / 1usize).unwrap();
+        let north = bool::from_value(val / 32usize).unwrap();
+        val -= (north.value() - 0usize) * 32usize;
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
+        let south = bool::from_value(val / 8usize).unwrap();
+        val -= (south.value() - 0usize) * 8usize;
+        let up = bool::from_value(val / 4usize).unwrap();
+        val -= (up.value() - 0usize) * 4usize;
+        let waterlogged = bool::from_value(val / 2usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 2usize;
+        let west = bool::from_value(val / 1usize).unwrap();
+        val -= (west.value() - 0usize) * 1usize;
         Some(Self {
-            west,
-            waterlogged,
-            up,
-            east,
             north,
+            east,
             south,
+            up,
+            waterlogged,
+            west,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct MossyCobblestoneWallData {
-    pub north: bool,
     pub waterlogged: bool,
     pub south: bool,
-    pub up: bool,
-    pub west: bool,
+    pub north: bool,
     pub east: bool,
+    pub west: bool,
+    pub up: bool,
 }
 impl MossyCobblestoneWallData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            north: bool::from_snake_case(map.get("north")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
-            up: bool::from_snake_case(map.get("up")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            up: bool::from_snake_case(map.get("up")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("up".to_string(), self.up.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("up".to_string(), self.up.to_snake_case());
         m
     }
 }
 impl Value for MossyCobblestoneWallData {
     fn value(&self) -> usize {
-        (self.north.value() * 32usize)
-            + (self.waterlogged.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.up.value() * 4usize)
+        (self.waterlogged.value() * 32usize)
+            + (self.south.value() * 16usize)
+            + (self.north.value() * 8usize)
+            + (self.east.value() * 4usize)
             + (self.west.value() * 2usize)
-            + (self.east.value() * 1usize)
+            + (self.up.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let north = bool::from_value(val / 32usize).unwrap();
-        val -= north.value() * 32usize;
-        let waterlogged = bool::from_value(val / 16usize).unwrap();
-        val -= waterlogged.value() * 16usize;
-        let south = bool::from_value(val / 8usize).unwrap();
-        val -= south.value() * 8usize;
-        let up = bool::from_value(val / 4usize).unwrap();
-        val -= up.value() * 4usize;
+        let waterlogged = bool::from_value(val / 32usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 32usize;
+        let south = bool::from_value(val / 16usize).unwrap();
+        val -= (south.value() - 0usize) * 16usize;
+        let north = bool::from_value(val / 8usize).unwrap();
+        val -= (north.value() - 0usize) * 8usize;
+        let east = bool::from_value(val / 4usize).unwrap();
+        val -= (east.value() - 0usize) * 4usize;
         let west = bool::from_value(val / 2usize).unwrap();
-        val -= west.value() * 2usize;
-        let east = bool::from_value(val / 1usize).unwrap();
+        val -= (west.value() - 0usize) * 2usize;
+        let up = bool::from_value(val / 1usize).unwrap();
+        val -= (up.value() - 0usize) * 1usize;
         Some(Self {
-            north,
             waterlogged,
             south,
-            up,
-            west,
+            north,
             east,
+            west,
+            up,
         })
     }
 }
@@ -11169,10 +11310,11 @@ impl Value for CarrotsData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
         Some(Self { age })
     }
 }
@@ -11198,171 +11340,37 @@ impl Value for PotatoesData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
         Some(Self { age })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct OakButtonData {
-    pub powered: bool,
-    pub facing: OakButtonFacing,
     pub face: OakButtonFace,
+    pub facing: OakButtonFacing,
+    pub powered: bool,
 }
 impl OakButtonData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            facing: OakButtonFacing::from_snake_case(map.get("facing")?)?,
             face: OakButtonFace::from_snake_case(map.get("face")?)?,
+            facing: OakButtonFacing::from_snake_case(map.get("facing")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("face".to_string(), self.face.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for OakButtonData {
-    fn value(&self) -> usize {
-        (self.powered.value() * 12usize)
-            + (self.facing.value() * 3usize)
-            + (self.face.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 24usize {
-            return None;
-        }
-        let powered = bool::from_value(val / 12usize).unwrap();
-        val -= powered.value() * 12usize;
-        let facing = OakButtonFacing::from_value(val / 3usize).unwrap();
-        val -= facing.value() * 3usize;
-        let face = OakButtonFace::from_value(val / 1usize).unwrap();
-        Some(Self {
-            powered,
-            facing,
-            face,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct SpruceButtonData {
-    pub facing: SpruceButtonFacing,
-    pub face: SpruceButtonFace,
-    pub powered: bool,
-}
-impl SpruceButtonData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            facing: SpruceButtonFacing::from_snake_case(map.get("facing")?)?,
-            face: SpruceButtonFace::from_snake_case(map.get("face")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("face".to_string(), self.face.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m
-    }
-}
-impl Value for SpruceButtonData {
-    fn value(&self) -> usize {
-        (self.facing.value() * 6usize)
-            + (self.face.value() * 2usize)
-            + (self.powered.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 24usize {
-            return None;
-        }
-        let facing = SpruceButtonFacing::from_value(val / 6usize).unwrap();
-        val -= facing.value() * 6usize;
-        let face = SpruceButtonFace::from_value(val / 2usize).unwrap();
-        val -= face.value() * 2usize;
-        let powered = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            facing,
-            face,
-            powered,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct BirchButtonData {
-    pub powered: bool,
-    pub face: BirchButtonFace,
-    pub facing: BirchButtonFacing,
-}
-impl BirchButtonData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            face: BirchButtonFace::from_snake_case(map.get("face")?)?,
-            facing: BirchButtonFacing::from_snake_case(map.get("facing")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("face".to_string(), self.face.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m
-    }
-}
-impl Value for BirchButtonData {
-    fn value(&self) -> usize {
-        (self.powered.value() * 12usize)
-            + (self.face.value() * 4usize)
-            + (self.facing.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 24usize {
-            return None;
-        }
-        let powered = bool::from_value(val / 12usize).unwrap();
-        val -= powered.value() * 12usize;
-        let face = BirchButtonFace::from_value(val / 4usize).unwrap();
-        val -= face.value() * 4usize;
-        let facing = BirchButtonFacing::from_value(val / 1usize).unwrap();
-        Some(Self {
-            powered,
-            face,
-            facing,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct JungleButtonData {
-    pub face: JungleButtonFace,
-    pub facing: JungleButtonFacing,
-    pub powered: bool,
-}
-impl JungleButtonData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            face: JungleButtonFace::from_snake_case(map.get("face")?)?,
-            facing: JungleButtonFacing::from_snake_case(map.get("facing")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("face".to_string(), self.face.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m
-    }
-}
-impl Value for JungleButtonData {
     fn value(&self) -> usize {
         (self.face.value() * 8usize)
             + (self.facing.value() * 2usize)
@@ -11370,14 +11378,15 @@ impl Value for JungleButtonData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 24usize {
+        if val >= 24usize {
             return None;
         }
-        let face = JungleButtonFace::from_value(val / 8usize).unwrap();
-        val -= face.value() * 8usize;
-        let facing = JungleButtonFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        let face = OakButtonFace::from_value(val / 8usize).unwrap();
+        val -= (face.value() - 0usize) * 8usize;
+        let facing = OakButtonFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
         let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self {
             face,
             facing,
@@ -11386,17 +11395,109 @@ impl Value for JungleButtonData {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct AcaciaButtonData {
-    pub facing: AcaciaButtonFacing,
+pub struct SpruceButtonData {
+    pub face: SpruceButtonFace,
     pub powered: bool,
-    pub face: AcaciaButtonFace,
+    pub facing: SpruceButtonFacing,
 }
-impl AcaciaButtonData {
+impl SpruceButtonData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: AcaciaButtonFacing::from_snake_case(map.get("facing")?)?,
+            face: SpruceButtonFace::from_snake_case(map.get("face")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
-            face: AcaciaButtonFace::from_snake_case(map.get("face")?)?,
+            facing: SpruceButtonFacing::from_snake_case(map.get("facing")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("face".to_string(), self.face.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m
+    }
+}
+impl Value for SpruceButtonData {
+    fn value(&self) -> usize {
+        (self.face.value() * 8usize)
+            + (self.powered.value() * 4usize)
+            + (self.facing.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 24usize {
+            return None;
+        }
+        let face = SpruceButtonFace::from_value(val / 8usize).unwrap();
+        val -= (face.value() - 0usize) * 8usize;
+        let powered = bool::from_value(val / 4usize).unwrap();
+        val -= (powered.value() - 0usize) * 4usize;
+        let facing = SpruceButtonFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
+        Some(Self {
+            face,
+            powered,
+            facing,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct BirchButtonData {
+    pub facing: BirchButtonFacing,
+    pub face: BirchButtonFace,
+    pub powered: bool,
+}
+impl BirchButtonData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            facing: BirchButtonFacing::from_snake_case(map.get("facing")?)?,
+            face: BirchButtonFace::from_snake_case(map.get("face")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("face".to_string(), self.face.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m
+    }
+}
+impl Value for BirchButtonData {
+    fn value(&self) -> usize {
+        (self.facing.value() * 6usize)
+            + (self.face.value() * 2usize)
+            + (self.powered.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 24usize {
+            return None;
+        }
+        let facing = BirchButtonFacing::from_value(val / 6usize).unwrap();
+        val -= (facing.value() - 0usize) * 6usize;
+        let face = BirchButtonFace::from_value(val / 2usize).unwrap();
+        val -= (face.value() - 0usize) * 2usize;
+        let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
+        Some(Self {
+            facing,
+            face,
+            powered,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct JungleButtonData {
+    pub facing: JungleButtonFacing,
+    pub powered: bool,
+    pub face: JungleButtonFace,
+}
+impl JungleButtonData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            facing: JungleButtonFacing::from_snake_case(map.get("facing")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            face: JungleButtonFace::from_snake_case(map.get("face")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
@@ -11407,7 +11508,7 @@ impl AcaciaButtonData {
         m
     }
 }
-impl Value for AcaciaButtonData {
+impl Value for JungleButtonData {
     fn value(&self) -> usize {
         (self.facing.value() * 6usize)
             + (self.powered.value() * 3usize)
@@ -11415,18 +11516,65 @@ impl Value for AcaciaButtonData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 24usize {
+        if val >= 24usize {
             return None;
         }
-        let facing = AcaciaButtonFacing::from_value(val / 6usize).unwrap();
-        val -= facing.value() * 6usize;
+        let facing = JungleButtonFacing::from_value(val / 6usize).unwrap();
+        val -= (facing.value() - 0usize) * 6usize;
         let powered = bool::from_value(val / 3usize).unwrap();
-        val -= powered.value() * 3usize;
-        let face = AcaciaButtonFace::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 3usize;
+        let face = JungleButtonFace::from_value(val / 1usize).unwrap();
+        val -= (face.value() - 0usize) * 1usize;
         Some(Self {
             facing,
             powered,
             face,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct AcaciaButtonData {
+    pub powered: bool,
+    pub face: AcaciaButtonFace,
+    pub facing: AcaciaButtonFacing,
+}
+impl AcaciaButtonData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            face: AcaciaButtonFace::from_snake_case(map.get("face")?)?,
+            facing: AcaciaButtonFacing::from_snake_case(map.get("facing")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("face".to_string(), self.face.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m
+    }
+}
+impl Value for AcaciaButtonData {
+    fn value(&self) -> usize {
+        (self.powered.value() * 12usize)
+            + (self.face.value() * 4usize)
+            + (self.facing.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 24usize {
+            return None;
+        }
+        let powered = bool::from_value(val / 12usize).unwrap();
+        val -= (powered.value() - 0usize) * 12usize;
+        let face = AcaciaButtonFace::from_value(val / 4usize).unwrap();
+        val -= (face.value() - 0usize) * 4usize;
+        let facing = AcaciaButtonFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
+        Some(Self {
+            powered,
+            face,
+            facing,
         })
     }
 }
@@ -11460,14 +11608,15 @@ impl Value for DarkOakButtonData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 24usize {
+        if val >= 24usize {
             return None;
         }
         let face = DarkOakButtonFace::from_value(val / 8usize).unwrap();
-        val -= face.value() * 8usize;
+        val -= (face.value() - 0usize) * 8usize;
         let facing = DarkOakButtonFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (facing.value() - 0usize) * 2usize;
         let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self {
             face,
             facing,
@@ -11497,10 +11646,11 @@ impl Value for SkeletonWallSkullData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = SkeletonWallSkullFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -11526,10 +11676,11 @@ impl Value for SkeletonSkullData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -11555,10 +11706,11 @@ impl Value for WitherSkeletonWallSkullData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = WitherSkeletonWallSkullFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -11584,10 +11736,11 @@ impl Value for WitherSkeletonSkullData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -11613,10 +11766,11 @@ impl Value for ZombieWallHeadData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = ZombieWallHeadFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -11642,10 +11796,11 @@ impl Value for ZombieHeadData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -11671,10 +11826,11 @@ impl Value for PlayerWallHeadData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = PlayerWallHeadFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -11700,10 +11856,11 @@ impl Value for PlayerHeadData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -11729,10 +11886,11 @@ impl Value for CreeperWallHeadData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = CreeperWallHeadFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -11758,10 +11916,11 @@ impl Value for CreeperHeadData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -11787,10 +11946,11 @@ impl Value for DragonWallHeadData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = DragonWallHeadFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -11816,10 +11976,11 @@ impl Value for DragonHeadData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -11845,10 +12006,11 @@ impl Value for AnvilData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = AnvilFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -11874,10 +12036,11 @@ impl Value for ChippedAnvilData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = ChippedAnvilFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -11903,55 +12066,57 @@ impl Value for DamagedAnvilData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = DamagedAnvilFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TrappedChestData {
-    pub ty: TrappedChestType,
     pub facing: TrappedChestFacing,
     pub waterlogged: bool,
+    pub ty: TrappedChestType,
 }
 impl TrappedChestData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            ty: TrappedChestType::from_snake_case(map.get("type")?)?,
             facing: TrappedChestFacing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            ty: TrappedChestType::from_snake_case(map.get("type")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("type".to_string(), self.ty.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("type".to_string(), self.ty.to_snake_case());
         m
     }
 }
 impl Value for TrappedChestData {
     fn value(&self) -> usize {
-        (self.ty.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
+        (self.facing.value() * 6usize)
+            + (self.waterlogged.value() * 3usize)
+            + (self.ty.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 24usize {
+        if val >= 24usize {
             return None;
         }
-        let ty = TrappedChestType::from_value(val / 8usize).unwrap();
-        val -= ty.value() * 8usize;
-        let facing = TrappedChestFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        let facing = TrappedChestFacing::from_value(val / 6usize).unwrap();
+        val -= (facing.value() - 0usize) * 6usize;
+        let waterlogged = bool::from_value(val / 3usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 3usize;
+        let ty = TrappedChestType::from_value(val / 1usize).unwrap();
+        val -= (ty.value() - 0usize) * 1usize;
         Some(Self {
-            ty,
             facing,
             waterlogged,
+            ty,
         })
     }
 }
@@ -11977,10 +12142,11 @@ impl Value for LightWeightedPressurePlateData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let power = i32::from_value(val / 1usize).unwrap();
+        val -= (power.value() - 0usize) * 1usize;
         Some(Self { power })
     }
 }
@@ -12006,55 +12172,57 @@ impl Value for HeavyWeightedPressurePlateData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let power = i32::from_value(val / 1usize).unwrap();
+        val -= (power.value() - 0usize) * 1usize;
         Some(Self { power })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ComparatorData {
     pub facing: ComparatorFacing,
-    pub mode: ComparatorMode,
     pub powered: bool,
+    pub mode: ComparatorMode,
 }
 impl ComparatorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             facing: ComparatorFacing::from_snake_case(map.get("facing")?)?,
-            mode: ComparatorMode::from_snake_case(map.get("mode")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
+            mode: ComparatorMode::from_snake_case(map.get("mode")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("mode".to_string(), self.mode.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("mode".to_string(), self.mode.to_snake_case());
         m
     }
 }
 impl Value for ComparatorData {
     fn value(&self) -> usize {
         (self.facing.value() * 4usize)
-            + (self.mode.value() * 2usize)
-            + (self.powered.value() * 1usize)
+            + (self.powered.value() * 2usize)
+            + (self.mode.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let facing = ComparatorFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let mode = ComparatorMode::from_value(val / 2usize).unwrap();
-        val -= mode.value() * 2usize;
-        let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 4usize;
+        let powered = bool::from_value(val / 2usize).unwrap();
+        val -= (powered.value() - 0usize) * 2usize;
+        let mode = ComparatorMode::from_value(val / 1usize).unwrap();
+        val -= (mode.value() - 0usize) * 1usize;
         Some(Self {
             facing,
-            mode,
             powered,
+            mode,
         })
     }
 }
@@ -12083,12 +12251,13 @@ impl Value for DaylightDetectorData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
         let power = i32::from_value(val / 2usize).unwrap();
-        val -= power.value() * 2usize;
+        val -= (power.value() - 0usize) * 2usize;
         let inverted = bool::from_value(val / 1usize).unwrap();
+        val -= (inverted.value() - 0usize) * 1usize;
         Some(Self { power, inverted })
     }
 }
@@ -12117,12 +12286,13 @@ impl Value for HopperData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 10usize {
+        if val >= 10usize {
             return None;
         }
         let enabled = bool::from_value(val / 5usize).unwrap();
-        val -= enabled.value() * 5usize;
+        val -= (enabled.value() - 0usize) * 5usize;
         let facing = HopperFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { enabled, facing })
     }
 }
@@ -12148,10 +12318,11 @@ impl Value for QuartzPillarData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = QuartzPillarAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -12189,16 +12360,17 @@ impl Value for QuartzStairsData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
         let facing = QuartzStairsFacing::from_value(val / 20usize).unwrap();
-        val -= facing.value() * 20usize;
+        val -= (facing.value() - 0usize) * 20usize;
         let half = QuartzStairsHalf::from_value(val / 10usize).unwrap();
-        val -= half.value() * 10usize;
+        val -= (half.value() - 0usize) * 10usize;
         let waterlogged = bool::from_value(val / 5usize).unwrap();
-        val -= waterlogged.value() * 5usize;
+        val -= (waterlogged.value() - 0usize) * 5usize;
         let shape = QuartzStairsShape::from_value(val / 1usize).unwrap();
+        val -= (shape.value() - 0usize) * 1usize;
         Some(Self {
             facing,
             half,
@@ -12209,691 +12381,103 @@ impl Value for QuartzStairsData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ActivatorRailData {
-    pub shape: ActivatorRailShape,
     pub powered: bool,
+    pub shape: ActivatorRailShape,
 }
 impl ActivatorRailData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            shape: ActivatorRailShape::from_snake_case(map.get("shape")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
+            shape: ActivatorRailShape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("shape".to_string(), self.shape.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
         m
     }
 }
 impl Value for ActivatorRailData {
     fn value(&self) -> usize {
-        (self.shape.value() * 2usize) + (self.powered.value() * 1usize)
+        (self.powered.value() * 6usize) + (self.shape.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
-        let shape = ActivatorRailShape::from_value(val / 2usize).unwrap();
-        val -= shape.value() * 2usize;
-        let powered = bool::from_value(val / 1usize).unwrap();
-        Some(Self { shape, powered })
+        let powered = bool::from_value(val / 6usize).unwrap();
+        val -= (powered.value() - 0usize) * 6usize;
+        let shape = ActivatorRailShape::from_value(val / 1usize).unwrap();
+        val -= (shape.value() - 0usize) * 1usize;
+        Some(Self { powered, shape })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DropperData {
-    pub triggered: bool,
     pub facing: DropperFacing,
+    pub triggered: bool,
 }
 impl DropperData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            triggered: bool::from_snake_case(map.get("triggered")?)?,
             facing: DropperFacing::from_snake_case(map.get("facing")?)?,
+            triggered: bool::from_snake_case(map.get("triggered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("triggered".to_string(), self.triggered.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("triggered".to_string(), self.triggered.to_snake_case());
         m
     }
 }
 impl Value for DropperData {
     fn value(&self) -> usize {
-        (self.triggered.value() * 6usize) + (self.facing.value() * 1usize)
+        (self.facing.value() * 2usize) + (self.triggered.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
-        let triggered = bool::from_value(val / 6usize).unwrap();
-        val -= triggered.value() * 6usize;
-        let facing = DropperFacing::from_value(val / 1usize).unwrap();
-        Some(Self { triggered, facing })
+        let facing = DropperFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let triggered = bool::from_value(val / 1usize).unwrap();
+        val -= (triggered.value() - 0usize) * 1usize;
+        Some(Self { facing, triggered })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct WhiteStainedGlassPaneData {
-    pub south: bool,
-    pub north: bool,
-    pub east: bool,
     pub waterlogged: bool,
     pub west: bool,
+    pub east: bool,
+    pub north: bool,
+    pub south: bool,
 }
 impl WhiteStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            south: bool::from_snake_case(map.get("south")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m
     }
 }
 impl Value for WhiteStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.south.value() * 16usize)
-            + (self.north.value() * 8usize)
-            + (self.east.value() * 4usize)
-            + (self.waterlogged.value() * 2usize)
-            + (self.west.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
-            return None;
-        }
-        let south = bool::from_value(val / 16usize).unwrap();
-        val -= south.value() * 16usize;
-        let north = bool::from_value(val / 8usize).unwrap();
-        val -= north.value() * 8usize;
-        let east = bool::from_value(val / 4usize).unwrap();
-        val -= east.value() * 4usize;
-        let waterlogged = bool::from_value(val / 2usize).unwrap();
-        val -= waterlogged.value() * 2usize;
-        let west = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            south,
-            north,
-            east,
-            waterlogged,
-            west,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct OrangeStainedGlassPaneData {
-    pub waterlogged: bool,
-    pub north: bool,
-    pub west: bool,
-    pub south: bool,
-    pub east: bool,
-}
-impl OrangeStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m
-    }
-}
-impl Value for OrangeStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.waterlogged.value() * 16usize)
-            + (self.north.value() * 8usize)
-            + (self.west.value() * 4usize)
-            + (self.south.value() * 2usize)
-            + (self.east.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
-            return None;
-        }
-        let waterlogged = bool::from_value(val / 16usize).unwrap();
-        val -= waterlogged.value() * 16usize;
-        let north = bool::from_value(val / 8usize).unwrap();
-        val -= north.value() * 8usize;
-        let west = bool::from_value(val / 4usize).unwrap();
-        val -= west.value() * 4usize;
-        let south = bool::from_value(val / 2usize).unwrap();
-        val -= south.value() * 2usize;
-        let east = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            waterlogged,
-            north,
-            west,
-            south,
-            east,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct MagentaStainedGlassPaneData {
-    pub south: bool,
-    pub waterlogged: bool,
-    pub east: bool,
-    pub west: bool,
-    pub north: bool,
-}
-impl MagentaStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            south: bool::from_snake_case(map.get("south")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m
-    }
-}
-impl Value for MagentaStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.south.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
-            + (self.east.value() * 4usize)
-            + (self.west.value() * 2usize)
-            + (self.north.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
-            return None;
-        }
-        let south = bool::from_value(val / 16usize).unwrap();
-        val -= south.value() * 16usize;
-        let waterlogged = bool::from_value(val / 8usize).unwrap();
-        val -= waterlogged.value() * 8usize;
-        let east = bool::from_value(val / 4usize).unwrap();
-        val -= east.value() * 4usize;
-        let west = bool::from_value(val / 2usize).unwrap();
-        val -= west.value() * 2usize;
-        let north = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            south,
-            waterlogged,
-            east,
-            west,
-            north,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct LightBlueStainedGlassPaneData {
-    pub west: bool,
-    pub east: bool,
-    pub north: bool,
-    pub south: bool,
-    pub waterlogged: bool,
-}
-impl LightBlueStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            west: bool::from_snake_case(map.get("west")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m
-    }
-}
-impl Value for LightBlueStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.west.value() * 16usize)
-            + (self.east.value() * 8usize)
-            + (self.north.value() * 4usize)
-            + (self.south.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
-            return None;
-        }
-        let west = bool::from_value(val / 16usize).unwrap();
-        val -= west.value() * 16usize;
-        let east = bool::from_value(val / 8usize).unwrap();
-        val -= east.value() * 8usize;
-        let north = bool::from_value(val / 4usize).unwrap();
-        val -= north.value() * 4usize;
-        let south = bool::from_value(val / 2usize).unwrap();
-        val -= south.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            west,
-            east,
-            north,
-            south,
-            waterlogged,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct YellowStainedGlassPaneData {
-    pub east: bool,
-    pub north: bool,
-    pub south: bool,
-    pub waterlogged: bool,
-    pub west: bool,
-}
-impl YellowStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m
-    }
-}
-impl Value for YellowStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.east.value() * 16usize)
-            + (self.north.value() * 8usize)
-            + (self.south.value() * 4usize)
-            + (self.waterlogged.value() * 2usize)
-            + (self.west.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
-            return None;
-        }
-        let east = bool::from_value(val / 16usize).unwrap();
-        val -= east.value() * 16usize;
-        let north = bool::from_value(val / 8usize).unwrap();
-        val -= north.value() * 8usize;
-        let south = bool::from_value(val / 4usize).unwrap();
-        val -= south.value() * 4usize;
-        let waterlogged = bool::from_value(val / 2usize).unwrap();
-        val -= waterlogged.value() * 2usize;
-        let west = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            east,
-            north,
-            south,
-            waterlogged,
-            west,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct LimeStainedGlassPaneData {
-    pub south: bool,
-    pub east: bool,
-    pub west: bool,
-    pub waterlogged: bool,
-    pub north: bool,
-}
-impl LimeStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            south: bool::from_snake_case(map.get("south")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m
-    }
-}
-impl Value for LimeStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.south.value() * 16usize)
-            + (self.east.value() * 8usize)
-            + (self.west.value() * 4usize)
-            + (self.waterlogged.value() * 2usize)
-            + (self.north.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
-            return None;
-        }
-        let south = bool::from_value(val / 16usize).unwrap();
-        val -= south.value() * 16usize;
-        let east = bool::from_value(val / 8usize).unwrap();
-        val -= east.value() * 8usize;
-        let west = bool::from_value(val / 4usize).unwrap();
-        val -= west.value() * 4usize;
-        let waterlogged = bool::from_value(val / 2usize).unwrap();
-        val -= waterlogged.value() * 2usize;
-        let north = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            south,
-            east,
-            west,
-            waterlogged,
-            north,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct PinkStainedGlassPaneData {
-    pub north: bool,
-    pub south: bool,
-    pub waterlogged: bool,
-    pub west: bool,
-    pub east: bool,
-}
-impl PinkStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            north: bool::from_snake_case(map.get("north")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m
-    }
-}
-impl Value for PinkStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.north.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.west.value() * 2usize)
-            + (self.east.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
-            return None;
-        }
-        let north = bool::from_value(val / 16usize).unwrap();
-        val -= north.value() * 16usize;
-        let south = bool::from_value(val / 8usize).unwrap();
-        val -= south.value() * 8usize;
-        let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
-        let west = bool::from_value(val / 2usize).unwrap();
-        val -= west.value() * 2usize;
-        let east = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            north,
-            south,
-            waterlogged,
-            west,
-            east,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct GrayStainedGlassPaneData {
-    pub west: bool,
-    pub north: bool,
-    pub south: bool,
-    pub east: bool,
-    pub waterlogged: bool,
-}
-impl GrayStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            west: bool::from_snake_case(map.get("west")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m
-    }
-}
-impl Value for GrayStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.west.value() * 16usize)
-            + (self.north.value() * 8usize)
-            + (self.south.value() * 4usize)
-            + (self.east.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
-            return None;
-        }
-        let west = bool::from_value(val / 16usize).unwrap();
-        val -= west.value() * 16usize;
-        let north = bool::from_value(val / 8usize).unwrap();
-        val -= north.value() * 8usize;
-        let south = bool::from_value(val / 4usize).unwrap();
-        val -= south.value() * 4usize;
-        let east = bool::from_value(val / 2usize).unwrap();
-        val -= east.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            west,
-            north,
-            south,
-            east,
-            waterlogged,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct LightGrayStainedGlassPaneData {
-    pub north: bool,
-    pub south: bool,
-    pub west: bool,
-    pub east: bool,
-    pub waterlogged: bool,
-}
-impl LightGrayStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            north: bool::from_snake_case(map.get("north")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m
-    }
-}
-impl Value for LightGrayStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.north.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.west.value() * 4usize)
-            + (self.east.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
-            return None;
-        }
-        let north = bool::from_value(val / 16usize).unwrap();
-        val -= north.value() * 16usize;
-        let south = bool::from_value(val / 8usize).unwrap();
-        val -= south.value() * 8usize;
-        let west = bool::from_value(val / 4usize).unwrap();
-        val -= west.value() * 4usize;
-        let east = bool::from_value(val / 2usize).unwrap();
-        val -= east.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            north,
-            south,
-            west,
-            east,
-            waterlogged,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct CyanStainedGlassPaneData {
-    pub east: bool,
-    pub south: bool,
-    pub waterlogged: bool,
-    pub west: bool,
-    pub north: bool,
-}
-impl CyanStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            east: bool::from_snake_case(map.get("east")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m
-    }
-}
-impl Value for CyanStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.east.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.west.value() * 2usize)
-            + (self.north.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
-            return None;
-        }
-        let east = bool::from_value(val / 16usize).unwrap();
-        val -= east.value() * 16usize;
-        let south = bool::from_value(val / 8usize).unwrap();
-        val -= south.value() * 8usize;
-        let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
-        let west = bool::from_value(val / 2usize).unwrap();
-        val -= west.value() * 2usize;
-        let north = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            east,
-            south,
-            waterlogged,
-            west,
-            north,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct PurpleStainedGlassPaneData {
-    pub waterlogged: bool,
-    pub west: bool,
-    pub east: bool,
-    pub north: bool,
-    pub south: bool,
-}
-impl PurpleStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m
-    }
-}
-impl Value for PurpleStainedGlassPaneData {
     fn value(&self) -> usize {
         (self.waterlogged.value() * 16usize)
             + (self.west.value() * 8usize)
@@ -12903,168 +12487,771 @@ impl Value for PurpleStainedGlassPaneData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 16usize).unwrap();
-        val -= waterlogged.value() * 16usize;
+        val -= (waterlogged.value() - 0usize) * 16usize;
         let west = bool::from_value(val / 8usize).unwrap();
-        val -= west.value() * 8usize;
+        val -= (west.value() - 0usize) * 8usize;
         let east = bool::from_value(val / 4usize).unwrap();
-        val -= east.value() * 4usize;
+        val -= (east.value() - 0usize) * 4usize;
         let north = bool::from_value(val / 2usize).unwrap();
-        val -= north.value() * 2usize;
+        val -= (north.value() - 0usize) * 2usize;
         let south = bool::from_value(val / 1usize).unwrap();
+        val -= (south.value() - 0usize) * 1usize;
         Some(Self {
             waterlogged,
             west,
             east,
             north,
             south,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct OrangeStainedGlassPaneData {
+    pub west: bool,
+    pub east: bool,
+    pub waterlogged: bool,
+    pub north: bool,
+    pub south: bool,
+}
+impl OrangeStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            west: bool::from_snake_case(map.get("west")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m
+    }
+}
+impl Value for OrangeStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.west.value() * 16usize)
+            + (self.east.value() * 8usize)
+            + (self.waterlogged.value() * 4usize)
+            + (self.north.value() * 2usize)
+            + (self.south.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 32usize {
+            return None;
+        }
+        let west = bool::from_value(val / 16usize).unwrap();
+        val -= (west.value() - 0usize) * 16usize;
+        let east = bool::from_value(val / 8usize).unwrap();
+        val -= (east.value() - 0usize) * 8usize;
+        let waterlogged = bool::from_value(val / 4usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 4usize;
+        let north = bool::from_value(val / 2usize).unwrap();
+        val -= (north.value() - 0usize) * 2usize;
+        let south = bool::from_value(val / 1usize).unwrap();
+        val -= (south.value() - 0usize) * 1usize;
+        Some(Self {
+            west,
+            east,
+            waterlogged,
+            north,
+            south,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct MagentaStainedGlassPaneData {
+    pub east: bool,
+    pub north: bool,
+    pub south: bool,
+    pub waterlogged: bool,
+    pub west: bool,
+}
+impl MagentaStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            east: bool::from_snake_case(map.get("east")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m
+    }
+}
+impl Value for MagentaStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.east.value() * 16usize)
+            + (self.north.value() * 8usize)
+            + (self.south.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.west.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 32usize {
+            return None;
+        }
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
+        let north = bool::from_value(val / 8usize).unwrap();
+        val -= (north.value() - 0usize) * 8usize;
+        let south = bool::from_value(val / 4usize).unwrap();
+        val -= (south.value() - 0usize) * 4usize;
+        let waterlogged = bool::from_value(val / 2usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 2usize;
+        let west = bool::from_value(val / 1usize).unwrap();
+        val -= (west.value() - 0usize) * 1usize;
+        Some(Self {
+            east,
+            north,
+            south,
+            waterlogged,
+            west,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct LightBlueStainedGlassPaneData {
+    pub north: bool,
+    pub waterlogged: bool,
+    pub west: bool,
+    pub east: bool,
+    pub south: bool,
+}
+impl LightBlueStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            north: bool::from_snake_case(map.get("north")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m
+    }
+}
+impl Value for LightBlueStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.north.value() * 16usize)
+            + (self.waterlogged.value() * 8usize)
+            + (self.west.value() * 4usize)
+            + (self.east.value() * 2usize)
+            + (self.south.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 32usize {
+            return None;
+        }
+        let north = bool::from_value(val / 16usize).unwrap();
+        val -= (north.value() - 0usize) * 16usize;
+        let waterlogged = bool::from_value(val / 8usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 8usize;
+        let west = bool::from_value(val / 4usize).unwrap();
+        val -= (west.value() - 0usize) * 4usize;
+        let east = bool::from_value(val / 2usize).unwrap();
+        val -= (east.value() - 0usize) * 2usize;
+        let south = bool::from_value(val / 1usize).unwrap();
+        val -= (south.value() - 0usize) * 1usize;
+        Some(Self {
+            north,
+            waterlogged,
+            west,
+            east,
+            south,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct YellowStainedGlassPaneData {
+    pub south: bool,
+    pub north: bool,
+    pub east: bool,
+    pub west: bool,
+    pub waterlogged: bool,
+}
+impl YellowStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            south: bool::from_snake_case(map.get("south")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m
+    }
+}
+impl Value for YellowStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.south.value() * 16usize)
+            + (self.north.value() * 8usize)
+            + (self.east.value() * 4usize)
+            + (self.west.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 32usize {
+            return None;
+        }
+        let south = bool::from_value(val / 16usize).unwrap();
+        val -= (south.value() - 0usize) * 16usize;
+        let north = bool::from_value(val / 8usize).unwrap();
+        val -= (north.value() - 0usize) * 8usize;
+        let east = bool::from_value(val / 4usize).unwrap();
+        val -= (east.value() - 0usize) * 4usize;
+        let west = bool::from_value(val / 2usize).unwrap();
+        val -= (west.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
+        Some(Self {
+            south,
+            north,
+            east,
+            west,
+            waterlogged,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct LimeStainedGlassPaneData {
+    pub east: bool,
+    pub south: bool,
+    pub waterlogged: bool,
+    pub north: bool,
+    pub west: bool,
+}
+impl LimeStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            east: bool::from_snake_case(map.get("east")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m
+    }
+}
+impl Value for LimeStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.east.value() * 16usize)
+            + (self.south.value() * 8usize)
+            + (self.waterlogged.value() * 4usize)
+            + (self.north.value() * 2usize)
+            + (self.west.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 32usize {
+            return None;
+        }
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
+        let south = bool::from_value(val / 8usize).unwrap();
+        val -= (south.value() - 0usize) * 8usize;
+        let waterlogged = bool::from_value(val / 4usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 4usize;
+        let north = bool::from_value(val / 2usize).unwrap();
+        val -= (north.value() - 0usize) * 2usize;
+        let west = bool::from_value(val / 1usize).unwrap();
+        val -= (west.value() - 0usize) * 1usize;
+        Some(Self {
+            east,
+            south,
+            waterlogged,
+            north,
+            west,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct PinkStainedGlassPaneData {
+    pub east: bool,
+    pub waterlogged: bool,
+    pub west: bool,
+    pub south: bool,
+    pub north: bool,
+}
+impl PinkStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            east: bool::from_snake_case(map.get("east")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m
+    }
+}
+impl Value for PinkStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.east.value() * 16usize)
+            + (self.waterlogged.value() * 8usize)
+            + (self.west.value() * 4usize)
+            + (self.south.value() * 2usize)
+            + (self.north.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 32usize {
+            return None;
+        }
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
+        let waterlogged = bool::from_value(val / 8usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 8usize;
+        let west = bool::from_value(val / 4usize).unwrap();
+        val -= (west.value() - 0usize) * 4usize;
+        let south = bool::from_value(val / 2usize).unwrap();
+        val -= (south.value() - 0usize) * 2usize;
+        let north = bool::from_value(val / 1usize).unwrap();
+        val -= (north.value() - 0usize) * 1usize;
+        Some(Self {
+            east,
+            waterlogged,
+            west,
+            south,
+            north,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct GrayStainedGlassPaneData {
+    pub west: bool,
+    pub waterlogged: bool,
+    pub east: bool,
+    pub south: bool,
+    pub north: bool,
+}
+impl GrayStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            west: bool::from_snake_case(map.get("west")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m
+    }
+}
+impl Value for GrayStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.west.value() * 16usize)
+            + (self.waterlogged.value() * 8usize)
+            + (self.east.value() * 4usize)
+            + (self.south.value() * 2usize)
+            + (self.north.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 32usize {
+            return None;
+        }
+        let west = bool::from_value(val / 16usize).unwrap();
+        val -= (west.value() - 0usize) * 16usize;
+        let waterlogged = bool::from_value(val / 8usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 8usize;
+        let east = bool::from_value(val / 4usize).unwrap();
+        val -= (east.value() - 0usize) * 4usize;
+        let south = bool::from_value(val / 2usize).unwrap();
+        val -= (south.value() - 0usize) * 2usize;
+        let north = bool::from_value(val / 1usize).unwrap();
+        val -= (north.value() - 0usize) * 1usize;
+        Some(Self {
+            west,
+            waterlogged,
+            east,
+            south,
+            north,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct LightGrayStainedGlassPaneData {
+    pub east: bool,
+    pub north: bool,
+    pub south: bool,
+    pub waterlogged: bool,
+    pub west: bool,
+}
+impl LightGrayStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            east: bool::from_snake_case(map.get("east")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m
+    }
+}
+impl Value for LightGrayStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.east.value() * 16usize)
+            + (self.north.value() * 8usize)
+            + (self.south.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.west.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 32usize {
+            return None;
+        }
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
+        let north = bool::from_value(val / 8usize).unwrap();
+        val -= (north.value() - 0usize) * 8usize;
+        let south = bool::from_value(val / 4usize).unwrap();
+        val -= (south.value() - 0usize) * 4usize;
+        let waterlogged = bool::from_value(val / 2usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 2usize;
+        let west = bool::from_value(val / 1usize).unwrap();
+        val -= (west.value() - 0usize) * 1usize;
+        Some(Self {
+            east,
+            north,
+            south,
+            waterlogged,
+            west,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct CyanStainedGlassPaneData {
+    pub south: bool,
+    pub waterlogged: bool,
+    pub west: bool,
+    pub north: bool,
+    pub east: bool,
+}
+impl CyanStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            south: bool::from_snake_case(map.get("south")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m
+    }
+}
+impl Value for CyanStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.south.value() * 16usize)
+            + (self.waterlogged.value() * 8usize)
+            + (self.west.value() * 4usize)
+            + (self.north.value() * 2usize)
+            + (self.east.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 32usize {
+            return None;
+        }
+        let south = bool::from_value(val / 16usize).unwrap();
+        val -= (south.value() - 0usize) * 16usize;
+        let waterlogged = bool::from_value(val / 8usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 8usize;
+        let west = bool::from_value(val / 4usize).unwrap();
+        val -= (west.value() - 0usize) * 4usize;
+        let north = bool::from_value(val / 2usize).unwrap();
+        val -= (north.value() - 0usize) * 2usize;
+        let east = bool::from_value(val / 1usize).unwrap();
+        val -= (east.value() - 0usize) * 1usize;
+        Some(Self {
+            south,
+            waterlogged,
+            west,
+            north,
+            east,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct PurpleStainedGlassPaneData {
+    pub east: bool,
+    pub south: bool,
+    pub north: bool,
+    pub waterlogged: bool,
+    pub west: bool,
+}
+impl PurpleStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            east: bool::from_snake_case(map.get("east")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m
+    }
+}
+impl Value for PurpleStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.east.value() * 16usize)
+            + (self.south.value() * 8usize)
+            + (self.north.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
+            + (self.west.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 32usize {
+            return None;
+        }
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
+        let south = bool::from_value(val / 8usize).unwrap();
+        val -= (south.value() - 0usize) * 8usize;
+        let north = bool::from_value(val / 4usize).unwrap();
+        val -= (north.value() - 0usize) * 4usize;
+        let waterlogged = bool::from_value(val / 2usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 2usize;
+        let west = bool::from_value(val / 1usize).unwrap();
+        val -= (west.value() - 0usize) * 1usize;
+        Some(Self {
+            east,
+            south,
+            north,
+            waterlogged,
+            west,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BlueStainedGlassPaneData {
     pub west: bool,
-    pub north: bool,
-    pub waterlogged: bool,
     pub south: bool,
+    pub north: bool,
     pub east: bool,
+    pub waterlogged: bool,
 }
 impl BlueStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             west: bool::from_snake_case(map.get("west")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for BlueStainedGlassPaneData {
     fn value(&self) -> usize {
         (self.west.value() * 16usize)
-            + (self.north.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.south.value() * 2usize)
-            + (self.east.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
-            return None;
-        }
-        let west = bool::from_value(val / 16usize).unwrap();
-        val -= west.value() * 16usize;
-        let north = bool::from_value(val / 8usize).unwrap();
-        val -= north.value() * 8usize;
-        let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
-        let south = bool::from_value(val / 2usize).unwrap();
-        val -= south.value() * 2usize;
-        let east = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            west,
-            north,
-            waterlogged,
-            south,
-            east,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct BrownStainedGlassPaneData {
-    pub west: bool,
-    pub north: bool,
-    pub south: bool,
-    pub east: bool,
-    pub waterlogged: bool,
-}
-impl BrownStainedGlassPaneData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            west: bool::from_snake_case(map.get("west")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m
-    }
-}
-impl Value for BrownStainedGlassPaneData {
-    fn value(&self) -> usize {
-        (self.west.value() * 16usize)
-            + (self.north.value() * 8usize)
-            + (self.south.value() * 4usize)
+            + (self.south.value() * 8usize)
+            + (self.north.value() * 4usize)
             + (self.east.value() * 2usize)
             + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
         let west = bool::from_value(val / 16usize).unwrap();
-        val -= west.value() * 16usize;
-        let north = bool::from_value(val / 8usize).unwrap();
-        val -= north.value() * 8usize;
-        let south = bool::from_value(val / 4usize).unwrap();
-        val -= south.value() * 4usize;
+        val -= (west.value() - 0usize) * 16usize;
+        let south = bool::from_value(val / 8usize).unwrap();
+        val -= (south.value() - 0usize) * 8usize;
+        let north = bool::from_value(val / 4usize).unwrap();
+        val -= (north.value() - 0usize) * 4usize;
         let east = bool::from_value(val / 2usize).unwrap();
-        val -= east.value() * 2usize;
+        val -= (east.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
             west,
-            north,
             south,
+            north,
             east,
             waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct GreenStainedGlassPaneData {
+pub struct BrownStainedGlassPaneData {
+    pub north: bool,
+    pub waterlogged: bool,
     pub east: bool,
     pub south: bool,
+    pub west: bool,
+}
+impl BrownStainedGlassPaneData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            north: bool::from_snake_case(map.get("north")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
+        m
+    }
+}
+impl Value for BrownStainedGlassPaneData {
+    fn value(&self) -> usize {
+        (self.north.value() * 16usize)
+            + (self.waterlogged.value() * 8usize)
+            + (self.east.value() * 4usize)
+            + (self.south.value() * 2usize)
+            + (self.west.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 32usize {
+            return None;
+        }
+        let north = bool::from_value(val / 16usize).unwrap();
+        val -= (north.value() - 0usize) * 16usize;
+        let waterlogged = bool::from_value(val / 8usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 8usize;
+        let east = bool::from_value(val / 4usize).unwrap();
+        val -= (east.value() - 0usize) * 4usize;
+        let south = bool::from_value(val / 2usize).unwrap();
+        val -= (south.value() - 0usize) * 2usize;
+        let west = bool::from_value(val / 1usize).unwrap();
+        val -= (west.value() - 0usize) * 1usize;
+        Some(Self {
+            north,
+            waterlogged,
+            east,
+            south,
+            west,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct GreenStainedGlassPaneData {
     pub north: bool,
+    pub east: bool,
+    pub south: bool,
     pub west: bool,
     pub waterlogged: bool,
 }
 impl GreenStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            north: bool::from_snake_case(map.get("north")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
@@ -13072,30 +13259,31 @@ impl GreenStainedGlassPaneData {
 }
 impl Value for GreenStainedGlassPaneData {
     fn value(&self) -> usize {
-        (self.east.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.north.value() * 4usize)
+        (self.north.value() * 16usize)
+            + (self.east.value() * 8usize)
+            + (self.south.value() * 4usize)
             + (self.west.value() * 2usize)
             + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let east = bool::from_value(val / 16usize).unwrap();
-        val -= east.value() * 16usize;
-        let south = bool::from_value(val / 8usize).unwrap();
-        val -= south.value() * 8usize;
-        let north = bool::from_value(val / 4usize).unwrap();
-        val -= north.value() * 4usize;
+        let north = bool::from_value(val / 16usize).unwrap();
+        val -= (north.value() - 0usize) * 16usize;
+        let east = bool::from_value(val / 8usize).unwrap();
+        val -= (east.value() - 0usize) * 8usize;
+        let south = bool::from_value(val / 4usize).unwrap();
+        val -= (south.value() - 0usize) * 4usize;
         let west = bool::from_value(val / 2usize).unwrap();
-        val -= west.value() * 2usize;
+        val -= (west.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
+            north,
             east,
             south,
-            north,
             west,
             waterlogged,
         })
@@ -13103,311 +13291,203 @@ impl Value for GreenStainedGlassPaneData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RedStainedGlassPaneData {
-    pub north: bool,
     pub east: bool,
+    pub north: bool,
     pub south: bool,
-    pub waterlogged: bool,
     pub west: bool,
+    pub waterlogged: bool,
 }
 impl RedStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            north: bool::from_snake_case(map.get("north")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for RedStainedGlassPaneData {
     fn value(&self) -> usize {
-        (self.north.value() * 16usize)
-            + (self.east.value() * 8usize)
+        (self.east.value() * 16usize)
+            + (self.north.value() * 8usize)
             + (self.south.value() * 4usize)
-            + (self.waterlogged.value() * 2usize)
-            + (self.west.value() * 1usize)
+            + (self.west.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let north = bool::from_value(val / 16usize).unwrap();
-        val -= north.value() * 16usize;
-        let east = bool::from_value(val / 8usize).unwrap();
-        val -= east.value() * 8usize;
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
+        let north = bool::from_value(val / 8usize).unwrap();
+        val -= (north.value() - 0usize) * 8usize;
         let south = bool::from_value(val / 4usize).unwrap();
-        val -= south.value() * 4usize;
-        let waterlogged = bool::from_value(val / 2usize).unwrap();
-        val -= waterlogged.value() * 2usize;
-        let west = bool::from_value(val / 1usize).unwrap();
+        val -= (south.value() - 0usize) * 4usize;
+        let west = bool::from_value(val / 2usize).unwrap();
+        val -= (west.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            north,
             east,
+            north,
             south,
-            waterlogged,
             west,
+            waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BlackStainedGlassPaneData {
-    pub west: bool,
+    pub north: bool,
     pub south: bool,
     pub waterlogged: bool,
-    pub north: bool,
+    pub west: bool,
     pub east: bool,
 }
 impl BlackStainedGlassPaneData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            west: bool::from_snake_case(map.get("west")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
         m
     }
 }
 impl Value for BlackStainedGlassPaneData {
     fn value(&self) -> usize {
-        (self.west.value() * 16usize)
+        (self.north.value() * 16usize)
             + (self.south.value() * 8usize)
             + (self.waterlogged.value() * 4usize)
-            + (self.north.value() * 2usize)
+            + (self.west.value() * 2usize)
             + (self.east.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let west = bool::from_value(val / 16usize).unwrap();
-        val -= west.value() * 16usize;
+        let north = bool::from_value(val / 16usize).unwrap();
+        val -= (north.value() - 0usize) * 16usize;
         let south = bool::from_value(val / 8usize).unwrap();
-        val -= south.value() * 8usize;
+        val -= (south.value() - 0usize) * 8usize;
         let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
-        let north = bool::from_value(val / 2usize).unwrap();
-        val -= north.value() * 2usize;
+        val -= (waterlogged.value() - 0usize) * 4usize;
+        let west = bool::from_value(val / 2usize).unwrap();
+        val -= (west.value() - 0usize) * 2usize;
         let east = bool::from_value(val / 1usize).unwrap();
+        val -= (east.value() - 0usize) * 1usize;
         Some(Self {
-            west,
+            north,
             south,
             waterlogged,
-            north,
+            west,
             east,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaStairsData {
-    pub waterlogged: bool,
-    pub facing: AcaciaStairsFacing,
     pub shape: AcaciaStairsShape,
+    pub facing: AcaciaStairsFacing,
+    pub waterlogged: bool,
     pub half: AcaciaStairsHalf,
 }
 impl AcaciaStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            facing: AcaciaStairsFacing::from_snake_case(map.get("facing")?)?,
             shape: AcaciaStairsShape::from_snake_case(map.get("shape")?)?,
+            facing: AcaciaStairsFacing::from_snake_case(map.get("facing")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             half: AcaciaStairsHalf::from_snake_case(map.get("half")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
         m
     }
 }
 impl Value for AcaciaStairsData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 40usize)
-            + (self.facing.value() * 10usize)
-            + (self.shape.value() * 2usize)
+        (self.shape.value() * 16usize)
+            + (self.facing.value() * 4usize)
+            + (self.waterlogged.value() * 2usize)
             + (self.half.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 40usize).unwrap();
-        val -= waterlogged.value() * 40usize;
-        let facing = AcaciaStairsFacing::from_value(val / 10usize).unwrap();
-        val -= facing.value() * 10usize;
-        let shape = AcaciaStairsShape::from_value(val / 2usize).unwrap();
-        val -= shape.value() * 2usize;
+        let shape = AcaciaStairsShape::from_value(val / 16usize).unwrap();
+        val -= (shape.value() - 0usize) * 16usize;
+        let facing = AcaciaStairsFacing::from_value(val / 4usize).unwrap();
+        val -= (facing.value() - 0usize) * 4usize;
+        let waterlogged = bool::from_value(val / 2usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 2usize;
         let half = AcaciaStairsHalf::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
-            facing,
             shape,
+            facing,
+            waterlogged,
             half,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkOakStairsData {
+    pub waterlogged: bool,
+    pub half: DarkOakStairsHalf,
     pub shape: DarkOakStairsShape,
     pub facing: DarkOakStairsFacing,
-    pub half: DarkOakStairsHalf,
-    pub waterlogged: bool,
 }
 impl DarkOakStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            half: DarkOakStairsHalf::from_snake_case(map.get("half")?)?,
             shape: DarkOakStairsShape::from_snake_case(map.get("shape")?)?,
             facing: DarkOakStairsFacing::from_snake_case(map.get("facing")?)?,
-            half: DarkOakStairsHalf::from_snake_case(map.get("half")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for DarkOakStairsData {
-    fn value(&self) -> usize {
-        (self.shape.value() * 16usize)
-            + (self.facing.value() * 4usize)
-            + (self.half.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
-            return None;
-        }
-        let shape = DarkOakStairsShape::from_value(val / 16usize).unwrap();
-        val -= shape.value() * 16usize;
-        let facing = DarkOakStairsFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let half = DarkOakStairsHalf::from_value(val / 2usize).unwrap();
-        val -= half.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            shape,
-            facing,
-            half,
-            waterlogged,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct IronTrapdoorData {
-    pub facing: IronTrapdoorFacing,
-    pub half: IronTrapdoorHalf,
-    pub waterlogged: bool,
-    pub open: bool,
-    pub powered: bool,
-}
-impl IronTrapdoorData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            facing: IronTrapdoorFacing::from_snake_case(map.get("facing")?)?,
-            half: IronTrapdoorHalf::from_snake_case(map.get("half")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m
-    }
-}
-impl Value for IronTrapdoorData {
-    fn value(&self) -> usize {
-        (self.facing.value() * 16usize)
-            + (self.half.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.open.value() * 2usize)
-            + (self.powered.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
-            return None;
-        }
-        let facing = IronTrapdoorFacing::from_value(val / 16usize).unwrap();
-        val -= facing.value() * 16usize;
-        let half = IronTrapdoorHalf::from_value(val / 8usize).unwrap();
-        val -= half.value() * 8usize;
-        let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
-        let open = bool::from_value(val / 2usize).unwrap();
-        val -= open.value() * 2usize;
-        let powered = bool::from_value(val / 1usize).unwrap();
-        Some(Self {
-            facing,
-            half,
-            waterlogged,
-            open,
-            powered,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct PrismarineStairsData {
-    pub waterlogged: bool,
-    pub half: PrismarineStairsHalf,
-    pub shape: PrismarineStairsShape,
-    pub facing: PrismarineStairsFacing,
-}
-impl PrismarineStairsData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            half: PrismarineStairsHalf::from_snake_case(map.get("half")?)?,
-            shape: PrismarineStairsShape::from_snake_case(map.get("shape")?)?,
-            facing: PrismarineStairsFacing::from_snake_case(map.get("facing")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("shape".to_string(), self.shape.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m
-    }
-}
-impl Value for PrismarineStairsData {
     fn value(&self) -> usize {
         (self.waterlogged.value() * 40usize)
             + (self.half.value() * 20usize)
@@ -13416,20 +13496,134 @@ impl Value for PrismarineStairsData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 40usize).unwrap();
-        val -= waterlogged.value() * 40usize;
-        let half = PrismarineStairsHalf::from_value(val / 20usize).unwrap();
-        val -= half.value() * 20usize;
-        let shape = PrismarineStairsShape::from_value(val / 4usize).unwrap();
-        val -= shape.value() * 4usize;
-        let facing = PrismarineStairsFacing::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 40usize;
+        let half = DarkOakStairsHalf::from_value(val / 20usize).unwrap();
+        val -= (half.value() - 0usize) * 20usize;
+        let shape = DarkOakStairsShape::from_value(val / 4usize).unwrap();
+        val -= (shape.value() - 0usize) * 4usize;
+        let facing = DarkOakStairsFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
             waterlogged,
             half,
             shape,
+            facing,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct IronTrapdoorData {
+    pub waterlogged: bool,
+    pub powered: bool,
+    pub facing: IronTrapdoorFacing,
+    pub half: IronTrapdoorHalf,
+    pub open: bool,
+}
+impl IronTrapdoorData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            facing: IronTrapdoorFacing::from_snake_case(map.get("facing")?)?,
+            half: IronTrapdoorHalf::from_snake_case(map.get("half")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
+        m
+    }
+}
+impl Value for IronTrapdoorData {
+    fn value(&self) -> usize {
+        (self.waterlogged.value() * 32usize)
+            + (self.powered.value() * 16usize)
+            + (self.facing.value() * 4usize)
+            + (self.half.value() * 2usize)
+            + (self.open.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 64usize {
+            return None;
+        }
+        let waterlogged = bool::from_value(val / 32usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 32usize;
+        let powered = bool::from_value(val / 16usize).unwrap();
+        val -= (powered.value() - 0usize) * 16usize;
+        let facing = IronTrapdoorFacing::from_value(val / 4usize).unwrap();
+        val -= (facing.value() - 0usize) * 4usize;
+        let half = IronTrapdoorHalf::from_value(val / 2usize).unwrap();
+        val -= (half.value() - 0usize) * 2usize;
+        let open = bool::from_value(val / 1usize).unwrap();
+        val -= (open.value() - 0usize) * 1usize;
+        Some(Self {
+            waterlogged,
+            powered,
+            facing,
+            half,
+            open,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct PrismarineStairsData {
+    pub shape: PrismarineStairsShape,
+    pub half: PrismarineStairsHalf,
+    pub waterlogged: bool,
+    pub facing: PrismarineStairsFacing,
+}
+impl PrismarineStairsData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            shape: PrismarineStairsShape::from_snake_case(map.get("shape")?)?,
+            half: PrismarineStairsHalf::from_snake_case(map.get("half")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            facing: PrismarineStairsFacing::from_snake_case(map.get("facing")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m
+    }
+}
+impl Value for PrismarineStairsData {
+    fn value(&self) -> usize {
+        (self.shape.value() * 16usize)
+            + (self.half.value() * 8usize)
+            + (self.waterlogged.value() * 4usize)
+            + (self.facing.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 80usize {
+            return None;
+        }
+        let shape = PrismarineStairsShape::from_value(val / 16usize).unwrap();
+        val -= (shape.value() - 0usize) * 16usize;
+        let half = PrismarineStairsHalf::from_value(val / 8usize).unwrap();
+        val -= (half.value() - 0usize) * 8usize;
+        let waterlogged = bool::from_value(val / 4usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 4usize;
+        let facing = PrismarineStairsFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
+        Some(Self {
+            shape,
+            half,
+            waterlogged,
             facing,
         })
     }
@@ -13438,24 +13632,24 @@ impl Value for PrismarineStairsData {
 pub struct PrismarineBrickStairsData {
     pub facing: PrismarineBrickStairsFacing,
     pub half: PrismarineBrickStairsHalf,
-    pub shape: PrismarineBrickStairsShape,
     pub waterlogged: bool,
+    pub shape: PrismarineBrickStairsShape,
 }
 impl PrismarineBrickStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             facing: PrismarineBrickStairsFacing::from_snake_case(map.get("facing")?)?,
             half: PrismarineBrickStairsHalf::from_snake_case(map.get("half")?)?,
-            shape: PrismarineBrickStairsShape::from_snake_case(map.get("shape")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            shape: PrismarineBrickStairsShape::from_snake_case(map.get("shape")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("shape".to_string(), self.shape.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
         m
     }
 }
@@ -13463,113 +13657,116 @@ impl Value for PrismarineBrickStairsData {
     fn value(&self) -> usize {
         (self.facing.value() * 20usize)
             + (self.half.value() * 10usize)
-            + (self.shape.value() * 2usize)
-            + (self.waterlogged.value() * 1usize)
+            + (self.waterlogged.value() * 5usize)
+            + (self.shape.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
         let facing = PrismarineBrickStairsFacing::from_value(val / 20usize).unwrap();
-        val -= facing.value() * 20usize;
+        val -= (facing.value() - 0usize) * 20usize;
         let half = PrismarineBrickStairsHalf::from_value(val / 10usize).unwrap();
-        val -= half.value() * 10usize;
-        let shape = PrismarineBrickStairsShape::from_value(val / 2usize).unwrap();
-        val -= shape.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 10usize;
+        let waterlogged = bool::from_value(val / 5usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 5usize;
+        let shape = PrismarineBrickStairsShape::from_value(val / 1usize).unwrap();
+        val -= (shape.value() - 0usize) * 1usize;
         Some(Self {
             facing,
             half,
-            shape,
             waterlogged,
+            shape,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkPrismarineStairsData {
-    pub shape: DarkPrismarineStairsShape,
     pub waterlogged: bool,
-    pub half: DarkPrismarineStairsHalf,
+    pub shape: DarkPrismarineStairsShape,
     pub facing: DarkPrismarineStairsFacing,
+    pub half: DarkPrismarineStairsHalf,
 }
 impl DarkPrismarineStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            shape: DarkPrismarineStairsShape::from_snake_case(map.get("shape")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            half: DarkPrismarineStairsHalf::from_snake_case(map.get("half")?)?,
+            shape: DarkPrismarineStairsShape::from_snake_case(map.get("shape")?)?,
             facing: DarkPrismarineStairsFacing::from_snake_case(map.get("facing")?)?,
+            half: DarkPrismarineStairsHalf::from_snake_case(map.get("half")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("shape".to_string(), self.shape.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("shape".to_string(), self.shape.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m
     }
 }
 impl Value for DarkPrismarineStairsData {
     fn value(&self) -> usize {
-        (self.shape.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
-            + (self.half.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.waterlogged.value() * 40usize)
+            + (self.shape.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.half.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
-        let shape = DarkPrismarineStairsShape::from_value(val / 16usize).unwrap();
-        val -= shape.value() * 16usize;
-        let waterlogged = bool::from_value(val / 8usize).unwrap();
-        val -= waterlogged.value() * 8usize;
-        let half = DarkPrismarineStairsHalf::from_value(val / 4usize).unwrap();
-        val -= half.value() * 4usize;
-        let facing = DarkPrismarineStairsFacing::from_value(val / 1usize).unwrap();
+        let waterlogged = bool::from_value(val / 40usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 40usize;
+        let shape = DarkPrismarineStairsShape::from_value(val / 8usize).unwrap();
+        val -= (shape.value() - 0usize) * 8usize;
+        let facing = DarkPrismarineStairsFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let half = DarkPrismarineStairsHalf::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 1usize;
         Some(Self {
-            shape,
             waterlogged,
-            half,
+            shape,
             facing,
+            half,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PrismarineSlabData {
-    pub waterlogged: bool,
     pub ty: PrismarineSlabType,
+    pub waterlogged: bool,
 }
 impl PrismarineSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             ty: PrismarineSlabType::from_snake_case(map.get("type")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("type".to_string(), self.ty.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for PrismarineSlabData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
+        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 3usize).unwrap();
-        val -= waterlogged.value() * 3usize;
-        let ty = PrismarineSlabType::from_value(val / 1usize).unwrap();
-        Some(Self { waterlogged, ty })
+        let ty = PrismarineSlabType::from_value(val / 2usize).unwrap();
+        val -= (ty.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
+        Some(Self { ty, waterlogged })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -13597,12 +13794,13 @@ impl Value for PrismarineBrickSlabData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 3usize).unwrap();
-        val -= waterlogged.value() * 3usize;
+        val -= (waterlogged.value() - 0usize) * 3usize;
         let ty = PrismarineBrickSlabType::from_value(val / 1usize).unwrap();
+        val -= (ty.value() - 0usize) * 1usize;
         Some(Self { waterlogged, ty })
     }
 }
@@ -13631,12 +13829,13 @@ impl Value for DarkPrismarineSlabData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let ty = DarkPrismarineSlabType::from_value(val / 2usize).unwrap();
-        val -= ty.value() * 2usize;
+        val -= (ty.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { ty, waterlogged })
     }
 }
@@ -13662,10 +13861,11 @@ impl Value for HayBlockData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = HayBlockAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
@@ -13691,10 +13891,11 @@ impl Value for SunflowerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let half = SunflowerHalf::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 1usize;
         Some(Self { half })
     }
 }
@@ -13720,10 +13921,11 @@ impl Value for LilacData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let half = LilacHalf::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 1usize;
         Some(Self { half })
     }
 }
@@ -13749,10 +13951,11 @@ impl Value for RoseBushData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let half = RoseBushHalf::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 1usize;
         Some(Self { half })
     }
 }
@@ -13778,10 +13981,11 @@ impl Value for PeonyData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let half = PeonyHalf::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 1usize;
         Some(Self { half })
     }
 }
@@ -13807,10 +14011,11 @@ impl Value for TallGrassData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let half = TallGrassHalf::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 1usize;
         Some(Self { half })
     }
 }
@@ -13836,10 +14041,11 @@ impl Value for LargeFernData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let half = LargeFernHalf::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 1usize;
         Some(Self { half })
     }
 }
@@ -13865,10 +14071,11 @@ impl Value for WhiteBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -13894,10 +14101,11 @@ impl Value for OrangeBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -13923,10 +14131,11 @@ impl Value for MagentaBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -13952,10 +14161,11 @@ impl Value for LightBlueBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -13981,10 +14191,11 @@ impl Value for YellowBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -14010,10 +14221,11 @@ impl Value for LimeBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -14039,10 +14251,11 @@ impl Value for PinkBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -14068,10 +14281,11 @@ impl Value for GrayBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -14097,10 +14311,11 @@ impl Value for LightGrayBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -14126,10 +14341,11 @@ impl Value for CyanBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -14155,10 +14371,11 @@ impl Value for PurpleBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -14184,10 +14401,11 @@ impl Value for BlueBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -14213,10 +14431,11 @@ impl Value for BrownBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -14242,10 +14461,11 @@ impl Value for GreenBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -14271,10 +14491,11 @@ impl Value for RedBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -14300,10 +14521,11 @@ impl Value for BlackBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 16usize {
+        if val >= 16usize {
             return None;
         }
         let rotation = i32::from_value(val / 1usize).unwrap();
+        val -= (rotation.value() - 0usize) * 1usize;
         Some(Self { rotation })
     }
 }
@@ -14329,10 +14551,11 @@ impl Value for WhiteWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = WhiteWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14358,10 +14581,11 @@ impl Value for OrangeWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = OrangeWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14387,10 +14611,11 @@ impl Value for MagentaWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = MagentaWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14416,10 +14641,11 @@ impl Value for LightBlueWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = LightBlueWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14445,10 +14671,11 @@ impl Value for YellowWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = YellowWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14474,10 +14701,11 @@ impl Value for LimeWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = LimeWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14503,10 +14731,11 @@ impl Value for PinkWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = PinkWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14532,10 +14761,11 @@ impl Value for GrayWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = GrayWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14561,10 +14791,11 @@ impl Value for LightGrayWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = LightGrayWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14590,10 +14821,11 @@ impl Value for CyanWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = CyanWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14619,10 +14851,11 @@ impl Value for PurpleWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = PurpleWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14648,10 +14881,11 @@ impl Value for BlueWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = BlueWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14677,10 +14911,11 @@ impl Value for BrownWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = BrownWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14706,10 +14941,11 @@ impl Value for GreenWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = GreenWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14735,10 +14971,11 @@ impl Value for RedWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = RedWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -14764,62 +15001,64 @@ impl Value for BlackWallBannerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = BlackWallBannerFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RedSandstoneStairsData {
-    pub half: RedSandstoneStairsHalf,
     pub waterlogged: bool,
-    pub facing: RedSandstoneStairsFacing,
     pub shape: RedSandstoneStairsShape,
+    pub facing: RedSandstoneStairsFacing,
+    pub half: RedSandstoneStairsHalf,
 }
 impl RedSandstoneStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            half: RedSandstoneStairsHalf::from_snake_case(map.get("half")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            facing: RedSandstoneStairsFacing::from_snake_case(map.get("facing")?)?,
             shape: RedSandstoneStairsShape::from_snake_case(map.get("shape")?)?,
+            facing: RedSandstoneStairsFacing::from_snake_case(map.get("facing")?)?,
+            half: RedSandstoneStairsHalf::from_snake_case(map.get("half")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m
     }
 }
 impl Value for RedSandstoneStairsData {
     fn value(&self) -> usize {
-        (self.half.value() * 40usize)
-            + (self.waterlogged.value() * 20usize)
-            + (self.facing.value() * 5usize)
-            + (self.shape.value() * 1usize)
+        (self.waterlogged.value() * 40usize)
+            + (self.shape.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.half.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
-        let half = RedSandstoneStairsHalf::from_value(val / 40usize).unwrap();
-        val -= half.value() * 40usize;
-        let waterlogged = bool::from_value(val / 20usize).unwrap();
-        val -= waterlogged.value() * 20usize;
-        let facing = RedSandstoneStairsFacing::from_value(val / 5usize).unwrap();
-        val -= facing.value() * 5usize;
-        let shape = RedSandstoneStairsShape::from_value(val / 1usize).unwrap();
+        let waterlogged = bool::from_value(val / 40usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 40usize;
+        let shape = RedSandstoneStairsShape::from_value(val / 8usize).unwrap();
+        val -= (shape.value() - 0usize) * 8usize;
+        let facing = RedSandstoneStairsFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let half = RedSandstoneStairsHalf::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 1usize;
         Some(Self {
-            half,
             waterlogged,
-            facing,
             shape,
+            facing,
+            half,
         })
     }
 }
@@ -14848,47 +15087,49 @@ impl Value for OakSlabData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let ty = OakSlabType::from_value(val / 2usize).unwrap();
-        val -= ty.value() * 2usize;
+        val -= (ty.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { ty, waterlogged })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpruceSlabData {
-    pub waterlogged: bool,
     pub ty: SpruceSlabType,
+    pub waterlogged: bool,
 }
 impl SpruceSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             ty: SpruceSlabType::from_snake_case(map.get("type")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("type".to_string(), self.ty.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for SpruceSlabData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
+        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 3usize).unwrap();
-        val -= waterlogged.value() * 3usize;
-        let ty = SpruceSlabType::from_value(val / 1usize).unwrap();
-        Some(Self { waterlogged, ty })
+        let ty = SpruceSlabType::from_value(val / 2usize).unwrap();
+        val -= (ty.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
+        Some(Self { ty, waterlogged })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -14916,12 +15157,13 @@ impl Value for BirchSlabData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let ty = BirchSlabType::from_value(val / 2usize).unwrap();
-        val -= ty.value() * 2usize;
+        val -= (ty.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { ty, waterlogged })
     }
 }
@@ -14950,115 +15192,119 @@ impl Value for JungleSlabData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 3usize).unwrap();
-        val -= waterlogged.value() * 3usize;
+        val -= (waterlogged.value() - 0usize) * 3usize;
         let ty = JungleSlabType::from_value(val / 1usize).unwrap();
+        val -= (ty.value() - 0usize) * 1usize;
         Some(Self { waterlogged, ty })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaSlabData {
-    pub waterlogged: bool,
     pub ty: AcaciaSlabType,
+    pub waterlogged: bool,
 }
 impl AcaciaSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             ty: AcaciaSlabType::from_snake_case(map.get("type")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("type".to_string(), self.ty.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for AcaciaSlabData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
+        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 3usize).unwrap();
-        val -= waterlogged.value() * 3usize;
-        let ty = AcaciaSlabType::from_value(val / 1usize).unwrap();
-        Some(Self { waterlogged, ty })
+        let ty = AcaciaSlabType::from_value(val / 2usize).unwrap();
+        val -= (ty.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
+        Some(Self { ty, waterlogged })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkOakSlabData {
-    pub ty: DarkOakSlabType,
     pub waterlogged: bool,
+    pub ty: DarkOakSlabType,
 }
 impl DarkOakSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            ty: DarkOakSlabType::from_snake_case(map.get("type")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            ty: DarkOakSlabType::from_snake_case(map.get("type")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("type".to_string(), self.ty.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("type".to_string(), self.ty.to_snake_case());
         m
     }
 }
 impl Value for DarkOakSlabData {
     fn value(&self) -> usize {
-        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
-        let ty = DarkOakSlabType::from_value(val / 2usize).unwrap();
-        val -= ty.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
-        Some(Self { ty, waterlogged })
+        let waterlogged = bool::from_value(val / 3usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 3usize;
+        let ty = DarkOakSlabType::from_value(val / 1usize).unwrap();
+        val -= (ty.value() - 0usize) * 1usize;
+        Some(Self { waterlogged, ty })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct StoneSlabData {
-    pub waterlogged: bool,
     pub ty: StoneSlabType,
+    pub waterlogged: bool,
 }
 impl StoneSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             ty: StoneSlabType::from_snake_case(map.get("type")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("type".to_string(), self.ty.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for StoneSlabData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
+        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 3usize).unwrap();
-        val -= waterlogged.value() * 3usize;
-        let ty = StoneSlabType::from_value(val / 1usize).unwrap();
-        Some(Self { waterlogged, ty })
+        let ty = StoneSlabType::from_value(val / 2usize).unwrap();
+        val -= (ty.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
+        Some(Self { ty, waterlogged })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -15086,12 +15332,13 @@ impl Value for SandstoneSlabData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let ty = SandstoneSlabType::from_value(val / 2usize).unwrap();
-        val -= ty.value() * 2usize;
+        val -= (ty.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { ty, waterlogged })
     }
 }
@@ -15120,12 +15367,13 @@ impl Value for PetrifiedOakSlabData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 3usize).unwrap();
-        val -= waterlogged.value() * 3usize;
+        val -= (waterlogged.value() - 0usize) * 3usize;
         let ty = PetrifiedOakSlabType::from_value(val / 1usize).unwrap();
+        val -= (ty.value() - 0usize) * 1usize;
         Some(Self { waterlogged, ty })
     }
 }
@@ -15154,12 +15402,13 @@ impl Value for CobblestoneSlabData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let ty = CobblestoneSlabType::from_value(val / 2usize).unwrap();
-        val -= ty.value() * 2usize;
+        val -= (ty.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { ty, waterlogged })
     }
 }
@@ -15188,12 +15437,13 @@ impl Value for BrickSlabData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 3usize).unwrap();
-        val -= waterlogged.value() * 3usize;
+        val -= (waterlogged.value() - 0usize) * 3usize;
         let ty = BrickSlabType::from_value(val / 1usize).unwrap();
+        val -= (ty.value() - 0usize) * 1usize;
         Some(Self { waterlogged, ty })
     }
 }
@@ -15222,47 +15472,49 @@ impl Value for StoneBrickSlabData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 3usize).unwrap();
-        val -= waterlogged.value() * 3usize;
+        val -= (waterlogged.value() - 0usize) * 3usize;
         let ty = StoneBrickSlabType::from_value(val / 1usize).unwrap();
+        val -= (ty.value() - 0usize) * 1usize;
         Some(Self { waterlogged, ty })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct NetherBrickSlabData {
-    pub ty: NetherBrickSlabType,
     pub waterlogged: bool,
+    pub ty: NetherBrickSlabType,
 }
 impl NetherBrickSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            ty: NetherBrickSlabType::from_snake_case(map.get("type")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            ty: NetherBrickSlabType::from_snake_case(map.get("type")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("type".to_string(), self.ty.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("type".to_string(), self.ty.to_snake_case());
         m
     }
 }
 impl Value for NetherBrickSlabData {
     fn value(&self) -> usize {
-        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
-        let ty = NetherBrickSlabType::from_value(val / 2usize).unwrap();
-        val -= ty.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
-        Some(Self { ty, waterlogged })
+        let waterlogged = bool::from_value(val / 3usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 3usize;
+        let ty = NetherBrickSlabType::from_value(val / 1usize).unwrap();
+        val -= (ty.value() - 0usize) * 1usize;
+        Some(Self { waterlogged, ty })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -15290,47 +15542,49 @@ impl Value for QuartzSlabData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let ty = QuartzSlabType::from_value(val / 2usize).unwrap();
-        val -= ty.value() * 2usize;
+        val -= (ty.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { ty, waterlogged })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RedSandstoneSlabData {
-    pub waterlogged: bool,
     pub ty: RedSandstoneSlabType,
+    pub waterlogged: bool,
 }
 impl RedSandstoneSlabData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             ty: RedSandstoneSlabType::from_snake_case(map.get("type")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("type".to_string(), self.ty.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for RedSandstoneSlabData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 3usize) + (self.ty.value() * 1usize)
+        (self.ty.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 3usize).unwrap();
-        val -= waterlogged.value() * 3usize;
-        let ty = RedSandstoneSlabType::from_value(val / 1usize).unwrap();
-        Some(Self { waterlogged, ty })
+        let ty = RedSandstoneSlabType::from_value(val / 2usize).unwrap();
+        val -= (ty.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
+        Some(Self { ty, waterlogged })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -15358,626 +15612,638 @@ impl Value for PurpurSlabData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let ty = PurpurSlabType::from_value(val / 2usize).unwrap();
-        val -= ty.value() * 2usize;
+        val -= (ty.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { ty, waterlogged })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpruceFenceGateData {
+    pub open: bool,
+    pub in_wall: bool,
     pub powered: bool,
     pub facing: SpruceFenceGateFacing,
-    pub in_wall: bool,
-    pub open: bool,
 }
 impl SpruceFenceGateData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            open: bool::from_snake_case(map.get("open")?)?,
+            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
             facing: SpruceFenceGateFacing::from_snake_case(map.get("facing")?)?,
-            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
         m
     }
 }
 impl Value for SpruceFenceGateData {
     fn value(&self) -> usize {
-        (self.powered.value() * 16usize)
-            + (self.facing.value() * 4usize)
-            + (self.in_wall.value() * 2usize)
-            + (self.open.value() * 1usize)
+        (self.open.value() * 16usize)
+            + (self.in_wall.value() * 8usize)
+            + (self.powered.value() * 4usize)
+            + (self.facing.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let powered = bool::from_value(val / 16usize).unwrap();
-        val -= powered.value() * 16usize;
-        let facing = SpruceFenceGateFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let in_wall = bool::from_value(val / 2usize).unwrap();
-        val -= in_wall.value() * 2usize;
-        let open = bool::from_value(val / 1usize).unwrap();
+        let open = bool::from_value(val / 16usize).unwrap();
+        val -= (open.value() - 0usize) * 16usize;
+        let in_wall = bool::from_value(val / 8usize).unwrap();
+        val -= (in_wall.value() - 0usize) * 8usize;
+        let powered = bool::from_value(val / 4usize).unwrap();
+        val -= (powered.value() - 0usize) * 4usize;
+        let facing = SpruceFenceGateFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
+            open,
+            in_wall,
             powered,
             facing,
-            in_wall,
-            open,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BirchFenceGateData {
-    pub powered: bool,
     pub open: bool,
-    pub in_wall: bool,
     pub facing: BirchFenceGateFacing,
+    pub in_wall: bool,
+    pub powered: bool,
 }
 impl BirchFenceGateData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
-            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
             facing: BirchFenceGateFacing::from_snake_case(map.get("facing")?)?,
+            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
-        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for BirchFenceGateData {
     fn value(&self) -> usize {
-        (self.powered.value() * 16usize)
-            + (self.open.value() * 8usize)
-            + (self.in_wall.value() * 4usize)
-            + (self.facing.value() * 1usize)
+        (self.open.value() * 16usize)
+            + (self.facing.value() * 4usize)
+            + (self.in_wall.value() * 2usize)
+            + (self.powered.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let powered = bool::from_value(val / 16usize).unwrap();
-        val -= powered.value() * 16usize;
-        let open = bool::from_value(val / 8usize).unwrap();
-        val -= open.value() * 8usize;
-        let in_wall = bool::from_value(val / 4usize).unwrap();
-        val -= in_wall.value() * 4usize;
-        let facing = BirchFenceGateFacing::from_value(val / 1usize).unwrap();
+        let open = bool::from_value(val / 16usize).unwrap();
+        val -= (open.value() - 0usize) * 16usize;
+        let facing = BirchFenceGateFacing::from_value(val / 4usize).unwrap();
+        val -= (facing.value() - 0usize) * 4usize;
+        let in_wall = bool::from_value(val / 2usize).unwrap();
+        val -= (in_wall.value() - 0usize) * 2usize;
+        let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 1usize;
         Some(Self {
-            powered,
             open,
-            in_wall,
             facing,
+            in_wall,
+            powered,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct JungleFenceGateData {
     pub open: bool,
+    pub powered: bool,
     pub facing: JungleFenceGateFacing,
     pub in_wall: bool,
-    pub powered: bool,
 }
 impl JungleFenceGateData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             open: bool::from_snake_case(map.get("open")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
             facing: JungleFenceGateFacing::from_snake_case(map.get("facing")?)?,
             in_wall: bool::from_snake_case(map.get("in_wall")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for JungleFenceGateData {
     fn value(&self) -> usize {
         (self.open.value() * 16usize)
-            + (self.facing.value() * 4usize)
-            + (self.in_wall.value() * 2usize)
-            + (self.powered.value() * 1usize)
+            + (self.powered.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.in_wall.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
         let open = bool::from_value(val / 16usize).unwrap();
-        val -= open.value() * 16usize;
-        let facing = JungleFenceGateFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let in_wall = bool::from_value(val / 2usize).unwrap();
-        val -= in_wall.value() * 2usize;
-        let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (open.value() - 0usize) * 16usize;
+        let powered = bool::from_value(val / 8usize).unwrap();
+        val -= (powered.value() - 0usize) * 8usize;
+        let facing = JungleFenceGateFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let in_wall = bool::from_value(val / 1usize).unwrap();
+        val -= (in_wall.value() - 0usize) * 1usize;
         Some(Self {
             open,
+            powered,
             facing,
             in_wall,
-            powered,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaFenceGateData {
-    pub facing: AcaciaFenceGateFacing,
-    pub in_wall: bool,
     pub powered: bool,
     pub open: bool,
+    pub facing: AcaciaFenceGateFacing,
+    pub in_wall: bool,
 }
 impl AcaciaFenceGateData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: AcaciaFenceGateFacing::from_snake_case(map.get("facing")?)?,
-            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
+            facing: AcaciaFenceGateFacing::from_snake_case(map.get("facing")?)?,
+            in_wall: bool::from_snake_case(map.get("in_wall")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
         m
     }
 }
 impl Value for AcaciaFenceGateData {
     fn value(&self) -> usize {
-        (self.facing.value() * 8usize)
-            + (self.in_wall.value() * 4usize)
-            + (self.powered.value() * 2usize)
-            + (self.open.value() * 1usize)
+        (self.powered.value() * 16usize)
+            + (self.open.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.in_wall.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let facing = AcaciaFenceGateFacing::from_value(val / 8usize).unwrap();
-        val -= facing.value() * 8usize;
-        let in_wall = bool::from_value(val / 4usize).unwrap();
-        val -= in_wall.value() * 4usize;
-        let powered = bool::from_value(val / 2usize).unwrap();
-        val -= powered.value() * 2usize;
-        let open = bool::from_value(val / 1usize).unwrap();
+        let powered = bool::from_value(val / 16usize).unwrap();
+        val -= (powered.value() - 0usize) * 16usize;
+        let open = bool::from_value(val / 8usize).unwrap();
+        val -= (open.value() - 0usize) * 8usize;
+        let facing = AcaciaFenceGateFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let in_wall = bool::from_value(val / 1usize).unwrap();
+        val -= (in_wall.value() - 0usize) * 1usize;
         Some(Self {
-            facing,
-            in_wall,
             powered,
             open,
+            facing,
+            in_wall,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkOakFenceGateData {
+    pub powered: bool,
     pub open: bool,
     pub facing: DarkOakFenceGateFacing,
     pub in_wall: bool,
-    pub powered: bool,
 }
 impl DarkOakFenceGateData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            powered: bool::from_snake_case(map.get("powered")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
             facing: DarkOakFenceGateFacing::from_snake_case(map.get("facing")?)?,
             in_wall: bool::from_snake_case(map.get("in_wall")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("powered".to_string(), self.powered.to_snake_case());
         m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("in_wall".to_string(), self.in_wall.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
         m
     }
 }
 impl Value for DarkOakFenceGateData {
     fn value(&self) -> usize {
-        (self.open.value() * 16usize)
-            + (self.facing.value() * 4usize)
-            + (self.in_wall.value() * 2usize)
-            + (self.powered.value() * 1usize)
+        (self.powered.value() * 16usize)
+            + (self.open.value() * 8usize)
+            + (self.facing.value() * 2usize)
+            + (self.in_wall.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let open = bool::from_value(val / 16usize).unwrap();
-        val -= open.value() * 16usize;
-        let facing = DarkOakFenceGateFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let in_wall = bool::from_value(val / 2usize).unwrap();
-        val -= in_wall.value() * 2usize;
-        let powered = bool::from_value(val / 1usize).unwrap();
+        let powered = bool::from_value(val / 16usize).unwrap();
+        val -= (powered.value() - 0usize) * 16usize;
+        let open = bool::from_value(val / 8usize).unwrap();
+        val -= (open.value() - 0usize) * 8usize;
+        let facing = DarkOakFenceGateFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let in_wall = bool::from_value(val / 1usize).unwrap();
+        val -= (in_wall.value() - 0usize) * 1usize;
         Some(Self {
+            powered,
             open,
             facing,
             in_wall,
-            powered,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpruceFenceData {
-    pub south: bool,
-    pub north: bool,
-    pub west: bool,
     pub east: bool,
+    pub north: bool,
+    pub south: bool,
+    pub west: bool,
     pub waterlogged: bool,
 }
 impl SpruceFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            south: bool::from_snake_case(map.get("south")?)?,
-            north: bool::from_snake_case(map.get("north")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
+            north: bool::from_snake_case(map.get("north")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for SpruceFenceData {
     fn value(&self) -> usize {
-        (self.south.value() * 16usize)
+        (self.east.value() * 16usize)
             + (self.north.value() * 8usize)
-            + (self.west.value() * 4usize)
-            + (self.east.value() * 2usize)
+            + (self.south.value() * 4usize)
+            + (self.west.value() * 2usize)
             + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let south = bool::from_value(val / 16usize).unwrap();
-        val -= south.value() * 16usize;
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
         let north = bool::from_value(val / 8usize).unwrap();
-        val -= north.value() * 8usize;
-        let west = bool::from_value(val / 4usize).unwrap();
-        val -= west.value() * 4usize;
-        let east = bool::from_value(val / 2usize).unwrap();
-        val -= east.value() * 2usize;
+        val -= (north.value() - 0usize) * 8usize;
+        let south = bool::from_value(val / 4usize).unwrap();
+        val -= (south.value() - 0usize) * 4usize;
+        let west = bool::from_value(val / 2usize).unwrap();
+        val -= (west.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            south,
-            north,
-            west,
             east,
+            north,
+            south,
+            west,
             waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BirchFenceData {
-    pub waterlogged: bool,
-    pub east: bool,
     pub south: bool,
     pub west: bool,
+    pub east: bool,
     pub north: bool,
+    pub waterlogged: bool,
 }
 impl BirchFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for BirchFenceData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 16usize)
-            + (self.east.value() * 8usize)
-            + (self.south.value() * 4usize)
-            + (self.west.value() * 2usize)
-            + (self.north.value() * 1usize)
+        (self.south.value() * 16usize)
+            + (self.west.value() * 8usize)
+            + (self.east.value() * 4usize)
+            + (self.north.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 16usize).unwrap();
-        val -= waterlogged.value() * 16usize;
-        let east = bool::from_value(val / 8usize).unwrap();
-        val -= east.value() * 8usize;
-        let south = bool::from_value(val / 4usize).unwrap();
-        val -= south.value() * 4usize;
-        let west = bool::from_value(val / 2usize).unwrap();
-        val -= west.value() * 2usize;
-        let north = bool::from_value(val / 1usize).unwrap();
+        let south = bool::from_value(val / 16usize).unwrap();
+        val -= (south.value() - 0usize) * 16usize;
+        let west = bool::from_value(val / 8usize).unwrap();
+        val -= (west.value() - 0usize) * 8usize;
+        let east = bool::from_value(val / 4usize).unwrap();
+        val -= (east.value() - 0usize) * 4usize;
+        let north = bool::from_value(val / 2usize).unwrap();
+        val -= (north.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
-            east,
             south,
             west,
+            east,
             north,
+            waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct JungleFenceData {
     pub west: bool,
-    pub waterlogged: bool,
-    pub south: bool,
-    pub east: bool,
     pub north: bool,
+    pub waterlogged: bool,
+    pub east: bool,
+    pub south: bool,
 }
 impl JungleFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             west: bool::from_snake_case(map.get("west")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("west".to_string(), self.west.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m
     }
 }
 impl Value for JungleFenceData {
     fn value(&self) -> usize {
         (self.west.value() * 16usize)
-            + (self.waterlogged.value() * 8usize)
-            + (self.south.value() * 4usize)
+            + (self.north.value() * 8usize)
+            + (self.waterlogged.value() * 4usize)
             + (self.east.value() * 2usize)
-            + (self.north.value() * 1usize)
+            + (self.south.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
         let west = bool::from_value(val / 16usize).unwrap();
-        val -= west.value() * 16usize;
-        let waterlogged = bool::from_value(val / 8usize).unwrap();
-        val -= waterlogged.value() * 8usize;
-        let south = bool::from_value(val / 4usize).unwrap();
-        val -= south.value() * 4usize;
+        val -= (west.value() - 0usize) * 16usize;
+        let north = bool::from_value(val / 8usize).unwrap();
+        val -= (north.value() - 0usize) * 8usize;
+        let waterlogged = bool::from_value(val / 4usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 4usize;
         let east = bool::from_value(val / 2usize).unwrap();
-        val -= east.value() * 2usize;
-        let north = bool::from_value(val / 1usize).unwrap();
+        val -= (east.value() - 0usize) * 2usize;
+        let south = bool::from_value(val / 1usize).unwrap();
+        val -= (south.value() - 0usize) * 1usize;
         Some(Self {
             west,
-            waterlogged,
-            south,
-            east,
             north,
+            waterlogged,
+            east,
+            south,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct AcaciaFenceData {
+    pub west: bool,
     pub east: bool,
     pub south: bool,
-    pub waterlogged: bool,
-    pub west: bool,
     pub north: bool,
+    pub waterlogged: bool,
 }
 impl AcaciaFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
+            west: bool::from_snake_case(map.get("west")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
+        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for AcaciaFenceData {
     fn value(&self) -> usize {
-        (self.east.value() * 16usize)
-            + (self.south.value() * 8usize)
-            + (self.waterlogged.value() * 4usize)
-            + (self.west.value() * 2usize)
-            + (self.north.value() * 1usize)
+        (self.west.value() * 16usize)
+            + (self.east.value() * 8usize)
+            + (self.south.value() * 4usize)
+            + (self.north.value() * 2usize)
+            + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let east = bool::from_value(val / 16usize).unwrap();
-        val -= east.value() * 16usize;
-        let south = bool::from_value(val / 8usize).unwrap();
-        val -= south.value() * 8usize;
-        let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
-        let west = bool::from_value(val / 2usize).unwrap();
-        val -= west.value() * 2usize;
-        let north = bool::from_value(val / 1usize).unwrap();
+        let west = bool::from_value(val / 16usize).unwrap();
+        val -= (west.value() - 0usize) * 16usize;
+        let east = bool::from_value(val / 8usize).unwrap();
+        val -= (east.value() - 0usize) * 8usize;
+        let south = bool::from_value(val / 4usize).unwrap();
+        val -= (south.value() - 0usize) * 4usize;
+        let north = bool::from_value(val / 2usize).unwrap();
+        val -= (north.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
+            west,
             east,
             south,
-            waterlogged,
-            west,
             north,
+            waterlogged,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DarkOakFenceData {
-    pub waterlogged: bool,
     pub east: bool,
+    pub waterlogged: bool,
     pub north: bool,
-    pub south: bool,
     pub west: bool,
+    pub south: bool,
 }
 impl DarkOakFenceData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             east: bool::from_snake_case(map.get("east")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
-            south: bool::from_snake_case(map.get("south")?)?,
             west: bool::from_snake_case(map.get("west")?)?,
+            south: bool::from_snake_case(map.get("south")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("east".to_string(), self.east.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("south".to_string(), self.south.to_snake_case());
         m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("south".to_string(), self.south.to_snake_case());
         m
     }
 }
 impl Value for DarkOakFenceData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 16usize)
-            + (self.east.value() * 8usize)
+        (self.east.value() * 16usize)
+            + (self.waterlogged.value() * 8usize)
             + (self.north.value() * 4usize)
-            + (self.south.value() * 2usize)
-            + (self.west.value() * 1usize)
+            + (self.west.value() * 2usize)
+            + (self.south.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 32usize {
+        if val >= 32usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 16usize).unwrap();
-        val -= waterlogged.value() * 16usize;
-        let east = bool::from_value(val / 8usize).unwrap();
-        val -= east.value() * 8usize;
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
+        let waterlogged = bool::from_value(val / 8usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 8usize;
         let north = bool::from_value(val / 4usize).unwrap();
-        val -= north.value() * 4usize;
-        let south = bool::from_value(val / 2usize).unwrap();
-        val -= south.value() * 2usize;
-        let west = bool::from_value(val / 1usize).unwrap();
+        val -= (north.value() - 0usize) * 4usize;
+        let west = bool::from_value(val / 2usize).unwrap();
+        val -= (west.value() - 0usize) * 2usize;
+        let south = bool::from_value(val / 1usize).unwrap();
+        val -= (south.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
             east,
+            waterlogged,
             north,
-            south,
             west,
+            south,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct SpruceDoorData {
-    pub open: bool,
-    pub hinge: SpruceDoorHinge,
     pub facing: SpruceDoorFacing,
-    pub half: SpruceDoorHalf,
+    pub hinge: SpruceDoorHinge,
     pub powered: bool,
+    pub open: bool,
+    pub half: SpruceDoorHalf,
 }
 impl SpruceDoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            open: bool::from_snake_case(map.get("open")?)?,
-            hinge: SpruceDoorHinge::from_snake_case(map.get("hinge")?)?,
             facing: SpruceDoorFacing::from_snake_case(map.get("facing")?)?,
-            half: SpruceDoorHalf::from_snake_case(map.get("half")?)?,
+            hinge: SpruceDoorHinge::from_snake_case(map.get("hinge")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
+            half: SpruceDoorHalf::from_snake_case(map.get("half")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("open".to_string(), self.open.to_snake_case());
-        m.insert("hinge".to_string(), self.hinge.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("hinge".to_string(), self.hinge.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m
     }
 }
 impl Value for SpruceDoorData {
     fn value(&self) -> usize {
-        (self.open.value() * 32usize)
-            + (self.hinge.value() * 16usize)
-            + (self.facing.value() * 4usize)
-            + (self.half.value() * 2usize)
-            + (self.powered.value() * 1usize)
+        (self.facing.value() * 16usize)
+            + (self.hinge.value() * 8usize)
+            + (self.powered.value() * 4usize)
+            + (self.open.value() * 2usize)
+            + (self.half.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let open = bool::from_value(val / 32usize).unwrap();
-        val -= open.value() * 32usize;
-        let hinge = SpruceDoorHinge::from_value(val / 16usize).unwrap();
-        val -= hinge.value() * 16usize;
-        let facing = SpruceDoorFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let half = SpruceDoorHalf::from_value(val / 2usize).unwrap();
-        val -= half.value() * 2usize;
-        let powered = bool::from_value(val / 1usize).unwrap();
+        let facing = SpruceDoorFacing::from_value(val / 16usize).unwrap();
+        val -= (facing.value() - 0usize) * 16usize;
+        let hinge = SpruceDoorHinge::from_value(val / 8usize).unwrap();
+        val -= (hinge.value() - 0usize) * 8usize;
+        let powered = bool::from_value(val / 4usize).unwrap();
+        val -= (powered.value() - 0usize) * 4usize;
+        let open = bool::from_value(val / 2usize).unwrap();
+        val -= (open.value() - 0usize) * 2usize;
+        let half = SpruceDoorHalf::from_value(val / 1usize).unwrap();
+        val -= (half.value() - 0usize) * 1usize;
         Some(Self {
-            open,
-            hinge,
             facing,
-            half,
+            hinge,
             powered,
+            open,
+            half,
         })
     }
 }
@@ -15986,8 +16252,8 @@ pub struct BirchDoorData {
     pub hinge: BirchDoorHinge,
     pub half: BirchDoorHalf,
     pub facing: BirchDoorFacing,
-    pub open: bool,
     pub powered: bool,
+    pub open: bool,
 }
 impl BirchDoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
@@ -15995,8 +16261,8 @@ impl BirchDoorData {
             hinge: BirchDoorHinge::from_snake_case(map.get("hinge")?)?,
             half: BirchDoorHalf::from_snake_case(map.get("half")?)?,
             facing: BirchDoorFacing::from_snake_case(map.get("facing")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
@@ -16004,8 +16270,8 @@ impl BirchDoorData {
         m.insert("hinge".to_string(), self.hinge.to_snake_case());
         m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
         m
     }
 }
@@ -16014,48 +16280,169 @@ impl Value for BirchDoorData {
         (self.hinge.value() * 32usize)
             + (self.half.value() * 16usize)
             + (self.facing.value() * 4usize)
-            + (self.open.value() * 2usize)
-            + (self.powered.value() * 1usize)
+            + (self.powered.value() * 2usize)
+            + (self.open.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
         let hinge = BirchDoorHinge::from_value(val / 32usize).unwrap();
-        val -= hinge.value() * 32usize;
+        val -= (hinge.value() - 0usize) * 32usize;
         let half = BirchDoorHalf::from_value(val / 16usize).unwrap();
-        val -= half.value() * 16usize;
+        val -= (half.value() - 0usize) * 16usize;
         let facing = BirchDoorFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let open = bool::from_value(val / 2usize).unwrap();
-        val -= open.value() * 2usize;
-        let powered = bool::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 4usize;
+        let powered = bool::from_value(val / 2usize).unwrap();
+        val -= (powered.value() - 0usize) * 2usize;
+        let open = bool::from_value(val / 1usize).unwrap();
+        val -= (open.value() - 0usize) * 1usize;
         Some(Self {
             hinge,
             half,
             facing,
-            open,
             powered,
+            open,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct JungleDoorData {
     pub half: JungleDoorHalf,
-    pub facing: JungleDoorFacing,
+    pub hinge: JungleDoorHinge,
     pub open: bool,
     pub powered: bool,
-    pub hinge: JungleDoorHinge,
+    pub facing: JungleDoorFacing,
 }
 impl JungleDoorData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             half: JungleDoorHalf::from_snake_case(map.get("half")?)?,
-            facing: JungleDoorFacing::from_snake_case(map.get("facing")?)?,
+            hinge: JungleDoorHinge::from_snake_case(map.get("hinge")?)?,
             open: bool::from_snake_case(map.get("open")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
-            hinge: JungleDoorHinge::from_snake_case(map.get("hinge")?)?,
+            facing: JungleDoorFacing::from_snake_case(map.get("facing")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("hinge".to_string(), self.hinge.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m
+    }
+}
+impl Value for JungleDoorData {
+    fn value(&self) -> usize {
+        (self.half.value() * 32usize)
+            + (self.hinge.value() * 16usize)
+            + (self.open.value() * 8usize)
+            + (self.powered.value() * 4usize)
+            + (self.facing.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 64usize {
+            return None;
+        }
+        let half = JungleDoorHalf::from_value(val / 32usize).unwrap();
+        val -= (half.value() - 0usize) * 32usize;
+        let hinge = JungleDoorHinge::from_value(val / 16usize).unwrap();
+        val -= (hinge.value() - 0usize) * 16usize;
+        let open = bool::from_value(val / 8usize).unwrap();
+        val -= (open.value() - 0usize) * 8usize;
+        let powered = bool::from_value(val / 4usize).unwrap();
+        val -= (powered.value() - 0usize) * 4usize;
+        let facing = JungleDoorFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
+        Some(Self {
+            half,
+            hinge,
+            open,
+            powered,
+            facing,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct AcaciaDoorData {
+    pub facing: AcaciaDoorFacing,
+    pub powered: bool,
+    pub half: AcaciaDoorHalf,
+    pub hinge: AcaciaDoorHinge,
+    pub open: bool,
+}
+impl AcaciaDoorData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            facing: AcaciaDoorFacing::from_snake_case(map.get("facing")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            half: AcaciaDoorHalf::from_snake_case(map.get("half")?)?,
+            hinge: AcaciaDoorHinge::from_snake_case(map.get("hinge")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
+        })
+    }
+    pub fn to_map(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+        m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
+        m.insert("hinge".to_string(), self.hinge.to_snake_case());
+        m.insert("open".to_string(), self.open.to_snake_case());
+        m
+    }
+}
+impl Value for AcaciaDoorData {
+    fn value(&self) -> usize {
+        (self.facing.value() * 16usize)
+            + (self.powered.value() * 8usize)
+            + (self.half.value() * 4usize)
+            + (self.hinge.value() * 2usize)
+            + (self.open.value() * 1usize)
+    }
+    #[allow(warnings)]
+    fn from_value(mut val: usize) -> Option<Self> {
+        if val >= 64usize {
+            return None;
+        }
+        let facing = AcaciaDoorFacing::from_value(val / 16usize).unwrap();
+        val -= (facing.value() - 0usize) * 16usize;
+        let powered = bool::from_value(val / 8usize).unwrap();
+        val -= (powered.value() - 0usize) * 8usize;
+        let half = AcaciaDoorHalf::from_value(val / 4usize).unwrap();
+        val -= (half.value() - 0usize) * 4usize;
+        let hinge = AcaciaDoorHinge::from_value(val / 2usize).unwrap();
+        val -= (hinge.value() - 0usize) * 2usize;
+        let open = bool::from_value(val / 1usize).unwrap();
+        val -= (open.value() - 0usize) * 1usize;
+        Some(Self {
+            facing,
+            powered,
+            half,
+            hinge,
+            open,
+        })
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct DarkOakDoorData {
+    pub half: DarkOakDoorHalf,
+    pub facing: DarkOakDoorFacing,
+    pub open: bool,
+    pub powered: bool,
+    pub hinge: DarkOakDoorHinge,
+}
+impl DarkOakDoorData {
+    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
+        Some(Self {
+            half: DarkOakDoorHalf::from_snake_case(map.get("half")?)?,
+            facing: DarkOakDoorFacing::from_snake_case(map.get("facing")?)?,
+            open: bool::from_snake_case(map.get("open")?)?,
+            powered: bool::from_snake_case(map.get("powered")?)?,
+            hinge: DarkOakDoorHinge::from_snake_case(map.get("hinge")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
@@ -16068,7 +16455,7 @@ impl JungleDoorData {
         m
     }
 }
-impl Value for JungleDoorData {
+impl Value for DarkOakDoorData {
     fn value(&self) -> usize {
         (self.half.value() * 32usize)
             + (self.facing.value() * 8usize)
@@ -16078,142 +16465,25 @@ impl Value for JungleDoorData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
-        let half = JungleDoorHalf::from_value(val / 32usize).unwrap();
-        val -= half.value() * 32usize;
-        let facing = JungleDoorFacing::from_value(val / 8usize).unwrap();
-        val -= facing.value() * 8usize;
+        let half = DarkOakDoorHalf::from_value(val / 32usize).unwrap();
+        val -= (half.value() - 0usize) * 32usize;
+        let facing = DarkOakDoorFacing::from_value(val / 8usize).unwrap();
+        val -= (facing.value() - 0usize) * 8usize;
         let open = bool::from_value(val / 4usize).unwrap();
-        val -= open.value() * 4usize;
+        val -= (open.value() - 0usize) * 4usize;
         let powered = bool::from_value(val / 2usize).unwrap();
-        val -= powered.value() * 2usize;
-        let hinge = JungleDoorHinge::from_value(val / 1usize).unwrap();
+        val -= (powered.value() - 0usize) * 2usize;
+        let hinge = DarkOakDoorHinge::from_value(val / 1usize).unwrap();
+        val -= (hinge.value() - 0usize) * 1usize;
         Some(Self {
             half,
             facing,
             open,
             powered,
             hinge,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct AcaciaDoorData {
-    pub half: AcaciaDoorHalf,
-    pub open: bool,
-    pub powered: bool,
-    pub facing: AcaciaDoorFacing,
-    pub hinge: AcaciaDoorHinge,
-}
-impl AcaciaDoorData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            half: AcaciaDoorHalf::from_snake_case(map.get("half")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            facing: AcaciaDoorFacing::from_snake_case(map.get("facing")?)?,
-            hinge: AcaciaDoorHinge::from_snake_case(map.get("hinge")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("hinge".to_string(), self.hinge.to_snake_case());
-        m
-    }
-}
-impl Value for AcaciaDoorData {
-    fn value(&self) -> usize {
-        (self.half.value() * 32usize)
-            + (self.open.value() * 16usize)
-            + (self.powered.value() * 8usize)
-            + (self.facing.value() * 2usize)
-            + (self.hinge.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
-            return None;
-        }
-        let half = AcaciaDoorHalf::from_value(val / 32usize).unwrap();
-        val -= half.value() * 32usize;
-        let open = bool::from_value(val / 16usize).unwrap();
-        val -= open.value() * 16usize;
-        let powered = bool::from_value(val / 8usize).unwrap();
-        val -= powered.value() * 8usize;
-        let facing = AcaciaDoorFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
-        let hinge = AcaciaDoorHinge::from_value(val / 1usize).unwrap();
-        Some(Self {
-            half,
-            open,
-            powered,
-            facing,
-            hinge,
-        })
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct DarkOakDoorData {
-    pub powered: bool,
-    pub hinge: DarkOakDoorHinge,
-    pub facing: DarkOakDoorFacing,
-    pub open: bool,
-    pub half: DarkOakDoorHalf,
-}
-impl DarkOakDoorData {
-    pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
-        Some(Self {
-            powered: bool::from_snake_case(map.get("powered")?)?,
-            hinge: DarkOakDoorHinge::from_snake_case(map.get("hinge")?)?,
-            facing: DarkOakDoorFacing::from_snake_case(map.get("facing")?)?,
-            open: bool::from_snake_case(map.get("open")?)?,
-            half: DarkOakDoorHalf::from_snake_case(map.get("half")?)?,
-        })
-    }
-    pub fn to_map(&self) -> HashMap<String, String> {
-        let mut m = HashMap::new();
-        m.insert("powered".to_string(), self.powered.to_snake_case());
-        m.insert("hinge".to_string(), self.hinge.to_snake_case());
-        m.insert("facing".to_string(), self.facing.to_snake_case());
-        m.insert("open".to_string(), self.open.to_snake_case());
-        m.insert("half".to_string(), self.half.to_snake_case());
-        m
-    }
-}
-impl Value for DarkOakDoorData {
-    fn value(&self) -> usize {
-        (self.powered.value() * 32usize)
-            + (self.hinge.value() * 16usize)
-            + (self.facing.value() * 4usize)
-            + (self.open.value() * 2usize)
-            + (self.half.value() * 1usize)
-    }
-    #[allow(warnings)]
-    fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
-            return None;
-        }
-        let powered = bool::from_value(val / 32usize).unwrap();
-        val -= powered.value() * 32usize;
-        let hinge = DarkOakDoorHinge::from_value(val / 16usize).unwrap();
-        val -= hinge.value() * 16usize;
-        let facing = DarkOakDoorFacing::from_value(val / 4usize).unwrap();
-        val -= facing.value() * 4usize;
-        let open = bool::from_value(val / 2usize).unwrap();
-        val -= open.value() * 2usize;
-        let half = DarkOakDoorHalf::from_value(val / 1usize).unwrap();
-        Some(Self {
-            powered,
-            hinge,
-            facing,
-            open,
-            half,
         })
     }
 }
@@ -16239,76 +16509,78 @@ impl Value for EndRodData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = EndRodFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ChorusPlantData {
     pub up: bool,
-    pub west: bool,
+    pub east: bool,
     pub down: bool,
     pub south: bool,
+    pub west: bool,
     pub north: bool,
-    pub east: bool,
 }
 impl ChorusPlantData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
             up: bool::from_snake_case(map.get("up")?)?,
-            west: bool::from_snake_case(map.get("west")?)?,
+            east: bool::from_snake_case(map.get("east")?)?,
             down: bool::from_snake_case(map.get("down")?)?,
             south: bool::from_snake_case(map.get("south")?)?,
+            west: bool::from_snake_case(map.get("west")?)?,
             north: bool::from_snake_case(map.get("north")?)?,
-            east: bool::from_snake_case(map.get("east")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
         m.insert("up".to_string(), self.up.to_snake_case());
-        m.insert("west".to_string(), self.west.to_snake_case());
+        m.insert("east".to_string(), self.east.to_snake_case());
         m.insert("down".to_string(), self.down.to_snake_case());
         m.insert("south".to_string(), self.south.to_snake_case());
+        m.insert("west".to_string(), self.west.to_snake_case());
         m.insert("north".to_string(), self.north.to_snake_case());
-        m.insert("east".to_string(), self.east.to_snake_case());
         m
     }
 }
 impl Value for ChorusPlantData {
     fn value(&self) -> usize {
         (self.up.value() * 32usize)
-            + (self.west.value() * 16usize)
+            + (self.east.value() * 16usize)
             + (self.down.value() * 8usize)
             + (self.south.value() * 4usize)
-            + (self.north.value() * 2usize)
-            + (self.east.value() * 1usize)
+            + (self.west.value() * 2usize)
+            + (self.north.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 64usize {
+        if val >= 64usize {
             return None;
         }
         let up = bool::from_value(val / 32usize).unwrap();
-        val -= up.value() * 32usize;
-        let west = bool::from_value(val / 16usize).unwrap();
-        val -= west.value() * 16usize;
+        val -= (up.value() - 0usize) * 32usize;
+        let east = bool::from_value(val / 16usize).unwrap();
+        val -= (east.value() - 0usize) * 16usize;
         let down = bool::from_value(val / 8usize).unwrap();
-        val -= down.value() * 8usize;
+        val -= (down.value() - 0usize) * 8usize;
         let south = bool::from_value(val / 4usize).unwrap();
-        val -= south.value() * 4usize;
-        let north = bool::from_value(val / 2usize).unwrap();
-        val -= north.value() * 2usize;
-        let east = bool::from_value(val / 1usize).unwrap();
+        val -= (south.value() - 0usize) * 4usize;
+        let west = bool::from_value(val / 2usize).unwrap();
+        val -= (west.value() - 0usize) * 2usize;
+        let north = bool::from_value(val / 1usize).unwrap();
+        val -= (north.value() - 0usize) * 1usize;
         Some(Self {
             up,
-            west,
+            east,
             down,
             south,
+            west,
             north,
-            east,
         })
     }
 }
@@ -16334,10 +16606,11 @@ impl Value for ChorusFlowerData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
         Some(Self { age })
     }
 }
@@ -16363,33 +16636,34 @@ impl Value for PurpurPillarData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = PurpurPillarAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PurpurStairsData {
-    pub half: PurpurStairsHalf,
     pub shape: PurpurStairsShape,
+    pub half: PurpurStairsHalf,
     pub facing: PurpurStairsFacing,
     pub waterlogged: bool,
 }
 impl PurpurStairsData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            half: PurpurStairsHalf::from_snake_case(map.get("half")?)?,
             shape: PurpurStairsShape::from_snake_case(map.get("shape")?)?,
+            half: PurpurStairsHalf::from_snake_case(map.get("half")?)?,
             facing: PurpurStairsFacing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("shape".to_string(), self.shape.to_snake_case());
+        m.insert("half".to_string(), self.half.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
@@ -16397,26 +16671,27 @@ impl PurpurStairsData {
 }
 impl Value for PurpurStairsData {
     fn value(&self) -> usize {
-        (self.half.value() * 40usize)
-            + (self.shape.value() * 8usize)
+        (self.shape.value() * 16usize)
+            + (self.half.value() * 8usize)
             + (self.facing.value() * 2usize)
             + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 80usize {
+        if val >= 80usize {
             return None;
         }
-        let half = PurpurStairsHalf::from_value(val / 40usize).unwrap();
-        val -= half.value() * 40usize;
-        let shape = PurpurStairsShape::from_value(val / 8usize).unwrap();
-        val -= shape.value() * 8usize;
+        let shape = PurpurStairsShape::from_value(val / 16usize).unwrap();
+        val -= (shape.value() - 0usize) * 16usize;
+        let half = PurpurStairsHalf::from_value(val / 8usize).unwrap();
+        val -= (half.value() - 0usize) * 8usize;
         let facing = PurpurStairsFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (facing.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            half,
             shape,
+            half,
             facing,
             waterlogged,
         })
@@ -16444,84 +16719,87 @@ impl Value for BeetrootsData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
         Some(Self { age })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct RepeatingCommandBlockData {
-    pub conditional: bool,
     pub facing: RepeatingCommandBlockFacing,
+    pub conditional: bool,
 }
 impl RepeatingCommandBlockData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            conditional: bool::from_snake_case(map.get("conditional")?)?,
             facing: RepeatingCommandBlockFacing::from_snake_case(map.get("facing")?)?,
+            conditional: bool::from_snake_case(map.get("conditional")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("conditional".to_string(), self.conditional.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("conditional".to_string(), self.conditional.to_snake_case());
         m
     }
 }
 impl Value for RepeatingCommandBlockData {
     fn value(&self) -> usize {
-        (self.conditional.value() * 6usize) + (self.facing.value() * 1usize)
+        (self.facing.value() * 2usize) + (self.conditional.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
-        let conditional = bool::from_value(val / 6usize).unwrap();
-        val -= conditional.value() * 6usize;
-        let facing = RepeatingCommandBlockFacing::from_value(val / 1usize).unwrap();
+        let facing = RepeatingCommandBlockFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let conditional = bool::from_value(val / 1usize).unwrap();
+        val -= (conditional.value() - 0usize) * 1usize;
         Some(Self {
-            conditional,
             facing,
+            conditional,
         })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ChainCommandBlockData {
-    pub facing: ChainCommandBlockFacing,
     pub conditional: bool,
+    pub facing: ChainCommandBlockFacing,
 }
 impl ChainCommandBlockData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: ChainCommandBlockFacing::from_snake_case(map.get("facing")?)?,
             conditional: bool::from_snake_case(map.get("conditional")?)?,
+            facing: ChainCommandBlockFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("conditional".to_string(), self.conditional.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for ChainCommandBlockData {
     fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.conditional.value() * 1usize)
+        (self.conditional.value() * 6usize) + (self.facing.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
-        let facing = ChainCommandBlockFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
-        let conditional = bool::from_value(val / 1usize).unwrap();
+        let conditional = bool::from_value(val / 6usize).unwrap();
+        val -= (conditional.value() - 0usize) * 6usize;
+        let facing = ChainCommandBlockFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
-            facing,
             conditional,
+            facing,
         })
     }
 }
@@ -16547,10 +16825,11 @@ impl Value for FrostedIceData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
         Some(Self { age })
     }
 }
@@ -16576,45 +16855,47 @@ impl Value for BoneBlockData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 3usize {
+        if val >= 3usize {
             return None;
         }
         let axis = BoneBlockAxis::from_value(val / 1usize).unwrap();
+        val -= (axis.value() - 0usize) * 1usize;
         Some(Self { axis })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ObserverData {
-    pub facing: ObserverFacing,
     pub powered: bool,
+    pub facing: ObserverFacing,
 }
 impl ObserverData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: ObserverFacing::from_snake_case(map.get("facing")?)?,
             powered: bool::from_snake_case(map.get("powered")?)?,
+            facing: ObserverFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("powered".to_string(), self.powered.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for ObserverData {
     fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.powered.value() * 1usize)
+        (self.powered.value() * 6usize) + (self.facing.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
-        let facing = ObserverFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
-        let powered = bool::from_value(val / 1usize).unwrap();
-        Some(Self { facing, powered })
+        let powered = bool::from_value(val / 6usize).unwrap();
+        val -= (powered.value() - 0usize) * 6usize;
+        let facing = ObserverFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
+        Some(Self { powered, facing })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -16639,10 +16920,11 @@ impl Value for ShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = ShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -16668,10 +16950,11 @@ impl Value for WhiteShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = WhiteShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -16697,10 +16980,11 @@ impl Value for OrangeShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = OrangeShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -16726,10 +17010,11 @@ impl Value for MagentaShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = MagentaShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -16755,10 +17040,11 @@ impl Value for LightBlueShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = LightBlueShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -16784,10 +17070,11 @@ impl Value for YellowShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = YellowShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -16813,10 +17100,11 @@ impl Value for LimeShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = LimeShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -16842,10 +17130,11 @@ impl Value for PinkShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = PinkShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -16871,10 +17160,11 @@ impl Value for GrayShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = GrayShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -16900,10 +17190,11 @@ impl Value for LightGrayShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = LightGrayShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -16929,10 +17220,11 @@ impl Value for CyanShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = CyanShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -16958,10 +17250,11 @@ impl Value for PurpleShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = PurpleShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -16987,10 +17280,11 @@ impl Value for BlueShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = BlueShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17016,10 +17310,11 @@ impl Value for BrownShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = BrownShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17045,10 +17340,11 @@ impl Value for GreenShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = GreenShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17074,10 +17370,11 @@ impl Value for RedShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = RedShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17103,10 +17400,11 @@ impl Value for BlackShulkerBoxData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 6usize {
+        if val >= 6usize {
             return None;
         }
         let facing = BlackShulkerBoxFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17132,10 +17430,11 @@ impl Value for WhiteGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = WhiteGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17161,10 +17460,11 @@ impl Value for OrangeGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = OrangeGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17190,10 +17490,11 @@ impl Value for MagentaGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = MagentaGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17219,10 +17520,11 @@ impl Value for LightBlueGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = LightBlueGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17248,10 +17550,11 @@ impl Value for YellowGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = YellowGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17277,10 +17580,11 @@ impl Value for LimeGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = LimeGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17306,10 +17610,11 @@ impl Value for PinkGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = PinkGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17335,10 +17640,11 @@ impl Value for GrayGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = GrayGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17364,10 +17670,11 @@ impl Value for LightGrayGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = LightGrayGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17393,10 +17700,11 @@ impl Value for CyanGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = CyanGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17422,10 +17730,11 @@ impl Value for PurpleGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = PurpleGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17451,10 +17760,11 @@ impl Value for BlueGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = BlueGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17480,10 +17790,11 @@ impl Value for BrownGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = BrownGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17509,10 +17820,11 @@ impl Value for GreenGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = GreenGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17538,10 +17850,11 @@ impl Value for RedGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = RedGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17567,10 +17880,11 @@ impl Value for BlackGlazedTerracottaData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let facing = BlackGlazedTerracottaFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self { facing })
     }
 }
@@ -17596,45 +17910,47 @@ impl Value for KelpData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 26usize {
+        if val >= 26usize {
             return None;
         }
         let age = i32::from_value(val / 1usize).unwrap();
+        val -= (age.value() - 0usize) * 1usize;
         Some(Self { age })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TurtleEggData {
-    pub hatch: i32,
     pub eggs: i32,
+    pub hatch: i32,
 }
 impl TurtleEggData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            hatch: i32::from_snake_case(map.get("hatch")?)?,
             eggs: i32::from_snake_case(map.get("eggs")?)?,
+            hatch: i32::from_snake_case(map.get("hatch")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("hatch".to_string(), self.hatch.to_snake_case());
         m.insert("eggs".to_string(), self.eggs.to_snake_case());
+        m.insert("hatch".to_string(), self.hatch.to_snake_case());
         m
     }
 }
 impl Value for TurtleEggData {
     fn value(&self) -> usize {
-        (self.hatch.value() * 4usize) + (self.eggs.value() * 1usize)
+        ((self.eggs.value() - 1) * 3usize) + (self.hatch.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 12usize {
+        if val >= 12usize {
             return None;
         }
-        let hatch = i32::from_value(val / 4usize).unwrap();
-        val -= hatch.value() * 4usize;
-        let eggs = i32::from_value(val / 1usize).unwrap();
-        Some(Self { hatch, eggs })
+        let eggs = i32::from_value(val / 3usize).unwrap() + 1i32;
+        val -= (eggs.value() - 1usize) * 3usize;
+        let hatch = i32::from_value(val / 1usize).unwrap();
+        val -= (hatch.value() - 0usize) * 1usize;
+        Some(Self { eggs, hatch })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -17659,10 +17975,11 @@ impl Value for DeadTubeCoralData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -17688,10 +18005,11 @@ impl Value for DeadBrainCoralData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -17717,10 +18035,11 @@ impl Value for DeadBubbleCoralData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -17746,10 +18065,11 @@ impl Value for DeadFireCoralData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -17775,10 +18095,11 @@ impl Value for DeadHornCoralData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -17804,10 +18125,11 @@ impl Value for TubeCoralData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -17833,10 +18155,11 @@ impl Value for BrainCoralData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -17862,10 +18185,11 @@ impl Value for BubbleCoralData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -17891,10 +18215,11 @@ impl Value for FireCoralData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -17920,47 +18245,49 @@ impl Value for HornCoralData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DeadTubeCoralWallFanData {
-    pub waterlogged: bool,
     pub facing: DeadTubeCoralWallFanFacing,
+    pub waterlogged: bool,
 }
 impl DeadTubeCoralWallFanData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             facing: DeadTubeCoralWallFanFacing::from_snake_case(map.get("facing")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for DeadTubeCoralWallFanData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 4usize) + (self.facing.value() * 1usize)
+        (self.facing.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
-        let facing = DeadTubeCoralWallFanFacing::from_value(val / 1usize).unwrap();
+        let facing = DeadTubeCoralWallFanFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
             facing,
+            waterlogged,
         })
     }
 }
@@ -17989,12 +18316,13 @@ impl Value for DeadBrainCoralWallFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let facing = DeadBrainCoralWallFanFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (facing.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
             facing,
             waterlogged,
@@ -18026,12 +18354,13 @@ impl Value for DeadBubbleCoralWallFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let facing = DeadBubbleCoralWallFanFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (facing.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
             facing,
             waterlogged,
@@ -18040,38 +18369,39 @@ impl Value for DeadBubbleCoralWallFanData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct DeadFireCoralWallFanData {
-    pub waterlogged: bool,
     pub facing: DeadFireCoralWallFanFacing,
+    pub waterlogged: bool,
 }
 impl DeadFireCoralWallFanData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             facing: DeadFireCoralWallFanFacing::from_snake_case(map.get("facing")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for DeadFireCoralWallFanData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 4usize) + (self.facing.value() * 1usize)
+        (self.facing.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
-        let facing = DeadFireCoralWallFanFacing::from_value(val / 1usize).unwrap();
+        let facing = DeadFireCoralWallFanFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
             facing,
+            waterlogged,
         })
     }
 }
@@ -18100,12 +18430,13 @@ impl Value for DeadHornCoralWallFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let facing = DeadHornCoralWallFanFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (facing.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
             facing,
             waterlogged,
@@ -18137,12 +18468,13 @@ impl Value for TubeCoralWallFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let facing = TubeCoralWallFanFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
+        val -= (facing.value() - 0usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
             facing,
             waterlogged,
@@ -18151,38 +18483,39 @@ impl Value for TubeCoralWallFanData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BrainCoralWallFanData {
-    pub waterlogged: bool,
     pub facing: BrainCoralWallFanFacing,
+    pub waterlogged: bool,
 }
 impl BrainCoralWallFanData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
             facing: BrainCoralWallFanFacing::from_snake_case(map.get("facing")?)?,
+            waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m.insert("facing".to_string(), self.facing.to_snake_case());
+        m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
         m
     }
 }
 impl Value for BrainCoralWallFanData {
     fn value(&self) -> usize {
-        (self.waterlogged.value() * 4usize) + (self.facing.value() * 1usize)
+        (self.facing.value() * 2usize) + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
-        let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
-        let facing = BrainCoralWallFanFacing::from_value(val / 1usize).unwrap();
+        let facing = BrainCoralWallFanFacing::from_value(val / 2usize).unwrap();
+        val -= (facing.value() - 0usize) * 2usize;
+        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
-            waterlogged,
             facing,
+            waterlogged,
         })
     }
 }
@@ -18211,12 +18544,13 @@ impl Value for BubbleCoralWallFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
+        val -= (waterlogged.value() - 0usize) * 4usize;
         let facing = BubbleCoralWallFanFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
             waterlogged,
             facing,
@@ -18225,38 +18559,39 @@ impl Value for BubbleCoralWallFanData {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct FireCoralWallFanData {
-    pub facing: FireCoralWallFanFacing,
     pub waterlogged: bool,
+    pub facing: FireCoralWallFanFacing,
 }
 impl FireCoralWallFanData {
     pub fn from_map(map: &HashMap<String, String>) -> Option<Self> {
         Some(Self {
-            facing: FireCoralWallFanFacing::from_snake_case(map.get("facing")?)?,
             waterlogged: bool::from_snake_case(map.get("waterlogged")?)?,
+            facing: FireCoralWallFanFacing::from_snake_case(map.get("facing")?)?,
         })
     }
     pub fn to_map(&self) -> HashMap<String, String> {
         let mut m = HashMap::new();
-        m.insert("facing".to_string(), self.facing.to_snake_case());
         m.insert("waterlogged".to_string(), self.waterlogged.to_snake_case());
+        m.insert("facing".to_string(), self.facing.to_snake_case());
         m
     }
 }
 impl Value for FireCoralWallFanData {
     fn value(&self) -> usize {
-        (self.facing.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        (self.waterlogged.value() * 4usize) + (self.facing.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
-        let facing = FireCoralWallFanFacing::from_value(val / 2usize).unwrap();
-        val -= facing.value() * 2usize;
-        let waterlogged = bool::from_value(val / 1usize).unwrap();
+        let waterlogged = bool::from_value(val / 4usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 4usize;
+        let facing = FireCoralWallFanFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
-            facing,
             waterlogged,
+            facing,
         })
     }
 }
@@ -18285,12 +18620,13 @@ impl Value for HornCoralWallFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 4usize).unwrap();
-        val -= waterlogged.value() * 4usize;
+        val -= (waterlogged.value() - 0usize) * 4usize;
         let facing = HornCoralWallFanFacing::from_value(val / 1usize).unwrap();
+        val -= (facing.value() - 0usize) * 1usize;
         Some(Self {
             waterlogged,
             facing,
@@ -18319,10 +18655,11 @@ impl Value for DeadTubeCoralFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -18348,10 +18685,11 @@ impl Value for DeadBrainCoralFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -18377,10 +18715,11 @@ impl Value for DeadBubbleCoralFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -18406,10 +18745,11 @@ impl Value for DeadFireCoralFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -18435,10 +18775,11 @@ impl Value for DeadHornCoralFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -18464,10 +18805,11 @@ impl Value for TubeCoralFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -18493,10 +18835,11 @@ impl Value for BrainCoralFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -18522,10 +18865,11 @@ impl Value for BubbleCoralFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -18551,10 +18895,11 @@ impl Value for FireCoralFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -18580,10 +18925,11 @@ impl Value for HornCoralFanData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -18608,16 +18954,17 @@ impl SeaPickleData {
 }
 impl Value for SeaPickleData {
     fn value(&self) -> usize {
-        (self.pickles.value() * 2usize) + (self.waterlogged.value() * 1usize)
+        ((self.pickles.value() - 1) * 2usize) + (self.waterlogged.value() * 1usize)
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 8usize {
+        if val >= 8usize {
             return None;
         }
-        let pickles = i32::from_value(val / 2usize).unwrap();
-        val -= pickles.value() * 2usize;
+        let pickles = i32::from_value(val / 2usize).unwrap() + 1i32;
+        val -= (pickles.value() - 1usize) * 2usize;
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self {
             pickles,
             waterlogged,
@@ -18646,10 +18993,11 @@ impl Value for ConduitData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let waterlogged = bool::from_value(val / 1usize).unwrap();
+        val -= (waterlogged.value() - 0usize) * 1usize;
         Some(Self { waterlogged })
     }
 }
@@ -18675,10 +19023,11 @@ impl Value for BubbleColumnData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 2usize {
+        if val >= 2usize {
             return None;
         }
         let drag = bool::from_value(val / 1usize).unwrap();
+        val -= (drag.value() - 0usize) * 1usize;
         Some(Self { drag })
     }
 }
@@ -18704,10 +19053,11 @@ impl Value for StructureBlockData {
     }
     #[allow(warnings)]
     fn from_value(mut val: usize) -> Option<Self> {
-        if val > 4usize {
+        if val >= 4usize {
             return None;
         }
         let mode = StructureBlockMode::from_value(val / 1usize).unwrap();
+        val -= (mode.value() - 0usize) * 1usize;
         Some(Self { mode })
     }
 }
@@ -19114,21 +19464,6 @@ impl Value for WhiteBedFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum OrangeBedFacing {
-    North,
-    South,
-    West,
-    East,
-}
-impl Value for OrangeBedFacing {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum OrangeBedPart {
     Head,
     Foot,
@@ -19142,11 +19477,13 @@ impl Value for OrangeBedPart {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum MagentaBedPart {
-    Head,
-    Foot,
+pub enum OrangeBedFacing {
+    North,
+    South,
+    West,
+    East,
 }
-impl Value for MagentaBedPart {
+impl Value for OrangeBedFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19170,11 +19507,11 @@ impl Value for MagentaBedFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum LightBlueBedPart {
+pub enum MagentaBedPart {
     Head,
     Foot,
 }
-impl Value for LightBlueBedPart {
+impl Value for MagentaBedPart {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19198,11 +19535,11 @@ impl Value for LightBlueBedFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum YellowBedPart {
+pub enum LightBlueBedPart {
     Head,
     Foot,
 }
-impl Value for YellowBedPart {
+impl Value for LightBlueBedPart {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19226,13 +19563,11 @@ impl Value for YellowBedFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum LimeBedFacing {
-    North,
-    South,
-    West,
-    East,
+pub enum YellowBedPart {
+    Head,
+    Foot,
 }
-impl Value for LimeBedFacing {
+impl Value for YellowBedPart {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19246,6 +19581,21 @@ pub enum LimeBedPart {
     Foot,
 }
 impl Value for LimeBedPart {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum LimeBedFacing {
+    North,
+    South,
+    West,
+    East,
+}
+impl Value for LimeBedFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19450,13 +19800,11 @@ impl Value for BrownBedFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum GreenBedFacing {
-    North,
-    South,
-    West,
-    East,
+pub enum GreenBedPart {
+    Head,
+    Foot,
 }
-impl Value for GreenBedFacing {
+impl Value for GreenBedPart {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19465,11 +19813,13 @@ impl Value for GreenBedFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum GreenBedPart {
-    Head,
-    Foot,
+pub enum GreenBedFacing {
+    North,
+    South,
+    West,
+    East,
 }
-impl Value for GreenBedPart {
+impl Value for GreenBedFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19506,13 +19856,11 @@ impl Value for RedBedPart {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum BlackBedFacing {
-    North,
-    South,
-    West,
-    East,
+pub enum BlackBedPart {
+    Head,
+    Foot,
 }
-impl Value for BlackBedFacing {
+impl Value for BlackBedPart {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19521,11 +19869,13 @@ impl Value for BlackBedFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum BlackBedPart {
-    Head,
-    Foot,
+pub enum BlackBedFacing {
+    North,
+    South,
+    West,
+    East,
 }
-impl Value for BlackBedPart {
+impl Value for BlackBedFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19615,6 +19965,19 @@ impl Value for PistonFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum PistonHeadType {
+    Normal,
+    Sticky,
+}
+impl Value for PistonHeadType {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum PistonHeadFacing {
     North,
     East,
@@ -19632,11 +19995,11 @@ impl Value for PistonHeadFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum PistonHeadType {
+pub enum MovingPistonType {
     Normal,
     Sticky,
 }
-impl Value for PistonHeadType {
+impl Value for MovingPistonType {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19662,19 +20025,6 @@ impl Value for MovingPistonFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum MovingPistonType {
-    Normal,
-    Sticky,
-}
-impl Value for MovingPistonType {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum WallTorchFacing {
     North,
     South,
@@ -19682,21 +20032,6 @@ pub enum WallTorchFacing {
     East,
 }
 impl Value for WallTorchFacing {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum OakStairsFacing {
-    North,
-    South,
-    West,
-    East,
-}
-impl Value for OakStairsFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19713,6 +20048,21 @@ pub enum OakStairsShape {
     OuterRight,
 }
 impl Value for OakStairsShape {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum OakStairsFacing {
+    North,
+    South,
+    West,
+    East,
+}
+impl Value for OakStairsFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19763,12 +20113,12 @@ impl Value for ChestType {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum RedstoneWireNorth {
+pub enum RedstoneWireSouth {
     Up,
     Side,
     None,
 }
-impl Value for RedstoneWireNorth {
+impl Value for RedstoneWireSouth {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19791,12 +20141,12 @@ impl Value for RedstoneWireEast {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum RedstoneWireSouth {
+pub enum RedstoneWireWest {
     Up,
     Side,
     None,
 }
-impl Value for RedstoneWireSouth {
+impl Value for RedstoneWireWest {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19805,12 +20155,12 @@ impl Value for RedstoneWireSouth {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum RedstoneWireWest {
+pub enum RedstoneWireNorth {
     Up,
     Side,
     None,
 }
-impl Value for RedstoneWireWest {
+impl Value for RedstoneWireNorth {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19826,6 +20176,21 @@ pub enum FurnaceFacing {
     East,
 }
 impl Value for FurnaceFacing {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum OakDoorFacing {
+    North,
+    South,
+    West,
+    East,
+}
+impl Value for OakDoorFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19852,21 +20217,6 @@ pub enum OakDoorHinge {
     Right,
 }
 impl Value for OakDoorHinge {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum OakDoorFacing {
-    North,
-    South,
-    West,
-    East,
-}
-impl Value for OakDoorFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -19999,11 +20349,11 @@ impl Value for LeverFace {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum IronDoorHalf {
-    Upper,
-    Lower,
+pub enum IronDoorHinge {
+    Left,
+    Right,
 }
-impl Value for IronDoorHalf {
+impl Value for IronDoorHinge {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20012,11 +20362,11 @@ impl Value for IronDoorHalf {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum IronDoorHinge {
-    Left,
-    Right,
+pub enum IronDoorHalf {
+    Upper,
+    Lower,
 }
-impl Value for IronDoorHinge {
+impl Value for IronDoorHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20142,11 +20492,13 @@ impl Value for RepeaterFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum OakTrapdoorHalf {
-    Top,
-    Bottom,
+pub enum OakTrapdoorFacing {
+    North,
+    South,
+    West,
+    East,
 }
-impl Value for OakTrapdoorHalf {
+impl Value for OakTrapdoorFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20155,13 +20507,11 @@ impl Value for OakTrapdoorHalf {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum OakTrapdoorFacing {
-    North,
-    South,
-    West,
-    East,
+pub enum OakTrapdoorHalf {
+    Top,
+    Bottom,
 }
-impl Value for OakTrapdoorFacing {
+impl Value for OakTrapdoorHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20198,19 +20548,6 @@ impl Value for SpruceTrapdoorHalf {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum BirchTrapdoorHalf {
-    Top,
-    Bottom,
-}
-impl Value for BirchTrapdoorHalf {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum BirchTrapdoorFacing {
     North,
     South,
@@ -20226,11 +20563,11 @@ impl Value for BirchTrapdoorFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum JungleTrapdoorHalf {
+pub enum BirchTrapdoorHalf {
     Top,
     Bottom,
 }
-impl Value for JungleTrapdoorHalf {
+impl Value for BirchTrapdoorHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20246,6 +20583,19 @@ pub enum JungleTrapdoorFacing {
     East,
 }
 impl Value for JungleTrapdoorFacing {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum JungleTrapdoorHalf {
+    Top,
+    Bottom,
+}
+impl Value for JungleTrapdoorHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20355,11 +20705,14 @@ impl Value for OakFenceGateFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum BrickStairsHalf {
-    Top,
-    Bottom,
+pub enum BrickStairsShape {
+    Straight,
+    InnerLeft,
+    InnerRight,
+    OuterLeft,
+    OuterRight,
 }
-impl Value for BrickStairsHalf {
+impl Value for BrickStairsShape {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20383,30 +20736,11 @@ impl Value for BrickStairsFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum BrickStairsShape {
-    Straight,
-    InnerLeft,
-    InnerRight,
-    OuterLeft,
-    OuterRight,
+pub enum BrickStairsHalf {
+    Top,
+    Bottom,
 }
-impl Value for BrickStairsShape {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum StoneBrickStairsShape {
-    Straight,
-    InnerLeft,
-    InnerRight,
-    OuterLeft,
-    OuterRight,
-}
-impl Value for StoneBrickStairsShape {
+impl Value for BrickStairsHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20443,14 +20777,27 @@ impl Value for StoneBrickStairsHalf {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum NetherBrickStairsShape {
+pub enum StoneBrickStairsShape {
     Straight,
     InnerLeft,
     InnerRight,
     OuterLeft,
     OuterRight,
 }
-impl Value for NetherBrickStairsShape {
+impl Value for StoneBrickStairsShape {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum NetherBrickStairsHalf {
+    Top,
+    Bottom,
+}
+impl Value for NetherBrickStairsHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20474,11 +20821,14 @@ impl Value for NetherBrickStairsFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum NetherBrickStairsHalf {
-    Top,
-    Bottom,
+pub enum NetherBrickStairsShape {
+    Straight,
+    InnerLeft,
+    InnerRight,
+    OuterLeft,
+    OuterRight,
 }
-impl Value for NetherBrickStairsHalf {
+impl Value for NetherBrickStairsShape {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20517,11 +20867,13 @@ impl Value for CocoaFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum SandstoneStairsHalf {
-    Top,
-    Bottom,
+pub enum SandstoneStairsFacing {
+    North,
+    South,
+    West,
+    East,
 }
-impl Value for SandstoneStairsHalf {
+impl Value for SandstoneStairsFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20530,13 +20882,11 @@ impl Value for SandstoneStairsHalf {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum SandstoneStairsFacing {
-    North,
-    South,
-    West,
-    East,
+pub enum SandstoneStairsHalf {
+    Top,
+    Bottom,
 }
-impl Value for SandstoneStairsFacing {
+impl Value for SandstoneStairsHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20591,13 +20941,14 @@ impl Value for TripwireHookFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum SpruceStairsFacing {
-    North,
-    South,
-    West,
-    East,
+pub enum SpruceStairsShape {
+    Straight,
+    InnerLeft,
+    InnerRight,
+    OuterLeft,
+    OuterRight,
 }
-impl Value for SpruceStairsFacing {
+impl Value for SpruceStairsShape {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20619,14 +20970,13 @@ impl Value for SpruceStairsHalf {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum SpruceStairsShape {
-    Straight,
-    InnerLeft,
-    InnerRight,
-    OuterLeft,
-    OuterRight,
+pub enum SpruceStairsFacing {
+    North,
+    South,
+    West,
+    East,
 }
-impl Value for SpruceStairsShape {
+impl Value for SpruceStairsFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20695,13 +21045,11 @@ impl Value for JungleStairsShape {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum JungleStairsFacing {
-    North,
-    South,
-    West,
-    East,
+pub enum JungleStairsHalf {
+    Top,
+    Bottom,
 }
-impl Value for JungleStairsFacing {
+impl Value for JungleStairsHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20710,11 +21058,13 @@ impl Value for JungleStairsFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum JungleStairsHalf {
-    Top,
-    Bottom,
+pub enum JungleStairsFacing {
+    North,
+    South,
+    West,
+    East,
 }
-impl Value for JungleStairsHalf {
+impl Value for JungleStairsFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20740,6 +21090,20 @@ impl Value for CommandBlockFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum OakButtonFace {
+    Floor,
+    Wall,
+    Ceiling,
+}
+impl Value for OakButtonFace {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum OakButtonFacing {
     North,
     South,
@@ -20755,12 +21119,12 @@ impl Value for OakButtonFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum OakButtonFace {
+pub enum SpruceButtonFace {
     Floor,
     Wall,
     Ceiling,
 }
-impl Value for OakButtonFace {
+impl Value for SpruceButtonFace {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20784,34 +21148,6 @@ impl Value for SpruceButtonFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum SpruceButtonFace {
-    Floor,
-    Wall,
-    Ceiling,
-}
-impl Value for SpruceButtonFace {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum BirchButtonFace {
-    Floor,
-    Wall,
-    Ceiling,
-}
-impl Value for BirchButtonFace {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum BirchButtonFacing {
     North,
     South,
@@ -20827,12 +21163,12 @@ impl Value for BirchButtonFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum JungleButtonFace {
+pub enum BirchButtonFace {
     Floor,
     Wall,
     Ceiling,
 }
-impl Value for JungleButtonFace {
+impl Value for BirchButtonFace {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20856,13 +21192,12 @@ impl Value for JungleButtonFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum AcaciaButtonFacing {
-    North,
-    South,
-    West,
-    East,
+pub enum JungleButtonFace {
+    Floor,
+    Wall,
+    Ceiling,
 }
-impl Value for AcaciaButtonFacing {
+impl Value for JungleButtonFace {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -20877,6 +21212,21 @@ pub enum AcaciaButtonFace {
     Ceiling,
 }
 impl Value for AcaciaButtonFace {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum AcaciaButtonFacing {
+    North,
+    South,
+    West,
+    East,
+}
+impl Value for AcaciaButtonFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -21049,12 +21399,13 @@ impl Value for DamagedAnvilFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum TrappedChestType {
-    Single,
-    Left,
-    Right,
+pub enum TrappedChestFacing {
+    North,
+    South,
+    West,
+    East,
 }
-impl Value for TrappedChestType {
+impl Value for TrappedChestFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -21063,13 +21414,12 @@ impl Value for TrappedChestType {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum TrappedChestFacing {
-    North,
-    South,
-    West,
-    East,
+pub enum TrappedChestType {
+    Single,
+    Left,
+    Right,
 }
-impl Value for TrappedChestFacing {
+impl Value for TrappedChestType {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -21214,21 +21564,6 @@ impl Value for DropperFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum AcaciaStairsFacing {
-    North,
-    South,
-    West,
-    East,
-}
-impl Value for AcaciaStairsFacing {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum AcaciaStairsShape {
     Straight,
     InnerLeft,
@@ -21245,11 +21580,39 @@ impl Value for AcaciaStairsShape {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum AcaciaStairsFacing {
+    North,
+    South,
+    West,
+    East,
+}
+impl Value for AcaciaStairsFacing {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum AcaciaStairsHalf {
     Top,
     Bottom,
 }
 impl Value for AcaciaStairsHalf {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum DarkOakStairsHalf {
+    Top,
+    Bottom,
+}
+impl Value for DarkOakStairsHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -21289,19 +21652,6 @@ impl Value for DarkOakStairsFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum DarkOakStairsHalf {
-    Top,
-    Bottom,
-}
-impl Value for DarkOakStairsHalf {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum IronTrapdoorFacing {
     North,
     South,
@@ -21330,19 +21680,6 @@ impl Value for IronTrapdoorHalf {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum PrismarineStairsHalf {
-    Top,
-    Bottom,
-}
-impl Value for PrismarineStairsHalf {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum PrismarineStairsShape {
     Straight,
     InnerLeft,
@@ -21351,6 +21688,19 @@ pub enum PrismarineStairsShape {
     OuterRight,
 }
 impl Value for PrismarineStairsShape {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum PrismarineStairsHalf {
+    Top,
+    Bottom,
+}
+impl Value for PrismarineStairsHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -21434,11 +21784,13 @@ impl Value for DarkPrismarineStairsShape {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum DarkPrismarineStairsHalf {
-    Top,
-    Bottom,
+pub enum DarkPrismarineStairsFacing {
+    North,
+    South,
+    West,
+    East,
 }
-impl Value for DarkPrismarineStairsHalf {
+impl Value for DarkPrismarineStairsFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -21447,13 +21799,11 @@ impl Value for DarkPrismarineStairsHalf {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum DarkPrismarineStairsFacing {
-    North,
-    South,
-    West,
-    East,
+pub enum DarkPrismarineStairsHalf {
+    Top,
+    Bottom,
 }
-impl Value for DarkPrismarineStairsFacing {
+impl Value for DarkPrismarineStairsHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -21836,11 +22186,14 @@ impl Value for BlackWallBannerFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum RedSandstoneStairsHalf {
-    Top,
-    Bottom,
+pub enum RedSandstoneStairsShape {
+    Straight,
+    InnerLeft,
+    InnerRight,
+    OuterLeft,
+    OuterRight,
 }
-impl Value for RedSandstoneStairsHalf {
+impl Value for RedSandstoneStairsShape {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -21864,14 +22217,11 @@ impl Value for RedSandstoneStairsFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum RedSandstoneStairsShape {
-    Straight,
-    InnerLeft,
-    InnerRight,
-    OuterLeft,
-    OuterRight,
+pub enum RedSandstoneStairsHalf {
+    Top,
+    Bottom,
 }
-impl Value for RedSandstoneStairsShape {
+impl Value for RedSandstoneStairsHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -22179,11 +22529,13 @@ impl Value for DarkOakFenceGateFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum SpruceDoorHinge {
-    Left,
-    Right,
+pub enum SpruceDoorFacing {
+    North,
+    South,
+    West,
+    East,
 }
-impl Value for SpruceDoorHinge {
+impl Value for SpruceDoorFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -22192,13 +22544,11 @@ impl Value for SpruceDoorHinge {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum SpruceDoorFacing {
-    North,
-    South,
-    West,
-    East,
+pub enum SpruceDoorHinge {
+    Left,
+    Right,
 }
-impl Value for SpruceDoorFacing {
+impl Value for SpruceDoorHinge {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -22274,21 +22624,6 @@ impl Value for JungleDoorHalf {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum JungleDoorFacing {
-    North,
-    South,
-    West,
-    East,
-}
-impl Value for JungleDoorFacing {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum JungleDoorHinge {
     Left,
     Right,
@@ -22302,11 +22637,13 @@ impl Value for JungleDoorHinge {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum AcaciaDoorHalf {
-    Upper,
-    Lower,
+pub enum JungleDoorFacing {
+    North,
+    South,
+    West,
+    East,
 }
-impl Value for AcaciaDoorHalf {
+impl Value for JungleDoorFacing {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -22330,6 +22667,19 @@ impl Value for AcaciaDoorFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum AcaciaDoorHalf {
+    Upper,
+    Lower,
+}
+impl Value for AcaciaDoorHalf {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum AcaciaDoorHinge {
     Left,
     Right,
@@ -22343,11 +22693,11 @@ impl Value for AcaciaDoorHinge {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum DarkOakDoorHinge {
-    Left,
-    Right,
+pub enum DarkOakDoorHalf {
+    Upper,
+    Lower,
 }
-impl Value for DarkOakDoorHinge {
+impl Value for DarkOakDoorHalf {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -22371,11 +22721,11 @@ impl Value for DarkOakDoorFacing {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum DarkOakDoorHalf {
-    Upper,
-    Lower,
+pub enum DarkOakDoorHinge {
+    Left,
+    Right,
 }
-impl Value for DarkOakDoorHalf {
+impl Value for DarkOakDoorHinge {
     fn value(&self) -> usize {
         *self as usize
     }
@@ -22415,19 +22765,6 @@ impl Value for PurpurPillarAxis {
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
-pub enum PurpurStairsHalf {
-    Top,
-    Bottom,
-}
-impl Value for PurpurStairsHalf {
-    fn value(&self) -> usize {
-        *self as usize
-    }
-    fn from_value(val: usize) -> Option<Self> {
-        Self::from_usize(val)
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
 pub enum PurpurStairsShape {
     Straight,
     InnerLeft,
@@ -22436,6 +22773,19 @@ pub enum PurpurStairsShape {
     OuterRight,
 }
 impl Value for PurpurStairsShape {
+    fn value(&self) -> usize {
+        *self as usize
+    }
+    fn from_value(val: usize) -> Option<Self> {
+        Self::from_usize(val)
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToSnakeCase, FromSnakeCase, FromPrimitive)]
+pub enum PurpurStairsHalf {
+    Top,
+    Bottom,
+}
+impl Value for PurpurStairsHalf {
     fn value(&self) -> usize {
         *self as usize
     }
