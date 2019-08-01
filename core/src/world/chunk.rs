@@ -225,7 +225,7 @@ pub struct ChunkSection {
 impl ChunkSection {
     /// Creates a new, empty `ChunkSection`.
     pub fn new() -> Self {
-        let air_id = Block::Air.block_state_id();
+        let air_id = Block::Air.native_state_id();
         Self {
             data: BitArray::new(4, SECTION_VOLUME),
             palette: Some(vec![air_id]),
@@ -273,7 +273,7 @@ impl ChunkSection {
             None => block_id as u16,
         };
 
-        Block::from_block_state_id(global_id)
+        Block::from_native_state_id(global_id).unwrap()
     }
 
     /// Sets the block at the given position in this chunk section.
@@ -282,7 +282,7 @@ impl ChunkSection {
         self.dirty = true;
 
         let index = block_index(x, y, z);
-        let block_id = block.block_state_id();
+        let block_id = block.native_state_id();
 
         // The value that will be put into the
         let mut paletted_index;
@@ -311,7 +311,7 @@ impl ChunkSection {
                                         let block = self.block_at(_x, _y, _z);
                                         new_data.set(
                                             block_index(_x, _y, _z),
-                                            block.block_state_id() as u64,
+                                            block.native_state_id() as u64,
                                         );
                                     }
                                 }
@@ -361,7 +361,7 @@ impl ChunkSection {
         for x in 0..16 {
             for y in 0..16 {
                 for z in 0..16 {
-                    let block = self.block_at(x, y, z).block_state_id();
+                    let block = self.block_at(x, y, z).native_state_id();
                     match new_palette.binary_search(&block) {
                         Ok(_) => (),
                         Err(insert_index) => {
@@ -376,7 +376,7 @@ impl ChunkSection {
         for x in 0..16 {
             for y in 0..16 {
                 for z in 0..16 {
-                    let block = self.block_at(x, y, z).block_state_id();
+                    let block = self.block_at(x, y, z).native_state_id();
                     self.data.set(
                         block_index(x, y, z),
                         new_palette.binary_search(&block).unwrap() as u64,
@@ -665,7 +665,7 @@ mod tests {
             for x in 0..16 {
                 for y in 0..16 {
                     for z in 0..16 {
-                        let block = Block::from_block_state_id(counter);
+                        let block = Block::from_native_state_id(counter).unwrap();
                         chunk.set_block_at(x, (section * 16) + y, z, block);
                         assert_eq!(chunk.block_at(x, (section * 16) + y, z), block);
                         if counter != 0 {
@@ -684,7 +684,7 @@ mod tests {
             for x in 0..16 {
                 for y in 0..16 {
                     for z in 0..16 {
-                        let block = Block::from_block_state_id(counter);
+                        let block = Block::from_native_state_id(counter).unwrap();
                         assert_eq!(chunk.block_at(x, (section * 16) + y, z), block);
                         assert!(chunk.section(section).is_some());
                         counter += 1;

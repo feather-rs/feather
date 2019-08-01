@@ -7,7 +7,7 @@ use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::BlockChange;
 use feather_core::network::packet::implementation::{PlayerDigging, PlayerDiggingStatus};
 use feather_core::network::packet::PacketType;
-use feather_core::world::block::{Block, BlockToId};
+use feather_core::world::block::{Block, BlockExt};
 use feather_core::world::{BlockPosition, ChunkMap};
 use feather_core::Gamemode;
 
@@ -105,7 +105,7 @@ fn broadcast_block_update(
     pcomps: &ReadStorage<PlayerComponent>,
 ) {
     for (net, _) in (netcomps, pcomps).join() {
-        let block_update = BlockChange::new(pos, new_block.block_state_id() as i32);
+        let block_update = BlockChange::new(pos, new_block.native_state_id() as i32);
         send_packet_to_player(net, block_update);
     }
 }
@@ -180,7 +180,7 @@ mod tests {
             .unwrap();
         let block_change = cast_packet::<BlockChange>(&_block_change);
         assert_eq!(block_change.location, pos);
-        assert_eq!(block_change.block_id, Block::Air.block_state_id() as i32);
+        assert_eq!(block_change.block_id, Block::Air.native_state_id() as i32);
 
         // Make sure block was actually updated
         assert_eq!(
@@ -249,7 +249,7 @@ mod tests {
 
         let packet = cast_packet::<BlockChange>(&packet);
         assert_eq!(packet.location, BlockPosition::new(0, 0, 0));
-        assert_eq!(packet.block_id, Block::Sand.block_state_id() as i32);
+        assert_eq!(packet.block_id, Block::Sand.native_state_id() as i32);
 
         let p2_packets = t::received_packets(&player2, None);
         assert_eq!(p2_packets.len(), 0);
