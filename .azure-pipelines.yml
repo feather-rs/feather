@@ -1,0 +1,25 @@
+pool:
+  vmImage: 'ubuntu-16.04'
+
+strategy:
+  matrix:
+    stable:
+      rustup_toolchain: stable
+    beta:
+      rustup_toolchain: beta
+    nightly:
+      rustup_toolchain: nightly
+
+steps:
+  - script: |
+      curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
+      echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
+    displayName: Install Rust
+  - script: cargo install --debug cargo-make
+    displayName: Install cargo-make
+  - script: cargo make --no-workspace workspace-ci-flow
+    displayName: Build and test
+  - script: rustup component add rustfmt
+    displayName: Install rustfmt
+  - script: cargo fmt -- --check
+    displayName: Verify formatting
