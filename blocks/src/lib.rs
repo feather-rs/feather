@@ -68,7 +68,12 @@ impl BlockExt for Block {
     }
 
     fn from_native_state_id(id: u16) -> Option<Self> {
-        unimplemented!()
+        if id as usize >= NATIVE_TO_INTERNAL.len() {
+            return None;
+        }
+
+        let internal = NATIVE_TO_INTERNAL[id as usize];
+        Block::from_internal_state_id(internal as usize)
     }
 
     fn state_id(&self, proto_version: u32) -> u16 {
