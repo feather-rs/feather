@@ -180,8 +180,8 @@ impl RegionHandle {
                 }
 
                 let block =
-                    Block::from_name_and_props(&name, props).ok_or_else(|| Error::InvalidBlock)?;
-                palette_buf.push(block.block_state_id());
+                    Block::from_name_and_props(&name, &props).ok_or_else(|| Error::InvalidBlock)?;
+                palette_buf.push(block.native_state_id());
             }
 
             let len = block_state_buf.len();
