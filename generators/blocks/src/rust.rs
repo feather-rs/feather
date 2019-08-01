@@ -47,6 +47,7 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
     let internal_id_offsets = generate_internal_id_offsets(&report);
     let internal_state_id_fn = generate_internal_state_id_fn();
     let from_name_and_props_fn = generate_from_name_and_props_fn(&report);
+    let from_internal_state_id_fn = generate_from_internal_state_id_fn(&report);
 
     let block = quote! {
         #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -63,6 +64,7 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
             #internal_id_data_offset_fn
             #internal_state_id_fn
             #from_name_and_props_fn
+            #from_internal_state_id_fn
         }
     };
 
@@ -531,6 +533,51 @@ fn generate_internal_state_id_fn() -> TokenStream {
             type_offset + data_offset
         }
     }
+}
+
+/// Generates the `from_internal_state_id` function.
+fn generate_from_internal_state_id_fn(report: &BlockReport) -> TokenStream {
+    let mut match_arms = vec![];
+
+    let mut count = 0;
+    for (block_name, block) in &report.blocks {
+        let variant_name = block_name[10..].to_camel_case();
+        let variant_ident = Ident::new(&variant_name, Span::call_site());
+
+        if block.properties.is_some() {
+            let range_start = count;
+            let range_end = range_start + block.states.len() - 1;
+
+            let data_struct_str = format!("{}Data", variant_name);
+            let data_struct_ident = Ident::new(&data_struct_str, Span::call_site());
+
+            match_arms.push(quote! {
+                #range_start...#range_end => {
+                    let offset = id - #range_start;
+                    let data = #data_struct_ident::from_value(offset)?;
+                    Some(Block::#variant_ident(data))
+                }
+            });
+        } else {
+            match_arms.push(quote! {
+                #count => {
+                    Some(Block::#variant_ident)
+                }
+            });
+        }
+
+        count += block.states.len();
+    }
+
+    let result = quote! {
+        pub fn from_internal_state_id(id: usize) -> Option<Self> {
+            match id {
+                #(#match_arms,)*
+                _ => None,
+            }
+        }
+    };
+    result
 }
 
 /// Generates the `from_name_and_props` function.
