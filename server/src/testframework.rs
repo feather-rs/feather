@@ -89,13 +89,13 @@ pub fn received_packets(player: &Player, cap: Option<usize>) -> Vec<Box<dyn Pack
     let mut result = vec![];
 
     while let Ok(msg) = player.network_receiver.try_recv() {
+        if let ServerToWorkerMessage::SendPacket(pack) = msg {
+            result.push(pack);
+        }
         if let Some(cap) = cap.as_ref() {
             if result.len() >= *cap {
                 break;
             }
-        }
-        if let ServerToWorkerMessage::SendPacket(pack) = msg {
-            result.push(pack);
         }
     }
 
@@ -115,13 +115,39 @@ fn find_open_port() -> Option<u16> {
     (start..60000).find(|port| TcpListener::bind(("127.0.0.1", *port)).is_ok())
 }
 
+/// Asserts that a player was disconnected, panicking if not.
+pub fn assert_disconnected(player: &Player) {
+    let mut disconnected = false;
+    for packet in received_packets(player, None) {
+        if packet.ty() == PacketType::DisconnectPlay {
+            disconnected = true;
+        }
+    }
+
+    assert!(disconnected);
+}
+
+/// Asserts that a player was not disconnected, panicking
+/// if they were.
+pub fn assert_not_disconnected(player: &Player) {
+    let mut disconnected = false;
+    for packet in received_packets(player, None) {
+        if packet.ty() == PacketType::DisconnectPlay {
+            disconnected = true;
+        }
+    }
+
+    assert!(!disconnected);
+}
+
 /// Heh... tests for the testing framework.
 /// Not sure what the point of this is, since
 /// all other tests would fail if the testing
 /// framework didn't work.
 mod tests {
     use crate::entity::{EntityComponent, PlayerComponent};
-    use crate::network::NetworkComponent;
+    use crate::network::{send_packet_to_player, NetworkComponent};
+    use feather_core::network::packet::implementation::{DisconnectPlay, LoginStart};
 
     use super::*;
 
@@ -144,12 +170,65 @@ mod tests {
 
     #[test]
     fn test_add_player() {
-        let (mut w, _d) = init_world();
+        let (mut w, _) = init_world();
 
         let entity = add_player(&mut w).entity;
 
         assert!(w.read_component::<PlayerComponent>().get(entity).is_some());
         assert!(w.read_component::<EntityComponent>().get(entity).is_some());
         assert!(w.read_component::<NetworkComponent>().get(entity).is_some());
+    }
+
+    #[test]
+    fn test_received_packets() {
+        let (mut w, _) = init_world();
+
+        let player = add_player(&mut w);
+
+        let cap = 1;
+        send_packet_to_player(
+            w.read_component().get(player.entity).unwrap(),
+            LoginStart::new("".to_string()),
+        );
+        send_packet_to_player(
+            w.read_component().get(player.entity).unwrap(),
+            LoginStart::new("".to_string()),
+        );
+
+        let packets = received_packets(&player, Some(cap));
+        assert_eq!(packets.len(), 1);
+
+        let packets = received_packets(&player, Some(cap));
+        assert_eq!(packets.len(), 1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_assert_packet_received() {
+        let (mut w, _) = init_world();
+
+        let player = add_player(&mut w);
+        assert_packet_received(&player, PacketType::Handshake);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_assert_disconnected() {
+        let (mut w, _) = init_world();
+
+        let player = add_player(&mut w);
+        assert_disconnected(&player);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_assert_not_disconnected() {
+        let (mut w, _) = init_world();
+
+        let disconnect = DisconnectPlay::new("bla".to_string());
+
+        let player = add_player(&mut w);
+        send_packet_to_player(w.read_component().get(player.entity).unwrap(), disconnect);
+        assert_not_disconnected(&player);
     }
 }

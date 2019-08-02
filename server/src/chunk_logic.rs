@@ -169,9 +169,6 @@ struct ChunkUnload {
 /// a chunk is queued for unloading and when it is unloaded.
 const CHUNK_UNLOAD_TIME: u64 = TPS * 5; // 5 seconds - TODO make this configurable
 
-/// Resource for storing chunks which are currently
-/// queued to be unloaded.
-
 /// System for unloading chunks when they have no holders.
 /// This system performs multiple actions:
 ///
