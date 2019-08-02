@@ -136,10 +136,12 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
 
         let parameter_type = PARAMETER_MAPPINGS
             .get(ty_ident.to_string().as_str())
-            .expect(&format!(
-                "Couldn't find packet parameter type corresponding to {}",
-                ty_ident
-            ));
+            .unwrap_or_else(|| {
+                panic!(
+                    "Couldn't find packet parameter type corresponding to {}",
+                    ty_ident
+                )
+            });
         let function_ident = Ident::new(
             FUNCTION_MAPPINGS.get(parameter_type).unwrap(),
             Span::call_site(),

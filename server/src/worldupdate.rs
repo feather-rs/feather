@@ -180,9 +180,12 @@ mod tests {
             .iter()
             .find(|packet| packet.ty() == PacketType::BlockChange)
             .unwrap();
-        let block_change = cast_packet::<BlockChange>(&_block_change);
+        let block_change = cast_packet::<BlockChange>(&**_block_change);
         assert_eq!(block_change.location, pos);
-        assert_eq!(block_change.block_id, Block::Air.native_state_id() as i32);
+        assert_eq!(
+            block_change.block_id,
+            i32::from(Block::Air.native_state_id())
+        );
 
         // Make sure block was actually updated
         assert_eq!(
@@ -249,9 +252,9 @@ mod tests {
         // player did not
         let packet = t::assert_packet_received(&player, PacketType::BlockChange);
 
-        let packet = cast_packet::<BlockChange>(&packet);
+        let packet = cast_packet::<BlockChange>(&*packet);
         assert_eq!(packet.location, BlockPosition::new(0, 0, 0));
-        assert_eq!(packet.block_id, Block::Sand.native_state_id() as i32);
+        assert_eq!(packet.block_id, i32::from(Block::Sand.native_state_id()));
 
         let p2_packets = t::received_packets(&player2, None);
         assert_eq!(p2_packets.len(), 0);
