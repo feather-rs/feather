@@ -20,8 +20,14 @@ steps:
   - script: cargo install --debug cargo-make
     displayName: Install cargo-make
 
-  - script: cargo make --no-workspace workspace-ci-flow
-    displayName: Build and test
+  - script: cargo build
+    displayName: Build
+
+  - script: cargo test
+    displayName: Test
+
+  - script: cargo make --no-workspace workspace-coverage
+    displayName: Run test coverage
 
   - script: rustup component add rustfmt
     displayName: Install rustfmt
