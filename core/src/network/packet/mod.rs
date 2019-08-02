@@ -12,27 +12,27 @@ pub trait PacketBuf: Buf + Read {}
 impl<T: Buf + Read> PacketBuf for T {}
 
 pub trait AsAny {
-    fn as_any(&self) -> &Any;
+    fn as_any(&self) -> &dyn Any;
 }
 
 pub trait Packet: AsAny + Send {
-    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()>;
+    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()>;
     fn write_to(&self, buf: &mut ByteBuf);
     fn ty(&self) -> PacketType;
 }
 
 #[derive(Clone, Debug)]
 pub struct PacketBuilder {
-    pub init_fn: fn() -> Box<Packet>,
+    pub init_fn: fn() -> Box<dyn Packet>,
 }
 
 impl PacketBuilder {
-    pub fn build(&self) -> Box<Packet> {
+    pub fn build(&self) -> Box<dyn Packet> {
         let f = self.init_fn;
         f()
     }
 
-    pub fn with(f: fn() -> Box<Packet>) -> Self {
+    pub fn with(f: fn() -> Box<dyn Packet>) -> Self {
         Self { init_fn: f }
     }
 }

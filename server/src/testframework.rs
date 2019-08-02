@@ -70,7 +70,7 @@ pub fn add_player(world: &mut World) -> Player {
 
 /// Asserts that the given player has received
 /// a packet of the given type, returning the packet.
-pub fn assert_packet_received(player: &Player, ty: PacketType) -> Box<Packet> {
+pub fn assert_packet_received(player: &Player, ty: PacketType) -> Box<dyn Packet> {
     match player.network_receiver.try_recv().unwrap() {
         ServerToWorkerMessage::SendPacket(pack) => {
             assert_eq!(pack.ty(), ty);
@@ -85,7 +85,7 @@ pub fn assert_packet_received(player: &Player, ty: PacketType) -> Box<Packet> {
 ///
 /// Note that this function consumes messages in
 /// the network channel until enough packets have been read.
-pub fn received_packets(player: &Player, cap: Option<usize>) -> Vec<Box<Packet>> {
+pub fn received_packets(player: &Player, cap: Option<usize>) -> Vec<Box<dyn Packet>> {
     let mut result = vec![];
 
     while let Ok(msg) = player.network_receiver.try_recv() {

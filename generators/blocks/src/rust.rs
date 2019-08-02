@@ -592,7 +592,7 @@ fn generate_from_internal_state_id_fn(report: &BlockReport) -> TokenStream {
             let data_struct_ident = Ident::new(&data_struct_str, Span::call_site());
 
             match_arms.push(quote! {
-                #range_start...#range_end => {
+                #range_start..=#range_end => {
                     let offset = id - #range_start;
                     let data = #data_struct_ident::from_value(offset)?;
                     Some(Block::#variant_ident(data))

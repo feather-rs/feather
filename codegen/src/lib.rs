@@ -184,7 +184,7 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
 
     let r = quote! {
         impl Packet for #ident {
-            fn read_from(&mut self, mut buf: &mut PacketBuf) -> Result<(), ()> {
+            fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
                 #(#read_code)*
                 Ok(())
             }

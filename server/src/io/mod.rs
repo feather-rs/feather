@@ -15,8 +15,8 @@ mod worker;
 pub struct Client(usize);
 
 pub enum ServerToWorkerMessage {
-    SendPacket(Box<Packet>),
-    NotifyPacketReceived(Box<Packet>),
+    SendPacket(Box<dyn Packet>),
+    NotifyPacketReceived(Box<dyn Packet>),
     NotifyDisconnect,
     Disconnect,
 }
