@@ -195,6 +195,66 @@ mod tests {
     }
 
     #[test]
+    fn test_survival_digging() {
+        let (mut w, _) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        w.write_component::<PlayerComponent>()
+            .get_mut(player.entity)
+            .unwrap()
+            .gamemode = Gamemode::Survival;
+
+        let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
+        chunk.set_block_at(0, 0, 0, Block::Grass);
+
+        w.fetch_mut::<ChunkMap>()
+            .set_chunk_at(ChunkPosition::new(0, 0), chunk);
+
+        let pos = BlockPosition::new(0, 0, 0);
+
+        // Confirm that sending a packet with PlayerDiggingStatus::FinishedDigging works
+        let packet = PlayerDigging::new(PlayerDiggingStatus::FinishedDigging, pos, 0);
+
+        handle_player_digging(
+            &mut w.fetch_mut(),
+            &packet,
+            player.entity,
+            &w.read_component(),
+            &w.read_component(),
+            &w.read_resource(),
+        );
+
+        // Call lazily updated disconnect
+        w.maintain();
+
+        // Make sure player wasn't disconnected
+        t::assert_not_disconnected(&player);
+
+        // Make sure that block was set to air
+        assert_eq!(w.fetch::<ChunkMap>().block_at(pos), Some(Block::Air));
+
+        // Test with invalid chunk - player should be disconnected
+        let pos = BlockPosition::new(1000, 255, 1000);
+        let packet = PlayerDigging::new(PlayerDiggingStatus::FinishedDigging, pos, 0);
+
+        handle_player_digging(
+            &mut w.fetch_mut(),
+            &packet,
+            player.entity,
+            &w.read_component(),
+            &w.read_component(),
+            &w.read_resource(),
+        );
+
+        // Call lazily updated disconnect
+        w.maintain();
+
+        // Make sure player was disconnected
+        t::assert_disconnected(&player);
+    }
+
+    #[test]
     fn test_handle_block_break() {
         let (mut w, _) = t::init_world();
 
