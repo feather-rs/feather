@@ -110,7 +110,7 @@ impl<'a> System<'a> for PlayerMovementSystem {
     }
 }
 
-fn new_pos_from_packet(old_pos: Position, packet: Box<Packet>) -> (Position, bool, bool) {
+fn new_pos_from_packet(old_pos: Position, packet: Box<dyn Packet>) -> (Position, bool, bool) {
     let mut has_looked = false;
     let mut has_moved = false;
 

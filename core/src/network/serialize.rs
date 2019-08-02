@@ -17,7 +17,7 @@ pub struct ConnectionIOManager {
     compression_enabled: bool,
     compression_threshold: usize,
 
-    pending_received_packets: Option<Vec<Box<Packet>>>,
+    pending_received_packets: Option<Vec<Box<dyn Packet>>>,
 
     incoming_compressed: ByteBuf,
     incoming_uncompressed: ByteBuf,
@@ -185,7 +185,7 @@ impl ConnectionIOManager {
         Ok(())
     }
 
-    pub fn serialize_packet(&mut self, packet: Box<Packet>) -> ByteBuf {
+    pub fn serialize_packet(&mut self, packet: Box<dyn Packet>) -> ByteBuf {
         if packet.ty() == PacketType::LoginSuccess {
             self.stage = PacketStage::Play;
         }
@@ -277,7 +277,7 @@ impl ConnectionIOManager {
         }
     }
 
-    pub fn take_pending_packets(&mut self) -> Vec<Box<Packet>> {
+    pub fn take_pending_packets(&mut self) -> Vec<Box<dyn Packet>> {
         self.pending_received_packets.replace(vec![]).unwrap()
     }
 }

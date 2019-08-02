@@ -7,8 +7,6 @@ strategy:
       rustup_toolchain: stable
     beta:
       rustup_toolchain: beta
-    nightly:
-      rustup_toolchain: nightly
 
 steps:
   - script: |

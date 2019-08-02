@@ -72,7 +72,7 @@ pub struct VersionedMappings {
 }
 
 /// Loads a versioned mappings file.
-pub fn load_versioned(bytes: &[u8]) -> Result<VersionedMappings, Error> {
+pub fn _load_versioned(bytes: &[u8]) -> Result<VersionedMappings, Error> {
     let mut cursor = Cursor::new(bytes);
 
     let header = read_header(&mut cursor)?;

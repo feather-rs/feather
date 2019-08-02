@@ -21,14 +21,14 @@ use crate::{disconnect_player_without_packet, TickCount};
 /// A component which contains the received packets
 /// for this tick.
 pub struct PacketQueue {
-    queue: Mutex<Vec<Vec<(Entity, Box<Packet>)>>>,
+    queue: Mutex<Vec<Vec<(Entity, Box<dyn Packet>)>>>,
 }
 
 impl PacketQueue {
     /// Returns the packets queued for handling
     /// of the given type, draining the queue of this
     /// type of packet.
-    pub fn for_packet(&self, ty: PacketType) -> Vec<(Entity, Box<Packet>)> {
+    pub fn for_packet(&self, ty: PacketType) -> Vec<(Entity, Box<dyn Packet>)> {
         let mut queue = self.queue.lock().unwrap();
 
         let ordinal = ty.ordinal();
@@ -45,7 +45,7 @@ impl PacketQueue {
     /// Expands the internal vector to allow for additional packet types.
     fn expand(
         &self,
-        queue: &mut std::sync::MutexGuard<Vec<Vec<(Entity, Box<Packet>)>>>,
+        queue: &mut std::sync::MutexGuard<Vec<Vec<(Entity, Box<dyn Packet>)>>>,
         to: usize,
     ) {
         if to < queue.len() {
@@ -58,7 +58,7 @@ impl PacketQueue {
     }
 
     /// Adds a packet to the queue.
-    pub fn add_for_packet(&self, player: Entity, packet: Box<Packet>) {
+    pub fn add_for_packet(&self, player: Entity, packet: Box<dyn Packet>) {
         let mut queue = self.queue.lock().unwrap();
 
         let ordinal = packet.ty().ordinal();
@@ -241,6 +241,6 @@ pub fn send_packet_to_player<P: Packet + 'static>(comp: &NetworkComponent, packe
 }
 
 /// Sends a packet to the given player.
-pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<Packet>) {
+pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<dyn Packet>) {
     let _ = comp.sender.send(ServerToWorkerMessage::SendPacket(packet));
 }
