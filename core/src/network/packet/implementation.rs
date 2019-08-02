@@ -529,6 +529,7 @@ pub struct CreativeInventoryAction {
     // TODO clicked_item: Slot
 }
 
+#[allow(clippy::too_many_arguments)]
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct UpdateStructureBlock {
     pub location: BlockPosition,
@@ -638,6 +639,7 @@ pub struct Pong {
 }
 
 // PLAY
+#[allow(clippy::too_many_arguments)]
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SpawnObject {
     pub entity_id: VarInt,
@@ -672,6 +674,7 @@ pub struct SpawnGlobalEntity {
     pub z: f64,
 }
 
+#[allow(clippy::too_many_arguments)]
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct SpawnMob {
     pub entity_id: VarInt,
@@ -698,6 +701,7 @@ pub struct SpawnPainting {
     pub direction: u8,
 }
 
+#[allow(clippy::too_many_arguments)]
 #[derive(AsAny, new, Clone)]
 pub struct SpawnPlayer {
     pub entity_id: VarInt,
@@ -1004,6 +1008,7 @@ pub struct NBTQueryResponse {
     pub nbt: NbtTag,
 }
 
+#[allow(clippy::too_many_arguments)]
 #[derive(Default, AsAny, new, Clone)]
 pub struct Explosion {
     pub x: f32,
@@ -1100,7 +1105,7 @@ impl Packet for ChunkData {
                 if let Some(palette) = palette {
                     let mut palette_buf = ByteBuf::with_capacity(palette.len() + 4);
                     for val in palette {
-                        palette_buf.write_var_int((*val) as i32);
+                        palette_buf.write_var_int(i32::from(*val));
                     }
 
                     temp_buf.write_var_int(palette.len() as i32);
@@ -1118,7 +1123,7 @@ impl Packet for ChunkData {
 
                 // Light — TODO
                 for _ in 0..4096 {
-                    temp_buf.write_u8(0b11111111);
+                    temp_buf.write_u8(0b1111_1111);
                 }
             }
         }
@@ -1303,13 +1308,13 @@ impl Packet for PlayerInfo {
                     buf.write_string(&prop.2);
                 }
 
-                buf.write_var_int(gamemode.get_id() as i32);
+                buf.write_var_int(i32::from(gamemode.get_id()));
                 buf.write_var_int(*ping);
                 buf.write_bool(true);
                 buf.write_string(display_name);
             }
             PlayerInfoAction::UpdateGamemode(gamemode) => {
-                buf.write_var_int(gamemode.get_id() as i32)
+                buf.write_var_int(i32::from(gamemode.get_id()))
             }
             PlayerInfoAction::UpdateLatency(ping) => buf.write_var_int(*ping),
             PlayerInfoAction::UpdateDisplayName(display_name) => {

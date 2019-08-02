@@ -73,8 +73,18 @@ impl ByteBuf {
         self.inner.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn capacity(&self) -> usize {
         self.inner.capacity()
+    }
+}
+
+impl Default for ByteBuf {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -105,9 +115,8 @@ impl BufMut for ByteBuf {
     }
 
     unsafe fn bytes_mut(&mut self) -> &mut [u8] {
-        let r = &mut std::slice::from_raw_parts_mut(self.inner.as_mut_ptr(), self.inner.capacity())
-            [self.inner.len()..];
-        r
+        &mut std::slice::from_raw_parts_mut(self.inner.as_mut_ptr(), self.inner.capacity())
+            [self.inner.len()..]
     }
 }
 
@@ -118,7 +127,7 @@ impl Read for ByteBuf {
         while amount_read < buf.len() {
             let self_index = self.read_cursor_position + amount_read;
             if let Some(val) = self.inner.get(self_index) {
-                buf[amount_read] = val.clone();
+                buf[amount_read] = *val;
             } else {
                 break;
             }

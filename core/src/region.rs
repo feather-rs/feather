@@ -51,19 +51,16 @@ impl RegionHandle {
         // is in "sectors" of 4KiB each, the value needs to be multiplied by 4096
         // to get the offset in bytes.
         self.file
-            .seek(SeekFrom::Start(offset as u64 * 4096))
-            .map_err(|e| Error::Io(e))?;
+            .seek(SeekFrom::Start(u64::from(offset) * 4096))
+            .map_err(Error::Io)?;
 
         // A chunk begins with a four-byte, big-endian value
         // indicating the exact length of the chunk's data
         // in bytes.
-        let len = self
-            .file
-            .read_u32::<BigEndian>()
-            .map_err(|e| Error::Io(e))?;
+        let len = self.file.read_u32::<BigEndian>().map_err(Error::Io)?;
 
         // Avoid DoS attacks
-        if len > 1048576 {
+        if len > 1_048_576 {
             return Err(Error::ChunkTooLarge(len as usize));
         }
 
@@ -73,7 +70,7 @@ impl RegionHandle {
 
         // Read `len` bytes into memory.
         let mut buf = vec![0u8; len as usize];
-        self.file.read_exact(&mut buf).map_err(|e| Error::Io(e))?;
+        self.file.read_exact(&mut buf).map_err(Error::Io)?;
 
         // The compression type is indicated by a byte.
         // 1 corresponds to gzip compression, while 2
@@ -88,13 +85,13 @@ impl RegionHandle {
                 let mut decoder = GzDecoder::new(&buf[1..]);
                 decoder
                     .read_to_end(&mut uncompressed)
-                    .map_err(|e| Error::BadCompression(e))?;
+                    .map_err(Error::BadCompression)?;
             }
             2 => {
                 let mut decoder = ZlibDecoder::new(&buf[1..]);
                 decoder
                     .read_to_end(&mut uncompressed)
-                    .map_err(|e| Error::BadCompression(e))?;
+                    .map_err(Error::BadCompression)?;
             }
             _ => return Err(Error::InvalidCompression(compression_type)),
         }
@@ -262,7 +259,7 @@ pub fn load_region(dir: &str, pos: RegionPosition) -> Result<RegionHandle, Error
         let mut buf = PathBuf::from(dir);
         buf.push(format!("region/r.{}.{}.mca", pos.x, pos.z));
 
-        File::open(buf.as_path()).map_err(|e| Error::Io(e))?
+        File::open(buf.as_path()).map_err(Error::Io)?
     };
 
     let header = read_header(&mut file)?;
@@ -273,7 +270,7 @@ pub fn load_region(dir: &str, pos: RegionPosition) -> Result<RegionHandle, Error
 /// Reads the region header from the given file.
 fn read_header(file: &mut File) -> Result<RegionHeader, Error> {
     let len = {
-        let metadata = file.metadata().map_err(|e| Error::Io(e))?;
+        let metadata = file.metadata().map_err(Error::Io)?;
         metadata.len()
     };
 
@@ -293,9 +290,9 @@ fn read_header(file: &mut File) -> Result<RegionHeader, Error> {
     // bytes of a 4-byte value contain the offset,
     // while the next byte contains the sector length.
     for _ in 0..1024 {
-        let val = file.read_u32::<BigEndian>().map_err(|e| Error::Io(e))?;
+        let val = file.read_u32::<BigEndian>().map_err(Error::Io)?;
         let offset = val >> 8;
-        let sector_count = (val & 0b11111111) as u8;
+        let sector_count = (val & 0b1111_1111) as u8;
 
         header.locations.push(ChunkLocation {
             offset,
@@ -306,7 +303,7 @@ fn read_header(file: &mut File) -> Result<RegionHeader, Error> {
     // The next 4 KiB contains timestamp data - one
     // for each chunk.
     for _ in 0..1024 {
-        let timestamp = file.read_u32::<BigEndian>().map_err(|e| Error::Io(e))?;
+        let timestamp = file.read_u32::<BigEndian>().map_err(Error::Io)?;
         header.timestamps.push(timestamp);
     }
 
@@ -353,7 +350,7 @@ impl ChunkLocation {
     /// have a 0 offset and sector_count value.
     /// This function checks whether a chunk exists
     /// in a region file or not.
-    pub fn exists(&self) -> bool {
+    pub fn exists(self) -> bool {
         self.offset != 0 && self.sector_count != 0
     }
 }

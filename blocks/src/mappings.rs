@@ -105,11 +105,11 @@ struct Header {
     is_native: bool,
 }
 
-const MAGIC_STRING: &'static str = "FEATHER_BLOCK_DATA_FILE";
+const MAGIC_STRING: &str = "FEATHER_BLOCK_DATA_FILE";
 
 fn read_header(cursor: &mut Cursor<&[u8]>) -> Result<Header, Error> {
     let mut buf = vec![0; MAGIC_STRING.len()];
-    cursor.read(&mut buf)?;
+    cursor.read_exact(&mut buf)?;
 
     let magic = String::from_utf8(buf)?;
     if magic != MAGIC_STRING {
@@ -140,7 +140,7 @@ impl<R: Read> ReadExt for R {
         let len = self.read_u32::<LittleEndian>()?;
         let mut buf = vec![0; len as usize];
 
-        self.read(&mut buf)?;
+        self.read_exact(&mut buf)?;
 
         Ok(String::from_utf8(buf)?)
     }

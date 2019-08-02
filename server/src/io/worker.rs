@@ -341,7 +341,7 @@ fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<dyn Packet>
                 let (send2, recv2) = channel();
 
                 let player_info = NewClientInfo {
-                    ip: client.addr.clone(),
+                    ip: client.addr,
                     username: info.username,
                     profile: info.props,
                     uuid: info.uuid,

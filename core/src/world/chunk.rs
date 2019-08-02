@@ -417,6 +417,12 @@ impl ChunkSection {
     }
 }
 
+impl Default for ChunkSection {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Returns the index into a block state array
 /// for the given block position.
 fn block_index(x: usize, y: usize, z: usize) -> usize {
@@ -538,7 +544,7 @@ impl BitArray {
         if end_bit_offset > 64 {
             // Value stretches across multiple longs
             self.data[start_long_index + 1] = (self.data[start_long_index + 1]
-                & !((1 << end_bit_offset - 64) - 1))
+                & !((1 << (end_bit_offset - 64)) - 1))
                 | val >> (64 - index_in_start_long);
         }
 

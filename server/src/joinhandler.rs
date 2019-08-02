@@ -40,6 +40,7 @@ pub const SPAWN_POSITION: Position = Position {
 /// See `SPAWN_POSITION`
 const COMPASS_SPAWN_POSITION: BlockPosition = BlockPosition { x: 0, y: 64, z: 0 };
 
+#[derive(Default)]
 pub struct JoinHandlerComponent {
     stage: Stage,
 }
@@ -56,6 +57,12 @@ impl JoinHandlerComponent {
 enum Stage {
     Initial,
     AwaitChunkSends,
+}
+
+impl Default for Stage {
+    fn default() -> Self {
+        Stage::Initial
+    }
 }
 
 impl Component for JoinHandlerComponent {
@@ -129,7 +136,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     let mut loaded_chunks_comp = LoadedChunksComponent::default();
 
                     // Queue chunks
-                    let view_distance = config.server.view_distance as i32;
+                    let view_distance = i32::from(config.server.view_distance);
                     for x in -view_distance..=view_distance {
                         for y in -view_distance..=view_distance {
                             let pos = ChunkPosition::new(x, y);

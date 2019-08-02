@@ -72,6 +72,12 @@ impl EntityMetadata {
     }
 }
 
+impl Default for EntityMetadata {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub trait EntityMetaIo {
     fn write_metadata(&mut self, meta: &EntityMetadata);
     fn read_metadata(&mut self) -> EntityMetadata;

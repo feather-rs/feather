@@ -117,7 +117,7 @@ fn new_pos_from_packet(old_pos: Position, packet: Box<Packet>) -> (Position, boo
     let pos = match packet.ty() {
         PacketType::PlayerPosition => {
             has_moved = true;
-            let packet = cast_packet::<PlayerPosition>(&packet);
+            let packet = cast_packet::<PlayerPosition>(&*packet);
 
             Position::new(
                 packet.x,
@@ -129,14 +129,14 @@ fn new_pos_from_packet(old_pos: Position, packet: Box<Packet>) -> (Position, boo
         }
         PacketType::PlayerLook => {
             has_looked = true;
-            let packet = cast_packet::<PlayerLook>(&packet);
+            let packet = cast_packet::<PlayerLook>(&*packet);
 
             Position::new(old_pos.x, old_pos.y, old_pos.z, packet.pitch, packet.yaw)
         }
         PacketType::PlayerPositionAndLookServerbound => {
             has_moved = true;
             has_looked = true;
-            let packet = cast_packet::<PlayerPositionAndLookServerbound>(&packet);
+            let packet = cast_packet::<PlayerPositionAndLookServerbound>(&*packet);
 
             Position::new(packet.x, packet.feet_y, packet.z, packet.pitch, packet.yaw)
         }
@@ -173,6 +173,7 @@ impl Component for ChunkPendingComponent {
 
 /// System for initializing the necessary components
 /// when a player joins.
+#[derive(Default)]
 pub struct PlayerInitSystem {
     join_event_reader: Option<ReaderId<PlayerPreJoinEvent>>,
 }
@@ -212,7 +213,7 @@ impl<'a> System<'a> for PlayerInitSystem {
             player_comps.insert(event.player, player_comp).unwrap();
 
             let entity_comp = EntityComponent {
-                uuid: event.uuid.clone(),
+                uuid: event.uuid,
                 display_name: event.username.clone(),
                 position: SPAWN_POSITION,
                 on_ground: true,
@@ -247,6 +248,7 @@ impl<'a> System<'a> for PlayerInitSystem {
 /// System for sending chunks to players once they're loaded.
 ///
 /// This system listens to `ChunkLoadEvent`s.
+#[derive(Default)]
 pub struct ChunkSendSystem {
     load_event_reader: Option<ReaderId<ChunkLoadEvent>>,
 }
@@ -501,7 +503,7 @@ impl<'a> System<'a> for ClientChunkUnloadSystem {
 /// within the server view distance of a given
 /// chunk.
 fn chunks_within_view_distance(config: &Config, chunk: ChunkPosition) -> HashSet<ChunkPosition> {
-    let view_distance = config.server.view_distance as i32;
+    let view_distance = i32::from(config.server.view_distance);
     let mut results = HashSet::with_capacity((view_distance * view_distance) as usize);
 
     for x in -view_distance..=view_distance {
@@ -516,6 +518,7 @@ fn chunks_within_view_distance(config: &Config, chunk: ChunkPosition) -> HashSet
 /// System for broadcasting when a player joins
 /// the game. Also spawns other players to
 /// the player's client.
+#[derive(Default)]
 pub struct JoinBroadcastSystem {
     reader: Option<ReaderId<PlayerJoinEvent>>,
 }
@@ -611,7 +614,7 @@ fn get_player_initialization_packets(
         50,
         display_name,
     );
-    let player_info = PlayerInfo::new(action, ecomp.uuid.clone());
+    let player_info = PlayerInfo::new(action, ecomp.uuid);
 
     let metadata = EntityMetadata::new().with(&[
         (0, MetaEntry::Byte(0)),
@@ -634,7 +637,7 @@ fn get_player_initialization_packets(
 
     let spawn_player = SpawnPlayer::new(
         player.id() as i32,
-        ecomp.uuid.clone(),
+        ecomp.uuid,
         ecomp.position.x,
         ecomp.position.y,
         ecomp.position.z,
@@ -647,6 +650,7 @@ fn get_player_initialization_packets(
 }
 
 /// System for broadcasting when a player disconnects.
+#[derive(Default)]
 pub struct DisconnectBroadcastSystem {
     reader: Option<ReaderId<PlayerDisconnectEvent>>,
 }
@@ -671,7 +675,7 @@ impl<'a> System<'a> for DisconnectBroadcastSystem {
             // Note that the Destroy Entity packet is sent
             // in a separate system (crate::entity::EntityDestroyBroadcastSystem).
             // This system only updates the tablist for all clients.
-            let player_info = PlayerInfo::new(PlayerInfoAction::RemovePlayer, event.uuid.clone());
+            let player_info = PlayerInfo::new(PlayerInfoAction::RemovePlayer, event.uuid);
 
             for net in net_comps.join() {
                 send_packet_to_player(net, player_info.clone());
@@ -699,6 +703,7 @@ fn send_chunk_data(chunk: &Chunk, net: &NetworkComponent) {
 /// the given player. If the chunk is not loaded, it will
 /// be loaded and sent at a later time as soon as it is
 /// loaded.
+#[allow(clippy::too_many_arguments)] // TODO: get rid of LoadedChunksComponent
 pub fn send_chunk_to_player(
     chunk_pos: ChunkPosition,
     net: &NetworkComponent,

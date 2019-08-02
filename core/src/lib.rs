@@ -27,7 +27,7 @@ pub enum Gamemode {
 }
 
 impl Gamemode {
-    pub fn get_id(&self) -> u8 {
+    pub fn get_id(self) -> u8 {
         match self {
             Gamemode::Survival => 0,
             Gamemode::Creative => 1,
@@ -46,7 +46,7 @@ pub enum Difficulty {
 }
 
 impl Difficulty {
-    pub fn get_id(&self) -> u8 {
+    pub fn get_id(self) -> u8 {
         match self {
             Difficulty::Peaceful => 0,
             Difficulty::Easy => 1,
@@ -64,7 +64,7 @@ pub enum Dimension {
 }
 
 impl Dimension {
-    pub fn get_id(&self) -> i32 {
+    pub fn get_id(self) -> i32 {
         match self {
             Dimension::Nether => -1,
             Dimension::Overwold => 0,

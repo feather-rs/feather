@@ -165,12 +165,12 @@ impl InitialHandler {
 fn _handle_packet(ih: &mut InitialHandler, packet: Box<dyn Packet>) -> Result<(), Error> {
     // Find packet type and forward to correct function
     match packet.ty() {
-        PacketType::Handshake => handle_handshake(ih, cast_packet::<Handshake>(&packet))?,
-        PacketType::Request => handle_request(ih, cast_packet::<Request>(&packet))?,
-        PacketType::Ping => handle_ping(ih, cast_packet::<Ping>(&packet))?,
-        PacketType::LoginStart => handle_login_start(ih, cast_packet::<LoginStart>(&packet))?,
+        PacketType::Handshake => handle_handshake(ih, cast_packet::<Handshake>(&*packet))?,
+        PacketType::Request => handle_request(ih, cast_packet::<Request>(&*packet))?,
+        PacketType::Ping => handle_ping(ih, cast_packet::<Ping>(&*packet))?,
+        PacketType::LoginStart => handle_login_start(ih, cast_packet::<LoginStart>(&*packet))?,
         PacketType::EncryptionResponse => {
-            handle_encryption_response(ih, cast_packet::<EncryptionResponse>(&packet))?
+            handle_encryption_response(ih, cast_packet::<EncryptionResponse>(&*packet))?
         }
         ty => return Err(Error::InvalidPacket(ty, ih.stage)),
     }
@@ -289,26 +289,26 @@ fn handle_encryption_response(
     }
 
     // Check that verify token matches
-    if verify_token.as_slice() != &ih.verify_token {
+    if verify_token.as_slice() != ih.verify_token {
         return Err(Error::VerifyTokenMismatch);
     }
 
     // Enable encryption
     let mut key = [0u8; SHARED_SECRET_LEN];
-    for (i, x) in shared_secret[..SHARED_SECRET_LEN].into_iter().enumerate() {
+    for (i, x) in shared_secret[..SHARED_SECRET_LEN].iter().enumerate() {
         key[i] = *x;
     }
 
     ih.key = Some(key);
     ih.action_queue
-        .push(Action::EnableEncryption(ih.key.clone().unwrap()));
+        .push(Action::EnableEncryption(ih.key.unwrap()));
 
     // Perform authentication
     let auth_result = mojang_api::server_auth(
         ih.username.as_ref().unwrap(),
         &mojang_api::server_hash(
             "",
-            ih.key.clone().unwrap(),
+            ih.key.unwrap(),
             ih.rsa.public_key_to_der().unwrap().as_slice(),
         ),
     );

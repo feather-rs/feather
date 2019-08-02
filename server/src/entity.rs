@@ -54,6 +54,7 @@ pub struct EntityDestroyEvent {
 
 /// System for removing entities from the world when they
 /// are destroyed.
+#[derive(Default)]
 pub struct EntityDestroySystem {
     reader: Option<ReaderId<EntityDestroyEvent>>,
 }
@@ -87,6 +88,7 @@ impl<'a> System<'a> for EntityDestroySystem {
 }
 
 /// System for broadcasting when an entity is destroyed.
+#[derive(Default)]
 pub struct EntityDestroyBroadcastSystem {
     reader: Option<ReaderId<EntityDestroyEvent>>,
 }
@@ -128,6 +130,7 @@ impl<'a> System<'a> for EntityDestroyBroadcastSystem {
 }
 
 /// Broadcasts to all joined players that an entity has moved.
+#[allow(clippy::too_many_arguments)]
 pub fn broadcast_entity_movement(
     entity: Entity,
     old_pos: Position,
