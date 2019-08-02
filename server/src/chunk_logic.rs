@@ -110,7 +110,7 @@ impl ChunkHolders {
     pub fn chunk_has_holders(&self, chunk: ChunkPosition) -> bool {
         let holders = self.holders_for(chunk);
 
-        holders.is_some() && holders.unwrap().len() > 0
+        holders.is_none() && holders.unwrap().is_empty()
     }
 
     pub fn insert_holder(&mut self, chunk: ChunkPosition, holder: Entity) {
@@ -189,6 +189,7 @@ const CHUNK_UNLOAD_TIME: u64 = TPS * 5; // 5 seconds - TODO make this configurab
 /// could quickly move between chunk boundaries, causing
 /// chunks at the edge of their view distance
 /// to be loaded and unloaded at an alarming rate.
+#[derive(Default)]
 pub struct ChunkUnloadSystem {
     reader: Option<ReaderId<ChunkHolderReleaseEvent>>,
 }
@@ -273,6 +274,7 @@ impl<'a> System<'a> for ChunkUnloadSystem {
 /// using this component allows for efficiently
 /// finding which chunks a given entity has
 /// a hold on.
+#[derive(Default)]
 pub struct ChunkHolderComponent {
     pub holds: HashSet<ChunkPosition>,
 }
@@ -291,6 +293,7 @@ impl Component for ChunkHolderComponent {
 
 /// System for removing an entity's chunk holds
 /// once it is destroyed.
+#[derive(Default)]
 pub struct ChunkHoldRemoveSystem {
     reader: Option<ReaderId<EntityDestroyEvent>>,
 }
@@ -364,7 +367,7 @@ impl<'a> System<'a> for ChunkOptimizeSystem {
         let chunks = chunk_map.chunks_mut();
 
         // Don't run if there aren't any chunks loaded
-        if chunks.len() == 0 {
+        if chunks.is_empty() {
             return;
         }
 
@@ -384,7 +387,7 @@ impl<'a> System<'a> for ChunkOptimizeSystem {
             "Optimized {} chunk sections (took {}ms - {:.2}ms/section)",
             count.load(Ordering::SeqCst),
             elapsed,
-            elapsed as f64 / count.load(Ordering::SeqCst) as f64
+            elapsed as f64 / f64::from(count.load(Ordering::SeqCst))
         );
     }
 }

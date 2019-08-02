@@ -50,10 +50,10 @@ impl McTypeWrite for ByteBuf {
     /// details on `VarInt`s and related types.
     fn write_var_int(&mut self, mut x: i32) {
         loop {
-            let mut temp = (x & 0b01111111) as u8;
+            let mut temp = (x & 0b0111_1111) as u8;
             x >>= 7;
             if x != 0 {
-                temp |= 0b10000000;
+                temp |= 0b1000_0000;
             }
             self.write_u8(temp);
             if x == 0 {
@@ -75,9 +75,9 @@ impl McTypeWrite for ByteBuf {
     }
 
     fn write_position(&mut self, x: &BlockPosition) {
-        let result: u64 = ((x.x as u64 & 0x3FFFFFF) << 38)
+        let result: u64 = ((x.x as u64 & 0x03FF_FFFF) << 38)
             | ((x.y as u64 & 0xFFF) << 26)
-            | (x.z as u64 & 0x3FFFFFF);
+            | (x.z as u64 & 0x03FF_FFFF);
 
         self.write_u64_be(result);
     }
@@ -111,14 +111,14 @@ impl<T: Buf + Read> McTypeRead for T {
                 return Err(());
             }
             let read = self.read_u8()?;
-            let value = read & 0b01111111;
-            result |= (value as i32) << (7 * num_read);
+            let value = read & 0b0111_1111;
+            result |= (i32::from(value)) << (7 * num_read);
 
             num_read += 1;
             if num_read > 5 {
                 return Err(());
             }
-            if read & 0b10000000 == 0 {
+            if read & 0b1000_0000 == 0 {
                 break;
             }
         }

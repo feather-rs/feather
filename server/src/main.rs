@@ -1,3 +1,8 @@
+// Specs systems tend to have very long
+// tuples as their SystemData, and Clippy
+// doesn't seem to like this.
+#![allow(clippy::type_complexity)]
+
 #[macro_use]
 extern crate log;
 #[macro_use]
@@ -38,7 +43,7 @@ pub mod worldupdate;
 
 pub const TPS: u64 = 20;
 pub const PROTOCOL_VERSION: u32 = 404;
-pub const SERVER_VERSION: &'static str = "Feather 1.13.2";
+pub const SERVER_VERSION: &str = "Feather 1.13.2";
 pub const TICK_TIME: u64 = 1000 / TPS;
 
 #[derive(Default, Debug)]
@@ -99,13 +104,12 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
 
 /// Starts the IO threads.
 fn init_io_manager(config: Arc<Config>, player_count: Arc<PlayerCount>) -> io::NetworkIoManager {
-    let ioman = io::NetworkIoManager::start(
+    io::NetworkIoManager::start(
         format!("127.0.0.1:{}", config.server.port).parse().unwrap(),
         config.io.io_worker_threads,
         config,
         player_count,
-    );
-    ioman
+    )
 }
 
 /// Initializes the Specs world.
@@ -249,7 +253,7 @@ pub fn disconnect_player_without_packet(player: Entity, world: &mut World, reaso
     // Trigger disconnect event
     let event = PlayerDisconnectEvent {
         player,
-        uuid: ecomp.uuid.clone(),
+        uuid: ecomp.uuid,
         reason,
     };
     world

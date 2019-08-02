@@ -166,7 +166,7 @@ impl ConnectionIOManager {
 
             if packet.ty() == PacketType::Handshake {
                 let handshake =
-                    cast_packet::<crate::network::packet::implementation::Handshake>(&packet);
+                    cast_packet::<crate::network::packet::implementation::Handshake>(&*packet);
                 match handshake.next_state {
                     crate::network::packet::implementation::HandshakeState::Login => {
                         self.stage = PacketStage::Login

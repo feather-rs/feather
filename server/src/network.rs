@@ -52,7 +52,7 @@ impl PacketQueue {
             return;
         }
 
-        for _ in queue.len()..(to + 1) {
+        for _ in queue.len()..=to {
             queue.push(Vec::new());
         }
     }
@@ -169,7 +169,7 @@ impl<'a> System<'a> for NetworkSystem {
                     let event = PlayerPreJoinEvent {
                         player: new_entity,
                         username: info.username.clone(),
-                        uuid: info.uuid.clone(),
+                        uuid: info.uuid,
                         profile_properties: info.profile.clone(),
                     };
                     join_events.single_write(event);

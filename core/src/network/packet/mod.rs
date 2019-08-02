@@ -1,4 +1,5 @@
 #[allow(unused)]
+#[allow(clippy::too_many_arguments)]
 pub mod implementation;
 
 use crate::bytebuf::ByteBuf;
@@ -527,21 +528,21 @@ lazy_static! {
 
 impl PacketType {
     pub fn get_from_id(id: PacketId) -> Result<PacketType, ()> {
-        PACKET_ID_MAPPINGS.get(&id).map(|v| v.clone()).ok_or(())
+        PACKET_ID_MAPPINGS.get(&id).copied().ok_or(())
     }
 
-    pub fn get_id(&self) -> PacketId {
-        PACKET_TYPE_MAPPINGS.get(self).unwrap().clone()
+    pub fn get_id(self) -> PacketId {
+        *PACKET_TYPE_MAPPINGS.get(&self).unwrap()
     }
 
-    pub fn get_implementation(&self) -> Box<Packet> {
-        implementation::IMPL_MAP.get(self).unwrap().build()
+    pub fn get_implementation(self) -> Box<dyn Packet> {
+        implementation::IMPL_MAP.get(&self).unwrap().build()
     }
 
     /// Returns a unique ID, allocated
     /// consecutively for each packet type.
-    pub fn ordinal(&self) -> usize {
-        *self as usize
+    pub fn ordinal(self) -> usize {
+        self as usize
     }
 }
 

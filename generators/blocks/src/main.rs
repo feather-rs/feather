@@ -244,7 +244,7 @@ fn generate_native_mappings_file(
     }
 
     out.write_u32::<LittleEndian>(count)?;
-    out.write(&buf)?;
+    out.write_all(&buf)?;
 
     info!("Mappings file generated successfully");
     Ok(())

@@ -32,6 +32,7 @@ extern crate failure;
 #[macro_use]
 extern crate num_derive;
 
+#[allow(clippy::all)] // No, generated code isn't idiomatic. Too bad
 mod blocks;
 mod mappings;
 
@@ -40,8 +41,8 @@ pub use blocks::Block;
 use std::collections::HashMap;
 use std::hash::Hash;
 
-const MAPPINGS_1_13_2: &'static [u8] = include_bytes!("../data/1.13.2.dat");
-//const MAPPINGS_1_14_4: &'static [u8] = include_bytes!("../data/1.14.4.dat");
+const MAPPINGS_1_13_2: &[u8] = include_bytes!("../data/1.13.2.dat");
+//const MAPPINGS_1_14_4: &[u8] = include_bytes!("../data/1.14.4.dat");
 
 const P1_13_2: u32 = 404;
 //const P1_14_4: u32 = 498;
@@ -65,7 +66,7 @@ pub trait BlockExt {
 }
 
 impl BlockExt for Block {
-    fn from_state_id(id: u16, proto_version: u32) -> Option<Self> {
+    fn from_state_id(_id: u16, _proto_version: u32) -> Option<Self> {
         unimplemented!()
     }
 

@@ -36,7 +36,7 @@ impl<'a> System<'a> for PlayerDiggingSystem {
 
         // Handle packets
         for (player, _packet) in packets {
-            let packet = cast_packet::<PlayerDigging>(&_packet);
+            let packet = cast_packet::<PlayerDigging>(&*_packet);
             handle_player_digging(&mut chunk_map, packet, player, &netcomps, &pcomps, &lazy);
         }
     }
@@ -55,7 +55,8 @@ fn handle_player_digging(
     match packet.status {
         PlayerDiggingStatus::StartedDigging => {
             if pcomp.gamemode == Gamemode::Creative {
-                if handle_block_break(chunk_map, packet.location, &netcomps, &pcomps).is_err() {
+                let result = handle_block_break(chunk_map, packet.location, &netcomps, &pcomps);
+                if result.is_err() {
                     disconnect_player(
                         player,
                         format!(
@@ -68,7 +69,8 @@ fn handle_player_digging(
             }
         }
         PlayerDiggingStatus::FinishedDigging => {
-            if handle_block_break(chunk_map, packet.location, &netcomps, &pcomps).is_err() {
+            let result = handle_block_break(chunk_map, packet.location, &netcomps, &pcomps);
+            if result.is_err() {
                 disconnect_player(
                     player,
                     format!(
@@ -105,7 +107,7 @@ fn broadcast_block_update(
     pcomps: &ReadStorage<PlayerComponent>,
 ) {
     for (net, _) in (netcomps, pcomps).join() {
-        let block_update = BlockChange::new(pos, new_block.native_state_id() as i32);
+        let block_update = BlockChange::new(pos, i32::from(new_block.native_state_id()));
         send_packet_to_player(net, block_update);
     }
 }
