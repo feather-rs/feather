@@ -502,7 +502,7 @@ mod tests {
             Action::SendPacket(_response) => {
                 assert_eq!(_response.ty(), PacketType::Response);
 
-                let response = cast_packet::<Response>(&_response);
+                let response = cast_packet::<Response>(&**_response);
                 let _: serde_json::Value = serde_json::from_str(&response.json_response).unwrap();
             }
             _ => panic!(),
@@ -520,7 +520,7 @@ mod tests {
         match _pong {
             Action::SendPacket(_pong) => {
                 assert_eq!(_pong.ty(), PacketType::Pong);
-                let pong = cast_packet::<Pong>(&_pong);
+                let pong = cast_packet::<Pong>(&*_pong);
                 assert_eq!(pong.payload, payload);
             }
             _ => panic!(),
@@ -562,7 +562,7 @@ mod tests {
             Action::SendPacket(_set_compression) => {
                 assert_eq!(_set_compression.ty(), PacketType::SetCompression);
 
-                let set_compression = cast_packet::<SetCompression>(&_set_compression);
+                let set_compression = cast_packet::<SetCompression>(&*_set_compression);
                 assert_eq!(set_compression.threshold, config.io.compression_threshold);
             }
             _ => panic!(),
@@ -582,7 +582,7 @@ mod tests {
             Action::SendPacket(_login_success) => {
                 assert_eq!(_login_success.ty(), PacketType::LoginSuccess);
 
-                let login_success = cast_packet::<LoginSuccess>(&_login_success);
+                let login_success = cast_packet::<LoginSuccess>(&*_login_success);
                 assert_eq!(login_success.username, username.to_string());
             }
             _ => panic!(),

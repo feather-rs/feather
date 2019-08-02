@@ -94,9 +94,8 @@ pub fn received_packets(player: &Player, cap: Option<usize>) -> Vec<Box<Packet>>
                 break;
             }
         }
-        match msg {
-            ServerToWorkerMessage::SendPacket(pack) => result.push(pack),
-            _ => (),
+        if let ServerToWorkerMessage::SendPacket(pack) = msg {
+            result.push(pack);
         }
     }
 

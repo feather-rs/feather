@@ -53,7 +53,9 @@ struct RegionFile {
     /// value is used to close
     /// the file after it isn't used for
     /// some period of time.
-    last_used: u64,
+    ///
+    /// TODO actually implement this
+    _last_used: u64,
 }
 
 struct ChunkWorker {
@@ -131,7 +133,10 @@ fn load_chunk(worker: &mut ChunkWorker, pos: ChunkPosition) -> Reply {
             .unwrap()
             .as_secs();
 
-        let file = RegionFile { handle, last_used };
+        let file = RegionFile {
+            handle,
+            _last_used: last_used,
+        };
 
         worker.open_regions.insert(rpos, file);
     }
