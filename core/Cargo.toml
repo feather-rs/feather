@@ -14,7 +14,7 @@ uuid = "0.7.4"
 openssl = { version = "0.10.24", features = ["vendored"] }
 flate2 = "1.0.9"
 bytes = "0.4.12"
-log = "0.4.7"
+log = "0.4.8"
 serde = "1.0.97"
 serde_derive = "1.0.97"
 num-traits = "0.2.8"
