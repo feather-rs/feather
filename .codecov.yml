@@ -1,6 +1,7 @@
 codecov:
   notify:
     require_ci_to_pass: yes
+  token: "secret:fwAnPYIux3x5zp16TTtYgb5rltJm55GxjQs31eFNgPSyBx5vzw5fwSCMtAw9obxJVOFarBbIzIchO7vZak74GWXLYzVDjvfC1bzpdj1B3EQ="
 
 ignore:
   - "blocks/src/blocks.rs"
