@@ -7,7 +7,6 @@ publish = false
 
 [dependencies]
 feather_core = { path = "../core" }
-feather_blocks = { path = "../blocks" }
 mio = "0.6.19"
 mio-extras = { git = "https://github.com/caelunshun/mio-extras", rev = "e5dca5d" }
 crossbeam = "0.7.2"
@@ -29,3 +28,5 @@ rnbt = { git = "https://github.com/caelunshun/rnbt", version = "0.1.0" }
 specs = "0.15.0"
 rayon = "1.1.0"
 shrev = "1.1.1"
+failure = "0.1.5"
+backtrace = "0.3.34"

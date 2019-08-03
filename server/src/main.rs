@@ -9,6 +9,8 @@ extern crate log;
 extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
+#[macro_use]
+extern crate failure;
 
 use std::alloc::System;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -23,7 +25,10 @@ use prelude::*;
 use crate::entity::{EntityComponent, EntityDestroyEvent};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
+use backtrace::Backtrace;
 use shrev::EventChannel;
+use std::fs::File;
+use std::io::Write;
 
 #[global_allocator]
 static ALLOC: System = System;
@@ -52,12 +57,21 @@ pub struct PlayerCount(AtomicUsize);
 pub struct TickCount(u64);
 
 fn main() {
-    let config = Arc::new(config::load_from_file("feather.toml")
-        .expect("Failed to load configuration. Please ensure that the file feather.toml exists and is correct."));
-
+    let config = Arc::new(load_config());
     init_log(&config);
 
     info!("Starting Feather; please wait...");
+
+    std::panic::set_hook(Box::new(|info| {
+        error!(
+            "The server panicked: {:?}",
+            info.payload().downcast_ref::<&str>().unwrap()
+        );
+        let location = info.location().unwrap();
+        error!("Source: {}, line {}", location.file(), location.line());
+        error!("Backtrace:\n{:?}", Backtrace::new());
+        error!("An error occurred and the server has shut down. Please report this to https://github.com/caelunshun/feather/issues");
+    }));
 
     let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
 
@@ -69,6 +83,28 @@ fn main() {
 
     info!("Server started");
     run_loop(&mut world, &mut dispatcher);
+}
+
+/// Loads the configuration file, creating a default
+/// one if it does not exist.
+fn load_config() -> Config {
+    match config::load_from_file("feather.toml") {
+        Ok(config) => config,
+        Err(e) => match e {
+            config::ConfigError::Io(_) => {
+                // Use default config
+                println!("Config not found - creating it");
+                let config = Config::default();
+                let mut file = File::create("feather.toml").unwrap();
+                file.write_all(toml::to_string(&config).unwrap().as_bytes())
+                    .unwrap();
+                config
+            }
+            config::ConfigError::Parse(e) => {
+                panic!("Failed to load configuration file: {}", e);
+            }
+        },
+    }
 }
 
 /// Runs the server loop, blocking until the server
