@@ -26,7 +26,7 @@ steps:
   - script: cargo test
     displayName: Test
 
-  - script: cargo make --no-workspace workspace-coverage
+  - script: CODECOV_TOKEN=$(CODECOV_TOKEN) cargo make --no-workspace workspace-coverage
     displayName: Run test coverage
 
   - script: rustup component add rustfmt
