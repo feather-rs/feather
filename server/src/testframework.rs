@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use mio_extras::channel::{channel, Receiver, Sender};
 use rand::Rng;
-use specs::{Builder, Dispatcher, Entity, World, WorldExt};
+use specs::{Builder, Dispatcher, Entity, ReaderId, World, WorldExt};
 use uuid::Uuid;
 
 use feather_core::network::packet::{Packet, PacketType};
@@ -18,6 +18,7 @@ use crate::entity::{EntityComponent, PlayerComponent};
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
 use crate::PlayerCount;
+use shrev::EventChannel;
 
 /// Initializes a Specs world and dispatcher
 /// using default configuration options and an
@@ -138,6 +139,22 @@ pub fn assert_not_disconnected(player: &Player) {
     }
 
     assert!(!disconnected);
+}
+
+/// Sends a packet to the player.
+pub fn send_packet<P: Packet + 'static>(player: &Player, packet: P) {
+    player
+        .network_sender
+        .send(ServerToWorkerMessage::NotifyPacketReceived(Box::new(
+            packet,
+        )))
+        .unwrap();
+}
+
+/// Registers a reader for events of the given type.
+pub fn reader<E: Send + Sync>(w: &World) -> ReaderId<E> {
+    let mut channel = w.fetch_mut::<EventChannel<E>>();
+    channel.register_reader()
 }
 
 /// Heh... tests for the testing framework.
