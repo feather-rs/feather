@@ -9,7 +9,7 @@ strategy:
       rustup_toolchain: beta
 
 steps:
-  - script: export CARGO_MAKE_RUN_CODECOV="true" && export CODECOV_TOKEN=${CODECOV_TOKEN}
+  - script: export CARGO_MAKE_RUN_CODECOV="true"
     displayName: Set up environment variables
 
   - script: |
