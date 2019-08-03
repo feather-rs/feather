@@ -20,13 +20,13 @@ steps:
   - script: cargo install --debug cargo-make
     displayName: Install cargo-make
 
-  - script: cargo build
+  - script: RUSTFLAGS="-C link-dead-code" cargo build
     displayName: Build
 
-  - script: cargo test
+  - script: RUSTFLAGS="-C link-dead-code" cargo test
     displayName: Test
 
-  - script: CODECOV_TOKEN=$(CODECOV_TOKEN) cargo make --no-workspace workspace-coverage
+  - script: RUSTFLAGS="-C link-dead-code" CODECOV_TOKEN=$(CODECOV_TOKEN) cargo make --no-workspace workspace-coverage
     displayName: Run test coverage
 
   - script: rustup component add rustfmt
