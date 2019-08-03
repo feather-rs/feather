@@ -45,6 +45,8 @@ pub struct NewClientInfo {
 pub struct NetworkIoManager {
     pub sender: Sender<ServerToListenerMessage>,
     pub receiver: Receiver<ServerToListenerMessage>,
+    /// Used for testing
+    pub listener_sender: Sender<ServerToListenerMessage>,
 }
 
 impl NetworkIoManager {
@@ -74,11 +76,13 @@ impl NetworkIoManager {
 
         let (sender1, receiver1) = channel();
         let (sender2, receiver2) = channel();
-        thread::spawn(move || listener::start(addr.to_string(), sender1, receiver2, workers));
+        let sender1_clone = sender1.clone();
+        thread::spawn(move || listener::start(addr.to_string(), sender1_clone, receiver2, workers));
 
         Self {
             sender: sender2,
             receiver: receiver1,
+            listener_sender: sender1,
         }
     }
 

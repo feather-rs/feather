@@ -174,7 +174,7 @@ impl<'a> System<'a> for NetworkSystem {
                     };
                     join_events.single_write(event);
                 }
-                _ => panic!("Network system received invalid message from IO listener"),
+                _ => unreachable!(),
             }
         }
 
@@ -243,4 +243,174 @@ pub fn send_packet_to_player<P: Packet + 'static>(comp: &NetworkComponent, packe
 /// Sends a packet to the given player.
 pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<dyn Packet>) {
     let _ = comp.sender.send(ServerToWorkerMessage::SendPacket(packet));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::io::NewClientInfo;
+    use crate::player::PlayerDisconnectEvent;
+    use crate::testframework as t;
+    use std::net::SocketAddr;
+
+    #[test]
+    fn test_packet_queue() {
+        let queue = PacketQueue::default();
+
+        let (mut w, _) = t::init_world();
+        let player = t::add_player(&mut w);
+
+        let packet = LoginStart::new("test".to_string());
+        queue.add_for_packet(player.entity, Box::new(packet));
+
+        let packets = queue.for_packet(PacketType::LoginStart);
+        assert_eq!(packets.len(), 1);
+
+        let (entity, packet) = packets.first().unwrap();
+        assert_eq!(*entity, player.entity);
+        assert_eq!(packet.ty(), PacketType::LoginStart);
+    }
+
+    #[test]
+    fn test_new_client() {
+        let (mut w, mut d) = t::init_world();
+
+        let ioman = w.fetch_mut::<NetworkIoManager>();
+
+        let (send1, _recv1) = mio_extras::channel::channel();
+        let (_send2, recv2) = mio_extras::channel::channel();
+
+        let new_client = NewClientInfo {
+            ip: SocketAddr::new("127.0.0.1".parse().unwrap(), 25565),
+            username: "".to_string(),
+            profile: vec![],
+            uuid: Uuid::new_v4(),
+            sender: send1,
+            receiver: recv2,
+        };
+
+        let msg = ServerToListenerMessage::NewClient(new_client);
+        ioman.listener_sender.send(msg).unwrap();
+
+        let mut event_reader = t::reader(&w);
+
+        drop(ioman);
+
+        // Call the network system
+        d.dispatch(&w);
+
+        w.maintain();
+
+        // Confirm that an entity was created
+        let mut count = 0;
+        let mut entity = None;
+        for (e, _, _) in (
+            &*w.entities(),
+            &w.read_component::<NetworkComponent>(),
+            &w.read_component::<JoinHandlerComponent>(),
+        )
+            .join()
+        {
+            entity = Some(e);
+            count += 1;
+        }
+        assert_eq!(count, 1);
+
+        // Confirm that playerprejoinevent was queued
+        let channel = w.fetch_mut::<EventChannel<PlayerPreJoinEvent>>();
+        let join_events: Vec<&PlayerPreJoinEvent> = channel.read(&mut event_reader).collect();
+        assert_eq!(join_events.len(), 1);
+        let event = join_events.first().unwrap();
+
+        assert_eq!(event.player, entity.unwrap());
+    }
+
+    #[test]
+    fn test_packet_receive() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        // Send a packet
+        let packet = LoginStart::new("".to_string());
+        t::send_packet(&player, packet);
+
+        // Run system
+        d.dispatch(&w);
+
+        w.maintain();
+
+        // Confirm that packet was received properly
+        let queue = w.fetch::<PacketQueue>();
+        let packets = queue.for_packet(PacketType::LoginStart);
+
+        assert_eq!(packets.len(), 1);
+
+        let (entity, _packet) = packets.first().unwrap();
+        assert_eq!(*entity, player.entity);
+    }
+
+    #[test]
+    fn test_disconnect() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        let mut event_reader = t::reader(&w);
+
+        player
+            .network_sender
+            .send(ServerToWorkerMessage::NotifyDisconnect)
+            .unwrap();
+
+        d.dispatch(&w);
+
+        w.maintain();
+
+        let channel = w.fetch::<EventChannel<PlayerDisconnectEvent>>();
+        let events = channel.read(&mut event_reader).collect::<Vec<_>>();
+
+        assert_eq!(events.len(), 1);
+        let first = events.first().unwrap();
+        assert_eq!(first.player, player.entity);
+    }
+
+    #[test]
+    fn test_keep_alives() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+        let player2 = t::add_player(&mut w);
+
+        d.dispatch(&w);
+
+        t::assert_packet_received(&player, PacketType::KeepAliveClientbound);
+        t::assert_packet_received(&player2, PacketType::KeepAliveClientbound);
+    }
+
+    #[test]
+    fn test_send_packet_to_all_players() {
+        let (mut w, _) = t::init_world();
+
+        let player1 = t::add_player(&mut w);
+        let player2 = t::add_player(&mut w);
+        let player3 = t::add_player(&mut w);
+
+        let packet = LoginStart::new("test".to_string());
+
+        send_packet_to_all_players(
+            &w.read_component(),
+            &w.read_component(),
+            &w.entities(),
+            packet,
+            Some(player1.entity),
+        );
+
+        t::assert_packet_received(&player2, PacketType::LoginStart);
+        t::assert_packet_received(&player3, PacketType::LoginStart);
+
+        // Check that exclusion was not sent
+        let sent = t::received_packets(&player1, None);
+        assert!(sent.is_empty());
+    }
 }
