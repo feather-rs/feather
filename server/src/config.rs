@@ -1,6 +1,14 @@
 use std::fs::read_to_string;
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Debug, Fail)]
+pub enum ConfigError {
+    #[fail(display = "Badly formatted configuration file: {}", _0)]
+    Parse(#[fail(cause)] toml::de::Error),
+    #[fail(display = "Failed to read configuration file: {}", _0)]
+    Io(#[fail(cause)] std::io::Error),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     pub io: IO,
     pub proxy: Proxy,
@@ -38,16 +46,16 @@ impl Default for Config {
     }
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct IO {
     pub compression_threshold: i32,
     pub io_worker_threads: u16,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Proxy {}
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Server {
     pub online_mode: bool,
     pub motd: String,
@@ -57,7 +65,7 @@ pub struct Server {
     pub port: u16,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Gameplay {
     pub monster_spawning: bool,
     pub animal_spawning: bool,
@@ -65,25 +73,25 @@ pub struct Gameplay {
     pub nerf_spawner_mobs: bool,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Log {
     pub level: String,
 }
 
 /// Loads the configuration from the given file/
-pub fn load_from_file(path: &str) -> Result<Config, ()> {
-    let input = read_to_string(path).map_err(|_| ())?;
+pub fn load_from_file(path: &str) -> Result<Config, ConfigError> {
+    let input = read_to_string(path).map_err(ConfigError::Io)?;
     load(input)
 }
 
 /// Loads the configuration from the given string.
-pub fn load(input: String) -> Result<Config, ()> {
-    let config: Config = toml::from_str(&input).map_err(|_| ())?;
+pub fn load(input: String) -> Result<Config, ConfigError> {
+    let config: Config = toml::from_str(&input).map_err(ConfigError::Parse)?;
 
     Ok(config)
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum ProxyMode {
     None,
     Bungee,
