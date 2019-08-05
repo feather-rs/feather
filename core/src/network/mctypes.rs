@@ -2,8 +2,8 @@ use crate::bytebuf::{BufMutAlloc, BufResulted, ByteBuf};
 use crate::prelude::*;
 use crate::world::BlockPosition;
 use bytes::Buf;
-use rnbt::NbtTag;
-use std::io::{Cursor, Read};
+use serde::{Deserialize, Serialize};
+use std::io::{Read, Write};
 
 /// Identifies a type to which Minecraft-specific
 /// types (`VarInt`, `VarLong`, etc.) can be written.
@@ -23,7 +23,7 @@ pub trait McTypeWrite {
 
     fn write_uuid(&mut self, x: &Uuid);
 
-    fn write_nbt(&mut self, x: &NbtTag);
+    fn write_nbt<T: Serialize>(&mut self, x: &T);
 }
 
 /// Identifies a type from which Minecraft-specified
@@ -42,7 +42,7 @@ pub trait McTypeRead {
 
     fn read_uuid(&mut self) -> Result<Uuid, ()>;
 
-    fn read_nbt(&mut self) -> Result<NbtTag, ()>;
+    fn read_nbt<'de, T: Deserialize<'de>>(&mut self) -> Result<T, nbt::Error>;
 }
 
 impl McTypeWrite for ByteBuf {
@@ -71,7 +71,7 @@ impl McTypeWrite for ByteBuf {
         self.write_var_int(len as i32);
 
         let bytes = x.as_bytes();
-        self.write(bytes);
+        self.write_all(bytes).unwrap();
     }
 
     fn write_position(&mut self, x: &BlockPosition) {
@@ -91,11 +91,11 @@ impl McTypeWrite for ByteBuf {
     }
 
     fn write_uuid(&mut self, x: &Uuid) {
-        self.write(&x.as_bytes()[..]);
+        self.write_all(&x.as_bytes()[..]).unwrap();
     }
 
-    fn write_nbt(&mut self, _x: &NbtTag) {
-        unimplemented!() // TODO wait for rnbt to support this
+    fn write_nbt<T: Serialize>(&mut self, val: &T) {
+        nbt::to_writer(self, val, None).unwrap(); // Unwrap is safe because writing would only fail if a struct couldn't be written
     }
 }
 
@@ -172,12 +172,7 @@ impl<T: Buf + Read> McTypeRead for T {
         Ok(Uuid::from_bytes(bytes))
     }
 
-    fn read_nbt(&mut self) -> Result<NbtTag, ()> {
-        let mut cursor: Cursor<&[u8]> = Cursor::new(Buf::bytes(self));
-        let r = rnbt::parse(&mut cursor);
-        let advance_count = cursor.position() as usize;
-        self.advance(advance_count);
-
-        r
+    fn read_nbt<'de, D: Deserialize<'de>>(&mut self) -> Result<D, nbt::Error> {
+        unimplemented!()
     }
 }

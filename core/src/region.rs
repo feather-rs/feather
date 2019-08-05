@@ -1,21 +1,84 @@
-//! This module implements the loading and saving
+//! This module implements the loading and saving (soon)
 //! of Anvil region files.
 
 use super::world::block::*;
 use crate::world::chunk::{BitArray, Chunk, ChunkSection};
 use crate::world::ChunkPosition;
 use byteorder::{BigEndian, ReadBytesExt};
-use flate2::bufread::{GzDecoder, ZlibDecoder};
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
-use std::io::SeekFrom;
+use std::io::{Cursor, SeekFrom};
 use std::path::PathBuf;
 
 /// The length and width of a region, in chunks.
 const REGION_SIZE: usize = 32;
+
+/// The data version supported by this code, currently corresponding
+/// to 1.13.2.
+const DATA_VERSION: i32 = 1631;
+
+/// Represents the NBT data for a chunk
+/// in a region file.
+#[derive(Serialize, Deserialize, Debug)]
+struct ChunkPreRoot {
+    #[serde(flatten)]
+    /// Should contain a single entry with key "Chunk [x, y]".
+    entries: HashMap<String, ChunkRoot>,
+}
+
+/// Represents the data for a chunk after the "Chunk [x, y]" tag.
+#[derive(Serialize, Deserialize, Debug)]
+struct ChunkRoot {
+    #[serde(rename = "Level")]
+    level: ChunkLevel,
+    #[serde(rename = "DataVersion")]
+    data_version: i32,
+}
+
+/// Represents the level data for a chunk.
+#[derive(Serialize, Deserialize, Debug)]
+struct ChunkLevel {
+    // TODO heightmaps, etc.
+    #[serde(rename = "xPos")]
+    x_pos: i32,
+    #[serde(rename = "yPos")]
+    y_pos: i32,
+    #[serde(rename = "Sections")]
+    sections: Vec<LevelSection>,
+}
+
+/// Represents a chunk section in a region file.
+#[derive(Serialize, Deserialize, Debug)]
+struct LevelSection {
+    #[serde(rename = "Y")]
+    y: i8,
+    #[serde(rename = "BlockStates")]
+    states: Vec<u64>,
+    #[serde(rename = "Palette")]
+    palette: Vec<LevelPaletteEntry>,
+}
+
+/// Represents a palette entry in a region file.
+#[derive(Serialize, Deserialize, Debug)]
+struct LevelPaletteEntry {
+    /// The identifier of the type of this block
+    name: String,
+    /// Optional properties for this block
+    #[serde(rename = "Properties")]
+    props: Option<Vec<LevelProperty>>,
+}
+
+/// Represents a property for a palette entry.
+#[derive(Serialize, Deserialize, Debug)]
+struct LevelProperty {
+    /// Map containing a list of property names to values.
+    /// Length should be equal to 1.
+    #[serde(flatten)]
+    props: HashMap<String, String>,
+}
 
 /// A region file handle.
 pub struct RegionHandle {
@@ -31,9 +94,11 @@ impl RegionHandle {
     /// The specified chunk is expected to be contained within this region.
     ///
     /// # Panics
-    /// If the specified chunk position is not within this
+    /// Panics if the specified chunk position is not within this
     /// region file.
     pub fn load_chunk(&mut self, mut pos: ChunkPosition) -> Result<Chunk, Error> {
+        // Get a copy of the original position before clipping
+        let original_pos = pos;
         // Clip chunk position to region-local coordinates.
         pos.x %= 32;
         pos.z %= 32;
@@ -77,147 +142,100 @@ impl RegionHandle {
         // corresponds to zlib.
         let compression_type = buf[0];
 
-        let mut uncompressed = vec![];
-
-        // Uncompress the data
-        match compression_type {
-            1 => {
-                let mut decoder = GzDecoder::new(&buf[1..]);
-                decoder
-                    .read_to_end(&mut uncompressed)
-                    .map_err(Error::BadCompression)?;
-            }
-            2 => {
-                let mut decoder = ZlibDecoder::new(&buf[1..]);
-                decoder
-                    .read_to_end(&mut uncompressed)
-                    .map_err(Error::BadCompression)?;
-            }
+        // Parse NBT data
+        let cursor = Cursor::new(&buf[1..]);
+        let _root: ChunkPreRoot = match compression_type {
+            1 => nbt::from_gzip_reader(cursor).map_err(Error::Nbt)?,
+            2 => nbt::from_zlib_reader(cursor).map_err(Error::Nbt)?,
             _ => return Err(Error::InvalidCompression(compression_type)),
+        };
+
+        let root = _root
+            .entries
+            .get(&format!("Chunk [{}, {}]", pos.x, pos.z))
+            .ok_or(Error::MissingRootTag)?;
+
+        // Check data version
+        if root.data_version != DATA_VERSION {
+            return Err(Error::UnsupportedDataVersion(root.data_version));
         }
 
-        // Read NBT-encoded chunk
-        let nbt = rnbt::parse_bytes(&uncompressed).map_err(|_| Error::Nbt("Failed to parse"))?;
-        let root = nbt
-            .compound()
-            .ok_or_else(|| Error::Nbt("Root tag not a compound"))?;
+        let level = &root.level;
 
-        let level = root
-            .get("Level")
-            .ok_or_else(|| Error::Nbt("Level tag not found"))?
-            .compound()
-            .ok_or_else(|| Error::Nbt("Level tag not a compound"))?;
+        let mut chunk = Chunk::new(original_pos);
 
-        let mut chunk = Chunk::new(pos);
-
-        let sections = level
-            .get("Sections")
-            .ok_or_else(|| Error::Nbt("Sections tag not found"))?
-            .list()
-            .ok_or_else(|| Error::Nbt("Sections not a compound"))?;
-        for section in sections.values {
-            let section = section
-                .compound()
-                .ok_or_else(|| Error::Nbt("Section not a compound"))?;
-
-            let index = section
-                .get("Y")
-                .ok_or_else(|| Error::Nbt("Y tag not found"))?
-                .byte()
-                .ok_or_else(|| Error::Nbt("Y tag not a byte"))?
-                .value as usize;
-
-            // Set blocks + palette in section.
-            let block_states = section
-                .get("BlockStates")
-                .ok_or_else(|| Error::Nbt("Block state tag not found"))?
-                .long_array()
-                .ok_or_else(|| Error::Nbt("Block states not a long array"))?;
-            let palette = section
-                .get("Palette")
-                .ok_or_else(|| Error::Nbt("Palette tag not found"))?
-                .list()
-                .ok_or_else(|| Error::Nbt("Palette tag not a list"))?;
-
-            let mut block_state_buf = Vec::with_capacity(block_states.values.len());
-            for x in block_states.values {
-                block_state_buf.push(x as u64);
-            }
-
-            let mut palette_buf = vec![];
-
-            // Read palette. Unfortunately, Mojang
-            // insists on using string IDs instead of numerical
-            // IDs in the world format palette. This seems like
-            // a horrible waste of space, but too bad.
-            for palette_entry in palette.values {
-                let palette_entry = palette_entry
-                    .compound()
-                    .ok_or_else(|| Error::Nbt("Palette entry not a compound"))?;
-                let name = palette_entry
-                    .get("Name")
-                    .ok_or_else(|| Error::Nbt("Palette name tag not found"))?
-                    .string()
-                    .ok_or_else(|| Error::Nbt("Palette name tag not a string"))?
-                    .value;
-                let mut props = HashMap::new();
-
-                let props_compound = palette_entry.get("Properties");
-                if let Some(nbt_props) = props_compound {
-                    let nbt_props = nbt_props
-                        .compound()
-                        .ok_or_else(|| Error::Nbt("NBT properties not a compound"))?;
-                    for (name, value) in nbt_props.values {
-                        let value = value
-                            .string()
-                            .ok_or_else(|| Error::Nbt("Property not a string"))?
-                            .value;
-                        props.insert(name, value);
-                    }
-                }
-
-                let block =
-                    Block::from_name_and_props(&name, &props).ok_or_else(|| Error::InvalidBlock)?;
-                palette_buf.push(block.native_state_id());
-            }
-
-            let len = block_state_buf.len();
-
-            let section = ChunkSection::from_data_and_palette(
-                BitArray::from_raw(
-                    block_state_buf,
-                    ((len as f32 * 64.0) / 4096.0).ceil() as u8,
-                    4096,
-                ),
-                Some(palette_buf),
-            );
-
-            chunk.set_section_at(index, Some(section));
+        // Read sections
+        for section in &level.sections {
+            read_section_into_chunk(section, &mut chunk)?;
         }
 
         Ok(chunk)
     }
 }
 
+fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<(), Error> {
+    let data = &section.states;
+
+    // Create palette
+    let mut palette = vec![];
+    for entry in &section.palette {
+        // Construct properties map
+        let mut props = HashMap::new();
+        if let Some(entry_props) = entry.props.as_ref() {
+            entry_props.iter().for_each(|prop_map| {
+                props.extend(prop_map.props.iter().map(|(k, v)| (k.clone(), v.clone())))
+            });
+        }
+
+        // Attempt to get block from the given values
+        let block = Block::from_name_and_props(&entry.name, &props).ok_or(Error::InvalidBlock)?;
+        palette.push(block.native_state_id());
+    }
+
+    // Create section
+    // TODO don't clone data - need way around this
+    let data = BitArray::from_raw(
+        data.clone(),
+        ((data.len() as f32 * 64.0) / 4096.0).ceil() as u8,
+        4096,
+    );
+    let chunk_section = ChunkSection::from_data_and_palette(data, Some(palette));
+
+    if section.y >= 16 {
+        // Haha... nope.
+        return Err(Error::IndexOutOfBounds);
+    }
+
+    chunk.set_section_at(usize::from(section.y as u8), Some(chunk_section));
+
+    Ok(())
+}
+
 /// An error which occurred during region file processing.
 #[derive(Debug)]
 pub enum Error {
-    /// An IO error occurred.
-    Io(io::Error),
-    /// The region file header was invalid.
+    /// The region file header was invalid
     Header(&'static str),
-    /// The region file contained invalid NBT data.
-    Nbt(&'static str),
+    /// The region file contained invalid NBT data
+    Nbt(nbt::Error),
     /// The chunk was too large
     ChunkTooLarge(usize),
     /// The chunk contained an invalid compression type
     InvalidCompression(u8),
-    /// We were unable to decompress the chunk
-    BadCompression(io::Error),
+    /// An IO error occurred
+    Io(io::Error),
     /// There was an invalid block in the chunk
     InvalidBlock,
     /// The chunk does not exist
     ChunkNotExist,
+    /// The chunk uses an unsupported data version
+    UnsupportedDataVersion(i32),
+    /// The palette for the chunk contained in invalid block type
+    InvalidBlockType,
+    /// The "Chunk [x, z]" tag was missing
+    MissingRootTag,
+    /// Chunk section index was out of bounds
+    IndexOutOfBounds,
 }
 
 impl Display for Error {
@@ -225,24 +243,26 @@ impl Display for Error {
         match self {
             Error::Io(ierr) => ierr.fmt(f)?,
             Error::Header(msg) => f.write_str(msg)?,
-            Error::Nbt(m) => f.write_str(&format!("Region file contains invalid NBT: {}", m))?,
+            Error::Nbt(e) => f.write_str(&format!("Region file contains invalid NBT: {}", e))?,
             Error::ChunkTooLarge(size) => {
                 f.write_str(&format!("Chunk is too large: {} bytes", size))?
             }
             Error::InvalidCompression(id) => {
                 f.write_str(&format!("Chunk uses invalid compression type {}", id))?
             }
-            Error::BadCompression(err) => {
-                f.write_str("Unable to decompress chunk data: ")?;
-                err.fmt(f)?;
-            }
             Error::InvalidBlock => f.write_str("Chunk contains invalid block")?,
             Error::ChunkNotExist => f.write_str("The chunk does not exist")?,
+            Error::UnsupportedDataVersion(_) => f.write_str("The chunk uses an unsupported data version. Feather currently only supports 1.13.2 region files.")?,
+            Error::InvalidBlockType => f.write_str("Chunk contains invalid block type")?,
+            Error::MissingRootTag => f.write_str("Chunk is missing a root NBT tag")?,
+            Error::IndexOutOfBounds => f.write_str("Section index out of bounds")?,
         }
 
         Ok(())
     }
 }
+
+impl std::error::Error for Error {}
 
 /// Loads the region at the specified position
 /// from the specified world directory.

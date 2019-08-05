@@ -8,7 +8,6 @@ use crate::world::chunk::Chunk;
 use bytes::{Buf, BufMut};
 use hashbrown::HashMap;
 use num_traits::{FromPrimitive, ToPrimitive};
-use rnbt::NbtTag;
 use std::io::Read;
 use std::io::Write;
 
@@ -778,7 +777,7 @@ pub struct BlockBreakAnimation {
 pub struct UpdateBlockEntity {
     pub location: BlockPosition,
     pub action: u8,
-    pub data: NbtTag,
+    // TODO pub data: NbtTag
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
@@ -1005,7 +1004,7 @@ pub struct EntityStatus {
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct NBTQueryResponse {
     pub transaction_id: VarInt,
-    pub nbt: NbtTag,
+    // TODO pub nbt: NbtTag,
 }
 
 #[allow(clippy::too_many_arguments)]

@@ -6,7 +6,7 @@
 #[macro_use]
 extern crate log;
 #[macro_use]
-extern crate serde_derive;
+extern crate serde;
 #[macro_use]
 extern crate serde_json;
 #[macro_use]
@@ -70,7 +70,7 @@ fn main() {
         let location = info.location().unwrap();
         error!("Source: {}, line {}", location.file(), location.line());
         error!("Backtrace:\n{:?}", Backtrace::new());
-        error!("An error occurred and the server has shut down. Please report this to https://github.com/caelunshun/feather/issues");
+        error!("An error occurred, and the server has shut down. Please report this at https://github.com/caelunshun/feather/issues");
     }));
 
     let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));

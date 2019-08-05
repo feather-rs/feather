@@ -7,7 +7,7 @@ use hashbrown::HashMap;
 use mio::Event;
 use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
 
-use feather_core::bytebuf::{BufMutAlloc, ByteBuf};
+use feather_core::bytebuf::ByteBuf;
 use feather_core::network::packet::PacketDirection;
 use feather_core::network::serialize::ConnectionIOManager;
 
@@ -227,7 +227,12 @@ fn send_packet(worker: &mut Worker, client_id: Client, packet: Box<dyn Packet>) 
     let buf = manager.serialize_packet(packet);
 
     if client.write_buffer.is_some() {
-        client.write_buffer.as_mut().unwrap().write(buf.inner());
+        client
+            .write_buffer
+            .as_mut()
+            .unwrap()
+            .write_all(buf.inner())
+            .unwrap();
     } else {
         client.write_buffer = Some(buf);
     }

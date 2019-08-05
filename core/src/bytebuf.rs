@@ -1,6 +1,6 @@
 use bytes::{Buf, BufMut};
 use std::io::Error;
-use std::io::Read;
+use std::io::{Read, Write};
 
 #[derive(Clone, Debug)]
 pub struct ByteBuf {
@@ -139,12 +139,22 @@ impl Read for ByteBuf {
     }
 }
 
+impl Write for ByteBuf {
+    fn write(&mut self, buf: &[u8]) -> Result<usize, Error> {
+        self.reserve(buf.len());
+        buf.iter().for_each(|x| self.write_u8(*x));
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> Result<(), Error> {
+        Ok(())
+    }
+}
+
 /// Trait which contains functions like those
 /// in `BufMut` but which allocate additional
 /// space rather than panicking when a buffer is full.
 pub trait BufMutAlloc {
-    fn write(&mut self, src: &[u8]);
-
     fn write_f32_be(&mut self, x: f32);
     fn write_f32_le(&mut self, x: f32);
     fn write_f64_be(&mut self, x: f64);
@@ -168,11 +178,6 @@ pub trait BufMutAlloc {
 }
 
 impl BufMutAlloc for ByteBuf {
-    fn write(&mut self, src: &[u8]) {
-        self.reserve(src.len());
-        self.put(src);
-    }
-
     fn write_f32_be(&mut self, x: f32) {
         self.reserve(4);
         self.put_f32_be(x);
