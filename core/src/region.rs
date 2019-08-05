@@ -5,6 +5,7 @@ use super::world::block::*;
 use crate::world::chunk::{BitArray, Chunk, ChunkSection};
 use crate::world::ChunkPosition;
 use byteorder::{BigEndian, ReadBytesExt};
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 use std::fs::File;
@@ -19,15 +20,6 @@ const REGION_SIZE: usize = 32;
 /// The data version supported by this code, currently corresponding
 /// to 1.13.2.
 const DATA_VERSION: i32 = 1631;
-
-/// Represents the NBT data for a chunk
-/// in a region file.
-#[derive(Serialize, Deserialize, Debug)]
-struct ChunkPreRoot {
-    #[serde(flatten)]
-    /// Should contain a single entry with key "Chunk [x, y]".
-    entries: HashMap<String, ChunkRoot>,
-}
 
 /// Represents the data for a chunk after the "Chunk [x, y]" tag.
 #[derive(Serialize, Deserialize, Debug)]
@@ -44,8 +36,8 @@ struct ChunkLevel {
     // TODO heightmaps, etc.
     #[serde(rename = "xPos")]
     x_pos: i32,
-    #[serde(rename = "yPos")]
-    y_pos: i32,
+    #[serde(rename = "zPos")]
+    z_pos: i32,
     #[serde(rename = "Sections")]
     sections: Vec<LevelSection>,
 }
@@ -56,7 +48,7 @@ struct LevelSection {
     #[serde(rename = "Y")]
     y: i8,
     #[serde(rename = "BlockStates")]
-    states: Vec<u64>,
+    states: Vec<i64>,
     #[serde(rename = "Palette")]
     palette: Vec<LevelPaletteEntry>,
 }
@@ -65,17 +57,17 @@ struct LevelSection {
 #[derive(Serialize, Deserialize, Debug)]
 struct LevelPaletteEntry {
     /// The identifier of the type of this block
+    #[serde(rename = "Name")]
     name: String,
     /// Optional properties for this block
     #[serde(rename = "Properties")]
-    props: Option<Vec<LevelProperty>>,
+    props: Option<LevelProperties>,
 }
 
-/// Represents a property for a palette entry.
+/// Represents the proprties for a palette entry.
 #[derive(Serialize, Deserialize, Debug)]
-struct LevelProperty {
+struct LevelProperties {
     /// Map containing a list of property names to values.
-    /// Length should be equal to 1.
     #[serde(flatten)]
     props: HashMap<String, String>,
 }
@@ -144,16 +136,11 @@ impl RegionHandle {
 
         // Parse NBT data
         let cursor = Cursor::new(&buf[1..]);
-        let _root: ChunkPreRoot = match compression_type {
+        let root: ChunkRoot = match compression_type {
             1 => nbt::from_gzip_reader(cursor).map_err(Error::Nbt)?,
             2 => nbt::from_zlib_reader(cursor).map_err(Error::Nbt)?,
             _ => return Err(Error::InvalidCompression(compression_type)),
         };
-
-        let root = _root
-            .entries
-            .get(&format!("Chunk [{}, {}]", pos.x, pos.z))
-            .ok_or(Error::MissingRootTag)?;
 
         // Check data version
         if root.data_version != DATA_VERSION {
@@ -182,9 +169,12 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
         // Construct properties map
         let mut props = HashMap::new();
         if let Some(entry_props) = entry.props.as_ref() {
-            entry_props.iter().for_each(|prop_map| {
-                props.extend(prop_map.props.iter().map(|(k, v)| (k.clone(), v.clone())))
-            });
+            props.extend(
+                entry_props
+                    .props
+                    .iter()
+                    .map(|(k, v)| (k.clone(), v.clone())),
+            );
         }
 
         // Attempt to get block from the given values
@@ -195,7 +185,7 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     // Create section
     // TODO don't clone data - need way around this
     let data = BitArray::from_raw(
-        data.clone(),
+        data.iter().map(|x| *x as u64).collect(),
         ((data.len() as f32 * 64.0) / 4096.0).ceil() as u8,
         4096,
     );
