@@ -1,6 +1,6 @@
 use super::mctypes::{McTypeRead, McTypeWrite};
 use super::packet::{Packet, PacketDirection, PacketId, PacketStage, PacketType};
-use crate::bytebuf::{BufMutAlloc, ByteBuf};
+use crate::bytebuf::ByteBuf;
 use crate::prelude::*;
 use bytes::{Buf, BufMut};
 use flate2::{
@@ -83,7 +83,7 @@ impl ConnectionIOManager {
             self.decrypt_data(data.inner());
         } else {
             // Copy to incoming_compressed without decrypting
-            self.incoming_compressed.write(data.inner());
+            self.incoming_compressed.write_all(data.inner()).unwrap();
         }
 
         loop {
@@ -121,7 +121,8 @@ impl ConnectionIOManager {
                     len_of_compressed_size_field = 0;
                 } else {
                     self.incoming_uncompressed
-                        .write(&pending_buf.inner()[..(packet_length - 1) as usize]);
+                        .write_all(&pending_buf.inner()[..(packet_length - 1) as usize])
+                        .unwrap();
                     len_of_compressed_size_field =
                         pending_buf.read_pos() - pending_buf.marked_read_position();
                     pending_buf.advance((packet_length - 1) as usize);
@@ -129,7 +130,7 @@ impl ConnectionIOManager {
             } else {
                 len_of_compressed_size_field = 0;
                 let buf = &pending_buf.inner()[..(packet_length as usize)];
-                self.incoming_uncompressed.write(buf);
+                self.incoming_uncompressed.write_all(buf).unwrap();
                 self.incoming_compressed.advance(packet_length as usize);
             }
 
@@ -203,18 +204,22 @@ impl ConnectionIOManager {
 
             if packet_data_buf.len() < self.compression_threshold as usize {
                 buf_without_length.write_var_int(0);
-                buf_without_length.write(packet_data_buf.inner());
+                buf_without_length
+                    .write_all(packet_data_buf.inner())
+                    .unwrap();
             } else {
                 buf_without_length.write_var_int(uncompressed_length as i32);
                 self.compress_data(packet_data_buf.inner(), &mut buf_without_length);
             }
         } else {
-            buf_without_length.write(packet_data_buf.inner()); // Lots of inefficient copying here - find a fix for this
+            buf_without_length
+                .write_all(packet_data_buf.inner())
+                .unwrap(); // Lots of inefficient copying here - find a fix for this
         }
 
         let mut buf = ByteBuf::with_capacity(buf_without_length.len() + 4);
         buf.write_var_int(buf_without_length.len() as i32);
-        buf.write(buf_without_length.inner());
+        buf.write_all(buf_without_length.inner()).unwrap();
 
         if !self.encryption_enabled {
             buf
