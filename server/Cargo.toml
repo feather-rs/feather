@@ -23,7 +23,7 @@ bytes = "0.4.12"
 hashbrown = { version = "0.5.0", features = ["rayon"] }
 mojang-api = "0.1.0"
 multimap = "0.5.0"
-hematite-nbt = "0.4.0"
+hematite-nbt = { git = "https://github.com/caelunshun/hematite_nbt" }
 specs = "0.15.0"
 rayon = "1.1.0"
 shrev = "1.1.1"
