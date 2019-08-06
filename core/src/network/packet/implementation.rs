@@ -5,7 +5,7 @@ use crate::entitymeta::{EntityMetaIo, EntityMetadata};
 use crate::network::packet::PacketStage::Play;
 use crate::prelude::*;
 use crate::world::chunk::Chunk;
-use crate::ClientboundAnimation;
+use crate::{ClientboundAnimation, Hand};
 use bytes::{Buf, BufMut};
 use hashbrown::HashMap;
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -559,9 +559,29 @@ pub struct UpdateSign {
     pub line_4: String,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct AnimationServerbound {
-    pub hand: VarInt,
+    pub hand: Hand,
+}
+
+impl Packet for AnimationServerbound {
+    fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
+        let hand_id = buf.read_var_int()?;
+        self.hand = match Hand::from_i32(hand_id) {
+            Some(hand) => hand,
+            None => return Err(()),
+        };
+
+        Ok(())
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        unimplemented!()
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::AnimationServerbound
+    }
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]

@@ -2,6 +2,9 @@
 //! relating to players, including player movement
 //! and inventory handling.
 
+/// Module for handling player animation broadcasting
+/// (e.g. when a player swings their arm).
+mod animation;
 /// Module for broadcasting when a player joins and leaves.
 mod broadcast;
 /// Module for initializing the necessary components
@@ -19,3 +22,5 @@ pub use movement::{
     send_chunk_to_player, ChunkCrossSystem, ChunkPendingComponent, ChunkSendSystem,
     ClientChunkUnloadSystem, LoadedChunksComponent, PlayerMovementSystem,
 };
+
+pub use animation::{AnimationBroadcastSystem, PlayerAnimationEvent, PlayerAnimationSystem};

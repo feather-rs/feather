@@ -213,16 +213,15 @@ impl<'a> System<'a> for NetworkSystem {
     }
 }
 
-/// Sends a packet to all (joined) players on the server, excluding
+/// Sends a packet to all players on the server, excluding
 /// `neq`, if it exists.
 pub fn send_packet_to_all_players<P: Packet + Clone + 'static>(
     net_comps: &ReadStorage<NetworkComponent>,
-    player_comps: &ReadStorage<PlayerComponent>,
     entities: &Entities,
     packet: P,
     neq: Option<Entity>,
 ) {
-    for (entity, net, _) in (entities, net_comps, player_comps).join() {
+    for (entity, net) in (entities, net_comps).join() {
         if let Some(e) = neq.as_ref() {
             if *e == entity {
                 continue; // Exclude this entity
@@ -399,7 +398,6 @@ mod tests {
         let packet = LoginStart::new("test".to_string());
 
         send_packet_to_all_players(
-            &w.read_component(),
             &w.read_component(),
             &w.entities(),
             packet,

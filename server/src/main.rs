@@ -241,6 +241,16 @@ fn init_world<'a, 'b>(
             "client_chunk_unload",
             &["chunk_cross"],
         )
+        .with(
+            player::PlayerAnimationSystem,
+            "player_animation",
+            &["network"],
+        )
+        .with(
+            player::AnimationBroadcastSystem::default(),
+            "animation_broadcast",
+            &["player_animation"],
+        )
         .build();
 
     dispatcher.setup(&mut world);

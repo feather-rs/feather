@@ -98,3 +98,16 @@ impl Default for ClientboundAnimation {
         ClientboundAnimation::SwingMainArm
     }
 }
+#[derive(
+    Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash, FromPrimitive, ToPrimitive,
+)]
+pub enum Hand {
+    Main,
+    Off,
+}
+
+impl Default for Hand {
+    fn default() -> Self {
+        Hand::Main
+    }
+}

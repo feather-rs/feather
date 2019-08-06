@@ -74,12 +74,25 @@ pub fn add_player(world: &mut World) -> Player {
 /// Asserts that the given player has received
 /// a packet of the given type, returning the packet.
 pub fn assert_packet_received(player: &Player, ty: PacketType) -> Box<dyn Packet> {
-    match player.network_receiver.try_recv().unwrap() {
-        ServerToWorkerMessage::SendPacket(pack) => {
-            assert_eq!(pack.ty(), ty);
-            pack
+    while let Ok(msg) = player.network_receiver.try_recv() {
+        if let ServerToWorkerMessage::SendPacket(packet) = msg {
+            if packet.ty() == ty {
+                return packet;
+            }
         }
-        _ => panic!(),
+    }
+
+    panic!();
+}
+
+/// Asserts that a player did not receive
+/// any packets of the given type.
+/// Panics if not.
+pub fn assert_packet_not_received(player: &Player, ty: PacketType) {
+    while let Ok(msg) = player.network_receiver.try_recv() {
+        if let ServerToWorkerMessage::SendPacket(packet) = msg {
+            assert_ne!(packet.ty(), ty);
+        }
     }
 }
 
@@ -157,6 +170,13 @@ pub fn send_packet<P: Packet + 'static>(player: &Player, packet: P) {
 pub fn reader<E: Send + Sync>(w: &World) -> ReaderId<E> {
     let mut channel = w.fetch_mut::<EventChannel<E>>();
     channel.register_reader()
+}
+
+/// Triggers the given event, writing it to
+/// the corresponding `EventChannel`.
+pub fn trigger_event<E: Send + Sync + 'static>(world: &mut World, event: E) {
+    let mut channel = world.fetch_mut::<EventChannel<E>>();
+    channel.single_write(event);
 }
 
 /// Heh... tests for the testing framework.
