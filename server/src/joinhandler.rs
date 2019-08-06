@@ -25,6 +25,7 @@ use crate::config::Config;
 use crate::network::NetworkComponent;
 use crate::player::{ChunkPendingComponent, LoadedChunksComponent};
 use crate::PlayerCount;
+use feather_core::level::LevelData;
 
 /// For now, we use a fixed spawn position.
 /// In the future, the spawn position should
@@ -36,9 +37,6 @@ pub const SPAWN_POSITION: Position = Position {
     pitch: 0.0,
     yaw: 0.0,
 };
-
-/// See `SPAWN_POSITION`
-const COMPASS_SPAWN_POSITION: BlockPosition = BlockPosition { x: 0, y: 64, z: 0 };
 
 #[derive(Default)]
 pub struct JoinHandlerComponent {
@@ -92,6 +90,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
         Read<'a, Arc<PlayerCount>>,
         Read<'a, ChunkMap>,
         Write<'a, ChunkHolders>,
+        Read<'a, LevelData>,
         WriteStorage<'a, ChunkHolderComponent>,
         WriteStorage<'a, LoadedChunksComponent>,
     );
@@ -109,6 +108,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
             player_count,
             chunk_map,
             mut holders,
+            level,
             mut holder_comps,
             mut loaded_chunks_comps,
         ) = data;
@@ -170,7 +170,11 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     if pending_chunks.len() != 0 {
                         continue;
                     }
-                    let spawn_position = SpawnPosition::new(COMPASS_SPAWN_POSITION);
+                    let spawn_position = SpawnPosition::new(BlockPosition::new(
+                        level.spawn_x,
+                        level.spawn_y,
+                        level.spawn_z,
+                    ));
                     crate::network::send_packet_to_player(net, spawn_position);
 
                     let position_and_look = PlayerPositionAndLookClientbound::new(

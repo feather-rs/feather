@@ -10,7 +10,7 @@ struct Root {
 }
 
 /// Represents the contents of a level file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct LevelData {
     #[serde(rename = "allowCommands")]
     pub allow_commands: bool,
@@ -69,7 +69,7 @@ pub struct LevelData {
 }
 
 /// Represents level version data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct LevelVersion {
     #[serde(rename = "Id")]
     id: i32,
@@ -77,8 +77,8 @@ pub struct LevelVersion {
     name: String,
 }
 
-/// Serializes a level.dat file from the given reader.
-pub fn serialize_level_file<R: Read>(reader: R) -> Result<LevelData, nbt::Error> {
+/// Deserializes a level.dat file from the given reader.
+pub fn deserialize_level_file<R: Read>(reader: R) -> Result<LevelData, nbt::Error> {
     match nbt::from_gzip_reader::<_, Root>(reader) {
         Ok(root) => Ok(root.data),
         Err(e) => Err(e),
@@ -91,10 +91,10 @@ mod tests {
     use std::io::Cursor;
 
     #[test]
-    fn test_serialize_level_file() {
+    fn test_deserialize_level_file() {
         let cursor = Cursor::new(include_bytes!("level.dat").to_vec());
 
-        let level = serialize_level_file(cursor).unwrap();
+        let level = deserialize_level_file(cursor).unwrap();
 
         assert!(!level.allow_commands);
         assert_eq!(level.clear_weather_time, 0);

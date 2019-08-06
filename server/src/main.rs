@@ -26,9 +26,12 @@ use crate::entity::{EntityComponent, EntityDestroyEvent};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
 use backtrace::Backtrace;
+use feather_core::level;
+use feather_core::level::LevelData;
 use shrev::EventChannel;
 use std::fs::File;
 use std::io::Write;
+use std::process::abort;
 
 #[global_allocator]
 static ALLOC: System = System;
@@ -77,7 +80,14 @@ fn main() {
 
     let io_manager = init_io_manager(Arc::clone(&config), Arc::clone(&player_count));
 
-    let (mut world, mut dispatcher) = init_world(config, player_count, io_manager);
+    info!("Loading level.dat");
+    let level = load_level().unwrap_or_else(|e| {
+        error!("Error occurred while loading level.dat: {}", e);
+        error!("Please ensure that the world directory exists and is not corrupt.");
+        abort()
+    });
+
+    let (mut world, mut dispatcher) = init_world(config, player_count, io_manager, level);
 
     info!("Initialized world");
 
@@ -105,6 +115,13 @@ fn load_config() -> Config {
             }
         },
     }
+}
+
+/// Loads the level.dat file for the world.
+fn load_level() -> Result<LevelData, failure::Error> {
+    let file = File::open("world/level.dat")?;
+    let data = level::deserialize_level_file(file)?;
+    Ok(data)
 }
 
 /// Runs the server loop, blocking until the server
@@ -153,12 +170,14 @@ fn init_world<'a, 'b>(
     config: Arc<Config>,
     player_count: Arc<PlayerCount>,
     ioman: io::NetworkIoManager,
+    level: LevelData,
 ) -> (World, Dispatcher<'a, 'b>) {
     let mut world = World::new();
     world.insert(config);
     world.insert(player_count);
     world.insert(ioman);
     world.insert(TickCount::default());
+    world.insert(level);
 
     let mut dispatcher = DispatcherBuilder::new()
         .with(chunk_logic::ChunkLoadSystem, "chunk_load", &[])
@@ -314,8 +333,9 @@ mod tests {
         let config = Arc::new(Config::default());
         let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
         let ioman = init_io_manager(Arc::clone(&config), Arc::clone(&player_count));
+        let level = LevelData::default();
 
-        let (world, mut dispatcher) = init_world(config, player_count, ioman);
+        let (world, mut dispatcher) = init_world(config, player_count, ioman, level);
         dispatcher.dispatch(&world);
     }
 }

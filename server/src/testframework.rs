@@ -18,6 +18,7 @@ use crate::entity::{EntityComponent, PlayerComponent};
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
 use crate::PlayerCount;
+use feather_core::level::LevelData;
 use shrev::EventChannel;
 
 /// Initializes a Specs world and dispatcher
@@ -31,8 +32,9 @@ pub fn init_world<'a, 'b>() -> (World, Dispatcher<'a, 'b>) {
 
     let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
     let ioman = super::init_io_manager(Arc::clone(&config), Arc::clone(&player_count));
+    let level = LevelData::default();
 
-    super::init_world(config, player_count, ioman)
+    super::init_world(config, player_count, ioman, level)
 }
 
 pub struct Player {
