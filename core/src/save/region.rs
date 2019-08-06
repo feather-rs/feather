@@ -1,7 +1,7 @@
 //! This module implements the loading and saving (soon)
 //! of Anvil region files.
 
-use super::world::block::*;
+use crate::world::block::*;
 use crate::world::chunk::{BitArray, Chunk, ChunkSection};
 use crate::world::ChunkPosition;
 use byteorder::{BigEndian, ReadBytesExt};
