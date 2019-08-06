@@ -236,7 +236,12 @@ impl ChunkSection {
 
     /// Creates a new `ChunkSection` based on the given
     /// data and palette.
-    pub fn from_data_and_palette(data: BitArray, palette: Option<Vec<u16>>) -> Self {
+    pub fn from_data_and_palette(mut data: BitArray, mut palette: Option<Vec<u16>>) -> Self {
+        // Correct palette if not using the global palette
+        if let Some(palette) = palette.as_mut() {
+            Self::correct_data_and_palette(&mut data, palette);
+        }
+
         // Count solid blocks
         let mut solid_block_count = 0;
         for x in 0..16 {
@@ -254,6 +259,36 @@ impl ChunkSection {
             palette,
             solid_block_count,
             dirty: false,
+        }
+    }
+
+    /// Corrects a given raw palette and data array.
+    ///
+    /// Since chunk data stored by external sources
+    /// (e.g. Vanilla) might not require a sorted palette
+    /// like Feather does, we need to sort the palette and
+    /// correct data in the array when reading from external
+    /// sources.
+    ///
+    /// The correction is done in-place.
+    fn correct_data_and_palette(data: &mut BitArray, palette: &mut Vec<u16>) {
+        let original_palette = palette.clone(); // Palette without sorting guarantees
+
+        palette.sort_unstable();
+
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    // Replace index into palette of each block with
+                    // new index into the sorted palette.
+                    let block_index = block_index(x, y, z);
+                    let old_index = data.get(block_index);
+                    let new_index = palette
+                        .binary_search(&original_palette[old_index as usize])
+                        .unwrap();
+                    data.set(block_index, new_index as u64);
+                }
+            }
         }
     }
 
@@ -844,5 +879,13 @@ mod tests {
     fn test_block_index() {
         assert_eq!(block_index(0, 1, 0), 256);
         assert_eq!(block_index(1, 1, 1), 256 + 16 + 1);
+    }
+
+    #[test]
+    fn test_correct_data_and_palette() {
+        let mut data = BitArray::new(4, 4096);
+        let mut palette = vec![0, 4, 2, 7, 3];
+        ChunkSection::correct_data_and_palette(&mut data, &mut palette);
+        assert_eq!(palette.len(), 5);
     }
 }
