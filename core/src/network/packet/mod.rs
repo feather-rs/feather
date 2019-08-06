@@ -439,6 +439,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x06, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::AnimationClientbound,
+        );
+
+        m.insert(
             PacketId(0x1B, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::DisconnectPlay,
         );

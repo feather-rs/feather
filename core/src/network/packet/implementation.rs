@@ -5,6 +5,7 @@ use crate::entitymeta::{EntityMetaIo, EntityMetadata};
 use crate::network::packet::PacketStage::Play;
 use crate::prelude::*;
 use crate::world::chunk::Chunk;
+use crate::ClientboundAnimation;
 use bytes::{Buf, BufMut};
 use hashbrown::HashMap;
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -735,10 +736,25 @@ impl Packet for SpawnPlayer {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct AnimationClientbound {
     pub entity_id: VarInt,
-    pub animation: u8,
+    pub animation: ClientboundAnimation,
+}
+
+impl Packet for AnimationClientbound {
+    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_var_int(self.entity_id);
+        buf.write_u8(self.animation as u8);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::AnimationClientbound
+    }
 }
 
 #[derive(Default, AsAny, new, Clone)]

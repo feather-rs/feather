@@ -80,3 +80,21 @@ pub enum PvpStyle {
     Classic,
     New,
 }
+
+#[derive(
+    Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash, FromPrimitive, ToPrimitive,
+)]
+pub enum ClientboundAnimation {
+    SwingMainArm,
+    TakeDamage,
+    LeaveBed,
+    SwingOffhand,
+    CriticalEffect,
+    MagicCriticalEffect,
+}
+
+impl Default for ClientboundAnimation {
+    fn default() -> Self {
+        ClientboundAnimation::SwingMainArm
+    }
+}
