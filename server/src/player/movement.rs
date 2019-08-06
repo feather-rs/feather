@@ -24,7 +24,7 @@ use crate::chunk_logic::{
     ChunkWorkerHandle,
 };
 use crate::config::Config;
-use crate::entity::{broadcast_entity_movement, EntityComponent, PlayerComponent};
+use crate::entity::{broadcast_entity_movement, EntityComponent};
 use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue};
 use crate::{TickCount, TPS};
 use std::ops::{Deref, DerefMut};
@@ -45,7 +45,6 @@ pub struct PlayerMovementSystem;
 impl<'a> System<'a> for PlayerMovementSystem {
     type SystemData = (
         WriteStorage<'a, EntityComponent>,
-        ReadStorage<'a, PlayerComponent>,
         Read<'a, PacketQueue>,
         ReadStorage<'a, NetworkComponent>,
         Entities<'a>,
@@ -54,7 +53,7 @@ impl<'a> System<'a> for PlayerMovementSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut ecomps, pcomps, packet_queue, netcomps, entities, _, mut move_events) = data;
+        let (mut ecomps, packet_queue, netcomps, entities, _, mut move_events) = data;
 
         // Take movement packets
         let mut packets = vec![];
@@ -77,7 +76,6 @@ impl<'a> System<'a> for PlayerMovementSystem {
                 has_moved,
                 has_looked,
                 &netcomps,
-                &pcomps,
                 &entities,
             );
 

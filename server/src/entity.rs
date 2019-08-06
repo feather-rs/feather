@@ -138,7 +138,6 @@ pub fn broadcast_entity_movement(
     has_moved: bool,
     has_looked: bool,
     netcomps: &ReadStorage<NetworkComponent>,
-    pcomps: &ReadStorage<PlayerComponent>,
     entities: &Entities,
 ) {
     assert!(has_moved || has_looked);
@@ -156,10 +155,10 @@ pub fn broadcast_entity_movement(
                 degrees_to_stops(new_pos.pitch),
                 true,
             );
-            send_packet_to_all_players(netcomps, pcomps, entities, packet, Some(entity));
+            send_packet_to_all_players(netcomps, entities, packet, Some(entity));
         } else {
             let packet = EntityRelativeMove::new(entity.id() as i32, rx, ry, rz, true);
-            send_packet_to_all_players(netcomps, pcomps, entities, packet, Some(entity));
+            send_packet_to_all_players(netcomps, entities, packet, Some(entity));
         }
     } else {
         let packet = EntityLook::new(
@@ -168,13 +167,13 @@ pub fn broadcast_entity_movement(
             degrees_to_stops(new_pos.pitch),
             true,
         );
-        send_packet_to_all_players(netcomps, pcomps, entities, packet, Some(entity));
+        send_packet_to_all_players(netcomps, entities, packet, Some(entity));
     }
 
     // Entity Head Look also needs to be sent if the entity turned its head
     if has_looked {
         let packet = EntityHeadLook::new(entity.id() as i32, degrees_to_stops(new_pos.yaw));
-        send_packet_to_all_players(netcomps, pcomps, entities, packet, Some(entity));
+        send_packet_to_all_players(netcomps, entities, packet, Some(entity));
     }
 }
 
