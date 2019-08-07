@@ -2,6 +2,7 @@ use super::super::mctypes::{McTypeRead, McTypeWrite};
 use super::*;
 use crate::bytebuf::{BufMutAlloc, BufResulted};
 use crate::entitymeta::{EntityMetaIo, EntityMetadata};
+use crate::inventory::ItemStack;
 use crate::network::packet::PacketStage::Play;
 use crate::prelude::*;
 use crate::world::chunk::Chunk;
@@ -14,6 +15,7 @@ use std::io::Write;
 
 type VarInt = i32;
 type VarLong = i64;
+type Slot = Option<ItemStack>;
 
 lazy_static! {
     pub static ref IMPL_MAP: HashMap<PacketType, PacketBuilder> = {
@@ -235,7 +237,7 @@ pub struct ClickWindow {
     pub button: u8,
     pub action_number: i16,
     pub mode: VarInt,
-    // TODO clicked_item: Slot,
+    pub clicked_item: Slot,
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
@@ -271,7 +273,7 @@ impl Packet for PluginMessageServerbound {
 
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct EditBook {
-    // TODO new_book: Slot
+    pub new_book: Slot,
     pub is_signing: bool,
     pub hand: VarInt,
 }
@@ -526,7 +528,7 @@ pub struct UpdateCommandBlockMinecart {
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct CreativeInventoryAction {
     pub slot: u16,
-    // TODO clicked_item: Slot
+    pub clicked_item: Slot,
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -967,11 +969,29 @@ pub struct OpenWindow {
     pub entity_id: i32,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct WindowItems {
     pub window_id: u8,
-    pub count: i16,
-    // TODO slot data
+    pub slots: Vec<Slot>,
+}
+
+impl Packet for WindowItems {
+    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_u8(self.window_id);
+        buf.write_i16_be(self.slots.len() as i16);
+
+        for slot in &self.slots {
+            buf.write_slot(slot);
+        }
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::WindowItems
+    }
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
@@ -985,7 +1005,7 @@ pub struct WindowProperty {
 pub struct SetSlot {
     pub window_id: i8,
     pub slot: i16,
-    // TOOD slot data
+    pub slot_data: Slot,
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]

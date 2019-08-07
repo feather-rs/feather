@@ -1,13 +1,14 @@
 [package]
 name = "feather_core"
 version = "0.3.0"
-authors = ["caelunshun <caelum12321@gmail.com>"]
+authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 publish = false
 
 [dependencies]
 feather_codegen = { path = "../codegen" }
 feather_blocks = { path = "../blocks" }
+feather_items = { path = "../items" }
 lazy_static = "1.3.0"
 derive-new = "0.5.7"
 uuid = "0.7.4"

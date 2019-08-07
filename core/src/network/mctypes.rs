@@ -1,7 +1,9 @@
 use crate::bytebuf::{BufMutAlloc, BufResulted, ByteBuf};
+use crate::inventory::ItemStack;
 use crate::prelude::*;
 use crate::world::BlockPosition;
 use bytes::Buf;
+use feather_items::{Item, ItemExt};
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 
@@ -24,6 +26,8 @@ pub trait McTypeWrite {
     fn write_uuid(&mut self, x: &Uuid);
 
     fn write_nbt<T: Serialize>(&mut self, x: &T);
+
+    fn write_slot(&mut self, slot: &Option<ItemStack>);
 }
 
 /// Identifies a type from which Minecraft-specified
@@ -43,6 +47,8 @@ pub trait McTypeRead {
     fn read_uuid(&mut self) -> Result<Uuid, ()>;
 
     fn read_nbt<'de, T: Deserialize<'de>>(&mut self) -> Result<T, nbt::Error>;
+
+    fn read_slot(&mut self) -> Result<Option<ItemStack>, ()>;
 }
 
 impl McTypeWrite for ByteBuf {
@@ -96,6 +102,16 @@ impl McTypeWrite for ByteBuf {
 
     fn write_nbt<T: Serialize>(&mut self, val: &T) {
         nbt::to_writer(self, val, None).unwrap(); // Unwrap is safe because writing would only fail if a struct couldn't be written
+    }
+
+    fn write_slot(&mut self, slot: &Option<ItemStack>) {
+        self.write_bool(slot.is_some());
+
+        if let Some(slot) = slot.as_ref() {
+            self.write_var_int(slot.ty.native_protocol_id());
+            self.write_i8(slot.amount as i8);
+            self.write_u8(0x00); // TAG_End - TODO item NBT support
+        }
     }
 }
 
@@ -174,5 +190,22 @@ impl<T: Buf + Read> McTypeRead for T {
 
     fn read_nbt<'de, D: Deserialize<'de>>(&mut self) -> Result<D, nbt::Error> {
         unimplemented!()
+    }
+
+    fn read_slot(&mut self) -> Result<Option<ItemStack>, ()> {
+        let present = self.read_bool()?;
+
+        if !present {
+            return Ok(None);
+        }
+
+        let id = self.read_var_int()?;
+        let ty = Item::from_native_protocol_id(id).ok_or(())?;
+        let amount = self.read_u8()?;
+
+        // TODO NBT support
+        warn!("NBT unsupported; client will probably be kicked");
+
+        Ok(Some(ItemStack::new(ty, amount)))
     }
 }

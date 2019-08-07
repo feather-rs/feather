@@ -19,6 +19,7 @@ pub mod prelude;
 mod save;
 pub mod world;
 
+pub use feather_items as item;
 pub use save::{level, player_data, region};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
