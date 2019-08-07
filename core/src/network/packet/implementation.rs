@@ -1482,6 +1482,13 @@ pub struct EntityHeadLook {
     pub head_yaw: u8,
 }
 
+#[derive(Default, AsAny, new, Packet, Clone)]
+pub struct EntityEquipment {
+    pub entity_id: VarInt,
+    pub slot: VarInt,
+    pub item: Slot,
+}
+
 // TODO Select Advancement Tab
 // TODO World Border
 

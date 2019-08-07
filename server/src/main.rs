@@ -256,6 +256,16 @@ fn init_world<'a, 'b>(
             "creative_inventory",
             &["network"],
         )
+        .with(
+            player::HeldItemChangeSystem,
+            "held_item_change",
+            &["network"],
+        )
+        .with(
+            player::HeldItemBroadcastSystem::default(),
+            "held_item_broadcast",
+            &["held_item_change", "creative_inventory"],
+        )
         .build();
 
     dispatcher.setup(&mut world);

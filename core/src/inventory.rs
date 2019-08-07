@@ -22,6 +22,15 @@ pub const SLOT_OFFHAND: SlotIndex = 45;
 pub const SLOT_INVENTORY_OFFSET: SlotIndex = 9;
 pub const SLOT_HOTBAR_OFFSET: SlotIndex = 36;
 
+pub const HOTBAR_SIZE: SlotIndex = 9;
+
+pub const SLOT_ENTITY_EQUIPMENT_MAIN_HAND: SlotIndex = 0;
+pub const SLOT_ENTITY_EQUIPMENT_OFF_HAND: SlotIndex = 1;
+pub const SLOT_ENTITY_EQUIPMENT_BOOTS: SlotIndex = 2;
+pub const SLOT_ENTITY_EQUIPMENT_LEGGINGS: SlotIndex = 3;
+pub const SLOT_ENTITY_EQUIPMENT_CHESTPLATE: SlotIndex = 4;
+pub const SLOT_ENTITY_EQUIPMENT_HELMET: SlotIndex = 5;
+
 /// The various types of inventories ("windows").
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum InventoryType {
