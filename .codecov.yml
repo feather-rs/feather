@@ -5,3 +5,4 @@ codecov:
 ignore:
   - "blocks/src/blocks.rs"
   - "generator"
+  - "items/src/items.rs"
