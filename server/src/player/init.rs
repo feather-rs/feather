@@ -1,7 +1,7 @@
 use crate::entity::{EntityComponent, PlayerComponent};
 use crate::joinhandler::SPAWN_POSITION;
 use crate::network::PlayerPreJoinEvent;
-use crate::player::{ChunkPendingComponent, LoadedChunksComponent};
+use crate::player::{ChunkPendingComponent, InventoryComponent, LoadedChunksComponent};
 use feather_core::Gamemode;
 use hashbrown::HashSet;
 use shrev::{EventChannel, ReaderId};
@@ -30,6 +30,7 @@ impl<'a> System<'a> for PlayerInitSystem {
         WriteStorage<'a, EntityComponent>,
         WriteStorage<'a, ChunkPendingComponent>,
         WriteStorage<'a, LoadedChunksComponent>,
+        WriteStorage<'a, InventoryComponent>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -39,6 +40,7 @@ impl<'a> System<'a> for PlayerInitSystem {
             mut entity_comps,
             mut chunk_pending_comps,
             mut loaded_chunk_comps,
+            mut inventory_comps,
         ) = data;
 
         // Run through events
@@ -67,6 +69,11 @@ impl<'a> System<'a> for PlayerInitSystem {
             let loaded_chunk_comp = LoadedChunksComponent::default();
             loaded_chunk_comps
                 .insert(event.player, loaded_chunk_comp)
+                .unwrap();
+
+            let inventory_comp = InventoryComponent::new();
+            inventory_comps
+                .insert(event.player, inventory_comp)
                 .unwrap();
         }
     }

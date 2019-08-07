@@ -10,6 +10,8 @@ mod broadcast;
 /// Module for initializing the necessary components
 /// when a player joins.
 mod init;
+/// Module for handling player inventory.
+mod inventory;
 /// Module for handling player movement packets.
 /// Also handles loading/unloading chunks when necessary.
 mod movement;
@@ -24,3 +26,5 @@ pub use movement::{
 };
 
 pub use animation::{AnimationBroadcastSystem, PlayerAnimationEvent, PlayerAnimationSystem};
+
+pub use inventory::{CreativeInventorySystem, InventoryComponent};

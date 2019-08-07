@@ -251,6 +251,11 @@ fn init_world<'a, 'b>(
             "animation_broadcast",
             &["player_animation"],
         )
+        .with(
+            player::CreativeInventorySystem,
+            "creative_inventory",
+            &["network"],
+        )
         .build();
 
     dispatcher.setup(&mut world);
