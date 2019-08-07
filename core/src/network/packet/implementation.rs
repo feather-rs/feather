@@ -763,7 +763,7 @@ pub struct AnimationClientbound {
 }
 
 impl Packet for AnimationClientbound {
-    fn read_from(&mut self, buf: &mut PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
         unimplemented!()
     }
 
