@@ -22,6 +22,8 @@ use std::ops::{Deref, DerefMut};
 #[derive(Clone, Debug)]
 pub struct InventoryComponent {
     inventory: Inventory,
+    /// The player's held item.
+    /// This is stored as an index in the range 0..9.
     pub held_item: SlotIndex,
 }
 
@@ -115,7 +117,7 @@ impl<'a> System<'a> for CreativeInventorySystem {
 
             // If the updates slot was the player's held item,
             // we need to broadcast the equipment update
-            if inventory.held_item == packet.slot as usize {
+            if inventory.held_item == packet.slot as usize - SLOT_HOTBAR_OFFSET {
                 let event = HeldItemUpdateEvent { player };
                 events.single_write(event);
             }
