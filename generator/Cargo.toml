@@ -1,8 +1,9 @@
 [package]
-name = "feather_block_generator"
+name = "feather_generator"
 version = "0.1.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
+description = "Code generators for Feather"
 
 [dependencies]
 byteorder = "1.3.2"

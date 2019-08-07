@@ -4,4 +4,4 @@ codecov:
 
 ignore:
   - "blocks/src/blocks.rs"
-  - "generators"
+  - "generator"

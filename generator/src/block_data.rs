@@ -1,131 +1,54 @@
-//! This program is used to generate block state ID mappings
-//! and corresponding Rust code. It reads from vanilla block.json
-//! files. See `format.md` for more information.
-
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate derive_deref;
-#[macro_use]
-extern crate clap;
-#[macro_use]
-extern crate log;
-
-mod rust;
-mod util;
-
 use byteorder::{LittleEndian, WriteBytesExt};
-use clap::App;
 use failure::Error;
-use heck::CamelCase;
 use indexmap::IndexMap;
-use proc_macro2::TokenStream;
-use quote::quote;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
-use std::process::exit;
-use std::str::FromStr;
-use syn::export::Span;
-use syn::Ident;
 
 /// The block state ID to use when a block
 /// in the native file was not found
 /// in the input file. This would happen
 /// when the input file is an older version
 /// than the native version.
-const DEFAULT_STATE_ID: u16 = 1; // Stone
+pub const DEFAULT_STATE_ID: u16 = 1; // Stone
 
 /// Deserializable struct representing a block
 /// data report from Vanilla.
 #[derive(Clone, Debug, Deserialize, Deref, DerefMut)]
-struct BlockReport {
+pub struct BlockReport {
     #[serde(flatten)]
-    blocks: IndexMap<String, Block>,
+    pub blocks: IndexMap<String, Block>,
 }
 
 /// A block entry in the data report.
 #[derive(Clone, Debug, Deserialize)]
-struct Block {
-    states: Vec<State>,
-    properties: Option<BlockProperties>,
+pub struct Block {
+    pub states: Vec<State>,
+    pub properties: Option<BlockProperties>,
 }
 
 /// List of block properties.
 #[derive(Clone, Debug, Deserialize, Deref, DerefMut)]
-struct BlockProperties {
+pub struct BlockProperties {
     #[serde(flatten)]
-    props: HashMap<String, Vec<String>>,
+    pub props: HashMap<String, Vec<String>>,
 }
 
 /// A block state from the data report.
 #[derive(Clone, Debug, Deserialize)]
-struct State {
-    id: u16,
-    properties: Option<StateProperties>,
+pub struct State {
+    pub id: u16,
+    pub properties: Option<StateProperties>,
 }
 
 /// Properties of a block state from the data report.
 #[derive(Clone, Debug, Deserialize, Deref, DerefMut, Default)]
-struct StateProperties {
+pub struct StateProperties {
     #[serde(flatten)]
-    props: HashMap<String, String>,
+    pub props: HashMap<String, String>,
 }
 
-fn main() {
-    simple_logger::init_with_level(log::Level::Info).unwrap();
-
-    if let Err(e) = run() {
-        error!("An error occurred: {}", e);
-        exit(1);
-    }
-}
-
-fn run() -> Result<(), Error> {
-    let yaml = load_yaml!("cli.yml");
-    let matches = App::from_yaml(yaml).get_matches();
-
-    match matches.subcommand_name() {
-        Some("mappings") => {
-            let args = matches.subcommand_matches("mappings").unwrap();
-            generate_mappings_file(
-                args.value_of("input").unwrap(),
-                args.value_of("output").unwrap(),
-                args.value_of("native").unwrap(),
-                u32::from_str(args.value_of("proto").unwrap())?,
-                args.value_of("ver").unwrap(),
-            )?;
-        }
-        Some("native-mappings") => {
-            let args = matches.subcommand_matches("native-mappings").unwrap();
-            generate_native_mappings_file(
-                args.value_of("input").unwrap(),
-                args.value_of("output").unwrap(),
-                u32::from_str(args.value_of("proto").unwrap())?,
-                args.value_of("ver").unwrap(),
-            )?;
-        }
-        Some("rust") => {
-            let args = matches.subcommand_matches("rust").unwrap();
-            rust::generate_rust_code(
-                args.value_of("input").unwrap(),
-                args.value_of("output").unwrap(),
-            )?;
-        }
-        Some(s) => {
-            error!("Invalid subcommand {}", s);
-            return Ok(());
-        }
-        None => {
-            error!("No subcommand specified");
-            return Ok(());
-        }
-    }
-
-    Ok(())
-}
-
-fn generate_mappings_file(
+pub fn generate_mappings_file(
     input: &str,
     output: &str,
     native_input: &str,
@@ -151,7 +74,7 @@ fn generate_mappings_file(
     let mut out = BufWriter::new(&out_file);
 
     // Write header to output file
-    // See format.md
+    // See block_format.md
     write_header(&mut out, version, proto, false)?;
 
     // Go through native block types and attempt
@@ -186,7 +109,7 @@ fn generate_mappings_file(
     Ok(())
 }
 
-fn generate_native_mappings_file(
+pub fn generate_native_mappings_file(
     input: &str,
     output: &str,
     proto: u32,
