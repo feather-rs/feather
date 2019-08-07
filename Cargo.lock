@@ -455,6 +455,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "feather_items"
+version = "0.1.0"
+
+[[package]]
 name = "feather_server"
 version = "0.3.0"
 dependencies = [

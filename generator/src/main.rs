@@ -2,6 +2,8 @@
 //! and corresponding Rust code. It reads from vanilla block.json
 //! files. See `block_format.md` for more information.
 
+#![forbid(unsafe_code, warnings)]
+
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -10,14 +12,18 @@ extern crate derive_deref;
 extern crate clap;
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate quote;
 
 mod block_data;
+mod item;
 mod rust;
 mod util;
 
 pub use block_data::{
     Block, BlockProperties, BlockReport, State, StateProperties, DEFAULT_STATE_ID,
 };
+use byteorder::{LittleEndian, WriteBytesExt};
 use clap::App;
 use failure::Error;
 use heck::CamelCase;
@@ -70,6 +76,20 @@ fn run() -> Result<(), Error> {
                 args.value_of("output").unwrap(),
             )?;
         }
+        Some("item-mappings") => {
+            let args = matches.subcommand_matches("item-mappings").unwrap();
+            item::generate_mappings_file(
+                args.value_of("input").unwrap(),
+                args.value_of("output").unwrap(),
+            )?;
+        }
+        Some("item-rust") => {
+            let args = matches.subcommand_matches("item-rust").unwrap();
+            item::generate_rust(
+                args.value_of("input").unwrap(),
+                args.value_of("output").unwrap(),
+            )?;
+        }
         Some(s) => {
             error!("Invalid subcommand {}", s);
             return Ok(());
@@ -81,4 +101,17 @@ fn run() -> Result<(), Error> {
     }
 
     Ok(())
+}
+
+pub trait WriteExt {
+    fn write_string(&mut self, x: &str) -> std::io::Result<()>;
+}
+
+impl<W: Write> WriteExt for W {
+    fn write_string(&mut self, x: &str) -> std::io::Result<()> {
+        self.write_u32::<LittleEndian>(x.len() as u32)?;
+        self.write_all(x.as_bytes())?;
+
+        Ok(())
+    }
 }
