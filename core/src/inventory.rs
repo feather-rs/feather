@@ -1,5 +1,7 @@
 //! Module for creating and modifying inventories of any type.
 
+use crate::item::Item;
+
 pub type SlotIndex = usize;
 
 // Constants representing various standard inventory slot indices
@@ -49,7 +51,7 @@ pub struct Inventory {
     /// for each slot in the inventory, indexed
     /// by the slot IDs. When an entry is set to
     /// `None`, there is no item in the slot.
-    items: Vec<Option<Item>>,
+    items: Vec<Option<ItemStack>>,
     /// The type of this inventory.
     pub ty: InventoryType,
 }
@@ -68,40 +70,40 @@ impl Inventory {
     ///
     /// # Panics
     /// Panics if the index is out of bounds.
-    pub fn item_at(&self, index: SlotIndex) -> Option<&Item> {
+    pub fn item_at(&self, index: SlotIndex) -> Option<&ItemStack> {
         self.items[index].as_ref()
     }
 
-    pub fn item_at_mut(&mut self, index: SlotIndex) -> Option<&mut Item> {
+    pub fn item_at_mut(&mut self, index: SlotIndex) -> Option<&mut ItemStack> {
         self.items[index].as_mut()
     }
 
     /// Sets the item at the given slot index.
-    pub fn set_item_at(&mut self, index: SlotIndex, item: Item) {
+    pub fn set_item_at(&mut self, index: SlotIndex, item: ItemStack) {
         self.items[index] = Some(item);
     }
 
     /// Clears the item at the given slot index, returning
     /// the old item.
-    pub fn clear_item_at(&mut self, index: SlotIndex) -> Option<Item> {
+    pub fn clear_item_at(&mut self, index: SlotIndex) -> Option<ItemStack> {
         self.items[index].take()
     }
 }
 
-/// Represents an item.
+/// Represents an item stack.
 ///
-/// An item includes a type, an amount, and a bunch of properties (enchantments, etc.)
+/// An item stack includes a type, an amount, and a bunch of properties (enchantments, etc.)
 #[derive(Debug, Clone)]
-pub struct Item {
+pub struct ItemStack {
     /// The type of this item.
-    pub ty: i32,
+    pub ty: Item,
     /// The number of items in this stack.
     pub amount: u8,
     // TODO enchantments, more
 }
 
-impl Item {
-    pub fn new(ty: i32, amount: u8) -> Self {
+impl ItemStack {
+    pub fn new(ty: Item, amount: u8) -> Self {
         Self { ty, amount }
     }
 }
@@ -113,15 +115,15 @@ mod tests {
     #[test]
     fn test_inventory() {
         let mut inv = Inventory::new(InventoryType::Chest, 36);
-        inv.set_item_at(0, Item::new(0, 0));
+        inv.set_item_at(0, ItemStack::new(Item::Air, 0));
 
         let item = inv.item_at(0).unwrap();
-        assert_eq!(item.ty, 0);
+        assert_eq!(item.ty, Item::Air);
         assert_eq!(item.amount, 0);
 
         let item = inv.item_at_mut(0).unwrap();
-        item.ty = 1;
-        assert_eq!(inv.item_at(0).unwrap().ty, 1);
+        item.ty = Item::Sponge;
+        assert_eq!(inv.item_at(0).unwrap().ty, Item::Sponge);
 
         inv.clear_item_at(0);
         assert!(inv.item_at(0).is_none());

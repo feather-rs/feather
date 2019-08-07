@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToPrimitive, FromPrimitive)]
 pub enum Item {
     Air,
     Stone,

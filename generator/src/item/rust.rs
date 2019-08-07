@@ -26,7 +26,7 @@ pub fn generate_rust(report: ItemReport) -> Result<String, Error> {
     }
 
     let result = quote! {
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+        #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, ToPrimitive, FromPrimitive)]
         pub enum Item {
             #(#enum_variants, )*
         }

@@ -47,6 +47,7 @@ enum PacketParameterType {
     F64,
     Uuid,
     Nbt,
+    Slot,
 }
 
 lazy_static! {
@@ -70,6 +71,7 @@ lazy_static! {
         m.insert("f64", PacketParameterType::F64);
         m.insert("Uuid", PacketParameterType::Uuid);
         m.insert("NbtTag", PacketParameterType::Nbt);
+        m.insert("Slot", PacketParameterType::Slot);
 
         m
     };
@@ -94,6 +96,7 @@ lazy_static! {
         m.insert("f64_be", PacketParameterType::F64);
         m.insert("uuid", PacketParameterType::Uuid);
         m.insert("nbt", PacketParameterType::Nbt);
+        m.insert("slot", PacketParameterType::Slot);
 
         // I wrote them in the wrong order, so I'm just going to reverse
         // the map.
@@ -156,6 +159,7 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
                 PacketParameterType::String,
                 PacketParameterType::Uuid,
                 PacketParameterType::Nbt,
+                PacketParameterType::Slot,
             ]
             .contains(parameter_type)
         };

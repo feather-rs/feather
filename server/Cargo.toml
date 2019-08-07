@@ -1,7 +1,7 @@
 [package]
 name = "feather_server"
 version = "0.3.0"
-authors = ["caelunshun <caelum12321@gmail.com>"]
+authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 publish = false
 
