@@ -25,6 +25,7 @@ pub const SLOT_HOTBAR_OFFSET: SlotIndex = 36;
 /// The various types of inventories ("windows").
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum InventoryType {
+    Player,
     Container,
     Chest,
     CraftingTable,
@@ -88,12 +89,17 @@ impl Inventory {
     pub fn clear_item_at(&mut self, index: SlotIndex) -> Option<ItemStack> {
         self.items[index].take()
     }
+
+    /// Returns the number of slots in this inventory.
+    pub fn slot_count(&self) -> u16 {
+        self.items.len() as u16
+    }
 }
 
 /// Represents an item stack.
 ///
 /// An item stack includes a type, an amount, and a bunch of properties (enchantments, etc.)
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ItemStack {
     /// The type of this item.
     pub ty: Item,
@@ -115,6 +121,8 @@ mod tests {
     #[test]
     fn test_inventory() {
         let mut inv = Inventory::new(InventoryType::Chest, 36);
+        assert_eq!(inv.slot_count(), 36);
+
         inv.set_item_at(0, ItemStack::new(Item::Air, 0));
 
         let item = inv.item_at(0).unwrap();

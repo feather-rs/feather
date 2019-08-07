@@ -17,6 +17,7 @@ use crate::config::Config;
 use crate::entity::{EntityComponent, PlayerComponent};
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
+use crate::player::InventoryComponent;
 use crate::PlayerCount;
 use feather_core::level::LevelData;
 use shrev::EventChannel;
@@ -62,6 +63,7 @@ pub fn add_player(world: &mut World) -> Player {
             position: Position::new(0.0, 0.0, 0.0, 0.0, 0.0),
             display_name: "Test".to_string(),
         })
+        .with(InventoryComponent::default())
         .build();
 
     Player {
