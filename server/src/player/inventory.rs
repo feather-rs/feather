@@ -3,14 +3,14 @@ use crate::entity::PlayerComponent;
 use crate::network::{send_packet_to_all_players, NetworkComponent, PacketQueue};
 use feather_core::inventory::{
     Inventory, InventoryType, SlotIndex, HOTBAR_SIZE, SLOT_ENTITY_EQUIPMENT_MAIN_HAND,
-    SLOT_HOTBAR_OFFSET,
+    SLOT_ENTITY_EQUIPMENT_OFF_HAND, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND,
 };
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
     CreativeInventoryAction, EntityEquipment, HeldItemChangeServerbound,
 };
 use feather_core::network::packet::PacketType;
-use feather_core::Gamemode;
+use feather_core::{Gamemode, Hand};
 use shrev::EventChannel;
 use specs::storage::BTreeStorage;
 use specs::SystemData;
@@ -63,6 +63,8 @@ impl Component for InventoryComponent {
 /// Event which is triggered when a player updates
 /// their held item.
 pub struct HeldItemUpdateEvent {
+    /// The hand of the held item update.
+    pub hand: Hand,
     pub player: Entity,
 }
 
@@ -115,10 +117,23 @@ impl<'a> System<'a> for CreativeInventorySystem {
                 }
             }
 
-            // If the updates slot was the player's held item,
+            // If the updated slot was the player's held item,
             // we need to broadcast the equipment update
-            if inventory.held_item == packet.slot as usize - SLOT_HOTBAR_OFFSET {
-                let event = HeldItemUpdateEvent { player };
+            if packet.slot as usize >= SLOT_HOTBAR_OFFSET
+                && inventory.held_item == packet.slot as usize - SLOT_HOTBAR_OFFSET
+            {
+                let event = HeldItemUpdateEvent {
+                    hand: Hand::Main,
+                    player,
+                };
+                events.single_write(event);
+            }
+            // The same goes for the offhand.
+            else if inventory.held_item == SLOT_OFFHAND {
+                let event = HeldItemUpdateEvent {
+                    hand: Hand::Off,
+                    player,
+                };
                 events.single_write(event);
             }
         }
@@ -153,7 +168,10 @@ impl<'a> System<'a> for HeldItemChangeSystem {
             inventory.held_item = packet.slot as usize;
 
             // Trigger event
-            let event = HeldItemUpdateEvent { player };
+            let event = HeldItemUpdateEvent {
+                hand: Hand::Main,
+                player,
+            };
             events.single_write(event);
         }
     }
@@ -178,13 +196,19 @@ impl<'a> System<'a> for HeldItemBroadcastSystem {
 
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
             let inv = inventories.get(event.player).unwrap();
-            let item = inv.item_at(SLOT_HOTBAR_OFFSET + inv.held_item).cloned();
 
-            let packet = EntityEquipment::new(
-                event.player.id() as i32,
-                SLOT_ENTITY_EQUIPMENT_MAIN_HAND as i32,
-                item,
-            );
+            let (slot, item) = match event.hand {
+                Hand::Main => {
+                    let item = inv.item_at(SLOT_HOTBAR_OFFSET + inv.held_item).cloned();
+                    (SLOT_ENTITY_EQUIPMENT_MAIN_HAND, item)
+                }
+                Hand::Off => {
+                    let item = inv.item_at(SLOT_OFFHAND).cloned();
+                    (SLOT_ENTITY_EQUIPMENT_OFF_HAND, item)
+                }
+            };
+
+            let packet = EntityEquipment::new(event.player.id() as i32, slot as i32, item);
 
             send_packet_to_all_players(&networks, &entities, packet, Some(event.player));
         }
@@ -215,7 +239,10 @@ mod tests {
 
         let player = t::add_player(&mut w);
 
-        let packet = CreativeInventoryAction::new(0, Some(ItemStack::new(Item::IronSword, 1)));
+        let packet = CreativeInventoryAction::new(
+            SLOT_HOTBAR_OFFSET as u16,
+            Some(ItemStack::new(Item::IronSword, 1)),
+        );
 
         t::receive_packet(&player, &w, packet);
 
@@ -228,7 +255,10 @@ mod tests {
 
         let inv_storage = w.read_component::<InventoryComponent>();
         let inv = inv_storage.get(player.entity).unwrap();
-        assert_eq!(inv.item_at(0).unwrap(), &ItemStack::new(Item::IronSword, 1));
+        assert_eq!(
+            inv.item_at(SLOT_HOTBAR_OFFSET).unwrap(),
+            &ItemStack::new(Item::IronSword, 1)
+        );
 
         // Confirm that event was triggered
         {
@@ -237,6 +267,7 @@ mod tests {
             assert_eq!(events.len(), 1);
             let first = events.first().unwrap();
             assert_eq!(first.player, player.entity);
+            assert_eq!(first.hand, Hand::Main);
         }
 
         drop(inv_storage);
@@ -308,6 +339,7 @@ mod tests {
 
         let first = events.first().unwrap();
         assert_eq!(first.player, player.entity);
+        assert_eq!(first.hand, Hand::Main);
 
         let inventories = w.read_component::<InventoryComponent>();
         let inv = inventories.get(player.entity).unwrap();
@@ -341,6 +373,7 @@ mod tests {
 
         let event = HeldItemUpdateEvent {
             player: player.entity,
+            hand: Hand::Main,
         };
 
         w.fetch_mut::<EventChannel<HeldItemUpdateEvent>>()
