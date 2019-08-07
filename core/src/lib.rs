@@ -13,6 +13,7 @@ extern crate num_derive;
 
 pub mod bytebuf;
 pub mod entitymeta;
+pub mod inventory;
 pub mod network;
 pub mod prelude;
 mod save;
