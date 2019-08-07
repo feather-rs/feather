@@ -3,7 +3,7 @@ use crate::joinhandler::PlayerJoinEvent;
 use crate::network::{send_packet_to_player, NetworkComponent};
 use crate::player::InventoryComponent;
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
-use feather_core::inventory::SLOT_ENTITY_EQUIPMENT_MAIN_HAND;
+use feather_core::inventory::{SLOT_ENTITY_EQUIPMENT_MAIN_HAND, SLOT_HOTBAR_OFFSET};
 use feather_core::network::packet::implementation::{
     EntityEquipment, PlayerInfo, PlayerInfoAction, SpawnPlayer,
 };
@@ -70,7 +70,7 @@ impl<'a> System<'a> for JoinBroadcastSystem {
                     send_packet_to_player(net_comp, player_info);
                     send_packet_to_player(net_comp, spawn_player);
 
-                    let slot = inventory.item_at(inventory.held_item);
+                    let slot = inventory.item_at(SLOT_HOTBAR_OFFSET + inventory.held_item);
                     let entity_equipment = EntityEquipment::new(
                         entity.id() as i32,
                         SLOT_ENTITY_EQUIPMENT_MAIN_HAND as i32,
