@@ -7,5 +7,5 @@ members = [
     "codegen",
     "client/core",
     "client/wrapper/console",
-    "generators/blocks"
+    "generator"
 ]

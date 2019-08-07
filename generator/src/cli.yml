@@ -4,8 +4,8 @@ author: "caelunshun <caelunshun@gmail.com>"
 about: "Generates block state ID mappings and Rust Block enum for various Minecraft versions"
 
 subcommands:
-  - mappings:
-      about: "Generates a state ID mapping file from the given data report"
+  - block-mappings:
+      about: "Generates a block state ID mapping file from the given data report"
       args:
         - input:
             short: i
@@ -33,8 +33,8 @@ subcommands:
             required: true
             takes_value: true
 
-  - native-mappings:
-      about: "Generates a native state ID mapping file from the server's native data report"
+  - native-block-mappings:
+      about: "Generates a native block state ID mapping file from the server's native data report"
       args:
         - input:
             short: i
@@ -57,7 +57,7 @@ subcommands:
             required: true
             takes_value: true
 
-  - rust:
+  - block-rust:
       about: "Generates Rust enum and block data structs for the server's native version"
       args:
         - input:
