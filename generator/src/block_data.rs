@@ -1,3 +1,4 @@
+use super::WriteExt;
 use byteorder::{LittleEndian, WriteBytesExt};
 use failure::Error;
 use indexmap::IndexMap;
@@ -199,17 +200,4 @@ fn write_header<W: Write>(
     out.write_u32::<LittleEndian>(proto)?;
     out.write_u8(native as u8)?;
     Ok(())
-}
-
-trait WriteExt {
-    fn write_string(&mut self, x: &str) -> std::io::Result<()>;
-}
-
-impl<W: Write> WriteExt for W {
-    fn write_string(&mut self, x: &str) -> std::io::Result<()> {
-        self.write_u32::<LittleEndian>(x.len() as u32)?;
-        self.write_all(x.as_bytes())?;
-
-        Ok(())
-    }
 }

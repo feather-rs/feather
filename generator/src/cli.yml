@@ -70,3 +70,31 @@ subcommands:
             help: "Rust file to write code to. This file will be OVERWRITTEN"
             required: true
             takes_value: true
+
+  - item-mappings:
+      about: "Generates native item protocol ID mappings"
+      args:
+        - input:
+            short: i
+            help: "items.json report corresponding to the server's native version"
+            required: true
+            takes_value: true
+        - output:
+            short: o
+            help: "output file to write mappings to"
+            required: true
+            takes_value: true
+
+  - item-rust:
+      about: "Generates Rust code for native item ID mappings"
+      args:
+        - input:
+            short: i
+            help: "items.json report"
+            required: true
+            takes_value: true
+        - output:
+            short: o
+            help: "output file to write code to"
+            required: true
+            takes_value: true

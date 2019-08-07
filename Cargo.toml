@@ -4,8 +4,9 @@ members = [
     "api",
     "server",
     "blocks",
+    "items",
     "codegen",
     "client/core",
     "client/wrapper/console",
-    "generator"
+    "generator",
 ]
