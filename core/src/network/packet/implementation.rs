@@ -440,7 +440,7 @@ impl Packet for PlayerDigging {
     }
 }
 
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug, Copy, PartialEq, Eq, Hash)]
 #[repr(i32)]
 pub enum PlayerDiggingStatus {
     StartedDigging = 0,

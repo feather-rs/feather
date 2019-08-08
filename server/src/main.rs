@@ -52,7 +52,6 @@ pub mod player;
 pub mod prelude;
 #[cfg(test)]
 pub mod testframework;
-pub mod worldupdate;
 
 pub const TPS: u64 = 20;
 pub const PROTOCOL_VERSION: u32 = 404;
@@ -187,11 +186,7 @@ fn init_world<'a, 'b>(
     let mut dispatcher = DispatcherBuilder::new()
         .with(chunk_logic::ChunkLoadSystem, "chunk_load", &[])
         .with(network::NetworkSystem, "network", &[])
-        .with(
-            worldupdate::PlayerDiggingSystem,
-            "player_digging",
-            &["network"],
-        )
+        .with(player::PlayerDiggingSystem, "player_digging", &["network"])
         .with(
             player::PlayerMovementSystem,
             "player_movement",
