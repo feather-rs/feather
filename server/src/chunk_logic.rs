@@ -110,7 +110,7 @@ impl ChunkHolders {
     pub fn chunk_has_holders(&self, chunk: ChunkPosition) -> bool {
         let holders = self.holders_for(chunk);
 
-        holders.is_none() && holders.unwrap().is_empty()
+        !(holders.is_none() || holders.unwrap().is_empty())
     }
 
     pub fn insert_holder(&mut self, chunk: ChunkPosition, holder: Entity) {
