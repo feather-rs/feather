@@ -99,7 +99,7 @@ jobs:
         displayName: Run clippy
         condition: eq( variables['Agent.OS'], 'Linux' )
 
-  - job: 'Publish to GitHub Releases'
+  - job: 'Publish'
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
     strategy:
       matrix:
