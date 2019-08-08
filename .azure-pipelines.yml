@@ -109,6 +109,7 @@ jobs:
         windows:
           image_name: 'windows-latest'
           platform: 'windows'
+          rustup_toolchain: 'stable-gnu'
 
     pool:
       image: $(image_name)
@@ -135,12 +136,8 @@ jobs:
         displayName: Install Rust
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
-      - script: vcpkg install openssl:x64-windows
+      - script: pacman -S mingw-w64-x86_64-openssl
         displayName: Install OpenSSL
-        condition: eq( variables['Agent.OS'], 'Windows_NT' )
-
-      - script: vcpkg integrate install
-        displayName: Vcpkg integrate install
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
       - script: cargo build --release
