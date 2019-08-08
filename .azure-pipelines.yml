@@ -12,9 +12,9 @@ strategy:
     #windows-beta:
     #  rustup_toolchain: beta
     #  image_name: 'windows-latest'
-    apple-stable:
-      rustup_toolchain: stable
-      image_name: 'macos-latest'
+    #apple-stable:
+    #  rustup_toolchain: stable
+    #  image_name: 'macos-latest'
     #apple-beta:
     #  rustup_toolchain: beta
     #  image_name: 'macos-latest'
@@ -44,15 +44,21 @@ steps:
     displayName: Install OpenSSL
     condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
-  - script: brew install openssl
-    displayName: Install OpenSSL
-    condition: eq( variables['Agent.OS'], 'Darwin' )
-
   - script: RUSTFLAGS="-C link-dead-code" cargo build
     displayName: Build
+    condition: ne( variables['Agent.OS'], 'Windows_NT' )
+
+  - script: cargo build
+    displayName: Build
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
   - script: RUSTFLAGS="-C link-dead-code" cargo test
     displayName: Test
+    condition: ne( variables['Agent.OS'], 'Windows_NT' )
+
+  - script: cargo test
+    displayName: Test
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
     # The following steps are not platform-dependent,
     # so we only have to run them on Linux.
