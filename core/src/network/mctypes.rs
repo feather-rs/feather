@@ -204,7 +204,6 @@ impl<T: Buf + Read> McTypeRead for T {
         let amount = self.read_u8()?;
 
         // TODO NBT support
-        warn!("NBT unsupported; client will probably be kicked");
 
         Ok(Some(ItemStack::new(ty, amount)))
     }

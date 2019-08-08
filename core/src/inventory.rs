@@ -12,6 +12,9 @@ pub const SLOT_CRAFTING_INPUT_X1_Y0: SlotIndex = 2;
 pub const SLOT_CRAFTING_INPUT_X0_Y1: SlotIndex = 3;
 pub const SLOT_CRAFTING_INPUT_X1_Y1: SlotIndex = 4;
 
+pub const SLOT_ARMOR_MIN: SlotIndex = 5;
+pub const SLOT_ARMOR_MAX: SlotIndex = 8;
+
 pub const SLOT_ARMOR_HEAD: SlotIndex = 5;
 pub const SLOT_ARMOR_CHEST: SlotIndex = 6;
 pub const SLOT_ARMOR_LEGS: SlotIndex = 7;
@@ -30,6 +33,17 @@ pub const SLOT_ENTITY_EQUIPMENT_BOOTS: SlotIndex = 2;
 pub const SLOT_ENTITY_EQUIPMENT_LEGGINGS: SlotIndex = 3;
 pub const SLOT_ENTITY_EQUIPMENT_CHESTPLATE: SlotIndex = 4;
 pub const SLOT_ENTITY_EQUIPMENT_HELMET: SlotIndex = 5;
+
+pub fn armor_slot_to_entity_equipment(slot: SlotIndex) -> SlotIndex {
+    assert!(slot >= 5 && slot <= 8);
+    match slot {
+        SLOT_ARMOR_HEAD => SLOT_ENTITY_EQUIPMENT_HELMET,
+        SLOT_ARMOR_CHEST => SLOT_ENTITY_EQUIPMENT_CHESTPLATE,
+        SLOT_ARMOR_LEGS => SLOT_ENTITY_EQUIPMENT_LEGGINGS,
+        SLOT_ARMOR_FEET => SLOT_ENTITY_EQUIPMENT_BOOTS,
+        _ => unreachable!(),
+    }
+}
 
 /// The various types of inventories ("windows").
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
