@@ -25,6 +25,7 @@ pool:
 steps:
   - script: export CARGO_MAKE_RUN_CODECOV="true" && export CODECOV_TOKEN=$(CODECOV_TOKEN) && export RUSTFLAGS="-C link-dead-code"
     displayName: Set up environment variables
+    condition: ne( variables['Agent.OS'], 'Windows_NT' )
 
   - script: |
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
