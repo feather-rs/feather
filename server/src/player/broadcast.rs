@@ -1,12 +1,8 @@
 use crate::entity::{EntityComponent, PlayerComponent};
 use crate::joinhandler::PlayerJoinEvent;
 use crate::network::{send_packet_to_player, NetworkComponent};
-use crate::player::InventoryComponent;
 use feather_core::entitymeta::{EntityMetadata, MetaEntry};
-use feather_core::inventory::{SLOT_ENTITY_EQUIPMENT_MAIN_HAND, SLOT_HOTBAR_OFFSET};
-use feather_core::network::packet::implementation::{
-    EntityEquipment, PlayerInfo, PlayerInfoAction, SpawnPlayer,
-};
+use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
 use feather_core::Gamemode;
 use shrev::EventChannel;
 use specs::SystemData;
@@ -33,12 +29,11 @@ impl<'a> System<'a> for JoinBroadcastSystem {
         ReadStorage<'a, EntityComponent>,
         ReadStorage<'a, PlayerComponent>,
         ReadStorage<'a, NetworkComponent>,
-        ReadStorage<'a, InventoryComponent>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (join_events, entity_comps, player_comps, net_comps, inventories, entities) = data;
+        let (join_events, entity_comps, player_comps, net_comps, entities) = data;
 
         for event in join_events.read(&mut self.reader.as_mut().unwrap()) {
             // Broadcast join
@@ -61,22 +56,14 @@ impl<'a> System<'a> for JoinBroadcastSystem {
             let net_comp = net_comps.get(event.player).unwrap();
 
             // Send existing players to new player
-            for (entity_comp, player_comp, entity, inventory) in
-                (&entity_comps, &player_comps, &entities, &inventories).join()
+            for (entity_comp, player_comp, entity) in
+                (&entity_comps, &player_comps, &entities).join()
             {
                 if entity != event.player {
                     let (player_info, spawn_player) =
                         get_player_initialization_packets(entity_comp, player_comp, entity);
                     send_packet_to_player(net_comp, player_info);
                     send_packet_to_player(net_comp, spawn_player);
-
-                    let slot = inventory.item_at(SLOT_HOTBAR_OFFSET + inventory.held_item);
-                    let entity_equipment = EntityEquipment::new(
-                        entity.id() as i32,
-                        SLOT_ENTITY_EQUIPMENT_MAIN_HAND as i32,
-                        slot.cloned(),
-                    );
-                    send_packet_to_player(net_comp, entity_equipment);
                 }
             }
         }

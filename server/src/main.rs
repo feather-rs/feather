@@ -214,6 +214,11 @@ fn init_world<'a, 'b>(
             &["join_handler", "player_init"],
         )
         .with(
+            player::EquipmentSendSystem::default(),
+            "equipment_send",
+            &["join_broadcast"],
+        )
+        .with(
             player::DisconnectBroadcastSystem::new(),
             "disconnect_broadcast",
             &[],

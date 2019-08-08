@@ -1,6 +1,9 @@
 use crate::disconnect_player;
 use crate::entity::PlayerComponent;
-use crate::network::{send_packet_to_all_players, NetworkComponent, PacketQueue};
+use crate::joinhandler::PlayerJoinEvent;
+use crate::network::{
+    send_packet_to_all_players, send_packet_to_player, NetworkComponent, PacketQueue,
+};
 use feather_core::inventory::{
     Inventory, InventoryType, SlotIndex, HOTBAR_SIZE, SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET,
     SLOT_ARMOR_HEAD, SLOT_ARMOR_LEGS, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND,
@@ -16,7 +19,9 @@ use shrev::EventChannel;
 use smallvec::SmallVec;
 use specs::storage::BTreeStorage;
 use specs::SystemData;
-use specs::{Component, Entities, LazyUpdate, Read, ReadStorage, ReaderId, World, WriteStorage};
+use specs::{
+    Component, Entities, Join, LazyUpdate, Read, ReadStorage, ReaderId, World, WriteStorage,
+};
 use specs::{Entity, System, Write};
 use std::ops::{Deref, DerefMut};
 
@@ -260,6 +265,65 @@ impl<'a> System<'a> for HeldItemBroadcastSystem {
     }
 }
 
+/// System which sends other players' equipment
+/// to players who have just joined.
+#[derive(Default)]
+pub struct EquipmentSendSystem {
+    reader: Option<ReaderId<PlayerJoinEvent>>,
+}
+
+impl<'a> System<'a> for EquipmentSendSystem {
+    type SystemData = (
+        ReadStorage<'a, InventoryComponent>,
+        ReadStorage<'a, NetworkComponent>,
+        Read<'a, EventChannel<PlayerJoinEvent>>,
+        Entities<'a>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (inventories, networks, events, entities) = data;
+
+        for event in events.read(&mut self.reader.as_mut().unwrap()) {
+            let network = networks.get(event.player).unwrap();
+
+            // Send all other players' equipment to this player.
+            for (inventory, entity) in (&inventories, &entities).join() {
+                // Don't send player their own equipment
+                if entity == event.player {
+                    continue;
+                }
+
+                let equipments = [
+                    Equipment::MainHand,
+                    Equipment::Boots,
+                    Equipment::Leggings,
+                    Equipment::Chestplate,
+                    Equipment::Helmet,
+                    Equipment::OffHand,
+                ];
+
+                for equipment in equipments.iter() {
+                    let item = {
+                        let slot = equipment.slot_index(inventory.held_item);
+                        inventory.item_at(slot).cloned()
+                    };
+
+                    let equipment_slot = equipment.to_i32().unwrap();
+
+                    let packet = EntityEquipment::new(entity.id() as i32, equipment_slot, item);
+                    send_packet_to_player(network, packet);
+                }
+            }
+        }
+    }
+
+    fn setup(&mut self, world: &mut World) {
+        Self::SystemData::setup(world);
+
+        self.reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
+    }
+}
+
 /// Returns whether the given update to an inventory
 /// is an equipment update.
 fn is_equipment_update(inv: &InventoryComponent, slot: SlotIndex) -> Result<Equipment, ()> {
@@ -484,6 +548,46 @@ mod tests {
         assert_eq!(packet.item, Some(ItemStack::new(Item::IronSword, 1)));
 
         t::assert_packet_not_received(&player, PacketType::EntityEquipment);
+    }
+
+    #[test]
+    fn test_equipment_send_system() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+        let player2 = t::add_player(&mut w);
+
+        let event = PlayerJoinEvent {
+            player: player.entity,
+        };
+
+        w.fetch_mut::<EventChannel<_>>().single_write(event);
+
+        {
+            let mut invs = w.write_component::<InventoryComponent>();
+            let inv = invs.get_mut(player2.entity).unwrap();
+
+            inv.held_item = 1;
+            inv.set_item_at(SLOT_HOTBAR_OFFSET + 1, ItemStack::new(Item::IronSword, 1));
+            inv.set_item_at(SLOT_ARMOR_HEAD, ItemStack::new(Item::DiamondHelmet, 1));
+        }
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let packets = t::received_packets(&player, None);
+
+        let packets = packets
+            .into_iter()
+            .filter(|packet| packet.ty() == PacketType::EntityEquipment)
+            .collect::<Vec<_>>();
+
+        assert_eq!(packets.len(), 6);
+
+        for packet in packets {
+            let packet = cast_packet::<EntityEquipment>(&*packet);
+            assert_eq!(packet.entity_id, player2.entity.id() as i32);
+        }
     }
 
     #[test]
