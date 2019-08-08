@@ -12,6 +12,8 @@ extern crate serde;
 extern crate serde_json;
 #[macro_use]
 extern crate failure;
+#[macro_use]
+extern crate num_derive;
 
 use std::alloc::System;
 use std::sync::atomic::{AtomicUsize, Ordering};
