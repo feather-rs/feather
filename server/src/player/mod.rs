@@ -28,6 +28,6 @@ pub use movement::{
 pub use animation::{AnimationBroadcastSystem, PlayerAnimationEvent, PlayerAnimationSystem};
 
 pub use inventory::{
-    CreativeInventorySystem, EquipmentUpdateEvent, HeldItemBroadcastSystem, HeldItemChangeSystem,
-    InventoryComponent,
+    CreativeInventorySystem, HeldItemBroadcastSystem, HeldItemChangeSystem, InventoryComponent,
+    InventoryUpdateEvent,
 };
