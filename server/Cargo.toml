@@ -21,7 +21,7 @@ openssl = { version = "0.10.24", features = ["vendored"] }
 rand = "0.7.0"
 bytes = "0.4.12"
 hashbrown = { version = "0.5.0", features = ["rayon"] }
-mojang-api = "0.1.0"
+mojang-api = "0.1.1"
 multimap = "0.5.0"
 hematite-nbt = { git = "https://github.com/caelunshun/hematite_nbt" }
 specs = "0.15.0"
