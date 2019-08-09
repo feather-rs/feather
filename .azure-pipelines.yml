@@ -22,7 +22,7 @@ jobs:
         #  image_name: 'windows-latest'
         apple-stable:
           rustup_toolchain: stable
-          image_name: 'macos-latest'
+          image_name: 'macOS-10.13'
         #apple-beta:
         #  rustup_toolchain: beta
         #  image_name: 'macos-latest'
@@ -102,7 +102,7 @@ jobs:
           image_name: 'windows-latest'
           platform: 'windows'
         macos:
-          image_name: 'macos-latest'
+          image_name: 'macOS-10.13'
           platform: 'macos'
 
     pool:
@@ -139,7 +139,7 @@ jobs:
       - task: CopyFiles@2
         displayName: Copy assets
         inputs:
-          sourceFolder: '$(Build.SourcesDirectory)/target/$(platform)/release'
+          sourceFolder: '$(Build.SourcesDirectory)/target/release'
           contents: feather_server
           targetFolder: '$(Build.BinariesDirectory)/feather'
 
