@@ -28,8 +28,3 @@ Then, simply run the binary: ```./feather_server```.
 The server will create a configuration file (`feather.toml`) which you can modify.
 
 The server currently only supports 1.13.2 clients and world saves. In the future, additional versions will be supported.
-
-Notes:
-* Feather currrently requires OpenSSL, which it compiles from source. For this
-to work, you need to have perl, make, and a C compiler installed. On Linux, you should
-be fine, but on Windows, you might have difficulties with this.
