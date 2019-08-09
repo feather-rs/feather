@@ -4,41 +4,50 @@
 //! for completely unrelated actions, including eating, shooting bows,
 //! swapping items out the the offhand, and dropping items.
 
-use specs::{Entity, LazyUpdate, Read, ReadStorage, System, Write, WriteStorage};
+use specs::{
+    Entities, Entity, LazyUpdate, Read, ReadStorage, ReaderId, System, World, Write, WriteStorage,
+};
 
 use feather_core::network::cast_packet;
-use feather_core::network::packet::implementation::{PlayerDigging, PlayerDiggingStatus};
+use feather_core::network::packet::implementation::{
+    BlockChange, PlayerDigging, PlayerDiggingStatus,
+};
 use feather_core::network::packet::PacketType;
-use feather_core::world::block::Block;
+use feather_core::world::block::{Block, BlockExt};
 use feather_core::world::{BlockPosition, ChunkMap};
 use feather_core::Gamemode;
 
 use crate::disconnect_player;
 use crate::entity::PlayerComponent;
-use crate::network::PacketQueue;
+use crate::network::{send_packet_to_all_players, NetworkComponent, PacketQueue};
 use crate::player::{InventoryComponent, InventoryUpdateEvent};
 use feather_core::inventory::{ItemStack, SlotIndex, SLOT_HOTBAR_OFFSET};
 use shrev::EventChannel;
+use specs::SystemData;
 
-/// Event triggered when a block is broken.
+/// Event triggered when a block is updated.
 ///
 /// This event is triggered *after* the block is updated
 /// in the chunk map.
 #[derive(Debug, Clone)]
-pub struct BlockBreakEvent {
-    /// The cause of this block break event.
-    pub cause: BlockBreakCause,
+pub struct BlockUpdateEvent {
+    /// The cause of this block update event.
+    pub cause: BlockUpdateCause,
     /// The location of the block which was broken.
     pub pos: BlockPosition,
     /// The block which was previously at the position.
-    pub block: Block,
+    pub old_block: Block,
+    /// The new block at the position.
+    pub new_block: Block,
 }
 
-/// The possible causes of a block break event.
+/// The possible causes of a block update event.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum BlockBreakCause {
-    /// Indicates that a player broke the block.
+pub enum BlockUpdateCause {
+    /// Indicates that a player updated the block.
     Player(Entity),
+    /// A test block update caused, used for unit testing.
+    Test,
 }
 
 /// Event triggered when a player drops an item.
@@ -63,7 +72,7 @@ impl<'a> System<'a> for PlayerDiggingSystem {
     type SystemData = (
         WriteStorage<'a, InventoryComponent>,
         ReadStorage<'a, PlayerComponent>, // For gamemodes
-        Write<'a, EventChannel<BlockBreakEvent>>,
+        Write<'a, EventChannel<BlockUpdateEvent>>,
         Write<'a, EventChannel<PlayerItemDropEvent>>,
         Write<'a, EventChannel<InventoryUpdateEvent>>,
         Write<'a, ChunkMap>,
@@ -116,7 +125,7 @@ fn handle_digging(
     packet: &PlayerDigging,
     player: &PlayerComponent,
     entity: Entity,
-    events: &mut EventChannel<BlockBreakEvent>,
+    events: &mut EventChannel<BlockUpdateEvent>,
     chunk_map: &mut ChunkMap,
     lazy: &LazyUpdate,
 ) {
@@ -142,10 +151,11 @@ fn handle_digging(
         return;
     }
 
-    let event = BlockBreakEvent {
-        cause: BlockBreakCause::Player(entity),
+    let event = BlockUpdateEvent {
+        cause: BlockUpdateCause::Player(entity),
         pos: packet.location,
-        block: old.unwrap(), // We checked that the location was valid above
+        old_block: old.unwrap(), // We checked that the location was valid above
+        new_block: Block::Air,
     };
 
     events.single_write(event);
@@ -163,16 +173,16 @@ fn handle_drop_item_stack(
             || packet.status == PlayerDiggingStatus::DropItemStack
     );
 
+    let slot = inventory.held_item + SLOT_HOTBAR_OFFSET;
+
     let stack = {
-        if let Some(item) = inventory.item_at(inventory.held_item) {
+        if let Some(item) = inventory.item_at(slot) {
             item.clone()
         } else {
             // Silently fail - no item stack to drop
             return;
         }
     };
-
-    let slot = inventory.held_item + SLOT_HOTBAR_OFFSET;
 
     let amnt = match packet.status {
         PlayerDiggingStatus::DropItem => {
@@ -194,19 +204,61 @@ fn handle_drop_item_stack(
         _ => unreachable!(), // Assertion above
     };
 
+    let inv_update = InventoryUpdateEvent {
+        slots: smallvec![slot],
+        player: entity,
+    };
+    inventory_updates.single_write(inv_update);
+
     if amnt != 0 {
         let item_drop = PlayerItemDropEvent {
-            slot: inventory.held_item,
-            stack,
+            slot,
+            stack: ItemStack::new(stack.ty, amnt),
             player: entity,
         };
         item_drops.single_write(item_drop);
+    }
+}
 
-        let inv_update = InventoryUpdateEvent {
-            slots: smallvec![slot],
-            player: entity,
-        };
-        inventory_updates.single_write(inv_update);
+/// System for broadcasting block update
+/// events to all clients.
+///
+/// This system listens to `BlockUpdateEvent`s.
+#[derive(Default)]
+pub struct BlockUpdateBroadcastSystem {
+    reader: Option<ReaderId<BlockUpdateEvent>>,
+}
+
+impl<'a> System<'a> for BlockUpdateBroadcastSystem {
+    type SystemData = (
+        ReadStorage<'a, NetworkComponent>,
+        Read<'a, EventChannel<BlockUpdateEvent>>,
+        Entities<'a>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (networks, events, entities) = data;
+
+        // Process events
+        for event in events.read(&mut self.reader.as_mut().unwrap()) {
+            // Send Block Change packet to every player,
+            // except for the one that performed the update
+            // (if any)
+            let neq = if let BlockUpdateCause::Player(player) = event.cause {
+                Some(player)
+            } else {
+                None
+            };
+
+            let packet = BlockChange::new(event.pos, i32::from(event.new_block.native_state_id()));
+            send_packet_to_all_players(&networks, &entities, packet, neq);
+        }
+    }
+
+    fn setup(&mut self, world: &mut World) {
+        Self::SystemData::setup(world);
+
+        self.reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
     }
 }
 
@@ -214,6 +266,7 @@ fn handle_drop_item_stack(
 mod tests {
     use super::*;
     use crate::testframework as t;
+    use feather_core::item::Item;
     use feather_core::world::chunk::Chunk;
     use feather_core::world::ChunkPosition;
     use specs::WorldExt;
@@ -250,13 +303,14 @@ mod tests {
 
             chunk_map.set_block_at(bpos, Block::Stone).unwrap();
 
-            let channel = w.fetch_mut::<EventChannel<BlockBreakEvent>>();
+            let channel = w.fetch_mut::<EventChannel<BlockUpdateEvent>>();
             let events = channel.read(&mut event_reader).collect::<Vec<_>>();
             assert_eq!(events.len(), 1);
 
             let first = events.first().unwrap();
-            assert_eq!(first.block, Block::Stone);
-            assert_eq!(first.cause, BlockBreakCause::Player(player.entity));
+            assert_eq!(first.old_block, Block::Stone);
+            assert_eq!(first.new_block, Block::Air);
+            assert_eq!(first.cause, BlockUpdateCause::Player(player.entity));
             assert_eq!(first.pos, bpos);
         }
 
@@ -277,7 +331,7 @@ mod tests {
         let chunk_map = w.fetch::<ChunkMap>();
         assert_eq!(chunk_map.block_at(bpos).unwrap(), Block::Stone);
 
-        let channel = w.fetch_mut::<EventChannel<BlockBreakEvent>>();
+        let channel = w.fetch_mut::<EventChannel<BlockUpdateEvent>>();
         let events = channel.read(&mut event_reader).collect::<Vec<_>>();
         assert_eq!(events.len(), 0);
     }
@@ -303,7 +357,7 @@ mod tests {
 
         t::assert_not_disconnected(&player);
 
-        let channel = w.fetch::<EventChannel<BlockBreakEvent>>();
+        let channel = w.fetch::<EventChannel<BlockUpdateEvent>>();
         let events = channel.read(&mut event_reader).collect::<Vec<_>>();
         assert!(events.is_empty());
     }
@@ -340,13 +394,14 @@ mod tests {
 
         assert_eq!(chunk_map.block_at(bpos).unwrap(), Block::Air);
 
-        let channel = w.fetch_mut::<EventChannel<BlockBreakEvent>>();
+        let channel = w.fetch_mut::<EventChannel<BlockUpdateEvent>>();
         let events = channel.read(&mut event_reader).collect::<Vec<_>>();
         assert_eq!(events.len(), 1);
 
         let first = events.first().unwrap();
-        assert_eq!(first.block, Block::Stone);
-        assert_eq!(first.cause, BlockBreakCause::Player(player.entity));
+        assert_eq!(first.old_block, Block::Stone);
+        assert_eq!(first.new_block, Block::Air);
+        assert_eq!(first.cause, BlockUpdateCause::Player(player.entity));
         assert_eq!(first.pos, bpos);
     }
 
@@ -368,8 +423,214 @@ mod tests {
 
         t::assert_disconnected(&player);
 
-        let channel = w.fetch::<EventChannel<BlockBreakEvent>>();
+        let channel = w.fetch::<EventChannel<BlockUpdateEvent>>();
         let events = channel.read(&mut event_reader).collect::<Vec<_>>();
         assert!(events.is_empty());
+    }
+
+    #[test]
+    fn test_drop_item() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        let slot = SLOT_HOTBAR_OFFSET;
+        {
+            let mut invs = w.write_component::<InventoryComponent>();
+            let inv = invs.get_mut(player.entity).unwrap();
+            inv.held_item = 0;
+            inv.set_item_at(slot, ItemStack::new(Item::CookedBeef, 4));
+        }
+
+        let mut drop_reader = t::reader(&w);
+        let mut update_reader = t::reader(&w);
+
+        let packet = PlayerDigging::new(PlayerDiggingStatus::DropItem, BlockPosition::default(), 0);
+        t::receive_packet(&player, &w, packet);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let drop_channel = w.fetch::<EventChannel<PlayerItemDropEvent>>();
+        let update_channel = w.fetch::<EventChannel<InventoryUpdateEvent>>();
+
+        // Check that events are correct
+        let drop_events = drop_channel.read(&mut drop_reader).collect::<Vec<_>>();
+        assert_eq!(drop_events.len(), 1);
+        let first = drop_events.first().unwrap();
+        assert_eq!(first.player, player.entity);
+        assert_eq!(first.slot, slot);
+        assert_eq!(first.stack, ItemStack::new(Item::CookedBeef, 1)); // 1 beef was dropped
+
+        let update_events = update_channel.read(&mut update_reader).collect::<Vec<_>>();
+        assert_eq!(update_events.len(), 1);
+        let first = update_events.first().unwrap();
+        assert_eq!(first.player, player.entity);
+        assert_eq!(first.slots.as_slice(), &[slot]);
+
+        // Check that inventory was updated correctly
+        let invs = w.read_component::<InventoryComponent>();
+        let inv = invs.get(player.entity).unwrap();
+        assert_eq!(
+            inv.item_at(slot).unwrap(),
+            &ItemStack::new(Item::CookedBeef, 3)
+        ); // 1 was removed
+    }
+
+    #[test]
+    fn test_drop_item_no_stack() {
+        // This should be a no-op.
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        let mut drop_reader = t::reader(&w);
+        let mut update_reader = t::reader(&w);
+
+        let packet = PlayerDigging::new(PlayerDiggingStatus::DropItem, BlockPosition::default(), 0);
+        t::receive_packet(&player, &w, packet);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        t::assert_not_disconnected(&player);
+
+        let drop_channel = w.fetch::<EventChannel<PlayerItemDropEvent>>();
+        let update_channel = w.fetch::<EventChannel<InventoryUpdateEvent>>();
+
+        let drop_events = drop_channel.read(&mut drop_reader).collect::<Vec<_>>();
+        assert!(drop_events.is_empty());
+        let update_events = update_channel.read(&mut update_reader).collect::<Vec<_>>();
+        assert!(update_events.is_empty());
+    }
+
+    #[test]
+    fn test_drop_item_zero_in_stack() {
+        // This should be a no-op.
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        let mut drop_reader = t::reader(&w);
+        let mut update_reader = t::reader(&w);
+
+        let slot = SLOT_HOTBAR_OFFSET;
+        {
+            let mut invs = w.write_component::<InventoryComponent>();
+            let inv = invs.get_mut(player.entity).unwrap();
+            inv.set_item_at(slot, ItemStack::new(Item::CookedBeef, 0));
+        }
+
+        let packet = PlayerDigging::new(PlayerDiggingStatus::DropItem, BlockPosition::default(), 0);
+        t::receive_packet(&player, &w, packet);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        t::assert_not_disconnected(&player);
+
+        let drop_channel = w.fetch::<EventChannel<PlayerItemDropEvent>>();
+        let update_channel = w.fetch::<EventChannel<InventoryUpdateEvent>>();
+
+        let update_events = update_channel.read(&mut update_reader).collect::<Vec<_>>();
+        assert_eq!(update_events.len(), 1);
+        let drop_events = drop_channel.read(&mut drop_reader).collect::<Vec<_>>();
+        assert!(drop_events.is_empty());
+    }
+
+    #[test]
+    fn test_drop_item_stack() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        let mut drop_reader = t::reader(&w);
+        let mut update_reader = t::reader(&w);
+
+        let slot = SLOT_HOTBAR_OFFSET;
+        let amnt = 32;
+        {
+            let mut invs = w.write_component::<InventoryComponent>();
+            let inv = invs.get_mut(player.entity).unwrap();
+            inv.set_item_at(slot, ItemStack::new(Item::CookedBeef, amnt));
+        }
+
+        let packet = PlayerDigging::new(
+            PlayerDiggingStatus::DropItemStack,
+            BlockPosition::default(),
+            0,
+        );
+        t::receive_packet(&player, &w, packet);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let drop_channel = w.fetch::<EventChannel<PlayerItemDropEvent>>();
+        let update_channel = w.fetch::<EventChannel<InventoryUpdateEvent>>();
+
+        let update_events = update_channel.read(&mut update_reader).collect::<Vec<_>>();
+        assert_eq!(update_events.len(), 1);
+        let first = update_events.first().unwrap();
+        assert_eq!(first.player, player.entity);
+        assert_eq!(first.slots.as_slice(), &[slot]);
+
+        let drop_events = drop_channel.read(&mut drop_reader).collect::<Vec<_>>();
+        assert_eq!(drop_events.len(), 1);
+        let first = drop_events.first().unwrap();
+        assert_eq!(first.player, player.entity);
+        assert_eq!(first.slot, slot);
+        assert_eq!(first.stack, ItemStack::new(Item::CookedBeef, amnt));
+
+        let invs = w.read_component::<InventoryComponent>();
+        let inv = invs.get(player.entity).unwrap();
+        assert_eq!(inv.item_at(slot), None);
+    }
+
+    #[test]
+    fn test_block_update_broadcast_system() {
+        let (mut w, mut d) = t::init_world();
+
+        let player1 = t::add_player(&mut w);
+        let player2 = t::add_player(&mut w);
+
+        let pos = BlockPosition::default();
+        let block = Block::Sand;
+
+        let event = BlockUpdateEvent {
+            cause: BlockUpdateCause::Player(player1.entity),
+            pos,
+            old_block: block,
+            new_block: Block::Air,
+        };
+        w.fetch_mut::<EventChannel<_>>().single_write(event);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let block_change = t::assert_packet_received(&player2, PacketType::BlockChange);
+        let block_change = cast_packet::<BlockChange>(&*block_change);
+        assert_eq!(block_change.location, pos);
+        assert_eq!(
+            block_change.block_id,
+            i32::from(Block::Air.native_state_id())
+        );
+
+        t::assert_packet_not_received(&player1, PacketType::BlockChange); // Don't send update to own player
+
+        // Now handle an event not caused by a player
+        let event = BlockUpdateEvent {
+            cause: BlockUpdateCause::Test,
+            pos,
+            old_block: block,
+            new_block: Block::Air,
+        };
+        w.fetch_mut::<EventChannel<_>>().single_write(event);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        // Packet should be sent to both players
+        t::assert_packet_received(&player1, PacketType::BlockChange);
+        t::assert_packet_received(&player2, PacketType::BlockChange);
     }
 }

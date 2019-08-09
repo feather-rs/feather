@@ -188,6 +188,11 @@ fn init_world<'a, 'b>(
         .with(network::NetworkSystem, "network", &[])
         .with(player::PlayerDiggingSystem, "player_digging", &["network"])
         .with(
+            player::BlockUpdateBroadcastSystem::default(),
+            "block_update_broadcast",
+            &["player_digging"],
+        )
+        .with(
             player::PlayerMovementSystem,
             "player_movement",
             &["network"],
