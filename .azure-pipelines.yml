@@ -1,42 +1,166 @@
-pool:
-  vmImage: 'ubuntu-16.04'
+trigger:
+  branches:
+    include: ['*']
+  tags:
+    include: ['*']
 
-strategy:
-  matrix:
-    stable:
-      rustup_toolchain: stable
-    beta:
-      rustup_toolchain: beta
+jobs:
+  - job: 'CI'
+    strategy:
+      matrix:
+        linux-stable:
+          rustup_toolchain: stable
+          image_name: 'ubuntu-16.04'
+        linux-beta:
+          rustup_toolchain: beta
+          image_name: 'ubuntu-16.04'
+        windows-stable:
+          rustup_toolchain: stable
+          image_name: 'windows-latest'
+        #windows-beta:
+        #  rustup_toolchain: beta-gnu
+        #  image_name: 'windows-latest'
+        #apple-stable:
+        #  rustup_toolchain: stable
+        #  image_name: 'macOS-10.13'
+        #apple-beta:
+        #  rustup_toolchain: beta
+        #  image_name: 'macos-latest'
 
-steps:
-  - script: export CARGO_MAKE_RUN_CODECOV="true" && export CODECOV_TOKEN=$(CODECOV_TOKEN) && export RUSTFLAGS="-C link-dead-code"
-    displayName: Set up environment variables
+    pool:
+      vmImage: $(image_name)
 
-  - script: |
-      curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
-      echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
-    displayName: Install Rust
+    steps:
+      - script: export CARGO_MAKE_RUN_CODECOV="true" && export CODECOV_TOKEN=$(CODECOV_TOKEN) && export RUSTFLAGS="-C link-dead-code"
+        displayName: Set up environment variables
+        condition: ne( variables['Agent.OS'], 'Windows_NT' )
 
-  - script: cargo install --debug cargo-make
-    displayName: Install cargo-make
+      - script: |
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
+          echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
+        displayName: Install Rust
+        condition: ne( variables['Agent.OS'], 'Windows_NT' )
 
-  - script: RUSTFLAGS="-C link-dead-code" cargo build
-    displayName: Build
+      - script: |
+          curl -sSf -o rustup-init.exe https://win.rustup.rs
+          rustup-init.exe -y --default-toolchain %RUSTUP_TOOLCHAIN%
+          echo "##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin"
+        displayName: Install Rust
+        condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
-  - script: RUSTFLAGS="-C link-dead-code" cargo test
-    displayName: Test
+      - script: RUSTFLAGS="-C link-dead-code" cargo build
+        displayName: Build
+        condition: ne( variables['Agent.OS'], 'Windows_NT' )
 
-  - script: RUSTFLAGS="-C link-dead-code" CODECOV_TOKEN=$(CODECOV_TOKEN) cargo make --no-workspace workspace-coverage
-    displayName: Run test coverage
+      - script: cargo build
+        displayName: Build
+        condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
-  - script: rustup component add rustfmt
-    displayName: Install rustfmt
+      - script: RUSTFLAGS="-C link-dead-code" cargo test
+        displayName: Test
+        condition: ne( variables['Agent.OS'], 'Windows_NT' )
 
-  - script: cargo fmt -- --check
-    displayName: Verify formatting
+      - script: cargo test
+        displayName: Test
+        condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
-  - script: rustup component add clippy
-    displayName: Install clippy
+        # The following steps are not platform-dependent,
+        # so we only have to run them on Linux.
 
-  - script: cargo clippy --all-targets --all-features -- -D warnings
-    displayName: Run clippy
+      - script: cargo install --debug cargo-make
+        displayName: Install cargo-make
+        condition: eq( variables['Agent.OS'], 'Linux' )
+
+      - script: RUSTFLAGS="-C link-dead-code" CODECOV_TOKEN=$(CODECOV_TOKEN) cargo make --no-workspace workspace-coverage
+        displayName: Run test coverage
+        condition: eq( variables['Agent.OS'], 'Linux' )
+
+      - script: rustup component add rustfmt
+        displayName: Install rustfmt
+        condition: eq( variables['Agent.OS'], 'Linux' )
+
+      - script: cargo fmt -- --check
+        displayName: Verify formatting
+        condition: eq( variables['Agent.OS'], 'Linux' )
+
+      - script: rustup component add clippy
+        displayName: Install clippy
+        condition: eq( variables['Agent.OS'], 'Linux' )
+
+      - script: cargo clippy --all-targets --all-features -- -D warnings
+        displayName: Run clippy
+        condition: eq( variables['Agent.OS'], 'Linux' )
+
+  - job: 'Publish'
+    condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    strategy:
+      matrix:
+        linux:
+          image_name: 'ubuntu-16.04'
+          platform: 'linux'
+        windows:
+          image_name: 'windows-latest'
+          platform: 'windows'
+        #macos:
+        #  image_name: 'macOS-10.13'
+        #  platform: 'macos'
+
+    pool:
+      image: $(image_name)
+
+    steps:
+      - bash: |
+          TAG="$(Build.SourceBranch)"
+          TAG=${TAG#refs/tags/}
+          echo TAG
+          echo "##vso[task.setvariable variable=build.TAG]TAG"
+        displayName: "Create tag variable"
+
+      - script: |
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
+          echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
+          displayName: Install Rust
+        condition: ne( variables['Agent.OS'], 'Windows_NT' )
+        displayName: Install Rust
+
+      - script: |
+          curl -sSf -o rustup-init.exe https://win.rustup.rs
+          rustup-init.exe -y --default-toolchain %RUSTUP_TOOLCHAIN%
+          echo "##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin"
+        displayName: Install Rust
+        condition: eq( variables['Agent.OS'], 'Windows_NT' )
+
+      - script: cargo build --release
+        displayName: Build
+
+      - script: cargo test --release
+        displayName: Test
+
+      - task: CopyFiles@2
+        displayName: Copy assets
+        inputs:
+          sourceFolder: '$(Build.SourcesDirectory)/target/release'
+          contents: feather_server
+          targetFolder: '$(Build.BinariesDirectory)/feather'
+
+      - task: ArchiveFiles@2
+        displayName: Gather assets
+        inputs:
+          rootFolderOrFile: '$(Build.BinariesDirectory)/feather'
+          archiveType: 'tar'
+          tarCompression: 'gz'
+          archiveFile: '$(Build.ArtifactStagingDirectory)/feather-$(build.tag)-$(platform).tar.gz'
+
+      - task: GithubRelease@0
+        condition: succeeded()
+        inputs:
+          gitHubConnection: 'caelunshun_pat'
+          repositoryName: 'caelunshun/feather'
+          action: 'edit'
+          target: '$(build.sourceVersion)'
+          tagSource: 'manual'
+          tag: '$(build.tag)'
+          assets: '$(Build.ArtifactStagingDirectory)/feather-$(build.tag)-$(platform).tar.gz'
+          title: '$(build.tag)'
+          assetUploadMode: 'replace'
+          addChangeLog: false
