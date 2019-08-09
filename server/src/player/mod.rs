@@ -7,6 +7,8 @@
 mod animation;
 /// Module for broadcasting when a player joins and leaves.
 mod broadcast;
+/// Module for handling the Player Digging packet.
+mod digging;
 /// Module for initializing the necessary components
 /// when a player joins.
 mod init;
@@ -28,6 +30,8 @@ pub use movement::{
 pub use animation::{AnimationBroadcastSystem, PlayerAnimationEvent, PlayerAnimationSystem};
 
 pub use inventory::{
-    CreativeInventorySystem, HeldItemBroadcastSystem, HeldItemChangeSystem, HeldItemUpdateEvent,
-    InventoryComponent,
+    CreativeInventorySystem, EquipmentSendSystem, HeldItemBroadcastSystem, HeldItemChangeSystem,
+    InventoryComponent, InventoryUpdateEvent,
 };
+
+pub use digging::{BlockUpdateBroadcastSystem, PlayerDiggingSystem};

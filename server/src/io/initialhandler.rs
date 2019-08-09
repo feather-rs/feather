@@ -18,8 +18,9 @@ use std::str::FromStr;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
-use openssl::pkey::Private;
-use openssl::rsa::{Padding, Rsa};
+use rand_legacy::rngs::OsRng;
+use rsa::{PaddingScheme, PublicKey, RSAPrivateKey};
+use rsa_der as der;
 use uuid::Uuid;
 
 use feather_core::network::cast_packet;
@@ -39,9 +40,16 @@ pub type Key = [u8; 16];
 type VerifyToken = [u8; 4];
 
 /// The number of bits used for the RSA key.
-const RSA_KEY_BITS: u32 = 1024;
+const RSA_KEY_BITS: usize = 1024;
 /// The number of bytes in the shared secret
 const SHARED_SECRET_LEN: usize = 128 / 8;
+
+lazy_static! {
+    pub static ref RSA_KEY: RSAPrivateKey = {
+        let mut rng = OsRng::new().unwrap();
+        RSAPrivateKey::new(&mut rng, RSA_KEY_BITS).unwrap()
+    };
+}
 
 /// An action for the worker thread to execute
 /// after `InitialHandler::handle_packet` is called.
@@ -85,9 +93,6 @@ pub struct InitialHandler {
     /// should be enabled with the given threshold.
     compression_threshold: Option<i32>,
 
-    /// The 1024-bit RSA key used for key exchange
-    /// with this client.
-    rsa: Rsa<Private>,
     /// The verify token generated for this exchange.
     verify_token: VerifyToken,
 
@@ -117,7 +122,6 @@ impl InitialHandler {
             key: None,
             compression_threshold: None,
 
-            rsa: Rsa::generate(RSA_KEY_BITS).unwrap(),
             verify_token: rand::random(),
 
             config,
@@ -250,9 +254,11 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
     // setting the player's info.
     if ih.config.server.online_mode {
         // Start enabling encryption
+        let der = der::public_key_to_der(&RSA_KEY.n().to_bytes_be(), &RSA_KEY.e().to_bytes_be());
+
         let encryption_request = EncryptionRequest::new(
             "".to_string(), // Server ID - always empty
-            ih.rsa.public_key_to_der().unwrap(),
+            der,
             ih.verify_token.to_vec(),
         );
         send_packet(ih, encryption_request);
@@ -278,12 +284,12 @@ fn handle_encryption_response(
     check_stage(ih, Stage::AwaitEncryptionResponse, packet.ty())?;
 
     // Decrypt verify token + shared secret
-    let shared_secret = decrypt_using_rsa(&packet.secret, &ih.rsa)?;
+    let shared_secret = decrypt_using_rsa(&packet.secret, &RSA_KEY)?;
     if shared_secret.len() != SHARED_SECRET_LEN {
         return Err(Error::BadSecretLength);
     }
 
-    let verify_token = decrypt_using_rsa(&packet.verify_token, &ih.rsa)?;
+    let verify_token = decrypt_using_rsa(&packet.verify_token, &RSA_KEY)?;
     if verify_token.len() != ih.verify_token.len() {
         return Err(Error::VerifyTokenMismatch);
     }
@@ -303,14 +309,12 @@ fn handle_encryption_response(
     ih.action_queue
         .push(Action::EnableEncryption(ih.key.unwrap()));
 
+    let der = der::public_key_to_der(&RSA_KEY.n().to_bytes_be(), &RSA_KEY.e().to_bytes_be());
+
     // Perform authentication
     let auth_result = mojang_api::server_auth(
         ih.username.as_ref().unwrap(),
-        &mojang_api::server_hash(
-            "",
-            ih.key.unwrap(),
-            ih.rsa.public_key_to_der().unwrap().as_slice(),
-        ),
+        &mojang_api::server_hash("", ih.key.unwrap(), der.as_slice()),
     );
 
     match auth_result {
@@ -330,14 +334,10 @@ fn handle_encryption_response(
     Ok(())
 }
 
-fn decrypt_using_rsa(data: &[u8], key: &Rsa<Private>) -> Result<Vec<u8>, Error> {
-    let mut buf = vec![0u8; key.size() as usize];
-
-    let len = key
-        .private_decrypt(data, &mut buf, Padding::PKCS1)
+fn decrypt_using_rsa(data: &[u8], key: &RSAPrivateKey) -> Result<Vec<u8>, Error> {
+    let buf = key
+        .decrypt(PaddingScheme::PKCS1v15, data)
         .map_err(|_| Error::BadEncryption)?;
-
-    buf.truncate(len);
 
     Ok(buf)
 }

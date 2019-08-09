@@ -1,20 +1,27 @@
 use crate::disconnect_player;
 use crate::entity::PlayerComponent;
-use crate::network::{send_packet_to_all_players, NetworkComponent, PacketQueue};
+use crate::joinhandler::PlayerJoinEvent;
+use crate::network::{
+    send_packet_to_all_players, send_packet_to_player, NetworkComponent, PacketQueue,
+};
 use feather_core::inventory::{
-    Inventory, InventoryType, SlotIndex, HOTBAR_SIZE, SLOT_ENTITY_EQUIPMENT_MAIN_HAND,
-    SLOT_ENTITY_EQUIPMENT_OFF_HAND, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND,
+    Inventory, InventoryType, SlotIndex, HOTBAR_SIZE, SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET,
+    SLOT_ARMOR_HEAD, SLOT_ARMOR_LEGS, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND,
 };
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
     CreativeInventoryAction, EntityEquipment, HeldItemChangeServerbound,
 };
 use feather_core::network::packet::PacketType;
-use feather_core::{Gamemode, Hand};
+use feather_core::Gamemode;
+use num_traits::ToPrimitive;
 use shrev::EventChannel;
+use smallvec::SmallVec;
 use specs::storage::BTreeStorage;
 use specs::SystemData;
-use specs::{Component, Entities, LazyUpdate, Read, ReadStorage, ReaderId, World, WriteStorage};
+use specs::{
+    Component, Entities, Join, LazyUpdate, Read, ReadStorage, ReaderId, World, WriteStorage,
+};
 use specs::{Entity, System, Write};
 use std::ops::{Deref, DerefMut};
 
@@ -60,11 +67,56 @@ impl Component for InventoryComponent {
     type Storage = BTreeStorage<Self>;
 }
 
-/// Event which is triggered when a player updates
-/// their held item.
-pub struct HeldItemUpdateEvent {
-    /// The hand of the held item update.
-    pub hand: Hand,
+/// An equipment slot, with variants
+/// listed in the order of the Entity Equipment
+/// IDs to allow for easy conversion using `ToPrimitive`/`FromPrimitive`.
+#[derive(Debug, Clone, Copy, ToPrimitive, FromPrimitive, PartialEq, Eq, Hash)]
+pub enum Equipment {
+    MainHand,
+    OffHand,
+    Boots,
+    Leggings,
+    Chestplate,
+    Helmet,
+}
+
+impl Equipment {
+    pub fn from_slot_index(index: SlotIndex) -> Option<Self> {
+        match index {
+            SLOT_OFFHAND => Some(Equipment::OffHand),
+            SLOT_ARMOR_FEET => Some(Equipment::Boots),
+            SLOT_ARMOR_LEGS => Some(Equipment::Leggings),
+            SLOT_ARMOR_CHEST => Some(Equipment::Chestplate),
+            SLOT_ARMOR_HEAD => Some(Equipment::Helmet),
+            _ => None,
+        }
+    }
+
+    pub fn slot_index(self, held_item: SlotIndex) -> SlotIndex {
+        match self {
+            Equipment::MainHand => held_item + SLOT_HOTBAR_OFFSET,
+            Equipment::OffHand => SLOT_OFFHAND,
+            Equipment::Boots => SLOT_ARMOR_FEET,
+            Equipment::Leggings => SLOT_ARMOR_LEGS,
+            Equipment::Chestplate => SLOT_ARMOR_CHEST,
+            Equipment::Helmet => SLOT_ARMOR_HEAD,
+        }
+    }
+}
+
+/// Event which is triggered when a player
+/// updates their inventory.
+///
+/// This event could also be triggered when the player
+/// changes their held item.
+#[derive(Debug, Clone)]
+pub struct InventoryUpdateEvent {
+    /// The slot(s) affected by the update.
+    ///
+    /// Multiple slots could be affected when, for
+    /// example, a player uses the "drag" inventory interaction.
+    pub slots: SmallVec<[SlotIndex; 8]>,
+    /// The player owning the updated inventory.
     pub player: Entity,
 }
 
@@ -75,7 +127,7 @@ impl<'a> System<'a> for CreativeInventorySystem {
     type SystemData = (
         WriteStorage<'a, InventoryComponent>,
         ReadStorage<'a, PlayerComponent>,
-        Write<'a, EventChannel<HeldItemUpdateEvent>>,
+        Write<'a, EventChannel<InventoryUpdateEvent>>,
         Read<'a, PacketQueue>,
         Read<'a, LazyUpdate>,
     );
@@ -117,25 +169,12 @@ impl<'a> System<'a> for CreativeInventorySystem {
                 }
             }
 
-            // If the updated slot was the player's held item,
-            // we need to broadcast the equipment update
-            if packet.slot as usize >= SLOT_HOTBAR_OFFSET
-                && inventory.held_item == packet.slot as usize - SLOT_HOTBAR_OFFSET
-            {
-                let event = HeldItemUpdateEvent {
-                    hand: Hand::Main,
-                    player,
-                };
-                events.single_write(event);
-            }
-            // The same goes for the offhand.
-            else if inventory.held_item == SLOT_OFFHAND {
-                let event = HeldItemUpdateEvent {
-                    hand: Hand::Off,
-                    player,
-                };
-                events.single_write(event);
-            }
+            // Trigger inventory update event
+            let event = InventoryUpdateEvent {
+                slots: smallvec![packet.slot as usize],
+                player,
+            };
+            events.single_write(event);
         }
     }
 }
@@ -146,7 +185,7 @@ pub struct HeldItemChangeSystem;
 impl<'a> System<'a> for HeldItemChangeSystem {
     type SystemData = (
         WriteStorage<'a, InventoryComponent>,
-        Write<'a, EventChannel<HeldItemUpdateEvent>>,
+        Write<'a, EventChannel<InventoryUpdateEvent>>,
         Read<'a, PacketQueue>,
         Read<'a, LazyUpdate>,
     );
@@ -168,8 +207,8 @@ impl<'a> System<'a> for HeldItemChangeSystem {
             inventory.held_item = packet.slot as usize;
 
             // Trigger event
-            let event = HeldItemUpdateEvent {
-                hand: Hand::Main,
+            let event = InventoryUpdateEvent {
+                slots: smallvec![inventory.held_item as usize + SLOT_HOTBAR_OFFSET],
                 player,
             };
             events.single_write(event);
@@ -177,17 +216,17 @@ impl<'a> System<'a> for HeldItemChangeSystem {
     }
 }
 
-/// System for broadcasting held item updates.
+/// System for broadcasting equipment updates.
 #[derive(Default)]
 pub struct HeldItemBroadcastSystem {
-    reader: Option<ReaderId<HeldItemUpdateEvent>>,
+    reader: Option<ReaderId<InventoryUpdateEvent>>,
 }
 
 impl<'a> System<'a> for HeldItemBroadcastSystem {
     type SystemData = (
         ReadStorage<'a, NetworkComponent>,
         ReadStorage<'a, InventoryComponent>,
-        Read<'a, EventChannel<HeldItemUpdateEvent>>,
+        Read<'a, EventChannel<InventoryUpdateEvent>>,
         Entities<'a>,
     );
 
@@ -197,20 +236,21 @@ impl<'a> System<'a> for HeldItemBroadcastSystem {
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
             let inv = inventories.get(event.player).unwrap();
 
-            let (slot, item) = match event.hand {
-                Hand::Main => {
-                    let item = inv.item_at(SLOT_HOTBAR_OFFSET + inv.held_item).cloned();
-                    (SLOT_ENTITY_EQUIPMENT_MAIN_HAND, item)
-                }
-                Hand::Off => {
-                    let item = inv.item_at(SLOT_OFFHAND).cloned();
-                    (SLOT_ENTITY_EQUIPMENT_OFF_HAND, item)
-                }
-            };
+            for slot in &event.slots {
+                // Skip this slot if it is not an equipment update.
+                if let Ok(equipment) = is_equipment_update(&inv, *slot) {
+                    let slot = equipment.slot_index(inv.held_item);
+                    let item = inv.item_at(slot).cloned();
 
-            let packet = EntityEquipment::new(event.player.id() as i32, slot as i32, item);
+                    let packet = EntityEquipment::new(
+                        event.player.id() as i32,
+                        equipment.to_i32().unwrap(),
+                        item,
+                    );
 
-            send_packet_to_all_players(&networks, &entities, packet, Some(event.player));
+                    send_packet_to_all_players(&networks, &entities, packet, Some(event.player));
+                }
+            }
         }
     }
 
@@ -219,9 +259,80 @@ impl<'a> System<'a> for HeldItemBroadcastSystem {
 
         self.reader = Some(
             world
-                .fetch_mut::<EventChannel<HeldItemUpdateEvent>>()
+                .fetch_mut::<EventChannel<InventoryUpdateEvent>>()
                 .register_reader(),
         );
+    }
+}
+
+/// System which sends other players' equipment
+/// to players who have just joined.
+#[derive(Default)]
+pub struct EquipmentSendSystem {
+    reader: Option<ReaderId<PlayerJoinEvent>>,
+}
+
+impl<'a> System<'a> for EquipmentSendSystem {
+    type SystemData = (
+        ReadStorage<'a, InventoryComponent>,
+        ReadStorage<'a, NetworkComponent>,
+        Read<'a, EventChannel<PlayerJoinEvent>>,
+        Entities<'a>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (inventories, networks, events, entities) = data;
+
+        for event in events.read(&mut self.reader.as_mut().unwrap()) {
+            let network = networks.get(event.player).unwrap();
+
+            // Send all other players' equipment to this player.
+            for (inventory, entity) in (&inventories, &entities).join() {
+                // Don't send player their own equipment
+                if entity == event.player {
+                    continue;
+                }
+
+                let equipments = [
+                    Equipment::MainHand,
+                    Equipment::Boots,
+                    Equipment::Leggings,
+                    Equipment::Chestplate,
+                    Equipment::Helmet,
+                    Equipment::OffHand,
+                ];
+
+                for equipment in equipments.iter() {
+                    let item = {
+                        let slot = equipment.slot_index(inventory.held_item);
+                        inventory.item_at(slot).cloned()
+                    };
+
+                    let equipment_slot = equipment.to_i32().unwrap();
+
+                    let packet = EntityEquipment::new(entity.id() as i32, equipment_slot, item);
+                    send_packet_to_player(network, packet);
+                }
+            }
+        }
+    }
+
+    fn setup(&mut self, world: &mut World) {
+        Self::SystemData::setup(world);
+
+        self.reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
+    }
+}
+
+/// Returns whether the given update to an inventory
+/// is an equipment update.
+fn is_equipment_update(inv: &InventoryComponent, slot: SlotIndex) -> Result<Equipment, ()> {
+    if slot >= SLOT_HOTBAR_OFFSET && slot - SLOT_HOTBAR_OFFSET == inv.held_item {
+        Ok(Equipment::MainHand)
+    } else if let Some(equipment) = Equipment::from_slot_index(slot) {
+        Ok(equipment)
+    } else {
+        Err(())
     }
 }
 
@@ -229,7 +340,7 @@ impl<'a> System<'a> for HeldItemBroadcastSystem {
 mod tests {
     use super::*;
     use crate::testframework as t;
-    use feather_core::inventory::ItemStack;
+    use feather_core::inventory::{ItemStack, SLOT_ENTITY_EQUIPMENT_MAIN_HAND};
     use feather_core::item::Item;
     use specs::WorldExt;
 
@@ -262,12 +373,12 @@ mod tests {
 
         // Confirm that event was triggered
         {
-            let channel = w.fetch::<EventChannel<HeldItemUpdateEvent>>();
+            let channel = w.fetch::<EventChannel<InventoryUpdateEvent>>();
             let events = channel.read(&mut event_reader).collect::<Vec<_>>();
             assert_eq!(events.len(), 1);
             let first = events.first().unwrap();
             assert_eq!(first.player, player.entity);
-            assert_eq!(first.hand, Hand::Main);
+            assert_eq!(first.slots.as_slice(), &[SLOT_HOTBAR_OFFSET]);
         }
 
         drop(inv_storage);
@@ -317,6 +428,43 @@ mod tests {
     }
 
     #[test]
+    fn test_creative_inventory_armor() {
+        let equipments = [
+            Equipment::OffHand,
+            Equipment::Boots,
+            Equipment::Leggings,
+            Equipment::Chestplate,
+            Equipment::Helmet,
+        ];
+
+        for equipment in equipments.iter() {
+            let (mut w, mut d) = t::init_world();
+
+            let player = t::add_player(&mut w);
+
+            let mut event_reader = t::reader(&w);
+
+            let packet = CreativeInventoryAction::new(
+                equipment.slot_index(0) as u16,
+                Some(ItemStack::new(Item::IronSword, 1)),
+            );
+            t::receive_packet(&player, &w, packet);
+
+            d.dispatch(&w);
+            w.maintain();
+
+            let ch = w.fetch::<EventChannel<InventoryUpdateEvent>>();
+            let events = ch.read(&mut event_reader).collect::<Vec<_>>();
+
+            assert_eq!(events.len(), 1);
+            let first = events.first().unwrap();
+
+            assert_eq!(first.slots.as_slice(), &[equipment.slot_index(0)]);
+            assert_eq!(first.player, player.entity);
+        }
+    }
+
+    #[test]
     fn test_held_item_change_system() {
         let (mut w, mut d) = t::init_world();
 
@@ -332,14 +480,17 @@ mod tests {
         d.dispatch(&w);
         w.maintain();
 
-        let channel = w.fetch::<EventChannel<HeldItemUpdateEvent>>();
+        let channel = w.fetch::<EventChannel<InventoryUpdateEvent>>();
         let events = channel.read(&mut event_reader).collect::<Vec<_>>();
 
         assert_eq!(events.len(), 1);
 
         let first = events.first().unwrap();
         assert_eq!(first.player, player.entity);
-        assert_eq!(first.hand, Hand::Main);
+        assert_eq!(
+            first.slots.as_slice(),
+            &[slot as usize + SLOT_HOTBAR_OFFSET]
+        );
 
         let inventories = w.read_component::<InventoryComponent>();
         let inv = inventories.get(player.entity).unwrap();
@@ -371,18 +522,103 @@ mod tests {
         let player = t::add_player(&mut w);
         let player2 = t::add_player(&mut w);
 
-        let event = HeldItemUpdateEvent {
+        {
+            let mut invs = w.write_component::<InventoryComponent>();
+            let inv = invs.get_mut(player.entity).unwrap();
+            inv.held_item = 0;
+            inv.set_item_at(SLOT_HOTBAR_OFFSET, ItemStack::new(Item::IronSword, 1));
+        }
+
+        let event = InventoryUpdateEvent {
             player: player.entity,
-            hand: Hand::Main,
+            slots: smallvec![SLOT_HOTBAR_OFFSET],
         };
 
-        w.fetch_mut::<EventChannel<HeldItemUpdateEvent>>()
+        w.fetch_mut::<EventChannel<InventoryUpdateEvent>>()
             .single_write(event);
 
         d.dispatch(&w);
         w.maintain();
 
-        t::assert_packet_received(&player2, PacketType::EntityEquipment);
+        let packet = t::assert_packet_received(&player2, PacketType::EntityEquipment);
+
+        let packet = cast_packet::<EntityEquipment>(&*packet);
+        assert_eq!(packet.slot, SLOT_ENTITY_EQUIPMENT_MAIN_HAND as i32);
+        assert_eq!(packet.entity_id, player.entity.id() as i32);
+        assert_eq!(packet.item, Some(ItemStack::new(Item::IronSword, 1)));
+
         t::assert_packet_not_received(&player, PacketType::EntityEquipment);
+    }
+
+    #[test]
+    fn test_equipment_send_system() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+        let player2 = t::add_player(&mut w);
+
+        let event = PlayerJoinEvent {
+            player: player.entity,
+        };
+
+        w.fetch_mut::<EventChannel<_>>().single_write(event);
+
+        {
+            let mut invs = w.write_component::<InventoryComponent>();
+            let inv = invs.get_mut(player2.entity).unwrap();
+
+            inv.held_item = 1;
+            inv.set_item_at(SLOT_HOTBAR_OFFSET + 1, ItemStack::new(Item::IronSword, 1));
+            inv.set_item_at(SLOT_ARMOR_HEAD, ItemStack::new(Item::DiamondHelmet, 1));
+        }
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let packets = t::received_packets(&player, None);
+
+        let packets = packets
+            .into_iter()
+            .filter(|packet| packet.ty() == PacketType::EntityEquipment)
+            .collect::<Vec<_>>();
+
+        assert_eq!(packets.len(), 6);
+
+        for packet in packets {
+            let packet = cast_packet::<EntityEquipment>(&*packet);
+            assert_eq!(packet.entity_id, player2.entity.id() as i32);
+        }
+    }
+
+    #[test]
+    fn test_is_equipment_update() {
+        let mut inv = InventoryComponent::default();
+        inv.held_item = 0;
+
+        assert!(is_equipment_update(&inv, 21).is_err());
+        assert_eq!(
+            is_equipment_update(&inv, SLOT_HOTBAR_OFFSET),
+            Ok(Equipment::MainHand)
+        );
+        assert_eq!(
+            is_equipment_update(&inv, SLOT_ARMOR_HEAD),
+            Ok(Equipment::Helmet)
+        );
+        assert_eq!(
+            is_equipment_update(&inv, SLOT_ARMOR_CHEST),
+            Ok(Equipment::Chestplate)
+        );
+        assert_eq!(
+            is_equipment_update(&inv, SLOT_ARMOR_LEGS),
+            Ok(Equipment::Leggings)
+        );
+        assert_eq!(
+            is_equipment_update(&inv, SLOT_ARMOR_FEET),
+            Ok(Equipment::Boots)
+        );
+        assert_eq!(
+            is_equipment_update(&inv, SLOT_OFFHAND),
+            Ok(Equipment::OffHand)
+        );
     }
 }

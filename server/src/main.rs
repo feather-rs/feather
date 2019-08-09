@@ -12,6 +12,12 @@ extern crate serde;
 extern crate serde_json;
 #[macro_use]
 extern crate failure;
+#[macro_use]
+extern crate num_derive;
+#[macro_use]
+extern crate smallvec;
+#[macro_use]
+extern crate lazy_static;
 
 use std::alloc::System;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -48,7 +54,6 @@ pub mod player;
 pub mod prelude;
 #[cfg(test)]
 pub mod testframework;
-pub mod worldupdate;
 
 pub const TPS: u64 = 20;
 pub const PROTOCOL_VERSION: u32 = 404;
@@ -67,10 +72,7 @@ fn main() {
     info!("Starting Feather; please wait...");
 
     std::panic::set_hook(Box::new(|info| {
-        error!(
-            "The server panicked: {:?}",
-            info.payload().downcast_ref::<&str>().unwrap()
-        );
+        error!("The server panicked.");
         let location = info.location().unwrap();
         error!("Source: {}, line {}", location.file(), location.line());
         error!("Backtrace:\n{:?}", Backtrace::new());
@@ -91,6 +93,9 @@ fn main() {
     let (mut world, mut dispatcher) = init_world(config, player_count, io_manager, level);
 
     info!("Initialized world");
+
+    info!("Generating RSA keypair...");
+    io::init();
 
     info!("Server started");
     run_loop(&mut world, &mut dispatcher);
@@ -183,10 +188,11 @@ fn init_world<'a, 'b>(
     let mut dispatcher = DispatcherBuilder::new()
         .with(chunk_logic::ChunkLoadSystem, "chunk_load", &[])
         .with(network::NetworkSystem, "network", &[])
+        .with(player::PlayerDiggingSystem, "player_digging", &["network"])
         .with(
-            worldupdate::PlayerDiggingSystem,
-            "player_digging",
-            &["network"],
+            player::BlockUpdateBroadcastSystem::default(),
+            "block_update_broadcast",
+            &["player_digging"],
         )
         .with(
             player::PlayerMovementSystem,
@@ -208,6 +214,11 @@ fn init_world<'a, 'b>(
             player::JoinBroadcastSystem::new(),
             "join_broadcast",
             &["join_handler", "player_init"],
+        )
+        .with(
+            player::EquipmentSendSystem::default(),
+            "equipment_send",
+            &["join_broadcast"],
         )
         .with(
             player::DisconnectBroadcastSystem::new(),

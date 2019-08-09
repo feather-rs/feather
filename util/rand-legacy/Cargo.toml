@@ -1,0 +1,9 @@
+[package]
+name = "rand-legacy"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+description = "Exports 0.6.5 rand API for use with old libraries"
+
+[dependencies]
+rand = "0.6.5"

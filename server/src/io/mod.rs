@@ -100,3 +100,8 @@ impl Default for NetworkIoManager {
         panic!("Nope, don't call default() on the IO manager. That won't work.");
     }
 }
+
+/// Initializes certain static variables.
+pub fn init() {
+    lazy_static::initialize(&initialhandler::RSA_KEY);
+}
