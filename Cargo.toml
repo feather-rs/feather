@@ -9,4 +9,5 @@ members = [
     "client/core",
     "client/wrapper/console",
     "generator",
+    "util/rand-legacy",
 ]

@@ -12,7 +12,8 @@ feather_items = { path = "../items" }
 lazy_static = "1.3.0"
 derive-new = "0.5.7"
 uuid = "0.7.4"
-openssl = { version = "0.10.24", features = ["vendored"] }
+cfb8 = "0.3.2"
+aes = "0.3.2"
 flate2 = "1.0.9"
 bytes = "0.4.12"
 log = "0.4.8"

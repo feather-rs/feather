@@ -2,14 +2,18 @@ use super::mctypes::{McTypeRead, McTypeWrite};
 use super::packet::{Packet, PacketDirection, PacketId, PacketStage, PacketType};
 use crate::bytebuf::ByteBuf;
 use crate::prelude::*;
+use aes::Aes128;
 use bytes::{Buf, BufMut};
+use cfb8::stream_cipher::{NewStreamCipher, StreamCipher};
+use cfb8::Cfb8;
 use flate2::{
     read::{ZlibDecoder, ZlibEncoder},
     Compression,
 };
-use openssl::symm::{Cipher, Crypter, Mode};
 use std::io::prelude::*;
 use std::io::Cursor;
+
+type AesCfb8 = Cfb8<Aes128>;
 
 pub struct ConnectionIOManager {
     encryption_enabled: bool,
@@ -22,12 +26,11 @@ pub struct ConnectionIOManager {
     incoming_compressed: ByteBuf,
     incoming_uncompressed: ByteBuf,
 
-    encrypter: Option<Crypter>,
-    decrypter: Option<Crypter>,
+    encrypter: Option<AesCfb8>,
+    decrypter: Option<AesCfb8>,
 
     stage: PacketStage,
 
-    cipher: Cipher,
     direction: PacketDirection,
 }
 
@@ -48,7 +51,6 @@ impl ConnectionIOManager {
 
             stage: PacketStage::Handshake,
 
-            cipher: Cipher::aes_128_cfb8(),
             direction,
         }
     }
@@ -61,8 +63,8 @@ impl ConnectionIOManager {
         self.encryption_enabled = true;
         self.encryption_key = key;
 
-        self.encrypter = Some(Crypter::new(self.cipher, Mode::Encrypt, &key, Some(&key)).unwrap());
-        self.decrypter = Some(Crypter::new(self.cipher, Mode::Decrypt, &key, Some(&key)).unwrap());
+        self.encrypter = Some(AesCfb8::new_var(&key, &key).unwrap());
+        self.decrypter = Some(AesCfb8::new_var(&key, &key).unwrap());
 
         trace!("Enabling encryption");
     }
@@ -77,14 +79,13 @@ impl ConnectionIOManager {
     /// `Err` is returned only if something happens that indicates
     /// a malicious client. If `Err` is returned, the client should
     /// be disconnected immediately.
-    pub fn accept_data(&mut self, data: ByteBuf) -> Result<(), ()> {
+    pub fn accept_data(&mut self, mut data: ByteBuf) -> Result<(), ()> {
         // Decrypt if needed
         if self.encryption_enabled {
-            self.decrypt_data(data.inner());
-        } else {
-            // Copy to incoming_compressed without decrypting
-            self.incoming_compressed.write_all(data.inner()).unwrap();
+            self.decrypt_data(data.bytes_from_start());
         }
+
+        self.incoming_compressed.write_all(data.inner()).unwrap();
 
         loop {
             let pending_buf = &mut self.incoming_compressed;
@@ -221,40 +222,21 @@ impl ConnectionIOManager {
         buf.write_var_int(buf_without_length.len() as i32);
         buf.write_all(buf_without_length.inner()).unwrap();
 
-        if !self.encryption_enabled {
-            buf
-        } else {
-            let mut encrypted_buf = ByteBuf::with_capacity(buf.len());
-            self.encrypt_data(buf.inner(), &mut encrypted_buf);
-            encrypted_buf
+        if self.encryption_enabled {
+            self.encrypt_data(buf.bytes_from_start());
         }
+
+        buf
     }
 
-    fn encrypt_data(&mut self, data: &[u8], output: &mut ByteBuf) {
+    fn encrypt_data(&mut self, data: &mut [u8]) {
         let crypter = self.encrypter.as_mut().unwrap();
-
-        let needed_bytes = self.cipher.block_size() + data.len();
-
-        output.reserve(needed_bytes);
-
-        unsafe {
-            let amnt = crypter.update(data, output.inner_mut()).unwrap();
-            output.advance_mut(amnt);
-        }
+        crypter.encrypt(data);
     }
 
-    fn decrypt_data(&mut self, data: &[u8]) {
+    fn decrypt_data(&mut self, data: &mut [u8]) {
         let crypter = self.decrypter.as_mut().unwrap();
-
-        let output = &mut self.incoming_compressed;
-
-        let needed_bytes = self.cipher.block_size() + data.len();
-        output.reserve(needed_bytes);
-
-        unsafe {
-            let amnt = crypter.update(data, output.inner_mut()).unwrap();
-            output.advance_mut(amnt);
-        }
+        crypter.decrypt(data);
     }
 
     fn compress_data(&mut self, data: &[u8], output: &mut ByteBuf) {
