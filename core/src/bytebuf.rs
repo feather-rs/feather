@@ -80,6 +80,14 @@ impl ByteBuf {
     pub fn capacity(&self) -> usize {
         self.inner.capacity()
     }
+
+    pub fn bytes_from_start(&mut self) -> &mut [u8] {
+        &mut self.inner[..]
+    }
+
+    pub fn bytes_from_read_cursor(&mut self) -> &mut [u8] {
+        &mut self.inner[self.read_cursor_position..]
+    }
 }
 
 impl Default for ByteBuf {

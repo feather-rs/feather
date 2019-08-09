@@ -16,6 +16,8 @@ extern crate failure;
 extern crate num_derive;
 #[macro_use]
 extern crate smallvec;
+#[macro_use]
+extern crate lazy_static;
 
 use std::alloc::System;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -70,10 +72,7 @@ fn main() {
     info!("Starting Feather; please wait...");
 
     std::panic::set_hook(Box::new(|info| {
-        error!(
-            "The server panicked: {:?}",
-            info.payload().downcast_ref::<&str>().unwrap()
-        );
+        error!("The server panicked.");
         let location = info.location().unwrap();
         error!("Source: {}, line {}", location.file(), location.line());
         error!("Backtrace:\n{:?}", Backtrace::new());
@@ -94,6 +93,9 @@ fn main() {
     let (mut world, mut dispatcher) = init_world(config, player_count, io_manager, level);
 
     info!("Initialized world");
+
+    info!("Generating RSA keypair...");
+    io::init();
 
     info!("Server started");
     run_loop(&mut world, &mut dispatcher);
