@@ -20,9 +20,9 @@ jobs:
         #windows-beta:
         #  rustup_toolchain: beta-gnu
         #  image_name: 'windows-latest'
-        apple-stable:
-          rustup_toolchain: stable
-          image_name: 'macOS-10.13'
+        #apple-stable:
+        #  rustup_toolchain: stable
+        #  image_name: 'macOS-10.13'
         #apple-beta:
         #  rustup_toolchain: beta
         #  image_name: 'macos-latest'
@@ -101,9 +101,9 @@ jobs:
         windows:
           image_name: 'windows-latest'
           platform: 'windows'
-        macos:
-          image_name: 'macOS-10.13'
-          platform: 'macos'
+        #macos:
+        #  image_name: 'macOS-10.13'
+        #  platform: 'macos'
 
     pool:
       image: $(image_name)
