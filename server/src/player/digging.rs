@@ -56,8 +56,9 @@ pub enum BlockUpdateCause {
 /// is removed from the player's inventory.
 #[derive(Debug, Clone)]
 pub struct PlayerItemDropEvent {
-    /// The slot from which the item was dropped.
-    pub slot: SlotIndex,
+    /// The slot from which the item was dropped,
+    /// if known.
+    pub slot: Option<SlotIndex>,
     /// The item stack which was dropped.
     pub stack: ItemStack,
     /// The player who dropped the item.
@@ -212,7 +213,7 @@ fn handle_drop_item_stack(
 
     if amnt != 0 {
         let item_drop = PlayerItemDropEvent {
-            slot,
+            slot: Some(slot),
             stack: ItemStack::new(stack.ty, amnt),
             player: entity,
         };
@@ -459,7 +460,7 @@ mod tests {
         assert_eq!(drop_events.len(), 1);
         let first = drop_events.first().unwrap();
         assert_eq!(first.player, player.entity);
-        assert_eq!(first.slot, slot);
+        assert_eq!(first.slot, Some(slot));
         assert_eq!(first.stack, ItemStack::new(Item::CookedBeef, 1)); // 1 beef was dropped
 
         let update_events = update_channel.read(&mut update_reader).collect::<Vec<_>>();
@@ -578,7 +579,7 @@ mod tests {
         assert_eq!(drop_events.len(), 1);
         let first = drop_events.first().unwrap();
         assert_eq!(first.player, player.entity);
-        assert_eq!(first.slot, slot);
+        assert_eq!(first.slot, Some(slot));
         assert_eq!(first.stack, ItemStack::new(Item::CookedBeef, amnt));
 
         let invs = w.read_component::<InventoryComponent>();

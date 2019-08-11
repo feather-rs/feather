@@ -4,6 +4,7 @@ use crate::joinhandler::PlayerJoinEvent;
 use crate::network::{
     send_packet_to_all_players, send_packet_to_player, NetworkComponent, PacketQueue,
 };
+use crate::player::digging::PlayerItemDropEvent;
 use feather_core::inventory::{
     Inventory, InventoryType, SlotIndex, HOTBAR_SIZE, SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET,
     SLOT_ARMOR_HEAD, SLOT_ARMOR_LEGS, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND,
@@ -128,12 +129,14 @@ impl<'a> System<'a> for CreativeInventorySystem {
         WriteStorage<'a, InventoryComponent>,
         ReadStorage<'a, PlayerComponent>,
         Write<'a, EventChannel<InventoryUpdateEvent>>,
+        Write<'a, EventChannel<PlayerItemDropEvent>>,
         Read<'a, PacketQueue>,
         Read<'a, LazyUpdate>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut inventories, players, mut events, packet_queue, lazy) = data;
+        let (mut inventories, players, mut update_events, mut drop_events, packet_queue, lazy) =
+            data;
 
         let packets = packet_queue.for_packet(PacketType::CreativeInventoryAction);
 
@@ -155,7 +158,26 @@ impl<'a> System<'a> for CreativeInventorySystem {
 
             let inventory = inventories.get_mut(player).unwrap();
 
-            if packet.slot >= inventory.slot_count() {
+            // Slot -1 means that the user clicked outside the window,
+            // dropping the item.
+            if packet.slot == -1 {
+                match &packet.clicked_item {
+                    Some(stack) => {
+                        let event = PlayerItemDropEvent {
+                            slot: None,
+                            stack: stack.clone(),
+                            player,
+                        };
+                        drop_events.single_write(event);
+
+                        // No need to update inventory
+                        continue;
+                    }
+                    None => (),
+                }
+            }
+
+            if packet.slot >= inventory.slot_count() as i16 || packet.slot < -1 {
                 disconnect_player(player, "Slot index out of bounds".to_string(), &lazy);
                 continue;
             }
@@ -174,7 +196,7 @@ impl<'a> System<'a> for CreativeInventorySystem {
                 slots: smallvec![packet.slot as usize],
                 player,
             };
-            events.single_write(event);
+            update_events.single_write(event);
         }
     }
 }
@@ -351,13 +373,14 @@ mod tests {
         let player = t::add_player(&mut w);
 
         let packet = CreativeInventoryAction::new(
-            SLOT_HOTBAR_OFFSET as u16,
+            SLOT_HOTBAR_OFFSET as i16,
             Some(ItemStack::new(Item::IronSword, 1)),
         );
 
         t::receive_packet(&player, &w, packet);
 
-        let mut event_reader = t::reader(&w);
+        let mut update_reader = t::reader(&w);
+        let mut drop_reader = t::reader(&w);
 
         d.dispatch(&w);
         w.maintain();
@@ -374,11 +397,17 @@ mod tests {
         // Confirm that event was triggered
         {
             let channel = w.fetch::<EventChannel<InventoryUpdateEvent>>();
-            let events = channel.read(&mut event_reader).collect::<Vec<_>>();
+            let events = channel.read(&mut update_reader).collect::<Vec<_>>();
             assert_eq!(events.len(), 1);
             let first = events.first().unwrap();
             assert_eq!(first.player, player.entity);
             assert_eq!(first.slots.as_slice(), &[SLOT_HOTBAR_OFFSET]);
+
+            assert!(w
+                .fetch::<EventChannel<PlayerItemDropEvent>>()
+                .read(&mut drop_reader)
+                .next()
+                .is_none());
         }
 
         drop(inv_storage);
@@ -445,7 +474,7 @@ mod tests {
             let mut event_reader = t::reader(&w);
 
             let packet = CreativeInventoryAction::new(
-                equipment.slot_index(0) as u16,
+                equipment.slot_index(0) as i16,
                 Some(ItemStack::new(Item::IronSword, 1)),
             );
             t::receive_packet(&player, &w, packet);
@@ -462,6 +491,43 @@ mod tests {
             assert_eq!(first.slots.as_slice(), &[equipment.slot_index(0)]);
             assert_eq!(first.player, player.entity);
         }
+    }
+
+    #[test]
+    fn test_creative_inventory_system_drop_item() {
+        // Drop item - slot index -1
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        let stack = ItemStack::new(Item::CookedBeef, 1);
+
+        let mut drop_reader = t::reader(&w);
+        let mut update_reader = t::reader(&w);
+
+        let packet = CreativeInventoryAction {
+            slot: -1,
+            clicked_item: Some(stack.clone()),
+        };
+        t::receive_packet(&player, &w, packet);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        t::assert_not_disconnected(&player);
+
+        let channel = w.fetch::<EventChannel<InventoryUpdateEvent>>();
+        let events = channel.read(&mut update_reader).collect::<Vec<_>>();
+        assert!(events.is_empty());
+
+        let channel = w.fetch::<EventChannel<PlayerItemDropEvent>>();
+        let events = channel.read(&mut drop_reader).collect::<Vec<_>>();
+
+        assert_eq!(events.len(), 1);
+        let first = events.first().unwrap();
+        assert_eq!(first.stack, stack);
+        assert_eq!(first.player, player.entity);
+        assert_eq!(first.slot, None);
     }
 
     #[test]
