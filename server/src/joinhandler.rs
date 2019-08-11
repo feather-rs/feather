@@ -22,6 +22,7 @@ use feather_core::{Difficulty, Dimension, Gamemode};
 
 use crate::chunk_logic::{ChunkHolderComponent, ChunkHolders, ChunkWorkerHandle};
 use crate::config::Config;
+use crate::entity::{EntitySpawnEvent, EntityType};
 use crate::network::NetworkComponent;
 use crate::player::{ChunkPendingComponent, LoadedChunksComponent};
 use crate::PlayerCount;
@@ -83,6 +84,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
         ReadStorage<'a, NetworkComponent>,
         ReadStorage<'a, ChunkPendingComponent>,
         Write<'a, EventChannel<PlayerJoinEvent>>,
+        Write<'a, EventChannel<EntitySpawnEvent>>,
         Read<'a, ChunkWorkerHandle>,
         Entities<'a>,
         Read<'a, LazyUpdate>,
@@ -101,6 +103,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
             netcomps,
             pending_chunks,
             mut join_events,
+            mut spawn_events,
             worker_handle,
             entities,
             lazy,
@@ -188,9 +191,15 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     );
                     crate::network::send_packet_to_player(net, position_and_look);
 
-                    // Trigger event
+                    // Trigger events
                     let event = PlayerJoinEvent { player };
                     join_events.single_write(event);
+
+                    let event = EntitySpawnEvent {
+                        entity: player,
+                        ty: EntityType::Player,
+                    };
+                    spawn_events.single_write(event);
 
                     // We're finished here.
                     to_remove.push(player);
