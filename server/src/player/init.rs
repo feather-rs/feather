@@ -1,4 +1,4 @@
-use crate::entity::{EntityComponent, PlayerComponent};
+use crate::entity::{EntityComponent, EntityType, PlayerComponent};
 use crate::joinhandler::SPAWN_POSITION;
 use crate::network::PlayerPreJoinEvent;
 use crate::player::{ChunkPendingComponent, InventoryComponent, LoadedChunksComponent};
@@ -31,6 +31,7 @@ impl<'a> System<'a> for PlayerInitSystem {
         WriteStorage<'a, ChunkPendingComponent>,
         WriteStorage<'a, LoadedChunksComponent>,
         WriteStorage<'a, InventoryComponent>,
+        WriteStorage<'a, EntityType>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -41,6 +42,7 @@ impl<'a> System<'a> for PlayerInitSystem {
             mut chunk_pending_comps,
             mut loaded_chunk_comps,
             mut inventory_comps,
+            mut entity_types,
         ) = data;
 
         // Run through events
@@ -75,6 +77,9 @@ impl<'a> System<'a> for PlayerInitSystem {
             inventory_comps
                 .insert(event.player, inventory_comp)
                 .unwrap();
+
+            let ty = EntityType::Player;
+            entity_types.insert(event.player, ty).unwrap();
         }
     }
 

@@ -1,7 +1,6 @@
 use crate::entity::{EntityComponent, PlayerComponent};
 use crate::joinhandler::PlayerJoinEvent;
-use crate::network::{send_packet_to_player, NetworkComponent};
-use feather_core::entitymeta::{EntityMetadata, MetaEntry};
+use crate::network::{send_packet_to_all_players, send_packet_to_player, NetworkComponent};
 use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
 use feather_core::Gamemode;
 use shrev::EventChannel;
@@ -10,8 +9,12 @@ use specs::{Entities, Entity, Join, Read, ReadStorage, ReaderId, System, World};
 use uuid::Uuid;
 
 /// System for broadcasting when a player joins
-/// the game. Also spawns other players to
-/// the player's client.
+/// the game.
+///
+/// This system only broadcasts the
+/// Player Info packet necessary to view to player
+/// in the tablist - the `EntityBroadcastSystem` handles
+/// the Spawn Player packet.
 #[derive(Default)]
 pub struct JoinBroadcastSystem {
     reader: Option<ReaderId<PlayerJoinEvent>>,
@@ -40,18 +43,9 @@ impl<'a> System<'a> for JoinBroadcastSystem {
             let entity_comp = entity_comps.get(event.player).unwrap();
             let player_comp = player_comps.get(event.player).unwrap();
 
-            let (player_info, spawn_player) =
-                get_player_initialization_packets(entity_comp, player_comp, event.player);
+            let player_info = get_player_initialization_packet(entity_comp, player_comp);
 
-            for (player, net) in (&entities, &net_comps).join() {
-                // Send player info to the player who joined
-                // so they can see themselves in the tablist,
-                // but don't send spawn player.
-                send_packet_to_player(net, player_info.clone());
-                if player != event.player {
-                    send_packet_to_player(net, spawn_player.clone());
-                }
-            }
+            send_packet_to_all_players(&net_comps, &entities, player_info, None);
 
             let net_comp = net_comps.get(event.player).unwrap();
 
@@ -60,9 +54,19 @@ impl<'a> System<'a> for JoinBroadcastSystem {
                 (&entity_comps, &player_comps, &entities).join()
             {
                 if entity != event.player {
-                    let (player_info, spawn_player) =
-                        get_player_initialization_packets(entity_comp, player_comp, entity);
+                    let player_info = get_player_initialization_packet(entity_comp, player_comp);
                     send_packet_to_player(net_comp, player_info);
+
+                    let spawn_player = SpawnPlayer {
+                        entity_id: entity.id() as i32,
+                        player_uuid: entity_comp.uuid,
+                        x: entity_comp.position.x,
+                        y: entity_comp.position.y,
+                        z: entity_comp.position.z,
+                        yaw: degrees_to_stops(entity_comp.position.yaw),
+                        pitch: degrees_to_stops(entity_comp.position.pitch),
+                        metadata: Default::default(),
+                    };
                     send_packet_to_player(net_comp, spawn_player);
                 }
             }
@@ -80,13 +84,12 @@ impl<'a> System<'a> for JoinBroadcastSystem {
     }
 }
 
-/// Returns the player info and spawn player packets
+/// Returns the player info packet
 /// for the given player.
-fn get_player_initialization_packets(
+fn get_player_initialization_packet(
     ecomp: &EntityComponent,
     pcomp: &PlayerComponent,
-    player: Entity,
-) -> (PlayerInfo, SpawnPlayer) {
+) -> PlayerInfo {
     let display_name = json!({
         "text": ecomp.display_name
     })
@@ -108,39 +111,7 @@ fn get_player_initialization_packets(
         50,
         display_name,
     );
-    let player_info = PlayerInfo::new(action, ecomp.uuid);
-
-    let metadata = EntityMetadata::new().with(&[
-        (0, MetaEntry::Byte(0)),
-        (1, MetaEntry::VarInt(300)),
-        (2, MetaEntry::OptChat(None)),
-        (3, MetaEntry::Boolean(false)),
-        (4, MetaEntry::Boolean(false)),
-        (5, MetaEntry::Boolean(false)),
-        (6, MetaEntry::Byte(0)),
-        (7, MetaEntry::Float(1.0)),
-        (8, MetaEntry::VarInt(0)),
-        (9, MetaEntry::Boolean(false)),
-        (10, MetaEntry::VarInt(0)),
-        (11, MetaEntry::Float(0.0)),
-        (12, MetaEntry::VarInt(0)),
-        (13, MetaEntry::Byte(0)),
-        (14, MetaEntry::Byte(1)),
-        // TODO NBT
-    ]);
-
-    let spawn_player = SpawnPlayer::new(
-        player.id() as i32,
-        ecomp.uuid,
-        ecomp.position.x,
-        ecomp.position.y,
-        ecomp.position.z,
-        degrees_to_stops(ecomp.position.pitch),
-        degrees_to_stops(ecomp.position.yaw),
-        metadata,
-    );
-
-    (player_info, spawn_player)
+    PlayerInfo::new(action, ecomp.uuid)
 }
 
 /// Event which is called when a player disconnected.

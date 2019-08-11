@@ -216,6 +216,11 @@ fn init_world<'a, 'b>(
             &["join_handler", "player_init"],
         )
         .with(
+            entity::EntityBroadcastSystem::default(),
+            "entity_broadcast",
+            &["join_broadcast"],
+        )
+        .with(
             player::EquipmentSendSystem::default(),
             "equipment_send",
             &["join_broadcast"],
