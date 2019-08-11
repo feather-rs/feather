@@ -527,7 +527,7 @@ pub struct UpdateCommandBlockMinecart {
 
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct CreativeInventoryAction {
-    pub slot: u16,
+    pub slot: i16,
     pub clicked_item: Slot,
 }
 
