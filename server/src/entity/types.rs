@@ -19,3 +19,17 @@ pub enum EntityType {
 impl Component for EntityType {
     type Storage = VecStorage<Self>;
 }
+
+impl EntityType {
+    pub fn is_living(self) -> bool {
+        self == EntityType::Player
+    }
+
+    pub fn is_item(self) -> bool {
+        self == EntityType::Item
+    }
+
+    pub fn is_other(self) -> bool {
+        self == EntityType::ExperienceOrb || self == EntityType::Thunderbolt
+    }
+}

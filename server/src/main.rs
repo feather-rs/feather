@@ -18,6 +18,8 @@ extern crate num_derive;
 extern crate smallvec;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate derive_deref;
 
 use std::alloc::System;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -50,6 +52,7 @@ pub mod entity;
 pub mod io;
 pub mod joinhandler;
 pub mod network;
+pub mod physics;
 pub mod player;
 pub mod prelude;
 #[cfg(test)]
