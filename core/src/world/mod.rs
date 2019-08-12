@@ -1,6 +1,8 @@
 use crate::world::block::*;
 use crate::world::chunk::Chunk;
 use hashbrown::HashMap;
+use nalgebra::Vector3;
+use std::ops::{Add, Sub};
 
 pub mod block;
 #[allow(clippy::cast_lossless)]
@@ -24,6 +26,34 @@ impl Position {
     /// this position is in.
     pub fn chunk_pos(&self) -> ChunkPosition {
         ChunkPosition::new(self.x as i32 / 16, self.z as i32 / 16)
+    }
+
+    /// Retrieves the position of the block
+    /// this position is in.
+    pub fn block_pos(&self) -> BlockPosition {
+        BlockPosition::new(self.x as i32, self.y as i32, self.z as i32)
+    }
+}
+
+impl Add<Vector3<f64>> for Position {
+    type Output = Position;
+
+    fn add(self, vec: Vector3<f64>) -> Self::Output {
+        self.x += vec.x;
+        self.y += vec.y;
+        self.z += vec.z;
+        self
+    }
+}
+
+impl Sub<Vector3<f64>> for Position {
+    type Output = Position;
+
+    fn sub(self, vec: Vector3<f64>) -> Self::Output {
+        self.x -= vec.x;
+        self.y -= vec.y;
+        self.z -= vec.z;
+        self
     }
 }
 

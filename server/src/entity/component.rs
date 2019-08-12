@@ -2,8 +2,9 @@
 
 use feather_core::world::Position;
 use feather_core::Gamemode;
+use nalgebra::base::Vector3;
 use specs::storage::BTreeStorage;
-use specs::{Component, VecStorage};
+use specs::{Component, DenseVecStorage, VecStorage};
 use uuid::Uuid;
 
 pub struct PlayerComponent {
@@ -24,4 +25,17 @@ pub struct EntityComponent {
 
 impl Component for EntityComponent {
     type Storage = VecStorage<Self>;
+}
+
+/// An entity's velocity, in blocks per tick.
+///
+/// Entities without this component are assumed
+/// to have a velocity of 0.
+#[derive(Default, Deref, DerefMut)]
+pub struct VelocityComponent {
+    pub velocity: Vector3<f64>,
+}
+
+impl Component for VelocityComponent {
+    type Storage = DenseVecStorage<Self>;
 }
