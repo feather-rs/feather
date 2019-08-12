@@ -213,6 +213,11 @@ fn init_world<'a, 'b>(
         )
         .with(physics::EntityPhysicsSystem, "entity_physics", &[])
         .with(
+            entity::EntityMoveBroadcastSystem::default(),
+            "entity_move_broadcast",
+            &["player_movement", "entity_physics"],
+        )
+        .with(
             joinhandler::JoinHandlerSystem,
             "join_handler",
             &["chunk_send"],
