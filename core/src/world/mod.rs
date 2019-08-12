@@ -39,9 +39,9 @@ impl Add<Vec3> for Position {
     type Output = Position;
 
     fn add(mut self, vec: Vec3) -> Self::Output {
-        self.x += vec.x as f64;
-        self.y += vec.y as f64;
-        self.z += vec.z as f64;
+        self.x += f64::from(vec.x);
+        self.y += f64::from(vec.y);
+        self.z += f64::from(vec.z);
         self
     }
 }
@@ -50,9 +50,9 @@ impl Sub<Vec3> for Position {
     type Output = Position;
 
     fn sub(mut self, vec: Vec3) -> Self::Output {
-        self.x -= vec.x as f64;
-        self.y -= vec.y as f64;
-        self.z -= vec.z as f64;
+        self.x -= f64::from(vec.x);
+        self.y -= f64::from(vec.y);
+        self.z -= f64::from(vec.z);
         self
     }
 }

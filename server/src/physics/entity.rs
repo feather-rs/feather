@@ -1,8 +1,6 @@
 //! Module for performing entity physics, including velocity, drag
 //! and position updates each tick.
 
-#![allow(clippy::float_cmp)]
-
 use crate::entity::{EntityComponent, EntityMoveEvent, EntityType, VelocityComponent};
 use feather_core::world::block::Block;
 use feather_core::world::ChunkMap;
@@ -136,6 +134,7 @@ fn drag_force(ty: EntityType) -> f32 {
     }
 }
 
+#[allow(clippy::float_cmp)]
 #[cfg(test)]
 mod tests {
     use crate::entity::{EntityMoveEvent, EntityType};

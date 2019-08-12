@@ -24,9 +24,9 @@ use crate::chunk_logic::{
     ChunkWorkerHandle,
 };
 use crate::config::Config;
-use crate::entity::{broadcast_entity_movement, EntityComponent};
+use crate::entity::{EntityComponent, EntityMoveEvent};
 use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue};
-use crate::{TickCount, TPS};
+use crate::{disconnect_player, TickCount, TPS};
 use std::ops::{Deref, DerefMut};
 
 // MOVEMENT HANDLING
@@ -46,14 +46,13 @@ impl<'a> System<'a> for PlayerMovementSystem {
     type SystemData = (
         WriteStorage<'a, EntityComponent>,
         Read<'a, PacketQueue>,
-        ReadStorage<'a, NetworkComponent>,
-        Entities<'a>,
         Read<'a, LazyUpdate>,
         Write<'a, EventChannel<PlayerMoveEvent>>,
+        Write<'a, EventChannel<EntityMoveEvent>>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut ecomps, packet_queue, netcomps, entities, _, mut move_events) = data;
+        let (mut ecomps, packet_queue, lazy, mut move_events, mut entity_move_events) = data;
 
         // Take movement packets
         let mut packets = vec![];
@@ -66,21 +65,15 @@ impl<'a> System<'a> for PlayerMovementSystem {
             let ecomp = ecomps.get(player).unwrap();
 
             // Get position using packet and old position
-            let (new_pos, has_moved, has_looked) = new_pos_from_packet(ecomp.position, packet);
+            let new_pos = new_pos_from_packet(ecomp.position, packet);
 
-            // Broadcast position update
-            broadcast_entity_movement(
-                player,
-                ecomp.position,
-                new_pos,
-                has_moved,
-                has_looked,
-                &netcomps,
-                &entities,
-            );
+            // Check that player didn't move too far (somewhat prevents cheating)
+            if ecomp.position.distance(new_pos) > 6.0 {
+                disconnect_player(player, "You moved too fast!".to_string(), &lazy);
+                continue;
+            }
 
-            // Trigger player move event
-            // TODO entity move event as well
+            // Trigger events
             let event = PlayerMoveEvent {
                 player,
                 old_pos: ecomp.position,
@@ -88,19 +81,22 @@ impl<'a> System<'a> for PlayerMovementSystem {
             };
             move_events.single_write(event);
 
+            let event = EntityMoveEvent {
+                entity: player,
+                old_pos: ecomp.position,
+                new_pos,
+            };
+            entity_move_events.single_write(event);
+
             // Set new position
             ecomps.get_mut(player).unwrap().position = new_pos;
         }
     }
 }
 
-fn new_pos_from_packet(old_pos: Position, packet: Box<dyn Packet>) -> (Position, bool, bool) {
-    let mut has_looked = false;
-    let mut has_moved = false;
-
-    let pos = match packet.ty() {
+fn new_pos_from_packet(old_pos: Position, packet: Box<dyn Packet>) -> Position {
+    match packet.ty() {
         PacketType::PlayerPosition => {
-            has_moved = true;
             let packet = cast_packet::<PlayerPosition>(&*packet);
 
             Position::new(
@@ -112,22 +108,17 @@ fn new_pos_from_packet(old_pos: Position, packet: Box<dyn Packet>) -> (Position,
             )
         }
         PacketType::PlayerLook => {
-            has_looked = true;
             let packet = cast_packet::<PlayerLook>(&*packet);
 
             Position::new(old_pos.x, old_pos.y, old_pos.z, packet.pitch, packet.yaw)
         }
         PacketType::PlayerPositionAndLookServerbound => {
-            has_moved = true;
-            has_looked = true;
             let packet = cast_packet::<PlayerPositionAndLookServerbound>(&*packet);
 
             Position::new(packet.x, packet.feet_y, packet.z, packet.pitch, packet.yaw)
         }
         _ => panic!(),
-    };
-
-    (pos, has_moved, has_looked)
+    }
 }
 
 // CHUNK LOAD/UNLOAD HANDLING
