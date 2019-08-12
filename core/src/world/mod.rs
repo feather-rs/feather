@@ -1,7 +1,7 @@
 use crate::world::block::*;
 use crate::world::chunk::Chunk;
+use glm::Vec3;
 use hashbrown::HashMap;
-use nalgebra::Vector3;
 use std::ops::{Add, Sub};
 
 pub mod block;
@@ -35,24 +35,24 @@ impl Position {
     }
 }
 
-impl Add<Vector3<f64>> for Position {
+impl Add<Vec3> for Position {
     type Output = Position;
 
-    fn add(self, vec: Vector3<f64>) -> Self::Output {
-        self.x += vec.x;
-        self.y += vec.y;
-        self.z += vec.z;
+    fn add(mut self, vec: Vec3) -> Self::Output {
+        self.x += vec.x as f64;
+        self.y += vec.y as f64;
+        self.z += vec.z as f64;
         self
     }
 }
 
-impl Sub<Vector3<f64>> for Position {
+impl Sub<Vec3> for Position {
     type Output = Position;
 
-    fn sub(self, vec: Vector3<f64>) -> Self::Output {
-        self.x -= vec.x;
-        self.y -= vec.y;
-        self.z -= vec.z;
+    fn sub(mut self, vec: Vec3) -> Self::Output {
+        self.x -= vec.x as f64;
+        self.y -= vec.y as f64;
+        self.z -= vec.z as f64;
         self
     }
 }

@@ -11,5 +11,5 @@ mod types;
 pub use broadcast::{EntityBroadcastSystem, EntitySpawnEvent};
 pub use component::{EntityComponent, PlayerComponent, VelocityComponent};
 pub use destroy::{EntityDestroyBroadcastSystem, EntityDestroyEvent, EntityDestroySystem};
-pub use movement::broadcast_entity_movement;
+pub use movement::{broadcast_entity_movement, EntityMoveEvent};
 pub use types::EntityType;

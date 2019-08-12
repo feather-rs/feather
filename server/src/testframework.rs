@@ -10,16 +10,18 @@ use specs::{Builder, Dispatcher, Entity, ReaderId, World, WorldExt};
 use uuid::Uuid;
 
 use feather_core::network::packet::{Packet, PacketType};
-use feather_core::world::Position;
+use feather_core::world::{ChunkMap, ChunkPosition, Position};
 use feather_core::Gamemode;
 
 use crate::config::Config;
-use crate::entity::{EntityComponent, PlayerComponent};
+use crate::entity::{EntityComponent, PlayerComponent, VelocityComponent};
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
 use crate::player::InventoryComponent;
 use crate::PlayerCount;
 use feather_core::level::LevelData;
+use feather_core::world::chunk::Chunk;
+use glm::Vec3;
 use shrev::EventChannel;
 
 /// Initializes a Specs world and dispatcher
@@ -179,6 +181,45 @@ pub fn reader<E: Send + Sync>(w: &World) -> ReaderId<E> {
 pub fn trigger_event<E: Send + Sync + 'static>(world: &mut World, event: E) {
     let mut channel = world.fetch_mut::<EventChannel<E>>();
     channel.single_write(event);
+}
+
+/// Creates an entity at the origin with zero
+/// velocity.
+pub fn add_entity(world: &mut World) -> Entity {
+    add_entity_with_pos(world, Position::default())
+}
+
+/// Creates an entity with the given position
+/// and zero velocity.
+pub fn add_entity_with_pos(world: &mut World, pos: Position) -> Entity {
+    add_entity_with_pos_and_vel(world, pos, glm::vec3(0.0, 0.0, 0.0))
+}
+
+/// Creates an entity with the given position and velocity.
+pub fn add_entity_with_pos_and_vel(world: &mut World, pos: Position, vel: Vec3) -> Entity {
+    world
+        .create_entity()
+        .with(EntityComponent {
+            uuid: Uuid::new_v4(),
+            display_name: "test".to_string(),
+            position: pos,
+            on_ground: true,
+        })
+        .with(VelocityComponent(vel))
+        .build()
+}
+
+/// Populates a 15x15 area of chunks around the origin
+/// with air.
+pub fn populate_with_air(world: &mut World) {
+    for x in -15..=15 {
+        for z in -15..=15 {
+            let chunk = Chunk::new(ChunkPosition::new(x, z));
+            world
+                .fetch_mut::<ChunkMap>()
+                .set_chunk_at(chunk.position(), chunk);
+        }
+    }
 }
 
 /// Heh... tests for the testing framework.

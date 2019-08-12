@@ -2,7 +2,7 @@
 
 use feather_core::world::Position;
 use feather_core::Gamemode;
-use nalgebra::base::Vector3;
+use glm::Vec3;
 use specs::storage::BTreeStorage;
 use specs::{Component, DenseVecStorage, VecStorage};
 use uuid::Uuid;
@@ -31,10 +31,8 @@ impl Component for EntityComponent {
 ///
 /// Entities without this component are assumed
 /// to have a velocity of 0.
-#[derive(Default, Deref, DerefMut)]
-pub struct VelocityComponent {
-    pub velocity: Vector3<f64>,
-}
+#[derive(Deref, DerefMut)]
+pub struct VelocityComponent(pub Vec3);
 
 impl Component for VelocityComponent {
     type Storage = DenseVecStorage<Self>;

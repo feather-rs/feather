@@ -21,6 +21,8 @@ extern crate lazy_static;
 #[macro_use]
 extern crate derive_deref;
 
+extern crate nalgebra_glm as glm;
+
 use std::alloc::System;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -207,6 +209,7 @@ fn init_world<'a, 'b>(
             "chunk_send",
             &["chunk_load"],
         )
+        .with(physics::EntityPhysicsSystem, "entity_physics", &[])
         .with(
             joinhandler::JoinHandlerSystem,
             "join_handler",

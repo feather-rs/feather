@@ -11,6 +11,8 @@ extern crate feather_codegen;
 #[macro_use]
 extern crate num_derive;
 
+extern crate nalgebra_glm as glm;
+
 pub mod bytebuf;
 pub mod entitymeta;
 pub mod inventory;
