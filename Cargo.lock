@@ -534,7 +534,7 @@ dependencies = [
  "rand-legacy 0.1.0",
  "rayon 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rsa 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "rsa-der 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rsa-der 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.98 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.40 (registry+https://github.com/rust-lang/crates.io-index)",
  "shrev 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1446,7 +1446,7 @@ dependencies = [
 
 [[package]]
 name = "rsa-der"
-version = "0.1.1"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "simple_asn1 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2183,7 +2183,7 @@ dependencies = [
 "checksum reqwest 0.9.19 (registry+https://github.com/rust-lang/crates.io-index)" = "1d0777154c2c3eb54f5c480db01de845652d941e47191277cc673634c3853939"
 "checksum rgb 0.8.13 (registry+https://github.com/rust-lang/crates.io-index)" = "4f089652ca87f5a82a62935ec6172a534066c7b97be003cc8f702ee9a7a59c92"
 "checksum rsa 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "6ad8d3632f6745bb671c8637e2aa44015537c5e384789d2ea3235739301ed1e0"
-"checksum rsa-der 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a361a6d6cbc20156afa97c03186e53f639d8242884e2b225190743a4de7f7068"
+"checksum rsa-der 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "1170c86c683547fa781a0e39e6e281ebaedd4515be8a806022984f427ea3d44d"
 "checksum rustc-demangle 0.1.15 (registry+https://github.com/rust-lang/crates.io-index)" = "a7f4dccf6f4891ebcc0c39f9b6eb1a83b9bf5d747cb439ec6fba4f3b977038af"
 "checksum rustc_version 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "138e3e0acb6c9fb258b19b67cb8abd63c00679d2851805ea151465464fe9030a"
 "checksum ryu 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c92464b447c0ee8c4fb3824ecc8383b81717b9f1e74ba2e72540aef7b9f82997"
