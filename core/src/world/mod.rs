@@ -8,7 +8,7 @@ pub mod block;
 #[allow(clippy::cast_lossless)]
 pub mod chunk;
 
-#[derive(Clone, Copy, Debug, Default, new)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, new)]
 pub struct Position {
     pub x: f64,
     pub y: f64,

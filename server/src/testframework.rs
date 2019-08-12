@@ -10,11 +10,11 @@ use specs::{Builder, Dispatcher, Entity, ReaderId, World, WorldExt};
 use uuid::Uuid;
 
 use feather_core::network::packet::{Packet, PacketType};
-use feather_core::world::{ChunkMap, ChunkPosition, Position};
+use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
 use feather_core::Gamemode;
 
 use crate::config::Config;
-use crate::entity::{EntityComponent, PlayerComponent, VelocityComponent};
+use crate::entity::{EntityComponent, EntityType, PlayerComponent, VelocityComponent};
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
 use crate::player::InventoryComponent;
@@ -23,6 +23,8 @@ use feather_core::level::LevelData;
 use feather_core::world::chunk::Chunk;
 use glm::Vec3;
 use shrev::EventChannel;
+
+use feather_core::world::block::Block;
 
 /// Initializes a Specs world and dispatcher
 /// using default configuration options and an
@@ -183,20 +185,34 @@ pub fn trigger_event<E: Send + Sync + 'static>(world: &mut World, event: E) {
     channel.single_write(event);
 }
 
+/// Returns all triggered events of a given type.
+pub fn triggered_events<E: Send + Sync + Clone + 'static>(
+    world: &World,
+    reader: &mut ReaderId<E>,
+) -> Vec<E> {
+    let channel = world.fetch::<EventChannel<E>>();
+    channel.read(reader).cloned().collect()
+}
+
 /// Creates an entity at the origin with zero
 /// velocity.
-pub fn add_entity(world: &mut World) -> Entity {
-    add_entity_with_pos(world, Position::default())
+pub fn add_entity(world: &mut World, ty: EntityType) -> Entity {
+    add_entity_with_pos(world, ty, Position::default())
 }
 
 /// Creates an entity with the given position
 /// and zero velocity.
-pub fn add_entity_with_pos(world: &mut World, pos: Position) -> Entity {
-    add_entity_with_pos_and_vel(world, pos, glm::vec3(0.0, 0.0, 0.0))
+pub fn add_entity_with_pos(world: &mut World, ty: EntityType, pos: Position) -> Entity {
+    add_entity_with_pos_and_vel(world, ty, pos, glm::vec3(0.0, 0.0, 0.0))
 }
 
 /// Creates an entity with the given position and velocity.
-pub fn add_entity_with_pos_and_vel(world: &mut World, pos: Position, vel: Vec3) -> Entity {
+pub fn add_entity_with_pos_and_vel(
+    world: &mut World,
+    ty: EntityType,
+    pos: Position,
+    vel: Vec3,
+) -> Entity {
     world
         .create_entity()
         .with(EntityComponent {
@@ -206,6 +222,7 @@ pub fn add_entity_with_pos_and_vel(world: &mut World, pos: Position, vel: Vec3) 
             on_ground: true,
         })
         .with(VelocityComponent(vel))
+        .with(ty)
         .build()
 }
 
@@ -220,6 +237,54 @@ pub fn populate_with_air(world: &mut World) {
                 .set_chunk_at(chunk.position(), chunk);
         }
     }
+}
+
+/// Asserts that an entity was not removed.
+pub fn assert_not_removed(world: &World, entity: Entity) {
+    assert!(world.entities().is_alive(entity));
+}
+
+/// Asserts that an entity was removed.
+pub fn assert_removed(world: &World, entity: Entity) {
+    assert!(!world.entities().is_alive(entity));
+}
+
+/// Retrieves the position of an entity.
+pub fn entity_pos(world: &World, entity: Entity) -> Position {
+    world
+        .read_component::<EntityComponent>()
+        .get(entity)
+        .unwrap()
+        .position
+}
+
+/// Retrieves the velocity of an entity.
+pub fn entity_vel(world: &World, entity: Entity) -> Option<Vec3> {
+    if let Some(comp) = world.read_component::<VelocityComponent>().get(entity) {
+        Some(comp.0)
+    } else {
+        None
+    }
+}
+
+/// Sets an entity's position.
+pub fn set_entity_pos(world: &World, entity: Entity, pos: Position) {
+    let mut storage = world.write_component::<EntityComponent>();
+    storage.get_mut(entity).unwrap().position = pos;
+}
+
+/// Sets an entity's velocity.
+pub fn set_entity_velocity(world: &World, entity: Entity, vel: Vec3) {
+    let mut storage = world.write_component::<VelocityComponent>();
+    storage.get_mut(entity).unwrap().0 = vel;
+}
+
+/// Sets the block at the given position in the world.
+pub fn set_block(x: i32, y: i32, z: i32, block: Block, world: &World) {
+    let mut chunk_map = world.fetch_mut::<ChunkMap>();
+    chunk_map
+        .set_block_at(BlockPosition::new(x, y, z), block)
+        .unwrap();
 }
 
 /// Heh... tests for the testing framework.

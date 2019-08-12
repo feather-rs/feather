@@ -1,6 +1,8 @@
 //! Module for performing entity physics, including velocity, drag
 //! and position updates each tick.
 
+#![allow(clippy::float_cmp)]
+
 use crate::entity::{EntityComponent, EntityMoveEvent, EntityType, VelocityComponent};
 use feather_core::world::block::Block;
 use feather_core::world::ChunkMap;
@@ -51,12 +53,12 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                             velocity.0.x = 0.0;
                         }
 
-                        let pending_pos_y = position + glm::vec3(velocity.0.y, 0.0, 0.0);
+                        let pending_pos_y = position + glm::vec3(0.0, velocity.0.y, 0.0);
                         if chunk_map.block_at(pending_pos_y.block_pos()) != Some(Block::Air) {
                             velocity.0.y = 0.0;
                         }
 
-                        let pending_pos_z = position + glm::vec3(velocity.0.z, 0.0, 0.0);
+                        let pending_pos_z = position + glm::vec3(0.0, 0.0, velocity.0.z);
                         if chunk_map.block_at(pending_pos_z.block_pos()) != Some(Block::Air) {
                             velocity.0.z = 0.0;
                         }
@@ -68,18 +70,18 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                         let drag = drag_force(*ty);
 
                         velocity.0.y = drag * velocity.0.y + gravity;
+
+                        // Set new position and trigger event.
+                        let event = EntityMoveEvent {
+                            entity,
+                            old_pos: position,
+                            new_pos: pending_position,
+                        };
+
+                        tx.send(event).unwrap();
+
+                        entity_comp.position = pending_position;
                     }
-
-                    // Set new position and trigger event.
-                    let event = EntityMoveEvent {
-                        entity,
-                        old_pos: position,
-                        new_pos: pending_position,
-                    };
-
-                    tx.send(event).unwrap();
-
-                    entity_comp.position = pending_position;
                 } else {
                     // Chunk isn't loaded. Unload entity.
                     entities.delete(entity).unwrap();
@@ -104,8 +106,6 @@ fn gravitational_acceleration(ty: EntityType) -> f32 {
         -0.08
     } else if ty.is_item() {
         -0.04
-    } else if ty.is_other() {
-        0.0
     } else {
         0.0
     }
@@ -119,8 +119,6 @@ fn terminal_velocity(ty: EntityType) -> f32 {
         -3.92
     } else if ty.is_item() {
         -1.96
-    } else if ty.is_other() {
-        0.0
     } else {
         0.0
     }
@@ -133,8 +131,6 @@ fn drag_force(ty: EntityType) -> f32 {
         0.98
     } else if ty.is_item() {
         0.04
-    } else if ty.is_other() {
-        0.0
     } else {
         0.0
     }
@@ -142,16 +138,88 @@ fn drag_force(ty: EntityType) -> f32 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::entity::{EntityMoveEvent, EntityType};
     use crate::testframework as t;
+    use feather_core::world::block::Block;
     use feather_core::world::Position;
+    use shrev::ReaderId;
+    use specs::{Dispatcher, Entity, World, WorldExt};
 
     #[test]
     fn test_entity_physics_basic() {
-        let (mut w, mut d) = t::init_world();
+        let (mut w, mut d, entity, mut reader) = setup();
 
-        let pos = Position::new(0.0, 0.0, 0.0);
+        d.dispatch(&w);
+        w.maintain();
+
+        t::assert_not_removed(&w, entity);
+
+        let pos = t::entity_pos(&w, entity);
+        assert_eq!(pos.x, 0.0);
+        assert_eq!(pos.y, 1.0);
+        assert_eq!(pos.z, 0.0);
+
+        let vel = t::entity_vel(&w, entity).unwrap();
+        assert_eq!(vel.x, 0.0);
+        assert_float_eq!(vel.y, 0.90);
+        assert_eq!(vel.z, 0.0);
+
+        let events = t::triggered_events::<EntityMoveEvent>(&w, &mut reader);
+        assert_eq!(events.len(), 1);
+
+        let first = events.first().unwrap();
+        assert_eq!(first.entity, entity);
+        assert_eq!(first.old_pos, Position::default());
+        assert_eq!(first.new_pos, Position::new(0.0, 1.0, 0.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn test_entity_physics_block_collide() {
+        let (mut w, mut d, entity, mut reader) = setup();
+
+        t::set_block(0, 1, 0, Block::Stone, &w);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        t::assert_not_removed(&w, entity);
+
+        let pos = t::entity_pos(&w, entity);
+        assert_eq!(pos, Position::default());
+
+        let vel = t::entity_vel(&w, entity).unwrap();
+        assert_eq!(vel, glm::vec3(0.0, 0.0, 0.0));
+
+        let events = t::triggered_events(&w, &mut reader);
+        assert!(events.is_empty());
+    }
+
+    #[test]
+    fn test_entity_physics_unloaded_chunk() {
+        let (mut w, mut d, entity, mut reader) = setup();
+
+        t::set_entity_velocity(&w, entity, glm::vec3(10000.0, 0.0, 0.0));
+
+        d.dispatch(&w);
+        w.maintain();
+
+        t::assert_removed(&w, entity);
+
+        let events = t::triggered_events(&w, &mut reader);
+        assert!(events.is_empty());
+    }
+
+    fn setup<'a, 'b>() -> (World, Dispatcher<'a, 'b>, Entity, ReaderId<EntityMoveEvent>) {
+        let (mut w, d) = t::init_world();
+
+        let old_pos = Position::new(0.0, 0.0, 0.0, 0.0, 0.0);
         let vel = glm::vec3(0.0, 1.0, 0.0);
-        let entity = t::add_entity_with_pos_and_vel(&mut w, pos, vel);
+        let entity = t::add_entity_with_pos_and_vel(&mut w, EntityType::Player, old_pos, vel);
+
+        t::populate_with_air(&mut w);
+
+        let reader = t::reader(&w);
+
+        (w, d, entity, reader)
     }
 }

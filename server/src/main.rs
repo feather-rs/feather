@@ -47,6 +47,8 @@ use std::process::abort;
 #[global_allocator]
 static ALLOC: System = System;
 
+#[macro_use]
+pub mod util;
 pub mod chunk_logic;
 pub mod chunkworker;
 pub mod config;
