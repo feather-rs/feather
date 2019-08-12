@@ -6,6 +6,17 @@ use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove,
 };
 
+/// Event triggered when an entity moves.
+///
+/// This event is triggered *after* the entity's
+/// position is updated.
+#[derive(Debug, Clone)]
+pub struct EntityMoveEvent {
+    pub entity: Entity,
+    pub old_pos: Position,
+    pub new_pos: Position,
+}
+
 /// Broadcasts to all joined players that an entity has moved.
 #[allow(clippy::too_many_arguments)]
 pub fn broadcast_entity_movement(
