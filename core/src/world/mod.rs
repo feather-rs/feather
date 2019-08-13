@@ -33,6 +33,23 @@ impl Position {
     pub fn block_pos(&self) -> BlockPosition {
         BlockPosition::new(self.x as i32, self.y as i32, self.z as i32)
     }
+
+    /// Returns a unit vector representing
+    /// the direction of this position's pitch
+    /// and yaw.
+    pub fn direction(&self) -> Vec3 {
+        let rotation_x = self.yaw.to_radians();
+        let rotation_y = self.pitch.to_radians();
+
+        let y = -rotation_y.sin();
+
+        let xz = rotation_y.cos();
+
+        let x = -xz * rotation_x.sin();
+        let z = xz * rotation_x.cos();
+
+        glm::vec3(x, y, z)
+    }
 }
 
 impl Add<Vec3> for Position {

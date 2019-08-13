@@ -290,6 +290,11 @@ fn init_world<'a, 'b>(
             &["network"],
         )
         .with(
+            entity::ItemSpawnSystem::default(),
+            "item_spawn",
+            &["player_digging", "creative_inventory"],
+        )
+        .with(
             player::HeldItemChangeSystem,
             "held_item_change",
             &["network"],

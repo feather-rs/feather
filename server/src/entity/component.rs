@@ -31,9 +31,15 @@ impl Component for EntityComponent {
 ///
 /// Entities without this component are assumed
 /// to have a velocity of 0.
-#[derive(Deref, DerefMut)]
+#[derive(Deref, DerefMut, Clone, Debug)]
 pub struct VelocityComponent(pub Vec3);
 
 impl Component for VelocityComponent {
     type Storage = DenseVecStorage<Self>;
+}
+
+impl Default for VelocityComponent {
+    fn default() -> Self {
+        VelocityComponent(glm::vec3(0.0, 0.0, 0.0))
+    }
 }

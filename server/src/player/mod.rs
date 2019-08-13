@@ -34,4 +34,7 @@ pub use inventory::{
     InventoryComponent, InventoryUpdateEvent,
 };
 
-pub use digging::{BlockUpdateBroadcastSystem, PlayerDiggingSystem};
+pub use digging::{
+    BlockUpdateBroadcastSystem, BlockUpdateCause, BlockUpdateEvent, PlayerDiggingSystem,
+    PlayerItemDropEvent,
+};

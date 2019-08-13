@@ -439,6 +439,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x00, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::SpawnObject,
+        );
+
+        m.insert(
             PacketId(0x06, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::AnimationClientbound,
         );
@@ -511,6 +516,11 @@ lazy_static! {
         m.insert(
             PacketId(0x39, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::EntityHeadLook,
+        );
+
+        m.insert(
+            PacketId(0x3F, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::EntityMetadata,
         );
 
         m.insert(

@@ -458,11 +458,48 @@ impl Default for PlayerDiggingStatus {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, new, Clone)]
 pub struct EntityAction {
     pub entity_id: VarInt,
-    pub action_id: VarInt,
+    pub action_id: EntityActionType,
     pub jump_boost: VarInt,
+}
+
+impl Packet for EntityAction {
+    fn read_from(&mut self, mut buf: &mut PacketBuf) -> Result<(), ()> {
+        self.entity_id = buf.read_var_int()?;
+        self.action_id = EntityActionType::from_i32(buf.read_var_int()?).ok_or(())?;
+        self.jump_boost = buf.read_var_int()?;
+
+        Ok(())
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        unimplemented!()
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::EntityAction
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, FromPrimitive, ToPrimitive)]
+pub enum EntityActionType {
+    StartSneaking,
+    StopSneaking,
+    LeaveBed,
+    StartSprinting,
+    StopSprinting,
+    StartJumpWithHorse,
+    StopJumpWithHorse,
+    OpenHorseInventory,
+    StartFlyingWithElytra,
+}
+
+impl Default for EntityActionType {
+    fn default() -> Self {
+        EntityActionType::StartSneaking
+    }
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
@@ -1480,6 +1517,27 @@ pub struct Respawn {
 pub struct EntityHeadLook {
     pub entity_id: VarInt,
     pub head_yaw: u8,
+}
+
+#[derive(Default, AsAny, new, Clone)]
+pub struct PacketEntityMetadata {
+    pub entity_id: VarInt,
+    pub metadata: EntityMetadata,
+}
+
+impl Packet for PacketEntityMetadata {
+    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        buf.write_var_int(self.entity_id);
+        buf.write_metadata(&self.metadata);
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::EntityMetadata
+    }
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]

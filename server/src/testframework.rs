@@ -24,6 +24,8 @@ use feather_core::world::chunk::Chunk;
 use glm::Vec3;
 use shrev::EventChannel;
 
+use crate::entity::metadata::{self, Metadata};
+
 use feather_core::world::block::Block;
 
 /// Initializes a Specs world and dispatcher
@@ -68,6 +70,7 @@ pub fn add_player(world: &mut World) -> Player {
             display_name: "Test".to_string(),
         })
         .with(InventoryComponent::default())
+        .with(Metadata::Player(metadata::Player::default()))
         .build();
 
     Player {
@@ -223,6 +226,7 @@ pub fn add_entity_with_pos_and_vel(
         })
         .with(VelocityComponent(vel))
         .with(ty)
+        .with(Metadata::Entity(metadata::Entity::default()))
         .build()
 }
 
