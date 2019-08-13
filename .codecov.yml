@@ -6,3 +6,4 @@ ignore:
   - "blocks/src/blocks.rs"
   - "generator"
   - "items/src/item.rs"
+  - "codegen" # No way to run codecov on procedural macros, unfortunately

@@ -1,5 +1,10 @@
 extern crate proc_macro;
 
+#[macro_use]
+extern crate strum_macros;
+
+mod entity_metadata;
+
 use heck::SnakeCase;
 use lazy_static::lazy_static;
 use proc_macro::TokenStream;
@@ -271,4 +276,9 @@ pub fn derive_to_snake_case(input: TokenStream) -> TokenStream {
     };
 
     result.into()
+}
+
+#[proc_macro]
+pub fn entity_metadata(input: TokenStream) -> TokenStream {
+    entity_metadata::entity_metadata(input)
 }
