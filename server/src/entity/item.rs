@@ -2,7 +2,7 @@
 
 use crate::entity::metadata::{self, Metadata};
 use crate::entity::{EntityComponent, EntitySpawnEvent, EntityType, VelocityComponent};
-use crate::player::PlayerItemDropEvent;
+use crate::player::{PlayerItemDropEvent, PLAYER_EYE_HEIGHT};
 use rand::Rng;
 use shrev::EventChannel;
 use specs::{Entities, Read, ReaderId, System, SystemData, World, Write, WriteStorage};
@@ -52,7 +52,8 @@ impl<'a> System<'a> for ItemSpawnSystem {
             let entity = entities.create();
 
             let pos = {
-                let player_pos = entity_comps.get(event.player).unwrap().position;
+                let player_pos = entity_comps.get(event.player).unwrap().position
+                    + glm::vec3(0.0, PLAYER_EYE_HEIGHT, 0.0);
                 player_pos - glm::vec3(0.0, 0.3, 0.0)
             };
 
@@ -140,7 +141,6 @@ mod tests {
         // Check position
         let pos = t::entity_pos(&w, entity);
         assert_float_eq!(pos.x, 0.0);
-        assert_float_eq!(pos.y, 0.7);
         assert_float_eq!(pos.z, 0.0);
 
         // Confirm that velocity was created

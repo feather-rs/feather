@@ -20,19 +20,27 @@ pub struct Position {
 
 impl Position {
     pub fn distance(&self, other: Position) -> f64 {
-        (square(self.x - other.x) + square(self.y - other.y) + square(self.z - other.z)).sqrt()
+        self.distance_squared(other).sqrt()
+    }
+
+    pub fn distance_squared(&self, other: Position) -> f64 {
+        (square(self.x - other.x) + square(self.y - other.y) + square(self.z - other.z))
     }
 
     /// Returns the position of the chunk
     /// this position is in.
     pub fn chunk_pos(&self) -> ChunkPosition {
-        ChunkPosition::new(self.x as i32 / 16, self.z as i32 / 16)
+        ChunkPosition::new(self.x.floor() as i32 / 16, self.z.floor() as i32 / 16)
     }
 
     /// Retrieves the position of the block
     /// this position is in.
     pub fn block_pos(&self) -> BlockPosition {
-        BlockPosition::new(self.x as i32, self.y as i32, self.z as i32)
+        BlockPosition::new(
+            self.x.floor() as i32,
+            self.y.floor() as i32,
+            self.z.floor() as i32,
+        )
     }
 
     /// Returns a unit vector representing

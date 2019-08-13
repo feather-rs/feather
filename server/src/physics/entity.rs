@@ -58,7 +58,6 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                         let pending_pos_y = position + glm::vec3(0.0, velocity.0.y, 0.0);
                         if chunk_map.block_at(pending_pos_y.block_pos()) != Some(Block::Air) {
                             velocity.0.y = 0.0;
-                            entity_comp.position.on_ground = true;
                         }
 
                         let pending_pos_z = position + glm::vec3(0.0, 0.0, velocity.0.z);
@@ -85,6 +84,8 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                             velocity.0.z *= drag;
                         }
 
+                        set_entity_location(&mut pending_position, bbox, &chunk_map);
+
                         // Set new position and trigger event.
                         let event = EntityMoveEvent {
                             entity,
@@ -93,8 +94,6 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                         };
 
                         tx.send(event).unwrap();
-
-                        set_entity_location(&mut pending_position, bbox, &chunk_map);
 
                         entity_comp.position = pending_position;
                     }
@@ -119,17 +118,15 @@ fn set_entity_location(
     chunk_map: &ChunkMap,
 ) {
     // Set entity to be on ground if a block is detected beneath it
-    if !pos.on_ground {
-        let mut offset = 0.0;
+    let mut offset = 0.0;
 
-        if let Some(bbox) = bbox {
-            offset = bbox.size().y;
-        }
+    if let Some(bbox) = bbox {
+        offset = bbox.size().y;
+    }
 
-        let check_pos = *pos - position!(0.0, offset, 0.0);
-        if let Some(block) = chunk_map.block_at(check_pos.block_pos()) {
-            pos.on_ground = block != Block::Air;
-        }
+    let check_pos = *pos - position!(0.0, offset, 0.0);
+    if let Some(block) = chunk_map.block_at(check_pos.block_pos()) {
+        pos.on_ground = block != Block::Air;
     }
 }
 
@@ -164,10 +161,8 @@ fn terminal_velocity(ty: EntityType) -> f32 {
 
 /// Retrieves the drag force for a given entity type.
 fn drag_force(ty: EntityType) -> f32 {
-    if ty.is_living() {
+    if ty.is_living() || ty.is_item() {
         0.98
-    } else if ty.is_item() {
-        0.96
     } else {
         0.0
     }
@@ -207,7 +202,7 @@ mod tests {
         let first = events.first().unwrap();
         assert_eq!(first.entity, entity);
         assert_eq!(first.old_pos, position!(0.0, 0.0, 0.0));
-        assert_eq!(first.new_pos, position!(0.0, 1.0, 0.0));
+        assert_eq!(first.new_pos, position!(0.0, 1.0, 0.0, false));
     }
 
     #[test]

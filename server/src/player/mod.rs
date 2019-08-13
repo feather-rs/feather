@@ -38,3 +38,6 @@ pub use digging::{
     BlockUpdateBroadcastSystem, BlockUpdateCause, BlockUpdateEvent, PlayerDiggingSystem,
     PlayerItemDropEvent,
 };
+
+pub const PLAYER_EYE_HEIGHT: f32 = 1.62;
+pub const PLAYER_EYE_HEIGHT_WHILE_SNEAKING: f32 = 1.54;
