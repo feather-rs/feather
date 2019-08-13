@@ -131,7 +131,7 @@ mod tests {
             animation: ClientboundAnimation::SwingMainArm,
         };
 
-        t::trigger_event(&mut w, event.clone());
+        t::trigger_event(&w, event.clone());
 
         d.dispatch(&w);
         w.maintain();

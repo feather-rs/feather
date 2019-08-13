@@ -14,6 +14,19 @@ macro_rules! assert_float_eq {
     };
 }
 
+/// Generates a setup() implementation for a system
+/// which initializes an internal event reader.
+macro_rules! setup_impl {
+    ($reader:ident) => {
+        fn setup(&mut self, world: &mut specs::World) {
+            use specs::SystemData;
+            use shrev::EventChannel;
+            Self::SystemData::setup(world);
+            self.$reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
+        }
+    };
+}
+
 /// Converts float-based velocity in blocks per tick
 /// to the obnoxious format used by the protocol.
 pub fn protocol_velocity(vel: Vec3) -> (i16, i16, i16) {

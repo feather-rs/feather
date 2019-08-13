@@ -64,6 +64,19 @@ impl Add<Vec3> for Position {
     }
 }
 
+impl Add<Position> for Position {
+    type Output = Position;
+
+    fn add(mut self, rhs: Position) -> Self::Output {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
+        self.pitch += rhs.pitch;
+        self.yaw += rhs.yaw;
+        self
+    }
+}
+
 impl Sub<Vec3> for Position {
     type Output = Position;
 
@@ -71,6 +84,17 @@ impl Sub<Vec3> for Position {
         self.x -= f64::from(vec.x);
         self.y -= f64::from(vec.y);
         self.z -= f64::from(vec.z);
+        self
+    }
+}
+
+impl Sub<Position> for Position {
+    type Output = Position;
+
+    fn sub(mut self, rhs: Position) -> Self::Output {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+        self.z -= rhs.z;
         self
     }
 }
@@ -154,6 +178,10 @@ impl ChunkMap {
     /// location. If the chunk in which the block
     /// exists is not laoded, `None` is returned.
     pub fn block_at(&self, pos: BlockPosition) -> Option<Block> {
+        if pos.y > 255 || pos.y < 0 {
+            return None;
+        }
+
         let chunk_pos = pos.chunk_pos();
 
         if let Some(chunk) = self.chunk_at(chunk_pos) {
@@ -173,6 +201,10 @@ impl ChunkMap {
     /// does not broadcast the update in any way. As such,
     /// the according function should be called instead.
     pub fn set_block_at(&mut self, pos: BlockPosition, block: Block) -> Result<(), ()> {
+        if pos.y > 255 || pos.y < 0 {
+            return Err(());
+        }
+
         let chunk_pos = pos.chunk_pos();
 
         if let Some(chunk) = self.chunk_map.get_mut(&chunk_pos) {
