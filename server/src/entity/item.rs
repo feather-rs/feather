@@ -114,7 +114,7 @@ mod tests {
         let (mut w, mut d) = t::init_world();
 
         let player = t::add_player(&mut w);
-        t::set_entity_pos(&w, player.entity, Position::new(0.0, 1.0, 0.0, 0.0, 0.0));
+        t::set_entity_pos(&w, player.entity, position!(0.0, 1.0, 0.0));
 
         let stack = ItemStack::new(Item::AcaciaBoat, 4);
 

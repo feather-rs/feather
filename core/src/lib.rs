@@ -19,6 +19,7 @@ pub mod inventory;
 pub mod network;
 pub mod prelude;
 mod save;
+#[macro_use]
 pub mod world;
 
 pub use entitymeta::EntityMetadata;

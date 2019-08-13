@@ -37,6 +37,7 @@ pub const SPAWN_POSITION: Position = Position {
     z: 0.0,
     pitch: 0.0,
     yaw: 0.0,
+    on_ground: true,
 };
 
 #[derive(Default)]

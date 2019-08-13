@@ -24,6 +24,8 @@ extern crate derive_deref;
 extern crate feather_codegen;
 #[macro_use]
 extern crate bitflags;
+#[macro_use]
+extern crate feather_core;
 
 extern crate nalgebra_glm as glm;
 

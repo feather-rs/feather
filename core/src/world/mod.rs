@@ -8,13 +8,14 @@ pub mod block;
 #[allow(clippy::cast_lossless)]
 pub mod chunk;
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, new)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Position {
     pub x: f64,
     pub y: f64,
     pub z: f64,
     pub pitch: f32,
     pub yaw: f32,
+    pub on_ground: bool,
 }
 
 impl Position {
@@ -72,6 +73,29 @@ impl Sub<Vec3> for Position {
         self.z -= f64::from(vec.z);
         self
     }
+}
+
+#[macro_export]
+macro_rules! position {
+    ($x:expr, $y:expr, $z:expr, $pitch:expr, $yaw:expr, $on_ground:expr) => {
+        Position {
+            x: $x,
+            y: $y,
+            z: $z,
+            pitch: $pitch,
+            yaw: $yaw,
+            on_ground: $on_ground,
+        }
+    };
+    ($x:expr, $y:expr, $z:expr, $pitch: expr, $yaw: expr) => {
+        position!($x, $y, $z, $pitch, $yaw, true)
+    };
+    ($x:expr, $y:expr, $z:expr) => {
+        position!($x, $y, $z, 0.0, 0.0)
+    };
+    ($x:expr, $y:expr, $z:expr, $on_ground: expr) => {
+        position!($x, $y, $z, 0.0, 0.0, $on_ground)
+    };
 }
 
 fn square(x: f64) -> f64 {
