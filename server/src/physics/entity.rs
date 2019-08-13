@@ -93,7 +93,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
     }
 }
 
-/// Retrieves the gravitational acceleration in blocks per tick
+/// Retrieves the gravitational acceleration in blocks per tick squared
 /// for a given entity type.
 ///
 /// This information was fetched from
@@ -127,7 +127,7 @@ fn drag_force(ty: EntityType) -> f32 {
     if ty.is_living() {
         0.98
     } else if ty.is_item() {
-        0.04
+        0.96
     } else {
         0.0
     }

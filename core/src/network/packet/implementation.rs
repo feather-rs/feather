@@ -466,7 +466,7 @@ pub struct EntityAction {
 }
 
 impl Packet for EntityAction {
-    fn read_from(&mut self, mut buf: &mut PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
         self.entity_id = buf.read_var_int()?;
         self.action_id = EntityActionType::from_i32(buf.read_var_int()?).ok_or(())?;
         self.jump_boost = buf.read_var_int()?;
