@@ -86,16 +86,18 @@ impl<'a> System<'a> for EntityPhysicsSystem {
 
                         set_entity_location(&mut pending_position, bbox, &chunk_map);
 
-                        // Set new position and trigger event.
-                        let event = EntityMoveEvent {
-                            entity,
-                            old_pos: position,
-                            new_pos: pending_position,
-                        };
+                        if pending_position != position {
+                            // Set new position and trigger event.
+                            let event = EntityMoveEvent {
+                                entity,
+                                old_pos: position,
+                                new_pos: pending_position,
+                            };
 
-                        tx.send(event).unwrap();
+                            tx.send(event).unwrap();
 
-                        entity_comp.position = pending_position;
+                            entity_comp.position = pending_position;
+                        }
                     }
                 } else {
                     // Chunk isn't loaded. Unload entity.
@@ -121,7 +123,7 @@ fn set_entity_location(
     let mut offset = 0.0;
 
     if let Some(bbox) = bbox {
-        offset = bbox.size().y;
+        offset = bbox.size().y / 2.0;
     }
 
     let check_pos = *pos - position!(0.0, offset, 0.0);

@@ -74,6 +74,15 @@ pub fn broadcast_entity_movement(
     if has_moved {
         let (rx, ry, rz) = calculate_relative_move(old_pos, new_pos);
 
+        if (rx == 0 && ry == 0 && rz == 0) && !has_looked {
+            // Because of floating point errors,
+            // the physics system may trigger an
+            // event when the distance moved is minuscule,
+            // which causes jittering on the client.
+            // Don't send the packet if it has no effect.
+            return;
+        }
+
         if has_looked {
             let packet = EntityLookAndRelativeMove::new(
                 entity.id() as i32,

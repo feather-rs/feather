@@ -2,6 +2,8 @@ use crate::world::block::*;
 use crate::world::chunk::Chunk;
 use glm::Vec3;
 use hashbrown::HashMap;
+use std::fmt;
+use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};
 
 pub mod block;
@@ -104,6 +106,16 @@ impl Sub<Position> for Position {
         self.y -= rhs.y;
         self.z -= rhs.z;
         self
+    }
+}
+
+impl Display for Position {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        write!(
+            f,
+            "({:.2}, {:.2}, {:.2}), ({:.2}, {:.2}), on_ground: {}",
+            self.x, self.y, self.z, self.pitch, self.yaw, self.on_ground
+        )
     }
 }
 
