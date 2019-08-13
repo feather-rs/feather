@@ -83,7 +83,6 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 } else {
                     // Chunk isn't loaded. Unload entity.
                     entities.delete(entity).unwrap();
-                    return;
                 }
             });
 
