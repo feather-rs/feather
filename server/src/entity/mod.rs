@@ -5,7 +5,7 @@
 mod broadcast;
 mod component;
 mod destroy;
-mod metadata;
+pub mod metadata;
 mod movement;
 mod types;
 

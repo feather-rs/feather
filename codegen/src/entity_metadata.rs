@@ -142,6 +142,10 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
     let mut structs = vec![];
     let mut enum_variants = vec![];
 
+    let mut to_raw_metadata_arms = vec![];
+
+    let enum_ident = input.ident.clone();
+
     for variant in input.variants.values() {
         let entries = get_metadata_entries(&input, variant.clone());
 
@@ -150,6 +154,9 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
         let mut struct_fields = vec![];
         let mut struct_impl = vec![];
         let mut to_raw_metadata = vec![];
+
+        let mut new_fn_parameters = vec![];
+        let mut new_fn_contents = vec![];
 
         for entry in entries {
             let entry_ident = entry.name;
@@ -192,11 +199,30 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
                     #set_expr
                     self.#is_dirty_ident = false;
                 }
+            });
+
+            new_fn_parameters.push(quote! {
+                #entry_ident: #ty_ident
+            });
+
+            new_fn_contents.push(quote! {
+                #entry_ident,
+                #is_dirty_ident: true,
+            });
+
+            to_raw_metadata_arms.push(quote! {
+                #enum_ident::#variant_ident(meta) => meta.to_raw_metadata(),
             })
         }
 
         struct_impl.push(quote! {
-            pub fn to_raw_metadata(&mut self) -> EntityMetadata {
+            pub fn new(#(#new_fn_parameters),*) -> Self {
+                Self {
+                    #(#new_fn_contents)*
+                }
+            }
+
+            fn to_raw_metadata(&mut self) -> EntityMetadata {
                 let mut meta = EntityMetadata::new();
                 #(#to_raw_metadata)*
                 meta
@@ -219,12 +245,18 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
         })
     }
 
-    let ident = input.ident;
-
     let result = quote! {
         #[derive(Clone, Debug)]
-        pub enum #ident {
+        pub enum #enum_ident {
             #(#enum_variants)*
+        }
+
+        impl #enum_ident {
+            pub fn to_raw_metadata(&mut self) -> EntityMetadata {
+                match self {
+                    #(#to_raw_metadata_arms)*
+                }
+            }
         }
 
         #(#structs)*
