@@ -1,5 +1,9 @@
 //! Definition for entity metadata enum.
+
+#![allow(clippy::too_many_arguments)] // TODO: builder patterm
+
 use feather_core::{EntityMetadata, Slot};
+use specs::{Component, VecStorage};
 
 bitflags! {
     pub struct EntityBitMask: u8 {
@@ -24,6 +28,23 @@ entity_metadata! {
     Item: Entity {
         item: Slot = 6,
     },
+    Living: Entity {
+        hand_states: u8 = 6,
+        health: f32 = 7,
+        potion_effect_color: VarInt = 8,
+        potion_effect_ambient: bool = 9,
+        arrows: VarInt = 10,
+    },
+    Player: Living {
+        additional_hearts: f32 = 11,
+        score: VarInt = 12,
+        displayed_skin_parts: u8 = 13,
+        main_hand: u8 = 14,
+    },
+}
+
+impl Component for Metadata {
+    type Storage = VecStorage<Self>;
 }
 
 #[cfg(test)]
@@ -45,5 +66,16 @@ mod tests {
         assert_eq!(raw.get(0), Some(MetaEntry::Byte(0b0000_0011)));
         assert_eq!(raw.get(5), Some(MetaEntry::Boolean(false)));
         assert_eq!(raw.get(6), None);
+    }
+
+    #[test]
+    fn test_inheritance() {
+        let _meta = Metadata::Item(Item::new(
+            (EntityBitMask::ON_FIRE).bits(),
+            0,
+            false,
+            false,
+            None,
+        ));
     }
 }

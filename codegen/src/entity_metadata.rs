@@ -230,7 +230,7 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
         });
 
         structs.push(quote! {
-            #[derive(Clone, Debug)]
+            #[derive(Clone, Debug, Default)]
             pub struct #variant_ident {
                 #(#struct_fields)*
             }

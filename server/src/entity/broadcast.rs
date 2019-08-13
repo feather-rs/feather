@@ -2,12 +2,16 @@
 //! range of a player.
 
 use crate::entity::movement::degrees_to_stops;
-use crate::entity::{EntityComponent, EntityType};
+use crate::entity::Metadata;
+use crate::entity::{EntityComponent, EntityType, VelocityComponent};
 use crate::network::{send_packet_to_all_players, NetworkComponent};
-use feather_core::entitymeta::EntityMetadata;
-use feather_core::network::packet::implementation::SpawnPlayer;
+use crate::util::protocol_velocity;
+use feather_core::network::packet::implementation::SpawnObject;
+use feather_core::network::packet::implementation::{PacketEntityMetadata, SpawnPlayer};
 use shrev::EventChannel;
-use specs::{Entities, Entity, Read, ReadStorage, ReaderId, System, SystemData, World};
+use specs::{
+    Entities, Entity, Read, ReadStorage, ReaderId, System, SystemData, World, WriteStorage,
+};
 
 //const ITEM_OBJECT_ID: i8 = 2;
 
@@ -36,15 +40,20 @@ impl<'a> System<'a> for EntityBroadcastSystem {
     type SystemData = (
         ReadStorage<'a, EntityComponent>,
         ReadStorage<'a, NetworkComponent>,
+        ReadStorage<'a, VelocityComponent>,
+        WriteStorage<'a, Metadata>,
         Read<'a, EventChannel<EntitySpawnEvent>>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entity_comps, networks, events, entities) = data;
+        let (entity_comps, networks, velocities, mut metadatas, events, entities) = data;
 
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
             let entity = entity_comps.get(event.entity).unwrap();
+            let metadata = metadatas.get_mut(event.entity).unwrap();
+            let velocity = velocities.get(event.entity).cloned().unwrap_or_default();
+            let (velocity_x, velocity_y, velocity_z) = protocol_velocity(*velocity);
 
             // Send spawn packet to clients.
             // The packet type depends on the type
@@ -61,15 +70,39 @@ impl<'a> System<'a> for EntityBroadcastSystem {
                         z: entity.position.z,
                         yaw: degrees_to_stops(entity.position.yaw),
                         pitch: degrees_to_stops(entity.position.pitch),
-                        metadata: EntityMetadata::new(),
+                        metadata: metadata.to_raw_metadata(),
                     };
 
                     send_packet_to_all_players(&networks, &entities, packet, Some(event.entity));
                 }
-                EntityType::Item => unimplemented!(),
+                EntityType::Item => {
+                    let packet = SpawnObject {
+                        entity_id: event.entity.id() as i32,
+                        object_uuid: entity.uuid,
+                        ty: 2, // Type 2 for item stack
+                        x: entity.position.x,
+                        y: entity.position.y,
+                        z: entity.position.z,
+                        pitch: degrees_to_stops(entity.position.pitch),
+                        yaw: degrees_to_stops(entity.position.yaw),
+                        data: 1, // Has velocity
+                        velocity_x,
+                        velocity_y,
+                        velocity_z,
+                    };
+
+                    send_packet_to_all_players(&networks, &entities, packet, Some(event.entity));
+                }
                 EntityType::ExperienceOrb => unimplemented!(),
                 EntityType::Thunderbolt => unimplemented!(),
             }
+
+            // Send metadata.
+            let entity_metadata = PacketEntityMetadata {
+                entity_id: event.entity.id() as i32,
+                metadata: metadata.to_raw_metadata(),
+            };
+            send_packet_to_all_players(&networks, &entities, entity_metadata, None); // Players should know their own metadata
         }
     }
 
@@ -111,5 +144,29 @@ mod tests {
         let packet = cast_packet::<SpawnPlayer>(&*packet);
 
         assert_eq!(packet.entity_id, player1.entity.id() as i32);
+    }
+
+    #[test]
+    fn test_spawn_item() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        let item = t::add_entity(&mut w, EntityType::Item);
+
+        let event = EntitySpawnEvent {
+            entity: item,
+            ty: EntityType::Item,
+        };
+        w.fetch_mut::<EventChannel<_>>().single_write(event);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let spawn_entity = t::assert_packet_received(&player, PacketType::SpawnObject);
+        let spawn_entity = cast_packet::<SpawnObject>(&*spawn_entity);
+
+        assert_eq!(spawn_entity.entity_id, item.id() as i32);
+        assert_eq!(spawn_entity.velocity_x, 0);
     }
 }

@@ -86,6 +86,12 @@ impl IntoMetaEntry for Slot {
     }
 }
 
+impl IntoMetaEntry for f32 {
+    fn into_meta_entry(&self) -> MetaEntry {
+        MetaEntry::Float(*self)
+    }
+}
+
 #[derive(Clone)]
 pub struct EntityMetadata {
     values: HashMap<u8, MetaEntry>,
