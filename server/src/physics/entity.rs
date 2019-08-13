@@ -54,6 +54,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                         let pending_pos_y = position + glm::vec3(0.0, velocity.0.y, 0.0);
                         if chunk_map.block_at(pending_pos_y.block_pos()) != Some(Block::Air) {
                             velocity.0.y = 0.0;
+                            entity_comp.position.on_ground = true;
                         }
 
                         let pending_pos_z = position + glm::vec3(0.0, 0.0, velocity.0.z);
@@ -68,6 +69,17 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                         let drag = drag_force(*ty);
 
                         velocity.0.y = drag * velocity.0.y + gravity;
+
+                        // Friction.
+                        if position.on_ground {
+                            let slip_multiplier = 0.6;
+                            velocity.0.x *= slip_multiplier;
+                            velocity.0.y = 0.0;
+                            velocity.0.z *= slip_multiplier;
+                        } else {
+                            velocity.0.x *= drag;
+                            velocity.0.z *= drag;
+                        }
 
                         // Set new position and trigger event.
                         let event = EntityMoveEvent {
@@ -167,8 +179,8 @@ mod tests {
 
         let first = events.first().unwrap();
         assert_eq!(first.entity, entity);
-        assert_eq!(first.old_pos, Position::default());
-        assert_eq!(first.new_pos, Position::new(0.0, 1.0, 0.0, 0.0, 0.0));
+        assert_eq!(first.old_pos, position!(0.0, 0.0, 0.0));
+        assert_eq!(first.new_pos, position!(0.0, 1.0, 0.0));
     }
 
     #[test]
@@ -183,7 +195,7 @@ mod tests {
         t::assert_not_removed(&w, entity);
 
         let pos = t::entity_pos(&w, entity);
-        assert_eq!(pos, Position::default());
+        assert_eq!(pos, position!(0.0, 0.0, 0.0));
 
         let vel = t::entity_vel(&w, entity).unwrap();
         assert_eq!(vel, glm::vec3(0.0, 0.0, 0.0));
@@ -210,7 +222,7 @@ mod tests {
     fn setup<'a, 'b>() -> (World, Dispatcher<'a, 'b>, Entity, ReaderId<EntityMoveEvent>) {
         let (mut w, d) = t::init_world();
 
-        let old_pos = Position::new(0.0, 0.0, 0.0, 0.0, 0.0);
+        let old_pos = position!(0.0, 0.0, 0.0);
         let vel = glm::vec3(0.0, 1.0, 0.0);
         let entity = t::add_entity_with_pos_and_vel(&mut w, EntityType::Player, old_pos, vel);
 

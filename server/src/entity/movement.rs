@@ -82,11 +82,11 @@ pub fn broadcast_entity_movement(
                 rz,
                 degrees_to_stops(new_pos.yaw),
                 degrees_to_stops(new_pos.pitch),
-                true,
+                new_pos.on_ground,
             );
             send_packet_to_all_players(networks, entities, packet, Some(entity));
         } else {
-            let packet = EntityRelativeMove::new(entity.id() as i32, rx, ry, rz, true);
+            let packet = EntityRelativeMove::new(entity.id() as i32, rx, ry, rz, new_pos.on_ground);
             send_packet_to_all_players(networks, entities, packet, Some(entity));
         }
     } else {
@@ -94,7 +94,7 @@ pub fn broadcast_entity_movement(
             entity.id() as i32,
             degrees_to_stops(new_pos.yaw),
             degrees_to_stops(new_pos.pitch),
-            true,
+            new_pos.on_ground,
         );
         send_packet_to_all_players(networks, entities, packet, Some(entity));
     }

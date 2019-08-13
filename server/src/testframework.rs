@@ -66,7 +66,7 @@ pub fn add_player(world: &mut World) -> Player {
         .with(EntityComponent {
             uuid: Uuid::new_v4(),
             on_ground: true,
-            position: Position::new(0.0, 0.0, 0.0, 0.0, 0.0),
+            position: position!(0.0, 0.0, 0.0),
             display_name: "Test".to_string(),
         })
         .with(InventoryComponent::default())

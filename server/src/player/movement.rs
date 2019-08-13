@@ -99,23 +99,38 @@ fn new_pos_from_packet(old_pos: Position, packet: Box<dyn Packet>) -> Position {
         PacketType::PlayerPosition => {
             let packet = cast_packet::<PlayerPosition>(&*packet);
 
-            Position::new(
+            position!(
                 packet.x,
                 packet.feet_y,
                 packet.z,
                 old_pos.pitch,
                 old_pos.yaw,
+                packet.on_ground
             )
         }
         PacketType::PlayerLook => {
             let packet = cast_packet::<PlayerLook>(&*packet);
 
-            Position::new(old_pos.x, old_pos.y, old_pos.z, packet.pitch, packet.yaw)
+            position!(
+                old_pos.x,
+                old_pos.y,
+                old_pos.z,
+                packet.pitch,
+                packet.yaw,
+                packet.on_ground
+            )
         }
         PacketType::PlayerPositionAndLookServerbound => {
             let packet = cast_packet::<PlayerPositionAndLookServerbound>(&*packet);
 
-            Position::new(packet.x, packet.feet_y, packet.z, packet.pitch, packet.yaw)
+            position!(
+                packet.x,
+                packet.feet_y,
+                packet.z,
+                packet.pitch,
+                packet.yaw,
+                packet.on_ground
+            )
         }
         _ => panic!(),
     }
