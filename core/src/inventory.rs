@@ -34,6 +34,8 @@ pub const SLOT_ENTITY_EQUIPMENT_LEGGINGS: SlotIndex = 3;
 pub const SLOT_ENTITY_EQUIPMENT_CHESTPLATE: SlotIndex = 4;
 pub const SLOT_ENTITY_EQUIPMENT_HELMET: SlotIndex = 5;
 
+pub type Slot = Option<ItemStack>;
+
 pub fn armor_slot_to_entity_equipment(slot: SlotIndex) -> SlotIndex {
     assert!(slot >= 5 && slot <= 8);
     match slot {

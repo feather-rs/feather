@@ -3,10 +3,10 @@ use proc_macro2::Ident;
 use proc_macro2::Span;
 use quote::quote;
 use std::collections::HashMap;
-use std::str::FromStr;
 use syn::braced;
 use syn::parse::{Parse, ParseBuffer};
 use syn::Error;
+use syn::Lit;
 use syn::Token;
 
 #[derive(Clone)]
@@ -19,9 +19,13 @@ impl Parse for EntityMetadata {
     fn parse(input: &ParseBuffer) -> Result<Self, Error> {
         let ident = input.parse()?;
 
+        input.parse::<Token![,]>()?;
+
         let mut variants = HashMap::new();
         while let Ok(variant) = input.parse::<Variant>() {
             variants.insert(variant.ident.clone(), variant);
+
+            input.parse::<Token![,]>()?;
         }
 
         Ok(Self { ident, variants })
@@ -39,7 +43,7 @@ impl Parse for Variant {
     fn parse(input: &ParseBuffer) -> Result<Self, Error> {
         let ident = input.parse()?;
 
-        let extends = if let Ok(_) = input.parse::<Token![:]>() {
+        let extends = if input.parse::<Token![:]>().is_ok() {
             let ident = input.parse()?;
             Some(ident)
         } else {
@@ -67,16 +71,25 @@ impl Parse for Variant {
 struct Entry {
     ty: EntryType,
     name: Ident,
+    index: u8,
 }
 
 impl Parse for Entry {
     fn parse(input: &ParseBuffer) -> Result<Self, Error> {
-        let ty = input.parse()?;
-        let _ = input.parse::<Token![:]>()?;
         let name = input.parse()?;
+        let _ = input.parse::<Token![:]>()?;
+        let ty = input.parse()?;
+
+        let _ = input.parse::<Token![=]>()?;
+
+        let index = match input.parse::<Lit>()? {
+            Lit::Int(val) => val.value() as u8,
+            _ => panic!("Index not a `u8`"),
+        };
+
         let _ = input.parse::<Token![,]>()?;
 
-        Ok(Self { ty, name })
+        Ok(Self { ty, name, index })
     }
 }
 
@@ -86,25 +99,40 @@ enum EntryType {
     VarInt,
     Float,
     String,
-    Chat,
-    OptChat,
     Slot,
     Boolean,
-    Rotation,
-    Position,
-    OptPosition,
-    Direction,
-    OptUuid,
-    OptBlockId,
 }
 
 impl Parse for EntryType {
     fn parse(input: &ParseBuffer) -> Result<Self, Error> {
         let ty = input.parse::<proc_macro2::Ident>()?;
 
-        let entry_ty = EntryType::from_str(&ty.to_string())
-            .map_err(|_| Error::new(Span::call_site(), "Invalid metadata entry type"))?;
-        Ok(entry_ty)
+        Ok(EntryType::from_rust_type(&ty.to_string()))
+    }
+}
+
+impl EntryType {
+    fn rust_type(self) -> &'static str {
+        match self {
+            EntryType::Byte => "u8",
+            EntryType::VarInt => "i32",
+            EntryType::Float => "f32",
+            EntryType::String => "String",
+            EntryType::Slot => "Slot",
+            EntryType::Boolean => "bool",
+        }
+    }
+
+    fn from_rust_type(ty: &str) -> Self {
+        match ty {
+            "u8" => EntryType::Byte,
+            "VarInt" => EntryType::VarInt,
+            "f32" => EntryType::Float,
+            "String" => EntryType::String,
+            "bool" => EntryType::Boolean,
+            "Slot" => EntryType::Slot,
+            _ => panic!("Invalid entry type {}", ty),
+        }
     }
 }
 
@@ -114,32 +142,80 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
     let mut structs = vec![];
     let mut enum_variants = vec![];
 
-    for (_, variant) in &input.variants {
+    for variant in input.variants.values() {
         let entries = get_metadata_entries(&input, variant.clone());
 
-        let ident = &variant.ident;
+        let variant_ident = &variant.ident;
 
         let mut struct_fields = vec![];
+        let mut struct_impl = vec![];
+        let mut to_raw_metadata = vec![];
 
         for entry in entries {
-            let ident = entry.name;
-            let ty = entry.ty;
-            let ty = format!("{:?}", ty);
-            let ty_ident = Ident::new(&ty, Span::call_site());
+            let entry_ident = entry.name;
+            let ty_enum = entry.ty;
+            let ty = ty_enum.rust_type();
+            let ty_ident = Ident::new(ty, Span::call_site());
+
+            let is_dirty_name = format!("__is_dirty_{}", entry_ident);
+            let is_dirty_ident = Ident::new(&is_dirty_name, Span::call_site());
+
             struct_fields.push(quote! {
-                #ident: #ty_ident,
+                #entry_ident: #ty_ident,
+                #is_dirty_ident: bool,
             });
+
+            let set_fn_ident = Ident::new(&format!("set_{}", entry_ident), Span::call_site());
+            let get_fn_ident = entry_ident.clone();
+
+            struct_impl.push(quote! {
+                pub fn #set_fn_ident(&mut self, val: #ty_ident) {
+                    self.#entry_ident = val;
+                    self.#is_dirty_ident = true;
+                }
+
+                pub fn #get_fn_ident(&self) -> #ty_ident {
+                    self.#entry_ident.clone()
+                }
+            });
+
+            let pass_reference = ty_enum == EntryType::Slot;
+
+            let index = entry.index;
+            let set_expr = if pass_reference {
+                quote! { meta.set(#index, self.#entry_ident.clone()); }
+            } else {
+                quote! { meta.set(#index, self.#entry_ident); }
+            };
+            to_raw_metadata.push(quote! {
+                if self.#is_dirty_ident {
+                    #set_expr
+                    self.#is_dirty_ident = false;
+                }
+            })
         }
+
+        struct_impl.push(quote! {
+            pub fn to_raw_metadata(&mut self) -> EntityMetadata {
+                let mut meta = EntityMetadata::new();
+                #(#to_raw_metadata)*
+                meta
+            }
+        });
 
         structs.push(quote! {
             #[derive(Clone, Debug)]
-            pub struct #ident {
+            pub struct #variant_ident {
                 #(#struct_fields)*
+            }
+
+            impl #variant_ident {
+                #(#struct_impl)*
             }
         });
 
         enum_variants.push(quote! {
-            #ident(#ident),
+            #variant_ident(#variant_ident),
         })
     }
 
@@ -151,7 +227,7 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
             #(#enum_variants)*
         }
 
-        #(structs)*
+        #(#structs)*
     };
 
     result.into()

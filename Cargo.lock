@@ -542,6 +542,7 @@ dependencies = [
  "derive-new 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "derive_deref 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "feather_codegen 0.3.0",
  "feather_core 0.3.0",
  "hashbrown 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hematite-nbt 0.4.0 (git+https://github.com/caelunshun/hematite_nbt)",
