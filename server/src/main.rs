@@ -20,6 +20,8 @@ extern crate smallvec;
 extern crate lazy_static;
 #[macro_use]
 extern crate derive_deref;
+#[macro_use]
+extern crate feather_codegen;
 
 extern crate nalgebra_glm as glm;
 

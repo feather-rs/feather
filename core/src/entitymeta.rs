@@ -5,6 +5,7 @@
 use crate::bytebuf::{BufMutAlloc, ByteBuf};
 use crate::network::mctypes::McTypeWrite;
 use crate::world::BlockPosition;
+use crate::Slot;
 use hashbrown::HashMap;
 use uuid::Uuid;
 
@@ -16,7 +17,7 @@ pub enum MetaEntry {
     String(String),
     Chat(String),
     OptChat(Option<String>),
-    Slot, // TODO
+    Slot(Slot),
     Boolean(bool),
     Rotation(f32, f32, f32),
     Position(BlockPosition),
@@ -37,7 +38,7 @@ impl MetaEntry {
             MetaEntry::String(_) => 3,
             MetaEntry::Chat(_) => 4,
             MetaEntry::OptChat(_) => 5,
-            MetaEntry::Slot => 6,
+            MetaEntry::Slot(_) => 6,
             MetaEntry::Boolean(_) => 7,
             MetaEntry::Rotation(_, _, _) => 8,
             MetaEntry::Position(_) => 9,
@@ -48,6 +49,40 @@ impl MetaEntry {
             MetaEntry::Nbt => 14,
             MetaEntry::Particle => 15,
         }
+    }
+}
+
+pub trait IntoMetaEntry {
+    fn into_meta_entry(&self) -> MetaEntry;
+}
+
+impl IntoMetaEntry for u8 {
+    fn into_meta_entry(&self) -> MetaEntry {
+        MetaEntry::Byte(*self as i8)
+    }
+}
+
+impl IntoMetaEntry for i8 {
+    fn into_meta_entry(&self) -> MetaEntry {
+        MetaEntry::Byte(*self)
+    }
+}
+
+impl IntoMetaEntry for i32 {
+    fn into_meta_entry(&self) -> MetaEntry {
+        MetaEntry::VarInt(*self)
+    }
+}
+
+impl IntoMetaEntry for bool {
+    fn into_meta_entry(&self) -> MetaEntry {
+        MetaEntry::Boolean(*self)
+    }
+}
+
+impl IntoMetaEntry for Slot {
+    fn into_meta_entry(&self) -> MetaEntry {
+        MetaEntry::Slot(self.clone())
     }
 }
 
@@ -69,6 +104,10 @@ impl EntityMetadata {
         }
 
         self
+    }
+
+    pub fn set<E: IntoMetaEntry>(&mut self, index: u8, entry: E) {
+        self.values.insert(index, entry.into_meta_entry());
     }
 }
 
@@ -114,7 +153,9 @@ fn write_entry_to_buf(entry: &MetaEntry, buf: &mut ByteBuf) {
                 buf.write_bool(false);
             }
         }
-        MetaEntry::Slot => unimplemented!(),
+        MetaEntry::Slot(slot) => {
+            buf.write_slot(slot);
+        }
         MetaEntry::Boolean(x) => buf.write_bool(*x),
         MetaEntry::Rotation(x, y, z) => {
             buf.write_f32_be(*x);

@@ -21,7 +21,10 @@ pub mod prelude;
 mod save;
 pub mod world;
 
+pub use entitymeta::EntityMetadata;
 pub use feather_items as item;
+pub use inventory::{ItemStack, Slot};
+pub use item::{Item, ItemExt};
 pub use save::{level, player_data, region};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
