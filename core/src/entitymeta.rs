@@ -9,7 +9,7 @@ use crate::Slot;
 use hashbrown::HashMap;
 use uuid::Uuid;
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum MetaEntry {
     Byte(i8),
     VarInt(i32),
@@ -109,6 +109,10 @@ impl EntityMetadata {
     pub fn set<E: IntoMetaEntry>(&mut self, index: u8, entry: E) {
         self.values.insert(index, entry.into_meta_entry());
     }
+
+    pub fn get(&self, index: u8) -> Option<MetaEntry> {
+        self.values.get(&index).cloned()
+    }
 }
 
 impl Default for EntityMetadata {
@@ -192,7 +196,7 @@ fn write_entry_to_buf(entry: &MetaEntry, buf: &mut ByteBuf) {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Direction {
     Down,
     Up,
