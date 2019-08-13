@@ -183,7 +183,7 @@ pub fn reader<E: Send + Sync>(w: &World) -> ReaderId<E> {
 
 /// Triggers the given event, writing it to
 /// the corresponding `EventChannel`.
-pub fn trigger_event<E: Send + Sync + 'static>(world: &mut World, event: E) {
+pub fn trigger_event<E: Send + Sync + 'static>(world: &World, event: E) {
     let mut channel = world.fetch_mut::<EventChannel<E>>();
     channel.single_write(event);
 }

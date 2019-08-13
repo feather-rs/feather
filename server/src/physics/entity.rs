@@ -2,8 +2,9 @@
 //! and position updates each tick.
 
 use crate::entity::{EntityComponent, EntityMoveEvent, EntityType, VelocityComponent};
+use crate::physics::BoundingBoxComponent;
 use feather_core::world::block::Block;
-use feather_core::world::ChunkMap;
+use feather_core::world::{ChunkMap, Position};
 use rayon::prelude::*;
 use shrev::EventChannel;
 use specs::{Entities, ParJoin, Read, ReadStorage, System, Write, WriteStorage};
@@ -16,6 +17,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
     type SystemData = (
         WriteStorage<'a, EntityComponent>,
         WriteStorage<'a, VelocityComponent>,
+        ReadStorage<'a, BoundingBoxComponent>,
         ReadStorage<'a, EntityType>,
         Write<'a, EventChannel<EntityMoveEvent>>,
         Read<'a, ChunkMap>,
@@ -23,7 +25,8 @@ impl<'a> System<'a> for EntityPhysicsSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut entity_comps, mut velocities, types, mut move_events, chunk_map, entities) = data;
+        let (mut entity_comps, mut velocities, bboxes, types, mut move_events, chunk_map, entities) =
+            data;
 
         // We can't use a vector for this, since it has to be mutated
         // across threads.
@@ -34,10 +37,11 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         (&mut entity_comps, &mut velocities, &entities, &types)
             .par_join()
             .for_each(|(entity_comp, velocity, entity, ty)| {
+                let bbox = bboxes.get(entity); // bounding box is optional
                 let position = entity_comp.position;
                 // First, add velocity to position, accounting for blocks
                 // at the new position.
-                let pending_position = position + velocity.0;
+                let mut pending_position = position + velocity.0;
                 let pending_block = chunk_map.block_at(pending_position.block_pos());
 
                 // If block is `None`, the chunk at pending_position isn't
@@ -90,6 +94,8 @@ impl<'a> System<'a> for EntityPhysicsSystem {
 
                         tx.send(event).unwrap();
 
+                        set_entity_location(&mut pending_position, bbox, &chunk_map);
+
                         entity_comp.position = pending_position;
                     }
                 } else {
@@ -101,6 +107,28 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         // Go through events and trigger them.
         while let Ok(event) = rx.try_recv() {
             move_events.single_write(event);
+        }
+    }
+}
+
+/// Performs a number of calculations when an entity's position
+/// is updated.
+fn set_entity_location(
+    pos: &mut Position,
+    bbox: Option<&BoundingBoxComponent>,
+    chunk_map: &ChunkMap,
+) {
+    // Set entity to be on ground if a block is detected beneath it
+    if !pos.on_ground {
+        let mut offset = 0.0;
+
+        if let Some(bbox) = bbox {
+            offset = bbox.size().y;
+        }
+
+        let check_pos = *pos - position!(0.0, offset, 0.0);
+        if let Some(block) = chunk_map.block_at(check_pos.block_pos()) {
+            pos.on_ground = block != Block::Air;
         }
     }
 }
@@ -171,7 +199,6 @@ mod tests {
 
         let vel = t::entity_vel(&w, entity).unwrap();
         assert_eq!(vel.x, 0.0);
-        assert_float_eq!(vel.y, 0.90);
         assert_eq!(vel.z, 0.0);
 
         let events = t::triggered_events::<EntityMoveEvent>(&w, &mut reader);

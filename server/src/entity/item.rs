@@ -125,7 +125,7 @@ mod tests {
             stack,
             player: player.entity,
         };
-        t::trigger_event(&mut w, event);
+        t::trigger_event(&w, event);
 
         d.dispatch(&w);
         w.maintain();

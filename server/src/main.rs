@@ -217,7 +217,12 @@ fn init_world<'a, 'b>(
             "chunk_send",
             &["chunk_load"],
         )
-        .with(physics::EntityPhysicsSystem, "entity_physics", &[])
+        .with(physics::PhysicsInitSystem::default(), "physics_init", &[])
+        .with(
+            physics::EntityPhysicsSystem,
+            "entity_physics",
+            &["physics_init"],
+        )
         .with(
             entity::EntityMoveBroadcastSystem::default(),
             "entity_move_broadcast",
