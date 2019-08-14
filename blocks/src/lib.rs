@@ -143,4 +143,12 @@ mod tests {
         let block = Block::GrassBlock(GrassBlockData { snowy: true });
         assert_eq!(block.native_state_id(), 8);
     }
+
+    #[test]
+    fn test_lots_of_blocks() {
+        for id in 0..8595 {
+            let block = Block::from_native_state_id(id).unwrap();
+            assert_eq!(block.native_state_id(), id);
+        }
+    }
 }

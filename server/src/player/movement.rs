@@ -68,7 +68,7 @@ impl<'a> System<'a> for PlayerMovementSystem {
             let new_pos = new_pos_from_packet(ecomp.position, packet);
 
             // Check that player didn't move too far (somewhat prevents cheating)
-            if ecomp.position.distance(new_pos) > 6.0 {
+            if ecomp.position.distance_squared(new_pos) > 36.0 {
                 disconnect_player(player, "You moved too fast!".to_string(), &lazy);
                 continue;
             }

@@ -161,7 +161,7 @@ pub struct BlockPosition {
 
 impl BlockPosition {
     pub fn chunk_pos(&self) -> ChunkPosition {
-        ChunkPosition::new(self.x / 16, self.z / 16)
+        ChunkPosition::new(self.x >> 4, self.z >> 4)
     }
 }
 

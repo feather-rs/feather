@@ -464,7 +464,7 @@ fn block_index(x: usize, y: usize, z: usize) -> usize {
     assert!(x < 16);
     assert!(y < 16);
     assert!(z < 16);
-    (x + (z * 16)) + (y * (16 * 16))
+    (y << 8) | (z << 4) | x
 }
 
 /// A "bit array." This struct manages
