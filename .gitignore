@@ -1,4 +1,5 @@
 /target
+/blocks/target
 **/*.rs.bk
 **/.idea
 feather.toml

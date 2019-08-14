@@ -77,11 +77,11 @@ jobs:
 
       - script: rustup component add rustfmt
         displayName: Install rustfmt
-        condition: eq( variables['Agent.OS'], 'Linux' )
+        condition: and( eq( variables['Agent.OS'], 'Linux' ), eq( variables['rustup_toolchain'], 'stable') )
 
       - script: cargo fmt -- --check
         displayName: Verify formatting
-        condition: eq( variables['Agent.OS'], 'Linux' )
+        condition: and( eq( variables['Agent.OS'], 'Linux' ), eq( variables['rustup_toolchain'], 'stable') )
 
       - script: rustup component add clippy
         displayName: Install clippy

@@ -37,7 +37,7 @@ mod blocks;
 mod mappings;
 
 use crate::mappings::NativeMappings;
-pub use blocks::Block;
+pub use blocks::*;
 use std::collections::HashMap;
 use std::hash::Hash;
 
