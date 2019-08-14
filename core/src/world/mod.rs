@@ -1,6 +1,6 @@
 use crate::world::block::*;
 use crate::world::chunk::Chunk;
-use glm::Vec3;
+use glm::{DVec3, Vec3};
 use hashbrown::HashMap;
 use std::fmt;
 use std::fmt::{Display, Formatter};
@@ -9,6 +9,29 @@ use std::ops::{Add, Sub};
 pub mod block;
 #[allow(clippy::cast_lossless)]
 pub mod chunk;
+
+#[macro_export]
+macro_rules! position {
+    ($x:expr, $y:expr, $z:expr, $pitch:expr, $yaw:expr, $on_ground:expr) => {
+        Position {
+            x: $x,
+            y: $y,
+            z: $z,
+            pitch: $pitch,
+            yaw: $yaw,
+            on_ground: $on_ground,
+        }
+    };
+    ($x:expr, $y:expr, $z:expr, $pitch: expr, $yaw: expr) => {
+        position!($x, $y, $z, $pitch, $yaw, true)
+    };
+    ($x:expr, $y:expr, $z:expr) => {
+        position!($x, $y, $z, 0.0, 0.0)
+    };
+    ($x:expr, $y:expr, $z:expr, $on_ground: expr) => {
+        position!($x, $y, $z, 0.0, 0.0, $on_ground)
+    };
+}
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Position {
@@ -109,6 +132,30 @@ impl Sub<Position> for Position {
     }
 }
 
+impl Into<Vec3> for Position {
+    fn into(self) -> Vec3 {
+        glm::vec3(self.x as f32, self.y as f32, self.z as f32)
+    }
+}
+
+impl Into<DVec3> for Position {
+    fn into(self) -> DVec3 {
+        glm::vec3(self.x, self.y, self.z)
+    }
+}
+
+impl From<Vec3> for Position {
+    fn from(vec: Vec3) -> Self {
+        position!(f64::from(vec.x), f64::from(vec.y), f64::from(vec.z))
+    }
+}
+
+impl From<DVec3> for Position {
+    fn from(vec: DVec3) -> Self {
+        position!(vec.x, vec.y, vec.z)
+    }
+}
+
 impl Display for Position {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         write!(
@@ -117,29 +164,6 @@ impl Display for Position {
             self.x, self.y, self.z, self.pitch, self.yaw, self.on_ground
         )
     }
-}
-
-#[macro_export]
-macro_rules! position {
-    ($x:expr, $y:expr, $z:expr, $pitch:expr, $yaw:expr, $on_ground:expr) => {
-        Position {
-            x: $x,
-            y: $y,
-            z: $z,
-            pitch: $pitch,
-            yaw: $yaw,
-            on_ground: $on_ground,
-        }
-    };
-    ($x:expr, $y:expr, $z:expr, $pitch: expr, $yaw: expr) => {
-        position!($x, $y, $z, $pitch, $yaw, true)
-    };
-    ($x:expr, $y:expr, $z:expr) => {
-        position!($x, $y, $z, 0.0, 0.0)
-    };
-    ($x:expr, $y:expr, $z:expr, $on_ground: expr) => {
-        position!($x, $y, $z, 0.0, 0.0, $on_ground)
-    };
 }
 
 fn square(x: f64) -> f64 {
