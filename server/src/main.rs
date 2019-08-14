@@ -125,7 +125,7 @@ fn load_config() -> Config {
                 println!("Config not found - creating it");
                 let config = Config::default();
                 let mut file = File::create("feather.toml").unwrap();
-                file.write_all(toml::to_string(&config).unwrap().as_bytes())
+                file.write_all(config::DEFAULT_CONFIG_STR.as_bytes())
                     .unwrap();
                 config
             }
@@ -234,6 +234,11 @@ fn init_world<'a, 'b>(
             &["chunk_send"],
         )
         .with(player::PlayerInitSystem::new(), "player_init", &["network"])
+        .with(
+            player::ResourcePackSendSystem::default(),
+            "resource_pack_send",
+            &["join_handler"],
+        )
         .with(
             player::JoinBroadcastSystem::new(),
             "join_broadcast",

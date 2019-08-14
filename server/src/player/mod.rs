@@ -17,6 +17,7 @@ mod inventory;
 /// Module for handling player movement packets.
 /// Also handles loading/unloading chunks when necessary.
 mod movement;
+mod resource_pack;
 
 pub use init::PlayerInitSystem;
 
@@ -38,6 +39,8 @@ pub use digging::{
     BlockUpdateBroadcastSystem, BlockUpdateCause, BlockUpdateEvent, PlayerDiggingSystem,
     PlayerItemDropEvent,
 };
+
+pub use resource_pack::ResourcePackSendSystem;
 
 pub const PLAYER_EYE_HEIGHT: f32 = 1.62;
 pub const PLAYER_EYE_HEIGHT_WHILE_SNEAKING: f32 = 1.54;

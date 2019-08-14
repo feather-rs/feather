@@ -23,7 +23,7 @@ default_gamemode = "survival" # Unimplemented
 difficulty = "none" # Unimplemented
 view_distance = 6
 address = "127.0.0.1"
-port = 25567
+port = 25565
 
 [gameplay]
 monster_spawning = true # Unimplemented
@@ -38,3 +38,10 @@ pvp_style = "classic" # Unimplemented
 # If you want to hurt your eyes while looking at the
 # server console, set it to "trace."
 level = "debug"
+
+[resource_pack]
+# Server resource pack which is sent to players
+# upon joining. Set this to an empty string to disable.
+url = ""
+# Optional SHA1 hash of the resource pack file.
+hash = ""
