@@ -16,7 +16,7 @@ log = "0.4.8"
 failure = "0.1.5"
 derive_deref = "1.1.0"
 indexmap = { version = "1.0.2", features = ["serde-1"] }
-quote = "0.6.13"
+quote = "1.0.0"
 syn = "0.15.42"
 heck = "0.3.1"
 proc-macro2 = "0.4.30"
