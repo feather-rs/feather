@@ -48,7 +48,7 @@ use feather_core::level::LevelData;
 use shrev::EventChannel;
 use std::fs::File;
 use std::io::Write;
-use std::process::abort;
+use std::process::exit;
 
 #[global_allocator]
 static ALLOC: System = System;
@@ -100,7 +100,7 @@ fn main() {
     let level = load_level().unwrap_or_else(|e| {
         error!("Error occurred while loading level.dat: {}", e);
         error!("Please ensure that the world directory exists and is not corrupt.");
-        abort()
+        exit(1)
     });
 
     let (mut world, mut dispatcher) = init_world(config, player_count, io_manager, level);

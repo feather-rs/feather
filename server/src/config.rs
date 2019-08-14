@@ -102,7 +102,7 @@ mod tests {
         assert_eq!(server.max_players, 16);
         assert_eq!(server.view_distance, 6);
         assert_eq!(server.address, "127.0.0.1");
-        assert_eq!(server.port, 25567);
+        assert_eq!(server.port, 25565);
 
         let gameplay = &config.gameplay;
         assert_eq!(gameplay.animal_spawning, true);
