@@ -15,5 +15,8 @@ pub use component::{EntityComponent, PlayerComponent, VelocityComponent};
 pub use destroy::{EntityDestroyBroadcastSystem, EntityDestroyEvent, EntityDestroySystem};
 pub use item::ItemSpawnSystem;
 pub use metadata::{EntityBitMask, Metadata};
-pub use movement::{broadcast_entity_movement, EntityMoveBroadcastSystem, EntityMoveEvent};
+pub use movement::{
+    broadcast_entity_movement, EntityMoveBroadcastSystem, EntityMoveEvent,
+    EntityVelocityBroadcastSystem,
+};
 pub use types::EntityType;

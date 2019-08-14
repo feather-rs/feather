@@ -49,7 +49,7 @@ impl Position {
     }
 
     pub fn distance_squared(&self, other: Position) -> f64 {
-        (square(self.x - other.x) + square(self.y - other.y) + square(self.z - other.z))
+        square(self.x - other.x) + square(self.y - other.y) + square(self.z - other.z)
     }
 
     /// Returns the position of the chunk

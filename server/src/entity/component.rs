@@ -31,7 +31,7 @@ impl Component for EntityComponent {
 ///
 /// Entities without this component are assumed
 /// to have a velocity of 0.
-#[derive(Deref, DerefMut, Clone, Debug)]
+#[derive(Deref, DerefMut, Clone, Debug, PartialEq)]
 pub struct VelocityComponent(pub Vec3);
 
 impl Component for VelocityComponent {

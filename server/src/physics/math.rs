@@ -14,7 +14,7 @@ pub fn block_impacted_by_ray(
     chunk_map: &ChunkMap,
     origin: Vec3,
     ray: Vec3,
-    max_distance: f32,
+    max_distance_squared: f32,
 ) -> Option<BlockPosition> {
     assert_ne!(ray, vec3(0.0, 0.0, 0.0));
 
@@ -27,8 +27,6 @@ pub fn block_impacted_by_ray(
     // This algorithm is based on "A Fast Voxel Traversal Algorithm for Ray Tracing"
     // by John Amanatides and Andrew Woo and has been adapted
     // to our purposes.
-
-    let max_distance_squared = max_distance * max_distance;
 
     let direction = ray.normalize();
 
@@ -71,6 +69,15 @@ pub fn block_impacted_by_ray(
     let mut current_pos = Position::from(origin).block_pos();
 
     while dist_traveled.magnitude_squared() < max_distance_squared {
+        if let Some(block) = chunk_map.block_at(current_pos) {
+            if block != Block::Air {
+                return Some(current_pos);
+            }
+        } else {
+            // Traveled outside loaded chunks - no blocks found
+            return None;
+        }
+
         if next.x < next.y {
             if next.x < next.z {
                 next.x += delta.x;
@@ -89,15 +96,6 @@ pub fn block_impacted_by_ray(
             next.z += delta.z;
             current_pos.z += step.z;
             dist_traveled.z += 1.0;
-        }
-
-        if let Some(block) = chunk_map.block_at(current_pos) {
-            if block != Block::Air {
-                return Some(current_pos);
-            }
-        } else {
-            // Traveled outside loaded chunks - no blocks found
-            return None;
         }
     }
 

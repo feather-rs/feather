@@ -1541,6 +1541,14 @@ impl Packet for PacketEntityMetadata {
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
+pub struct EntityVelocity {
+    pub entity_id: VarInt,
+    pub velocity_x: i16,
+    pub velocity_y: i16,
+    pub velocity_z: i16,
+}
+
+#[derive(Default, AsAny, new, Packet, Clone)]
 pub struct EntityEquipment {
     pub entity_id: VarInt,
     pub slot: VarInt,

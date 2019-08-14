@@ -2,7 +2,7 @@
 //! and position updates each tick.
 
 use crate::entity::{EntityComponent, EntityMoveEvent, EntityType, VelocityComponent};
-use crate::physics::BoundingBoxComponent;
+use crate::physics::{block_impacted_by_ray, BoundingBoxComponent, EntityVelocityUpdateEvent};
 use feather_core::world::block::Block;
 use feather_core::world::{ChunkMap, Position};
 use rayon::prelude::*;
@@ -20,29 +20,58 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         ReadStorage<'a, BoundingBoxComponent>,
         ReadStorage<'a, EntityType>,
         Write<'a, EventChannel<EntityMoveEvent>>,
+        Write<'a, EventChannel<EntityVelocityUpdateEvent>>,
         Read<'a, ChunkMap>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut entity_comps, mut velocities, bboxes, types, mut move_events, chunk_map, entities) =
-            data;
+        let (
+            mut entity_comps,
+            mut velocities,
+            bboxes,
+            types,
+            mut move_events,
+            mut velocity_events,
+            chunk_map,
+            entities,
+        ) = data;
 
         // We can't use a vector for this, since it has to be mutated
         // across threads.
         // This channel will act as a vector of `EntityMoveEvents` to trigger.
-        let (tx, rx) = crossbeam::unbounded();
+        let (move_tx, move_rx) = crossbeam::unbounded();
+        let (velocity_tx, velocity_rx) = crossbeam::unbounded();
 
         // Go through entities and update position and velocity in parallel.
         (&mut entity_comps, &mut velocities, &entities, &types)
             .par_join()
             .for_each(|(entity_comp, velocity, entity, ty)| {
+                let old_velocity = velocity.clone();
                 let bbox = bboxes.get(entity); // bounding box is optional
                 let position = entity_comp.position;
                 // First, add velocity to position, accounting for blocks
                 // at the new position.
                 let mut pending_position = position + velocity.0;
                 let pending_block = chunk_map.block_at(pending_position.block_pos());
+
+                // Check that entity isn't traveling through blocks.
+                let ray = (pending_position - position).into();
+                if pending_position != position && ray != glm::vec3(0.0, 0.0, 0.0) {
+                    if let Some(block_pos) = block_impacted_by_ray(
+                        &chunk_map,
+                        position.into(),
+                        ray,
+                        position.distance_squared(pending_position).abs() as f32,
+                    ) {
+                        pending_position = position!(
+                            f64::from(block_pos.x),
+                            f64::from(block_pos.y),
+                            f64::from(block_pos.z)
+                        );
+                        velocity.0 = glm::vec3(0.0, 0.0, 0.0);
+                    }
+                }
 
                 // If block is `None`, the chunk at pending_position isn't
                 // loading. If so, unload the entity.
@@ -94,10 +123,15 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                                 new_pos: pending_position,
                             };
 
-                            tx.send(event).unwrap();
+                            move_tx.send(event).unwrap();
 
                             entity_comp.position = pending_position;
                         }
+                    }
+
+                    if &old_velocity != velocity {
+                        let event = EntityVelocityUpdateEvent { entity };
+                        velocity_tx.send(event).unwrap();
                     }
                 } else {
                     // Chunk isn't loaded. Unload entity.
@@ -106,8 +140,12 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             });
 
         // Go through events and trigger them.
-        while let Ok(event) = rx.try_recv() {
+        while let Ok(event) = move_rx.try_recv() {
             move_events.single_write(event);
+        }
+
+        while let Ok(event) = velocity_rx.try_recv() {
+            velocity_events.single_write(event);
         }
     }
 }

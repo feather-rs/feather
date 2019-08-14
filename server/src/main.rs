@@ -250,6 +250,11 @@ fn init_world<'a, 'b>(
             &["join_broadcast"],
         )
         .with(
+            entity::EntityVelocityBroadcastSystem::default(),
+            "entity_velocity_broadcast",
+            &["entity_physics"],
+        )
+        .with(
             player::EquipmentSendSystem::default(),
             "equipment_send",
             &["join_broadcast"],

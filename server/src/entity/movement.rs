@@ -2,8 +2,11 @@ use crate::network::{send_packet_to_all_players, NetworkComponent};
 use feather_core::world::Position;
 use specs::{Entities, Entity, Read, ReadStorage, ReaderId, System, SystemData, World};
 
+use crate::entity::VelocityComponent;
+use crate::physics::EntityVelocityUpdateEvent;
+use crate::util::protocol_velocity;
 use feather_core::network::packet::implementation::{
-    EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove,
+    EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
 };
 use shrev::EventChannel;
 
@@ -52,6 +55,43 @@ impl<'a> System<'a> for EntityMoveBroadcastSystem {
 
         self.reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
     }
+}
+
+/// System for broadcasting when an entity's velocity
+/// is updated.
+///
+/// This system listens to `EntityVelocityUpdateEvent`s.
+#[derive(Default)]
+pub struct EntityVelocityBroadcastSystem {
+    reader: Option<ReaderId<EntityVelocityUpdateEvent>>,
+}
+
+impl<'a> System<'a> for EntityVelocityBroadcastSystem {
+    type SystemData = (
+        ReadStorage<'a, NetworkComponent>,
+        ReadStorage<'a, VelocityComponent>,
+        Read<'a, EventChannel<EntityVelocityUpdateEvent>>,
+        Entities<'a>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (networks, velocities, events, entities) = data;
+
+        for event in events.read(self.reader.as_mut().unwrap()) {
+            let velocity = velocities.get(event.entity).unwrap();
+            let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocity.0);
+            let packet = EntityVelocity {
+                entity_id: event.entity.id() as i32,
+                velocity_x,
+                velocity_y,
+                velocity_z,
+            };
+
+            send_packet_to_all_players(&networks, &entities, packet, None);
+        }
+    }
+
+    setup_impl!(reader);
 }
 
 /// Broadcasts to all joined players that an entity has moved.
@@ -126,4 +166,36 @@ pub fn calculate_relative_move(old: Position, current: Position) -> (i16, i16, i
 
 pub fn degrees_to_stops(degs: f32) -> u8 {
     ((degs / 360.0) * 256.0) as u8
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::entity::EntityType;
+    use crate::testframework as t;
+    use feather_core::network::cast_packet;
+    use feather_core::network::packet::PacketType;
+    use specs::WorldExt;
+
+    #[test]
+    fn test_velocity_broadcast_system() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        let entity = t::add_entity(&mut w, EntityType::Item);
+
+        let event = EntityVelocityUpdateEvent { entity };
+        t::trigger_event(&w, event);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let packet = t::assert_packet_received(&player, PacketType::EntityVelocity);
+        let packet = cast_packet::<EntityVelocity>(&*packet);
+        assert_eq!(packet.entity_id, entity.id() as i32);
+        assert_eq!(packet.velocity_x, 0);
+        assert_eq!(packet.velocity_y, 0);
+        assert_eq!(packet.velocity_z, 0);
+    }
 }

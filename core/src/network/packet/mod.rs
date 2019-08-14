@@ -529,6 +529,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x41, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::EntityVelocity,
+        );
+
+        m.insert(
             PacketId(0x42, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::EntityEquipment,
         );
