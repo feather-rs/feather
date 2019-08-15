@@ -88,7 +88,7 @@ mod tests {
 
         t::populate_with_air(&mut w); // Prevent entity from getting removed
 
-        let entity = t::add_entity(&mut w, EntityType::Player);
+        let entity = t::add_entity(&mut w, EntityType::Player, true);
 
         let event = EntitySpawnEvent {
             entity,

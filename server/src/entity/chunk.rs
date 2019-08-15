@@ -124,13 +124,7 @@ mod tests {
         let (mut w, mut d) = t::init_world();
 
         let pos = position!(1.0, 64.0, 1003.5);
-        let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos);
-
-        let event = EntitySpawnEvent {
-            entity,
-            ty: EntityType::Player,
-        };
-        t::trigger_event(&w, event);
+        let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, true);
 
         d.dispatch(&w);
         w.maintain();
@@ -149,7 +143,7 @@ mod tests {
         let pos = position!(1.0, 64.0, -14.0);
         let old_pos = position!(1.0, 64.0, -18.0);
 
-        let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos);
+        let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, false);
 
         let event = EntityMoveEvent {
             entity,
@@ -181,7 +175,7 @@ mod tests {
         let (mut w, mut d) = t::init_world();
 
         let pos = position!(100.0, -100.0, -100.0);
-        let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos);
+        let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, false);
 
         {
             let mut chunk_entities = w.fetch_mut::<ChunkEntities>();

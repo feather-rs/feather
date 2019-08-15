@@ -14,7 +14,9 @@ use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
 use feather_core::Gamemode;
 
 use crate::config::Config;
-use crate::entity::{EntityComponent, EntityType, PlayerComponent, VelocityComponent};
+use crate::entity::{
+    EntityComponent, EntitySpawnEvent, EntityType, PlayerComponent, VelocityComponent,
+};
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
 use crate::player::InventoryComponent;
@@ -199,14 +201,25 @@ pub fn triggered_events<E: Send + Sync + Clone + 'static>(
 
 /// Creates an entity at the origin with zero
 /// velocity.
-pub fn add_entity(world: &mut World, ty: EntityType) -> Entity {
-    add_entity_with_pos(world, ty, Position::default())
+pub fn add_entity(world: &mut World, ty: EntityType, trigger_spawn_event: bool) -> Entity {
+    add_entity_with_pos(world, ty, Position::default(), trigger_spawn_event)
 }
 
 /// Creates an entity with the given position
 /// and zero velocity.
-pub fn add_entity_with_pos(world: &mut World, ty: EntityType, pos: Position) -> Entity {
-    add_entity_with_pos_and_vel(world, ty, pos, glm::vec3(0.0, 0.0, 0.0))
+pub fn add_entity_with_pos(
+    world: &mut World,
+    ty: EntityType,
+    pos: Position,
+    trigger_spawn_event: bool,
+) -> Entity {
+    add_entity_with_pos_and_vel(
+        world,
+        ty,
+        pos,
+        glm::vec3(0.0, 0.0, 0.0),
+        trigger_spawn_event,
+    )
 }
 
 /// Creates an entity with the given position and velocity.
@@ -215,8 +228,9 @@ pub fn add_entity_with_pos_and_vel(
     ty: EntityType,
     pos: Position,
     vel: Vec3,
+    trigger_spawn_event: bool,
 ) -> Entity {
-    world
+    let entity = world
         .create_entity()
         .with(EntityComponent {
             uuid: Uuid::new_v4(),
@@ -227,7 +241,13 @@ pub fn add_entity_with_pos_and_vel(
         .with(VelocityComponent(vel))
         .with(ty)
         .with(Metadata::Entity(metadata::Entity::default()))
-        .build()
+        .build();
+
+    if trigger_spawn_event {
+        let event = EntitySpawnEvent { entity, ty };
+        trigger_event(&world, event);
+    }
+    entity
 }
 
 /// Populates a 15x15 area of chunks around the origin

@@ -286,7 +286,7 @@ mod tests {
 
         let old_pos = position!(0.0, 0.0, 0.0);
         let vel = glm::vec3(0.0, 1.0, 0.0);
-        let entity = t::add_entity_with_pos_and_vel(&mut w, EntityType::Player, old_pos, vel);
+        let entity = t::add_entity_with_pos_and_vel(&mut w, EntityType::Player, old_pos, vel, true);
 
         t::populate_with_air(&mut w);
 

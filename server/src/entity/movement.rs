@@ -183,7 +183,7 @@ mod tests {
 
         let player = t::add_player(&mut w);
 
-        let entity = t::add_entity(&mut w, EntityType::Item);
+        let entity = t::add_entity(&mut w, EntityType::Item, true);
 
         let event = EntityVelocityUpdateEvent { entity };
         t::trigger_event(&w, event);

@@ -152,13 +152,7 @@ mod tests {
 
         let player = t::add_player(&mut w);
 
-        let item = t::add_entity(&mut w, EntityType::Item);
-
-        let event = EntitySpawnEvent {
-            entity: item,
-            ty: EntityType::Item,
-        };
-        w.fetch_mut::<EventChannel<_>>().single_write(event);
+        let item = t::add_entity(&mut w, EntityType::Item, true);
 
         d.dispatch(&w);
         w.maintain();

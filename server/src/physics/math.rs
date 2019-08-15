@@ -1,9 +1,14 @@
 //! A bunch of math-related functions for use with
 //! the physics system.
 
+use crate::entity::{ChunkEntities, EntityComponent};
 use feather_core::world::block::Block;
 use feather_core::world::{BlockPosition, ChunkMap, Position};
-use glm::{vec3, Vec3};
+use feather_core::ChunkPosition;
+use glm::{vec3, DVec3, Vec3};
+use smallvec::SmallVec;
+use specs::storage::GenericReadStorage;
+use specs::Entity;
 use std::f32::INFINITY;
 
 /// Finds the first block impacted by the given ray.
@@ -102,11 +107,106 @@ pub fn block_impacted_by_ray(
     None
 }
 
+/// Returns all entities within the given distance of the given
+/// position.
+///
+/// # Panics
+/// Panics if either coordinate of the radius is negative.
+pub fn nearby_entities<S>(
+    chunk_entities: &ChunkEntities,
+    positions: &S,
+    pos: Position,
+    radius: DVec3,
+) -> SmallVec<[Entity; 4]>
+where
+    S: GenericReadStorage<Component = EntityComponent>,
+{
+    assert!(radius.x >= 0.0);
+    assert!(radius.y >= 0.0);
+    assert!(radius.z >= 0.0);
+
+    let mut result = smallvec![];
+
+    for chunk in chunks_within_distance(pos, radius) {
+        let entities = chunk_entities.entities_in_chunk(chunk);
+        entities
+            .iter()
+            .copied()
+            .filter(|e| {
+                let epos = positions.get(*e);
+                if let Some(epos) = epos {
+                    let epos = epos.position;
+                    (epos.x - pos.x).abs() <= radius.x
+                        && (epos.y - pos.y).abs() <= radius.y
+                        && (epos.z - pos.z).abs() <= radius.z
+                } else {
+                    false
+                }
+            })
+            .for_each(|e| result.push(e));
+    }
+
+    result
+}
+
+/// Finds all chunks within a given distance (in blocks)
+/// of a position.
+///
+/// The Y coordinate of `distance` is ignored.
+fn chunks_within_distance(mut pos: Position, mut distance: DVec3) -> SmallVec<[ChunkPosition; 9]> {
+    assert!(distance.x >= 0.0);
+    assert!(distance.z >= 0.0);
+
+    let mut result = smallvec![];
+
+    let mut x_len = 0;
+    let mut z_len = 0;
+
+    let center_chunk_pos = pos.chunk_pos();
+
+    loop {
+        let needed = ((pos.x + 16.0) / 16.0).floor() * 16.0 - pos.x;
+        if needed > distance.x {
+            break;
+        }
+
+        distance.x -= needed;
+        pos.x += needed;
+        x_len += 1;
+    }
+
+    loop {
+        let needed = ((pos.z + 16.0) / 16.0).floor() * 16.0 - pos.z;
+        if needed > distance.z {
+            break;
+        }
+
+        distance.z -= needed;
+        pos.z += needed;
+        z_len += 1;
+    }
+
+    for x in -x_len..=x_len {
+        for z in -z_len..=z_len {
+            result.push(ChunkPosition::new(
+                x + center_chunk_pos.x,
+                z + center_chunk_pos.z,
+            ));
+        }
+    }
+
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::entity::EntityType;
+    use crate::testframework as t;
     use feather_core::world::chunk::Chunk;
     use feather_core::world::ChunkPosition;
+    use specs::WorldExt;
+    use std::collections::HashSet;
 
     #[test]
     fn test_block_impacted_by_ray() {
@@ -156,5 +256,99 @@ mod tests {
         }
 
         map
+    }
+
+    #[test]
+    fn test_nearby_entities() {
+        let (mut w, mut d) = t::init_world();
+
+        t::populate_with_air(&mut w); // Prevents entities from getting despawned for being outside loaded chunks
+
+        let e1 = t::add_entity_with_pos(&mut w, EntityType::Player, position!(0.0, 0.0, 0.0), true);
+        let e2 = t::add_entity_with_pos(
+            &mut w,
+            EntityType::Player,
+            position!(-100.0, 0.0, 50.0),
+            true,
+        );
+        let e3 = t::add_entity_with_pos(
+            &mut w,
+            EntityType::Player,
+            position!(100.0, 50.0, 50.0),
+            true,
+        );
+        let e4 = t::add_entity_with_pos(
+            &mut w,
+            EntityType::Player,
+            position!(100.0, 1.0, -50.0),
+            true,
+        );
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let entities = nearby_entities(
+            &w.fetch(),
+            &w.read_component(),
+            position!(0.0, 0.0, 0.0),
+            vec3(100.0, 1.0, 50.0),
+        )
+        .into_iter()
+        .collect::<HashSet<_>>();
+
+        assert_eq!(entities.len(), 3);
+
+        assert!(entities.contains(&e1));
+        assert!(entities.contains(&e2));
+        assert!(!entities.contains(&e3));
+        assert!(entities.contains(&e4));
+    }
+
+    #[test]
+    fn test_chunks_within_distance_basic() {
+        let pos = position!(0.0, 0.0, 0.0);
+        let distance = vec3(16.0, 0.0, 16.0);
+
+        let chunks = chunks_within_distance(pos, distance);
+
+        dbg!(chunks.clone());
+
+        let set = chunks.into_iter().collect::<HashSet<_>>();
+
+        for x in -1..=1 {
+            for z in -1..=1 {
+                assert!(set.contains(&ChunkPosition::new(x, z)));
+            }
+        }
+
+        assert_eq!(set.len(), 9);
+    }
+
+    #[test]
+    fn test_chunks_within_distance_complex() {
+        let pos = position!(32.0, 0.0, -32.0);
+
+        let distance = vec3(32.0, 0.0, 31.0);
+
+        let chunks = chunks_within_distance(pos, distance);
+
+        dbg!(chunks.clone());
+        assert_eq!(chunks.len(), 15);
+
+        let set = chunks.into_iter().collect::<HashSet<_>>();
+
+        for x in 0..=4 {
+            for z in -3..=-1 {
+                assert!(set.contains(&ChunkPosition::new(x, z)));
+            }
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_chunks_within_distance_negative_distance() {
+        let pos = position!(16.0, 0.0, 16.0);
+        let distance = vec3(-0.1, -50.0, 0.0);
+        chunks_within_distance(pos, distance);
     }
 }
