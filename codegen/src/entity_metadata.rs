@@ -83,7 +83,7 @@ impl Parse for Entry {
         let _ = input.parse::<Token![=]>()?;
 
         let index = match input.parse::<Lit>()? {
-            Lit::Int(val) => val.value() as u8,
+            Lit::Int(val) => val.base10_parse()?,
             _ => panic!("Index not a `u8`"),
         };
 

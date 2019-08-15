@@ -140,7 +140,7 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
             panic!("Must not use paths");
         }
 
-        let ty_ident = &ty.first().unwrap().value().ident;
+        let ty_ident = &ty.first().unwrap().ident;
 
         let parameter_type = PARAMETER_MAPPINGS
             .get(ty_ident.to_string().as_str())
