@@ -22,7 +22,7 @@ rsa-der = "0.1.1"
 rand = "0.7.0"
 rand-legacy = { path = "../util/rand-legacy" }
 bytes = "0.4.12"
-hashbrown = { version = "0.5.0", features = ["rayon"] }
+hashbrown = { version = "0.6.0", features = ["rayon"] }
 mojang-api = "0.1.2"
 multimap = "0.5.0"
 hematite-nbt = { git = "https://github.com/caelunshun/hematite_nbt" }
