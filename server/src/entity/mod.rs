@@ -3,6 +3,7 @@
 //! provide entity-specific components and systems.
 
 mod broadcast;
+mod chunk;
 mod component;
 mod destroy;
 mod item;
@@ -11,6 +12,7 @@ mod movement;
 mod types;
 
 pub use broadcast::{EntityBroadcastSystem, EntitySpawnEvent};
+pub use chunk::{ChunkEntities, ChunkEntityUpdateSystem};
 pub use component::{EntityComponent, PlayerComponent, VelocityComponent};
 pub use destroy::{EntityDestroyBroadcastSystem, EntityDestroyEvent, EntityDestroySystem};
 pub use item::ItemSpawnSystem;

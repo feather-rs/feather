@@ -27,6 +27,11 @@ pub use feather_items as item;
 pub use inventory::{ItemStack, Slot};
 pub use item::{Item, ItemExt};
 pub use save::{level, player_data, region};
+pub use world::{
+    block::{self, Block, BlockExt},
+    chunk::{Chunk, ChunkSection},
+    BlockPosition, ChunkPosition, Position,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Gamemode {

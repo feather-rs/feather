@@ -1,5 +1,7 @@
 //! Module for interacting with the chunk worker thread
 //! from the server threads.
+//!
+//! Also handles unloading chunks when unused.
 use crossbeam::channel::{Receiver, Sender};
 use shrev::{EventChannel, ReaderId};
 use specs::{Component, Entity, Read, ReadStorage, System, World, Write};
@@ -97,6 +99,13 @@ pub fn load_chunk(handle: &ChunkWorkerHandle, pos: ChunkPosition) {
 /// of chunk positions to any number of entities, called "holders."
 /// When a chunk position has no holders, it will be queued
 /// for unloading.
+///
+/// In addition, the chunk holders map can be used to select
+/// which players to broadcast an entity movement to: a player
+/// who has a chunk hold on the entity's chunk would be able to see
+/// the movement, while other players would be outside of the view
+/// distance. This technique allows for higher performance and
+/// avoids constant nearby entity queries.
 #[derive(Default, Clone, Debug)]
 pub struct ChunkHolders {
     inner: MultiMap<ChunkPosition, Entity>,

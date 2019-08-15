@@ -255,6 +255,11 @@ fn init_world<'a, 'b>(
             &["entity_physics"],
         )
         .with(
+            entity::ChunkEntityUpdateSystem::default(),
+            "chunk_entity_update",
+            &["entity_physics", "player_movement"],
+        )
+        .with(
             player::EquipmentSendSystem::default(),
             "equipment_send",
             &["join_broadcast"],
