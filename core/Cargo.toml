@@ -14,7 +14,7 @@ derive-new = "0.5.7"
 uuid = "0.7.4"
 cfb8 = "0.3.2"
 aes = "0.3.2"
-flate2 = "1.0.9"
+flate2 = "1.0.11"
 bytes = "0.4.12"
 log = "0.4.8"
 serde = { version = "1.0.98", features = ["derive"] }
