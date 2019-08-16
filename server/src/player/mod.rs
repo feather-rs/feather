@@ -21,31 +21,31 @@ mod resource_pack;
 
 pub use init::PlayerInitSystem;
 
-pub use broadcast::{DisconnectBroadcastSystem, JoinBroadcastSystem, PlayerDisconnectEvent};
+pub use broadcast::PlayerDisconnectEvent;
 
-pub use movement::{
-    send_chunk_to_player, ChunkCrossSystem, ChunkPendingComponent, ChunkSendSystem,
-    ClientChunkUnloadSystem, LoadedChunksComponent, PlayerMovementSystem,
-};
+pub use movement::{send_chunk_to_player, ChunkPendingComponent, LoadedChunksComponent};
 
-pub use animation::{AnimationBroadcastSystem, PlayerAnimationEvent, PlayerAnimationSystem};
+pub use animation::PlayerAnimationEvent;
 
-pub use inventory::{
-    CreativeInventorySystem, EquipmentSendSystem, HeldItemBroadcastSystem, HeldItemChangeSystem,
-    InventoryComponent, InventoryUpdateEvent,
-};
+pub use inventory::{InventoryComponent, InventoryUpdateEvent};
 
-pub use digging::{
-    BlockUpdateBroadcastSystem, BlockUpdateCause, BlockUpdateEvent, PlayerDiggingSystem,
-    PlayerItemDropEvent,
-};
+pub use digging::{BlockUpdateCause, BlockUpdateEvent, PlayerItemDropEvent};
 
 use crate::systems::{
-    ANIMATION_BROADCAST, CHUNK_CROSS, CHUNK_SEND, CREATIVE_INVENTORY, DISCONNECT_BROADCAST,
-    EQUIPMENT_SEND, HELD_ITEM_BROADCAST, HELD_ITEM_CHANGE, JOIN_BROADCAST, NETWORK,
-    PLAYER_ANIMATION, PLAYER_DIGGING, RESOURCE_PACK_SEND,
+    ANIMATION_BROADCAST, CHUNK_CROSS, CHUNK_SEND, CLIENT_CHUNK_UNLOAD, CREATIVE_INVENTORY,
+    DISCONNECT_BROADCAST, EQUIPMENT_SEND, HELD_ITEM_BROADCAST, HELD_ITEM_CHANGE, JOIN_BROADCAST,
+    NETWORK, PLAYER_ANIMATION, PLAYER_DIGGING, PLAYER_INIT, PLAYER_MOVEMENT, RESOURCE_PACK_SEND,
 };
+use animation::{AnimationBroadcastSystem, PlayerAnimationSystem};
+use broadcast::{DisconnectBroadcastSystem, JoinBroadcastSystem};
+use digging::PlayerDiggingSystem;
+use init::PlayerInitSystem;
+use inventory::{
+    CreativeInventorySystem, EquipmentSendSystem, HeldItemBroadcastSystem, HeldItemChangeSystem,
+};
+use movement::{ChunkCrossSystem, ChunkSendSystem, ClientChunkUnloadSystem, PlayerMovementSystem};
 pub use resource_pack::ResourcePackSendSystem;
+use resource_pack::ResourcePackSendSystem;
 use specs::DispatcherBuilder;
 
 pub const PLAYER_EYE_HEIGHT: f32 = 1.62;
@@ -56,10 +56,13 @@ pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(PlayerAnimationSystem, PLAYER_ANIMATION, &[NETWORK]);
     dispatcher.add(CreativeInventorySystem, CREATIVE_INVENTORY, &[NETWORK]);
     dispatcher.add(HeldItemChangeSystem, HELD_ITEM_CHANGE, &[NETWORK]);
+    dispatcher.add(PlayerMovementSystem, PLAYER_MOVEMENT, &[NETWORK]);
 }
 
 pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(ChunkCrossSystem::default(), CHUNK_CROSS, &[]);
+    dispatcher.add(ClientChunkUnloadSystem, CLIENT_CHUNK_UNLOAD, &[]);
+    dispatcher.add(PlayerInitSystem::default(), PLAYER_INIT, &[]);
 }
 
 pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {

@@ -15,18 +15,22 @@ use crate::systems::{
     CHUNK_ENTITIES_UPDATE, ENTITY_DESTROY, ENTITY_MOVE_BROADCAST, ENTITY_SPAWN_BROADCAST,
     ENTITY_VELOCITY_BROADCAST, ITEM_SPAWN,
 };
-pub use broadcast::{EntityBroadcastSystem, EntitySpawnEvent};
-pub use chunk::{ChunkEntities, ChunkEntityUpdateSystem};
-pub use component::{EntityComponent, PlayerComponent, VelocityComponent};
-pub use destroy::{EntityDestroyBroadcastSystem, EntityDestroyEvent, EntityDestroySystem};
-pub use item::ItemSpawnSystem;
+pub use broadcast::EntitySpawnEvent;
+pub use chunk::ChunkEntities;
+use component::ComponentResetSystem;
+pub use component::{NamedComponent, PlayerComponent, PositionComponent, VelocityComponent};
+pub use destroy::EntityDestroyEvent;
 pub use metadata::{EntityBitMask, Metadata};
-pub use movement::{
-    broadcast_entity_movement, EntityMoveBroadcastSystem, EntityMoveEvent,
-    EntityVelocityBroadcastSystem,
-};
+pub use movement::broadcast_entity_movement;
 use specs::DispatcherBuilder;
 pub use types::EntityType;
+
+use broadcast::EntityBroadcastSystem;
+use chunk::ChunkEntityUpdateSystem;
+use component::ComponentResetSystem;
+use destroy::{EntityDestroyBroadcastSystem, EntityDestroySystem};
+use item::ItemSpawnSystem;
+use movement::{EntityMoveBroadcastSystem, EntityVelocityBroadcastSystem};
 
 pub fn init_logic(_: &mut DispatcherBuilder) {}
 
@@ -57,4 +61,5 @@ pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
         &[],
     );
     dispatcher.add(EntityDestroySystem::default(), ENTITY_DESTROY, &[]);
+    dispatcher.add_thread_local(ComponentResetSystem);
 }

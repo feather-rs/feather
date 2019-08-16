@@ -14,8 +14,11 @@ pub const PLAYER_DIGGING: &str = "player_digging";
 pub const PLAYER_ANIMATION: &str = "player_animation";
 pub const CREATIVE_INVENTORY: &str = "creative_inventory";
 pub const HELD_ITEM_CHANGE: &str = "held_item_change";
+pub const PLAYER_MOVEMENT: &str = "player_movement";
 
 pub const CHUNK_CROSS: &str = "chunk_cross";
+pub const PLAYER_INIT: &str = "player_init";
+pub const CLIENT_CHUNK_UNLOAD: &str = "client_chunk_unload";
 
 pub const HELD_ITEM_BROADCAST: &str = "held_item_broadcast";
 pub const JOIN_BROADCAST: &str = "join_broadcast";
@@ -34,6 +37,11 @@ pub const ENTITY_MOVE_BROADCAST: &str = "entity_move_broadcast";
 pub const ENTITY_SPAWN_BROADCAST: &str = "entity_spawn_broadcast";
 pub const ENTITY_VELOCITY_BROADCAST: &str = "entity_velocity_broadcast";
 pub const ENTITY_DESTROY_BROADCAST: &str = "entity_destroy_broadcast";
+
+// Physics
+pub const ENTITY_PHYSICS: &str = "entity_physics";
+
+pub const PHYSICS_INIT: &str = "physics_init";
 
 // Other
 pub const JOIN_HANDLER: &str = "join_handler";

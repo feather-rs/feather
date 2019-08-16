@@ -1,4 +1,5 @@
 use std::collections::VecDeque;
+use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
 use hashbrown::HashSet;
@@ -24,19 +25,11 @@ use crate::chunk_logic::{
     ChunkWorkerHandle,
 };
 use crate::config::Config;
-use crate::entity::{EntityComponent, EntityMoveEvent};
+use crate::entity::PositionComponent;
 use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue};
 use crate::{disconnect_player, TickCount, TPS};
-use std::ops::{Deref, DerefMut};
 
 // MOVEMENT HANDLING
-
-/// Event which is called when a player moves.
-pub struct PlayerMoveEvent {
-    pub player: Entity,
-    pub old_pos: Position,
-    pub new_pos: Position,
-}
 
 /// System for handling player movement
 /// packets.
@@ -44,15 +37,13 @@ pub struct PlayerMovementSystem;
 
 impl<'a> System<'a> for PlayerMovementSystem {
     type SystemData = (
-        WriteStorage<'a, EntityComponent>,
+        WriteStorage<'a, PositionComponent>,
         Read<'a, PacketQueue>,
         Read<'a, LazyUpdate>,
-        Write<'a, EventChannel<PlayerMoveEvent>>,
-        Write<'a, EventChannel<EntityMoveEvent>>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut ecomps, packet_queue, lazy, mut move_events, mut entity_move_events) = data;
+        let (mut positions, packet_queue, lazy) = data;
 
         // Take movement packets
         let mut packets = vec![];
@@ -62,34 +53,19 @@ impl<'a> System<'a> for PlayerMovementSystem {
 
         // Handle movement packets
         for (player, packet) in packets {
-            let ecomp = ecomps.get(player).unwrap();
+            let position = positions.get(player).unwrap();
 
             // Get position using packet and old position
-            let new_pos = new_pos_from_packet(ecomp.position, packet);
+            let new_pos = new_pos_from_packet(position.previous, packet);
 
             // Check that player didn't move too far (somewhat prevents cheating)
-            if ecomp.position.distance_squared(new_pos) > 36.0 {
+            if position.previous.distance_squared(new_pos) > 36.0 {
                 disconnect_player(player, "You moved too fast!".to_string(), &lazy);
                 continue;
             }
 
-            // Trigger events
-            let event = PlayerMoveEvent {
-                player,
-                old_pos: ecomp.position,
-                new_pos,
-            };
-            move_events.single_write(event);
-
-            let event = EntityMoveEvent {
-                entity: player,
-                old_pos: ecomp.position,
-                new_pos,
-            };
-            entity_move_events.single_write(event);
-
             // Set new position
-            ecomps.get_mut(player).unwrap().position = new_pos;
+            positions.get_mut(player).unwrap().current = new_pos;
         }
     }
 }
@@ -346,7 +322,7 @@ impl<'a> System<'a> for ClientChunkUnloadSystem {
     type SystemData = (
         WriteStorage<'a, LoadedChunksComponent>,
         ReadStorage<'a, NetworkComponent>,
-        ReadStorage<'a, EntityComponent>,
+        ReadStorage<'a, PositionComponent>,
         WriteStorage<'a, ChunkHolderComponent>,
         Entities<'a>,
         Write<'a, ChunkHolders>,
@@ -359,7 +335,7 @@ impl<'a> System<'a> for ClientChunkUnloadSystem {
         let (
             mut loaded_chunks_comps,
             net_comps,
-            entity_comps,
+            positions,
             mut chunk_holder_comps,
             entities,
             mut chunk_holders,
@@ -371,23 +347,21 @@ impl<'a> System<'a> for ClientChunkUnloadSystem {
         (
             &mut loaded_chunks_comps,
             &net_comps,
-            &entity_comps,
+            &positions,
             &mut chunk_holder_comps,
             &entities,
         )
             .join()
             .for_each(
-                |(loaded_chunks_comp, net_comp, entity_comp, chunk_holder_comp, player)| {
+                |(loaded_chunks_comp, net_comp, position, chunk_holder_comp, player)| {
                     // Go through queue and see if it's time to unload any chunks.
                     while let Some((chunk, time)) = loaded_chunks_comp.unload_queue.front() {
                         let chunk = *chunk;
                         if tick_count.0 >= *time {
                             // Unload if needed.
 
-                            let chunks_within_view_distance = chunks_within_view_distance(
-                                &config,
-                                entity_comp.position.chunk_pos(),
-                            );
+                            let chunks_within_view_distance =
+                                chunks_within_view_distance(&config, position.current.chunk_pos());
 
                             if chunks_within_view_distance.contains(&chunk) {
                                 // Chunk is within view distance again - don't unload it.

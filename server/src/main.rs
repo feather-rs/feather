@@ -226,6 +226,9 @@ fn init_world<'a, 'b>(
     logic_dispatcher.add(network::NetworkSystem, NETWORK, &[]);
     logic_dispatcher.add(joinhandler::JoinHandlerSystem, JOIN_HANDLER, &[NETWORK]);
 
+    physics::init_logic(&mut logic_dispatcher);
+    physics::init_handlers(&mut handling_dispatcher);
+
     entity::init_logic(&mut logic_dispatcher);
     entity::init_handlers(&mut handling_dispatcher);
     entity::init_broadcast(&mut broadcast_dispatcher);

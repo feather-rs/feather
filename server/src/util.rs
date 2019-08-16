@@ -28,6 +28,18 @@ macro_rules! setup_impl {
     };
 }
 
+macro_rules! flagged_setup_impl {
+    ($reader:ident) => {
+        fn setup(&mut self, world: &mut specs::World) {
+            use specs::{SystemData, WorldExt};
+
+            Self::SystemData::setup(world);
+
+            self.$reader = Some(world.write_componen().register_reader());
+        }
+    }
+}
+
 /// Converts float-based velocity in blocks per tick
 /// to the obnoxious format used by the protocol.
 pub fn protocol_velocity(vel: Vec3) -> (i16, i16, i16) {

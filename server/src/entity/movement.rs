@@ -1,84 +1,91 @@
 use crate::network::{send_packet_to_all_players, NetworkComponent};
 use feather_core::world::Position;
-use specs::{Entities, Entity, Read, ReadStorage, ReaderId, System, SystemData, World};
+use specs::{
+    BitSet, Entities, Entity, Join, Read, ReadStorage, ReaderId, System, SystemData, World,
+    WorldExt, WriteStorage,
+};
 
-use crate::entity::VelocityComponent;
+use crate::entity::{PositionComponent, VelocityComponent};
 use crate::physics::EntityVelocityUpdateEvent;
 use crate::util::protocol_velocity;
 use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
 };
 use shrev::EventChannel;
-
-/// Event triggered when an entity moves.
-///
-/// This event is triggered *after* the entity's
-/// position is updated.
-#[derive(Debug, Clone)]
-pub struct EntityMoveEvent {
-    pub entity: Entity,
-    pub old_pos: Position,
-    pub new_pos: Position,
-}
+use specs::storage::ComponentEvent;
 
 /// System for broadcasting when an entity moves.
-///
-/// This system listens to `EntityMoveEvent`s.
 #[derive(Default)]
 pub struct EntityMoveBroadcastSystem {
-    reader: Option<ReaderId<EntityMoveEvent>>,
+    dirty: BitSet,
+    reader: Option<ReaderId<ComponentEvent>>,
 }
 
 impl<'a> System<'a> for EntityMoveBroadcastSystem {
     type SystemData = (
         ReadStorage<'a, NetworkComponent>,
-        Read<'a, EventChannel<EntityMoveEvent>>,
+        ReadStorage<'a, PositionComponent>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (networks, events, entities) = data;
+        let (networks, positions, entities) = data;
 
-        for event in events.read(&mut self.reader.as_mut().unwrap()) {
+        self.dirty.clear();
+
+        for event in positions.channel().read(&mut self.reader.as_mut().unwrap()) {
+            match event {
+                ComponentEvent::Modified(index) | ComponentEvent::Inserted(index) => {
+                    self.dirty.add(&index)
+                }
+                _ => (),
+            }
+        }
+
+        for (entity, position) in (&entities, &positions, &self.dirty).join() {
             broadcast_entity_movement(
-                event.entity,
-                event.old_pos,
-                event.new_pos,
+                entity,
+                position.previous,
+                position.current,
                 &networks,
                 &entities,
             );
         }
     }
 
-    fn setup(&mut self, world: &mut World) {
-        Self::SystemData::setup(world);
-
-        self.reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
-    }
+    flagged_setup_impl!(reader);
 }
 
 /// System for broadcasting when an entity's velocity
 /// is updated.
-///
-/// This system listens to `EntityVelocityUpdateEvent`s.
 #[derive(Default)]
 pub struct EntityVelocityBroadcastSystem {
-    reader: Option<ReaderId<EntityVelocityUpdateEvent>>,
+    dirty: BitSet,
+    reader: Option<ReaderId<ComponentEvent>>,
 }
 
 impl<'a> System<'a> for EntityVelocityBroadcastSystem {
     type SystemData = (
         ReadStorage<'a, NetworkComponent>,
         ReadStorage<'a, VelocityComponent>,
-        Read<'a, EventChannel<EntityVelocityUpdateEvent>>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (networks, velocities, events, entities) = data;
+        let (networks, velocities, entities) = data;
 
-        for event in events.read(self.reader.as_mut().unwrap()) {
-            let velocity = velocities.get(event.entity).unwrap();
+        self.dirty.clear();
+
+        for event in velocities.channel().read(self.reader.as_mut().unwrap()) {
+            match event {
+                ComponentEvent::Modified(index) | ComponentEvent::Inserted(index) => {
+                    self.dirty.add(*index)
+                }
+                _ => (),
+            }
+        }
+
+        for (velocity, entity) in (&velocities, &entities, &self.dirty).join() {
             let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocity.0);
             let packet = EntityVelocity {
                 entity_id: event.entity.id() as i32,
@@ -87,11 +94,11 @@ impl<'a> System<'a> for EntityVelocityBroadcastSystem {
                 velocity_z,
             };
 
-            send_packet_to_all_players(&networks, &entities, packet, None);
+            send_packet_to_all_players(&networks, &entities, packet, Some(entity));
         }
     }
 
-    setup_impl!(reader);
+    flagged_setup_impl!(reader);
 }
 
 /// Broadcasts to all joined players that an entity has moved.
@@ -185,8 +192,9 @@ mod tests {
 
         let entity = t::add_entity(&mut w, EntityType::Item, true);
 
-        let event = EntityVelocityUpdateEvent { entity };
-        t::trigger_event(&w, event);
+        w.write_component::<VelocityComponent>()
+            .insert(entity, VelocityComponent(glm::vec3(0.0, 0.0, 0.0)))
+            .unwrap();
 
         d.dispatch(&w);
         w.maintain();

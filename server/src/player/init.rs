@@ -1,5 +1,5 @@
-use crate::entity::Metadata;
 use crate::entity::{EntityComponent, EntityType, PlayerComponent};
+use crate::entity::{Metadata, NamedComponent, PositionComponent};
 use crate::joinhandler::SPAWN_POSITION;
 use crate::network::PlayerPreJoinEvent;
 use crate::player::{ChunkPendingComponent, InventoryComponent, LoadedChunksComponent};
@@ -28,7 +28,8 @@ impl<'a> System<'a> for PlayerInitSystem {
     type SystemData = (
         Read<'a, EventChannel<PlayerPreJoinEvent>>,
         WriteStorage<'a, PlayerComponent>,
-        WriteStorage<'a, EntityComponent>,
+        WriteStorage<'a, PositionComponent>,
+        WriteStorage<'a, NamedComponent>,
         WriteStorage<'a, ChunkPendingComponent>,
         WriteStorage<'a, LoadedChunksComponent>,
         WriteStorage<'a, InventoryComponent>,
@@ -40,7 +41,8 @@ impl<'a> System<'a> for PlayerInitSystem {
         let (
             events,
             mut player_comps,
-            mut entity_comps,
+            mut positions,
+            mut nameds,
             mut chunk_pending_comps,
             mut loaded_chunk_comps,
             mut inventory_comps,
@@ -56,13 +58,14 @@ impl<'a> System<'a> for PlayerInitSystem {
             };
             player_comps.insert(event.player, player_comp).unwrap();
 
-            let entity_comp = EntityComponent {
-                uuid: event.uuid,
+            let position = PositionComponent(SPAWN_POSITION);
+            positions.insert(event.player, position).unwrap();
+
+            let named = NamedComponent {
                 display_name: event.username.clone(),
-                position: SPAWN_POSITION,
-                on_ground: true,
+                uuid: event.uuid,
             };
-            entity_comps.insert(event.player, entity_comp).unwrap();
+            nameds.insert(event.player, named).unwrap();
 
             let chunk_pending_comp = ChunkPendingComponent {
                 pending: HashSet::new(),

@@ -23,13 +23,6 @@ impl BoundingBoxComponent {
     }
 }
 
-/// Event which is triggered when an entity's
-/// velocity changes.
-#[derive(Debug, Clone)]
-pub struct EntityVelocityUpdateEvent {
-    pub entity: Entity,
-}
-
 /// System for initializing new entities'
 /// physics components.
 #[derive(Default)]
