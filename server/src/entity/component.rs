@@ -17,7 +17,7 @@ impl Component for PlayerComponent {
 }
 
 #[derive(Deref, DerefMut, Debug, PartialEq, Eq)]
-pub struct PositionComponent(Position);
+pub struct PositionComponent(pub Position);
 
 impl Component for PositionComponent {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;

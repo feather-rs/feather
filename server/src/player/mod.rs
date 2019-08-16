@@ -40,7 +40,42 @@ pub use digging::{
     PlayerItemDropEvent,
 };
 
+use crate::systems::{
+    ANIMATION_BROADCAST, CHUNK_CROSS, CHUNK_SEND, CREATIVE_INVENTORY, DISCONNECT_BROADCAST,
+    EQUIPMENT_SEND, HELD_ITEM_BROADCAST, HELD_ITEM_CHANGE, JOIN_BROADCAST, NETWORK,
+    PLAYER_ANIMATION, PLAYER_DIGGING, RESOURCE_PACK_SEND,
+};
 pub use resource_pack::ResourcePackSendSystem;
+use specs::DispatcherBuilder;
 
 pub const PLAYER_EYE_HEIGHT: f32 = 1.62;
 pub const PLAYER_EYE_HEIGHT_WHILE_SNEAKING: f32 = 1.54;
+
+pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
+    dispatcher.add(PlayerDiggingSystem, PLAYER_DIGGING, &[NETWORK]);
+    dispatcher.add(PlayerAnimationSystem, PLAYER_ANIMATION, &[NETWORK]);
+    dispatcher.add(CreativeInventorySystem, CREATIVE_INVENTORY, &[NETWORK]);
+    dispatcher.add(HeldItemChangeSystem, HELD_ITEM_CHANGE, &[NETWORK]);
+}
+
+pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
+    dispatcher.add(ChunkCrossSystem::default(), CHUNK_CROSS, &[]);
+}
+
+pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
+    dispatcher.add(HeldItemBroadcastSystem::default(), HELD_ITEM_BROADCAST, &[]);
+    dispatcher.add(JoinBroadcastSystem::default(), JOIN_BROADCAST, &[]);
+    dispatcher.add(
+        DisconnectBroadcastSystem::default(),
+        DISCONNECT_BROADCAST,
+        &[],
+    );
+    dispatcher.add(
+        AnimationBroadcastSystem::default(),
+        ANIMATION_BROADCAST,
+        &[],
+    );
+    dispatcher.add(EquipmentSendSystem::default(), EQUIPMENT_SEND, &[]);
+    dispatcher.add(ResourcePackSendSystem::default(), RESOURCE_PACK_SEND, &[]);
+    dispatcher.add(ChunkSendSystem::default(), CHUNK_SEND, &[]);
+}

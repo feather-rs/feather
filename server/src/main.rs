@@ -42,6 +42,7 @@ use prelude::*;
 use crate::entity::{EntityComponent, EntityDestroyEvent};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
+use crate::systems::{JOIN_HANDLER, NETWORK};
 use backtrace::Backtrace;
 use feather_core::level;
 use feather_core::level::LevelData;
@@ -218,15 +219,29 @@ fn init_world<'a, 'b>(
     world.insert(TickCount::default());
     world.insert(level);
 
-    let logic_dispatcher = DispatcherBuilder::new().build();
-    let handling_dispatcher = DispatcherBuilder::new().build();
-    let broadcast_dispatcher = DispatcherBuilder::new().build();
+    let mut logic_dispatcher = DispatcherBuilder::new();
+    let mut handling_dispatcher = DispatcherBuilder::new();
+    let mut broadcast_dispatcher = DispatcherBuilder::new();
+
+    logic_dispatcher.add(network::NetworkSystem, NETWORK, &[]);
+    logic_dispatcher.add(joinhandler::JoinHandlerSystem, JOIN_HANDLER, &[NETWORK]);
+
+    entity::init_logic(&mut logic_dispatcher);
+    entity::init_handlers(&mut handling_dispatcher);
+    entity::init_broadcast(&mut broadcast_dispatcher);
+
+    player::init_logic(&mut logic_dispatcher);
+    player::init_handlers(&mut handling_dispatcher);
+    player::init_broadcast(&mut broadcast_dispatcher);
+
+    chunk_logic::init_logic(&mut logic_dispatcher);
+    chunk_logic::init_handlers(&mut handling_dispatcher);
 
     (
         world,
-        logic_dispatcher,
-        handling_dispatcher,
-        broadcast_dispatcher,
+        logic_dispatcher.build(),
+        handling_dispatcher.build(),
+        broadcast_dispatcher.build(),
     )
 }
 
@@ -318,7 +333,6 @@ mod tests {
         let ioman = init_io_manager(Arc::clone(&config), Arc::clone(&player_count));
         let level = LevelData::default();
 
-        let (world, mut dispatcher) = init_world(config, player_count, ioman, level);
-        dispatcher.dispatch(&world);
+        let (world, _, _, _) = init_world(config, player_count, ioman, level);
     }
 }
