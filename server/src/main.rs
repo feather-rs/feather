@@ -65,6 +65,7 @@ pub mod network;
 pub mod physics;
 pub mod player;
 pub mod prelude;
+pub mod systems;
 #[cfg(test)]
 pub mod testframework;
 
@@ -103,7 +104,8 @@ fn main() {
         exit(1)
     });
 
-    let (mut world, mut dispatcher) = init_world(config, player_count, io_manager, level);
+    let (mut world, mut logic_dispatcher, mut handling_dispatcher, mut broadcast_dispatcher) =
+        init_world(config, player_count, io_manager, level);
 
     info!("Initialized world");
 
@@ -111,7 +113,12 @@ fn main() {
     io::init();
 
     info!("Server started");
-    run_loop(&mut world, &mut dispatcher);
+    run_loop(
+        &mut world,
+        &mut logic_dispatcher,
+        &mut handling_dispatcher,
+        &mut broadcast_dispatcher,
+    );
 }
 
 /// Loads the configuration file, creating a default
@@ -145,11 +152,18 @@ fn load_level() -> Result<LevelData, failure::Error> {
 
 /// Runs the server loop, blocking until the server
 /// is shut down.
-fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
+fn run_loop(
+    world: &mut World,
+    logic_dispatcher: &mut Dispatcher,
+    handling_dispatcher: &mut Dispatcher,
+    broadcast_dispatcher: &mut Dispatcher,
+) {
     loop {
         let start_time = current_time_in_millis();
 
-        dispatcher.dispatch(world);
+        logic_dispatcher.dispatch(world);
+        handling_dispatcher.dispatch(world);
+        broadcast_dispatcher.dispatch(world);
         world.maintain();
 
         // Increment tick count
@@ -160,6 +174,7 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
         let end_time = current_time_in_millis();
         let elapsed = end_time - start_time;
         if elapsed > TICK_TIME {
+            debug!("Running behind! Starting next tick immediately");
             continue; // Behind - start next tick immediately
         }
 
@@ -184,13 +199,18 @@ fn init_io_manager(config: Arc<Config>, player_count: Arc<PlayerCount>) -> io::N
     )
 }
 
-/// Initializes the Specs world.
+/// Initializes the Specs world and dispatchers.
 fn init_world<'a, 'b>(
     config: Arc<Config>,
     player_count: Arc<PlayerCount>,
     ioman: io::NetworkIoManager,
     level: LevelData,
-) -> (World, Dispatcher<'a, 'b>) {
+) -> (
+    World,
+    Dispatcher<'a, 'b>,
+    Dispatcher<'a, 'b>,
+    Dispatcher<'a, 'b>,
+) {
     let mut world = World::new();
     world.insert(config);
     world.insert(player_count);
@@ -198,139 +218,16 @@ fn init_world<'a, 'b>(
     world.insert(TickCount::default());
     world.insert(level);
 
-    let mut dispatcher = DispatcherBuilder::new()
-        .with(chunk_logic::ChunkLoadSystem, "chunk_load", &[])
-        .with(network::NetworkSystem, "network", &[])
-        .with(player::PlayerDiggingSystem, "player_digging", &["network"])
-        .with(
-            player::BlockUpdateBroadcastSystem::default(),
-            "block_update_broadcast",
-            &["player_digging"],
-        )
-        .with(
-            player::PlayerMovementSystem,
-            "player_movement",
-            &["network"],
-        )
-        .with(
-            player::ChunkSendSystem::new(),
-            "chunk_send",
-            &["chunk_load"],
-        )
-        .with(physics::PhysicsInitSystem::default(), "physics_init", &[])
-        .with(
-            physics::EntityPhysicsSystem,
-            "entity_physics",
-            &["physics_init"],
-        )
-        .with(
-            entity::EntityMoveBroadcastSystem::default(),
-            "entity_move_broadcast",
-            &["player_movement", "entity_physics"],
-        )
-        .with(
-            joinhandler::JoinHandlerSystem,
-            "join_handler",
-            &["chunk_send"],
-        )
-        .with(player::PlayerInitSystem::new(), "player_init", &["network"])
-        .with(
-            player::ResourcePackSendSystem::default(),
-            "resource_pack_send",
-            &["join_handler"],
-        )
-        .with(
-            player::JoinBroadcastSystem::new(),
-            "join_broadcast",
-            &["join_handler", "player_init"],
-        )
-        .with(
-            entity::EntityBroadcastSystem::default(),
-            "entity_broadcast",
-            &["join_broadcast"],
-        )
-        .with(
-            entity::EntityVelocityBroadcastSystem::default(),
-            "entity_velocity_broadcast",
-            &["entity_physics"],
-        )
-        .with(
-            entity::ChunkEntityUpdateSystem::default(),
-            "chunk_entity_update",
-            &["entity_physics", "player_movement"],
-        )
-        .with(
-            player::EquipmentSendSystem::default(),
-            "equipment_send",
-            &["join_broadcast"],
-        )
-        .with(
-            player::DisconnectBroadcastSystem::new(),
-            "disconnect_broadcast",
-            &[],
-        )
-        .with(
-            entity::EntityDestroyBroadcastSystem::new(),
-            "entity_destroy_broadcast",
-            &[],
-        )
-        .with(chunk_logic::ChunkOptimizeSystem, "chunk_optimize", &[])
-        .with(chunk_logic::ChunkUnloadSystem::new(), "chunk_unload", &[])
-        .with(
-            chunk_logic::ChunkHoldRemoveSystem::new(),
-            "chunk_hold_remove",
-            &[],
-        )
-        .with(
-            entity::EntityDestroySystem::new(),
-            "entity_destroy",
-            &["chunk_hold_remove"],
-        )
-        .with(
-            player::ChunkCrossSystem::default(),
-            "chunk_cross",
-            &["player_movement"],
-        )
-        .with(
-            player::ClientChunkUnloadSystem,
-            "client_chunk_unload",
-            &["chunk_cross"],
-        )
-        .with(
-            player::PlayerAnimationSystem,
-            "player_animation",
-            &["network"],
-        )
-        .with(
-            player::AnimationBroadcastSystem::default(),
-            "animation_broadcast",
-            &["player_animation"],
-        )
-        .with(
-            player::CreativeInventorySystem,
-            "creative_inventory",
-            &["network"],
-        )
-        .with(
-            entity::ItemSpawnSystem::default(),
-            "item_spawn",
-            &["player_digging", "creative_inventory"],
-        )
-        .with(
-            player::HeldItemChangeSystem,
-            "held_item_change",
-            &["network"],
-        )
-        .with(
-            player::HeldItemBroadcastSystem::default(),
-            "held_item_broadcast",
-            &["held_item_change", "creative_inventory"],
-        )
-        .build();
+    let logic_dispatcher = DispatcherBuilder::new().build();
+    let handling_dispatcher = DispatcherBuilder::new().build();
+    let broadcast_dispatcher = DispatcherBuilder::new().build();
 
-    dispatcher.setup(&mut world);
-
-    (world, dispatcher)
+    (
+        world,
+        logic_dispatcher,
+        handling_dispatcher,
+        broadcast_dispatcher,
+    )
 }
 
 fn init_log(config: &Config) {
