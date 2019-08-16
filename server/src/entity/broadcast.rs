@@ -2,8 +2,8 @@
 //! range of a player.
 
 use crate::entity::movement::degrees_to_stops;
-use crate::entity::Metadata;
-use crate::entity::{EntityComponent, EntityType, VelocityComponent};
+use crate::entity::{EntityType, VelocityComponent};
+use crate::entity::{Metadata, NamedComponent, PositionComponent};
 use crate::network::{send_packet_to_all_players, NetworkComponent};
 use crate::util::protocol_velocity;
 use feather_core::network::packet::implementation::SpawnObject;
@@ -12,6 +12,7 @@ use shrev::EventChannel;
 use specs::{
     Entities, Entity, Read, ReadStorage, ReaderId, System, SystemData, World, WriteStorage,
 };
+use uuid::Uuid;
 
 //const ITEM_OBJECT_ID: i8 = 2;
 
@@ -38,7 +39,8 @@ pub struct EntityBroadcastSystem {
 
 impl<'a> System<'a> for EntityBroadcastSystem {
     type SystemData = (
-        ReadStorage<'a, EntityComponent>,
+        ReadStorage<'a, PositionComponent>,
+        ReadStorage<'a, NamedComponent>,
         ReadStorage<'a, NetworkComponent>,
         ReadStorage<'a, VelocityComponent>,
         WriteStorage<'a, Metadata>,
@@ -47,10 +49,10 @@ impl<'a> System<'a> for EntityBroadcastSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entity_comps, networks, velocities, mut metadatas, events, entities) = data;
+        let (positions, nameds, networks, velocities, mut metadatas, events, entities) = data;
 
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
-            let entity = entity_comps.get(event.entity).unwrap();
+            let position = positions.get(event.entity).unwrap();
             let metadata = metadatas.get_mut(event.entity).unwrap();
             let velocity = velocities.get(event.entity).cloned().unwrap_or_default();
             let (velocity_x, velocity_y, velocity_z) = protocol_velocity(*velocity);
@@ -62,14 +64,15 @@ impl<'a> System<'a> for EntityBroadcastSystem {
             // The Player Info packet was already sent by `JoinBroadcastSystem`.
             match event.ty {
                 EntityType::Player => {
+                    let named = nameds.get(event.entity).unwrap();
                     let packet = SpawnPlayer {
                         entity_id: event.entity.id() as i32,
-                        player_uuid: entity.uuid,
-                        x: entity.position.x,
-                        y: entity.position.y,
-                        z: entity.position.z,
-                        yaw: degrees_to_stops(entity.position.yaw),
-                        pitch: degrees_to_stops(entity.position.pitch),
+                        player_uuid: named.uuid,
+                        x: position.current.x,
+                        y: position.current.y,
+                        z: position.current.z,
+                        yaw: degrees_to_stops(position.current.yaw),
+                        pitch: degrees_to_stops(position.current.pitch),
                         metadata: metadata.to_raw_metadata(),
                     };
 
@@ -78,13 +81,13 @@ impl<'a> System<'a> for EntityBroadcastSystem {
                 EntityType::Item => {
                     let packet = SpawnObject {
                         entity_id: event.entity.id() as i32,
-                        object_uuid: entity.uuid,
+                        object_uuid: Uuid::new_v4(),
                         ty: 2, // Type 2 for item stack
-                        x: entity.position.x,
-                        y: entity.position.y,
-                        z: entity.position.z,
-                        pitch: degrees_to_stops(entity.position.pitch),
-                        yaw: degrees_to_stops(entity.position.yaw),
+                        x: position.current.x,
+                        y: position.current.y,
+                        z: position.current.z,
+                        pitch: degrees_to_stops(position.current.pitch),
+                        yaw: degrees_to_stops(position.current.yaw),
                         data: 1, // Has velocity
                         velocity_x,
                         velocity_y,

@@ -19,8 +19,6 @@ mod inventory;
 mod movement;
 mod resource_pack;
 
-pub use init::PlayerInitSystem;
-
 pub use broadcast::PlayerDisconnectEvent;
 
 pub use movement::{send_chunk_to_player, ChunkPendingComponent, LoadedChunksComponent};
@@ -45,7 +43,6 @@ use inventory::{
 };
 use movement::{ChunkCrossSystem, ChunkSendSystem, ClientChunkUnloadSystem, PlayerMovementSystem};
 pub use resource_pack::ResourcePackSendSystem;
-use resource_pack::ResourcePackSendSystem;
 use specs::DispatcherBuilder;
 
 pub const PLAYER_EYE_HEIGHT: f32 = 1.62;

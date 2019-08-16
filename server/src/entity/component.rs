@@ -16,7 +16,7 @@ impl Component for PlayerComponent {
     type Storage = BTreeStorage<Self>;
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub struct PositionComponent {
     /// The current position of this entity.
     pub current: Position,
@@ -42,7 +42,7 @@ impl Component for PositionComponent {
 ///
 /// Entities without this component are assumed
 /// to have a velocity of 0.
-#[derive(Deref, DerefMut, Debug, PartialEq)]
+#[derive(Deref, DerefMut, Debug, PartialEq, Clone)]
 pub struct VelocityComponent(pub Vec3);
 
 impl Component for VelocityComponent {
@@ -70,12 +70,10 @@ impl Component for NamedComponent {
 pub struct ComponentResetSystem;
 
 impl<'a> System<'a> for ComponentResetSystem {
-    type SystemData = (WriteStorage<'a, PositionComponent>,);
+    type SystemData = WriteStorage<'a, PositionComponent>;
 
-    fn run(&mut self, data: Self::SystemData) {
-        let (mut positions) = data;
-
-        for (position) in (&mut positions).join() {
+    fn run(&mut self, mut positions: Self::SystemData) {
+        for position in (&mut positions).join() {
             position.reset();
         }
     }

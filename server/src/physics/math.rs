@@ -1,7 +1,7 @@
 //! A bunch of math-related functions for use with
 //! the physics system.
 
-use crate::entity::{ChunkEntities, EntityComponent};
+use crate::entity::{ChunkEntities, PositionComponent};
 use feather_core::world::block::Block;
 use feather_core::world::{BlockPosition, ChunkMap, Position};
 use feather_core::ChunkPosition;
@@ -119,7 +119,7 @@ pub fn nearby_entities<S>(
     radius: DVec3,
 ) -> SmallVec<[Entity; 4]>
 where
-    S: GenericReadStorage<Component = EntityComponent>,
+    S: GenericReadStorage<Component = PositionComponent>,
 {
     assert!(radius.x >= 0.0);
     assert!(radius.y >= 0.0);
@@ -135,7 +135,7 @@ where
             .filter(|e| {
                 let epos = positions.get(*e);
                 if let Some(epos) = epos {
-                    let epos = epos.position;
+                    let epos = epos.current;
                     (epos.x - pos.x).abs() <= radius.x
                         && (epos.y - pos.y).abs() <= radius.y
                         && (epos.z - pos.z).abs() <= radius.z

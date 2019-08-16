@@ -5,10 +5,10 @@ use std::sync::Arc;
 use hashbrown::HashSet;
 use rayon::prelude::*;
 use shrev::{EventChannel, ReaderId};
-use specs::storage::BTreeStorage;
+use specs::storage::{BTreeStorage, ComponentEvent};
 use specs::{
-    Component, Entities, Entity, Join, LazyUpdate, ParJoin, Read, ReadStorage, System, World,
-    Write, WriteStorage,
+    BitSet, Component, Entities, Entity, Join, LazyUpdate, ParJoin, Read, ReadStorage, System,
+    World, Write, WriteStorage,
 };
 use specs::{SystemData, WorldExt};
 
@@ -170,12 +170,13 @@ const CHUNK_UNLOAD_TIME: u64 = TPS * 5; // 5 seconds
 /// chunks no longer within the player's view distance.
 #[derive(Default)]
 pub struct ChunkCrossSystem {
-    reader: Option<ReaderId<PlayerMoveEvent>>,
+    dirty: BitSet,
+    reader: Option<ReaderId<ComponentEvent>>,
 }
 
 impl<'a> System<'a> for ChunkCrossSystem {
     type SystemData = (
-        Read<'a, EventChannel<PlayerMoveEvent>>,
+        ReadStorage<'a, PositionComponent>,
         Read<'a, ChunkMap>,
         Read<'a, TickCount>,
         Read<'a, Arc<Config>>,
@@ -185,11 +186,12 @@ impl<'a> System<'a> for ChunkCrossSystem {
         Write<'a, ChunkHolders>,
         Read<'a, ChunkWorkerHandle>,
         Read<'a, LazyUpdate>,
+        Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
         let (
-            events,
+            positions,
             chunk_map,
             tick_count,
             config,
@@ -199,19 +201,36 @@ impl<'a> System<'a> for ChunkCrossSystem {
             mut holders,
             chunk_handle,
             lazy,
+            entities,
         ) = data;
 
+        self.dirty.clear();
+
+        for event in positions.channel().read(self.reader.as_mut().unwrap()) {
+            match event {
+                ComponentEvent::Modified(id) | ComponentEvent::Inserted(id) => {
+                    self.dirty.add(*id);
+                }
+                _ => (),
+            }
+        }
+
         // Go through events and handle them accordingly
-        for event in events.read(&mut self.reader.as_mut().unwrap()) {
-            let old_chunk_pos = event.old_pos.chunk_pos();
-            let new_chunk_pos = event.new_pos.chunk_pos();
+        for (position, net, chunk_holder, loaded_chunks, player, _) in (
+            &positions,
+            &net_comps,
+            &mut chunk_holder_comps,
+            &mut loaded_chunks_comps,
+            &entities,
+            &self.dirty,
+        )
+            .join()
+        {
+            let old_chunk_pos = position.previous.chunk_pos();
+            let new_chunk_pos = position.current.chunk_pos();
 
             if old_chunk_pos != new_chunk_pos {
                 // Player has moved across chunk boundaries. Handle accordingly.
-                let net = net_comps.get(event.player).unwrap();
-                let chunk_holder = chunk_holder_comps.get_mut(event.player).unwrap();
-                let loaded_chunks = loaded_chunks_comps.get_mut(event.player).unwrap();
-
                 let chunks = chunks_within_view_distance(&config, new_chunk_pos);
 
                 for chunk in &chunks {
@@ -223,7 +242,7 @@ impl<'a> System<'a> for ChunkCrossSystem {
                     send_chunk_to_player(
                         *chunk,
                         net,
-                        event.player,
+                        player,
                         &chunk_map,
                         &chunk_handle,
                         &mut holders,
@@ -250,15 +269,7 @@ impl<'a> System<'a> for ChunkCrossSystem {
         }
     }
 
-    fn setup(&mut self, world: &mut World) {
-        Self::SystemData::setup(world);
-
-        self.reader = Some(
-            world
-                .fetch_mut::<EventChannel<PlayerMoveEvent>>()
-                .register_reader(),
-        );
-    }
+    flagged_setup_impl!(PositionComponent, reader);
 }
 
 /// System for sending chunks to players once they're loaded.

@@ -6,7 +6,6 @@ use specs::{
 };
 
 use crate::entity::{PositionComponent, VelocityComponent};
-use crate::physics::EntityVelocityUpdateEvent;
 use crate::util::protocol_velocity;
 use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
@@ -36,13 +35,13 @@ impl<'a> System<'a> for EntityMoveBroadcastSystem {
         for event in positions.channel().read(&mut self.reader.as_mut().unwrap()) {
             match event {
                 ComponentEvent::Modified(index) | ComponentEvent::Inserted(index) => {
-                    self.dirty.add(&index)
+                    self.dirty.add(*index);
                 }
                 _ => (),
             }
         }
 
-        for (entity, position) in (&entities, &positions, &self.dirty).join() {
+        for (entity, position, _) in (&entities, &positions, &self.dirty).join() {
             broadcast_entity_movement(
                 entity,
                 position.previous,
@@ -53,7 +52,7 @@ impl<'a> System<'a> for EntityMoveBroadcastSystem {
         }
     }
 
-    flagged_setup_impl!(reader);
+    flagged_setup_impl!(PositionComponent, reader);
 }
 
 /// System for broadcasting when an entity's velocity
@@ -79,16 +78,16 @@ impl<'a> System<'a> for EntityVelocityBroadcastSystem {
         for event in velocities.channel().read(self.reader.as_mut().unwrap()) {
             match event {
                 ComponentEvent::Modified(index) | ComponentEvent::Inserted(index) => {
-                    self.dirty.add(*index)
+                    self.dirty.add(*index);
                 }
                 _ => (),
             }
         }
 
-        for (velocity, entity) in (&velocities, &entities, &self.dirty).join() {
+        for (velocity, entity, _) in (&velocities, &entities, &self.dirty).join() {
             let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocity.0);
             let packet = EntityVelocity {
-                entity_id: event.entity.id() as i32,
+                entity_id: entity.id() as i32,
                 velocity_x,
                 velocity_y,
                 velocity_z,
@@ -98,7 +97,7 @@ impl<'a> System<'a> for EntityVelocityBroadcastSystem {
         }
     }
 
-    flagged_setup_impl!(reader);
+    flagged_setup_impl!(VelocityComponent, reader);
 }
 
 /// Broadcasts to all joined players that an entity has moved.

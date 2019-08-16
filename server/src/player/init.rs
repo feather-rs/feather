@@ -1,4 +1,4 @@
-use crate::entity::{EntityComponent, EntityType, PlayerComponent};
+use crate::entity::{EntityType, PlayerComponent};
 use crate::entity::{Metadata, NamedComponent, PositionComponent};
 use crate::joinhandler::SPAWN_POSITION;
 use crate::network::PlayerPreJoinEvent;
@@ -58,7 +58,10 @@ impl<'a> System<'a> for PlayerInitSystem {
             };
             player_comps.insert(event.player, player_comp).unwrap();
 
-            let position = PositionComponent(SPAWN_POSITION);
+            let position = PositionComponent {
+                current: SPAWN_POSITION,
+                previous: SPAWN_POSITION,
+            };
             positions.insert(event.player, position).unwrap();
 
             let named = NamedComponent {

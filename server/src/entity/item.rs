@@ -1,7 +1,7 @@
 //! Logic for working with item entities.
 
 use crate::entity::metadata::{self, Metadata};
-use crate::entity::{EntityComponent, EntitySpawnEvent, EntityType, VelocityComponent};
+use crate::entity::{EntitySpawnEvent, EntityType, PositionComponent, VelocityComponent};
 use crate::player::{PlayerItemDropEvent, PLAYER_EYE_HEIGHT};
 use rand::Rng;
 use shrev::EventChannel;
@@ -19,7 +19,7 @@ pub struct ItemSpawnSystem {
 
 impl<'a> System<'a> for ItemSpawnSystem {
     type SystemData = (
-        WriteStorage<'a, EntityComponent>,
+        WriteStorage<'a, PositionComponent>,
         WriteStorage<'a, VelocityComponent>,
         WriteStorage<'a, EntityType>,
         WriteStorage<'a, Metadata>,
@@ -30,7 +30,7 @@ impl<'a> System<'a> for ItemSpawnSystem {
 
     fn run(&mut self, data: Self::SystemData) {
         let (
-            mut entity_comps,
+            mut positions,
             mut velocities,
             mut types,
             mut metadatas,
@@ -52,19 +52,17 @@ impl<'a> System<'a> for ItemSpawnSystem {
             let entity = entities.create();
 
             let pos = {
-                let player_pos = entity_comps.get(event.player).unwrap().position
+                let player_pos = positions.get(event.player).unwrap().current
                     + glm::vec3(0.0, PLAYER_EYE_HEIGHT, 0.0);
                 player_pos - glm::vec3(0.0, 0.3, 0.0)
             };
 
-            let entity_comp = EntityComponent {
-                uuid: Uuid::new_v4(),
-                display_name: String::with_capacity(0),
-                position: pos,
-                on_ground: false,
+            let position = PositionComponent {
+                previous: pos,
+                current: pos,
             };
 
-            entity_comps.insert(entity, entity_comp).unwrap();
+            positions.insert(entity, position).unwrap();
             types.insert(entity, EntityType::Item).unwrap();
             metadatas.insert(entity, metadata).unwrap();
 

@@ -17,7 +17,6 @@ use crate::systems::{
 };
 pub use broadcast::EntitySpawnEvent;
 pub use chunk::ChunkEntities;
-use component::ComponentResetSystem;
 pub use component::{NamedComponent, PlayerComponent, PositionComponent, VelocityComponent};
 pub use destroy::EntityDestroyEvent;
 pub use metadata::{EntityBitMask, Metadata};

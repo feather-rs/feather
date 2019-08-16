@@ -5,7 +5,7 @@ mod entity;
 mod math;
 
 use crate::systems::{ENTITY_PHYSICS, PHYSICS_INIT};
-pub use component::{BoundingBoxComponent, EntityVelocityUpdateEvent, PhysicsInitSystem};
+pub use component::{BoundingBoxComponent, PhysicsInitSystem};
 pub use entity::EntityPhysicsSystem;
 pub use math::*;
 use specs::DispatcherBuilder;

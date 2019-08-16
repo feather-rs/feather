@@ -39,7 +39,7 @@ use specs::{Dispatcher, DispatcherBuilder, Entity, LazyUpdate, World, WorldExt};
 use feather_core::network::packet::implementation::DisconnectPlay;
 use prelude::*;
 
-use crate::entity::{EntityComponent, EntityDestroyEvent};
+use crate::entity::{EntityDestroyEvent, NamedComponent};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
 use crate::systems::{JOIN_HANDLER, NETWORK};
@@ -105,8 +105,7 @@ fn main() {
         exit(1)
     });
 
-    let (mut world, mut logic_dispatcher, mut handling_dispatcher, mut broadcast_dispatcher) =
-        init_world(config, player_count, io_manager, level);
+    let (mut world, mut dispatcher) = init_world(config, player_count, io_manager, level);
 
     info!("Initialized world");
 
@@ -114,12 +113,7 @@ fn main() {
     io::init();
 
     info!("Server started");
-    run_loop(
-        &mut world,
-        &mut logic_dispatcher,
-        &mut handling_dispatcher,
-        &mut broadcast_dispatcher,
-    );
+    run_loop(&mut world, &mut dispatcher);
 }
 
 /// Loads the configuration file, creating a default
@@ -153,18 +147,11 @@ fn load_level() -> Result<LevelData, failure::Error> {
 
 /// Runs the server loop, blocking until the server
 /// is shut down.
-fn run_loop(
-    world: &mut World,
-    logic_dispatcher: &mut Dispatcher,
-    handling_dispatcher: &mut Dispatcher,
-    broadcast_dispatcher: &mut Dispatcher,
-) {
+fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
     loop {
         let start_time = current_time_in_millis();
 
-        logic_dispatcher.dispatch(world);
-        handling_dispatcher.dispatch(world);
-        broadcast_dispatcher.dispatch(world);
+        dispatcher.dispatch(&world);
         world.maintain();
 
         // Increment tick count
@@ -206,12 +193,7 @@ fn init_world<'a, 'b>(
     player_count: Arc<PlayerCount>,
     ioman: io::NetworkIoManager,
     level: LevelData,
-) -> (
-    World,
-    Dispatcher<'a, 'b>,
-    Dispatcher<'a, 'b>,
-    Dispatcher<'a, 'b>,
-) {
+) -> (World, Dispatcher<'a, 'b>) {
     let mut world = World::new();
     world.insert(config);
     world.insert(player_count);
@@ -219,33 +201,32 @@ fn init_world<'a, 'b>(
     world.insert(TickCount::default());
     world.insert(level);
 
-    let mut logic_dispatcher = DispatcherBuilder::new();
-    let mut handling_dispatcher = DispatcherBuilder::new();
-    let mut broadcast_dispatcher = DispatcherBuilder::new();
+    let mut dispatcher = DispatcherBuilder::new();
 
-    logic_dispatcher.add(network::NetworkSystem, NETWORK, &[]);
-    logic_dispatcher.add(joinhandler::JoinHandlerSystem, JOIN_HANDLER, &[NETWORK]);
+    dispatcher.add(network::NetworkSystem, NETWORK, &[]);
+    dispatcher.add(joinhandler::JoinHandlerSystem, JOIN_HANDLER, &[NETWORK]);
 
-    physics::init_logic(&mut logic_dispatcher);
-    physics::init_handlers(&mut handling_dispatcher);
+    physics::init_logic(&mut dispatcher);
+    entity::init_logic(&mut dispatcher);
+    player::init_logic(&mut dispatcher);
+    chunk_logic::init_logic(&mut dispatcher);
 
-    entity::init_logic(&mut logic_dispatcher);
-    entity::init_handlers(&mut handling_dispatcher);
-    entity::init_broadcast(&mut broadcast_dispatcher);
+    dispatcher.add_barrier();
 
-    player::init_logic(&mut logic_dispatcher);
-    player::init_handlers(&mut handling_dispatcher);
-    player::init_broadcast(&mut broadcast_dispatcher);
+    physics::init_handlers(&mut dispatcher);
+    entity::init_handlers(&mut dispatcher);
+    player::init_handlers(&mut dispatcher);
+    chunk_logic::init_handlers(&mut dispatcher);
 
-    chunk_logic::init_logic(&mut logic_dispatcher);
-    chunk_logic::init_handlers(&mut handling_dispatcher);
+    dispatcher.add_barrier();
 
-    (
-        world,
-        logic_dispatcher.build(),
-        handling_dispatcher.build(),
-        broadcast_dispatcher.build(),
-    )
+    entity::init_broadcast(&mut dispatcher);
+    player::init_broadcast(&mut dispatcher);
+
+    let mut dispatcher = dispatcher.build();
+    dispatcher.setup(&mut world);
+
+    (world, dispatcher)
 }
 
 fn init_log(config: &Config) {
@@ -297,10 +278,10 @@ pub fn disconnect_player(player: Entity, reason: String, lazy: &LazyUpdate) {
 /// Disconnects a player without sending Disconnect Play.
 /// This should be used when the client disconnects.
 pub fn disconnect_player_without_packet(player: Entity, world: &mut World, reason: String) {
-    let ecomps = world.write_component::<EntityComponent>();
-    let ecomp = ecomps.get(player).unwrap();
+    let nameds = world.write_component::<NamedComponent>();
+    let named = nameds.get(player).unwrap();
 
-    info!("Disconnecting player {}: {}", ecomp.display_name, reason);
+    info!("Disconnecting player {}: {}", named.display_name, reason);
 
     // Decrement player count
     let player_count = world.fetch_mut::<Arc<PlayerCount>>();
@@ -309,7 +290,7 @@ pub fn disconnect_player_without_packet(player: Entity, world: &mut World, reaso
     // Trigger disconnect event
     let event = PlayerDisconnectEvent {
         player,
-        uuid: ecomp.uuid,
+        uuid: named.uuid,
         reason,
     };
     world
