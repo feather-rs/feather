@@ -26,6 +26,7 @@ pub const SLOT_INVENTORY_OFFSET: SlotIndex = 9;
 pub const SLOT_HOTBAR_OFFSET: SlotIndex = 36;
 
 pub const HOTBAR_SIZE: SlotIndex = 9;
+pub const INVENTORY_SIZE: SlotIndex = 27;
 
 pub const SLOT_ENTITY_EQUIPMENT_MAIN_HAND: SlotIndex = 0;
 pub const SLOT_ENTITY_EQUIPMENT_OFF_HAND: SlotIndex = 1;
@@ -34,7 +35,24 @@ pub const SLOT_ENTITY_EQUIPMENT_LEGGINGS: SlotIndex = 3;
 pub const SLOT_ENTITY_EQUIPMENT_CHESTPLATE: SlotIndex = 4;
 pub const SLOT_ENTITY_EQUIPMENT_HELMET: SlotIndex = 5;
 
+pub const STACK_MAX_SIZE: u8 = 64;
+
 pub type Slot = Option<ItemStack>;
+
+lazy_static! {
+    static ref COLLECT_SEARCH_ORDER: Vec<SlotIndex> = {
+        let mut result = vec![];
+        for x in SLOT_HOTBAR_OFFSET..SLOT_HOTBAR_OFFSET + HOTBAR_SIZE {
+            result.push(x);
+        }
+
+        for x in SLOT_INVENTORY_OFFSET..SLOT_INVENTORY_OFFSET + INVENTORY_SIZE {
+            result.push(x);
+        }
+
+        result
+    };
+}
 
 pub fn armor_slot_to_entity_equipment(slot: SlotIndex) -> SlotIndex {
     assert!(slot >= 5 && slot <= 8);
@@ -82,6 +100,11 @@ pub struct Inventory {
     pub ty: InventoryType,
 }
 
+#[derive(Clone, Copy)]
+pub struct InventoryFull {
+    pub amnt_left: u8,
+}
+
 impl Inventory {
     /// Creates a new inventory of the given
     /// type and number of slots.
@@ -113,6 +136,32 @@ impl Inventory {
     /// the old item.
     pub fn clear_item_at(&mut self, index: SlotIndex) -> Option<ItemStack> {
         self.items[index].take()
+    }
+
+    /// Attempts to insert the given item into a player
+    /// inventory.
+    pub fn collect_item(&mut self, mut item: ItemStack) -> Result<(), InventoryFull> {
+        for slot in COLLECT_SEARCH_ORDER.iter() {
+            let slot_item = self.item_at(*slot);
+            if slot_item.is_none() {
+                self.set_item_at(*slot, item);
+                return Ok(());
+            }
+
+            if let Some(slot_item) = slot_item {
+                if slot_item.ty == item.ty {
+                    item.amount -= STACK_MAX_SIZE - slot_item.amount;
+
+                    if item.amount == 0 {
+                        return Ok(());
+                    }
+                }
+            }
+        }
+
+        Err(InventoryFull {
+            amnt_left: item.amount,
+        })
     }
 
     /// Returns the number of slots in this inventory.
