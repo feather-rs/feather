@@ -90,7 +90,7 @@ impl<'a> System<'a> for JoinBroadcastSystem {
 /// Returns the player info packet
 /// for the given player.
 fn get_player_initialization_packet(
-    position: &PositionComponent,
+    _position: &PositionComponent,
     named: &NamedComponent,
     pcomp: &PlayerComponent,
 ) -> PlayerInfo {

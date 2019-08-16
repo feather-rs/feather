@@ -317,6 +317,7 @@ mod tests {
         let ioman = init_io_manager(Arc::clone(&config), Arc::clone(&player_count));
         let level = LevelData::default();
 
-        let (world, _, _, _) = init_world(config, player_count, ioman, level);
+        let (world, mut dispatcher) = init_world(config, player_count, ioman, level);
+        dispatcher.dispatch(&world);
     }
 }

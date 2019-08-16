@@ -10,7 +10,7 @@ use crate::util::protocol_velocity;
 use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
 };
-use shrev::EventChannel;
+
 use specs::storage::ComponentEvent;
 
 /// System for broadcasting when an entity moves.

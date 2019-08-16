@@ -27,7 +27,7 @@ pub use types::EntityType;
 use broadcast::EntityBroadcastSystem;
 use chunk::ChunkEntityUpdateSystem;
 use component::ComponentResetSystem;
-use destroy::{EntityDestroyBroadcastSystem, EntityDestroySystem};
+use destroy::EntityDestroySystem;
 use item::ItemSpawnSystem;
 use movement::{EntityMoveBroadcastSystem, EntityVelocityBroadcastSystem};
 
@@ -59,6 +59,5 @@ pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
         ENTITY_VELOCITY_BROADCAST,
         &[],
     );
-    dispatcher.add(EntityDestroySystem::default(), ENTITY_DESTROY, &[]);
     dispatcher.add_thread_local(ComponentResetSystem);
 }

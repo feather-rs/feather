@@ -7,7 +7,9 @@ use feather_core::world::ChunkPosition;
 use fnv::FnvHashMap;
 use shrev::EventChannel;
 use specs::storage::ComponentEvent;
-use specs::{BitSet, Entities, Entity, Join, Read, ReadStorage, ReaderId, System, Write};
+use specs::{
+    BitSet, Entities, Entity, Join, Read, ReadStorage, ReaderId, System, World, WorldExt, Write,
+};
 
 /// Keeps track of which entities are in which chunk.
 #[derive(Debug, Clone, Deref, DerefMut, Default)]
@@ -107,7 +109,19 @@ impl<'a> System<'a> for ChunkEntityUpdateSystem {
         }
     }
 
-    setup_impl!(move_reader, spawn_reader, destroy_reader);
+    fn setup(&mut self, world: &mut World) {
+        use specs::SystemData;
+
+        Self::SystemData::setup(world);
+
+        self.move_reader = Some(
+            world
+                .write_component::<PositionComponent>()
+                .register_reader(),
+        );
+        self.destroy_reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
+        self.spawn_reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
+    }
 }
 
 #[cfg(test)]
@@ -156,13 +170,6 @@ mod tests {
         let old_pos = position!(1.0, 64.0, -18.0);
 
         let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, false);
-
-        let event = EntityMoveEvent {
-            entity,
-            new_pos: pos,
-            old_pos,
-        };
-        t::trigger_event(&w, event);
 
         {
             let mut chunk_entities = w.fetch_mut::<ChunkEntities>();

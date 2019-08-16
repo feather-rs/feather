@@ -4,7 +4,7 @@ use feather_core::world::Position;
 use feather_core::Gamemode;
 use glm::Vec3;
 use specs::storage::BTreeStorage;
-use specs::{Component, DenseVecStorage, FlaggedStorage, Join, System, VecStorage, WriteStorage};
+use specs::{Component, FlaggedStorage, Join, System, VecStorage, WriteStorage};
 use uuid::Uuid;
 
 pub struct PlayerComponent {

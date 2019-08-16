@@ -105,7 +105,8 @@ impl<'a> System<'a> for EntityBroadcastSystem {
                 entity_id: event.entity.id() as i32,
                 metadata: metadata.to_raw_metadata(),
             };
-            send_packet_to_all_players(&networks, &entities, entity_metadata, None); // Players should know their own metadata
+            send_packet_to_all_players(&networks, &entities, entity_metadata, None);
+            // Players should know their own metadata
         }
     }
 

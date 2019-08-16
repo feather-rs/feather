@@ -6,7 +6,6 @@ use crate::player::{PlayerItemDropEvent, PLAYER_EYE_HEIGHT};
 use rand::Rng;
 use shrev::EventChannel;
 use specs::{Entities, Read, ReaderId, System, SystemData, World, Write, WriteStorage};
-use uuid::Uuid;
 
 /// System for spawning an item entity when
 /// an item is dropped.

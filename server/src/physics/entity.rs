@@ -1,15 +1,12 @@
 //! Module for performing entity physics, including velocity, drag
 //! and position updates each tick.
 
-use rayon::prelude::*;
-use shrev::EventChannel;
 use specs::{Entities, ParJoin, Read, ReadStorage, System, Write, WriteStorage};
 
-use feather_core::world::block::Block;
-use feather_core::world::{ChunkMap, Position};
+use feather_core::world::ChunkMap;
 
 use crate::entity::{EntityType, PositionComponent, VelocityComponent};
-use crate::physics::{block_impacted_by_ray, BoundingBoxComponent};
+use crate::physics::BoundingBoxComponent;
 
 /// System for updating all entities' positions and velocities
 /// each tick.

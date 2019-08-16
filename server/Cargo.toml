@@ -41,3 +41,6 @@ derive_deref = "1.1.0"
 feather_codegen = { path = "../codegen" }
 bitflags = "1.1.0"
 fnv = "1.0.6"
+
+[features]
+nightly = ["specs/nightly"]

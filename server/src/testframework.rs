@@ -15,7 +15,8 @@ use feather_core::Gamemode;
 
 use crate::config::Config;
 use crate::entity::{
-    EntityComponent, EntitySpawnEvent, EntityType, PlayerComponent, VelocityComponent,
+    EntitySpawnEvent, EntityType, NamedComponent, PlayerComponent, PositionComponent,
+    VelocityComponent,
 };
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
@@ -65,11 +66,13 @@ pub fn add_player(world: &mut World) -> Player {
             gamemode: Gamemode::Creative,
             profile_properties: vec![],
         })
-        .with(EntityComponent {
+        .with(PositionComponent {
+            current: position!(0.0, 0.0, 0.0),
+            previous: position!(0.0, 0.0, 0.0),
+        })
+        .with(NamedComponent {
+            display_name: "".to_string(),
             uuid: Uuid::new_v4(),
-            on_ground: true,
-            position: position!(0.0, 0.0, 0.0),
-            display_name: "Test".to_string(),
         })
         .with(InventoryComponent::default())
         .with(Metadata::Player(metadata::Player::default()))
@@ -232,11 +235,9 @@ pub fn add_entity_with_pos_and_vel(
 ) -> Entity {
     let entity = world
         .create_entity()
-        .with(EntityComponent {
-            uuid: Uuid::new_v4(),
-            display_name: "test".to_string(),
-            position: pos,
-            on_ground: true,
+        .with(PositionComponent {
+            current: pos,
+            previous: pos,
         })
         .with(VelocityComponent(vel))
         .with(ty)
@@ -276,10 +277,10 @@ pub fn assert_removed(world: &World, entity: Entity) {
 /// Retrieves the position of an entity.
 pub fn entity_pos(world: &World, entity: Entity) -> Position {
     world
-        .read_component::<EntityComponent>()
+        .read_component::<PositionComponent>()
         .get(entity)
         .unwrap()
-        .position
+        .current
 }
 
 /// Retrieves the velocity of an entity.
@@ -293,8 +294,8 @@ pub fn entity_vel(world: &World, entity: Entity) -> Option<Vec3> {
 
 /// Sets an entity's position.
 pub fn set_entity_pos(world: &World, entity: Entity, pos: Position) {
-    let mut storage = world.write_component::<EntityComponent>();
-    storage.get_mut(entity).unwrap().position = pos;
+    let mut storage = world.write_component::<PositionComponent>();
+    storage.get_mut(entity).unwrap().current = pos;
 }
 
 /// Sets an entity's velocity.
@@ -316,7 +317,7 @@ pub fn set_block(x: i32, y: i32, z: i32, block: Block, world: &World) {
 /// all other tests would fail if the testing
 /// framework didn't work.
 mod tests {
-    use crate::entity::{EntityComponent, PlayerComponent};
+    use crate::entity::{PlayerComponent, PositionComponent};
     use crate::network::{send_packet_to_player, NetworkComponent};
     use feather_core::network::packet::implementation::{DisconnectPlay, LoginStart};
 
@@ -346,7 +347,10 @@ mod tests {
         let entity = add_player(&mut w).entity;
 
         assert!(w.read_component::<PlayerComponent>().get(entity).is_some());
-        assert!(w.read_component::<EntityComponent>().get(entity).is_some());
+        assert!(w
+            .read_component::<PositionComponent>()
+            .get(entity)
+            .is_some());
         assert!(w.read_component::<NetworkComponent>().get(entity).is_some());
     }
 

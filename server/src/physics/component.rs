@@ -5,7 +5,7 @@ use crate::entity::{EntitySpawnEvent, EntityType};
 use glm::DVec3;
 use ncollide3d::bounding_volume::AABB;
 use shrev::EventChannel;
-use specs::{Component, DenseVecStorage, Entity, Read, ReaderId, System, WriteStorage};
+use specs::{Component, DenseVecStorage, Read, ReaderId, System, WriteStorage};
 
 /// An entity's bounding box.
 #[derive(Debug, Clone, Deref, DerefMut)]
