@@ -13,7 +13,7 @@ mod types;
 
 use crate::systems::{
     CHUNK_ENTITIES_UPDATE, ENTITY_DESTROY, ENTITY_MOVE_BROADCAST, ENTITY_SPAWN_BROADCAST,
-    ENTITY_VELOCITY_BROADCAST, ITEM_SPAWN,
+    ENTITY_VELOCITY_BROADCAST, ITEM_SPAWN, JOIN_BROADCAST,
 };
 pub use broadcast::EntitySpawnEvent;
 pub use chunk::ChunkEntities;
@@ -52,7 +52,7 @@ pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(
         EntityBroadcastSystem::default(),
         ENTITY_SPAWN_BROADCAST,
-        &[],
+        &[JOIN_BROADCAST],
     );
     dispatcher.add(
         EntityVelocityBroadcastSystem::default(),

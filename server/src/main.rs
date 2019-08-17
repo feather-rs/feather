@@ -220,8 +220,8 @@ fn init_world<'a, 'b>(
 
     dispatcher.add_barrier();
 
-    entity::init_broadcast(&mut dispatcher);
     player::init_broadcast(&mut dispatcher);
+    entity::init_broadcast(&mut dispatcher);
 
     let mut dispatcher = dispatcher.build();
     dispatcher.setup(&mut world);
