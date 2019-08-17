@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use mio_extras::channel::{channel, Receiver, Sender};
 use rand::Rng;
-use specs::{Builder, Dispatcher, Entity, ReaderId, World, WorldExt};
+use specs::{Builder, Dispatcher, DispatcherBuilder, Entity, ReaderId, System, World, WorldExt};
 use uuid::Uuid;
 
 use feather_core::network::packet::{Packet, PacketType};
@@ -314,6 +314,36 @@ pub fn set_block(x: i32, y: i32, z: i32, block: Block, world: &World) {
     chunk_map
         .set_block_at(BlockPosition::new(x, y, z), block)
         .unwrap();
+}
+
+/// A dispatcher builder for isolating tests.
+pub struct TestBuilder<'a, 'b> {
+    world: World,
+    dispatcher: DispatcherBuilder<'a, 'b>,
+}
+
+impl<'a, 'b> TestBuilder<'a, 'b> {
+    pub fn with<S>(mut self, system: S) -> Self
+    where
+        S: for<'c> System<'c> + Send + 'a,
+    {
+        self.dispatcher.add(system, "", &[]);
+        self
+    }
+
+    pub fn build(mut self) -> (World, Dispatcher<'a, 'b>) {
+        let mut dispatcher = self.dispatcher.build();
+        dispatcher.setup(&mut self.world);
+
+        (self.world, dispatcher)
+    }
+}
+
+pub fn builder<'a, 'b>() -> TestBuilder<'a, 'b> {
+    TestBuilder {
+        world: World::new(),
+        dispatcher: DispatcherBuilder::new(),
+    }
 }
 
 /// Heh... tests for the testing framework.

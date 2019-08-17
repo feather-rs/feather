@@ -33,6 +33,7 @@ pub const BLOCK_BREAK_BROADCAST: &str = "block_break_broadcast";
 pub const CHUNK_ENTITIES_UPDATE: &str = "chunk_entities_update";
 pub const ENTITY_DESTROY: &str = "entity_destroy";
 pub const ITEM_SPAWN: &str = "item_spawn";
+pub const SPAWNER: &str = "spawner";
 
 pub const ENTITY_MOVE_BROADCAST: &str = "entity_move_broadcast";
 pub const ENTITY_SPAWN_BROADCAST: &str = "entity_spawn_broadcast";

@@ -1,11 +1,19 @@
 //! Logic for working with item entities.
 
-use crate::entity::metadata::{self, Metadata};
-use crate::entity::{EntitySpawnEvent, EntityType, PositionComponent, VelocityComponent};
+use crate::entity::spawn::Spawner;
+use crate::entity::PositionComponent;
 use crate::player::{PlayerItemDropEvent, PLAYER_EYE_HEIGHT};
 use rand::Rng;
 use shrev::EventChannel;
-use specs::{Entities, Read, ReaderId, System, SystemData, World, Write, WriteStorage};
+use specs::{Component, NullStorage, Read, ReadStorage, ReaderId, System, SystemData, World};
+
+/// Marker component, used to mark entities as items.
+#[derive(Default)]
+pub struct ItemMarker;
+
+impl Component for ItemMarker {
+    type Storage = NullStorage<Self>;
+}
 
 /// System for spawning an item entity when
 /// an item is dropped.
@@ -18,52 +26,25 @@ pub struct ItemSpawnSystem {
 
 impl<'a> System<'a> for ItemSpawnSystem {
     type SystemData = (
-        WriteStorage<'a, PositionComponent>,
-        WriteStorage<'a, VelocityComponent>,
-        WriteStorage<'a, EntityType>,
-        WriteStorage<'a, Metadata>,
-        Write<'a, EventChannel<EntitySpawnEvent>>,
+        ReadStorage<'a, PositionComponent>,
+        Read<'a, Spawner>,
         Read<'a, EventChannel<PlayerItemDropEvent>>,
-        Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (
-            mut positions,
-            mut velocities,
-            mut types,
-            mut metadatas,
-            mut spawn_events,
-            item_drop_events,
-            entities,
-        ) = data;
+        let (positions, spawner, item_drop_events) = data;
 
         let mut rng = rand::thread_rng();
 
         for event in item_drop_events.read(self.reader.as_mut().unwrap()) {
             // Spawn item entity.
-            let metadata = {
-                let mut item = metadata::Item::default();
-                item.set_item(Some(event.stack.clone()));
-                Metadata::Item(item)
-            };
 
-            let entity = entities.create();
-
+            // Position is player's eye height minus 0.3
             let pos = {
                 let player_pos = positions.get(event.player).unwrap().current
                     + glm::vec3(0.0, PLAYER_EYE_HEIGHT, 0.0);
                 player_pos - glm::vec3(0.0, 0.3, 0.0)
             };
-
-            let position = PositionComponent {
-                previous: pos,
-                current: pos,
-            };
-
-            positions.insert(entity, position).unwrap();
-            types.insert(entity, EntityType::Item).unwrap();
-            metadatas.insert(entity, metadata).unwrap();
 
             // This velocity calculation was sourced from Glowstone's
             // work. See https://github.com/GlowstoneMC/Glowstone/blob/dev/src/main/java/net/glowstone/entity/GlowHumanEntity.java
@@ -78,17 +59,10 @@ impl<'a> System<'a> for ItemSpawnSystem {
 
                 vel += glm::vec3(x, y, z);
 
-                VelocityComponent(vel)
+                vel
             };
 
-            velocities.insert(entity, velocity).unwrap();
-
-            // Trigger event
-            let event = EntitySpawnEvent {
-                entity,
-                ty: EntityType::Item,
-            };
-            spawn_events.single_write(event);
+            spawner.spawn_item(pos, velocity, event.stack.clone());
         }
     }
 
@@ -102,6 +76,8 @@ impl<'a> System<'a> for ItemSpawnSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::entity::EntitySpawnEvent;
+    use crate::entity::EntityType;
     use crate::testframework as t;
     use feather_core::world::Position;
     use feather_core::{Item, ItemStack};

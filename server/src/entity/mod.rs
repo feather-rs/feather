@@ -9,11 +9,12 @@ mod destroy;
 mod item;
 pub mod metadata;
 mod movement;
+pub mod spawn;
 mod types;
 
 use crate::systems::{
     CHUNK_ENTITIES_UPDATE, ENTITY_DESTROY, ENTITY_MOVE_BROADCAST, ENTITY_SPAWN_BROADCAST,
-    ENTITY_VELOCITY_BROADCAST, ITEM_SPAWN, JOIN_BROADCAST,
+    ENTITY_VELOCITY_BROADCAST, ITEM_SPAWN, JOIN_BROADCAST, SPAWNER,
 };
 pub use broadcast::EntitySpawnEvent;
 pub use chunk::ChunkEntities;
@@ -24,6 +25,7 @@ pub use movement::broadcast_entity_movement;
 use specs::DispatcherBuilder;
 pub use types::EntityType;
 
+use crate::entity::spawn::SpawnerSystem;
 use broadcast::EntityBroadcastSystem;
 use chunk::ChunkEntityUpdateSystem;
 use component::ComponentResetSystem;
@@ -41,6 +43,7 @@ pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
     );
     dispatcher.add(EntityDestroySystem::default(), ENTITY_DESTROY, &[]);
     dispatcher.add(ItemSpawnSystem::default(), ITEM_SPAWN, &[]);
+    dispatcher.add(SpawnerSystem, SPAWNER, &[ITEM_SPAWN]);
 }
 
 pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
