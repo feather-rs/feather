@@ -1,17 +1,14 @@
-use crate::network::{send_packet_to_all_players, NetworkComponent};
-use feather_core::world::Position;
-use specs::{
-    BitSet, Entities, Entity, Join, Read, ReadStorage, ReaderId, System, SystemData, World,
-    WorldExt, WriteStorage,
-};
+use specs::storage::ComponentEvent;
+use specs::{BitSet, Entities, Entity, Join, ReadStorage, ReaderId, System};
 
-use crate::entity::{PositionComponent, VelocityComponent};
-use crate::util::protocol_velocity;
 use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
 };
+use feather_core::world::Position;
 
-use specs::storage::ComponentEvent;
+use crate::entity::{PositionComponent, VelocityComponent};
+use crate::network::{send_packet_to_all_players, NetworkComponent};
+use crate::util::protocol_velocity;
 
 /// System for broadcasting when an entity moves.
 #[derive(Default)]
@@ -176,12 +173,15 @@ pub fn degrees_to_stops(degs: f32) -> u8 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::entity::EntityType;
-    use crate::testframework as t;
+    use specs::WorldExt;
+
     use feather_core::network::cast_packet;
     use feather_core::network::packet::PacketType;
-    use specs::WorldExt;
+
+    use crate::entity::EntityType;
+    use crate::testframework as t;
+
+    use super::*;
 
     #[test]
     fn test_velocity_broadcast_system() {

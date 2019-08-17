@@ -1,7 +1,7 @@
 //! Module for performing entity physics, including velocity, drag
 //! and position updates each tick.
 
-use specs::{Entities, ParJoin, Read, ReadStorage, System, Write, WriteStorage};
+use specs::{Entities, Read, ReadStorage, System, WriteStorage};
 
 use feather_core::world::ChunkMap;
 

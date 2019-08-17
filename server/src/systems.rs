@@ -27,6 +27,7 @@ pub const ANIMATION_BROADCAST: &str = "animation_broadcast";
 pub const EQUIPMENT_SEND: &str = "equipment_send";
 pub const RESOURCE_PACK_SEND: &str = "resource_pack_send";
 pub const CHUNK_SEND: &str = "chunk_send";
+pub const BLOCK_BREAK_BROADCAST: &str = "block_break_broadcast";
 
 // Entity
 pub const CHUNK_ENTITIES_UPDATE: &str = "chunk_entities_update";

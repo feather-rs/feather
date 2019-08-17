@@ -16,14 +16,6 @@ pub struct PlayerInitSystem {
     join_event_reader: Option<ReaderId<PlayerPreJoinEvent>>,
 }
 
-impl PlayerInitSystem {
-    pub fn new() -> Self {
-        Self {
-            join_event_reader: None,
-        }
-    }
-}
-
 impl<'a> System<'a> for PlayerInitSystem {
     type SystemData = (
         Read<'a, EventChannel<PlayerPreJoinEvent>>,

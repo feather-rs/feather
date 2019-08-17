@@ -240,6 +240,10 @@ pub fn add_entity_with_pos_and_vel(
             previous: pos,
         })
         .with(VelocityComponent(vel))
+        .with(NamedComponent {
+            uuid: Uuid::new_v4(),
+            display_name: "bla".to_string(),
+        })
         .with(ty)
         .with(Metadata::Entity(metadata::Entity::default()))
         .build();

@@ -30,12 +30,14 @@ pub use inventory::{InventoryComponent, InventoryUpdateEvent};
 pub use digging::{BlockUpdateCause, BlockUpdateEvent, PlayerItemDropEvent};
 
 use crate::systems::{
-    ANIMATION_BROADCAST, CHUNK_CROSS, CHUNK_SEND, CLIENT_CHUNK_UNLOAD, CREATIVE_INVENTORY,
-    DISCONNECT_BROADCAST, EQUIPMENT_SEND, HELD_ITEM_BROADCAST, HELD_ITEM_CHANGE, JOIN_BROADCAST,
-    NETWORK, PLAYER_ANIMATION, PLAYER_DIGGING, PLAYER_INIT, PLAYER_MOVEMENT, RESOURCE_PACK_SEND,
+    ANIMATION_BROADCAST, BLOCK_BREAK_BROADCAST, CHUNK_CROSS, CHUNK_SEND, CLIENT_CHUNK_UNLOAD,
+    CREATIVE_INVENTORY, DISCONNECT_BROADCAST, EQUIPMENT_SEND, HELD_ITEM_BROADCAST,
+    HELD_ITEM_CHANGE, JOIN_BROADCAST, NETWORK, PLAYER_ANIMATION, PLAYER_DIGGING, PLAYER_INIT,
+    PLAYER_MOVEMENT, RESOURCE_PACK_SEND,
 };
 use animation::{AnimationBroadcastSystem, PlayerAnimationSystem};
 use broadcast::{DisconnectBroadcastSystem, JoinBroadcastSystem};
+use digging::BlockUpdateBroadcastSystem;
 use digging::PlayerDiggingSystem;
 use init::PlayerInitSystem;
 use inventory::{
@@ -78,4 +80,9 @@ pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(EquipmentSendSystem::default(), EQUIPMENT_SEND, &[]);
     dispatcher.add(ResourcePackSendSystem::default(), RESOURCE_PACK_SEND, &[]);
     dispatcher.add(ChunkSendSystem::default(), CHUNK_SEND, &[]);
+    dispatcher.add(
+        BlockUpdateBroadcastSystem::default(),
+        BLOCK_BREAK_BROADCAST,
+        &[],
+    );
 }

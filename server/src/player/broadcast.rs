@@ -20,12 +20,6 @@ pub struct JoinBroadcastSystem {
     reader: Option<ReaderId<PlayerJoinEvent>>,
 }
 
-impl JoinBroadcastSystem {
-    pub fn new() -> Self {
-        Self { reader: None }
-    }
-}
-
 impl<'a> System<'a> for JoinBroadcastSystem {
     type SystemData = (
         Read<'a, EventChannel<PlayerJoinEvent>>,
@@ -129,12 +123,6 @@ pub struct PlayerDisconnectEvent {
 #[derive(Default)]
 pub struct DisconnectBroadcastSystem {
     reader: Option<ReaderId<PlayerDisconnectEvent>>,
-}
-
-impl DisconnectBroadcastSystem {
-    pub fn new() -> Self {
-        Self { reader: None }
-    }
 }
 
 impl<'a> System<'a> for DisconnectBroadcastSystem {

@@ -28,12 +28,6 @@ pub struct EntityDestroySystem {
     reader: Option<ReaderId<EntityDestroyEvent>>,
 }
 
-impl EntityDestroySystem {
-    pub fn new() -> Self {
-        Self { reader: None }
-    }
-}
-
 impl<'a> System<'a> for EntityDestroySystem {
     type SystemData = (Read<'a, EventChannel<EntityDestroyEvent>>, Entities<'a>);
 
@@ -60,12 +54,6 @@ impl<'a> System<'a> for EntityDestroySystem {
 #[derive(Default)]
 pub struct EntityDestroyBroadcastSystem {
     reader: Option<ReaderId<EntityDestroyEvent>>,
-}
-
-impl EntityDestroyBroadcastSystem {
-    pub fn new() -> Self {
-        Self { reader: None }
-    }
 }
 
 impl<'a> System<'a> for EntityDestroyBroadcastSystem {

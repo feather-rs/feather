@@ -174,6 +174,11 @@ mod tests {
         {
             let mut chunk_entities = w.fetch_mut::<ChunkEntities>();
             chunk_entities.add_to_chunk(old_pos.chunk_pos(), entity);
+
+            w.write_component::<PositionComponent>()
+                .get_mut(entity)
+                .unwrap()
+                .previous = old_pos;
         }
 
         d.dispatch(&w);

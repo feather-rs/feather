@@ -280,14 +280,6 @@ pub struct ChunkSendSystem {
     load_event_reader: Option<ReaderId<ChunkLoadEvent>>,
 }
 
-impl ChunkSendSystem {
-    pub fn new() -> Self {
-        Self {
-            load_event_reader: None,
-        }
-    }
-}
-
 impl<'a> System<'a> for ChunkSendSystem {
     type SystemData = (
         WriteStorage<'a, ChunkPendingComponent>,
