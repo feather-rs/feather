@@ -154,7 +154,7 @@ mod tests {
 
     #[test]
     fn test_spawner_system() {
-        let (w, mut d) = t::builder().with(SpawnerSystem).build();
+        let (w, mut d) = t::builder().with(SpawnerSystem, "").build();
 
         let position = position!(0.0, 10.0, 1.04);
         let velocity = glm::vec3(104.0, 4.0, 10.0);

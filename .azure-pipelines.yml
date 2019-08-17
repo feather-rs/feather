@@ -87,7 +87,7 @@ jobs:
         displayName: Install clippy
         condition: eq( variables['Agent.OS'], 'Linux' )
 
-      - script: cargo clippy --all-targets --all-features -- -D warnings
+      - script: cargo clippy --all-targets -- -D warnings
         displayName: Run clippy
         condition: eq( variables['Agent.OS'], 'Linux' )
 

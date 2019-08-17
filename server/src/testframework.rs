@@ -15,7 +15,7 @@ use feather_core::Gamemode;
 
 use crate::config::Config;
 use crate::entity::{
-    EntitySpawnEvent, EntityType, NamedComponent, PlayerComponent, PositionComponent,
+    EntitySpawnEvent, EntityType, ItemMarker, NamedComponent, PlayerComponent, PositionComponent,
     VelocityComponent,
 };
 use crate::io::ServerToWorkerMessage;
@@ -248,6 +248,13 @@ pub fn add_entity_with_pos_and_vel(
         .with(Metadata::Entity(metadata::Entity::default()))
         .build();
 
+    if ty == EntityType::Item {
+        world
+            .write_component::<ItemMarker>()
+            .insert(entity, ItemMarker)
+            .unwrap();
+    }
+
     if trigger_spawn_event {
         let event = EntitySpawnEvent { entity, ty };
         trigger_event(&world, event);
@@ -323,17 +330,34 @@ pub struct TestBuilder<'a, 'b> {
 }
 
 impl<'a, 'b> TestBuilder<'a, 'b> {
-    pub fn with<S>(mut self, system: S) -> Self
+    pub fn with<S>(mut self, system: S, name: &'static str) -> Self
     where
         S: for<'c> System<'c> + Send + 'a,
     {
-        self.dispatcher.add(system, "", &[]);
+        self.dispatcher.add(system, name, &[]);
+        self
+    }
+
+    pub fn with_dep<S>(mut self, system: S, name: &'static str, deps: &[&'static str]) -> Self
+    where
+        S: for<'c> System<'c> + Send + 'a,
+    {
+        self.dispatcher.add(system, name, deps);
         self
     }
 
     pub fn build(mut self) -> (World, Dispatcher<'a, 'b>) {
         let mut dispatcher = self.dispatcher.build();
         dispatcher.setup(&mut self.world);
+
+        self.world.register::<VelocityComponent>();
+        self.world.register::<PositionComponent>();
+        self.world.register::<NamedComponent>();
+        self.world.register::<Metadata>();
+        self.world.register::<EntityType>();
+        self.world.register::<ItemMarker>();
+        self.world.register::<PlayerComponent>();
+        self.world.register::<InventoryComponent>();
 
         (self.world, dispatcher)
     }

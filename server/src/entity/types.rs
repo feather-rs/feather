@@ -13,6 +13,8 @@ pub enum EntityType {
     Item,
     ExperienceOrb,
     Thunderbolt,
+    #[cfg(test)]
+    Test,
     // TODO more...
 }
 

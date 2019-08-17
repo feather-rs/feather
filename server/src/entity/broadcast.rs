@@ -96,8 +96,7 @@ impl<'a> System<'a> for EntityBroadcastSystem {
 
                     send_packet_to_all_players(&networks, &entities, packet, Some(event.entity));
                 }
-                EntityType::ExperienceOrb => unimplemented!(),
-                EntityType::Thunderbolt => unimplemented!(),
+                _ => unimplemented!(),
             }
 
             // Send metadata.
@@ -152,7 +151,9 @@ mod tests {
 
     #[test]
     fn test_spawn_item() {
-        let (mut w, mut d) = t::init_world();
+        let (mut w, mut d) = t::builder()
+            .with(EntityBroadcastSystem::default(), "")
+            .build();
 
         let player = t::add_player(&mut w);
 

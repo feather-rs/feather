@@ -99,13 +99,15 @@ impl<'a> System<'a> for ChunkEntityUpdateSystem {
         }
 
         for event in spawn_events.read(self.spawn_reader.as_mut().unwrap()) {
-            let pos = positions.get(event.entity).unwrap().current;
-            entity_chunks.add_to_chunk(pos.chunk_pos(), event.entity);
+            if let Some(pos) = positions.get(event.entity) {
+                entity_chunks.add_to_chunk(pos.current.chunk_pos(), event.entity);
+            }
         }
 
         for event in destroy_events.read(self.destroy_reader.as_mut().unwrap()) {
-            let pos = positions.get(event.entity).unwrap().current;
-            entity_chunks.remove_from_chunk(pos.chunk_pos(), event.entity);
+            if let Some(pos) = positions.get(event.entity) {
+                entity_chunks.remove_from_chunk(pos.current.chunk_pos(), event.entity);
+            }
         }
     }
 

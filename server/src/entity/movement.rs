@@ -185,11 +185,13 @@ mod tests {
 
     #[test]
     fn test_velocity_broadcast_system() {
-        let (mut w, mut d) = t::init_world();
+        let (mut w, mut d) = t::builder()
+            .with(EntityVelocityBroadcastSystem::default(), "")
+            .build();
 
         let player = t::add_player(&mut w);
 
-        let entity = t::add_entity(&mut w, EntityType::Item, true);
+        let entity = t::add_entity(&mut w, EntityType::Item, false);
 
         w.write_component::<VelocityComponent>()
             .insert(entity, VelocityComponent(glm::vec3(0.0, 0.0, 0.0)))
