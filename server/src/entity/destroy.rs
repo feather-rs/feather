@@ -5,7 +5,7 @@ use crate::network::{send_packet_to_player, NetworkComponent};
 use feather_core::network::packet::implementation::DestroyEntities;
 use shrev::{EventChannel, ReaderId};
 use specs::SystemData;
-use specs::{Entities, Entity, Join, Read, ReadStorage, System, World, Write};
+use specs::{Entities, Entity, Join, Read, ReadStorage, System, World};
 
 /// Event triggered when an entity
 /// of any type is destroyed.
@@ -28,20 +28,14 @@ pub struct EntityDestroySystem {
     reader: Option<ReaderId<EntityDestroyEvent>>,
 }
 
-impl EntityDestroySystem {
-    pub fn new() -> Self {
-        Self { reader: None }
-    }
-}
-
 impl<'a> System<'a> for EntityDestroySystem {
-    type SystemData = (Write<'a, EventChannel<EntityDestroyEvent>>, Entities<'a>);
+    type SystemData = (Read<'a, EventChannel<EntityDestroyEvent>>, Entities<'a>);
 
     fn run(&mut self, data: Self::SystemData) {
         let (events, entities) = data;
 
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
-            entities.delete(event.entity).unwrap();
+            let _ = entities.delete(event.entity);
         }
     }
 
@@ -60,12 +54,6 @@ impl<'a> System<'a> for EntityDestroySystem {
 #[derive(Default)]
 pub struct EntityDestroyBroadcastSystem {
     reader: Option<ReaderId<EntityDestroyEvent>>,
-}
-
-impl EntityDestroyBroadcastSystem {
-    pub fn new() -> Self {
-        Self { reader: None }
-    }
 }
 
 impl<'a> System<'a> for EntityDestroyBroadcastSystem {

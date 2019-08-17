@@ -39,9 +39,10 @@ use specs::{Dispatcher, DispatcherBuilder, Entity, LazyUpdate, World, WorldExt};
 use feather_core::network::packet::implementation::DisconnectPlay;
 use prelude::*;
 
-use crate::entity::{EntityComponent, EntityDestroyEvent};
+use crate::entity::{EntityDestroyEvent, NamedComponent};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
+use crate::systems::{JOIN_HANDLER, NETWORK};
 use backtrace::Backtrace;
 use feather_core::level;
 use feather_core::level::LevelData;
@@ -65,6 +66,7 @@ pub mod network;
 pub mod physics;
 pub mod player;
 pub mod prelude;
+pub mod systems;
 #[cfg(test)]
 pub mod testframework;
 
@@ -149,7 +151,7 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
     loop {
         let start_time = current_time_in_millis();
 
-        dispatcher.dispatch(world);
+        dispatcher.dispatch(&world);
         world.maintain();
 
         // Increment tick count
@@ -160,6 +162,7 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
         let end_time = current_time_in_millis();
         let elapsed = end_time - start_time;
         if elapsed > TICK_TIME {
+            debug!("Running behind! Starting next tick immediately");
             continue; // Behind - start next tick immediately
         }
 
@@ -184,7 +187,7 @@ fn init_io_manager(config: Arc<Config>, player_count: Arc<PlayerCount>) -> io::N
     )
 }
 
-/// Initializes the Specs world.
+/// Initializes the Specs world and dispatchers.
 fn init_world<'a, 'b>(
     config: Arc<Config>,
     player_count: Arc<PlayerCount>,
@@ -198,136 +201,29 @@ fn init_world<'a, 'b>(
     world.insert(TickCount::default());
     world.insert(level);
 
-    let mut dispatcher = DispatcherBuilder::new()
-        .with(chunk_logic::ChunkLoadSystem, "chunk_load", &[])
-        .with(network::NetworkSystem, "network", &[])
-        .with(player::PlayerDiggingSystem, "player_digging", &["network"])
-        .with(
-            player::BlockUpdateBroadcastSystem::default(),
-            "block_update_broadcast",
-            &["player_digging"],
-        )
-        .with(
-            player::PlayerMovementSystem,
-            "player_movement",
-            &["network"],
-        )
-        .with(
-            player::ChunkSendSystem::new(),
-            "chunk_send",
-            &["chunk_load"],
-        )
-        .with(physics::PhysicsInitSystem::default(), "physics_init", &[])
-        .with(
-            physics::EntityPhysicsSystem,
-            "entity_physics",
-            &["physics_init"],
-        )
-        .with(
-            entity::EntityMoveBroadcastSystem::default(),
-            "entity_move_broadcast",
-            &["player_movement", "entity_physics"],
-        )
-        .with(
-            joinhandler::JoinHandlerSystem,
-            "join_handler",
-            &["chunk_send"],
-        )
-        .with(player::PlayerInitSystem::new(), "player_init", &["network"])
-        .with(
-            player::ResourcePackSendSystem::default(),
-            "resource_pack_send",
-            &["join_handler"],
-        )
-        .with(
-            player::JoinBroadcastSystem::new(),
-            "join_broadcast",
-            &["join_handler", "player_init"],
-        )
-        .with(
-            entity::EntityBroadcastSystem::default(),
-            "entity_broadcast",
-            &["join_broadcast"],
-        )
-        .with(
-            entity::EntityVelocityBroadcastSystem::default(),
-            "entity_velocity_broadcast",
-            &["entity_physics"],
-        )
-        .with(
-            entity::ChunkEntityUpdateSystem::default(),
-            "chunk_entity_update",
-            &["entity_physics", "player_movement"],
-        )
-        .with(
-            player::EquipmentSendSystem::default(),
-            "equipment_send",
-            &["join_broadcast"],
-        )
-        .with(
-            player::DisconnectBroadcastSystem::new(),
-            "disconnect_broadcast",
-            &[],
-        )
-        .with(
-            entity::EntityDestroyBroadcastSystem::new(),
-            "entity_destroy_broadcast",
-            &[],
-        )
-        .with(chunk_logic::ChunkOptimizeSystem, "chunk_optimize", &[])
-        .with(chunk_logic::ChunkUnloadSystem::new(), "chunk_unload", &[])
-        .with(
-            chunk_logic::ChunkHoldRemoveSystem::new(),
-            "chunk_hold_remove",
-            &[],
-        )
-        .with(
-            entity::EntityDestroySystem::new(),
-            "entity_destroy",
-            &["chunk_hold_remove"],
-        )
-        .with(
-            player::ChunkCrossSystem::default(),
-            "chunk_cross",
-            &["player_movement"],
-        )
-        .with(
-            player::ClientChunkUnloadSystem,
-            "client_chunk_unload",
-            &["chunk_cross"],
-        )
-        .with(
-            player::PlayerAnimationSystem,
-            "player_animation",
-            &["network"],
-        )
-        .with(
-            player::AnimationBroadcastSystem::default(),
-            "animation_broadcast",
-            &["player_animation"],
-        )
-        .with(
-            player::CreativeInventorySystem,
-            "creative_inventory",
-            &["network"],
-        )
-        .with(
-            entity::ItemSpawnSystem::default(),
-            "item_spawn",
-            &["player_digging", "creative_inventory"],
-        )
-        .with(
-            player::HeldItemChangeSystem,
-            "held_item_change",
-            &["network"],
-        )
-        .with(
-            player::HeldItemBroadcastSystem::default(),
-            "held_item_broadcast",
-            &["held_item_change", "creative_inventory"],
-        )
-        .build();
+    let mut dispatcher = DispatcherBuilder::new();
 
+    dispatcher.add(network::NetworkSystem, NETWORK, &[]);
+    dispatcher.add(joinhandler::JoinHandlerSystem, JOIN_HANDLER, &[NETWORK]);
+
+    physics::init_logic(&mut dispatcher);
+    entity::init_logic(&mut dispatcher);
+    player::init_logic(&mut dispatcher);
+    chunk_logic::init_logic(&mut dispatcher);
+
+    dispatcher.add_barrier();
+
+    physics::init_handlers(&mut dispatcher);
+    entity::init_handlers(&mut dispatcher);
+    player::init_handlers(&mut dispatcher);
+    chunk_logic::init_handlers(&mut dispatcher);
+
+    dispatcher.add_barrier();
+
+    player::init_broadcast(&mut dispatcher);
+    entity::init_broadcast(&mut dispatcher);
+
+    let mut dispatcher = dispatcher.build();
     dispatcher.setup(&mut world);
 
     (world, dispatcher)
@@ -382,10 +278,10 @@ pub fn disconnect_player(player: Entity, reason: String, lazy: &LazyUpdate) {
 /// Disconnects a player without sending Disconnect Play.
 /// This should be used when the client disconnects.
 pub fn disconnect_player_without_packet(player: Entity, world: &mut World, reason: String) {
-    let ecomps = world.write_component::<EntityComponent>();
-    let ecomp = ecomps.get(player).unwrap();
+    let nameds = world.write_component::<NamedComponent>();
+    let named = nameds.get(player).unwrap();
 
-    info!("Disconnecting player {}: {}", ecomp.display_name, reason);
+    info!("Disconnecting player {}: {}", named.display_name, reason);
 
     // Decrement player count
     let player_count = world.fetch_mut::<Arc<PlayerCount>>();
@@ -394,7 +290,7 @@ pub fn disconnect_player_without_packet(player: Entity, world: &mut World, reaso
     // Trigger disconnect event
     let event = PlayerDisconnectEvent {
         player,
-        uuid: ecomp.uuid,
+        uuid: named.uuid,
         reason,
     };
     world

@@ -1,13 +1,12 @@
 //! Module for performing entity physics, including velocity, drag
 //! and position updates each tick.
 
-use crate::entity::{EntityComponent, EntityMoveEvent, EntityType, VelocityComponent};
-use crate::physics::{block_impacted_by_ray, BoundingBoxComponent, EntityVelocityUpdateEvent};
-use feather_core::world::block::Block;
-use feather_core::world::{ChunkMap, Position};
-use rayon::prelude::*;
-use shrev::EventChannel;
-use specs::{Entities, ParJoin, Read, ReadStorage, System, Write, WriteStorage};
+use specs::{Entities, Read, ReadStorage, System, WriteStorage};
+
+use feather_core::world::ChunkMap;
+
+use crate::entity::{EntityType, PositionComponent, VelocityComponent};
+use crate::physics::BoundingBoxComponent;
 
 /// System for updating all entities' positions and velocities
 /// each tick.
@@ -15,161 +14,20 @@ pub struct EntityPhysicsSystem;
 
 impl<'a> System<'a> for EntityPhysicsSystem {
     type SystemData = (
-        WriteStorage<'a, EntityComponent>,
+        WriteStorage<'a, PositionComponent>,
         WriteStorage<'a, VelocityComponent>,
         ReadStorage<'a, BoundingBoxComponent>,
         ReadStorage<'a, EntityType>,
-        Write<'a, EventChannel<EntityMoveEvent>>,
-        Write<'a, EventChannel<EntityVelocityUpdateEvent>>,
         Read<'a, ChunkMap>,
         Entities<'a>,
     );
 
-    fn run(&mut self, data: Self::SystemData) {
-        let (
-            mut entity_comps,
-            mut velocities,
-            bboxes,
-            types,
-            mut move_events,
-            mut velocity_events,
-            chunk_map,
-            entities,
-        ) = data;
-
-        // We can't use a vector for this, since it has to be mutated
-        // across threads.
-        // This channel will act as a vector of `EntityMoveEvents` to trigger.
-        let (move_tx, move_rx) = crossbeam::unbounded();
-        let (velocity_tx, velocity_rx) = crossbeam::unbounded();
-
-        // Go through entities and update position and velocity in parallel.
-        (&mut entity_comps, &mut velocities, &entities, &types)
-            .par_join()
-            .for_each(|(entity_comp, velocity, entity, ty)| {
-                let old_velocity = velocity.clone();
-                let bbox = bboxes.get(entity); // bounding box is optional
-                let position = entity_comp.position;
-                // First, add velocity to position, accounting for blocks
-                // at the new position.
-                let mut pending_position = position + velocity.0;
-                let pending_block = chunk_map.block_at(pending_position.block_pos());
-
-                // Check that entity isn't traveling through blocks.
-                let ray = (pending_position - position).into();
-                if pending_position != position && ray != glm::vec3(0.0, 0.0, 0.0) {
-                    if let Some(block_pos) = block_impacted_by_ray(
-                        &chunk_map,
-                        position.into(),
-                        ray,
-                        position.distance_squared(pending_position).abs() as f32,
-                    ) {
-                        pending_position = position!(
-                            f64::from(block_pos.x),
-                            f64::from(block_pos.y),
-                            f64::from(block_pos.z)
-                        );
-                        velocity.0 = glm::vec3(0.0, 0.0, 0.0);
-                    }
-                }
-
-                // If block is `None`, the chunk at pending_position isn't
-                // loading. If so, unload the entity.
-                if let Some(block) = pending_block {
-                    // Check that block isn't solid.
-                    // If it is, update velocity accordingly.
-                    if block != Block::Air {
-                        let pending_pos_x = position + glm::vec3(velocity.0.x, 0.0, 0.0);
-                        if chunk_map.block_at(pending_pos_x.block_pos()) != Some(Block::Air) {
-                            velocity.0.x = 0.0;
-                        }
-
-                        let pending_pos_y = position + glm::vec3(0.0, velocity.0.y, 0.0);
-                        if chunk_map.block_at(pending_pos_y.block_pos()) != Some(Block::Air) {
-                            velocity.0.y = 0.0;
-                        }
-
-                        let pending_pos_z = position + glm::vec3(0.0, 0.0, velocity.0.z);
-                        if chunk_map.block_at(pending_pos_z.block_pos()) != Some(Block::Air) {
-                            velocity.0.z = 0.0;
-                        }
-                    } else {
-                        // Depending on the type of entity, apply drag and gravity.
-                        // See https://minecraft.gamepedia.com/Entity for more information.
-                        let gravity = gravitational_acceleration(*ty);
-                        // let terminal = terminal_velocity(*ty);
-                        let drag = drag_force(*ty);
-
-                        velocity.0.y = drag * velocity.0.y + gravity;
-
-                        // Friction.
-                        if position.on_ground {
-                            let slip_multiplier = 0.6;
-                            velocity.0.x *= slip_multiplier;
-                            velocity.0.y = 0.0;
-                            velocity.0.z *= slip_multiplier;
-                        } else {
-                            velocity.0.x *= drag;
-                            velocity.0.z *= drag;
-                        }
-
-                        set_entity_location(&mut pending_position, bbox, &chunk_map);
-
-                        if pending_position != position {
-                            // Set new position and trigger event.
-                            let event = EntityMoveEvent {
-                                entity,
-                                old_pos: position,
-                                new_pos: pending_position,
-                            };
-
-                            move_tx.send(event).unwrap();
-
-                            entity_comp.position = pending_position;
-                        }
-                    }
-
-                    if &old_velocity != velocity {
-                        let event = EntityVelocityUpdateEvent { entity };
-                        velocity_tx.send(event).unwrap();
-                    }
-                } else {
-                    // Chunk isn't loaded. Unload entity.
-                    entities.delete(entity).unwrap();
-                }
-            });
-
-        // Go through events and trigger them.
-        while let Ok(event) = move_rx.try_recv() {
-            move_events.single_write(event);
-        }
-
-        while let Ok(event) = velocity_rx.try_recv() {
-            velocity_events.single_write(event);
-        }
+    fn run(&mut self, _data: Self::SystemData) {
+        // TODO reimplement this
     }
 }
 
-/// Performs a number of calculations when an entity's position
-/// is updated.
-fn set_entity_location(
-    pos: &mut Position,
-    bbox: Option<&BoundingBoxComponent>,
-    chunk_map: &ChunkMap,
-) {
-    // Set entity to be on ground if a block is detected beneath it
-    let mut offset = 0.0;
-
-    if let Some(bbox) = bbox {
-        offset = bbox.size().y / 2.0;
-    }
-
-    let check_pos = *pos - position!(0.0, offset, 0.0);
-    if let Some(block) = chunk_map.block_at(check_pos.block_pos()) {
-        pos.on_ground = block != Block::Air;
-    }
-}
-
+/*
 /// Retrieves the gravitational acceleration in blocks per tick squared
 /// for a given entity type.
 ///
@@ -185,7 +43,7 @@ fn gravitational_acceleration(ty: EntityType) -> f32 {
     }
 }
 
-/*
+
 /// Retrieves the terminal velocity in blocks per tick
 /// for a given entity type.
 fn terminal_velocity(ty: EntityType) -> f32 {
@@ -197,7 +55,7 @@ fn terminal_velocity(ty: EntityType) -> f32 {
         0.0
     }
 }
-*/
+
 
 /// Retrieves the drag force for a given entity type.
 fn drag_force(ty: EntityType) -> f32 {
@@ -208,7 +66,9 @@ fn drag_force(ty: EntityType) -> f32 {
     }
 }
 
-#[allow(clippy::float_cmp)]
+*/
+
+/*#[allow(clippy::float_cmp)]
 #[cfg(test)]
 mod tests {
     use crate::entity::{EntityMoveEvent, EntityType};
@@ -295,3 +155,4 @@ mod tests {
         (w, d, entity, reader)
     }
 }
+*/

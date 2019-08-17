@@ -1,4 +1,4 @@
-use crate::entity::{EntityComponent, PlayerComponent};
+use crate::entity::{NamedComponent, PlayerComponent, PositionComponent};
 use crate::joinhandler::PlayerJoinEvent;
 use crate::network::{send_packet_to_all_players, send_packet_to_player, NetworkComponent};
 use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
@@ -20,51 +20,48 @@ pub struct JoinBroadcastSystem {
     reader: Option<ReaderId<PlayerJoinEvent>>,
 }
 
-impl JoinBroadcastSystem {
-    pub fn new() -> Self {
-        Self { reader: None }
-    }
-}
-
 impl<'a> System<'a> for JoinBroadcastSystem {
     type SystemData = (
         Read<'a, EventChannel<PlayerJoinEvent>>,
-        ReadStorage<'a, EntityComponent>,
+        ReadStorage<'a, PositionComponent>,
+        ReadStorage<'a, NamedComponent>,
         ReadStorage<'a, PlayerComponent>,
         ReadStorage<'a, NetworkComponent>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (join_events, entity_comps, player_comps, net_comps, entities) = data;
+        let (join_events, positions, nameds, player_comps, net_comps, entities) = data;
 
         for event in join_events.read(&mut self.reader.as_mut().unwrap()) {
             // Broadcast join
-            let entity_comp = entity_comps.get(event.player).unwrap();
+            let position = positions.get(event.player).unwrap();
+            let named = nameds.get(event.player).unwrap();
             let player_comp = player_comps.get(event.player).unwrap();
 
-            let player_info = get_player_initialization_packet(entity_comp, player_comp);
+            let player_info = get_player_initialization_packet(position, named, player_comp);
 
             send_packet_to_all_players(&net_comps, &entities, player_info, None);
 
             let net_comp = net_comps.get(event.player).unwrap();
 
             // Send existing players to new player
-            for (entity_comp, player_comp, entity) in
-                (&entity_comps, &player_comps, &entities).join()
+            for (position, named, player_comp, entity) in
+                (&positions, &nameds, &player_comps, &entities).join()
             {
                 if entity != event.player {
-                    let player_info = get_player_initialization_packet(entity_comp, player_comp);
+                    let player_info =
+                        get_player_initialization_packet(position, named, player_comp);
                     send_packet_to_player(net_comp, player_info);
 
                     let spawn_player = SpawnPlayer {
                         entity_id: entity.id() as i32,
-                        player_uuid: entity_comp.uuid,
-                        x: entity_comp.position.x,
-                        y: entity_comp.position.y,
-                        z: entity_comp.position.z,
-                        yaw: degrees_to_stops(entity_comp.position.yaw),
-                        pitch: degrees_to_stops(entity_comp.position.pitch),
+                        player_uuid: named.uuid,
+                        x: position.current.x,
+                        y: position.current.y,
+                        z: position.current.z,
+                        yaw: degrees_to_stops(position.current.yaw),
+                        pitch: degrees_to_stops(position.current.pitch),
                         metadata: Default::default(),
                     };
                     send_packet_to_player(net_comp, spawn_player);
@@ -87,11 +84,12 @@ impl<'a> System<'a> for JoinBroadcastSystem {
 /// Returns the player info packet
 /// for the given player.
 fn get_player_initialization_packet(
-    ecomp: &EntityComponent,
+    _position: &PositionComponent,
+    named: &NamedComponent,
     pcomp: &PlayerComponent,
 ) -> PlayerInfo {
     let display_name = json!({
-        "text": ecomp.display_name
+        "text": named.display_name
     })
     .to_string();
 
@@ -105,13 +103,13 @@ fn get_player_initialization_packet(
     }
 
     let action = PlayerInfoAction::AddPlayer(
-        ecomp.display_name.clone(),
+        named.display_name.clone(),
         props,
         Gamemode::Creative,
         50,
         display_name,
     );
-    PlayerInfo::new(action, ecomp.uuid)
+    PlayerInfo::new(action, named.uuid)
 }
 
 /// Event which is called when a player disconnected.
@@ -125,12 +123,6 @@ pub struct PlayerDisconnectEvent {
 #[derive(Default)]
 pub struct DisconnectBroadcastSystem {
     reader: Option<ReaderId<PlayerDisconnectEvent>>,
-}
-
-impl DisconnectBroadcastSystem {
-    pub fn new() -> Self {
-        Self { reader: None }
-    }
 }
 
 impl<'a> System<'a> for DisconnectBroadcastSystem {

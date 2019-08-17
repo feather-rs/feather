@@ -4,7 +4,7 @@ use feather_core::world::Position;
 use feather_core::Gamemode;
 use glm::Vec3;
 use specs::storage::BTreeStorage;
-use specs::{Component, DenseVecStorage, VecStorage};
+use specs::{Component, FlaggedStorage, Join, System, VecStorage, WriteStorage};
 use uuid::Uuid;
 
 pub struct PlayerComponent {
@@ -16,30 +16,65 @@ impl Component for PlayerComponent {
     type Storage = BTreeStorage<Self>;
 }
 
-pub struct EntityComponent {
-    pub uuid: Uuid,
-    pub display_name: String,
-    pub position: Position,
-    pub on_ground: bool,
+#[derive(Debug, PartialEq)]
+pub struct PositionComponent {
+    /// The current position of this entity.
+    pub current: Position,
+    /// The position of this entity on the previous
+    /// tick. At the end of each tick, `reset` should
+    /// be called.
+    pub previous: Position,
 }
 
-impl Component for EntityComponent {
-    type Storage = VecStorage<Self>;
+impl PositionComponent {
+    /// Resets the current and previous position.
+    /// Should be called at the end of every tick.
+    pub fn reset(&mut self) {
+        self.previous = self.current;
+    }
+}
+
+impl Component for PositionComponent {
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
 /// An entity's velocity, in blocks per tick.
 ///
 /// Entities without this component are assumed
 /// to have a velocity of 0.
-#[derive(Deref, DerefMut, Clone, Debug, PartialEq)]
+#[derive(Deref, DerefMut, Debug, PartialEq, Clone)]
 pub struct VelocityComponent(pub Vec3);
 
 impl Component for VelocityComponent {
-    type Storage = DenseVecStorage<Self>;
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
 impl Default for VelocityComponent {
     fn default() -> Self {
-        VelocityComponent(glm::vec3(0.0, 0.0, 0.0))
+        Self(glm::vec3(0.0, 0.0, 0.0))
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct NamedComponent {
+    pub display_name: String,
+    pub uuid: Uuid,
+}
+
+impl Component for NamedComponent {
+    type Storage = BTreeStorage<Self>;
+}
+
+/// System for resetting an entity's components
+/// at the end of the tick.
+pub struct ComponentResetSystem;
+
+impl<'a> System<'a> for ComponentResetSystem {
+    type SystemData = WriteStorage<'a, PositionComponent>;
+
+    fn run(&mut self, mut positions: Self::SystemData) {
+        for position in (&mut positions).join() {
+            position.reset();
+        }
     }
 }

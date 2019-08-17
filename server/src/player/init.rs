@@ -1,5 +1,5 @@
-use crate::entity::Metadata;
-use crate::entity::{EntityComponent, EntityType, PlayerComponent};
+use crate::entity::{EntityType, PlayerComponent};
+use crate::entity::{Metadata, NamedComponent, PositionComponent};
 use crate::joinhandler::SPAWN_POSITION;
 use crate::network::PlayerPreJoinEvent;
 use crate::player::{ChunkPendingComponent, InventoryComponent, LoadedChunksComponent};
@@ -16,19 +16,12 @@ pub struct PlayerInitSystem {
     join_event_reader: Option<ReaderId<PlayerPreJoinEvent>>,
 }
 
-impl PlayerInitSystem {
-    pub fn new() -> Self {
-        Self {
-            join_event_reader: None,
-        }
-    }
-}
-
 impl<'a> System<'a> for PlayerInitSystem {
     type SystemData = (
         Read<'a, EventChannel<PlayerPreJoinEvent>>,
         WriteStorage<'a, PlayerComponent>,
-        WriteStorage<'a, EntityComponent>,
+        WriteStorage<'a, PositionComponent>,
+        WriteStorage<'a, NamedComponent>,
         WriteStorage<'a, ChunkPendingComponent>,
         WriteStorage<'a, LoadedChunksComponent>,
         WriteStorage<'a, InventoryComponent>,
@@ -40,7 +33,8 @@ impl<'a> System<'a> for PlayerInitSystem {
         let (
             events,
             mut player_comps,
-            mut entity_comps,
+            mut positions,
+            mut nameds,
             mut chunk_pending_comps,
             mut loaded_chunk_comps,
             mut inventory_comps,
@@ -56,13 +50,17 @@ impl<'a> System<'a> for PlayerInitSystem {
             };
             player_comps.insert(event.player, player_comp).unwrap();
 
-            let entity_comp = EntityComponent {
-                uuid: event.uuid,
-                display_name: event.username.clone(),
-                position: SPAWN_POSITION,
-                on_ground: true,
+            let position = PositionComponent {
+                current: SPAWN_POSITION,
+                previous: SPAWN_POSITION,
             };
-            entity_comps.insert(event.player, entity_comp).unwrap();
+            positions.insert(event.player, position).unwrap();
+
+            let named = NamedComponent {
+                display_name: event.username.clone(),
+                uuid: event.uuid,
+            };
+            nameds.insert(event.player, named).unwrap();
 
             let chunk_pending_comp = ChunkPendingComponent {
                 pending: HashSet::new(),

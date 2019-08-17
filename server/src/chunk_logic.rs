@@ -4,7 +4,7 @@
 //! Also handles unloading chunks when unused.
 use crossbeam::channel::{Receiver, Sender};
 use shrev::{EventChannel, ReaderId};
-use specs::{Component, Entity, Read, ReadStorage, System, World, Write};
+use specs::{Component, DispatcherBuilder, Entity, Read, ReadStorage, System, World, Write};
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use feather_core::world::{ChunkMap, ChunkPosition};
@@ -12,6 +12,7 @@ use feather_core::world::{ChunkMap, ChunkPosition};
 use rayon::prelude::*;
 
 use crate::entity::EntityDestroyEvent;
+use crate::systems::{CHUNK_HOLD_REMOVE, CHUNK_LOAD, CHUNK_OPTIMIZE, CHUNK_UNLOAD};
 use crate::{chunkworker, current_time_in_millis, TickCount, TPS};
 use hashbrown::HashSet;
 use multimap::MultiMap;
@@ -396,6 +397,16 @@ impl<'a> System<'a> for ChunkOptimizeSystem {
             elapsed as f64 / f64::from(count.load(Ordering::SeqCst))
         );
     }
+}
+
+pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
+    dispatcher.add(ChunkLoadSystem, CHUNK_LOAD, &[]);
+    dispatcher.add(ChunkOptimizeSystem, CHUNK_OPTIMIZE, &[]);
+}
+
+pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
+    dispatcher.add(ChunkUnloadSystem::default(), CHUNK_UNLOAD, &[]);
+    dispatcher.add(ChunkHoldRemoveSystem::default(), CHUNK_HOLD_REMOVE, &[]);
 }
 
 #[cfg(test)]

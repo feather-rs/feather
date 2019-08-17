@@ -2,11 +2,14 @@
 //! chunk, which allows for more efficient nearby
 //! entity queries and packet broadcasting.
 
-use crate::entity::{EntityComponent, EntityDestroyEvent, EntityMoveEvent, EntitySpawnEvent};
+use crate::entity::{EntityDestroyEvent, EntitySpawnEvent, PositionComponent};
 use feather_core::world::ChunkPosition;
 use fnv::FnvHashMap;
 use shrev::EventChannel;
-use specs::{Entity, Read, ReadStorage, ReaderId, System, Write};
+use specs::storage::ComponentEvent;
+use specs::{
+    BitSet, Entities, Entity, Join, Read, ReadStorage, ReaderId, System, World, WorldExt, Write,
+};
 
 /// Keeps track of which entities are in which chunk.
 #[derive(Debug, Clone, Deref, DerefMut, Default)]
@@ -57,45 +60,68 @@ impl ChunkEntities {
 /// and `EntityDestroyEvent`s.
 #[derive(Default)]
 pub struct ChunkEntityUpdateSystem {
-    move_reader: Option<ReaderId<EntityMoveEvent>>,
+    dirty: BitSet,
+    move_reader: Option<ReaderId<ComponentEvent>>,
     spawn_reader: Option<ReaderId<EntitySpawnEvent>>,
     destroy_reader: Option<ReaderId<EntityDestroyEvent>>,
 }
 
 impl<'a> System<'a> for ChunkEntityUpdateSystem {
     type SystemData = (
-        ReadStorage<'a, EntityComponent>,
+        ReadStorage<'a, PositionComponent>,
         Write<'a, ChunkEntities>,
-        Read<'a, EventChannel<EntityMoveEvent>>,
         Read<'a, EventChannel<EntitySpawnEvent>>,
         Read<'a, EventChannel<EntityDestroyEvent>>,
+        Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entity_comps, mut entity_chunks, move_events, spawn_events, destroy_events) = data;
+        let (positions, mut entity_chunks, spawn_events, destroy_events, entities) = data;
 
-        for event in move_events.read(self.move_reader.as_mut().unwrap()) {
-            let new_pos = event.new_pos.chunk_pos();
-            let old_pos = event.old_pos.chunk_pos();
+        self.dirty.clear();
+        for event in positions.channel().read(self.move_reader.as_mut().unwrap()) {
+            match event {
+                ComponentEvent::Inserted(id) | ComponentEvent::Modified(id) => {
+                    self.dirty.add(*id);
+                }
+                _ => (),
+            }
+        }
+
+        for (position, entity, _) in (&positions, &entities, &self.dirty).join() {
+            let new_pos = position.current.chunk_pos();
+            let old_pos = position.previous.chunk_pos();
 
             if new_pos != old_pos {
-                entity_chunks.remove_from_chunk(old_pos, event.entity);
-                entity_chunks.add_to_chunk(new_pos, event.entity);
+                entity_chunks.remove_from_chunk(old_pos, entity);
+                entity_chunks.add_to_chunk(new_pos, entity);
             }
         }
 
         for event in spawn_events.read(self.spawn_reader.as_mut().unwrap()) {
-            let pos = entity_comps.get(event.entity).unwrap().position;
+            let pos = positions.get(event.entity).unwrap().current;
             entity_chunks.add_to_chunk(pos.chunk_pos(), event.entity);
         }
 
         for event in destroy_events.read(self.destroy_reader.as_mut().unwrap()) {
-            let pos = entity_comps.get(event.entity).unwrap().position;
+            let pos = positions.get(event.entity).unwrap().current;
             entity_chunks.remove_from_chunk(pos.chunk_pos(), event.entity);
         }
     }
 
-    setup_impl!(move_reader, spawn_reader, destroy_reader);
+    fn setup(&mut self, world: &mut World) {
+        use specs::SystemData;
+
+        Self::SystemData::setup(world);
+
+        self.move_reader = Some(
+            world
+                .write_component::<PositionComponent>()
+                .register_reader(),
+        );
+        self.destroy_reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
+        self.spawn_reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
+    }
 }
 
 #[cfg(test)]
@@ -145,16 +171,14 @@ mod tests {
 
         let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, false);
 
-        let event = EntityMoveEvent {
-            entity,
-            new_pos: pos,
-            old_pos,
-        };
-        t::trigger_event(&w, event);
-
         {
             let mut chunk_entities = w.fetch_mut::<ChunkEntities>();
             chunk_entities.add_to_chunk(old_pos.chunk_pos(), entity);
+
+            w.write_component::<PositionComponent>()
+                .get_mut(entity)
+                .unwrap()
+                .previous = old_pos;
         }
 
         d.dispatch(&w);
