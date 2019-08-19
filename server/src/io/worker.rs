@@ -33,6 +33,7 @@ struct Worker {
 
     config: Arc<Config>,
     player_count: Arc<PlayerCount>,
+    server_icon: Arc<Option<String>>,
 }
 
 struct ClientHandle {
@@ -60,6 +61,7 @@ pub fn start(
     sender: Sender<ListenerToWorkerMessage>,
     config: Arc<Config>,
     player_count: Arc<PlayerCount>,
+    server_icon: Arc<Option<String>>,
 ) {
     trace!("Starting IO worker thread");
     let poll = Poll::new().unwrap();
@@ -76,6 +78,7 @@ pub fn start(
         pending_disconnects: vec![],
         config,
         player_count,
+        server_icon,
     };
 
     worker
@@ -142,6 +145,7 @@ fn accept_connection(worker: &mut Worker, stream: TcpStream, addr: SocketAddr) {
         initial_handler: Some(InitialHandler::new(
             Arc::clone(&worker.config),
             Arc::clone(&worker.player_count),
+            Arc::clone(&worker.server_icon),
         )),
     };
 

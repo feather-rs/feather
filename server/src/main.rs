@@ -49,7 +49,7 @@ use feather_core::level;
 use feather_core::level::LevelData;
 use shrev::EventChannel;
 use std::fs::File;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::process::exit;
 
 #[global_allocator]
@@ -78,6 +78,7 @@ pub const TICK_TIME: u64 = 1000 / TPS;
 
 #[derive(Default, Debug)]
 pub struct PlayerCount(AtomicUsize);
+
 #[derive(Default, Debug)]
 pub struct TickCount(u64);
 
@@ -95,9 +96,15 @@ fn main() {
         error!("An error occurred, and the server has shut down. Please report this at https://github.com/caelunshun/feather/issues");
     }));
 
+    let server_icon = Arc::new(load_server_icon());
+
     let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
 
-    let io_manager = init_io_manager(Arc::clone(&config), Arc::clone(&player_count));
+    let io_manager = init_io_manager(
+        Arc::clone(&config),
+        Arc::clone(&player_count),
+        Arc::clone(&server_icon),
+    );
 
     info!("Loading level.dat");
     let level = load_level().unwrap_or_else(|e| {
@@ -181,12 +188,17 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
 }
 
 /// Starts the IO threads.
-fn init_io_manager(config: Arc<Config>, player_count: Arc<PlayerCount>) -> io::NetworkIoManager {
+fn init_io_manager(
+    config: Arc<Config>,
+    player_count: Arc<PlayerCount>,
+    server_icon: Arc<Option<String>>,
+) -> io::NetworkIoManager {
     io::NetworkIoManager::start(
         format!("127.0.0.1:{}", config.server.port).parse().unwrap(),
         config.io.io_worker_threads,
         config,
         player_count,
+        server_icon,
     )
 }
 
@@ -244,6 +256,25 @@ fn init_log(config: &Config) {
     };
 
     simple_logger::init_with_level(level).unwrap();
+}
+
+/// Tries to load a server icon from the current directory.
+fn load_server_icon() -> Option<String> {
+    let icon_file: Option<File> = match File::open("server-icon.png") {
+        Ok(file) => Some(file),
+        Err(_) => None,
+    };
+
+    let mut icon_file = icon_file?;
+
+    let mut data = Vec::new();
+    if icon_file.read_to_end(&mut data).is_err() {
+        warn!("Failed to load server icon.");
+        return None;
+    }
+
+    let b64_icon = base64::encode(&data);
+    Some(format!("data:image/png;base64,{}", b64_icon))
 }
 
 /// Retrieves the current time in seconds
@@ -318,7 +349,12 @@ mod tests {
     fn test_init_world() {
         let config = Arc::new(Config::default());
         let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
-        let ioman = init_io_manager(Arc::clone(&config), Arc::clone(&player_count));
+        let server_icon = Arc::new(Some(String::from("server_icon")));
+        let ioman = init_io_manager(
+            Arc::clone(&config),
+            Arc::clone(&player_count),
+            Arc::clone(&server_icon),
+        );
         let level = LevelData::default();
 
         let (world, mut dispatcher) = init_world(config, player_count, ioman, level);
