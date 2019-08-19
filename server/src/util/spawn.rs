@@ -1,6 +1,7 @@
-use super::Metadata;
-use crate::entity::item::ItemMarker;
+use crate::entity::ItemMarker;
+use crate::entity::Metadata;
 use crate::entity::{EntitySpawnEvent, EntityType, PositionComponent, VelocityComponent};
+use crate::util::Util;
 use crossbeam::queue::SegQueue;
 use feather_core::{ItemStack, Position};
 use glm::Vec3;
@@ -16,14 +17,10 @@ use specs::{Entities, Read, System, Write, WriteStorage};
 /// creating the entities during the
 /// handling phase of the dispatcher.
 ///
-/// # Notes
-/// * This implementation is thread-safe and can
-/// be accessed simply use `Read<'a, Spawner>`.
-/// No need to have write access to it,
-/// which would block other systems.
-/// * Since entities are spawned lazily,
-/// there is no way to perform further actions
-/// on the entity until the next tick.
+/// # Note
+/// This resource is used as a subset
+/// of the `Util` struct. Never use the `Spawner`
+/// directly.
 #[derive(Default, Debug)]
 pub struct Spawner {
     /// The internal queue of spawn requests.
@@ -34,7 +31,7 @@ impl Spawner {
     /// Queues an item entity to be spawned.
     pub fn spawn_item(&self, position: Position, velocity: Vec3, item: ItemStack) {
         let meta = {
-            let mut meta_item = super::metadata::Item::default();
+            let mut meta_item = crate::entity::metadata::Item::default();
             meta_item.set_item(Some(item.clone()));
             Metadata::Item(meta_item)
         };
@@ -71,7 +68,7 @@ pub struct SpawnerSystem;
 
 impl<'a> System<'a> for SpawnerSystem {
     type SystemData = (
-        Read<'a, Spawner>,
+        Read<'a, Util>,
         WriteStorage<'a, PositionComponent>,
         WriteStorage<'a, VelocityComponent>,
         WriteStorage<'a, Metadata>,
@@ -83,7 +80,7 @@ impl<'a> System<'a> for SpawnerSystem {
 
     fn run(&mut self, data: Self::SystemData) {
         let (
-            spawner,
+            util,
             mut positions,
             mut velocities,
             mut metadatas,
@@ -94,7 +91,7 @@ impl<'a> System<'a> for SpawnerSystem {
         ) = data;
 
         // Handle spawn requests
-        while let Ok(request) = spawner.queue.pop() {
+        while let Ok(request) = util.spawner.queue.pop() {
             let entity = entities.create();
 
             positions
@@ -163,8 +160,8 @@ mod tests {
         let mut reader = t::reader(&w);
 
         {
-            let spawner = w.fetch::<Spawner>();
-            spawner.spawn_item(position, velocity, item);
+            let util = w.fetch::<Util>();
+            util.spawn_item(position, velocity, item);
         }
 
         d.dispatch(&w);
