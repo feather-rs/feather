@@ -2,8 +2,14 @@
 
 #![allow(clippy::too_many_arguments)] // TODO: builder patterm
 
+use crate::network::{send_packet_to_all_players, NetworkComponent};
+use feather_core::packet::PacketEntityMetadata;
 use feather_core::{EntityMetadata, Slot};
-use specs::{Component, VecStorage};
+use specs::storage::ComponentEvent;
+use specs::{
+    BitSet, Component, Entities, FlaggedStorage, Join, ReadStorage, ReaderId, System, VecStorage,
+    WriteStorage,
+};
 
 bitflags! {
     pub struct EntityBitMask: u8 {
@@ -44,13 +50,53 @@ entity_metadata! {
 }
 
 impl Component for Metadata {
-    type Storage = VecStorage<Self>;
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
+
+/// System for broadcasting entity metadata updates.
+#[derive(Default)]
+pub struct MetadataBroadcastSystem {
+    dirty: BitSet,
+    reader: Option<ReaderId<ComponentEvent>>,
+}
+
+impl<'a> System<'a> for MetadataBroadcastSystem {
+    type SystemData = (
+        WriteStorage<'a, Metadata>,
+        ReadStorage<'a, NetworkComponent>,
+        Entities<'a>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (mut metadatas, networks, entities) = data;
+
+        self.dirty.clear();
+
+        read_flagged_events!(metadatas, self.reader, self.dirty);
+
+        // Go through updated metadata and broadcast changes
+        for (metadata, entity, _) in (&mut metadatas, &entities, &self.dirty).join() {
+            let packet = PacketEntityMetadata {
+                entity_id: entity.id() as i32,
+                metadata: metadata.to_raw_metadata(),
+            };
+
+            send_packet_to_all_players(&networks, &entities, packet, None);
+        }
+    }
+
+    flagged_setup_impl!(Metadata, reader);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::entity::EntityType;
+    use crate::testframework as t;
     use feather_core::entitymeta::MetaEntry;
+    use feather_core::network::cast_packet;
+    use feather_core::PacketType;
+    use specs::WorldExt;
 
     #[test]
     fn test_basic() {
@@ -77,5 +123,25 @@ mod tests {
             false,
             None,
         ));
+    }
+
+    #[test]
+    fn test_metadata_update_system() {
+        let (mut w, mut d) = t::builder()
+            .with(MetadataBroadcastSystem::default(), "")
+            .build();
+
+        // Metadata is inserted here, which causes update event
+        let entity = t::add_entity(&mut w, EntityType::Test, false);
+        let player = t::add_player(&mut w);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        // Ensure that packet was sent
+        let packet = t::assert_packet_received(&player, PacketType::EntityMetadata);
+        let packet = cast_packet::<PacketEntityMetadata>(&*packet);
+
+        assert_eq!(packet.entity_id, entity.id() as i32);
     }
 }

@@ -35,3 +35,16 @@ macro_rules! flagged_setup_impl {
         }
     }
 }
+
+macro_rules! read_flagged_events {
+    ($storage:ident, $reader:expr, $dirty:expr) => {
+        for event in $storage.channel().read($reader.as_mut().unwrap()) {
+            match event {
+                ComponentEvent::Inserted(id) | ComponentEvent::Modified(id) => {
+                    $dirty.add(*id);
+                }
+                _ => (),
+            }
+        }
+    };
+}
