@@ -1,9 +1,9 @@
 //! Logic for working with item entities.
 use crate::entity::metadata::{self, Metadata};
-use crate::entity::spawn::Spawner;
 use crate::entity::{ChunkEntities, EntityDestroyEvent, PositionComponent};
 use crate::physics::nearby_entities;
 use crate::player::{PlayerItemDropEvent, PLAYER_EYE_HEIGHT};
+use crate::util::Util;
 use feather_core::ItemStack;
 use rand::Rng;
 use shrev::EventChannel;
@@ -34,12 +34,12 @@ pub struct ItemSpawnSystem {
 impl<'a> System<'a> for ItemSpawnSystem {
     type SystemData = (
         ReadStorage<'a, PositionComponent>,
-        Read<'a, Spawner>,
+        Read<'a, Util>,
         Read<'a, EventChannel<PlayerItemDropEvent>>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (positions, spawner, item_drop_events) = data;
+        let (positions, util, item_drop_events) = data;
 
         let mut rng = rand::thread_rng();
 
@@ -69,7 +69,7 @@ impl<'a> System<'a> for ItemSpawnSystem {
                 vel
             };
 
-            spawner.spawn_item(pos, velocity, event.stack.clone());
+            util.spawn_item(pos, velocity, event.stack.clone());
         }
     }
 

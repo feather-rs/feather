@@ -9,12 +9,11 @@ mod destroy;
 mod item;
 pub mod metadata;
 mod movement;
-pub mod spawn;
 mod types;
 
 use crate::systems::{
     CHUNK_ENTITIES_UPDATE, ENTITY_DESTROY, ENTITY_MOVE_BROADCAST, ENTITY_SPAWN_BROADCAST,
-    ENTITY_VELOCITY_BROADCAST, ITEM_MERGE, ITEM_SPAWN, JOIN_BROADCAST, SPAWNER,
+    ENTITY_VELOCITY_BROADCAST, ITEM_MERGE, ITEM_SPAWN, JOIN_BROADCAST,
 };
 pub use broadcast::EntitySpawnEvent;
 pub use chunk::ChunkEntities;
@@ -25,7 +24,6 @@ pub use metadata::{EntityBitMask, Metadata};
 pub use movement::broadcast_entity_movement;
 pub use types::EntityType;
 
-use crate::entity::spawn::SpawnerSystem;
 use broadcast::EntityBroadcastSystem;
 use chunk::ChunkEntityUpdateSystem;
 use component::ComponentResetSystem;
@@ -44,7 +42,6 @@ pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
     );
     dispatcher.add(EntityDestroySystem::default(), ENTITY_DESTROY, &[]);
     dispatcher.add(ItemSpawnSystem::default(), ITEM_SPAWN, &[]);
-    dispatcher.add(SpawnerSystem, SPAWNER, &[ITEM_SPAWN]);
     dispatcher.add(ItemMergeSystem::default(), ITEM_MERGE, &[]);
 }
 

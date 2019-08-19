@@ -42,7 +42,8 @@ use prelude::*;
 use crate::entity::{EntityDestroyEvent, NamedComponent};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
-use crate::systems::{JOIN_HANDLER, NETWORK};
+use crate::systems::{ITEM_SPAWN, JOIN_HANDLER, NETWORK, SPAWNER};
+use crate::util::Util;
 use backtrace::Backtrace;
 use feather_core::level;
 use feather_core::level::LevelData;
@@ -157,6 +158,8 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
         dispatcher.dispatch(&world);
         world.maintain();
 
+        world.fetch_mut::<Util>().reset();
+
         // Increment tick count
         let mut tick_count = world.write_resource::<TickCount>();
         tick_count.0 += 1;
@@ -219,6 +222,7 @@ fn init_world<'a, 'b>(
 
     physics::init_handlers(&mut dispatcher);
     entity::init_handlers(&mut dispatcher);
+    dispatcher.add(util::SpawnerSystem, SPAWNER, &[ITEM_SPAWN]);
     player::init_handlers(&mut dispatcher);
     chunk_logic::init_handlers(&mut dispatcher);
 
