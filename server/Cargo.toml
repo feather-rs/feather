@@ -36,6 +36,7 @@ num-traits = "0.2.8"
 smallvec = "0.6.10"
 lazy_static = "1.3.0"
 nalgebra-glm = "0.4.0"
+nalgebra = "0.18.0"
 ncollide3d = "0.20.1"
 derive_deref = "1.1.0"
 feather_codegen = { path = "../codegen" }

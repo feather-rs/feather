@@ -6,10 +6,23 @@ use feather_core::world::block::Block;
 use feather_core::world::{BlockPosition, ChunkMap, Position};
 use feather_core::ChunkPosition;
 use glm::{vec3, DVec3, Vec3};
+use nalgebra::{Isometry3, Point3};
+use ncollide3d::query::{Ray, RayCast};
+use ncollide3d::shape::Cuboid;
 use smallvec::SmallVec;
 use specs::storage::GenericReadStorage;
 use specs::Entity;
 use std::f32::INFINITY;
+
+/// The position at which a ray impacts a block.
+#[derive(Debug, Clone, PartialEq)]
+pub struct RayImpact {
+    /// The position of the block which was impacted.
+    pub block: BlockPosition,
+    /// The exact position, in world coordinates, at
+    /// which the ray met the block.
+    pub pos: Position,
+}
 
 /// Finds the first block impacted by the given ray.
 ///
@@ -20,7 +33,7 @@ pub fn block_impacted_by_ray(
     origin: Vec3,
     ray: Vec3,
     max_distance_squared: f32,
-) -> Option<BlockPosition> {
+) -> Option<RayImpact> {
     assert_ne!(ray, vec3(0.0, 0.0, 0.0));
 
     // Go along path of ray and find all points
@@ -76,7 +89,21 @@ pub fn block_impacted_by_ray(
     while dist_traveled.magnitude_squared() < max_distance_squared {
         if let Some(block) = chunk_map.block_at(current_pos) {
             if block != Block::Air {
-                return Some(current_pos);
+                // Calculate world-space position of
+                // impact using `ncollide`.
+                let ray = Ray::new(Point3::from(origin), direction);
+                let shape = block_shape();
+                let isometry = block_isometry(current_pos);
+
+                let impact = shape
+                    .toi_and_normal_with_ray(&isometry, &ray, true)
+                    .unwrap(); // Unwrap is safe because we know the ray intersects the block
+                let pos = Position::from(origin + impact.toi * direction);
+
+                return Some(RayImpact {
+                    block: current_pos,
+                    pos,
+                });
             }
         } else {
             // Traveled outside loaded chunks - no blocks found
@@ -149,6 +176,20 @@ where
     result
 }
 
+/// Returns an `ncollide` `Cuboid` corresponding to a block.
+pub fn block_shape() -> Cuboid<f32> {
+    Cuboid::new(vec3(0.5, 0.5, 0.5))
+}
+
+/// Returns an `Isometry` representing a block's translation.
+pub fn block_isometry(pos: BlockPosition) -> Isometry3<f32> {
+    glm::try_convert(glm::translate(
+        &glm::identity(),
+        &glm::vec3(pos.x as f32 - 0.5, pos.y as f32 - 0.5, pos.z as f32 - 0.5),
+    ))
+    .unwrap()
+}
+
 /// Finds all chunks within a given distance (in blocks)
 /// of a position.
 ///
@@ -214,7 +255,10 @@ mod tests {
 
         assert_eq!(
             block_impacted_by_ray(&map, vec3(0.0, 65.0, 0.0), vec3(0.0, -1.0, 0.0), 5.0),
-            Some(BlockPosition::new(0, 64, 0))
+            Some(RayImpact {
+                block: BlockPosition::new(0, 64, 0),
+                pos: position!(0.0, 64.0, 0.0),
+            })
         );
 
         assert_eq!(
@@ -232,7 +276,10 @@ mod tests {
 
         assert_eq!(
             block_impacted_by_ray(&map, vec3(0.0, 66.0, 0.0), vec3(1.0, -1.0, 1.0), 5.0),
-            Some(BlockPosition::new(1, 65, 1))
+            Some(RayImpact {
+                block: BlockPosition::new(1, 65, 1),
+                pos: position!(1.0, 65.0, 1.0),
+            })
         );
     }
 
