@@ -26,7 +26,6 @@ extern crate feather_codegen;
 extern crate bitflags;
 #[macro_use]
 extern crate feather_core;
-extern crate base64;
 
 extern crate nalgebra_glm as glm;
 
