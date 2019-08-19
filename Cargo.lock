@@ -475,12 +475,12 @@ dependencies = [
 
 [[package]]
 name = "derive-new"
-version = "0.5.7"
+version = "0.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "proc-macro2 0.4.30 (registry+https://github.com/rust-lang/crates.io-index)",
- "quote 0.6.13 (registry+https://github.com/rust-lang/crates.io-index)",
- "syn 0.15.43 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proc-macro2 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "quote 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "syn 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -610,7 +610,7 @@ dependencies = [
  "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "cfb8 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "derive-new 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "derive-new 0.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "derive_more 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "feather_blocks 0.2.0",
  "feather_codegen 0.3.0",
@@ -664,7 +664,7 @@ dependencies = [
  "bumpalo 2.5.0 (git+https://github.com/caelunshun/bumpalo)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossbeam 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "derive-new 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "derive-new 0.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "derive_deref 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "feather_codegen 0.3.0",
@@ -2455,7 +2455,7 @@ dependencies = [
 "checksum csv 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "37519ccdfd73a75821cac9319d4fce15a81b9fcf75f951df5b9988aa3a0af87d"
 "checksum csv-core 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "9b5cadb6b25c77aeff80ba701712494213f4a8418fcda2ee11b6560c3ad0bf4c"
 "checksum derivative 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6073e9676dbebdddeabaeb63e3b7cefd23c86f5c41d381ee1237cc77b1079898"
-"checksum derive-new 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)" = "c3fd04571b29c91cfbe1e7c9a228e069ac8635f180ffb4ccd6a6907617ee8bb0"
+"checksum derive-new 0.5.8 (registry+https://github.com/rust-lang/crates.io-index)" = "71f31892cd5c62e414316f2963c5689242c43d8e7bbcaaeca97e5e28c95d91d9"
 "checksum derive_deref 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "11554fdb0aa42363a442e0c4278f51c9621e20c1ce3bac51d79e60646f3b8b8f"
 "checksum derive_more 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7a141330240c921ec6d074a3e188a7c7ef95668bb95e7d44fa0e5778ec2a7afe"
 "checksum downcast-rs 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)" = "f2b92dfd5c2f75260cbf750572f95d387e7ca0ba5e3fbe9e1a33f23025be020f"
