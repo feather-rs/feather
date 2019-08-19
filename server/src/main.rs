@@ -49,7 +49,7 @@ use feather_core::level;
 use feather_core::level::LevelData;
 use shrev::EventChannel;
 use std::fs::File;
-use std::io::{Write, Read};
+use std::io::{Read, Write};
 use std::process::exit;
 
 #[global_allocator]
@@ -100,7 +100,11 @@ fn main() {
 
     let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
 
-    let io_manager = init_io_manager(Arc::clone(&config), Arc::clone(&player_count), Arc::clone(&server_icon));
+    let io_manager = init_io_manager(
+        Arc::clone(&config),
+        Arc::clone(&player_count),
+        Arc::clone(&server_icon),
+    );
 
     info!("Loading level.dat");
     let level = load_level().unwrap_or_else(|e| {
@@ -184,7 +188,11 @@ fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
 }
 
 /// Starts the IO threads.
-fn init_io_manager(config: Arc<Config>, player_count: Arc<PlayerCount>, server_icon: Arc<Option<String>>) -> io::NetworkIoManager {
+fn init_io_manager(
+    config: Arc<Config>,
+    player_count: Arc<PlayerCount>,
+    server_icon: Arc<Option<String>>,
+) -> io::NetworkIoManager {
     io::NetworkIoManager::start(
         format!("127.0.0.1:{}", config.server.port).parse().unwrap(),
         config.io.io_worker_threads,
@@ -254,23 +262,19 @@ fn init_log(config: &Config) {
 fn load_server_icon() -> Option<String> {
     let icon_file: Option<File> = match File::open("server-icon.png") {
         Ok(file) => Some(file),
-        Err(_) => None
+        Err(_) => None,
     };
-    if icon_file.is_none() {
-        return None;
-    }
 
-    let mut icon_file = icon_file.unwrap();
+    let mut icon_file = icon_file?;
+
     let mut data = Vec::new();
-
     if icon_file.read_to_end(&mut data).is_err() {
         warn!("Failed to load server icon.");
         return None;
     }
 
     let b64_icon = base64::encode(&data);
-
-    return Some(format!("data:image/png;base64,{}", b64_icon));
+    Some(format!("data:image/png;base64,{}", b64_icon))
 }
 
 /// Retrieves the current time in seconds
@@ -346,7 +350,11 @@ mod tests {
         let config = Arc::new(Config::default());
         let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
         let server_icon = Arc::new(Some(String::from("server_icon")));
-        let ioman = init_io_manager(Arc::clone(&config), Arc::clone(&player_count), Arc::clone(&server_icon));
+        let ioman = init_io_manager(
+            Arc::clone(&config),
+            Arc::clone(&player_count),
+            Arc::clone(&server_icon),
+        );
         let level = LevelData::default();
 
         let (world, mut dispatcher) = init_world(config, player_count, ioman, level);

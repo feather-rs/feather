@@ -42,8 +42,11 @@ pub fn init_world<'a, 'b>() -> (World, Dispatcher<'a, 'b>) {
 
     let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
     let server_icon = Arc::new(None);
-    let ioman = super::init_io_manager(Arc::clone(&config), Arc::clone(&player_count),
-                                       Arc::clone(&server_icon));
+    let ioman = super::init_io_manager(
+        Arc::clone(&config),
+        Arc::clone(&player_count),
+        Arc::clone(&server_icon),
+    );
     let level = LevelData::default();
 
     super::init_world(config, player_count, ioman, level)
