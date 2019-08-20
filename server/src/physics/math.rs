@@ -14,6 +14,28 @@ use specs::storage::GenericReadStorage;
 use specs::Entity;
 use std::f32::INFINITY;
 
+// TODO is a bitflag really the most
+// idiomatic way to do this?
+bitflags! {
+    /// A face of a block.
+    ///
+    /// * East is on the positive X side.
+    /// * West is on the negative X side.
+    /// * North is on the positive Z side.
+    /// * South is on the positive Z side.
+    /// * Top is on the positive Y side.
+    /// * Bottom is on the negative Y side.
+    pub struct BlockFace: u8 {
+        const EAST = 0x01;
+        const WEST = 0x02;
+        const NORTH = 0x04;
+        const SOUTH = 0x08;
+        const TOP = 0x10;
+        const BOTTOM = 0x20;
+        const NONE = 0x40;
+    }
+}
+
 /// The position at which a ray impacts a block.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RayImpact {
@@ -22,6 +44,8 @@ pub struct RayImpact {
     /// The exact position, in world coordinates, at
     /// which the ray met the block.
     pub pos: Position,
+    /// The face(s) of the block where the ray impacted.
+    pub face: BlockFace,
 }
 
 /// Finds the first block impacted by the given ray.
@@ -53,6 +77,12 @@ pub fn block_impacted_by_ray(
     let mut step = glm::vec3(0, 0, 0);
     let mut delta = glm::vec3(INFINITY, INFINITY, INFINITY);
     let mut next = glm::vec3(INFINITY, INFINITY, INFINITY);
+
+    // TODO this implementation does not properly
+    // handle when a ray hits multiple faces.
+    // In practice, this should not be an issue,
+    // but it may causes subtle issues in the future.
+    let mut face = BlockFace::NONE;
 
     if direction.x > 0.0 {
         step.x = 1;
@@ -103,6 +133,7 @@ pub fn block_impacted_by_ray(
                 return Some(RayImpact {
                     block: current_pos,
                     pos,
+                    face,
                 });
             }
         } else {
@@ -115,19 +146,39 @@ pub fn block_impacted_by_ray(
                 next.x += delta.x;
                 current_pos.x += step.x;
                 dist_traveled.x += 1.0;
+                face = if step.x == 1 {
+                    BlockFace::WEST
+                } else {
+                    BlockFace::EAST
+                }
             } else {
                 next.z += delta.z;
                 current_pos.z += step.z;
                 dist_traveled.z += 1.0;
+                face = if step.z == 1 {
+                    BlockFace::SOUTH
+                } else {
+                    BlockFace::NORTH
+                }
             }
         } else if next.y < next.z {
             next.y += delta.y;
             current_pos.y += step.y;
             dist_traveled.y += 1.0;
+            face = if step.y == 1 {
+                BlockFace::BOTTOM
+            } else {
+                BlockFace::TOP
+            }
         } else {
             next.z += delta.z;
             current_pos.z += step.z;
             dist_traveled.z += 1.0;
+            face = if step.z == 1 {
+                BlockFace::SOUTH
+            } else {
+                BlockFace::NORTH
+            }
         }
     }
 
@@ -258,6 +309,7 @@ mod tests {
             Some(RayImpact {
                 block: BlockPosition::new(0, 64, 0),
                 pos: position!(0.0, 64.0, 0.0),
+                face: BlockFace::TOP,
             })
         );
 
@@ -279,6 +331,7 @@ mod tests {
             Some(RayImpact {
                 block: BlockPosition::new(1, 65, 1),
                 pos: position!(1.0, 65.0, 1.0),
+                face: BlockFace::WEST, // This should be three faces—see the TODO above
             })
         );
     }
