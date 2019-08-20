@@ -17,7 +17,7 @@ use specs::{
 use feather_core::network::packet::implementation::{
     JoinGame, PlayerPositionAndLookClientbound, SpawnPosition,
 };
-use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
+use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition};
 use feather_core::{Difficulty, Dimension, Gamemode};
 
 use crate::chunk_logic::{ChunkHolderComponent, ChunkHolders, ChunkWorkerHandle};
@@ -27,18 +27,6 @@ use crate::network::NetworkComponent;
 use crate::player::{ChunkPendingComponent, LoadedChunksComponent};
 use crate::PlayerCount;
 use feather_core::level::LevelData;
-
-/// For now, we use a fixed spawn position.
-/// In the future, the spawn position should
-/// be loaded asynchronously from the world save.
-pub const SPAWN_POSITION: Position = Position {
-    x: 0.0,
-    y: 64.0,
-    z: 0.0,
-    pitch: 0.0,
-    yaw: 0.0,
-    on_ground: true,
-};
 
 #[derive(Default)]
 pub struct JoinHandlerComponent {
@@ -139,11 +127,15 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     let mut holder_comp = ChunkHolderComponent::new();
                     let mut loaded_chunks_comp = LoadedChunksComponent::default();
 
+                    // Offsets from the origin to center view distance on
+                    let chunk_offset_x = level.spawn_x >> 4;
+                    let chunk_offset_z = level.spawn_z >> 4;
+
                     // Queue chunks
                     let view_distance = i32::from(config.server.view_distance);
                     for x in -view_distance..=view_distance {
-                        for y in -view_distance..=view_distance {
-                            let pos = ChunkPosition::new(x, y);
+                        for z in -view_distance..=view_distance {
+                            let pos = ChunkPosition::new(x + chunk_offset_x, z + chunk_offset_z);
                             crate::player::send_chunk_to_player(
                                 pos,
                                 net,
@@ -174,19 +166,21 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     if pending_chunks.len() != 0 {
                         continue;
                     }
-                    let spawn_position = SpawnPosition::new(BlockPosition::new(
-                        level.spawn_x,
-                        level.spawn_y,
-                        level.spawn_z,
-                    ));
+
+                    let spawn_block_pos =
+                        BlockPosition::new(level.spawn_x, level.spawn_y, level.spawn_z);
+
+                    let spawn_position = SpawnPosition::new(spawn_block_pos);
                     crate::network::send_packet_to_player(net, spawn_position);
 
+                    let spawn_pos = spawn_block_pos.world_pos();
+
                     let position_and_look = PlayerPositionAndLookClientbound::new(
-                        SPAWN_POSITION.x,
-                        SPAWN_POSITION.y,
-                        SPAWN_POSITION.z,
-                        SPAWN_POSITION.yaw,
-                        SPAWN_POSITION.pitch,
+                        spawn_pos.x,
+                        spawn_pos.y,
+                        spawn_pos.z,
+                        spawn_pos.yaw,
+                        spawn_pos.pitch,
                         0, // Flags - unused by us
                         0, // Teleport ID - unused by us
                     );

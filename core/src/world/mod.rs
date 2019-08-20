@@ -187,6 +187,10 @@ impl BlockPosition {
     pub fn chunk_pos(&self) -> ChunkPosition {
         ChunkPosition::new(self.x >> 4, self.z >> 4)
     }
+
+    pub fn world_pos(&self) -> Position {
+        position!(f64::from(self.x), f64::from(self.y), f64::from(self.z))
+    }
 }
 
 pub struct ChunkMap {

@@ -1,9 +1,10 @@
 use crate::entity::{EntityType, PlayerComponent};
 use crate::entity::{Metadata, NamedComponent, PositionComponent};
-use crate::joinhandler::SPAWN_POSITION;
 use crate::network::PlayerPreJoinEvent;
 use crate::player::{ChunkPendingComponent, InventoryComponent, LoadedChunksComponent};
+use feather_core::level::LevelData;
 use feather_core::Gamemode;
+use feather_core::Position;
 use hashbrown::HashSet;
 use shrev::{EventChannel, ReaderId};
 use specs::SystemData;
@@ -27,6 +28,7 @@ impl<'a> System<'a> for PlayerInitSystem {
         WriteStorage<'a, InventoryComponent>,
         WriteStorage<'a, EntityType>,
         WriteStorage<'a, Metadata>,
+        Read<'a, LevelData>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -40,6 +42,7 @@ impl<'a> System<'a> for PlayerInitSystem {
             mut inventory_comps,
             mut entity_types,
             mut metadata,
+            level,
         ) = data;
 
         // Run through events
@@ -50,9 +53,15 @@ impl<'a> System<'a> for PlayerInitSystem {
             };
             player_comps.insert(event.player, player_comp).unwrap();
 
+            let spawn_pos = position!(
+                f64::from(level.spawn_x),
+                f64::from(level.spawn_y),
+                f64::from(level.spawn_z)
+            );
+
             let position = PositionComponent {
-                current: SPAWN_POSITION,
-                previous: SPAWN_POSITION,
+                current: spawn_pos,
+                previous: spawn_pos,
             };
             positions.insert(event.player, position).unwrap();
 
