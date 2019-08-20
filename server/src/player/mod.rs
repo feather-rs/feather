@@ -7,6 +7,8 @@
 mod animation;
 /// Module for broadcasting when a player joins and leaves.
 mod broadcast;
+/// Module for handling and broadcasting chat messages.
+mod chat;
 /// Module for handling the Player Digging packet.
 mod digging;
 /// Module for initializing the necessary components
@@ -31,13 +33,14 @@ pub use digging::{BlockUpdateCause, BlockUpdateEvent, PlayerItemDropEvent};
 
 use crate::player::inventory::SetSlotSystem;
 use crate::systems::{
-    ANIMATION_BROADCAST, BLOCK_BREAK_BROADCAST, CHUNK_CROSS, CHUNK_SEND, CLIENT_CHUNK_UNLOAD,
-    CREATIVE_INVENTORY, DISCONNECT_BROADCAST, EQUIPMENT_SEND, HELD_ITEM_BROADCAST,
-    HELD_ITEM_CHANGE, JOIN_BROADCAST, NETWORK, PLAYER_ANIMATION, PLAYER_DIGGING, PLAYER_INIT,
-    PLAYER_MOVEMENT, RESOURCE_PACK_SEND, SET_SLOT,
+    ANIMATION_BROADCAST, BLOCK_BREAK_BROADCAST, CHAT_BROADCAST, CHUNK_CROSS, CHUNK_SEND,
+    CLIENT_CHUNK_UNLOAD, CREATIVE_INVENTORY, DISCONNECT_BROADCAST, EQUIPMENT_SEND,
+    HELD_ITEM_BROADCAST, HELD_ITEM_CHANGE, JOIN_BROADCAST, NETWORK, PLAYER_ANIMATION, PLAYER_CHAT,
+    PLAYER_DIGGING, PLAYER_INIT, PLAYER_MOVEMENT, RESOURCE_PACK_SEND, SET_SLOT,
 };
 use animation::{AnimationBroadcastSystem, PlayerAnimationSystem};
 use broadcast::{DisconnectBroadcastSystem, JoinBroadcastSystem};
+use chat::{ChatBroadcastSystem, PlayerChatSystem};
 use digging::BlockUpdateBroadcastSystem;
 use digging::PlayerDiggingSystem;
 use init::PlayerInitSystem;
@@ -57,6 +60,7 @@ pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(CreativeInventorySystem, CREATIVE_INVENTORY, &[NETWORK]);
     dispatcher.add(HeldItemChangeSystem, HELD_ITEM_CHANGE, &[NETWORK]);
     dispatcher.add(PlayerMovementSystem, PLAYER_MOVEMENT, &[NETWORK]);
+    dispatcher.add(PlayerChatSystem, PLAYER_CHAT, &[NETWORK]);
 }
 
 pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
@@ -87,4 +91,5 @@ pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
         &[],
     );
     dispatcher.add(SetSlotSystem::default(), SET_SLOT, &[]);
+    dispatcher.add(ChatBroadcastSystem::default(), CHAT_BROADCAST, &[]);
 }
