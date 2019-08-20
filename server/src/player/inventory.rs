@@ -11,18 +11,17 @@ use feather_core::inventory::{
 };
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
-    CreativeInventoryAction, EntityEquipment, HeldItemChangeServerbound,
+    CreativeInventoryAction, EntityEquipment, HeldItemChangeServerbound, SetSlot,
 };
 use feather_core::network::packet::PacketType;
 use feather_core::Gamemode;
 use num_traits::ToPrimitive;
 use shrev::EventChannel;
 use smallvec::SmallVec;
-use specs::storage::BTreeStorage;
-use specs::SystemData;
 use specs::{
     Component, Entities, Join, LazyUpdate, Read, ReadStorage, ReaderId, World, WriteStorage,
 };
+use specs::{DenseVecStorage, SystemData};
 use specs::{Entity, System, Write};
 use std::ops::{Deref, DerefMut};
 
@@ -65,7 +64,7 @@ impl DerefMut for InventoryComponent {
 }
 
 impl Component for InventoryComponent {
-    type Storage = BTreeStorage<Self>;
+    type Storage = DenseVecStorage<Self>;
 }
 
 /// An equipment slot, with variants
@@ -344,6 +343,42 @@ impl<'a> System<'a> for EquipmentSendSystem {
 
         self.reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
     }
+}
+
+/// System for sending the Set Slot packet
+/// when a player's inventory is updated.
+#[derive(Default)]
+pub struct SetSlotSystem {
+    reader: Option<ReaderId<InventoryUpdateEvent>>,
+}
+
+impl<'a> System<'a> for SetSlotSystem {
+    type SystemData = (
+        ReadStorage<'a, InventoryComponent>,
+        ReadStorage<'a, NetworkComponent>,
+        Read<'a, EventChannel<InventoryUpdateEvent>>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (inventories, networks, events) = data;
+
+        for event in events.read(self.reader.as_mut().unwrap()) {
+            let inv = inventories.get(event.player).unwrap();
+            let network = networks.get(event.player).unwrap();
+
+            for slot in &event.slots {
+                let packet = SetSlot {
+                    window_id: 0,
+                    slot: *slot as i16,
+                    slot_data: inv.item_at(*slot as usize).cloned(),
+                };
+
+                send_packet_to_player(&network, packet);
+            }
+        }
+    }
+
+    setup_impl!(reader);
 }
 
 /// Returns whether the given update to an inventory
@@ -654,6 +689,37 @@ mod tests {
             let packet = cast_packet::<EntityEquipment>(&*packet);
             assert_eq!(packet.entity_id, player2.entity.id() as i32);
         }
+    }
+
+    #[test]
+    fn test_set_slot_system() {
+        let (mut w, mut d) = t::builder().with(SetSlotSystem::default(), "").build();
+
+        let player = t::add_player(&mut w);
+        let stack = ItemStack::new(Item::EnderPearl, 8);
+        {
+            let mut inventories = w.write_component::<InventoryComponent>();
+            inventories
+                .get_mut(player.entity)
+                .unwrap()
+                .set_item_at(0, stack.clone());
+
+            let event = InventoryUpdateEvent {
+                slots: smallvec![0],
+                player: player.entity,
+            };
+            t::trigger_event(&w, event);
+        }
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let packet = t::assert_packet_received(&player, PacketType::SetSlot);
+        let packet = cast_packet::<SetSlot>(&*packet);
+
+        assert_eq!(packet.window_id, 0);
+        assert_eq!(packet.slot_data, Some(stack));
+        assert_eq!(packet.slot, 0);
     }
 
     #[test]

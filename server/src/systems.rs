@@ -28,6 +28,7 @@ pub const EQUIPMENT_SEND: &str = "equipment_send";
 pub const RESOURCE_PACK_SEND: &str = "resource_pack_send";
 pub const CHUNK_SEND: &str = "chunk_send";
 pub const BLOCK_BREAK_BROADCAST: &str = "block_break_broadcast";
+pub const SET_SLOT: &str = "set_slot";
 
 // Entity
 pub const ITEM_COLLECT: &str = "item_collect";

@@ -12,9 +12,9 @@ mod movement;
 mod types;
 
 use crate::systems::{
-    CHUNK_ENTITIES_UPDATE, ENTITY_DESTROY, ENTITY_METADATA_BROADCAST, ENTITY_MOVE_BROADCAST,
-    ENTITY_SPAWN_BROADCAST, ENTITY_VELOCITY_BROADCAST, ITEM_COLLECT, ITEM_MERGE, ITEM_SPAWN,
-    JOIN_BROADCAST,
+    CHUNK_ENTITIES_UPDATE, ENTITY_DESTROY, ENTITY_DESTROY_BROADCAST, ENTITY_METADATA_BROADCAST,
+    ENTITY_MOVE_BROADCAST, ENTITY_SPAWN_BROADCAST, ENTITY_VELOCITY_BROADCAST, ITEM_COLLECT,
+    ITEM_MERGE, ITEM_SPAWN, JOIN_BROADCAST,
 };
 pub use broadcast::EntitySpawnEvent;
 pub use chunk::ChunkEntities;
@@ -25,6 +25,7 @@ pub use metadata::{EntityBitMask, Metadata};
 pub use movement::broadcast_entity_movement;
 pub use types::EntityType;
 
+use crate::entity::destroy::EntityDestroyBroadcastSystem;
 use crate::entity::item::ItemCollectSystem;
 use crate::entity::metadata::MetadataBroadcastSystem;
 use broadcast::EntityBroadcastSystem;
@@ -69,6 +70,11 @@ pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(
         EntityVelocityBroadcastSystem::default(),
         ENTITY_VELOCITY_BROADCAST,
+        &[],
+    );
+    dispatcher.add(
+        EntityDestroyBroadcastSystem::default(),
+        ENTITY_DESTROY_BROADCAST,
         &[],
     );
     dispatcher.add_thread_local(ComponentResetSystem);

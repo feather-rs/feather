@@ -29,11 +29,12 @@ pub use inventory::{InventoryComponent, InventoryUpdateEvent};
 
 pub use digging::{BlockUpdateCause, BlockUpdateEvent, PlayerItemDropEvent};
 
+use crate::player::inventory::SetSlotSystem;
 use crate::systems::{
     ANIMATION_BROADCAST, BLOCK_BREAK_BROADCAST, CHUNK_CROSS, CHUNK_SEND, CLIENT_CHUNK_UNLOAD,
     CREATIVE_INVENTORY, DISCONNECT_BROADCAST, EQUIPMENT_SEND, HELD_ITEM_BROADCAST,
     HELD_ITEM_CHANGE, JOIN_BROADCAST, NETWORK, PLAYER_ANIMATION, PLAYER_DIGGING, PLAYER_INIT,
-    PLAYER_MOVEMENT, RESOURCE_PACK_SEND,
+    PLAYER_MOVEMENT, RESOURCE_PACK_SEND, SET_SLOT,
 };
 use animation::{AnimationBroadcastSystem, PlayerAnimationSystem};
 use broadcast::{DisconnectBroadcastSystem, JoinBroadcastSystem};
@@ -85,4 +86,5 @@ pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
         BLOCK_BREAK_BROADCAST,
         &[],
     );
+    dispatcher.add(SetSlotSystem::default(), SET_SLOT, &[]);
 }
