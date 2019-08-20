@@ -39,6 +39,12 @@ pub struct ChunkLoadEvent {
     pub pos: ChunkPosition,
 }
 
+/// Event which is triggered when a chunk fails to load.
+#[derive(Debug, Clone, Copy)]
+pub struct ChunkLoadFailEvent {
+    pub pos: ChunkPosition,
+}
+
 /// System for receiving loaded chunks from the chunk worker thread.
 pub struct ChunkLoadSystem;
 
@@ -46,11 +52,12 @@ impl<'a> System<'a> for ChunkLoadSystem {
     type SystemData = (
         Write<'a, ChunkMap>,
         Write<'a, EventChannel<ChunkLoadEvent>>,
+        Write<'a, EventChannel<ChunkLoadFailEvent>>,
         Read<'a, ChunkWorkerHandle>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut chunk_map, mut events, handle) = data;
+        let (mut chunk_map, mut load_events, mut fail_events, handle) = data;
 
         while let Ok((pos, result)) = handle.receiver.try_recv() {
             match result {
@@ -59,13 +66,15 @@ impl<'a> System<'a> for ChunkLoadSystem {
 
                     // Trigger event
                     let event = ChunkLoadEvent { pos };
-                    events.single_write(event);
+                    load_events.single_write(event);
 
                     trace!("Loaded chunk at {:?}", pos);
                 }
                 Err(err) => {
                     // TODO generate chunk if it didn't exist
                     warn!("Failed to load chunk at {:?}: {}", pos, err);
+                    let event = ChunkLoadFailEvent { pos };
+                    fail_events.single_write(event);
                 }
             }
         }
@@ -431,13 +440,15 @@ mod tests {
         let pos = ChunkPosition::new(0, 0);
         send2.send((pos, Ok(Chunk::new(pos)))).unwrap();
 
-        let event_channel = EventChannel::<ChunkLoadEvent>::new();
+        let load_event_channel = EventChannel::<ChunkLoadEvent>::new();
+        let fail_event_channel = EventChannel::<ChunkLoadFailEvent>::new();
 
         let mut system = ChunkLoadSystem;
         let mut world = World::new();
         world.insert(chunk_map);
         world.insert(handle);
-        world.insert(event_channel);
+        world.insert(load_event_channel);
+        world.insert(fail_event_channel);
 
         system.run_now(&world);
 

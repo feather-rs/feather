@@ -8,9 +8,8 @@ use shrev::{EventChannel, ReaderId};
 use specs::storage::{BTreeStorage, ComponentEvent};
 use specs::{
     BitSet, Component, Entities, Entity, Join, LazyUpdate, ParJoin, Read, ReadStorage, System,
-    World, Write, WriteStorage,
+    WorldExt, Write, WriteStorage,
 };
-use specs::{SystemData, WorldExt};
 
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
@@ -22,7 +21,7 @@ use feather_core::world::{ChunkMap, ChunkPosition, Position};
 
 use crate::chunk_logic::{
     load_chunk, ChunkHolderComponent, ChunkHolderReleaseEvent, ChunkHolders, ChunkLoadEvent,
-    ChunkWorkerHandle,
+    ChunkLoadFailEvent, ChunkWorkerHandle,
 };
 use crate::config::Config;
 use crate::entity::PositionComponent;
@@ -278,6 +277,7 @@ impl<'a> System<'a> for ChunkCrossSystem {
 #[derive(Default)]
 pub struct ChunkSendSystem {
     load_event_reader: Option<ReaderId<ChunkLoadEvent>>,
+    fail_event_reader: Option<ReaderId<ChunkLoadFailEvent>>,
 }
 
 impl<'a> System<'a> for ChunkSendSystem {
@@ -286,10 +286,11 @@ impl<'a> System<'a> for ChunkSendSystem {
         ReadStorage<'a, NetworkComponent>,
         Read<'a, ChunkMap>,
         Read<'a, EventChannel<ChunkLoadEvent>>,
+        Read<'a, EventChannel<ChunkLoadFailEvent>>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut pendings, netcomps, chunk_map, load_events) = data;
+        let (mut pendings, netcomps, chunk_map, load_events, fail_events) = data;
 
         for event in load_events.read(&mut self.load_event_reader.as_mut().unwrap()) {
             // TODO perhaps this is slightly inefficient?
@@ -306,16 +307,19 @@ impl<'a> System<'a> for ChunkSendSystem {
                     }
                 });
         }
+
+        for event in fail_events.read(self.fail_event_reader.as_mut().unwrap()) {
+            (&mut pendings).par_join().for_each(|pending| {
+                if pending.contains(&event.pos) {
+                    // The chunk failed to load - skip sending it.
+                    // See issue #71
+                    pending.remove(&event.pos);
+                }
+            });
+        }
     }
 
-    fn setup(&mut self, world: &mut World) {
-        Self::SystemData::setup(world);
-        self.load_event_reader = Some(
-            world
-                .fetch_mut::<EventChannel<ChunkLoadEvent>>()
-                .register_reader(),
-        );
-    }
+    setup_impl!(load_event_reader, fail_event_reader);
 }
 
 /// System for sending the Unload Chunk packet when the time comes.

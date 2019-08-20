@@ -43,9 +43,15 @@ impl ChunkEntities {
     /// May panic in some cases if the entity is not contained
     /// within the given chunk.
     pub fn remove_from_chunk(&mut self, chunk: ChunkPosition, entity: Entity) {
-        let vec = self.0.get_mut(&chunk).unwrap();
+        let vec = match self.0.get_mut(&chunk) {
+            Some(vec) => vec,
+            _ => return,
+        };
 
-        let (index, _) = vec.iter().enumerate().find(|x| *x.1 == entity).unwrap();
+        let (index, _) = match vec.iter().enumerate().find(|x| *x.1 == entity) {
+            Some(index) => index,
+            None => return,
+        };
         vec.swap_remove(index);
 
         if vec.is_empty() {
