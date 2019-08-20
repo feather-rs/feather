@@ -661,6 +661,7 @@ name = "feather_server"
 version = "0.3.0"
 dependencies = [
  "backtrace 0.3.34 (registry+https://github.com/rust-lang/crates.io-index)",
+ "base64 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "bitflags 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bumpalo 2.5.0 (git+https://github.com/caelunshun/bumpalo)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",

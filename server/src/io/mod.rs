@@ -57,6 +57,7 @@ impl NetworkIoManager {
         num_worker_threads: u16,
         config: Arc<Config>,
         player_count: Arc<PlayerCount>,
+        server_icon: Arc<Option<String>>,
     ) -> Self {
         info!(
             "Starting IO event loop on {} with {} worker threads",
@@ -69,8 +70,9 @@ impl NetworkIoManager {
             let (send2, recv2) = channel();
             let player_count = Arc::clone(&player_count);
             let config = Arc::clone(&config);
+            let server_icon = Arc::clone(&server_icon);
 
-            thread::spawn(move || worker::start(recv1, send2, config, player_count));
+            thread::spawn(move || worker::start(recv1, send2, config, player_count, server_icon));
             workers.push((send1, recv2));
         }
 

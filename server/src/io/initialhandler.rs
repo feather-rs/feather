@@ -100,6 +100,8 @@ pub struct InitialHandler {
     config: Arc<Config>,
     /// The server's player count.
     player_count: Arc<PlayerCount>,
+    /// The server's icon, if any was loaded.
+    server_icon: Arc<Option<String>>,
 
     /// The username of the player, sent
     /// in Login Start.
@@ -115,7 +117,11 @@ pub struct InitialHandler {
 }
 
 impl InitialHandler {
-    pub fn new(config: Arc<Config>, player_count: Arc<PlayerCount>) -> Self {
+    pub fn new(
+        config: Arc<Config>,
+        player_count: Arc<PlayerCount>,
+        server_icon: Arc<Option<String>>,
+    ) -> Self {
         Self {
             action_queue: vec![],
 
@@ -126,6 +132,7 @@ impl InitialHandler {
 
             config,
             player_count,
+            server_icon,
 
             username: None,
 
@@ -205,6 +212,7 @@ fn handle_handshake(ih: &mut InitialHandler, packet: &Handshake) -> Result<(), E
 
 fn handle_request(ih: &mut InitialHandler, packet: &Request) -> Result<(), Error> {
     check_stage(ih, Stage::AwaitRequest, packet.ty())?;
+    let server_icon = (*ih.server_icon).clone().unwrap_or_default();
 
     // Send response packet
     let json = json!({
@@ -218,7 +226,8 @@ fn handle_request(ih: &mut InitialHandler, packet: &Request) -> Result<(), Error
         },
         "description": {
             "text": ih.config.server.motd,
-        }
+        },
+        "favicon": server_icon,
     });
 
     let response = Response::new(json.to_string());
@@ -599,6 +608,7 @@ mod tests {
         InitialHandler::new(
             Arc::new(Config::default()),
             Arc::new(PlayerCount(AtomicUsize::new(0))),
+            Arc::new(Some(String::from("test"))),
         )
     }
 
@@ -606,10 +616,15 @@ mod tests {
         InitialHandler::new(
             Arc::new(Config::default()),
             Arc::new(PlayerCount(AtomicUsize::new(count))),
+            Arc::new(Some(String::from("test"))),
         )
     }
 
     fn ih_with_config(config: Config) -> InitialHandler {
-        InitialHandler::new(Arc::new(config), Arc::new(PlayerCount(AtomicUsize::new(0))))
+        InitialHandler::new(
+            Arc::new(config),
+            Arc::new(PlayerCount(AtomicUsize::new(0))),
+            Arc::new(Some(String::from("test"))),
+        )
     }
 }
