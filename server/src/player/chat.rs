@@ -65,7 +65,7 @@ impl<'a> System<'a> for ChatBroadcastSystem {
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
             let player_name = &nameds.get(event.player).unwrap().display_name;
 
-            // Todo: could use a more robust chat-component library.
+            // TODO: could use a more robust chat-component library.
             let message_json = json!({
                 "translate": "chat.type.text",
                 "with": [
@@ -96,5 +96,62 @@ impl<'a> System<'a> for ChatBroadcastSystem {
                 .fetch_mut::<EventChannel<PlayerChatEvent>>()
                 .register_reader(),
         );
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testframework as t;
+    use feather_core::network::packet::implementation::ChatMessageServerbound;
+    use specs::WorldExt;
+
+    #[test]
+    fn test_chat_system() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        let packet = ChatMessageServerbound {
+            message: String::from("test"),
+        };
+        t::receive_packet(&player, &w, packet);
+
+        let mut event_reader = t::reader::<PlayerChatEvent>(&w);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let channel = w.fetch::<EventChannel<PlayerChatEvent>>();
+
+        let events = channel.read(&mut event_reader).collect::<Vec<_>>();
+        assert_eq!(events.len(), 1);
+        let first = events.first().unwrap();
+
+        assert_eq!(first.player, player.entity);
+        assert_eq!(first.message, String::from("test"));
+    }
+
+    #[test]
+    fn test_chat_broadcast_system() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+        let player2 = t::add_player(&mut w);
+
+        let event = PlayerChatEvent {
+            player: player.entity,
+            message: String::from("test"),
+        };
+
+        t::trigger_event(&w, event.clone());
+
+        d.dispatch(&w);
+        w.maintain();
+
+        t::assert_packet_received(&player, PacketType::ChatMessageClientbound);
+        t::assert_packet_received(&player2, PacketType::ChatMessageClientbound);
+        // TODO: Test the content of the chat-component.
+        // let packet = cast_packet::<ChatMessageClientbound>(&*packet);
     }
 }
