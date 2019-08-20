@@ -543,6 +543,11 @@ lazy_static! {
             PacketType::SpawnPosition,
         );
 
+        m.insert(
+            PacketId(0x4F, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::CollectItem,
+        );
+
         m
     };
     static ref PACKET_TYPE_MAPPINGS: HashMap<PacketType, PacketId> = {

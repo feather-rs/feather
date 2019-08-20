@@ -15,8 +15,8 @@ use feather_core::Gamemode;
 
 use crate::config::Config;
 use crate::entity::{
-    EntitySpawnEvent, EntityType, ItemMarker, NamedComponent, PlayerComponent, PositionComponent,
-    VelocityComponent,
+    EntitySpawnEvent, EntityType, ItemComponent, NamedComponent, PlayerComponent,
+    PositionComponent, VelocityComponent,
 };
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
@@ -250,8 +250,8 @@ pub fn add_entity_with_pos_and_vel(
 
     if ty == EntityType::Item {
         world
-            .write_component::<ItemMarker>()
-            .insert(entity, ItemMarker)
+            .write_component::<ItemComponent>()
+            .insert(entity, ItemComponent { collectable_at: 20 })
             .unwrap();
     }
 
@@ -355,7 +355,7 @@ impl<'a, 'b> TestBuilder<'a, 'b> {
         self.world.register::<NamedComponent>();
         self.world.register::<Metadata>();
         self.world.register::<EntityType>();
-        self.world.register::<ItemMarker>();
+        self.world.register::<ItemComponent>();
         self.world.register::<PlayerComponent>();
         self.world.register::<InventoryComponent>();
 

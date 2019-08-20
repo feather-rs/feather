@@ -116,7 +116,7 @@ pub struct InventoryUpdateEvent {
     ///
     /// Multiple slots could be affected when, for
     /// example, a player uses the "drag" inventory interaction.
-    pub slots: SmallVec<[SlotIndex; 8]>,
+    pub slots: SmallVec<[SlotIndex; 2]>,
     /// The player owning the updated inventory.
     pub player: Entity,
 }

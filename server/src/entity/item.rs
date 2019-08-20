@@ -1,25 +1,34 @@
 //! Logic for working with item entities.
 use crate::entity::metadata::{self, Metadata};
-use crate::entity::{ChunkEntities, EntityDestroyEvent, PositionComponent};
+use crate::entity::{ChunkEntities, EntityDestroyEvent, PlayerComponent, PositionComponent};
+use crate::network::{send_packet_to_all_players, NetworkComponent};
 use crate::physics::nearby_entities;
-use crate::player::{PlayerItemDropEvent, PLAYER_EYE_HEIGHT};
+use crate::player::{
+    InventoryComponent, InventoryUpdateEvent, PlayerItemDropEvent, PLAYER_EYE_HEIGHT,
+};
 use crate::util::Util;
+use crate::TickCount;
+use feather_core::network::packet::implementation::CollectItem;
 use feather_core::ItemStack;
 use rand::Rng;
 use shrev::EventChannel;
 use smallvec::SmallVec;
 use specs::storage::ComponentEvent;
 use specs::{
-    BitSet, Component, Entities, Entity, Join, NullStorage, Read, ReadStorage, ReaderId, System,
-    SystemData, World, Write, WriteStorage,
+    BitSet, Component, Entities, Entity, Join, Read, ReadStorage, ReaderId, System, SystemData,
+    VecStorage, World, Write, WriteStorage,
 };
 
-/// Marker component, used to mark entities as items.
+/// Component for item entitties.
 #[derive(Default)]
-pub struct ItemMarker;
+pub struct ItemComponent {
+    /// The tick at which this item is collectable
+    /// by a player.
+    pub collectable_at: u64,
+}
 
-impl Component for ItemMarker {
-    type Storage = NullStorage<Self>;
+impl Component for ItemComponent {
+    type Storage = VecStorage<Self>;
 }
 
 /// System for spawning an item entity when
@@ -91,7 +100,7 @@ pub struct ItemMergeSystem {
 impl<'a> System<'a> for ItemMergeSystem {
     type SystemData = (
         ReadStorage<'a, PositionComponent>,
-        ReadStorage<'a, ItemMarker>,
+        ReadStorage<'a, ItemComponent>,
         WriteStorage<'a, Metadata>,
         Write<'a, EventChannel<EntityDestroyEvent>>,
         Read<'a, ChunkEntities>,
@@ -182,6 +191,124 @@ impl<'a> System<'a> for ItemMergeSystem {
     flagged_setup_impl!(PositionComponent, reader);
 }
 
+/// System for collecting items when a player comes
+/// near them.
+#[derive(Default)]
+pub struct ItemCollectSystem {
+    dirty: BitSet,
+    reader: Option<ReaderId<ComponentEvent>>,
+}
+
+impl<'a> System<'a> for ItemCollectSystem {
+    type SystemData = (
+        WriteStorage<'a, InventoryComponent>,
+        ReadStorage<'a, PositionComponent>,
+        ReadStorage<'a, PlayerComponent>,
+        ReadStorage<'a, ItemComponent>,
+        ReadStorage<'a, NetworkComponent>,
+        WriteStorage<'a, Metadata>,
+        Write<'a, EventChannel<InventoryUpdateEvent>>,
+        Write<'a, EventChannel<EntityDestroyEvent>>,
+        Read<'a, ChunkEntities>,
+        Read<'a, TickCount>,
+        Entities<'a>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (
+            mut inventories,
+            positions,
+            players,
+            items,
+            networks,
+            mut metadatas,
+            mut inventory_events,
+            mut destroy_events,
+            chunk_entities,
+            tick,
+            entities,
+        ) = data;
+
+        self.dirty.clear();
+
+        read_flagged_events!(positions, self.reader, self.dirty);
+
+        // For each player who has moved this tick,
+        // look for nearby items.
+        // We need to keep track of which items
+        // have already been collected to avoid
+        // having the same item being collected
+        // by two players at once; this would
+        // cause dupe exploits.
+        let mut collected_items: SmallVec<[Entity; 4]> = smallvec![];
+
+        for (position, inventory, player, _, _) in (
+            &positions,
+            &mut inventories,
+            &entities,
+            &players,
+            &self.dirty,
+        )
+            .join()
+        {
+            let nearby = nearby_entities(
+                &chunk_entities,
+                &positions,
+                position.current,
+                glm::vec3(1.0, 0.5, 1.0),
+            );
+
+            for other in nearby {
+                // If it's not an item, skip.
+                let item = continue_if_none!(items.get(other));
+
+                // Check if the item can be picked up yet.
+                if item.collectable_at > tick.0 {
+                    continue;
+                }
+
+                // If the item has already been collected, don't try it.
+                if collected_items.iter().any(|x| *x == other) {
+                    continue;
+                }
+
+                // Attempt to collect the item.
+                let mut stack = item_stack_from_meta(metadatas.get(other).unwrap());
+                let (affected_slots, amount_left) = inventory.collect_item(stack.clone());
+
+                // Broadcast Collect Item packet, which gives an animation.
+                let packet = CollectItem {
+                    collected: other.id() as i32,
+                    collector: player.id() as i32,
+                    count: i32::from(stack.amount - amount_left),
+                };
+                send_packet_to_all_players(&networks, &entities, packet, None);
+
+                if amount_left == 0 {
+                    entities.delete(other).unwrap();
+                    collected_items.push(other);
+
+                    let event = EntityDestroyEvent { entity: other };
+                    destroy_events.single_write(event);
+                } else {
+                    stack.amount = amount_left;
+                    let meta = item_meta(stack);
+                    metadatas.insert(other, meta).unwrap();
+                }
+
+                // Trigger inventory update event.
+                let event = InventoryUpdateEvent {
+                    slots: affected_slots,
+                    player,
+                };
+                inventory_events.single_write(event);
+            }
+        }
+    }
+
+    flagged_setup_impl!(PositionComponent, reader);
+}
+
 pub fn item_stack_from_meta(meta: &Metadata) -> ItemStack {
     match meta {
         Metadata::Item(item) => item.item().unwrap().clone(),
@@ -201,9 +328,12 @@ mod tests {
     use crate::entity::chunk::ChunkEntityUpdateSystem;
     use crate::entity::EntitySpawnEvent;
     use crate::entity::EntityType;
+    use crate::systems::CHUNK_ENTITIES_UPDATE;
     use crate::testframework as t;
+    use feather_core::inventory::SLOT_HOTBAR_OFFSET;
+    use feather_core::network::cast_packet;
     use feather_core::world::Position;
-    use feather_core::{Item, ItemStack};
+    use feather_core::{Item, ItemStack, PacketType};
     use specs::WorldExt;
 
     #[test]
@@ -282,5 +412,49 @@ mod tests {
         let stack = item_stack_from_meta(&metadata);
         assert_eq!(stack.ty, Item::EnderPearl);
         assert_eq!(stack.amount, 11);
+    }
+
+    #[test]
+    fn test_item_collect_system() {
+        let (mut w, mut d) = t::builder()
+            .with(ChunkEntityUpdateSystem::default(), CHUNK_ENTITIES_UPDATE)
+            .with_dep(ItemCollectSystem::default(), "", &[CHUNK_ENTITIES_UPDATE])
+            .build();
+
+        let player = t::add_player(&mut w);
+        let item = t::add_entity(&mut w, EntityType::Item, true);
+        let stack = ItemStack::new(Item::String, 4);
+
+        let mut destroy_reader = t::reader(&w);
+
+        {
+            let mut metadatas = w.write_component::<Metadata>();
+            let metadata = item_meta(stack.clone());
+            metadatas.insert(item, metadata).unwrap();
+        }
+
+        // Allow item to be collected
+        w.fetch_mut::<TickCount>().0 = 20;
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let destroy_events = t::triggered_events::<EntityDestroyEvent>(&w, &mut destroy_reader);
+        let first = destroy_events.first().unwrap();
+        assert_eq!(first.entity, item);
+
+        assert!(!w.is_alive(item));
+
+        let inventories = w.read_component::<InventoryComponent>();
+        let inventory = inventories.get(player.entity).unwrap();
+
+        assert_eq!(inventory.item_at(SLOT_HOTBAR_OFFSET), Some(&stack));
+
+        let packet = t::assert_packet_received(&player, PacketType::CollectItem);
+        let packet = cast_packet::<CollectItem>(&*packet);
+
+        assert_eq!(packet.collector, player.entity.id() as i32);
+        assert_eq!(packet.collected, item.id() as i32);
+        assert_eq!(packet.count, 4);
     }
 }

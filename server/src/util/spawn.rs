@@ -1,7 +1,8 @@
-use crate::entity::ItemMarker;
+use crate::entity::ItemComponent;
 use crate::entity::Metadata;
 use crate::entity::{EntitySpawnEvent, EntityType, PositionComponent, VelocityComponent};
 use crate::util::Util;
+use crate::{TickCount, TPS};
 use crossbeam::queue::SegQueue;
 use feather_core::{ItemStack, Position};
 use glm::Vec3;
@@ -73,8 +74,9 @@ impl<'a> System<'a> for SpawnerSystem {
         WriteStorage<'a, VelocityComponent>,
         WriteStorage<'a, Metadata>,
         WriteStorage<'a, EntityType>,
-        WriteStorage<'a, ItemMarker>,
+        WriteStorage<'a, ItemComponent>,
         Write<'a, EventChannel<EntitySpawnEvent>>,
+        Read<'a, TickCount>,
         Entities<'a>,
     );
 
@@ -87,6 +89,7 @@ impl<'a> System<'a> for SpawnerSystem {
             mut types,
             mut item_markers,
             mut spawn_events,
+            tick,
             entities,
         ) = data;
 
@@ -111,7 +114,14 @@ impl<'a> System<'a> for SpawnerSystem {
 
             match request.ty {
                 EntityType::Item => {
-                    item_markers.insert(entity, ItemMarker).unwrap();
+                    item_markers
+                        .insert(
+                            entity,
+                            ItemComponent {
+                                collectable_at: tick.0 + TPS,
+                            },
+                        )
+                        .unwrap();
                 }
                 _ => unimplemented!(),
             }

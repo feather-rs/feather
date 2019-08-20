@@ -48,3 +48,13 @@ macro_rules! read_flagged_events {
         }
     };
 }
+
+macro_rules! continue_if_none {
+    ($option:expr) => {
+        if let Some(value) = $option {
+            value
+        } else {
+            continue;
+        }
+    };
+}

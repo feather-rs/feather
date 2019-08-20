@@ -13,17 +13,19 @@ mod types;
 
 use crate::systems::{
     CHUNK_ENTITIES_UPDATE, ENTITY_DESTROY, ENTITY_METADATA_BROADCAST, ENTITY_MOVE_BROADCAST,
-    ENTITY_SPAWN_BROADCAST, ENTITY_VELOCITY_BROADCAST, ITEM_MERGE, ITEM_SPAWN, JOIN_BROADCAST,
+    ENTITY_SPAWN_BROADCAST, ENTITY_VELOCITY_BROADCAST, ITEM_COLLECT, ITEM_MERGE, ITEM_SPAWN,
+    JOIN_BROADCAST,
 };
 pub use broadcast::EntitySpawnEvent;
 pub use chunk::ChunkEntities;
 pub use component::{NamedComponent, PlayerComponent, PositionComponent, VelocityComponent};
 pub use destroy::EntityDestroyEvent;
-pub use item::ItemMarker;
+pub use item::ItemComponent;
 pub use metadata::{EntityBitMask, Metadata};
 pub use movement::broadcast_entity_movement;
 pub use types::EntityType;
 
+use crate::entity::item::ItemCollectSystem;
 use crate::entity::metadata::MetadataBroadcastSystem;
 use broadcast::EntityBroadcastSystem;
 use chunk::ChunkEntityUpdateSystem;
@@ -33,7 +35,9 @@ use item::{ItemMergeSystem, ItemSpawnSystem};
 use movement::{EntityMoveBroadcastSystem, EntityVelocityBroadcastSystem};
 use specs::DispatcherBuilder;
 
-pub fn init_logic(_: &mut DispatcherBuilder) {}
+pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
+    dispatcher.add(ItemCollectSystem::default(), ITEM_COLLECT, &[]);
+}
 
 pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(

@@ -9,6 +9,7 @@ use specs::{Entities, Entity, Join, Read, ReadStorage, System, World};
 
 /// Event triggered when an entity
 /// of any type is destroyed.
+#[derive(Debug, Clone)]
 pub struct EntityDestroyEvent {
     /// Note that when this event is triggered,
     /// the entity isn't actually removed from the world

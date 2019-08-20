@@ -10,6 +10,8 @@ extern crate serde;
 extern crate feather_codegen;
 #[macro_use]
 extern crate num_derive;
+#[macro_use]
+extern crate smallvec;
 
 extern crate nalgebra_glm as glm;
 

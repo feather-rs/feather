@@ -1,6 +1,7 @@
 //! Module for creating and modifying inventories of any type.
 
 use crate::item::Item;
+use smallvec::SmallVec;
 
 pub type SlotIndex = usize;
 
@@ -100,11 +101,6 @@ pub struct Inventory {
     pub ty: InventoryType,
 }
 
-#[derive(Clone, Copy)]
-pub struct InventoryFull {
-    pub amnt_left: u8,
-}
-
 impl Inventory {
     /// Creates a new inventory of the given
     /// type and number of slots.
@@ -140,28 +136,37 @@ impl Inventory {
 
     /// Attempts to insert the given item into a player
     /// inventory.
-    pub fn collect_item(&mut self, mut item: ItemStack) -> Result<(), InventoryFull> {
+    ///
+    /// Returns the affected slots and the number of remaining
+    /// items which were not added to the inventory.
+    pub fn collect_item(&mut self, mut item: ItemStack) -> (SmallVec<[SlotIndex; 2]>, u8) {
+        let mut affected_slots = smallvec![];
         for slot in COLLECT_SEARCH_ORDER.iter() {
             let slot_item = self.item_at(*slot);
             if slot_item.is_none() {
                 self.set_item_at(*slot, item);
-                return Ok(());
+                return (smallvec![*slot], 0);
             }
 
-            if let Some(slot_item) = slot_item {
+            if let Some(slot_item) = slot_item.cloned() {
                 if slot_item.ty == item.ty {
-                    item.amount -= STACK_MAX_SIZE - slot_item.amount;
+                    let added = STACK_MAX_SIZE - slot_item.amount;
+                    item.amount -= added;
+
+                    self.set_item_at(
+                        *slot,
+                        ItemStack::new(slot_item.ty, slot_item.amount + added),
+                    );
+                    affected_slots.push(*slot);
 
                     if item.amount == 0 {
-                        return Ok(());
+                        return (affected_slots, 0);
                     }
                 }
             }
         }
 
-        Err(InventoryFull {
-            amnt_left: item.amount,
-        })
+        (affected_slots, item.amount)
     }
 
     /// Returns the number of slots in this inventory.

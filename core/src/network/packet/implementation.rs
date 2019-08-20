@@ -1562,3 +1562,10 @@ pub struct EntityEquipment {
 pub struct SpawnPosition {
     pub location: BlockPosition,
 }
+
+#[derive(Default, AsAny, new, Packet, Clone)]
+pub struct CollectItem {
+    pub collected: VarInt,
+    pub collector: VarInt,
+    pub count: VarInt,
+}
