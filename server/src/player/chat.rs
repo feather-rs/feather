@@ -31,7 +31,7 @@ impl<'a> System<'a> for PlayerChatSystem {
     fn run(&mut self, data: Self::SystemData) {
         let (mut events, packet_queue) = data;
 
-        // Handle Animation Serverbound packets.
+        // Handle Chat Message Serverbound packets.
         let packets = packet_queue.for_packet(PacketType::ChatMessageServerbound);
 
         for (player, packet) in packets {
@@ -45,7 +45,7 @@ impl<'a> System<'a> for PlayerChatSystem {
 }
 
 /// System for broadcasting chat messages.
-/// This system listens to `PlayerChatSystem`s.
+/// This system listens to `PlayerChatEvent`s.
 #[derive(Default)]
 pub struct ChatBroadcastSystem {
     reader: Option<ReaderId<PlayerChatEvent>>,
