@@ -15,6 +15,7 @@ pub const PLAYER_ANIMATION: &str = "player_animation";
 pub const CREATIVE_INVENTORY: &str = "creative_inventory";
 pub const HELD_ITEM_CHANGE: &str = "held_item_change";
 pub const PLAYER_MOVEMENT: &str = "player_movement";
+pub const PLAYER_CHAT: &str = "player_chat";
 
 pub const CHUNK_CROSS: &str = "chunk_cross";
 pub const PLAYER_INIT: &str = "player_init";
@@ -29,6 +30,7 @@ pub const RESOURCE_PACK_SEND: &str = "resource_pack_send";
 pub const CHUNK_SEND: &str = "chunk_send";
 pub const BLOCK_BREAK_BROADCAST: &str = "block_break_broadcast";
 pub const SET_SLOT: &str = "set_slot";
+pub const CHAT_BROADCAST: &str = "chat_broadcast";
 
 // Entity
 pub const ITEM_COLLECT: &str = "item_collect";
