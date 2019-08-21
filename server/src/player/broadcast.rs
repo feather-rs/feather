@@ -1,7 +1,9 @@
 use crate::entity::{NamedComponent, PlayerComponent, PositionComponent};
 use crate::joinhandler::PlayerJoinEvent;
 use crate::network::{send_packet_to_all_players, send_packet_to_player, NetworkComponent};
-use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
+use feather_core::network::packet::implementation::{
+    ChatMessageClientbound, PlayerInfo, PlayerInfoAction, SpawnPlayer,
+};
 use feather_core::Gamemode;
 use shrev::EventChannel;
 use specs::SystemData;
@@ -67,6 +69,21 @@ impl<'a> System<'a> for JoinBroadcastSystem {
                     send_packet_to_player(net_comp, spawn_player);
                 }
             }
+
+            // Broadcast join message in chat
+            let message_json = json!({
+                "translate": "multiplayer.player.joined",
+                "color": "yellow",
+                "with": [
+                    {"text": named.display_name},
+                ],
+            })
+            .to_string();
+            let packet = ChatMessageClientbound {
+                json_data: message_json,
+                position: 0,
+            };
+            send_packet_to_all_players(&net_comps, &entities, packet, None);
         }
     }
 
