@@ -56,11 +56,13 @@ impl<'a> System<'a> for ItemSpawnSystem {
             // Spawn item entity.
 
             // Position is player's eye height minus 0.3
-            let pos = {
+            let mut pos = {
                 let player_pos = positions.get(event.player).unwrap().current
                     + glm::vec3(0.0, PLAYER_EYE_HEIGHT, 0.0);
                 player_pos - glm::vec3(0.0, 0.3, 0.0)
             };
+
+            pos.on_ground = false;
 
             // This velocity calculation was sourced from Glowstone's
             // work. See https://github.com/GlowstoneMC/Glowstone/blob/dev/src/main/java/net/glowstone/entity/GlowHumanEntity.java

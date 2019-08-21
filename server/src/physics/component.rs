@@ -9,7 +9,7 @@ use specs::{Component, DenseVecStorage, Read, ReaderId, System, WriteStorage};
 
 /// An entity's bounding box.
 #[derive(Debug, Clone, Deref, DerefMut)]
-pub struct BoundingBoxComponent(AABB<f64>);
+pub struct BoundingBoxComponent(pub AABB<f64>);
 
 impl Component for BoundingBoxComponent {
     type Storage = DenseVecStorage<Self>;

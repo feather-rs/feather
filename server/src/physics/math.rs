@@ -36,6 +36,36 @@ bitflags! {
     }
 }
 
+impl BlockFace {
+    /// Returns a vector with coordinates set to 1.0
+    /// where the face is toward the positive axis
+    /// and to -1.0 where the face is toward the negative
+    /// axis.
+    pub fn as_vector(self) -> DVec3 {
+        let mut vector = glm::vec3(0.0, 0.0, 0.0);
+
+        if self.contains(BlockFace::EAST) {
+            vector.x = 1.0;
+        } else if self.contains(BlockFace::WEST) {
+            vector.x = -1.0;
+        }
+
+        if self.contains(BlockFace::NORTH) {
+            vector.z = 1.0;
+        } else if self.contains(BlockFace::SOUTH) {
+            vector.z = -1.0;
+        }
+
+        if self.contains(BlockFace::TOP) {
+            vector.y = 1.0;
+        } else if self.contains(BlockFace::BOTTOM) {
+            vector.y = -1.0;
+        }
+
+        vector
+    }
+}
+
 /// The position at which a ray impacts a block.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RayImpact {
@@ -58,7 +88,9 @@ pub fn block_impacted_by_ray(
     ray: Vec3,
     max_distance_squared: f32,
 ) -> Option<RayImpact> {
-    assert_ne!(ray, vec3(0.0, 0.0, 0.0));
+    if ray == vec3(0.0, 0.0, 0.0) {
+        return None;
+    }
 
     // Go along path of ray and find all points
     // where one or more coordinates are integers.
@@ -234,11 +266,10 @@ pub fn block_shape() -> Cuboid<f32> {
 
 /// Returns an `Isometry` representing a block's translation.
 pub fn block_isometry(pos: BlockPosition) -> Isometry3<f32> {
-    glm::try_convert(glm::translate(
-        &glm::identity(),
-        &glm::vec3(pos.x as f32 - 0.5, pos.y as f32 - 0.5, pos.z as f32 - 0.5),
-    ))
-    .unwrap()
+    Isometry3::new(
+        vec3(pos.x as f32 + 0.5, pos.y as f32 + 0.5, pos.z as f32 + 0.5),
+        vec3(0.0, 0.0, 0.0),
+    )
 }
 
 /// Finds all chunks within a given distance (in blocks)
@@ -308,7 +339,7 @@ mod tests {
             block_impacted_by_ray(&map, vec3(0.0, 65.0, 0.0), vec3(0.0, -1.0, 0.0), 5.0),
             Some(RayImpact {
                 block: BlockPosition::new(0, 64, 0),
-                pos: position!(0.0, 64.0, 0.0),
+                pos: position!(0.0, 65.0, 0.0),
                 face: BlockFace::TOP,
             })
         );

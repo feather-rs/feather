@@ -2,6 +2,7 @@
 
 use crate::item::Item;
 use smallvec::SmallVec;
+use std::cmp::min;
 
 pub type SlotIndex = usize;
 
@@ -150,7 +151,7 @@ impl Inventory {
 
             if let Some(slot_item) = slot_item.cloned() {
                 if slot_item.ty == item.ty {
-                    let added = STACK_MAX_SIZE - slot_item.amount;
+                    let added = min(item.amount, STACK_MAX_SIZE - slot_item.amount);
                     item.amount -= added;
 
                     self.set_item_at(
