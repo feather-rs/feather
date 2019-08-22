@@ -5,7 +5,7 @@
 #![forbid(unsafe_code, warnings)]
 
 #[macro_use]
-extern crate serde_derive;
+extern crate serde;
 #[macro_use]
 extern crate derive_deref;
 #[macro_use]
