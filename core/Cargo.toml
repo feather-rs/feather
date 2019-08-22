@@ -10,14 +10,14 @@ feather_codegen = { path = "../codegen" }
 feather_blocks = { path = "../blocks" }
 feather_items = { path = "../items" }
 lazy_static = "1.3.0"
-derive-new = "0.5.7"
+derive-new = "0.5.8"
 uuid = "0.7.4"
 cfb8 = "0.3.2"
 aes = "0.3.2"
 flate2 = "1.0.11"
 bytes = "0.4.12"
 log = "0.4.8"
-serde = { version = "1.0.98", features = ["derive"] }
+serde = { version = "1.0.99", features = ["derive"] }
 num-traits = "0.2.8"
 num-derive = "0.2.5"
 hashbrown = { version = "0.6.0", features = ["serde"] }
