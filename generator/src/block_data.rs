@@ -39,6 +39,8 @@ pub struct BlockProperties {
 #[derive(Clone, Debug, Deserialize)]
 pub struct State {
     pub id: u16,
+    #[serde(default)]
+    pub default: bool,
     pub properties: Option<StateProperties>,
 }
 

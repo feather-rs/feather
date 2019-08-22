@@ -20,7 +20,7 @@ pub struct Item {
     pub protocol_id: i32,
 }
 
-fn load_report(path: &str) -> Result<ItemReport, Error> {
+pub fn load_report(path: &str) -> Result<ItemReport, Error> {
     let mut file = File::open(path)?;
 
     let mut string = String::new();

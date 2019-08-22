@@ -336,7 +336,7 @@ fn create_property_enum(
     property_enums.push(en);
 }
 
-fn correct_variable_name(name: &str) -> &str {
+pub fn correct_variable_name(name: &str) -> &str {
     match name {
         "type" => "ty",
         "in" => "_in",
@@ -346,14 +346,14 @@ fn correct_variable_name(name: &str) -> &str {
 
 /// A property value type.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-enum PropValueType {
+pub enum PropValueType {
     Enum,
     I32,
     Bool,
 }
 
 impl PropValueType {
-    fn guess_from_value(value: &str) -> Self {
+    pub fn guess_from_value(value: &str) -> Self {
         if i32::from_str(value).is_ok() {
             PropValueType::I32
         } else if bool::from_str(value).is_ok() {
