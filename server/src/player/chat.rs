@@ -1,6 +1,6 @@
 use shrev::EventChannel;
 use specs::SystemData;
-use specs::{Entities, Entity, Read, ReadStorage, ReaderId, System, World, Write};
+use specs::{Entities, Read, ReadStorage, ReaderId, System, World, Write};
 
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
@@ -11,25 +11,25 @@ use feather_core::network::packet::PacketType;
 use crate::entity::NamedComponent;
 use crate::network::{send_packet_to_all_players, NetworkComponent, PacketQueue};
 
-/// Event which is triggered when a player sends a chat message.
+/// Event which is triggered when a new chat message is to be broadcasted to the whole server.
 #[derive(Debug, Clone)]
-pub struct PlayerChatEvent {
-    pub player: Entity,
+pub struct ChatBroadcastEvent {
     pub message: String,
 }
 
 /// System for handling Chat Message Serverbound packets
-/// and then triggering a `PlayerChatEvent`.
+/// and then triggering a `ChatBroadcastEvent`.
 pub struct PlayerChatSystem;
 
 impl<'a> System<'a> for PlayerChatSystem {
     type SystemData = (
-        Write<'a, EventChannel<PlayerChatEvent>>,
+        Write<'a, EventChannel<ChatBroadcastEvent>>,
+        ReadStorage<'a, NamedComponent>,
         Read<'a, PacketQueue>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut events, packet_queue) = data;
+        let (mut events, nameds, packet_queue) = data;
 
         // Handle Chat Message Serverbound packets.
         let packets = packet_queue.for_packet(PacketType::ChatMessageServerbound);
@@ -37,54 +37,56 @@ impl<'a> System<'a> for PlayerChatSystem {
         for (player, packet) in packets {
             let packet = cast_packet::<ChatMessageServerbound>(&*packet);
             let message = packet.message.clone();
-
-            let event = PlayerChatEvent { player, message };
-            events.single_write(event);
-        }
-    }
-}
-
-/// System for broadcasting chat messages.
-/// This system listens to `PlayerChatEvent`s.
-#[derive(Default)]
-pub struct ChatBroadcastSystem {
-    reader: Option<ReaderId<PlayerChatEvent>>,
-}
-
-impl<'a> System<'a> for ChatBroadcastSystem {
-    type SystemData = (
-        Read<'a, EventChannel<PlayerChatEvent>>,
-        ReadStorage<'a, NamedComponent>,
-        ReadStorage<'a, NetworkComponent>,
-        Entities<'a>,
-    );
-
-    fn run(&mut self, data: Self::SystemData) {
-        let (events, nameds, networks, entities) = data;
-
-        for event in events.read(&mut self.reader.as_mut().unwrap()) {
-            let player_name = &nameds.get(event.player).unwrap().display_name;
+            let player_name = &nameds.get(player).unwrap().display_name;
 
             // TODO: could use a more robust chat-component library.
             let message_json = json!({
                 "translate": "chat.type.text",
                 "with": [
                     {"text": player_name},
-                    {"text": event.message},
+                    {"text": message},
                 ],
             })
             .to_string();
 
+            let event = ChatBroadcastEvent {
+                message: message_json,
+            };
+            events.single_write(event);
+
+            // Log in the console
+            info!("<{}> {}", player_name, message);
+        }
+    }
+}
+
+/// System for broadcasting chat messages.
+/// This system listens to `ChatBroadcastEvent`s.
+#[derive(Default)]
+pub struct ChatBroadcastSystem {
+    reader: Option<ReaderId<ChatBroadcastEvent>>,
+}
+
+impl<'a> System<'a> for ChatBroadcastSystem {
+    type SystemData = (
+        Read<'a, EventChannel<ChatBroadcastEvent>>,
+        ReadStorage<'a, NetworkComponent>,
+        Entities<'a>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (events, networks, entities) = data;
+
+        for event in events.read(&mut self.reader.as_mut().unwrap()) {
+            let message = event.message.clone();
+
             // Broadcast chat message
             let packet = ChatMessageClientbound {
-                json_data: message_json,
+                json_data: message,
                 position: 0,
             };
 
             send_packet_to_all_players(&networks, &entities, packet, None);
-
-            // Log in the console
-            info!("<{}> {}", player_name, event.message);
         }
     }
 
@@ -93,7 +95,7 @@ impl<'a> System<'a> for ChatBroadcastSystem {
 
         self.reader = Some(
             world
-                .fetch_mut::<EventChannel<PlayerChatEvent>>()
+                .fetch_mut::<EventChannel<ChatBroadcastEvent>>()
                 .register_reader(),
         );
     }
@@ -117,19 +119,15 @@ mod tests {
         };
         t::receive_packet(&player, &w, packet);
 
-        let mut event_reader = t::reader::<PlayerChatEvent>(&w);
+        let mut event_reader = t::reader::<ChatBroadcastEvent>(&w);
 
         d.dispatch(&w);
         w.maintain();
 
-        let channel = w.fetch::<EventChannel<PlayerChatEvent>>();
+        let channel = w.fetch::<EventChannel<ChatBroadcastEvent>>();
 
         let events = channel.read(&mut event_reader).collect::<Vec<_>>();
         assert_eq!(events.len(), 1);
-        let first = events.first().unwrap();
-
-        assert_eq!(first.player, player.entity);
-        assert_eq!(first.message, String::from("test"));
     }
 
     #[test]
@@ -139,8 +137,7 @@ mod tests {
         let player = t::add_player(&mut w);
         let player2 = t::add_player(&mut w);
 
-        let event = PlayerChatEvent {
-            player: player.entity,
+        let event = ChatBroadcastEvent {
             message: String::from("test"),
         };
 
@@ -150,8 +147,8 @@ mod tests {
         w.maintain();
 
         t::assert_packet_received(&player, PacketType::ChatMessageClientbound);
-        t::assert_packet_received(&player2, PacketType::ChatMessageClientbound);
-        // TODO: Test the content of the chat-component.
-        // let packet = cast_packet::<ChatMessageClientbound>(&*packet);
+        let packet = t::assert_packet_received(&player2, PacketType::ChatMessageClientbound);
+        let packet = cast_packet::<ChatMessageClientbound>(&*packet);
+        assert_eq!(packet.json_data, String::from("test"));
     }
 }
