@@ -4,39 +4,146 @@ use crate::item::Item;
 use smallvec::SmallVec;
 use std::cmp::min;
 
-pub type SlotIndex = usize;
+/// All possible slots in an inventory.
+///
+/// Some terms which are used here:
+/// * "Hotbar" refers to the hotbar.
+/// * "Main" refers to the 27 slots of the player
+/// inventory not contained within the hotbar,
+/// armor, and crafting slots.
+/// * "Crafting" refers to the crafting area of a player's
+/// inventory (but not a crafting table).
+/// * "CraftingTable" refers to slots in a crafting table.
+/// * "Chest" refers to the slots of a chest, either normal
+/// or large.
+/// TODO more of these
+///
+/// Variants come in the form `${Category}${Slot}`, where
+/// `Slot` is the number of the slot. These slot numbers
+/// are incremented consecutively from left to right and then
+/// down to the next line. For example, the slot in the upper-left-hand
+/// corner of the main inventory is called `Main0`, and the slot
+/// directly below it `Main9`.
+///
+/// Internally, the `ToPrimitive` implementation is used
+/// to convert slot indices to indices into arrays; this
+/// is more efficient than utilizing a hash map.
+#[derive(Debug, Clone, Copy, ToPrimitive, PartialEq, Eq, Hash)]
+pub enum SlotIndex {
+    Hotbar0,
+    Hotbar1,
+    Hotbar2,
+    Hotbar3,
+    Hotbar4,
+    Hotbar5,
+    Hotbar6,
+    Hotbar7,
+    Hotbar8,
+    Main0,
+    Main1,
+    Main2,
+    Main3,
+    Main4,
+    Main5,
+    Main6,
+    Main7,
+    Main8,
+    Main9,
+    Main10,
+    Main11,
+    Main12,
+    Main13,
+    Main14,
+    Main15,
+    Main16,
+    Main17,
+    Main18,
+    Main19,
+    Main20,
+    Main21,
+    Main22,
+    Main23,
+    Main24,
+    Main25,
+    Main26,
+    Crafting0,
+    Crafting1,
+    Crafting2,
+    Crafting3,
+    Crafting4,
+    CraftingTable0,
+    CraftingTable1,
+    CraftingTable2,
+    CraftingTable3,
+    CraftingTable4,
+    CraftingTable5,
+    CraftingTable6,
+    CraftingTable7,
+    CraftingTable8,
+    CraftingTable9,
+    Chest0,
+    Chest1,
+    Chest2,
+    Chest3,
+    Chest4,
+    Chest5,
+    Chest6,
+    Chest7,
+    Chest8,
+    Chest9,
+    Chest10,
+    Chest11,
+    Chest12,
+    Chest13,
+    Chest14,
+    Chest15,
+    Chest16,
+    Chest17,
+    Chest18,
+    Chest19,
+    Chest20,
+    Chest21,
+    Chest22,
+    Chest23,
+    Chest24,
+    Chest25,
+    Chest26,
+    Chest27,
+    Chest28,
+    Chest29,
+    Chest30,
+    Chest31,
+    Chest32,
+    Chest33,
+    Chest34,
+    Chest35,
+    Chest36,
+    Chest37,
+    Chest38,
+    Chest39,
+    Chest40,
+    Chest41,
+    Chest42,
+    Chest43,
+    Chest44,
+    Chest45,
+    Chest46,
+    Chest47,
+    Chest48,
+    Chest49,
+    Chest50,
+    Chest51,
+    Chest52,
+    Chest53,
+}
 
-// Constants representing various standard inventory slot indices
+impl SlotIndex {
+    /// Returns the raw protocol index of this slot corresponding to the
+    /// given inventory type.
+    pub fn raw_index(self, for_ty: InventoryType) {}
+}
 
-pub const SLOT_CRAFTING_OUTPUT: SlotIndex = 0;
-pub const SLOT_CRAFTING_INPUT_X0_Y0: SlotIndex = 1;
-pub const SLOT_CRAFTING_INPUT_X1_Y0: SlotIndex = 2;
-pub const SLOT_CRAFTING_INPUT_X0_Y1: SlotIndex = 3;
-pub const SLOT_CRAFTING_INPUT_X1_Y1: SlotIndex = 4;
-
-pub const SLOT_ARMOR_MIN: SlotIndex = 5;
-pub const SLOT_ARMOR_MAX: SlotIndex = 8;
-
-pub const SLOT_ARMOR_HEAD: SlotIndex = 5;
-pub const SLOT_ARMOR_CHEST: SlotIndex = 6;
-pub const SLOT_ARMOR_LEGS: SlotIndex = 7;
-pub const SLOT_ARMOR_FEET: SlotIndex = 8;
-
-pub const SLOT_OFFHAND: SlotIndex = 45;
-
-pub const SLOT_INVENTORY_OFFSET: SlotIndex = 9;
-pub const SLOT_HOTBAR_OFFSET: SlotIndex = 36;
-
-pub const HOTBAR_SIZE: SlotIndex = 9;
-pub const INVENTORY_SIZE: SlotIndex = 27;
-
-pub const SLOT_ENTITY_EQUIPMENT_MAIN_HAND: SlotIndex = 0;
-pub const SLOT_ENTITY_EQUIPMENT_OFF_HAND: SlotIndex = 1;
-pub const SLOT_ENTITY_EQUIPMENT_BOOTS: SlotIndex = 2;
-pub const SLOT_ENTITY_EQUIPMENT_LEGGINGS: SlotIndex = 3;
-pub const SLOT_ENTITY_EQUIPMENT_CHESTPLATE: SlotIndex = 4;
-pub const SLOT_ENTITY_EQUIPMENT_HELMET: SlotIndex = 5;
-
+// TODO handle items with different stack sizes, e.g. ender pearls
 pub const STACK_MAX_SIZE: u8 = 64;
 
 pub type Slot = Option<ItemStack>;
@@ -70,21 +177,14 @@ pub fn armor_slot_to_entity_equipment(slot: SlotIndex) -> SlotIndex {
 /// The various types of inventories ("windows").
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum InventoryType {
+    /// The normal player inventory.
     Player,
-    Container,
-    Chest,
+    /// An inventory with a crafting table open.
     CraftingTable,
-    Furnace,
-    Dispenser,
-    EnchantingTable,
-    BrewingStand,
-    Villager,
-    Beacon,
-    Anvil,
-    Hopper,
-    Dropper,
-    ShulkerBox,
-    Horse,
+    /// An inventory with a small chest open.
+    SmallChest,
+    /// An inventory with a large chest open.
+    LargeChest,
 }
 
 /// An inventory, consisting of a vector
