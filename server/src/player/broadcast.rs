@@ -1,11 +1,12 @@
 use crate::entity::{NamedComponent, PlayerComponent, PositionComponent};
 use crate::joinhandler::PlayerJoinEvent;
 use crate::network::{send_packet_to_all_players, send_packet_to_player, NetworkComponent};
+use crate::player::chat::ChatBroadcastEvent;
 use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
 use feather_core::Gamemode;
 use shrev::EventChannel;
 use specs::SystemData;
-use specs::{Entities, Entity, Join, Read, ReadStorage, ReaderId, System, World};
+use specs::{Entities, Entity, Join, Read, ReadStorage, ReaderId, System, World, Write};
 use uuid::Uuid;
 
 /// System for broadcasting when a player joins
@@ -27,11 +28,12 @@ impl<'a> System<'a> for JoinBroadcastSystem {
         ReadStorage<'a, NamedComponent>,
         ReadStorage<'a, PlayerComponent>,
         ReadStorage<'a, NetworkComponent>,
+        Write<'a, EventChannel<ChatBroadcastEvent>>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (join_events, positions, nameds, player_comps, net_comps, entities) = data;
+        let (join_events, positions, nameds, player_comps, net_comps, mut chat, entities) = data;
 
         for event in join_events.read(&mut self.reader.as_mut().unwrap()) {
             // Broadcast join
@@ -67,6 +69,17 @@ impl<'a> System<'a> for JoinBroadcastSystem {
                     send_packet_to_player(net_comp, spawn_player);
                 }
             }
+
+            // Broadcast join message in chat
+            let message = json!({
+                "translate": "multiplayer.player.joined",
+                "color": "yellow",
+                "with": [
+                    {"text": named.display_name},
+                ],
+            })
+            .to_string();
+            chat.single_write(ChatBroadcastEvent { message });
         }
     }
 
