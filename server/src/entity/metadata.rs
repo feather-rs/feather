@@ -74,7 +74,11 @@ impl<'a> System<'a> for MetadataBroadcastSystem {
 
         read_flagged_events!(metadatas, self.reader, self.dirty);
 
-        // Go through updated metadata and broadcast changes
+        // Ensure that metadata update events are not
+        // triggered for this mutation of the storage.
+        metadatas.set_event_emission(false);
+
+        // Go through updated metadata and broadcast changes.
         for (metadata, entity, _) in (&mut metadatas, &entities, &self.dirty).join() {
             let packet = PacketEntityMetadata {
                 entity_id: entity.id() as i32,
@@ -83,6 +87,8 @@ impl<'a> System<'a> for MetadataBroadcastSystem {
 
             send_packet_to_all_players(&networks, &entities, packet, None);
         }
+
+        metadatas.set_event_emission(true);
     }
 
     flagged_setup_impl!(Metadata, reader);

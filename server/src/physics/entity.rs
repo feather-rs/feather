@@ -32,9 +32,19 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         // join over the position storage due to slide-rs/specs#541.
         // When this issue is resolved, the join below should be switched to a parallel
         // join.
-        for (position, velocity, bounding_box, ty) in
-            (&mut positions, &mut velocities, &bounding_boxes, &types).join()
+
+        // A restricted storage is used for `velocity` so as to avoid
+        // triggering a velocity update event when it is not actually
+        // modified.
+        for (position, mut restrict_velocity, bounding_box, ty) in (
+            &mut positions,
+            &mut velocities.restrict_mut(),
+            &bounding_boxes,
+            &types,
+        )
+            .join()
         {
+            let mut velocity = restrict_velocity.get_unchecked().clone();
             let mut pending_position = position.current + velocity.0;
 
             // Check for blocks along path between old position and pending position.
@@ -107,6 +117,11 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             // Set new position.
             // A move event is triggered through FlaggedStorage.
             position.current = pending_position;
+
+            // Update velocity, if it changed.
+            if velocity != *restrict_velocity.get_unchecked() {
+                *restrict_velocity.get_mut_unchecked() = velocity;
+            }
         }
     }
 }

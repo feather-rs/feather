@@ -26,7 +26,12 @@ hashbrown = { version = "0.6.0", features = ["rayon"] }
 mojang-api = "0.1.2"
 multimap = "0.6.0"
 hematite-nbt = { git = "https://github.com/caelunshun/hematite_nbt" }
-specs = "0.15.0"
+
+# A Specs fork is currently needed to allow starting/stopping
+# of FlaggedStorage event recording. The PR for this fork might
+# be merged, in which case this depedency should be updated.
+specs = { git = "https://github.com/AndreaCatania/specs", branch = "emsig" }
+
 rayon = "1.1.0"
 shrev = "1.1.1"
 failure = "0.1.5"

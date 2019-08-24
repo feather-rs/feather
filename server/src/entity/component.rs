@@ -73,8 +73,14 @@ impl<'a> System<'a> for ComponentResetSystem {
     type SystemData = WriteStorage<'a, PositionComponent>;
 
     fn run(&mut self, mut positions: Self::SystemData) {
+        // Ensure that position update events are not triggered
+        // for this. See #81
+        positions.set_event_emission(false);
+
         for position in (&mut positions).join() {
             position.reset();
         }
+
+        positions.set_event_emission(true);
     }
 }
