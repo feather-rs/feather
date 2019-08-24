@@ -143,6 +143,38 @@ pub enum SlotIndex {
     Chest53,
 }
 
+// TODO implement this macro
+slot_index_mappings! {
+    struct IndexMappings(SlotIndex -> usize);
+
+    InventoryType::Player => {
+        Hotbar(i) => 36 + i,
+        Main(i) => 9 + i,
+        ArmorHead => 5,
+        ArmorChest => 6,
+        ArmorLegs => 7,
+        ArmorFeet => 8,
+        ArmorElytra => 45,
+        Crafting(i) => i,
+        Offhand => 45,
+    }
+    InventoryType::CraftingTable => {
+        CraftingTable(i) => i,
+        Main(i) => 10 + i,
+        Hotbar(i) => 37 + i,
+    }
+    InventoryType::SmallChest => {
+        Chest(i) => i,
+        Main(i) => 27 + i,
+        Hotbar(i) => 54 + i,
+    }
+    InventoryType::LargeChest => {
+        Chest(i) => i,
+        Main(i) => 54 + i,
+        Hotbar(i) => 81 + i,
+    }
+}
+
 impl SlotIndex {
     /// Returns the raw protocol index of this slot corresponding to the
     /// given inventory type.
@@ -151,38 +183,178 @@ impl SlotIndex {
     /// Panics if this slot index is not a valid slot
     /// in the given inventory type.
     pub fn raw_index(self, for_ty: InventoryType) -> usize {
-        // TODO implement this macro.
-        slot_index_mappings! {
-            InventoryType::Player => {
-                Hotbar(i) => 36 + i,
-                Main(i) => 9 + i,
-                ArmorHead => 5,
-                ArmorChest => 6,
-                ArmorLegs => 7,
-                ArmorFeet => 8,
-                ArmorElytra => 45,
-                Crafting(i) => i,
-                Offhand => 45,
-            }
-            InventoryType::CraftingTable => {
-                CraftingTable(i) => i,
-                Main(i) => 10 + i,
-                Hotbar(i) => 37 + i,
-            }
-            InventoryType::SmallChest => {
-                Chest(i) => i,
-                Main(i) => 27 + i,
-                Hotbar(i) => 54 + i,
-            }
-            InventoryType::LargeChest => {
-                Chest(i) => i,
-                Main(i) => 54 + i,
-                Hotbar(i) => 81 + i,
-            }
+        IndexMappings::to_index(self, for_ty)
+    }
+
+    pub fn from_raw_index(for_ty: InventoryType, index: usize) -> Option<Self> {
+        IndexMappings::from_raw_index(for_ty, index)
+    }
+
+    /// Returns the slot index in the hotbar
+    /// with the given offset. For example, `hotbar(5)` is equivalent
+    /// to `SlotIndex::Hotbar5`.
+    ///
+    /// # Panics
+    /// Panics if `index >= 9`.
+    pub fn hotbar(index: usize) -> Self {
+        assert!(index < 9);
+        match index {
+            0 => SlotIndex::Hotbar0,
+            1 => SlotIndex::Hotbar1,
+            2 => SlotIndex::Hotbar2,
+            3 => SlotIndex::Hotbar3,
+            4 => SlotIndex::Hotbar4,
+            5 => SlotIndex::Hotbar5,
+            6 => SlotIndex::Hotbar6,
+            7 => SlotIndex::Hotbar7,
+            8 => SlotIndex::Hotbar8,
+            _ => unreachable!(),
         }
     }
 
-    pub fn from_raw_index(self, for_ty: InventoryType, index: usize) -> Option<Self> {}
+    /// Returns the slot index in the main inventory
+    /// with the given offset from the upper-left slot.
+    ///
+    /// # Panics
+    /// Panics if `index >= 27`.
+    pub fn main(index: usize) -> Self {
+        assert!(index < 27);
+        match index {
+            0 => SlotIndex::Main0,
+            1 => SlotIndex::Main1,
+            2 => SlotIndex::Main2,
+            3 => SlotIndex::Main3,
+            4 => SlotIndex::Main4,
+            5 => SlotIndex::Main5,
+            6 => SlotIndex::Main6,
+            7 => SlotIndex::Main7,
+            8 => SlotIndex::Main8,
+            9 => SlotIndex::Main9,
+            10 => SlotIndex::Main10,
+            11 => SlotIndex::Main11,
+            12 => SlotIndex::Main12,
+            13 => SlotIndex::Main13,
+            14 => SlotIndex::Main14,
+            15 => SlotIndex::Main15,
+            16 => SlotIndex::Main16,
+            17 => SlotIndex::Main17,
+            18 => SlotIndex::Main18,
+            19 => SlotIndex::Main19,
+            20 => SlotIndex::Main20,
+            21 => SlotIndex::Main21,
+            22 => SlotIndex::Main22,
+            23 => SlotIndex::Main23,
+            24 => SlotIndex::Main24,
+            25 => SlotIndex::Main25,
+            26 => SlotIndex::Main26,
+            _ => unreachable!(),
+        }
+    }
+
+    /// Returns the slot index with the given offset
+    /// into the player crafting slots.
+    ///
+    /// # Panics
+    /// Panics if `index >= 5`.
+    pub fn crafting(index: usize) -> Self {
+        assert!(index < 5);
+        match index {
+            0 => SlotIndex::Crafting0,
+            1 => SlotIndex::Crafting1,
+            2 => SlotIndex::Crafting2,
+            3 => SlotIndex::Crafting3,
+            4 => SlotIndex::Crafting4,
+            _ => unreachable!(),
+        }
+    }
+
+    /// Returns the slot index with the given
+    /// offset into the crafting table slots.
+    ///
+    /// # Panics
+    /// Panics if `index >= 10`.
+    pub fn crafting_table(index: usize) -> Self {
+        assert!(index < 10);
+        match index {
+            0 => SlotIndex::CraftingTable0,
+            1 => SlotIndex::CraftingTable1,
+            2 => SlotIndex::CraftingTable2,
+            3 => SlotIndex::CraftingTable3,
+            4 => SlotIndex::CraftingTable4,
+            5 => SlotIndex::CraftingTable5,
+            6 => SlotIndex::CraftingTable6,
+            7 => SlotIndex::CraftingTable7,
+            8 => SlotIndex::CraftingTable8,
+            9 => SlotIndex::CraftingTable9,
+            _ => unreachable!(),
+        }
+    }
+
+    /// Returns the slot index with the given
+    /// offset into a chest window.
+    ///
+    /// # Panics
+    /// Panics if `index >= 54`.
+    pub fn chest(index: usize) -> Self {
+        assert!(index < 54);
+        match index {
+            0 => SlotIndex::Chest0,
+            1 => SlotIndex::Chest1,
+            2 => SlotIndex::Chest2,
+            3 => SlotIndex::Chest3,
+            4 => SlotIndex::Chest4,
+            5 => SlotIndex::Chest5,
+            6 => SlotIndex::Chest6,
+            7 => SlotIndex::Chest7,
+            8 => SlotIndex::Chest8,
+            9 => SlotIndex::Chest9,
+            10 => SlotIndex::Chest10,
+            11 => SlotIndex::Chest11,
+            12 => SlotIndex::Chest12,
+            13 => SlotIndex::Chest13,
+            14 => SlotIndex::Chest14,
+            15 => SlotIndex::Chest15,
+            16 => SlotIndex::Chest16,
+            17 => SlotIndex::Chest17,
+            18 => SlotIndex::Chest18,
+            19 => SlotIndex::Chest19,
+            20 => SlotIndex::Chest20,
+            21 => SlotIndex::Chest21,
+            22 => SlotIndex::Chest22,
+            23 => SlotIndex::Chest23,
+            24 => SlotIndex::Chest24,
+            25 => SlotIndex::Chest25,
+            26 => SlotIndex::Chest26,
+            27 => SlotIndex::Chest27,
+            28 => SlotIndex::Chest28,
+            29 => SlotIndex::Chest29,
+            30 => SlotIndex::Chest30,
+            31 => SlotIndex::Chest31,
+            32 => SlotIndex::Chest32,
+            33 => SlotIndex::Chest33,
+            34 => SlotIndex::Chest34,
+            35 => SlotIndex::Chest35,
+            36 => SlotIndex::Chest36,
+            37 => SlotIndex::Chest37,
+            38 => SlotIndex::Chest38,
+            39 => SlotIndex::Chest39,
+            40 => SlotIndex::Chest40,
+            41 => SlotIndex::Chest41,
+            42 => SlotIndex::Chest42,
+            43 => SlotIndex::Chest43,
+            44 => SlotIndex::Chest44,
+            45 => SlotIndex::Chest45,
+            46 => SlotIndex::Chest46,
+            47 => SlotIndex::Chest47,
+            48 => SlotIndex::Chest48,
+            49 => SlotIndex::Chest49,
+            50 => SlotIndex::Chest50,
+            51 => SlotIndex::Chest51,
+            52 => SlotIndex::Chest52,
+            53 => SlotIndex::Chest53,
+            _ => unreachable!(),
+        }
+    }
 }
 
 // TODO handle items with different stack sizes, e.g. ender pearls
@@ -239,6 +411,9 @@ pub struct Inventory {
     /// for each slot in the inventory, indexed
     /// by the slot IDs. When an entry is set to
     /// `None`, there is no item in the slot.
+    ///
+    /// Indices into this vector are calculated using
+    /// the `ToPrimtive` implementation of `SlotIndex`.
     items: Vec<Option<ItemStack>>,
     /// The type of this inventory.
     pub ty: InventoryType,
