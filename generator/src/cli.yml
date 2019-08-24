@@ -98,3 +98,23 @@ subcommands:
             help: "output file to write code to"
             required: true
             takes_value: true
+
+  - items-to-blocks:
+      about: "Generates mappings from items to blocks"
+      args:
+        - items:
+           long: items
+           help: "Item report"
+           required: true
+           takes_value: true
+        - blocks:
+            long: blocks
+            help: "Blocks report"
+            required: true
+            takes_value: true
+        - output:
+            long: output
+            short: o
+            help: "Rust output file"
+            required: true
+            takes_value: true

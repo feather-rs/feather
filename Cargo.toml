@@ -5,6 +5,7 @@ members = [
     "server",
     "blocks",
     "items",
+    "item_block",
     "codegen",
     "client/core",
     "client/wrapper/console",
