@@ -39,6 +39,12 @@ pub enum SlotIndex {
     Hotbar6,
     Hotbar7,
     Hotbar8,
+    ArmorHead,
+    ArmorChest,
+    ArmorLegs,
+    ArmorFeet,
+    ArmorElytra,
+    Offhand,
     Main0,
     Main1,
     Main2,
@@ -140,7 +146,43 @@ pub enum SlotIndex {
 impl SlotIndex {
     /// Returns the raw protocol index of this slot corresponding to the
     /// given inventory type.
-    pub fn raw_index(self, for_ty: InventoryType) {}
+    ///
+    /// # Panics
+    /// Panics if this slot index is not a valid slot
+    /// in the given inventory type.
+    pub fn raw_index(self, for_ty: InventoryType) -> usize {
+        // TODO implement this macro.
+        slot_index_mappings! {
+            InventoryType::Player => {
+                Hotbar(i) => 36 + i,
+                Main(i) => 9 + i,
+                ArmorHead => 5,
+                ArmorChest => 6,
+                ArmorLegs => 7,
+                ArmorFeet => 8,
+                ArmorElytra => 45,
+                Crafting(i) => i,
+                Offhand => 45,
+            }
+            InventoryType::CraftingTable => {
+                CraftingTable(i) => i,
+                Main(i) => 10 + i,
+                Hotbar(i) => 37 + i,
+            }
+            InventoryType::SmallChest => {
+                Chest(i) => i,
+                Main(i) => 27 + i,
+                Hotbar(i) => 54 + i,
+            }
+            InventoryType::LargeChest => {
+                Chest(i) => i,
+                Main(i) => 54 + i,
+                Hotbar(i) => 81 + i,
+            }
+        }
+    }
+
+    pub fn from_raw_index(self, for_ty: InventoryType, index: usize) -> Option<Self> {}
 }
 
 // TODO handle items with different stack sizes, e.g. ender pearls
