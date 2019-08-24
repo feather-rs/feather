@@ -6,8 +6,9 @@ use specs::{Join, Read, ReadStorage, System, WriteStorage};
 use feather_core::world::ChunkMap;
 
 use crate::entity::{EntityType, PositionComponent, VelocityComponent};
-use crate::physics::{block_impacted_by_ray, BlockFace, BoundingBoxComponent};
-use feather_core::Block;
+use crate::physics::{
+    block_impacted_by_ray, blocks_intersecting_bbox, BlockFace, BoundingBoxComponent,
+};
 
 /// System for updating all entities' positions and velocities
 /// each tick.
@@ -82,7 +83,19 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 }
             }
 
-            // TODO check if blocks intersect with bounding box
+            // Check for blocks around the bbox.
+            let blocks_around_bbox =
+                blocks_intersecting_bbox(&chunk_map, pending_position, bounding_box);
+            // Set velocity to 0 where there are blocks
+            velocity.0.x *= blocks_around_bbox.x;
+            velocity.0.y *= blocks_around_bbox.y;
+            velocity.0.z *= blocks_around_bbox.z;
+
+            if blocks_around_bbox.y == 0.0 {
+                pending_position.on_ground = true;
+            } else {
+                pending_position.on_ground = false;
+            }
 
             // Apply drag and gravity.
             // TODO account for liquid
@@ -97,21 +110,6 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 velocity.0.y = drag * velocity.0.y + gravity;
                 velocity.0.x *= drag;
                 velocity.0.z *= drag;
-            }
-
-            // Check for block below the bbox.
-            let search_distance = bounding_box.size().y;
-
-            let block_below =
-                (pending_position - glm::vec3(0.0, search_distance as f32, 0.0)).block_pos();
-            let block_below = chunk_map.block_at(block_below);
-            if let Some(block) = block_below {
-                if block != Block::Air {
-                    pending_position.on_ground = true;
-                    velocity.0.y = 0.0;
-                } else {
-                    pending_position.on_ground = false;
-                }
             }
 
             // Set new position.

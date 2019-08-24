@@ -2,6 +2,7 @@
 //! the physics system.
 
 use crate::entity::{ChunkEntities, PositionComponent};
+use crate::physics::BoundingBoxComponent;
 use feather_core::world::block::Block;
 use feather_core::world::{BlockPosition, ChunkMap, Position};
 use feather_core::ChunkPosition;
@@ -259,6 +260,54 @@ where
     result
 }
 
+/// Returns a vector containing `1.0` for each axis where
+/// there are no blocks intersecting the bounding box and `0.0` for
+/// where there are.
+///
+/// NOTE: This implementation only covers the most basic cases.
+/// It does not correctly work when the bounding box is larger
+/// than one block in any length.
+pub fn blocks_intersecting_bbox(
+    chunk_map: &ChunkMap,
+    pos: Position,
+    bbox: &BoundingBoxComponent,
+) -> Vec3 {
+    let bbox_size = bbox.size();
+
+    let mut result = vec3(1.0, 1.0, 1.0);
+
+    let offsets = [
+        vec3(bbox_size.x as f32, 0.0, 0.0),
+        vec3(-bbox_size.x as f32, 0.0, 0.0),
+        vec3(0.0, bbox_size.y as f32, 0.0),
+        vec3(0.0, -bbox_size.y as f32, 0.0),
+        vec3(0.0, 0.0, bbox_size.z as f32),
+        vec3(0.0, 0.0, -bbox_size.z as f32),
+    ];
+    let masks = [
+        vec3(0.0f32, 1.0, 1.0),
+        vec3(0.0, 1.0, 1.0),
+        vec3(1.0, 0.0, 1.0),
+        vec3(1.0, 0.0, 1.0),
+        vec3(1.0, 1.0, 0.0),
+        vec3(1.0, 1.0, 0.0),
+    ];
+
+    for (offset, mask) in offsets.iter().zip(masks.iter()) {
+        let block_pos = (pos + *offset).block_pos();
+
+        if let Some(block) = chunk_map.block_at(block_pos) {
+            if block != Block::Air {
+                result.x *= mask.x;
+                result.y *= mask.y;
+                result.z *= mask.z;
+            }
+        }
+    }
+
+    result
+}
+
 /// Returns an `ncollide` `Cuboid` corresponding to a block.
 pub fn block_shape() -> Cuboid<f32> {
     Cuboid::new(vec3(0.5, 0.5, 0.5))
@@ -328,6 +377,7 @@ mod tests {
     use crate::testframework as t;
     use feather_core::world::chunk::Chunk;
     use feather_core::world::ChunkPosition;
+    use ncollide3d::bounding_volume::AABB;
     use specs::WorldExt;
     use std::collections::HashSet;
 
@@ -481,5 +531,34 @@ mod tests {
         let pos = position!(16.0, 0.0, 16.0);
         let distance = vec3(-0.1, -50.0, 0.0);
         chunks_within_distance(pos, distance);
+    }
+
+    #[test]
+    fn test_blocks_intersecting_bbox() {
+        let chunk_map = chunk_map();
+
+        assert_eq!(
+            blocks_intersecting_bbox(
+                &chunk_map,
+                position!(0.0, 32.0, 0.0),
+                &BoundingBoxComponent(AABB::new(
+                    Point3::from(vec3(0.0, 0.0, 0.0)),
+                    Point3::from(vec3(0.5, 0.5, 0.5))
+                )),
+            ),
+            vec3(0.0, 0.0, 0.0)
+        );
+
+        assert_eq!(
+            blocks_intersecting_bbox(
+                &chunk_map,
+                position!(0.0, 65.0, 0.0),
+                &BoundingBoxComponent(AABB::new(
+                    Point3::from(vec3(0.0, 0.0, 0.0)),
+                    Point3::from(vec3(0.5, 1.5, 0.5))
+                )),
+            ),
+            vec3(1.0, 0.0, 1.0)
+        );
     }
 }
