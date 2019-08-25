@@ -140,23 +140,39 @@ pub struct DisconnectBroadcastSystem {
 
 impl<'a> System<'a> for DisconnectBroadcastSystem {
     type SystemData = (
-        Read<'a, EventChannel<PlayerDisconnectEvent>>,
+        ReadStorage<'a, NamedComponent>,
         ReadStorage<'a, NetworkComponent>,
+        Write<'a, EventChannel<ChatBroadcastEvent>>,
+        Read<'a, EventChannel<PlayerDisconnectEvent>>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (events, net_comps) = data;
+        let (nameds, networks, mut chat, disconnect_events) = data;
 
-        for event in events.read(&mut self.reader.as_mut().unwrap()) {
+        for event in disconnect_events.read(&mut self.reader.as_mut().unwrap()) {
             // Broadcast disconnect.
             // Note that the Destroy Entity packet is sent
             // in a separate system (crate::entity::EntityDestroyBroadcastSystem).
             // This system only updates the tablist for all clients.
             let player_info = PlayerInfo::new(PlayerInfoAction::RemovePlayer, event.uuid);
 
-            for net in net_comps.join() {
+            for net in (&networks).join() {
                 send_packet_to_player(net, player_info.clone());
             }
+
+            let named = nameds.get(event.player).unwrap();
+
+            // Broadcast chat message.
+            let message = json!({
+                "translate": "multiplayer.player.left",
+                "color": "yellow",
+                "with": [
+                    {"text": named.display_name},
+                ],
+            })
+            .to_string();
+            let event = ChatBroadcastEvent { message };
+            chat.single_write(event);
         }
     }
 
