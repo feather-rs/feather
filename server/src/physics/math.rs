@@ -8,6 +8,7 @@ use feather_core::world::{BlockPosition, ChunkMap, Position};
 use feather_core::ChunkPosition;
 use glm::{vec3, DVec3, Vec3};
 use nalgebra::{Isometry3, Point3};
+use ncollide3d::bounding_volume::AABB;
 use ncollide3d::query::{Ray, RayCast};
 use ncollide3d::shape::Cuboid;
 use smallvec::SmallVec;
@@ -370,6 +371,42 @@ fn chunks_within_distance(mut pos: Position, mut distance: DVec3) -> SmallVec<[C
     result
 }
 
+/// Returns a point at the "front" of the bounding
+/// box when it is traveling in the given direction.
+///
+/// The direction vector is expected to be normalized.
+pub fn bbox_front(bbox: &AABB<f64>, direction: Vec3) -> Position {
+    let direction = DVec3::new(
+        f64::from(direction.x),
+        f64::from(direction.y),
+        f64::from(direction.z),
+    );
+    let cuboid = bbox_to_cuboid(bbox);
+
+    let origin = Point3::from([0.0, 0.0, 0.0]);
+
+    let ray = Ray::new(origin, direction);
+
+    let toi = cuboid
+        .toi_with_ray(
+            &Isometry3::new(vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0)),
+            &ray,
+            false,
+        )
+        .unwrap();
+
+    Position::from(direction * toi)
+}
+
+/// Converts an axis-aligned bounding box to a cuboid shape.
+pub fn bbox_to_cuboid(bbox: &AABB<f64>) -> Cuboid<f64> {
+    let lengths = bbox.maxs() - bbox.mins();
+
+    let half_lengths = vec3(lengths.x / 2.0, lengths.y / 2.0, lengths.z / 2.0);
+
+    Cuboid::new(half_lengths)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -377,7 +414,6 @@ mod tests {
     use crate::testframework as t;
     use feather_core::world::chunk::Chunk;
     use feather_core::world::ChunkPosition;
-    use ncollide3d::bounding_volume::AABB;
     use specs::WorldExt;
     use std::collections::HashSet;
 
@@ -560,5 +596,25 @@ mod tests {
             ),
             vec3(1.0, 0.0, 1.0)
         );
+    }
+
+    #[test]
+    fn test_bbox_front() {
+        let bbox = AABB::new(Point3::from([0.0, 0.0, 0.0]), Point3::from([1.0, 2.0, 3.0]));
+
+        let direction = vec3(1.0, 0.0, 0.0);
+
+        assert_eq!(bbox_front(&bbox, direction), position!(0.5, 0.0, 0.0),);
+    }
+
+    #[test]
+    fn test_bbox_to_cuboid() {
+        let bbox = AABB::new(Point3::from([0.0, 0.0, 0.0]), Point3::from([1.0, 2.0, 3.0]));
+
+        let half_extents = *bbox_to_cuboid(&bbox).half_extents();
+
+        assert_float_eq!(half_extents.x, 0.5);
+        assert_float_eq!(half_extents.y, 1.0);
+        assert_float_eq!(half_extents.z, 1.5);
     }
 }

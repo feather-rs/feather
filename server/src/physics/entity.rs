@@ -7,7 +7,7 @@ use feather_core::world::ChunkMap;
 
 use crate::entity::{EntityType, PositionComponent, VelocityComponent};
 use crate::physics::{
-    block_impacted_by_ray, blocks_intersecting_bbox, BlockFace, BoundingBoxComponent,
+    bbox_front, block_impacted_by_ray, blocks_intersecting_bbox, BlockFace, BoundingBoxComponent,
 };
 
 /// System for updating all entities' positions and velocities
@@ -46,12 +46,30 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             .join()
         {
             let mut velocity = restrict_velocity.get_unchecked().clone();
+
+            // Check for blocks around the bbox.
+            let blocks_around_bbox =
+                blocks_intersecting_bbox(&chunk_map, position.current, bounding_box);
+            // Set velocity to 0 where there are blocks
+            velocity.0.x *= blocks_around_bbox.x;
+            velocity.0.y *= blocks_around_bbox.y;
+            velocity.0.z *= blocks_around_bbox.z;
+
+            if blocks_around_bbox.y == 0.0 {
+                position.current.on_ground = true;
+            } else {
+                position.current.on_ground = false;
+            }
+
             let mut pending_position = position.current + velocity.0;
 
             // Check for blocks along path between old position and pending position.
             // This prevents entities from flying through blocks when their
             // velocity is sufficiently high.
-            let origin = position.previous.into();
+
+            // The origin is the "leading point" of the bounding box:
+            // the point at the front.
+            let origin = (position.current + bbox_front(&bounding_box.0, velocity.0)).into();
             let direction = (pending_position - position.previous).into();
             let distance_squared = pending_position.distance_squared(position.previous);
 
@@ -61,40 +79,23 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 // Set velocities along correct axis to 0 and then set position
                 // to just before the bbox would have impacted the block.
                 let face = impacted.face;
-                let block = impacted.block;
+                let impact = impacted.pos;
 
                 if face.contains(BlockFace::EAST) || face.contains(BlockFace::WEST) {
                     velocity.x = 0.0;
-                    pending_position.x =
-                        f64::from(block.x) + bounding_box.size().x * face.as_vector().x;
+                    pending_position.x = impact.x + bounding_box.size().x * face.as_vector().x;
                 }
                 if face.contains(BlockFace::NORTH) || face.contains(BlockFace::SOUTH) {
                     velocity.z = 0.0;
-                    pending_position.z =
-                        f64::from(block.z) + bounding_box.size().z * face.as_vector().z;
+                    pending_position.z = impact.z + bounding_box.size().z * face.as_vector().z;
                 }
                 if face.contains(BlockFace::TOP) || face.contains(BlockFace::BOTTOM) {
                     velocity.y = 0.0;
-                    pending_position.y =
-                        f64::from(block.y) + bounding_box.size().y * face.as_vector().y;
+                    pending_position.y = impact.y + bounding_box.size().y * face.as_vector().y;
                 }
                 if face.contains(BlockFace::TOP) {
                     pending_position.on_ground = true;
                 }
-            }
-
-            // Check for blocks around the bbox.
-            let blocks_around_bbox =
-                blocks_intersecting_bbox(&chunk_map, pending_position, bounding_box);
-            // Set velocity to 0 where there are blocks
-            velocity.0.x *= blocks_around_bbox.x;
-            velocity.0.y *= blocks_around_bbox.y;
-            velocity.0.z *= blocks_around_bbox.z;
-
-            if blocks_around_bbox.y == 0.0 {
-                pending_position.on_ground = true;
-            } else {
-                pending_position.on_ground = false;
             }
 
             // Apply drag and gravity.
