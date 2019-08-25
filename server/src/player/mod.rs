@@ -19,6 +19,8 @@ mod inventory;
 /// Module for handling player movement packets.
 /// Also handles loading/unloading chunks when necessary.
 mod movement;
+/// Module for handling player block placements.
+mod placement;
 mod resource_pack;
 
 pub use broadcast::PlayerDisconnectEvent;
@@ -32,9 +34,10 @@ pub use inventory::{InventoryComponent, InventoryUpdateEvent};
 pub use digging::{BlockUpdateCause, BlockUpdateEvent, PlayerItemDropEvent};
 
 use crate::player::inventory::SetSlotSystem;
+use crate::player::placement::BlockPlacementSystem;
 use crate::systems::{
-    ANIMATION_BROADCAST, BLOCK_BREAK_BROADCAST, CHAT_BROADCAST, CHUNK_CROSS, CHUNK_SEND,
-    CLIENT_CHUNK_UNLOAD, CREATIVE_INVENTORY, DISCONNECT_BROADCAST, EQUIPMENT_SEND,
+    ANIMATION_BROADCAST, BLOCK_BREAK_BROADCAST, BLOCK_PLACEMENT, CHAT_BROADCAST, CHUNK_CROSS,
+    CHUNK_SEND, CLIENT_CHUNK_UNLOAD, CREATIVE_INVENTORY, DISCONNECT_BROADCAST, EQUIPMENT_SEND,
     HELD_ITEM_BROADCAST, HELD_ITEM_CHANGE, JOIN_BROADCAST, NETWORK, PLAYER_ANIMATION, PLAYER_CHAT,
     PLAYER_DIGGING, PLAYER_INIT, PLAYER_MOVEMENT, RESOURCE_PACK_SEND, SET_SLOT,
 };
@@ -61,6 +64,7 @@ pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(HeldItemChangeSystem, HELD_ITEM_CHANGE, &[NETWORK]);
     dispatcher.add(PlayerMovementSystem, PLAYER_MOVEMENT, &[NETWORK]);
     dispatcher.add(PlayerChatSystem, PLAYER_CHAT, &[NETWORK]);
+    dispatcher.add(BlockPlacementSystem, BLOCK_PLACEMENT, &[NETWORK]);
 }
 
 pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {

@@ -7,6 +7,7 @@ publish = false
 
 [dependencies]
 feather_core = { path = "../core" }
+feather_item_block = { path = "../item_block" }
 mio = "0.6.19"
 mio-extras = "2.0.5"
 crossbeam = "0.7.2"

@@ -193,6 +193,17 @@ impl BlockPosition {
     }
 }
 
+impl Add<BlockPosition> for BlockPosition {
+    type Output = BlockPosition;
+
+    fn add(mut self, rhs: BlockPosition) -> Self::Output {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
+        self
+    }
+}
+
 pub struct ChunkMap {
     chunk_map: HashMap<ChunkPosition, Chunk>,
 }

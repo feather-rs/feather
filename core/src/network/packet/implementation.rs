@@ -628,14 +628,63 @@ pub struct Spectate {
     pub target_player: Uuid,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Debug, Clone, Copy, FromPrimitive)]
+pub enum Face {
+    Bottom,
+    Top,
+    North,
+    South,
+    West,
+    East,
+}
+
+impl Face {
+    pub fn placement_offset(self) -> BlockPosition {
+        match self {
+            Face::Bottom => BlockPosition::new(0, -1, 0),
+            Face::Top => BlockPosition::new(0, 1, 0),
+            Face::North => BlockPosition::new(0, 0, -1),
+            Face::South => BlockPosition::new(0, 0, 1),
+            Face::West => BlockPosition::new(-1, 0, 0),
+            Face::East => BlockPosition::new(1, 0, 0),
+        }
+    }
+}
+
+impl Default for Face {
+    fn default() -> Self {
+        Face::Bottom
+    }
+}
+
+#[derive(Default, AsAny, new, Clone)]
 pub struct PlayerBlockPlacement {
     pub location: BlockPosition,
-    pub face: VarInt,
+    pub face: Face,
     pub hand: VarInt,
     pub cursor_position_x: f32,
     pub cursor_position_y: f32,
     pub cursor_position_z: f32,
+}
+
+impl Packet for PlayerBlockPlacement {
+    fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
+        self.location = buf.read_position()?;
+        self.face = Face::from_i32(buf.read_var_int()?).ok_or(())?;
+        self.hand = buf.read_var_int()?;
+        self.cursor_position_x = buf.read_f32_be()?;
+        self.cursor_position_y = buf.read_f32_be()?;
+        self.cursor_position_z = buf.read_f32_be()?;
+        Ok(())
+    }
+
+    fn write_to(&self, buf: &mut ByteBuf) {
+        unimplemented!()
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::PlayerBlockPlacement
+    }
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]

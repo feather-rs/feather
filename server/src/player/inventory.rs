@@ -14,7 +14,7 @@ use feather_core::network::packet::implementation::{
     CreativeInventoryAction, EntityEquipment, HeldItemChangeServerbound, SetSlot,
 };
 use feather_core::network::packet::PacketType;
-use feather_core::Gamemode;
+use feather_core::{Gamemode, ItemStack};
 use num_traits::ToPrimitive;
 use shrev::EventChannel;
 use smallvec::SmallVec;
@@ -40,6 +40,18 @@ impl InventoryComponent {
             inventory: Inventory::new(InventoryType::Player, 46),
             held_item: 0,
         }
+    }
+
+    /// Returns the item in this inventory's
+    /// main hand.
+    pub fn item_in_main_hand(&self) -> Option<&ItemStack> {
+        self.inventory.item_at(SLOT_HOTBAR_OFFSET + self.held_item)
+    }
+
+    /// Sets the item in this inventory's main hand.
+    pub fn set_item_in_main_hand(&mut self, item: ItemStack) {
+        self.inventory
+            .set_item_at(SLOT_HOTBAR_OFFSET + self.held_item, item);
     }
 }
 

@@ -126,7 +126,11 @@ impl Inventory {
 
     /// Sets the item at the given slot index.
     pub fn set_item_at(&mut self, index: SlotIndex, item: ItemStack) {
-        self.items[index] = Some(item);
+        if item.amount == 0 {
+            self.items[index] = None;
+        } else {
+            self.items[index] = Some(item);
+        }
     }
 
     /// Clears the item at the given slot index, returning
@@ -203,11 +207,11 @@ mod tests {
         let mut inv = Inventory::new(InventoryType::Chest, 36);
         assert_eq!(inv.slot_count(), 36);
 
-        inv.set_item_at(0, ItemStack::new(Item::Air, 0));
+        inv.set_item_at(0, ItemStack::new(Item::Air, 1));
 
         let item = inv.item_at(0).unwrap();
         assert_eq!(item.ty, Item::Air);
-        assert_eq!(item.amount, 0);
+        assert_eq!(item.amount, 1);
 
         let item = inv.item_at_mut(0).unwrap();
         item.ty = Item::Sponge;

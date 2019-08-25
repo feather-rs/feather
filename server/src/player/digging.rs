@@ -506,40 +506,6 @@ mod tests {
     }
 
     #[test]
-    fn test_drop_item_zero_in_stack() {
-        // This should be a no-op.
-        let (mut w, mut d) = t::init_world();
-
-        let player = t::add_player(&mut w);
-
-        let mut drop_reader = t::reader(&w);
-        let mut update_reader = t::reader(&w);
-
-        let slot = SLOT_HOTBAR_OFFSET;
-        {
-            let mut invs = w.write_component::<InventoryComponent>();
-            let inv = invs.get_mut(player.entity).unwrap();
-            inv.set_item_at(slot, ItemStack::new(Item::CookedBeef, 0));
-        }
-
-        let packet = PlayerDigging::new(PlayerDiggingStatus::DropItem, BlockPosition::default(), 0);
-        t::receive_packet(&player, &w, packet);
-
-        d.dispatch(&w);
-        w.maintain();
-
-        t::assert_not_disconnected(&player);
-
-        let drop_channel = w.fetch::<EventChannel<PlayerItemDropEvent>>();
-        let update_channel = w.fetch::<EventChannel<InventoryUpdateEvent>>();
-
-        let update_events = update_channel.read(&mut update_reader).collect::<Vec<_>>();
-        assert_eq!(update_events.len(), 1);
-        let drop_events = drop_channel.read(&mut drop_reader).collect::<Vec<_>>();
-        assert!(drop_events.is_empty());
-    }
-
-    #[test]
     fn test_drop_item_stack() {
         let (mut w, mut d) = t::init_world();
 

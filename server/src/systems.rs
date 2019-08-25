@@ -16,6 +16,7 @@ pub const CREATIVE_INVENTORY: &str = "creative_inventory";
 pub const HELD_ITEM_CHANGE: &str = "held_item_change";
 pub const PLAYER_MOVEMENT: &str = "player_movement";
 pub const PLAYER_CHAT: &str = "player_chat";
+pub const BLOCK_PLACEMENT: &str = "block_placement";
 
 pub const CHUNK_CROSS: &str = "chunk_cross";
 pub const PLAYER_INIT: &str = "player_init";

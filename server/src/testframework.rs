@@ -15,12 +15,12 @@ use feather_core::Gamemode;
 
 use crate::config::Config;
 use crate::entity::{
-    EntitySpawnEvent, EntityType, ItemComponent, NamedComponent, PlayerComponent,
-    PositionComponent, VelocityComponent,
+    EntityDestroyEvent, EntitySpawnEvent, EntityType, ItemComponent, NamedComponent,
+    PlayerComponent, PositionComponent, VelocityComponent,
 };
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
-use crate::player::InventoryComponent;
+use crate::player::{InventoryComponent, PlayerDisconnectEvent};
 use crate::PlayerCount;
 use feather_core::level::LevelData;
 use feather_core::world::chunk::Chunk;
@@ -352,6 +352,12 @@ impl<'a, 'b> TestBuilder<'a, 'b> {
     }
 
     pub fn build(mut self) -> (World, Dispatcher<'a, 'b>) {
+        self.world
+            .insert(Arc::new(PlayerCount(AtomicUsize::new(0))));
+        self.world
+            .insert(EventChannel::<PlayerDisconnectEvent>::new());
+        self.world.insert(EventChannel::<EntityDestroyEvent>::new());
+
         let mut dispatcher = self.dispatcher.build();
         dispatcher.setup(&mut self.world);
 
@@ -363,6 +369,7 @@ impl<'a, 'b> TestBuilder<'a, 'b> {
         self.world.register::<ItemComponent>();
         self.world.register::<PlayerComponent>();
         self.world.register::<InventoryComponent>();
+        self.world.register::<NetworkComponent>();
 
         (self.world, dispatcher)
     }
