@@ -331,22 +331,6 @@ impl ChunkSection {
                     palette.insert(insertion_index, block_id);
                     paletted_index = insertion_index;
 
-                    // Correct data, since palette entries after
-                    // the one which was inserted will be offsetted
-                    // by one.
-                    for x in 0..16 {
-                        for y in 0..16 {
-                            for z in 0..16 {
-                                let index = block_index(x, y, z);
-
-                                let entry = self.data.get(index);
-                                if entry >= insertion_index as u64 {
-                                    self.data.set(index, entry + 1);
-                                }
-                            }
-                        }
-                    }
-
                     // Resize if necessary
                     if needed_bits((palette.len() - 1) as u64) > self.data.bits_per_value {
                         let new_bits_per_value = self.data.bits_per_value + 1;
@@ -371,6 +355,22 @@ impl ChunkSection {
                             self.palette = None;
                             paletted_index = block_id as usize;
                             self.data = new_data;
+                        }
+                    }
+
+                    // Correct data, since palette entries after
+                    // the one which was inserted will be offsetted
+                    // by one.
+                    for x in 0..16 {
+                        for y in 0..16 {
+                            for z in 0..16 {
+                                let index = block_index(x, y, z);
+
+                                let entry = self.data.get(index);
+                                if entry >= insertion_index as u64 {
+                                    self.data.set(index, entry + 1);
+                                }
+                            }
                         }
                     }
                 }
