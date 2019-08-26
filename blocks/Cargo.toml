@@ -13,7 +13,7 @@ num-traits = "0.2.8"
 num-derive = "0.2.5"
 
 [dev-dependencies]
-criterion = "0.2.11"
+criterion = "0.3.0"
 
 [[bench]]
 name = "block_id_mappings"
