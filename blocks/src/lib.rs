@@ -62,7 +62,11 @@ pub trait BlockExt {
     where
         Self: Sized;
     fn state_id(&self, proto_version: u32) -> u16;
+
     fn native_state_id(&self) -> u16;
+
+    /// Returns whether this block is "solid."
+    fn is_solid(&self) -> bool;
 }
 
 impl BlockExt for Block {
@@ -90,6 +94,104 @@ impl BlockExt for Block {
     fn native_state_id(&self) -> u16 {
         let internal = self.internal_state_id();
         INTERNAL_TO_NATIVE[internal]
+    }
+
+    fn is_solid(&self) -> bool {
+        // TODO: there are likely a few missing in this list
+        match self {
+            Block::Air
+            | Block::OakSapling(_)
+            | Block::SpruceSapling(_)
+            | Block::BirchSapling(_)
+            | Block::JungleSapling(_)
+            | Block::AcaciaSapling(_)
+            | Block::DarkOakSapling(_)
+            | Block::Water(_)
+            | Block::Lava(_)
+            | Block::Grass
+            | Block::Fern
+            | Block::DeadBush
+            | Block::Seagrass
+            | Block::TallSeagrass(_)
+            | Block::Dandelion
+            | Block::Poppy
+            | Block::BlueOrchid
+            | Block::Allium
+            | Block::AzureBluet
+            | Block::RedTulip
+            | Block::OrangeTulip
+            | Block::WhiteTulip
+            | Block::PinkTulip
+            | Block::OxeyeDaisy
+            | Block::BrownMushroom
+            | Block::RedMushroom
+            | Block::Torch
+            | Block::WallTorch(_)
+            | Block::Fire(_)
+            | Block::Wheat(_)
+            | Block::Sign(_)
+            | Block::Ladder(_)
+            | Block::Rail(_)
+            | Block::WallSign(_)
+            | Block::Lever(_)
+            | Block::StonePressurePlate(_)
+            | Block::OakPressurePlate(_)
+            | Block::SprucePressurePlate(_)
+            | Block::BirchPressurePlate(_)
+            | Block::JunglePressurePlate(_)
+            | Block::AcaciaPressurePlate(_)
+            | Block::DarkOakPressurePlate(_)
+            | Block::RedstoneTorch(_)
+            | Block::RedstoneWallTorch(_)
+            | Block::StoneButton(_)
+            | Block::Snow(_)
+            | Block::SugarCane(_)
+            | Block::Repeater(_)
+            | Block::AttachedMelonStem(_)
+            | Block::AttachedPumpkinStem(_)
+            | Block::MelonStem(_)
+            | Block::PumpkinStem(_)
+            | Block::Vine(_)
+            | Block::Carrots(_)
+            | Block::Potatoes(_)
+            | Block::OakButton(_)
+            | Block::SpruceButton(_)
+            | Block::BirchButton(_)
+            | Block::JungleButton(_)
+            | Block::AcaciaButton(_)
+            | Block::DarkOakButton(_)
+            | Block::LightWeightedPressurePlate(_)
+            | Block::HeavyWeightedPressurePlate(_)
+            | Block::Comparator(_)
+            | Block::WhiteCarpet
+            | Block::OrangeCarpet
+            | Block::MagentaCarpet
+            | Block::LightBlueCarpet
+            | Block::YellowCarpet
+            | Block::LimeCarpet
+            | Block::PinkCarpet
+            | Block::GrayCarpet
+            | Block::LightGrayCarpet
+            | Block::CyanCarpet
+            | Block::PurpleCarpet
+            | Block::BlueCarpet
+            | Block::BrownCarpet
+            | Block::GreenCarpet
+            | Block::RedCarpet
+            | Block::BlackCarpet
+            | Block::Sunflower(_)
+            | Block::Lilac(_)
+            | Block::RoseBush(_)
+            | Block::Peony(_)
+            | Block::TallGrass(_)
+            | Block::LargeFern(_)
+            | Block::Kelp(_)
+            | Block::KelpPlant
+            | Block::DriedKelpBlock
+            | Block::VoidAir
+            | Block::CaveAir => false,
+            _ => true,
+        }
     }
 }
 

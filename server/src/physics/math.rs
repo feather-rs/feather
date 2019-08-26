@@ -3,9 +3,8 @@
 
 use crate::entity::{ChunkEntities, PositionComponent};
 use crate::physics::BoundingBoxComponent;
-use feather_core::world::block::Block;
 use feather_core::world::{BlockPosition, ChunkMap, Position};
-use feather_core::ChunkPosition;
+use feather_core::{BlockExt, ChunkPosition};
 use glm::{vec3, DVec3, Vec3};
 use nalgebra::{Isometry3, Point3};
 use ncollide3d::bounding_volume::AABB;
@@ -152,7 +151,7 @@ pub fn block_impacted_by_ray(
 
     while dist_traveled.magnitude_squared() < max_distance_squared {
         if let Some(block) = chunk_map.block_at(current_pos) {
-            if block != Block::Air {
+            if block.is_solid() {
                 // Calculate world-space position of
                 // impact using `ncollide`.
                 let ray = Ray::new(Point3::from(origin), direction);
@@ -298,7 +297,7 @@ pub fn blocks_intersecting_bbox(
         let block_pos = (pos + *offset).block_pos();
 
         if let Some(block) = chunk_map.block_at(block_pos) {
-            if block != Block::Air {
+            if block.is_solid() {
                 result.x *= mask.x;
                 result.y *= mask.y;
                 result.z *= mask.z;
@@ -414,6 +413,7 @@ mod tests {
     use crate::testframework as t;
     use feather_core::world::chunk::Chunk;
     use feather_core::world::ChunkPosition;
+    use feather_core::Block;
     use specs::WorldExt;
     use std::collections::HashSet;
 
