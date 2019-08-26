@@ -16,6 +16,6 @@ failure = "0.1.5"
 derive_deref = "1.1.0"
 indexmap = { version = "1.1.0", features = ["serde-1"] }
 quote = "1.0.2"
-syn = "1.0.3"
+syn = "1.0.4"
 heck = "0.3.1"
 proc-macro2 = "1.0.1"
