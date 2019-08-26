@@ -331,6 +331,22 @@ impl ChunkSection {
                     palette.insert(insertion_index, block_id);
                     paletted_index = insertion_index;
 
+                    // Correct data, since palette entries after
+                    // the one which was inserted will be offsetted
+                    // by one.
+                    for x in 0..16 {
+                        for y in 0..16 {
+                            for z in 0..16 {
+                                let index = block_index(x, y, z);
+
+                                let entry = self.data.get(index);
+                                if entry >= insertion_index as u64 {
+                                    self.data.set(index, entry + 1);
+                                }
+                            }
+                        }
+                    }
+
                     // Resize if necessary
                     if needed_bits((palette.len() - 1) as u64) > self.data.bits_per_value {
                         let new_bits_per_value = self.data.bits_per_value + 1;
@@ -887,5 +903,16 @@ mod tests {
         let mut palette = vec![0, 4, 2, 7, 3];
         ChunkSection::correct_data_and_palette(&mut data, &mut palette);
         assert_eq!(palette.len(), 5);
+    }
+
+    #[test]
+    fn test_palette_insertion_in_middle() {
+        let mut chunk = ChunkSection::new();
+
+        chunk.set_block_at(0, 0, 0, Block::Cobblestone);
+        chunk.set_block_at(0, 1, 0, Block::Stone);
+
+        assert_eq!(chunk.block_at(0, 0, 0), Block::Cobblestone);
+        assert_eq!(chunk.block_at(0, 1, 0), Block::Stone);
     }
 }

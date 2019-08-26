@@ -59,8 +59,6 @@ impl<'a> System<'a> for BlockPlacementSystem {
             };
 
             // TODO: waterlogged blocks, more
-            debug!("placed_on: {:?}", placed_on);
-            debug!("location: {:?}", packet.location);
             let pos = match placed_on {
                 Block::Grass | Block::TallGrass(_) | Block::Water(_) | Block::Lava(_) => {
                     packet.location
