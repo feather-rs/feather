@@ -15,7 +15,7 @@ use feather_core::network::packet::implementation::{
 use feather_core::network::packet::PacketType;
 use feather_core::world::block::{Block, BlockExt};
 use feather_core::world::{BlockPosition, ChunkMap};
-use feather_core::Gamemode;
+use feather_core::{Gamemode, Item};
 
 use crate::disconnect_player;
 use crate::entity::PlayerComponent;
@@ -104,6 +104,7 @@ impl<'a> System<'a> for PlayerDiggingSystem {
                 StartedDigging | FinishedDigging | CancelledDigging => handle_digging(
                     packet,
                     players.get(player).unwrap(),
+                    inventories.get(player).unwrap().item_in_main_hand(),
                     player,
                     &mut block_breaks,
                     &mut chunk_map,
@@ -125,6 +126,7 @@ impl<'a> System<'a> for PlayerDiggingSystem {
 fn handle_digging(
     packet: &PlayerDigging,
     player: &PlayerComponent,
+    item_in_main_hand: Option<&ItemStack>,
     entity: Entity,
     events: &mut EventChannel<BlockUpdateEvent>,
     chunk_map: &mut ChunkMap,
@@ -139,6 +141,20 @@ fn handle_digging(
         }
         PlayerDiggingStatus::CancelledDigging => return,
         _ => (),
+    }
+
+    // Don't break block if player is holding a sword in creative mode.
+    if player.gamemode == Gamemode::Creative {
+        if let Some(item_in_main_hand) = item_in_main_hand {
+            match item_in_main_hand.ty {
+                Item::WoodenSword
+                | Item::StoneSword
+                | Item::GoldenSword
+                | Item::IronSword
+                | Item::DiamondSword => return,
+                _ => (),
+            }
+        }
     }
 
     let old = chunk_map.block_at(packet.location);
