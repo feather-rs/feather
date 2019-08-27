@@ -1964,7 +1964,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "specs"
 version = "0.15.0"
-source = "git+https://github.com/AndreaCatania/specs?branch=emsig#1abeb1439186062c0ee3389950f7f74e65b98801"
+source = "git+https://github.com/AndreaCatania/specs?branch=emsig#7903f8fe9bc03e359f384c432b340da7f432fe46"
 dependencies = [
  "crossbeam-queue 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "derivative 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
