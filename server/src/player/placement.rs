@@ -1,6 +1,8 @@
 use crate::disconnect_player;
+use crate::entity::PlayerComponent;
 use crate::network::PacketQueue;
 use crate::player::{BlockUpdateCause, BlockUpdateEvent, InventoryComponent, InventoryUpdateEvent};
+use crate::prelude::Gamemode;
 use feather_core::inventory::SLOT_HOTBAR_OFFSET;
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::PlayerBlockPlacement;
@@ -8,7 +10,7 @@ use feather_core::world::ChunkMap;
 use feather_core::{Block, ItemStack, PacketType};
 use feather_item_block::ItemToBlock;
 use shrev::EventChannel;
-use specs::{LazyUpdate, Read, System, Write, WriteStorage};
+use specs::{LazyUpdate, Read, ReadStorage, System, Write, WriteStorage};
 
 /// System for handling Player Block Placement packets
 /// and updating the world accordingly.
@@ -17,6 +19,7 @@ pub struct BlockPlacementSystem;
 impl<'a> System<'a> for BlockPlacementSystem {
     type SystemData = (
         WriteStorage<'a, InventoryComponent>,
+        ReadStorage<'a, PlayerComponent>,
         Write<'a, ChunkMap>,
         Write<'a, EventChannel<BlockUpdateEvent>>,
         Write<'a, EventChannel<InventoryUpdateEvent>>,
@@ -27,6 +30,7 @@ impl<'a> System<'a> for BlockPlacementSystem {
     fn run(&mut self, data: Self::SystemData) {
         let (
             mut inventories,
+            players,
             mut chunk_map,
             mut block_update_events,
             mut inventory_update_events,
@@ -89,15 +93,19 @@ impl<'a> System<'a> for BlockPlacementSystem {
 
             block_update_events.single_write(event);
 
-            // Update player's inventory
-            let item = ItemStack::new(item.ty, item.amount - 1);
-            inventory.set_item_in_main_hand(item);
+            let gamemode = players.get(player).unwrap().gamemode;
 
-            let event = InventoryUpdateEvent {
-                slots: smallvec![SLOT_HOTBAR_OFFSET + inventory.held_item],
-                player,
-            };
-            inventory_update_events.single_write(event);
+            // Update player's inventory if in survival
+            if gamemode == Gamemode::Survival {
+                let item = ItemStack::new(item.ty, item.amount - 1);
+                inventory.set_item_in_main_hand(item);
+
+                let event = InventoryUpdateEvent {
+                    slots: smallvec![SLOT_HOTBAR_OFFSET + inventory.held_item],
+                    player,
+                };
+                inventory_update_events.single_write(event);
+            }
         }
     }
 }
@@ -125,6 +133,9 @@ mod tests {
                 .get_mut(player.entity)
                 .unwrap()
                 .set_item_at(SLOT_HOTBAR_OFFSET, ItemStack::new(Item::Cobblestone, 1));
+
+            let mut players = w.write_component::<PlayerComponent>();
+            players.get_mut(player.entity).unwrap().gamemode = Gamemode::Survival;
         }
 
         let pos = BlockPosition::new(10, 20, 30);
@@ -174,6 +185,9 @@ mod tests {
                 .get_mut(player.entity)
                 .unwrap()
                 .set_item_at(SLOT_HOTBAR_OFFSET, ItemStack::new(Item::Cobblestone, 1));
+
+            let mut players = w.write_component::<PlayerComponent>();
+            players.get_mut(player.entity).unwrap().gamemode = Gamemode::Survival;
         }
 
         let pos = BlockPosition::new(1000, 100, 2000);
