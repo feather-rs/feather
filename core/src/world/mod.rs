@@ -97,6 +97,17 @@ impl Add<Vec3> for Position {
     }
 }
 
+impl Add<DVec3> for Position {
+    type Output = Position;
+
+    fn add(mut self, rhs: DVec3) -> Self::Output {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
+        self
+    }
+}
+
 impl Add<Position> for Position {
     type Output = Position;
 

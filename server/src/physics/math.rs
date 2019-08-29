@@ -6,7 +6,7 @@ use crate::physics::BoundingBoxComponent;
 use feather_core::world::{BlockPosition, ChunkMap, Position};
 use feather_core::{BlockExt, ChunkPosition};
 use glm::{vec3, DVec3, Vec3};
-use nalgebra::{Isometry3, Point3};
+use nalgebra::{Isometry3, Point3, Isometry2, RealField};
 use ncollide3d::bounding_volume::AABB;
 use ncollide3d::query::{Ray, RayCast};
 use ncollide3d::shape::Cuboid;
@@ -18,7 +18,7 @@ use std::f32::INFINITY;
 // TODO is a bitflag really the most
 // idiomatic way to do this?
 bitflags! {
-    /// A face of a block.
+    /// A side.
     ///
     /// * East is on the positive X side.
     /// * West is on the negative X side.
@@ -26,7 +26,7 @@ bitflags! {
     /// * South is on the positive Z side.
     /// * Top is on the positive Y side.
     /// * Bottom is on the negative Y side.
-    pub struct BlockFace: u8 {
+    pub struct Side: u8 {
         const EAST = 0x01;
         const WEST = 0x02;
         const NORTH = 0x04;
@@ -37,7 +37,7 @@ bitflags! {
     }
 }
 
-impl BlockFace {
+impl Side {
     /// Returns a vector with coordinates set to 1.0
     /// where the face is toward the positive axis
     /// and to -1.0 where the face is toward the negative
@@ -45,21 +45,21 @@ impl BlockFace {
     pub fn as_vector(self) -> DVec3 {
         let mut vector = glm::vec3(0.0, 0.0, 0.0);
 
-        if self.contains(BlockFace::EAST) {
+        if self.contains(Side::EAST) {
             vector.x = 1.0;
-        } else if self.contains(BlockFace::WEST) {
+        } else if self.contains(Side::WEST) {
             vector.x = -1.0;
         }
 
-        if self.contains(BlockFace::NORTH) {
+        if self.contains(Side::NORTH) {
             vector.z = 1.0;
-        } else if self.contains(BlockFace::SOUTH) {
+        } else if self.contains(Side::SOUTH) {
             vector.z = -1.0;
         }
 
-        if self.contains(BlockFace::TOP) {
+        if self.contains(Side::TOP) {
             vector.y = 1.0;
-        } else if self.contains(BlockFace::BOTTOM) {
+        } else if self.contains(Side::BOTTOM) {
             vector.y = -1.0;
         }
 
@@ -76,7 +76,7 @@ pub struct RayImpact {
     /// which the ray met the block.
     pub pos: Position,
     /// The face(s) of the block where the ray impacted.
-    pub face: BlockFace,
+    pub face: Side,
 }
 
 /// Finds the first block impacted by the given ray.
@@ -115,7 +115,7 @@ pub fn block_impacted_by_ray(
     // handle when a ray hits multiple faces.
     // In practice, this should not be an issue,
     // but it may causes subtle issues in the future.
-    let mut face = BlockFace::NONE;
+    let mut face = Side::NONE;
 
     if direction.x > 0.0 {
         step.x = 1;
@@ -180,18 +180,18 @@ pub fn block_impacted_by_ray(
                 current_pos.x += step.x;
                 dist_traveled.x += 1.0;
                 face = if step.x == 1 {
-                    BlockFace::WEST
+                    Side::WEST
                 } else {
-                    BlockFace::EAST
+                    Side::EAST
                 }
             } else {
                 next.z += delta.z;
                 current_pos.z += step.z;
                 dist_traveled.z += 1.0;
                 face = if step.z == 1 {
-                    BlockFace::SOUTH
+                    Side::SOUTH
                 } else {
-                    BlockFace::NORTH
+                    Side::NORTH
                 }
             }
         } else if next.y < next.z {
@@ -199,18 +199,18 @@ pub fn block_impacted_by_ray(
             current_pos.y += step.y;
             dist_traveled.y += 1.0;
             face = if step.y == 1 {
-                BlockFace::BOTTOM
+                Side::BOTTOM
             } else {
-                BlockFace::TOP
+                Side::TOP
             }
         } else {
             next.z += delta.z;
             current_pos.z += step.z;
             dist_traveled.z += 1.0;
             face = if step.z == 1 {
-                BlockFace::SOUTH
+                Side::SOUTH
             } else {
-                BlockFace::NORTH
+                Side::NORTH
             }
         }
     }
@@ -260,47 +260,67 @@ where
     result
 }
 
-/// Returns a vector containing `1.0` for each axis where
-/// there are no blocks intersecting the bounding box and `0.0` for
-/// where there are.
-///
-/// NOTE: This implementation only covers the most basic cases.
-/// It does not correctly work when the bounding box is larger
-/// than one block in any length.
+/// The offsets which need to be applied to a position
+/// to prevent it from intersecting with a block.
+#[derive(Debug, Clone)]
+pub struct BlockIntersect {
+    offset: DVec3,
+}
+
+impl BlockIntersect {
+    /// Applies this offset to the given position.
+    pub fn apply_to(&self, pos: &mut Position) {
+        pos.x += self.offset.x;
+        pos.y += self.offset.y;
+        pos.z += self.offset.z;
+    }
+}
+
+/// Returns a struct containing position offsets which
+/// must be applied to prevent blocks from intersecting
+/// the bounding box. Call `BlockIntersect::apply` to
+/// apply the offsets to a position.
 pub fn blocks_intersecting_bbox(
     chunk_map: &ChunkMap,
     pos: Position,
     bbox: &BoundingBoxComponent,
-) -> Vec3 {
+) -> BlockIntersect {
     let bbox_size = bbox.size();
 
-    let mut result = vec3(1.0, 1.0, 1.0);
+    let mut result = BlockIntersect {
+        offset: vec3(0.0, 0.0, 0.0),
+    };
 
     let offsets = [
-        vec3(bbox_size.x as f32, 0.0, 0.0),
-        vec3(-bbox_size.x as f32, 0.0, 0.0),
-        vec3(0.0, bbox_size.y as f32, 0.0),
-        vec3(0.0, -bbox_size.y as f32, 0.0),
-        vec3(0.0, 0.0, bbox_size.z as f32),
-        vec3(0.0, 0.0, -bbox_size.z as f32),
-    ];
-    let masks = [
-        vec3(0.0f32, 1.0, 1.0),
-        vec3(0.0, 1.0, 1.0),
-        vec3(1.0, 0.0, 1.0),
-        vec3(1.0, 0.0, 1.0),
-        vec3(1.0, 1.0, 0.0),
-        vec3(1.0, 1.0, 0.0),
+        vec3(bbox_size.x, 0.0, 0.0),
+        vec3(-bbox_size.x, 0.0, 0.0),
+        vec3(0.0, bbox_size.y, 0.0),
+        vec3(0.0, -bbox_size.y, 0.0),
+        vec3(0.0, 0.0, bbox_size.z),
+        vec3(0.0, 0.0, -bbox_size.z),
     ];
 
-    for (offset, mask) in offsets.iter().zip(masks.iter()) {
+
+    for offset in &offsets {
         let block_pos = (pos + *offset).block_pos();
 
         if let Some(block) = chunk_map.block_at(block_pos) {
             if block.is_solid() {
-                result.x *= mask.x;
-                result.y *= mask.y;
-                result.z *= mask.z;
+                // Calculate the offset which needs to be applied to the position
+                // along this axis.
+                // This is done by checking for contact points and then retrieving
+                // the penetration depth.
+                let block = block_shape();
+                let contact = ncollide3d::query::contact::<f64>(
+                    &Isometry3::new(block_pos.world_pos().into(), vec3(0.0, 0.0, 0.0)),
+                    &block,
+                    &pos.into(),
+                    &bbox,
+                    1.0,
+                ).unwrap(); // Okay because we already know the block collides with the bbox
+
+                let offset = contact.normal.into_inner() * contact.depth;
+                result.offset += offset;
             }
         }
     }
@@ -309,8 +329,8 @@ pub fn blocks_intersecting_bbox(
 }
 
 /// Returns an `ncollide` `Cuboid` corresponding to a block.
-pub fn block_shape() -> Cuboid<f32> {
-    Cuboid::new(vec3(0.5, 0.5, 0.5))
+pub fn block_shape<N: RealField>() -> Cuboid<N> {
+    Cuboid::new(vec3(N::one(), 0.5, 0.5))
 }
 
 /// Returns an `Isometry` representing a block's translation.
@@ -426,7 +446,7 @@ mod tests {
             Some(RayImpact {
                 block: BlockPosition::new(0, 64, 0),
                 pos: position!(0.0, 65.0, 0.0),
-                face: BlockFace::TOP,
+                face: Side::TOP,
             })
         );
 
@@ -448,7 +468,7 @@ mod tests {
             Some(RayImpact {
                 block: BlockPosition::new(1, 65, 1),
                 pos: position!(1.0, 65.0, 1.0),
-                face: BlockFace::WEST, // This should be three faces—see the TODO above
+                face: Side::WEST, // This should be three faces—see the TODO above
             })
         );
     }
@@ -567,35 +587,6 @@ mod tests {
         let pos = position!(16.0, 0.0, 16.0);
         let distance = vec3(-0.1, -50.0, 0.0);
         chunks_within_distance(pos, distance);
-    }
-
-    #[test]
-    fn test_blocks_intersecting_bbox() {
-        let chunk_map = chunk_map();
-
-        assert_eq!(
-            blocks_intersecting_bbox(
-                &chunk_map,
-                position!(0.0, 32.0, 0.0),
-                &BoundingBoxComponent(AABB::new(
-                    Point3::from(vec3(0.0, 0.0, 0.0)),
-                    Point3::from(vec3(0.5, 0.5, 0.5))
-                )),
-            ),
-            vec3(0.0, 0.0, 0.0)
-        );
-
-        assert_eq!(
-            blocks_intersecting_bbox(
-                &chunk_map,
-                position!(0.0, 65.0, 0.0),
-                &BoundingBoxComponent(AABB::new(
-                    Point3::from(vec3(0.0, 0.0, 0.0)),
-                    Point3::from(vec3(0.5, 1.5, 0.5))
-                )),
-            ),
-            vec3(1.0, 0.0, 1.0)
-        );
     }
 
     #[test]

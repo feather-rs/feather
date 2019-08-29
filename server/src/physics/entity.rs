@@ -7,7 +7,7 @@ use feather_core::world::ChunkMap;
 
 use crate::entity::{EntityType, PositionComponent, VelocityComponent};
 use crate::physics::{
-    bbox_front, block_impacted_by_ray, blocks_intersecting_bbox, BlockFace, BoundingBoxComponent,
+    bbox_front, block_impacted_by_ray, blocks_intersecting_bbox, Side, BoundingBoxComponent,
 };
 
 /// System for updating all entities' positions and velocities
@@ -47,21 +47,13 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         {
             let mut velocity = restrict_velocity.get_unchecked().clone();
 
-            // Check for blocks around the bbox.
-            let blocks_around_bbox =
-                blocks_intersecting_bbox(&chunk_map, position.current, bounding_box);
-            // Set velocity to 0 where there are blocks
-            velocity.0.x *= blocks_around_bbox.x;
-            velocity.0.y *= blocks_around_bbox.y;
-            velocity.0.z *= blocks_around_bbox.z;
-
-            if blocks_around_bbox.y == 0.0 {
-                position.current.on_ground = true;
-            } else {
-                position.current.on_ground = false;
-            }
-
             let mut pending_position = position.current + velocity.0;
+
+            // Check for blocks around the bbox and apply offset
+            // to position to stop the bbox from intersecting blocks.
+            let intersect =
+                blocks_intersecting_bbox(&chunk_map, position.current, bounding_box);
+            intersect.apply_to(&mut pending_position);
 
             // Check for blocks along path between old position and pending position.
             // This prevents entities from flying through blocks when their
@@ -81,19 +73,19 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 let face = impacted.face;
                 let impact = impacted.pos;
 
-                if face.contains(BlockFace::EAST) || face.contains(BlockFace::WEST) {
+                if face.contains(Side::EAST) || face.contains(Side::WEST) {
                     velocity.x = 0.0;
                     pending_position.x = impact.x + bounding_box.size().x * face.as_vector().x;
                 }
-                if face.contains(BlockFace::NORTH) || face.contains(BlockFace::SOUTH) {
+                if face.contains(Side::NORTH) || face.contains(Side::SOUTH) {
                     velocity.z = 0.0;
                     pending_position.z = impact.z + bounding_box.size().z * face.as_vector().z;
                 }
-                if face.contains(BlockFace::TOP) || face.contains(BlockFace::BOTTOM) {
+                if face.contains(Side::TOP) || face.contains(Side::BOTTOM) {
                     velocity.y = 0.0;
                     pending_position.y = impact.y + bounding_box.size().y * face.as_vector().y;
                 }
-                if face.contains(BlockFace::TOP) {
+                if face.contains(Side::TOP) {
                     pending_position.on_ground = true;
                 }
             }
