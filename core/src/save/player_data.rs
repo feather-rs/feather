@@ -7,9 +7,9 @@ use uuid::Uuid;
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerData {
     #[serde(rename = "playerGameType")]
-    pub gamemode: Option<i32>,
+    pub gamemode: i32,
     #[serde(rename = "Pos")]
-    pub position: Option<Vec<f64>>,
+    pub position: Vec<f64>,
 }
 
 fn load_from_file<R: Read>(reader: R) -> Result<PlayerData, nbt::Error> {
@@ -33,9 +33,6 @@ mod tests {
         let cursor = Cursor::new(include_bytes!("player.dat").to_vec());
 
         let player = load_from_file(cursor).unwrap();
-        assert_eq!(
-            player.gamemode.unwrap(),
-            i32::from(Gamemode::Creative.get_id())
-        );
+        assert_eq!(player.gamemode, i32::from(Gamemode::Creative.get_id()));
     }
 }

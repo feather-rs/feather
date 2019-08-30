@@ -53,15 +53,16 @@ impl<'a> System<'a> for PlayerInitSystem {
         for event in events.read(&mut self.join_event_reader.as_mut().unwrap()) {
             // Load player data
             let uuid = event.uuid;
-            debug!("Loading player data for UUID {}", uuid);
-
-            let player_data = feather_core::player_data::load_player_data(uuid).unwrap_or_default();
-
             // If this is a new player, set gamemode to server's default (config)
-            let default_gamemode = &config.server.default_gamemode;
-            let gamemode = match player_data.gamemode {
-                None => Gamemode::from_string(default_gamemode.to_string()),
-                Some(id) => Gamemode::from_id(id as u8),
+            let default_gamemode = &config.server.default_gamemode.clone();
+
+            debug!("Loading player data for UUID {}", uuid);
+            let (gamemode, pos) = match feather_core::player_data::load_player_data(uuid) {
+                Ok(data) => (Gamemode::from_id(data.gamemode as u8), data.position),
+                Err(_) => (
+                    Gamemode::from_string(default_gamemode.as_str()),
+                    vec![], // Invalid position will default to world spawn
+                ),
             };
 
             let player_comp = PlayerComponent {
@@ -70,15 +71,15 @@ impl<'a> System<'a> for PlayerInitSystem {
             };
             player_comps.insert(event.player, player_comp).unwrap();
 
-            let spawn_pos = match player_data.position {
-                Some(pos) => position!(pos[0], pos[1], pos[2]),
-                None => position!(
+            let spawn_pos = if pos.len() == 3 {
+                position!(pos[0], pos[1], pos[2])
+            } else {
+                position!(
                     f64::from(level.spawn_x),
                     f64::from(level.spawn_y),
                     f64::from(level.spawn_z)
-                ),
+                )
             };
-
             let position = PositionComponent {
                 current: spawn_pos,
                 previous: spawn_pos,

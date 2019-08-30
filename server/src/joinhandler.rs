@@ -18,7 +18,7 @@ use feather_core::level::LevelData;
 use feather_core::network::packet::implementation::{
     JoinGame, PlayerPositionAndLookClientbound, SpawnPosition,
 };
-use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition};
+use feather_core::world::{ChunkMap, ChunkPosition};
 use feather_core::{Difficulty, Dimension};
 
 use crate::chunk_logic::{ChunkHolderComponent, ChunkHolders, ChunkWorkerHandle};
@@ -174,11 +174,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     }
 
                     let pos = positions.get(player).unwrap();
-                    let spawn_block_pos = BlockPosition::new(
-                        pos.current.x as i32,
-                        pos.current.y as i32,
-                        pos.current.z as i32,
-                    );
+                    let spawn_block_pos = pos.current.block_pos();
 
                     let spawn_position = SpawnPosition::new(spawn_block_pos);
                     crate::network::send_packet_to_player(net, spawn_position);

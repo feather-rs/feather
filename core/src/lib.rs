@@ -64,7 +64,7 @@ impl Gamemode {
         }
     }
 
-    pub fn from_string(name: String) -> Self {
+    pub fn from_string(name: &str) -> Self {
         match name.to_lowercase().as_str() {
             "survival" => Gamemode::Survival,
             "creative" => Gamemode::Creative,
