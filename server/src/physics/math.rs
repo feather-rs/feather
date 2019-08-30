@@ -6,8 +6,10 @@ use crate::physics::BoundingBoxComponent;
 use feather_core::world::{BlockPosition, ChunkMap, Position};
 use feather_core::{BlockExt, ChunkPosition};
 use glm::{vec3, DVec3, Vec3};
-use nalgebra::{Isometry3, Point3, Isometry2, RealField};
+use heapless::consts::U8;
+use nalgebra::{Isometry3, Point3};
 use ncollide3d::bounding_volume::AABB;
+use ncollide3d::query;
 use ncollide3d::query::{Ray, RayCast};
 use ncollide3d::shape::Cuboid;
 use smallvec::SmallVec;
@@ -179,11 +181,7 @@ pub fn block_impacted_by_ray(
                 next.x += delta.x;
                 current_pos.x += step.x;
                 dist_traveled.x += 1.0;
-                face = if step.x == 1 {
-                    Side::WEST
-                } else {
-                    Side::EAST
-                }
+                face = if step.x == 1 { Side::WEST } else { Side::EAST }
             } else {
                 next.z += delta.z;
                 current_pos.z += step.z;
@@ -198,11 +196,7 @@ pub fn block_impacted_by_ray(
             next.y += delta.y;
             current_pos.y += step.y;
             dist_traveled.y += 1.0;
-            face = if step.y == 1 {
-                Side::BOTTOM
-            } else {
-                Side::TOP
-            }
+            face = if step.y == 1 { Side::BOTTOM } else { Side::TOP }
         } else {
             next.z += delta.z;
             current_pos.z += step.z;
@@ -265,6 +259,9 @@ where
 #[derive(Debug, Clone)]
 pub struct BlockIntersect {
     offset: DVec3,
+    x: bool,
+    y: bool,
+    z: bool,
 }
 
 impl BlockIntersect {
@@ -274,24 +271,56 @@ impl BlockIntersect {
         pos.y += self.offset.y;
         pos.z += self.offset.z;
     }
+
+    /// Returns whether the X axis is affected.
+    pub fn x_affected(&self) -> bool {
+        self.x
+    }
+
+    /// Returns whether the Y axis is affected.
+    pub fn y_affected(&self) -> bool {
+        self.y
+    }
+
+    /// Returns whether the Z axis is affected.
+    pub fn z_affected(&self) -> bool {
+        self.z
+    }
 }
 
 /// Returns a struct containing position offsets which
 /// must be applied to prevent blocks from intersecting
 /// the bounding box. Call `BlockIntersect::apply` to
 /// apply the offsets to a position.
+///
+/// `prev` should be the entity's position on the previous
+/// tick. This is used to calculate impact points.
+///
+/// # Restrictions
+/// Currently, bounding boxes with side lengths greater
+/// than 1 are not supported. If the bounding box's size
+/// is more than 1, this function will panic.
 pub fn blocks_intersecting_bbox(
     chunk_map: &ChunkMap,
-    pos: Position,
+    from: Position,
+    mut dest: Position,
     bbox: &BoundingBoxComponent,
 ) -> BlockIntersect {
     let bbox_size = bbox.size();
 
+    assert!(bbox_size.x <= 1.0);
+    assert!(bbox_size.y <= 1.0);
+    assert!(bbox_size.z <= 1.0);
+
     let mut result = BlockIntersect {
         offset: vec3(0.0, 0.0, 0.0),
+        x: false,
+        y: false,
+        z: false,
     };
 
     let offsets = [
+        vec3(0.0, 0.0, 0.0),
         vec3(bbox_size.x, 0.0, 0.0),
         vec3(-bbox_size.x, 0.0, 0.0),
         vec3(0.0, bbox_size.y, 0.0),
@@ -300,43 +329,90 @@ pub fn blocks_intersecting_bbox(
         vec3(0.0, 0.0, -bbox_size.z),
     ];
 
+    // Compute a vector of isometries representing adjacent block locations.
+    let mut blocks: SmallVec<[Isometry3<f64>; 16]> = smallvec![];
+
+    // Prevent same block being checked twice.
+    let mut checked = heapless::FnvIndexSet::<BlockPosition, U8>::new();
 
     for offset in &offsets {
-        let block_pos = (pos + *offset).block_pos();
+        let block_pos = (dest + *offset).block_pos();
 
-        if let Some(block) = chunk_map.block_at(block_pos) {
-            if block.is_solid() {
-                // Calculate the offset which needs to be applied to the position
-                // along this axis.
-                // This is done by checking for contact points and then retrieving
-                // the penetration depth.
-                let block = block_shape();
-                let contact = ncollide3d::query::contact::<f64>(
-                    &Isometry3::new(block_pos.world_pos().into(), vec3(0.0, 0.0, 0.0)),
-                    &block,
-                    &pos.into(),
-                    &bbox,
-                    1.0,
-                ).unwrap(); // Okay because we already know the block collides with the bbox
-
-                let offset = contact.normal.into_inner() * contact.depth;
-                result.offset += offset;
-            }
+        if checked.contains(&block_pos) {
+            continue; // Already added this block
         }
+
+        checked.insert(block_pos).unwrap(); // Unwrap is safe because set has capacity 8 and there are at most 7 blocks
+
+        let block = match chunk_map.block_at(block_pos) {
+            Some(block) => block,
+            None => continue, // Unloaded chunk
+        };
+        if !block.is_solid() {
+            continue; // Not a solid b lock
+        }
+
+        let isometry = block_isometry_64(block_pos);
+        blocks.push(isometry);
+    }
+
+    // Go through blocks and check for time of impact from original
+    // position to the block. If the time of impact is <= 1, the entity
+    // has collided with the block; update the position accordingly.
+    let block_shape = block_shape_64();
+    let velocity = (dest - from).as_vec();
+    let bbox_shape = bbox_to_cuboid(&bbox.0);
+
+    for block_isometry in blocks {
+        let toi = match query::time_of_impact(
+            &block_isometry,
+            &vec3(0.0, 0.0, 0.0),
+            &block_shape,
+            &Isometry3::new(from.as_vec(), vec3(0.0, 0.0, 0.0)),
+            &velocity,
+            &bbox_shape,
+            1.0,
+            0.0,
+        ) {
+            Some(toi) => toi,
+            None => continue, // No impact
+        };
+
+        let world_pos = from + velocity * toi.toi;
+        let absolute_offset = world_pos - dest;
+
+        result.offset += absolute_offset.as_vec();
+
+        dest = dest + absolute_offset;
     }
 
     result
 }
 
 /// Returns an `ncollide` `Cuboid` corresponding to a block.
-pub fn block_shape<N: RealField>() -> Cuboid<N> {
-    Cuboid::new(vec3(N::one(), 0.5, 0.5))
+pub fn block_shape() -> Cuboid<f32> {
+    Cuboid::new(vec3(0.5, 0.5, 0.5))
+}
+
+pub fn block_shape_64() -> Cuboid<f64> {
+    Cuboid::new(vec3(0.5, 0.5, 0.5))
 }
 
 /// Returns an `Isometry` representing a block's translation.
 pub fn block_isometry(pos: BlockPosition) -> Isometry3<f32> {
     Isometry3::new(
         vec3(pos.x as f32 + 0.5, pos.y as f32 + 0.5, pos.z as f32 + 0.5),
+        vec3(0.0, 0.0, 0.0),
+    )
+}
+
+pub fn block_isometry_64(pos: BlockPosition) -> Isometry3<f64> {
+    Isometry3::new(
+        vec3(
+            f64::from(pos.x) + 0.5,
+            f64::from(pos.y) + 0.5,
+            f64::from(pos.z) + 0.5,
+        ),
         vec3(0.0, 0.0, 0.0),
     )
 }

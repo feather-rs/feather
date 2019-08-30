@@ -12,6 +12,8 @@ extern crate feather_codegen;
 extern crate num_derive;
 #[macro_use]
 extern crate smallvec;
+#[macro_use]
+extern crate hash32_derive;
 
 extern crate nalgebra_glm as glm;
 

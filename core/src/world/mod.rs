@@ -84,6 +84,10 @@ impl Position {
 
         glm::vec3(x, y, z)
     }
+
+    pub fn as_vec(&self) -> DVec3 {
+        (*self).into()
+    }
 }
 
 impl Add<Vec3> for Position {
@@ -128,6 +132,17 @@ impl Sub<Vec3> for Position {
         self.x -= f64::from(vec.x);
         self.y -= f64::from(vec.y);
         self.z -= f64::from(vec.z);
+        self
+    }
+}
+
+impl Sub<DVec3> for Position {
+    type Output = Position;
+
+    fn sub(mut self, vec: DVec3) -> Self::Output {
+        self.x -= vec.x;
+        self.y -= vec.y;
+        self.z -= vec.z;
         self
     }
 }
@@ -181,13 +196,13 @@ fn square(x: f64) -> f64 {
     x * x
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default, new)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Hash32, Default, new)]
 pub struct ChunkPosition {
     pub x: i32,
     pub z: i32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default, new)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Hash32, Default, new)]
 pub struct BlockPosition {
     pub x: i32,
     pub y: i32,

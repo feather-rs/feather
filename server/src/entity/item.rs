@@ -59,7 +59,7 @@ impl<'a> System<'a> for ItemSpawnSystem {
             let mut pos = {
                 let player_pos = positions.get(event.player).unwrap().current
                     + glm::vec3(0.0, PLAYER_EYE_HEIGHT, 0.0);
-                player_pos - glm::vec3(0.0, 0.3, 0.0)
+                player_pos - glm::vec3(0.0f64, 0.3, 0.0)
             };
 
             pos.on_ground = false;

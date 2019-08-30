@@ -7,7 +7,7 @@ use feather_core::world::ChunkMap;
 
 use crate::entity::{EntityType, PositionComponent, VelocityComponent};
 use crate::physics::{
-    bbox_front, block_impacted_by_ray, blocks_intersecting_bbox, Side, BoundingBoxComponent,
+    bbox_front, block_impacted_by_ray, blocks_intersecting_bbox, BoundingBoxComponent, Side,
 };
 
 /// System for updating all entities' positions and velocities
@@ -51,9 +51,28 @@ impl<'a> System<'a> for EntityPhysicsSystem {
 
             // Check for blocks around the bbox and apply offset
             // to position to stop the bbox from intersecting blocks.
-            let intersect =
-                blocks_intersecting_bbox(&chunk_map, position.current, bounding_box);
+            let intersect = blocks_intersecting_bbox(
+                &chunk_map,
+                position.current,
+                pending_position,
+                bounding_box,
+            );
             intersect.apply_to(&mut pending_position);
+
+            if intersect.x_affected() {
+                velocity.x = 0.0;
+            }
+
+            if intersect.y_affected() {
+                velocity.y = 0.0;
+                pending_position.on_ground = true;
+            } else {
+                pending_position.on_ground = false;
+            }
+
+            if intersect.z_affected() {
+                velocity.z = 0.0;
+            }
 
             // Check for blocks along path between old position and pending position.
             // This prevents entities from flying through blocks when their
