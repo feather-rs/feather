@@ -1,5 +1,4 @@
 use std::fs::File;
-use std::io::Read;
 
 use uuid::Uuid;
 
@@ -19,15 +18,8 @@ fn default_gamemode() -> i32 {
     UNSET_GAMEMODE
 }
 
-pub fn deserialize_player_data<R: Read>(reader: R) -> Result<PlayerData, nbt::Error> {
-    match nbt::from_gzip_reader::<_, PlayerData>(reader) {
-        Ok(root) => Ok(root),
-        Err(e) => Err(e),
-    }
-}
-
 pub fn load_player_data(uuid: Uuid) -> Result<PlayerData, nbt::Error> {
     let file = File::open(format!("world/playerdata/{}.dat", uuid))?;
-    let data = deserialize_player_data(file)?;
+    let data = nbt::from_gzip_reader::<_, PlayerData>(file)?;
     Ok(data)
 }
