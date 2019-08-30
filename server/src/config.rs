@@ -43,6 +43,7 @@ pub struct Server {
     pub view_distance: u8,
     pub address: String,
     pub port: u16,
+    pub default_gamemode: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -100,6 +101,7 @@ mod tests {
         assert_eq!(server.online_mode, true);
         assert_eq!(server.motd, "A Feather server");
         assert_eq!(server.max_players, 16);
+        assert_eq!(server.default_gamemode, "survival");
         assert_eq!(server.view_distance, 6);
         assert_eq!(server.address, "127.0.0.1");
         assert_eq!(server.port, 25565);

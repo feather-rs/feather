@@ -14,19 +14,19 @@ use specs::{
     Write, WriteStorage,
 };
 
+use feather_core::level::LevelData;
 use feather_core::network::packet::implementation::{
     JoinGame, PlayerPositionAndLookClientbound, SpawnPosition,
 };
 use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition};
-use feather_core::{Difficulty, Dimension, Gamemode};
+use feather_core::{Difficulty, Dimension};
 
 use crate::chunk_logic::{ChunkHolderComponent, ChunkHolders, ChunkWorkerHandle};
 use crate::config::Config;
-use crate::entity::{EntitySpawnEvent, EntityType};
+use crate::entity::{EntitySpawnEvent, EntityType, PlayerComponent};
 use crate::network::NetworkComponent;
 use crate::player::{ChunkPendingComponent, LoadedChunksComponent};
 use crate::PlayerCount;
-use feather_core::level::LevelData;
 
 #[derive(Default)]
 pub struct JoinHandlerComponent {
@@ -84,6 +84,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
         Read<'a, LevelData>,
         WriteStorage<'a, ChunkHolderComponent>,
         WriteStorage<'a, LoadedChunksComponent>,
+        ReadStorage<'a, PlayerComponent>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -103,6 +104,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
             level,
             mut holder_comps,
             mut loaded_chunks_comps,
+            playercomps,
         ) = data;
 
         let mut to_remove = vec![];
@@ -112,10 +114,12 @@ impl<'a> System<'a> for JoinHandlerSystem {
         {
             match join_handler.stage {
                 Stage::Initial => {
+                    let playercomp = playercomps.get(player).unwrap();
+
                     // Send Join Game, then queue chunks for loading + sending.
                     let join_game = JoinGame::new(
                         player.id() as i32,
-                        Gamemode::Creative.get_id(),
+                        playercomp.gamemode.get_id(),
                         Dimension::Overwold.get_id(),
                         Difficulty::Medium.get_id(),
                         0,                     // Max players - not used
