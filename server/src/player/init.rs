@@ -4,7 +4,6 @@ use crate::network::PlayerPreJoinEvent;
 use crate::player::{ChunkPendingComponent, InventoryComponent, LoadedChunksComponent};
 use crate::prelude::*;
 use feather_core::level::LevelData;
-use feather_core::player_data::UNSET_GAMEMODE;
 use feather_core::Gamemode;
 use feather_core::Position;
 use hashbrown::HashSet;
@@ -61,8 +60,8 @@ impl<'a> System<'a> for PlayerInitSystem {
             // If this is a new player, set gamemode to server's default (config)
             let default_gamemode = &config.server.default_gamemode;
             let gamemode = match player_data.gamemode {
-                UNSET_GAMEMODE => Gamemode::from_string(default_gamemode.to_string()),
-                _ => Gamemode::from_id(player_data.gamemode as u8),
+                None => Gamemode::from_string(default_gamemode.to_string()),
+                Some(id) => Gamemode::from_id(id as u8),
             };
 
             let player_comp = PlayerComponent {
