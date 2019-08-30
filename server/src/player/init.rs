@@ -58,10 +58,10 @@ impl<'a> System<'a> for PlayerInitSystem {
 
             debug!("Loading player data for UUID {}", uuid);
             let (gamemode, pos) = match feather_core::player_data::load_player_data(uuid) {
-                Ok(data) => (Gamemode::from_id(data.gamemode as u8), data.position),
+                Ok(data) => (Gamemode::from_id(data.gamemode as u8), data.read_position()),
                 Err(_) => (
                     Gamemode::from_string(default_gamemode.as_str()),
-                    vec![], // Invalid position will default to world spawn
+                    None, // Invalid position will default to world spawn
                 ),
             };
 
@@ -71,15 +71,11 @@ impl<'a> System<'a> for PlayerInitSystem {
             };
             player_comps.insert(event.player, player_comp).unwrap();
 
-            let spawn_pos = if pos.len() == 3 {
-                position!(pos[0], pos[1], pos[2])
-            } else {
-                position!(
-                    f64::from(level.spawn_x),
-                    f64::from(level.spawn_y),
-                    f64::from(level.spawn_z)
-                )
-            };
+            let spawn_pos = pos.unwrap_or(position!(
+                f64::from(level.spawn_x),
+                f64::from(level.spawn_y),
+                f64::from(level.spawn_z)
+            ));
             let position = PositionComponent {
                 current: spawn_pos,
                 previous: spawn_pos,
