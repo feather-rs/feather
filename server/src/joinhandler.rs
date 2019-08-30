@@ -23,7 +23,7 @@ use feather_core::{Difficulty, Dimension};
 
 use crate::chunk_logic::{ChunkHolderComponent, ChunkHolders, ChunkWorkerHandle};
 use crate::config::Config;
-use crate::entity::{EntitySpawnEvent, EntityType, PlayerComponent};
+use crate::entity::{EntitySpawnEvent, EntityType, PlayerComponent, PositionComponent};
 use crate::network::NetworkComponent;
 use crate::player::{ChunkPendingComponent, LoadedChunksComponent};
 use crate::PlayerCount;
@@ -85,6 +85,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
         WriteStorage<'a, ChunkHolderComponent>,
         WriteStorage<'a, LoadedChunksComponent>,
         ReadStorage<'a, PlayerComponent>,
+        ReadStorage<'a, PositionComponent>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -105,6 +106,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
             mut holder_comps,
             mut loaded_chunks_comps,
             playercomps,
+            positions,
         ) = data;
 
         let mut to_remove = vec![];
@@ -171,8 +173,12 @@ impl<'a> System<'a> for JoinHandlerSystem {
                         continue;
                     }
 
-                    let spawn_block_pos =
-                        BlockPosition::new(level.spawn_x, level.spawn_y, level.spawn_z);
+                    let pos = positions.get(player).unwrap();
+                    let spawn_block_pos = BlockPosition::new(
+                        pos.current.x as i32,
+                        pos.current.y as i32,
+                        pos.current.z as i32,
+                    );
 
                     let spawn_position = SpawnPosition::new(spawn_block_pos);
                     crate::network::send_packet_to_player(net, spawn_position);

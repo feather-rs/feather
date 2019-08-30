@@ -8,6 +8,8 @@ use uuid::Uuid;
 pub struct PlayerData {
     #[serde(rename = "playerGameType")]
     pub gamemode: Option<i32>,
+    #[serde(rename = "Pos")]
+    pub position: Option<Vec<f64>>,
 }
 
 fn load_from_file<R: Read>(reader: R) -> Result<PlayerData, nbt::Error> {

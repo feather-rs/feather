@@ -70,11 +70,14 @@ impl<'a> System<'a> for PlayerInitSystem {
             };
             player_comps.insert(event.player, player_comp).unwrap();
 
-            let spawn_pos = position!(
-                f64::from(level.spawn_x),
-                f64::from(level.spawn_y),
-                f64::from(level.spawn_z)
-            );
+            let spawn_pos = match player_data.position {
+                Some(pos) => position!(pos[0], pos[1], pos[2]),
+                None => position!(
+                    f64::from(level.spawn_x),
+                    f64::from(level.spawn_y),
+                    f64::from(level.spawn_z)
+                ),
+            };
 
             let position = PositionComponent {
                 current: spawn_pos,
