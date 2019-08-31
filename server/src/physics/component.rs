@@ -62,7 +62,7 @@ fn bbox_for_type(ty: EntityType) -> Option<AABB<f64>> {
 }
 
 /// Returns a bounding box with the given width and height.
-fn bbox(size_xz: f64, size_y: f64) -> AABB<f64> {
+pub fn bbox(size_xz: f64, size_y: f64) -> AABB<f64> {
     AABB::new(
         glm::vec3(0.0, 0.0, 0.0).into(),
         glm::vec3(size_xz, size_y, size_xz).into(),

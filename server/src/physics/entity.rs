@@ -3,12 +3,11 @@
 
 use specs::{Join, Read, ReadStorage, System, WriteStorage};
 
-use feather_core::world::ChunkMap;
-
 use crate::entity::{EntityType, PositionComponent, VelocityComponent};
-use crate::physics::{
-    bbox_front, block_impacted_by_ray, blocks_intersecting_bbox, BlockFace, BoundingBoxComponent,
-};
+use crate::physics::{block_impacted_by_ray, blocks_intersecting_bbox, BoundingBoxComponent, Side};
+use feather_core::world::ChunkMap;
+use feather_core::BlockExt;
+use feather_core::Position;
 
 /// System for updating all entities' positions and velocities
 /// each tick.
@@ -47,31 +46,14 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         {
             let mut velocity = restrict_velocity.get_unchecked().clone();
 
-            // Check for blocks around the bbox.
-            let blocks_around_bbox =
-                blocks_intersecting_bbox(&chunk_map, position.current, bounding_box);
-            // Set velocity to 0 where there are blocks
-            velocity.0.x *= blocks_around_bbox.x;
-            velocity.0.y *= blocks_around_bbox.y;
-            velocity.0.z *= blocks_around_bbox.z;
-
-            if blocks_around_bbox.y == 0.0 {
-                position.current.on_ground = true;
-            } else {
-                position.current.on_ground = false;
-            }
-
             let mut pending_position = position.current + velocity.0;
 
             // Check for blocks along path between old position and pending position.
             // This prevents entities from flying through blocks when their
             // velocity is sufficiently high.
-
-            // The origin is the "leading point" of the bounding box:
-            // the point at the front.
-            let origin = (position.current + bbox_front(&bounding_box.0, velocity.0)).into();
-            let direction = (pending_position - position.previous).into();
-            let distance_squared = pending_position.distance_squared(position.previous);
+            let origin = position.current.into();
+            let direction = (pending_position - position.current).into();
+            let distance_squared = pending_position.distance_squared(position.current);
 
             if let Some(impacted) =
                 block_impacted_by_ray(&chunk_map, origin, direction, distance_squared as f32)
@@ -81,20 +63,62 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 let face = impacted.face;
                 let impact = impacted.pos;
 
-                if face.contains(BlockFace::EAST) || face.contains(BlockFace::WEST) {
+                if face.contains(Side::EAST) || face.contains(Side::WEST) {
                     velocity.x = 0.0;
                     pending_position.x = impact.x + bounding_box.size().x * face.as_vector().x;
                 }
-                if face.contains(BlockFace::NORTH) || face.contains(BlockFace::SOUTH) {
+                if face.contains(Side::NORTH) || face.contains(Side::SOUTH) {
                     velocity.z = 0.0;
                     pending_position.z = impact.z + bounding_box.size().z * face.as_vector().z;
                 }
-                if face.contains(BlockFace::TOP) || face.contains(BlockFace::BOTTOM) {
+                if face.contains(Side::TOP) || face.contains(Side::BOTTOM) {
                     velocity.y = 0.0;
                     pending_position.y = impact.y + bounding_box.size().y * face.as_vector().y;
                 }
-                if face.contains(BlockFace::TOP) {
+                if face.contains(Side::TOP) {
                     pending_position.on_ground = true;
+                }
+            }
+
+            // Check for blocks around the bbox and apply offset
+            // to position to stop the bbox from intersecting blocks.
+            let intersect = blocks_intersecting_bbox(
+                &chunk_map,
+                position.current,
+                pending_position,
+                bounding_box,
+            );
+            intersect.apply_to(&mut pending_position);
+
+            if intersect.x_affected() {
+                velocity.x = 0.0;
+            }
+
+            if intersect.y_affected() {
+                velocity.y = 0.0;
+            }
+
+            if intersect.z_affected() {
+                velocity.z = 0.0;
+            }
+
+            // Set on ground status
+            pending_position.on_ground = match chunk_map.block_at(
+                position!(
+                    pending_position.x,
+                    pending_position.y - bounding_box.size().y / 2.0 - 0.01,
+                    pending_position.z
+                )
+                .block_pos(),
+            ) {
+                Some(block) => block.is_solid(),
+                None => false,
+            };
+
+            // If entity is inside block, push it up.
+            if let Some(block) = chunk_map.block_at(pending_position.block_pos()) {
+                if block.is_solid() {
+                    pending_position.y += 0.2;
                 }
             }
 
@@ -160,5 +184,43 @@ fn drag_force(ty: EntityType) -> f32 {
         0.98
     } else {
         0.0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testframework as t;
+    use specs::WorldExt;
+
+    #[test]
+    fn test_physics_basic() {
+        let (mut w, mut d) = t::builder().with(EntityPhysicsSystem, "").build();
+
+        t::populate_with_air(&mut w);
+
+        let item = t::add_entity_with_pos_and_vel(
+            &mut w,
+            EntityType::Item,
+            position!(0.0, 0.0, 0.0),
+            glm::vec3(0.0, 1.0, 0.0),
+            false,
+        );
+
+        let bbox = crate::physics::component::bbox(0.25, 0.25);
+        w.write_component::<BoundingBoxComponent>()
+            .insert(item, BoundingBoxComponent(bbox))
+            .unwrap();
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let pos = t::entity_pos(&w, item);
+        let vel = t::entity_vel(&w, item).unwrap();
+
+        assert_pos_eq!(pos, position!(0.0, 1.0, 0.0));
+        assert_float_eq!(vel.x, 0.0);
+        assert_float_eq!(vel.y, 0.94);
+        assert_float_eq!(vel.z, 0.0);
     }
 }

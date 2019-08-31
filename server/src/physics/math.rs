@@ -6,8 +6,10 @@ use crate::physics::BoundingBoxComponent;
 use feather_core::world::{BlockPosition, ChunkMap, Position};
 use feather_core::{BlockExt, ChunkPosition};
 use glm::{vec3, DVec3, Vec3};
+use heapless::consts::U8;
 use nalgebra::{Isometry3, Point3};
 use ncollide3d::bounding_volume::AABB;
+use ncollide3d::query;
 use ncollide3d::query::{Ray, RayCast};
 use ncollide3d::shape::Cuboid;
 use smallvec::SmallVec;
@@ -18,7 +20,7 @@ use std::f32::INFINITY;
 // TODO is a bitflag really the most
 // idiomatic way to do this?
 bitflags! {
-    /// A face of a block.
+    /// A side.
     ///
     /// * East is on the positive X side.
     /// * West is on the negative X side.
@@ -26,7 +28,7 @@ bitflags! {
     /// * South is on the positive Z side.
     /// * Top is on the positive Y side.
     /// * Bottom is on the negative Y side.
-    pub struct BlockFace: u8 {
+    pub struct Side: u8 {
         const EAST = 0x01;
         const WEST = 0x02;
         const NORTH = 0x04;
@@ -37,7 +39,7 @@ bitflags! {
     }
 }
 
-impl BlockFace {
+impl Side {
     /// Returns a vector with coordinates set to 1.0
     /// where the face is toward the positive axis
     /// and to -1.0 where the face is toward the negative
@@ -45,21 +47,21 @@ impl BlockFace {
     pub fn as_vector(self) -> DVec3 {
         let mut vector = glm::vec3(0.0, 0.0, 0.0);
 
-        if self.contains(BlockFace::EAST) {
+        if self.contains(Side::EAST) {
             vector.x = 1.0;
-        } else if self.contains(BlockFace::WEST) {
+        } else if self.contains(Side::WEST) {
             vector.x = -1.0;
         }
 
-        if self.contains(BlockFace::NORTH) {
+        if self.contains(Side::NORTH) {
             vector.z = 1.0;
-        } else if self.contains(BlockFace::SOUTH) {
+        } else if self.contains(Side::SOUTH) {
             vector.z = -1.0;
         }
 
-        if self.contains(BlockFace::TOP) {
+        if self.contains(Side::TOP) {
             vector.y = 1.0;
-        } else if self.contains(BlockFace::BOTTOM) {
+        } else if self.contains(Side::BOTTOM) {
             vector.y = -1.0;
         }
 
@@ -76,7 +78,7 @@ pub struct RayImpact {
     /// which the ray met the block.
     pub pos: Position,
     /// The face(s) of the block where the ray impacted.
-    pub face: BlockFace,
+    pub face: Side,
 }
 
 /// Finds the first block impacted by the given ray.
@@ -115,7 +117,7 @@ pub fn block_impacted_by_ray(
     // handle when a ray hits multiple faces.
     // In practice, this should not be an issue,
     // but it may causes subtle issues in the future.
-    let mut face = BlockFace::NONE;
+    let mut face = Side::NONE;
 
     if direction.x > 0.0 {
         step.x = 1;
@@ -179,38 +181,30 @@ pub fn block_impacted_by_ray(
                 next.x += delta.x;
                 current_pos.x += step.x;
                 dist_traveled.x += 1.0;
-                face = if step.x == 1 {
-                    BlockFace::WEST
-                } else {
-                    BlockFace::EAST
-                }
+                face = if step.x == 1 { Side::WEST } else { Side::EAST }
             } else {
                 next.z += delta.z;
                 current_pos.z += step.z;
                 dist_traveled.z += 1.0;
                 face = if step.z == 1 {
-                    BlockFace::SOUTH
+                    Side::SOUTH
                 } else {
-                    BlockFace::NORTH
+                    Side::NORTH
                 }
             }
         } else if next.y < next.z {
             next.y += delta.y;
             current_pos.y += step.y;
             dist_traveled.y += 1.0;
-            face = if step.y == 1 {
-                BlockFace::BOTTOM
-            } else {
-                BlockFace::TOP
-            }
+            face = if step.y == 1 { Side::BOTTOM } else { Side::TOP }
         } else {
             next.z += delta.z;
             current_pos.z += step.z;
             dist_traveled.z += 1.0;
             face = if step.z == 1 {
-                BlockFace::SOUTH
+                Side::SOUTH
             } else {
-                BlockFace::NORTH
+                Side::NORTH
             }
         }
     }
@@ -260,48 +254,157 @@ where
     result
 }
 
-/// Returns a vector containing `1.0` for each axis where
-/// there are no blocks intersecting the bounding box and `0.0` for
-/// where there are.
+/// The offsets which need to be applied to a position
+/// to prevent it from intersecting with a block.
+#[derive(Debug, Clone)]
+pub struct BlockIntersect {
+    offset: DVec3,
+    x: bool,
+    y: bool,
+    z: bool,
+}
+
+impl BlockIntersect {
+    /// Applies this offset to the given position.
+    pub fn apply_to(&self, pos: &mut Position) {
+        pos.x += self.offset.x;
+        pos.y += self.offset.y;
+        pos.z += self.offset.z;
+    }
+
+    /// Returns whether the X axis is affected.
+    pub fn x_affected(&self) -> bool {
+        self.x
+    }
+
+    /// Returns whether the Y axis is affected.
+    pub fn y_affected(&self) -> bool {
+        self.y
+    }
+
+    /// Returns whether the Z axis is affected.
+    pub fn z_affected(&self) -> bool {
+        self.z
+    }
+}
+
+/// Returns a struct containing position offsets which
+/// must be applied to prevent blocks from intersecting
+/// the bounding box. Call `BlockIntersect::apply` to
+/// apply the offsets to a position.
 ///
-/// NOTE: This implementation only covers the most basic cases.
-/// It does not correctly work when the bounding box is larger
-/// than one block in any length.
+/// `prev` should be the entity's position on the previous
+/// tick. This is used to calculate impact points.
+///
+/// # Restrictions
+/// Currently, bounding boxes with side lengths greater
+/// than 1 are not supported. If the bounding box's size
+/// is more than 1, this function will panic.
 pub fn blocks_intersecting_bbox(
     chunk_map: &ChunkMap,
-    pos: Position,
+    mut from: Position,
+    mut dest: Position,
     bbox: &BoundingBoxComponent,
-) -> Vec3 {
-    let bbox_size = bbox.size();
+) -> BlockIntersect {
+    let bbox_size = bbox.size() / 2.0;
 
-    let mut result = vec3(1.0, 1.0, 1.0);
+    // Center along Y axis of bounding box is at bottom, not center.
+    // This is a quick fix to get around this.
+    from.y += bbox_size.y;
+    dest.y += bbox_size.y;
+
+    assert!(bbox_size.x <= 1.0);
+    assert!(bbox_size.y <= 1.0);
+    assert!(bbox_size.z <= 1.0);
+
+    let mut result = BlockIntersect {
+        offset: vec3(0.0, 0.0, 0.0),
+        x: false,
+        y: false,
+        z: false,
+    };
 
     let offsets = [
-        vec3(bbox_size.x as f32, 0.0, 0.0),
-        vec3(-bbox_size.x as f32, 0.0, 0.0),
-        vec3(0.0, bbox_size.y as f32, 0.0),
-        vec3(0.0, -bbox_size.y as f32, 0.0),
-        vec3(0.0, 0.0, bbox_size.z as f32),
-        vec3(0.0, 0.0, -bbox_size.z as f32),
+        vec3(0.0, bbox_size.y, 0.0),
+        vec3(0.0, -bbox_size.y, 0.0),
+        vec3(bbox_size.x, 0.0, 0.0),
+        vec3(-bbox_size.x, 0.0, 0.0),
+        vec3(0.0, 0.0, bbox_size.z),
+        vec3(0.0, 0.0, -bbox_size.z),
+        vec3(0.0, 0.0, 0.0),
     ];
-    let masks = [
-        vec3(0.0f32, 1.0, 1.0),
-        vec3(0.0, 1.0, 1.0),
-        vec3(1.0, 0.0, 1.0),
-        vec3(1.0, 0.0, 1.0),
-        vec3(1.0, 1.0, 0.0),
-        vec3(1.0, 1.0, 0.0),
+    let normals = [
+        vec3(0.0, 1.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
+        vec3(1.0, 0.0, 0.0),
+        vec3(1.0, 0.0, 0.0),
+        vec3(0.0, 0.0, 1.0),
+        vec3(0.0, 0.0, 1.0),
+        vec3(0.0, 0.0, 0.0),
     ];
 
-    for (offset, mask) in offsets.iter().zip(masks.iter()) {
-        let block_pos = (pos + *offset).block_pos();
+    // Compute a vector of isometries and axis normals representing adjacent block locations.
+    let mut blocks: SmallVec<[(Isometry3<f64>, DVec3); 16]> = smallvec![];
 
-        if let Some(block) = chunk_map.block_at(block_pos) {
-            if block.is_solid() {
-                result.x *= mask.x;
-                result.y *= mask.y;
-                result.z *= mask.z;
-            }
+    // Prevent same block being checked twice.
+    let mut checked = heapless::FnvIndexSet::<BlockPosition, U8>::new();
+
+    for (offset, normal) in offsets.iter().zip(normals.iter()) {
+        let block_pos = (dest + *offset).block_pos();
+
+        if checked.contains(&block_pos) {
+            continue; // Already added this block
+        }
+
+        checked.insert(block_pos).unwrap(); // Unwrap is safe because set has capacity 8 and there are at most 7 blocks
+
+        let block = match chunk_map.block_at(block_pos) {
+            Some(block) => block,
+            None => continue, // Unloaded chunk
+        };
+        if !block.is_solid() {
+            continue; // Not a solid block
+        }
+
+        let isometry = block_isometry_64(block_pos);
+        blocks.push((isometry, *normal));
+    }
+
+    // Go through blocks and check for time of impact from original
+    // position to the block. If the time of impact is <= 1, the entity
+    // has collided with the block; update the position accordingly.
+    let block_shape = block_shape_64();
+    let velocity = (dest - from).as_vec();
+    let bbox_shape = bbox_to_cuboid(&bbox.0);
+
+    for (block_isometry, normal) in blocks {
+        let toi = match query::time_of_impact(
+            &block_isometry,
+            &vec3(0.0, 0.0, 0.0),
+            &block_shape,
+            &Isometry3::new(from.as_vec(), vec3(0.0, 0.0, 0.0)),
+            &velocity,
+            &bbox_shape,
+            1.0,
+            0.0,
+        ) {
+            Some(toi) => toi,
+            None => continue, // No impact
+        };
+
+        let world_pos = from + velocity * toi.toi;
+        let absolute_offset = world_pos - dest;
+
+        result.offset += absolute_offset.as_vec().component_mul(&normal);
+
+        if normal.x != 0.0 {
+            result.x = true;
+        }
+        if normal.y != 0.0 {
+            result.y = true;
+        }
+        if normal.z != 0.0 {
+            result.z = true;
         }
     }
 
@@ -313,10 +416,25 @@ pub fn block_shape() -> Cuboid<f32> {
     Cuboid::new(vec3(0.5, 0.5, 0.5))
 }
 
+pub fn block_shape_64() -> Cuboid<f64> {
+    Cuboid::new(vec3(0.5, 0.5, 0.5))
+}
+
 /// Returns an `Isometry` representing a block's translation.
 pub fn block_isometry(pos: BlockPosition) -> Isometry3<f32> {
     Isometry3::new(
         vec3(pos.x as f32 + 0.5, pos.y as f32 + 0.5, pos.z as f32 + 0.5),
+        vec3(0.0, 0.0, 0.0),
+    )
+}
+
+pub fn block_isometry_64(pos: BlockPosition) -> Isometry3<f64> {
+    Isometry3::new(
+        vec3(
+            f64::from(pos.x) + 0.5,
+            f64::from(pos.y) + 0.5,
+            f64::from(pos.z) + 0.5,
+        ),
         vec3(0.0, 0.0, 0.0),
     )
 }
@@ -426,7 +544,7 @@ mod tests {
             Some(RayImpact {
                 block: BlockPosition::new(0, 64, 0),
                 pos: position!(0.0, 65.0, 0.0),
-                face: BlockFace::TOP,
+                face: Side::TOP,
             })
         );
 
@@ -448,7 +566,7 @@ mod tests {
             Some(RayImpact {
                 block: BlockPosition::new(1, 65, 1),
                 pos: position!(1.0, 65.0, 1.0),
-                face: BlockFace::WEST, // This should be three faces—see the TODO above
+                face: Side::WEST, // This should be three faces—see the TODO above
             })
         );
     }
@@ -570,35 +688,6 @@ mod tests {
     }
 
     #[test]
-    fn test_blocks_intersecting_bbox() {
-        let chunk_map = chunk_map();
-
-        assert_eq!(
-            blocks_intersecting_bbox(
-                &chunk_map,
-                position!(0.0, 32.0, 0.0),
-                &BoundingBoxComponent(AABB::new(
-                    Point3::from(vec3(0.0, 0.0, 0.0)),
-                    Point3::from(vec3(0.5, 0.5, 0.5))
-                )),
-            ),
-            vec3(0.0, 0.0, 0.0)
-        );
-
-        assert_eq!(
-            blocks_intersecting_bbox(
-                &chunk_map,
-                position!(0.0, 65.0, 0.0),
-                &BoundingBoxComponent(AABB::new(
-                    Point3::from(vec3(0.0, 0.0, 0.0)),
-                    Point3::from(vec3(0.5, 1.5, 0.5))
-                )),
-            ),
-            vec3(1.0, 0.0, 1.0)
-        );
-    }
-
-    #[test]
     fn test_bbox_front() {
         let bbox = AABB::new(Point3::from([0.0, 0.0, 0.0]), Point3::from([1.0, 2.0, 3.0]));
 
@@ -616,5 +705,40 @@ mod tests {
         assert_float_eq!(half_extents.x, 0.5);
         assert_float_eq!(half_extents.y, 1.0);
         assert_float_eq!(half_extents.z, 1.5);
+    }
+
+    #[test]
+    fn test_blocks_intersecting_bbox() {
+        let chunk_map = chunk_map();
+
+        let froms = [
+            position!(0.0, 66.0, 0.0),
+            position!(100.0, 65.0, 0.0),
+            position!(0.0, 100.0, 0.0),
+        ];
+
+        let dests = [
+            position!(0.0, 65.0, 0.0),
+            position!(100.0, 65.0, 0.0),
+            position!(0.0, 90.0, 0.0),
+        ];
+
+        let results = [
+            position!(0.0, 65.0, 0.0),
+            position!(100.0, 65.0, 0.0),
+            position!(0.0, 90.0, 0.0),
+        ];
+
+        let bbox = BoundingBoxComponent(crate::physics::component::bbox(0.25, 0.25));
+
+        for ((from, dest), result) in froms.iter().zip(&dests).zip(&results) {
+            let intersect = blocks_intersecting_bbox(&chunk_map, *from, *dest, &bbox);
+            let mut pos = *dest;
+            intersect.apply_to(&mut pos);
+
+            println!("{:?}", pos);
+
+            assert_pos_eq!(pos, result);
+        }
     }
 }
