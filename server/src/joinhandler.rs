@@ -25,7 +25,7 @@ use crate::chunk_logic::{ChunkHolderComponent, ChunkHolders, ChunkWorkerHandle};
 use crate::config::Config;
 use crate::entity::{EntitySpawnEvent, EntityType, PlayerComponent, PositionComponent};
 use crate::network::NetworkComponent;
-use crate::player::{ChunkPendingComponent, LoadedChunksComponent};
+use crate::player::{ChunkPendingComponent, InventoryUpdateEvent, LoadedChunksComponent};
 use crate::PlayerCount;
 
 #[derive(Default)]
@@ -74,6 +74,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
         ReadStorage<'a, ChunkPendingComponent>,
         Write<'a, EventChannel<PlayerJoinEvent>>,
         Write<'a, EventChannel<EntitySpawnEvent>>,
+        Write<'a, EventChannel<InventoryUpdateEvent>>,
         Read<'a, ChunkWorkerHandle>,
         Entities<'a>,
         Read<'a, LazyUpdate>,
@@ -95,6 +96,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
             pending_chunks,
             mut join_events,
             mut spawn_events,
+            mut inv_events,
             worker_handle,
             entities,
             lazy,
@@ -201,6 +203,13 @@ impl<'a> System<'a> for JoinHandlerSystem {
                         ty: EntityType::Player,
                     };
                     spawn_events.single_write(event);
+
+                    // Trigger inventory update event on the entire inventory
+                    let event = InventoryUpdateEvent {
+                        slots: (0..46).collect(),
+                        player,
+                    };
+                    inv_events.single_write(event);
 
                     // We're finished here.
                     to_remove.push(player);

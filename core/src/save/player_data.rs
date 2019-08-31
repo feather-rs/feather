@@ -1,6 +1,8 @@
 use std::fs::File;
 
-use crate::Position;
+use crate::inventory::SlotIndex;
+use crate::{ItemStack, Position};
+use feather_items::Item;
 use std::io::Read;
 use uuid::Uuid;
 
@@ -13,6 +15,46 @@ pub struct PlayerData {
     pub position: Vec<f64>,
     #[serde(rename = "Rotation")]
     pub rotation: Vec<f32>,
+    #[serde(rename = "Inventory")]
+    pub inventory: Vec<InventorySlot>,
+}
+
+/// Represents a single inventory slot (including position index).
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct InventorySlot {
+    #[serde(rename = "Count")]
+    pub count: i8,
+    #[serde(rename = "Slot")]
+    pub slot: i8,
+    #[serde(rename = "id")]
+    pub item: String,
+}
+
+impl InventorySlot {
+    /// Converts a slot to an ItemStack.
+    pub fn to_stack(&self) -> ItemStack {
+        ItemStack {
+            ty: Item::from_identifier(self.item.as_str()).unwrap_or(Item::Air),
+            amount: self.count as u8,
+        }
+    }
+
+    /// Converts an NBT inventory index to a network protocol index.
+    pub fn convert_index(&self) -> SlotIndex {
+        if 0 <= self.slot && self.slot <= 8 {
+            // Hotbar
+            crate::inventory::SLOT_HOTBAR_OFFSET + (self.slot as usize)
+        } else if self.slot == -106 {
+            // Offhand
+            crate::inventory::SLOT_OFFHAND as usize
+        } else if 100 <= self.slot && self.slot <= 103 {
+            // Equipment
+            (-self.slot + 108) as usize
+        } else {
+            // Rest of inventory
+            self.slot as usize
+        }
+    }
 }
 
 impl PlayerData {
@@ -63,6 +105,7 @@ mod tests {
             gamemode: 0,
             position: vec![1.0, 2.0, 3.0],
             rotation: vec![4.0, 5.0],
+            inventory: vec![],
         };
         let pos = data.read_position().unwrap();
 
@@ -80,6 +123,7 @@ mod tests {
             gamemode: 0,
             position: vec![1.0],
             rotation: vec![2.0, 3.0],
+            inventory: vec![],
         };
         let pos = data.read_position();
         assert!(pos.is_none());
@@ -91,6 +135,7 @@ mod tests {
             gamemode: 0,
             position: vec![1.0, 2.0, 3.0],
             rotation: vec![4.0],
+            inventory: vec![],
         };
         let pos = data.read_position();
         assert!(pos.is_none());
