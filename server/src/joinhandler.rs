@@ -14,19 +14,19 @@ use specs::{
     Write, WriteStorage,
 };
 
+use feather_core::level::LevelData;
 use feather_core::network::packet::implementation::{
     JoinGame, PlayerPositionAndLookClientbound, SpawnPosition,
 };
 use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition};
-use feather_core::{Difficulty, Dimension, Gamemode};
+use feather_core::{Difficulty, Dimension};
 
 use crate::chunk_logic::{ChunkHolderComponent, ChunkHolders, ChunkWorkerHandle};
 use crate::config::Config;
-use crate::entity::{EntitySpawnEvent, EntityType};
+use crate::entity::{EntitySpawnEvent, EntityType, PlayerComponent, PositionComponent};
 use crate::network::NetworkComponent;
 use crate::player::{ChunkPendingComponent, LoadedChunksComponent};
 use crate::PlayerCount;
-use feather_core::level::LevelData;
 
 #[derive(Default)]
 pub struct JoinHandlerComponent {
@@ -84,6 +84,8 @@ impl<'a> System<'a> for JoinHandlerSystem {
         Read<'a, LevelData>,
         WriteStorage<'a, ChunkHolderComponent>,
         WriteStorage<'a, LoadedChunksComponent>,
+        ReadStorage<'a, PlayerComponent>,
+        ReadStorage<'a, PositionComponent>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -103,6 +105,8 @@ impl<'a> System<'a> for JoinHandlerSystem {
             level,
             mut holder_comps,
             mut loaded_chunks_comps,
+            playercomps,
+            positions,
         ) = data;
 
         let mut to_remove = vec![];
@@ -112,10 +116,12 @@ impl<'a> System<'a> for JoinHandlerSystem {
         {
             match join_handler.stage {
                 Stage::Initial => {
+                    let playercomp = playercomps.get(player).unwrap();
+
                     // Send Join Game, then queue chunks for loading + sending.
                     let join_game = JoinGame::new(
                         player.id() as i32,
-                        Gamemode::Creative.get_id(),
+                        playercomp.gamemode.get_id(),
                         Dimension::Overwold.get_id(),
                         Difficulty::Medium.get_id(),
                         0,                     // Max players - not used
@@ -167,20 +173,20 @@ impl<'a> System<'a> for JoinHandlerSystem {
                         continue;
                     }
 
-                    let spawn_block_pos =
+                    // SpawnPosition packet: world spawn (used for compass)
+                    let level_spawn_block_pos =
                         BlockPosition::new(level.spawn_x, level.spawn_y, level.spawn_z);
+                    let level_spawn_position = SpawnPosition::new(level_spawn_block_pos);
+                    crate::network::send_packet_to_player(net, level_spawn_position);
 
-                    let spawn_position = SpawnPosition::new(spawn_block_pos);
-                    crate::network::send_packet_to_player(net, spawn_position);
-
-                    let spawn_pos = spawn_block_pos.world_pos();
-
+                    // Initial position/rotation for the player when they spawn
+                    let player_pos = positions.get(player).unwrap().current;
                     let position_and_look = PlayerPositionAndLookClientbound::new(
-                        spawn_pos.x,
-                        spawn_pos.y,
-                        spawn_pos.z,
-                        spawn_pos.yaw,
-                        spawn_pos.pitch,
+                        player_pos.x,
+                        player_pos.y,
+                        player_pos.z,
+                        player_pos.yaw,
+                        player_pos.pitch,
                         0, // Flags - unused by us
                         0, // Teleport ID - unused by us
                     );
