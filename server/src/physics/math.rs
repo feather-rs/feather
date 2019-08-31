@@ -365,8 +365,6 @@ pub fn blocks_intersecting_bbox(
         blocks.push((isometry, *normal));
     }
 
-    debug!("{:?}", blocks);
-
     // Go through blocks and check for time of impact from original
     // position to the block. If the time of impact is <= 1, the entity
     // has collided with the block; update the position accordingly.

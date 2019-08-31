@@ -51,9 +51,9 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             // Check for blocks along path between old position and pending position.
             // This prevents entities from flying through blocks when their
             // velocity is sufficiently high.
-            let origin = pending_position.into();
-            let direction = (pending_position - position.previous).into();
-            let distance_squared = pending_position.distance_squared(position.previous);
+            let origin = position.current.into();
+            let direction = (pending_position - position.current).into();
+            let distance_squared = pending_position.distance_squared(position.current);
 
             if let Some(impacted) =
                 block_impacted_by_ray(&chunk_map, origin, direction, distance_squared as f32)
@@ -106,7 +106,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             pending_position.on_ground = match chunk_map.block_at(
                 position!(
                     pending_position.x,
-                    pending_position.y - bounding_box.size().y / 2.0,
+                    pending_position.y - bounding_box.size().y / 2.0 - 0.01,
                     pending_position.z
                 )
                 .block_pos(),
@@ -137,7 +137,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             // A move event is triggered through FlaggedStorage.
             position.current = pending_position;
 
-            debug!("velocity {:?}", velocity);
+            debug!("velocity {:?}, position {:?}", velocity, pending_position);
 
             // Update velocity, if it changed.
             if velocity != *restrict_velocity.get_unchecked() {
