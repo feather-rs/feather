@@ -5,12 +5,16 @@
 An experimental Minecraft server implementation written in Rust.
 
 ### Current Features
-Feather is currently unusable for the most part. However, some basic features are already implemented:
+Many basic features are already implemented:
+- [x] Highly scalable architecture—thanks to [`specs`](https://github.com/slide-rs/specs) and [`rayon`](https://github.com/rayon-rs/rayon), Feather is almost entirely multithreaded
 - [x] Anvil world loading
 - [x] Chunk streaming
+- [x] Physics
+- [x] Block placement and breaking
+- [x] Item dropping and collection
+- [x] Chat
 - [x] Inventory handling
 - [x] Movement broadcasting
-- [x] Block break broadcasting
 
 Obviously, key features are missing. However, development is currently
 quite active, and features should be added at a fast pace over the next few months.
