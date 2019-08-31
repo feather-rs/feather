@@ -3,12 +3,11 @@
 
 use specs::{Join, Read, ReadStorage, System, WriteStorage};
 
-use feather_core::world::ChunkMap;
-
 use crate::entity::{EntityType, PositionComponent, VelocityComponent};
-use crate::physics::{
-    bbox_front, block_impacted_by_ray, blocks_intersecting_bbox, BoundingBoxComponent, Side,
-};
+use crate::physics::{block_impacted_by_ray, blocks_intersecting_bbox, BoundingBoxComponent, Side};
+use feather_core::world::ChunkMap;
+use feather_core::BlockExt;
+use feather_core::Position;
 
 /// System for updating all entities' positions and velocities
 /// each tick.
@@ -49,38 +48,10 @@ impl<'a> System<'a> for EntityPhysicsSystem {
 
             let mut pending_position = position.current + velocity.0;
 
-            // Check for blocks around the bbox and apply offset
-            // to position to stop the bbox from intersecting blocks.
-            let intersect = blocks_intersecting_bbox(
-                &chunk_map,
-                position.current,
-                pending_position,
-                bounding_box,
-            );
-            intersect.apply_to(&mut pending_position);
-
-            if intersect.x_affected() {
-                velocity.x = 0.0;
-            }
-
-            if intersect.y_affected() {
-                velocity.y = 0.0;
-                pending_position.on_ground = true;
-            } else {
-                pending_position.on_ground = false;
-            }
-
-            if intersect.z_affected() {
-                velocity.z = 0.0;
-            }
-
             // Check for blocks along path between old position and pending position.
             // This prevents entities from flying through blocks when their
             // velocity is sufficiently high.
-
-            // The origin is the "leading point" of the bounding box:
-            // the point at the front.
-            let origin = (position.current + bbox_front(&bounding_box.0, velocity.0)).into();
+            let origin = pending_position.into();
             let direction = (pending_position - position.previous).into();
             let distance_squared = pending_position.distance_squared(position.previous);
 
@@ -109,6 +80,44 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 }
             }
 
+            // Check for blocks around the bbox and apply offset
+            // to position to stop the bbox from intersecting blocks.
+            let intersect = blocks_intersecting_bbox(
+                &chunk_map,
+                position.current,
+                pending_position,
+                bounding_box,
+            );
+            intersect.apply_to(&mut pending_position);
+
+            if intersect.x_affected() {
+                velocity.x = 0.0;
+            }
+
+            if intersect.y_affected() {
+                velocity.y = 0.0;
+            }
+
+            if intersect.z_affected() {
+                velocity.z = 0.0;
+            }
+
+            // Set on ground status
+            pending_position.on_ground = match chunk_map.block_at(
+                position!(
+                    pending_position.x,
+                    pending_position.y - bounding_box.size().y / 2.0,
+                    pending_position.z
+                )
+                .block_pos(),
+            ) {
+                Some(block) => {
+                    debug!("{:?}", block);
+                    block.is_solid()
+                }
+                None => false,
+            };
+
             // Apply drag and gravity.
             // TODO account for liquid
             let gravity = gravitational_acceleration(*ty);
@@ -128,10 +137,14 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             // A move event is triggered through FlaggedStorage.
             position.current = pending_position;
 
+            debug!("velocity {:?}", velocity);
+
             // Update velocity, if it changed.
             if velocity != *restrict_velocity.get_unchecked() {
                 *restrict_velocity.get_mut_unchecked() = velocity;
             }
+
+            info!("ITERATION");
         }
     }
 }

@@ -303,10 +303,10 @@ impl BlockIntersect {
 pub fn blocks_intersecting_bbox(
     chunk_map: &ChunkMap,
     from: Position,
-    mut dest: Position,
+    dest: Position,
     bbox: &BoundingBoxComponent,
 ) -> BlockIntersect {
-    let bbox_size = bbox.size();
+    let bbox_size = bbox.size() / 2.0;
 
     assert!(bbox_size.x <= 1.0);
     assert!(bbox_size.y <= 1.0);
@@ -320,22 +320,31 @@ pub fn blocks_intersecting_bbox(
     };
 
     let offsets = [
-        vec3(0.0, 0.0, 0.0),
-        vec3(bbox_size.x, 0.0, 0.0),
-        vec3(-bbox_size.x, 0.0, 0.0),
         vec3(0.0, bbox_size.y, 0.0),
         vec3(0.0, -bbox_size.y, 0.0),
+        vec3(bbox_size.x, 0.0, 0.0),
+        vec3(-bbox_size.x, 0.0, 0.0),
         vec3(0.0, 0.0, bbox_size.z),
         vec3(0.0, 0.0, -bbox_size.z),
+        vec3(0.0, 0.0, 0.0),
+    ];
+    let normals = [
+        vec3(0.0, 1.0, 0.0),
+        vec3(0.0, 1.0, 0.0),
+        vec3(1.0, 0.0, 0.0),
+        vec3(1.0, 0.0, 0.0),
+        vec3(0.0, 0.0, 1.0),
+        vec3(0.0, 0.0, 1.0),
+        vec3(0.0, 0.0, 0.0),
     ];
 
-    // Compute a vector of isometries representing adjacent block locations.
-    let mut blocks: SmallVec<[Isometry3<f64>; 16]> = smallvec![];
+    // Compute a vector of isometries and axis normals representing adjacent block locations.
+    let mut blocks: SmallVec<[(Isometry3<f64>, DVec3); 16]> = smallvec![];
 
     // Prevent same block being checked twice.
     let mut checked = heapless::FnvIndexSet::<BlockPosition, U8>::new();
 
-    for offset in &offsets {
+    for (offset, normal) in offsets.iter().zip(normals.iter()) {
         let block_pos = (dest + *offset).block_pos();
 
         if checked.contains(&block_pos) {
@@ -349,12 +358,14 @@ pub fn blocks_intersecting_bbox(
             None => continue, // Unloaded chunk
         };
         if !block.is_solid() {
-            continue; // Not a solid b lock
+            continue; // Not a solid block
         }
 
         let isometry = block_isometry_64(block_pos);
-        blocks.push(isometry);
+        blocks.push((isometry, *normal));
     }
+
+    debug!("{:?}", blocks);
 
     // Go through blocks and check for time of impact from original
     // position to the block. If the time of impact is <= 1, the entity
@@ -363,7 +374,7 @@ pub fn blocks_intersecting_bbox(
     let velocity = (dest - from).as_vec();
     let bbox_shape = bbox_to_cuboid(&bbox.0);
 
-    for block_isometry in blocks {
+    for (block_isometry, normal) in blocks {
         let toi = match query::time_of_impact(
             &block_isometry,
             &vec3(0.0, 0.0, 0.0),
@@ -381,10 +392,24 @@ pub fn blocks_intersecting_bbox(
         let world_pos = from + velocity * toi.toi;
         let absolute_offset = world_pos - dest;
 
-        result.offset += absolute_offset.as_vec();
+        result.offset += absolute_offset.as_vec().component_mul(&normal);
 
-        dest = dest + absolute_offset;
+        if normal.x != 0.0 {
+            result.x = true;
+        }
+        if normal.y != 0.0 {
+            result.y = true;
+        }
+        if normal.z != 0.0 {
+            result.z = true;
+        }
+
+        debug!("normal {:?}", normal);
+
+        break; // Only check along one axis
     }
+
+    debug!("{:?}", result);
 
     result
 }
