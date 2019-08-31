@@ -258,7 +258,6 @@ impl<'a> System<'a> for BlockUpdateBroadcastSystem {
 
         // Process events
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
-            warn!("block break");
             // Send Block Change packet to every player,
             // except for the one that performed the update
             // (if any)

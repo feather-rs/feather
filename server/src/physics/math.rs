@@ -406,13 +406,7 @@ pub fn blocks_intersecting_bbox(
         if normal.z != 0.0 {
             result.z = true;
         }
-
-        debug!("normal {:?}", normal);
-
-        break; // Only check along one axis
     }
-
-    debug!("{:?}", result);
 
     result
 }
@@ -711,5 +705,40 @@ mod tests {
         assert_float_eq!(half_extents.x, 0.5);
         assert_float_eq!(half_extents.y, 1.0);
         assert_float_eq!(half_extents.z, 1.5);
+    }
+
+    #[test]
+    fn test_blocks_intersecting_bbox() {
+        let chunk_map = chunk_map();
+
+        let froms = [
+            position!(0.0, 66.0, 0.0),
+            position!(100.0, 65.0, 0.0),
+            position!(0.0, 100.0, 0.0),
+        ];
+
+        let dests = [
+            position!(0.0, 65.0, 0.0),
+            position!(100.0, 65.0, 0.0),
+            position!(0.0, 90.0, 0.0),
+        ];
+
+        let results = [
+            position!(0.0, 65.0, 0.0),
+            position!(100.0, 65.0, 0.0),
+            position!(0.0, 90.0, 0.0),
+        ];
+
+        let bbox = BoundingBoxComponent(crate::physics::component::bbox(0.25, 0.25));
+
+        for ((from, dest), result) in froms.iter().zip(&dests).zip(&results) {
+            let intersect = blocks_intersecting_bbox(&chunk_map, *from, *dest, &bbox);
+            let mut pos = *dest;
+            intersect.apply_to(&mut pos);
+
+            println!("{:?}", pos);
+
+            assert_pos_eq!(pos, result);
+        }
     }
 }

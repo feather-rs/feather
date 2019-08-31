@@ -11,6 +11,16 @@ macro_rules! assert_float_eq {
     };
 }
 
+/// Checks that two positions are approximately equivalent.
+#[cfg(test)]
+macro_rules! assert_pos_eq {
+    ($left:expr, $right:expr) => {
+        assert_float_eq!($left.x, $right.x, 0.01);
+        assert_float_eq!($left.y, $right.y, 0.01);
+        assert_float_eq!($left.z, $right.z, 0.011);
+    };
+}
+
 /// Generates a setup() implementation for a system
 /// which initializes an internal event reader.
 macro_rules! setup_impl {

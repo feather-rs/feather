@@ -111,12 +111,16 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 )
                 .block_pos(),
             ) {
-                Some(block) => {
-                    debug!("{:?}", block);
-                    block.is_solid()
-                }
+                Some(block) => block.is_solid(),
                 None => false,
             };
+
+            // If entity is inside block, push it up.
+            if let Some(block) = chunk_map.block_at(pending_position.block_pos()) {
+                if block.is_solid() {
+                    pending_position.y += 0.2;
+                }
+            }
 
             // Apply drag and gravity.
             // TODO account for liquid
@@ -137,14 +141,10 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             // A move event is triggered through FlaggedStorage.
             position.current = pending_position;
 
-            debug!("velocity {:?}, position {:?}", velocity, pending_position);
-
             // Update velocity, if it changed.
             if velocity != *restrict_velocity.get_unchecked() {
                 *restrict_velocity.get_mut_unchecked() = velocity;
             }
-
-            info!("ITERATION");
         }
     }
 }
