@@ -109,8 +109,8 @@ impl<'a> System<'a> for PlayerInitSystem {
             let mut inventory_comp = InventoryComponent::new();
             for slot in inventory_slots {
                 let slot_index = slot.convert_index();
-                if slot_index.is_some() {
-                    inventory_comp.set_item_at(slot_index.unwrap(), slot.to_stack());
+                if let Some(slot_index) = slot_index {
+                    inventory_comp.set_item_at(slot_index, slot.to_stack());
                 }
             }
             inventory_comps
