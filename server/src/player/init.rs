@@ -2,6 +2,7 @@ use crate::entity::{EntityType, PlayerComponent};
 use crate::entity::{Metadata, NamedComponent, PositionComponent};
 use crate::network::PlayerPreJoinEvent;
 use crate::player::{ChunkPendingComponent, InventoryComponent, LoadedChunksComponent};
+use crate::prelude::*;
 use feather_core::level::LevelData;
 use feather_core::Gamemode;
 use feather_core::Position;
@@ -9,6 +10,7 @@ use hashbrown::HashSet;
 use shrev::{EventChannel, ReaderId};
 use specs::SystemData;
 use specs::{Read, System, World, WriteStorage};
+use std::sync::Arc;
 
 /// System for initializing the necessary components
 /// when a player joins.
@@ -29,6 +31,7 @@ impl<'a> System<'a> for PlayerInitSystem {
         WriteStorage<'a, EntityType>,
         WriteStorage<'a, Metadata>,
         Read<'a, LevelData>,
+        Read<'a, Arc<Config>>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -43,22 +46,36 @@ impl<'a> System<'a> for PlayerInitSystem {
             mut entity_types,
             mut metadata,
             level,
+            config,
         ) = data;
 
         // Run through events
         for event in events.read(&mut self.join_event_reader.as_mut().unwrap()) {
+            // Load player data
+            let uuid = event.uuid;
+            // If this is a new player, set gamemode to server's default (config)
+            let default_gamemode = &config.server.default_gamemode.clone();
+
+            debug!("Loading player data for UUID {}", uuid);
+            let (gamemode, pos) = match feather_core::player_data::load_player_data(uuid) {
+                Ok(data) => (Gamemode::from_id(data.gamemode as u8), data.read_position()),
+                Err(_) => (
+                    Gamemode::from_string(default_gamemode.as_str()),
+                    None, // Invalid position will default to world spawn
+                ),
+            };
+
             let player_comp = PlayerComponent {
                 profile_properties: event.profile_properties.clone(),
-                gamemode: Gamemode::Creative,
+                gamemode,
             };
             player_comps.insert(event.player, player_comp).unwrap();
 
-            let spawn_pos = position!(
+            let spawn_pos = pos.unwrap_or(position!(
                 f64::from(level.spawn_x),
                 f64::from(level.spawn_y),
                 f64::from(level.spawn_z)
-            );
-
+            ));
             let position = PositionComponent {
                 current: spawn_pos,
                 previous: spawn_pos,

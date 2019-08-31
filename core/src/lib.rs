@@ -53,6 +53,26 @@ impl Gamemode {
             Gamemode::Spectator => 3,
         }
     }
+
+    pub fn from_id(id: u8) -> Self {
+        match id {
+            0 => Gamemode::Survival,
+            1 => Gamemode::Creative,
+            2 => Gamemode::Adventure,
+            3 => Gamemode::Spectator,
+            _ => Gamemode::Survival,
+        }
+    }
+
+    pub fn from_string(name: &str) -> Self {
+        match name.to_lowercase().as_str() {
+            "survival" => Gamemode::Survival,
+            "creative" => Gamemode::Creative,
+            "adventure" => Gamemode::Adventure,
+            "spectator" => Gamemode::Spectator,
+            _ => Gamemode::Survival,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
