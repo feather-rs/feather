@@ -93,6 +93,7 @@ pub fn load_player_data(uuid: Uuid) -> Result<PlayerData, nbt::Error> {
 mod tests {
     use super::*;
     use crate::Gamemode;
+    use hashbrown::HashMap;
     use std::io::Cursor;
 
     #[test]
@@ -143,5 +144,72 @@ mod tests {
         };
         let pos = data.read_position();
         assert!(pos.is_none());
+    }
+
+    #[test]
+    fn test_convert_item() {
+        let slot = InventorySlot {
+            count: 1,
+            slot: 2,
+            item: String::from(Item::Feather.identifier()),
+        };
+
+        let item_stack = slot.to_stack();
+        assert_eq!(item_stack.ty, Item::Feather);
+        assert_eq!(item_stack.amount, 1);
+    }
+
+    #[test]
+    fn test_convert_item_unknown_type() {
+        let slot = InventorySlot {
+            count: 1,
+            slot: 2,
+            item: String::from("invalid:identifier"),
+        };
+
+        let item_stack = slot.to_stack();
+        assert_eq!(item_stack.ty, Item::Air);
+    }
+
+    #[test]
+    fn test_convert_slot_index() {
+        let mut map: HashMap<i8, usize> = HashMap::new();
+
+        // Equipment
+        map.insert(103, crate::inventory::SLOT_ARMOR_HEAD);
+        map.insert(102, crate::inventory::SLOT_ARMOR_CHEST);
+        map.insert(101, crate::inventory::SLOT_ARMOR_LEGS);
+        map.insert(100, crate::inventory::SLOT_ARMOR_FEET);
+        map.insert(-106, crate::inventory::SLOT_OFFHAND);
+
+        // Hotbar
+        for x in 0..9 {
+            map.insert(x, crate::inventory::SLOT_HOTBAR_OFFSET + (x as usize));
+        }
+
+        // Rest of inventory
+        for x in 9..36 {
+            map.insert(x, x as usize);
+        }
+
+        // Check all valid slots
+        for (src, expected) in map {
+            let slot = InventorySlot {
+                slot: src,
+                count: 1,
+                item: String::from("invalid:identifier"),
+            };
+            assert_eq!(slot.convert_index().unwrap(), expected);
+        }
+
+        // Check that invalid slots error out
+        for invalid_slot in [-1, -2, 104].iter() {
+            let slot = InventorySlot {
+                slot: *invalid_slot as i8,
+                count: 1,
+                item: String::from("invalid:identifier"),
+            };
+            assert!(slot.convert_index().is_none());
+        }
     }
 }
