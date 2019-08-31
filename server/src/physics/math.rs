@@ -302,11 +302,16 @@ impl BlockIntersect {
 /// is more than 1, this function will panic.
 pub fn blocks_intersecting_bbox(
     chunk_map: &ChunkMap,
-    from: Position,
-    dest: Position,
+    mut from: Position,
+    mut dest: Position,
     bbox: &BoundingBoxComponent,
 ) -> BlockIntersect {
     let bbox_size = bbox.size() / 2.0;
+
+    // Center along Y axis of bounding box is at bottom, not center.
+    // This is a quick fix to get around this.
+    from.y += bbox_size.y;
+    dest.y += bbox_size.y;
 
     assert!(bbox_size.x <= 1.0);
     assert!(bbox_size.y <= 1.0);
