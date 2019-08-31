@@ -1,13 +1,14 @@
 //! Module for performing entity physics, including velocity, drag
 //! and position updates each tick.
 
-use specs::{Join, Read, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
 
-use crate::entity::{EntityType, PositionComponent, VelocityComponent};
+use crate::entity::{EntityDestroyEvent, EntityType, PositionComponent, VelocityComponent};
 use crate::physics::{block_impacted_by_ray, blocks_intersecting_bbox, BoundingBoxComponent, Side};
 use feather_core::world::ChunkMap;
-use feather_core::BlockExt;
 use feather_core::Position;
+use feather_core::{Block, BlockExt};
+use shrev::EventChannel;
 
 /// System for updating all entities' positions and velocities
 /// each tick.
@@ -19,11 +20,21 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         WriteStorage<'a, VelocityComponent>,
         ReadStorage<'a, BoundingBoxComponent>,
         ReadStorage<'a, EntityType>,
+        Write<'a, EventChannel<EntityDestroyEvent>>,
         Read<'a, ChunkMap>,
+        Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut positions, mut velocities, bounding_boxes, types, chunk_map) = data;
+        let (
+            mut positions,
+            mut velocities,
+            bounding_boxes,
+            types,
+            mut entity_destroy_events,
+            chunk_map,
+            entities,
+        ) = data;
 
         // Go through entities and update their positions according
         // to their velocities.
@@ -36,11 +47,12 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         // A restricted storage is used for `velocity` so as to avoid
         // triggering a velocity update event when it is not actually
         // modified.
-        for (position, mut restrict_velocity, bounding_box, ty) in (
+        for (position, mut restrict_velocity, bounding_box, ty, entity) in (
             &mut positions,
             &mut velocities.restrict_mut(),
             &bounding_boxes,
             &types,
+            &entities,
         )
             .join()
         {
@@ -102,6 +114,19 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 velocity.z = 0.0;
             }
 
+            // Delete entity if it has gone into unloaded chunks.
+            let block_at_pos = match chunk_map.block_at(pending_position.block_pos()) {
+                Some(block) => block,
+                None => {
+                    // Delete entity.
+                    let event = EntityDestroyEvent { entity };
+                    entity_destroy_events.single_write(event);
+
+                    entities.delete(entity).unwrap();
+                    continue;
+                }
+            };
+
             // Set on ground status
             pending_position.on_ground = match chunk_map.block_at(
                 position!(
@@ -116,25 +141,36 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             };
 
             // If entity is inside block, push it up.
-            if let Some(block) = chunk_map.block_at(pending_position.block_pos()) {
-                if block.is_solid() {
-                    pending_position.y += 0.2;
-                }
+            if block_at_pos.is_solid() {
+                pending_position.y += 0.2;
             }
 
             // Apply drag and gravity.
-            // TODO account for liquid
             let gravity = gravitational_acceleration(*ty);
             let drag = drag_force(*ty);
 
-            let slip_multiplier = 0.6;
-            if pending_position.on_ground {
-                velocity.0.x *= slip_multiplier;
-                velocity.0.z *= slip_multiplier;
-            } else {
-                velocity.0.y = drag * velocity.0.y + gravity;
-                velocity.0.x *= drag;
-                velocity.0.z *= drag;
+            // In water and lava, gravity is four times less, and velocity is multiplied by a special drag force.
+            let liquid_drag = 0.8;
+            match block_at_pos {
+                Block::Water(_) => {
+                    velocity.0 *= liquid_drag;
+                    velocity.0.y += gravity / 4.0;
+                }
+                Block::Lava(_) => {
+                    velocity.0 *= liquid_drag - 0.3;
+                    velocity.0.y += gravity / 4.0;
+                }
+                _ => {
+                    let slip_multiplier = 0.6;
+                    if pending_position.on_ground {
+                        velocity.0.x *= slip_multiplier;
+                        velocity.0.z *= slip_multiplier;
+                    } else {
+                        velocity.0.y = drag * velocity.0.y + gravity;
+                        velocity.0.x *= drag;
+                        velocity.0.z *= drag;
+                    }
+                }
             }
 
             // Set new position.
@@ -222,5 +258,27 @@ mod tests {
         assert_float_eq!(vel.x, 0.0);
         assert_float_eq!(vel.y, 0.94);
         assert_float_eq!(vel.z, 0.0);
+    }
+
+    #[test]
+    fn test_unloaded_chunk() {
+        let (mut w, mut d) = t::builder().with(EntityPhysicsSystem, "").build();
+
+        let entity = t::add_entity_with_pos(
+            &mut w,
+            EntityType::Item,
+            position!(1000.0, 100.0, 1000.0),
+            false,
+        );
+
+        let bbox = crate::physics::component::bbox(0.25, 0.25);
+        w.write_component::<BoundingBoxComponent>()
+            .insert(entity, BoundingBoxComponent(bbox))
+            .unwrap();
+
+        d.dispatch(&w);
+        w.maintain();
+
+        t::assert_removed(&w, entity);
     }
 }
