@@ -115,7 +115,7 @@ jobs:
           TAG="$(Build.SourceBranch)"
           TAG=${TAG#refs/tags/}
           echo TAG
-          echo "##vso[task.setvariable variable=build.TAG]TAG"
+          echo "##vso[task.setvariable variable=build.tag]$TAG"
         displayName: "Create tag variable"
 
       - script: |
