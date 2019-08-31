@@ -140,11 +140,6 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 None => false,
             };
 
-            // If entity is inside block, push it up.
-            if block_at_pos.is_solid() {
-                pending_position.y += 0.2;
-            }
-
             // Apply drag and gravity.
             let gravity = gravitational_acceleration(*ty);
             let drag = drag_force(*ty);

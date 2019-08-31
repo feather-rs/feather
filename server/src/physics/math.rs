@@ -6,12 +6,12 @@ use crate::physics::BoundingBoxComponent;
 use feather_core::world::{BlockPosition, ChunkMap, Position};
 use feather_core::{BlockExt, ChunkPosition};
 use glm::{vec3, DVec3, Vec3};
-use heapless::consts::U8;
+use heapless::consts::*;
 use nalgebra::{Isometry3, Point3};
 use ncollide3d::bounding_volume::AABB;
 use ncollide3d::query;
 use ncollide3d::query::{Ray, RayCast};
-use ncollide3d::shape::Cuboid;
+use ncollide3d::shape::{Compound, Cuboid, ShapeHandle};
 use smallvec::SmallVec;
 use specs::storage::GenericReadStorage;
 use specs::Entity;
@@ -324,64 +324,31 @@ pub fn blocks_intersecting_bbox(
         z: false,
     };
 
-    let offsets = [
-        vec3(0.0, bbox_size.y, 0.0),
-        vec3(0.0, -bbox_size.y, 0.0),
-        vec3(bbox_size.x, 0.0, 0.0),
-        vec3(-bbox_size.x, 0.0, 0.0),
-        vec3(0.0, 0.0, bbox_size.z),
-        vec3(0.0, 0.0, -bbox_size.z),
-        vec3(0.0, 0.0, 0.0),
-    ];
-    let normals = [
-        vec3(0.0, 1.0, 0.0),
-        vec3(0.0, 1.0, 0.0),
-        vec3(1.0, 0.0, 0.0),
-        vec3(1.0, 0.0, 0.0),
-        vec3(0.0, 0.0, 1.0),
-        vec3(0.0, 0.0, 1.0),
-        vec3(0.0, 0.0, 0.0),
-    ];
+    // Vector of axis and signs to pass to `adjacent_to_bbox()`.
+    let axis = [(1, 1), (1, -1), (0, 1), (0, -1), (2, 1), (2, -1)];
 
-    // Compute a vector of isometries and axis normals representing adjacent block locations.
-    let mut blocks: SmallVec<[(Isometry3<f64>, DVec3); 16]> = smallvec![];
+    // Compute a vector of compound shapes and axis normals representing adjacent blocks.
+    let mut blocks: SmallVec<[Compound<f64>; 4]> = smallvec![];
 
-    // Prevent same block being checked twice.
-    let mut checked = heapless::FnvIndexSet::<BlockPosition, U8>::new();
+    // Don't check the same block twice.
+    let mut checked = heapless::FnvIndexSet::new();
 
-    for (offset, normal) in offsets.iter().zip(normals.iter()) {
-        let block_pos = (dest + *offset).block_pos();
-
-        if checked.contains(&block_pos) {
-            continue; // Already added this block
-        }
-
-        checked.insert(block_pos).unwrap(); // Unwrap is safe because set has capacity 8 and there are at most 7 blocks
-
-        let block = match chunk_map.block_at(block_pos) {
-            Some(block) => block,
-            None => continue, // Unloaded chunk
-        };
-        if !block.is_solid() {
-            continue; // Not a solid block
-        }
-
-        let isometry = block_isometry_64(block_pos);
-        blocks.push((isometry, *normal));
+    for (axis, sign) in &axis {
+        let compound = adjacent_to_bbox(*axis, *sign, bbox, dest, &chunk_map, &mut checked);
+        blocks.push(compound);
     }
 
     // Go through blocks and check for time of impact from original
     // position to the block. If the time of impact is <= 1, the entity
     // has collided with the block; update the position accordingly.
-    let block_shape = block_shape_64();
     let velocity = (dest - from).as_vec();
     let bbox_shape = bbox_to_cuboid(&bbox.0);
 
-    for (block_isometry, normal) in blocks {
+    for compound in blocks {
         let toi = match query::time_of_impact(
-            &block_isometry,
+            &Isometry3::translation(0.0, 0.0, 0.0),
             &vec3(0.0, 0.0, 0.0),
-            &block_shape,
+            &compound,
             &Isometry3::new(from.as_vec(), vec3(0.0, 0.0, 0.0)),
             &velocity,
             &bbox_shape,
@@ -394,6 +361,20 @@ pub fn blocks_intersecting_bbox(
 
         let world_pos = from + velocity * toi.toi;
         let absolute_offset = world_pos - dest;
+
+        let normal = {
+            let x_diff = absolute_offset.x.abs();
+            let y_diff = absolute_offset.y.abs();
+            let z_diff = absolute_offset.z.abs();
+
+            if x_diff > y_diff && x_diff > z_diff {
+                vec3(1.0, 0.0, 0.0)
+            } else if y_diff > x_diff && y_diff > z_diff {
+                vec3(0.0, 1.0, 0.0)
+            } else {
+                vec3(0.0, 0.0, 1.0)
+            }
+        };
 
         result.offset += absolute_offset.as_vec().component_mul(&normal);
 
@@ -409,6 +390,105 @@ pub fn blocks_intersecting_bbox(
     }
 
     result
+}
+
+/// Returns a `Compound` representing up to four blocks
+/// adjacent to a bounding box along the provided axis.
+///
+/// Any block positions in `checked` will not be added to the compound.
+/// `checked` will also be updated to account for any added blocks.
+///
+/// `axis` must be one of the following:
+/// * `0` for the X axis;
+/// * `1` for the Y axis; or
+/// * `2` for the Z axis.
+///
+/// `sign` must be either -1 or 1.
+pub fn adjacent_to_bbox(
+    axis: usize,
+    sign: i32,
+    bbox: &BoundingBoxComponent,
+    pos: Position,
+    chunk_map: &ChunkMap,
+    checked: &mut heapless::FnvIndexSet<BlockPosition, U32>,
+) -> Compound<f64> {
+    assert!(axis <= 2);
+    assert!(sign == -1 || sign == 1);
+
+    let sign = f64::from(sign);
+
+    let size = bbox.size() / 2.0;
+    let mut blocks: SmallVec<[BlockPosition; 4]> = smallvec![];
+
+    let other_axis1 = match axis {
+        0 => 1,
+        1 => 2,
+        2 => 0,
+        _ => unreachable!(),
+    };
+    let other_axis2 = match axis {
+        0 => 2,
+        1 => 0,
+        2 => 1,
+        _ => unreachable!(),
+    };
+
+    let offsets = {
+        let mut offsets = [vec3(0.0, 0.0, 0.0); 4];
+
+        // Offset for upper right corner, upper left, bottom right, and bottom left.
+
+        // Upper right
+        offsets[0][axis] = size[axis] * sign;
+        offsets[0][other_axis1] = size[other_axis1];
+        offsets[0][other_axis2] = size[other_axis2];
+
+        // Upper left
+        offsets[1][axis] = size[axis] * sign;
+        offsets[1][other_axis1] = size[other_axis1] * -1.0;
+        offsets[1][other_axis2] = size[other_axis2];
+
+        // Bottom right
+        offsets[2][axis] = size[axis] * sign;
+        offsets[2][other_axis1] = size[other_axis1];
+        offsets[2][other_axis2] = size[other_axis2] * -1.0;
+
+        // Bottom left
+        offsets[3][axis] = size[axis] * sign;
+        offsets[3][other_axis1] = size[other_axis1] * -1.0;
+        offsets[3][other_axis2] = size[other_axis2] * -1.0;
+
+        offsets
+    };
+
+    // Go through offsets and append block position if the block is solid.
+    for offset in &offsets {
+        let block_pos = (pos + *offset).block_pos();
+
+        if checked.contains(&block_pos) {
+            continue;
+        }
+
+        match chunk_map.block_at(block_pos) {
+            Some(block) => {
+                if block.is_solid() {
+                    checked.insert(block_pos).unwrap();
+                    blocks.push(block_pos);
+                }
+            }
+            None => continue,
+        }
+    }
+
+    let mut shapes = Vec::with_capacity(4);
+    let block_shape = block_shape_64();
+
+    for block in &blocks {
+        let isometry = block_isometry_64(*block);
+        shapes.push((isometry, ShapeHandle::new(block_shape.clone())));
+    }
+
+    Compound::new(shapes)
 }
 
 /// Returns an `ncollide` `Cuboid` corresponding to a block.
@@ -736,9 +816,32 @@ mod tests {
             let mut pos = *dest;
             intersect.apply_to(&mut pos);
 
-            println!("{:?}", pos);
-
             assert_pos_eq!(pos, result);
         }
+    }
+
+    #[test]
+    fn test_adjacent_to_bbox() {
+        let chunk_map = chunk_map();
+
+        let bbox = crate::physics::component::bbox(0.25, 0.25);
+
+        let pos = position!(0.0, 65.0, 0.0);
+
+        let axis = 1;
+        let sign = -1;
+
+        let mut checked = heapless::FnvIndexSet::new();
+
+        let _ = adjacent_to_bbox(
+            axis,
+            sign,
+            &BoundingBoxComponent(bbox),
+            pos,
+            &chunk_map,
+            &mut checked,
+        );
+
+        assert!(checked.contains(&BlockPosition::new(0, 64, 0)));
     }
 }
