@@ -2,7 +2,7 @@
 
 use feather_core::world::Position;
 use feather_core::Gamemode;
-use glm::Vec3;
+use glm::DVec3;
 use specs::storage::BTreeStorage;
 use specs::{Component, FlaggedStorage, Join, System, VecStorage, WriteStorage};
 use uuid::Uuid;
@@ -43,7 +43,7 @@ impl Component for PositionComponent {
 /// Entities without this component are assumed
 /// to have a velocity of 0.
 #[derive(Deref, DerefMut, Debug, PartialEq, Clone)]
-pub struct VelocityComponent(pub Vec3);
+pub struct VelocityComponent(pub DVec3);
 
 impl Component for VelocityComponent {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;

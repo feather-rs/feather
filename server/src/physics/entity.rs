@@ -68,7 +68,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             let distance_squared = pending_position.distance_squared(position.current);
 
             if let Some(impacted) =
-                block_impacted_by_ray(&chunk_map, origin, direction, distance_squared as f32)
+                block_impacted_by_ray(&chunk_map, origin, direction, distance_squared)
             {
                 // Set velocities along correct axis to 0 and then set position
                 // to just before the bbox would have impacted the block.
@@ -185,7 +185,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
 ///
 /// This information was fetched from
 /// [the Minecraft wiki](https://minecraft.gamepedia.com/Entity#Motion_of_entities).
-fn gravitational_acceleration(ty: EntityType) -> f32 {
+fn gravitational_acceleration(ty: EntityType) -> f64 {
     if ty.is_living() {
         -0.08
     } else if ty.is_item() {
@@ -210,7 +210,7 @@ fn terminal_velocity(ty: EntityType) -> f32 {
 */
 
 /// Retrieves the drag force for a given entity type.
-fn drag_force(ty: EntityType) -> f32 {
+fn drag_force(ty: EntityType) -> f64 {
     if ty.is_living() || ty.is_item() {
         0.98
     } else {

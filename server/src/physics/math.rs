@@ -15,7 +15,7 @@ use ncollide3d::shape::{Compound, Cuboid, ShapeHandle};
 use smallvec::SmallVec;
 use specs::storage::GenericReadStorage;
 use specs::Entity;
-use std::f32::INFINITY;
+use std::f64::INFINITY;
 
 // TODO is a bitflag really the most
 // idiomatic way to do this?
@@ -87,9 +87,9 @@ pub struct RayImpact {
 /// if no block was found.
 pub fn block_impacted_by_ray(
     chunk_map: &ChunkMap,
-    origin: Vec3,
-    ray: Vec3,
-    max_distance_squared: f32,
+    origin: DVec3,
+    ray: DVec3,
+    max_distance_squared: f64,
 ) -> Option<RayImpact> {
     if ray == vec3(0.0, 0.0, 0.0) {
         return None;
@@ -107,7 +107,7 @@ pub fn block_impacted_by_ray(
 
     let direction = ray.normalize();
 
-    let mut dist_traveled = glm::vec3(0.0f32, 0.0, 0.0);
+    let mut dist_traveled = glm::vec3(0.0f64, 0.0, 0.0);
 
     let mut step = glm::vec3(0, 0, 0);
     let mut delta = glm::vec3(INFINITY, INFINITY, INFINITY);
@@ -481,10 +481,10 @@ pub fn adjacent_to_bbox(
     }
 
     let mut shapes = Vec::with_capacity(4);
-    let block_shape = block_shape_64();
+    let block_shape = block_shape();
 
     for block in &blocks {
-        let isometry = block_isometry_64(*block);
+        let isometry = block_isometry(*block);
         shapes.push((isometry, ShapeHandle::new(block_shape.clone())));
     }
 
@@ -492,23 +492,12 @@ pub fn adjacent_to_bbox(
 }
 
 /// Returns an `ncollide` `Cuboid` corresponding to a block.
-pub fn block_shape() -> Cuboid<f32> {
-    Cuboid::new(vec3(0.5, 0.5, 0.5))
-}
-
-pub fn block_shape_64() -> Cuboid<f64> {
+pub fn block_shape() -> Cuboid<f64> {
     Cuboid::new(vec3(0.5, 0.5, 0.5))
 }
 
 /// Returns an `Isometry` representing a block's translation.
-pub fn block_isometry(pos: BlockPosition) -> Isometry3<f32> {
-    Isometry3::new(
-        vec3(pos.x as f32 + 0.5, pos.y as f32 + 0.5, pos.z as f32 + 0.5),
-        vec3(0.0, 0.0, 0.0),
-    )
-}
-
-pub fn block_isometry_64(pos: BlockPosition) -> Isometry3<f64> {
+pub fn block_isometry(pos: BlockPosition) -> Isometry3<f64> {
     Isometry3::new(
         vec3(
             f64::from(pos.x) + 0.5,

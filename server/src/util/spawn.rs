@@ -5,7 +5,7 @@ use crate::util::Util;
 use crate::{TickCount, TPS};
 use crossbeam::queue::SegQueue;
 use feather_core::{ItemStack, Position};
-use glm::Vec3;
+use glm::DVec3;
 use shrev::EventChannel;
 use specs::{Entities, Read, System, Write, WriteStorage};
 
@@ -30,7 +30,7 @@ pub struct Spawner {
 
 impl Spawner {
     /// Queues an item entity to be spawned.
-    pub fn spawn_item(&self, position: Position, velocity: Vec3, item: ItemStack) {
+    pub fn spawn_item(&self, position: Position, velocity: DVec3, item: ItemStack) {
         let meta = {
             let mut meta_item = crate::entity::metadata::Item::default();
             meta_item.set_item(Some(item.clone()));
@@ -53,7 +53,7 @@ impl Spawner {
 struct SpawnRequest {
     ty: EntityType,
     position: Position,
-    velocity: Vec3,
+    velocity: DVec3,
     meta: Metadata,
 
     extra: Extra,

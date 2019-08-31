@@ -24,7 +24,7 @@ use crate::player::{InventoryComponent, PlayerDisconnectEvent};
 use crate::PlayerCount;
 use feather_core::level::LevelData;
 use feather_core::world::chunk::Chunk;
-use glm::Vec3;
+use glm::DVec3;
 use shrev::EventChannel;
 
 use crate::entity::metadata::{self, Metadata};
@@ -235,7 +235,7 @@ pub fn add_entity_with_pos_and_vel(
     world: &mut World,
     ty: EntityType,
     pos: Position,
-    vel: Vec3,
+    vel: DVec3,
     trigger_spawn_event: bool,
 ) -> Entity {
     let entity = world
@@ -300,7 +300,7 @@ pub fn entity_pos(world: &World, entity: Entity) -> Position {
 }
 
 /// Retrieves the velocity of an entity.
-pub fn entity_vel(world: &World, entity: Entity) -> Option<Vec3> {
+pub fn entity_vel(world: &World, entity: Entity) -> Option<DVec3> {
     if let Some(comp) = world.read_component::<VelocityComponent>().get(entity) {
         Some(comp.0)
     } else {
@@ -315,7 +315,7 @@ pub fn set_entity_pos(world: &World, entity: Entity, pos: Position) {
 }
 
 /// Sets an entity's velocity.
-pub fn set_entity_velocity(world: &World, entity: Entity, vel: Vec3) {
+pub fn set_entity_velocity(world: &World, entity: Entity, vel: DVec3) {
     let mut storage = world.write_component::<VelocityComponent>();
     storage.get_mut(entity).unwrap().0 = vel;
 }
