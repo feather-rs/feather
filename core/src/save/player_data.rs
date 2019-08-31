@@ -40,19 +40,23 @@ impl InventorySlot {
     }
 
     /// Converts an NBT inventory index to a network protocol index.
-    pub fn convert_index(&self) -> SlotIndex {
+    /// Returns None if the index is invalid.
+    pub fn convert_index(&self) -> Option<SlotIndex> {
         if 0 <= self.slot && self.slot <= 8 {
             // Hotbar
-            crate::inventory::SLOT_HOTBAR_OFFSET + (self.slot as usize)
+            Some(crate::inventory::SLOT_HOTBAR_OFFSET + (self.slot as usize))
         } else if self.slot == -106 {
             // Offhand
-            crate::inventory::SLOT_OFFHAND as usize
+            Some(crate::inventory::SLOT_OFFHAND as usize)
         } else if 100 <= self.slot && self.slot <= 103 {
             // Equipment
-            (-self.slot + 108) as usize
-        } else {
+            Some((108 - self.slot) as usize)
+        } else if 9 <= self.slot && self.slot <= 35 {
             // Rest of inventory
-            self.slot as usize
+            Some(self.slot as usize)
+        } else {
+            // Unknown index
+            None
         }
     }
 }

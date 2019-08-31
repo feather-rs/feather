@@ -107,9 +107,12 @@ impl<'a> System<'a> for PlayerInitSystem {
                 .unwrap();
 
             let mut inventory_comp = InventoryComponent::new();
-            inventory_slots
-                .iter()
-                .for_each(|slot| inventory_comp.set_item_at(slot.convert_index(), slot.to_stack()));
+            for slot in inventory_slots {
+                let slot_index = slot.convert_index();
+                if slot_index.is_some() {
+                    inventory_comp.set_item_at(slot_index.unwrap(), slot.to_stack());
+                }
+            }
             inventory_comps
                 .insert(event.player, inventory_comp)
                 .unwrap();
