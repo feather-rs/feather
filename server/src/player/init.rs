@@ -36,7 +36,7 @@ impl<'a> System<'a> for PlayerInitSystem {
 
     fn run(&mut self, data: Self::SystemData) {
         let (
-            events,
+            join_events,
             mut player_comps,
             mut positions,
             mut nameds,
@@ -50,20 +50,26 @@ impl<'a> System<'a> for PlayerInitSystem {
         ) = data;
 
         // Run through events
-        for event in events.read(&mut self.join_event_reader.as_mut().unwrap()) {
+        for event in join_events.read(&mut self.join_event_reader.as_mut().unwrap()) {
             // Load player data
             let uuid = event.uuid;
             // If this is a new player, set gamemode to server's default (config)
             let default_gamemode = &config.server.default_gamemode.clone();
 
             debug!("Loading player data for UUID {}", uuid);
-            let (gamemode, pos) = match feather_core::player_data::load_player_data(uuid) {
-                Ok(data) => (Gamemode::from_id(data.gamemode as u8), data.read_position()),
-                Err(_) => (
-                    Gamemode::from_string(default_gamemode.as_str()),
-                    None, // Invalid position will default to world spawn
-                ),
-            };
+            let (gamemode, pos, inventory_slots) =
+                match feather_core::player_data::load_player_data(uuid) {
+                    Ok(data) => (
+                        Gamemode::from_id(data.gamemode as u8),
+                        data.read_position(),
+                        data.inventory,
+                    ),
+                    Err(_) => (
+                        Gamemode::from_string(default_gamemode.as_str()),
+                        None,   // Invalid position will default to world spawn
+                        vec![], // Empty inventory
+                    ),
+                };
 
             let player_comp = PlayerComponent {
                 profile_properties: event.profile_properties.clone(),
@@ -100,7 +106,13 @@ impl<'a> System<'a> for PlayerInitSystem {
                 .insert(event.player, loaded_chunk_comp)
                 .unwrap();
 
-            let inventory_comp = InventoryComponent::new();
+            let mut inventory_comp = InventoryComponent::new();
+            for slot in inventory_slots {
+                let slot_index = slot.convert_index();
+                if let Some(slot_index) = slot_index {
+                    inventory_comp.set_item_at(slot_index, slot.to_stack());
+                }
+            }
             inventory_comps
                 .insert(event.player, inventory_comp)
                 .unwrap();
