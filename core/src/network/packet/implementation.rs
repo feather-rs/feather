@@ -1612,6 +1612,12 @@ pub struct SpawnPosition {
     pub location: BlockPosition,
 }
 
+#[derive(Default, AsAny, Packet, Clone)]
+pub struct TimeUpdate {
+    pub world_age: i64,
+    pub time_of_day: i64,
+}
+
 #[derive(Default, AsAny, new, Packet, Clone)]
 pub struct CollectItem {
     pub collected: VarInt,

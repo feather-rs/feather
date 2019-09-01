@@ -357,6 +357,7 @@ impl<'a, 'b> TestBuilder<'a, 'b> {
         self.world
             .insert(EventChannel::<PlayerDisconnectEvent>::new());
         self.world.insert(EventChannel::<EntityDestroyEvent>::new());
+        self.world.insert(crate::time::Time(0));
 
         let mut dispatcher = self.dispatcher.build();
         dispatcher.setup(&mut self.world);
