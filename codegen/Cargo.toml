@@ -1,6 +1,6 @@
 [package]
-name = "feather_codegen"
-version = "0.3.0"
+name = "feather-codegen"
+version = "0.4.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 

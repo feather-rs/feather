@@ -1,13 +1,12 @@
 [package]
-name = "feather_server"
-version = "0.3.0"
+name = "feather-server"
+version = "0.4.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
-publish = false
 
 [dependencies]
-feather_core = { path = "../core" }
-feather_item_block = { path = "../item_block" }
+feather-core = { path = "../core" }
+feather-item-block = { path = "../item_block" }
 mio = "0.6.19"
 mio-extras = "2.0.5"
 crossbeam = "0.7.2"
@@ -45,7 +44,7 @@ nalgebra-glm = "0.4.2"
 nalgebra = "0.18.1"
 ncollide3d = "0.20.1"
 derive_deref = "1.1.0"
-feather_codegen = { path = "../codegen" }
+feather-codegen = { path = "../codegen" }
 bitflags = "1.1.0"
 fnv = "1.0.6"
 base64 = "0.10.1"

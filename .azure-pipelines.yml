@@ -141,7 +141,7 @@ jobs:
         displayName: Copy assets
         inputs:
           sourceFolder: '$(Build.SourcesDirectory)/target/release'
-          contents: feather_server
+          contents: feather-server
           targetFolder: '$(Build.BinariesDirectory)/feather'
         condition: ne( variables['Agent.OS'], 'Windows_NT' )
 
@@ -149,7 +149,7 @@ jobs:
         displayName: Copy assets
         inputs:
           sourceFolder: '$(Build.SourcesDirectory)\target\release'
-          contents: feather_server.exe
+          contents: feather-server.exe
           targetFolder: '$(Build.BinariesDirectory)\feather'
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
 

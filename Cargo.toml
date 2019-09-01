@@ -7,8 +7,6 @@ members = [
     "items",
     "item_block",
     "codegen",
-    "client/core",
-    "client/wrapper/console",
     "generator",
     "util/rand-legacy",
 ]

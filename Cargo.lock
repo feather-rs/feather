@@ -556,32 +556,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "feather_api"
-version = "0.1.0"
-
-[[package]]
-name = "feather_blocks"
-version = "0.3.0"
+name = "feather-blocks"
+version = "0.4.0"
 dependencies = [
  "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "criterion 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "feather_codegen 0.3.0",
+ "feather-codegen 0.4.0",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-derive 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "feather_client_core"
-version = "0.1.0"
-dependencies = [
- "feather_core 0.3.0",
-]
-
-[[package]]
-name = "feather_codegen"
-version = "0.3.0"
+name = "feather-codegen"
+version = "0.4.0"
 dependencies = [
  "heck 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -593,15 +582,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "feather_console_client"
-version = "0.1.0"
-dependencies = [
- "feather_client_core 0.1.0",
-]
-
-[[package]]
-name = "feather_core"
-version = "0.3.0"
+name = "feather-core"
+version = "0.4.0"
 dependencies = [
  "aes 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -609,9 +591,9 @@ dependencies = [
  "cfb8 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "derive-new 0.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "derive_more 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "feather_blocks 0.3.0",
- "feather_codegen 0.3.0",
- "feather_items 0.1.0",
+ "feather-blocks 0.4.0",
+ "feather-codegen 0.4.0",
+ "feather-items 0.4.0",
  "flate2 1.0.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "hash32 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hash32-derive 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -628,8 +610,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "feather_generator"
-version = "0.3.0"
+name = "feather-generator"
+version = "0.4.0"
 dependencies = [
  "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -647,24 +629,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "feather_item_block"
-version = "0.1.0"
+name = "feather-item-block"
+version = "0.4.0"
 dependencies = [
- "feather_blocks 0.3.0",
- "feather_items 0.1.0",
+ "feather-blocks 0.4.0",
+ "feather-items 0.4.0",
 ]
 
 [[package]]
-name = "feather_items"
-version = "0.1.0"
+name = "feather-items"
+version = "0.4.0"
 dependencies = [
  "num-derive 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "feather_server"
-version = "0.3.0"
+name = "feather-server"
+version = "0.4.0"
 dependencies = [
  "backtrace 0.3.35 (registry+https://github.com/rust-lang/crates.io-index)",
  "base64 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -675,9 +657,9 @@ dependencies = [
  "derive-new 0.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "derive_deref 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "feather_codegen 0.3.0",
- "feather_core 0.3.0",
- "feather_item_block 0.1.0",
+ "feather-codegen 0.4.0",
+ "feather-core 0.4.0",
+ "feather-item-block 0.4.0",
  "fnv 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "hashbrown 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "heapless 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -709,6 +691,10 @@ dependencies = [
  "toml 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.7.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "feather_api"
+version = "0.1.0"
 
 [[package]]
 name = "fixedbitset"
