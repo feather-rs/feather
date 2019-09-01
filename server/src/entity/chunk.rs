@@ -58,6 +58,28 @@ impl ChunkEntities {
             self.0.remove(&chunk);
         }
     }
+
+    /// Returns a vector of all entities in all chunks
+    /// within the given view distance of another chunk.
+    pub fn entites_within_view_distance(
+        &self,
+        chunk: ChunkPosition,
+        view_distance: u8,
+    ) -> Vec<Entity> {
+        let mut result = Vec::with_capacity(16);
+
+        let view_distance = i32::from(view_distance);
+
+        for x_offset in -view_distance..=view_distance {
+            for z_offset in -view_distance..=view_distance {
+                let chunk = ChunkPosition::new(chunk.x + x_offset, chunk.z + z_offset);
+
+                result.extend_from_slice(self.entities_in_chunk(chunk));
+            }
+        }
+
+        result
+    }
 }
 
 /// System for updating the `ChunkEntities`.
@@ -138,6 +160,7 @@ mod tests {
     use crate::entity::EntityType;
     use crate::testframework as t;
     use feather_core::Position;
+    use hashbrown::HashSet;
     use specs::{Builder, World, WorldExt};
 
     #[test]
@@ -222,5 +245,37 @@ mod tests {
 
         let chunk_entities = w.fetch::<ChunkEntities>();
         assert!(chunk_entities.entities_in_chunk(pos.chunk_pos()).is_empty());
+    }
+
+    #[test]
+    fn test_entities_within_view_distance() {
+        let mut chunk_entities = ChunkEntities::default();
+
+        let mut world = World::new();
+        let entity1 = world.create_entity().build();
+        let entity2 = world.create_entity().build();
+        let entity3 = world.create_entity().build();
+        let entity4 = world.create_entity().build();
+
+        let chunk1 = ChunkPosition::new(0, 0);
+        let chunk2 = ChunkPosition::new(0, 4);
+        let chunk3 = ChunkPosition::new(0, 5);
+        let chunk4 = ChunkPosition::new(-4, -4);
+
+        chunk_entities.add_to_chunk(chunk1, entity1);
+        chunk_entities.add_to_chunk(chunk2, entity2);
+        chunk_entities.add_to_chunk(chunk3, entity3);
+        chunk_entities.add_to_chunk(chunk4, entity4);
+
+        let view_distance = 4;
+        let entities: HashSet<Entity> = chunk_entities
+            .entites_within_view_distance(chunk1, view_distance)
+            .into_iter()
+            .collect();
+
+        assert!(entities.contains(&entity1));
+        assert!(entities.contains(&entity2));
+        assert!(!entities.contains(&entity3));
+        assert!(entities.contains(&entity4));
     }
 }
