@@ -1,5 +1,8 @@
 //! Implements level.dat file loading.
 
+use feather_items::Item;
+use serde::Deserialize;
+use std::collections::HashMap;
 use std::io::Read;
 
 /// Root level tag
@@ -66,6 +69,11 @@ pub struct LevelData {
 
     #[serde(rename = "Version")]
     pub version: LevelVersion,
+
+    #[serde(rename = "generatorName")]
+    pub generator_name: String,
+    #[serde(rename = "generatorOptions")]
+    pub generator_options: Option<SuperflatGeneratorOptions>,
 }
 
 /// Represents level version data.
@@ -75,6 +83,55 @@ pub struct LevelVersion {
     id: i32,
     #[serde(rename = "Name")]
     name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuperflatGeneratorOptions {
+    pub structures: HashMap<String, nbt::Value>,
+    pub layers: Vec<SuperflatLayer>,
+    pub biome: String,
+}
+
+impl Default for SuperflatGeneratorOptions {
+    fn default() -> Self {
+        let mut default_structures = HashMap::new();
+        default_structures.insert(
+            String::from("village"),
+            nbt::Value::Compound(HashMap::new()),
+        );
+
+        // Default superflat world layers
+        Self {
+            structures: default_structures,
+            layers: vec![
+                SuperflatLayer {
+                    block: Item::Bedrock.identifier().to_string(),
+                    height: 1,
+                },
+                SuperflatLayer {
+                    block: Item::Dirt.identifier().to_string(),
+                    height: 2,
+                },
+                SuperflatLayer {
+                    block: Item::GrassBlock.identifier().to_string(),
+                    height: 1,
+                },
+            ],
+            biome: String::from("minecraft:plains"),
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct SuperflatLayer {
+    pub block: String,
+    pub height: u8,
+}
+
+impl LevelData {
+    pub fn is_super_flat(&self) -> bool {
+        self.generator_name.eq_ignore_ascii_case("flat")
+    }
 }
 
 /// Deserializes a level.dat file from the given reader.

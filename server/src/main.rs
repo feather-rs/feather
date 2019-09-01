@@ -209,6 +209,16 @@ fn init_world<'a, 'b>(
     ioman: io::NetworkIoManager,
     level: LevelData,
 ) -> (World, Dispatcher<'a, 'b>) {
+    {
+        let level = level.clone();
+        debug!("Level type: {}", level.generator_name);
+        if level.is_super_flat() {
+            debug!(
+                "Level options: {:?}",
+                level.generator_options.unwrap_or_default()
+            );
+        }
+    }
     let mut world = World::new();
     world.insert(config);
     world.insert(player_count);
