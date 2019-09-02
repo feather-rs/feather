@@ -1521,7 +1521,7 @@ pub struct UseBed {
 
 #[derive(Default, AsAny, new, Clone)]
 pub struct DestroyEntities {
-    entity_ids: Vec<VarInt>,
+    pub entity_ids: Vec<VarInt>,
 }
 
 impl Packet for DestroyEntities {

@@ -29,6 +29,7 @@ use shrev::EventChannel;
 
 use crate::entity::metadata::{self, Metadata};
 
+use crate::chunk_logic::ChunkHolders;
 use feather_core::world::block::Block;
 
 /// Initializes a Specs world and dispatcher
@@ -81,7 +82,18 @@ pub fn add_player(world: &mut World) -> Player {
         })
         .with(InventoryComponent::default())
         .with(Metadata::Player(metadata::Player::default()))
+        .with(EntityType::Player)
         .build();
+
+    let mut chunk_holders = world.fetch_mut::<ChunkHolders>();
+
+    let view_distance = i32::from(world.fetch::<Arc<Config>>().server.view_distance);
+
+    for x in -view_distance..=view_distance {
+        for z in -view_distance..=view_distance {
+            chunk_holders.insert_holder(ChunkPosition::new(x, z), e);
+        }
+    }
 
     Player {
         entity: e,
@@ -358,6 +370,8 @@ impl<'a, 'b> TestBuilder<'a, 'b> {
             .insert(EventChannel::<PlayerDisconnectEvent>::new());
         self.world.insert(EventChannel::<EntityDestroyEvent>::new());
         self.world.insert(crate::time::Time(0));
+        self.world.insert(ChunkHolders::default());
+        self.world.insert(Arc::new(Config::default()));
 
         let mut dispatcher = self.dispatcher.build();
         dispatcher.setup(&mut self.world);

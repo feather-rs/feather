@@ -5,6 +5,7 @@
 use crate::entity::{EntityDestroyEvent, EntitySpawnEvent, PositionComponent};
 use feather_core::world::ChunkPosition;
 use fnv::FnvHashMap;
+use hashbrown::HashSet;
 use shrev::EventChannel;
 use specs::storage::ComponentEvent;
 use specs::{
@@ -65,8 +66,8 @@ impl ChunkEntities {
         &self,
         chunk: ChunkPosition,
         view_distance: u8,
-    ) -> Vec<Entity> {
-        let mut result = Vec::with_capacity(16);
+    ) -> HashSet<Entity> {
+        let mut result = HashSet::new();
 
         let view_distance = i32::from(view_distance);
 
@@ -74,7 +75,7 @@ impl ChunkEntities {
             for z_offset in -view_distance..=view_distance {
                 let chunk = ChunkPosition::new(chunk.x + x_offset, chunk.z + z_offset);
 
-                result.extend_from_slice(self.entities_in_chunk(chunk));
+                result.extend(self.entities_in_chunk(chunk));
             }
         }
 
@@ -160,7 +161,6 @@ mod tests {
     use crate::entity::EntityType;
     use crate::testframework as t;
     use feather_core::Position;
-    use hashbrown::HashSet;
     use specs::{Builder, World, WorldExt};
 
     #[test]
@@ -268,10 +268,7 @@ mod tests {
         chunk_entities.add_to_chunk(chunk4, entity4);
 
         let view_distance = 4;
-        let entities: HashSet<Entity> = chunk_entities
-            .entites_within_view_distance(chunk1, view_distance)
-            .into_iter()
-            .collect();
+        let entities = chunk_entities.entites_within_view_distance(chunk1, view_distance);
 
         assert!(entities.contains(&entity1));
         assert!(entities.contains(&entity2));
