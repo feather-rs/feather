@@ -6,6 +6,7 @@ edition = "2018"
 publish = false
 
 [dependencies]
+feather_blocks = { path = "../blocks" }
 feather_core = { path = "../core" }
 feather_item_block = { path = "../item_block" }
 mio = "0.6.19"

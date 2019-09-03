@@ -687,6 +687,7 @@ dependencies = [
  "derive-new 0.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "derive_deref 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "feather_blocks 0.3.0",
  "feather_codegen 0.3.0",
  "feather_core 0.3.0",
  "feather_item_block 0.1.0",

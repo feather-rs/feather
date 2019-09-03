@@ -6,12 +6,15 @@
 //! the chunk back over a channel. If the chunk did not exist,
 //! it will notify the server thread of the incident.
 //! In response, the server thread should generate the chunk.
+use crate::worldgen::WorldGenerator;
 use crossbeam::channel::{Receiver, Sender};
+use feather_core::level::LevelData;
 use feather_core::region;
 use feather_core::region::{RegionHandle, RegionPosition};
 use feather_core::world::chunk::Chunk;
 use feather_core::world::ChunkPosition;
 use hashbrown::HashMap;
+use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub type Reply = (ChunkPosition, Result<Chunk, Error>);
@@ -72,12 +75,18 @@ struct ChunkWorker {
 
     /// A map of currently open region files
     open_regions: HashMap<RegionPosition, RegionFile>,
+
+    /// World generator for new chunks.
+    world_generator: Arc<dyn WorldGenerator>,
 }
 
 /// Starts a chunk worker on a new thread.
 /// The returned channels can be used
 /// to communicate with the worker.
-pub fn start(world_dir: &str) -> (Sender<Request>, Receiver<Reply>) {
+pub fn start(
+    world_dir: &str,
+    world_gen: Arc<dyn WorldGenerator>,
+) -> (Sender<Request>, Receiver<Reply>) {
     let (request_tx, request_rx) = crossbeam::channel::unbounded();
     let (reply_tx, reply_rx) = crossbeam::channel::unbounded();
 
@@ -86,6 +95,7 @@ pub fn start(world_dir: &str) -> (Sender<Request>, Receiver<Reply>) {
         sender: reply_tx,
         receiver: request_rx,
         open_regions: HashMap::new(),
+        world_generator: world_gen,
     };
 
     // Without changing the stack size,
@@ -145,19 +155,27 @@ fn load_chunk(worker: &mut ChunkWorker, pos: ChunkPosition) -> Reply {
     let file = worker.open_regions.get_mut(&rpos).unwrap();
     let handle = &mut file.handle;
 
-    load_chunk_from_handle(pos, handle)
+    load_chunk_from_handle(pos, handle, &worker.world_generator)
 }
 
-fn load_chunk_from_handle(pos: ChunkPosition, handle: &mut RegionHandle) -> Reply {
+fn load_chunk_from_handle(
+    pos: ChunkPosition,
+    handle: &mut RegionHandle,
+    generator: &Arc<dyn WorldGenerator>,
+) -> Reply {
     let result = handle.load_chunk(pos);
 
     match result {
         Ok(chunk) => (pos, Ok(chunk)),
         Err(e) => match e {
-            region::Error::ChunkNotExist => (pos, Err(Error::ChunkNotExist)),
+            region::Error::ChunkNotExist => generate_new_chunk(pos, generator),
             err => (pos, Err(Error::LoadError(err))),
         },
     }
+}
+
+fn generate_new_chunk(pos: ChunkPosition, generator: &Arc<dyn WorldGenerator>) -> Reply {
+    (pos, Ok(generator.generate_chunk(pos)))
 }
 
 /// Returns whether the given chunk's region
