@@ -25,8 +25,8 @@ To run Feather:
 * Extract the downloaded archive.
 * Move a 1.13.2 Minecraft world save to the directory you extracted the archive to. Name the world save "world."
 * Run the binary.
-  * On Linux and macOS: `./feather_server` in the server directory
-  * On Windows: double-click `feather_server.exe`
+  * On Linux and macOS: `./feather-server` in the server directory
+  * On Windows: double-click `feather-server.exe`
   
 The server will create a configuration file (`feather.toml`) which you can modify.
 
