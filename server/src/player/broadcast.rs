@@ -1,12 +1,16 @@
-use crate::entity::{NamedComponent, PlayerComponent, PositionComponent};
+use crate::config::Config;
+use crate::entity::{
+    ChunkEntities, EntitySender, NamedComponent, PlayerComponent, PositionComponent,
+};
 use crate::joinhandler::PlayerJoinEvent;
 use crate::network::{send_packet_to_all_players, send_packet_to_player, NetworkComponent};
 use crate::player::chat::ChatBroadcastEvent;
-use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
+use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction};
 use feather_core::Gamemode;
 use shrev::EventChannel;
 use specs::SystemData;
 use specs::{Entities, Entity, Join, Read, ReadStorage, ReaderId, System, World, Write};
+use std::sync::Arc;
 use uuid::Uuid;
 
 /// System for broadcasting when a player joins
@@ -29,11 +33,25 @@ impl<'a> System<'a> for JoinBroadcastSystem {
         ReadStorage<'a, PlayerComponent>,
         ReadStorage<'a, NetworkComponent>,
         Write<'a, EventChannel<ChatBroadcastEvent>>,
+        Read<'a, ChunkEntities>,
+        Read<'a, EntitySender>,
+        Read<'a, Arc<Config>>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (join_events, positions, nameds, player_comps, net_comps, mut chat, entities) = data;
+        let (
+            join_events,
+            positions,
+            nameds,
+            player_comps,
+            net_comps,
+            mut chat,
+            chunk_entities,
+            entity_sender,
+            config,
+            entities,
+        ) = data;
 
         for event in join_events.read(&mut self.reader.as_mut().unwrap()) {
             // Broadcast join
@@ -55,18 +73,16 @@ impl<'a> System<'a> for JoinBroadcastSystem {
                     let player_info =
                         get_player_initialization_packet(position, named, player_comp);
                     send_packet_to_player(net_comp, player_info);
+                }
+            }
 
-                    let spawn_player = SpawnPlayer {
-                        entity_id: entity.id() as i32,
-                        player_uuid: named.uuid,
-                        x: position.current.x,
-                        y: position.current.y,
-                        z: position.current.z,
-                        yaw: degrees_to_stops(position.current.yaw),
-                        pitch: degrees_to_stops(position.current.pitch),
-                        metadata: Default::default(),
-                    };
-                    send_packet_to_player(net_comp, spawn_player);
+            // Send entities within view distance to new player
+            for entity in chunk_entities.entites_within_view_distance(
+                position.current.chunk_pos(),
+                config.server.view_distance,
+            ) {
+                if entity != event.player {
+                    entity_sender.send_entity_to_player(event.player, entity);
                 }
             }
 
@@ -185,8 +201,4 @@ impl<'a> System<'a> for DisconnectBroadcastSystem {
                 .register_reader(),
         );
     }
-}
-
-fn degrees_to_stops(degs: f32) -> u8 {
-    ((degs / 360.0) * 256.0) as u8
 }

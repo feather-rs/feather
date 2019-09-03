@@ -1,4 +1,5 @@
 //! Logic for working with item entities.
+use crate::chunk_logic::ChunkHolders;
 use crate::entity::metadata::{self, Metadata};
 use crate::entity::{ChunkEntities, EntityDestroyEvent, PlayerComponent, PositionComponent};
 use crate::network::{send_packet_to_all_players, NetworkComponent};
@@ -212,6 +213,7 @@ impl<'a> System<'a> for ItemCollectSystem {
         Write<'a, EventChannel<InventoryUpdateEvent>>,
         Write<'a, EventChannel<EntityDestroyEvent>>,
         Read<'a, ChunkEntities>,
+        Read<'a, Util>,
         Read<'a, TickCount>,
         Entities<'a>,
     );
@@ -227,6 +229,7 @@ impl<'a> System<'a> for ItemCollectSystem {
             mut inventory_events,
             mut destroy_events,
             chunk_entities,
+            util,
             tick,
             entities,
         ) = data;
@@ -284,7 +287,7 @@ impl<'a> System<'a> for ItemCollectSystem {
                     collector: player.id() as i32,
                     count: i32::from(stack.amount - amount_left),
                 };
-                send_packet_to_all_players(&networks, &entities, packet, None);
+                util.broadcast_entity(player, packet, None);
 
                 if amount_left == 0 {
                     entities.delete(other).unwrap();

@@ -61,3 +61,5 @@ pub const NETWORK: &str = "network";
 
 pub const TIME_INCREMENT: &str = "time_increment";
 pub const TIME_SEND: &str = "time_send";
+
+pub const BROADCASTER: &str = "broadcaster";

@@ -3,12 +3,13 @@
 #![allow(clippy::too_many_arguments)] // TODO: builder patterm
 
 use crate::network::{send_packet_to_all_players, NetworkComponent};
+use crate::util::Util;
 use feather_core::packet::PacketEntityMetadata;
 use feather_core::{EntityMetadata, Slot};
 use specs::storage::ComponentEvent;
 use specs::{
-    BitSet, Component, Entities, FlaggedStorage, Join, ReadStorage, ReaderId, System, VecStorage,
-    WriteStorage,
+    BitSet, Component, Entities, FlaggedStorage, Join, Read, ReadStorage, ReaderId, System,
+    VecStorage, WriteStorage,
 };
 
 bitflags! {
@@ -61,14 +62,10 @@ pub struct MetadataBroadcastSystem {
 }
 
 impl<'a> System<'a> for MetadataBroadcastSystem {
-    type SystemData = (
-        WriteStorage<'a, Metadata>,
-        ReadStorage<'a, NetworkComponent>,
-        Entities<'a>,
-    );
+    type SystemData = (WriteStorage<'a, Metadata>, Read<'a, Util>, Entities<'a>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut metadatas, networks, entities) = data;
+        let (mut metadatas, util, entities) = data;
 
         self.dirty.clear();
 
@@ -85,7 +82,7 @@ impl<'a> System<'a> for MetadataBroadcastSystem {
                 metadata: metadata.to_raw_metadata(),
             };
 
-            send_packet_to_all_players(&networks, &entities, packet, None);
+            util.broadcast(entity, packet, None);
         }
 
         metadatas.set_event_emission(true);

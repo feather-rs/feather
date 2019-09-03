@@ -7,10 +7,13 @@ use thread_local::ThreadLocal;
 
 #[macro_use]
 mod macros;
+mod broadcaster;
 mod spawn;
 
 use crate::chunk_logic::ChunkHolders;
 use crate::network::{send_packet_to_player, NetworkComponent};
+use broadcaster::Broadcaster;
+pub use broadcaster::BroadcasterSystem;
 pub use macros::*;
 pub use spawn::SpawnerSystem;
 use specs::storage::GenericReadStorage;
@@ -46,7 +49,7 @@ pub fn protocol_velocity(vel: DVec3) -> (i16, i16, i16) {
 /// needs. Note, however, that the entity isn't created
 /// until the handling dispatcher stage. These functions simply
 /// redirect to `entity::Spawner`.
-/// * `broadcast` - broadcasts a packet to all players
+/// * `broadcast` - lazily broadcasts a packet to all players
 /// who are able to see a given chunk. This can be used
 /// to broadcast movement updates, for example.
 #[derive(Debug, Default)]
@@ -58,6 +61,8 @@ pub struct Util {
     bump: ThreadLocal<Bump>,
     /// The spawner, used to lazily spawn entities.
     spawner: Spawner,
+    /// The broadcaster, used to lazily broadcast packets.
+    broadcaster: Broadcaster,
 }
 
 impl Util {
@@ -91,10 +96,27 @@ impl Util {
     }
 
     /// Broadcasts a packet to all players who
+    /// are able to see a given entity.
+    ///
+    /// The packet is sent lazily in a separate system.
+    ///
+    /// If `neq` is set to an entity, the packet
+    /// will not be sent to that player.
+    ///
+    /// This function runs in linear time with
+    /// regard to the number of players able to see
+    /// the entity.
+    pub fn broadcast_entity<P>(&self, entity: Entity, packet: P, neq: Option<Entity>)
+    where
+        P: Packet + Clone + 'static,
+    {
+        self.broadcaster.broadcast_entity(entity, packet, neq);
+    }
+
+    /// Broadcasts a packet to all players who
     /// are able to see a given chunk.
     ///
-    /// The packet is sent instantly, not lazily,
-    /// unlike many of the `Util` functions.
+    /// The packet is sent lazily in a separate system.
     ///
     /// If `neq` is set to an entity, the packet
     /// will not be sent to that player.
@@ -102,37 +124,11 @@ impl Util {
     /// This function runs in linear time with
     /// regard to the number of players able to see
     /// the chunk.
-    pub fn broadcast<P, N>(
-        &self,
-        chunk_holders: &ChunkHolders,
-        networks: &N,
-        chunk: ChunkPosition,
-        packet: P,
-        neq: Option<Entity>,
-    ) where
+    pub fn broadcast_chunk<P>(&self, chunk: ChunkPosition, packet: P, neq: Option<Entity>)
+    where
         P: Packet + Clone + 'static,
-        N: GenericReadStorage<Component = NetworkComponent>,
     {
-        // Iterate over entities in the chunk_holders
-        // entry for the chunk. If they are a player,
-        // send the packet.
-        // This works because any player able to see
-        // a chunk will always have a chunk holder on the chunk.
-        if let Some(holders) = chunk_holders.holders_for(chunk) {
-            for entity in holders {
-                if let Some(neq) = neq.as_ref() {
-                    if *neq == *entity {
-                        continue;
-                    }
-                }
-
-                // If the entity doesn't have a network component,
-                // skip it.
-                if let Some(network) = networks.get(*entity) {
-                    send_packet_to_player(&network, packet.clone());
-                }
-            }
-        }
+        self.broadcaster.broadcast_chunk(chunk, packet, neq);
     }
 }
 
@@ -140,6 +136,7 @@ impl Util {
 mod tests {
     use super::*;
     use crate::testframework as t;
+    use crate::util::broadcaster::BroadcasterSystem;
     use feather_core::network::packet::implementation::EntityHeadLook;
     use feather_core::PacketType;
     use specs::WorldExt;
@@ -151,7 +148,7 @@ mod tests {
         let chunk = ChunkPosition::new(0, 0);
         let other_chunk = ChunkPosition::new(10, 1);
 
-        let (mut world, _) = t::builder().build();
+        let (mut world, mut dispatcher) = t::builder().with(BroadcasterSystem, "").build();
         let player1 = t::add_player(&mut world);
         let player2 = t::add_player(&mut world);
         let player3 = t::add_player(&mut world);
@@ -164,13 +161,10 @@ mod tests {
 
         let util = Util::default();
 
-        util.broadcast(
-            &chunk_holders,
-            &world.read_component(),
-            chunk,
-            packet,
-            Some(player2.entity),
-        );
+        util.broadcast_entity(player1.entity, packet, Some(player2.entity));
+
+        dispatcher.dispatch(&world);
+        world.maintain();
 
         t::assert_packet_received(&player1, PacketType::EntityHeadLook);
         t::assert_packet_not_received(&player2, PacketType::EntityHeadLook);

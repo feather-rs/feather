@@ -17,10 +17,12 @@ use feather_core::world::block::{Block, BlockExt};
 use feather_core::world::{BlockPosition, ChunkMap};
 use feather_core::{Gamemode, Item};
 
+use crate::chunk_logic::ChunkHolders;
 use crate::disconnect_player;
 use crate::entity::PlayerComponent;
 use crate::network::{send_packet_to_all_players, NetworkComponent, PacketQueue};
 use crate::player::{InventoryComponent, InventoryUpdateEvent};
+use crate::util::Util;
 use feather_core::inventory::{ItemStack, SlotIndex, SLOT_HOTBAR_OFFSET};
 use shrev::EventChannel;
 use specs::SystemData;
@@ -247,14 +249,10 @@ pub struct BlockUpdateBroadcastSystem {
 }
 
 impl<'a> System<'a> for BlockUpdateBroadcastSystem {
-    type SystemData = (
-        ReadStorage<'a, NetworkComponent>,
-        Read<'a, EventChannel<BlockUpdateEvent>>,
-        Entities<'a>,
-    );
+    type SystemData = (Read<'a, EventChannel<BlockUpdateEvent>>, Read<'a, Util>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (networks, events, entities) = data;
+        let (events, util) = data;
 
         // Process events
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
@@ -268,7 +266,7 @@ impl<'a> System<'a> for BlockUpdateBroadcastSystem {
             };
 
             let packet = BlockChange::new(event.pos, i32::from(event.new_block.native_state_id()));
-            send_packet_to_all_players(&networks, &entities, packet, neq);
+            util.broadcast_chunk(event.pos.chunk_pos(), packet, neq);
         }
     }
 

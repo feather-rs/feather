@@ -20,7 +20,7 @@ use feather_core::network::packet::implementation::SpawnObject;
 use feather_core::network::packet::implementation::{PacketEntityMetadata, SpawnPlayer};
 use feather_core::Packet;
 use shrev::EventChannel;
-use specs::{Entity, Read, ReadStorage, ReaderId, System, WriteStorage};
+use specs::{Entity, Read, ReadStorage, ReaderId, System, Write, WriteStorage};
 use uuid::Uuid;
 
 /// Handles lazy sending of entities to a client.
@@ -46,6 +46,17 @@ struct SendRequest {
     entity: Entity,
 }
 
+/// Event which is triggered when an entity
+/// is sent to a client. This can be used to send
+/// associated information, such as entity equipment.
+#[derive(Debug, Clone)]
+pub struct EntitySendEvent {
+    /// The player for which this event was triggered.
+    pub player: Entity,
+    /// The entity which was sent to the player.
+    pub entity: Entity,
+}
+
 /// System for flushing the `EntitySender` queue
 /// and sending the correct packets for the given
 /// entities.
@@ -59,11 +70,21 @@ impl<'a> System<'a> for EntitySendSystem {
         ReadStorage<'a, VelocityComponent>,
         ReadStorage<'a, EntityType>,
         WriteStorage<'a, Metadata>,
+        Write<'a, EventChannel<EntitySendEvent>>,
         Read<'a, EntitySender>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (positions, nameds, networks, velocities, types, mut metadatas, entity_sender) = data;
+        let (
+            positions,
+            nameds,
+            networks,
+            velocities,
+            types,
+            mut metadatas,
+            mut send_events,
+            entity_sender,
+        ) = data;
 
         while let Ok(request) = entity_sender.queue.pop() {
             let ty = types.get(request.entity).unwrap();
@@ -88,6 +109,13 @@ impl<'a> System<'a> for EntitySendSystem {
             };
 
             send_packet_to_player(network, entity_metadata);
+
+            // Trigger event.
+            let event = EntitySendEvent {
+                player: request.player,
+                entity: request.entity,
+            };
+            send_events.single_write(event);
         }
     }
 }

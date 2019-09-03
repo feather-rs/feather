@@ -4,16 +4,23 @@ use std::net::TcpListener;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
+use glm::DVec3;
 use mio_extras::channel::{channel, Receiver, Sender};
 use rand::Rng;
+use shrev::EventChannel;
 use specs::{Builder, Dispatcher, DispatcherBuilder, Entity, ReaderId, System, World, WorldExt};
 use uuid::Uuid;
 
+use feather_core::level::LevelData;
 use feather_core::network::packet::{Packet, PacketType};
+use feather_core::world::block::Block;
+use feather_core::world::chunk::Chunk;
 use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
 use feather_core::Gamemode;
 
+use crate::chunk_logic::ChunkHolders;
 use crate::config::Config;
+use crate::entity::metadata::{self, Metadata};
 use crate::entity::{
     EntityDestroyEvent, EntitySpawnEvent, EntityType, ItemComponent, NamedComponent,
     PlayerComponent, PositionComponent, VelocityComponent,
@@ -21,16 +28,9 @@ use crate::entity::{
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
 use crate::player::{InventoryComponent, PlayerDisconnectEvent};
+use crate::systems::BROADCASTER;
+use crate::util::BroadcasterSystem;
 use crate::PlayerCount;
-use feather_core::level::LevelData;
-use feather_core::world::chunk::Chunk;
-use glm::DVec3;
-use shrev::EventChannel;
-
-use crate::entity::metadata::{self, Metadata};
-
-use crate::chunk_logic::ChunkHolders;
-use feather_core::world::block::Block;
 
 /// Initializes a Specs world and dispatcher
 /// using default configuration options and an
@@ -373,6 +373,10 @@ impl<'a, 'b> TestBuilder<'a, 'b> {
         self.world.insert(ChunkHolders::default());
         self.world.insert(Arc::new(Config::default()));
 
+        // Insert the broadcaster system, since it is so commonly
+        // used that it should be used for all tests.
+        self.dispatcher.add_thread_local(BroadcasterSystem);
+
         let mut dispatcher = self.dispatcher.build();
         dispatcher.setup(&mut self.world);
 
@@ -402,9 +406,10 @@ pub fn builder<'a, 'b>() -> TestBuilder<'a, 'b> {
 /// all other tests would fail if the testing
 /// framework didn't work.
 mod tests {
+    use feather_core::network::packet::implementation::{DisconnectPlay, LoginStart};
+
     use crate::entity::{PlayerComponent, PositionComponent};
     use crate::network::{send_packet_to_player, NetworkComponent};
-    use feather_core::network::packet::implementation::{DisconnectPlay, LoginStart};
 
     use super::*;
 
