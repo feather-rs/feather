@@ -128,9 +128,28 @@ pub struct SuperflatLayer {
     pub height: u8,
 }
 
+/// The type of world generator for a level.
+#[derive(Debug, PartialEq)]
+pub enum LevelGeneratorType {
+    Default,
+    Flat,
+    LargeBiomes,
+    Amplified,
+    Buffet,
+    Debug,
+}
+
 impl LevelData {
-    pub fn is_super_flat(&self) -> bool {
-        self.generator_name.eq_ignore_ascii_case("flat")
+    pub fn generator_type(&self) -> LevelGeneratorType {
+        match self.generator_name.to_lowercase().as_str() {
+            "default" => LevelGeneratorType::Default,
+            "flat" => LevelGeneratorType::Flat,
+            "largeBiomes" => LevelGeneratorType::LargeBiomes,
+            "amplified" => LevelGeneratorType::Amplified,
+            "buffet" => LevelGeneratorType::Buffet,
+            "debug_all_block_states" => LevelGeneratorType::Debug,
+            _ => LevelGeneratorType::Default,
+        }
     }
 }
 
@@ -170,5 +189,7 @@ mod tests {
         assert_eq!(level.spawn_z, 0);
         assert!(level.thundering);
         assert_eq!(level.thunder_time, 5252);
+        assert_eq!(level.generator_name, "default");
+        assert!(level.generator_options.is_none());
     }
 }

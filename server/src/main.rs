@@ -46,7 +46,7 @@ use crate::systems::{ITEM_SPAWN, JOIN_HANDLER, NETWORK, SPAWNER};
 use crate::util::Util;
 use backtrace::Backtrace;
 use feather_core::level;
-use feather_core::level::LevelData;
+use feather_core::level::{LevelData, LevelGeneratorType};
 use shrev::EventChannel;
 use std::fs::File;
 use std::io::{Read, Write};
@@ -212,9 +212,9 @@ fn init_world<'a, 'b>(
     {
         let level = level.clone();
         debug!("Level type: {}", level.generator_name);
-        if level.is_super_flat() {
+        if level.generator_type() == LevelGeneratorType::Flat {
             debug!(
-                "Level options: {:?}",
+                "Superflat generator options: {:?}",
                 level.generator_options.unwrap_or_default()
             );
         }
