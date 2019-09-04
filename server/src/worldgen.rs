@@ -12,6 +12,14 @@ pub struct SuperflatWorldGenerator {
     options: SuperflatGeneratorOptions,
 }
 
+pub struct EmptyWorldGenerator {}
+
+impl WorldGenerator for EmptyWorldGenerator {
+    fn generate_chunk(&self, position: ChunkPosition) -> Chunk {
+        Chunk::new(position)
+    }
+}
+
 impl WorldGenerator for SuperflatWorldGenerator {
     fn generate_chunk(&self, position: ChunkPosition) -> Chunk {
         let mut chunk = Chunk::new(position);
@@ -31,7 +39,7 @@ impl WorldGenerator for SuperflatWorldGenerator {
             for y in y_counter..=(y_counter + layer.height) {
                 for x in 0..16 {
                     for z in 0..16 {
-                        chunk.set_block_at(x as usize, y as usize, z as usize, layer_block)
+                        chunk.set_block_at(x as usize, y as usize, z as usize, layer_block);
                     }
                 }
             }
