@@ -7,8 +7,8 @@ use rayon::prelude::*;
 use shrev::{EventChannel, ReaderId};
 use specs::storage::{BTreeStorage, ComponentEvent};
 use specs::{
-    BitSet, Component, Entities, Entity, Join, LazyUpdate, ParJoin, Read, ReadStorage, System,
-    WorldExt, Write, WriteStorage,
+    BitSet, Component, Entities, Entity, Join, LazyUpdate, ParJoin, Read, ReadExpect, ReadStorage,
+    System, WorldExt, Write, WriteStorage,
 };
 
 use feather_core::network::cast_packet;
@@ -183,7 +183,7 @@ impl<'a> System<'a> for ChunkCrossSystem {
         WriteStorage<'a, ChunkHolderComponent>,
         ReadStorage<'a, NetworkComponent>,
         Write<'a, ChunkHolders>,
-        Read<'a, ChunkWorkerHandle>,
+        ReadExpect<'a, ChunkWorkerHandle>,
         Read<'a, LazyUpdate>,
         Entities<'a>,
     );

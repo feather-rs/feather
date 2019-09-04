@@ -9,7 +9,7 @@ pub trait WorldGenerator: Send + Sync {
 }
 
 pub struct SuperflatWorldGenerator {
-    options: SuperflatGeneratorOptions,
+    pub options: SuperflatGeneratorOptions,
 }
 
 pub struct EmptyWorldGenerator {}
@@ -36,7 +36,7 @@ impl WorldGenerator for SuperflatWorldGenerator {
                 continue;
             }
             let layer_block = layer_block.unwrap();
-            for y in y_counter..=(y_counter + layer.height) {
+            for y in y_counter..(y_counter + layer.height) {
                 for x in 0..16 {
                     for z in 0..16 {
                         chunk.set_block_at(x as usize, y as usize, z as usize, layer_block);

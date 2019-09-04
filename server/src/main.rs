@@ -229,14 +229,14 @@ fn init_world<'a, 'b>(
     world.insert(player_count);
     world.insert(ioman);
     world.insert(TickCount::default());
-    world.insert(level);
 
     let generator: Arc<dyn WorldGenerator> = match level.generator_type() {
         LevelGeneratorType::Flat => Arc::new(SuperflatWorldGenerator {
-            options: level.generator_options.unwrap_or_default(),
+            options: level.clone().generator_options.unwrap_or_default(),
         }),
         _ => Arc::new(EmptyWorldGenerator {}),
     };
+    world.insert(level);
     world.insert(generator);
 
     let mut dispatcher = DispatcherBuilder::new();
