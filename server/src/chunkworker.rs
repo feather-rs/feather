@@ -8,7 +8,6 @@
 //! In response, the server thread should generate the chunk.
 use crate::worldgen::WorldGenerator;
 use crossbeam::channel::{Receiver, Sender};
-use feather_core::level::LevelData;
 use feather_core::region;
 use feather_core::region::{RegionHandle, RegionPosition};
 use feather_core::world::chunk::Chunk;

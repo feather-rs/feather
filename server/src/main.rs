@@ -45,7 +45,7 @@ use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
 use crate::systems::{ITEM_SPAWN, JOIN_HANDLER, NETWORK, SPAWNER};
 use crate::util::Util;
-use crate::worldgen::{EmptyWorldGenerator, SuperflatWorldGenerator};
+use crate::worldgen::{EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator};
 use backtrace::Backtrace;
 use feather_core::level;
 use feather_core::level::{LevelData, LevelGeneratorType};
@@ -231,11 +231,11 @@ fn init_world<'a, 'b>(
     world.insert(TickCount::default());
     world.insert(level);
 
-    let generator = match level.generator_type() {
-        LevelGeneratorType::Flat => SuperflatWorldGenerator {
+    let generator: Arc<dyn WorldGenerator> = match level.generator_type() {
+        LevelGeneratorType::Flat => Arc::new(SuperflatWorldGenerator {
             options: level.generator_options.unwrap_or_default(),
-        },
-        _ => EmptyWorldGenerator {},
+        }),
+        _ => Arc::new(EmptyWorldGenerator {}),
     };
     world.insert(generator);
 
