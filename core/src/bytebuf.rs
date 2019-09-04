@@ -143,6 +143,7 @@ impl Read for ByteBuf {
             amount_read += 1;
         }
 
+        self.read_cursor_position += amount_read;
         Ok(amount_read)
     }
 }

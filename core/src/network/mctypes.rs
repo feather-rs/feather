@@ -127,8 +127,8 @@ impl<T: Buf + Read> McTypeRead for T {
                 return Err(());
             }
             let read = self.read_u8()?;
-            let value = read & 0b0111_1111;
-            result |= (i32::from(value)) << (7 * num_read);
+            let value = i32::from(read & 0b0111_1111);
+            result |= value << (7 * num_read);
 
             num_read += 1;
             if num_read > 5 {
@@ -153,8 +153,10 @@ impl<T: Buf + Read> McTypeRead for T {
             }
             let mut result = String::with_capacity(len as usize);
             for _ in 0..len {
-                result.push(self.get_u8() as char);
+                let res = self.read_u8();
+                result.push(res? as char);
             }
+
             return Ok(result);
         }
 
@@ -206,5 +208,18 @@ impl<T: Buf + Read> McTypeRead for T {
         // TODO NBT support
 
         Ok(Some(ItemStack::new(ty, amount)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_var_int() {
+        // Examples from wiki.vg
+        let mut buf = ByteBuf::new();
+        buf.write_all(&[0xff, 0x01]).unwrap();
+        assert_eq!(buf.read_var_int(), Ok(255));
     }
 }
