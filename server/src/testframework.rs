@@ -21,7 +21,10 @@ use feather_core::Gamemode;
 use crate::chunk_logic::ChunkHolders;
 use crate::config::Config;
 use crate::entity::metadata::{self, Metadata};
-use crate::entity::{EntityDestroyEvent, EntitySpawnEvent, EntityType, ItemComponent, NamedComponent, PlayerComponent, PositionComponent, VelocityComponent, ChunkEntities};
+use crate::entity::{
+    ChunkEntities, EntityDestroyEvent, EntitySpawnEvent, EntityType, ItemComponent, NamedComponent,
+    PlayerComponent, PositionComponent, VelocityComponent,
+};
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
 use crate::player::{InventoryComponent, PlayerDisconnectEvent};
@@ -58,7 +61,33 @@ pub struct Player {
 /// Adds a player to the world, inserting
 /// all the necessary components. Returns
 /// a number of useful channels.
+///
+/// # Notes
+/// * A `ChunkHolders` and `ChunkEntities` entry
+/// is created for the player. If this behavior is not
+/// desired, use `add_player_without_holder`.
 pub fn add_player(world: &mut World) -> Player {
+    let player = add_player_without_holder(world);
+
+    let mut chunk_holders = world.fetch_mut::<ChunkHolders>();
+
+    let view_distance = i32::from(world.fetch::<Arc<Config>>().server.view_distance);
+
+    for x in -view_distance..=view_distance {
+        for z in -view_distance..=view_distance {
+            chunk_holders.insert_holder(ChunkPosition::new(x, z), player.entity);
+        }
+    }
+
+    let mut chunk_entities = world.fetch_mut::<ChunkEntities>();
+    chunk_entities.add_to_chunk(ChunkPosition::new(0, 0), player.entity);
+
+    player
+}
+
+/// Adds a player to the world without adding the `ChunkHolders`
+/// and `ChunkEntities` entries.
+pub fn add_player_without_holder(world: &mut World) -> Player {
     let (ns1, nr1) = channel();
     let (ns2, nr2) = channel();
     let entity = world
@@ -80,19 +109,6 @@ pub fn add_player(world: &mut World) -> Player {
         .with(Metadata::Player(metadata::Player::default()))
         .with(EntityType::Player)
         .build();
-
-    let mut chunk_holders = world.fetch_mut::<ChunkHolders>();
-
-    let view_distance = i32::from(world.fetch::<Arc<Config>>().server.view_distance);
-
-    for x in -view_distance..=view_distance {
-        for z in -view_distance..=view_distance {
-            chunk_holders.insert_holder(ChunkPosition::new(x, z), entity);
-        }
-    }
-
-    let mut chunk_entities = world.fetch_mut::<ChunkEntities>();
-    chunk_entities.add_to_chunk(ChunkPosition::new(0, 0), entity);
 
     Player {
         entity,
@@ -220,8 +236,24 @@ pub fn triggered_events<E: Send + Sync + Clone + 'static>(
 
 /// Creates an entity at the origin with zero
 /// velocity.
+///
+///
+/// # Notes
+/// * A `ChunkHolders` and `ChunkEntities` entry
+/// is created for the entity. If this behavior is not
+/// desired, use `add_entity_without_holder`.
 pub fn add_entity(world: &mut World, ty: EntityType, trigger_spawn_event: bool) -> Entity {
     add_entity_with_pos(world, ty, Position::default(), trigger_spawn_event)
+}
+
+/// Creates an entity at the origin with zero velocity, without
+/// adding a chunk holder or chunk entities entry for it.
+pub fn add_entity_without_holder(
+    world: &mut World,
+    ty: EntityType,
+    trigger_spawn_event: bool,
+) -> Entity {
+    add_entity_without_holder_with_pos(world, ty, Position::default(), trigger_spawn_event)
 }
 
 /// Creates an entity with the given position
@@ -241,8 +273,39 @@ pub fn add_entity_with_pos(
     )
 }
 
+pub fn add_entity_without_holder_with_pos(
+    world: &mut World,
+    ty: EntityType,
+    pos: Position,
+    trigger_spawn_event: bool,
+) -> Entity {
+    add_entity_without_holder_with_pos_and_vel(
+        world,
+        ty,
+        pos,
+        glm::vec3(0.0, 0.0, 0.0),
+        trigger_spawn_event,
+    )
+}
+
 /// Creates an entity with the given position and velocity.
 pub fn add_entity_with_pos_and_vel(
+    world: &mut World,
+    ty: EntityType,
+    pos: Position,
+    vel: DVec3,
+    trigger_spawn_event: bool,
+) -> Entity {
+    let entity =
+        add_entity_without_holder_with_pos_and_vel(world, ty, pos, vel, trigger_spawn_event);
+
+    let mut chunk_entities = world.fetch_mut::<ChunkEntities>();
+    chunk_entities.add_to_chunk(pos.chunk_pos(), entity);
+
+    entity
+}
+
+pub fn add_entity_without_holder_with_pos_and_vel(
     world: &mut World,
     ty: EntityType,
     pos: Position,
@@ -270,9 +333,6 @@ pub fn add_entity_with_pos_and_vel(
             .insert(entity, ItemComponent { collectable_at: 20 })
             .unwrap();
     }
-
-    let mut chunk_entities = world.fetch_mut::<ChunkEntities>();
-    chunk_entities.add_to_chunk(pos.chunk_pos(), entity);
 
     if trigger_spawn_event {
         let event = EntitySpawnEvent { entity, ty };

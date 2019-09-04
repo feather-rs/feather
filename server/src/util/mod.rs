@@ -132,12 +132,12 @@ impl Util {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::chunk_logic::ChunkHolders;
     use crate::testframework as t;
     use crate::util::broadcaster::BroadcasterSystem;
     use feather_core::network::packet::implementation::EntityHeadLook;
     use feather_core::PacketType;
     use specs::WorldExt;
-    use crate::chunk_logic::ChunkHolders;
 
     #[test]
     fn test_broadcast() {

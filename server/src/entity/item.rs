@@ -375,11 +375,7 @@ mod tests {
     #[test]
     fn test_item_merge_system() {
         let (mut w, mut d) = t::builder()
-            .with_dep(
-                ItemMergeSystem::default(),
-                "item_merge",
-                &[],
-            )
+            .with_dep(ItemMergeSystem::default(), "item_merge", &[])
             .build();
 
         let item1 =

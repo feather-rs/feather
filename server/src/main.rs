@@ -241,6 +241,9 @@ fn init_world<'a, 'b>(
 
     player::init_broadcast(&mut dispatcher);
     entity::init_broadcast(&mut dispatcher);
+
+    // Broadcast system needs to run last.
+    dispatcher.add_barrier();
     dispatcher.add(util::BroadcasterSystem, BROADCASTER, &[]);
 
     let mut dispatcher = dispatcher.build();

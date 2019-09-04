@@ -116,13 +116,13 @@ mod tests {
 
         let player_chunk = ChunkPosition::new(0, 0);
 
-        let player1 = t::add_player(&mut world);
-        let player2 = t::add_player(&mut world);
+        let player1 = t::add_player_without_holder(&mut world);
+        let player2 = t::add_player_without_holder(&mut world);
 
-        let entity1 = t::add_entity(&mut world, EntityType::Item, true);
-        let entity2 = t::add_entity(&mut world, EntityType::Item, true);
-        let entity3 = t::add_entity(&mut world, EntityType::Item, true);
-        let entity4 = t::add_entity(&mut world, EntityType::Item, true);
+        let entity1 = t::add_entity_without_holder(&mut world, EntityType::Item, true);
+        let entity2 = t::add_entity_without_holder(&mut world, EntityType::Item, true);
+        let entity3 = t::add_entity_without_holder(&mut world, EntityType::Item, true);
+        let entity4 = t::add_entity_without_holder(&mut world, EntityType::Item, true);
 
         let mut config = Config::default();
         config.server.view_distance = 4;

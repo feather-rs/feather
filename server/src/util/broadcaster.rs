@@ -4,10 +4,10 @@
 use crate::chunk_logic::ChunkHolders;
 use crate::entity::PositionComponent;
 use crate::network::{send_packet_boxed_to_player, NetworkComponent};
+use crate::util::Util;
 use crossbeam::queue::SegQueue;
 use feather_core::{ChunkPosition, Packet};
 use specs::{Entities, Entity, Read, ReadStorage, System};
-use crate::util::Util;
 
 /// Broadcaster used to lazily broadcast packets.
 #[derive(Default)]

@@ -20,13 +20,13 @@ pub use broadcast::EntitySendSystem;
 pub use broadcast::EntitySender;
 pub use broadcast::EntitySpawnEvent;
 pub use chunk::ChunkEntities;
+pub use chunk::ChunkEntityUpdateSystem;
 pub use component::{NamedComponent, PlayerComponent, PositionComponent, VelocityComponent};
 pub use destroy::EntityDestroyEvent;
 pub use item::ItemComponent;
 pub use metadata::{EntityBitMask, Metadata};
 pub use movement::broadcast_entity_movement;
 pub use types::EntityType;
-pub use chunk::ChunkEntityUpdateSystem;
 
 use crate::entity::destroy::EntityDestroyBroadcastSystem;
 use crate::entity::item::ItemCollectSystem;

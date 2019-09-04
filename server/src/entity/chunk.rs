@@ -75,8 +75,6 @@ impl ChunkEntities {
             for z_offset in -view_distance..=view_distance {
                 let chunk = ChunkPosition::new(chunk.x + x_offset, chunk.z + z_offset);
 
-                println!("{:?}", chunk);
-
                 result.extend(self.entities_in_chunk(chunk));
             }
         }
@@ -185,10 +183,13 @@ mod tests {
         let (mut w, mut d) = t::init_world();
 
         let pos = position!(1.0, 64.0, 1003.5);
-        let entity = w.create_entity().with(PositionComponent {
-            current: pos,
-            previous: pos,
-        }).build();
+        let entity = w
+            .create_entity()
+            .with(PositionComponent {
+                current: pos,
+                previous: pos,
+            })
+            .build();
 
         let event = EntitySpawnEvent {
             entity,
@@ -213,10 +214,13 @@ mod tests {
         let pos = position!(1.0, 64.0, -14.0);
         let old_pos = position!(1.0, 64.0, -18.0);
 
-        let entity = w.create_entity().with(PositionComponent {
-            current: pos,
-            previous: old_pos
-        }).build();
+        let entity = w
+            .create_entity()
+            .with(PositionComponent {
+                current: pos,
+                previous: old_pos,
+            })
+            .build();
 
         d.dispatch(&w);
         w.maintain();
