@@ -1,11 +1,11 @@
 [package]
-name = "feather_item_block"
-version = "0.1.0"
+name = "feather-item-block"
+version = "0.4.0"
 authors = ["caelunshun <caelum12321@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-feather_blocks = { path = "../blocks" }
-feather_items = { path = "../items" }
+feather-blocks = { path = "../blocks" }
+feather-items = { path = "../items" }

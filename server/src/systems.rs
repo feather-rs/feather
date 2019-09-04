@@ -56,3 +56,6 @@ pub const PHYSICS_INIT: &str = "physics_init";
 // Other
 pub const JOIN_HANDLER: &str = "join_handler";
 pub const NETWORK: &str = "network";
+
+pub const TIME_INCREMENT: &str = "time_increment";
+pub const TIME_SEND: &str = "time_send";

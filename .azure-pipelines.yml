@@ -115,7 +115,7 @@ jobs:
           TAG="$(Build.SourceBranch)"
           TAG=${TAG#refs/tags/}
           echo TAG
-          echo "##vso[task.setvariable variable=build.TAG]TAG"
+          echo "##vso[task.setvariable variable=build.tag]$TAG"
         displayName: "Create tag variable"
 
       - script: |
@@ -141,8 +141,17 @@ jobs:
         displayName: Copy assets
         inputs:
           sourceFolder: '$(Build.SourcesDirectory)/target/release'
-          contents: feather_server
+          contents: feather-server
           targetFolder: '$(Build.BinariesDirectory)/feather'
+        condition: ne( variables['Agent.OS'], 'Windows_NT' )
+
+      - task: CopyFiles@2
+        displayName: Copy assets
+        inputs:
+          sourceFolder: '$(Build.SourcesDirectory)\target\release'
+          contents: feather-server.exe
+          targetFolder: '$(Build.BinariesDirectory)\feather'
+        condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
       - task: ArchiveFiles@2
         displayName: Gather assets
@@ -151,9 +160,17 @@ jobs:
           archiveType: 'tar'
           tarCompression: 'gz'
           archiveFile: '$(Build.ArtifactStagingDirectory)/feather-$(build.tag)-$(platform).tar.gz'
+        condition: ne( variables['Agent.OS'], 'Windows_NT' )
+
+      - task: ArchiveFiles@2
+        displayName: Gather assets
+        inputs:
+          rootFolderOrFile: '$(Build.BinariesDirectory)\feather\*'
+          archiveType: 'zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)\feather-$(build.tag)-$(platform).zip'
+        condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
       - task: GithubRelease@0
-        condition: succeeded()
         inputs:
           gitHubConnection: 'caelunshun_pat'
           repositoryName: 'caelunshun/feather'
@@ -165,3 +182,18 @@ jobs:
           title: '$(build.tag)'
           assetUploadMode: 'replace'
           addChangeLog: false
+        condition: and(succeeded(), ne( variables['Agent.OS'], 'Windows_NT' ))
+
+      - task: GithubRelease@0
+        inputs:
+          gitHubConnection: 'caelunshun_pat'
+          repositoryName: 'caelunshun/feather'
+          action: 'edit'
+          target: '$(build.sourceVersion)'
+          tagSource: 'manual'
+          tag: '$(build.tag)'
+          assets: '$(Build.ArtifactStagingDirectory)\feather-$(build.tag)-$(platform).zip'
+          title: '$(build.tag)'
+          assetUploadMode: 'replace'
+          addChangeLog: false
+        condition: and(succeeded(), eq( variables['Agent.OS'], 'Windows_NT' ))

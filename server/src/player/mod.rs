@@ -54,8 +54,8 @@ use movement::{ChunkCrossSystem, ChunkSendSystem, ClientChunkUnloadSystem, Playe
 pub use resource_pack::ResourcePackSendSystem;
 use specs::DispatcherBuilder;
 
-pub const PLAYER_EYE_HEIGHT: f32 = 1.62;
-pub const PLAYER_EYE_HEIGHT_WHILE_SNEAKING: f32 = 1.54;
+pub const PLAYER_EYE_HEIGHT: f64 = 1.62;
+pub const PLAYER_EYE_HEIGHT_WHILE_SNEAKING: f64 = 1.54;
 
 pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(PlayerDiggingSystem, PLAYER_DIGGING, &[NETWORK]);

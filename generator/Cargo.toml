@@ -1,6 +1,6 @@
 [package]
-name = "feather_generator"
-version = "0.3.0"
+name = "feather-generator"
+version = "0.4.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 description = "Code generators for Feather"
@@ -16,6 +16,6 @@ failure = "0.1.5"
 derive_deref = "1.1.0"
 indexmap = { version = "1.1.0", features = ["serde-1"] }
 quote = "1.0.2"
-syn = "1.0.3"
+syn = "1.0.5"
 heck = "0.3.1"
-proc-macro2 = "1.0.1"
+proc-macro2 = "1.0.2"

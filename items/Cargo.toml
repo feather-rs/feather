@@ -1,6 +1,6 @@
 [package]
-name = "feather_items"
-version = "0.1.0"
+name = "feather-items"
+version = "0.4.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 

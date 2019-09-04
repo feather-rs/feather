@@ -57,8 +57,8 @@ impl<'a> System<'a> for PlayerMovementSystem {
             // Get position using packet and old position
             let new_pos = new_pos_from_packet(position.previous, packet);
 
-            // Check that player didn't move too far (somewhat prevents cheating)
-            if position.previous.distance_squared(new_pos) > 36.0 {
+            // Check that player didn't move too far
+            if position.previous.distance_squared(new_pos) > 144.0 {
                 disconnect_player(player, "You moved too fast!".to_string(), &lazy);
                 continue;
             }

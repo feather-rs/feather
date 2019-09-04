@@ -72,6 +72,7 @@ pub mod prelude;
 pub mod systems;
 #[cfg(test)]
 pub mod testframework;
+pub mod time;
 pub mod worldgen;
 
 pub const TPS: u64 = 20;
@@ -223,6 +224,7 @@ fn init_world<'a, 'b>(
         }
     }
     let mut world = World::new();
+    time::init_time(&mut world, &level);
     world.insert(config);
     world.insert(player_count);
     world.insert(ioman);
@@ -246,6 +248,7 @@ fn init_world<'a, 'b>(
     entity::init_logic(&mut dispatcher);
     player::init_logic(&mut dispatcher);
     chunk_logic::init_logic(&mut dispatcher);
+    time::init_logic(&mut dispatcher);
 
     dispatcher.add_barrier();
 

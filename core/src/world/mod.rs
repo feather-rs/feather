@@ -71,9 +71,9 @@ impl Position {
     /// Returns a unit vector representing
     /// the direction of this position's pitch
     /// and yaw.
-    pub fn direction(&self) -> Vec3 {
-        let rotation_x = self.yaw.to_radians();
-        let rotation_y = self.pitch.to_radians();
+    pub fn direction(&self) -> DVec3 {
+        let rotation_x = f64::from(self.yaw.to_radians());
+        let rotation_y = f64::from(self.pitch.to_radians());
 
         let y = -rotation_y.sin();
 

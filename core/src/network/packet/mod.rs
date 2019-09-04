@@ -554,6 +554,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x4A, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::TimeUpdate,
+        );
+
+        m.insert(
             PacketId(0x4F, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::CollectItem,
         );

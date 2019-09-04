@@ -1,7 +1,7 @@
 //! Assorted utilities for use in Feather's codebase.
 use bumpalo::Bump;
 use feather_core::{ItemStack, Position};
-use glm::Vec3;
+use glm::DVec3;
 use spawn::Spawner;
 use thread_local::ThreadLocal;
 
@@ -14,7 +14,7 @@ pub use spawn::SpawnerSystem;
 
 /// Converts float-based velocity in blocks per tick
 /// to the obnoxious format used by the protocol.
-pub fn protocol_velocity(vel: Vec3) -> (i16, i16, i16) {
+pub fn protocol_velocity(vel: DVec3) -> (i16, i16, i16) {
     // Apparently, these are in units of 1/8000 block per tick.
     (
         (vel.x / 8000.0) as i16,
@@ -71,7 +71,7 @@ impl Util {
     /// Queues an item to be spawned.
     ///
     /// This redirects to `Spawner::spawn`.
-    pub fn spawn_item(&self, position: Position, velocity: Vec3, item: ItemStack) {
+    pub fn spawn_item(&self, position: Position, velocity: DVec3, item: ItemStack) {
         self.spawner.spawn_item(position, velocity, item);
     }
 
