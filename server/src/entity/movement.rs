@@ -83,7 +83,7 @@ impl<'a> System<'a> for EntityVelocityBroadcastSystem {
                 velocity_z,
             };
 
-            util.broadcast_entity(entity, packet, Some(entity));
+            util.broadcast_entity_update(entity, packet, Some(entity));
         }
     }
 
@@ -128,10 +128,10 @@ pub fn broadcast_entity_movement(
                 degrees_to_stops(new_pos.pitch),
                 new_pos.on_ground,
             );
-            util.broadcast_entity(entity, packet, Some(entity));
+            util.broadcast_entity_update(entity, packet, Some(entity));
         } else {
             let packet = EntityRelativeMove::new(entity.id() as i32, rx, ry, rz, new_pos.on_ground);
-            util.broadcast_entity(entity, packet, Some(entity));
+            util.broadcast_entity_update(entity, packet, Some(entity));
         }
     } else {
         let packet = EntityLook::new(
@@ -140,13 +140,13 @@ pub fn broadcast_entity_movement(
             degrees_to_stops(new_pos.pitch),
             new_pos.on_ground,
         );
-        util.broadcast_entity(entity, packet, Some(entity));
+        util.broadcast_entity_update(entity, packet, Some(entity));
     }
 
     // Entity Head Look also needs to be sent if the entity turned its head
     if has_looked {
         let packet = EntityHeadLook::new(entity.id() as i32, degrees_to_stops(new_pos.yaw));
-        util.broadcast_entity(entity, packet, Some(entity));
+        util.broadcast_entity_update(entity, packet, Some(entity));
     }
 }
 

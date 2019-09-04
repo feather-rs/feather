@@ -72,13 +72,13 @@ pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
 }
 
 pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
+    dispatcher.add(ViewUpdateSystem::default(), VIEW_UPDATE, &[]);
     dispatcher.add(ChunkCrossSystem::default(), CHUNK_CROSS, &[]);
     dispatcher.add(ClientChunkUnloadSystem, CLIENT_CHUNK_UNLOAD, &[]);
     dispatcher.add(PlayerInitSystem::default(), PLAYER_INIT, &[]);
 }
 
 pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
-    dispatcher.add(ViewUpdateSystem::default(), VIEW_UPDATE, &[]);
     dispatcher.add(HeldItemBroadcastSystem::default(), HELD_ITEM_BROADCAST, &[]);
     dispatcher.add(JoinBroadcastSystem::default(), JOIN_BROADCAST, &[]);
     dispatcher.add(

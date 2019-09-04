@@ -69,7 +69,10 @@ impl ChunkEntities {
     ) -> HashSet<Entity> {
         let mut result = HashSet::new();
 
-        let view_distance = i32::from(view_distance);
+        // 1 is subtracted from the view distance because of some odd
+        // client-side glitch (or maybe it's our fault?) where the last chunk within the view distance
+        // is not loaded correctly.
+        let view_distance = i32::from(view_distance) - 1;
 
         for x_offset in -view_distance..=view_distance {
             for z_offset in -view_distance..=view_distance {
@@ -110,7 +113,7 @@ impl<'a> System<'a> for ChunkEntityUpdateSystem {
         self.dirty.clear();
         for event in positions.channel().read(self.move_reader.as_mut().unwrap()) {
             match event {
-                ComponentEvent::Inserted(id) | ComponentEvent::Modified(id) => {
+                ComponentEvent::Modified(id) => {
                     self.dirty.add(*id);
                 }
                 _ => (),
@@ -180,7 +183,7 @@ mod tests {
 
     #[test]
     fn test_new_entity() {
-        let (mut w, mut d) = t::init_world();
+        let (mut w, mut d) = t::builder().with(ChunkEntityUpdateSystem::default(), "").build();
 
         let pos = position!(1.0, 64.0, 1003.5);
         let entity = w
@@ -209,7 +212,7 @@ mod tests {
 
     #[test]
     fn test_moved_entity() {
-        let (mut w, mut d) = t::init_world();
+        let (mut w, mut d) = t::builder().with(ChunkEntityUpdateSystem::default(), "").build();
 
         let pos = position!(1.0, 64.0, -14.0);
         let old_pos = position!(1.0, 64.0, -18.0);
@@ -237,7 +240,7 @@ mod tests {
 
     #[test]
     fn test_destroyed_entity() {
-        let (mut w, mut d) = t::init_world();
+        let (mut w, mut d) = t::builder().with(ChunkEntityUpdateSystem::default(), "").build();
 
         let pos = position!(100.0, -100.0, -100.0);
         let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, false);
@@ -263,9 +266,9 @@ mod tests {
         let entity4 = world.create_entity().build();
 
         let chunk1 = ChunkPosition::new(0, 0);
-        let chunk2 = ChunkPosition::new(0, 4);
-        let chunk3 = ChunkPosition::new(0, 5);
-        let chunk4 = ChunkPosition::new(-4, -4);
+        let chunk2 = ChunkPosition::new(0, 3);
+        let chunk3 = ChunkPosition::new(0, 4);
+        let chunk4 = ChunkPosition::new(-3, -3);
 
         chunk_entities.add_to_chunk(chunk1, entity1);
         chunk_entities.add_to_chunk(chunk2, entity2);

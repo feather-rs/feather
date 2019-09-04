@@ -263,7 +263,7 @@ impl<'a> System<'a> for BlockUpdateBroadcastSystem {
             };
 
             let packet = BlockChange::new(event.pos, i32::from(event.new_block.native_state_id()));
-            util.broadcast_chunk(event.pos.chunk_pos(), packet, neq);
+            util.broadcast_chunk_update(event.pos.chunk_pos(), packet, neq);
         }
     }
 

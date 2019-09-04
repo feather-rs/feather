@@ -19,7 +19,7 @@ pub struct Broadcaster {
 impl Broadcaster {
     /// Lazily broadcasts a packet to all players
     /// able to see a given entity.
-    pub fn broadcast_entity<P>(&self, entity: Entity, packet: P, neq: Option<Entity>)
+    pub fn broadcast_entity_update<P>(&self, entity: Entity, packet: P, neq: Option<Entity>)
     where
         P: Packet + 'static,
     {
@@ -32,7 +32,7 @@ impl Broadcaster {
 
     /// Lazily broadcasts a packet to all players
     /// able to see a given chunk.
-    pub fn broadcast_chunk<P>(&self, chunk: ChunkPosition, packet: P, neq: Option<Entity>)
+    pub fn broadcast_chunk_update<P>(&self, chunk: ChunkPosition, packet: P, neq: Option<Entity>)
     where
         P: Packet + 'static,
     {

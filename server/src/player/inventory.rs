@@ -279,7 +279,7 @@ impl<'a> System<'a> for HeldItemBroadcastSystem {
                         item,
                     );
 
-                    util.broadcast_entity(event.player, packet, Some(event.player));
+                    util.broadcast_entity_update(event.player, packet, Some(event.player));
                 }
             }
         }

@@ -103,11 +103,12 @@ impl Util {
     /// This function runs in linear time with
     /// regard to the number of players able to see
     /// the entity.
-    pub fn broadcast_entity<P>(&self, entity: Entity, packet: P, neq: Option<Entity>)
+    pub fn broadcast_entity_update<P>(&self, entity: Entity, packet: P, neq: Option<Entity>)
     where
         P: Packet + Clone + 'static,
     {
-        self.broadcaster.broadcast_entity(entity, packet, neq);
+        self.broadcaster
+            .broadcast_entity_update(entity, packet, neq);
     }
 
     /// Broadcasts a packet to all players who
@@ -121,11 +122,11 @@ impl Util {
     /// This function runs in linear time with
     /// regard to the number of players able to see
     /// the chunk.
-    pub fn broadcast_chunk<P>(&self, chunk: ChunkPosition, packet: P, neq: Option<Entity>)
+    pub fn broadcast_chunk_update<P>(&self, chunk: ChunkPosition, packet: P, neq: Option<Entity>)
     where
         P: Packet + Clone + 'static,
     {
-        self.broadcaster.broadcast_chunk(chunk, packet, neq);
+        self.broadcaster.broadcast_chunk_update(chunk, packet, neq);
     }
 }
 
@@ -159,7 +160,7 @@ mod tests {
 
         let util = Util::default();
 
-        util.broadcast_entity(player1.entity, packet, Some(player2.entity));
+        util.broadcast_entity_update(player1.entity, packet, Some(player2.entity));
 
         world.insert(util);
         world.insert(chunk_holders);

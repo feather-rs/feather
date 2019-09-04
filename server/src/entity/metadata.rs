@@ -81,7 +81,7 @@ impl<'a> System<'a> for MetadataBroadcastSystem {
                 metadata: metadata.to_raw_metadata(),
             };
 
-            util.broadcast_entity(entity, packet, None);
+            util.broadcast_entity_update(entity, packet, None);
         }
 
         metadatas.set_event_emission(true);

@@ -95,8 +95,6 @@ impl<'a> System<'a> for EntitySendSystem {
 
             let network = networks.get(request.player).unwrap();
 
-            debug!("Sending ({:?}, {:?}) to player", ty, named);
-
             // Send corresponding packet to player.
             let packet =
                 packet_to_spawn_entity(request.entity, *ty, &position, metadata, velocity, named);

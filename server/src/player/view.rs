@@ -63,14 +63,11 @@ impl<'a> System<'a> for ViewUpdateSystem {
                     // on the client.
                     to_destroy.push(entity.id() as i32);
 
-                    debug!("Destroying {} on client", entity.id());
-
                     if let Some(network) = networks.get(*entity) {
                         let packet = DestroyEntities {
                             entity_ids: vec![event.player.id() as i32],
                         };
                         send_packet_to_player(network, packet);
-                        debug!("Destroying {} on client", event.player.id());
                     }
                 } else {
                     // Entity is in `new_entities` but not in `old_entities`.

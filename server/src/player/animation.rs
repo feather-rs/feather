@@ -63,7 +63,7 @@ impl<'a> System<'a> for AnimationBroadcastSystem {
             // Broadcast animation
             let packet = AnimationClientbound::new(event.player.id() as i32, event.animation);
 
-            util.broadcast_entity(event.player, packet, Some(event.player))
+            util.broadcast_entity_update(event.player, packet, Some(event.player))
         }
     }
 

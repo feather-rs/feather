@@ -283,7 +283,7 @@ impl<'a> System<'a> for ItemCollectSystem {
                     collector: player.id() as i32,
                     count: i32::from(stack.amount - amount_left),
                 };
-                util.broadcast_entity(player, packet, None);
+                util.broadcast_entity_update(player, packet, None);
 
                 if amount_left == 0 {
                     entities.delete(other).unwrap();
