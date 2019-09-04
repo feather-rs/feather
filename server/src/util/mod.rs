@@ -10,13 +10,10 @@ mod macros;
 mod broadcaster;
 mod spawn;
 
-use crate::chunk_logic::ChunkHolders;
-use crate::network::{send_packet_to_player, NetworkComponent};
 use broadcaster::Broadcaster;
 pub use broadcaster::BroadcasterSystem;
 pub use macros::*;
 pub use spawn::SpawnerSystem;
-use specs::storage::GenericReadStorage;
 use specs::Entity;
 
 /// Converts float-based velocity in blocks per tick
@@ -52,7 +49,7 @@ pub fn protocol_velocity(vel: DVec3) -> (i16, i16, i16) {
 /// * `broadcast` - lazily broadcasts a packet to all players
 /// who are able to see a given chunk. This can be used
 /// to broadcast movement updates, for example.
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct Util {
     /// Thread-local bump allocator, reset
     /// every tick.
@@ -140,6 +137,7 @@ mod tests {
     use feather_core::network::packet::implementation::EntityHeadLook;
     use feather_core::PacketType;
     use specs::WorldExt;
+    use crate::chunk_logic::ChunkHolders;
 
     #[test]
     fn test_broadcast() {
@@ -162,6 +160,9 @@ mod tests {
         let util = Util::default();
 
         util.broadcast_entity(player1.entity, packet, Some(player2.entity));
+
+        world.insert(util);
+        world.insert(chunk_holders);
 
         dispatcher.dispatch(&world);
         world.maintain();

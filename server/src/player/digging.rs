@@ -4,9 +4,7 @@
 //! for completely unrelated actions, including eating, shooting bows,
 //! swapping items out the the offhand, and dropping items.
 
-use specs::{
-    Entities, Entity, LazyUpdate, Read, ReadStorage, ReaderId, System, World, Write, WriteStorage,
-};
+use specs::{Entity, LazyUpdate, Read, ReadStorage, ReaderId, System, World, Write, WriteStorage};
 
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
@@ -17,10 +15,9 @@ use feather_core::world::block::{Block, BlockExt};
 use feather_core::world::{BlockPosition, ChunkMap};
 use feather_core::{Gamemode, Item};
 
-use crate::chunk_logic::ChunkHolders;
 use crate::disconnect_player;
 use crate::entity::PlayerComponent;
-use crate::network::{send_packet_to_all_players, NetworkComponent, PacketQueue};
+use crate::network::PacketQueue;
 use crate::player::{InventoryComponent, InventoryUpdateEvent};
 use crate::util::Util;
 use feather_core::inventory::{ItemStack, SlotIndex, SLOT_HOTBAR_OFFSET};

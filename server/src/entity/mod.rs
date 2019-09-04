@@ -26,12 +26,12 @@ pub use item::ItemComponent;
 pub use metadata::{EntityBitMask, Metadata};
 pub use movement::broadcast_entity_movement;
 pub use types::EntityType;
+pub use chunk::ChunkEntityUpdateSystem;
 
 use crate::entity::destroy::EntityDestroyBroadcastSystem;
 use crate::entity::item::ItemCollectSystem;
 use crate::entity::metadata::MetadataBroadcastSystem;
 use broadcast::EntityBroadcastSystem;
-use chunk::ChunkEntityUpdateSystem;
 use component::ComponentResetSystem;
 use destroy::EntityDestroySystem;
 use item::{ItemMergeSystem, ItemSpawnSystem};

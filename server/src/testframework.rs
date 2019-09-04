@@ -21,14 +21,10 @@ use feather_core::Gamemode;
 use crate::chunk_logic::ChunkHolders;
 use crate::config::Config;
 use crate::entity::metadata::{self, Metadata};
-use crate::entity::{
-    EntityDestroyEvent, EntitySpawnEvent, EntityType, ItemComponent, NamedComponent,
-    PlayerComponent, PositionComponent, VelocityComponent,
-};
+use crate::entity::{EntityDestroyEvent, EntitySpawnEvent, EntityType, ItemComponent, NamedComponent, PlayerComponent, PositionComponent, VelocityComponent, ChunkEntities};
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
 use crate::player::{InventoryComponent, PlayerDisconnectEvent};
-use crate::systems::BROADCASTER;
 use crate::util::BroadcasterSystem;
 use crate::PlayerCount;
 
@@ -65,7 +61,7 @@ pub struct Player {
 pub fn add_player(world: &mut World) -> Player {
     let (ns1, nr1) = channel();
     let (ns2, nr2) = channel();
-    let e = world
+    let entity = world
         .create_entity()
         .with(NetworkComponent::new(ns1, nr2))
         .with(PlayerComponent {
@@ -91,12 +87,15 @@ pub fn add_player(world: &mut World) -> Player {
 
     for x in -view_distance..=view_distance {
         for z in -view_distance..=view_distance {
-            chunk_holders.insert_holder(ChunkPosition::new(x, z), e);
+            chunk_holders.insert_holder(ChunkPosition::new(x, z), entity);
         }
     }
 
+    let mut chunk_entities = world.fetch_mut::<ChunkEntities>();
+    chunk_entities.add_to_chunk(ChunkPosition::new(0, 0), entity);
+
     Player {
-        entity: e,
+        entity,
         network_sender: ns2,
         network_receiver: nr1,
     }
@@ -272,6 +271,9 @@ pub fn add_entity_with_pos_and_vel(
             .unwrap();
     }
 
+    let mut chunk_entities = world.fetch_mut::<ChunkEntities>();
+    chunk_entities.add_to_chunk(pos.chunk_pos(), entity);
+
     if trigger_spawn_event {
         let event = EntitySpawnEvent { entity, ty };
         trigger_event(&world, event);
@@ -369,13 +371,16 @@ impl<'a, 'b> TestBuilder<'a, 'b> {
         self.world
             .insert(EventChannel::<PlayerDisconnectEvent>::new());
         self.world.insert(EventChannel::<EntityDestroyEvent>::new());
+        self.world.insert(EventChannel::<EntitySpawnEvent>::new());
         self.world.insert(crate::time::Time(0));
         self.world.insert(ChunkHolders::default());
+        self.world.insert(ChunkEntities::default());
         self.world.insert(Arc::new(Config::default()));
 
         // Insert the broadcaster system, since it is so commonly
         // used that it should be used for all tests.
-        self.dispatcher.add_thread_local(BroadcasterSystem);
+        self.dispatcher.add_barrier();
+        self.dispatcher.add(BroadcasterSystem, "", &[]);
 
         let mut dispatcher = self.dispatcher.build();
         dispatcher.setup(&mut self.world);

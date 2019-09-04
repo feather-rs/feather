@@ -75,6 +75,8 @@ impl ChunkEntities {
             for z_offset in -view_distance..=view_distance {
                 let chunk = ChunkPosition::new(chunk.x + x_offset, chunk.z + z_offset);
 
+                println!("{:?}", chunk);
+
                 result.extend(self.entities_in_chunk(chunk));
             }
         }
@@ -155,6 +157,8 @@ impl<'a> System<'a> for ChunkEntityUpdateSystem {
     }
 }
 
+// Tests here cannot use the `testframework::add_entity` function
+// because it automatically adds a ChunkEntities entry for the entity.
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -181,7 +185,16 @@ mod tests {
         let (mut w, mut d) = t::init_world();
 
         let pos = position!(1.0, 64.0, 1003.5);
-        let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, true);
+        let entity = w.create_entity().with(PositionComponent {
+            current: pos,
+            previous: pos,
+        }).build();
+
+        let event = EntitySpawnEvent {
+            entity,
+            ty: EntityType::Player,
+        };
+        t::trigger_event(&w, event);
 
         d.dispatch(&w);
         w.maintain();
@@ -200,17 +213,10 @@ mod tests {
         let pos = position!(1.0, 64.0, -14.0);
         let old_pos = position!(1.0, 64.0, -18.0);
 
-        let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, false);
-
-        {
-            let mut chunk_entities = w.fetch_mut::<ChunkEntities>();
-            chunk_entities.add_to_chunk(old_pos.chunk_pos(), entity);
-
-            w.write_component::<PositionComponent>()
-                .get_mut(entity)
-                .unwrap()
-                .previous = old_pos;
-        }
+        let entity = w.create_entity().with(PositionComponent {
+            current: pos,
+            previous: old_pos
+        }).build();
 
         d.dispatch(&w);
         w.maintain();
@@ -231,11 +237,6 @@ mod tests {
 
         let pos = position!(100.0, -100.0, -100.0);
         let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, false);
-
-        {
-            let mut chunk_entities = w.fetch_mut::<ChunkEntities>();
-            chunk_entities.add_to_chunk(pos.chunk_pos(), entity);
-        }
 
         let event = EntityDestroyEvent { entity };
         t::trigger_event(&w, event);

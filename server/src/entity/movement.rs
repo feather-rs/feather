@@ -6,9 +6,7 @@ use feather_core::network::packet::implementation::{
 };
 use feather_core::world::Position;
 
-use crate::chunk_logic::ChunkHolders;
 use crate::entity::{PositionComponent, VelocityComponent};
-use crate::network::NetworkComponent;
 use crate::util::{protocol_velocity, Util};
 
 /// System for broadcasting when an entity moves.
@@ -21,14 +19,12 @@ pub struct EntityMoveBroadcastSystem {
 impl<'a> System<'a> for EntityMoveBroadcastSystem {
     type SystemData = (
         ReadStorage<'a, PositionComponent>,
-        ReadStorage<'a, NetworkComponent>,
         Read<'a, Util>,
-        Read<'a, ChunkHolders>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (positions, networks, util, chunk_holders, entities) = data;
+        let (positions, util, entities) = data;
 
         self.dirty.clear();
 
@@ -41,7 +37,7 @@ impl<'a> System<'a> for EntityMoveBroadcastSystem {
             }
         }
 
-        for (entity, position, _) in (&entities, &positions, &self.dirty).join() {
+        for (position, entity, _) in (&positions, &entities, &self.dirty).join() {
             broadcast_entity_movement(entity, position.previous, position.current, &util);
         }
     }
@@ -59,14 +55,13 @@ pub struct EntityVelocityBroadcastSystem {
 
 impl<'a> System<'a> for EntityVelocityBroadcastSystem {
     type SystemData = (
-        ReadStorage<'a, PositionComponent>,
         ReadStorage<'a, VelocityComponent>,
         Read<'a, Util>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (positions, networks, velocities, util, chunk_holders, entities) = data;
+        let (velocities, util, entities) = data;
 
         self.dirty.clear();
 
@@ -79,9 +74,7 @@ impl<'a> System<'a> for EntityVelocityBroadcastSystem {
             }
         }
 
-        for (position, velocity, entity, _) in
-            (&positions, &velocities, &entities, &self.dirty).join()
-        {
+        for (velocity, entity, _) in (&velocities, &entities, &self.dirty).join() {
             let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocity.0);
             let packet = EntityVelocity {
                 entity_id: entity.id() as i32,
@@ -90,7 +83,7 @@ impl<'a> System<'a> for EntityVelocityBroadcastSystem {
                 velocity_z,
             };
 
-            util.broadcast(entity, packet, Some(entity));
+            util.broadcast_entity(entity, packet, Some(entity));
         }
     }
 
@@ -135,10 +128,10 @@ pub fn broadcast_entity_movement(
                 degrees_to_stops(new_pos.pitch),
                 new_pos.on_ground,
             );
-            util.broadcast(entity, packet, Some(entity));
+            util.broadcast_entity(entity, packet, Some(entity));
         } else {
             let packet = EntityRelativeMove::new(entity.id() as i32, rx, ry, rz, new_pos.on_ground);
-            util.broadcast(entity, packet, Some(entity));
+            util.broadcast_entity(entity, packet, Some(entity));
         }
     } else {
         let packet = EntityLook::new(
@@ -147,13 +140,13 @@ pub fn broadcast_entity_movement(
             degrees_to_stops(new_pos.pitch),
             new_pos.on_ground,
         );
-        util.broadcast(entity, packet, Some(entity));
+        util.broadcast_entity(entity, packet, Some(entity));
     }
 
     // Entity Head Look also needs to be sent if the entity turned its head
     if has_looked {
         let packet = EntityHeadLook::new(entity.id() as i32, degrees_to_stops(new_pos.yaw));
-        util.broadcast(entity, packet, Some(entity));
+        util.broadcast_entity(entity, packet, Some(entity));
     }
 }
 

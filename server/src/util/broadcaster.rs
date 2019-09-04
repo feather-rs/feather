@@ -3,13 +3,14 @@
 
 use crate::chunk_logic::ChunkHolders;
 use crate::entity::PositionComponent;
-use crate::network::{send_packet_boxed_to_player, send_packet_to_player, NetworkComponent};
+use crate::network::{send_packet_boxed_to_player, NetworkComponent};
 use crossbeam::queue::SegQueue;
 use feather_core::{ChunkPosition, Packet};
 use specs::{Entities, Entity, Read, ReadStorage, System};
+use crate::util::Util;
 
 /// Broadcaster used to lazily broadcast packets.
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct Broadcaster {
     /// Internal queue of broadcasts to send.
     queue: SegQueue<BroadcastRequest>,
@@ -44,7 +45,6 @@ impl Broadcaster {
 }
 
 /// A broadcast request.
-#[derive(Debug)]
 struct BroadcastRequest {
     /// Packet will only be sent to players able to see
     /// this entity or chunk.
@@ -69,29 +69,36 @@ impl<'a> System<'a> for BroadcasterSystem {
     type SystemData = (
         ReadStorage<'a, PositionComponent>,
         ReadStorage<'a, NetworkComponent>,
-        Read<'a, Broadcaster>,
+        Read<'a, Util>,
         Read<'a, ChunkHolders>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (positions, networks, broadcaster, chunk_holders, entities) = data;
+        let (positions, networks, util, chunk_holders, entities) = data;
+
+        let broadcaster = &util.broadcaster;
 
         while let Ok(request) = broadcaster.queue.pop() {
-            // Prevents a panic if the entity was destroyed.
-            if !entities.is_alive(request.entity) {
-                continue;
-            }
-
             // Broadcast packet.
             // Iterate over entities in the chunk_holders
             // entry for the chunk. If they are a player,
             // send the packet.
             // This works because any player able to see
             // a chunk will always have a chunk holder on the chunk.
-            if let Some(holders) = chunk_holders
-                .holders_for(positions.get(request.entity).unwrap().current.chunk_pos())
-            {
+
+            let chunk = match request.condition {
+                BroadcastCondition::Entity(entity) => {
+                    // Prevents a panic if the entity was destroyed.
+                    if !entities.is_alive(entity) {
+                        continue;
+                    }
+
+                    positions.get(entity).unwrap().current.chunk_pos()
+                }
+                BroadcastCondition::Chunk(chunk) => chunk,
+            };
+            if let Some(holders) = chunk_holders.holders_for(chunk) {
                 for holder in holders {
                     if let Some(neq) = request.neq.as_ref() {
                         if *holder == *neq {
@@ -100,7 +107,7 @@ impl<'a> System<'a> for BroadcasterSystem {
                     }
 
                     if let Some(network) = networks.get(*holder) {
-                        send_packet_boxed_to_player(network, request.packet.clone());
+                        send_packet_boxed_to_player(network, request.packet.box_clone());
                     }
                 }
             }

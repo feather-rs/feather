@@ -19,6 +19,9 @@ pub trait Packet: AsAny + Send {
     fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()>;
     fn write_to(&self, buf: &mut ByteBuf);
     fn ty(&self) -> PacketType;
+
+    /// Returns a clone of this packet in a dynamic box.
+    fn box_clone(&self) -> Box<dyn Packet>;
 }
 
 #[derive(Clone, Debug)]

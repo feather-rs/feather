@@ -1,8 +1,6 @@
 //! Logic for working with item entities.
-use crate::chunk_logic::ChunkHolders;
 use crate::entity::metadata::{self, Metadata};
 use crate::entity::{ChunkEntities, EntityDestroyEvent, PlayerComponent, PositionComponent};
-use crate::network::{send_packet_to_all_players, NetworkComponent};
 use crate::physics::nearby_entities;
 use crate::player::{
     InventoryComponent, InventoryUpdateEvent, PlayerItemDropEvent, PLAYER_EYE_HEIGHT,
@@ -208,7 +206,6 @@ impl<'a> System<'a> for ItemCollectSystem {
         ReadStorage<'a, PositionComponent>,
         ReadStorage<'a, PlayerComponent>,
         ReadStorage<'a, ItemComponent>,
-        ReadStorage<'a, NetworkComponent>,
         WriteStorage<'a, Metadata>,
         Write<'a, EventChannel<InventoryUpdateEvent>>,
         Write<'a, EventChannel<EntityDestroyEvent>>,
@@ -224,7 +221,6 @@ impl<'a> System<'a> for ItemCollectSystem {
             positions,
             players,
             items,
-            networks,
             mut metadatas,
             mut inventory_events,
             mut destroy_events,
@@ -330,10 +326,8 @@ pub fn item_meta(stack: ItemStack) -> Metadata {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::chunk::ChunkEntityUpdateSystem;
     use crate::entity::EntitySpawnEvent;
     use crate::entity::EntityType;
-    use crate::systems::CHUNK_ENTITIES_UPDATE;
     use crate::testframework as t;
     use feather_core::inventory::SLOT_HOTBAR_OFFSET;
     use feather_core::network::cast_packet;
@@ -381,12 +375,11 @@ mod tests {
     #[test]
     fn test_item_merge_system() {
         let (mut w, mut d) = t::builder()
-            .with(ChunkEntityUpdateSystem::default(), "chunk_entity_update")
             .with_dep(
                 ItemMergeSystem::default(),
                 "item_merge",
-                &["chunk_entity_update"],
-            ) // Required so nearby_entities() works
+                &[],
+            )
             .build();
 
         let item1 =
@@ -422,8 +415,7 @@ mod tests {
     #[test]
     fn test_item_collect_system() {
         let (mut w, mut d) = t::builder()
-            .with(ChunkEntityUpdateSystem::default(), CHUNK_ENTITIES_UPDATE)
-            .with_dep(ItemCollectSystem::default(), "", &[CHUNK_ENTITIES_UPDATE])
+            .with_dep(ItemCollectSystem::default(), "", &[])
             .build();
 
         let player = t::add_player(&mut w);

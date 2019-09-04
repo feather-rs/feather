@@ -2,14 +2,13 @@
 
 #![allow(clippy::too_many_arguments)] // TODO: builder patterm
 
-use crate::network::{send_packet_to_all_players, NetworkComponent};
 use crate::util::Util;
 use feather_core::packet::PacketEntityMetadata;
 use feather_core::{EntityMetadata, Slot};
 use specs::storage::ComponentEvent;
 use specs::{
-    BitSet, Component, Entities, FlaggedStorage, Join, Read, ReadStorage, ReaderId, System,
-    VecStorage, WriteStorage,
+    BitSet, Component, Entities, FlaggedStorage, Join, Read, ReaderId, System, VecStorage,
+    WriteStorage,
 };
 
 bitflags! {
@@ -82,7 +81,7 @@ impl<'a> System<'a> for MetadataBroadcastSystem {
                 metadata: metadata.to_raw_metadata(),
             };
 
-            util.broadcast(entity, packet, None);
+            util.broadcast_entity(entity, packet, None);
         }
 
         metadatas.set_event_emission(true);
@@ -135,7 +134,7 @@ mod tests {
             .build();
 
         // Metadata is inserted here, which causes update event
-        let entity = t::add_entity(&mut w, EntityType::Test, false);
+        let entity = t::add_entity(&mut w, EntityType::Test, true);
         let player = t::add_player(&mut w);
 
         d.dispatch(&w);

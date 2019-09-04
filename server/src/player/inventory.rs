@@ -1,10 +1,7 @@
-use crate::chunk_logic::ChunkHolders;
 use crate::disconnect_player;
-use crate::entity::{PlayerComponent, PositionComponent};
+use crate::entity::PlayerComponent;
 use crate::joinhandler::PlayerJoinEvent;
-use crate::network::{
-    send_packet_to_all_players, send_packet_to_player, NetworkComponent, PacketQueue,
-};
+use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue};
 use crate::player::digging::PlayerItemDropEvent;
 use crate::util::Util;
 use feather_core::inventory::{
@@ -259,14 +256,13 @@ pub struct HeldItemBroadcastSystem {
 
 impl<'a> System<'a> for HeldItemBroadcastSystem {
     type SystemData = (
-        ReadStorage<'a, NetworkComponent>,
         ReadStorage<'a, InventoryComponent>,
         Read<'a, EventChannel<InventoryUpdateEvent>>,
         Read<'a, Util>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (networks, inventories, events, util) = data;
+        let (inventories, events, util) = data;
 
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
             let inv = inventories.get(event.player).unwrap();
@@ -283,7 +279,7 @@ impl<'a> System<'a> for HeldItemBroadcastSystem {
                         item,
                     );
 
-                    util.broadcast(event.player, packet, Some(event.player));
+                    util.broadcast_entity(event.player, packet, Some(event.player));
                 }
             }
         }

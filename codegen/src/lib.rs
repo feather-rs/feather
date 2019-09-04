@@ -205,6 +205,10 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
             fn ty(&self) -> PacketType {
                 PacketType::#ident
             }
+
+            fn box_clone(&self) -> Box<dyn Packet> {
+                Box::new((*self).clone())
+            }
         }
     };
 

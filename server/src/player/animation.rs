@@ -1,6 +1,4 @@
-use crate::chunk_logic::ChunkHolders;
-use crate::entity::PositionComponent;
-use crate::network::{send_packet_to_all_players, NetworkComponent, PacketQueue};
+use crate::network::PacketQueue;
 use crate::util::Util;
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{AnimationClientbound, AnimationServerbound};
@@ -8,7 +6,7 @@ use feather_core::network::packet::PacketType;
 use feather_core::{ClientboundAnimation, Hand};
 use shrev::EventChannel;
 use specs::SystemData;
-use specs::{Entities, Entity, Read, ReadStorage, ReaderId, System, World, Write};
+use specs::{Entity, Read, ReaderId, System, World, Write};
 
 /// Event which is triggered when a player causes
 /// an animation.
@@ -65,7 +63,7 @@ impl<'a> System<'a> for AnimationBroadcastSystem {
             // Broadcast animation
             let packet = AnimationClientbound::new(event.player.id() as i32, event.animation);
 
-            util.broadcast(event.player, packet, Some(event.player))
+            util.broadcast_entity(event.player, packet, Some(event.player))
         }
     }
 
