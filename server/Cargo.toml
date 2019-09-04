@@ -27,10 +27,10 @@ mojang-api = "0.1.2"
 multimap = "0.6.0"
 hematite-nbt = "0.4.1"
 
-# A Specs fork is currently needed to allow starting/stopping
-# of FlaggedStorage event recording. The PR for this fork might
-# be merged, in which case this depedency should be updated.
-specs = { git = "https://github.com/AndreaCatania/specs", branch = "emsig" }
+#The storage-event-control feature is not in a stable version yet,
+#thus we need to use the git version.
+#Should be changed once the feature is in a stable version
+specs = { git = "https://github.com/slide-rs/specs", features = ["storage-event-control"] }
 
 rayon = "1.1.2"
 shrev = "1.1.1"
