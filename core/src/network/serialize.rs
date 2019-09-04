@@ -94,7 +94,7 @@ impl ConnectionIOManager {
             // position in the buffer if the packet is incomplete
             pending_buf.mark_read_position();
 
-            let packet_length = {
+            let mut packet_length = {
                 if let Ok(val) = pending_buf.read_var_int() {
                     val
                 } else {
@@ -118,6 +118,7 @@ impl ConnectionIOManager {
             if self.compression_enabled {
                 let uncompressed_size = pending_buf.read_var_int()?;
                 if uncompressed_size != 0 {
+                    packet_length = uncompressed_size;
                     self.decompress_data(uncompressed_size);
                     len_of_compressed_size_field = 0;
                 } else {
@@ -126,7 +127,8 @@ impl ConnectionIOManager {
                         .unwrap();
                     len_of_compressed_size_field =
                         pending_buf.read_pos() - pending_buf.marked_read_position();
-                    pending_buf.advance((packet_length - 1) as usize);
+                    self.incoming_compressed
+                        .advance((packet_length - 1) as usize);
                 }
             } else {
                 len_of_compressed_size_field = 0;
