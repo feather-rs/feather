@@ -112,11 +112,8 @@ impl<'a> System<'a> for ChunkEntityUpdateSystem {
 
         self.dirty.clear();
         for event in positions.channel().read(self.move_reader.as_mut().unwrap()) {
-            match event {
-                ComponentEvent::Modified(id) => {
-                    self.dirty.add(*id);
-                }
-                _ => (),
+            if let ComponentEvent::Modified(id) = event {
+                self.dirty.add(*id);
             }
         }
 
