@@ -183,7 +183,9 @@ mod tests {
 
     #[test]
     fn test_new_entity() {
-        let (mut w, mut d) = t::builder().with(ChunkEntityUpdateSystem::default(), "").build();
+        let (mut w, mut d) = t::builder()
+            .with(ChunkEntityUpdateSystem::default(), "")
+            .build();
 
         let pos = position!(1.0, 64.0, 1003.5);
         let entity = w
@@ -212,7 +214,9 @@ mod tests {
 
     #[test]
     fn test_moved_entity() {
-        let (mut w, mut d) = t::builder().with(ChunkEntityUpdateSystem::default(), "").build();
+        let (mut w, mut d) = t::builder()
+            .with(ChunkEntityUpdateSystem::default(), "")
+            .build();
 
         let pos = position!(1.0, 64.0, -14.0);
         let old_pos = position!(1.0, 64.0, -18.0);
@@ -220,10 +224,16 @@ mod tests {
         let entity = w
             .create_entity()
             .with(PositionComponent {
-                current: pos,
+                current: old_pos,
                 previous: old_pos,
             })
             .build();
+
+        // Trigger flagged storage event.
+        w.write_component::<PositionComponent>()
+            .get_mut(entity)
+            .unwrap()
+            .current = pos;
 
         d.dispatch(&w);
         w.maintain();
@@ -240,7 +250,9 @@ mod tests {
 
     #[test]
     fn test_destroyed_entity() {
-        let (mut w, mut d) = t::builder().with(ChunkEntityUpdateSystem::default(), "").build();
+        let (mut w, mut d) = t::builder()
+            .with(ChunkEntityUpdateSystem::default(), "")
+            .build();
 
         let pos = position!(100.0, -100.0, -100.0);
         let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, false);

@@ -129,9 +129,9 @@ mod tests {
             let mut chunk_entities = world.fetch_mut::<ChunkEntities>();
             chunk_entities.add_to_chunk(player_chunk, player1.entity);
             chunk_entities.add_to_chunk(player_chunk, player2.entity);
-            chunk_entities.add_to_chunk(ChunkPosition::new(4, -4), entity1);
+            chunk_entities.add_to_chunk(ChunkPosition::new(3, -3), entity1);
             chunk_entities.add_to_chunk(player_chunk, entity2);
-            chunk_entities.add_to_chunk(ChunkPosition::new(5, -4), entity3);
+            chunk_entities.add_to_chunk(ChunkPosition::new(4, -3), entity3);
             chunk_entities.add_to_chunk(ChunkPosition::new(100, 103), entity4);
         }
 
