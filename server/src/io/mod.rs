@@ -2,7 +2,6 @@ use crate::config::Config;
 use crate::PlayerCount;
 use feather_core::network::packet::Packet;
 use mio_extras::channel::{channel, Receiver, Sender};
-use parking_lot::Mutex;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::thread;
@@ -44,10 +43,10 @@ pub struct NewClientInfo {
 }
 
 pub struct NetworkIoManager {
-    pub sender: Mutex<Sender<ServerToListenerMessage>>,
-    pub receiver: Mutex<Receiver<ServerToListenerMessage>>,
+    pub sender: Sender<ServerToListenerMessage>,
+    pub receiver: Receiver<ServerToListenerMessage>,
     /// Used for testing
-    pub listener_sender: Mutex<Sender<ServerToListenerMessage>>,
+    pub listener_sender: Sender<ServerToListenerMessage>,
 }
 
 impl NetworkIoManager {
@@ -83,16 +82,16 @@ impl NetworkIoManager {
         thread::spawn(move || listener::start(addr.to_string(), sender1_clone, receiver2, workers));
 
         Self {
-            sender: Mutex::new(sender2),
-            receiver: Mutex::new(receiver1),
-            listener_sender: Mutex::new(sender1),
+            sender: sender2,
+            receiver: receiver1,
+            listener_sender: sender1,
         }
     }
 
     /// Gracefully shuts down all IO threads, consuming the object.
     pub fn stop(self) {
         let msg = ServerToListenerMessage::ShutDown;
-        self.sender.lock().send(msg).unwrap();
+        self.sender.send(msg).unwrap();
 
         info!("Shut down IO event loop");
     }

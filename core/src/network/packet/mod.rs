@@ -40,7 +40,7 @@ impl PacketBuilder {
     }
 }
 
-#[derive(Debug, Hash, PartialEq, Eq, Copy, Clone)]
+#[derive(Debug, Hash, PartialEq, Eq, Copy, Clone, EnumCount)]
 pub enum PacketType {
     // Serverbound
 

@@ -8,7 +8,11 @@ edition = "2018"
 feather-core = { path = "../core" }
 feather-item-block = { path = "../item_block" }
 mio = "0.6.19"
-mio-extras = "2.0.5"
+
+# We use a fork of mio-extras which uses crossbeam::channel
+# instead of std::sync::mpsc.
+mio-extras = { git = "https://github.com/caelunshun/mio-extras" }
+
 crossbeam = "0.7.2"
 log = "0.4.8"
 simple_logger = "1.3.0"
@@ -52,6 +56,7 @@ bumpalo = "2.6.0"
 thread_local = "0.3.6"
 parking_lot = "0.9.0"
 heapless = "0.5.1"
+strum = "0.15.0"
 
 [features]
 nightly = ["specs/nightly", "parking_lot/nightly"]
