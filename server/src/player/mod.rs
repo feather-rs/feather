@@ -22,10 +22,13 @@ mod movement;
 /// Module for handling player block placements.
 mod placement;
 mod resource_pack;
+mod view;
 
 pub use broadcast::PlayerDisconnectEvent;
 
-pub use movement::{send_chunk_to_player, ChunkPendingComponent, LoadedChunksComponent};
+pub use movement::{
+    send_chunk_to_player, ChunkCrossSystem, ChunkPendingComponent, LoadedChunksComponent,
+};
 
 pub use animation::PlayerAnimationEvent;
 
@@ -35,11 +38,12 @@ pub use digging::{BlockUpdateCause, BlockUpdateEvent, PlayerItemDropEvent};
 
 use crate::player::inventory::SetSlotSystem;
 use crate::player::placement::BlockPlacementSystem;
+use crate::player::view::ViewUpdateSystem;
 use crate::systems::{
     ANIMATION_BROADCAST, BLOCK_BREAK_BROADCAST, BLOCK_PLACEMENT, CHAT_BROADCAST, CHUNK_CROSS,
     CHUNK_SEND, CLIENT_CHUNK_UNLOAD, CREATIVE_INVENTORY, DISCONNECT_BROADCAST, EQUIPMENT_SEND,
     HELD_ITEM_BROADCAST, HELD_ITEM_CHANGE, JOIN_BROADCAST, NETWORK, PLAYER_ANIMATION, PLAYER_CHAT,
-    PLAYER_DIGGING, PLAYER_INIT, PLAYER_MOVEMENT, RESOURCE_PACK_SEND, SET_SLOT,
+    PLAYER_DIGGING, PLAYER_INIT, PLAYER_MOVEMENT, RESOURCE_PACK_SEND, SET_SLOT, VIEW_UPDATE,
 };
 use animation::{AnimationBroadcastSystem, PlayerAnimationSystem};
 use broadcast::{DisconnectBroadcastSystem, JoinBroadcastSystem};
@@ -50,8 +54,8 @@ use init::PlayerInitSystem;
 use inventory::{
     CreativeInventorySystem, EquipmentSendSystem, HeldItemBroadcastSystem, HeldItemChangeSystem,
 };
-use movement::{ChunkCrossSystem, ChunkSendSystem, ClientChunkUnloadSystem, PlayerMovementSystem};
-pub use resource_pack::ResourcePackSendSystem;
+use movement::{ChunkSendSystem, ClientChunkUnloadSystem, PlayerMovementSystem};
+use resource_pack::ResourcePackSendSystem;
 use specs::DispatcherBuilder;
 
 pub const PLAYER_EYE_HEIGHT: f64 = 1.62;
@@ -68,6 +72,7 @@ pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
 }
 
 pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
+    dispatcher.add(ViewUpdateSystem::default(), VIEW_UPDATE, &[]);
     dispatcher.add(ChunkCrossSystem::default(), CHUNK_CROSS, &[]);
     dispatcher.add(ClientChunkUnloadSystem, CLIENT_CHUNK_UNLOAD, &[]);
     dispatcher.add(PlayerInitSystem::default(), PLAYER_INIT, &[]);

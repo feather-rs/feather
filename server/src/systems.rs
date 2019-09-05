@@ -22,6 +22,7 @@ pub const CHUNK_CROSS: &str = "chunk_cross";
 pub const PLAYER_INIT: &str = "player_init";
 pub const CLIENT_CHUNK_UNLOAD: &str = "client_chunk_unload";
 
+pub const VIEW_UPDATE: &str = "view_update";
 pub const HELD_ITEM_BROADCAST: &str = "held_item_broadcast";
 pub const JOIN_BROADCAST: &str = "join_broadcast";
 pub const DISCONNECT_BROADCAST: &str = "disconnect_broadcast";
@@ -44,6 +45,7 @@ pub const ITEM_MERGE: &str = "item_merge";
 
 pub const ENTITY_MOVE_BROADCAST: &str = "entity_move_broadcast";
 pub const ENTITY_SPAWN_BROADCAST: &str = "entity_spawn_broadcast";
+pub const ENTITY_SEND: &str = "entity_send";
 pub const ENTITY_VELOCITY_BROADCAST: &str = "entity_velocity_broadcast";
 pub const ENTITY_DESTROY_BROADCAST: &str = "entity_destroy_broadcast";
 pub const ENTITY_METADATA_BROADCAST: &str = "entity_metadata_broadcast";
@@ -59,3 +61,5 @@ pub const NETWORK: &str = "network";
 
 pub const TIME_INCREMENT: &str = "time_increment";
 pub const TIME_SEND: &str = "time_send";
+
+pub const BROADCASTER: &str = "broadcaster";

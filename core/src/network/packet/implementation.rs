@@ -79,7 +79,11 @@ lazy_static! {
     };
 }
 
-fn bla() {}
+macro_rules! box_clone_impl {
+    ($this:ident) => {
+        return Box::new((*$this).clone());
+    };
+}
 
 // SERVERBOUND
 
@@ -113,6 +117,10 @@ impl Packet for Handshake {
 
     fn ty(&self) -> PacketType {
         PacketType::Handshake
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 
@@ -168,6 +176,10 @@ impl Packet for EncryptionResponse {
 
     fn ty(&self) -> PacketType {
         PacketType::EncryptionResponse
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 
@@ -269,6 +281,10 @@ impl Packet for PluginMessageServerbound {
     fn ty(&self) -> PacketType {
         PacketType::PluginMessageServerbound
     }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
+    }
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
@@ -317,6 +333,10 @@ impl Packet for UseEntity {
 
     fn ty(&self) -> PacketType {
         PacketType::UseEntity
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 
@@ -438,6 +458,10 @@ impl Packet for PlayerDigging {
     fn ty(&self) -> PacketType {
         PacketType::PlayerDigging
     }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
+    }
 }
 
 #[derive(Clone, Debug, Copy, PartialEq, Eq, Hash)]
@@ -480,6 +504,10 @@ impl Packet for EntityAction {
 
     fn ty(&self) -> PacketType {
         PacketType::EntityAction
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 
@@ -621,6 +649,10 @@ impl Packet for AnimationServerbound {
     fn ty(&self) -> PacketType {
         PacketType::AnimationServerbound
     }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
+    }
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
@@ -685,6 +717,10 @@ impl Packet for PlayerBlockPlacement {
     fn ty(&self) -> PacketType {
         PacketType::PlayerBlockPlacement
     }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
+    }
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
@@ -722,6 +758,10 @@ impl Packet for EncryptionRequest {
 
     fn ty(&self) -> PacketType {
         PacketType::EncryptionRequest
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 
@@ -842,6 +882,10 @@ impl Packet for SpawnPlayer {
     fn ty(&self) -> PacketType {
         PacketType::SpawnPlayer
     }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
+    }
 }
 
 #[derive(Default, AsAny, new, Clone)]
@@ -862,6 +906,10 @@ impl Packet for AnimationClientbound {
 
     fn ty(&self) -> PacketType {
         PacketType::AnimationClientbound
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 
@@ -887,6 +935,10 @@ impl Packet for Statistics {
 
     fn ty(&self) -> PacketType {
         PacketType::Statistics
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 
@@ -960,6 +1012,10 @@ impl Packet for BossBar {
 
     fn ty(&self) -> PacketType {
         PacketType::BossBar
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 
@@ -1078,6 +1134,10 @@ impl Packet for WindowItems {
     fn ty(&self) -> PacketType {
         PacketType::WindowItems
     }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
+    }
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]
@@ -1118,6 +1178,10 @@ impl Packet for PluginMessageClientbound {
 
     fn ty(&self) -> PacketType {
         PacketType::PluginMessageClientbound
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 
@@ -1188,6 +1252,10 @@ impl Packet for Explosion {
 
     fn ty(&self) -> PacketType {
         PacketType::Explosion
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 
@@ -1284,6 +1352,10 @@ impl Packet for ChunkData {
 
     fn ty(&self) -> PacketType {
         PacketType::ChunkData
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 
@@ -1406,6 +1478,10 @@ impl Packet for CombatEvent {
     fn ty(&self) -> PacketType {
         unimplemented!()
     }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
+    }
 }
 
 #[derive(new, Clone)]
@@ -1469,6 +1545,10 @@ impl Packet for PlayerInfo {
     fn ty(&self) -> PacketType {
         PacketType::PlayerInfo
     }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -1521,7 +1601,7 @@ pub struct UseBed {
 
 #[derive(Default, AsAny, new, Clone)]
 pub struct DestroyEntities {
-    entity_ids: Vec<VarInt>,
+    pub entity_ids: Vec<VarInt>,
 }
 
 impl Packet for DestroyEntities {
@@ -1539,6 +1619,10 @@ impl Packet for DestroyEntities {
 
     fn ty(&self) -> PacketType {
         PacketType::DestroyEntities
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 
@@ -1586,6 +1670,10 @@ impl Packet for PacketEntityMetadata {
 
     fn ty(&self) -> PacketType {
         PacketType::EntityMetadata
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
     }
 }
 

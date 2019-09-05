@@ -1,7 +1,6 @@
 //! Logic for working with item entities.
 use crate::entity::metadata::{self, Metadata};
 use crate::entity::{ChunkEntities, EntityDestroyEvent, PlayerComponent, PositionComponent};
-use crate::network::{send_packet_to_all_players, NetworkComponent};
 use crate::physics::nearby_entities;
 use crate::player::{
     InventoryComponent, InventoryUpdateEvent, PlayerItemDropEvent, PLAYER_EYE_HEIGHT,
@@ -207,11 +206,11 @@ impl<'a> System<'a> for ItemCollectSystem {
         ReadStorage<'a, PositionComponent>,
         ReadStorage<'a, PlayerComponent>,
         ReadStorage<'a, ItemComponent>,
-        ReadStorage<'a, NetworkComponent>,
         WriteStorage<'a, Metadata>,
         Write<'a, EventChannel<InventoryUpdateEvent>>,
         Write<'a, EventChannel<EntityDestroyEvent>>,
         Read<'a, ChunkEntities>,
+        Read<'a, Util>,
         Read<'a, TickCount>,
         Entities<'a>,
     );
@@ -222,11 +221,11 @@ impl<'a> System<'a> for ItemCollectSystem {
             positions,
             players,
             items,
-            networks,
             mut metadatas,
             mut inventory_events,
             mut destroy_events,
             chunk_entities,
+            util,
             tick,
             entities,
         ) = data;
@@ -284,7 +283,7 @@ impl<'a> System<'a> for ItemCollectSystem {
                     collector: player.id() as i32,
                     count: i32::from(stack.amount - amount_left),
                 };
-                send_packet_to_all_players(&networks, &entities, packet, None);
+                util.broadcast_entity_update(player, packet, None);
 
                 if amount_left == 0 {
                     entities.delete(other).unwrap();
@@ -327,10 +326,8 @@ pub fn item_meta(stack: ItemStack) -> Metadata {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::chunk::ChunkEntityUpdateSystem;
     use crate::entity::EntitySpawnEvent;
     use crate::entity::EntityType;
-    use crate::systems::CHUNK_ENTITIES_UPDATE;
     use crate::testframework as t;
     use feather_core::inventory::SLOT_HOTBAR_OFFSET;
     use feather_core::network::cast_packet;
@@ -378,12 +375,7 @@ mod tests {
     #[test]
     fn test_item_merge_system() {
         let (mut w, mut d) = t::builder()
-            .with(ChunkEntityUpdateSystem::default(), "chunk_entity_update")
-            .with_dep(
-                ItemMergeSystem::default(),
-                "item_merge",
-                &["chunk_entity_update"],
-            ) // Required so nearby_entities() works
+            .with_dep(ItemMergeSystem::default(), "item_merge", &[])
             .build();
 
         let item1 =
@@ -419,8 +411,7 @@ mod tests {
     #[test]
     fn test_item_collect_system() {
         let (mut w, mut d) = t::builder()
-            .with(ChunkEntityUpdateSystem::default(), CHUNK_ENTITIES_UPDATE)
-            .with_dep(ItemCollectSystem::default(), "", &[CHUNK_ENTITIES_UPDATE])
+            .with_dep(ItemCollectSystem::default(), "", &[])
             .build();
 
         let player = t::add_player(&mut w);
