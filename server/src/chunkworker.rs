@@ -116,8 +116,9 @@ fn run(mut worker: ChunkWorker) {
         match request {
             Request::ShutDown => break,
             Request::LoadChunk(pos) => {
-                let reply = load_chunk(&mut worker, pos);
-                worker.sender.send(reply).unwrap();
+                if let Some(reply) = load_chunk(&mut worker, pos) {
+                    worker.sender.send(reply).unwrap();
+                }
             }
         }
     }
@@ -126,13 +127,13 @@ fn run(mut worker: ChunkWorker) {
 }
 
 /// Attempts to load the chunk at the specified position.
-fn load_chunk(worker: &mut ChunkWorker, pos: ChunkPosition) -> Reply {
+fn load_chunk(worker: &mut ChunkWorker, pos: ChunkPosition) -> Option<Reply> {
     let rpos = RegionPosition::from_chunk(pos);
     if !is_region_loaded(worker, pos) {
         // Need to load region into memory
         let handle = region::load_region(&worker.dir, rpos);
         if handle.is_err() {
-            return (pos, Err(Error::LoadError(handle.err().unwrap())));
+            return Some((pos, Err(Error::LoadError(handle.err().unwrap()))));
         }
 
         let handle = handle.unwrap();
@@ -154,21 +155,34 @@ fn load_chunk(worker: &mut ChunkWorker, pos: ChunkPosition) -> Reply {
     let file = worker.open_regions.get_mut(&rpos).unwrap();
     let handle = &mut file.handle;
 
-    load_chunk_from_handle(pos, handle, &worker.world_generator)
+    load_chunk_from_handle(
+        pos,
+        handle,
+        &Arc::from(worker.sender.clone()),
+        &worker.world_generator,
+    )
 }
 
 fn load_chunk_from_handle(
     pos: ChunkPosition,
     handle: &mut RegionHandle,
+    sender: &Arc<Sender<Reply>>,
     generator: &Arc<dyn WorldGenerator>,
-) -> Reply {
+) -> Option<Reply> {
     let result = handle.load_chunk(pos);
 
     match result {
-        Ok(chunk) => (pos, Ok(chunk)),
+        Ok(chunk) => Some((pos, Ok(chunk))),
         Err(e) => match e {
-            region::Error::ChunkNotExist => generate_new_chunk(pos, generator),
-            err => (pos, Err(Error::LoadError(err))),
+            region::Error::ChunkNotExist => {
+                let sender = Arc::clone(sender);
+                let generator = Arc::clone(generator);
+                rayon::spawn(move || {
+                    sender.send(generate_new_chunk(pos, &generator)).unwrap();
+                });
+                None
+            }
+            err => Some((pos, Err(Error::LoadError(err)))),
         },
     }
 }

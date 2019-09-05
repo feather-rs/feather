@@ -25,7 +25,7 @@ impl WorldGenerator for SuperflatWorldGenerator {
         let mut chunk = Chunk::new(position);
         let mut y_counter = 0;
         for layer in self.options.clone().layers {
-            if layer.height <= 0 {
+            if layer.height == 0 {
                 continue;
             }
             let layer_block = Block::from_name_and_props(layer.block.as_str(), &HashMap::new());
