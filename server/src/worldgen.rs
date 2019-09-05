@@ -48,3 +48,48 @@ impl WorldGenerator for SuperflatWorldGenerator {
         chunk
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use feather_blocks::GrassBlockData;
+
+    #[test]
+    pub fn test_worldgen_empty() {
+        let chunk_pos = ChunkPosition { x: 1, z: 2 };
+        let generator = EmptyWorldGenerator {};
+        let chunk = generator.generate_chunk(chunk_pos);
+
+        // No sections have been generated
+        assert!(chunk.sections().iter().all(|sec| sec.is_none()));
+        assert_eq!(chunk_pos, chunk.position());
+    }
+
+    #[test]
+    pub fn test_worldgen_flat() {
+        let options = SuperflatGeneratorOptions::default();
+        let chunk_pos = ChunkPosition { x: 1, z: 2 };
+        let generator = SuperflatWorldGenerator { options };
+        let chunk = generator.generate_chunk(chunk_pos);
+
+        assert_eq!(chunk.position(), chunk_pos);
+        for x in 0usize..16 {
+            for z in 0usize..16 {
+                for (y, block) in &[
+                    (0usize, Block::Bedrock),
+                    (1usize, Block::Dirt),
+                    (2usize, Block::Dirt),
+                    (3usize, Block::GrassBlock(GrassBlockData { snowy: false })),
+                ] {
+                    assert_eq!(chunk.block_at(x, *y, z), *block);
+                }
+                for y in 4..256 {
+                    assert_eq!(
+                        chunk.block_at(x as usize, y as usize, z as usize),
+                        Block::Air
+                    );
+                }
+            }
+        }
+    }
+}
