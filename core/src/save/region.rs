@@ -200,7 +200,6 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     // Light
     // convert raw lighting data (4bits / block) into a BitArray
     let convert_light_data = |light_data: &Vec<i8>| {
-        assert_eq!(light_data.len(), 2048);
         let light_data = light_data.chunks(8).into_iter().map(|chunk| {
             let chunk: [i8; 8] = [chunk[0], chunk[1], chunk[2], chunk[3],
                 chunk[4], chunk[5], chunk[6], chunk[7]];
@@ -208,6 +207,10 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
         }).collect();
         BitArray::from_raw(light_data, 4, 4096)
     };
+
+    if &section.block_light.len() != 2048 || &section.sky_light.len() != 2048 {
+        return Err(Error::IndexOutOfBounds)
+    }
 
     let block_light = convert_light_data(&section.block_light);
     let sky_light = convert_light_data(&section.sky_light);
