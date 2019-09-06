@@ -4,6 +4,7 @@ use proc_macro2::Span;
 use quote::quote;
 use std::collections::HashMap;
 use syn::braced;
+use syn::parenthesized;
 use syn::parse::{Parse, ParseBuffer};
 use syn::Error;
 use syn::Lit;
@@ -72,6 +73,7 @@ struct Entry {
     ty: EntryType,
     name: Ident,
     index: u8,
+    default: Option<Lit>,
 }
 
 impl Parse for Entry {
@@ -79,6 +81,13 @@ impl Parse for Entry {
         let name = input.parse()?;
         let _ = input.parse::<Token![:]>()?;
         let ty = input.parse()?;
+
+        let paren;
+        parenthesized!(paren in input);
+        let default = match paren.parse() {
+            Ok(val) => Some(val),
+            Err(_) => None,
+        };
 
         let _ = input.parse::<Token![=]>()?;
 
@@ -89,7 +98,12 @@ impl Parse for Entry {
 
         let _ = input.parse::<Token![,]>()?;
 
-        Ok(Self { ty, name, index })
+        Ok(Self {
+            ty,
+            name,
+            index,
+            default,
+        })
     }
 }
 
@@ -136,6 +150,7 @@ impl EntryType {
     }
 }
 
+#[allow(clippy::cognitive_complexity)] // FIXME: clean this function up
 pub fn entity_metadata(input: TokenStream) -> TokenStream {
     let input: EntityMetadata = syn::parse_macro_input!(input);
 
@@ -143,6 +158,7 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
     let mut enum_variants = vec![];
 
     let mut to_raw_metadata_arms = vec![];
+    let mut to_full_raw_metadata_arms = vec![];
 
     let enum_ident = input.ident.clone();
 
@@ -154,9 +170,12 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
         let mut struct_fields = vec![];
         let mut struct_impl = vec![];
         let mut to_raw_metadata = vec![];
+        let mut to_full_raw_metadata = vec![];
 
         let mut new_fn_parameters = vec![];
         let mut new_fn_contents = vec![];
+
+        let mut default_entries = vec![];
 
         for entry in entries {
             let entry_ident = entry.name;
@@ -200,6 +219,9 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
                     self.#is_dirty_ident = false;
                 }
             });
+            to_full_raw_metadata.push(quote! {
+                #set_expr
+            });
 
             new_fn_parameters.push(quote! {
                 #entry_ident: #ty_ident
@@ -212,7 +234,16 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
 
             to_raw_metadata_arms.push(quote! {
                 #enum_ident::#variant_ident(meta) => meta.to_raw_metadata(),
-            })
+            });
+
+            to_full_raw_metadata_arms.push(quote! {
+                #enum_ident::#variant_ident(meta) => meta.to_full_raw_metadata(),
+            });
+
+            default_entries.push(match entry.default {
+                Some(default) => quote! { #entry_ident: #default, #is_dirty_ident: false, },
+                None => quote! { #entry_ident: Default::default(), #is_dirty_ident: false, },
+            });
         }
 
         struct_impl.push(quote! {
@@ -227,16 +258,30 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
                 #(#to_raw_metadata)*
                 meta
             }
+
+            fn to_full_raw_metadata(&self) -> EntityMetadata {
+                let mut meta = EntityMetadata::new();
+                #(#to_full_raw_metadata)*
+                meta
+            }
         });
 
         structs.push(quote! {
-            #[derive(Clone, Debug, Default)]
+            #[derive(Clone, Debug)]
             pub struct #variant_ident {
                 #(#struct_fields)*
             }
 
             impl #variant_ident {
                 #(#struct_impl)*
+            }
+
+            impl Default for #variant_ident {
+                fn default() -> Self {
+                    Self {
+                        #(#default_entries)*
+                    }
+                }
             }
         });
 
@@ -255,6 +300,12 @@ pub fn entity_metadata(input: TokenStream) -> TokenStream {
             pub fn to_raw_metadata(&mut self) -> EntityMetadata {
                 match self {
                     #(#to_raw_metadata_arms)*
+                }
+            }
+
+            pub fn to_full_raw_metadata(&self) -> EntityMetadata {
+                match self {
+                    #(#to_full_raw_metadata_arms)*
                 }
             }
         }

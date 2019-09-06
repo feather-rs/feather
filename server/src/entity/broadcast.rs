@@ -103,7 +103,7 @@ impl<'a> System<'a> for EntitySendSystem {
             // Send metadata.
             let entity_metadata = PacketEntityMetadata {
                 entity_id: request.entity.id() as i32,
-                metadata: metadata.to_raw_metadata(),
+                metadata: metadata.to_full_raw_metadata(),
             };
 
             send_packet_to_player(network, entity_metadata);

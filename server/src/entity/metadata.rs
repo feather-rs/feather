@@ -26,26 +26,26 @@ bitflags! {
 entity_metadata! {
     Metadata,
     Entity {
-        bit_mask: u8 = 0,
-        air: VarInt = 1,
-        silent: bool = 4,
-        no_gravity: bool = 5,
+        bit_mask: u8() = 0,
+        air: VarInt() = 1,
+        silent: bool() = 4,
+        no_gravity: bool() = 5,
     },
     Item: Entity {
-        item: Slot = 6,
+        item: Slot() = 6,
     },
     Living: Entity {
-        hand_states: u8 = 6,
-        health: f32 = 7,
-        potion_effect_color: VarInt = 8,
-        potion_effect_ambient: bool = 9,
-        arrows: VarInt = 10,
+        hand_states: u8() = 6,
+        health: f32(1.0) = 7,
+        potion_effect_color: VarInt() = 8,
+        potion_effect_ambient: bool() = 9,
+        arrows: VarInt() = 10,
     },
     Player: Living {
-        additional_hearts: f32 = 11,
-        score: VarInt = 12,
-        displayed_skin_parts: u8 = 13,
-        main_hand: u8 = 14,
+        additional_hearts: f32() = 11,
+        score: VarInt() = 12,
+        displayed_skin_parts: u8() = 13,
+        main_hand: u8() = 14,
     },
 }
 
