@@ -1236,6 +1236,7 @@ impl Packet for ChunkData {
 
         buf.write_var_int(primary_mask as i32);
 
+        // TODO: approximate appropriate capacity
         let mut temp_buf = ByteBuf::new();
 
         for section in self.chunk.sections() {
@@ -1262,10 +1263,13 @@ impl Packet for ChunkData {
                     temp_buf.write_u64_be(*val);
                 }
 
-                // Light — TODO
-                for _ in 0..4096 {
-                    temp_buf.write_u8(0b1111_1111);
-                }
+                // Light
+                let sky_light_data = section.sky_light();
+                let block_light_data = section.block_light();
+
+                block_light_data.inner().iter()
+                    .chain(sky_light_data.inner().iter())
+                    .for_each(|data| temp_buf.write_u64_le(*data));
             }
         }
 

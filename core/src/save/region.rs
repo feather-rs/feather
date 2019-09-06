@@ -1,18 +1,20 @@
 //! This module implements the loading and saving (soon)
 //! of Anvil region files.
 
-use crate::world::block::*;
-use crate::world::chunk::{BitArray, Chunk, ChunkSection};
-use crate::world::ChunkPosition;
-use byteorder::{BigEndian, ReadBytesExt};
-use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io;
-use std::io::prelude::*;
 use std::io::{Cursor, SeekFrom};
+use std::io::prelude::*;
 use std::path::PathBuf;
+
+use byteorder::{BigEndian, ReadBytesExt};
+use serde::Deserialize;
+
+use crate::world::block::*;
+use crate::world::chunk::{BitArray, Chunk, ChunkSection};
+use crate::world::ChunkPosition;
 
 /// The length and width of a region, in chunks.
 const REGION_SIZE: usize = 32;
@@ -51,6 +53,10 @@ struct LevelSection {
     states: Vec<i64>,
     #[serde(rename = "Palette")]
     palette: Vec<LevelPaletteEntry>,
+    #[serde(rename = "BlockLight")]
+    block_light: Vec<i8>,
+    #[serde(rename = "SkyLight")]
+    sky_light: Vec<i8>,
 }
 
 /// Represents a palette entry in a region file.
@@ -189,7 +195,26 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
         ((data.len() as f32 * 64.0) / 4096.0).ceil() as u8,
         4096,
     );
-    let chunk_section = ChunkSection::from_data_and_palette(data, Some(palette));
+
+
+    // Light
+    // convert raw lighting data (4bits / block) into a BitArray
+    let convert_light_data = |light_data: &Vec<i8>| {
+        assert_eq!(light_data.len(), 2048);
+        let light_data = light_data.chunks(8).into_iter().map(|chunk| {
+            let chunk: [i8; 8] = [chunk[0], chunk[1], chunk[2], chunk[3],
+                chunk[4], chunk[5], chunk[6], chunk[7]];
+            unsafe { std::mem::transmute::<[i8; 8], u64>(chunk) }
+        }).collect();
+        BitArray::from_raw(light_data, 4, 4096)
+    };
+
+    let block_light = convert_light_data(&section.block_light);
+    let sky_light = convert_light_data(&section.sky_light);
+
+    let chunk_section = ChunkSection::from_data_palette_and_light(
+        data, Some(palette), block_light, sky_light,
+    );
 
     if section.y >= 16 {
         // Haha... nope.

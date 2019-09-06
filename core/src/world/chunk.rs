@@ -217,6 +217,9 @@ pub struct ChunkSection {
     /// the section becomes empty.
     solid_block_count: u16,
 
+    block_light: BitArray,
+    sky_light: BitArray,
+
     /// A section is considered dirty when it has been
     /// modified since the last time it was optimized.
     dirty: bool,
@@ -231,12 +234,17 @@ impl ChunkSection {
             palette: Some(vec![air_id]),
             solid_block_count: 0,
             dirty: false,
+            block_light: BitArray::new(4, SECTION_VOLUME),
+            sky_light: BitArray::new(4, SECTION_VOLUME),
         }
     }
 
     /// Creates a new `ChunkSection` based on the given
-    /// data and palette.
-    pub fn from_data_and_palette(mut data: BitArray, mut palette: Option<Vec<u16>>) -> Self {
+    /// data, palette and lighting.
+    pub fn from_data_palette_and_light(mut data: BitArray,
+                                       mut palette: Option<Vec<u16>>,
+                                       block_light: BitArray,
+                                       sky_light: BitArray) -> Self {
         // Correct palette if not using the global palette
         if let Some(palette) = palette.as_mut() {
             Self::correct_data_and_palette(&mut data, palette);
@@ -259,6 +267,8 @@ impl ChunkSection {
             palette,
             solid_block_count,
             dirty: false,
+            block_light,
+            sky_light,
         }
     }
 
@@ -466,6 +476,10 @@ impl ChunkSection {
     pub fn bits_per_block(&self) -> u8 {
         self.data.bits_per_value
     }
+
+    pub fn sky_light(&self) -> &BitArray { &self.sky_light }
+
+    pub fn block_light(&self) -> &BitArray { &self.block_light }
 }
 
 impl Default for ChunkSection {
