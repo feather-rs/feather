@@ -175,7 +175,7 @@ fn load_chunk_from_handle(
         Ok(chunk) => Some((pos, Ok(chunk))),
         Err(e) => match e {
             region::Error::ChunkNotExist => {
-                let sender = Arc::clone(sender);
+                let sender = sender.clone();
                 let generator = Arc::clone(generator);
                 rayon::spawn(move || {
                     sender.send(generate_new_chunk(pos, &generator)).unwrap();

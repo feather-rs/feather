@@ -124,7 +124,7 @@ impl Default for SuperflatGeneratorOptions {
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct SuperflatLayer {
-    pub block: String,
+    pub block: String, // TODO: Use "Block" enum and implement (de)serialization
     pub height: u8,
 }
 
