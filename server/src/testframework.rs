@@ -18,7 +18,7 @@ use feather_core::world::chunk::Chunk;
 use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
 use feather_core::Gamemode;
 
-use crate::chunk_logic::ChunkHolders;
+use crate::chunk_logic::{ChunkHolders, ChunkLoadSystem};
 use crate::config::Config;
 use crate::entity::metadata::{self, Metadata};
 use crate::entity::{
@@ -29,6 +29,7 @@ use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
 use crate::player::{InventoryComponent, PlayerDisconnectEvent};
 use crate::util::BroadcasterSystem;
+use crate::worldgen::{EmptyWorldGenerator, WorldGenerator};
 use crate::PlayerCount;
 
 /// Initializes a Specs world and dispatcher
@@ -436,6 +437,12 @@ impl<'a, 'b> TestBuilder<'a, 'b> {
         self.world.insert(ChunkHolders::default());
         self.world.insert(ChunkEntities::default());
         self.world.insert(Arc::new(Config::default()));
+
+        let generator: Arc<dyn WorldGenerator> = Arc::new(EmptyWorldGenerator {});
+        self.world.insert(generator);
+
+        let mut chunk_system = ChunkLoadSystem {};
+        chunk_system.setup(&mut self.world);
 
         // Insert the broadcaster system, since it is so commonly
         // used that it should be used for all tests.
