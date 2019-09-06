@@ -199,17 +199,16 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     // Light
     // convert raw lighting data (4bits / block) into a BitArray
     let convert_light_data = |light_data: &Vec<i8>| {
-        let light_data = light_data
-            .chunks(8)
-            .map(|chunk| {
-                let chunk: [i8; 8] = [
-                    chunk[0], chunk[1], chunk[2], chunk[3], chunk[4], chunk[5], chunk[6], chunk[7],
-                ];
-                unsafe { std::mem::transmute::<[i8; 8], u64>(chunk) }
-            })
-            .collect();
-        BitArray::from_raw(light_data, 4, 4096)
-    };
+        let data = light_data.chunks(8).map(|chunk| {
+            // not sure if there's a better (safe) way of doing this..
+            let chunk: [u8; 8] = [
+                chunk[0] as u8, chunk[1] as u8, chunk[2] as u8, chunk[3] as u8, 
+                chunk[4] as u8, chunk[5] as u8, chunk[6] as u8, chunk[7] as u8,
+            ];
+            u64::from_le_bytes(chunk)
+        }).collect();
+        BitArray::from_raw(data, 4, 4096)
+    } ;
 
     if section.block_light.len() != 2048 || section.sky_light.len() != 2048 {
         return Err(Error::IndexOutOfBounds);
