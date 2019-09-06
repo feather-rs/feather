@@ -213,16 +213,6 @@ fn init_world<'a, 'b>(
     ioman: io::NetworkIoManager,
     level: LevelData,
 ) -> (World, Dispatcher<'a, 'b>) {
-    {
-        let level = level.clone();
-        debug!("Level type: {}", level.generator_name);
-        if level.generator_type() == LevelGeneratorType::Flat {
-            debug!(
-                "Superflat generator options: {:?}",
-                level.generator_options.unwrap_or_default()
-            );
-        }
-    }
     let mut world = World::new();
     time::init_time(&mut world, &level);
     world.insert(config);
