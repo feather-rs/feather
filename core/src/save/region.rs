@@ -5,8 +5,8 @@ use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io;
-use std::io::{Cursor, SeekFrom};
 use std::io::prelude::*;
+use std::io::{Cursor, SeekFrom};
 use std::path::PathBuf;
 
 use byteorder::{BigEndian, ReadBytesExt};
@@ -196,28 +196,29 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
         4096,
     );
 
-
     // Light
     // convert raw lighting data (4bits / block) into a BitArray
     let convert_light_data = |light_data: &Vec<i8>| {
-        let light_data = light_data.chunks(8).map(|chunk| {
-            let chunk: [i8; 8] = [chunk[0], chunk[1], chunk[2], chunk[3],
-                chunk[4], chunk[5], chunk[6], chunk[7]];
-            unsafe { std::mem::transmute::<[i8; 8], u64>(chunk) }
-        }).collect();
+        let light_data = light_data
+            .chunks(8)
+            .map(|chunk| {
+                let chunk: [i8; 8] = [
+                    chunk[0], chunk[1], chunk[2], chunk[3], chunk[4], chunk[5], chunk[6], chunk[7],
+                ];
+                unsafe { std::mem::transmute::<[i8; 8], u64>(chunk) }
+            })
+            .collect();
         BitArray::from_raw(light_data, 4, 4096)
     };
 
     if section.block_light.len() != 2048 || section.sky_light.len() != 2048 {
-        return Err(Error::IndexOutOfBounds)
+        return Err(Error::IndexOutOfBounds);
     }
 
     let block_light = convert_light_data(&section.block_light);
     let sky_light = convert_light_data(&section.sky_light);
 
-    let chunk_section = ChunkSection::new(
-        data, Some(palette), block_light, sky_light,
-    );
+    let chunk_section = ChunkSection::new(data, Some(palette), block_light, sky_light);
 
     if section.y >= 16 {
         // Haha... nope.

@@ -227,11 +227,12 @@ pub struct ChunkSection {
 
 impl ChunkSection {
     /// Creates a new, empty `ChunkSection`.
-    pub fn new(mut data: BitArray,
-               mut palette: Option<Vec<u16>>,
-               block_light: BitArray,
-               sky_light: BitArray) -> Self {
-
+    pub fn new(
+        mut data: BitArray,
+        mut palette: Option<Vec<u16>>,
+        block_light: BitArray,
+        sky_light: BitArray,
+    ) -> Self {
         // Correct palette if not using the global palette
         if let Some(palette) = palette.as_mut() {
             Self::correct_data_and_palette(&mut data, palette);
@@ -464,9 +465,13 @@ impl ChunkSection {
         self.data.bits_per_value
     }
 
-    pub fn sky_light(&self) -> &BitArray { &self.sky_light }
+    pub fn sky_light(&self) -> &BitArray {
+        &self.sky_light
+    }
 
-    pub fn block_light(&self) -> &BitArray { &self.block_light }
+    pub fn block_light(&self) -> &BitArray {
+        &self.block_light
+    }
 }
 
 impl Default for ChunkSection {
@@ -791,9 +796,12 @@ mod tests {
         }
 
         let palette = vec![1];
-        let section = ChunkSection::new(data, Some(palette),
-                                        BitArray::new(4, SECTION_VOLUME),
-                                        BitArray::new(4, SECTION_VOLUME));
+        let section = ChunkSection::new(
+            data,
+            Some(palette),
+            BitArray::new(4, SECTION_VOLUME),
+            BitArray::new(4, SECTION_VOLUME),
+        );
         chunk.set_section_at(0, Some(section));
 
         for x in 0..16 {

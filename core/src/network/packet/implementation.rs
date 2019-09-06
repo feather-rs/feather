@@ -1267,7 +1267,9 @@ impl Packet for ChunkData {
                 let sky_light_data = section.sky_light();
                 let block_light_data = section.block_light();
 
-                block_light_data.inner().iter()
+                block_light_data
+                    .inner()
+                    .iter()
                     .chain(sky_light_data.inner().iter())
                     .for_each(|data| temp_buf.write_u64_le(*data));
             }
