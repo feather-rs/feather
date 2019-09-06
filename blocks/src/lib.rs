@@ -253,4 +253,12 @@ mod tests {
             assert_eq!(block.native_state_id(), id);
         }
     }
+
+    #[test]
+    fn test_default_props() {
+        assert_eq!(
+            Block::from_name_and_default_props("minecraft:grass_block").unwrap(),
+            Block::GrassBlock(GrassBlockData { snowy: false })
+        );
+    }
 }

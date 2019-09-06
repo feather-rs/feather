@@ -3,7 +3,9 @@
 //! written - but at least it works.
 
 use super::*;
+use quote::ToTokens;
 use std::process::Command;
+use syn::LitInt;
 
 pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
     info!(
@@ -44,6 +46,7 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
     let internal_id_offsets = generate_internal_id_offsets(&report);
     let internal_state_id_fn = generate_internal_state_id_fn();
     let from_name_and_props_fn = generate_from_name_and_props_fn(&report);
+    let from_name_and_default_props_fn = generate_from_and_default_props_fn(&report);
     let from_internal_state_id_fn = generate_from_internal_state_id_fn(&report);
 
     let block = quote! {
@@ -61,6 +64,7 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
             #internal_id_data_offset_fn
             #internal_state_id_fn
             #from_name_and_props_fn
+            #from_name_and_default_props_fn
             #from_internal_state_id_fn
         }
     };
@@ -196,8 +200,8 @@ fn generate_block_code(
     // If block has properties, we need to create a
     // data struct for the block and include it in the
     // enum variant.
-    if let Some(props) = block.properties.clone() {
-        create_block_data_struct(&variant_name, &props, property_enums, data_structs);
+    if block.properties.is_some() {
+        create_block_data_struct(&variant_name, &block, property_enums, data_structs);
         let data_struct_ident = Ident::new(&format!("{}Data", variant_name), Span::call_site());
         enum_entries.push(quote! {
             #variant_ident(#data_struct_ident)
@@ -218,13 +222,17 @@ fn generate_block_code(
 
 fn create_block_data_struct(
     variant_name: &str,
-    props: &BlockProperties,
+    block: &Block,
     property_enums: &mut Vec<TokenStream>,
     data_structs: &mut Vec<TokenStream>,
 ) {
     let mut data_struct_entries = vec![];
     let mut from_map_entries = vec![];
     let mut to_map_entries = vec![];
+    let mut default_impl_entries = vec![];
+
+    let props = &block.properties.as_ref().unwrap();
+    let states = &block.states;
 
     for (prop_name_str, possible_values) in &props.props {
         let ty = PropValueType::guess_from_value(&possible_values[0]);
@@ -262,6 +270,19 @@ fn create_block_data_struct(
         to_map_entries.push(quote! {
             m.insert(#prop_name_str.to_string(), self.#field_name.to_snake_case());
         });
+
+        // Find default state and create an entry in the Default impl for it
+        let default_state = states.iter().find(|state| state.default).unwrap();
+
+        let default_value = {
+            let value_str = &default_state.properties.as_ref().unwrap().props[prop_name_str];
+
+            value_from_string(ty, variant_name, prop_name_str, value_str)
+        };
+
+        default_impl_entries.push(quote! {
+            #field_name: #default_value,
+        });
     }
 
     let data_ident = Ident::new(&format!("{}Data", variant_name), Span::call_site());
@@ -288,10 +309,44 @@ fn create_block_data_struct(
             }
         }
 
+        impl Default for #data_ident {
+            fn default() -> Self {
+                Self {
+                    #(#default_impl_entries)*
+                }
+            }
+        }
+
         #value_impl
     };
 
     data_structs.push(data_struct);
+}
+
+fn value_from_string(
+    value_ty: PropValueType,
+    variant_name: &str,
+    prop_name: &str,
+    value_str: &str,
+) -> Box<dyn ToTokens> {
+    match value_ty {
+        PropValueType::I32 => Box::new(LitInt::new(value_str, Span::call_site())),
+        PropValueType::Bool => Box::new(Ident::new(value_str, Span::call_site())),
+        PropValueType::Enum => {
+            let enum_ident = enum_ident(variant_name, prop_name);
+            let value_ident = Ident::new(&value_str.to_camel_case(), Span::call_site());
+            Box::new(quote! {
+                #enum_ident::#value_ident
+            })
+        }
+    }
+}
+
+fn enum_ident(variant_name: &str, prop_name: &str) -> Ident {
+    Ident::new(
+        &format!("{}{}", variant_name, prop_name.to_camel_case()),
+        Span::call_site(),
+    )
 }
 
 fn create_property_enum(
@@ -300,10 +355,7 @@ fn create_property_enum(
     possible_values: &[String],
     property_enums: &mut Vec<TokenStream>,
 ) {
-    let enum_ident = Ident::new(
-        &format!("{}{}", variant_name, prop_name.to_camel_case()),
-        Span::call_site(),
-    );
+    let enum_ident = enum_ident(variant_name, prop_name);
 
     let mut enum_variants = vec![];
 
@@ -646,6 +698,44 @@ fn generate_from_name_and_props_fn(report: &BlockReport) -> TokenStream {
 
     let result = quote! {
         pub fn from_name_and_props(name: &str, props: &HashMap<String, String>) -> Option<Self> {
+            match name {
+                #(#match_arms ,)*
+                _ => None,
+            }
+        }
+    };
+    result
+}
+
+/// Generates the `from_name_and_default_props` function.
+fn generate_from_and_default_props_fn(report: &BlockReport) -> TokenStream {
+    // More duplicate code than ever before!
+    // This entire file should probably be rewritten at some point.
+    let mut match_arms = vec![];
+
+    for (block_name, block) in &report.blocks {
+        let variant_name = block_name[10..].to_camel_case();
+        let variant_ident = Ident::new(&variant_name, Span::call_site());
+
+        if block.properties.is_some() {
+            let data_struct_str = format!("{}Data", variant_name);
+            let data_struct_ident = Ident::new(&data_struct_str, Span::call_site());
+
+            match_arms.push(quote! {
+                #block_name => {
+                    let data = #data_struct_ident::default();
+                    Some(Block::#variant_ident(data))
+                }
+            });
+        } else {
+            match_arms.push(quote! {
+                #block_name => Some(Block::#variant_ident)
+            });
+        }
+    }
+
+    let result = quote! {
+        pub fn from_name_and_default_props(name: &str) -> Option<Self> {
             match name {
                 #(#match_arms ,)*
                 _ => None,
