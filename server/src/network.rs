@@ -1,4 +1,4 @@
-use parking_lot::{Mutex, MutexGuard};
+use parking_lot::Mutex;
 
 use mio_extras::channel::{Receiver, Sender};
 use shrev::EventChannel;
@@ -14,69 +14,73 @@ use crate::io::{NetworkIoManager, ServerToListenerMessage, ServerToWorkerMessage
 use crate::joinhandler::JoinHandlerComponent;
 use crate::prelude::*;
 use crate::{disconnect_player_without_packet, TickCount};
+use strum::EnumCount;
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
 //const HEAD_OFFSET: f64 = 1.62; // Offset from feet pos to head pos
 
+/// A packet received from a player.
+pub type QueuedPacket = (Entity, Box<dyn Packet>);
+
+/// Vector of `QueuedPacket`.
+type QueuedPackets = Vec<QueuedPacket>;
+
 /// A component which contains the received packets
 /// for this tick.
 pub struct PacketQueue {
-    queue: Mutex<Vec<Vec<(Entity, Box<dyn Packet>)>>>,
+    /// Vector of packet queues. For any given packet
+    /// type, the queued packets of that type can
+    /// be found by indexing into this vector with the ordinal
+    /// of the packet type.
+    ///
+    /// A locked `Vec` is used rather than a `SegQueue` because
+    /// there is typically no contention when accessing the queue
+    /// for a single packet type (there is at most one system handling
+    /// each packet type). As a result, there is no need for a lock-free
+    /// data structure.
+    queue: Vec<Mutex<QueuedPackets>>,
 }
 
 impl PacketQueue {
     /// Returns the packets queued for handling
     /// of the given type, draining the queue of this
     /// type of packet.
-    pub fn for_packet(&self, ty: PacketType) -> Vec<(Entity, Box<dyn Packet>)> {
-        let mut queue = self.queue.lock();
-
+    pub fn for_packet(&self, ty: PacketType) -> Vec<QueuedPacket> {
         let ordinal = ty.ordinal();
-        if ordinal >= queue.len() {
-            self.expand(&mut queue, ordinal);
-        }
 
-        let mut result = vec![];
-        std::mem::swap(&mut result, queue.get_mut(ordinal).unwrap());
+        let mut queued_packets = self.queue[ordinal].lock();
 
-        result
-    }
+        let mut new_queue = vec![];
+        std::mem::swap(&mut new_queue, &mut queued_packets);
 
-    /// Expands the internal vector to allow for additional packet types.
-    fn expand(&self, queue: &mut MutexGuard<Vec<Vec<(Entity, Box<dyn Packet>)>>>, to: usize) {
-        if to < queue.len() {
-            return;
-        }
-
-        for _ in queue.len()..=to {
-            queue.push(Vec::new());
-        }
+        new_queue
     }
 
     /// Adds a packet to the queue.
     pub fn add_for_packet(&self, player: Entity, packet: Box<dyn Packet>) {
-        let mut queue = self.queue.lock();
-
         let ordinal = packet.ty().ordinal();
-        if ordinal >= queue.len() {
-            self.expand(&mut queue, ordinal);
-        }
 
-        queue[ordinal].push((player, packet));
+        let mut queued_packets = self.queue[ordinal].lock();
+        queued_packets.push((player, packet));
     }
 }
 
 impl Default for PacketQueue {
     fn default() -> Self {
+        // Initialize with an empty queue for each packet type.
+        // Packet type ordinals start at 1 (who decided this? FIXME),
+        // so we have to use an inclusive range.
         Self {
-            queue: Mutex::new(vec![]),
+            queue: (0..=PacketType::count())
+                .map(|_| Mutex::new(vec![]))
+                .collect(),
         }
     }
 }
 
 pub struct NetworkComponent {
-    sender: Mutex<Sender<ServerToWorkerMessage>>,
-    receiver: Mutex<Receiver<ServerToWorkerMessage>>,
+    sender: Sender<ServerToWorkerMessage>,
+    receiver: Receiver<ServerToWorkerMessage>,
     /// A vector of all chunks that are currently
     /// being loaded and should be sent to the player
     /// once they have been loaded.
@@ -90,8 +94,8 @@ impl NetworkComponent {
         receiver: Receiver<ServerToWorkerMessage>,
     ) -> Self {
         Self {
-            sender: Mutex::new(sender),
-            receiver: Mutex::new(receiver),
+            sender,
+            receiver,
             chunks_to_send: vec![],
         }
     }
@@ -141,7 +145,7 @@ impl<'a> System<'a> for NetworkSystem {
             lazy,
         ) = data;
         // Poll for new connections
-        while let Ok(msg) = ioman.receiver.lock().try_recv() {
+        while let Ok(msg) = ioman.receiver.try_recv() {
             match msg {
                 ServerToListenerMessage::NewClient(info) => {
                     // New connection - handle it
@@ -176,7 +180,7 @@ impl<'a> System<'a> for NetworkSystem {
 
         // Receive packets + disconnects from players
         for (player, netcomp) in (&entities, &netcomps).join() {
-            while let Ok(msg) = netcomp.receiver.lock().try_recv() {
+            while let Ok(msg) = netcomp.receiver.try_recv() {
                 match msg {
                     ServerToWorkerMessage::NotifyPacketReceived(packet) => {
                         packet_queue.add_for_packet(player, packet);
@@ -232,16 +236,12 @@ pub fn send_packet_to_all_players<P: Packet + Clone + 'static>(
 pub fn send_packet_to_player<P: Packet + 'static>(comp: &NetworkComponent, packet: P) {
     let _ = comp
         .sender
-        .lock()
         .send(ServerToWorkerMessage::SendPacket(Box::new(packet)));
 }
 
 /// Sends a packet to the given player.
 pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<dyn Packet>) {
-    let _ = comp
-        .sender
-        .lock()
-        .send(ServerToWorkerMessage::SendPacket(packet));
+    let _ = comp.sender.send(ServerToWorkerMessage::SendPacket(packet));
 }
 
 #[cfg(test)]
@@ -289,7 +289,7 @@ mod tests {
         };
 
         let msg = ServerToListenerMessage::NewClient(new_client);
-        ioman.listener_sender.lock().send(msg).unwrap();
+        ioman.listener_sender.send(msg).unwrap();
 
         let mut event_reader = t::reader(&w);
 

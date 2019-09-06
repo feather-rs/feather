@@ -163,6 +163,19 @@ impl Component for ChunkPendingComponent {
 /// that it is unloaded.
 const CHUNK_UNLOAD_TIME: u64 = TPS * 5; // 5 seconds
 
+/// Event which is triggered when a player crosses
+/// chunk boundaries, causing their position's chunk
+/// to change.
+#[derive(Debug, Clone)]
+pub struct ChunkCrossEvent {
+    /// The player affected by this event.
+    pub player: Entity,
+    /// The old chunk position.
+    pub old: ChunkPosition,
+    /// The new chunk position.
+    pub new: ChunkPosition,
+}
+
 /// System that checks when a player crosses chunk boundaries.
 /// When the player does so, the system sends Chunk Data packets
 /// for chunks within the view distance and also unloads
@@ -183,6 +196,7 @@ impl<'a> System<'a> for ChunkCrossSystem {
         WriteStorage<'a, ChunkHolderComponent>,
         ReadStorage<'a, NetworkComponent>,
         Write<'a, ChunkHolders>,
+        Write<'a, EventChannel<ChunkCrossEvent>>,
         ReadExpect<'a, ChunkWorkerHandle>,
         Read<'a, LazyUpdate>,
         Entities<'a>,
@@ -198,6 +212,7 @@ impl<'a> System<'a> for ChunkCrossSystem {
             mut chunk_holder_comps,
             net_comps,
             mut holders,
+            mut cross_events,
             chunk_handle,
             lazy,
             entities,
@@ -264,6 +279,14 @@ impl<'a> System<'a> for ChunkCrossSystem {
                     let time = tick_count.0 + CHUNK_UNLOAD_TIME;
                     loaded_chunks.unload_queue.push_back((chunk, time));
                 }
+
+                // Trigger chunk cross event.
+                let event = ChunkCrossEvent {
+                    player,
+                    old: old_chunk_pos,
+                    new: new_chunk_pos,
+                };
+                cross_events.single_write(event);
             }
         }
     }

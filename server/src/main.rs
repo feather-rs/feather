@@ -43,7 +43,7 @@ use prelude::*;
 use crate::entity::{EntityDestroyEvent, NamedComponent};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
-use crate::systems::{ITEM_SPAWN, JOIN_HANDLER, NETWORK, SPAWNER};
+use crate::systems::{BROADCASTER, ITEM_SPAWN, JOIN_HANDLER, NETWORK, SPAWNER};
 use crate::util::Util;
 use crate::worldgen::{EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator};
 use backtrace::Backtrace;
@@ -262,6 +262,10 @@ fn init_world<'a, 'b>(
 
     player::init_broadcast(&mut dispatcher);
     entity::init_broadcast(&mut dispatcher);
+
+    // Broadcast system needs to run last.
+    dispatcher.add_barrier();
+    dispatcher.add(util::BroadcasterSystem, BROADCASTER, &[]);
 
     let mut dispatcher = dispatcher.build();
     dispatcher.setup(&mut world);

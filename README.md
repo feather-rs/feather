@@ -1,6 +1,7 @@
 # Feather
 [![build](https://dev.azure.com/caelunshun/feather/_apis/build/status/caelunshun.feather?branchName=develop)](https://dev.azure.com/caelunshun/feather/_build/latest?definitionId=1&branchName=develop)
 [![coverage](https://codecov.io/gh/caelunshun/feather/branch/develop/graph/badge.svg)](https://codecov.io/gh/caelunshun/feather)
+[![Discord](https://img.shields.io/discord/619316022800809995)](https://discordapp.com/invite/4eYmK69)
 
 An experimental Minecraft server implementation written in Rust.
 

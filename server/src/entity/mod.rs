@@ -12,12 +12,15 @@ mod movement;
 mod types;
 
 use crate::systems::{
-    CHUNK_ENTITIES_UPDATE, ENTITY_DESTROY, ENTITY_DESTROY_BROADCAST, ENTITY_METADATA_BROADCAST,
-    ENTITY_MOVE_BROADCAST, ENTITY_SPAWN_BROADCAST, ENTITY_VELOCITY_BROADCAST, ITEM_COLLECT,
-    ITEM_MERGE, ITEM_SPAWN, JOIN_BROADCAST,
+    CHUNK_CROSS, CHUNK_ENTITIES_UPDATE, ENTITY_DESTROY, ENTITY_DESTROY_BROADCAST,
+    ENTITY_METADATA_BROADCAST, ENTITY_MOVE_BROADCAST, ENTITY_SEND, ENTITY_SPAWN_BROADCAST,
+    ENTITY_VELOCITY_BROADCAST, ITEM_COLLECT, ITEM_MERGE, ITEM_SPAWN, JOIN_BROADCAST,
 };
+pub use broadcast::EntitySendSystem;
+pub use broadcast::EntitySender;
 pub use broadcast::EntitySpawnEvent;
 pub use chunk::ChunkEntities;
+pub use chunk::ChunkEntityUpdateSystem;
 pub use component::{NamedComponent, PlayerComponent, PositionComponent, VelocityComponent};
 pub use destroy::EntityDestroyEvent;
 pub use item::ItemComponent;
@@ -29,7 +32,6 @@ use crate::entity::destroy::EntityDestroyBroadcastSystem;
 use crate::entity::item::ItemCollectSystem;
 use crate::entity::metadata::MetadataBroadcastSystem;
 use broadcast::EntityBroadcastSystem;
-use chunk::ChunkEntityUpdateSystem;
 use component::ComponentResetSystem;
 use destroy::EntityDestroySystem;
 use item::{ItemMergeSystem, ItemSpawnSystem};
@@ -65,8 +67,9 @@ pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(
         EntityBroadcastSystem::default(),
         ENTITY_SPAWN_BROADCAST,
-        &[JOIN_BROADCAST],
+        &[JOIN_BROADCAST, CHUNK_CROSS],
     );
+    dispatcher.add(EntitySendSystem, ENTITY_SEND, &[ENTITY_SPAWN_BROADCAST]);
     dispatcher.add(
         EntityVelocityBroadcastSystem::default(),
         ENTITY_VELOCITY_BROADCAST,

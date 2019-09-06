@@ -14,6 +14,8 @@ extern crate num_derive;
 extern crate smallvec;
 #[macro_use]
 extern crate hash32_derive;
+#[macro_use]
+extern crate strum_macros;
 
 extern crate nalgebra_glm as glm;
 

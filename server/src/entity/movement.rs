@@ -1,5 +1,5 @@
 use specs::storage::ComponentEvent;
-use specs::{BitSet, Entities, Entity, Join, ReadStorage, ReaderId, System};
+use specs::{BitSet, Entities, Entity, Join, Read, ReadStorage, ReaderId, System};
 
 use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
@@ -7,8 +7,7 @@ use feather_core::network::packet::implementation::{
 use feather_core::world::Position;
 
 use crate::entity::{PositionComponent, VelocityComponent};
-use crate::network::{send_packet_to_all_players, NetworkComponent};
-use crate::util::protocol_velocity;
+use crate::util::{protocol_velocity, Util};
 
 /// System for broadcasting when an entity moves.
 #[derive(Default)]
@@ -19,13 +18,13 @@ pub struct EntityMoveBroadcastSystem {
 
 impl<'a> System<'a> for EntityMoveBroadcastSystem {
     type SystemData = (
-        ReadStorage<'a, NetworkComponent>,
         ReadStorage<'a, PositionComponent>,
+        Read<'a, Util>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (networks, positions, entities) = data;
+        let (positions, util, entities) = data;
 
         self.dirty.clear();
 
@@ -38,14 +37,8 @@ impl<'a> System<'a> for EntityMoveBroadcastSystem {
             }
         }
 
-        for (entity, position, _) in (&entities, &positions, &self.dirty).join() {
-            broadcast_entity_movement(
-                entity,
-                position.previous,
-                position.current,
-                &networks,
-                &entities,
-            );
+        for (position, entity, _) in (&positions, &entities, &self.dirty).join() {
+            broadcast_entity_movement(entity, position.previous, position.current, &util);
         }
     }
 
@@ -62,13 +55,13 @@ pub struct EntityVelocityBroadcastSystem {
 
 impl<'a> System<'a> for EntityVelocityBroadcastSystem {
     type SystemData = (
-        ReadStorage<'a, NetworkComponent>,
         ReadStorage<'a, VelocityComponent>,
+        Read<'a, Util>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (networks, velocities, entities) = data;
+        let (velocities, util, entities) = data;
 
         self.dirty.clear();
 
@@ -90,22 +83,21 @@ impl<'a> System<'a> for EntityVelocityBroadcastSystem {
                 velocity_z,
             };
 
-            send_packet_to_all_players(&networks, &entities, packet, Some(entity));
+            util.broadcast_entity_update(entity, packet, Some(entity));
         }
     }
 
     flagged_setup_impl!(VelocityComponent, reader);
 }
 
-/// Broadcasts to all joined players that an entity has moved.
+/// Broadcasts to nearby players that an entity has moved.
 #[allow(clippy::too_many_arguments)]
 #[allow(clippy::float_cmp)]
 pub fn broadcast_entity_movement(
     entity: Entity,
     old_pos: Position,
     new_pos: Position,
-    networks: &ReadStorage<NetworkComponent>,
-    entities: &Entities,
+    util: &Util,
 ) {
     if old_pos == new_pos {
         return;
@@ -136,10 +128,10 @@ pub fn broadcast_entity_movement(
                 degrees_to_stops(new_pos.pitch),
                 new_pos.on_ground,
             );
-            send_packet_to_all_players(networks, entities, packet, Some(entity));
+            util.broadcast_entity_update(entity, packet, Some(entity));
         } else {
             let packet = EntityRelativeMove::new(entity.id() as i32, rx, ry, rz, new_pos.on_ground);
-            send_packet_to_all_players(networks, entities, packet, Some(entity));
+            util.broadcast_entity_update(entity, packet, Some(entity));
         }
     } else {
         let packet = EntityLook::new(
@@ -148,13 +140,13 @@ pub fn broadcast_entity_movement(
             degrees_to_stops(new_pos.pitch),
             new_pos.on_ground,
         );
-        send_packet_to_all_players(networks, entities, packet, Some(entity));
+        util.broadcast_entity_update(entity, packet, Some(entity));
     }
 
     // Entity Head Look also needs to be sent if the entity turned its head
     if has_looked {
         let packet = EntityHeadLook::new(entity.id() as i32, degrees_to_stops(new_pos.yaw));
-        send_packet_to_all_players(networks, entities, packet, Some(entity));
+        util.broadcast_entity_update(entity, packet, Some(entity));
     }
 }
 

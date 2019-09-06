@@ -5,6 +5,7 @@
 use crate::entity::{EntityDestroyEvent, EntitySpawnEvent, PositionComponent};
 use feather_core::world::ChunkPosition;
 use fnv::FnvHashMap;
+use hashbrown::HashSet;
 use shrev::EventChannel;
 use specs::storage::ComponentEvent;
 use specs::{
@@ -58,6 +59,31 @@ impl ChunkEntities {
             self.0.remove(&chunk);
         }
     }
+
+    /// Returns a vector of all entities in all chunks
+    /// within the given view distance of another chunk.
+    pub fn entites_within_view_distance(
+        &self,
+        chunk: ChunkPosition,
+        view_distance: u8,
+    ) -> HashSet<Entity> {
+        let mut result = HashSet::new();
+
+        // 1 is subtracted from the view distance because of some odd
+        // client-side glitch (or maybe it's our fault?) where the last chunk within the view distance
+        // is not loaded correctly.
+        let view_distance = i32::from(view_distance) - 1;
+
+        for x_offset in -view_distance..=view_distance {
+            for z_offset in -view_distance..=view_distance {
+                let chunk = ChunkPosition::new(chunk.x + x_offset, chunk.z + z_offset);
+
+                result.extend(self.entities_in_chunk(chunk));
+            }
+        }
+
+        result
+    }
 }
 
 /// System for updating the `ChunkEntities`.
@@ -86,11 +112,8 @@ impl<'a> System<'a> for ChunkEntityUpdateSystem {
 
         self.dirty.clear();
         for event in positions.channel().read(self.move_reader.as_mut().unwrap()) {
-            match event {
-                ComponentEvent::Inserted(id) | ComponentEvent::Modified(id) => {
-                    self.dirty.add(*id);
-                }
-                _ => (),
+            if let ComponentEvent::Modified(id) = event {
+                self.dirty.add(*id);
             }
         }
 
@@ -132,6 +155,8 @@ impl<'a> System<'a> for ChunkEntityUpdateSystem {
     }
 }
 
+// Tests here cannot use the `testframework::add_entity` function
+// because it automatically adds a ChunkEntities entry for the entity.
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -155,10 +180,24 @@ mod tests {
 
     #[test]
     fn test_new_entity() {
-        let (mut w, mut d) = t::init_world();
+        let (mut w, mut d) = t::builder()
+            .with(ChunkEntityUpdateSystem::default(), "")
+            .build();
 
         let pos = position!(1.0, 64.0, 1003.5);
-        let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, true);
+        let entity = w
+            .create_entity()
+            .with(PositionComponent {
+                current: pos,
+                previous: pos,
+            })
+            .build();
+
+        let event = EntitySpawnEvent {
+            entity,
+            ty: EntityType::Player,
+        };
+        t::trigger_event(&w, event);
 
         d.dispatch(&w);
         w.maintain();
@@ -172,22 +211,26 @@ mod tests {
 
     #[test]
     fn test_moved_entity() {
-        let (mut w, mut d) = t::init_world();
+        let (mut w, mut d) = t::builder()
+            .with(ChunkEntityUpdateSystem::default(), "")
+            .build();
 
         let pos = position!(1.0, 64.0, -14.0);
         let old_pos = position!(1.0, 64.0, -18.0);
 
-        let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, false);
+        let entity = w
+            .create_entity()
+            .with(PositionComponent {
+                current: old_pos,
+                previous: old_pos,
+            })
+            .build();
 
-        {
-            let mut chunk_entities = w.fetch_mut::<ChunkEntities>();
-            chunk_entities.add_to_chunk(old_pos.chunk_pos(), entity);
-
-            w.write_component::<PositionComponent>()
-                .get_mut(entity)
-                .unwrap()
-                .previous = old_pos;
-        }
+        // Trigger flagged storage event.
+        w.write_component::<PositionComponent>()
+            .get_mut(entity)
+            .unwrap()
+            .current = pos;
 
         d.dispatch(&w);
         w.maintain();
@@ -204,15 +247,12 @@ mod tests {
 
     #[test]
     fn test_destroyed_entity() {
-        let (mut w, mut d) = t::init_world();
+        let (mut w, mut d) = t::builder()
+            .with(ChunkEntityUpdateSystem::default(), "")
+            .build();
 
         let pos = position!(100.0, -100.0, -100.0);
         let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, false);
-
-        {
-            let mut chunk_entities = w.fetch_mut::<ChunkEntities>();
-            chunk_entities.add_to_chunk(pos.chunk_pos(), entity);
-        }
 
         let event = EntityDestroyEvent { entity };
         t::trigger_event(&w, event);
@@ -222,5 +262,34 @@ mod tests {
 
         let chunk_entities = w.fetch::<ChunkEntities>();
         assert!(chunk_entities.entities_in_chunk(pos.chunk_pos()).is_empty());
+    }
+
+    #[test]
+    fn test_entities_within_view_distance() {
+        let mut chunk_entities = ChunkEntities::default();
+
+        let mut world = World::new();
+        let entity1 = world.create_entity().build();
+        let entity2 = world.create_entity().build();
+        let entity3 = world.create_entity().build();
+        let entity4 = world.create_entity().build();
+
+        let chunk1 = ChunkPosition::new(0, 0);
+        let chunk2 = ChunkPosition::new(0, 3);
+        let chunk3 = ChunkPosition::new(0, 4);
+        let chunk4 = ChunkPosition::new(-3, -3);
+
+        chunk_entities.add_to_chunk(chunk1, entity1);
+        chunk_entities.add_to_chunk(chunk2, entity2);
+        chunk_entities.add_to_chunk(chunk3, entity3);
+        chunk_entities.add_to_chunk(chunk4, entity4);
+
+        let view_distance = 4;
+        let entities = chunk_entities.entites_within_view_distance(chunk1, view_distance);
+
+        assert!(entities.contains(&entity1));
+        assert!(entities.contains(&entity2));
+        assert!(!entities.contains(&entity3));
+        assert!(entities.contains(&entity4));
     }
 }

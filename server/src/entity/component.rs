@@ -16,7 +16,7 @@ impl Component for PlayerComponent {
     type Storage = BTreeStorage<Self>;
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Default, Debug, PartialEq)]
 pub struct PositionComponent {
     /// The current position of this entity.
     pub current: Position,

@@ -1,11 +1,12 @@
-use crate::network::{send_packet_to_all_players, NetworkComponent, PacketQueue};
+use crate::network::PacketQueue;
+use crate::util::Util;
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{AnimationClientbound, AnimationServerbound};
 use feather_core::network::packet::PacketType;
 use feather_core::{ClientboundAnimation, Hand};
 use shrev::EventChannel;
 use specs::SystemData;
-use specs::{Entities, Entity, Read, ReadStorage, ReaderId, System, World, Write};
+use specs::{Entity, Read, ReaderId, System, World, Write};
 
 /// Event which is triggered when a player causes
 /// an animation.
@@ -53,25 +54,16 @@ pub struct AnimationBroadcastSystem {
 }
 
 impl<'a> System<'a> for AnimationBroadcastSystem {
-    type SystemData = (
-        Read<'a, EventChannel<PlayerAnimationEvent>>,
-        ReadStorage<'a, NetworkComponent>,
-        Entities<'a>,
-    );
+    type SystemData = (Read<'a, EventChannel<PlayerAnimationEvent>>, Read<'a, Util>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (events, net_comps, entities) = data;
+        let (events, util) = data;
 
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
             // Broadcast animation
             let packet = AnimationClientbound::new(event.player.id() as i32, event.animation);
 
-            send_packet_to_all_players(
-                &net_comps,
-                &entities,
-                packet,
-                Some(event.player), // Don't send player their own animation
-            );
+            util.broadcast_entity_update(event.player, packet, Some(event.player))
         }
     }
 
