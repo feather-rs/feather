@@ -34,11 +34,12 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use specs::{Dispatcher, DispatcherBuilder, Entity, LazyUpdate, World, WorldExt};
+use specs::{Builder, Dispatcher, DispatcherBuilder, Entity, LazyUpdate, World, WorldExt};
 
 use feather_core::network::packet::implementation::DisconnectPlay;
 use prelude::*;
 
+use crate::chunk_logic::{ChunkHolders, ChunkWorkerHandle};
 use crate::entity::{EntityDestroyEvent, NamedComponent};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
@@ -118,8 +119,11 @@ fn main() {
 
     info!("Initialized world");
 
-    info!("Generating RSA keypair...");
+    info!("Generating RSA keypair");
     io::init();
+
+    info!("Queuing spawn chunks for loading");
+    load_spawn_chunks(&mut world);
 
     info!("Server started");
     run_loop(&mut world, &mut dispatcher);
@@ -152,6 +156,35 @@ fn load_level() -> Result<LevelData, failure::Error> {
     let file = File::open("world/level.dat")?;
     let data = level::deserialize_level_file(file)?;
     Ok(data)
+}
+
+/// Loads the chunks around the spawn area and creates
+/// a chunk hold on those chunks to prevent them from
+/// being unloaded.
+///
+/// Note that these chunks are loaded asynchronously,
+/// and this function will return before loading is complete.
+fn load_spawn_chunks(world: &mut World) {
+    let view_distance = i32::from(world.fetch::<Arc<Config>>().server.view_distance);
+
+    // Create an entity for the server and
+    // add chunk holders using it.
+    let server_entity = world.create_entity().build();
+
+    let mut chunk_holders = world.fetch_mut::<ChunkHolders>();
+    let chunk_worker_handle = world.fetch::<ChunkWorkerHandle>();
+
+    let level = world.fetch::<LevelData>();
+    let offset_x = level.spawn_x / 16;
+    let offset_z = level.spawn_z / 16;
+    for x in -view_distance..=view_distance {
+        for z in -view_distance..=view_distance {
+            let chunk = ChunkPosition::new(x + offset_x, z + offset_z);
+
+            chunk_logic::load_chunk(&chunk_worker_handle, chunk);
+            chunk_holders.insert_holder(chunk, server_entity);
+        }
+    }
 }
 
 /// Runs the server loop, blocking until the server
