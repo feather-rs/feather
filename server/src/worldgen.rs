@@ -1,7 +1,6 @@
 use feather_blocks::Block;
 use feather_core::level::SuperflatGeneratorOptions;
 use feather_core::{Chunk, ChunkPosition};
-use std::collections::HashMap;
 
 pub trait WorldGenerator: Send + Sync {
     /// Generates the chunk at the given position.
@@ -28,7 +27,7 @@ impl WorldGenerator for SuperflatWorldGenerator {
             if layer.height == 0 {
                 continue;
             }
-            let layer_block = Block::from_name_and_props(layer.block.as_str(), &HashMap::new());
+            let layer_block = Block::from_name_and_default_props(layer.block.as_str());
             if layer_block.is_none() {
                 // Skip this layer
                 debug!("Failed to generate layer: unknown block {}", layer.block);
