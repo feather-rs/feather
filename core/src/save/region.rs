@@ -212,7 +212,7 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     let block_light = convert_light_data(&section.block_light);
     let sky_light = convert_light_data(&section.sky_light);
 
-    let chunk_section = ChunkSection::from_data_palette_and_light(
+    let chunk_section = ChunkSection::new(
         data, Some(palette), block_light, sky_light,
     );
 
