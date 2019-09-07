@@ -7,7 +7,7 @@ coverage:
     patch:
       default:
         threshold: 1.5
-        target: 50
+        target: 25
 
 ignore:
   - "blocks/src/blocks.rs"
