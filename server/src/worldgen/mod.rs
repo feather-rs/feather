@@ -5,11 +5,16 @@
 
 use feather_core::{Biome, Chunk, ChunkPosition};
 
+mod composition;
+mod height_map;
 mod superflat;
 
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
 pub use superflat::SuperflatWorldGenerator;
+
+/// Sea-level height.
+pub const SEA_LEVEL: usize = 64;
 
 pub trait WorldGenerator: Send + Sync {
     /// Generates the chunk at the given position.
