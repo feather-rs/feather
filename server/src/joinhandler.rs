@@ -10,8 +10,8 @@ use std::sync::Arc;
 
 use shrev::EventChannel;
 use specs::{
-    Component, Entities, Entity, HashMapStorage, Join, LazyUpdate, Read, ReadStorage, System,
-    Write, WriteStorage,
+    Component, Entities, Entity, HashMapStorage, Join, LazyUpdate, Read, ReadExpect, ReadStorage,
+    System, Write, WriteStorage,
 };
 
 use feather_core::level::LevelData;
@@ -75,7 +75,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
         Write<'a, EventChannel<PlayerJoinEvent>>,
         Write<'a, EventChannel<EntitySpawnEvent>>,
         Write<'a, EventChannel<InventoryUpdateEvent>>,
-        Read<'a, ChunkWorkerHandle>,
+        ReadExpect<'a, ChunkWorkerHandle>,
         Entities<'a>,
         Read<'a, LazyUpdate>,
         Read<'a, Arc<Config>>,

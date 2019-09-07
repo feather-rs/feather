@@ -4,7 +4,9 @@
 //! Also handles unloading chunks when unused.
 use crossbeam::channel::{Receiver, Sender};
 use shrev::{EventChannel, ReaderId};
-use specs::{Component, DispatcherBuilder, Entity, Read, ReadStorage, System, World, Write};
+use specs::{
+    Component, DispatcherBuilder, Entity, Read, ReadExpect, ReadStorage, System, World, Write,
+};
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use feather_core::world::{ChunkMap, ChunkPosition};
@@ -13,24 +15,20 @@ use rayon::prelude::*;
 
 use crate::entity::EntityDestroyEvent;
 use crate::systems::{CHUNK_HOLD_REMOVE, CHUNK_LOAD, CHUNK_OPTIMIZE, CHUNK_UNLOAD};
+use crate::worldgen::WorldGenerator;
 use crate::{chunkworker, current_time_in_millis, TickCount, TPS};
 use hashbrown::HashSet;
 use multimap::MultiMap;
 use specs::storage::BTreeStorage;
 use std::collections::VecDeque;
+use std::sync::Arc;
 
 /// A handle for interacting with the chunk
 /// worker thread.
+#[derive(Debug, Clone)]
 pub struct ChunkWorkerHandle {
     sender: Sender<chunkworker::Request>,
     receiver: Receiver<chunkworker::Reply>,
-}
-
-impl Default for ChunkWorkerHandle {
-    fn default() -> Self {
-        let (sender, receiver) = chunkworker::start("world");
-        Self { sender, receiver }
-    }
 }
 
 /// Event which is triggered when a chunk is loaded.
@@ -53,7 +51,7 @@ impl<'a> System<'a> for ChunkLoadSystem {
         Write<'a, ChunkMap>,
         Write<'a, EventChannel<ChunkLoadEvent>>,
         Write<'a, EventChannel<ChunkLoadFailEvent>>,
-        Read<'a, ChunkWorkerHandle>,
+        ReadExpect<'a, ChunkWorkerHandle>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -83,9 +81,11 @@ impl<'a> System<'a> for ChunkLoadSystem {
     fn setup(&mut self, world: &mut World) {
         use specs::prelude::SystemData;
 
+        let generator = world.fetch_mut::<Arc<dyn WorldGenerator>>().clone();
+
         info!("Starting chunk worker thread");
-        let handle = chunkworker::start("world");
-        world.insert(handle);
+        let (sender, receiver) = chunkworker::start("world", generator);
+        world.insert(ChunkWorkerHandle { sender, receiver });
 
         Self::SystemData::setup(world);
     }

@@ -26,6 +26,7 @@ extern crate feather_codegen;
 extern crate bitflags;
 #[macro_use]
 extern crate feather_core;
+extern crate feather_blocks;
 
 extern crate nalgebra_glm as glm;
 
@@ -45,9 +46,10 @@ use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
 use crate::systems::{BROADCASTER, ITEM_SPAWN, JOIN_HANDLER, NETWORK, SPAWNER};
 use crate::util::Util;
+use crate::worldgen::{EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator};
 use backtrace::Backtrace;
 use feather_core::level;
-use feather_core::level::LevelData;
+use feather_core::level::{LevelData, LevelGeneratorType};
 use shrev::EventChannel;
 use std::fs::File;
 use std::io::{Read, Write};
@@ -72,6 +74,7 @@ pub mod systems;
 #[cfg(test)]
 pub mod testframework;
 pub mod time;
+pub mod worldgen;
 
 pub const TPS: u64 = 20;
 pub const PROTOCOL_VERSION: u32 = 404;
@@ -249,7 +252,15 @@ fn init_world<'a, 'b>(
     world.insert(player_count);
     world.insert(ioman);
     world.insert(TickCount::default());
+
+    let generator: Arc<dyn WorldGenerator> = match level.generator_type() {
+        LevelGeneratorType::Flat => Arc::new(SuperflatWorldGenerator {
+            options: level.clone().generator_options.unwrap_or_default(),
+        }),
+        _ => Arc::new(EmptyWorldGenerator {}),
+    };
     world.insert(level);
+    world.insert(generator);
 
     let mut dispatcher = DispatcherBuilder::new();
 
