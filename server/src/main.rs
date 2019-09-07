@@ -47,7 +47,10 @@ use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
 use crate::systems::{BROADCASTER, ITEM_SPAWN, JOIN_HANDLER, NETWORK, SPAWNER};
 use crate::util::Util;
-use crate::worldgen::{EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator};
+use crate::worldgen::{
+    BasicCompositionGenerator, BasicHeightMapGenerator, ComposableGenerator, EmptyWorldGenerator,
+    StaticBiomeGenerator, SuperflatWorldGenerator, WorldGenerator,
+};
 use backtrace::Backtrace;
 use feather_core::level;
 use feather_core::level::{LevelData, LevelGeneratorType};
@@ -258,6 +261,11 @@ fn init_world<'a, 'b>(
         LevelGeneratorType::Flat => Arc::new(SuperflatWorldGenerator {
             options: level.clone().generator_options.unwrap_or_default(),
         }),
+        LevelGeneratorType::Default => Arc::new(ComposableGenerator::new(
+            StaticBiomeGenerator::default(),
+            BasicHeightMapGenerator::default(),
+            BasicCompositionGenerator::default(),
+        )),
         _ => Arc::new(EmptyWorldGenerator {}),
     };
     world.insert(level);

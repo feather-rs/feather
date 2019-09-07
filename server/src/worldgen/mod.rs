@@ -11,6 +11,8 @@ mod superflat;
 
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
+pub use composition::BasicCompositionGenerator;
+pub use height_map::BasicHeightMapGenerator;
 pub use superflat::SuperflatWorldGenerator;
 
 /// Sea-level height.
@@ -98,7 +100,7 @@ pub trait BiomeGenerator: Send + Sync {
 pub trait HeightMapGenerator: Send + Sync {
     /// Generates the height map for a given chunk.
     /// A compact array of booleans is returned, indexable
-    /// by ((x << 8) | (y << 4)) | z. Those set to `true` will
+    /// by (y << 8) | (x << 4) | z. Those set to `true` will
     /// contain solid blacks; those set to `false` will be air.
     fn generate_for_chunk(&self, chunk: ChunkPosition, biomes: &ChunkBiomes) -> BitVec;
 }
@@ -120,7 +122,8 @@ pub trait CompositionGenerator: Send + Sync {
 /// Returns an index into a one-dimensional array
 /// for the given x, y, and z values.
 pub fn block_index(x: usize, y: usize, z: usize) -> usize {
-    ((x << 8) | y << 4) | z
+    assert!(x < 16 && y < 256 && z < 16);
+    (y << 8) | (x << 4) | z
 }
 
 /// Represents the biomes of a chunk.
