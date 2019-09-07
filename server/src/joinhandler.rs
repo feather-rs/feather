@@ -120,15 +120,17 @@ impl<'a> System<'a> for JoinHandlerSystem {
                 Stage::Initial => {
                     let playercomp = playercomps.get(player).unwrap();
 
+                    let level_type = &level.generator_name;
+
                     // Send Join Game, then queue chunks for loading + sending.
                     let join_game = JoinGame::new(
                         player.id() as i32,
                         playercomp.gamemode.get_id(),
                         Dimension::Overwold.get_id(),
                         Difficulty::Medium.get_id(),
-                        0,                     // Max players - not used
-                        "default".to_string(), // Level type
-                        false,                 // Reduced debug info
+                        0, // Max players - not used
+                        level_type.to_string(),
+                        false, // Reduced debug info
                     );
                     crate::network::send_packet_to_player(net, join_game);
 
