@@ -19,6 +19,7 @@ extern crate strum_macros;
 
 extern crate nalgebra_glm as glm;
 
+mod biomes;
 pub mod bytebuf;
 pub mod entitymeta;
 pub mod inventory;
@@ -28,6 +29,7 @@ mod save;
 #[macro_use]
 pub mod world;
 
+pub use biomes::Biome;
 pub use entitymeta::EntityMetadata;
 pub use feather_items as item;
 pub use inventory::{ItemStack, Slot};
