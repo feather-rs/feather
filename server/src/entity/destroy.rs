@@ -1,11 +1,11 @@
 //! Module for broadcasting and handling entity destroy
 //! events.
 
-use crate::network::{send_packet_to_player, NetworkComponent};
+use crate::util::Util;
 use feather_core::network::packet::implementation::DestroyEntities;
 use shrev::{EventChannel, ReaderId};
 use specs::SystemData;
-use specs::{Entities, Entity, Join, Read, ReadStorage, System, World};
+use specs::{Entities, Entity, Read, System, World};
 
 /// Event triggered when an entity
 /// of any type is destroyed.
@@ -58,21 +58,15 @@ pub struct EntityDestroyBroadcastSystem {
 }
 
 impl<'a> System<'a> for EntityDestroyBroadcastSystem {
-    type SystemData = (
-        ReadStorage<'a, NetworkComponent>,
-        Read<'a, EventChannel<EntityDestroyEvent>>,
-    );
+    type SystemData = (Read<'a, Util>, Read<'a, EventChannel<EntityDestroyEvent>>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (net_comps, events) = data;
+        let (util, events) = data;
 
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
             let destroy_entities = DestroyEntities::new(vec![event.entity.id() as i32]);
 
-            // TODO only broadcast to nearby
-            for net in net_comps.join() {
-                send_packet_to_player(net, destroy_entities.clone());
-            }
+            util.broadcast_entity_update(event.entity, destroy_entities, None);
         }
     }
 

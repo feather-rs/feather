@@ -1,7 +1,7 @@
 //! Module for creating and modifying inventories of any type.
 
 use crate::item::Item;
-use smallvec::SmallVec;
+use smallvec::{Array, SmallVec};
 use std::cmp::min;
 
 pub type SlotIndex = usize;
@@ -37,8 +37,6 @@ pub const SLOT_ENTITY_EQUIPMENT_LEGGINGS: SlotIndex = 3;
 pub const SLOT_ENTITY_EQUIPMENT_CHESTPLATE: SlotIndex = 4;
 pub const SLOT_ENTITY_EQUIPMENT_HELMET: SlotIndex = 5;
 
-pub const STACK_MAX_SIZE: u8 = 64;
-
 pub type Slot = Option<ItemStack>;
 
 lazy_static! {
@@ -64,6 +62,66 @@ pub fn armor_slot_to_entity_equipment(slot: SlotIndex) -> SlotIndex {
         SLOT_ARMOR_LEGS => SLOT_ENTITY_EQUIPMENT_LEGGINGS,
         SLOT_ARMOR_FEET => SLOT_ENTITY_EQUIPMENT_BOOTS,
         _ => unreachable!(),
+    }
+}
+
+/// Returns the max size of a stack with the given
+/// type.
+pub fn max_size(item: Item) -> u8 {
+    match item {
+        Item::WoodenSword
+        | Item::GoldenSword
+        | Item::StoneSword
+        | Item::IronSword
+        | Item::DiamondSword
+        | Item::WoodenAxe
+        | Item::GoldenAxe
+        | Item::StoneAxe
+        | Item::IronAxe
+        | Item::DiamondAxe
+        | Item::WoodenHoe
+        | Item::GoldenHoe
+        | Item::StoneHoe
+        | Item::IronHoe
+        | Item::DiamondHoe
+        | Item::WoodenPickaxe
+        | Item::GoldenPickaxe
+        | Item::StonePickaxe
+        | Item::IronPickaxe
+        | Item::DiamondPickaxe
+        | Item::WoodenShovel
+        | Item::GoldenShovel
+        | Item::StoneShovel
+        | Item::IronShovel
+        | Item::DiamondShovel
+        | Item::LeatherChestplate
+        | Item::GoldenChestplate
+        | Item::ChainmailChestplate
+        | Item::IronChestplate
+        | Item::DiamondChestplate
+        | Item::LeatherLeggings
+        | Item::GoldenLeggings
+        | Item::ChainmailLeggings
+        | Item::IronLeggings
+        | Item::DiamondLeggings
+        | Item::LeatherBoots
+        | Item::GoldenBoots
+        | Item::ChainmailBoots
+        | Item::IronBoots
+        | Item::DiamondBoots
+        | Item::LeatherHelmet
+        | Item::GoldenHelmet
+        | Item::ChainmailHelmet
+        | Item::IronHelmet
+        | Item::DiamondHelmet
+        | Item::Bow
+        | Item::Book
+        | Item::WrittenBook
+        | Item::WritableBook
+        | Item::FlintAndSteel => 1,
+        Item::EnderPearl => 16,
+        _ => 64,
+        // TODO: are we missing some here?
     }
 }
 
@@ -146,23 +204,33 @@ impl Inventory {
     /// items which were not added to the inventory.
     pub fn collect_item(&mut self, mut item: ItemStack) -> (SmallVec<[SlotIndex; 2]>, u8) {
         let mut affected_slots = smallvec![];
+
+        // First, look for slots already having the type.
         for slot in COLLECT_SEARCH_ORDER.iter() {
-            let slot_item = self.item_at(*slot);
+            if let Some(slot_item) = self.item_at(*slot).cloned() {
+                if slot_item.ty == item.ty {
+                    self.add_to_stack(&mut item, &slot_item, *slot, &mut affected_slots);
+
+                    if item.amount == 0 {
+                        return (affected_slots, 0);
+                    }
+                }
+            }
+        }
+
+        for slot in COLLECT_SEARCH_ORDER.iter() {
+            let slot_item = self.item_at(*slot).cloned();
             if slot_item.is_none() {
-                self.set_item_at(*slot, item);
-                return (smallvec![*slot], 0);
+                let fake = ItemStack::new(item.ty, 0);
+                self.add_to_stack(&mut item, &fake, *slot, &mut affected_slots);
+                if item.amount == 0 {
+                    return (affected_slots, 0);
+                }
             }
 
-            if let Some(slot_item) = slot_item.cloned() {
+            if let Some(slot_item) = slot_item {
                 if slot_item.ty == item.ty {
-                    let added = min(item.amount, STACK_MAX_SIZE - slot_item.amount);
-                    item.amount -= added;
-
-                    self.set_item_at(
-                        *slot,
-                        ItemStack::new(slot_item.ty, slot_item.amount + added),
-                    );
-                    affected_slots.push(*slot);
+                    self.add_to_stack(&mut item, &slot_item, *slot, &mut affected_slots);
 
                     if item.amount == 0 {
                         return (affected_slots, 0);
@@ -172,6 +240,21 @@ impl Inventory {
         }
 
         (affected_slots, item.amount)
+    }
+
+    /// Adds an item to a stack.
+    fn add_to_stack<A: Array<Item = SlotIndex>>(
+        &mut self,
+        item: &mut ItemStack,
+        slot_item: &ItemStack,
+        slot: SlotIndex,
+        affected_slots: &mut SmallVec<A>,
+    ) {
+        let added = min(item.amount, max_size(item.ty) - slot_item.amount);
+        item.amount -= added;
+
+        self.set_item_at(slot, ItemStack::new(slot_item.ty, slot_item.amount + added));
+        affected_slots.push(slot);
     }
 
     /// Returns the number of slots in this inventory.
@@ -219,5 +302,53 @@ mod tests {
 
         inv.clear_item_at(0);
         assert!(inv.item_at(0).is_none());
+    }
+
+    #[test]
+    fn test_collect_item_basic() {
+        let mut inv = Inventory::new(InventoryType::Player, 46);
+        let item = ItemStack::new(Item::Cobblestone, 32);
+        inv.collect_item(item.clone());
+        assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET).unwrap(), &item);
+    }
+
+    #[test]
+    fn test_collect_item_full() {
+        let mut inv = Inventory::new(InventoryType::Player, 46);
+        let item = ItemStack::new(Item::DriedKelpBlock, 64);
+
+        for i in 0..46 {
+            inv.set_item_at(i, item.clone());
+        }
+
+        inv.collect_item(ItemStack::new(Item::Cobblestone, 16));
+        for i in 0..46 {
+            assert_eq!(inv.item_at(i).unwrap(), &item);
+        }
+    }
+
+    #[test]
+    fn test_collect_item_type_already_in() {
+        let mut inv = Inventory::new(InventoryType::Player, 46);
+        let item = ItemStack::new(Item::Cobblestone, 33);
+        inv.set_item_at(31, item.clone());
+
+        inv.collect_item(item.clone());
+        assert_eq!(inv.item_at(31).unwrap(), &ItemStack::new(item.ty, 64));
+        assert_eq!(
+            inv.item_at(SLOT_HOTBAR_OFFSET).unwrap(),
+            &ItemStack::new(item.ty, 2)
+        );
+    }
+
+    #[test]
+    fn test_collect_item_overstack() {
+        let mut inv = Inventory::new(InventoryType::Player, 46);
+        let item = ItemStack::new(Item::DiamondSword, 1);
+        inv.set_item_at(SLOT_HOTBAR_OFFSET, item.clone());
+
+        inv.collect_item(item.clone());
+        assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET).unwrap(), &item);
+        assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET + 1).unwrap(), &item);
     }
 }

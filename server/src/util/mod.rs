@@ -105,7 +105,7 @@ impl Util {
     /// the entity.
     pub fn broadcast_entity_update<P>(&self, entity: Entity, packet: P, neq: Option<Entity>)
     where
-        P: Packet + Clone + 'static,
+        P: Packet + 'static,
     {
         self.broadcaster
             .broadcast_entity_update(entity, packet, neq);
@@ -124,9 +124,21 @@ impl Util {
     /// the chunk.
     pub fn broadcast_chunk_update<P>(&self, chunk: ChunkPosition, packet: P, neq: Option<Entity>)
     where
-        P: Packet + Clone + 'static,
+        P: Packet + 'static,
     {
         self.broadcaster.broadcast_chunk_update(chunk, packet, neq);
+    }
+
+    /// Similar to `broadcast_*_update`, but only sends to the specified
+    /// player.
+    ///
+    /// This can be used when a packet needs to be sent to a specified
+    /// player before another packet is broadcasted.
+    pub fn lazy_send_packet_to_player<P>(&self, player: Entity, packet: P)
+    where
+        P: Packet + 'static,
+    {
+        self.broadcaster.lazy_send_packet_to_player(player, packet);
     }
 }
 

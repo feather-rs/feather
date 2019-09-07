@@ -42,6 +42,18 @@ impl Broadcaster {
             neq,
         });
     }
+
+    /// Lazily sends a packet to a player.
+    pub fn lazy_send_packet_to_player<P>(&self, player: Entity, packet: P)
+    where
+        P: Packet + 'static,
+    {
+        self.queue.push(BroadcastRequest {
+            condition: BroadcastCondition::ToPlayer(player),
+            packet: Box::new(packet),
+            neq: None, // No effect
+        });
+    }
 }
 
 /// A broadcast request.
@@ -59,6 +71,7 @@ struct BroadcastRequest {
 enum BroadcastCondition {
     Entity(Entity),
     Chunk(ChunkPosition),
+    ToPlayer(Entity),
 }
 
 /// System for flushing the `Broadcaster` queue and broadcasting
@@ -97,6 +110,13 @@ impl<'a> System<'a> for BroadcasterSystem {
                     positions.get(entity).unwrap().current.chunk_pos()
                 }
                 BroadcastCondition::Chunk(chunk) => chunk,
+                BroadcastCondition::ToPlayer(player) => {
+                    if entities.is_alive(player) {
+                        send_packet_boxed_to_player(networks.get(player).unwrap(), request.packet);
+                    }
+
+                    continue; // Special case - no chunk
+                }
             };
             if let Some(holders) = chunk_holders.holders_for(chunk) {
                 for holder in holders {
