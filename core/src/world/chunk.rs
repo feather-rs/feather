@@ -124,7 +124,7 @@ impl Chunk {
                 return; // Nothing to do - section already empty
             }
 
-            let new_section = ChunkSection::new();
+            let new_section = ChunkSection::default();
             self.set_section_at(y / 16, Some(new_section));
             section = self.section_mut(y / 16).unwrap();
         }
@@ -217,6 +217,9 @@ pub struct ChunkSection {
     /// the section becomes empty.
     solid_block_count: u16,
 
+    block_light: BitArray,
+    sky_light: BitArray,
+
     /// A section is considered dirty when it has been
     /// modified since the last time it was optimized.
     dirty: bool,
@@ -224,19 +227,12 @@ pub struct ChunkSection {
 
 impl ChunkSection {
     /// Creates a new, empty `ChunkSection`.
-    pub fn new() -> Self {
-        let air_id = Block::Air.native_state_id();
-        Self {
-            data: BitArray::new(4, SECTION_VOLUME),
-            palette: Some(vec![air_id]),
-            solid_block_count: 0,
-            dirty: false,
-        }
-    }
-
-    /// Creates a new `ChunkSection` based on the given
-    /// data and palette.
-    pub fn from_data_and_palette(mut data: BitArray, mut palette: Option<Vec<u16>>) -> Self {
+    pub fn new(
+        mut data: BitArray,
+        mut palette: Option<Vec<u16>>,
+        block_light: BitArray,
+        sky_light: BitArray,
+    ) -> Self {
         // Correct palette if not using the global palette
         if let Some(palette) = palette.as_mut() {
             Self::correct_data_and_palette(&mut data, palette);
@@ -259,6 +255,8 @@ impl ChunkSection {
             palette,
             solid_block_count,
             dirty: false,
+            block_light,
+            sky_light,
         }
     }
 
@@ -466,11 +464,27 @@ impl ChunkSection {
     pub fn bits_per_block(&self) -> u8 {
         self.data.bits_per_value
     }
+
+    pub fn sky_light(&self) -> &BitArray {
+        &self.sky_light
+    }
+
+    pub fn block_light(&self) -> &BitArray {
+        &self.block_light
+    }
 }
 
 impl Default for ChunkSection {
     fn default() -> Self {
-        Self::new()
+        let air_id = Block::Air.native_state_id();
+        Self {
+            data: BitArray::new(4, SECTION_VOLUME),
+            palette: Some(vec![air_id]),
+            solid_block_count: 0,
+            dirty: false,
+            block_light: BitArray::new(4, SECTION_VOLUME),
+            sky_light: BitArray::new(4, SECTION_VOLUME),
+        }
     }
 }
 
@@ -782,7 +796,12 @@ mod tests {
         }
 
         let palette = vec![1];
-        let section = ChunkSection::from_data_and_palette(data, Some(palette));
+        let section = ChunkSection::new(
+            data,
+            Some(palette),
+            BitArray::new(4, SECTION_VOLUME),
+            BitArray::new(4, SECTION_VOLUME),
+        );
         chunk.set_section_at(0, Some(section));
 
         for x in 0..16 {
@@ -907,7 +926,7 @@ mod tests {
 
     #[test]
     fn test_palette_insertion_in_middle() {
-        let mut chunk = ChunkSection::new();
+        let mut chunk = ChunkSection::default();
 
         chunk.set_block_at(0, 0, 0, Block::Cobblestone);
         chunk.set_block_at(0, 1, 0, Block::Stone);
