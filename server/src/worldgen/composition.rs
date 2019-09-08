@@ -3,11 +3,11 @@
 
 use crate::worldgen::{block_index, ChunkBiomes, CompositionGenerator, SEA_LEVEL};
 use bitvec::slice::BitSlice;
-use feather_blocks::{BirchLogData, GrassBlockData};
-use feather_core::{Biome, Block, BlockExt, Chunk, ChunkPosition};
+use feather_blocks::{GrassBlockData, MyceliumData, SnowData};
+use feather_core::{Biome, Block, Chunk, ChunkPosition};
 
-/// A composition generator which ignores the biome values
-/// and assumes a plains-like terrain.
+/// A composition generator which generates basic
+/// terrain based on biome values.
 #[derive(Debug, Default)]
 pub struct BasicCompositionGenerator;
 
@@ -26,22 +26,19 @@ impl CompositionGenerator for BasicCompositionGenerator {
 
         for x in 0..16 {
             for z in 0..16 {
-                basic_composition_for_column(x, z, chunk, density);
-
-                let block = match biomes.biome_at(x, z) {
-                    Biome::Plains => Block::Dirt,
-                    Biome::Badlands => Block::Terracotta,
-                    Biome::BirchForest => Block::BirchLog(BirchLogData::default()),
-                    Biome::IceSpikes => Block::AcaciaPlanks,
-                    biome => Block::from_native_state_id(biome.protocol_id() as u16).unwrap(),
-                };
-                chunk.set_block_at(x, 100, z, block);
+                basic_composition_for_column(x, z, chunk, density, biomes.biome_at(x, z));
             }
         }
     }
 }
 
-fn basic_composition_for_column(x: usize, z: usize, chunk: &mut Chunk, density: &BitSlice) {
+fn basic_composition_for_column(
+    x: usize,
+    z: usize,
+    chunk: &mut Chunk,
+    density: &BitSlice,
+    biome: Biome,
+) {
     let mut dirt_remaining = -1;
     for y in (0..256).rev() {
         // TODO: randomize bedrock height
@@ -53,13 +50,13 @@ fn basic_composition_for_column(x: usize, z: usize, chunk: &mut Chunk, density: 
                 if dirt_remaining == -1 {
                     dirt_remaining = 3;
                     if y >= SEA_LEVEL - 2 {
-                        Block::GrassBlock(GrassBlockData::default())
+                        top_soil_block(biome)
                     } else {
-                        Block::Dirt
+                        underneath_top_soil_block(biome)
                     }
                 } else if dirt_remaining > 0 {
                     dirt_remaining -= 1;
-                    Block::Dirt
+                    underneath_top_soil_block(biome)
                 } else {
                     Block::Stone
                 }
@@ -72,6 +69,54 @@ fn basic_composition_for_column(x: usize, z: usize, chunk: &mut Chunk, density: 
                 chunk.set_block_at(x, y, z, block);
             }
         }
+    }
+}
+
+/// Returns the top soil block for the given biome.
+fn top_soil_block(biome: Biome) -> Block {
+    match biome {
+        Biome::SnowyTundra
+        | Biome::IceSpikes
+        | Biome::SnowyTaiga
+        | Biome::SnowyTaigaMountains
+        | Biome::WoodedMountains => Block::Snow(SnowData { layers: 1 }),
+        Biome::SnowyBeach => Block::SnowBlock,
+        Biome::GravellyMountains => Block::Gravel,
+        Biome::StoneShore => Block::Stone,
+        Biome::Beach | Biome::Desert | Biome::DesertHills | Biome::DesertLakes => Block::Sand,
+        Biome::MushroomFields | Biome::MushroomFieldShore => {
+            Block::Mycelium(MyceliumData { snowy: false })
+        }
+        Biome::Badlands
+        | Biome::ErodedBadlands
+        | Biome::WoodedBadlandsPlateau
+        | Biome::BadlandsPlateau
+        | Biome::ModifiedBadlandsPlateau
+        | Biome::ModifiedWoodedBadlandsPlateau => Block::RedSand,
+        _ => Block::GrassBlock(GrassBlockData::default()),
+    }
+}
+
+/// Returns the block under the top soil block for the given biome.
+fn underneath_top_soil_block(biome: Biome) -> Block {
+    match biome {
+        Biome::SnowyTundra
+        | Biome::IceSpikes
+        | Biome::SnowyTaiga
+        | Biome::SnowyTaigaMountains
+        | Biome::WoodedMountains => Block::GrassBlock(GrassBlockData { snowy: true }),
+        Biome::SnowyBeach => Block::SnowBlock,
+        Biome::GravellyMountains => Block::Gravel,
+        Biome::StoneShore => Block::Stone,
+        Biome::Beach | Biome::Desert | Biome::DesertHills | Biome::DesertLakes => Block::Sandstone,
+        Biome::MushroomFields | Biome::MushroomFieldShore => Block::Dirt,
+        Biome::Badlands
+        | Biome::ErodedBadlands
+        | Biome::WoodedBadlandsPlateau
+        | Biome::BadlandsPlateau
+        | Biome::ModifiedBadlandsPlateau
+        | Biome::ModifiedWoodedBadlandsPlateau => Block::RedSandstone,
+        _ => Block::Dirt,
     }
 }
 
@@ -95,7 +140,7 @@ mod tests {
         }
 
         let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
-        basic_composition_for_column(x, z, &mut chunk, &density[..]);
+        basic_composition_for_column(x, z, &mut chunk, &density[..], Biome::Plains);
 
         for y in 4..=28 {
             assert_eq!(chunk.block_at(x, y, z), Block::Stone);
