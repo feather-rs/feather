@@ -21,7 +21,7 @@ impl BiomeGenerator for TwoLevelBiomeGenerator {
         // TODO: load seed
         let seed = 8344;
 
-        let mut voronoi = VoronoiGrid::new(256, seed);
+        let mut voronoi = VoronoiGrid::new(512, seed);
 
         let mut biomes = ChunkBiomes::from_array([Biome::Plains; 16 * 16]); // Will be overriden
 
@@ -39,8 +39,8 @@ impl BiomeGenerator for TwoLevelBiomeGenerator {
             for z in 0..16 {
                 // Apply distortion to coordinate before passing to voronoi
                 // generator.
-                let distort_x = x_noise[(z << 4) | x] as i32;
-                let distort_z = z_noise[(z << 4) | x] as i32;
+                let distort_x = x_noise[(z << 4) | x] as i32 * 8;
+                let distort_z = z_noise[(z << 4) | x] as i32 * 8;
 
                 let (closest_x, closest_y) = voronoi.get(
                     (chunk.x * 16) + x as i32 + distort_x,

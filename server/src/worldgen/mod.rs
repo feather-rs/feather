@@ -78,9 +78,16 @@ impl ComposableGenerator {
 impl WorldGenerator for ComposableGenerator {
     fn generate_chunk(&self, position: ChunkPosition) -> Chunk {
         let biomes = self.biome.generate_for_chunk(position);
+
         let density_map = self.height_map.generate_for_chunk(position, &biomes);
 
         let mut chunk = Chunk::new(position);
+
+        for x in 0..16 {
+            for z in 0..16 {
+                chunk.set_biome_at(x, z, biomes.biome_at(x, z));
+            }
+        }
 
         self.composition.generate_for_chunk(
             &mut chunk,
