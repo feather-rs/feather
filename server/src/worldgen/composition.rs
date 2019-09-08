@@ -9,6 +9,7 @@ use feather_blocks::{GrassBlockData, MyceliumData, SnowData, WaterData};
 use feather_core::{Biome, Block, Chunk, ChunkPosition};
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
+use std::cmp::min;
 
 /// A composition generator which generates basic
 /// terrain based on biome values.
@@ -62,6 +63,7 @@ fn basic_composition_for_solid_biome(
     let top_soil = top_soil_block(biome);
 
     let mut topsoil_remaining = -1;
+    let mut water_level = 0; // `level` block data starts at 0 and skips to min(8+n, 15) for each level of water downward
     for y in (0..256).rev() {
         let mut block = Block::Air;
 
@@ -71,7 +73,12 @@ fn basic_composition_for_solid_biome(
 
         if biome == Biome::Ocean {
             if y <= SEA_LEVEL && y >= SEA_LEVEL - OCEAN_DEPTH && !is_solid {
-                block = Block::Water(WaterData { level: 0 });
+                block = Block::Water(WaterData { level: water_level });
+                if water_level == 0 {
+                    water_level = 8;
+                } else {
+                    water_level = min(water_level + 1, 15);
+                }
                 skip = true;
             } else if y >= SEA_LEVEL {
                 continue; // Leave at air - no blocks above sea level in ocean
