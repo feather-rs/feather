@@ -18,7 +18,7 @@ pub struct TwoLevelBiomeGenerator;
 
 impl BiomeGenerator for TwoLevelBiomeGenerator {
     fn generate_for_chunk(&self, chunk: ChunkPosition, seed: u64) -> ChunkBiomes {
-        let mut voronoi = VoronoiGrid::new(512, seed);
+        let mut voronoi = VoronoiGrid::new(384, seed);
 
         let mut biomes = ChunkBiomes::from_array([Biome::Plains; 16 * 16]); // Will be overriden
 
@@ -46,20 +46,38 @@ impl BiomeGenerator for TwoLevelBiomeGenerator {
 
                 // Shift around the closest_x and closest_y values
                 // and deterministically select a biome based on the
-                // computed value.
-                let shifted = {
-                    let combined = (i64::from(closest_x) << 32) | i64::from(closest_y);
+                // computed value. Continue shifting the value until
+                // a valid biome is computed.
+                let combined = (i64::from(closest_x) << 32) | i64::from(closest_y);
+                let mut rng = XorShiftRng::seed_from_u64(combined as u64);
 
-                    let mut rng = XorShiftRng::seed_from_u64(combined as u64);
-                    rng.gen::<u64>()
-                };
+                loop {
+                    let shifted: u64 = rng.gen();
 
-                let biome = Biome::from_u64(shifted % Biome::count() as u64).unwrap();
-                biomes.set_biome_at(x, z, biome);
+                    let biome = Biome::from_u64(shifted % Biome::count() as u64).unwrap();
+                    if is_biome_allowed(biome) {
+                        biomes.set_biome_at(x, z, biome);
+                        break;
+                    }
+                }
             }
         }
 
         biomes
+    }
+}
+
+/// Returns whether the given biome is allowed in the overworld.
+fn is_biome_allowed(biome: Biome) -> bool {
+    match biome {
+        Biome::TheEnd
+        | Biome::TheVoid
+        | Biome::Nether
+        | Biome::SmallEndIslands
+        | Biome::EndBarrens
+        | Biome::EndHighlands
+        | Biome::EndMidlands => false,
+        _ => true,
     }
 }
 
