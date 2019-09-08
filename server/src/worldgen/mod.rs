@@ -12,7 +12,7 @@ mod superflat;
 mod util;
 mod voronoi;
 
-pub use biomes::DistortedVoronoiBiomeGenerator;
+pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
 pub use composition::BasicCompositionGenerator;

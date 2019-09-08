@@ -1,5 +1,7 @@
 //! Basic Voronoi implementation.
 
+use rand::{Rng, SeedableRng};
+use rand_xorshift::XorShiftRng;
 use simdnoise::NoiseBuilder;
 
 /// Position of a cell.
@@ -125,6 +127,20 @@ impl VoronoiGrid {
             }
         }
     }
+}
+
+/// Shuffles the given closest_x and closest_y values
+/// and returns a deterministic random value in the given range based
+/// on those values.
+///
+/// This can be used to determine a value corresponding to a voronoi seed,
+/// for example.
+pub fn shuffle(closest_x: i32, closest_y: i32, min: usize, max: usize) -> usize {
+    let combined = ((closest_x as u64) << 32) | closest_y as u64;
+
+    let mut rng = XorShiftRng::seed_from_u64(combined);
+
+    rng.gen_range(min, max)
 }
 
 fn square(x: i32) -> i32 {
