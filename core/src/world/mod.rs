@@ -196,10 +196,21 @@ fn square(x: f64) -> f64 {
     x * x
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Hash32, Default, new)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Hash32, Default)]
 pub struct ChunkPosition {
     pub x: i32,
     pub z: i32,
+}
+
+impl ChunkPosition {
+    pub fn new(x: i32, z: i32) -> Self {
+        Self { x, z }
+    }
+
+    /// Computes the Manhattan distance from this chunk to another.
+    pub fn manhattan_distance(self, other: ChunkPosition) -> i32 {
+        (self.x - other.z).abs() + (self.z - other.z).abs()
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Hash32, Default, new)]

@@ -141,24 +141,37 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     let chunk_offset_x = level.spawn_x >> 4;
                     let chunk_offset_z = level.spawn_z >> 4;
 
-                    // Queue chunks
+                    // Queue chunks for sending.
                     let view_distance = i32::from(config.server.view_distance);
+                    let mut chunks = Vec::with_capacity((view_distance * view_distance) as usize);
                     for x in -view_distance..=view_distance {
                         for z in -view_distance..=view_distance {
-                            let pos = ChunkPosition::new(x + chunk_offset_x, z + chunk_offset_z);
-                            crate::player::send_chunk_to_player(
-                                pos,
-                                net,
-                                player,
-                                &chunk_map,
-                                &worker_handle,
-                                &mut holders,
-                                &mut holder_comp,
-                                &mut loaded_chunks_comp,
-                                &lazy,
-                            );
+                            let chunk = ChunkPosition::new(x + chunk_offset_x, z + chunk_offset_z);
+                            chunks.push(chunk);
                         }
                     }
+
+                    // Sort chunks so that closest chunks are sent first.
+                    let player_pos = positions.get(player).unwrap().current.chunk_pos();
+                    chunks.sort_by(|a, b| {
+                        a.manhattan_distance(player_pos)
+                            .cmp(&b.manhattan_distance(player_pos))
+                    });
+
+                    // Queue chunks for loading + sending
+                    chunks.into_iter().for_each(|chunk| {
+                        crate::player::send_chunk_to_player(
+                            chunk,
+                            net,
+                            player,
+                            &chunk_map,
+                            &worker_handle,
+                            &mut holders,
+                            &mut holder_comp,
+                            &mut loaded_chunks_comp,
+                            &lazy,
+                        );
+                    });
 
                     holder_comps.insert(player, holder_comp).unwrap();
                     loaded_chunks_comps
