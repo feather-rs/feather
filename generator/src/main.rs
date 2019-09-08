@@ -15,6 +15,7 @@ extern crate log;
 #[macro_use]
 extern crate quote;
 
+mod biome;
 mod block_data;
 mod item;
 mod item_to_block;
@@ -96,6 +97,13 @@ fn run() -> Result<(), Error> {
             item_to_block::generate_mappings(
                 args.value_of("blocks").unwrap(),
                 args.value_of("items").unwrap(),
+                args.value_of("output").unwrap(),
+            )?;
+        }
+        Some("biomes") => {
+            let args = matches.subcommand_matches("biomes").unwrap();
+            biome::generate_rust(
+                args.value_of("input").unwrap(),
                 args.value_of("output").unwrap(),
             )?;
         }

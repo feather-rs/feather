@@ -6,7 +6,7 @@ use crate::inventory::ItemStack;
 use crate::network::packet::PacketStage::Play;
 use crate::prelude::*;
 use crate::world::chunk::Chunk;
-use crate::{ClientboundAnimation, Hand};
+use crate::{Biome, ClientboundAnimation, Hand};
 use bytes::{Buf, BufMut};
 use hashbrown::HashMap;
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -1304,6 +1304,7 @@ impl Packet for ChunkData {
 
         buf.write_var_int(primary_mask as i32);
 
+        // TODO: approximate appropriate capacity
         let mut temp_buf = ByteBuf::new();
 
         for section in self.chunk.sections() {
@@ -1330,10 +1331,15 @@ impl Packet for ChunkData {
                     temp_buf.write_u64_be(*val);
                 }
 
-                // Light — TODO
-                for _ in 0..4096 {
-                    temp_buf.write_u8(0b1111_1111);
-                }
+                // Light
+                let sky_light_data = section.sky_light();
+                let block_light_data = section.block_light();
+
+                block_light_data
+                    .inner()
+                    .iter()
+                    .chain(sky_light_data.inner().iter())
+                    .for_each(|data| temp_buf.write_u64_le(*data));
             }
         }
 
@@ -1341,7 +1347,7 @@ impl Packet for ChunkData {
         // Just plains for now - TODO proper biome support
         temp_buf.reserve(256 * 4);
         for _ in 0..256 {
-            temp_buf.write_i32_be(1); // 1 = plains
+            temp_buf.write_i32_be(Biome::Plains.protocol_id());
         }
 
         buf.write_var_int(temp_buf.len() as i32);

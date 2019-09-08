@@ -45,7 +45,7 @@ use crate::chunk_logic::{ChunkHolders, ChunkWorkerHandle};
 use crate::entity::{EntityDestroyEvent, NamedComponent};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
-use crate::systems::{BROADCASTER, ITEM_SPAWN, JOIN_HANDLER, NETWORK, SPAWNER};
+use crate::systems::{BROADCASTER, ITEM_SPAWN, JOIN_HANDLER, NETWORK, PLAYER_INIT, SPAWNER};
 use crate::util::Util;
 use crate::worldgen::{
     BasicCompositionGenerator, BasicHeightMapGenerator, ComposableGenerator, EmptyWorldGenerator,
@@ -274,7 +274,6 @@ fn init_world<'a, 'b>(
     let mut dispatcher = DispatcherBuilder::new();
 
     dispatcher.add(network::NetworkSystem, NETWORK, &[]);
-    dispatcher.add(joinhandler::JoinHandlerSystem, JOIN_HANDLER, &[NETWORK]);
 
     physics::init_logic(&mut dispatcher);
     entity::init_logic(&mut dispatcher);
@@ -289,6 +288,14 @@ fn init_world<'a, 'b>(
     dispatcher.add(util::SpawnerSystem, SPAWNER, &[ITEM_SPAWN]);
     player::init_handlers(&mut dispatcher);
     chunk_logic::init_handlers(&mut dispatcher);
+
+    // Player init dependency is so that player position is loaded
+    // before the join handle runs.
+    dispatcher.add(
+        joinhandler::JoinHandlerSystem,
+        JOIN_HANDLER,
+        &[NETWORK, PLAYER_INIT],
+    );
 
     dispatcher.add_barrier();
 
