@@ -20,11 +20,11 @@ impl HeightMapGenerator for BasicHeightMapGenerator {
 
         let dim = 16;
 
-        let noise = NoiseBuilder::fbm_2d_offset(x_offset, dim, y_offset, dim)
-            .with_lacunarity(2.0)
-            .with_gain(0.5)
+        let noise = NoiseBuilder::gradient_2d_offset(x_offset, dim, y_offset, dim)
+            //.with_lacunarity(2.0)
+            //.with_gain(0.5)
             .with_seed(seed)
-            .with_octaves(4)
+            //.with_octaves(2)
             .generate_scaled(0.0, 1.0);
 
         let mut density_map = bitvec![0; 16 * 256 * 16];

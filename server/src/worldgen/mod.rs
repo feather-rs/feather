@@ -77,12 +77,28 @@ impl WorldGenerator for ComposableGenerator {
         let density_map = self.height_map.generate_for_chunk(position, &biomes);
 
         let mut chunk = Chunk::new(position);
+
         self.composition.generate_for_chunk(
             &mut chunk,
             position,
             &biomes,
             density_map.as_bitslice(),
         );
+
+        // TODO: correct lighting.
+        // Fill chunk with 15 light levels.
+        chunk
+            .sections_mut()
+            .into_iter()
+            .filter(|section| section.is_some())
+            .map(|section| section.unwrap())
+            .for_each(|section| {
+                let sky_light = section.sky_light_mut();
+
+                (0..4096).for_each(|index| {
+                    sky_light.set(index, 15);
+                })
+            });
 
         chunk
     }

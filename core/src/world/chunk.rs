@@ -138,6 +138,12 @@ impl Chunk {
         self.sections.iter().map(|sec| sec.as_ref()).collect()
     }
 
+    /// Returns a mutable slice of the 16 sections
+    /// in this chunk.
+    pub fn sections_mut(&mut self) -> Vec<Option<&mut ChunkSection>> {
+        self.sections.iter_mut().map(|sec| sec.as_mut()).collect()
+    }
+
     /// Returns the position in chunk coordinates
     /// of this chunk.
     pub fn position(&self) -> ChunkPosition {
@@ -471,6 +477,14 @@ impl ChunkSection {
 
     pub fn block_light(&self) -> &BitArray {
         &self.block_light
+    }
+
+    pub fn sky_light_mut(&mut self) -> &mut BitArray {
+        &mut self.sky_light
+    }
+
+    pub fn block_light_mut(&mut self) -> &mut BitArray {
+        &mut self.block_light
     }
 }
 

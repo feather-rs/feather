@@ -59,7 +59,9 @@ fn basic_composition_for_column(x: usize, z: usize, chunk: &mut Chunk, density: 
                 Block::Air
             };
 
-            chunk.set_block_at(x, y, z, block);
+            if block != Block::Air {
+                chunk.set_block_at(x, y, z, block);
+            }
         }
     }
 }
