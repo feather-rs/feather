@@ -265,6 +265,7 @@ fn init_world<'a, 'b>(
             TwoLevelBiomeGenerator::default(),
             BasicHeightMapGenerator::default(),
             BasicCompositionGenerator::default(),
+            level.seed as u64,
         )),
         _ => Arc::new(EmptyWorldGenerator {}),
     };

@@ -54,6 +54,8 @@ pub struct ComposableGenerator {
     height_map: Box<dyn HeightMapGenerator>,
     /// The composition generator.
     composition: Box<dyn CompositionGenerator>,
+    /// The world seed.
+    seed: u64,
 }
 
 impl ComposableGenerator {
@@ -66,20 +68,24 @@ impl ComposableGenerator {
         biome: B,
         height_map: H,
         composition: C,
+        seed: u64,
     ) -> Self {
         Self {
             biome: Box::new(biome),
             height_map: Box::new(height_map),
             composition: Box::new(composition),
+            seed,
         }
     }
 }
 
 impl WorldGenerator for ComposableGenerator {
     fn generate_chunk(&self, position: ChunkPosition) -> Chunk {
-        let biomes = self.biome.generate_for_chunk(position);
+        let biomes = self.biome.generate_for_chunk(position, self.seed);
 
-        let density_map = self.height_map.generate_for_chunk(position, &biomes);
+        let density_map = self
+            .height_map
+            .generate_for_chunk(position, &biomes, self.seed);
 
         let mut chunk = Chunk::new(position);
 
@@ -94,6 +100,7 @@ impl WorldGenerator for ComposableGenerator {
             position,
             &biomes,
             density_map.as_bitslice(),
+            self.seed,
         );
 
         // TODO: correct lighting.
@@ -119,7 +126,7 @@ impl WorldGenerator for ComposableGenerator {
 pub trait BiomeGenerator: Send + Sync {
     /// Generates the biomes for a given chunk.
     /// This function should be deterministic.
-    fn generate_for_chunk(&self, chunk: ChunkPosition) -> ChunkBiomes;
+    fn generate_for_chunk(&self, chunk: ChunkPosition, seed: u64) -> ChunkBiomes;
 }
 
 /// A generator which generates the height map for a chunk.
@@ -129,7 +136,7 @@ pub trait HeightMapGenerator: Send + Sync {
     /// A compact array of booleans is returned, indexable
     /// by (y << 8) | (x << 4) | z. Those set to `true` will
     /// contain solid blacks; those set to `false` will be air.
-    fn generate_for_chunk(&self, chunk: ChunkPosition, biomes: &ChunkBiomes) -> BitVec;
+    fn generate_for_chunk(&self, chunk: ChunkPosition, biomes: &ChunkBiomes, seed: u64) -> BitVec;
 }
 
 /// A generator which populates the given chunk using blocks
@@ -143,6 +150,7 @@ pub trait CompositionGenerator: Send + Sync {
         pos: ChunkPosition,
         biomes: &ChunkBiomes,
         density: &BitSlice,
+        seed: u64,
     );
 }
 
@@ -210,7 +218,7 @@ impl fmt::Debug for ChunkBiomes {
 pub struct StaticBiomeGenerator;
 
 impl BiomeGenerator for StaticBiomeGenerator {
-    fn generate_for_chunk(&self, _chunk: ChunkPosition) -> ChunkBiomes {
+    fn generate_for_chunk(&self, _chunk: ChunkPosition, _seed: u64) -> ChunkBiomes {
         ChunkBiomes::from_array([Biome::Plains; 16 * 16])
     }
 }
@@ -249,7 +257,7 @@ mod tests {
     fn test_static_biome_generator() {
         let gen = StaticBiomeGenerator::default();
 
-        let biomes = gen.generate_for_chunk(ChunkPosition::new(0, 0));
+        let biomes = gen.generate_for_chunk(ChunkPosition::new(0, 0), 0);
 
         for x in 0..16 {
             for z in 0..16 {

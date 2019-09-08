@@ -53,7 +53,7 @@ pub struct LevelData {
     #[serde(rename = "rainTime")]
     pub rain_time: i32,
     #[serde(rename = "RandomSeed")]
-    pub random_seed: i64,
+    pub seed: i64,
 
     #[serde(rename = "SpawnX")]
     pub spawn_x: i32,

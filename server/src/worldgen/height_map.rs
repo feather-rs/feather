@@ -11,10 +11,7 @@ use simdnoise::NoiseBuilder;
 pub struct BasicHeightMapGenerator;
 
 impl HeightMapGenerator for BasicHeightMapGenerator {
-    fn generate_for_chunk(&self, chunk: ChunkPosition, _biomes: &ChunkBiomes) -> BitVec {
-        // TODO: load seed from level.dat
-        let seed = 8344;
-
+    fn generate_for_chunk(&self, chunk: ChunkPosition, _biomes: &ChunkBiomes, seed: u64) -> BitVec {
         let x_offset = (chunk.x * 16) as f32;
         let y_offset = (chunk.z * 16) as f32;
 
@@ -23,7 +20,7 @@ impl HeightMapGenerator for BasicHeightMapGenerator {
         let noise = NoiseBuilder::gradient_2d_offset(x_offset, dim, y_offset, dim)
             //.with_lacunarity(2.0)
             //.with_gain(0.5)
-            .with_seed(seed)
+            .with_seed(seed as i32)
             //.with_octaves(2)
             .generate_scaled(0.0, 1.0);
 

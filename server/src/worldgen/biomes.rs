@@ -17,10 +17,7 @@ use strum::EnumCount;
 pub struct TwoLevelBiomeGenerator;
 
 impl BiomeGenerator for TwoLevelBiomeGenerator {
-    fn generate_for_chunk(&self, chunk: ChunkPosition) -> ChunkBiomes {
-        // TODO: load seed
-        let seed = 8344;
-
+    fn generate_for_chunk(&self, chunk: ChunkPosition, seed: u64) -> ChunkBiomes {
         let mut voronoi = VoronoiGrid::new(512, seed);
 
         let mut biomes = ChunkBiomes::from_array([Biome::Plains; 16 * 16]); // Will be overriden
@@ -77,7 +74,7 @@ mod tests {
 
         let chunk = ChunkPosition::new(5433, 132);
 
-        let biomes = gen.generate_for_chunk(chunk);
+        let biomes = gen.generate_for_chunk(chunk, 8344);
 
         println!("{:?}", biomes);
 
@@ -100,10 +97,11 @@ mod tests {
 
         let chunk = ChunkPosition::new(0, 0);
 
-        let first = gen.generate_for_chunk(chunk);
+        let seed = 52;
+        let first = gen.generate_for_chunk(chunk, seed);
 
         for _ in 0..5 {
-            let next = gen.generate_for_chunk(chunk);
+            let next = gen.generate_for_chunk(chunk, seed);
 
             for x in 0..16 {
                 for z in 0..16 {

@@ -5,6 +5,8 @@ use crate::worldgen::{block_index, ChunkBiomes, CompositionGenerator, SEA_LEVEL}
 use bitvec::slice::BitSlice;
 use feather_blocks::{GrassBlockData, MyceliumData, SnowData};
 use feather_core::{Biome, Block, Chunk, ChunkPosition};
+use rand::{Rng, SeedableRng};
+use rand_xorshift::XorShiftRng;
 
 /// A composition generator which generates basic
 /// terrain based on biome values.
@@ -18,6 +20,7 @@ impl CompositionGenerator for BasicCompositionGenerator {
         _pos: ChunkPosition,
         biomes: &ChunkBiomes,
         density: &BitSlice,
+        seed: u64,
     ) {
         // For each column in the chunk, go from top to
         // bottom. The first time a block density value is set to `true`,
@@ -26,7 +29,7 @@ impl CompositionGenerator for BasicCompositionGenerator {
 
         for x in 0..16 {
             for z in 0..16 {
-                basic_composition_for_column(x, z, chunk, density, biomes.biome_at(x, z));
+                basic_composition_for_column(x, z, chunk, density, seed, biomes.biome_at(x, z));
             }
         }
     }
@@ -37,12 +40,14 @@ fn basic_composition_for_column(
     z: usize,
     chunk: &mut Chunk,
     density: &BitSlice,
+    seed: u64,
     biome: Biome,
 ) {
+    let mut rng = XorShiftRng::seed_from_u64(seed);
+
     let mut dirt_remaining = -1;
     for y in (0..256).rev() {
-        // TODO: randomize bedrock height
-        if y <= 2 {
+        if y <= rng.gen_range(0, 4) {
             chunk.set_block_at(x, y, z, Block::Bedrock);
         } else {
             let is_solid = density[block_index(x, y, z)];
@@ -140,7 +145,7 @@ mod tests {
         }
 
         let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
-        basic_composition_for_column(x, z, &mut chunk, &density[..], Biome::Plains);
+        basic_composition_for_column(x, z, &mut chunk, &density[..], 435, Biome::Plains);
 
         for y in 4..=28 {
             assert_eq!(chunk.block_at(x, y, z), Block::Stone);
