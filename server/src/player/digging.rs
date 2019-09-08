@@ -16,7 +16,7 @@ use feather_core::world::{BlockPosition, ChunkMap};
 use feather_core::{Gamemode, Item, Position};
 
 use crate::disconnect_player;
-use crate::entity::{PlayerComponent, PositionComponent};
+use crate::entity::{PlayerComponent, PositionComponent, ShootArrowEvent};
 use crate::network::PacketQueue;
 use crate::player::{InventoryComponent, InventoryUpdateEvent};
 use crate::util::Util;
@@ -76,6 +76,7 @@ impl<'a> System<'a> for PlayerDiggingSystem {
         Write<'a, EventChannel<BlockUpdateEvent>>,
         Write<'a, EventChannel<PlayerItemDropEvent>>,
         Write<'a, EventChannel<InventoryUpdateEvent>>,
+        Write<'a, EventChannel<ShootArrowEvent>>,
         Write<'a, ChunkMap>,
         Read<'a, PacketQueue>,
         Read<'a, LazyUpdate>,
@@ -91,6 +92,7 @@ impl<'a> System<'a> for PlayerDiggingSystem {
             mut block_breaks,
             mut item_drops,
             mut inventory_updates,
+            mut shoot_arrow_events,
             mut chunk_map,
             packet_queue,
             lazy,
@@ -125,6 +127,7 @@ impl<'a> System<'a> for PlayerDiggingSystem {
                     inventories.get_mut(player).unwrap(),
                     &mut inventory_updates,
                     positions.get(player).unwrap().current,
+                    &mut shoot_arrow_events,
                 ),
                 status => warn!("Unhandled Player Digging status {:?}", status),
             }
@@ -254,6 +257,7 @@ fn handle_consume_item(
     inventory: &mut InventoryComponent,
     inventory_updates: &mut EventChannel<InventoryUpdateEvent>,
     position: Position,
+    shoot_arrow_events: &mut EventChannel<ShootArrowEvent>,
 ) {
     assert_eq!(packet.status, PlayerDiggingStatus::ConsumeItem);
 
@@ -263,9 +267,14 @@ fn handle_consume_item(
     match used_item {
         Some(item) => {
             match item.ty {
-                Item::Bow => {
-                    handle_shoot_bow(player, entity, inventory, inventory_updates, position)
-                }
+                Item::Bow => handle_shoot_bow(
+                    player,
+                    entity,
+                    inventory,
+                    inventory_updates,
+                    position,
+                    shoot_arrow_events,
+                ),
                 // TODO: Food, potions
                 _ => (),
             }
@@ -280,6 +289,7 @@ fn handle_shoot_bow(
     inventory: &mut InventoryComponent,
     inventory_updates: &mut EventChannel<InventoryUpdateEvent>,
     position: Position,
+    shoot_arrow_events: &mut EventChannel<ShootArrowEvent>,
 ) {
     let arrow_to_consume: Option<(SlotIndex, ItemStack)> = find_arrow(inventory.clone());
     if player.gamemode == Gamemode::Survival || player.gamemode == Gamemode::Adventure {
@@ -307,11 +317,12 @@ fn handle_shoot_bow(
         Some((_, arrow_stack)) => arrow_stack.ty,
     };
 
-    debug!(
-        "Shooting an arrow of type {} from {:?}",
-        arrow_type.identifier(),
-        position
-    );
+    shoot_arrow_events.single_write(ShootArrowEvent {
+        shooter: Some(entity),
+        position,
+        arrow_type,
+        critical: true,
+    });
 }
 
 fn find_arrow(inventory: InventoryComponent) -> Option<(SlotIndex, ItemStack)> {

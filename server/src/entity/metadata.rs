@@ -10,6 +10,9 @@ use specs::{
     BitSet, Component, Entities, FlaggedStorage, Join, Read, ReaderId, System, VecStorage,
     WriteStorage,
 };
+use uuid::Uuid;
+
+type OptUuid = Option<Uuid>;
 
 bitflags! {
     pub struct EntityBitMask: u8 {
@@ -46,6 +49,13 @@ entity_metadata! {
         score: VarInt() = 12,
         displayed_skin_parts: u8() = 13,
         main_hand: u8() = 14,
+    },
+    Arrow: Entity {
+        arrow_bit_mask: u8() = 6,
+        shooter: OptUuid() = 7,
+    },
+    TippedArrow: Arrow {
+        color: VarInt() = 8,
     },
 }
 

@@ -9,6 +9,9 @@ use syn::parse::{Parse, ParseBuffer};
 use syn::Error;
 use syn::Lit;
 use syn::Token;
+use uuid::Uuid;
+
+type OptUuid = Option<Uuid>;
 
 #[derive(Clone)]
 struct EntityMetadata {
@@ -115,6 +118,7 @@ enum EntryType {
     String,
     Slot,
     Boolean,
+    OptUuid,
 }
 
 impl Parse for EntryType {
@@ -134,6 +138,7 @@ impl EntryType {
             EntryType::String => "String",
             EntryType::Slot => "Slot",
             EntryType::Boolean => "bool",
+            EntryType::OptUuid => "OptUuid",
         }
     }
 
@@ -145,6 +150,7 @@ impl EntryType {
             "String" => EntryType::String,
             "bool" => EntryType::Boolean,
             "Slot" => EntryType::Slot,
+            "OptUuid" => EntryType::OptUuid,
             _ => panic!("Invalid entry type {}", ty),
         }
     }
