@@ -3,8 +3,8 @@
 
 use crate::worldgen::{block_index, ChunkBiomes, CompositionGenerator, SEA_LEVEL};
 use bitvec::slice::BitSlice;
-use feather_blocks::GrassBlockData;
-use feather_core::{Block, Chunk, ChunkPosition};
+use feather_blocks::{BirchLogData, GrassBlockData};
+use feather_core::{Biome, Block, BlockExt, Chunk, ChunkPosition};
 
 /// A composition generator which ignores the biome values
 /// and assumes a plains-like terrain.
@@ -16,7 +16,7 @@ impl CompositionGenerator for BasicCompositionGenerator {
         &self,
         chunk: &mut Chunk,
         _pos: ChunkPosition,
-        _biomes: &ChunkBiomes,
+        biomes: &ChunkBiomes,
         density: &BitSlice,
     ) {
         // For each column in the chunk, go from top to
@@ -27,6 +27,15 @@ impl CompositionGenerator for BasicCompositionGenerator {
         for x in 0..16 {
             for z in 0..16 {
                 basic_composition_for_column(x, z, chunk, density);
+
+                let block = match biomes.biome_at(x, z) {
+                    Biome::Plains => Block::Dirt,
+                    Biome::Badlands => Block::Terracotta,
+                    Biome::BirchForest => Block::BirchLog(BirchLogData::default()),
+                    Biome::IceSpikes => Block::AcaciaPlanks,
+                    biome => Block::from_native_state_id(biome.protocol_id() as u16).unwrap(),
+                };
+                chunk.set_block_at(x, 100, z, block);
             }
         }
     }

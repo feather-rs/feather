@@ -84,7 +84,7 @@ pub fn generate_rust(input: &str, output: &str) -> Result<(), Error> {
     }
 
     let code = quote! {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, FromPrimitive, ToPrimitive)]
         pub enum Biome {
             #(#enum_variants)*
         }

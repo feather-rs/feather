@@ -49,7 +49,7 @@ use crate::systems::{BROADCASTER, ITEM_SPAWN, JOIN_HANDLER, NETWORK, PLAYER_INIT
 use crate::util::Util;
 use crate::worldgen::{
     BasicCompositionGenerator, BasicHeightMapGenerator, ComposableGenerator, EmptyWorldGenerator,
-    StaticBiomeGenerator, SuperflatWorldGenerator, WorldGenerator,
+    SuperflatWorldGenerator, TwoLevelBiomeGenerator, WorldGenerator,
 };
 use backtrace::Backtrace;
 use feather_core::level;
@@ -262,7 +262,7 @@ fn init_world<'a, 'b>(
             options: level.clone().generator_options.unwrap_or_default(),
         }),
         LevelGeneratorType::Default => Arc::new(ComposableGenerator::new(
-            StaticBiomeGenerator::default(),
+            TwoLevelBiomeGenerator::default(),
             BasicHeightMapGenerator::default(),
             BasicCompositionGenerator::default(),
         )),

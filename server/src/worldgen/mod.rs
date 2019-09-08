@@ -5,14 +5,18 @@
 
 use feather_core::{Biome, Chunk, ChunkPosition};
 
+mod biomes;
 mod composition;
 mod height_map;
 mod superflat;
+mod voronoi;
 
+pub use biomes::TwoLevelBiomeGenerator;
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
 pub use composition::BasicCompositionGenerator;
 pub use height_map::BasicHeightMapGenerator;
+use std::fmt;
 pub use superflat::SuperflatWorldGenerator;
 
 /// Sea-level height.
@@ -161,10 +165,10 @@ impl ChunkBiomes {
     ///
     /// # Panics
     /// Panics if `x >= 16 | z >= 16`.
-    pub fn biome_at(&self, x: usize, y: usize) -> Biome {
-        assert!(x < 16 && y < 16);
+    pub fn biome_at(&self, x: usize, z: usize) -> Biome {
+        assert!(x < 16 && z < 16);
 
-        let index = Self::index(x, y);
+        let index = Self::index(x, z);
         self.biomes[index]
     }
 
@@ -172,15 +176,25 @@ impl ChunkBiomes {
     ///
     /// # Panics
     /// Panics if `x >= 16 | z >= 16`.
-    pub fn set_biome_at(&mut self, x: usize, y: usize, biome: Biome) {
-        assert!(x < 16 && y < 16);
+    pub fn set_biome_at(&mut self, x: usize, z: usize, biome: Biome) {
+        assert!(x < 16 && z < 16);
 
-        let index = Self::index(x, y);
+        let index = Self::index(x, z);
         self.biomes[index] = biome;
     }
 
-    fn index(x: usize, y: usize) -> usize {
-        (x << 4) | y
+    fn index(x: usize, z: usize) -> usize {
+        (x << 4) | z
+    }
+}
+
+impl fmt::Debug for ChunkBiomes {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        for i in 0..256 {
+            write!(f, "{:?}, ", self.biomes[i])?;
+        }
+
+        Ok(())
     }
 }
 
