@@ -13,14 +13,14 @@ use feather_core::network::packet::implementation::{
 use feather_core::network::packet::PacketType;
 use feather_core::world::block::{Block, BlockExt};
 use feather_core::world::{BlockPosition, ChunkMap};
-use feather_core::{Gamemode, Item};
+use feather_core::{Gamemode, Item, Position};
 
 use crate::disconnect_player;
-use crate::entity::PlayerComponent;
+use crate::entity::{PlayerComponent, PositionComponent};
 use crate::network::PacketQueue;
 use crate::player::{InventoryComponent, InventoryUpdateEvent};
 use crate::util::Util;
-use feather_core::inventory::{ItemStack, SlotIndex, SLOT_HOTBAR_OFFSET};
+use feather_core::inventory::{ItemStack, SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use shrev::EventChannel;
 use specs::SystemData;
 
@@ -72,6 +72,7 @@ impl<'a> System<'a> for PlayerDiggingSystem {
     type SystemData = (
         WriteStorage<'a, InventoryComponent>,
         ReadStorage<'a, PlayerComponent>, // For gamemodes
+        ReadStorage<'a, PositionComponent>,
         Write<'a, EventChannel<BlockUpdateEvent>>,
         Write<'a, EventChannel<PlayerItemDropEvent>>,
         Write<'a, EventChannel<InventoryUpdateEvent>>,
@@ -86,6 +87,7 @@ impl<'a> System<'a> for PlayerDiggingSystem {
         let (
             mut inventories,
             players,
+            positions,
             mut block_breaks,
             mut item_drops,
             mut inventory_updates,
@@ -115,6 +117,14 @@ impl<'a> System<'a> for PlayerDiggingSystem {
                     &mut inventory_updates,
                     &mut item_drops,
                     inventories.get_mut(player).unwrap(),
+                ),
+                ConsumeItem => handle_consume_item(
+                    packet,
+                    players.get(player).unwrap(),
+                    player,
+                    inventories.get_mut(player).unwrap(),
+                    &mut inventory_updates,
+                    positions.get(player).unwrap().current,
                 ),
                 status => warn!("Unhandled Player Digging status {:?}", status),
             }
@@ -233,6 +243,111 @@ fn handle_drop_item_stack(
             player: entity,
         };
         item_drops.single_write(item_drop);
+    }
+}
+
+/// Handles food consumption and shooting arrows.
+fn handle_consume_item(
+    packet: &PlayerDigging,
+    player: &PlayerComponent,
+    entity: Entity,
+    inventory: &mut InventoryComponent,
+    inventory_updates: &mut EventChannel<InventoryUpdateEvent>,
+    position: Position,
+) {
+    assert_eq!(packet.status, PlayerDiggingStatus::ConsumeItem);
+
+    // TODO: Fallback to off-hand if main-hand is not a consumable
+    let used_item = inventory.item_in_main_hand();
+
+    match used_item {
+        Some(item) => {
+            match item.ty {
+                Item::Bow => {
+                    handle_shoot_bow(player, entity, inventory, inventory_updates, position)
+                }
+                // TODO: Food, potions
+                _ => (),
+            }
+        }
+        None => (),
+    }
+}
+
+fn handle_shoot_bow(
+    player: &PlayerComponent,
+    entity: Entity,
+    inventory: &mut InventoryComponent,
+    inventory_updates: &mut EventChannel<InventoryUpdateEvent>,
+    position: Position,
+) {
+    let arrow_to_consume: Option<(SlotIndex, ItemStack)> = find_arrow(inventory.clone());
+    if player.gamemode == Gamemode::Survival || player.gamemode == Gamemode::Adventure {
+        // If no arrow was found, don't shoot
+        let arrow_to_consume = arrow_to_consume.clone();
+        if arrow_to_consume.is_none() {
+            debug!("Tried to shoot bow with no arrows.");
+            return;
+        }
+
+        // Consume arrow
+        let (arrow_slot, arrow_stack) = arrow_to_consume.unwrap();
+        let mut arrow_stack: ItemStack = arrow_stack.clone();
+        arrow_stack.amount -= 1;
+
+        inventory.set_item_at(arrow_slot, arrow_stack);
+        inventory_updates.single_write(InventoryUpdateEvent {
+            slots: smallvec![arrow_slot],
+            player: entity,
+        });
+    }
+
+    let arrow_type: Item = match arrow_to_consume {
+        None => Item::Arrow, // Default to generic arrow in creative mode with none in inventory
+        Some((_, arrow_stack)) => arrow_stack.ty,
+    };
+
+    debug!(
+        "Shooting an arrow of type {} from {:?}",
+        arrow_type.identifier(),
+        position
+    );
+}
+
+fn find_arrow(inventory: InventoryComponent) -> Option<(SlotIndex, ItemStack)> {
+    // Order of priority is: off-hand, hotbar (0 to 8), rest of inventory
+
+    let offhand = inventory.item_at(SLOT_OFFHAND);
+    if offhand.is_some() && is_arrow_item(offhand.unwrap().ty) {
+        debug!("Shooting from offhand arrow.");
+        return Some((SLOT_OFFHAND, offhand.unwrap().clone()));
+    }
+
+    for hotbar_slot in 0..9 {
+        let hotbar_stack = inventory.item_at(SLOT_HOTBAR_OFFSET + hotbar_slot);
+        if hotbar_stack.is_some() && is_arrow_item(hotbar_stack.unwrap().ty) {
+            debug!("Shooting from hotbar.");
+            return Some((
+                SLOT_HOTBAR_OFFSET + hotbar_slot,
+                hotbar_stack.unwrap().clone(),
+            ));
+        }
+    }
+
+    for inv_slot in 9..=35 {
+        let inv_stack = inventory.item_at(inv_slot);
+        if inv_stack.is_some() && is_arrow_item(inv_stack.unwrap().ty) {
+            debug!("Shooting from inventory.");
+            return Some((inv_slot, inv_stack.unwrap().clone()));
+        }
+    }
+    None
+}
+
+fn is_arrow_item(item: Item) -> bool {
+    match item {
+        Item::Arrow | Item::SpectralArrow | Item::TippedArrow => true,
+        _ => false,
     }
 }
 
