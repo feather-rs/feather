@@ -324,28 +324,25 @@ fn handle_shoot_bow(
 fn find_arrow(inventory: InventoryComponent) -> Option<(SlotIndex, ItemStack)> {
     // Order of priority is: off-hand, hotbar (0 to 8), rest of inventory
 
-    let offhand = inventory.item_at(SLOT_OFFHAND);
-    if offhand.is_some() && is_arrow_item(offhand.unwrap().ty) {
-        debug!("Shooting from offhand arrow.");
-        return Some((SLOT_OFFHAND, offhand.unwrap().clone()));
+    if let Some(offhand) = inventory.item_at(SLOT_OFFHAND) {
+        if is_arrow_item(offhand.ty) {
+            return Some((SLOT_OFFHAND, offhand.clone()));
+        }
     }
 
     for hotbar_slot in 0..9 {
-        let hotbar_stack = inventory.item_at(SLOT_HOTBAR_OFFSET + hotbar_slot);
-        if hotbar_stack.is_some() && is_arrow_item(hotbar_stack.unwrap().ty) {
-            debug!("Shooting from hotbar.");
-            return Some((
-                SLOT_HOTBAR_OFFSET + hotbar_slot,
-                hotbar_stack.unwrap().clone(),
-            ));
+        if let Some(hotbar_stack) = inventory.item_at(SLOT_HOTBAR_OFFSET + hotbar_slot) {
+            if is_arrow_item(hotbar_stack.ty) {
+                return Some((SLOT_HOTBAR_OFFSET + hotbar_slot, hotbar_stack.clone()));
+            }
         }
     }
 
     for inv_slot in 9..=35 {
-        let inv_stack = inventory.item_at(inv_slot);
-        if inv_stack.is_some() && is_arrow_item(inv_stack.unwrap().ty) {
-            debug!("Shooting from inventory.");
-            return Some((inv_slot, inv_stack.unwrap().clone()));
+        if let Some(inv_stack) = inventory.item_at(inv_slot) {
+            if is_arrow_item(inv_stack.ty) {
+                return Some((inv_slot, inv_stack.clone()));
+            }
         }
     }
     None
