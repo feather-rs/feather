@@ -730,4 +730,111 @@ mod tests {
         t::assert_packet_received(&player1, PacketType::BlockChange);
         t::assert_packet_received(&player2, PacketType::BlockChange);
     }
+
+    #[test]
+    pub fn test_find_arrow() {
+        let mut inv = InventoryComponent::new();
+        inv.set_item_at(
+            SLOT_OFFHAND,
+            ItemStack {
+                ty: Item::Arrow,
+                amount: 1,
+            },
+        );
+        inv.set_item_at(
+            SLOT_HOTBAR_OFFSET,
+            ItemStack {
+                ty: Item::Arrow,
+                amount: 1,
+            },
+        );
+        inv.set_item_at(
+            9,
+            ItemStack {
+                ty: Item::Arrow,
+                amount: 1,
+            },
+        );
+
+        // 1. Off-hand
+        let (slot, stack) = find_arrow(inv.clone()).unwrap();
+        assert_eq!(slot, SLOT_OFFHAND);
+        assert_eq!(stack.ty, Item::Arrow);
+        inv.clear_item_at(SLOT_OFFHAND);
+
+        // 2. Hot-bar
+        let (slot, stack) = find_arrow(inv.clone()).unwrap();
+        assert_eq!(slot, SLOT_HOTBAR_OFFSET);
+        assert_eq!(stack.ty, Item::Arrow);
+        inv.clear_item_at(SLOT_HOTBAR_OFFSET);
+
+        // 3. Rest of inventory
+        let (slot, stack) = find_arrow(inv.clone()).unwrap();
+        assert_eq!(slot, 9);
+        assert_eq!(stack.ty, Item::Arrow);
+        inv.clear_item_at(9);
+
+        // 4. No arrow found
+        assert!(find_arrow(inv.clone()).is_none());
+    }
+
+    #[test]
+    pub fn test_shoot_arrow() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        let mut shoot_reader = t::reader(&w);
+        let mut update_reader = t::reader(&w);
+
+        let slot = SLOT_HOTBAR_OFFSET;
+        let amnt = 32;
+        {
+            let mut invs = w.write_component::<InventoryComponent>();
+            let inv = invs.get_mut(player.entity).unwrap();
+            inv.set_item_at(slot, ItemStack::new(Item::Bow, 1));
+            inv.set_item_at(slot + 1, ItemStack::new(Item::Arrow, amnt));
+        }
+
+        // Change to survival
+        w.write_component::<PlayerComponent>()
+            .insert(
+                player.entity,
+                PlayerComponent {
+                    gamemode: Gamemode::Survival,
+                    profile_properties: vec![],
+                },
+            )
+            .unwrap();
+
+        let packet = PlayerDigging::new(
+            PlayerDiggingStatus::ConsumeItem,
+            BlockPosition::default(),
+            0,
+        );
+        t::receive_packet(&player, &w, packet);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let shoot_channel = w.fetch::<EventChannel<ShootArrowEvent>>();
+        let update_channel = w.fetch::<EventChannel<InventoryUpdateEvent>>();
+
+        let update_events = update_channel.read(&mut update_reader).collect::<Vec<_>>();
+        assert_eq!(update_events.len(), 1);
+        let first = update_events.first().unwrap();
+        assert_eq!(first.player, player.entity);
+        assert_eq!(first.slots.as_slice(), &[slot + 1]);
+
+        let shoot_events = shoot_channel.read(&mut shoot_reader).collect::<Vec<_>>();
+        assert_eq!(shoot_events.len(), 1);
+        let first = shoot_events.first().unwrap();
+        assert_eq!(first.shooter.unwrap(), player.entity);
+        assert_eq!(first.arrow_type, Item::Arrow);
+
+        // In survival, check if amount of arrow stack decreased.
+        let invs = w.read_component::<InventoryComponent>();
+        let inv = invs.get(player.entity).unwrap();
+        assert_eq!(inv.item_at(slot + 1).unwrap().amount, amnt - 1);
+    }
 }
