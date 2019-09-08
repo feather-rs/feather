@@ -26,6 +26,8 @@ pub use superflat::SuperflatWorldGenerator;
 pub const SEA_LEVEL: usize = 64;
 /// Sky limit.
 pub const SKY_LIMIT: usize = 255;
+/// Depth of an ocean.
+const OCEAN_DEPTH: usize = 30;
 
 pub trait WorldGenerator: Send + Sync {
     /// Generates the chunk at the given position.

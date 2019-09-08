@@ -1,9 +1,11 @@
 //! Composition generator, used to populate chunks with blocks
 //! based on the density and biome values.
 
-use crate::worldgen::{block_index, util, ChunkBiomes, CompositionGenerator, SEA_LEVEL};
+use crate::worldgen::{
+    block_index, util, ChunkBiomes, CompositionGenerator, OCEAN_DEPTH, SEA_LEVEL,
+};
 use bitvec::slice::BitSlice;
-use feather_blocks::{GrassBlockData, MyceliumData, SnowData};
+use feather_blocks::{GrassBlockData, MyceliumData, SnowData, WaterData};
 use feather_core::{Biome, Block, Chunk, ChunkPosition};
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
@@ -42,39 +44,68 @@ fn basic_composition_for_column(
     seed: u64,
     biome: Biome,
 ) {
+    basic_composition_for_solid_biome(x, z, chunk, density, seed, biome);
+}
+
+fn basic_composition_for_solid_biome(
+    x: usize,
+    z: usize,
+    chunk: &mut Chunk,
+    density: &BitSlice,
+    seed: u64,
+    biome: Biome,
+) {
     let mut rng =
         XorShiftRng::seed_from_u64(util::shuffle_seed_for_column(seed, chunk.position(), x, z));
     let bedrock_height = rng.gen_range(0, 4);
 
+    let top_soil = top_soil_block(biome);
+
     let mut topsoil_remaining = -1;
     for y in (0..256).rev() {
-        if y <= bedrock_height {
-            chunk.set_block_at(x, y, z, Block::Bedrock);
-        } else {
-            let is_solid = density[block_index(x, y, z)];
-            let block = if is_solid {
-                if topsoil_remaining == -1 {
-                    topsoil_remaining = 3;
-                    if y >= SEA_LEVEL - 2 {
-                        top_soil_block(biome)
-                    } else {
-                        underneath_top_soil_block(biome, topsoil_remaining)
-                    }
-                } else if topsoil_remaining > 0 {
-                    let block = underneath_top_soil_block(biome, topsoil_remaining);
-                    topsoil_remaining -= 1;
-                    block
-                } else {
-                    Block::Stone
-                }
-            } else {
-                topsoil_remaining = -1;
-                Block::Air
-            };
+        let mut block = Block::Air;
 
-            if block != Block::Air {
-                chunk.set_block_at(x, y, z, block);
+        let is_solid = density[block_index(x, y, z)];
+
+        let mut skip = false;
+
+        if biome == Biome::Ocean {
+            if y <= SEA_LEVEL && y >= SEA_LEVEL - OCEAN_DEPTH && !is_solid {
+                block = Block::Water(WaterData { level: 0 });
+                skip = true;
+            } else if y >= SEA_LEVEL {
+                continue; // Leave at air - no blocks above sea level in ocean
             }
+        }
+
+        if !skip {
+            if y <= bedrock_height {
+                block = Block::Bedrock;
+            } else {
+                block = if is_solid {
+                    if topsoil_remaining == -1 {
+                        topsoil_remaining = 3;
+                        if y >= SEA_LEVEL - 2 {
+                            top_soil
+                        } else {
+                            underneath_top_soil_block(biome, topsoil_remaining)
+                        }
+                    } else if topsoil_remaining > 0 {
+                        let block = underneath_top_soil_block(biome, topsoil_remaining);
+                        topsoil_remaining -= 1;
+                        block
+                    } else {
+                        Block::Stone
+                    }
+                } else {
+                    topsoil_remaining = -1;
+                    Block::Air
+                };
+            }
+        }
+
+        if block != Block::Air {
+            chunk.set_block_at(x, y, z, block);
         }
     }
 }
@@ -100,6 +131,7 @@ fn top_soil_block(biome: Biome) -> Block {
         | Biome::BadlandsPlateau
         | Biome::ModifiedBadlandsPlateau
         | Biome::ModifiedWoodedBadlandsPlateau => Block::RedSand,
+        Biome::Ocean => Block::Sand,
         _ => Block::GrassBlock(GrassBlockData::default()),
     }
 }
@@ -129,6 +161,7 @@ fn underneath_top_soil_block(biome: Biome, topsoil_remaining: i32) -> Block {
         | Biome::BadlandsPlateau
         | Biome::ModifiedBadlandsPlateau
         | Biome::ModifiedWoodedBadlandsPlateau => Block::RedSandstone,
+        Biome::Ocean => Block::Sand,
         _ => Block::Dirt,
     }
 }
