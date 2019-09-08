@@ -1,7 +1,7 @@
 //! Composition generator, used to populate chunks with blocks
 //! based on the density and biome values.
 
-use crate::worldgen::{block_index, ChunkBiomes, CompositionGenerator, SEA_LEVEL};
+use crate::worldgen::{block_index, util, ChunkBiomes, CompositionGenerator, SEA_LEVEL};
 use bitvec::slice::BitSlice;
 use feather_blocks::{GrassBlockData, MyceliumData, SnowData};
 use feather_core::{Biome, Block, Chunk, ChunkPosition};
@@ -42,11 +42,13 @@ fn basic_composition_for_column(
     seed: u64,
     biome: Biome,
 ) {
-    let mut rng = XorShiftRng::seed_from_u64(seed);
+    let mut rng =
+        XorShiftRng::seed_from_u64(util::shuffle_seed_for_column(seed, chunk.position(), x, z));
+    let bedrock_height = rng.gen_range(0, 4);
 
     let mut topsoil_remaining = -1;
     for y in (0..256).rev() {
-        if y <= rng.gen_range(0, 4) {
+        if y <= bedrock_height {
             chunk.set_block_at(x, y, z, Block::Bedrock);
         } else {
             let is_solid = density[block_index(x, y, z)];
@@ -59,8 +61,9 @@ fn basic_composition_for_column(
                         underneath_top_soil_block(biome, topsoil_remaining)
                     }
                 } else if topsoil_remaining > 0 {
+                    let block = underneath_top_soil_block(biome, topsoil_remaining);
                     topsoil_remaining -= 1;
-                    underneath_top_soil_block(biome, topsoil_remaining)
+                    block
                 } else {
                     Block::Stone
                 }

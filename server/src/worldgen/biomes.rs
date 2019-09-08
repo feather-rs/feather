@@ -6,7 +6,6 @@ use feather_core::{Biome, ChunkPosition};
 use num_traits::FromPrimitive;
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
-use simdnoise::NoiseBuilder;
 use strum::EnumCount;
 
 /// Biome grid generator based on a distorted Voronoi
@@ -21,21 +20,24 @@ impl BiomeGenerator for DistortedVoronoiBiomeGenerator {
         let mut biomes = ChunkBiomes::from_array([Biome::Plains; 16 * 16]); // Will be overriden
 
         // Noise is used to distort each coordinate.
-        let x_noise =
+        /*let x_noise =
             NoiseBuilder::gradient_2d_offset(chunk.x as f32 * 16.0, 16, chunk.z as f32 * 16.0, 16)
                 .with_seed(seed as i32 + 1)
                 .generate_scaled(-4.0, 4.0);
         let z_noise =
             NoiseBuilder::gradient_2d_offset(chunk.x as f32 * 16.0, 16, chunk.z as f32 * 16.0, 16)
                 .with_seed(seed as i32 + 2)
-                .generate_scaled(-4.0, 4.0);
+                .generate_scaled(-4.0, 4.0);*/
 
         for x in 0..16 {
             for z in 0..16 {
                 // Apply distortion to coordinate before passing to voronoi
                 // generator.
-                let distort_x = x_noise[(z << 4) | x] as i32 * 8;
-                let distort_z = z_noise[(z << 4) | x] as i32 * 8;
+                //let distort_x = x_noise[(z << 4) | x] as i32 * 8;
+                //let distort_z = z_noise[(z << 4) | x] as i32 * 8;
+
+                let distort_x = 0;
+                let distort_z = 0;
 
                 let (closest_x, closest_y) = voronoi.get(
                     (chunk.x * 16) + x as i32 + distort_x,

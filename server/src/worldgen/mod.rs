@@ -9,6 +9,7 @@ mod biomes;
 mod composition;
 mod height_map;
 mod superflat;
+mod util;
 mod voronoi;
 
 pub use biomes::DistortedVoronoiBiomeGenerator;
@@ -16,11 +17,15 @@ use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
 pub use composition::BasicCompositionGenerator;
 pub use height_map::BasicHeightMapGenerator;
+use rand::{Rng, SeedableRng};
+use rand_xorshift::XorShiftRng;
 use std::fmt;
 pub use superflat::SuperflatWorldGenerator;
 
 /// Sea-level height.
 pub const SEA_LEVEL: usize = 64;
+/// Sky limit.
+pub const SKY_LIMIT: usize = 255;
 
 pub trait WorldGenerator: Send + Sync {
     /// Generates the chunk at the given position.
@@ -81,11 +86,13 @@ impl ComposableGenerator {
 
 impl WorldGenerator for ComposableGenerator {
     fn generate_chunk(&self, position: ChunkPosition) -> Chunk {
-        let biomes = self.biome.generate_for_chunk(position, self.seed);
+        let mut seed_shuffler = XorShiftRng::seed_from_u64(self.seed);
 
-        let density_map = self
-            .height_map
-            .generate_for_chunk(position, &biomes, self.seed);
+        let biomes = self.biome.generate_for_chunk(position, seed_shuffler.gen());
+
+        let density_map =
+            self.height_map
+                .generate_for_chunk(position, &biomes, seed_shuffler.gen());
 
         let mut chunk = Chunk::new(position);
 
@@ -100,7 +107,7 @@ impl WorldGenerator for ComposableGenerator {
             position,
             &biomes,
             density_map.as_bitslice(),
-            self.seed,
+            seed_shuffler.gen(),
         );
 
         // TODO: correct lighting.
