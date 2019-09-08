@@ -16,7 +16,7 @@ pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
 pub use composition::BasicCompositionGenerator;
-pub use height_map::BasicHeightMapGenerator;
+pub use height_map::HeightMapGenerator;
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
 use std::fmt;
@@ -48,15 +48,15 @@ impl WorldGenerator for EmptyWorldGenerator {
 ///
 /// The pipeline stages are as follows:
 /// * Biomes - generates a biome grid.
-/// * Terrain height - generates the terrain height using Perlin noise.
-/// * Terrain composition - sets the correct block types based on the biome and terrain height.
+/// * Terrain density - generates the terrain density values using Perlin noise.
+/// * Terrain composition - sets the correct block types based on the biome and terrain density.
 ///
 /// This generator is based on [this document](http://cuberite.xoft.cz/docs/Generator.html).
 pub struct ComposableGenerator {
     /// The biome generator.
     biome: Box<dyn BiomeGenerator>,
     /// The height map generator.
-    height_map: Box<dyn HeightMapGenerator>,
+    density_map: Box<dyn DensityMapGenerator>,
     /// The composition generator.
     composition: Box<dyn CompositionGenerator>,
     /// The world seed.
@@ -65,19 +65,15 @@ pub struct ComposableGenerator {
 
 impl ComposableGenerator {
     /// Creates a new `ComposableGenerator` with the given stages.
-    pub fn new<
+    pub fn new<B, D, C>(biome: B, density_map: D, composition: C, seed: u64) -> Self
+    where
         B: BiomeGenerator + 'static,
-        H: HeightMapGenerator + 'static,
+        D: DensityMapGenerator + 'static,
         C: CompositionGenerator + 'static,
-    >(
-        biome: B,
-        height_map: H,
-        composition: C,
-        seed: u64,
-    ) -> Self {
+    {
         Self {
             biome: Box::new(biome),
-            height_map: Box::new(height_map),
+            density_map: Box::new(density_map),
             composition: Box::new(composition),
             seed,
         }
@@ -91,7 +87,7 @@ impl WorldGenerator for ComposableGenerator {
         let biomes = self.biome.generate_for_chunk(position, seed_shuffler.gen());
 
         let density_map =
-            self.height_map
+            self.density_map
                 .generate_for_chunk(position, &biomes, seed_shuffler.gen());
 
         let mut chunk = Chunk::new(position);
@@ -136,10 +132,10 @@ pub trait BiomeGenerator: Send + Sync {
     fn generate_for_chunk(&self, chunk: ChunkPosition, seed: u64) -> ChunkBiomes;
 }
 
-/// A generator which generates the height map for a chunk.
+/// A generator which generates the density map for a chunk.
 /// Used in the `ComposableGenerator` pipeline.
-pub trait HeightMapGenerator: Send + Sync {
-    /// Generates the height map for a given chunk.
+pub trait DensityMapGenerator: Send + Sync {
+    /// Generates the density map for a given chunk.
     /// A compact array of booleans is returned, indexable
     /// by (y << 8) | (x << 4) | z. Those set to `true` will
     /// contain solid blacks; those set to `false` will be air.

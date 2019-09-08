@@ -1,17 +1,18 @@
 //! Implements a basic height map generator using 2D Perlin noise.
 //! A superior generator would use 3D noise to allow for overhangs.
 
-use crate::worldgen::{block_index, ChunkBiomes, HeightMapGenerator, SKY_LIMIT};
+use crate::worldgen::{block_index, ChunkBiomes, DensityMapGenerator, SKY_LIMIT};
 use bitvec::vec::BitVec;
 use feather_core::ChunkPosition;
 use simdnoise::NoiseBuilder;
 use std::cmp::min;
 
-/// Height map generator using two-dimensional Perlin noise.
+/// Density map generator which simply uses a height map
+/// using two-dimensional Perlin noise.
 #[derive(Debug, Default)]
-pub struct BasicHeightMapGenerator;
+pub struct HeightMapGenerator;
 
-impl HeightMapGenerator for BasicHeightMapGenerator {
+impl DensityMapGenerator for HeightMapGenerator {
     fn generate_for_chunk(&self, chunk: ChunkPosition, _biomes: &ChunkBiomes, seed: u64) -> BitVec {
         let x_offset = (chunk.x * 16) as f32;
         let y_offset = (chunk.z * 16) as f32;
