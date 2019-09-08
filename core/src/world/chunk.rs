@@ -1,5 +1,6 @@
 use super::block::*;
 use super::ChunkPosition;
+use crate::Biome;
 
 /// The number of bits used for each block
 /// in the global palette.
@@ -52,6 +53,9 @@ pub struct Chunk {
     /// is assumed to empty, meaning that it consists
     /// of only air.
     sections: [Option<ChunkSection>; NUM_SECTIONS],
+    /// The biomes in this section, indexable by
+    /// ((z << 4) | x).
+    biomes: [Biome; SECTION_WIDTH * SECTION_WIDTH],
 }
 
 impl Default for Chunk {
@@ -68,6 +72,7 @@ impl Default for Chunk {
         Self {
             location: ChunkPosition::new(0, 0),
             sections,
+            biomes: [Biome::Plains; SECTION_WIDTH * SECTION_WIDTH],
         }
     }
 }
@@ -199,6 +204,41 @@ impl Chunk {
         }
 
         count
+    }
+
+    /// Returns the biomes of this chunk.
+    pub fn biomes(&self) -> &[Biome] {
+        &self.biomes
+    }
+
+    /// Returns a mutable reference to the biomes of this chunk.
+    pub fn biomes_mut(&mut self) -> &mut [Biome] {
+        &mut self.biomes
+    }
+
+    /// Gets the biome for the specified column.
+    ///
+    /// # Panics
+    /// Panics if `x < 16` or `z < 16`.
+    pub fn biome_at(&self, x: usize, z: usize) -> Biome {
+        let index = Self::biome_index(x, z);
+        self.biomes[index]
+    }
+
+    /// Sets the biome for the specified column.
+    ///
+    /// # Panics
+    /// Panics if `x < 16` or `z < 16`.
+    pub fn set_biome_at(&mut self, x: usize, z: usize, biome: Biome) {
+        let index = Self::biome_index(x, z);
+        self.biomes[index] = biome;
+    }
+
+    fn biome_index(x: usize, z: usize) -> usize {
+        assert!(x < 16);
+        assert!(z < 16);
+
+        (z << 4) | x
     }
 }
 
@@ -933,5 +973,18 @@ mod tests {
 
         assert_eq!(chunk.block_at(0, 0, 0), Block::Cobblestone);
         assert_eq!(chunk.block_at(0, 1, 0), Block::Stone);
+    }
+
+    #[test]
+    fn test_biomes() {
+        let mut chunk = Chunk::default();
+
+        for x in 0..SECTION_WIDTH {
+            for z in 0..SECTION_WIDTH {
+                assert_eq!(chunk.biome_at(x, z), Biome::Plains);
+                chunk.set_biome_at(x, z, Biome::BirchForest);
+                assert_eq!(chunk.biome_at(x, z), Biome::BirchForest);
+            }
+        }
     }
 }

@@ -15,6 +15,7 @@ use serde::Deserialize;
 use crate::world::block::*;
 use crate::world::chunk::{BitArray, Chunk, ChunkSection};
 use crate::world::ChunkPosition;
+use crate::Biome;
 
 /// The length and width of a region, in chunks.
 const REGION_SIZE: usize = 32;
@@ -42,6 +43,8 @@ struct ChunkLevel {
     z_pos: i32,
     #[serde(rename = "Sections")]
     sections: Vec<LevelSection>,
+    #[serde(rename = "Biomes")]
+    biomes: Vec<i32>,
 }
 
 /// Represents a chunk section in a region file.
@@ -162,6 +165,16 @@ impl RegionHandle {
             read_section_into_chunk(section, &mut chunk)?;
         }
 
+        // Read biomes
+        if level.biomes.len() != 256 {
+            return Err(Error::IndexOutOfBounds);
+        }
+        for index in 0..256 {
+            let id = level.biomes[index];
+            chunk.biomes_mut()[index] =
+                Biome::from_protocol_id(id).ok_or_else(|| Error::InvalidBiomeId(id))?;
+        }
+
         Ok(chunk)
     }
 }
@@ -263,6 +276,8 @@ pub enum Error {
     MissingRootTag,
     /// Chunk section index was out of bounds
     IndexOutOfBounds,
+    /// Invalid biome ID
+    InvalidBiomeId(i32),
 }
 
 impl Display for Error {
@@ -283,6 +298,7 @@ impl Display for Error {
             Error::InvalidBlockType => f.write_str("Chunk contains invalid block type")?,
             Error::MissingRootTag => f.write_str("Chunk is missing a root NBT tag")?,
             Error::IndexOutOfBounds => f.write_str("Section index out of bounds")?,
+            Error::InvalidBiomeId(id) => write!(f, "Invalid biome ID {}", id)?,
         }
 
         Ok(())
