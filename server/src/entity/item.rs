@@ -76,7 +76,6 @@ impl<'a> System<'a> for ItemSpawnSystem {
 
                 vel += glm::vec3(x, y, z);
 
-                debug!("Item velocity: {:?}", vel);
                 vel
             };
 
