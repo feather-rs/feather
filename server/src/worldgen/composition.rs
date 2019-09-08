@@ -26,7 +26,6 @@ impl CompositionGenerator for BasicCompositionGenerator {
         // bottom. The first time a block density value is set to `true`,
         // set it and the next three blocks to dirt. After that, use
         // stone.
-
         for x in 0..16 {
             for z in 0..16 {
                 basic_composition_for_column(x, z, chunk, density, seed, biomes.biome_at(x, z));
@@ -45,28 +44,28 @@ fn basic_composition_for_column(
 ) {
     let mut rng = XorShiftRng::seed_from_u64(seed);
 
-    let mut dirt_remaining = -1;
+    let mut topsoil_remaining = -1;
     for y in (0..256).rev() {
         if y <= rng.gen_range(0, 4) {
             chunk.set_block_at(x, y, z, Block::Bedrock);
         } else {
             let is_solid = density[block_index(x, y, z)];
             let block = if is_solid {
-                if dirt_remaining == -1 {
-                    dirt_remaining = 3;
+                if topsoil_remaining == -1 {
+                    topsoil_remaining = 3;
                     if y >= SEA_LEVEL - 2 {
                         top_soil_block(biome)
                     } else {
-                        underneath_top_soil_block(biome)
+                        underneath_top_soil_block(biome, topsoil_remaining)
                     }
-                } else if dirt_remaining > 0 {
-                    dirt_remaining -= 1;
-                    underneath_top_soil_block(biome)
+                } else if topsoil_remaining > 0 {
+                    topsoil_remaining -= 1;
+                    underneath_top_soil_block(biome, topsoil_remaining)
                 } else {
                     Block::Stone
                 }
             } else {
-                dirt_remaining = -1;
+                topsoil_remaining = -1;
                 Block::Air
             };
 
@@ -86,7 +85,7 @@ fn top_soil_block(biome: Biome) -> Block {
         | Biome::SnowyTaigaMountains
         | Biome::WoodedMountains => Block::Snow(SnowData { layers: 1 }),
         Biome::SnowyBeach => Block::SnowBlock,
-        Biome::GravellyMountains => Block::Gravel,
+        Biome::GravellyMountains | Biome::ModifiedGravellyMountains => Block::Gravel,
         Biome::StoneShore => Block::Stone,
         Biome::Beach | Biome::Desert | Biome::DesertHills | Biome::DesertLakes => Block::Sand,
         Biome::MushroomFields | Biome::MushroomFieldShore => {
@@ -103,15 +102,21 @@ fn top_soil_block(biome: Biome) -> Block {
 }
 
 /// Returns the block under the top soil block for the given biome.
-fn underneath_top_soil_block(biome: Biome) -> Block {
+fn underneath_top_soil_block(biome: Biome, topsoil_remaining: i32) -> Block {
     match biome {
         Biome::SnowyTundra
         | Biome::IceSpikes
         | Biome::SnowyTaiga
         | Biome::SnowyTaigaMountains
-        | Biome::WoodedMountains => Block::GrassBlock(GrassBlockData { snowy: true }),
+        | Biome::WoodedMountains => {
+            if topsoil_remaining == 3 {
+                Block::GrassBlock(GrassBlockData { snowy: true })
+            } else {
+                Block::Dirt
+            }
+        }
         Biome::SnowyBeach => Block::SnowBlock,
-        Biome::GravellyMountains => Block::Gravel,
+        Biome::GravellyMountains | Biome::ModifiedGravellyMountains => Block::Gravel,
         Biome::StoneShore => Block::Stone,
         Biome::Beach | Biome::Desert | Biome::DesertHills | Biome::DesertLakes => Block::Sandstone,
         Biome::MushroomFields | Biome::MushroomFieldShore => Block::Dirt,

@@ -9,14 +9,12 @@ use rand_xorshift::XorShiftRng;
 use simdnoise::NoiseBuilder;
 use strum::EnumCount;
 
-/// Biome grid generator based on a two-level
-/// distorted Voronoi map.
-///
-/// TODO: this is not two-level, only one-level
+/// Biome grid generator based on a distorted Voronoi
+/// noise.
 #[derive(Default)]
-pub struct TwoLevelBiomeGenerator;
+pub struct DistortedVoronoiBiomeGenerator;
 
-impl BiomeGenerator for TwoLevelBiomeGenerator {
+impl BiomeGenerator for DistortedVoronoiBiomeGenerator {
     fn generate_for_chunk(&self, chunk: ChunkPosition, seed: u64) -> ChunkBiomes {
         let mut voronoi = VoronoiGrid::new(384, seed);
 
@@ -88,7 +86,7 @@ mod tests {
     #[test]
     fn test_not_all_plains() {
         // Check that the `ChunkBiomes` was overridden correctly.
-        let gen = TwoLevelBiomeGenerator::default();
+        let gen = DistortedVoronoiBiomeGenerator::default();
 
         let chunk = ChunkPosition::new(5433, 132);
 
@@ -111,7 +109,7 @@ mod tests {
     #[test]
     fn test_deterministic() {
         // Check that the result is always deterministic.
-        let gen = TwoLevelBiomeGenerator::default();
+        let gen = DistortedVoronoiBiomeGenerator::default();
 
         let chunk = ChunkPosition::new(0, 0);
 

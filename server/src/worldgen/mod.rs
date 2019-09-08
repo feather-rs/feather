@@ -11,7 +11,7 @@ mod height_map;
 mod superflat;
 mod voronoi;
 
-pub use biomes::TwoLevelBiomeGenerator;
+pub use biomes::DistortedVoronoiBiomeGenerator;
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
 pub use composition::BasicCompositionGenerator;
