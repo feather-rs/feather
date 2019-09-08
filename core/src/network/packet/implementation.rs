@@ -1344,11 +1344,12 @@ impl Packet for ChunkData {
         }
 
         // Biomes
-        // Just plains for now - TODO proper biome support
         temp_buf.reserve(256 * 4);
-        for _ in 0..256 {
-            temp_buf.write_i32_be(Biome::Plains.protocol_id());
-        }
+        self.chunk
+            .biomes()
+            .iter()
+            .map(|biome| biome.protocol_id())
+            .for_each(|id| temp_buf.write_i32_be(id));
 
         buf.write_var_int(temp_buf.len() as i32);
         buf.write(temp_buf.inner());
