@@ -26,6 +26,14 @@ bitflags! {
     }
 }
 
+bitflags! {
+    #[derive(Default)]
+    pub struct ArrowBitMask: u8 {
+        const CRITICAL = 0x01;
+        const NO_CLIP = 0x02;
+    }
+}
+
 entity_metadata! {
     Metadata,
     Entity {

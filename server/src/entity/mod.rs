@@ -17,7 +17,7 @@ use crate::systems::{
     ENTITY_METADATA_BROADCAST, ENTITY_MOVE_BROADCAST, ENTITY_SEND, ENTITY_SPAWN_BROADCAST,
     ENTITY_VELOCITY_BROADCAST, ITEM_COLLECT, ITEM_MERGE, ITEM_SPAWN, JOIN_BROADCAST, SHOOT_ARROW,
 };
-pub use arrow::ShootArrowEvent;
+pub use arrow::{ArrowComponent, ShootArrowEvent};
 pub use broadcast::EntitySendSystem;
 pub use broadcast::EntitySender;
 pub use broadcast::EntitySpawnEvent;

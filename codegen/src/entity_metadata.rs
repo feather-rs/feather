@@ -9,9 +9,6 @@ use syn::parse::{Parse, ParseBuffer};
 use syn::Error;
 use syn::Lit;
 use syn::Token;
-use uuid::Uuid;
-
-type OptUuid = Option<Uuid>;
 
 #[derive(Clone)]
 struct EntityMetadata {

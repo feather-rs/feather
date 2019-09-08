@@ -788,7 +788,7 @@ pub struct Pong {
 
 // PLAY
 #[allow(clippy::too_many_arguments)]
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, new, Packet, Clone, Debug)]
 pub struct SpawnObject {
     pub entity_id: VarInt,
     pub object_uuid: Uuid,

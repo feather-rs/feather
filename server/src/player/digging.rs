@@ -264,22 +264,18 @@ fn handle_consume_item(
     // TODO: Fallback to off-hand if main-hand is not a consumable
     let used_item = inventory.item_in_main_hand();
 
-    match used_item {
-        Some(item) => {
-            match item.ty {
-                Item::Bow => handle_shoot_bow(
-                    player,
-                    entity,
-                    inventory,
-                    inventory_updates,
-                    position,
-                    shoot_arrow_events,
-                ),
-                // TODO: Food, potions
-                _ => (),
-            }
+    if let Some(item) = used_item {
+        if item.ty == Item::Bow {
+            handle_shoot_bow(
+                player,
+                entity,
+                inventory,
+                inventory_updates,
+                position,
+                shoot_arrow_events,
+            );
         }
-        None => (),
+        // TODO: Food, potions
     }
 }
 
@@ -321,7 +317,7 @@ fn handle_shoot_bow(
         shooter: Some(entity),
         position,
         arrow_type,
-        critical: true,
+        critical: false, // TODO: Determine critical based on how long bow was pulled back
     });
 }
 
