@@ -156,7 +156,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                     velocity.0.y += gravity / 4.0;
                 }
                 _ => {
-                    let slip_multiplier = 0.6;
+                    let slip_multiplier = slip_multiplier(*ty);
                     if pending_position.on_ground {
                         velocity.0.x *= slip_multiplier;
                         velocity.0.z *= slip_multiplier;
@@ -177,6 +177,14 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 *restrict_velocity.get_mut_unchecked() = velocity;
             }
         }
+    }
+}
+
+fn slip_multiplier(ty: EntityType) -> f64 {
+    if ty.is_arrow() {
+        0.0
+    } else {
+        0.6
     }
 }
 
