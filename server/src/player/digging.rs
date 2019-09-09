@@ -287,7 +287,7 @@ fn handle_shoot_bow(
     position: Position,
     shoot_arrow_events: &mut EventChannel<ShootArrowEvent>,
 ) {
-    let arrow_to_consume: Option<(SlotIndex, ItemStack)> = find_arrow(inventory.clone());
+    let arrow_to_consume: Option<(SlotIndex, ItemStack)> = find_arrow(&inventory);
     if player.gamemode == Gamemode::Survival || player.gamemode == Gamemode::Adventure {
         // If no arrow was found, don't shoot
         let arrow_to_consume = arrow_to_consume.clone();
@@ -321,7 +321,7 @@ fn handle_shoot_bow(
     });
 }
 
-fn find_arrow(inventory: InventoryComponent) -> Option<(SlotIndex, ItemStack)> {
+fn find_arrow(inventory: &InventoryComponent) -> Option<(SlotIndex, ItemStack)> {
     // Order of priority is: off-hand, hotbar (0 to 8), rest of inventory
 
     if let Some(offhand) = inventory.item_at(SLOT_OFFHAND) {
@@ -757,25 +757,25 @@ mod tests {
         );
 
         // 1. Off-hand
-        let (slot, stack) = find_arrow(inv.clone()).unwrap();
+        let (slot, stack) = find_arrow(&inv).unwrap();
         assert_eq!(slot, SLOT_OFFHAND);
         assert_eq!(stack.ty, Item::Arrow);
         inv.clear_item_at(SLOT_OFFHAND);
 
         // 2. Hot-bar
-        let (slot, stack) = find_arrow(inv.clone()).unwrap();
+        let (slot, stack) = find_arrow(&inv).unwrap();
         assert_eq!(slot, SLOT_HOTBAR_OFFSET);
         assert_eq!(stack.ty, Item::Arrow);
         inv.clear_item_at(SLOT_HOTBAR_OFFSET);
 
         // 3. Rest of inventory
-        let (slot, stack) = find_arrow(inv.clone()).unwrap();
+        let (slot, stack) = find_arrow(&inv).unwrap();
         assert_eq!(slot, 9);
         assert_eq!(stack.ty, Item::Arrow);
         inv.clear_item_at(9);
 
         // 4. No arrow found
-        assert!(find_arrow(inv.clone()).is_none());
+        assert!(find_arrow(&inv).is_none());
     }
 
     #[test]

@@ -1,6 +1,6 @@
 use shrev::EventChannel;
 use specs::{
-    Component, Entity, Read, ReadStorage, ReaderId, System, SystemData, VecStorage, World,
+    Component, Entity, NullStorage, Read, ReadStorage, ReaderId, System, SystemData, World,
 };
 
 use feather_core::{Item, Position};
@@ -14,7 +14,7 @@ use crate::util::Util;
 pub struct ArrowComponent;
 
 impl Component for ArrowComponent {
-    type Storage = VecStorage<Self>;
+    type Storage = NullStorage<Self>;
 }
 
 /// Event triggered when arrow is shot.
@@ -42,7 +42,9 @@ impl<'a> System<'a> for ShootArrowSystem {
         let (util, shoot_arrow_events, nameds) = data;
 
         for event in shoot_arrow_events.read(self.reader.as_mut().unwrap()) {
-            let mut pos = event.position + glm::vec3(0.0, PLAYER_EYE_HEIGHT, 0.0);
+            let mut pos = event.position
+                + glm::vec3(0.0, PLAYER_EYE_HEIGHT, 0.0)
+                + event.position.direction() * 1.5;
             pos.on_ground = false;
 
             // TODO: Scale velocity based on power
