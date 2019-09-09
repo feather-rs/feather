@@ -18,20 +18,21 @@ impl DensityMapGenerator for HeightMapGenerator {
         let y_offset = (chunk.z * 16) as f32;
 
         let dim = 16;
-        let elevation = NoiseBuilder::gradient_2d_offset(x_offset, dim, y_offset, dim)
+        let (elevation, _, _) = NoiseBuilder::gradient_2d_offset(x_offset, dim, y_offset, dim)
             .with_seed(seed as i32)
-            .generate_scaled(0.0, 8.0);
-        let detail = NoiseBuilder::gradient_2d_offset(x_offset, dim, y_offset, dim)
+            .with_freq(0.01)
+            .generate();
+        let (detail, _, _) = NoiseBuilder::gradient_2d_offset(x_offset, dim, y_offset, dim)
             .with_seed(seed as i32 + 1)
-            .generate_scaled(-0.5, 1.5);
+            .generate();
 
         let mut density_map = bitvec![0; 16 * 256 * 16];
         for x in 0..16 {
             for z in 0..16 {
                 let biome = biomes.biome_at(x, z);
                 let index = (z << 4) | x;
-                let mut elevation = elevation[index];
-                let detail = detail[index];
+                let mut elevation = elevation[index].abs() * 400.0;
+                let detail = detail[index] * 50.0;
 
                 if biome == Biome::Ocean {
                     elevation -= OCEAN_DEPTH as f32;
