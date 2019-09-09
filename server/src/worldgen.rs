@@ -1,6 +1,6 @@
 use feather_blocks::Block;
 use feather_core::level::SuperflatGeneratorOptions;
-use feather_core::{Chunk, ChunkPosition};
+use feather_core::{Biome, Chunk, ChunkPosition};
 
 pub trait WorldGenerator: Send + Sync {
     /// Generates the chunk at the given position.
@@ -21,7 +21,9 @@ impl WorldGenerator for EmptyWorldGenerator {
 
 impl WorldGenerator for SuperflatWorldGenerator {
     fn generate_chunk(&self, position: ChunkPosition) -> Chunk {
-        let mut chunk = Chunk::new(position);
+        let biome = Biome::from_identifier(self.options.biome.as_str()).unwrap_or(Biome::Plains);
+        let mut chunk = Chunk::new_with_default_biome(position, biome);
+
         let mut y_counter = 0;
         for layer in self.options.clone().layers {
             if layer.height == 0 {
@@ -66,7 +68,9 @@ mod tests {
 
     #[test]
     pub fn test_worldgen_flat() {
-        let options = SuperflatGeneratorOptions::default();
+        let mut options = SuperflatGeneratorOptions::default();
+        options.biome = Biome::Mountains.identifier().to_string();
+
         let chunk_pos = ChunkPosition { x: 1, z: 2 };
         let generator = SuperflatWorldGenerator { options };
         let chunk = generator.generate_chunk(chunk_pos);
@@ -88,6 +92,7 @@ mod tests {
                         Block::Air
                     );
                 }
+                assert_eq!(chunk.biome_at(x, z), Biome::Mountains);
             }
         }
     }

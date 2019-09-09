@@ -7,11 +7,12 @@ coverage:
     patch:
       default:
         threshold: 1.5
-        target: 25
+        target: 0
 
 ignore:
   - "blocks/src/blocks.rs"
-  - "generator"
   - "items/src/item.rs"
   - "item_block/src/mappings.rs"
+  - "core/src/biomes.rs"
+  - "generator"
   - "codegen" # No way to run codecov on procedural macros, unfortunately

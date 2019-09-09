@@ -6,7 +6,7 @@ use crate::inventory::ItemStack;
 use crate::network::packet::PacketStage::Play;
 use crate::prelude::*;
 use crate::world::chunk::Chunk;
-use crate::{ClientboundAnimation, Hand};
+use crate::{Biome, ClientboundAnimation, Hand};
 use bytes::{Buf, BufMut};
 use hashbrown::HashMap;
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -1344,11 +1344,12 @@ impl Packet for ChunkData {
         }
 
         // Biomes
-        // Just plains for now - TODO proper biome support
         temp_buf.reserve(256 * 4);
-        for _ in 0..256 {
-            temp_buf.write_i32_be(1); // 1 = plains
-        }
+        self.chunk
+            .biomes()
+            .iter()
+            .map(|biome| biome.protocol_id())
+            .for_each(|id| temp_buf.write_i32_be(id));
 
         buf.write_var_int(temp_buf.len() as i32);
         buf.write(temp_buf.inner());

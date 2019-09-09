@@ -118,3 +118,19 @@ subcommands:
             help: "Rust output file"
             required: true
             takes_value: true
+
+  - biomes:
+      about: "Generates biome mappings"
+      args:
+        - input:
+            long: input
+            short: i
+            required: true
+            takes_value: true
+            help: "1.14 registries.json report"
+        - output:
+            long: output
+            short: o
+            required: true
+            takes_value: true
+            help: "Output file to write code to"

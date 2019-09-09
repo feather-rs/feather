@@ -1,5 +1,6 @@
 use super::block::*;
 use super::ChunkPosition;
+use crate::Biome;
 
 /// The number of bits used for each block
 /// in the global palette.
@@ -52,6 +53,9 @@ pub struct Chunk {
     /// is assumed to empty, meaning that it consists
     /// of only air.
     sections: [Option<ChunkSection>; NUM_SECTIONS],
+    /// The biomes in this section, indexable by
+    /// ((z << 4) | x).
+    biomes: [Biome; SECTION_WIDTH * SECTION_WIDTH],
 }
 
 impl Default for Chunk {
@@ -68,6 +72,7 @@ impl Default for Chunk {
         Self {
             location: ChunkPosition::new(0, 0),
             sections,
+            biomes: [Biome::Plains; SECTION_WIDTH * SECTION_WIDTH],
         }
     }
 }
@@ -78,6 +83,18 @@ impl Chunk {
     pub fn new(location: ChunkPosition) -> Self {
         Self {
             location,
+            ..Default::default()
+        }
+    }
+
+    /// Creates a new empty chunk
+    /// with the specified location,
+    /// and filling its biomes with
+    /// the provided `default_biome`.
+    pub fn new_with_default_biome(location: ChunkPosition, default_biome: Biome) -> Self {
+        Self {
+            location,
+            biomes: [default_biome; SECTION_WIDTH * SECTION_HEIGHT],
             ..Default::default()
         }
     }
@@ -199,6 +216,41 @@ impl Chunk {
         }
 
         count
+    }
+
+    /// Returns the biomes of this chunk.
+    pub fn biomes(&self) -> &[Biome] {
+        &self.biomes
+    }
+
+    /// Returns a mutable reference to the biomes of this chunk.
+    pub fn biomes_mut(&mut self) -> &mut [Biome] {
+        &mut self.biomes
+    }
+
+    /// Gets the biome for the specified column.
+    ///
+    /// # Panics
+    /// Panics if `x < 16` or `z < 16`.
+    pub fn biome_at(&self, x: usize, z: usize) -> Biome {
+        let index = Self::biome_index(x, z);
+        self.biomes[index]
+    }
+
+    /// Sets the biome for the specified column.
+    ///
+    /// # Panics
+    /// Panics if `x < 16` or `z < 16`.
+    pub fn set_biome_at(&mut self, x: usize, z: usize, biome: Biome) {
+        let index = Self::biome_index(x, z);
+        self.biomes[index] = biome;
+    }
+
+    fn biome_index(x: usize, z: usize) -> usize {
+        assert!(x < 16);
+        assert!(z < 16);
+
+        (z << 4) | x
     }
 }
 
@@ -682,6 +734,27 @@ mod tests {
     }
 
     #[test]
+    fn chunk_new_with_default_biome() {
+        let pos = ChunkPosition::new(0, 0);
+        let chunk = Chunk::new_with_default_biome(pos, Biome::Mountains);
+
+        // Confirm that chunk is empty
+        for x in 0..16 {
+            assert!(chunk.section(x).is_none());
+            assert!(chunk.section(x).is_none());
+        }
+
+        assert_eq!(chunk.position(), pos);
+
+        // Confirm that biomes are set
+        for x in 0..16 {
+            for z in 0..16 {
+                assert_eq!(chunk.biome_at(x, z), Biome::Mountains);
+            }
+        }
+    }
+
+    #[test]
     fn set_block_simple() {
         let pos = ChunkPosition::new(0, 0);
         let mut chunk = Chunk::new(pos);
@@ -933,5 +1006,18 @@ mod tests {
 
         assert_eq!(chunk.block_at(0, 0, 0), Block::Cobblestone);
         assert_eq!(chunk.block_at(0, 1, 0), Block::Stone);
+    }
+
+    #[test]
+    fn test_biomes() {
+        let mut chunk = Chunk::default();
+
+        for x in 0..SECTION_WIDTH {
+            for z in 0..SECTION_WIDTH {
+                assert_eq!(chunk.biome_at(x, z), Biome::Plains);
+                chunk.set_biome_at(x, z, Biome::BirchForest);
+                assert_eq!(chunk.biome_at(x, z), Biome::BirchForest);
+            }
+        }
     }
 }
