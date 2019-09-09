@@ -190,6 +190,8 @@ fn gravitational_acceleration(ty: EntityType) -> f64 {
         -0.08
     } else if ty.is_item() {
         -0.04
+    } else if ty.is_arrow() {
+        -0.05
     } else {
         0.0
     }
@@ -213,6 +215,8 @@ fn terminal_velocity(ty: EntityType) -> f32 {
 fn drag_force(ty: EntityType) -> f64 {
     if ty.is_living() || ty.is_item() {
         0.98
+    } else if ty.is_arrow() {
+        0.99
     } else {
         0.0
     }
