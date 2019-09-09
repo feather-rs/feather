@@ -50,7 +50,27 @@ lazy_static! {
         m.insert(PacketType::Request, PacketBuilder::with(|| Box::new(Request::default())));
         m.insert(PacketType::Ping, PacketBuilder::with(|| Box::new(Ping::default())));
 
-        // Play
+        // Clientbound
+        m.insert(PacketType::EncryptionRequest, PacketBuilder::with(|| Box::new(EncryptionRequest::default())));
+        m.insert(PacketType::DisconnectLogin, PacketBuilder::with(|| Box::new(DisconnectLogin::default())));
+        m.insert(PacketType::SetCompression, PacketBuilder::with(|| Box::new(SetCompression::default())));
+        m.insert(PacketType::LoginSuccess, PacketBuilder::with(|| Box::new(LoginSuccess::default())));
+        m.insert(PacketType::KeepAliveClientbound, PacketBuilder::with(|| Box::new(KeepAliveClientbound::default())));
+
+        // Status
+        m.insert(PacketType::Response, PacketBuilder::with(|| Box::new(Response::default())));
+
+        // Play Clientbound
+        m.insert(PacketType::ChunkData, PacketBuilder::with(|| Box::new(ChunkData::default())));
+        m.insert(PacketType::EntityMetadata, PacketBuilder::with(|| Box::new(PacketEntityMetadata::default())));
+        m.insert(PacketType::SpawnPosition, PacketBuilder::with(|| Box::new(SpawnPosition::default())));
+        m.insert(PacketType::PlayerPositionAndLookClientbound, PacketBuilder::with(|| Box::new(PlayerPositionAndLookClientbound::default())));
+        m.insert(PacketType::PlayerInfo, PacketBuilder::with(|| Box::new(PlayerInfo::default())));
+        m.insert(PacketType::SetSlot, PacketBuilder::with(|| Box::new(SetSlot::default())));
+        m.insert(PacketType::ChatMessageClientbound, PacketBuilder::with(|| Box::new(ChatMessageClientbound::default())));
+        m.insert(PacketType::TimeUpdate, PacketBuilder::with(|| Box::new(TimeUpdate::default())));
+
+        // Play Serverbound
         m.insert(PacketType::JoinGame, PacketBuilder::with(|| Box::new(JoinGame::default())));
         m.insert(PacketType::TeleportConfirm, PacketBuilder::with(|| Box::new(TeleportConfirm::default())));
         m.insert(PacketType::QueryBlockNBT, PacketBuilder::with(|| Box::new(QueryBlockNBT::default())));
@@ -265,9 +285,7 @@ pub struct LoginStart {
 
 #[derive(Default, AsAny, Clone)]
 pub struct EncryptionResponse {
-    pub secret_length: VarInt,
     pub secret: Vec<u8>,
-    pub verify_token_length: VarInt,
     pub verify_token: Vec<u8>,
 }
 
@@ -279,16 +297,13 @@ impl Packet for EncryptionResponse {
         for _ in 0..self.secret_length {
             secret.push(buf.get_u8());
         }
-        self.secret = secret;
 
-        self.verify_token_length = buf.try_get_var_int()?;
-
-        let mut verify_token = vec![];
-        for _ in 0..self.secret_length {
-            verify_token.push(buf.get_u8());
+        let verify_token_length = buf.try_get_var_int()?;
+        self.verify_token = vec![];
+        for _ in 0..verify_token_length {
+            self.verify_token.push(buf.get_u8());
         }
 
-        self.verify_token = verify_token;
         Ok(())
     }
 
@@ -518,7 +533,7 @@ impl Default for UseEntityType {
 
 #[derive(Default, AsAny, Packet, Clone)]
 pub struct KeepAliveServerbound {
-    pub id: i64,
+    pub id: u64,
 }
 
 #[derive(Default, AsAny, Packet, Clone)]
@@ -1986,6 +2001,12 @@ pub enum PlayerInfoAction {
     RemovePlayer,
 }
 
+impl Default for PlayerInfoAction {
+    fn default() -> Self {
+        Self::RemovePlayer
+    }
+}
+
 impl PlayerInfoAction {
     pub fn id(&self) -> VarInt {
         match self {
@@ -2142,7 +2163,7 @@ pub struct SpawnPosition {
     pub location: BlockPosition,
 }
 
-#[derive(Default, AsAny, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone, Debug)]
 pub struct TimeUpdate {
     pub world_age: i64,
     pub time_of_day: i64,
