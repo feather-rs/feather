@@ -115,6 +115,7 @@ enum EntryType {
     String,
     Slot,
     Boolean,
+    OptUuid,
 }
 
 impl Parse for EntryType {
@@ -134,6 +135,7 @@ impl EntryType {
             EntryType::String => "String",
             EntryType::Slot => "Slot",
             EntryType::Boolean => "bool",
+            EntryType::OptUuid => "OptUuid",
         }
     }
 
@@ -145,6 +147,7 @@ impl EntryType {
             "String" => EntryType::String,
             "bool" => EntryType::Boolean,
             "Slot" => EntryType::Slot,
+            "OptUuid" => EntryType::OptUuid,
             _ => panic!("Invalid entry type {}", ty),
         }
     }

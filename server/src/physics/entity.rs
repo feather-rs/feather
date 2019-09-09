@@ -156,7 +156,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                     velocity.0.y += gravity / 4.0;
                 }
                 _ => {
-                    let slip_multiplier = 0.6;
+                    let slip_multiplier = slip_multiplier(*ty);
                     if pending_position.on_ground {
                         velocity.0.x *= slip_multiplier;
                         velocity.0.z *= slip_multiplier;
@@ -180,6 +180,14 @@ impl<'a> System<'a> for EntityPhysicsSystem {
     }
 }
 
+fn slip_multiplier(ty: EntityType) -> f64 {
+    if ty.is_arrow() {
+        0.0
+    } else {
+        0.6
+    }
+}
+
 /// Retrieves the gravitational acceleration in blocks per tick squared
 /// for a given entity type.
 ///
@@ -190,6 +198,8 @@ fn gravitational_acceleration(ty: EntityType) -> f64 {
         -0.08
     } else if ty.is_item() {
         -0.04
+    } else if ty.is_arrow() {
+        -0.05
     } else {
         0.0
     }
@@ -213,6 +223,8 @@ fn terminal_velocity(ty: EntityType) -> f32 {
 fn drag_force(ty: EntityType) -> f64 {
     if ty.is_living() || ty.is_item() {
         0.98
+    } else if ty.is_arrow() {
+        0.99
     } else {
         0.0
     }

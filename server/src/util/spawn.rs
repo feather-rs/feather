@@ -1,3 +1,4 @@
+use crate::entity::ArrowComponent;
 use crate::entity::ItemComponent;
 use crate::entity::Metadata;
 use crate::entity::{EntitySpawnEvent, EntityType, PositionComponent, VelocityComponent};
@@ -8,6 +9,7 @@ use feather_core::{ItemStack, Position};
 use glm::DVec3;
 use shrev::EventChannel;
 use specs::{Entities, Read, System, Write, WriteStorage};
+use uuid::Uuid;
 
 /// This type implements a convenient
 /// way to spawn entities without having to
@@ -47,6 +49,36 @@ impl Spawner {
 
         self.queue.push(request);
     }
+
+    pub fn spawn_arrow(
+        &self,
+        position: Position,
+        velocity: DVec3,
+        critical: bool,
+        shooter: Option<Uuid>,
+    ) {
+        let meta = {
+            let mut meta_arrow = crate::entity::metadata::Arrow::default();
+            let mask = if critical {
+                crate::entity::metadata::ArrowBitMask::CRITICAL
+            } else {
+                crate::entity::metadata::ArrowBitMask::default()
+            };
+            meta_arrow.set_arrow_bit_mask(mask.bits());
+            meta_arrow.set_shooter(shooter);
+            Metadata::Arrow(meta_arrow)
+        };
+        let request = SpawnRequest {
+            ty: EntityType::Arrow,
+            position,
+            velocity,
+            meta,
+
+            extra: Extra::Arrow,
+        };
+
+        self.queue.push(request);
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -62,6 +94,7 @@ struct SpawnRequest {
 #[derive(Debug, Clone)]
 enum Extra {
     Item(ItemStack),
+    Arrow,
 }
 
 /// System for spawning queued requests in the `Spawner`.
@@ -75,6 +108,7 @@ impl<'a> System<'a> for SpawnerSystem {
         WriteStorage<'a, Metadata>,
         WriteStorage<'a, EntityType>,
         WriteStorage<'a, ItemComponent>,
+        WriteStorage<'a, ArrowComponent>,
         Write<'a, EventChannel<EntitySpawnEvent>>,
         Read<'a, TickCount>,
         Entities<'a>,
@@ -88,6 +122,7 @@ impl<'a> System<'a> for SpawnerSystem {
             mut metadatas,
             mut types,
             mut item_markers,
+            mut arrow_markers,
             mut spawn_events,
             tick,
             entities,
@@ -122,6 +157,9 @@ impl<'a> System<'a> for SpawnerSystem {
                             },
                         )
                         .unwrap();
+                }
+                EntityType::Arrow => {
+                    arrow_markers.insert(entity, ArrowComponent {}).unwrap();
                 }
                 _ => unimplemented!(),
             }

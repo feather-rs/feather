@@ -439,7 +439,7 @@ impl Packet for PlayerDigging {
                 2 => PlayerDiggingStatus::FinishedDigging,
                 3 => PlayerDiggingStatus::DropItemStack,
                 4 => PlayerDiggingStatus::DropItem,
-                5 => PlayerDiggingStatus::ShootArrow,
+                5 => PlayerDiggingStatus::ConsumeItem,
                 6 => PlayerDiggingStatus::SwapItemInHand,
                 _ => return Err(()),
             }
@@ -472,7 +472,7 @@ pub enum PlayerDiggingStatus {
     FinishedDigging = 2,
     DropItemStack = 3,
     DropItem = 4,
-    ShootArrow = 5,
+    ConsumeItem = 5,
     SwapItemInHand = 6,
 }
 
@@ -788,7 +788,7 @@ pub struct Pong {
 
 // PLAY
 #[allow(clippy::too_many_arguments)]
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, new, Packet, Clone, Debug)]
 pub struct SpawnObject {
     pub entity_id: VarInt,
     pub object_uuid: Uuid,

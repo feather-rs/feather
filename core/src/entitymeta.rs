@@ -9,6 +9,8 @@ use crate::Slot;
 use hashbrown::HashMap;
 use uuid::Uuid;
 
+type OptUuid = Option<Uuid>;
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum MetaEntry {
     Byte(i8),
@@ -23,7 +25,7 @@ pub enum MetaEntry {
     Position(BlockPosition),
     OptPosition(Option<BlockPosition>),
     Direction(Direction),
-    OptUuid(Option<Uuid>),
+    OptUuid(OptUuid),
     OptBlockId(Option<i32>),
     Nbt,      // TODO
     Particle, // TODO
@@ -89,6 +91,12 @@ impl IntoMetaEntry for Slot {
 impl IntoMetaEntry for f32 {
     fn into_meta_entry(&self) -> MetaEntry {
         MetaEntry::Float(*self)
+    }
+}
+
+impl IntoMetaEntry for OptUuid {
+    fn into_meta_entry(&self) -> MetaEntry {
+        MetaEntry::OptUuid(*self)
     }
 }
 

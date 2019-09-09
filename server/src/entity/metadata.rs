@@ -10,6 +10,9 @@ use specs::{
     BitSet, Component, Entities, FlaggedStorage, Join, Read, ReaderId, System, VecStorage,
     WriteStorage,
 };
+use uuid::Uuid;
+
+type OptUuid = Option<Uuid>;
 
 bitflags! {
     pub struct EntityBitMask: u8 {
@@ -20,6 +23,14 @@ bitflags! {
         const INVISIBLE = 0x20;
         const GLOWING_EFFECT = 0x40;
         const FLYING_WITH_ELYTRA = 0x80;
+    }
+}
+
+bitflags! {
+    #[derive(Default)]
+    pub struct ArrowBitMask: u8 {
+        const CRITICAL = 0x01;
+        const NO_CLIP = 0x02;
     }
 }
 
@@ -46,6 +57,13 @@ entity_metadata! {
         score: VarInt() = 12,
         displayed_skin_parts: u8() = 13,
         main_hand: u8() = 14,
+    },
+    Arrow: Entity {
+        arrow_bit_mask: u8() = 6,
+        shooter: OptUuid() = 7,
+    },
+    TippedArrow: Arrow {
+        color: VarInt() = 8,
     },
 }
 

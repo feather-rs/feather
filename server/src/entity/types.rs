@@ -13,6 +13,8 @@ pub enum EntityType {
     Item,
     ExperienceOrb,
     Thunderbolt,
+    Arrow,
+    TippedArrow,
     #[cfg(test)]
     Test,
     // TODO more...
@@ -29,6 +31,10 @@ impl EntityType {
 
     pub fn is_item(self) -> bool {
         self == EntityType::Item
+    }
+
+    pub fn is_arrow(self) -> bool {
+        self == EntityType::Arrow || self == EntityType::TippedArrow
     }
 
     pub fn is_other(self) -> bool {
