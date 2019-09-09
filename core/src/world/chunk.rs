@@ -87,6 +87,18 @@ impl Chunk {
         }
     }
 
+    /// Creates a new empty chunk
+    /// with the specified location,
+    /// and filling its biomes with
+    /// the provided `default_biome`.
+    pub fn new_with_default_biome(location: ChunkPosition, default_biome: Biome) -> Self {
+        Self {
+            location,
+            biomes: [default_biome; SECTION_WIDTH * SECTION_HEIGHT],
+            ..Default::default()
+        }
+    }
+
     /// Gets the block at the specified
     /// position in this chunk. The position
     /// is in the chunk's local coordinate
@@ -733,6 +745,27 @@ mod tests {
         }
 
         assert_eq!(chunk.position(), pos);
+    }
+
+    #[test]
+    fn chunk_new_with_default_biome() {
+        let pos = ChunkPosition::new(0, 0);
+        let chunk = Chunk::new_with_default_biome(pos, Biome::Mountains);
+
+        // Confirm that chunk is empty
+        for x in 0..16 {
+            assert!(chunk.section(x).is_none());
+            assert!(chunk.section(x).is_none());
+        }
+
+        assert_eq!(chunk.position(), pos);
+
+        // Confirm that biomes are set
+        for x in 0..16 {
+            for z in 0..16 {
+                assert_eq!(chunk.biome_at(x, z), Biome::Mountains);
+            }
+        }
     }
 
     #[test]

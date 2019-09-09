@@ -1,5 +1,6 @@
 //! Implements level.dat file loading.
 
+use crate::Biome;
 use feather_items::Item;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -117,7 +118,7 @@ impl Default for SuperflatGeneratorOptions {
                     height: 1,
                 },
             ],
-            biome: String::from("minecraft:plains"),
+            biome: Biome::Plains.identifier().to_string(),
         }
     }
 }
