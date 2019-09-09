@@ -45,15 +45,8 @@ impl<'a> System<'a> for ShootArrowSystem {
             let mut pos = event.position + glm::vec3(0.0, PLAYER_EYE_HEIGHT, 0.0);
             pos.on_ground = false;
 
-            // TODO: Proper velocity calculations
-            let velocity = {
-                let mut vel = pos.direction();
-                vel.data[0] *= 30.0 * 100.0 * 8000.0;
-                vel.data[1] *= 30.0 * 100.0 * 8000.0 + 2000.0;
-                vel.data[2] *= 30.0 * 100.0 * 8000.0;
-                debug!("Arrow velocity: {:?}", vel);
-                vel
-            };
+            // TODO: Scale velocity based on power
+            let velocity = pos.direction();
 
             let shooter = match event.shooter {
                 Some(e) => Some(nameds.get(e).unwrap().uuid),
