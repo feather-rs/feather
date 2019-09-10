@@ -230,6 +230,24 @@ fn packet_to_spawn_entity(
 
             Box::new(packet)
         }
+        EntityType::Arrow => {
+            let packet = SpawnObject {
+                entity_id: entity.id() as i32,
+                object_uuid: Uuid::new_v4(),
+                ty: 60,
+                x: position.current.x,
+                y: position.current.y,
+                z: position.current.z,
+                pitch: degrees_to_stops(position.current.pitch),
+                yaw: degrees_to_stops(position.current.yaw),
+                data: 1, // TODO: Shooter entity ID
+                velocity_x,
+                velocity_y,
+                velocity_z,
+            };
+
+            Box::new(packet)
+        }
         _ => unimplemented!(),
     }
 }

@@ -15,6 +15,7 @@ pub use broadcaster::BroadcasterSystem;
 pub use macros::*;
 pub use spawn::SpawnerSystem;
 use specs::Entity;
+use uuid::Uuid;
 
 /// Converts float-based velocity in blocks per tick
 /// to the format used by the protocol.
@@ -82,6 +83,17 @@ impl Util {
     /// This redirects to `Spawner::spawn`.
     pub fn spawn_item(&self, position: Position, velocity: DVec3, item: ItemStack) {
         self.spawner.spawn_item(position, velocity, item);
+    }
+
+    pub fn spawn_arrow(
+        &self,
+        position: Position,
+        velocity: DVec3,
+        critical: bool,
+        shooter: Option<Uuid>,
+    ) {
+        self.spawner
+            .spawn_arrow(position, velocity, critical, shooter);
     }
 
     /// This should be called at the end of every tick.

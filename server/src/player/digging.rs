@@ -13,14 +13,14 @@ use feather_core::network::packet::implementation::{
 use feather_core::network::packet::PacketType;
 use feather_core::world::block::{Block, BlockExt};
 use feather_core::world::{BlockPosition, ChunkMap};
-use feather_core::{Gamemode, Item};
+use feather_core::{Gamemode, Item, Position};
 
 use crate::disconnect_player;
-use crate::entity::PlayerComponent;
+use crate::entity::{PlayerComponent, PositionComponent, ShootArrowEvent};
 use crate::network::PacketQueue;
 use crate::player::{InventoryComponent, InventoryUpdateEvent};
 use crate::util::Util;
-use feather_core::inventory::{ItemStack, SlotIndex, SLOT_HOTBAR_OFFSET};
+use feather_core::inventory::{ItemStack, SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use shrev::EventChannel;
 use specs::SystemData;
 
@@ -72,9 +72,11 @@ impl<'a> System<'a> for PlayerDiggingSystem {
     type SystemData = (
         WriteStorage<'a, InventoryComponent>,
         ReadStorage<'a, PlayerComponent>, // For gamemodes
+        ReadStorage<'a, PositionComponent>,
         Write<'a, EventChannel<BlockUpdateEvent>>,
         Write<'a, EventChannel<PlayerItemDropEvent>>,
         Write<'a, EventChannel<InventoryUpdateEvent>>,
+        Write<'a, EventChannel<ShootArrowEvent>>,
         Write<'a, ChunkMap>,
         Read<'a, PacketQueue>,
         Read<'a, LazyUpdate>,
@@ -86,9 +88,11 @@ impl<'a> System<'a> for PlayerDiggingSystem {
         let (
             mut inventories,
             players,
+            positions,
             mut block_breaks,
             mut item_drops,
             mut inventory_updates,
+            mut shoot_arrow_events,
             mut chunk_map,
             packet_queue,
             lazy,
@@ -115,6 +119,15 @@ impl<'a> System<'a> for PlayerDiggingSystem {
                     &mut inventory_updates,
                     &mut item_drops,
                     inventories.get_mut(player).unwrap(),
+                ),
+                ConsumeItem => handle_consume_item(
+                    packet,
+                    players.get(player).unwrap(),
+                    player,
+                    inventories.get_mut(player).unwrap(),
+                    &mut inventory_updates,
+                    positions.get(player).unwrap().current,
+                    &mut shoot_arrow_events,
                 ),
                 status => warn!("Unhandled Player Digging status {:?}", status),
             }
@@ -233,6 +246,112 @@ fn handle_drop_item_stack(
             player: entity,
         };
         item_drops.single_write(item_drop);
+    }
+}
+
+/// Handles food consumption and shooting arrows.
+fn handle_consume_item(
+    packet: &PlayerDigging,
+    player: &PlayerComponent,
+    entity: Entity,
+    inventory: &mut InventoryComponent,
+    inventory_updates: &mut EventChannel<InventoryUpdateEvent>,
+    position: Position,
+    shoot_arrow_events: &mut EventChannel<ShootArrowEvent>,
+) {
+    assert_eq!(packet.status, PlayerDiggingStatus::ConsumeItem);
+
+    // TODO: Fallback to off-hand if main-hand is not a consumable
+    let used_item = inventory.item_in_main_hand();
+
+    if let Some(item) = used_item {
+        if item.ty == Item::Bow {
+            handle_shoot_bow(
+                player,
+                entity,
+                inventory,
+                inventory_updates,
+                position,
+                shoot_arrow_events,
+            );
+        }
+        // TODO: Food, potions
+    }
+}
+
+fn handle_shoot_bow(
+    player: &PlayerComponent,
+    entity: Entity,
+    inventory: &mut InventoryComponent,
+    inventory_updates: &mut EventChannel<InventoryUpdateEvent>,
+    position: Position,
+    shoot_arrow_events: &mut EventChannel<ShootArrowEvent>,
+) {
+    let arrow_to_consume: Option<(SlotIndex, ItemStack)> = find_arrow(&inventory);
+    if player.gamemode == Gamemode::Survival || player.gamemode == Gamemode::Adventure {
+        // If no arrow was found, don't shoot
+        let arrow_to_consume = arrow_to_consume.clone();
+        if arrow_to_consume.is_none() {
+            debug!("Tried to shoot bow with no arrows.");
+            return;
+        }
+
+        // Consume arrow
+        let (arrow_slot, arrow_stack) = arrow_to_consume.unwrap();
+        let mut arrow_stack: ItemStack = arrow_stack.clone();
+        arrow_stack.amount -= 1;
+
+        inventory.set_item_at(arrow_slot, arrow_stack);
+        inventory_updates.single_write(InventoryUpdateEvent {
+            slots: smallvec![arrow_slot],
+            player: entity,
+        });
+    }
+
+    let arrow_type: Item = match arrow_to_consume {
+        None => Item::Arrow, // Default to generic arrow in creative mode with none in inventory
+        Some((_, arrow_stack)) => arrow_stack.ty,
+    };
+
+    shoot_arrow_events.single_write(ShootArrowEvent {
+        shooter: Some(entity),
+        position,
+        arrow_type,
+        critical: false, // TODO: Determine critical based on how long bow was pulled back
+    });
+}
+
+fn find_arrow(inventory: &InventoryComponent) -> Option<(SlotIndex, ItemStack)> {
+    // Order of priority is: off-hand, hotbar (0 to 8), rest of inventory
+
+    if let Some(offhand) = inventory.item_at(SLOT_OFFHAND) {
+        if is_arrow_item(offhand.ty) {
+            return Some((SLOT_OFFHAND, offhand.clone()));
+        }
+    }
+
+    for hotbar_slot in 0..9 {
+        if let Some(hotbar_stack) = inventory.item_at(SLOT_HOTBAR_OFFSET + hotbar_slot) {
+            if is_arrow_item(hotbar_stack.ty) {
+                return Some((SLOT_HOTBAR_OFFSET + hotbar_slot, hotbar_stack.clone()));
+            }
+        }
+    }
+
+    for inv_slot in 9..=35 {
+        if let Some(inv_stack) = inventory.item_at(inv_slot) {
+            if is_arrow_item(inv_stack.ty) {
+                return Some((inv_slot, inv_stack.clone()));
+            }
+        }
+    }
+    None
+}
+
+fn is_arrow_item(item: Item) -> bool {
+    match item {
+        Item::Arrow | Item::SpectralArrow | Item::TippedArrow => true,
+        _ => false,
     }
 }
 
@@ -610,5 +729,112 @@ mod tests {
         // Packet should be sent to both players
         t::assert_packet_received(&player1, PacketType::BlockChange);
         t::assert_packet_received(&player2, PacketType::BlockChange);
+    }
+
+    #[test]
+    pub fn test_find_arrow() {
+        let mut inv = InventoryComponent::new();
+        inv.set_item_at(
+            SLOT_OFFHAND,
+            ItemStack {
+                ty: Item::Arrow,
+                amount: 1,
+            },
+        );
+        inv.set_item_at(
+            SLOT_HOTBAR_OFFSET,
+            ItemStack {
+                ty: Item::Arrow,
+                amount: 1,
+            },
+        );
+        inv.set_item_at(
+            9,
+            ItemStack {
+                ty: Item::Arrow,
+                amount: 1,
+            },
+        );
+
+        // 1. Off-hand
+        let (slot, stack) = find_arrow(&inv).unwrap();
+        assert_eq!(slot, SLOT_OFFHAND);
+        assert_eq!(stack.ty, Item::Arrow);
+        inv.clear_item_at(SLOT_OFFHAND);
+
+        // 2. Hot-bar
+        let (slot, stack) = find_arrow(&inv).unwrap();
+        assert_eq!(slot, SLOT_HOTBAR_OFFSET);
+        assert_eq!(stack.ty, Item::Arrow);
+        inv.clear_item_at(SLOT_HOTBAR_OFFSET);
+
+        // 3. Rest of inventory
+        let (slot, stack) = find_arrow(&inv).unwrap();
+        assert_eq!(slot, 9);
+        assert_eq!(stack.ty, Item::Arrow);
+        inv.clear_item_at(9);
+
+        // 4. No arrow found
+        assert!(find_arrow(&inv).is_none());
+    }
+
+    #[test]
+    pub fn test_shoot_arrow() {
+        let (mut w, mut d) = t::init_world();
+
+        let player = t::add_player(&mut w);
+
+        let mut shoot_reader = t::reader(&w);
+        let mut update_reader = t::reader(&w);
+
+        let slot = SLOT_HOTBAR_OFFSET;
+        let amnt = 32;
+        {
+            let mut invs = w.write_component::<InventoryComponent>();
+            let inv = invs.get_mut(player.entity).unwrap();
+            inv.set_item_at(slot, ItemStack::new(Item::Bow, 1));
+            inv.set_item_at(slot + 1, ItemStack::new(Item::Arrow, amnt));
+        }
+
+        // Change to survival
+        w.write_component::<PlayerComponent>()
+            .insert(
+                player.entity,
+                PlayerComponent {
+                    gamemode: Gamemode::Survival,
+                    profile_properties: vec![],
+                },
+            )
+            .unwrap();
+
+        let packet = PlayerDigging::new(
+            PlayerDiggingStatus::ConsumeItem,
+            BlockPosition::default(),
+            0,
+        );
+        t::receive_packet(&player, &w, packet);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        let shoot_channel = w.fetch::<EventChannel<ShootArrowEvent>>();
+        let update_channel = w.fetch::<EventChannel<InventoryUpdateEvent>>();
+
+        let update_events = update_channel.read(&mut update_reader).collect::<Vec<_>>();
+        assert_eq!(update_events.len(), 1);
+        let first = update_events.first().unwrap();
+        assert_eq!(first.player, player.entity);
+        assert_eq!(first.slots.as_slice(), &[slot + 1]);
+
+        let shoot_events = shoot_channel.read(&mut shoot_reader).collect::<Vec<_>>();
+        assert_eq!(shoot_events.len(), 1);
+        let first = shoot_events.first().unwrap();
+        assert_eq!(first.shooter.unwrap(), player.entity);
+        assert_eq!(first.arrow_type, Item::Arrow);
+
+        // In survival, check if amount of arrow stack decreased.
+        let invs = w.read_component::<InventoryComponent>();
+        let inv = invs.get(player.entity).unwrap();
+        assert_eq!(inv.item_at(slot + 1).unwrap().amount, amnt - 1);
     }
 }
