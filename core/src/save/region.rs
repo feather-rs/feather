@@ -12,6 +12,7 @@ use std::path::PathBuf;
 use byteorder::{BigEndian, ReadBytesExt};
 use serde::Deserialize;
 
+use crate::save::entity::EntityData;
 use crate::world::block::*;
 use crate::world::chunk::{BitArray, Chunk, ChunkSection};
 use crate::world::ChunkPosition;
@@ -45,6 +46,8 @@ struct ChunkLevel {
     sections: Vec<LevelSection>,
     #[serde(rename = "Biomes")]
     biomes: Vec<i32>,
+    #[serde(rename = "Entities")]
+    entities: Vec<EntityData>,
 }
 
 /// Represents a chunk section in a region file.
@@ -173,6 +176,21 @@ impl RegionHandle {
             let id = level.biomes[index];
             chunk.biomes_mut()[index] =
                 Biome::from_protocol_id(id).ok_or_else(|| Error::InvalidBiomeId(id))?;
+        }
+
+        for entity in &level.entities {
+            match entity {
+                EntityData::Item(item_data) => {
+                    debug!("Found an item entity: {:?}", item_data);
+                    // TODO: Create item entity from data
+                }
+                EntityData::Unknown => {
+                    trace!(
+                        "Chunk {:?} contains an unknown entity type",
+                        chunk.position(),
+                    );
+                }
+            }
         }
 
         Ok(chunk)
