@@ -135,9 +135,9 @@ impl Wrapped3DPerlinNoise {
         let mut buf = vec![0.0; cap]; // FIXME: don't zero out buffer
 
         // Apply interpolation.
-        for x in 0..self.size_horizontal {
-            for y in 0..self.size_vertical {
-                for z in 0..self.size_horizontal {
+        for mut x in 0..self.size_horizontal {
+            for mut y in 0..self.size_vertical {
+                for mut z in 0..self.size_horizontal {
                     // Find nearest two values along each axis.
                     let (nx1, nx2, ny1, ny2, nz1, nz2) = {
                         // Find next and previous index into `uninterpolated`
@@ -145,11 +145,15 @@ impl Wrapped3DPerlinNoise {
                         let next_x = (x + self.scale_horizontal - 1) / self.scale_horizontal;
                         let prev_x = x / self.scale_horizontal;
 
-                        let next_y = (y + self.size_vertical - 1) / self.scale_vertical;
-                        let prev_y = y / self.size_vertical;
+                        let next_y = (y + self.scale_vertical - 1) / self.scale_vertical;
+                        let prev_y = y / self.scale_vertical;
 
                         let next_z = (z + self.scale_horizontal - 1) / self.scale_horizontal;
                         let prev_z = z / self.scale_horizontal;
+
+                        x /= self.scale_horizontal;
+                        y /= self.scale_vertical;
+                        z /= self.scale_horizontal;
 
                         // TODO: this is inefficient.
                         (
@@ -245,18 +249,17 @@ impl Wrapped3DPerlinNoise {
 
     fn uninterpolated_index<N: ToPrimitive>(&self, x: N, y: N, z: N) -> usize {
         let length = (self.size_horizontal / self.scale_horizontal + 1) as usize;
-        let height = (self.size_vertical / self.scale_vertical + 1) as usize;
 
         let x = x.to_usize().unwrap();
         let y = y.to_usize().unwrap();
         let z = z.to_usize().unwrap();
 
-        (x + height * (y + length * z))
+        (y * (length * length) + (z * length) + x)
     }
 }
 
 fn index(x: usize, y: usize, z: usize) -> usize {
-    ((y << 12) | z << 4) | x
+    ((y << 8) | z << 4) | x
 }
 
 #[cfg(test)]
