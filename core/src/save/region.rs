@@ -184,6 +184,10 @@ impl RegionHandle {
                     debug!("Found an item entity: {:?}", item_data);
                     // TODO: Create item entity from data
                 }
+                EntityData::Arrow(arrow_data) => {
+                    debug!("Found an arrow entity: {:?}", arrow_data);
+                    // TODO: Create arrow entity from data
+                }
                 EntityData::Unknown => {
                     trace!(
                         "Chunk {:?} contains an unknown entity type",
