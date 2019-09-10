@@ -8,10 +8,10 @@ use feather_core::{Biome, Chunk, ChunkPosition};
 mod biomes;
 mod composition;
 mod density_map;
-mod noise;
+pub mod noise;
 mod superflat;
 mod util;
-mod voronoi;
+pub mod voronoi;
 
 pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
 use bitvec::slice::BitSlice;
