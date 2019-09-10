@@ -1,3 +1,5 @@
-mod height_map;
+mod density;
+mod height;
 
-pub use height_map::HeightMapGenerator;
+pub use density::DensityMapGeneratorImpl;
+pub use height::HeightMapGenerator;

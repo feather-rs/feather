@@ -2,7 +2,6 @@
 // tuples as their SystemData, and Clippy
 // doesn't seem to like this.
 #![allow(clippy::type_complexity)]
-#![forbid(unsafe_code)]
 
 #[macro_use]
 extern crate log;
