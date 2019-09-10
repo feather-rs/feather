@@ -7,7 +7,7 @@ use feather_core::{Biome, Chunk, ChunkPosition};
 
 mod biomes;
 mod composition;
-mod height_map;
+mod density_map;
 mod superflat;
 mod util;
 mod voronoi;
@@ -16,7 +16,7 @@ pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
 pub use composition::BasicCompositionGenerator;
-pub use height_map::HeightMapGenerator;
+pub use density_map::HeightMapGenerator;
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
 use std::fmt;
