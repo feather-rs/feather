@@ -13,9 +13,10 @@ mod movement;
 mod types;
 
 use crate::systems::{
-    CHUNK_CROSS, CHUNK_ENTITIES_UPDATE, ENTITY_DESTROY, ENTITY_DESTROY_BROADCAST,
-    ENTITY_METADATA_BROADCAST, ENTITY_MOVE_BROADCAST, ENTITY_SEND, ENTITY_SPAWN_BROADCAST,
-    ENTITY_VELOCITY_BROADCAST, ITEM_COLLECT, ITEM_MERGE, ITEM_SPAWN, JOIN_BROADCAST, SHOOT_ARROW,
+    CHUNK_CROSS, CHUNK_ENTITIES_LOAD, CHUNK_ENTITIES_UPDATE, ENTITY_DESTROY,
+    ENTITY_DESTROY_BROADCAST, ENTITY_METADATA_BROADCAST, ENTITY_MOVE_BROADCAST, ENTITY_SEND,
+    ENTITY_SPAWN_BROADCAST, ENTITY_VELOCITY_BROADCAST, ITEM_COLLECT, ITEM_MERGE, ITEM_SPAWN,
+    JOIN_BROADCAST, SHOOT_ARROW,
 };
 pub use arrow::{ArrowComponent, ShootArrowEvent};
 pub use broadcast::EntitySendSystem;
@@ -31,6 +32,7 @@ pub use movement::broadcast_entity_movement;
 pub use types::EntityType;
 
 use crate::entity::arrow::ShootArrowSystem;
+use crate::entity::chunk::EntityChunkLoadSystem;
 use crate::entity::destroy::EntityDestroyBroadcastSystem;
 use crate::entity::item::ItemCollectSystem;
 use crate::entity::metadata::MetadataBroadcastSystem;
@@ -51,6 +53,7 @@ pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
         CHUNK_ENTITIES_UPDATE,
         &[],
     );
+    dispatcher.add(EntityChunkLoadSystem::default(), CHUNK_ENTITIES_LOAD, &[]);
     dispatcher.add(EntityDestroySystem::default(), ENTITY_DESTROY, &[]);
     dispatcher.add(ItemSpawnSystem::default(), ITEM_SPAWN, &[]);
     dispatcher.add(ItemMergeSystem::default(), ITEM_MERGE, &[]);

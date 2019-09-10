@@ -7,7 +7,6 @@ edition = "2018"
 [dependencies]
 feather-blocks = { path = "../blocks" }
 feather-core = { path = "../core" }
-feather-items = { path = "../items" }
 feather-item-block = { path = "../item_block" }
 mio = "0.6.19"
 

@@ -38,6 +38,7 @@ pub const CHAT_BROADCAST: &str = "chat_broadcast";
 pub const ITEM_COLLECT: &str = "item_collect";
 
 pub const CHUNK_ENTITIES_UPDATE: &str = "chunk_entities_update";
+pub const CHUNK_ENTITIES_LOAD: &str = "chunk_entities_load";
 pub const ENTITY_DESTROY: &str = "entity_destroy";
 pub const ITEM_SPAWN: &str = "item_spawn";
 pub const SPAWNER: &str = "spawner";

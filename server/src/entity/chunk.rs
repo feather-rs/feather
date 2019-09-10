@@ -2,8 +2,12 @@
 //! chunk, which allows for more efficient nearby
 //! entity queries and packet broadcasting.
 
+use crate::chunk_logic::ChunkLoadEvent;
 use crate::entity::{EntityDestroyEvent, EntitySpawnEvent, PositionComponent};
+use crate::util::Util;
+use feather_core::entity::EntityData;
 use feather_core::world::ChunkPosition;
+use feather_core::{Item, ItemStack};
 use fnv::FnvHashMap;
 use hashbrown::HashSet;
 use shrev::EventChannel;
@@ -152,6 +156,65 @@ impl<'a> System<'a> for ChunkEntityUpdateSystem {
         );
         self.destroy_reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
         self.spawn_reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
+    }
+}
+
+#[derive(Default)]
+pub struct EntityChunkLoadSystem {
+    reader: Option<ReaderId<ChunkLoadEvent>>,
+}
+
+impl<'a> System<'a> for EntityChunkLoadSystem {
+    type SystemData = (Read<'a, EventChannel<ChunkLoadEvent>>, Read<'a, Util>);
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (load_events, util) = data;
+
+        for event in load_events.read(self.reader.as_mut().unwrap()) {
+            for entity in &event.entities {
+                match entity {
+                    EntityData::Item(item_data) => {
+                        debug!("Found an item entity: {:?}", item_data);
+                        let velocity = {
+                            let vel = item_data.entity.velocity.clone();
+                            glm::vec3(vel[0], vel[1], vel[2])
+                        };
+                        util.spawn_item(
+                            item_data.entity.read_position().unwrap(),
+                            velocity,
+                            ItemStack::new(
+                                Item::from_identifier(item_data.item.item.as_str())
+                                    .unwrap_or(Item::Stone),
+                                item_data.item.count,
+                            ),
+                        )
+                    }
+                    EntityData::Arrow(arrow_data) => {
+                        debug!("Found an arrow entity: {:?}", arrow_data);
+                        let velocity = {
+                            let vel = arrow_data.entity.velocity.clone();
+                            glm::vec3(vel[0], vel[1], vel[2])
+                        };
+                        util.spawn_arrow(
+                            arrow_data.entity.read_position().unwrap(),
+                            velocity,
+                            arrow_data.critical > 0,
+                            None,
+                        );
+                    }
+                    EntityData::Unknown => {
+                        trace!("Chunk {:?} contains an unknown entity type", event.pos);
+                    }
+                }
+            }
+        }
+    }
+
+    fn setup(&mut self, world: &mut World) {
+        use specs::SystemData;
+        Self::SystemData::setup(world);
+
+        self.reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
     }
 }
 

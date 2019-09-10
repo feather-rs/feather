@@ -5,8 +5,7 @@
 use crossbeam::channel::{Receiver, Sender};
 use shrev::{EventChannel, ReaderId};
 use specs::{
-    Component, DispatcherBuilder, Entity, LazyUpdate, Read, ReadExpect, ReadStorage, System, World,
-    WorldExt, Write,
+    Component, DispatcherBuilder, Entity, Read, ReadExpect, ReadStorage, System, World, Write,
 };
 use std::sync::atomic::{AtomicU32, Ordering};
 
@@ -16,12 +15,9 @@ use rayon::prelude::*;
 
 use crate::entity::EntityDestroyEvent;
 use crate::systems::{CHUNK_HOLD_REMOVE, CHUNK_LOAD, CHUNK_OPTIMIZE, CHUNK_UNLOAD};
-use crate::util::Util;
 use crate::worldgen::WorldGenerator;
 use crate::{chunkworker, current_time_in_millis, TickCount, TPS};
 use feather_core::entity::EntityData;
-use feather_core::ItemStack;
-use feather_items::Item;
 use hashbrown::HashSet;
 use multimap::MultiMap;
 use specs::storage::BTreeStorage;
@@ -37,9 +33,10 @@ pub struct ChunkWorkerHandle {
 }
 
 /// Event which is triggered when a chunk is loaded.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct ChunkLoadEvent {
     pub pos: ChunkPosition,
+    pub entities: Vec<EntityData>,
 }
 
 /// Event which is triggered when a chunk fails to load.
@@ -57,11 +54,10 @@ impl<'a> System<'a> for ChunkLoadSystem {
         Write<'a, EventChannel<ChunkLoadEvent>>,
         Write<'a, EventChannel<ChunkLoadFailEvent>>,
         ReadExpect<'a, ChunkWorkerHandle>,
-        Read<'a, LazyUpdate>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut chunk_map, mut load_events, mut fail_events, handle, lazy) = data;
+        let (mut chunk_map, mut load_events, mut fail_events, handle) = data;
 
         while let Ok((pos, result)) = handle.receiver.try_recv() {
             match result {
@@ -69,48 +65,10 @@ impl<'a> System<'a> for ChunkLoadSystem {
                     chunk_map.set_chunk_at(pos, chunk);
 
                     // Trigger event
-                    let event = ChunkLoadEvent { pos };
+                    let event = ChunkLoadEvent { pos, entities };
                     load_events.single_write(event);
 
                     trace!("Loaded chunk at {:?}", pos);
-
-                    // TODO: Move this to its own system
-                    for entity in entities.to_vec() {
-                        match entity {
-                            EntityData::Item(item_data) => {
-                                debug!("Found an item entity: {:?}", item_data);
-                                lazy.exec_mut(move |world| {
-                                    let velocity = item_data.entity.velocity.clone();
-                                    let velocity = glm::vec3(velocity[0], velocity[1], velocity[2]);
-                                    world.read_resource::<Util>().spawn_item(
-                                        item_data.entity.read_position().unwrap(),
-                                        velocity,
-                                        ItemStack::new(
-                                            Item::from_identifier(item_data.item.item.as_str())
-                                                .unwrap_or(Item::Stone),
-                                            item_data.item.count,
-                                        ),
-                                    )
-                                });
-                            }
-                            EntityData::Arrow(arrow_data) => {
-                                debug!("Found an arrow entity: {:?}", arrow_data);
-                                lazy.exec_mut(move |world| {
-                                    let velocity = arrow_data.entity.velocity.clone();
-                                    let velocity = glm::vec3(velocity[0], velocity[1], velocity[2]);
-                                    world.read_resource::<Util>().spawn_arrow(
-                                        arrow_data.entity.read_position().unwrap(),
-                                        velocity,
-                                        arrow_data.critical > 0,
-                                        None,
-                                    );
-                                });
-                            }
-                            EntityData::Unknown => {
-                                trace!("Chunk {:?} contains an unknown entity type", pos);
-                            }
-                        }
-                    }
                 }
                 Err(err) => {
                     // TODO generate chunk if it didn't exist
