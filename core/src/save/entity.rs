@@ -1,3 +1,5 @@
+use crate::Position;
+
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(tag = "id")]
 pub enum EntityData {
@@ -22,11 +24,29 @@ pub struct BaseEntityData {
     pub velocity: Vec<f64>,
 }
 
+impl BaseEntityData {
+    /// Reads the position and rotation fields. If the fields are invalid, None is returned.
+    pub fn read_position(self: &BaseEntityData) -> Option<Position> {
+        if self.position.len() == 3 && self.rotation.len() == 2 {
+            Some(Position {
+                x: self.position[0],
+                y: self.position[1],
+                z: self.position[2],
+                yaw: self.rotation[0],
+                pitch: self.rotation[1],
+                on_ground: true,
+            })
+        } else {
+            None
+        }
+    }
+}
+
 /// Represents a single item, without slot information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ItemData {
     #[serde(rename = "Count")]
-    pub count: i8,
+    pub count: u8,
     #[serde(rename = "id")]
     pub item: String,
 }

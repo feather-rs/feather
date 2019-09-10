@@ -663,6 +663,7 @@ dependencies = [
  "feather-codegen 0.4.1",
  "feather-core 0.4.1",
  "feather-item-block 0.4.1",
+ "feather-items 0.4.1",
  "fnv 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "hashbrown 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "heapless 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
