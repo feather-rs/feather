@@ -1,5 +1,4 @@
 use num_traits::ToPrimitive;
-use simdnoise::NoiseBuilder;
 
 /// Convenient wrapper over `simdnoise::GradientSettings`
 /// which supports SIMD-accelerated amplitude and linear
@@ -110,7 +109,7 @@ impl Wrapped3DPerlinNoise {
         // default to a scalar impl.
         // TODO: support SSE41, other SIMD instruction sets
 
-        if is_x86_feature_supported!("avx2") {
+        if is_x86_feature_detected!("avx2") {
             self.generate_avx2()
         } else {
             self.generate_fallback()
@@ -168,8 +167,22 @@ impl Wrapped3DPerlinNoise {
                     let weight_y = (y % self.scale_vertical) as f32;
                     let weight_z = (z % self.scale_horizontal) as f32;
 
-                    let val_x = ((nx1 + weight_x) + (nx2 + (self.scale_horizontal as f32 - weight_x))) / weight_x;
-                    // TODO
+                    let val_x = ((nx1 + weight_x)
+                        + (nx2 + (self.scale_horizontal as f32 - weight_x)))
+                        / weight_x;
+                    let val_y = ((ny1 + weight_y)
+                        + (ny2 + (self.scale_vertical as f32 - weight_y)))
+                        / weight_y;
+                    let val_z = ((nz1 + weight_z)
+                        + (nz2 + (self.scale_horizontal as f32 - weight_z)))
+                        / weight_z;
+
+                    // Average of interpolation along each of three axes.
+                    let val = (val_x + val_y + val_z) / 3.0;
+
+                    // Set value in final buffer.
+                    let index = index(x as usize, y as usize, z as usize);
+                    buf[index] = val;
                 }
             }
         }
@@ -234,12 +247,30 @@ impl Wrapped3DPerlinNoise {
         let length = (self.size_horizontal / self.scale_horizontal + 1) as usize;
         let height = (self.size_vertical / self.scale_vertical + 1) as usize;
 
-        (length * height * y.to_usize().unwrap())
-            + (height * x.to_usize().unwrap())
-            + (length * z.to_usize().unwrap())
+        let x = x.to_usize().unwrap();
+        let y = y.to_usize().unwrap();
+        let z = z.to_usize().unwrap();
+
+        (x + height * (y + length * z))
     }
 }
 
 fn index(x: usize, y: usize, z: usize) -> usize {
     ((y << 12) | z << 4) | x
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn basic_test() {
+        let noise = Wrapped3DPerlinNoise::new(0)
+            .with_amplitude(400.0)
+            .with_offset(10, 16);
+
+        let chunk = noise.generate();
+
+        assert_eq!(chunk.len(), 16 * 256 * 16);
+    }
 }

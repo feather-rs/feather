@@ -23,5 +23,7 @@ pub struct DensityMapGeneratorImpl;
 impl DensityMapGenerator for DensityMapGeneratorImpl {
     fn generate_for_chunk(&self, chunk: ChunkPosition, biomes: &ChunkBiomes, seed: u64) -> BitVec {
         let mut density = bitvec![0; 16 * 256 * 16];
+
+        density
     }
 }
