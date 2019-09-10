@@ -1,4 +1,4 @@
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(tag = "id")]
 pub enum EntityData {
     #[serde(rename = "minecraft:item")]

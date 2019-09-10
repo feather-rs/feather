@@ -17,6 +17,7 @@ use crate::entity::EntityDestroyEvent;
 use crate::systems::{CHUNK_HOLD_REMOVE, CHUNK_LOAD, CHUNK_OPTIMIZE, CHUNK_UNLOAD};
 use crate::worldgen::WorldGenerator;
 use crate::{chunkworker, current_time_in_millis, TickCount, TPS};
+use feather_core::entity::EntityData;
 use hashbrown::HashSet;
 use multimap::MultiMap;
 use specs::storage::BTreeStorage;
@@ -59,7 +60,7 @@ impl<'a> System<'a> for ChunkLoadSystem {
 
         while let Ok((pos, result)) = handle.receiver.try_recv() {
             match result {
-                Ok(chunk) => {
+                Ok((chunk, entities)) => {
                     chunk_map.set_chunk_at(pos, chunk);
 
                     // Trigger event
@@ -67,6 +68,22 @@ impl<'a> System<'a> for ChunkLoadSystem {
                     load_events.single_write(event);
 
                     trace!("Loaded chunk at {:?}", pos);
+
+                    for entity in &entities {
+                        match entity {
+                            EntityData::Item(item_data) => {
+                                debug!("Found an item entity: {:?}", item_data);
+                                // TODO: Create item entity from data
+                            }
+                            EntityData::Arrow(arrow_data) => {
+                                debug!("Found an arrow entity: {:?}", arrow_data);
+                                // TODO: Create arrow entity from data
+                            }
+                            EntityData::Unknown => {
+                                trace!("Chunk {:?} contains an unknown entity type", pos);
+                            }
+                        }
+                    }
                 }
                 Err(err) => {
                     // TODO generate chunk if it didn't exist
@@ -438,7 +455,7 @@ mod tests {
 
         let chunk_map = ChunkMap::new();
         let pos = ChunkPosition::new(0, 0);
-        send2.send((pos, Ok(Chunk::new(pos)))).unwrap();
+        send2.send((pos, Ok((Chunk::new(pos), vec![])))).unwrap();
 
         let load_event_channel = EventChannel::<ChunkLoadEvent>::new();
         let fail_event_channel = EventChannel::<ChunkLoadFailEvent>::new();

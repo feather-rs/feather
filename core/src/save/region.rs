@@ -100,7 +100,10 @@ impl RegionHandle {
     /// # Panics
     /// Panics if the specified chunk position is not within this
     /// region file.
-    pub fn load_chunk(&mut self, mut pos: ChunkPosition) -> Result<Chunk, Error> {
+    pub fn load_chunk(
+        &mut self,
+        mut pos: ChunkPosition,
+    ) -> Result<(Chunk, Vec<EntityData>), Error> {
         // Get a copy of the original position before clipping
         let original_pos = pos;
         // Clip chunk position to region-local coordinates.
@@ -178,26 +181,7 @@ impl RegionHandle {
                 Biome::from_protocol_id(id).ok_or_else(|| Error::InvalidBiomeId(id))?;
         }
 
-        for entity in &level.entities {
-            match entity {
-                EntityData::Item(item_data) => {
-                    debug!("Found an item entity: {:?}", item_data);
-                    // TODO: Create item entity from data
-                }
-                EntityData::Arrow(arrow_data) => {
-                    debug!("Found an arrow entity: {:?}", arrow_data);
-                    // TODO: Create arrow entity from data
-                }
-                EntityData::Unknown => {
-                    trace!(
-                        "Chunk {:?} contains an unknown entity type",
-                        chunk.position(),
-                    );
-                }
-            }
-        }
-
-        Ok(chunk)
+        Ok((chunk, level.entities.to_vec()))
     }
 }
 
