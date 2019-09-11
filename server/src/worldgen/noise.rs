@@ -135,9 +135,9 @@ impl Wrapped3DPerlinNoise {
         let mut buf = vec![0.0; cap]; // FIXME: don't zero out buffer
 
         // Apply interpolation.
-        for mut x in 0..self.size_horizontal {
-            for mut y in 0..self.size_vertical {
-                for mut z in 0..self.size_horizontal {
+        for x in 0..self.size_horizontal {
+            for y in 0..self.size_vertical {
+                for z in 0..self.size_horizontal {
                     // Find nearest two values along each axis.
                     let (nx1, nx2, ny1, ny2, nz1, nz2) = {
                         // Find next and previous index into `uninterpolated`
@@ -151,9 +151,9 @@ impl Wrapped3DPerlinNoise {
                         let next_z = (z + self.scale_horizontal - 1) / self.scale_horizontal;
                         let prev_z = z / self.scale_horizontal;
 
-                        x /= self.scale_horizontal;
-                        y /= self.scale_vertical;
-                        z /= self.scale_horizontal;
+                        let x = x / self.scale_horizontal;
+                        let y = y / self.scale_vertical;
+                        let z = z / self.scale_horizontal;
 
                         // TODO: this is inefficient.
                         (
@@ -167,19 +167,19 @@ impl Wrapped3DPerlinNoise {
                     };
 
                     // Interpolate between values.
-                    let weight_x = (x % self.scale_horizontal) as f32;
-                    let weight_y = (y % self.scale_vertical) as f32;
-                    let weight_z = (z % self.scale_horizontal) as f32;
+                    let weight_x = (x % (self.size_horizontal / self.scale_horizontal)) as f32;
+                    let weight_y = (y % (self.size_vertical / self.scale_vertical)) as f32;
+                    let weight_z = (z % (self.size_horizontal / self.scale_horizontal)) as f32;
 
-                    let val_x = ((nx1 + weight_x)
-                        + (nx2 + (self.scale_horizontal as f32 - weight_x)))
-                        / weight_x;
-                    let val_y = ((ny1 + weight_y)
-                        + (ny2 + (self.scale_vertical as f32 - weight_y)))
-                        / weight_y;
-                    let val_z = ((nz1 + weight_z)
-                        + (nz2 + (self.scale_horizontal as f32 - weight_z)))
-                        / weight_z;
+                    let val_x = ((nx1 * weight_x)
+                        + (nx2 * (self.scale_horizontal as f32 - weight_x)))
+                        / self.scale_horizontal as f32;
+                    let val_y = ((ny1 * weight_y)
+                        + (ny2 * (self.scale_vertical as f32 - weight_y)))
+                        / self.scale_vertical as f32;
+                    let val_z = ((nz1 * weight_z)
+                        + (nz2 * (self.scale_horizontal as f32 - weight_z)))
+                        / self.scale_horizontal as f32;
 
                     // Average of interpolation along each of three axes.
                     let val = (val_x + val_y + val_z) / 3.0;
@@ -217,9 +217,9 @@ impl Wrapped3DPerlinNoise {
                     // self.offset_x is the offset in chunk coordinates,
                     // so multiply by the size of a chunk to obtain the
                     // absolute coordinates.
-                    let abs_x = self.offset_x * self.size_horizontal as i32 * offset_x as i32;
+                    let abs_x = self.offset_x * self.size_horizontal as i32 + offset_x as i32;
                     let abs_y = offset_y;
-                    let abs_z = self.offset_z * self.size_horizontal as i32 * offset_z as i32;
+                    let abs_z = self.offset_z * self.size_horizontal as i32 + offset_z as i32;
 
                     // Unmodified noise value.
                     // No idea why scalar noise is unsafe,
@@ -240,6 +240,8 @@ impl Wrapped3DPerlinNoise {
                     let index = self.uninterpolated_index(x as usize, y as usize, z as usize);
 
                     buf[index] = value;
+
+                    println!("{} {} {} value {}", abs_x, abs_y, abs_z, value);
                 }
             }
         }

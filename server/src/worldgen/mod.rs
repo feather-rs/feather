@@ -17,7 +17,7 @@ pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
 pub use composition::BasicCompositionGenerator;
-pub use density_map::HeightMapGenerator;
+pub use density_map::{DensityMapGeneratorImpl, HeightMapGenerator};
 pub use noise::Wrapped3DPerlinNoise;
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
