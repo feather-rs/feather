@@ -1,4 +1,5 @@
 use num_traits::ToPrimitive;
+use simdnoise::NoiseBuilder;
 
 /// Convenient wrapper over `simdnoise::GradientSettings`
 /// which supports SIMD-accelerated amplitude and linear
@@ -57,8 +58,8 @@ impl Wrapped3DPerlinNoise {
             size_vertical: 256,
             offset_x: 0,
             offset_z: 0,
-            scale_horizontal: 8,
-            scale_vertical: 4,
+            scale_horizontal: 4,
+            scale_vertical: 8,
         }
     }
 
@@ -122,126 +123,110 @@ impl Wrapped3DPerlinNoise {
     }
 
     fn generate_fallback(&self) -> Vec<f32> {
-        // Block of non-interpolated noise. We need to use
-        // the raw generate functions because the distance between noise values
-        // is not 1.0, and simdnoise doesn't yet support this.
-        // (TODO: submit a PR to support this. This could be an effective optimization.)
-        let uninterpolated = self.uninterpolated_noise_fallback();
+        // Loop through values ofsetted by the scale.
+        // Then, loop through all coordinates inside
+        // that subchunk and apply linear interpolation.
 
-        // Final buffer, which will contain a value for
-        // every block. Linear interpolation is applied
-        // to `uninterpolated` to find values in this buffer.
-        let cap = (self.size_horizontal * self.size_horizontal * self.size_vertical) as usize;
-        let mut buf = vec![0.0; cap]; // FIXME: don't zero out buffer
+        // This is based on Glowstone's OverworldGenerator.generateRawTerrain
+        // with a few modifications and superior variable names.
 
-        // Apply interpolation.
-        for x in 0..self.size_horizontal {
-            for y in 0..self.size_vertical {
-                for z in 0..self.size_horizontal {
-                    // Find nearest two values along each axis.
-                    let (nx1, nx2, ny1, ny2, nz1, nz2) = {
-                        // Find next and previous index into `uninterpolated`
-                        // for each axis.
-                        let next_x = (x + self.scale_horizontal - 1) / self.scale_horizontal;
-                        let prev_x = x / self.scale_horizontal;
+        // Number of subchunks in a chunk along each axis.
+        let subchunk_horizontal = self.size_horizontal / self.scale_horizontal;
+        let subchunk_vertical = self.size_vertical / self.scale_vertical;
 
-                        let next_y = (y + self.scale_vertical - 1) / self.scale_vertical;
-                        let prev_y = y / self.scale_vertical;
+        // Density noise, with one value every `scale` blocks along each axis.
+        // Indexing into this vector is done using `self.uninterpolated_index(x, y, z)`.
+        let (mut density, _, _) = NoiseBuilder::gradient_3d_offset(
+            (self.size_horizontal as i32 * self.offset_x) as f32,
+            (subchunk_horizontal + 1) as usize,
+            0.0,
+            self.size_vertical as usize,
+            (self.size_horizontal as i32 * self.offset_z) as f32,
+            (subchunk_horizontal + 1) as usize,
+        )
+        .with_freq(self.frequency)
+        .with_seed(self.seed as i32)
+        .generate();
 
-                        let next_z = (z + self.scale_horizontal - 1) / self.scale_horizontal;
-                        let prev_z = z / self.scale_horizontal;
+        // Apply amplitude to density.
+        density.iter_mut().for_each(|x| *x *= self.amplitude);
 
-                        let x = x / self.scale_horizontal;
-                        let y = y / self.scale_vertical;
-                        let z = z / self.scale_horizontal;
+        // Buffer to emit final noise into.
+        // TODO: consider using Vec::set_len to avoid zeroing it out
+        let mut buf =
+            vec![0.0; (self.size_horizontal * self.size_horizontal * self.size_vertical) as usize];
 
-                        // TODO: this is inefficient.
-                        (
-                            uninterpolated[self.uninterpolated_index(prev_x, y, z)],
-                            uninterpolated[self.uninterpolated_index(next_x, y, z)],
-                            uninterpolated[self.uninterpolated_index(x, prev_y, z)],
-                            uninterpolated[self.uninterpolated_index(x, next_y, z)],
-                            uninterpolated[self.uninterpolated_index(x, y, prev_z)],
-                            uninterpolated[self.uninterpolated_index(x, y, next_z)],
-                        )
-                    };
+        let scale_vertical = self.scale_vertical as f32;
+        let scale_horizontal = self.scale_horizontal as f32;
 
-                    // Interpolate between values.
-                    let weight_x = (x % (self.size_horizontal / self.scale_horizontal)) as f32;
-                    let weight_y = (y % (self.size_vertical / self.scale_vertical)) as f32;
-                    let weight_z = (z % (self.size_horizontal / self.scale_horizontal)) as f32;
+        // Coordinates of the subchunk. The subchunk
+        // is the chunk within the chunk in which we
+        // only find the noise value for the corners
+        // and then apply interpolation in between.
 
-                    let val_x = ((nx1 * weight_x)
-                        + (nx2 * (self.scale_horizontal as f32 - weight_x)))
-                        / self.scale_horizontal as f32;
-                    let val_y = ((ny1 * weight_y)
-                        + (ny2 * (self.scale_vertical as f32 - weight_y)))
-                        / self.scale_vertical as f32;
-                    let val_z = ((nz1 * weight_z)
-                        + (nz2 * (self.scale_horizontal as f32 - weight_z)))
-                        / self.scale_horizontal as f32;
+        // Here, we loop through the subchunks and interpolate
+        // noise for each block within it.
+        for subx in 0..subchunk_horizontal {
+            for suby in 0..subchunk_vertical {
+                for subz in 0..subchunk_horizontal {
+                    // Two grids of noise values:
+                    // one for the four bottom corners
+                    // of the subchunk, and one for the
+                    // offsets along the Y axis to apply
+                    // to those base corners each block increment.
 
-                    // Average of interpolation along each of three axes.
-                    let val = (val_x + val_y + val_z) / 3.0;
+                    // These are mutated so that they are at the
+                    // current Y position.
+                    let mut base1 = density[self.uninterpolated_index(subx, suby, subz)];
+                    let mut base2 = density[self.uninterpolated_index(subx + 1, suby, subz)];
+                    let mut base3 = density[self.uninterpolated_index(subx, suby, subz + 1)];
+                    let mut base4 = density[self.uninterpolated_index(subx + 1, suby, subz + 1)];
 
-                    // Set value in final buffer.
-                    let index = index(x as usize, y as usize, z as usize);
-                    buf[index] = val;
-                }
-            }
-        }
+                    // Offsets for each block along the Y axis from each corner above.
+                    let offset1 = (density[self.uninterpolated_index(subx, suby + 1, subz)]
+                        - base1)
+                        / scale_vertical;
+                    let offset2 = (density[self.uninterpolated_index(subx + 1, suby + 1, subz)]
+                        - base2)
+                        / scale_vertical;
+                    let offset3 = (density[self.uninterpolated_index(subx, suby + 1, subz + 1)]
+                        - base3)
+                        / scale_vertical;
+                    let offset4 =
+                        (density[self.uninterpolated_index(subx + 1, suby + 1, subz + 1)] - base4)
+                            / scale_vertical;
 
-        buf
-    }
+                    // Iterate through the blocks in this subchunk
+                    // and apply interpolation before setting the
+                    // noise value in the final buffer.
+                    for blocky in 0..self.scale_vertical {
+                        let mut z_base = base1;
+                        let mut z_corner = base3;
+                        for blockx in 0..self.scale_vertical {
+                            let mut density = z_base;
+                            for blockz in 0..self.scale_horizontal {
+                                // Set interpolated value in buffer.
+                                buf[index(
+                                    blockx + (self.scale_horizontal * subx),
+                                    blocky + (self.scale_vertical * suby),
+                                    blockz + (self.scale_horizontal * subz),
+                                )] = density;
 
-    fn uninterpolated_noise_fallback(&self) -> Vec<f32> {
-        // Length and height of non-interpolated noise.
-        // 1 is added to the sizes because we need to closest
-        // noise value in the next chunk in order to interpolate
-        // between.
-        let length = self.size_horizontal / self.scale_horizontal + 1;
-        let height = self.size_vertical / self.scale_vertical + 1;
+                                // Apply Z interpolation.
+                                density += (z_corner - z_base) / scale_horizontal;
+                            }
+                            // Interpolation along X.
+                            z_base += (base2 - base1) / scale_horizontal;
+                            // Along Z again.
+                            z_corner += (base4 - base3) / 4.0
+                        }
 
-        let cap = (length * length * height) as usize;
-        let mut buf = vec![0.0; cap]; // FIXME: don't zero out buffer
-
-        for x in 0..length {
-            for y in 0..height {
-                for z in 0..length {
-                    // Offset values from chunk origin.
-                    let offset_x = self.scale_horizontal * x;
-                    let offset_y = self.scale_vertical * y;
-                    let offset_z = self.scale_horizontal * z;
-
-                    // Absolute offset values, from the world origin.
-                    // self.offset_x is the offset in chunk coordinates,
-                    // so multiply by the size of a chunk to obtain the
-                    // absolute coordinates.
-                    let abs_x = self.offset_x * self.size_horizontal as i32 + offset_x as i32;
-                    let abs_y = offset_y;
-                    let abs_z = self.offset_z * self.size_horizontal as i32 + offset_z as i32;
-
-                    // Unmodified noise value.
-                    // No idea why scalar noise is unsafe,
-                    // since no SIMD is involved.
-                    let mut value = unsafe {
-                        simdnoise::scalar::simplex_3d(
-                            abs_x as f32,
-                            abs_y as f32,
-                            abs_z as f32,
-                            self.seed as i32,
-                        )
-                    };
-
-                    // Apply amplitude to value.
-                    value *= self.amplitude;
-
-                    // Index into `buf`.
-                    let index = self.uninterpolated_index(x as usize, y as usize, z as usize);
-
-                    buf[index] = value;
-
-                    println!("{} {} {} value {}", abs_x, abs_y, abs_z, value);
+                        // Interpolation along Y.
+                        base1 += offset1;
+                        base2 += offset2;
+                        base3 += offset3;
+                        base4 += offset4;
+                    }
                 }
             }
         }
@@ -260,7 +245,11 @@ impl Wrapped3DPerlinNoise {
     }
 }
 
-pub fn index(x: usize, y: usize, z: usize) -> usize {
+pub fn index<N: ToPrimitive>(x: N, y: N, z: N) -> usize {
+    let x = x.to_usize().unwrap();
+    let y = y.to_usize().unwrap();
+    let z = z.to_usize().unwrap();
+
     ((y << 8) | z << 4) | x
 }
 

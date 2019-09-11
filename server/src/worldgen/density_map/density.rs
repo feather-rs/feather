@@ -30,7 +30,7 @@ impl DensityMapGenerator for DensityMapGeneratorImpl {
 
         let noise = Wrapped3DPerlinNoise::new(seed)
             .with_offset(chunk.x, chunk.z)
-            .with_amplitude(400.0)
+            .with_amplitude(800.0)
             .with_frequency(0.1)
             .generate();
 
@@ -39,7 +39,7 @@ impl DensityMapGenerator for DensityMapGeneratorImpl {
                 for z in 0..16 {
                     let mut value = noise[noise::index(x, y, z)];
 
-                    //value += (SEA_LEVEL as i32 - y as i32) as f32;
+                    value += (SEA_LEVEL as i32 - y as i32) as f32;
 
                     let is_solid = value > 0.0;
                     let index = block_index(x, y, z);
