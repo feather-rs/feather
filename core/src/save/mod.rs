@@ -2,6 +2,7 @@
 //! world saves. Currently includes region file loading,
 //! player data loading, and level data loading.
 
+pub mod entity;
 pub mod level;
 pub mod player_data;
 pub mod region;

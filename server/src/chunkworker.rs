@@ -8,6 +8,7 @@
 //! In response, the server thread should generate the chunk.
 use crate::worldgen::WorldGenerator;
 use crossbeam::channel::{Receiver, Sender};
+use feather_core::entity::EntityData;
 use feather_core::region;
 use feather_core::region::{RegionHandle, RegionPosition};
 use feather_core::world::chunk::Chunk;
@@ -16,7 +17,7 @@ use hashbrown::HashMap;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub type Reply = (ChunkPosition, Result<Chunk, Error>);
+pub type Reply = (ChunkPosition, Result<(Chunk, Vec<EntityData>), Error>);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Request {
@@ -206,7 +207,7 @@ fn schedule_generate_new_chunk(
 /// Generates a new chunk synchronously,
 /// returning a Reply to send to a Sender.
 fn generate_new_chunk(pos: ChunkPosition, generator: &Arc<dyn WorldGenerator>) -> Reply {
-    (pos, Ok(generator.generate_chunk(pos)))
+    (pos, Ok((generator.generate_chunk(pos), vec![])))
 }
 
 /// Returns whether the given chunk's region
