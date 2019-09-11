@@ -136,11 +136,11 @@ impl Wrapped3DPerlinNoise {
 
         // Density noise, with one value every `scale` blocks along each axis.
         // Indexing into this vector is done using `self.uninterpolated_index(x, y, z)`.
-        let (mut density, _, _) = NoiseBuilder::gradient_3d_offset(
+        let (mut densities, _, _) = NoiseBuilder::gradient_3d_offset(
             (self.size_horizontal as i32 * self.offset_x) as f32,
             (subchunk_horizontal + 1) as usize,
             0.0,
-            self.size_vertical as usize,
+            (subchunk_vertical + 1) as usize,
             (self.size_horizontal as i32 * self.offset_z) as f32,
             (subchunk_horizontal + 1) as usize,
         )
@@ -149,7 +149,7 @@ impl Wrapped3DPerlinNoise {
         .generate();
 
         // Apply amplitude to density.
-        density.iter_mut().for_each(|x| *x *= self.amplitude);
+        densities.iter_mut().for_each(|x| *x *= self.amplitude);
 
         // Buffer to emit final noise into.
         // TODO: consider using Vec::set_len to avoid zeroing it out
@@ -177,23 +177,23 @@ impl Wrapped3DPerlinNoise {
 
                     // These are mutated so that they are at the
                     // current Y position.
-                    let mut base1 = density[self.uninterpolated_index(subx, suby, subz)];
-                    let mut base2 = density[self.uninterpolated_index(subx + 1, suby, subz)];
-                    let mut base3 = density[self.uninterpolated_index(subx, suby, subz + 1)];
-                    let mut base4 = density[self.uninterpolated_index(subx + 1, suby, subz + 1)];
+                    let mut base1 = densities[self.uninterpolated_index(subx, suby, subz)];
+                    let mut base2 = densities[self.uninterpolated_index(subx + 1, suby, subz)];
+                    let mut base3 = densities[self.uninterpolated_index(subx, suby, subz + 1)];
+                    let mut base4 = densities[self.uninterpolated_index(subx + 1, suby, subz + 1)];
 
                     // Offsets for each block along the Y axis from each corner above.
-                    let offset1 = (density[self.uninterpolated_index(subx, suby + 1, subz)]
+                    let offset1 = (densities[self.uninterpolated_index(subx, suby + 1, subz)]
                         - base1)
                         / scale_vertical;
-                    let offset2 = (density[self.uninterpolated_index(subx + 1, suby + 1, subz)]
+                    let offset2 = (densities[self.uninterpolated_index(subx + 1, suby + 1, subz)]
                         - base2)
                         / scale_vertical;
-                    let offset3 = (density[self.uninterpolated_index(subx, suby + 1, subz + 1)]
+                    let offset3 = (densities[self.uninterpolated_index(subx, suby + 1, subz + 1)]
                         - base3)
                         / scale_vertical;
                     let offset4 =
-                        (density[self.uninterpolated_index(subx + 1, suby + 1, subz + 1)] - base4)
+                        (densities[self.uninterpolated_index(subx + 1, suby + 1, subz + 1)] - base4)
                             / scale_vertical;
 
                     // Iterate through the blocks in this subchunk
