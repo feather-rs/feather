@@ -202,7 +202,7 @@ impl Wrapped3DPerlinNoise {
                     for blocky in 0..self.scale_vertical {
                         let mut z_base = base1;
                         let mut z_corner = base3;
-                        for blockx in 0..self.scale_vertical {
+                        for blockx in 0..self.scale_horizontal {
                             let mut density = z_base;
                             for blockz in 0..self.scale_horizontal {
                                 // Set interpolated value in buffer.
