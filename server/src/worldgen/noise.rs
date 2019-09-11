@@ -137,11 +137,11 @@ impl Wrapped3DPerlinNoise {
         // Density noise, with one value every `scale` blocks along each axis.
         // Indexing into this vector is done using `self.uninterpolated_index(x, y, z)`.
         let (mut densities, _, _) = NoiseBuilder::gradient_3d_offset(
-            (self.size_horizontal as i32 * self.offset_x) as f32,
+            (self.size_horizontal as i32 * self.offset_x / self.scale_horizontal as i32) as f32,
             (subchunk_horizontal + 1) as usize,
             0.0,
             (subchunk_vertical + 1) as usize,
-            (self.size_horizontal as i32 * self.offset_z) as f32,
+            (self.size_horizontal as i32 * self.offset_z / self.scale_horizontal as i32) as f32,
             (subchunk_horizontal + 1) as usize,
         )
         .with_freq(self.frequency)
@@ -192,9 +192,10 @@ impl Wrapped3DPerlinNoise {
                     let offset3 = (densities[self.uninterpolated_index(subx, suby + 1, subz + 1)]
                         - base3)
                         / scale_vertical;
-                    let offset4 =
-                        (densities[self.uninterpolated_index(subx + 1, suby + 1, subz + 1)] - base4)
-                            / scale_vertical;
+                    let offset4 = (densities
+                        [self.uninterpolated_index(subx + 1, suby + 1, subz + 1)]
+                        - base4)
+                        / scale_vertical;
 
                     // Iterate through the blocks in this subchunk
                     // and apply interpolation before setting the
@@ -218,7 +219,7 @@ impl Wrapped3DPerlinNoise {
                             // Interpolation along X.
                             z_base += (base2 - base1) / scale_horizontal;
                             // Along Z again.
-                            z_corner += (base4 - base3) / 4.0
+                            z_corner += (base4 - base3) / scale_horizontal;
                         }
 
                         // Interpolation along Y.
