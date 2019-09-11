@@ -159,6 +159,9 @@ impl<'a> System<'a> for ChunkEntityUpdateSystem {
     }
 }
 
+/// System for spawning entities inside newly-loaded chunks.
+///
+/// This system listens to `ChunkLoadEvent`s.
 #[derive(Default)]
 pub struct EntityChunkLoadSystem {
     reader: Option<ReaderId<ChunkLoadEvent>>,
@@ -174,34 +177,37 @@ impl<'a> System<'a> for EntityChunkLoadSystem {
             for entity in &event.entities {
                 match entity {
                     EntityData::Item(item_data) => {
-                        debug!("Found an item entity: {:?}", item_data);
-                        let velocity = {
-                            let vel = item_data.entity.velocity.clone();
-                            glm::vec3(vel[0], vel[1], vel[2])
-                        };
-                        util.spawn_item(
-                            item_data.entity.read_position().unwrap(),
-                            velocity,
-                            ItemStack::new(
-                                Item::from_identifier(item_data.item.item.as_str())
-                                    .unwrap_or(Item::Stone),
-                                item_data.item.count,
-                            ),
-                        )
+                        let pos = item_data.entity.read_position();
+                        if let Some(pos) = pos {
+                            util.spawn_item(
+                                pos,
+                                item_data
+                                    .entity
+                                    .read_velocity()
+                                    .unwrap_or_else(|| glm::vec3(0.0, 0.0, 0.0)),
+                                ItemStack::new(
+                                    Item::from_identifier(item_data.item.item.as_str())
+                                        .unwrap_or(Item::Stone),
+                                    item_data.item.count,
+                                ),
+                            )
+                        }
                     }
                     EntityData::Arrow(arrow_data) => {
-                        debug!("Found an arrow entity: {:?}", arrow_data);
-                        let velocity = {
-                            let vel = arrow_data.entity.velocity.clone();
-                            glm::vec3(vel[0], vel[1], vel[2])
-                        };
-                        util.spawn_arrow(
-                            arrow_data.entity.read_position().unwrap(),
-                            velocity,
-                            arrow_data.critical > 0,
-                            None,
-                        );
+                        let pos = arrow_data.entity.read_position();
+                        if let Some(pos) = pos {
+                            util.spawn_arrow(
+                                pos,
+                                arrow_data
+                                    .entity
+                                    .read_velocity()
+                                    .unwrap_or_else(|| glm::vec3(0.0, 0.0, 0.0)),
+                                arrow_data.critical > 0,
+                                None, // TODO: Load shooter UUID
+                            );
+                        }
                     }
+                    // TODO: Spawn remaining entity types here.
                     EntityData::Unknown => {
                         trace!("Chunk {:?} contains an unknown entity type", event.pos);
                     }
@@ -225,6 +231,7 @@ mod tests {
     use super::*;
     use crate::entity::EntityType;
     use crate::testframework as t;
+    use feather_core::entity::{ArrowEntityData, ItemEntityData};
     use feather_core::Position;
     use specs::{Builder, World, WorldExt};
 
@@ -354,5 +361,32 @@ mod tests {
         assert!(entities.contains(&entity2));
         assert!(!entities.contains(&entity3));
         assert!(entities.contains(&entity4));
+    }
+
+    #[test]
+    fn test_entities_loaded_in_chunk() {
+        let (mut w, mut d) = t::init_world();
+
+        let entities = vec![
+            EntityData::Item(ItemEntityData::default()),
+            EntityData::Arrow(ArrowEntityData::default()),
+        ];
+        let pos = ChunkPosition::new(1, 2);
+
+        let mut entity_spawn_reader = t::reader(&w);
+        let load_event = ChunkLoadEvent { pos, entities };
+        t::trigger_event(&w, load_event);
+
+        d.dispatch(&w);
+        w.maintain();
+
+        // Confirm two spawn events were triggered
+        let events = t::triggered_events::<EntitySpawnEvent>(&w, &mut entity_spawn_reader);
+        assert_eq!(events.len(), 2);
+
+        let mut iter = events.iter();
+        for ty in &[EntityType::Item, EntityType::Arrow] {
+            assert_eq!(iter.next().unwrap().ty, *ty);
+        }
     }
 }

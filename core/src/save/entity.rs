@@ -1,6 +1,6 @@
 use crate::Position;
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "id")]
 pub enum EntityData {
     #[serde(rename = "minecraft:item")]
@@ -14,7 +14,7 @@ pub enum EntityData {
 }
 
 /// Common entity tags.
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseEntityData {
     #[serde(rename = "Pos")]
     pub position: Vec<f64>,
@@ -40,10 +40,33 @@ impl BaseEntityData {
             None
         }
     }
+
+    /// Reads the velocity field. If the field is invalid, None is returned.
+    pub fn read_velocity(self: &BaseEntityData) -> Option<glm::DVec3> {
+        if self.velocity.len() == 3 {
+            Some(glm::vec3(
+                self.velocity[0],
+                self.velocity[1],
+                self.velocity[2],
+            ))
+        } else {
+            None
+        }
+    }
+}
+
+impl Default for BaseEntityData {
+    fn default() -> Self {
+        BaseEntityData {
+            position: vec![0.0, 0.0, 0.0],
+            rotation: vec![0.0, 0.0],
+            velocity: vec![0.0, 0.0, 0.0],
+        }
+    }
 }
 
 /// Represents a single item, without slot information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ItemData {
     #[serde(rename = "Count")]
     pub count: u8,
@@ -52,7 +75,7 @@ pub struct ItemData {
 }
 
 /// Data for an Item entity (`minecraft:item`).
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, Debug)]
 pub struct ItemEntityData {
     // Inherit base entity data
     #[serde(flatten)]
@@ -68,13 +91,16 @@ pub struct ItemEntityData {
 }
 
 /// Data for an Arrow entity (`minecraft:arrow`).
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ArrowEntityData {
     // Inherit base entity data
     #[serde(flatten)]
     pub entity: BaseEntityData,
 
     // Arrow-specific tags
+
+    // TODO: Change this field to `bool` when issue with hematite_nbt is resolved.
+    // See: https://github.com/PistonDevelopers/hematite_nbt/issues/43
     #[serde(rename = "crit")]
     pub critical: u8,
 }
