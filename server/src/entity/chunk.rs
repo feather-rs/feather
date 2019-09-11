@@ -216,12 +216,7 @@ impl<'a> System<'a> for EntityChunkLoadSystem {
         }
     }
 
-    fn setup(&mut self, world: &mut World) {
-        use specs::SystemData;
-        Self::SystemData::setup(world);
-
-        self.reader = Some(world.fetch_mut::<EventChannel<_>>().register_reader());
-    }
+    setup_impl!(reader);
 }
 
 // Tests here cannot use the `testframework::add_entity` function
