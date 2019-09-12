@@ -18,7 +18,7 @@ use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
 pub use composition::BasicCompositionGenerator;
 pub use density_map::{DensityMapGeneratorImpl, HeightMapGenerator};
-pub use noise::Wrapped3DPerlinNoise;
+pub use noise::NoiseLerper;
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
 use std::fmt;

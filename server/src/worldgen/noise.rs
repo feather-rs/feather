@@ -1,34 +1,10 @@
 use num_traits::ToPrimitive;
-use simdnoise::NoiseBuilder;
 
-/// Convenient wrapper over `simdnoise::GradientSettings`
-/// which supports SIMD-accelerated amplitude and linear
-/// interpolation.
-///
-/// The `simdnoise::GradientSettings::generate_scaled` function
-/// cannot be used for noise amplification because it scales
-/// the noise differently depending on the min and max value
-/// in a chunk, creating very obvious seams between chunks.
-/// For more information,  jackmott/rust-simd-noise#9.
-///
-/// This algorithm uses a different technique by multiplying
-/// noise by a constant value provided in the `new` function.
-/// This ensures that amplification remains constant across chunks.
-///
-/// # Notes
-/// * The value initially retrieved from the noise function is
-/// not within the range -1.0 to 1.0; it is undefined. Experimentation
-/// is needed to obtain a suitable amplitude value for any given set of settings.
-/// * The X and Z offsets are multiplied by the horizontal and vertical
-/// sizes, respectively, to obtain the offset in absolute coordinates.
-/// (This means there is no need to multiply the chunk coordinate by 16.)
-pub struct Wrapped3DPerlinNoise {
-    /// The seed used for noise generation.
-    seed: u64,
-    /// The frequency.
-    frequency: f32,
-    /// The amplitude.
-    amplitude: f32,
+/// Struct for applying linear interpolation to a 3D
+/// density array.
+pub struct NoiseLerper<'a> {
+    /// The density values.
+    densities: &'a [f32],
     /// The size of the chunk to generate along X and Z axes.
     size_horizontal: u32,
     /// The size of the chunk to generate along the Y axis.
@@ -43,17 +19,16 @@ pub struct Wrapped3DPerlinNoise {
     scale_vertical: u32,
 }
 
-impl Wrapped3DPerlinNoise {
-    /// Initializes with default settings and the given seed.
+impl<'a> NoiseLerper<'a> {
+    /// Initializes with default settings and the given
+    /// density values.
     ///
     /// Default settings are intended to match the size
     /// of chunks. Horizontal and vertical size and scale
     /// are initialized to sane defaults.
-    pub fn new(seed: u64) -> Self {
+    pub fn new(densities: &'a [f32]) -> Self {
         Self {
-            seed,
-            frequency: 0.02,
-            amplitude: 400.0,
+            densities,
             size_horizontal: 16,
             size_vertical: 256,
             offset_x: 0,
@@ -61,18 +36,6 @@ impl Wrapped3DPerlinNoise {
             scale_horizontal: 4,
             scale_vertical: 8,
         }
-    }
-
-    /// Sets the frequency.
-    pub fn with_frequency(mut self, frequency: f32) -> Self {
-        self.frequency = frequency;
-        self
-    }
-
-    /// Sets the amplitude.
-    pub fn with_amplitude(mut self, amplitude: f32) -> Self {
-        self.amplitude = amplitude;
-        self
     }
 
     /// Sets the size of the chunk to be generated.
@@ -136,20 +99,7 @@ impl Wrapped3DPerlinNoise {
 
         // Density noise, with one value every `scale` blocks along each axis.
         // Indexing into this vector is done using `self.uninterpolated_index(x, y, z)`.
-        let (mut densities, _, _) = NoiseBuilder::gradient_3d_offset(
-            (self.size_horizontal as i32 * self.offset_x / self.scale_horizontal as i32) as f32,
-            (subchunk_horizontal + 1) as usize,
-            0.0,
-            (subchunk_vertical + 1) as usize,
-            (self.size_horizontal as i32 * self.offset_z / self.scale_horizontal as i32) as f32,
-            (subchunk_horizontal + 1) as usize,
-        )
-        .with_freq(self.frequency)
-        .with_seed(self.seed as i32)
-        .generate();
-
-        // Apply amplitude to density.
-        densities.iter_mut().for_each(|x| *x *= self.amplitude);
+        let densities = self.densities;
 
         // Buffer to emit final noise into.
         // TODO: consider using Vec::set_len to avoid zeroing it out
@@ -260,12 +210,15 @@ mod tests {
 
     #[test]
     fn basic_test() {
-        let noise = Wrapped3DPerlinNoise::new(0)
-            .with_amplitude(400.0)
-            .with_offset(10, 16);
+        let densities = [0.0; 5 * 33 * 5];
+        let noise = NoiseLerper::new(&densities).with_offset(10, 16);
 
         let chunk = noise.generate();
 
         assert_eq!(chunk.len(), 16 * 256 * 16);
+
+        for x in chunk {
+            assert_float_eq!(x, 0.0);
+        }
     }
 }
