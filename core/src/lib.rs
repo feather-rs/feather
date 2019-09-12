@@ -35,7 +35,7 @@ pub use feather_items as item;
 pub use inventory::{ItemStack, Slot};
 pub use item::{Item, ItemExt};
 pub use network::packet::{implementation as packet, Packet, PacketType};
-pub use save::{level, player_data, region};
+pub use save::{entity, level, player_data, region};
 pub use world::{
     block::{self, Block, BlockExt},
     chunk::{Chunk, ChunkSection},

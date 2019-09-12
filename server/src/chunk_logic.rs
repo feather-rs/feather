@@ -17,6 +17,7 @@ use crate::entity::EntityDestroyEvent;
 use crate::systems::{CHUNK_HOLD_REMOVE, CHUNK_LOAD, CHUNK_OPTIMIZE, CHUNK_UNLOAD};
 use crate::worldgen::WorldGenerator;
 use crate::{chunkworker, current_time_in_millis, TickCount, TPS};
+use feather_core::entity::EntityData;
 use hashbrown::HashSet;
 use multimap::MultiMap;
 use specs::storage::BTreeStorage;
@@ -32,9 +33,10 @@ pub struct ChunkWorkerHandle {
 }
 
 /// Event which is triggered when a chunk is loaded.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct ChunkLoadEvent {
     pub pos: ChunkPosition,
+    pub entities: Vec<EntityData>,
 }
 
 /// Event which is triggered when a chunk fails to load.
@@ -59,11 +61,11 @@ impl<'a> System<'a> for ChunkLoadSystem {
 
         while let Ok((pos, result)) = handle.receiver.try_recv() {
             match result {
-                Ok(chunk) => {
+                Ok((chunk, entities)) => {
                     chunk_map.set_chunk_at(pos, chunk);
 
                     // Trigger event
-                    let event = ChunkLoadEvent { pos };
+                    let event = ChunkLoadEvent { pos, entities };
                     load_events.single_write(event);
 
                     trace!("Loaded chunk at {:?}", pos);
@@ -438,7 +440,7 @@ mod tests {
 
         let chunk_map = ChunkMap::new();
         let pos = ChunkPosition::new(0, 0);
-        send2.send((pos, Ok(Chunk::new(pos)))).unwrap();
+        send2.send((pos, Ok((Chunk::new(pos), vec![])))).unwrap();
 
         let load_event_channel = EventChannel::<ChunkLoadEvent>::new();
         let fail_event_channel = EventChannel::<ChunkLoadFailEvent>::new();
