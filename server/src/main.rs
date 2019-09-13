@@ -60,6 +60,7 @@ static ALLOC: System = System;
 
 #[macro_use]
 pub mod util;
+pub mod blocks;
 pub mod chunk_logic;
 pub mod chunkworker;
 pub mod config;
@@ -266,6 +267,7 @@ fn init_world<'a, 'b>(
 
     dispatcher.add(network::NetworkSystem, NETWORK, &[]);
 
+    blocks::init_logic(&mut dispatcher);
     physics::init_logic(&mut dispatcher);
     entity::init_logic(&mut dispatcher);
     player::init_logic(&mut dispatcher);
@@ -274,6 +276,7 @@ fn init_world<'a, 'b>(
 
     dispatcher.add_barrier();
 
+    blocks::init_handlers(&mut dispatcher);
     physics::init_handlers(&mut dispatcher);
     entity::init_handlers(&mut dispatcher);
     dispatcher.add(util::SpawnerSystem, SPAWNER, &[ITEM_SPAWN]);
