@@ -112,6 +112,6 @@ pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(
         FallingBlockCreationSystem::default(),
         BLOCK_FALLING_CREATION,
-        &[],
+        &[BLOCK_UPDATE_PROPAGATE],
     );
 }
