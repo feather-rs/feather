@@ -12,7 +12,7 @@ use feather_core::network::packet::implementation::{
 };
 use feather_core::network::packet::PacketType;
 use feather_core::world::block::{Block, BlockExt};
-use feather_core::world::{BlockPosition, ChunkMap};
+use feather_core::world::ChunkMap;
 use feather_core::{Gamemode, Item, Position};
 
 use crate::blocks::{BlockUpdateCause, BlockUpdateEvent};
@@ -376,7 +376,7 @@ mod tests {
     use crate::testframework as t;
     use feather_core::item::Item;
     use feather_core::world::chunk::Chunk;
-    use feather_core::world::ChunkPosition;
+    use feather_core::world::{BlockPosition, ChunkPosition};
     use specs::WorldExt;
 
     #[test]
