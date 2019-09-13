@@ -12,6 +12,7 @@ mod spawn;
 
 use broadcaster::Broadcaster;
 pub use broadcaster::BroadcasterSystem;
+use feather_blocks::Block;
 pub use macros::*;
 pub use spawn::SpawnerSystem;
 use specs::Entity;
@@ -94,6 +95,10 @@ impl Util {
     ) {
         self.spawner
             .spawn_arrow(position, velocity, critical, shooter);
+    }
+
+    pub fn spawn_falling_block(&self, position: Position, velocity: DVec3, block: Block) {
+        self.spawner.spawn_falling_block(position, velocity, block);
     }
 
     /// This should be called at the end of every tick.

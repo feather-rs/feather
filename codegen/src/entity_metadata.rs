@@ -116,6 +116,7 @@ enum EntryType {
     Slot,
     Boolean,
     OptUuid,
+    Position,
 }
 
 impl Parse for EntryType {
@@ -136,6 +137,7 @@ impl EntryType {
             EntryType::Slot => "Slot",
             EntryType::Boolean => "bool",
             EntryType::OptUuid => "OptUuid",
+            EntryType::Position => "BlockPosition",
         }
     }
 
@@ -148,6 +150,7 @@ impl EntryType {
             "bool" => EntryType::Boolean,
             "Slot" => EntryType::Slot,
             "OptUuid" => EntryType::OptUuid,
+            "BlockPosition" => EntryType::Position,
             _ => panic!("Invalid entry type {}", ty),
         }
     }

@@ -196,7 +196,7 @@ fn slip_multiplier(ty: EntityType) -> f64 {
 fn gravitational_acceleration(ty: EntityType) -> f64 {
     if ty.is_living() {
         -0.08
-    } else if ty.is_item() {
+    } else if ty.is_item() || ty == EntityType::FallingBlock {
         -0.04
     } else if ty.is_arrow() {
         -0.05
@@ -221,7 +221,7 @@ fn terminal_velocity(ty: EntityType) -> f32 {
 
 /// Retrieves the drag force for a given entity type.
 fn drag_force(ty: EntityType) -> f64 {
-    if ty.is_living() || ty.is_item() {
+    if ty.is_living() || ty.is_item() || ty == EntityType::FallingBlock {
         0.98
     } else if ty.is_arrow() {
         0.99
