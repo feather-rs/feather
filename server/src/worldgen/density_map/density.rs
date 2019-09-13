@@ -103,9 +103,7 @@ fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> V
     for subx in 0..DENSITY_WIDTH {
         for subz in 0..DENSITY_WIDTH {
             // TODO: average nearby biome parameters
-            let (amplitude, midpoint) = biome_parameters(
-                biomes.biome_at(subx * (DENSITY_WIDTH - 1), subz * (DENSITY_WIDTH - 1)),
-            );
+            let (amplitude, midpoint) = column_parameters(&biomes, subx, subz);
 
             // Loop through Y axis of this subchunk column.
             for suby in 0..DENSITY_HEIGHT {
@@ -139,6 +137,62 @@ fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> V
     }
 
     result
+}
+
+lazy_static! {
+    /// Elevation height field, used to weight
+    /// the averaging of nearby biome heights.
+    static ref ELEVATION_WEIGHT: [[f32; 9]; 9] = {
+        let mut array = [[0.0; 9]; 9];
+        for x in 0..9 {
+            for z in 0..9 {
+                let mut x_squared = x - 4;
+                x_squared *= x_squared;
+                let mut z_sqaured = z - 4;
+                z_sqaured *= z_sqaured;
+                array[x][z] = 10.0 / (x_squared as f32 + z_sqaured as f32 + 0.2).sqrt();
+            }
+        }
+        array
+    };
+}
+
+/// Computes the target amplitude and midpoint for the
+/// given column, using a 9x9 grid of biomes
+/// around the column to determine a weighted average.
+///
+/// The X and Z parameters are the coordinates of the subchunk
+/// within the chunk, not the block coordinate.
+fn column_parameters(biomes: &NearbyBiomes, x: usize, z: usize) -> (f32, f32) {
+    let x = x as i32 * (DENSITY_WIDTH as i32 - 1);
+    let z = z as i32 * (DENSITY_WIDTH as i32 - 1);
+
+    let mut sum_amplitudes = 0.0;
+    let mut sum_midpoints = 0.0;
+    let mut sum_weights = 0.0;
+
+    // Loop through columns in 9x9 grid and compute weighted average of amplitudes
+    // and midpoints.
+    for block_x in -4..=4 {
+        for block_z in -4..=4 {
+            let abs_x = x + block_x;
+            let abs_z = z + block_z;
+
+            let biome = biomes.biome_at(abs_x, abs_z);
+            let (amplitude, midpoint) = biome_parameters(biome);
+
+            let weight = ELEVATION_WEIGHT[(block_x + 4) as usize][(block_z + 4) as usize];
+
+            sum_amplitudes += amplitude * weight;
+            sum_midpoints += midpoint * weight;
+            sum_weights += weight;
+        }
+    }
+
+    sum_amplitudes /= sum_weights;
+    sum_midpoints /= sum_weights;
+
+    (sum_amplitudes, sum_midpoints)
 }
 
 /// Returns the amplitude and midpoint for a given biome
