@@ -104,3 +104,72 @@ pub struct ArrowEntityData {
     #[serde(rename = "crit")]
     pub critical: u8,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_position() {
+        let data = BaseEntityData {
+            position: vec![1.0, 2.0, 3.0],
+            rotation: vec![4.0, 5.0],
+            velocity: vec![6.0, 7.0, 8.0],
+        };
+        let pos = data.read_position().unwrap();
+
+        assert!(pos.x - 1.0 < std::f64::EPSILON);
+        assert!(pos.y - 2.0 < std::f64::EPSILON);
+        assert!(pos.z - 3.0 < std::f64::EPSILON);
+        assert!(pos.yaw - 4.0 < std::f32::EPSILON);
+        assert!(pos.pitch - 5.0 < std::f32::EPSILON);
+        assert!(pos.on_ground);
+    }
+
+    #[test]
+    fn test_read_position_invalid() {
+        let data = BaseEntityData {
+            position: vec![1.0],
+            rotation: vec![4.0, 5.0],
+            velocity: vec![6.0, 7.0, 8.0],
+        };
+        let pos = data.read_position();
+        assert!(pos.is_none());
+    }
+
+    #[test]
+    fn test_read_position_invalid_rot() {
+        let data = BaseEntityData {
+            position: vec![1.0, 2.0, 3.0],
+            rotation: vec![4.0],
+            velocity: vec![6.0, 7.0, 8.0],
+        };
+        let pos = data.read_position();
+        assert!(pos.is_none());
+    }
+
+    #[test]
+    fn test_read_velocity() {
+        let data = BaseEntityData {
+            position: vec![1.0, 2.0, 3.0],
+            rotation: vec![4.0, 5.0],
+            velocity: vec![6.0, 7.0, 8.0],
+        };
+        let vel = data.read_velocity().unwrap();
+
+        assert!(vel[0] - 6.0 < std::f64::EPSILON);
+        assert!(vel[1] - 7.0 < std::f64::EPSILON);
+        assert!(vel[2] - 8.0 < std::f64::EPSILON);
+    }
+
+    #[test]
+    fn test_read_velocity_invalid() {
+        let data = BaseEntityData {
+            position: vec![1.0, 2.0, 3.0],
+            rotation: vec![4.0, 5.0],
+            velocity: vec![6.0, 7.0],
+        };
+        let vel = data.read_velocity();
+        assert!(vel.is_none());
+    }
+}
