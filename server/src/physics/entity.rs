@@ -55,7 +55,6 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         )
             .join()
         {
-            debug!("iter");
             let mut velocity = restrict_velocity.get_unchecked().clone();
 
             let mut pending_position = position.current + velocity.0;
