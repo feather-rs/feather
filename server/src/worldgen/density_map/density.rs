@@ -3,9 +3,9 @@
 //! Over the 2D height map generator, this has the advantage that terrain
 //! is more interesting; overhangs and the like will be able to generate.
 
-use crate::worldgen::{block_index, noise, ChunkBiomes, DensityMapGenerator, NoiseLerper};
+use crate::worldgen::{block_index, noise, DensityMapGenerator, NearbyBiomes, NoiseLerper};
 use bitvec::vec::BitVec;
-use feather_core::ChunkPosition;
+use feather_core::{Biome, ChunkPosition};
 use simdnoise::NoiseBuilder;
 
 /// A density map generator using 3D Perlin noise.
@@ -24,10 +24,10 @@ use simdnoise::NoiseBuilder;
 pub struct DensityMapGeneratorImpl;
 
 impl DensityMapGenerator for DensityMapGeneratorImpl {
-    fn generate_for_chunk(&self, chunk: ChunkPosition, _biomes: &ChunkBiomes, seed: u64) -> BitVec {
+    fn generate_for_chunk(&self, chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> BitVec {
         let mut density = bitvec![0; 16 * 256 * 16];
 
-        let uninterpolated_densities = generate_density(chunk, seed);
+        let uninterpolated_densities = generate_density(chunk, &biomes, seed);
         let noise = NoiseLerper::new(&uninterpolated_densities)
             .with_offset(chunk.x, chunk.z)
             .generate();
@@ -63,7 +63,7 @@ const DENSITY_HEIGHT: usize = 33;
 /// The density values emitted from this function should
 /// be considered solid if less than 0 and air if greater
 /// than 0. This is contrary to what might seem logical.
-fn generate_density(chunk: ChunkPosition, seed: u64) -> Vec<f32> {
+fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> Vec<f32> {
     // TODO: generate based on biome
 
     let x_offset = (chunk.x * (DENSITY_WIDTH as i32 - 1)) as f32;
@@ -102,9 +102,10 @@ fn generate_density(chunk: ChunkPosition, seed: u64) -> Vec<f32> {
     // Loop through subchunks and generate density for each.
     for subx in 0..DENSITY_WIDTH {
         for subz in 0..DENSITY_WIDTH {
-            // TODO: base this on nearby biomes.
-            let amplitude = 0.075f32;
-            let midpoint = 68.0f32;
+            // TODO: average nearby biome parameters
+            let (amplitude, midpoint) = biome_parameters(
+                biomes.biome_at(subx * (DENSITY_WIDTH - 1), subz * (DENSITY_WIDTH - 1)),
+            );
 
             // Loop through Y axis of this subchunk column.
             for suby in 0..DENSITY_HEIGHT {
@@ -138,6 +139,44 @@ fn generate_density(chunk: ChunkPosition, seed: u64) -> Vec<f32> {
     }
 
     result
+}
+
+/// Returns the amplitude and midpoint for a given biome
+/// type as a tuple in that order.
+///
+/// All original values were taken from Cuberite's source,
+/// so all credit for this function goes to their team
+/// for the presumably highly laborious effort
+/// involved in finding these values.
+fn biome_parameters(biome: Biome) -> (f32, f32) {
+    match biome {
+        Biome::Beach => (0.2, 60.0),
+        Biome::BirchForest => (0.1, 64.0),
+        Biome::BirchForestHills => (0.075, 64.0),
+        Biome::TallBirchHills => (0.075, 68.0),
+        Biome::TallBirchForest => (0.1, 64.0),
+        Biome::SnowyBeach => (0.3, 62.0),
+        Biome::Taiga => (0.3, 62.0),
+        Biome::TaigaHills => (0.075, 68.0),
+        Biome::DesertHills => (0.075, 68.0),
+        Biome::DeepOcean => (0.17, 35.0),
+        Biome::Desert => (0.29, 62.0),
+        Biome::Mountains => (0.045, 75.0),
+        Biome::MountainEdge => (0.1, 70.0),
+        Biome::WoodedMountains => (0.04, 80.0),
+        Biome::FlowerForest => (0.1, 64.0),
+        Biome::Forest => (0.1, 64.0),
+        Biome::Jungle => (0.1, 63.0),
+        Biome::Ocean => (0.12, 45.0),
+        Biome::Plains => (0.3, 62.0),
+        Biome::Savanna => (0.3, 62.0),
+        Biome::SavannaPlateau => (0.3, 85.0),
+        Biome::StoneShore => (0.075, 60.0),
+        Biome::SunflowerPlains => (0.3, 62.0),
+        Biome::Swamp => (0.25, 59.0),
+        // TODO: finish this list
+        _ => (0.3, 62.0),
+    }
 }
 
 /// Interpolates between two values based on the given

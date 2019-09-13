@@ -19,6 +19,7 @@ use bitvec::vec::BitVec;
 pub use composition::BasicCompositionGenerator;
 pub use density_map::{DensityMapGeneratorImpl, HeightMapGenerator};
 pub use noise::NoiseLerper;
+use num_traits::ToPrimitive;
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
 use std::fmt;
@@ -88,7 +89,18 @@ impl WorldGenerator for ComposableGenerator {
     fn generate_chunk(&self, position: ChunkPosition) -> Chunk {
         let mut seed_shuffler = XorShiftRng::seed_from_u64(self.seed);
 
-        let biomes = self.biome.generate_for_chunk(position, seed_shuffler.gen());
+        // Generate biomes for 3x3 grid of chunks around current chunk.
+        let biome_seed = seed_shuffler.gen();
+
+        let mut biomes = vec![];
+
+        for z in -1..=1 {
+            for x in -1..=1 {
+                let pos = ChunkPosition::new(position.x + x, position.z + z);
+                biomes.push(self.biome.generate_for_chunk(pos, biome_seed));
+            }
+        }
+        let biomes = NearbyBiomes::from_vec(biomes);
 
         let density_map =
             self.density_map
@@ -105,7 +117,7 @@ impl WorldGenerator for ComposableGenerator {
         self.composition.generate_for_chunk(
             &mut chunk,
             position,
-            &biomes,
+            &biomes.biomes[4], // Center chunk
             density_map.as_bitslice(),
             seed_shuffler.gen(),
         );
@@ -143,7 +155,7 @@ pub trait DensityMapGenerator: Send + Sync {
     /// A compact array of booleans is returned, indexable
     /// by (y << 8) | (x << 4) | z. Those set to `true` will
     /// contain solid blacks; those set to `false` will be air.
-    fn generate_for_chunk(&self, chunk: ChunkPosition, biomes: &ChunkBiomes, seed: u64) -> BitVec;
+    fn generate_for_chunk(&self, chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> BitVec;
 }
 
 /// A generator which populates the given chunk using blocks
@@ -166,6 +178,47 @@ pub trait CompositionGenerator: Send + Sync {
 pub fn block_index(x: usize, y: usize, z: usize) -> usize {
     assert!(x < 16 && y < 256 && z < 16);
     (y << 8) | (x << 4) | z
+}
+
+/// Represents the biomes in a 3x3 grid of chunks,
+/// centered on the chunk currently being generated.
+pub struct NearbyBiomes {
+    /// 2D array of chunk biomes. The chunk biomes
+    /// for a given chunk position relative to the center
+    /// chunk can be obtained using (x + 1) + (z + 1) * 3.
+    biomes: Vec<ChunkBiomes>,
+}
+
+impl NearbyBiomes {
+    pub fn from_vec(biomes: Vec<ChunkBiomes>) -> Self {
+        Self { biomes }
+    }
+
+    /// Gets the biome at the given column position.
+    ///
+    /// The column position is an offset from the
+    /// bottom-left corner of the center chunk.
+    pub fn biome_at<N: ToPrimitive>(&self, x: N, z: N) -> Biome {
+        let (index, local_x, local_z) = self.index(x, z);
+
+        self.biomes[index].biome_at(local_x, local_z)
+    }
+
+    pub fn set_biome_at<N: ToPrimitive>(&mut self, x: N, z: N, biome: Biome) {
+        let (index, local_x, local_z) = self.index(x, z);
+
+        self.biomes[index].set_biome_at(local_x, local_z, biome);
+    }
+
+    fn index<N: ToPrimitive>(&self, x: N, z: N) -> (usize, usize, usize) {
+        let chunk_x = (x.to_isize().unwrap() / 16 + 1) as usize;
+        let chunk_z = (z.to_isize().unwrap() / 16 + 1) as usize;
+
+        let local_x = (x.to_isize().unwrap() % 16).abs() as usize;
+        let local_z = (z.to_isize().unwrap() % 16).abs() as usize;
+
+        (chunk_x + chunk_z * 3, local_x, local_z)
+    }
 }
 
 /// Represents the biomes of a chunk.
