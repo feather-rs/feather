@@ -3,16 +3,18 @@
 //! Generation is primarily based around the `ComposableGenerator`,
 //! which allows configuration of a world generator pipeline.
 
-use feather_core::{Biome, Chunk, ChunkPosition};
+use feather_core::{Biome, Block, Chunk, ChunkPosition};
 
 mod biomes;
 mod composition;
 mod density_map;
+mod finishers;
 pub mod noise;
 mod superflat;
 mod util;
 pub mod voronoi;
 
+use crate::worldgen::finishers::SnowFinisher;
 pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
@@ -22,6 +24,7 @@ pub use noise::NoiseLerper;
 use num_traits::ToPrimitive;
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
+use smallvec::SmallVec;
 use std::fmt;
 pub use superflat::SuperflatWorldGenerator;
 
@@ -55,6 +58,7 @@ impl WorldGenerator for EmptyWorldGenerator {
 /// * Biomes - generates a biome grid.
 /// * Terrain density - generates the terrain density values using Perlin noise.
 /// * Terrain composition - sets the correct block types based on the biome and terrain density.
+/// * Finishing generators - generates final elements, such as grass, snow, and trees.
 ///
 /// This generator is based on [this document](http://cuberite.xoft.cz/docs/Generator.html).
 pub struct ComposableGenerator {
@@ -64,24 +68,48 @@ pub struct ComposableGenerator {
     density_map: Box<dyn DensityMapGenerator>,
     /// The composition generator.
     composition: Box<dyn CompositionGenerator>,
+    /// A vector of finishing generators used
+    /// by this composable generator.
+    finishers: SmallVec<[Box<dyn FinishingGenerator>; 8]>,
     /// The world seed.
     seed: u64,
 }
 
 impl ComposableGenerator {
     /// Creates a new `ComposableGenerator` with the given stages.
-    pub fn new<B, D, C>(biome: B, density_map: D, composition: C, seed: u64) -> Self
+    pub fn new<B, D, C, F>(
+        biome: B,
+        density_map: D,
+        composition: C,
+        finishers: F,
+        seed: u64,
+    ) -> Self
     where
         B: BiomeGenerator + 'static,
         D: DensityMapGenerator + 'static,
         C: CompositionGenerator + 'static,
+        F: IntoIterator<Item = Box<dyn FinishingGenerator>>,
     {
         Self {
             biome: Box::new(biome),
             density_map: Box::new(density_map),
             composition: Box::new(composition),
+            finishers: finishers.into_iter().collect(),
             seed,
         }
+    }
+
+    /// A default composable generator, used
+    /// for worlds with "default" world type.
+    pub fn default_with_seed(seed: u64) -> Self {
+        let finishers: Vec<Box<dyn FinishingGenerator>> = vec![Box::new(SnowFinisher::default())];
+        Self::new(
+            TwoLevelBiomeGenerator::default(),
+            DensityMapGeneratorImpl::default(),
+            BasicCompositionGenerator::default(),
+            finishers,
+            seed,
+        )
     }
 }
 
@@ -121,6 +149,31 @@ impl WorldGenerator for ComposableGenerator {
             density_map.as_bitslice(),
             seed_shuffler.gen(),
         );
+
+        // Calculate top blocks in chunk.
+        // TODO: perhaps this should be moved to `Chunk`?
+        let mut top_blocks = TopBlocks::new();
+        for x in 0..16 {
+            for z in 0..16 {
+                for y in (0..256).rev() {
+                    if chunk.block_at(x, y, z) != Block::Air {
+                        top_blocks.set_top_block_at(x, z, y);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Finishers.
+        for finisher in &self.finishers {
+            finisher.generate_for_chunk(
+                &mut chunk,
+                position,
+                &biomes.biomes[4],
+                &top_blocks,
+                seed_shuffler.gen(),
+            );
+        }
 
         // TODO: correct lighting.
         // Fill chunk with 15 light levels.
@@ -173,11 +226,50 @@ pub trait CompositionGenerator: Send + Sync {
     );
 }
 
+/// A generator, run after composition,
+/// which can add finishing elements to chunks,
+/// such as grass, trees, and snow.
+pub trait FinishingGenerator: Send + Sync {
+    /// Populates the given chunk with any
+    /// finishing blocks.
+    fn generate_for_chunk(
+        &self,
+        chunk: &mut Chunk,
+        pos: ChunkPosition,
+        biomes: &ChunkBiomes,
+        top_blocks: &TopBlocks,
+        seed: u64,
+    );
+}
+
 /// Returns an index into a one-dimensional array
 /// for the given x, y, and z values.
 pub fn block_index(x: usize, y: usize, z: usize) -> usize {
     assert!(x < 16 && y < 256 && z < 16);
     (y << 8) | (x << 4) | z
+}
+
+/// Represents the highest solid blocks in a chunk.
+pub struct TopBlocks {
+    top_blocks: Vec<u8>,
+}
+
+impl TopBlocks {
+    pub fn new() -> Self {
+        Self {
+            top_blocks: vec![0; 16 * 16],
+        }
+    }
+
+    /// Fetches the highest solid blocks for the
+    /// given column coordinates (chunk-local).
+    pub fn top_block_at(&self, x: usize, z: usize) -> usize {
+        self.top_blocks[x + (z << 4)] as usize
+    }
+
+    pub fn set_top_block_at(&mut self, x: usize, z: usize, top: usize) {
+        self.top_blocks[x + (z << 4)] = top as u8;
+    }
 }
 
 /// Represents the biomes in a 3x3 grid of chunks,

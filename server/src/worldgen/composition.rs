@@ -91,7 +91,7 @@ fn basic_composition_for_solid_biome(
                         topsoil_remaining = 3;
                         top_soil
                     } else if topsoil_remaining > 0 {
-                        let block = underneath_top_soil_block(biome, topsoil_remaining);
+                        let block = underneath_top_soil_block(biome);
                         topsoil_remaining -= 1;
                         block
                     } else {
@@ -117,7 +117,7 @@ fn top_soil_block(biome: Biome) -> Block {
         | Biome::IceSpikes
         | Biome::SnowyTaiga
         | Biome::SnowyTaigaMountains
-        | Biome::SnowyBeach => Block::SnowBlock,
+        | Biome::SnowyBeach => Block::GrassBlock(GrassBlockData { snowy: true }),
         Biome::GravellyMountains | Biome::ModifiedGravellyMountains => Block::Gravel,
         Biome::StoneShore => Block::Stone,
         Biome::Beach | Biome::Desert | Biome::DesertHills | Biome::DesertLakes => Block::Sand,
@@ -136,15 +136,8 @@ fn top_soil_block(biome: Biome) -> Block {
 }
 
 /// Returns the block under the top soil block for the given biome.
-fn underneath_top_soil_block(biome: Biome, topsoil_remaining: i32) -> Block {
+fn underneath_top_soil_block(biome: Biome) -> Block {
     match biome {
-        Biome::SnowyTundra | Biome::IceSpikes | Biome::SnowyTaiga | Biome::SnowyTaigaMountains => {
-            if topsoil_remaining == 3 {
-                Block::GrassBlock(GrassBlockData { snowy: true })
-            } else {
-                Block::Dirt
-            }
-        }
         Biome::SnowyBeach => Block::SnowBlock,
         Biome::GravellyMountains | Biome::ModifiedGravellyMountains => Block::Gravel,
         Biome::StoneShore => Block::Stone,
