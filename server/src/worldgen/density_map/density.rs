@@ -214,7 +214,7 @@ fn biome_parameters(biome: Biome) -> (f32, f32) {
         Biome::TaigaHills => (0.075, 68.0),
         Biome::DesertHills => (0.075, 68.0),
         Biome::DeepOcean => (0.17, 35.0),
-        Biome::Desert => (0.29, 62.0),
+        Biome::Desert => (0.15, 62.0),
         Biome::Mountains => (0.045, 75.0),
         Biome::MountainEdge => (0.1, 70.0),
         Biome::WoodedMountains => (0.04, 80.0),

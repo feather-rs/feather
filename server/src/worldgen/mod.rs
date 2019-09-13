@@ -14,7 +14,7 @@ mod superflat;
 mod util;
 pub mod voronoi;
 
-use crate::worldgen::finishers::SnowFinisher;
+use crate::worldgen::finishers::{SingleFoliageFinisher, SnowFinisher};
 pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
@@ -102,7 +102,10 @@ impl ComposableGenerator {
     /// A default composable generator, used
     /// for worlds with "default" world type.
     pub fn default_with_seed(seed: u64) -> Self {
-        let finishers: Vec<Box<dyn FinishingGenerator>> = vec![Box::new(SnowFinisher::default())];
+        let finishers: Vec<Box<dyn FinishingGenerator>> = vec![
+            Box::new(SnowFinisher::default()),
+            Box::new(SingleFoliageFinisher::default()),
+        ];
         Self::new(
             TwoLevelBiomeGenerator::default(),
             DensityMapGeneratorImpl::default(),
@@ -168,7 +171,6 @@ impl WorldGenerator for ComposableGenerator {
         for finisher in &self.finishers {
             finisher.generate_for_chunk(
                 &mut chunk,
-                position,
                 &biomes.biomes[4],
                 &top_blocks,
                 seed_shuffler.gen(),
@@ -235,7 +237,6 @@ pub trait FinishingGenerator: Send + Sync {
     fn generate_for_chunk(
         &self,
         chunk: &mut Chunk,
-        pos: ChunkPosition,
         biomes: &ChunkBiomes,
         top_blocks: &TopBlocks,
         seed: u64,

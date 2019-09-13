@@ -1,6 +1,6 @@
 use crate::worldgen::{ChunkBiomes, FinishingGenerator, TopBlocks};
 use feather_blocks::{Block, SnowData};
-use feather_core::{Biome, Chunk, ChunkPosition};
+use feather_core::{Biome, Chunk};
 
 /// Finisher for generating snow on top of snow biomes.
 #[derive(Default)]
@@ -10,7 +10,6 @@ impl FinishingGenerator for SnowFinisher {
     fn generate_for_chunk(
         &self,
         chunk: &mut Chunk,
-        _pos: ChunkPosition,
         biomes: &ChunkBiomes,
         top_blocks: &TopBlocks,
         _seed: u64,
