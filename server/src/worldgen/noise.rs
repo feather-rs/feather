@@ -86,7 +86,7 @@ impl<'a> NoiseLerper<'a> {
     }
 
     fn generate_fallback(&self) -> Vec<f32> {
-        // Loop through values ofsetted by the scale.
+        // Loop through values offsetted by the scale.
         // Then, loop through all coordinates inside
         // that subchunk and apply linear interpolation.
 
@@ -187,12 +187,13 @@ impl<'a> NoiseLerper<'a> {
 
     fn uninterpolated_index<N: ToPrimitive>(&self, x: N, y: N, z: N) -> usize {
         let length = (self.size_horizontal / self.scale_horizontal + 1) as usize;
+        let height = (self.size_vertical / self.scale_vertical + 1) as usize;
 
         let x = x.to_usize().unwrap();
         let y = y.to_usize().unwrap();
         let z = z.to_usize().unwrap();
 
-        (y * (length * length) + (z * length) + x)
+        y * length + x + height * length * z
     }
 }
 
