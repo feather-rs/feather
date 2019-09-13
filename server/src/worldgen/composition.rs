@@ -1,11 +1,9 @@
 //! Composition generator, used to populate chunks with blocks
 //! based on the density and biome values.
 
-use crate::worldgen::{
-    block_index, util, ChunkBiomes, CompositionGenerator, OCEAN_DEPTH, SEA_LEVEL,
-};
+use crate::worldgen::{block_index, util, ChunkBiomes, CompositionGenerator, SEA_LEVEL};
 use bitvec::slice::BitSlice;
-use feather_blocks::{GrassBlockData, MyceliumData, SnowData, WaterData};
+use feather_blocks::{GrassBlockData, MyceliumData, WaterData};
 use feather_core::{Biome, Block, Chunk, ChunkPosition};
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
@@ -58,7 +56,6 @@ fn basic_composition_for_solid_biome(
 ) {
     let mut rng =
         XorShiftRng::seed_from_u64(util::shuffle_seed_for_column(seed, chunk.position(), x, z));
-    let bedrock_height = rng.gen_range(0, 4);
 
     let top_soil = top_soil_block(biome);
 
@@ -72,7 +69,7 @@ fn basic_composition_for_solid_biome(
         let mut skip = false;
 
         if biome == Biome::Ocean {
-            if y <= SEA_LEVEL && y >= SEA_LEVEL - OCEAN_DEPTH && !is_solid {
+            if y <= SEA_LEVEL && !is_solid {
                 block = Block::Water(WaterData { level: water_level });
                 if water_level == 0 {
                     water_level = 8;
@@ -86,17 +83,13 @@ fn basic_composition_for_solid_biome(
         }
 
         if !skip {
-            if y <= bedrock_height {
+            if y <= rng.gen_range(0, 4) {
                 block = Block::Bedrock;
             } else {
                 block = if is_solid {
                     if topsoil_remaining == -1 {
                         topsoil_remaining = 3;
-                        if y >= SEA_LEVEL - 2 {
-                            top_soil
-                        } else {
-                            underneath_top_soil_block(biome, topsoil_remaining)
-                        }
+                        top_soil
                     } else if topsoil_remaining > 0 {
                         let block = underneath_top_soil_block(biome, topsoil_remaining);
                         topsoil_remaining -= 1;
@@ -124,8 +117,7 @@ fn top_soil_block(biome: Biome) -> Block {
         | Biome::IceSpikes
         | Biome::SnowyTaiga
         | Biome::SnowyTaigaMountains
-        | Biome::WoodedMountains => Block::Snow(SnowData { layers: 1 }),
-        Biome::SnowyBeach => Block::SnowBlock,
+        | Biome::SnowyBeach => Block::SnowBlock,
         Biome::GravellyMountains | Biome::ModifiedGravellyMountains => Block::Gravel,
         Biome::StoneShore => Block::Stone,
         Biome::Beach | Biome::Desert | Biome::DesertHills | Biome::DesertLakes => Block::Sand,
@@ -146,11 +138,7 @@ fn top_soil_block(biome: Biome) -> Block {
 /// Returns the block under the top soil block for the given biome.
 fn underneath_top_soil_block(biome: Biome, topsoil_remaining: i32) -> Block {
     match biome {
-        Biome::SnowyTundra
-        | Biome::IceSpikes
-        | Biome::SnowyTaiga
-        | Biome::SnowyTaigaMountains
-        | Biome::WoodedMountains => {
+        Biome::SnowyTundra | Biome::IceSpikes | Biome::SnowyTaiga | Biome::SnowyTaigaMountains => {
             if topsoil_remaining == 3 {
                 Block::GrassBlock(GrassBlockData { snowy: true })
             } else {
