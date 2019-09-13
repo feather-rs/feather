@@ -1,4 +1,4 @@
-use crate::entity::{EntityType, PlayerComponent};
+use crate::entity::{EntityType, PlayerComponent, VelocityComponent};
 use crate::entity::{Metadata, NamedComponent, PositionComponent};
 use crate::network::PlayerPreJoinEvent;
 use crate::player::{ChunkPendingComponent, InventoryComponent, LoadedChunksComponent};
@@ -24,6 +24,7 @@ impl<'a> System<'a> for PlayerInitSystem {
         Read<'a, EventChannel<PlayerPreJoinEvent>>,
         WriteStorage<'a, PlayerComponent>,
         WriteStorage<'a, PositionComponent>,
+        WriteStorage<'a, VelocityComponent>,
         WriteStorage<'a, NamedComponent>,
         WriteStorage<'a, ChunkPendingComponent>,
         WriteStorage<'a, LoadedChunksComponent>,
@@ -39,6 +40,7 @@ impl<'a> System<'a> for PlayerInitSystem {
             join_events,
             mut player_comps,
             mut positions,
+            mut velocities,
             mut nameds,
             mut chunk_pending_comps,
             mut loaded_chunk_comps,
@@ -57,16 +59,18 @@ impl<'a> System<'a> for PlayerInitSystem {
             let default_gamemode = &config.server.default_gamemode.clone();
 
             debug!("Loading player data for UUID {}", uuid);
-            let (gamemode, pos, inventory_slots) =
+            let (gamemode, pos, velocity, inventory_slots) =
                 match feather_core::player_data::load_player_data(uuid) {
                     Ok(data) => (
                         Gamemode::from_id(data.gamemode as u8),
-                        data.read_position(),
+                        data.entity.read_position(),
+                        data.entity.read_velocity(),
                         data.inventory,
                     ),
                     Err(_) => (
                         Gamemode::from_string(default_gamemode.as_str()),
-                        None,   // Invalid position will default to world spawn
+                        None, // Invalid position will default to world spawn
+                        None,
                         vec![], // Empty inventory
                     ),
                 };
@@ -87,6 +91,9 @@ impl<'a> System<'a> for PlayerInitSystem {
                 previous: spawn_pos,
             };
             positions.insert(event.player, position).unwrap();
+
+            let velocity = VelocityComponent(velocity.unwrap_or_else(|| glm::vec3(0.0, 0.0, 0.0)));
+            velocities.insert(event.player, velocity).unwrap();
 
             let named = NamedComponent {
                 display_name: event.username.clone(),
