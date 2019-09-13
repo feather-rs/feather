@@ -99,14 +99,17 @@ impl VoronoiGrid {
 
         // Pre-compute 5x5 grid of noise to take advantage of SIMD.
         let half_length = self.length as f32 / 2.0;
-        let noise = NoiseBuilder::gradient_2d_offset(
+        let mut noise = NoiseBuilder::gradient_2d_offset(
             offset_x as f32 * self.length as f32,
             5,
             offset_y as f32 * self.length as f32,
             5,
         )
         .with_seed(self.seed as i32)
-        .generate_scaled(-half_length, half_length);
+        .generate()
+            .0;
+
+        noise.iter_mut().for_each(|x| *x *= 100.0 * half_length);
 
         for x in -2..=2 {
             for y in -2..=2 {
