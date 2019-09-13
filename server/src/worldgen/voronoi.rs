@@ -107,7 +107,7 @@ impl VoronoiGrid {
         )
         .with_seed(self.seed as i32)
         .generate()
-            .0;
+        .0;
 
         noise.iter_mut().for_each(|x| *x *= 100.0 * half_length);
 

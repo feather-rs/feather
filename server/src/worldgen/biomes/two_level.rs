@@ -8,11 +8,9 @@ lazy_static! {
     /// two-level biome generator.
     static ref BIOME_GROUPS: Vec<Vec<Biome>> = {
         vec![
-            vec![Biome::SnowyTundra, Biome::IceSpikes, Biome::SnowyTaiga, Biome::SnowyTaigaMountains, Biome::FrozenRiver, Biome::SnowyBeach],
-            vec![Biome::Mountains, Biome::GravellyMountains, Biome::WoodedMountains, Biome::Taiga, Biome::TaigaMountains],
-            vec![Biome::Plains, Biome::SunflowerPlains, Biome::Forest, Biome::FlowerForest, Biome::BirchForest, Biome::Swamp, Biome::Jungle, Biome::Beach],
-            vec![Biome::Desert, Biome::Savanna, Biome::Badlands, Biome::SavannaPlateau],
-            vec![Biome::Ocean],
+            vec![Biome::SnowyTundra, Biome::SnowyTaiga],
+            vec![Biome::Plains, Biome::BirchForest, Biome::Forest, Biome::Taiga, Biome::Mountains, Biome::Swamp, Biome::DarkForest],
+            vec![Biome::Savanna, Biome::Desert],
         ]
     };
 }
