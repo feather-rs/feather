@@ -1,5 +1,6 @@
 //! Module for calculating physics interactions.
 
+mod block_bboxes;
 mod component;
 mod entity;
 mod math;
