@@ -47,8 +47,8 @@ impl<'a> System<'a> for FallingBlockCreationSystem {
                         block_update.single_write(update_event);
 
                         let mut entity_pos: Position = event.pos.world_pos();
-                        entity_pos.x += 0.49;
-                        entity_pos.z += 0.49;
+                        entity_pos.x += 0.5;
+                        entity_pos.z += 0.5;
 
                         util.spawn_falling_block(entity_pos, glm::vec3(0.0, 0.0, 0.0), event.block)
                     }
