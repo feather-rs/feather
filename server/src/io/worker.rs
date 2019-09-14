@@ -111,6 +111,10 @@ fn handle_event(worker: &mut Worker, event: Event) {
         match event.token() {
             LISTENER_TOKEN => read_from_listener(worker),
             t => {
+                let client = get_client_from_stream_token(t);
+                if !worker.clients.contains_key(&client) {
+                    return; // Prevents panic when client was disconnected on same cycle
+                }
                 // If even, the token is a server_to_worker token
                 // If odd, it's  a stream token
                 if t.0 % 2 == 0 {
@@ -331,7 +335,8 @@ fn handle_packet(worker: &mut Worker, client_id: Client, packet: Box<dyn Packet>
     } else {
         // Forward packet to the server.
         let msg = ServerToWorkerMessage::NotifyPacketReceived(packet);
-        client.sender.as_ref().unwrap().send(msg).unwrap();
+        // Discard error in case the server has disconnected.
+        let _ = client.sender.as_ref().unwrap().send(msg);
     }
 
     for action in action_queue {

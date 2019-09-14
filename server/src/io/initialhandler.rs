@@ -262,8 +262,12 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
     // already finished, so we can call `finish` after
     // setting the player's info.
     if ih.config.server.online_mode {
+        use num_bigint::{BigInt, Sign::Plus};
         // Start enabling encryption
-        let der = der::public_key_to_der(&RSA_KEY.n().to_bytes_be(), &RSA_KEY.e().to_bytes_be());
+        let der = der::public_key_to_der(
+            &BigInt::from_biguint(Plus, RSA_KEY.n().clone()).to_signed_bytes_be(),
+            &BigInt::from_biguint(Plus, RSA_KEY.e().clone()).to_signed_bytes_be(),
+        );
 
         let encryption_request = EncryptionRequest::new(
             "".to_string(), // Server ID - always empty
@@ -318,7 +322,11 @@ fn handle_encryption_response(
     ih.action_queue
         .push(Action::EnableEncryption(ih.key.unwrap()));
 
-    let der = der::public_key_to_der(&RSA_KEY.n().to_bytes_be(), &RSA_KEY.e().to_bytes_be());
+    use num_bigint::{BigInt, Sign::Plus};
+    let der = der::public_key_to_der(
+        &BigInt::from_biguint(Plus, RSA_KEY.n().clone()).to_signed_bytes_be(),
+        &BigInt::from_biguint(Plus, RSA_KEY.e().clone()).to_signed_bytes_be(),
+    );
 
     // Perform authentication
     let auth_result = mojang_api::server_auth(
