@@ -14,7 +14,7 @@ mod superflat;
 mod util;
 pub mod voronoi;
 
-use crate::worldgen::finishers::{SingleFoliageFinisher, SnowFinisher};
+use crate::worldgen::finishers::{ClumpedFoliageFinisher, SingleFoliageFinisher, SnowFinisher};
 pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
@@ -105,6 +105,7 @@ impl ComposableGenerator {
         let finishers: Vec<Box<dyn FinishingGenerator>> = vec![
             Box::new(SnowFinisher::default()),
             Box::new(SingleFoliageFinisher::default()),
+            Box::new(ClumpedFoliageFinisher::default()),
         ];
         Self::new(
             TwoLevelBiomeGenerator::default(),

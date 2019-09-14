@@ -150,10 +150,10 @@ fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> V
 lazy_static! {
     /// Elevation height field, used to weight
     /// the averaging of nearby biome heights.
-    static ref ELEVATION_WEIGHT: [[f32; 9]; 9] = {
-        let mut array = [[0.0; 9]; 9];
-        for x in 0..9 {
-            for z in 0..9 {
+    static ref ELEVATION_WEIGHT: [[f32; 20]; 20] = {
+        let mut array = [[0.0; 20]; 20];
+        for x in 0..20 {
+            for z in 0..20 {
                 let mut x_squared = x - 4;
                 x_squared *= x_squared;
                 let mut z_sqaured = z - 4;
@@ -181,15 +181,15 @@ fn column_parameters(biomes: &NearbyBiomes, x: usize, z: usize) -> (f32, f32) {
 
     // Loop through columns in 9x9 grid and compute weighted average of amplitudes
     // and midpoints.
-    for block_x in -4..=4 {
-        for block_z in -4..=4 {
+    for block_x in -9..=9 {
+        for block_z in -9..=9 {
             let abs_x = x + block_x;
             let abs_z = z + block_z;
 
             let biome = biomes.biome_at(abs_x, abs_z);
             let (amplitude, midpoint) = biome_parameters(biome);
 
-            let weight = ELEVATION_WEIGHT[(block_x + 4) as usize][(block_z + 4) as usize];
+            let weight = ELEVATION_WEIGHT[(block_x + 9) as usize][(block_z + 9) as usize];
 
             sum_amplitudes += amplitude * weight;
             sum_midpoints += midpoint * weight;
