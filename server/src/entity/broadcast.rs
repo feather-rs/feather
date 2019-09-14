@@ -11,11 +11,12 @@
 
 use crate::chunk_logic::ChunkHolders;
 use crate::entity::movement::degrees_to_stops;
-use crate::entity::{EntityType, VelocityComponent};
+use crate::entity::{EntityType, FallingBlockComponent, VelocityComponent};
 use crate::entity::{Metadata, NamedComponent, PositionComponent};
 use crate::network::{send_packet_boxed_to_player, send_packet_to_player, NetworkComponent};
 use crate::util::protocol_velocity;
 use crossbeam::queue::SegQueue;
+use feather_blocks::BlockExt;
 use feather_core::network::packet::implementation::SpawnObject;
 use feather_core::network::packet::implementation::{PacketEntityMetadata, SpawnPlayer};
 use feather_core::Packet;
@@ -72,6 +73,7 @@ impl<'a> System<'a> for EntitySendSystem {
         WriteStorage<'a, Metadata>,
         Write<'a, EventChannel<EntitySendEvent>>,
         Read<'a, EntitySender>,
+        ReadStorage<'a, FallingBlockComponent>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -84,6 +86,7 @@ impl<'a> System<'a> for EntitySendSystem {
             mut metadatas,
             mut send_events,
             entity_sender,
+            falling_blocks,
         ) = data;
 
         while let Ok(request) = entity_sender.queue.pop() {
@@ -96,8 +99,15 @@ impl<'a> System<'a> for EntitySendSystem {
             let network = networks.get(request.player).unwrap();
 
             // Send corresponding packet to player.
-            let packet =
-                packet_to_spawn_entity(request.entity, *ty, &position, metadata, velocity, named);
+            let packet = packet_to_spawn_entity(
+                request.entity,
+                *ty,
+                &position,
+                metadata,
+                velocity,
+                named,
+                &falling_blocks,
+            );
             send_packet_boxed_to_player(&network, packet);
 
             // Send metadata.
@@ -190,6 +200,7 @@ fn packet_to_spawn_entity(
     metadata: &mut Metadata,
     velocity: Option<&VelocityComponent>,
     named: Option<&NamedComponent>,
+    falling_blocks: &ReadStorage<FallingBlockComponent>,
 ) -> Box<dyn Packet> {
     let velocity = velocity.cloned().unwrap_or_default(); // Use default velocity of (0, 0, 0)
     let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocity.0);
@@ -241,6 +252,24 @@ fn packet_to_spawn_entity(
                 pitch: degrees_to_stops(position.current.pitch),
                 yaw: degrees_to_stops(position.current.yaw),
                 data: 1, // TODO: Shooter entity ID
+                velocity_x,
+                velocity_y,
+                velocity_z,
+            };
+
+            Box::new(packet)
+        }
+        EntityType::FallingBlock => {
+            let packet = SpawnObject {
+                entity_id: entity.id() as i32,
+                object_uuid: Uuid::new_v4(),
+                ty: 70,
+                x: position.current.x,
+                y: position.current.y,
+                z: position.current.z,
+                pitch: degrees_to_stops(position.current.pitch),
+                yaw: degrees_to_stops(position.current.yaw),
+                data: i32::from(falling_blocks.get(entity).unwrap().block.native_state_id()),
                 velocity_x,
                 velocity_y,
                 velocity_z,

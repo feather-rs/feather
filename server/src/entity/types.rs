@@ -15,6 +15,7 @@ pub enum EntityType {
     Thunderbolt,
     Arrow,
     TippedArrow,
+    FallingBlock,
     #[cfg(test)]
     Test,
     // TODO more...

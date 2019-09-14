@@ -4,7 +4,7 @@
 
 use crate::util::Util;
 use feather_core::packet::PacketEntityMetadata;
-use feather_core::{EntityMetadata, Slot};
+use feather_core::{BlockPosition, EntityMetadata, Slot};
 use specs::storage::ComponentEvent;
 use specs::{
     BitSet, Component, Entities, FlaggedStorage, Join, Read, ReaderId, System, VecStorage,
@@ -64,6 +64,9 @@ entity_metadata! {
     },
     TippedArrow: Arrow {
         color: VarInt() = 8,
+    },
+    FallingBlock: Entity {
+        spawn_position: BlockPosition() = 6,
     },
 }
 

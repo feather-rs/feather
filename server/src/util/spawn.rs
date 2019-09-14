@@ -1,10 +1,11 @@
-use crate::entity::ArrowComponent;
 use crate::entity::ItemComponent;
 use crate::entity::Metadata;
+use crate::entity::{ArrowComponent, FallingBlockComponent};
 use crate::entity::{EntitySpawnEvent, EntityType, PositionComponent, VelocityComponent};
 use crate::util::Util;
 use crate::{TickCount, TPS};
 use crossbeam::queue::SegQueue;
+use feather_blocks::Block;
 use feather_core::{ItemStack, Position};
 use glm::DVec3;
 use shrev::EventChannel;
@@ -79,6 +80,24 @@ impl Spawner {
 
         self.queue.push(request);
     }
+
+    pub fn spawn_falling_block(&self, position: Position, velocity: DVec3, block: Block) {
+        let meta = {
+            let mut meta_falling_block = crate::entity::metadata::FallingBlock::default();
+            meta_falling_block.set_spawn_position(position.block_pos());
+            Metadata::FallingBlock(meta_falling_block)
+        };
+        let request = SpawnRequest {
+            ty: EntityType::FallingBlock,
+            position,
+            velocity,
+            meta,
+
+            extra: Extra::FallingBlock(block),
+        };
+
+        self.queue.push(request);
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -95,6 +114,7 @@ struct SpawnRequest {
 enum Extra {
     Item(ItemStack),
     Arrow,
+    FallingBlock(Block),
 }
 
 /// System for spawning queued requests in the `Spawner`.
@@ -109,6 +129,7 @@ impl<'a> System<'a> for SpawnerSystem {
         WriteStorage<'a, EntityType>,
         WriteStorage<'a, ItemComponent>,
         WriteStorage<'a, ArrowComponent>,
+        WriteStorage<'a, FallingBlockComponent>,
         Write<'a, EventChannel<EntitySpawnEvent>>,
         Read<'a, TickCount>,
         Entities<'a>,
@@ -123,6 +144,7 @@ impl<'a> System<'a> for SpawnerSystem {
             mut types,
             mut item_markers,
             mut arrow_markers,
+            mut falling_block_markers,
             mut spawn_events,
             tick,
             entities,
@@ -160,6 +182,19 @@ impl<'a> System<'a> for SpawnerSystem {
                 }
                 EntityType::Arrow => {
                     arrow_markers.insert(entity, ArrowComponent {}).unwrap();
+                }
+                EntityType::FallingBlock => {
+                    falling_block_markers
+                        .insert(
+                            entity,
+                            FallingBlockComponent {
+                                block: match request.extra {
+                                    Extra::FallingBlock(block) => block,
+                                    _ => unreachable!(),
+                                },
+                            },
+                        )
+                        .unwrap();
                 }
                 _ => unimplemented!(),
             }

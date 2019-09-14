@@ -1,7 +1,8 @@
+use crate::blocks::{BlockUpdateCause, BlockUpdateEvent};
 use crate::disconnect_player;
 use crate::entity::PlayerComponent;
 use crate::network::PacketQueue;
-use crate::player::{BlockUpdateCause, BlockUpdateEvent, InventoryComponent, InventoryUpdateEvent};
+use crate::player::{InventoryComponent, InventoryUpdateEvent};
 use crate::prelude::Gamemode;
 use feather_core::inventory::SLOT_HOTBAR_OFFSET;
 use feather_core::network::cast_packet;

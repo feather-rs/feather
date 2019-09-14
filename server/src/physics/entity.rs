@@ -1,7 +1,7 @@
 //! Module for performing entity physics, including velocity, drag
 //! and position updates each tick.
 
-use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
+use specs::{Entities, Entity, Join, Read, ReadStorage, System, Write, WriteStorage};
 
 use crate::entity::{EntityDestroyEvent, EntityType, PositionComponent, VelocityComponent};
 use crate::physics::{block_impacted_by_ray, blocks_intersecting_bbox, BoundingBoxComponent, Side};
@@ -9,6 +9,12 @@ use feather_core::world::ChunkMap;
 use feather_core::Position;
 use feather_core::{Block, BlockExt};
 use shrev::EventChannel;
+
+#[derive(Debug, Clone)]
+pub struct EntityPhysicsLandEvent {
+    pub entity: Entity,
+    pub pos: Position,
+}
 
 /// System for updating all entities' positions and velocities
 /// each tick.
@@ -21,6 +27,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         ReadStorage<'a, BoundingBoxComponent>,
         ReadStorage<'a, EntityType>,
         Write<'a, EventChannel<EntityDestroyEvent>>,
+        Write<'a, EventChannel<EntityPhysicsLandEvent>>,
         Read<'a, ChunkMap>,
         Entities<'a>,
     );
@@ -32,6 +39,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             bounding_boxes,
             types,
             mut entity_destroy_events,
+            mut entity_land_events,
             chunk_map,
             entities,
         ) = data;
@@ -139,6 +147,12 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 Some(block) => block.is_solid(),
                 None => false,
             };
+            if pending_position.on_ground && !position.current.on_ground {
+                entity_land_events.single_write(EntityPhysicsLandEvent {
+                    entity,
+                    pos: pending_position,
+                });
+            }
 
             // Apply drag and gravity.
             let gravity = gravitational_acceleration(*ty);
@@ -196,7 +210,7 @@ fn slip_multiplier(ty: EntityType) -> f64 {
 fn gravitational_acceleration(ty: EntityType) -> f64 {
     if ty.is_living() {
         -0.08
-    } else if ty.is_item() {
+    } else if ty.is_item() || ty == EntityType::FallingBlock {
         -0.04
     } else if ty.is_arrow() {
         -0.05
@@ -221,7 +235,7 @@ fn terminal_velocity(ty: EntityType) -> f32 {
 
 /// Retrieves the drag force for a given entity type.
 fn drag_force(ty: EntityType) -> f64 {
-    if ty.is_living() || ty.is_item() {
+    if ty.is_living() || ty.is_item() || ty == EntityType::FallingBlock {
         0.98
     } else if ty.is_arrow() {
         0.99

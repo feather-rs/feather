@@ -14,8 +14,8 @@ use shrev::EventChannel;
 use smallvec::SmallVec;
 use specs::storage::ComponentEvent;
 use specs::{
-    BitSet, Component, Entities, Entity, Join, Read, ReadStorage, ReaderId, System, SystemData,
-    VecStorage, World, Write, WriteStorage,
+    BitSet, Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, ReaderId,
+    System, SystemData, World, Write, WriteStorage,
 };
 
 /// Component for item entitties.
@@ -27,7 +27,7 @@ pub struct ItemComponent {
 }
 
 impl Component for ItemComponent {
-    type Storage = VecStorage<Self>;
+    type Storage = DenseVecStorage<Self>;
 }
 
 /// System for spawning an item entity when

@@ -100,6 +100,12 @@ impl IntoMetaEntry for OptUuid {
     }
 }
 
+impl IntoMetaEntry for BlockPosition {
+    fn into_meta_entry(&self) -> MetaEntry {
+        MetaEntry::Position(*self)
+    }
+}
+
 #[derive(Clone)]
 pub struct EntityMetadata {
     values: HashMap<u8, MetaEntry>,

@@ -58,6 +58,7 @@ fn bbox_for_type(ty: EntityType) -> Option<AABB<f64>> {
         EntityType::Item => Some(bbox(0.25, 0.25)),
         EntityType::Player => Some(bbox(0.6, 1.7)),
         EntityType::Arrow | EntityType::TippedArrow => Some(bbox(0.5, 0.5)),
+        EntityType::FallingBlock => Some(bbox(0.98, 0.98)),
         _ => None,
     }
 }
