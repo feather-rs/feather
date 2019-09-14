@@ -1,5 +1,5 @@
 use feather_blocks::Block;
-use specs::{Component, VecStorage};
+use specs::{Component, DenseVecStorage};
 
 /// Component for falling block entities.
 pub struct FallingBlockComponent {
@@ -15,5 +15,5 @@ impl Default for FallingBlockComponent {
 }
 
 impl Component for FallingBlockComponent {
-    type Storage = VecStorage<Self>;
+    type Storage = DenseVecStorage<Self>;
 }

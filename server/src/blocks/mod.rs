@@ -9,6 +9,20 @@ use feather_blocks::Block;
 use feather_core::world::{BlockPosition, ChunkMap};
 
 use crate::systems::{BLOCK_FALLING_CREATION, BLOCK_UPDATE_PROPAGATE};
+use hashbrown::HashSet;
+
+lazy_static! {
+    /// List of block types that need to be notified
+    /// of adjacent block updates.
+    static ref BLOCKS_TO_NOTIFY: HashSet<Block> = {
+        let mut set = HashSet::new();
+        // Falling blocks
+        set.insert(Block::Sand);
+        set.insert(Block::RedSand);
+        set.insert(Block::Gravel);
+        set
+    };
+}
 
 /// Event triggered when a block is updated.
 ///
@@ -74,17 +88,14 @@ impl<'a> System<'a> for BlockUpdatePropagateSystem {
                         adjacent.x += x;
                         adjacent.y += y;
                         adjacent.z += z;
-                        let block: Option<Block> = chunk_map.block_at(adjacent);
+                        let block = chunk_map.block_at(adjacent);
                         if let Some(block) = block {
-                            match block {
-                                Block::Sand | Block::RedSand | Block::Gravel => {
-                                    notify_events.push(BlockNotifyEvent {
-                                        block,
-                                        pos: adjacent,
-                                        notified_by: event.pos,
-                                    });
-                                }
-                                _ => (),
+                            if BLOCKS_TO_NOTIFY.contains(&block) {
+                                notify_events.push(BlockNotifyEvent {
+                                    block,
+                                    pos: adjacent,
+                                    notified_by: event.pos,
+                                });
                             }
                         }
                     }
