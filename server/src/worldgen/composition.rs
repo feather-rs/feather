@@ -180,7 +180,7 @@ mod tests {
             assert_eq!(chunk.block_at(x, y, z), Block::Stone);
         }
 
-        for y in 29..=32 {
+        for y in 29..=31 {
             assert_eq!(chunk.block_at(x, y, z), Block::Dirt);
         }
 

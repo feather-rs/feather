@@ -108,7 +108,7 @@ impl VoronoiGrid {
                 let pos_y = cell_y * self.length as i32;
 
                 let mut rng = XorShiftRng::seed_from_u64(
-                    self.seed ^ (((cell_x as i64) << 32) | (cell_y as i64)) as u64,
+                    self.seed ^ (((i64::from(cell_x)) << 32) | (i64::from(cell_y))) as u64,
                 );
                 let offset = rng.gen_range(-half_length, half_length);
 

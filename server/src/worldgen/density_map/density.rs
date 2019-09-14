@@ -150,15 +150,15 @@ fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> V
 lazy_static! {
     /// Elevation height field, used to weight
     /// the averaging of nearby biome heights.
-    static ref ELEVATION_WEIGHT: [[f32; 20]; 20] = {
-        let mut array = [[0.0; 20]; 20];
-        for x in 0..20 {
-            for z in 0..20 {
-                let mut x_squared = x - 4;
+    static ref ELEVATION_WEIGHT: [[f32; 19]; 19] = {
+        let mut array = [[0.0; 19]; 19];
+        for (x, values) in array.iter_mut().enumerate() {
+            for (z, value) in values.iter_mut().enumerate() {
+                let mut x_squared = x - 9;
                 x_squared *= x_squared;
-                let mut z_sqaured = z - 4;
+                let mut z_sqaured = z - 9;
                 z_sqaured *= z_sqaured;
-                array[x][z] = 10.0 / (x_squared as f32 + z_sqaured as f32 + 0.2).sqrt();
+                *value = 10.0 / (x_squared as f32 + z_sqaured as f32 + 0.2).sqrt();
             }
         }
         array

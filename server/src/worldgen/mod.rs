@@ -252,6 +252,7 @@ pub fn block_index(x: usize, y: usize, z: usize) -> usize {
 }
 
 /// Represents the highest solid blocks in a chunk.
+#[derive(Default)]
 pub struct TopBlocks {
     top_blocks: Vec<u8>,
 }
@@ -304,12 +305,24 @@ impl NearbyBiomes {
         self.biomes[index].set_biome_at(local_x, local_z, biome);
     }
 
-    fn index<N: ToPrimitive>(&self, x: N, z: N) -> (usize, usize, usize) {
-        let chunk_x = (x.to_isize().unwrap() / 16 + 1) as usize;
-        let chunk_z = (z.to_isize().unwrap() / 16 + 1) as usize;
+    fn index<N: ToPrimitive>(&self, ox: N, oz: N) -> (usize, usize, usize) {
+        let ox = ox.to_isize().unwrap();
+        let oz = oz.to_isize().unwrap();
+        let x = ox + 16;
+        let z = oz + 16;
 
-        let local_x = (x.to_isize().unwrap() % 16).abs() as usize;
-        let local_z = (z.to_isize().unwrap() % 16).abs() as usize;
+        let chunk_x = (x / 16) as usize;
+        let chunk_z = (z / 16) as usize;
+
+        let mut local_x = (ox % 16).abs() as usize;
+        let mut local_z = (oz % 16).abs() as usize;
+
+        if ox < 0 {
+            local_x = 16 - local_x;
+        }
+        if oz < 0 {
+            local_z = 16 - local_z;
+        }
 
         (chunk_x + chunk_z * 3, local_x, local_z)
     }
@@ -418,5 +431,26 @@ mod tests {
                 assert_eq!(biomes.biome_at(x, z), Biome::Plains);
             }
         }
+    }
+
+    #[test]
+    fn test_nearby_biomes() {
+        let biomes = vec![
+            ChunkBiomes::from_array([Biome::Plains; 256]),
+            ChunkBiomes::from_array([Biome::Swamp; 256]),
+            ChunkBiomes::from_array([Biome::Savanna; 256]),
+            ChunkBiomes::from_array([Biome::BirchForest; 256]),
+            ChunkBiomes::from_array([Biome::DarkForest; 256]),
+            ChunkBiomes::from_array([Biome::Mountains; 256]),
+            ChunkBiomes::from_array([Biome::Ocean; 256]),
+            ChunkBiomes::from_array([Biome::Desert; 256]),
+            ChunkBiomes::from_array([Biome::Taiga; 256]),
+        ];
+        let biomes = NearbyBiomes::from_vec(biomes);
+
+        assert_eq!(biomes.biome_at(0, 0), Biome::DarkForest);
+        assert_eq!(biomes.biome_at(16, 16), Biome::Taiga);
+        assert_eq!(biomes.biome_at(-1, -1), Biome::Plains);
+        assert_eq!(biomes.biome_at(-1, 0), Biome::BirchForest);
     }
 }
