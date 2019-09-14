@@ -676,6 +676,7 @@ dependencies = [
  "nalgebra 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra-glm 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "ncollide3d 0.20.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num-bigint-dig 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-derive 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "parking_lot 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
