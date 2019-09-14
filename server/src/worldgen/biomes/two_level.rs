@@ -28,7 +28,7 @@ impl BiomeGenerator for TwoLevelBiomeGenerator {
         // Voronoi used to determine biome group
         let mut group_voronoi = VoronoiGrid::new(1024, seed);
         // Voronoi used to determine biome within group
-        let mut local_voronoi = VoronoiGrid::new(384, seed + 1);
+        let mut local_voronoi = VoronoiGrid::new(256, seed + 1);
 
         let mut biomes = ChunkBiomes::from_array([Biome::Plains; 16 * 16]); // Will be overridden
 

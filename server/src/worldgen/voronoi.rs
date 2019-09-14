@@ -2,7 +2,6 @@
 
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
-use simdnoise::NoiseBuilder;
 
 /// Position of a cell.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -25,7 +24,8 @@ struct SeedPos {
 /// # Implementation
 /// This Voronoi implementation works using a grid with jitter
 /// offsets. A seed is allocated for each cell in the grid with
-/// a random offset from the center of the cell based on Perlin noise.
+/// a random offset from the center of the cell based on a hash
+/// function of the cell position.
 ///
 /// This allows the grid to be deterministic and efficient compared
 /// to when using random cell positions.
@@ -83,7 +83,7 @@ impl VoronoiGrid {
         (closest_seed.x, closest_seed.y)
     }
 
-    /// Updates the currently cached cell positions.
+    /// Updates the currently cached seed positions.
     ///
     /// If the given cell position is equal to the cached
     /// cell position, this is a no-op.
@@ -94,31 +94,24 @@ impl VoronoiGrid {
 
         self.cached = cell;
 
-        let offset_x = cell.x - 2;
-        let offset_y = cell.y - 2;
-
-        // Pre-compute 5x5 grid of noise to take advantage of SIMD.
-        let half_length = self.length as f32 / 2.0;
-        let mut noise = NoiseBuilder::gradient_2d_offset(
-            offset_x as f32 * self.length as f32,
-            5,
-            offset_y as f32 * self.length as f32,
-            5,
-        )
-        .with_seed(self.seed as i32)
-        .generate()
-        .0;
-
-        noise.iter_mut().for_each(|x| *x *= 100.0 * half_length);
+        let half_length = (self.length / 2) as i32;
 
         for x in -2..=2 {
             for y in -2..=2 {
                 // Calculate center of grid position and then
-                // apply an offset based on the noise.
-                let pos_x = (cell.x + x) * self.length as i32;
-                let pos_y = (cell.y + y) * self.length as i32;
+                // apply an offset based on a hash of the cell position.
 
-                let offset = noise[((y + 2) as usize * 5) + (x + 2) as usize] as i32;
+                let cell_x = cell.x + x;
+                let cell_y = cell.y + y;
+
+                let pos_x = cell_x * self.length as i32;
+                let pos_y = cell_y * self.length as i32;
+
+                let mut rng = XorShiftRng::seed_from_u64(
+                    self.seed ^ (((cell_x as i64) << 32) | (cell_y as i64)) as u64,
+                );
+                let offset = rng.gen_range(-half_length, half_length);
+
                 let center_x = pos_x + half_length as i32;
                 let center_y = pos_y + half_length as i32;
 
