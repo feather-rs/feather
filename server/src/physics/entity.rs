@@ -43,7 +43,6 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             chunk_map,
             entities,
         ) = data;
-
         // Go through entities and update their positions according
         // to their velocities.
 

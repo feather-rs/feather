@@ -2,7 +2,6 @@
 // tuples as their SystemData, and Clippy
 // doesn't seem to like this.
 #![allow(clippy::type_complexity)]
-#![forbid(unsafe_code)]
 
 #[macro_use]
 extern crate log;
@@ -26,7 +25,8 @@ extern crate feather_codegen;
 extern crate bitflags;
 #[macro_use]
 extern crate feather_core;
-extern crate feather_blocks;
+#[macro_use]
+extern crate bitvec;
 
 extern crate nalgebra_glm as glm;
 
@@ -46,7 +46,9 @@ use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
 use crate::systems::{BROADCASTER, ITEM_SPAWN, JOIN_HANDLER, NETWORK, PLAYER_INIT, SPAWNER};
 use crate::util::Util;
-use crate::worldgen::{EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator};
+use crate::worldgen::{
+    ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
+};
 use backtrace::Backtrace;
 use feather_core::level;
 use feather_core::level::{LevelData, LevelGeneratorType};
@@ -258,6 +260,9 @@ fn init_world<'a, 'b>(
         LevelGeneratorType::Flat => Arc::new(SuperflatWorldGenerator {
             options: level.clone().generator_options.unwrap_or_default(),
         }),
+        LevelGeneratorType::Default => {
+            Arc::new(ComposableGenerator::default_with_seed(level.seed as u64))
+        }
         _ => Arc::new(EmptyWorldGenerator {}),
     };
     world.insert(level);

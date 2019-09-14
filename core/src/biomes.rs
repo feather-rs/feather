@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, FromPrimitive, ToPrimitive)]
 pub enum Biome {
     Badlands,
     BadlandsPlateau,
