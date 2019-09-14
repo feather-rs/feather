@@ -26,7 +26,7 @@ use crate::chunk_logic::{
 use crate::config::Config;
 use crate::entity::PositionComponent;
 use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue};
-use crate::{disconnect_player, TickCount, TPS};
+use crate::{TickCount, TPS};
 
 // MOVEMENT HANDLING
 
@@ -35,14 +35,10 @@ use crate::{disconnect_player, TickCount, TPS};
 pub struct PlayerMovementSystem;
 
 impl<'a> System<'a> for PlayerMovementSystem {
-    type SystemData = (
-        WriteStorage<'a, PositionComponent>,
-        Read<'a, PacketQueue>,
-        Read<'a, LazyUpdate>,
-    );
+    type SystemData = (WriteStorage<'a, PositionComponent>, Read<'a, PacketQueue>);
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut positions, packet_queue, lazy) = data;
+        let (mut positions, packet_queue) = data;
 
         // Take movement packets
         let mut packets = vec![];
@@ -56,12 +52,6 @@ impl<'a> System<'a> for PlayerMovementSystem {
 
             // Get position using packet and old position
             let new_pos = new_pos_from_packet(position.previous, packet);
-
-            // Check that player didn't move too far
-            if position.previous.distance_squared(new_pos) > 144.0 {
-                disconnect_player(player, "You moved too fast!".to_string(), &lazy);
-                continue;
-            }
 
             // Set new position
             positions.get_mut(player).unwrap().current = new_pos;
