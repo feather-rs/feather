@@ -1,14 +1,16 @@
 mod falling;
+mod supported;
 
 pub use falling::FallingBlockCreationSystem;
 
 use shrev::{EventChannel, ReaderId};
 use specs::{DispatcherBuilder, Entity, Read, System, Write};
 
-use feather_blocks::Block;
+use feather_blocks::{Block, BlockExt};
 use feather_core::world::{BlockPosition, ChunkMap};
 
-use crate::systems::{BLOCK_FALLING_CREATION, BLOCK_UPDATE_PROPAGATE};
+use crate::blocks::supported::SupportBlockBreakSystem;
+use crate::systems::{BLOCK_FALLING_CREATION, BLOCK_SUPPORTED_BREAK, BLOCK_UPDATE_PROPAGATE};
 use hashbrown::HashSet;
 
 lazy_static! {
@@ -47,6 +49,9 @@ pub enum BlockUpdateCause {
     Player(Entity),
     /// Indicates that a falling block updated the block.
     FallingBlock,
+    /// Indicates that a block was broken because the support
+    /// underneath was destroyed.
+    SupportDestroyed,
     /// A test block update caused, used for unit testing.
     Test,
 }
@@ -90,7 +95,11 @@ impl<'a> System<'a> for BlockUpdatePropagateSystem {
                         adjacent.z += z;
                         let block = chunk_map.block_at(adjacent);
                         if let Some(block) = block {
-                            if BLOCKS_TO_NOTIFY.contains(&block) {
+                            // TODO: clean up block.is_solid() check, which is
+                            // needed for supported block destruction
+                            if BLOCKS_TO_NOTIFY.contains(&block)
+                                || (block != Block::Air && !block.is_solid())
+                            {
                                 notify_events.push(BlockNotifyEvent {
                                     block,
                                     pos: adjacent,
@@ -123,6 +132,11 @@ pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(
         FallingBlockCreationSystem::default(),
         BLOCK_FALLING_CREATION,
+        &[BLOCK_UPDATE_PROPAGATE],
+    );
+    dispatcher.add(
+        SupportBlockBreakSystem::default(),
+        BLOCK_SUPPORTED_BREAK,
         &[BLOCK_UPDATE_PROPAGATE],
     );
 }

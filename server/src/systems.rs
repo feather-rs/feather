@@ -32,6 +32,7 @@ pub const RESOURCE_PACK_SEND: &str = "resource_pack_send";
 pub const CHUNK_SEND: &str = "chunk_send";
 pub const BLOCK_BREAK_BROADCAST: &str = "block_break_broadcast";
 pub const BLOCK_UPDATE_PROPAGATE: &str = "block_update_propagate";
+pub const BLOCK_SUPPORTED_BREAK: &str = "block_supported_break";
 pub const BLOCK_FALLING_CREATION: &str = "block_falling_creation";
 pub const SET_SLOT: &str = "set_slot";
 pub const CHAT_BROADCAST: &str = "chat_broadcast";
