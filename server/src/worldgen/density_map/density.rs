@@ -154,9 +154,9 @@ lazy_static! {
         let mut array = [[0.0; 19]; 19];
         for (x, values) in array.iter_mut().enumerate() {
             for (z, value) in values.iter_mut().enumerate() {
-                let mut x_squared = x - 9;
+                let mut x_squared = x as i32 - 9;
                 x_squared *= x_squared;
-                let mut z_sqaured = z - 9;
+                let mut z_sqaured = z as i32 - 9;
                 z_sqaured *= z_sqaured;
                 *value = 10.0 / (x_squared as f32 + z_sqaured as f32 + 0.2).sqrt();
             }

@@ -395,6 +395,39 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_reproducability() {
+        let seeds: [u64; 4] = [std::u64::MAX, 3243, 0, 100];
+
+        let chunks = [
+            ChunkPosition::new(0, 0),
+            ChunkPosition::new(-1, -1),
+            ChunkPosition::new(1, 1),
+        ];
+
+        for seed in seeds.iter() {
+            let gen = ComposableGenerator::default_with_seed(*seed);
+            for chunk in chunks.iter() {
+                let first = gen.generate_chunk(*chunk);
+
+                let second = gen.generate_chunk(*chunk);
+
+                test_chunks_eq(&first, &second);
+            }
+        }
+    }
+
+    fn test_chunks_eq(a: &Chunk, b: &Chunk) {
+        for x in 0..16 {
+            for z in 0..16 {
+                assert_eq!(a.biome_at(x, z), b.biome_at(x, z));
+                for y in 0..256 {
+                    assert_eq!(a.block_at(x, y, z), b.block_at(x, y, z));
+                }
+            }
+        }
+    }
+
+    #[test]
     pub fn test_worldgen_empty() {
         let chunk_pos = ChunkPosition { x: 1, z: 2 };
         let generator = EmptyWorldGenerator {};
