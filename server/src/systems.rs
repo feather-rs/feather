@@ -31,6 +31,8 @@ pub const EQUIPMENT_SEND: &str = "equipment_send";
 pub const RESOURCE_PACK_SEND: &str = "resource_pack_send";
 pub const CHUNK_SEND: &str = "chunk_send";
 pub const BLOCK_BREAK_BROADCAST: &str = "block_break_broadcast";
+pub const BLOCK_UPDATE_PROPAGATE: &str = "block_update_propagate";
+pub const BLOCK_FALLING_CREATION: &str = "block_falling_creation";
 pub const SET_SLOT: &str = "set_slot";
 pub const CHAT_BROADCAST: &str = "chat_broadcast";
 
@@ -51,6 +53,7 @@ pub const ENTITY_SEND: &str = "entity_send";
 pub const ENTITY_VELOCITY_BROADCAST: &str = "entity_velocity_broadcast";
 pub const ENTITY_DESTROY_BROADCAST: &str = "entity_destroy_broadcast";
 pub const ENTITY_METADATA_BROADCAST: &str = "entity_metadata_broadcast";
+pub const BLOCK_FALLING_LANDING: &str = "block_falling_landing";
 
 // Physics
 pub const ENTITY_PHYSICS: &str = "entity_physics";

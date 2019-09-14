@@ -12,9 +12,10 @@ use feather_core::network::packet::implementation::{
 };
 use feather_core::network::packet::PacketType;
 use feather_core::world::block::{Block, BlockExt};
-use feather_core::world::{BlockPosition, ChunkMap};
+use feather_core::world::ChunkMap;
 use feather_core::{Gamemode, Item, Position};
 
+use crate::blocks::{BlockUpdateCause, BlockUpdateEvent};
 use crate::disconnect_player;
 use crate::entity::{PlayerComponent, PositionComponent, ShootArrowEvent};
 use crate::network::PacketQueue;
@@ -23,31 +24,6 @@ use crate::util::Util;
 use feather_core::inventory::{ItemStack, SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use shrev::EventChannel;
 use specs::SystemData;
-
-/// Event triggered when a block is updated.
-///
-/// This event is triggered *after* the block is updated
-/// in the chunk map.
-#[derive(Debug, Clone)]
-pub struct BlockUpdateEvent {
-    /// The cause of this block update event.
-    pub cause: BlockUpdateCause,
-    /// The location of the block which was broken.
-    pub pos: BlockPosition,
-    /// The block which was previously at the position.
-    pub old_block: Block,
-    /// The new block at the position.
-    pub new_block: Block,
-}
-
-/// The possible causes of a block update event.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum BlockUpdateCause {
-    /// Indicates that a player updated the block.
-    Player(Entity),
-    /// A test block update caused, used for unit testing.
-    Test,
-}
 
 /// Event triggered when a player drops an item.
 ///
@@ -396,10 +372,11 @@ impl<'a> System<'a> for BlockUpdateBroadcastSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::blocks::BlockUpdateEvent;
     use crate::testframework as t;
     use feather_core::item::Item;
     use feather_core::world::chunk::Chunk;
-    use feather_core::world::ChunkPosition;
+    use feather_core::world::{BlockPosition, ChunkPosition};
     use specs::WorldExt;
 
     #[test]

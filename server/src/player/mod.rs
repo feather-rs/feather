@@ -32,9 +32,8 @@ pub use movement::{
 
 pub use animation::PlayerAnimationEvent;
 
+pub use digging::PlayerItemDropEvent;
 pub use inventory::{InventoryComponent, InventoryUpdateEvent};
-
-pub use digging::{BlockUpdateCause, BlockUpdateEvent, PlayerItemDropEvent};
 
 use crate::player::inventory::SetSlotSystem;
 use crate::player::placement::BlockPlacementSystem;
