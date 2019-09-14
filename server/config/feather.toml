@@ -22,7 +22,7 @@ max_players = 16
 default_gamemode = "survival"
 difficulty = "none" # Unimplemented
 view_distance = 6
-address = "127.0.0.1"
+address = "0.0.0.0"
 port = 25565
 
 [gameplay]

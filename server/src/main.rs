@@ -234,7 +234,9 @@ fn init_io_manager(
     server_icon: Arc<Option<String>>,
 ) -> io::NetworkIoManager {
     io::NetworkIoManager::start(
-        format!("127.0.0.1:{}", config.server.port).parse().unwrap(),
+        format!("{}:{}", config.server.address, config.server.port)
+            .parse()
+            .unwrap(),
         config.io.io_worker_threads,
         config,
         player_count,
