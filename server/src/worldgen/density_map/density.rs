@@ -95,7 +95,13 @@ fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> V
             .with_freq(0.2)
             .generate()
             .0;
-    // TODO: additional 2D height noise
+    // Additional 2D height noise for extra detail.
+    let height_noise = NoiseBuilder::fbm_2d_offset(x_offset, len, z_offset, len)
+        .with_seed(noise_seed + 3)
+        .with_octaves(2)
+        .with_freq(0.001)
+        .generate()
+        .0;
 
     let mut result = vec![0.0; DENSITY_WIDTH * DENSITY_HEIGHT * DENSITY_WIDTH];
 
@@ -104,6 +110,8 @@ fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> V
         for subz in 0..DENSITY_WIDTH {
             // TODO: average nearby biome parameters
             let (amplitude, midpoint) = column_parameters(&biomes, subx, subz);
+
+            let height = height_noise[(subz * len) + subx] * 25.0;
 
             // Loop through Y axis of this subchunk column.
             for suby in 0..DENSITY_HEIGHT {
@@ -131,7 +139,7 @@ fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> V
                 let density_2 = density_noise_2[index] * 50.0;
 
                 // Average between two density values based on choice weight.
-                result[index] = lerp(density_1, density_2, choice) + height_offset;
+                result[index] = lerp(density_1, density_2, choice) + height_offset + height;
             }
         }
     }
