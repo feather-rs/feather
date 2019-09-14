@@ -21,7 +21,7 @@ use feather_core::network::packet::implementation::SpawnObject;
 use feather_core::network::packet::implementation::{PacketEntityMetadata, SpawnPlayer};
 use feather_core::Packet;
 use shrev::EventChannel;
-use specs::{Entity, Read, ReadStorage, ReaderId, System, Write, WriteStorage};
+use specs::{Entities, Entity, Read, ReadStorage, ReaderId, System, Write, WriteStorage};
 use uuid::Uuid;
 
 /// Handles lazy sending of entities to a client.
@@ -74,6 +74,7 @@ impl<'a> System<'a> for EntitySendSystem {
         Write<'a, EventChannel<EntitySendEvent>>,
         Read<'a, EntitySender>,
         ReadStorage<'a, FallingBlockComponent>,
+        Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -87,9 +88,14 @@ impl<'a> System<'a> for EntitySendSystem {
             mut send_events,
             entity_sender,
             falling_blocks,
+            entities,
         ) = data;
 
         while let Ok(request) = entity_sender.queue.pop() {
+            if !entities.is_alive(request.entity) {
+                continue; // Entity was destroyed
+            }
+
             let ty = types.get(request.entity).unwrap();
             let metadata = metadatas.get_mut(request.entity).unwrap();
             let position = positions.get(request.entity).unwrap();
