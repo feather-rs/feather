@@ -8,3 +8,4 @@ mod tree;
 pub use clumped::ClumpedFoliageFinisher;
 pub use single::SingleFoliageFinisher;
 pub use snow::SnowFinisher;
+pub use tree::TreeFinisher;

@@ -9,13 +9,18 @@ mod biomes;
 mod composition;
 mod density_map;
 mod finishers;
-pub mod noise;
-pub mod schematic;
+
 mod superflat;
+
+pub mod noise;
+pub mod presence;
+pub mod schematic;
 mod util;
 pub mod voronoi;
 
-use crate::worldgen::finishers::{ClumpedFoliageFinisher, SingleFoliageFinisher, SnowFinisher};
+use crate::worldgen::finishers::{
+    ClumpedFoliageFinisher, SingleFoliageFinisher, SnowFinisher, TreeFinisher,
+};
 pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
@@ -107,6 +112,7 @@ impl ComposableGenerator {
             Box::new(SnowFinisher::default()),
             Box::new(SingleFoliageFinisher::default()),
             Box::new(ClumpedFoliageFinisher::default()),
+            Box::new(TreeFinisher::default()),
         ];
         Self::new(
             TwoLevelBiomeGenerator::default(),
@@ -171,12 +177,7 @@ impl WorldGenerator for ComposableGenerator {
 
         // Finishers.
         for finisher in &self.finishers {
-            finisher.generate_for_chunk(
-                &mut chunk,
-                &biomes.biomes[4],
-                &top_blocks,
-                seed_shuffler.gen(),
-            );
+            finisher.generate_for_chunk(&mut chunk, &biomes, &top_blocks, seed_shuffler.gen());
         }
 
         // TODO: correct lighting.

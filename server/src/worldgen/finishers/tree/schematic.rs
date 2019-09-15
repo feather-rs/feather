@@ -6,7 +6,7 @@ use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
 
 /// Generates a tree with the given type and seed.
-pub fn generate_tree<R: Rng>(ty: TreeType, seed: u64) -> Schematic {
+pub fn generate_tree(ty: TreeType, seed: u64) -> Schematic {
     let mut rng = XorShiftRng::seed_from_u64(seed);
     match ty {
         TreeType::Oak => generate_oak(&mut rng),
