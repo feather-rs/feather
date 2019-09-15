@@ -26,7 +26,7 @@ impl DensityMapGenerator for HeightMapGenerator {
             .with_seed(seed as i32 + 1)
             .generate();
 
-        let mut density_map = bitvec![0; 16 * 256 * 16];
+        let mut density_map = BitVec::from_vec(vec![0u8; 16 * 256 * 16 / 8]);
         for x in 0..16 {
             for z in 0..16 {
                 let biome = biomes.biome_at(x, z);

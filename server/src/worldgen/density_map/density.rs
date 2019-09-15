@@ -25,7 +25,7 @@ pub struct DensityMapGeneratorImpl;
 
 impl DensityMapGenerator for DensityMapGeneratorImpl {
     fn generate_for_chunk(&self, chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> BitVec {
-        let mut density = bitvec![0; 16 * 256 * 16];
+        let mut density = BitVec::from_vec(vec![0u8; 16 * 256 * 16 / 8]);
 
         let uninterpolated_densities = generate_density(chunk, &biomes, seed);
         let noise = NoiseLerper::new(&uninterpolated_densities)
