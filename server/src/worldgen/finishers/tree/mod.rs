@@ -8,7 +8,7 @@ use crate::worldgen::util::shuffle_seed_for_column;
 use crate::worldgen::{FinishingGenerator, NearbyBiomes, TopBlocks};
 use feather_core::{Biome, Chunk, ChunkPosition};
 use rand::distributions::{Distribution, WeightedIndex};
-use rand::{Rng, SeedableRng};
+use rand::{Rng, RngCore, SeedableRng};
 use rand_xorshift::XorShiftRng;
 use std::cmp;
 use std::convert::TryFrom;
@@ -29,7 +29,7 @@ impl FinishingGenerator for TreeFinisher {
         // Presence grid for trees.
         // We set values to `true` for
         // any column in which a tree will be generated.
-        let mut tree_presences = PresenceGrid::new();
+        //let mut tree_presences = PresenceGrid::new();
 
         // Compute presence of trees for each column within this chunk
         // and the 6 columns bordering it on each side. For columns with
@@ -43,11 +43,11 @@ impl FinishingGenerator for TreeFinisher {
                 let params = params_for_biome(biome);
 
                 if compute_presence_for_column(chunk.position(), &params, x, z, seed) {
-                    if tree_presences.is_presence_within(x, z, params.spread) {
+                    /*if tree_presences.is_presence_within(x, z, params.spread) {
                         continue;
                     }
 
-                    tree_presences.set_presence_at(x, z, true);
+                    tree_presences.set_presence_at(x, z, true);*/
 
                     let column_seed = column_seed(seed, chunk.position(), x, z);
                     let mut rng = XorShiftRng::seed_from_u64(column_seed);
@@ -89,21 +89,10 @@ fn compute_presence_for_column(
 }
 
 fn column_seed(seed: u64, center_chunk: ChunkPosition, column_x: isize, column_z: isize) -> u64 {
-    let chunk = ChunkPosition::new(
-        center_chunk.x + column_x as i32 / 16,
-        center_chunk.z + column_z as i32 / 16,
-    );
+    let abs_x = center_chunk.x * 16 + column_x as i32;
+    let abs_z = center_chunk.z * 16 + column_z as i32;
 
-    let mut local_x = column_x % 16;
-    let mut local_z = column_z % 16;
-    if column_x < 0 {
-        local_x = 16 - local_x;
-    }
-    if column_z < 0 {
-        local_z = 16 - column_z;
-    }
-
-    shuffle_seed_for_column(seed, chunk, local_x as usize, local_z as usize)
+    seed.wrapping_mul(((abs_x as u64) << 32) | abs_z as u64)
 }
 
 /// WeightedIndex for a biome's tree weights, with
@@ -160,7 +149,7 @@ fn params_for_biome(biome: Biome) -> TreeParams {
     match biome {
         Biome::Forest | Biome::DarkForest => TreeParams {
             frequency: 4.0,
-            spread: 4,
+            spread: 2,
             possible_trees: &WEIGHTS_FOREST,
         },
         _ => TreeParams::default(), // TODO
