@@ -10,6 +10,7 @@ mod composition;
 mod density_map;
 mod finishers;
 pub mod noise;
+pub mod schematic;
 mod superflat;
 mod util;
 pub mod voronoi;
