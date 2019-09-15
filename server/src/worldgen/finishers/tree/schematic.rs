@@ -39,7 +39,7 @@ fn generate_oak<R: Rng>(rng: &mut R) -> Schematic {
             for y in 0..2 {
                 let y = y + 3;
 
-                if x.abs() == 2 && z.abs() == 2 && rng.gen_bool(0.7) {
+                if x.abs() == 2 && z.abs() == 2 && rng.gen_bool(0.3) || x == 0 && z == 0 {
                     continue; // Variance in corner leaves
                 }
 

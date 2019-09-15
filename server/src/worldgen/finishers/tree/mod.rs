@@ -66,7 +66,7 @@ impl FinishingGenerator for TreeFinisher {
                     schematic.write_to_chunk(
                         chunk,
                         (chunk.position().x * 16) as isize + x,
-                        y as isize,
+                        y as isize + 1,
                         (chunk.position().z * 16) as isize + z,
                     );
                 }
