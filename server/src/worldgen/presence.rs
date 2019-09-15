@@ -1,4 +1,4 @@
-use bitvec::boxed::BitBox;
+use bitvec::vec::BitVec;
 
 /// A presence grid for a 3x3 area of chunks.
 ///
@@ -13,7 +13,7 @@ use bitvec::boxed::BitBox;
 pub struct PresenceGrid {
     /// Array of booleans with values set to `true` for
     /// each coordinate presence has been set.
-    grid: BitBox,
+    grid: BitVec,
 }
 
 impl PresenceGrid {
@@ -21,7 +21,7 @@ impl PresenceGrid {
     /// initialized to `false`.
     pub fn new() -> Self {
         Self {
-            grid: bitbox!(0; 16 * 256 * 16 * 9),
+            grid: BitVec::from_vec(vec![0u8; 16 * 16 * 9]),
         }
     }
 

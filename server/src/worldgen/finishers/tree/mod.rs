@@ -29,7 +29,7 @@ impl FinishingGenerator for TreeFinisher {
         // Presence grid for trees.
         // We set values to `true` for
         // any column in which a tree will be generated.
-        //let mut tree_presences = PresenceGrid::new();
+        let mut tree_presences = PresenceGrid::new();
 
         // Compute presence of trees for each column within this chunk
         // and the 6 columns bordering it on each side. For columns with
@@ -43,11 +43,11 @@ impl FinishingGenerator for TreeFinisher {
                 let params = params_for_biome(biome);
 
                 if compute_presence_for_column(chunk.position(), &params, x, z, seed) {
-                    /*if tree_presences.is_presence_within(x, z, params.spread) {
+                    if tree_presences.is_presence_within(x, z, params.spread) {
                         continue;
                     }
 
-                    tree_presences.set_presence_at(x, z, true);*/
+                    tree_presences.set_presence_at(x, z, true);
 
                     let column_seed = column_seed(seed, chunk.position(), x, z);
                     let mut rng = XorShiftRng::seed_from_u64(column_seed);
