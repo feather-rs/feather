@@ -67,7 +67,7 @@ pub struct Util {
 impl Util {
     /// Returns the thread-local bump allocator.
     pub fn bump(&self) -> &Bump {
-        self.bump.get_default()
+        self.bump.get_or_default()
     }
 
     /// Allocates a value using the bump allocator
