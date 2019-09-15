@@ -3,6 +3,7 @@
 mod clumped;
 mod single;
 mod snow;
+mod tree;
 
 pub use clumped::ClumpedFoliageFinisher;
 pub use single::SingleFoliageFinisher;

@@ -239,7 +239,7 @@ pub trait FinishingGenerator: Send + Sync {
     fn generate_for_chunk(
         &self,
         chunk: &mut Chunk,
-        biomes: &ChunkBiomes,
+        biomes: &NearbyBiomes,
         top_blocks: &TopBlocks,
         seed: u64,
     );

@@ -32,8 +32,8 @@ impl Schematic {
     /// and center offset.
     pub fn new(
         length: usize,
-        width: usize,
         height: usize,
+        width: usize,
         center_x: usize,
         center_y: usize,
         center_z: usize,
@@ -161,6 +161,48 @@ fn coords_within_chunk(ax: isize, az: isize, chunk: ChunkPosition) -> Option<(us
     }
 
     Some((offset_x as usize, offset_z as usize))
+}
+
+/// Builder construct for `Schematic`.
+#[derive(Default)]
+pub struct SchematicBuilder {
+    length: usize,
+    height: usize,
+    width: usize,
+    center_x: usize,
+    center_y: usize,
+    center_z: usize,
+}
+
+impl SchematicBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_dimensions(mut self, length: usize, height: usize, width: usize) -> Self {
+        self.length = length;
+        self.height = height;
+        self.width = width;
+        self
+    }
+
+    pub fn with_center(mut self, x: usize, y: usize, z: usize) -> Self {
+        self.center_x = x;
+        self.center_y = y;
+        self.center_z = z;
+        self
+    }
+
+    pub fn build(self) -> Schematic {
+        Schematic::new(
+            self.length,
+            self.height,
+            self.width,
+            self.center_x,
+            self.center_y,
+            self.center_z,
+        )
+    }
 }
 
 #[cfg(test)]

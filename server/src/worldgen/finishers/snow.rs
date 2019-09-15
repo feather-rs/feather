@@ -1,4 +1,4 @@
-use crate::worldgen::{ChunkBiomes, FinishingGenerator, TopBlocks};
+use crate::worldgen::{FinishingGenerator, NearbyBiomes, TopBlocks};
 use feather_blocks::{Block, SnowData};
 use feather_core::{Biome, Chunk};
 
@@ -10,7 +10,7 @@ impl FinishingGenerator for SnowFinisher {
     fn generate_for_chunk(
         &self,
         chunk: &mut Chunk,
-        biomes: &ChunkBiomes,
+        biomes: &NearbyBiomes,
         top_blocks: &TopBlocks,
         _seed: u64,
     ) {

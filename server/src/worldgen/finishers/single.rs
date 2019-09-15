@@ -1,5 +1,5 @@
 use crate::worldgen::util::shuffle_seed_for_chunk;
-use crate::worldgen::{ChunkBiomes, FinishingGenerator, TopBlocks};
+use crate::worldgen::{FinishingGenerator, NearbyBiomes, TopBlocks};
 use feather_blocks::{Block, WaterData};
 use feather_core::{Biome, Chunk};
 use rand::{Rng, SeedableRng};
@@ -13,7 +13,7 @@ impl FinishingGenerator for SingleFoliageFinisher {
     fn generate_for_chunk(
         &self,
         chunk: &mut Chunk,
-        biomes: &ChunkBiomes,
+        biomes: &NearbyBiomes,
         top_blocks: &TopBlocks,
         seed: u64,
     ) {
