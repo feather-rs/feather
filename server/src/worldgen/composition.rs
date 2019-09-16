@@ -157,10 +157,11 @@ fn underneath_top_soil_block(biome: Biome) -> Block {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bitvec::vec::BitVec;
 
     #[test]
     fn test_basic_composition_for_column() {
-        let mut density = bitvec![0; 16 * 256 * 16];
+        let mut density = BitVec::from_vec(vec![0u8; 16 * 256 * 16 / 8]);
 
         let x = 0;
         let z = 0;
