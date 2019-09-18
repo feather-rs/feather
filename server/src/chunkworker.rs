@@ -14,6 +14,7 @@ use feather_core::region::{RegionHandle, RegionPosition};
 use feather_core::world::chunk::Chunk;
 use feather_core::world::ChunkPosition;
 use hashbrown::HashMap;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -64,7 +65,7 @@ struct RegionFile {
 struct ChunkWorker {
     /// The directory in which the world
     /// resides
-    dir: String,
+    dir: PathBuf,
 
     /// Channel used to send chunks and errors
     /// back to the server thread
@@ -84,14 +85,14 @@ struct ChunkWorker {
 /// The returned channels can be used
 /// to communicate with the worker.
 pub fn start(
-    world_dir: &str,
+    world_dir: &Path,
     world_gen: Arc<dyn WorldGenerator>,
 ) -> (Sender<Request>, Receiver<Reply>) {
     let (request_tx, request_rx) = crossbeam::channel::unbounded();
     let (reply_tx, reply_rx) = crossbeam::channel::unbounded();
 
     let worker = ChunkWorker {
-        dir: world_dir.to_string(),
+        dir: world_dir.to_path_buf(),
         sender: reply_tx,
         receiver: request_rx,
         open_regions: HashMap::new(),

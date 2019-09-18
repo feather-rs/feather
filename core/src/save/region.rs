@@ -323,9 +323,9 @@ impl std::error::Error for Error {}
 /// This function does not actually load all the chunks
 /// in the region into memory; it only reads the file's
 /// header so that chunks can be retrieved later.
-pub fn load_region(dir: &str, pos: RegionPosition) -> Result<RegionHandle, Error> {
+pub fn load_region(dir: &PathBuf, pos: RegionPosition) -> Result<RegionHandle, Error> {
     let mut file = {
-        let mut buf = PathBuf::from(dir);
+        let mut buf = dir.clone();
         buf.push(format!("region/r.{}.{}.mca", pos.x, pos.z));
 
         File::open(buf.as_path()).map_err(Error::Io)?

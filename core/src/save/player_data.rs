@@ -5,6 +5,7 @@ use crate::inventory::SlotIndex;
 use crate::ItemStack;
 use feather_items::Item;
 use std::io::Read;
+use std::path::Path;
 use uuid::Uuid;
 
 /// Represents the contents of a player data file.
@@ -66,8 +67,9 @@ fn load_from_file<R: Read>(reader: R) -> Result<PlayerData, nbt::Error> {
     nbt::from_gzip_reader::<_, PlayerData>(reader)
 }
 
-pub fn load_player_data(uuid: Uuid) -> Result<PlayerData, nbt::Error> {
-    let file = File::open(format!("world/playerdata/{}.dat", uuid))?;
+pub fn load_player_data(world_dir: &Path, uuid: Uuid) -> Result<PlayerData, nbt::Error> {
+    let file_path = world_dir.join("playerdata").join(format!("{}.dat", uuid));
+    let file = File::open(file_path)?;
     let data = load_from_file(file)?;
     Ok(data)
 }

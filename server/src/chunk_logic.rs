@@ -13,6 +13,7 @@ use feather_core::world::{ChunkMap, ChunkPosition};
 
 use rayon::prelude::*;
 
+use crate::config::Config;
 use crate::entity::EntityDestroyEvent;
 use crate::systems::{CHUNK_HOLD_REMOVE, CHUNK_LOAD, CHUNK_OPTIMIZE, CHUNK_UNLOAD};
 use crate::worldgen::WorldGenerator;
@@ -22,6 +23,7 @@ use hashbrown::HashSet;
 use multimap::MultiMap;
 use specs::storage::BTreeStorage;
 use std::collections::VecDeque;
+use std::path::Path;
 use std::sync::Arc;
 
 /// A handle for interacting with the chunk
@@ -84,9 +86,11 @@ impl<'a> System<'a> for ChunkLoadSystem {
         use specs::prelude::SystemData;
 
         let generator = world.fetch_mut::<Arc<dyn WorldGenerator>>().clone();
+        let config = world.fetch_mut::<Arc<Config>>().clone();
+        let world_dir = Path::new(&config.world.name);
 
         info!("Starting chunk worker thread");
-        let (sender, receiver) = chunkworker::start("world", generator);
+        let (sender, receiver) = chunkworker::start(world_dir, generator);
         world.insert(ChunkWorkerHandle { sender, receiver });
 
         Self::SystemData::setup(world);
