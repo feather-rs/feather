@@ -1,16 +1,19 @@
 //! Implements level.dat file loading.
 
-use crate::Biome;
-use feather_items::Item;
-use serde::Deserialize;
 use std::collections::HashMap;
-use std::io::Read;
+use std::io::{Read, Write};
+
+use serde::Deserialize;
+
+use feather_items::Item;
+
+use crate::Biome;
 
 /// Root level tag
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct Root {
+pub struct Root {
     #[serde(rename = "Data")]
-    data: LevelData,
+    pub data: LevelData,
 }
 
 /// Represents the contents of a level file.
@@ -158,6 +161,13 @@ impl LevelData {
 pub fn deserialize_level_file<R: Read>(reader: R) -> Result<LevelData, nbt::Error> {
     match nbt::from_gzip_reader::<_, Root>(reader) {
         Ok(root) => Ok(root.data),
+        Err(e) => Err(e),
+    }
+}
+
+pub fn save_level_file<W: Write>(level: &Root, writer: &mut W) -> Result<(), nbt::Error> {
+    match nbt::to_gzip_writer::<_, Root>(writer, level, None) {
+        Ok(_) => Ok(()),
         Err(e) => Err(e),
     }
 }
