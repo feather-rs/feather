@@ -86,8 +86,8 @@ impl<'a> System<'a> for ChunkLoadSystem {
         use specs::prelude::SystemData;
 
         let generator = world.fetch_mut::<Arc<dyn WorldGenerator>>().clone();
-        let config = world.fetch_mut::<Arc<Config>>().clone();
-        let world_dir = Path::new(&config.world.name);
+        let world_name = &world.fetch_mut::<Arc<Config>>().world.name.clone();
+        let world_dir = Path::new(world_name);
 
         info!("Starting chunk worker thread");
         let (sender, receiver) = chunkworker::start(world_dir, generator);

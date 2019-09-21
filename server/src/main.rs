@@ -120,6 +120,10 @@ fn main() {
     let world_dir = Path::new(world_name.as_str());
     let level_file = &world_dir.join("level.dat");
     if !world_dir.is_dir() {
+        info!(
+            "World directory '{}' not found, creating it",
+            world_dir.display()
+        );
         // Create directory
         std::fs::create_dir(world_dir).unwrap();
 
@@ -172,10 +176,10 @@ fn load_config() -> Config {
     }
 }
 
-fn create_level(config: &Arc<Config>) -> LevelData {
+fn create_level(config: &Config) -> LevelData {
     let seed = get_seed(config);
     let world_name = &config.world.name;
-    info!("Creating world '{}' with seed {}", world_name, seed);
+    debug!("Using seed {} for world '{}'", seed, world_name);
 
     // TODO: Generate spawn position properly
     LevelData {
@@ -209,7 +213,7 @@ fn create_level(config: &Arc<Config>) -> LevelData {
     }
 }
 
-fn get_seed(config: &Arc<Config>) -> i64 {
+fn get_seed(config: &Config) -> i64 {
     let seed_raw = &config.world.seed;
     // Empty seed: random
     // Seed is valid i64: parse
