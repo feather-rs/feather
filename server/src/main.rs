@@ -50,7 +50,7 @@ use crate::worldgen::{
 use backtrace::Backtrace;
 use feather_core::level;
 use feather_core::level::{deserialize_level_file, save_level_file, LevelData, LevelGeneratorType};
-use rand::RngCore;
+use rand::Rng;
 use shrev::EventChannel;
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
@@ -219,7 +219,7 @@ fn get_seed(config: &Config) -> i64 {
     // Seed is valid i64: parse
     // Seed is something else: hash
     if seed_raw.is_empty() {
-        rand::thread_rng().next_u64() as i64
+        rand::thread_rng().gen()
     } else {
         match seed_raw.parse::<i64>() {
             Ok(seed_int) => seed_int,
