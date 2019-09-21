@@ -16,6 +16,7 @@ pub struct Config {
     pub gameplay: Gameplay,
     pub log: Log,
     pub resource_pack: ResourcePack,
+    pub world: World,
 }
 
 pub const DEFAULT_CONFIG_STR: &str = include_str!("../config/feather.toml");
@@ -63,6 +64,13 @@ pub struct Log {
 pub struct ResourcePack {
     pub url: String,
     pub hash: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct World {
+    pub name: String,
+    pub generator: String,
+    pub seed: String,
 }
 
 /// Loads the configuration from the given file/
@@ -114,5 +122,14 @@ mod tests {
 
         let log = &config.log;
         assert_eq!(log.level, "debug");
+
+        let resource_pack = &config.resource_pack;
+        assert_eq!(resource_pack.url, "");
+        assert_eq!(resource_pack.hash, "");
+
+        let world = &config.world;
+        assert_eq!(world.name, "world");
+        assert_eq!(world.generator, "default");
+        assert_eq!(world.seed, "");
     }
 }

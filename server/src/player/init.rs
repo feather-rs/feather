@@ -10,6 +10,7 @@ use hashbrown::HashSet;
 use shrev::{EventChannel, ReaderId};
 use specs::SystemData;
 use specs::{Read, System, World, WriteStorage};
+use std::path::Path;
 use std::sync::Arc;
 
 /// System for initializing the necessary components
@@ -57,10 +58,11 @@ impl<'a> System<'a> for PlayerInitSystem {
             let uuid = event.uuid;
             // If this is a new player, set gamemode to server's default (config)
             let default_gamemode = &config.server.default_gamemode.clone();
+            let world_dir = Path::new(&config.world.name);
 
             debug!("Loading player data for UUID {}", uuid);
             let (gamemode, pos, velocity, inventory_slots) =
-                match feather_core::player_data::load_player_data(uuid) {
+                match feather_core::player_data::load_player_data(world_dir, uuid) {
                     Ok(data) => (
                         Gamemode::from_id(data.gamemode as u8),
                         data.entity.read_position(),

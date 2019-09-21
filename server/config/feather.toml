@@ -45,3 +45,15 @@ level = "debug"
 url = ""
 # Optional SHA1 hash of the resource pack file.
 hash = ""
+
+[world]
+# The name of the directory containing the world.
+name = "world"
+# The generator to use if the world does not exist.
+# Implemented values are: default, flat
+generator = "default"
+# The seed to use if the world does not exist.
+# Leaving this value empty will generate a random seed.
+# If this value is not a valid integer (i64), the string
+# will be converted using a hash function.
+seed = ""
