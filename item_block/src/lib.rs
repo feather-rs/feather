@@ -13,13 +13,23 @@ impl ItemToBlock for Item {
     }
 }
 
+pub trait BlockToItem {
+    fn to_item(self) -> Option<Item>;
+}
+
+impl BlockToItem for Block {
+    fn to_item(self) -> Option<Item> {
+        mappings::block_to_item(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use feather_blocks::{AcaciaWoodAxis, AcaciaWoodData};
+    use feather_blocks::{AcaciaWoodAxis, AcaciaWoodData, GrassBlockData};
 
     #[test]
-    fn test_basic() {
+    fn test_item_to_block() {
         let items = [
             Item::EnderPearl,
             Item::Stone,
@@ -39,6 +49,27 @@ mod tests {
 
         for (item, block) in items.iter().zip(blocks.iter()) {
             assert_eq!(item.to_block(), block.clone());
+        }
+    }
+
+    #[test]
+    fn test_block_to_item() {
+        let blocks = [
+            Block::Cobblestone,
+            Block::GrassBlock(GrassBlockData { snowy: true }),
+            Block::GrassBlock(GrassBlockData { snowy: false }),
+            Block::Sandstone,
+        ];
+
+        let items = [
+            Item::Cobblestone,
+            Item::GrassBlock,
+            Item::GrassBlock,
+            Item::Sandstone,
+        ];
+
+        for (block, item) in blocks.iter().zip(items.iter()) {
+            assert_eq!(block.clone().to_item(), Some(item.clone()));
         }
     }
 }
