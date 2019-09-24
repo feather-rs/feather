@@ -17,7 +17,7 @@ const POSITIONS: [ChunkPosition; 2] = [
     ChunkPosition::new(-2_000_000_000, 2_000_000_000),
 ];
 
-const SEED: u64 = 78678354534;
+const SEED: u64 = 7_867_835_453;
 
 pub fn generate_chunk(c: &mut Criterion) {
     let mut group = c.benchmark_group("generate_chunk");
