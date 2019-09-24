@@ -46,13 +46,26 @@ fn _internal_generate_mappings(
     items: &ItemReport,
     output: &mut File,
 ) -> Result<(), Error> {
-    let mut match_arms = vec![];
+    let mut item_to_block_match_arms = vec![];
+    let mut block_to_item_match_arms = vec![];
 
     // Go through item report and find blocks with the same
     // name as the item.
     for (name, _) in &items.mappings {
         if let Some(match_arm) = block_state_by_name(&blocks, name.as_str()) {
-            match_arms.push(match_arm);
+            item_to_block_match_arms.push(match_arm);
+
+            let variant_ident = Ident::new(&block_variant(name), Span::call_site());
+
+            if blocks.blocks[name].properties.is_some() {
+                block_to_item_match_arms.push(quote! {
+                    Block::#variant_ident(_) => Some(Item::#variant_ident)
+                });
+            } else {
+                block_to_item_match_arms.push(quote! {
+                    Block::#variant_ident => Some(Item::#variant_ident)
+                });
+            }
         }
     }
 
@@ -62,7 +75,14 @@ fn _internal_generate_mappings(
 
         pub fn item_to_block(item: Item) -> Option<Block> {
             match item {
-                #(#match_arms ,)*
+                #(#item_to_block_match_arms ,)*
+                _ => None,
+            }
+        }
+
+        pub fn block_to_item(block: Block) -> Option<Item> {
+            match block {
+                #(#block_to_item_match_arms ,)*
                 _ => None,
             }
         }
@@ -75,15 +95,14 @@ fn _internal_generate_mappings(
 }
 
 fn block_state_by_name(blocks: &BlockReport, original_name: &str) -> Option<TokenStream> {
-    let name = &original_name[10..];
+    let name = block_variant(original_name);
 
     if let Some(block) = blocks.blocks.get(original_name) {
         // The block state corresponding to the item is labeled
         // in the report as "default."
         let state = default_state(&block);
 
-        let camel_case = name.to_camel_case();
-        let item_block_ident = Ident::new(&camel_case, Span::call_site());
+        let item_block_ident = Ident::new(&name, Span::call_site());
 
         if block.states.len() == 1 {
             Some(quote! {
@@ -138,6 +157,10 @@ fn block_state_by_name(blocks: &BlockReport, original_name: &str) -> Option<Toke
     } else {
         None
     }
+}
+
+fn block_variant(name: &str) -> String {
+    name[10..].to_camel_case()
 }
 
 fn default_state(block: &Block) -> State {
