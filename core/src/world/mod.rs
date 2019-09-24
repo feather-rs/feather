@@ -203,13 +203,19 @@ pub struct ChunkPosition {
 }
 
 impl ChunkPosition {
-    pub fn new(x: i32, z: i32) -> Self {
+    pub const fn new(x: i32, z: i32) -> Self {
         Self { x, z }
     }
 
     /// Computes the Manhattan distance from this chunk to another.
     pub fn manhattan_distance(self, other: ChunkPosition) -> i32 {
         (self.x - other.z).abs() + (self.z - other.z).abs()
+    }
+}
+
+impl Display for ChunkPosition {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        write!(f, "({}, {})", self.x, self.z)
     }
 }
 

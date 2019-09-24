@@ -281,7 +281,7 @@ pub struct NearbyBiomes {
     /// 2D array of chunk biomes. The chunk biomes
     /// for a given chunk position relative to the center
     /// chunk can be obtained using (x + 1) + (z + 1) * 3.
-    biomes: Vec<ChunkBiomes>,
+    pub biomes: Vec<ChunkBiomes>,
 }
 
 impl NearbyBiomes {

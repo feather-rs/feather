@@ -68,5 +68,12 @@ simdnoise = "3.1.1"
 simdeez = "0.6.4"
 bitvec = "0.15.1"
 
+[dev-dependencies]
+criterion = "0.3.0"
+
+[[bench]]
+name = "worldgen"
+harness = false
+
 [features]
 nightly = ["specs/nightly", "parking_lot/nightly"]

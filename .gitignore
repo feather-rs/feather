@@ -1,5 +1,7 @@
 /target
 /blocks/target
+/server/target
+/core/target
 **/*.rs.bk
 **/.idea
 feather.toml
