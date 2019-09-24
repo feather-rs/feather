@@ -69,7 +69,7 @@ mod tests {
         ];
 
         for (block, item) in blocks.iter().zip(items.iter()) {
-            assert_eq!(block.clone().to_item(), Some(item.clone()));
+            assert_eq!(block.clone().to_item(), Some(*item));
         }
     }
 }
