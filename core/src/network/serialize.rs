@@ -1,272 +1,238 @@
-use super::mctypes::{McTypeRead, McTypeWrite};
-use super::packet::{Packet, PacketDirection, PacketId, PacketStage, PacketType};
-use crate::bytebuf::ByteBuf;
-use crate::prelude::*;
+use crate::network::mctypes::{varint_needed_bytes, McTypeError, McTypeRead, McTypeWrite};
+use crate::network::packet::{Packet, PacketDirection, PacketId, PacketStage, PacketType};
 use aes::Aes128;
-use bytes::{Buf, BufMut};
-use cfb8::stream_cipher::{NewStreamCipher, StreamCipher};
+use bytes::{Buf, BytesMut};
+use cfb8::stream_cipher::StreamCipher;
 use cfb8::Cfb8;
-use flate2::{
-    read::{ZlibDecoder, ZlibEncoder},
-    Compression,
-};
-use std::io::prelude::*;
-use std::io::Cursor;
+use flate2::write::{ZlibDecoder, ZlibEncoder};
+use flate2::Compression;
+use std::io::{Cursor, Write};
+use tokio::codec::{Decoder, Encoder};
+use tokio::io;
 
 type AesCfb8 = Cfb8<Aes128>;
 
-pub struct ConnectionIOManager {
-    encryption_enabled: bool,
-    encryption_key: [u8; 16],
-    compression_enabled: bool,
-    compression_threshold: usize,
-
-    pending_received_packets: Option<Vec<Box<dyn Packet>>>,
-
-    incoming_compressed: ByteBuf,
-    incoming_uncompressed: ByteBuf,
-
-    encrypter: Option<AesCfb8>,
-    decrypter: Option<AesCfb8>,
-
-    stage: PacketStage,
-
-    direction: PacketDirection,
+#[derive(Debug, Fail)]
+pub enum Error {
+    #[fail(
+        display = "Packet of length {} (under compression threshold {}) was sent compressed",
+        _0, _1
+    )]
+    CompressedPacketTooSmall(usize, usize),
+    #[fail(display = "Packet length {} is too large", _0)]
+    PacketLengthTooLarge(usize),
+    #[fail(display = "Invalid packet ID {} for stage {:?}", _0, _1)]
+    InvalidPacketId(u32, PacketStage),
 }
 
-impl ConnectionIOManager {
-    pub fn new(direction: PacketDirection) -> Self {
-        Self {
-            encryption_enabled: false,
-            encryption_key: [0; 16],
-            compression_enabled: false,
-            compression_threshold: 0,
-            pending_received_packets: Some(vec![]),
+/// The maxmimum size of a packet header.
+///
+/// This size does not account for the compressed packet format
+/// or the packet ID field.
+const HEADER_SIZE: usize = MAX_VAR_INT_SIZE * 2; // One VarInt for length and one for uncompressed length (for compressed format)
 
-            incoming_compressed: ByteBuf::with_capacity(128),
-            incoming_uncompressed: ByteBuf::with_capacity(128),
+/// Codec for encoding and decoding Minecraft packets.
+#[derive(Debug)]
+pub struct MinecraftCodec {
+    /// The current stage of this codec.
+    stage: PacketStage,
+    /// The crypter, if encryption is enabled.
+    crypter: Option<AesCfb8>,
+    /// The compression threshold, if compression is enabled.
+    compression_threshold: Option<usize>,
 
-            encrypter: None,
-            decrypter: None,
+    /// The index of the next byte in the buffer to decrypt.
+    read_index: usize,
+}
 
-            stage: PacketStage::Handshake,
+impl Encoder for MinecraftCodec {
+    type Item = Box<dyn Packet>;
+    type Error = io::Error;
 
-            direction,
-        }
-    }
+    fn encode(&mut self, packet: Self::Item, mut dst: &mut BytesMut) -> Result<(), Self::Error> {
+        trace!("Sending packet with type {:?}", packet.ty());
+        dst.reserve(HEADER_SIZE + MAX_VAR_INT_SIZE + packet.needed_bytes()); // Additional MAX_VAR_INT_SIZE is for packet ID
 
-    pub fn set_stage(&mut self, stage: PacketStage) {
-        self.stage = stage;
-    }
+        let packet_id = packet.ty().get_id().0 as i32;
 
-    pub fn enable_encryption(&mut self, key: [u8; 16]) {
-        self.encryption_enabled = true;
-        self.encryption_key = key;
+        // Split the buffer so that the header can be written later.
+        // `dst` now contains the header.
+        let mut packet_data = dst.split_off(HEADER_SIZE);
+        packet_data.put_var_int(packet_id);
+        packet.write_to(&mut packet_data);
 
-        self.encrypter = Some(AesCfb8::new_var(&key, &key).unwrap());
-        self.decrypter = Some(AesCfb8::new_var(&key, &key).unwrap());
+        let packet_len = packet_data.len() as i32;
 
-        trace!("Enabling encryption");
-    }
+        if let Some(threshold) = self.compression_threshold.as_ref() {
+            // Compression is enabled - compress if needed.
 
-    pub fn enable_compression(&mut self, threshold: usize) {
-        self.compression_enabled = true;
-        self.compression_threshold = threshold;
+            if packet_len >= *threshold as i32 {
+                // Instead of allocating a new buffer for compression,
+                // we just reserve some additional space in the destination buffer
+                // and skip the uncompressed bytes. This allows for less
+                // allocations, because the allocated space will later be reused
+                // by BytesMut::reserve() rather than discarded.
 
-        trace!("Enabling compression");
-    }
+                // Reserve a new header, since we're skipping the old one.
+                // Also reserve space for the compressed packet data, which we'll
+                // assume to be the same size as the uncompressed data to avoid
+                // another allocation.
+                packet_data.reserve(HEADER_SIZE + packet_len as usize);
 
-    /// `Err` is returned only if something happens that indicates
-    /// a malicious client. If `Err` is returned, the client should
-    /// be disconnected immediately.
-    pub fn accept_data(&mut self, mut data: ByteBuf) -> Result<(), ()> {
-        // Decrypt if needed
-        if self.encryption_enabled {
-            self.decrypt_data(data.bytes_from_start());
-        }
+                // Packet is large enough to be compressed - compress it.
+                let uncompressed_len = packet_len;
 
-        self.incoming_compressed.write_all(data.inner()).unwrap();
+                // `header` will contain the bytes reserved above, while
+                // `packet_data` will still contain the uncompressed packet
+                // data.
+                let mut header = packet_data.split_off(packet_len as usize);
 
-        loop {
-            let pending_buf = &mut self.incoming_compressed;
+                // `compressed_data` will be a buffer with capacity `packet_len`
+                // contiguous with the header. This allows unsplitting
+                // the header and the data, efficiently merging the two buffers.
+                let mut compressed_data = header.split_off(HEADER_SIZE);
 
-            // Mark reader index so we can return to this
-            // position in the buffer if the packet is incomplete
-            pending_buf.mark_read_position();
+                // Compress uncompressed data in `packet_buf` and write it to `compressed_data`.
+                let mut encoder = ZlibEncoder::new(compressed_data, Compression::default());
+                encoder.write_all(&packet_data.bytes())?;
+                let mut compressed_data = encoder.finish()?;
 
-            let mut packet_length = {
-                if let Ok(val) = pending_buf.read_var_int() {
-                    val
-                } else {
-                    pending_buf.reset_read_position();
-                    break;
-                }
-            };
-
-            // Check that the entire packet is received - otherwise, return and
-            // wait for more bytes
-            if (pending_buf.remaining() as i32) < packet_length {
-                pending_buf.reset_read_position();
-                return Ok(());
-            }
-
-            pending_buf.mark_read_position();
-
-            // If compression is enabled, read the uncompressed length
-            // and decompress - otherwise, copy bytes to incoming_uncompressed
-            let len_of_compressed_size_field;
-            if self.compression_enabled {
-                let uncompressed_size = pending_buf.read_var_int()?;
-                if uncompressed_size != 0 {
-                    packet_length = uncompressed_size;
-                    self.decompress_data(uncompressed_size);
-                    len_of_compressed_size_field = 0;
-                } else {
-                    self.incoming_uncompressed
-                        .write_all(&pending_buf.inner()[..(packet_length - 1) as usize])
-                        .unwrap();
-                    len_of_compressed_size_field =
-                        pending_buf.read_pos() - pending_buf.marked_read_position();
-                    self.incoming_compressed
-                        .advance((packet_length - 1) as usize);
-                }
+                *dst = write_compressed_header(uncompressed_len as usize, header, compressed_data);
             } else {
-                len_of_compressed_size_field = 0;
-                let buf = &pending_buf.inner()[..(packet_length as usize)];
-                self.incoming_uncompressed.write_all(buf).unwrap();
-                self.incoming_compressed.advance(packet_length as usize);
+                // Don't compress the data, since its length is shorter than the compression threshold.
+                // The uncompressed length field in the header will be set to 0.
+                let mut header = dst.split_off(0);
+
+                *dst = write_compressed_header(0, header, packet_data);
             }
+        } else {
+            // Compression isn't enabled - write header as usual.
+            let header_size = varint_needed_bytes(packet_len as i32);
 
-            self.incoming_compressed.remove_prior();
+            let mut header = dst.split_off(HEADER_SIZE - header_size);
 
-            let buf = &mut self.incoming_uncompressed;
-            buf.mark_read_position();
+            header.put_var_int(packet_len as i32);
 
-            let packet_id = buf.read_var_int()?;
-            let stage = self.stage;
+            header.unsplit(packet_data);
+            *dst = header;
+        }
 
-            let packet_type =
-                PacketType::get_from_id(PacketId(packet_id as u32, self.direction, stage));
-            if packet_type.is_err() {
-                warn!(
-                    "Client sent packet with invalid id {} for stage {:?}",
-                    packet_id, stage
-                );
-
-                return Err(());
-            }
-
-            trace!("Received packet with type {:?}", packet_type.unwrap());
-
-            let mut packet = packet_type.unwrap().get_implementation();
-            let upper_index = packet_length as usize
-                - (buf.read_pos() - buf.marked_read_position())
-                - len_of_compressed_size_field;
-            {
-                let mut slice = Cursor::new(&buf.inner()[..upper_index]);
-                packet.read_from(&mut slice)?;
-            }
-            buf.advance(upper_index);
-
-            if packet.ty() == PacketType::Handshake {
-                let handshake =
-                    cast_packet::<crate::network::packet::implementation::Handshake>(&*packet);
-                match handshake.next_state {
-                    crate::network::packet::implementation::HandshakeState::Login => {
-                        self.stage = PacketStage::Login
-                    }
-                    crate::network::packet::implementation::HandshakeState::Status => {
-                        self.stage = PacketStage::Status
-                    }
-                }
-            }
-
-            buf.remove_prior();
-
-            self.pending_received_packets.as_mut().unwrap().push(packet);
+        // If encryption is enabled, encrypt the data in place.
+        if let Some(crypter) = self.crypter.as_mut() {
+            crypter.encrypt(&mut dst[..]);
         }
 
         Ok(())
     }
+}
 
-    pub fn serialize_packet(&mut self, packet: Box<dyn Packet>) -> ByteBuf {
-        if packet.ty() == PacketType::LoginSuccess {
-            self.stage = PacketStage::Play;
+impl Decoder for MinecraftCodec {
+    type Item = Box<dyn Packet>;
+    type Error = failure::Error;
+
+    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
+        // Decrypt new data if encryption is enabled.
+        if let Some(crypter) = self.crypter.as_mut() {
+            crypter.decrypt(&mut src[self.read_index..]);
+            self.read_index = src.len();
         }
 
-        trace!("Sending packet with type {:?}", packet.ty());
+        // If the packet wasn't fully read, we don't
+        // want `src`'s read position to be advanced.
+        // Use this temporary cursor until we know
+        // the whole packet is read.
+        let mut cursor = Cursor::new(src.bytes());
 
-        let mut packet_data_buf = ByteBuf::with_capacity(16);
-        packet_data_buf.write_var_int(packet.ty().get_id().0 as i32);
-        packet.write_to(&mut packet_data_buf);
+        // Attempt to read a VarInt (the packet length).
+        // If there aren't enough bytes to read the length,
+        // return, since the entire packet hasn't arrived
+        // yet. If another error occurred, the VarInt was corrupt,
+        // so return an error.
+        let len = match cursor.try_get_var_int() {
+            Ok(len) => len as usize,
+            Err(e) => match e {
+                McTypeError::NotEnoughBytes(_) => return Ok(None),
+                e => return Err(e.into()),
+            },
+        };
 
-        let mut buf_without_length = ByteBuf::with_capacity(packet_data_buf.len());
+        // Check that the entire packet is in memory.
+        if cursor.remaining() < len {
+            return Err(None);
+        }
 
-        if self.compression_enabled {
-            let uncompressed_length = packet_data_buf.len();
+        // The whole packet is in `src`, so advance
+        // `src` by the number of bytes already read.
+        src.advance(cursor.position() as usize);
 
-            if packet_data_buf.len() < self.compression_threshold as usize {
-                buf_without_length.write_var_int(0);
-                buf_without_length
-                    .write_all(packet_data_buf.inner())
-                    .unwrap();
-            } else {
-                buf_without_length.write_var_int(uncompressed_length as i32);
-                self.compress_data(packet_data_buf.inner(), &mut buf_without_length);
+        // Remove the bytes from `src` so future calls
+        // to decode() won't read the old bytes.
+        let mut src = src.split_to(len).freeze();
+
+        // If compression is enabled, decompress the packet if needed.
+        if let Some(threshold) = self.compression_threshold.as_ref() {
+            let uncompressed_length = src.try_get_var_int()? as usize;
+            if uncompressed_length != 0 {
+                // Allocate a new buffer and decompress data into buffer.
+
+                if uncompressed_length > 1_048_576 {
+                    return Err(Error::PacketLengthTooLarge(uncompressed_length).into());
+                }
+
+                if uncompressed_length < *threshold {
+                    return Err(
+                        Error::CompressedPacketTooSmall(uncompressed_length, *threshold).into(),
+                    );
+                }
+
+                let mut buf = BytesMut::with_capacity(uncompressed_length);
+
+                let mut decoder = ZlibDecoder::new(buf);
+                decoder.write_all(&src.bytes())?;
+                src = decoder.finish()?.freeze();
             }
-        } else {
-            buf_without_length
-                .write_all(packet_data_buf.inner())
-                .unwrap(); // Lots of inefficient copying here - find a fix for this
         }
 
-        let mut buf = ByteBuf::with_capacity(buf_without_length.len() + 4);
-        buf.write_var_int(buf_without_length.len() as i32);
-        buf.write_all(buf_without_length.inner()).unwrap();
+        let packet_id = PacketId(
+            src.try_get_var_int()? as u32,
+            PacketDirection::Serverbound,
+            self.stage,
+        );
+        let packet_ty = match PacketType::get_from_id(packet_id) {
+            Ok(ty) => ty,
+            Err(_) => return Err(Error::InvalidPacketId(packet_id.0, self.stage).into()),
+        };
 
-        if self.encryption_enabled {
-            self.encrypt_data(buf.bytes_from_start());
-        }
+        trace!("Received packet with type {:?}", packet_ty);
 
-        buf
+        let mut packet = packet_ty.get_implementation();
+        packet.read_from(&mut src);
+
+        Ok(packet)
     }
+}
 
-    fn encrypt_data(&mut self, data: &mut [u8]) {
-        let crypter = self.encrypter.as_mut().unwrap();
-        crypter.encrypt(data);
-    }
+/// Writes the packet header using the compressed packet format
+/// and then unsplits the header from the data.
+fn write_compressed_header(
+    uncompressed_len: usize,
+    mut header: BytesMut,
+    compressed_data: BytesMut,
+) -> BytesMut {
+    let full_packet_len = varint_needed_bytes(uncompressed_len as i32) + compressed_data.len();
 
-    fn decrypt_data(&mut self, data: &mut [u8]) {
-        let crypter = self.decrypter.as_mut().unwrap();
-        crypter.decrypt(data);
-    }
+    let header_size =
+        varint_needed_bytes(full_packet_len as i32) + varint_needed_bytes(uncompressed_len as i32);
 
-    fn compress_data(&mut self, data: &[u8], output: &mut ByteBuf) {
-        let mut coder = ZlibEncoder::new(data, Compression::default());
-        output.reserve(coder.total_out() as usize);
+    // Drop unneeded bytes in the header. Since its capacity is the
+    // maximum length of the header, and the header has a variable
+    // length, there's no need to write to unused bytes.
+    let mut header = header.split_off(HEADER_SIZE - header_size);
 
-        unsafe {
-            let amnt = coder.read(output.inner_mut()).unwrap();
-            output.advance_mut(amnt);
-        }
-    }
+    header.put_var_int(full_packet_len as i32);
+    header.put_var_int(uncompressed_len as i32);
 
-    fn decompress_data(&mut self, uncompressed_size: i32) {
-        let data = &mut self.incoming_compressed;
-        if uncompressed_size == 0 {
-            self.incoming_uncompressed.reserve(data.len());
-            self.incoming_uncompressed.put(data.inner());
-        }
-        let mut coder = ZlibDecoder::new(data);
-        self.incoming_uncompressed
-            .reserve(uncompressed_size as usize);
-        unsafe {
-            let amnt = coder.read(self.incoming_uncompressed.inner_mut()).unwrap();
-            self.incoming_uncompressed.advance_mut(amnt);
-        }
-    }
+    header.unsplit(compressed_data);
 
-    pub fn take_pending_packets(&mut self) -> Vec<Box<dyn Packet>> {
-        self.pending_received_packets.replace(vec![]).unwrap()
-    }
+    header
 }

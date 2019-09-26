@@ -193,12 +193,12 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
 
     let r = quote! {
         impl Packet for #ident {
-            fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
+            fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
                 #(#read_code)*
                 Ok(())
             }
 
-            fn write_to(&self, buf: &mut ByteBuf) {
+            fn write_to(&self, buf: &mut BytesMut) {
                 #(#write_code)*
             }
 

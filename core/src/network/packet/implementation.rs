@@ -1,6 +1,6 @@
 use super::super::mctypes::{McTypeRead, McTypeWrite};
 use super::*;
-use crate::bytebuf::{BufMutAlloc, BufResulted};
+use crate::bytes_ext::{BytesExt, BytesMutExt};
 use crate::entitymeta::{EntityMetaIo, EntityMetadata};
 use crate::inventory::ItemStack;
 use crate::network::packet::PacketStage::Play;
@@ -96,11 +96,11 @@ pub struct Handshake {
 }
 
 impl Packet for Handshake {
-    fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
-        self.protocol_version = buf.read_var_int().unwrap() as u32;
-        self.server_address = buf.read_string()?;
+    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+        self.protocol_version = buf.try_read_var_int()? as u32;
+        self.server_address = buf.try_read_string()?;
         self.server_port = buf.get_u16_be();
-        let state = buf.read_var_int()?;
+        let state = buf.try_read_var_int()?;
 
         self.next_state = match state {
             1 => HandshakeState::Status,
@@ -111,7 +111,7 @@ impl Packet for Handshake {
         Ok(())
     }
 
-    fn write_to(&self, mut buf: &mut ByteBuf) {
+    fn write_to(&self, mut buf: &mut BytesMut) {
         unimplemented!()
     }
 
@@ -150,8 +150,8 @@ pub struct EncryptionResponse {
 }
 
 impl Packet for EncryptionResponse {
-    fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
-        self.secret_length = buf.read_var_int()?;
+    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+        self.secret_length = buf.try_read_var_int()?;
 
         let mut secret = vec![];
         for _ in 0..self.secret_length {
@@ -159,7 +159,7 @@ impl Packet for EncryptionResponse {
         }
         self.secret = secret;
 
-        self.verify_token_length = buf.read_var_int()?;
+        self.verify_token_length = buf.try_read_var_int()?;
 
         let mut verify_token = vec![];
         for _ in 0..self.secret_length {
@@ -170,7 +170,7 @@ impl Packet for EncryptionResponse {
         Ok(())
     }
 
-    fn write_to(&self, mut buf: &mut ByteBuf) {
+    fn write_to(&self, mut buf: &mut BytesMut) {
         unimplemented!()
     }
 
@@ -264,8 +264,8 @@ pub struct PluginMessageServerbound {
 }
 
 impl Packet for PluginMessageServerbound {
-    fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
-        self.channel = buf.read_string()?;
+    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+        self.channel = buf.try_read_string()?;
 
         let mut data = Vec::with_capacity(buf.remaining());
         buf.read(&mut data).map_err(|_| ())?;
@@ -274,7 +274,7 @@ impl Packet for PluginMessageServerbound {
         Ok(())
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, buf: &mut BytesMut) {
         unimplemented!()
     }
 
@@ -307,18 +307,18 @@ pub struct UseEntity {
 }
 
 impl Packet for UseEntity {
-    fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
-        self.target = buf.read_var_int()?;
+    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+        self.target = buf.try_read_var_int()?;
 
-        let ty_id = buf.read_var_int()?;
+        let ty_id = buf.try_read_var_int()?;
         self.ty = match ty_id {
             0 => UseEntityType::Interact,
             1 => UseEntityType::Attack,
             2 => {
-                let x = buf.read_f32_be()?;
-                let y = buf.read_f32_be()?;
-                let z = buf.read_f32_be()?;
-                let hand = buf.read_var_int()?;
+                let x = buf.try_read_f32_be()?;
+                let y = buf.try_read_f32_be()?;
+                let z = buf.try_read_f32_be()?;
+                let hand = buf.try_read_var_int()?;
                 UseEntityType::InteractAt(x, y, z, hand)
             }
             _ => return Err(()), // Invalid type
@@ -327,7 +327,7 @@ impl Packet for UseEntity {
         Ok(())
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, buf: &mut BytesMut) {
         unimplemented!()
     }
 
@@ -430,9 +430,9 @@ pub struct PlayerDigging {
 }
 
 impl Packet for PlayerDigging {
-    fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
         self.status = {
-            let id = buf.read_var_int()?;
+            let id = buf.try_read_var_int()?;
             match id {
                 0 => PlayerDiggingStatus::StartedDigging,
                 1 => PlayerDiggingStatus::CancelledDigging,
@@ -445,13 +445,13 @@ impl Packet for PlayerDigging {
             }
         };
 
-        self.location = buf.read_position()?;
-        self.face = buf.read_i8()?;
+        self.location = buf.try_read_position()?;
+        self.face = buf.try_read_i8()?;
 
         Ok(())
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, buf: &mut BytesMut) {
         unimplemented!()
     }
 
@@ -490,15 +490,15 @@ pub struct EntityAction {
 }
 
 impl Packet for EntityAction {
-    fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
-        self.entity_id = buf.read_var_int()?;
-        self.action_id = EntityActionType::from_i32(buf.read_var_int()?).ok_or(())?;
-        self.jump_boost = buf.read_var_int()?;
+    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+        self.entity_id = buf.try_read_var_int()?;
+        self.action_id = EntityActionType::from_i32(buf.try_read_var_int()?).ok_or(())?;
+        self.jump_boost = buf.try_read_var_int()?;
 
         Ok(())
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, buf: &mut BytesMut) {
         unimplemented!()
     }
 
@@ -632,8 +632,8 @@ pub struct AnimationServerbound {
 }
 
 impl Packet for AnimationServerbound {
-    fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
-        let hand_id = buf.read_var_int()?;
+    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+        let hand_id = buf.try_read_var_int()?;
         self.hand = match Hand::from_i32(hand_id) {
             Some(hand) => hand,
             None => return Err(()),
@@ -642,7 +642,7 @@ impl Packet for AnimationServerbound {
         Ok(())
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, buf: &mut BytesMut) {
         unimplemented!()
     }
 
@@ -700,17 +700,17 @@ pub struct PlayerBlockPlacement {
 }
 
 impl Packet for PlayerBlockPlacement {
-    fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
-        self.location = buf.read_position()?;
-        self.face = Face::from_i32(buf.read_var_int()?).ok_or(())?;
-        self.hand = buf.read_var_int()?;
-        self.cursor_position_x = buf.read_f32_be()?;
-        self.cursor_position_y = buf.read_f32_be()?;
-        self.cursor_position_z = buf.read_f32_be()?;
+    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+        self.location = buf.try_read_position()?;
+        self.face = Face::from_i32(buf.try_read_var_int()?).ok_or(())?;
+        self.hand = buf.try_read_var_int()?;
+        self.cursor_position_x = buf.try_read_f32_be()?;
+        self.cursor_position_y = buf.try_read_f32_be()?;
+        self.cursor_position_z = buf.try_read_f32_be()?;
         Ok(())
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, buf: &mut BytesMut) {
         unimplemented!()
     }
 
@@ -742,17 +742,17 @@ pub struct EncryptionRequest {
 }
 
 impl Packet for EncryptionRequest {
-    fn read_from(&mut self, mut buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, mut buf: &mut ByteBuf) {
-        buf.write_string(self.server_id.as_str());
+    fn write_to(&self, mut buf: &mut BytesMut) {
+        buf.push_string(self.server_id.as_str());
 
-        buf.write_var_int(self.public_key.len() as i32);
+        buf.push_var_int(self.public_key.len() as i32);
         buf.write(&self.public_key);
 
-        buf.write_var_int(self.verify_token.len() as i32);
+        buf.push_var_int(self.verify_token.len() as i32);
         buf.write(&self.verify_token);
     }
 
@@ -863,20 +863,20 @@ pub struct SpawnPlayer {
 }
 
 impl Packet for SpawnPlayer {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_var_int(self.entity_id);
-        buf.write_uuid(&self.player_uuid);
-        buf.write_f64_be(self.x);
-        buf.write_f64_be(self.y);
-        buf.write_f64_be(self.z);
-        buf.write_u8(self.yaw);
-        buf.write_u8(self.pitch);
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_var_int(self.entity_id);
+        buf.push_uuid(&self.player_uuid);
+        buf.push_f64_be(self.x);
+        buf.push_f64_be(self.y);
+        buf.push_f64_be(self.z);
+        buf.push_u8(self.yaw);
+        buf.push_u8(self.pitch);
 
-        buf.write_metadata(&self.metadata);
+        buf.push_metadata(&self.metadata);
     }
 
     fn ty(&self) -> PacketType {
@@ -895,13 +895,13 @@ pub struct AnimationClientbound {
 }
 
 impl Packet for AnimationClientbound {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_var_int(self.entity_id);
-        buf.write_u8(self.animation as u8);
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_var_int(self.entity_id);
+        buf.push_u8(self.animation as u8);
     }
 
     fn ty(&self) -> PacketType {
@@ -920,17 +920,17 @@ pub struct Statistics {
 }
 
 impl Packet for Statistics {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_var_int(self.statistics.len() as i32);
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_var_int(self.statistics.len() as i32);
         for stat in &self.statistics {
-            buf.write_var_int(stat.0);
-            buf.write_var_int(stat.1);
+            buf.push_var_int(stat.0);
+            buf.push_var_int(stat.1);
         }
-        buf.write_var_int(self.value);
+        buf.push_var_int(self.value);
     }
 
     fn ty(&self) -> PacketType {
@@ -977,35 +977,35 @@ pub struct BossBar {
 }
 
 impl Packet for BossBar {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_uuid(&self.uuid);
-        buf.write_var_int(self.action.id());
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_uuid(&self.uuid);
+        buf.push_var_int(self.action.id());
 
         match self.action.clone() {
             BossBarAction::Add(title, health, color, division, flags) => {
-                buf.write_string(&title);
-                buf.write_f32_be(health);
-                buf.write_var_int(ToPrimitive::to_i32(&color).unwrap());
-                buf.write_var_int(ToPrimitive::to_i32(&division).unwrap());
-                buf.write_u8(flags);
+                buf.push_string(&title);
+                buf.push_f32_be(health);
+                buf.push_var_int(ToPrimitive::to_i32(&color).unwrap());
+                buf.push_var_int(ToPrimitive::to_i32(&division).unwrap());
+                buf.push_u8(flags);
             }
             BossBarAction::Remove => (),
             BossBarAction::UpdateHealth(health) => {
-                buf.write_f32_be(health);
+                buf.push_f32_be(health);
             }
             BossBarAction::UpdateTitle(title) => {
-                buf.write_string(&title);
+                buf.push_string(&title);
             }
             BossBarAction::UpdateStyle(color, division) => {
-                buf.write_var_int(ToPrimitive::to_i32(&color).unwrap());
-                buf.write_var_int(ToPrimitive::to_i32(&division).unwrap());
+                buf.push_var_int(ToPrimitive::to_i32(&color).unwrap());
+                buf.push_var_int(ToPrimitive::to_i32(&division).unwrap());
             }
             BossBarAction::UpdateFlags(flags) => {
-                buf.write_u8(flags);
+                buf.push_u8(flags);
             }
         }
     }
@@ -1118,16 +1118,16 @@ pub struct WindowItems {
 }
 
 impl Packet for WindowItems {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_u8(self.window_id);
-        buf.write_i16_be(self.slots.len() as i16);
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_u8(self.window_id);
+        buf.push_i16_be(self.slots.len() as i16);
 
         for slot in &self.slots {
-            buf.write_slot(slot);
+            buf.push_slot(slot);
         }
     }
 
@@ -1167,12 +1167,12 @@ pub struct PluginMessageClientbound {
 }
 
 impl Packet for PluginMessageClientbound {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_string(&self.channel);
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_string(&self.channel);
         buf.write(&self.data);
     }
 
@@ -1227,27 +1227,27 @@ pub struct Explosion {
 }
 
 impl Packet for Explosion {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_f32_be(self.x);
-        buf.write_f32_be(self.y);
-        buf.write_f32_be(self.z);
-        buf.write_f32_be(self.radius);
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_f32_be(self.x);
+        buf.push_f32_be(self.y);
+        buf.push_f32_be(self.z);
+        buf.push_f32_be(self.radius);
 
-        buf.write_i32_be(self.records.len() as i32);
+        buf.push_i32_be(self.records.len() as i32);
 
         for (x, y, z) in self.records.iter() {
-            buf.write_i8(*x);
-            buf.write_i8(*y);
-            buf.write_i8(*z);
+            buf.push_i8(*x);
+            buf.push_i8(*y);
+            buf.push_i8(*z);
         }
 
-        buf.write_f32_be(self.player_motion_x);
-        buf.write_f32_be(self.player_motion_y);
-        buf.write_f32_be(self.player_motion_z);
+        buf.push_f32_be(self.player_motion_x);
+        buf.push_f32_be(self.player_motion_y);
+        buf.push_f32_be(self.player_motion_z);
     }
 
     fn ty(&self) -> PacketType {
@@ -1282,14 +1282,14 @@ pub struct ChunkData {
 }
 
 impl Packet for ChunkData {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_i32_be(self.chunk.position().x);
-        buf.write_i32_be(self.chunk.position().z);
-        buf.write_bool(true); // Full chunk - assume true
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_i32_be(self.chunk.position().x);
+        buf.push_i32_be(self.chunk.position().z);
+        buf.push_bool(true); // Full chunk - assume true
 
         // Produce primary bit mask
         let mut primary_mask = {
@@ -1302,33 +1302,33 @@ impl Packet for ChunkData {
             r
         };
 
-        buf.write_var_int(primary_mask as i32);
+        buf.push_var_int(primary_mask as i32);
 
         // TODO: approximate appropriate capacity
         let mut temp_buf = ByteBuf::new();
 
         for section in self.chunk.sections() {
             if let Some(section) = section {
-                temp_buf.write_u8(section.bits_per_block());
+                temp_buf.push_u8(section.bits_per_block());
 
                 let palette = section.palette();
                 if let Some(palette) = palette {
                     let mut palette_buf = ByteBuf::with_capacity(palette.len() + 4);
                     for val in palette {
-                        palette_buf.write_var_int(i32::from(*val));
+                        palette_buf.push_var_int(i32::from(*val));
                     }
 
-                    temp_buf.write_var_int(palette.len() as i32);
+                    temp_buf.push_var_int(palette.len() as i32);
                     temp_buf.write(palette_buf.inner());
                 }
 
                 let _data = section.data();
                 let data = _data.inner();
-                temp_buf.write_var_int(data.len() as i32);
+                temp_buf.push_var_int(data.len() as i32);
 
                 temp_buf.reserve(data.len());
                 for val in data {
-                    temp_buf.write_u64_be(*val);
+                    temp_buf.push_u64_be(*val);
                 }
 
                 // Light
@@ -1339,7 +1339,7 @@ impl Packet for ChunkData {
                     .inner()
                     .iter()
                     .chain(sky_light_data.inner().iter())
-                    .for_each(|data| temp_buf.write_u64_le(*data));
+                    .for_each(|data| temp_buf.push_u64_le(*data));
             }
         }
 
@@ -1349,12 +1349,12 @@ impl Packet for ChunkData {
             .biomes()
             .iter()
             .map(|biome| biome.protocol_id())
-            .for_each(|id| temp_buf.write_i32_be(id));
+            .for_each(|id| temp_buf.push_i32_be(id));
 
-        buf.write_var_int(temp_buf.len() as i32);
+        buf.push_var_int(temp_buf.len() as i32);
         buf.write(temp_buf.inner());
 
-        buf.write_var_int(0) // Block entities — TODO
+        buf.push_var_int(0) // Block entities — TODO
     }
 
     fn ty(&self) -> PacketType {
@@ -1463,21 +1463,21 @@ pub struct CombatEvent {
 }
 
 impl Packet for CombatEvent {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
+    fn write_to(&self, buf: &mut BytesMut) {
         match &self.event {
             CombatEventType::EnterCombat => (),
             CombatEventType::EndCombat(duration, entity_id) => {
-                buf.write_var_int(*duration);
-                buf.write_i32_be(*entity_id);
+                buf.push_var_int(*duration);
+                buf.push_i32_be(*entity_id);
             }
             CombatEventType::EntityDead(player_id, entity_id, message) => {
-                buf.write_var_int(*player_id);
-                buf.write_i32_be(*entity_id);
-                buf.write_string(message);
+                buf.push_var_int(*player_id);
+                buf.push_i32_be(*entity_id);
+                buf.push_string(message);
             }
         }
     }
@@ -1511,39 +1511,39 @@ pub struct PlayerInfo {
 }
 
 impl Packet for PlayerInfo {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_var_int(self.action.id());
-        buf.write_var_int(1); // Number of players - just use 1 for now
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_var_int(self.action.id());
+        buf.push_var_int(1); // Number of players - just use 1 for now
 
-        buf.write_uuid(&self.uuid);
+        buf.push_uuid(&self.uuid);
 
         match &self.action {
             PlayerInfoAction::AddPlayer(name, props, gamemode, ping, display_name) => {
-                buf.write_string(name);
-                buf.write_var_int(props.len() as i32);
+                buf.push_string(name);
+                buf.push_var_int(props.len() as i32);
                 for prop in props {
-                    buf.write_string(&prop.0);
-                    buf.write_string(&prop.1);
-                    buf.write_bool(true);
-                    buf.write_string(&prop.2);
+                    buf.push_string(&prop.0);
+                    buf.push_string(&prop.1);
+                    buf.push_bool(true);
+                    buf.push_string(&prop.2);
                 }
 
-                buf.write_var_int(i32::from(gamemode.get_id()));
-                buf.write_var_int(*ping);
-                buf.write_bool(true);
-                buf.write_string(display_name);
+                buf.push_var_int(i32::from(gamemode.get_id()));
+                buf.push_var_int(*ping);
+                buf.push_bool(true);
+                buf.push_string(display_name);
             }
             PlayerInfoAction::UpdateGamemode(gamemode) => {
-                buf.write_var_int(i32::from(gamemode.get_id()))
+                buf.push_var_int(i32::from(gamemode.get_id()))
             }
-            PlayerInfoAction::UpdateLatency(ping) => buf.write_var_int(*ping),
+            PlayerInfoAction::UpdateLatency(ping) => buf.push_var_int(*ping),
             PlayerInfoAction::UpdateDisplayName(display_name) => {
-                buf.write_bool(true);
-                buf.write_string(&display_name);
+                buf.push_bool(true);
+                buf.push_string(&display_name);
             }
             PlayerInfoAction::RemovePlayer => (),
         }
@@ -1612,15 +1612,15 @@ pub struct DestroyEntities {
 }
 
 impl Packet for DestroyEntities {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_var_int(self.entity_ids.len() as i32);
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_var_int(self.entity_ids.len() as i32);
 
         for e in &self.entity_ids {
-            buf.write_var_int(*e);
+            buf.push_var_int(*e);
         }
     }
 
@@ -1666,13 +1666,13 @@ pub struct PacketEntityMetadata {
 }
 
 impl Packet for PacketEntityMetadata {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
         unimplemented!()
     }
 
-    fn write_to(&self, buf: &mut ByteBuf) {
-        buf.write_var_int(self.entity_id);
-        buf.write_metadata(&self.metadata);
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_var_int(self.entity_id);
+        buf.push_metadata(&self.metadata);
     }
 
     fn ty(&self) -> PacketType {
