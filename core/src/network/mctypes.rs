@@ -221,12 +221,13 @@ impl<B: Buf> McTypeRead for B {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Cursor;
 
     #[test]
     fn test_read_var_int() {
         // Examples from wiki.vg
-        let mut buf = ByteBuf::new();
-        buf.write_all(&[0xff, 0x01]).unwrap();
-        assert_eq!(buf.try_get_var_int(), Ok(255));
+        let mut buf = BytesMut::new();
+        buf.extend_from_slice(&[0xff, 0x01]);
+        assert_eq!(Cursor::new(&buf).try_get_var_int(), Ok(255));
     }
 }

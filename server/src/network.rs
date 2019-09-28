@@ -285,8 +285,8 @@ mod tests {
 
         let ioman = w.fetch_mut::<NetworkIoManager>();
 
-        let (send1, _recv1) = mio_extras::channel::channel();
-        let (_send2, recv2) = mio_extras::channel::channel();
+        let (send1, _recv1) = tokio::sync::mpsc::unbounded_channel();
+        let (_send2, recv2) = crossbeam::unbounded();
 
         let new_client = NewClientInfo {
             ip: SocketAddr::new("127.0.0.1".parse().unwrap(), 25565),

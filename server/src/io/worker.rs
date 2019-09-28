@@ -17,12 +17,11 @@ use futures::{FutureExt, SinkExt};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::codec::Framed;
-use tokio::io::AsyncReadExt;
 use tokio::net::TcpStream;
 
 /// Runs a worker task for the given client.
 pub async fn run_worker(
-    mut stream: TcpStream,
+    stream: TcpStream,
     ip: SocketAddr,
     global_sender: crossbeam::Sender<ListenerToServerMessage>,
     config: Arc<Config>,
@@ -34,7 +33,7 @@ pub async fn run_worker(
 
     let mut initial_handler = Some(InitialHandler::new(config, player_count, server_icon));
 
-    let (mut tx_worker_to_server, rx_worker_to_server) = crossbeam::unbounded();
+    let (tx_worker_to_server, rx_worker_to_server) = crossbeam::unbounded();
     let (tx_server_to_worker, mut rx_server_to_worker) = tokio::sync::mpsc::unbounded_channel();
     let mut rx_worker_to_server = Some(rx_worker_to_server);
     let mut future_server_message = rx_server_to_worker.next().fuse();
@@ -63,7 +62,8 @@ pub async fn run_worker(
                 match packet_result {
                     Ok(packet) => {
                         if let Some(ih) = initial_handler.as_mut() {
-                            let actions = ih.handle_packet(packet).await;
+                            ih.handle_packet(packet).await;
+                            let actions = ih.actions_to_execute();
 
                             for action in actions {
                                 match action {
@@ -99,7 +99,7 @@ pub async fn run_worker(
                                 .send(ServerToWorkerMessage::NotifyPacketReceived(packet));
                         }
                     }
-                    Err(e) => return Err(e.into()),
+                    Err(e) => return Err(e),
                 }
             }
         }

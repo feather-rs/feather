@@ -195,7 +195,7 @@ impl Decoder for MinecraftCodec {
 
         // Trim `cursor` and `src` to length of packet.
         let position = cursor.position() as usize;
-        src.split_to(position);
+        src.advance(position);
         cursor = Cursor::new(&src[..length]);
 
         // If compression is enabled:
@@ -233,7 +233,7 @@ impl Decoder for MinecraftCodec {
 
         trace!("Received packet with type {:?}", packet_type);
 
-        src.split_to(length);
+        src.advance(length);
         self.decrypt_index = 0;
 
         Ok(Some(packet))

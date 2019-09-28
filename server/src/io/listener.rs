@@ -24,6 +24,8 @@ pub async fn run_listener(
     loop {
         let (stream, ip) = listener.accept().await?;
 
+        info!("Accepting connection from {:?}", ip);
+
         tokio::spawn(handle_connection(
             stream,
             ip,

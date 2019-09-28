@@ -4,8 +4,8 @@ use std::net::TcpListener;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
+use futures::executor::block_on;
 use glm::DVec3;
-use mio_extras::channel::{channel, Receiver, Sender};
 use rand::Rng;
 use shrev::EventChannel;
 use specs::{Builder, Dispatcher, DispatcherBuilder, Entity, ReaderId, System, World, WorldExt};
@@ -31,6 +31,7 @@ use crate::player::{InventoryComponent, PlayerDisconnectEvent};
 use crate::util::BroadcasterSystem;
 use crate::worldgen::{EmptyWorldGenerator, WorldGenerator};
 use crate::PlayerCount;
+use bitflags::_core::cell::RefCell;
 
 /// Initializes a Specs world and dispatcher
 /// using default configuration options and an
@@ -55,8 +56,8 @@ pub fn init_world<'a, 'b>() -> (World, Dispatcher<'a, 'b>) {
 
 pub struct Player {
     pub entity: Entity,
-    pub network_sender: Sender<ServerToWorkerMessage>,
-    pub network_receiver: Receiver<ServerToWorkerMessage>,
+    pub network_sender: crossbeam::Sender<ServerToWorkerMessage>,
+    pub network_receiver: RefCell<tokio::sync::mpsc::UnboundedReceiver<ServerToWorkerMessage>>,
 }
 
 /// Adds a player to the world, inserting
@@ -89,8 +90,8 @@ pub fn add_player(world: &mut World) -> Player {
 /// Adds a player to the world without adding the `ChunkHolders`
 /// and `ChunkEntities` entries.
 pub fn add_player_without_holder(world: &mut World) -> Player {
-    let (ns1, nr1) = channel();
-    let (ns2, nr2) = channel();
+    let (ns1, nr1) = tokio::sync::mpsc::unbounded_channel();
+    let (ns2, nr2) = crossbeam::unbounded();
     let entity = world
         .create_entity()
         .with(NetworkComponent::new(ns1, nr2))
@@ -114,14 +115,14 @@ pub fn add_player_without_holder(world: &mut World) -> Player {
     Player {
         entity,
         network_sender: ns2,
-        network_receiver: nr1,
+        network_receiver: RefCell::new(nr1),
     }
 }
 
 /// Asserts that the given player has received
 /// a packet of the given type, returning the packet.
 pub fn assert_packet_received(player: &Player, ty: PacketType) -> Box<dyn Packet> {
-    while let Ok(msg) = player.network_receiver.try_recv() {
+    while let Some(msg) = block_on(player.network_receiver.borrow_mut().recv()) {
         if let ServerToWorkerMessage::SendPacket(packet) = msg {
             if packet.ty() == ty {
                 return packet;
@@ -136,7 +137,7 @@ pub fn assert_packet_received(player: &Player, ty: PacketType) -> Box<dyn Packet
 /// any packets of the given type.
 /// Panics if not.
 pub fn assert_packet_not_received(player: &Player, ty: PacketType) {
-    while let Ok(msg) = player.network_receiver.try_recv() {
+    while let Some(msg) = block_on(player.network_receiver.borrow_mut().recv()) {
         if let ServerToWorkerMessage::SendPacket(packet) = msg {
             assert_ne!(packet.ty(), ty);
         }
@@ -151,7 +152,7 @@ pub fn assert_packet_not_received(player: &Player, ty: PacketType) {
 pub fn received_packets(player: &Player, cap: Option<usize>) -> Vec<Box<dyn Packet>> {
     let mut result = vec![];
 
-    while let Ok(msg) = player.network_receiver.try_recv() {
+    while let Some(msg) = block_on(player.network_receiver.borrow_mut().recv()) {
         if let ServerToWorkerMessage::SendPacket(pack) = msg {
             result.push(pack);
         }
