@@ -334,8 +334,8 @@ async fn handle_encryption_response(
 
     // Perform authentication
     let auth_result = mojang_api::server_auth(
-        ih.username.as_ref().unwrap(),
         &mojang_api::server_hash("", ih.key.unwrap(), der.as_slice()),
+        ih.username.as_ref().unwrap(),
     )
     .await;
 
@@ -348,7 +348,7 @@ async fn handle_encryption_response(
             };
             ih.info = Some(info);
         }
-        Err(_) => return Err(Error::AuthenticationFailed),
+        Err(e) => return Err(Error::AuthenticationFailed(e)),
     }
 
     finish(ih);
@@ -431,37 +431,20 @@ fn send_packet<P: Packet + 'static>(ih: &mut InitialHandler, packet: P) {
     ih.action_queue.push(Action::SendPacket(Box::new(packet)));
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Fail, Debug)]
 enum Error {
+    #[fail(display = "invalid packet type {:?} sent at stage {:?}", _0, _1)]
     InvalidPacket(PacketType, Stage),
+    #[fail(display = "unsupported protocol version {:?}", _0)]
     InvalidProtocol(u32),
+    #[fail(display = "invalid encryption")]
     BadEncryption,
+    #[fail(display = "verify tokens do not match")]
     VerifyTokenMismatch,
+    #[fail(display = "shared secret length is not correct")]
     BadSecretLength,
-    AuthenticationFailed,
-}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
-        match self {
-            Error::InvalidPacket(ty, stage) => write!(
-                f,
-                "Sent invalid packet {:?} at initial handler stage {:?}",
-                ty, stage
-            )?,
-            Error::InvalidProtocol(protocol) => write!(
-                f,
-                "Invalid protocol version {} - this server is on {}",
-                *protocol, PROTOCOL_VERSION
-            )?,
-            Error::BadEncryption => write!(f, "Failed to decrypt value")?,
-            Error::VerifyTokenMismatch => write!(f, "Verify token does not match")?,
-            Error::BadSecretLength => write!(f, "Invalid shared secret length")?,
-            Error::AuthenticationFailed => write!(f, "Authentication failed")?,
-        }
-
-        Ok(())
-    }
+    #[fail(display = "authentication failure: {:?}", _0)]
+    AuthenticationFailed(mojang_api::Error),
 }
 
 /// The stage of an initial handler.

@@ -33,7 +33,7 @@ rand_xorshift = "0.2.0"
 rand-legacy = { path = "../util/rand-legacy" }
 bytes = "0.4.12"
 hashbrown = { version = "0.6.0", features = ["rayon"] }
-mojang-api = "0.3.0"
+mojang-api = { git = "https://github.com/caelunshun/mojang-api-rs", rev = "bf73e0a34d770224f69f926d78f2679b3eeabc73" }
 multimap = "0.6.0"
 hematite-nbt = "0.4.1"
 specs = { version = "0.15.1", features = ["storage-event-control"] }

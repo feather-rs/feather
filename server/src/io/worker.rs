@@ -29,6 +29,7 @@ pub async fn run_worker(
     server_icon: Arc<Option<String>>,
 ) -> Result<(), failure::Error> {
     let codec = MinecraftCodec::new(PacketDirection::Serverbound);
+
     let mut framed = Framed::new(stream, codec);
 
     let mut initial_handler = Some(InitialHandler::new(config, player_count, server_icon));
@@ -36,14 +37,13 @@ pub async fn run_worker(
     let (tx_worker_to_server, rx_worker_to_server) = crossbeam::unbounded();
     let (tx_server_to_worker, mut rx_server_to_worker) = tokio::sync::mpsc::unbounded_channel();
     let mut rx_worker_to_server = Some(rx_worker_to_server);
-    let mut future_server_message = rx_server_to_worker.next().fuse();
 
     loop {
         let mut server_message = None;
         let mut received_packet = None;
 
         select! {
-            msg = future_server_message => server_message = Some(msg),
+            msg = rx_server_to_worker.next().fuse() => server_message = Some(msg),
             packet = framed.next().fuse() => received_packet = Some(packet),
         }
 
@@ -100,7 +100,10 @@ pub async fn run_worker(
                                 .send(ServerToWorkerMessage::NotifyPacketReceived(packet));
                         }
                     }
-                    Err(e) => return Err(e),
+                    Err(e) => {
+                        let _ = tx_worker_to_server.send(ServerToWorkerMessage::NotifyDisconnect);
+                        return Err(e);
+                    }
                 }
             }
         }

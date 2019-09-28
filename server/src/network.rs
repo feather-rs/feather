@@ -235,22 +235,16 @@ pub fn send_packet_to_all_players<P: Packet + Clone + 'static>(
 
 /// Sends a packet to the given player.
 pub fn send_packet_to_player<P: Packet + 'static>(comp: &NetworkComponent, packet: P) {
-    tokio::spawn(_send_packet_to_player(
-        comp.sender.clone(),
-        Box::new(packet),
-    ));
+    send_packet_boxed_to_player(comp, Box::new(packet));
 }
 
 /// Sends a packet to the given player.
 pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<dyn Packet>) {
-    tokio::spawn(_send_packet_to_player(comp.sender.clone(), packet));
-}
-
-async fn _send_packet_to_player(
-    mut sender: Sender<ServerToWorkerMessage>,
-    packet: Box<dyn Packet>,
-) {
-    let _ = sender.send(ServerToWorkerMessage::SendPacket(packet)).await;
+    let _ = futures::executor::block_on(
+        comp.sender
+            .clone()
+            .send(ServerToWorkerMessage::SendPacket(packet)),
+    );
 }
 
 #[cfg(test)]
