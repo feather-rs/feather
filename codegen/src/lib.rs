@@ -193,7 +193,7 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
 
     let r = quote! {
         impl Packet for #ident {
-            fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
+            fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
                 #(#read_code)*
                 Ok(())
             }

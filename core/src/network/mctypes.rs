@@ -134,7 +134,7 @@ impl<B: Buf> McTypeRead for B {
             if self.remaining() == 0 {
                 return Err(TryGetError::NotEnoughBytes);
             }
-            let read = self.try_get_i8()?;
+            let read = self.try_get_u8()?;
             let value = i32::from(read & 0b0111_1111);
             result |= value << (7 * num_read);
 
@@ -227,6 +227,6 @@ mod tests {
         // Examples from wiki.vg
         let mut buf = ByteBuf::new();
         buf.write_all(&[0xff, 0x01]).unwrap();
-        assert_eq!(buf.try_read_var_int(), Ok(255));
+        assert_eq!(buf.try_get_var_int(), Ok(255));
     }
 }

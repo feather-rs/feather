@@ -1,20 +1,23 @@
-use crate::network::mctypes::McTypeWrite;
-use crate::network::packet::PacketStage;
-use crate::Packet;
+use crate::network::mctypes::{McTypeRead, McTypeWrite};
+use crate::network::packet::{PacketDirection, PacketId, PacketStage};
+use crate::{Packet, PacketType};
 use aes::Aes128;
-use bytes::{BufMut, BytesMut};
+use bytes::{Buf, BufMut, BytesMut};
 use cfb8::stream_cipher::StreamCipher;
 use cfb8::Cfb8;
+use flate2::read::ZlibDecoder;
 use flate2::write::ZlibEncoder;
 use flate2::Compression;
-use std::io::Write;
-use tokio::codec::Encoder;
+use std::io::{Cursor, Read, Write};
+use tokio::codec::{Decoder, Encoder};
 use tokio::io;
 
 type AesCfb8 = Cfb8<Aes128>;
 
+/// Maximum possible size of a varint.
 const MAX_VAR_INT_SIZE: usize = 5;
-
+/// Maximum allowed length of a received packet.
+const MAX_PACKET_LEN: usize = 1_048_576; // One MB
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(
@@ -23,27 +26,29 @@ pub enum Error {
     )]
     CompressedPacketTooSmall(usize, usize),
     #[fail(display = "Packet length {} is too large", _0)]
-    PacketLengthTooLarge(usize),
+    PacketTooLarge(usize),
     #[fail(display = "Invalid packet ID {} for stage {:?}", _0, _1)]
     InvalidPacketId(u32, PacketStage),
 }
 
 /// Codec for encoding and decoding Minecraft packets.
-#[derive()]
 pub struct MinecraftCodec {
+    /// Direction of incoming packets.
+    incoming_direction: PacketDirection,
     /// The current stage of this codec.
     stage: PacketStage,
     /// The crypter, if encryption is enabled.
     crypter: Option<AesCfb8>,
     /// The compression threshold, if compression is enabled.
     compression_threshold: Option<usize>,
-
-    /// The index of the next byte in the buffer to decrypt.
-    read_index: usize,
-
     /// Cached buffer for writing header data.
-    /// This avoids reallocations.
+    /// Using this avoids reallocations.
     header_buffer: BytesMut,
+    /// Cached buffer into which we write decompressed
+    /// data. Using this avoids reallocations.
+    decompressed_buffer: Vec<u8>,
+    /// Index into `src` of next byte to decrypt.
+    decrypt_index: usize,
 }
 
 impl Encoder for MinecraftCodec {
@@ -64,8 +69,9 @@ impl Encoder for MinecraftCodec {
         assert!(header.is_empty());
 
         // Write raw packet data to `dst`.
-        trace!("Sending packet with type {:?}", packet.ty());
-        dst.push_var_int(packet.ty().get_id().0 as i32);
+        let ty = packet.ty();
+        trace!("Sending packet with type {:?}", ty);
+        dst.push_var_int(ty.get_id().0 as i32);
         packet.write_to(dst);
 
         // If compression is enabled, we follow a more complex course of action:
@@ -74,13 +80,13 @@ impl Encoder for MinecraftCodec {
         // * Otherwise, we move forward into the buffer, allocating
         // another header and then writing the compressed bytes
         // to the capacity after that.
-        let mut data_len: Option<usize> = if let Some(threshold) = self.compression_threshold {
+        let data_len: Option<usize> = if let Some(threshold) = self.compression_threshold {
             let data_len = dst.len();
             if data_len >= threshold {
                 // Allocate new header
                 dst.reserve(HEADER_SIZE);
 
-                let mut uncompressed = dst.split_to(data_len);
+                let uncompressed = dst.split_to(data_len);
                 header = dst.split_to(HEADER_SIZE);
 
                 assert!(dst.is_empty());
@@ -124,5 +130,82 @@ impl Encoder for MinecraftCodec {
         dst.unsplit(header);
 
         Ok(())
+    }
+}
+
+impl Decoder for MinecraftCodec {
+    type Item = Box<dyn Packet>;
+    type Error = failure::Error;
+
+    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
+        // If encryption is enabled, decrypt undecrypted data.
+        if let Some(crypter) = self.crypter.as_mut() {
+            crypter.decrypt(&mut src[self.decrypt_index..]);
+            self.decrypt_index = src.len();
+        }
+
+        // Conversion to `Cursor` is required because `Bytes` does
+        // not implement `Buf`.
+        let mut cursor = Cursor::new(src.as_ref());
+
+        // Read header.
+        let length = cursor.try_get_var_int()? as usize;
+
+        if length > cursor.remaining() {
+            // Full packet has not been read yet.
+            return Ok(None);
+        }
+
+        // Prevent malicious clients from causing huge allocations.
+        if length > MAX_PACKET_LEN {
+            return Err(Error::PacketTooLarge(length).into());
+        }
+
+        // At this point, we know a full packet has been received.
+
+        // Trim `cursor` and `src` to length of packet.
+        let position = cursor.position() as usize;
+        src.split_to(position);
+        cursor = Cursor::new(&src[..length]);
+
+        // If compression is enabled:
+        // * Read the data length field. If 0, continue as normal: the packet is not compressed.
+        // * Decompress remaining bytes into `self.decompressed_buffer`.
+        // * Update `cursor` to read from `self.decompressed_buffer`.
+        if let Some(threshold) = self.compression_threshold {
+            let data_length = cursor.try_get_var_int()?;
+
+            if data_length != 0 {
+                self.decompressed_buffer.clear();
+
+                let mut decoder = ZlibDecoder::new(cursor);
+                decoder.read_to_end(&mut self.decompressed_buffer)?;
+
+                let actual_data_length = self.decompressed_buffer.len();
+                if actual_data_length < threshold {
+                    return Err(
+                        Error::CompressedPacketTooSmall(actual_data_length, threshold).into(),
+                    );
+                }
+
+                cursor = Cursor::new(&self.decompressed_buffer);
+            }
+        }
+
+        // Read packet.
+        let id = cursor.try_get_var_int()? as u32;
+        let packet_type =
+            PacketType::get_from_id(PacketId(id, self.incoming_direction, self.stage))
+                .map_err(|_| Error::InvalidPacketId(id, self.stage))?;
+
+        let mut packet = packet_type.get_implementation();
+        packet.read_from(&mut cursor)?;
+
+        trace!("Received packet with type {:?}", packet_type);
+
+        src.split_to(length);
+        self.decrypt_index = 0;
+
+        Ok(Some(packet))
     }
 }

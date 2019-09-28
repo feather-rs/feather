@@ -147,7 +147,7 @@ impl BytesMutExt for BytesMut {
 
     fn push_u32(&mut self, x: u32) {
         self.reserve(4);
-        self.put_u32_be(4);
+        self.put_u32_be(x);
     }
 
     fn push_u64(&mut self, x: u64) {
