@@ -608,7 +608,6 @@ dependencies = [
 name = "feather-server"
 version = "0.4.1"
 dependencies = [
- "backtrace 0.3.37 (registry+https://github.com/rust-lang/crates.io-index)",
  "base64 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "bitflags 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bitvec 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",

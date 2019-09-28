@@ -1,3 +1,4 @@
+use crate::bytes_ext::TryGetError;
 use crate::network::mctypes::{McTypeRead, McTypeWrite};
 use crate::network::packet::{PacketDirection, PacketId, PacketStage};
 use crate::{Packet, PacketType};
@@ -179,7 +180,11 @@ impl Decoder for MinecraftCodec {
         let mut cursor = Cursor::new(src.as_ref());
 
         // Read header.
-        let length = cursor.try_get_var_int()? as usize;
+        let length = match cursor.try_get_var_int() {
+            Ok(length) => length as usize,
+            Err(TryGetError::NotEnoughBytes) => return Ok(None),
+            Err(e) => return Err(e.into()),
+        };
 
         if length > cursor.remaining() {
             // Full packet has not been read yet.

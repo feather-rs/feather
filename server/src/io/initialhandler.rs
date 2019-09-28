@@ -27,7 +27,7 @@ use feather_core::network::packet::implementation::{
     DisconnectLogin, EncryptionRequest, EncryptionResponse, Handshake, HandshakeState, LoginStart,
     LoginSuccess, Ping, Pong, Request, Response, SetCompression,
 };
-use feather_core::network::packet::{Packet, PacketType};
+use feather_core::network::packet::{Packet, PacketStage, PacketType};
 
 use crate::config::Config;
 use crate::{PlayerCount, PROTOCOL_VERSION, SERVER_VERSION};
@@ -57,6 +57,7 @@ pub enum Action {
     EnableEncryption(Key),
     SendPacket(Box<dyn Packet>),
     Disconnect,
+    SetStage(PacketStage),
     JoinGame(JoinResult),
 }
 
@@ -192,7 +193,10 @@ fn handle_handshake(ih: &mut InitialHandler, packet: &Handshake) -> Result<(), E
     check_stage(ih, Stage::AwaitHandshake, packet.ty())?;
 
     ih.stage = match packet.next_state {
-        HandshakeState::Status => Stage::AwaitRequest,
+        HandshakeState::Status => {
+            ih.action_queue.push(Action::SetStage(PacketStage::Status));
+            Stage::AwaitRequest
+        }
         HandshakeState::Login => {
             // While status requests can use differing
             // protocol versions, a client
@@ -202,6 +206,7 @@ fn handle_handshake(ih: &mut InitialHandler, packet: &Handshake) -> Result<(), E
                 return Err(Error::InvalidProtocol(packet.protocol_version));
             }
 
+            ih.action_queue.push(Action::SetStage(PacketStage::Login));
             Stage::AwaitLoginStart
         }
     };
@@ -383,6 +388,7 @@ fn finish(ih: &mut InitialHandler) {
         info.username.clone(),
     );
     send_packet(ih, login_success);
+    ih.action_queue.push(Action::SetStage(PacketStage::Play));
     ih.action_queue
         .push(Action::JoinGame(ih.info.clone().unwrap()));
 }

@@ -79,6 +79,7 @@ pub async fn run_worker(
                                     Action::EnableEncryption(key) => {
                                         framed.codec_mut().enable_encryption(key)
                                     }
+                                    Action::SetStage(stage) => framed.codec_mut().set_stage(stage),
                                     Action::JoinGame(res) => {
                                         let info = NewClientInfo {
                                             ip,

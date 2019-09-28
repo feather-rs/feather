@@ -40,7 +40,6 @@ specs = { version = "0.15.1", features = ["storage-event-control"] }
 rayon = "1.1.2"
 shrev = "1.1.1"
 failure = "0.1.5"
-backtrace = "0.3.37"
 num-derive = "0.2.5"
 num-traits = "0.2.8"
 smallvec = "0.6.10"
