@@ -1,7 +1,6 @@
 #[allow(unused)]
 #[allow(clippy::too_many_arguments)]
-pub mod implementation;
-
+//pub mod implementation;
 use bytes::{Buf, Bytes, BytesMut};
 use hashbrown::HashMap;
 use std::any::Any;
@@ -11,7 +10,7 @@ pub trait AsAny {
 }
 
 pub trait Packet: AsAny + Send {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()>;
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error>;
     fn write_to(&self, buf: &mut BytesMut);
     fn ty(&self) -> PacketType;
 

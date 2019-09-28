@@ -96,7 +96,7 @@ pub struct Handshake {
 }
 
 impl Packet for Handshake {
-    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         self.protocol_version = buf.try_read_var_int()? as u32;
         self.server_address = buf.try_read_string()?;
         self.server_port = buf.get_u16_be();
@@ -150,7 +150,7 @@ pub struct EncryptionResponse {
 }
 
 impl Packet for EncryptionResponse {
-    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         self.secret_length = buf.try_read_var_int()?;
 
         let mut secret = vec![];
@@ -264,7 +264,7 @@ pub struct PluginMessageServerbound {
 }
 
 impl Packet for PluginMessageServerbound {
-    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         self.channel = buf.try_read_string()?;
 
         let mut data = Vec::with_capacity(buf.remaining());
@@ -307,7 +307,7 @@ pub struct UseEntity {
 }
 
 impl Packet for UseEntity {
-    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         self.target = buf.try_read_var_int()?;
 
         let ty_id = buf.try_read_var_int()?;
@@ -430,7 +430,7 @@ pub struct PlayerDigging {
 }
 
 impl Packet for PlayerDigging {
-    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         self.status = {
             let id = buf.try_read_var_int()?;
             match id {
@@ -490,7 +490,7 @@ pub struct EntityAction {
 }
 
 impl Packet for EntityAction {
-    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         self.entity_id = buf.try_read_var_int()?;
         self.action_id = EntityActionType::from_i32(buf.try_read_var_int()?).ok_or(())?;
         self.jump_boost = buf.try_read_var_int()?;
@@ -632,7 +632,7 @@ pub struct AnimationServerbound {
 }
 
 impl Packet for AnimationServerbound {
-    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         let hand_id = buf.try_read_var_int()?;
         self.hand = match Hand::from_i32(hand_id) {
             Some(hand) => hand,
@@ -700,7 +700,7 @@ pub struct PlayerBlockPlacement {
 }
 
 impl Packet for PlayerBlockPlacement {
-    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         self.location = buf.try_read_position()?;
         self.face = Face::from_i32(buf.try_read_var_int()?).ok_or(())?;
         self.hand = buf.try_read_var_int()?;
@@ -742,7 +742,7 @@ pub struct EncryptionRequest {
 }
 
 impl Packet for EncryptionRequest {
-    fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 
@@ -863,7 +863,7 @@ pub struct SpawnPlayer {
 }
 
 impl Packet for SpawnPlayer {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 
@@ -895,7 +895,7 @@ pub struct AnimationClientbound {
 }
 
 impl Packet for AnimationClientbound {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 
@@ -920,7 +920,7 @@ pub struct Statistics {
 }
 
 impl Packet for Statistics {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 
@@ -977,7 +977,7 @@ pub struct BossBar {
 }
 
 impl Packet for BossBar {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 
@@ -1118,7 +1118,7 @@ pub struct WindowItems {
 }
 
 impl Packet for WindowItems {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 
@@ -1167,7 +1167,7 @@ pub struct PluginMessageClientbound {
 }
 
 impl Packet for PluginMessageClientbound {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 
@@ -1227,7 +1227,7 @@ pub struct Explosion {
 }
 
 impl Packet for Explosion {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 
@@ -1282,7 +1282,7 @@ pub struct ChunkData {
 }
 
 impl Packet for ChunkData {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 
@@ -1463,7 +1463,7 @@ pub struct CombatEvent {
 }
 
 impl Packet for CombatEvent {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 
@@ -1511,7 +1511,7 @@ pub struct PlayerInfo {
 }
 
 impl Packet for PlayerInfo {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 
@@ -1612,7 +1612,7 @@ pub struct DestroyEntities {
 }
 
 impl Packet for DestroyEntities {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 
@@ -1666,7 +1666,7 @@ pub struct PacketEntityMetadata {
 }
 
 impl Packet for PacketEntityMetadata {
-    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), ()> {
+    fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
         unimplemented!()
     }
 

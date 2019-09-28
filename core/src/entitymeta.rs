@@ -2,10 +2,11 @@
 //! metadata format. See https://wiki.vg/Entity_metadata
 //! for the specification.
 
-use crate::bytebuf::{BufMutAlloc, ByteBuf};
+use crate::bytes_ext::{BytesMutExt, TryGetError};
 use crate::network::mctypes::McTypeWrite;
 use crate::world::BlockPosition;
 use crate::Slot;
+use bytes::BytesMut;
 use hashbrown::HashMap;
 use uuid::Uuid;
 
@@ -142,22 +143,22 @@ impl Default for EntityMetadata {
 }
 
 pub trait EntityMetaIo {
-    fn write_metadata(&mut self, meta: &EntityMetadata);
-    fn read_metadata(&mut self) -> EntityMetadata;
+    fn push_metadata(&mut self, meta: &EntityMetadata);
+    fn try_get_metadata(&mut self) -> Result<EntityMetadata, TryGetError>;
 }
 
-impl EntityMetaIo for ByteBuf {
-    fn write_metadata(&mut self, meta: &EntityMetadata) {
+impl EntityMetaIo for BytesMut {
+    fn push_metadata(&mut self, meta: &EntityMetadata) {
         for (index, entry) in meta.values.iter() {
-            self.write_u8(*index);
-            self.write_var_int(entry.id());
+            self.push_u8(*index);
+            self.push_var_int(entry.id());
             write_entry_to_buf(entry, self);
         }
 
-        self.write_u8(0xff); // End of metadata
+        self.push_u8(0xff); // End of metadata
     }
 
-    fn read_metadata(&mut self) -> EntityMetadata {
+    fn try_get_metadata(&mut self) -> Result<EntityMetadata, TryGetError> {
         unimplemented!()
     }
 }
@@ -165,8 +166,10 @@ impl EntityMetaIo for ByteBuf {
 fn write_entry_to_buf(entry: &MetaEntry, buf: &mut BytesMut) {
     match entry {
         MetaEntry::Byte(x) => buf.push_i8(*x),
-        MetaEntry::VarInt(x) => buf.push_var_int(*x),
-        MetaEntry::Float(x) => buf.push_f32_be(*x),
+        MetaEntry::VarInt(x) => {
+            buf.push_var_int(*x);
+        }
+        MetaEntry::Float(x) => buf.push_f32(*x),
         MetaEntry::String(x) => buf.push_string(x),
         MetaEntry::Chat(x) => buf.push_string(x),
         MetaEntry::OptChat(ox) => {
@@ -182,9 +185,9 @@ fn write_entry_to_buf(entry: &MetaEntry, buf: &mut BytesMut) {
         }
         MetaEntry::Boolean(x) => buf.push_bool(*x),
         MetaEntry::Rotation(x, y, z) => {
-            buf.push_f32_be(*x);
-            buf.push_f32_be(*y);
-            buf.push_f32_be(*z);
+            buf.push_f32(*x);
+            buf.push_f32(*y);
+            buf.push_f32(*z);
         }
         MetaEntry::Position(x) => buf.push_position(x),
         MetaEntry::OptPosition(ox) => {
@@ -195,7 +198,9 @@ fn write_entry_to_buf(entry: &MetaEntry, buf: &mut BytesMut) {
                 buf.push_bool(false);
             }
         }
-        MetaEntry::Direction(x) => buf.push_var_int(x.id()),
+        MetaEntry::Direction(x) => {
+            buf.push_var_int(x.id());
+        }
         MetaEntry::OptUuid(ox) => {
             if let Some(x) = ox {
                 buf.push_bool(true);

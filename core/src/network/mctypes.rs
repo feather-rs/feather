@@ -2,17 +2,19 @@ use crate::bytes_ext::{BytesExt, BytesMutExt, TryGetError};
 use crate::inventory::ItemStack;
 use crate::prelude::*;
 use crate::world::BlockPosition;
-use bytes::{Buf, BufMut, Bytes, BytesMut};
+use bytes::{Buf, BufMut, BytesMut};
 use feather_items::{Item, ItemExt};
 use serde::{Deserialize, Serialize};
-use std::io::{Read, Write};
+use std::io::Read;
 
 /// Identifies a type to which Minecraft-specific
 /// types (`VarInt`, `VarLong`, etc.) can be written.
 pub trait McTypeWrite {
     /// Writes a `VarInt` to the object. See wiki.vg for
     /// details on `VarInt`s and related types.
-    fn push_var_int(&mut self, x: i32);
+    ///
+    /// Returns the number of bytes used to encode this integer.
+    fn push_var_int(&mut self, x: i32) -> usize;
     /// Writes a string to the object. This method
     /// will first write the length of the string in bytes
     /// encodes as a `VarInt` and will then write
@@ -52,9 +54,8 @@ pub trait McTypeRead {
 }
 
 impl McTypeWrite for BytesMut {
-    /// Writes a `VarInt` to the object. See wiki.vg for
-    /// details on `VarInt`s and related types.
-    fn push_var_int(&mut self, mut x: i32) {
+    fn push_var_int(&mut self, mut x: i32) -> usize {
+        let mut bytes_written = 0;
         loop {
             let mut temp = (x & 0b0111_1111) as u8;
             x >>= 7;
@@ -62,10 +63,13 @@ impl McTypeWrite for BytesMut {
                 temp |= 0b1000_0000;
             }
             self.push_u8(temp);
+            bytes_written += 1;
             if x == 0 {
                 break;
             }
         }
+
+        bytes_written
     }
 
     /// Writes a string to the object. This method
@@ -86,7 +90,7 @@ impl McTypeWrite for BytesMut {
             | ((x.y as u64 & 0xFFF) << 26)
             | (x.z as u64 & 0x03FF_FFFF);
 
-        self.write_u64_be(result);
+        self.push_u64(result);
     }
 
     fn push_bool(&mut self, x: bool) {
@@ -98,11 +102,14 @@ impl McTypeWrite for BytesMut {
     }
 
     fn push_uuid(&mut self, x: &Uuid) {
-        self.write_all(&x.as_bytes()[..]).unwrap();
+        self.extend_from_slice(&x.as_bytes()[..]);
     }
 
     fn push_nbt<T: Serialize>(&mut self, val: &T) {
-        nbt::to_writer(self, val, None).unwrap(); // Unwrap is safe because writing would only fail if a struct couldn't be written
+        // TODO: fix inefficient use of temp buf.
+        let mut temp = vec![];
+        nbt::to_writer(&mut temp, val, None).unwrap(); // Unwrap is safe because writing would only fail if a struct couldn't be written
+        self.extend_from_slice(&temp);
     }
 
     fn push_slot(&mut self, slot: &Option<ItemStack>) {
@@ -116,7 +123,7 @@ impl McTypeWrite for BytesMut {
     }
 }
 
-impl McTypeRead for Bytes {
+impl<B: Buf> McTypeRead for B {
     /// Reads a `VarInt` from this object, returning
     /// `Some(x)` if successful or `None` if the object
     /// does not contain a valid `VarInt`.
@@ -183,8 +190,10 @@ impl McTypeRead for Bytes {
     }
 
     fn try_get_uuid(&mut self) -> Result<Uuid, TryGetError> {
-        let mut bytes = [0; 16];
-        bytes.write(&self.as_slice()).unwrap();
+        let mut bytes = [0u8; 16];
+        self.bytes()
+            .read(&mut bytes)
+            .map_err(|_| TryGetError::NotEnoughBytes)?;
         Ok(Uuid::from_bytes(bytes))
     }
 

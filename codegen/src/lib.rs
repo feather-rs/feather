@@ -87,18 +87,18 @@ lazy_static! {
         m.insert("var_int", PacketParameterType::Varint);
         m.insert("var_long", PacketParameterType::Varlong);
         m.insert("string", PacketParameterType::String);
-        m.insert("u64_be", PacketParameterType::U64);
-        m.insert("u32_be", PacketParameterType::U32);
-        m.insert("u16_be", PacketParameterType::U16);
+        m.insert("u64", PacketParameterType::U64);
+        m.insert("u32", PacketParameterType::U32);
+        m.insert("u16", PacketParameterType::U16);
         m.insert("u8", PacketParameterType::U8);
-        m.insert("i64_be", PacketParameterType::I64);
-        m.insert("i32_be", PacketParameterType::I32);
-        m.insert("i16_be", PacketParameterType::I16);
+        m.insert("i64", PacketParameterType::I64);
+        m.insert("i32", PacketParameterType::I32);
+        m.insert("i16", PacketParameterType::I16);
         m.insert("i8", PacketParameterType::I8);
         m.insert("position", PacketParameterType::Position);
         m.insert("bool", PacketParameterType::Boolean);
-        m.insert("f32_be", PacketParameterType::F32);
-        m.insert("f64_be", PacketParameterType::F64);
+        m.insert("f32", PacketParameterType::F32);
+        m.insert("f64", PacketParameterType::F64);
         m.insert("uuid", PacketParameterType::Uuid);
         m.insert("nbt", PacketParameterType::Nbt);
         m.insert("slot", PacketParameterType::Slot);
@@ -155,8 +155,8 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
             Span::call_site(),
         );
 
-        let write_fn_ident = Ident::new(&format!("write_{}", function_ident), Span::call_site());
-        let read_fn_ident = Ident::new(&format!("read_{}", function_ident), Span::call_site());
+        let write_fn_ident = Ident::new(&format!("push_{}", function_ident), Span::call_site());
+        let read_fn_ident = Ident::new(&format!("try_get_{}", function_ident), Span::call_site());
 
         let use_ref = {
             vec![
@@ -193,7 +193,7 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
 
     let r = quote! {
         impl Packet for #ident {
-            fn read_from(&mut self, mut buf: &mut Bytes) -> Result<(), ()> {
+            fn read_from(&mut self, buf: &mut Bytes) -> Result<(), failure::Error> {
                 #(#read_code)*
                 Ok(())
             }
