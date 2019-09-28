@@ -314,7 +314,6 @@ fn init_io_manager(
         format!("{}:{}", config.server.address, config.server.port)
             .parse()
             .unwrap(),
-        config.io.io_worker_threads,
         config,
         player_count,
         server_icon,

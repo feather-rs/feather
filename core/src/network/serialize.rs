@@ -3,7 +3,7 @@ use crate::network::packet::{PacketDirection, PacketId, PacketStage};
 use crate::{Packet, PacketType};
 use aes::Aes128;
 use bytes::{Buf, BufMut, BytesMut};
-use cfb8::stream_cipher::StreamCipher;
+use cfb8::stream_cipher::{NewStreamCipher, StreamCipher};
 use cfb8::Cfb8;
 use flate2::read::ZlibDecoder;
 use flate2::write::ZlibEncoder;
@@ -18,6 +18,9 @@ type AesCfb8 = Cfb8<Aes128>;
 const MAX_VAR_INT_SIZE: usize = 5;
 /// Maximum allowed length of a received packet.
 const MAX_PACKET_LEN: usize = 1_048_576; // One MB
+/// Maximum possible size of a packet header.
+const HEADER_SIZE: usize = MAX_VAR_INT_SIZE * 2;
+
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(
@@ -51,6 +54,34 @@ pub struct MinecraftCodec {
     decrypt_index: usize,
 }
 
+impl MinecraftCodec {
+    pub fn new(incoming_direction: PacketDirection) -> Self {
+        Self {
+            incoming_direction,
+            stage: PacketStage::Handshake,
+            crypter: None,
+            compression_threshold: None,
+            header_buffer: BytesMut::with_capacity(HEADER_SIZE),
+            decompressed_buffer: vec![],
+            decrypt_index: 0,
+        }
+    }
+
+    pub fn enable_compression(&mut self, threshold: usize) {
+        self.compression_threshold = Some(threshold);
+    }
+
+    pub fn enable_encryption(&mut self, key: [u8; 16]) {
+        // This is the toppoint of security: using the same IV
+        // for every packet. Typical for Mojang.
+        self.crypter = Some(AesCfb8::new_var(&key, &key).unwrap());
+    }
+
+    pub fn set_stage(&mut self, stage: PacketStage) {
+        self.stage = stage;
+    }
+}
+
 impl Encoder for MinecraftCodec {
     type Item = Box<dyn Packet>;
     type Error = io::Error;
@@ -62,7 +93,6 @@ impl Encoder for MinecraftCodec {
         // "Data length" refers to the uncompressed size of the packet.
         // Since we cannot know the size of the header in advance, thanks to varints,
         // we reserve the maximum size and copy the header in with a correct offset.
-        const HEADER_SIZE: usize = MAX_VAR_INT_SIZE * 2;
         dst.reserve(HEADER_SIZE);
         let mut header = dst.split_to(HEADER_SIZE);
         assert!(dst.is_empty());

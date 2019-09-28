@@ -1,19 +1,21 @@
 use parking_lot::Mutex;
 
-use mio_extras::channel::{Receiver, Sender};
+use crossbeam::Receiver;
 use shrev::EventChannel;
 use specs::{
     Component, DenseVecStorage, Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System,
     WorldExt, Write, WriteStorage,
 };
+use tokio::sync::mpsc::UnboundedSender as Sender;
 
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 
 use crate::entity::PlayerComponent;
-use crate::io::{NetworkIoManager, ServerToListenerMessage, ServerToWorkerMessage};
+use crate::io::{ListenerToServerMessage, NetworkIoManager, ServerToWorkerMessage};
 use crate::joinhandler::JoinHandlerComponent;
 use crate::prelude::*;
 use crate::{disconnect_player_without_packet, TickCount};
+use futures::SinkExt;
 use strum::EnumCount;
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
@@ -118,7 +120,7 @@ pub struct PlayerPreJoinEvent {
     pub player: Entity,
     pub username: String,
     pub uuid: Uuid,
-    pub profile_properties: Vec<mojang_api::ServerAuthProperty>,
+    pub profile_properties: Vec<mojang_api::ProfileProperty>,
 }
 
 impl<'a> System<'a> for NetworkSystem {
@@ -147,7 +149,7 @@ impl<'a> System<'a> for NetworkSystem {
         // Poll for new connections
         while let Ok(msg) = ioman.receiver.try_recv() {
             match msg {
-                ServerToListenerMessage::NewClient(info) => {
+                ListenerToServerMessage::NewClient(info) => {
                     // New connection - handle it
                     info!("Accepting connection from {}", info.ip);
                     let netcomp = NetworkComponent::new(info.sender, info.receiver);
@@ -174,7 +176,6 @@ impl<'a> System<'a> for NetworkSystem {
                     };
                     join_events.single_write(event);
                 }
-                _ => unreachable!(),
             }
         }
 
@@ -234,14 +235,22 @@ pub fn send_packet_to_all_players<P: Packet + Clone + 'static>(
 
 /// Sends a packet to the given player.
 pub fn send_packet_to_player<P: Packet + 'static>(comp: &NetworkComponent, packet: P) {
-    let _ = comp
-        .sender
-        .send(ServerToWorkerMessage::SendPacket(Box::new(packet)));
+    tokio::spawn(_send_packet_to_player(
+        comp.sender.clone(),
+        Box::new(packet),
+    ));
 }
 
 /// Sends a packet to the given player.
 pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<dyn Packet>) {
-    let _ = comp.sender.send(ServerToWorkerMessage::SendPacket(packet));
+    tokio::spawn(_send_packet_to_player(comp.sender.clone(), packet));
+}
+
+async fn _send_packet_to_player(
+    mut sender: Sender<ServerToWorkerMessage>,
+    packet: Box<dyn Packet>,
+) {
+    let _ = sender.send(ServerToWorkerMessage::SendPacket(packet)).await;
 }
 
 #[cfg(test)]
@@ -288,7 +297,7 @@ mod tests {
             receiver: recv2,
         };
 
-        let msg = ServerToListenerMessage::NewClient(new_client);
+        let msg = ListenerToServerMessage::NewClient(new_client);
         ioman.listener_sender.send(msg).unwrap();
 
         let mut event_reader = t::reader(&w);

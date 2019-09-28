@@ -14,7 +14,6 @@
 //! speeding up the login process and making the latency calculation in
 //! the server list ping as low as possible.
 
-use std::str::FromStr;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
@@ -66,7 +65,7 @@ pub enum Action {
 pub struct JoinResult {
     pub username: String,
     pub uuid: Uuid,
-    pub props: Vec<mojang_api::ServerAuthProperty>,
+    pub props: Vec<mojang_api::ProfileProperty>,
 }
 
 /// An initial handler for a connection.
@@ -77,15 +76,9 @@ pub struct JoinResult {
 /// login sequence or the server list ping.
 ///
 /// The initial handler is able to communicate with the worker
-/// implementation by exposing the `actions_to_execute` method,
-/// which returns a vector of actions for the worker to execute.
-/// These may include, for example, enabling encryption or sending
+/// implementation by returning a vector of actions to perform.
 /// a packet.
 pub struct InitialHandler {
-    /// A queue of actions to perform. When `actions_to_execute`
-    /// is called, the queue is flushed.
-    action_queue: Vec<Action>,
-
     /// If set to a value, indicates that encryption
     /// should be enabled with the given key.
     key: Option<Key>,
@@ -123,8 +116,6 @@ impl InitialHandler {
         server_icon: Arc<Option<String>>,
     ) -> Self {
         Self {
-            action_queue: vec![],
-
             key: None,
             compression_threshold: None,
 
@@ -143,45 +134,39 @@ impl InitialHandler {
     }
 
     /// Notifies this initial handler of a packet
-    /// received from the client. After calling this
-    /// function, `action_queue` should be called
-    /// and the actions should be executed in order.
-    pub fn handle_packet(&mut self, packet: Box<dyn Packet>) {
+    /// received from the client. Returns a vector of actions
+    /// to perform.
+    pub async fn handle_packet(&mut self, packet: Box<dyn Packet>) -> Vec<Action> {
+        let mut actions = vec![];
         if self.stage == Stage::Finished {
             panic!("Called InitialHandler::handle_packet() after completion");
         }
 
-        if let Err(e) = _handle_packet(self, packet) {
+        if let Err(e) = _handle_packet(self, packet, &mut actions).await {
             // Disconnect
-            disconnect_login(self, &format!("{}", e));
+            disconnect_login(self, &format!("{}", e), &mut actions);
             info!(
                 "Player {} disconnected: {}",
                 self.username.as_ref().unwrap_or(&"unknown".to_string()),
                 e
             );
         }
-    }
 
-    /// Returns a vector of actions to perform.
-    pub fn actions_to_execute(&mut self) -> Vec<Action> {
-        let mut new_vec = vec![];
-        std::mem::swap(&mut new_vec, &mut self.action_queue);
-
-        new_vec
+        actions
     }
 }
 
 /// Handles a packet, returning `Err` if the player
 /// should be disconnected.
-fn _handle_packet(ih: &mut InitialHandler, packet: Box<dyn Packet>) -> Result<(), Error> {
+async fn _handle_packet(ih: &mut InitialHandler, packet: Box<dyn Packet>, actions: &mut Vec<Action>) -> Result<(), Error> {
     // Find packet type and forward to correct function
     match packet.ty() {
-        PacketType::Handshake => handle_handshake(ih, cast_packet::<Handshake>(&*packet))?,
-        PacketType::Request => handle_request(ih, cast_packet::<Request>(&*packet))?,
-        PacketType::Ping => handle_ping(ih, cast_packet::<Ping>(&*packet))?,
-        PacketType::LoginStart => handle_login_start(ih, cast_packet::<LoginStart>(&*packet))?,
+        PacketType::Handshake => handle_handshake(ih, cast_packet::<Handshake>(&*packet), actions)?,
+        PacketType::Request => handle_request(ih, cast_packet::<Request>(&*packet), actions)?,
+        PacketType::Ping => handle_ping(ih, cast_packet::<Ping>(&*packet), actions)?,
+        PacketType::LoginStart => handle_login_start(ih, cast_packet::<LoginStart>(&*packet), actions)?,
         PacketType::EncryptionResponse => {
-            handle_encryption_response(ih, cast_packet::<EncryptionResponse>(&*packet))?
+            handle_encryption_response(ih, cast_packet::<EncryptionResponse>(&*packet), actions).await?;
         }
         ty => return Err(Error::InvalidPacket(ty, ih.stage)),
     }
@@ -189,7 +174,7 @@ fn _handle_packet(ih: &mut InitialHandler, packet: Box<dyn Packet>) -> Result<()
     Ok(())
 }
 
-fn handle_handshake(ih: &mut InitialHandler, packet: &Handshake) -> Result<(), Error> {
+fn handle_handshake(ih: &mut InitialHandler, packet: &Handshake, _actions: &mut Vec<Action>) -> Result<(), Error> {
     check_stage(ih, Stage::AwaitHandshake, packet.ty())?;
 
     ih.stage = match packet.next_state {
@@ -210,7 +195,7 @@ fn handle_handshake(ih: &mut InitialHandler, packet: &Handshake) -> Result<(), E
     Ok(())
 }
 
-fn handle_request(ih: &mut InitialHandler, packet: &Request) -> Result<(), Error> {
+fn handle_request(ih: &mut InitialHandler, packet: &Request, actions: &mut Vec<Action>) -> Result<(), Error> {
     check_stage(ih, Stage::AwaitRequest, packet.ty())?;
     let server_icon = (*ih.server_icon).clone().unwrap_or_default();
 
@@ -231,27 +216,27 @@ fn handle_request(ih: &mut InitialHandler, packet: &Request) -> Result<(), Error
     });
 
     let response = Response::new(json.to_string());
-    send_packet(ih, response);
+    send_packet(response, actions);
 
     ih.stage = Stage::AwaitPing;
 
     Ok(())
 }
 
-fn handle_ping(ih: &mut InitialHandler, packet: &Ping) -> Result<(), Error> {
+fn handle_ping(ih: &mut InitialHandler, packet: &Ping, actions: &mut Vec<Action>) -> Result<(), Error> {
     check_stage(ih, Stage::AwaitPing, packet.ty())?;
 
     let pong = Pong::new(packet.payload);
-    send_packet(ih, pong);
+    send_packet(pong, actions);
 
     // After sending pong, we should disconnect.
-    ih.action_queue.push(Action::Disconnect);
+    actions.push(Action::Disconnect);
     ih.stage = Stage::Finished;
 
     Ok(())
 }
 
-fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<(), Error> {
+fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart, actions: &mut Vec<Action>) -> Result<(), Error> {
     check_stage(ih, Stage::AwaitLoginStart, packet.ty())?;
 
     ih.username = Some(packet.username.clone());
@@ -274,7 +259,7 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
             der,
             ih.verify_token.to_vec(),
         );
-        send_packet(ih, encryption_request);
+        send_packet(encryption_request, actions);
 
         ih.stage = Stage::AwaitEncryptionResponse;
     } else {
@@ -284,15 +269,16 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
             uuid: Uuid::new_v4(),
             props: vec![],
         });
-        finish(ih);
+        finish(ih, actions);
     }
 
     Ok(())
 }
 
-fn handle_encryption_response(
+async fn handle_encryption_response(
     ih: &mut InitialHandler,
     packet: &EncryptionResponse,
+    actions: &mut Vec<Action>,
 ) -> Result<(), Error> {
     check_stage(ih, Stage::AwaitEncryptionResponse, packet.ty())?;
 
@@ -319,8 +305,7 @@ fn handle_encryption_response(
     }
 
     ih.key = Some(key);
-    ih.action_queue
-        .push(Action::EnableEncryption(ih.key.unwrap()));
+    actions.push(Action::EnableEncryption(ih.key.unwrap()));
 
     use num_bigint::{BigInt, Sign::Plus};
     let der = der::public_key_to_der(
@@ -332,13 +317,14 @@ fn handle_encryption_response(
     let auth_result = mojang_api::server_auth(
         ih.username.as_ref().unwrap(),
         &mojang_api::server_hash("", ih.key.unwrap(), der.as_slice()),
-    );
+    )
+    .await;
 
     match auth_result {
         Ok(auth) => {
             let info = JoinResult {
                 username: auth.name,
-                uuid: Uuid::from_str(&auth.id).unwrap(),
+                uuid: auth.id,
                 props: auth.properties,
             };
             ih.info = Some(info);
@@ -346,7 +332,7 @@ fn handle_encryption_response(
         Err(_) => return Err(Error::AuthenticationFailed),
     }
 
-    finish(ih);
+    finish(ih, actions);
 
     Ok(())
 }
@@ -366,13 +352,13 @@ fn decrypt_using_rsa(data: &[u8], key: &RSAPrivateKey) -> Result<Vec<u8>, Error>
 /// * `info` is set to a valid value
 /// * Encryption has been enabled, if necessary
 /// * All other login processes have already run
-fn finish(ih: &mut InitialHandler) {
+fn finish(ih: &mut InitialHandler, actions: &mut Vec<Action>) {
     assert!(ih.info.is_some());
 
     // Enable compression if necessary
     let compression_threshold = ih.config.io.compression_threshold;
     if compression_threshold > 0 {
-        enable_compression(ih, compression_threshold);
+        enable_compression(ih, compression_threshold, actions);
     }
 
     let info = ih.info.as_ref().unwrap();
@@ -382,17 +368,17 @@ fn finish(ih: &mut InitialHandler) {
         info.uuid.to_hyphenated_ref().to_string(),
         info.username.clone(),
     );
-    send_packet(ih, login_success);
-    ih.action_queue
+    send_packet(login_success, actions);
+    actions
         .push(Action::JoinGame(ih.info.clone().unwrap()));
 }
 
 /// Enables compression, sending the Set Compression
 /// packet.
-fn enable_compression(ih: &mut InitialHandler, threshold: i32) {
+fn enable_compression(ih: &mut InitialHandler, threshold: i32, actions: &mut Vec<Action>) {
     ih.compression_threshold = Some(threshold);
-    send_packet(ih, SetCompression::new(threshold));
-    ih.action_queue.push(Action::EnableCompression(threshold));
+    send_packet(SetCompression::new(threshold), actions);
+    actions.push(Action::EnableCompression(threshold));
 }
 
 /// Checks that the initial handler stage matches
@@ -408,21 +394,21 @@ fn check_stage(ih: &InitialHandler, expected: Stage, packet_ty: PacketType) -> R
 
 /// Disconnects the initial handler, sending
 /// a disconnect packet containing the reason.
-fn disconnect_login(ih: &mut InitialHandler, reason: &str) {
+fn disconnect_login(ih: &mut InitialHandler, reason: &str, actions: &mut Vec<Action>) {
     let json = json!({
         "text": reason,
     })
     .to_string();
 
     let packet = DisconnectLogin::new(json);
-    send_packet(ih, packet);
+    send_packet(packet, actions);
 
-    ih.action_queue.push(Action::Disconnect);
+    actions.push(Action::Disconnect);
 }
 
 /// Adds a packet to the internal packet queue.
-fn send_packet<P: Packet + 'static>(ih: &mut InitialHandler, packet: P) {
-    ih.action_queue.push(Action::SendPacket(Box::new(packet)));
+fn send_packet<P: Packet + 'static>(packet: P, actions: &mut Vec<Action>) {
+    actions.push(Action::SendPacket(Box::new(packet)));
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

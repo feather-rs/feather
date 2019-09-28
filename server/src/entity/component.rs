@@ -8,7 +8,7 @@ use specs::{Component, FlaggedStorage, Join, System, VecStorage, WriteStorage};
 use uuid::Uuid;
 
 pub struct PlayerComponent {
-    pub profile_properties: Vec<mojang_api::ServerAuthProperty>,
+    pub profile_properties: Vec<mojang_api::ProfileProperty>,
     pub gamemode: Gamemode,
 }
 

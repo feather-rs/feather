@@ -10,7 +10,7 @@ pub trait AsAny {
     fn as_any(&self) -> &dyn Any;
 }
 
-pub trait Packet: AsAny + Send {
+pub trait Packet: AsAny + Send + Sync {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error>;
     fn write_to(&self, buf: &mut BytesMut);
     fn ty(&self) -> PacketType;
