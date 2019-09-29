@@ -358,7 +358,9 @@ mod tests {
 
         player
             .network_sender
-            .send(ServerToWorkerMessage::NotifyDisconnect)
+            .send(ServerToWorkerMessage::NotifyDisconnect(
+                "reason".to_string(),
+            ))
             .unwrap();
 
         d.dispatch(&w);
