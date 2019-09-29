@@ -141,10 +141,21 @@ impl Encoder for MinecraftCodec {
             None
         };
 
+        // Figure out the length of `data_length` encoded.
+        let length_of_data_length = match data_len {
+            Some(data_len) => {
+                let mut temp = BytesMut::with_capacity(MAX_VAR_INT_SIZE);
+                temp.push_var_int(data_len as i32);
+                temp.len()
+            }
+            None => 0,
+        };
+
         // Write header. We first write to a temporary buffer,
         // then copy this to the correct position in `header`,
         // trimming off the unused bytes.
-        self.header_buffer.push_var_int(dst.len() as i32);
+        self.header_buffer
+            .push_var_int((length_of_data_length + dst.len()) as i32);
         if let Some(data_len) = data_len {
             self.header_buffer.push_var_int(data_len as i32);
         }
