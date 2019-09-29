@@ -186,15 +186,11 @@ impl<'a> System<'a> for NetworkSystem {
                     ServerToWorkerMessage::NotifyPacketReceived(packet) => {
                         packet_queue.add_for_packet(player, packet);
                     }
-                    ServerToWorkerMessage::NotifyDisconnect => {
-                        // TODO broadcast disconnect
+                    ServerToWorkerMessage::NotifyDisconnect(reason) => {
                         lazy.exec_mut(move |world| {
-                            disconnect_player_without_packet(
-                                player,
-                                world,
-                                "Client disconnected".to_string(),
-                            )
+                            disconnect_player_without_packet(player, world, reason)
                         });
+                        break;
                     }
                     _ => panic!("Network system received invalid message from IO worker}"),
                 }

@@ -15,7 +15,7 @@ pub struct Client(usize);
 pub enum ServerToWorkerMessage {
     SendPacket(Box<dyn Packet>),
     NotifyPacketReceived(Box<dyn Packet>),
-    NotifyDisconnect,
+    NotifyDisconnect(String),
     Disconnect,
 }
 

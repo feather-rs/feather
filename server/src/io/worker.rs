@@ -27,6 +27,37 @@ pub async fn run_worker(
     config: Arc<Config>,
     player_count: Arc<PlayerCount>,
     server_icon: Arc<Option<String>>,
+) {
+    let (tx_worker_to_server, rx_worker_to_server) = crossbeam::unbounded();
+
+    let msg = match _run_worker(
+        stream,
+        ip,
+        global_sender,
+        config,
+        player_count,
+        server_icon,
+        tx_worker_to_server.clone(),
+        rx_worker_to_server.clone(),
+    )
+    .await
+    {
+        Ok(()) => "normal disconnect".to_string(),
+        Err(e) => format!("{}", e),
+    };
+
+    let _ = tx_worker_to_server.send(ServerToWorkerMessage::NotifyDisconnect(msg));
+}
+
+async fn _run_worker(
+    stream: TcpStream,
+    ip: SocketAddr,
+    global_sender: crossbeam::Sender<ListenerToServerMessage>,
+    config: Arc<Config>,
+    player_count: Arc<PlayerCount>,
+    server_icon: Arc<Option<String>>,
+    tx_worker_to_server: crossbeam::Sender<ServerToWorkerMessage>,
+    rx_worker_to_server: crossbeam::Receiver<ServerToWorkerMessage>,
 ) -> Result<(), failure::Error> {
     let codec = MinecraftCodec::new(PacketDirection::Serverbound);
 
@@ -34,7 +65,6 @@ pub async fn run_worker(
 
     let mut initial_handler = Some(InitialHandler::new(config, player_count, server_icon));
 
-    let (tx_worker_to_server, rx_worker_to_server) = crossbeam::unbounded();
     let (tx_server_to_worker, mut rx_server_to_worker) = tokio::sync::mpsc::unbounded_channel();
     let mut rx_worker_to_server = Some(rx_worker_to_server);
 
@@ -105,10 +135,7 @@ pub async fn run_worker(
                                 .send(ServerToWorkerMessage::NotifyPacketReceived(packet));
                         }
                     }
-                    Err(e) => {
-                        let _ = tx_worker_to_server.send(ServerToWorkerMessage::NotifyDisconnect);
-                        return Err(e);
-                    }
+                    Err(e) => return Err(e),
                 }
             }
         }
