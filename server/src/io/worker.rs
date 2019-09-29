@@ -71,12 +71,17 @@ pub async fn run_worker(
                                     Action::SendPacket(packet) => framed.send(packet).await?,
                                     Action::EnableCompression(threshold) => {
                                         if threshold > 0 {
+                                            trace!(
+                                                "Enabling compression with threshold {}",
+                                                threshold
+                                            );
                                             framed
                                                 .codec_mut()
                                                 .enable_compression(threshold as usize);
                                         }
                                     }
                                     Action::EnableEncryption(key) => {
+                                        trace!("Enabling encryption");
                                         framed.codec_mut().enable_encryption(key)
                                     }
                                     Action::SetStage(stage) => framed.codec_mut().set_stage(stage),

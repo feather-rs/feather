@@ -41,8 +41,10 @@ pub struct MinecraftCodec {
     incoming_direction: PacketDirection,
     /// The current stage of this codec.
     stage: PacketStage,
-    /// The crypter, if encryption is enabled.
-    crypter: Option<AesCfb8>,
+    /// The encrypter, if encryption is enabled.
+    encrypter: Option<AesCfb8>,
+    /// The decrypter, if encryption is enabled.
+    decrypter: Option<AesCfb8>,
     /// The compression threshold, if compression is enabled.
     compression_threshold: Option<usize>,
     /// Cached buffer for writing header data.
@@ -60,7 +62,8 @@ impl MinecraftCodec {
         Self {
             incoming_direction,
             stage: PacketStage::Handshake,
-            crypter: None,
+            encrypter: None,
+            decrypter: None,
             compression_threshold: None,
             header_buffer: BytesMut::with_capacity(HEADER_SIZE),
             decompressed_buffer: vec![],
@@ -75,7 +78,8 @@ impl MinecraftCodec {
     pub fn enable_encryption(&mut self, key: [u8; 16]) {
         // This is the toppoint of security: using the same IV
         // for every packet. Typical for Mojang.
-        self.crypter = Some(AesCfb8::new_var(&key, &key).unwrap());
+        self.encrypter = Some(AesCfb8::new_var(&key, &key).unwrap());
+        self.decrypter = Some(AesCfb8::new_var(&key, &key).unwrap());
     }
 
     pub fn set_stage(&mut self, stage: PacketStage) {
@@ -94,10 +98,14 @@ impl Encoder for MinecraftCodec {
         // "Data length" refers to the uncompressed size of the packet.
         // Since we cannot know the size of the header in advance, thanks to varints,
         // we reserve the maximum size and copy the header in with a correct offset.
+        assert!(dst.is_empty());
         dst.reserve(HEADER_SIZE);
         let mut header = dst.split_to(HEADER_SIZE);
         assert!(dst.is_empty());
         assert!(header.is_empty());
+
+        // Zero out `header`.
+        header.extend_from_slice(&[0u8; HEADER_SIZE]);
 
         // Write raw packet data to `dst`.
         let ty = packet.ty();
@@ -133,24 +141,19 @@ impl Encoder for MinecraftCodec {
             None
         };
 
-        // If encryption is enabled, encrypt data in place.
-        if let Some(crypter) = self.crypter.as_mut() {
-            crypter.encrypt(dst);
-        }
-
         // Write header. We first write to a temporary buffer,
         // then copy this to the correct position in `header`,
-        // trim off the unused bytes.
-        let mut used_header_bytes = 0;
-        used_header_bytes += self.header_buffer.push_var_int(dst.len() as i32);
+        // trimming off the unused bytes.
+        self.header_buffer.push_var_int(dst.len() as i32);
         if let Some(data_len) = data_len {
-            used_header_bytes += self.header_buffer.push_var_int(data_len as i32);
+            self.header_buffer.push_var_int(data_len as i32);
         }
 
         // Offset into `header` to write to.
-        let header_offset = HEADER_SIZE - used_header_bytes;
+        let header_offset = HEADER_SIZE - self.header_buffer.len();
         // Discard unused header bytes.
         header.split_to(header_offset);
+        header.clear();
 
         // Write into header.
         header.extend_from_slice(&self.header_buffer);
@@ -159,6 +162,11 @@ impl Encoder for MinecraftCodec {
         // Finally, merge `header` and `dst`.
         std::mem::swap(dst, &mut header);
         dst.unsplit(header);
+
+        // If encryption is enabled, encrypt data in place.
+        if let Some(crypter) = self.encrypter.as_mut() {
+            crypter.encrypt(dst);
+        }
 
         Ok(())
     }
@@ -170,7 +178,7 @@ impl Decoder for MinecraftCodec {
 
     fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         // If encryption is enabled, decrypt undecrypted data.
-        if let Some(crypter) = self.crypter.as_mut() {
+        if let Some(crypter) = self.decrypter.as_mut() {
             crypter.decrypt(&mut src[self.decrypt_index..]);
             self.decrypt_index = src.len();
         }

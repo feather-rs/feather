@@ -2,7 +2,7 @@ use crate::bytes_ext::{BytesExt, BytesMutExt, TryGetError};
 use crate::inventory::ItemStack;
 use crate::prelude::*;
 use crate::world::BlockPosition;
-use bytes::{Buf, BufMut, BytesMut};
+use bytes::{Buf, BytesMut};
 use feather_items::{Item, ItemExt};
 use serde::{Deserialize, Serialize};
 use std::io::Read;
@@ -77,12 +77,10 @@ impl McTypeWrite for BytesMut {
     /// encodes as a `VarInt` and will then write
     /// the UTF-8 bytes of the string.
     fn push_string(&mut self, x: &str) {
-        let len = x.len();
-        self.push_var_int(len as i32);
-
         let bytes = x.as_bytes();
-        self.reserve(bytes.len());
-        self.put(bytes);
+        self.push_var_int(bytes.len() as i32);
+
+        self.extend_from_slice(bytes);
     }
 
     fn push_position(&mut self, x: &BlockPosition) {
