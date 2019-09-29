@@ -258,7 +258,7 @@ impl Decoder for MinecraftCodec {
         trace!("Received packet with type {:?}", packet_type);
 
         src.advance(length);
-        self.decrypt_index = 0;
+        self.decrypt_index = src.len();
 
         Ok(Some(packet))
     }

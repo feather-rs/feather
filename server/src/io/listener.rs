@@ -45,7 +45,7 @@ async fn handle_connection(
     player_count: Arc<PlayerCount>,
     server_icon: Arc<Option<String>>,
 ) {
-    if let Err(e) = run_worker(
+    let _ = run_worker(
         stream,
         ip,
         sender.clone(),
@@ -53,8 +53,5 @@ async fn handle_connection(
         player_count,
         server_icon,
     )
-    .await
-    {
-        info!("An error occurred while handling connection: {:?}", e);
-    }
+    .await;
 }
