@@ -30,7 +30,6 @@ impl Default for Config {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct IO {
     pub compression_threshold: i32,
-    pub io_worker_threads: u16,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -103,7 +102,6 @@ mod tests {
         let config = load(input.to_string()).expect("Config load failed");
         let io = &config.io;
         assert_eq!(io.compression_threshold, 256);
-        assert_eq!(io.io_worker_threads, 8);
 
         let server = &config.server;
         assert_eq!(server.online_mode, true);
