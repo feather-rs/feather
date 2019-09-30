@@ -235,9 +235,9 @@ pub fn send_packet_to_player<P: Packet + 'static>(comp: &NetworkComponent, packe
 
 /// Sends a packet to the given player.
 pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<dyn Packet>) {
-    comp.sender
-        .unbounded_send(ServerToWorkerMessage::SendPacket(packet))
-        .unwrap();
+    let _ = comp
+        .sender
+        .unbounded_send(ServerToWorkerMessage::SendPacket(packet));
 }
 
 #[cfg(test)]
