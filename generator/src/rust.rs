@@ -45,7 +45,7 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
     let internal_id_data_offset_fn = generate_internal_id_data_offset_fn(&report);
     let internal_id_offsets = generate_internal_id_offsets(&report);
     let internal_state_id_fn = generate_internal_state_id_fn();
-    let from_name_and_props_fn = generate_from_name_and_props_fn(&report);
+    let name_and_props_mappings = generate_name_and_props_mappings(&report);
     let from_name_and_default_props_fn = generate_from_and_default_props_fn(&report);
     let from_internal_state_id_fn = generate_from_internal_state_id_fn(&report);
 
@@ -63,7 +63,7 @@ pub fn generate_rust_code(input: &str, output: &str) -> Result<(), Error> {
             }
             #internal_id_data_offset_fn
             #internal_state_id_fn
-            #from_name_and_props_fn
+            #name_and_props_mappings
             #from_name_and_default_props_fn
             #from_internal_state_id_fn
         }
@@ -672,26 +672,50 @@ fn generate_from_internal_state_id_fn(report: &BlockReport) -> TokenStream {
     result
 }
 
-/// Generates the `from_name_and_props` function.
-fn generate_from_name_and_props_fn(report: &BlockReport) -> TokenStream {
-    let mut match_arms = vec![];
+/// Generates `from_name_and_props` and `to_name_and_props`.
+fn generate_name_and_props_mappings(report: &BlockReport) -> TokenStream {
+    let mut from_name_and_props_match_arms = vec![];
+    let mut to_name_and_props_match_arms = vec![];
+
     for (block_name, block) in &report.blocks {
         let variant_name = block_name[10..].to_camel_case();
         let variant_ident = Ident::new(&variant_name, Span::call_site());
 
-        if block.properties.is_some() {
+        if let Some(props) = &block.properties {
             let data_struct_str = format!("{}Data", variant_name);
             let data_struct_ident = Ident::new(&data_struct_str, Span::call_site());
 
-            match_arms.push(quote! {
+            from_name_and_props_match_arms.push(quote! {
                 #block_name => {
                     let data = #data_struct_ident::from_map(props)?;
                     Some(Block::#variant_ident(data))
                 }
             });
+
+            // to_name_and_props: properties
+            let mut property_setters = vec![];
+
+            for property_name in props.props.keys() {
+                let field_name =
+                    Ident::new(correct_variable_name(property_name), Span::call_site());
+
+                property_setters.push(quote! {
+                    props.push((#property_name, data.#field_name.to_snake_case()));
+                });
+            }
+
+            to_name_and_props_match_arms.push(quote! {
+                Block::#variant_ident(data) => {
+                    #(#property_setters)*
+                    #block_name
+                }
+            });
         } else {
-            match_arms.push(quote! {
+            from_name_and_props_match_arms.push(quote! {
                 #block_name => Some(Block::#variant_ident)
+            });
+            to_name_and_props_match_arms.push(quote! {
+                Block::#variant_ident => #block_name
             });
         }
     }
@@ -699,9 +723,19 @@ fn generate_from_name_and_props_fn(report: &BlockReport) -> TokenStream {
     let result = quote! {
         pub fn from_name_and_props(name: &str, props: &HashMap<String, String>) -> Option<Self> {
             match name {
-                #(#match_arms ,)*
+                #(#from_name_and_props_match_arms ,)*
                 _ => None,
             }
+        }
+
+        pub fn to_name_and_props(&self) -> (&'static str, Vec<(&'static str, String)>) {
+            let mut props = vec![];
+
+            let name = match self {
+                #(#to_name_and_props_match_arms ,)*
+            };
+
+            (name, props)
         }
     };
     result
