@@ -15,7 +15,7 @@ jobs:
         #  rustup_toolchain: beta
         #  image_name: 'ubuntu-16.04'
         linux-nightly:
-          rustup_toolchain: nightly
+          rustup_toolchain: nightly-2019-09-27
           image_name: 'ubuntu-16.04'
         #windows-stable:
         #  rustup_toolchain: stable
@@ -24,7 +24,7 @@ jobs:
         #  rustup_toolchain: beta-gnu
         #  image_name: 'windows-latest'
         windows-nightly:
-          rustup_toolchain: nightly
+          rustup_toolchain: nightly-2019-09-27
           image_name: 'ubuntu-16.04'
         #apple-stable:
         #  rustup_toolchain: stable
@@ -104,11 +104,11 @@ jobs:
         linux:
           image_name: 'ubuntu-16.04'
           platform: 'linux'
-          rustup_toolchain: 'nightly'
+          rustup_toolchain: 'nightly-2019-09-27'
         windows:
           image_name: 'windows-latest'
           platform: 'windows'
-          rustup_toolchain: 'nightly'
+          rustup_toolchain: 'nightly-2019-09-27'
         #macos:
         #  image_name: 'macOS-10.13'
         #  platform: 'macos'
