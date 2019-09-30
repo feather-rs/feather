@@ -1,10 +1,8 @@
 use crate::config::Config;
 use crate::PlayerCount;
 use feather_core::network::packet::Packet;
-use mio_extras::channel::{channel, Receiver, Sender};
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::thread;
 use uuid::Uuid;
 
 mod initialhandler;
@@ -17,93 +15,78 @@ pub struct Client(usize);
 pub enum ServerToWorkerMessage {
     SendPacket(Box<dyn Packet>),
     NotifyPacketReceived(Box<dyn Packet>),
-    NotifyDisconnect,
+    NotifyDisconnect(String),
     Disconnect,
 }
 
-pub enum ServerToListenerMessage {
-    ShutDown,
-    NewClient(NewClientInfo),
-}
-
-pub enum ListenerToWorkerMessage {
-    ShutDown,
-    NewConnection(mio::net::TcpStream, SocketAddr),
+pub enum ListenerToServerMessage {
     NewClient(NewClientInfo),
 }
 
 pub struct NewClientInfo {
     pub ip: SocketAddr,
     pub username: String,
-    pub profile: Vec<mojang_api::ServerAuthProperty>,
+    pub profile: Vec<mojang_api::ProfileProperty>,
     pub uuid: Uuid,
 
-    pub sender: Sender<ServerToWorkerMessage>,
-    pub receiver: Receiver<ServerToWorkerMessage>,
+    pub sender: futures::channel::mpsc::UnboundedSender<ServerToWorkerMessage>,
+    pub receiver: crossbeam::Receiver<ServerToWorkerMessage>,
 }
 
 pub struct NetworkIoManager {
-    pub sender: Sender<ServerToListenerMessage>,
-    pub receiver: Receiver<ServerToListenerMessage>,
+    pub receiver: crossbeam::Receiver<ListenerToServerMessage>,
     /// Used for testing
-    pub listener_sender: Sender<ServerToListenerMessage>,
+    pub listener_sender: crossbeam::Sender<ListenerToServerMessage>,
 }
 
 impl NetworkIoManager {
-    /// Starts a new IO event loop with the specified number
-    /// of worker threads.
+    /// Starts a new IO listener.
     pub fn start(
         addr: SocketAddr,
-        num_worker_threads: u16,
         config: Arc<Config>,
         player_count: Arc<PlayerCount>,
         server_icon: Arc<Option<String>>,
     ) -> Self {
-        info!(
-            "Starting IO event loop on {} with {} worker threads",
-            addr, num_worker_threads
-        );
-        let mut workers = vec![];
+        info!("Starting IO listener on {}", addr,);
 
-        for _ in 0..num_worker_threads {
-            let (send1, recv1) = channel();
-            let (send2, recv2) = channel();
-            let player_count = Arc::clone(&player_count);
-            let config = Arc::clone(&config);
-            let server_icon = Arc::clone(&server_icon);
+        let (sender, receiver) = crossbeam::unbounded();
 
-            thread::spawn(move || worker::start(recv1, send2, config, player_count, server_icon));
-            workers.push((send1, recv2));
+        let future = run_listener(addr, sender.clone(), config, player_count, server_icon);
+
+        if cfg!(test) {
+            let mut rt = tokio::runtime::current_thread::Runtime::new().unwrap();
+            rt.spawn(future);
+        } else {
+            tokio::spawn(future);
         }
-
-        let (sender1, receiver1) = channel();
-        let (sender2, receiver2) = channel();
-        let sender1_clone = sender1.clone();
-        thread::spawn(move || listener::start(addr.to_string(), sender1_clone, receiver2, workers));
 
         Self {
-            sender: sender2,
-            receiver: receiver1,
-            listener_sender: sender1,
+            receiver,
+            listener_sender: sender,
         }
-    }
-
-    /// Gracefully shuts down all IO threads, consuming the object.
-    pub fn stop(self) {
-        let msg = ServerToListenerMessage::ShutDown;
-        self.sender.send(msg).unwrap();
-
-        info!("Shut down IO event loop");
     }
 }
 
 impl Default for NetworkIoManager {
     fn default() -> Self {
-        panic!("Nope, don't call default() on the IO manager. That won't work.");
+        panic!("Don't try this");
     }
 }
 
 /// Initializes certain static variables.
 pub fn init() {
     lazy_static::initialize(&initialhandler::RSA_KEY);
+}
+
+async fn run_listener(
+    addr: SocketAddr,
+    sender: crossbeam::Sender<ListenerToServerMessage>,
+    config: Arc<Config>,
+    player_count: Arc<PlayerCount>,
+    server_icon: Arc<Option<String>>,
+) {
+    if let Err(e) = listener::run_listener(addr, sender, config, player_count, server_icon).await {
+        error!("An error occurred while binding to socket: {:?}", e);
+        std::process::exit(1);
+    }
 }

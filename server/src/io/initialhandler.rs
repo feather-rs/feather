@@ -14,7 +14,6 @@
 //! speeding up the login process and making the latency calculation in
 //! the server list ping as low as possible.
 
-use std::str::FromStr;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
@@ -28,7 +27,7 @@ use feather_core::network::packet::implementation::{
     DisconnectLogin, EncryptionRequest, EncryptionResponse, Handshake, HandshakeState, LoginStart,
     LoginSuccess, Ping, Pong, Request, Response, SetCompression,
 };
-use feather_core::network::packet::{Packet, PacketType};
+use feather_core::network::packet::{Packet, PacketStage, PacketType};
 
 use crate::config::Config;
 use crate::{PlayerCount, PROTOCOL_VERSION, SERVER_VERSION};
@@ -58,6 +57,7 @@ pub enum Action {
     EnableEncryption(Key),
     SendPacket(Box<dyn Packet>),
     Disconnect,
+    SetStage(PacketStage),
     JoinGame(JoinResult),
 }
 
@@ -66,7 +66,7 @@ pub enum Action {
 pub struct JoinResult {
     pub username: String,
     pub uuid: Uuid,
-    pub props: Vec<mojang_api::ServerAuthProperty>,
+    pub props: Vec<mojang_api::ProfileProperty>,
 }
 
 /// An initial handler for a connection.
@@ -146,12 +146,12 @@ impl InitialHandler {
     /// received from the client. After calling this
     /// function, `action_queue` should be called
     /// and the actions should be executed in order.
-    pub fn handle_packet(&mut self, packet: Box<dyn Packet>) {
+    pub async fn handle_packet(&mut self, packet: Box<dyn Packet>) {
         if self.stage == Stage::Finished {
             panic!("Called InitialHandler::handle_packet() after completion");
         }
 
-        if let Err(e) = _handle_packet(self, packet) {
+        if let Err(e) = _handle_packet(self, packet).await {
             // Disconnect
             disconnect_login(self, &format!("{}", e));
             info!(
@@ -173,7 +173,7 @@ impl InitialHandler {
 
 /// Handles a packet, returning `Err` if the player
 /// should be disconnected.
-fn _handle_packet(ih: &mut InitialHandler, packet: Box<dyn Packet>) -> Result<(), Error> {
+async fn _handle_packet(ih: &mut InitialHandler, packet: Box<dyn Packet>) -> Result<(), Error> {
     // Find packet type and forward to correct function
     match packet.ty() {
         PacketType::Handshake => handle_handshake(ih, cast_packet::<Handshake>(&*packet))?,
@@ -181,7 +181,7 @@ fn _handle_packet(ih: &mut InitialHandler, packet: Box<dyn Packet>) -> Result<()
         PacketType::Ping => handle_ping(ih, cast_packet::<Ping>(&*packet))?,
         PacketType::LoginStart => handle_login_start(ih, cast_packet::<LoginStart>(&*packet))?,
         PacketType::EncryptionResponse => {
-            handle_encryption_response(ih, cast_packet::<EncryptionResponse>(&*packet))?
+            handle_encryption_response(ih, cast_packet::<EncryptionResponse>(&*packet)).await?
         }
         ty => return Err(Error::InvalidPacket(ty, ih.stage)),
     }
@@ -193,7 +193,10 @@ fn handle_handshake(ih: &mut InitialHandler, packet: &Handshake) -> Result<(), E
     check_stage(ih, Stage::AwaitHandshake, packet.ty())?;
 
     ih.stage = match packet.next_state {
-        HandshakeState::Status => Stage::AwaitRequest,
+        HandshakeState::Status => {
+            ih.action_queue.push(Action::SetStage(PacketStage::Status));
+            Stage::AwaitRequest
+        }
         HandshakeState::Login => {
             // While status requests can use differing
             // protocol versions, a client
@@ -203,6 +206,7 @@ fn handle_handshake(ih: &mut InitialHandler, packet: &Handshake) -> Result<(), E
                 return Err(Error::InvalidProtocol(packet.protocol_version));
             }
 
+            ih.action_queue.push(Action::SetStage(PacketStage::Login));
             Stage::AwaitLoginStart
         }
     };
@@ -290,7 +294,7 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
     Ok(())
 }
 
-fn handle_encryption_response(
+async fn handle_encryption_response(
     ih: &mut InitialHandler,
     packet: &EncryptionResponse,
 ) -> Result<(), Error> {
@@ -330,20 +334,21 @@ fn handle_encryption_response(
 
     // Perform authentication
     let auth_result = mojang_api::server_auth(
-        ih.username.as_ref().unwrap(),
         &mojang_api::server_hash("", ih.key.unwrap(), der.as_slice()),
-    );
+        ih.username.as_ref().unwrap(),
+    )
+    .await;
 
     match auth_result {
         Ok(auth) => {
             let info = JoinResult {
                 username: auth.name,
-                uuid: Uuid::from_str(&auth.id).unwrap(),
+                uuid: auth.id,
                 props: auth.properties,
             };
             ih.info = Some(info);
         }
-        Err(_) => return Err(Error::AuthenticationFailed),
+        Err(e) => return Err(Error::AuthenticationFailed(e)),
     }
 
     finish(ih);
@@ -383,6 +388,7 @@ fn finish(ih: &mut InitialHandler) {
         info.username.clone(),
     );
     send_packet(ih, login_success);
+    ih.action_queue.push(Action::SetStage(PacketStage::Play));
     ih.action_queue
         .push(Action::JoinGame(ih.info.clone().unwrap()));
 }
@@ -425,37 +431,20 @@ fn send_packet<P: Packet + 'static>(ih: &mut InitialHandler, packet: P) {
     ih.action_queue.push(Action::SendPacket(Box::new(packet)));
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Fail, Debug)]
 enum Error {
+    #[fail(display = "invalid packet type {:?} sent at stage {:?}", _0, _1)]
     InvalidPacket(PacketType, Stage),
+    #[fail(display = "unsupported protocol version {:?}", _0)]
     InvalidProtocol(u32),
+    #[fail(display = "invalid encryption")]
     BadEncryption,
+    #[fail(display = "verify tokens do not match")]
     VerifyTokenMismatch,
+    #[fail(display = "shared secret length is not correct")]
     BadSecretLength,
-    AuthenticationFailed,
-}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
-        match self {
-            Error::InvalidPacket(ty, stage) => write!(
-                f,
-                "Sent invalid packet {:?} at initial handler stage {:?}",
-                ty, stage
-            )?,
-            Error::InvalidProtocol(protocol) => write!(
-                f,
-                "Invalid protocol version {} - this server is on {}",
-                *protocol, PROTOCOL_VERSION
-            )?,
-            Error::BadEncryption => write!(f, "Failed to decrypt value")?,
-            Error::VerifyTokenMismatch => write!(f, "Verify token does not match")?,
-            Error::BadSecretLength => write!(f, "Invalid shared secret length")?,
-            Error::AuthenticationFailed => write!(f, "Authentication failed")?,
-        }
-
-        Ok(())
-    }
+    #[fail(display = "authentication failure: {:?}", _0)]
+    AuthenticationFailed(mojang_api::Error),
 }
 
 /// The stage of an initial handler.
@@ -490,8 +479,8 @@ mod tests {
         assert!(ih.actions_to_execute().is_empty());
     }
 
-    #[test]
-    fn test_status_ping() {
+    #[tokio::test]
+    async fn test_status_ping() {
         let player_count = 24;
         let mut ih = ih_with_player_count(player_count);
 
@@ -501,13 +490,18 @@ mod tests {
             25565,
             HandshakeState::Status,
         );
-        ih.handle_packet(Box::new(handshake));
+        ih.handle_packet(Box::new(handshake)).await;
 
-        // Confirm that no packets were sent and the player wasn't disconnected
-        assert!(ih.actions_to_execute().is_empty());
+        // Confirm that stage was switched and no other actions were performed
+        let actions = ih.actions_to_execute();
+        assert_eq!(actions.len(), 1);
+        match actions.first().unwrap() {
+            Action::SetStage(stage) => assert_eq!(*stage, PacketStage::Status),
+            _ => panic!(),
+        }
 
         let request = Request::new();
-        ih.handle_packet(Box::new(request));
+        ih.handle_packet(Box::new(request)).await;
 
         let actions = ih.actions_to_execute();
 
@@ -528,7 +522,7 @@ mod tests {
         // Send ping
         let payload = 39842;
         let ping = Ping::new(payload);
-        ih.handle_packet(Box::new(ping));
+        ih.handle_packet(Box::new(ping)).await;
 
         let mut actions = ih.actions_to_execute();
 
@@ -550,8 +544,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_login_sequence() {
+    #[tokio::test]
+    async fn test_login_sequence() {
         let mut config = Config::default();
         config.server.online_mode = false;
         let mut ih = ih_with_config(config.clone());
@@ -562,16 +556,21 @@ mod tests {
             25565,
             HandshakeState::Login,
         );
-        ih.handle_packet(Box::new(handshake));
+        ih.handle_packet(Box::new(handshake)).await;
 
-        assert!(ih.actions_to_execute().is_empty());
+        let actions = ih.actions_to_execute();
+        assert_eq!(actions.len(), 1);
+        match actions.first().unwrap() {
+            Action::SetStage(stage) => assert_eq!(*stage, PacketStage::Login),
+            _ => panic!(),
+        }
 
         let username = "test";
         let login_start = LoginStart::new(username.to_string());
-        ih.handle_packet(Box::new(login_start));
+        ih.handle_packet(Box::new(login_start)).await;
 
         let mut actions = ih.actions_to_execute();
-        assert_eq!(actions.len(), 4);
+        assert_eq!(actions.len(), 5);
 
         let _set_compression = actions.remove(0);
 
@@ -602,6 +601,11 @@ mod tests {
                 let login_success = cast_packet::<LoginSuccess>(&*_login_success);
                 assert_eq!(login_success.username, username.to_string());
             }
+            _ => panic!(),
+        }
+
+        match actions.remove(0) {
+            Action::SetStage(stage) => assert_eq!(stage, PacketStage::Play),
             _ => panic!(),
         }
 

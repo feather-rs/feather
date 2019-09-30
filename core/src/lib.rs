@@ -16,11 +16,13 @@ extern crate smallvec;
 extern crate hash32_derive;
 #[macro_use]
 extern crate strum_macros;
+#[macro_use]
+extern crate failure;
 
 extern crate nalgebra_glm as glm;
 
 mod biomes;
-pub mod bytebuf;
+pub mod bytes_ext;
 pub mod entitymeta;
 pub mod inventory;
 pub mod network;

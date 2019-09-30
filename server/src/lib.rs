@@ -47,7 +47,6 @@ use crate::util::Util;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
-use backtrace::Backtrace;
 use feather_core::level;
 use feather_core::level::{deserialize_level_file, save_level_file, LevelData, LevelGeneratorType};
 use rand::Rng;
@@ -97,14 +96,6 @@ pub fn main() {
     init_log(&config);
 
     info!("Starting Feather; please wait...");
-
-    std::panic::set_hook(Box::new(|info| {
-        error!("The server panicked.");
-        let location = info.location().unwrap();
-        error!("Source: {}, line {}", location.file(), location.line());
-        error!("Backtrace:\n{:?}", Backtrace::new());
-        error!("An error occurred, and the server has shut down. Please report this at https://github.com/caelunshun/feather/issues");
-    }));
 
     let server_icon = Arc::new(load_server_icon());
 
@@ -314,7 +305,6 @@ fn init_io_manager(
         format!("{}:{}", config.server.address, config.server.port)
             .parse()
             .unwrap(),
-        config.io.io_worker_threads,
         config,
         player_count,
         server_icon,

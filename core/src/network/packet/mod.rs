@@ -1,23 +1,18 @@
 #[allow(unused)]
 #[allow(clippy::too_many_arguments)]
 pub mod implementation;
-
-use crate::bytebuf::ByteBuf;
-use bytes::Buf;
+use bytes::BytesMut;
 use hashbrown::HashMap;
 use std::any::Any;
-use std::io::Read;
-
-pub trait PacketBuf: Buf + Read {}
-impl<T: Buf + Read> PacketBuf for T {}
+use std::io::Cursor;
 
 pub trait AsAny {
     fn as_any(&self) -> &dyn Any;
 }
 
-pub trait Packet: AsAny + Send {
-    fn read_from(&mut self, buf: &mut dyn PacketBuf) -> Result<(), ()>;
-    fn write_to(&self, buf: &mut ByteBuf);
+pub trait Packet: AsAny + Send + Sync {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error>;
+    fn write_to(&self, buf: &mut BytesMut);
     fn ty(&self) -> PacketType;
 
     /// Returns a clone of this packet in a dynamic box.

@@ -1,6 +1,7 @@
 use parking_lot::Mutex;
 
-use mio_extras::channel::{Receiver, Sender};
+use crossbeam::Receiver;
+use futures::channel::mpsc::UnboundedSender as Sender;
 use shrev::EventChannel;
 use specs::{
     Component, DenseVecStorage, Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System,
@@ -10,7 +11,7 @@ use specs::{
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 
 use crate::entity::PlayerComponent;
-use crate::io::{NetworkIoManager, ServerToListenerMessage, ServerToWorkerMessage};
+use crate::io::{ListenerToServerMessage, NetworkIoManager, ServerToWorkerMessage};
 use crate::joinhandler::JoinHandlerComponent;
 use crate::prelude::*;
 use crate::{disconnect_player_without_packet, TickCount};
@@ -118,7 +119,7 @@ pub struct PlayerPreJoinEvent {
     pub player: Entity,
     pub username: String,
     pub uuid: Uuid,
-    pub profile_properties: Vec<mojang_api::ServerAuthProperty>,
+    pub profile_properties: Vec<mojang_api::ProfileProperty>,
 }
 
 impl<'a> System<'a> for NetworkSystem {
@@ -147,7 +148,7 @@ impl<'a> System<'a> for NetworkSystem {
         // Poll for new connections
         while let Ok(msg) = ioman.receiver.try_recv() {
             match msg {
-                ServerToListenerMessage::NewClient(info) => {
+                ListenerToServerMessage::NewClient(info) => {
                     // New connection - handle it
                     info!("Accepting connection from {}", info.ip);
                     let netcomp = NetworkComponent::new(info.sender, info.receiver);
@@ -174,7 +175,6 @@ impl<'a> System<'a> for NetworkSystem {
                     };
                     join_events.single_write(event);
                 }
-                _ => unreachable!(),
             }
         }
 
@@ -185,15 +185,11 @@ impl<'a> System<'a> for NetworkSystem {
                     ServerToWorkerMessage::NotifyPacketReceived(packet) => {
                         packet_queue.add_for_packet(player, packet);
                     }
-                    ServerToWorkerMessage::NotifyDisconnect => {
-                        // TODO broadcast disconnect
+                    ServerToWorkerMessage::NotifyDisconnect(reason) => {
                         lazy.exec_mut(move |world| {
-                            disconnect_player_without_packet(
-                                player,
-                                world,
-                                "Client disconnected".to_string(),
-                            )
+                            disconnect_player_without_packet(player, world, reason)
                         });
+                        break;
                     }
                     _ => panic!("Network system received invalid message from IO worker}"),
                 }
@@ -234,14 +230,14 @@ pub fn send_packet_to_all_players<P: Packet + Clone + 'static>(
 
 /// Sends a packet to the given player.
 pub fn send_packet_to_player<P: Packet + 'static>(comp: &NetworkComponent, packet: P) {
-    let _ = comp
-        .sender
-        .send(ServerToWorkerMessage::SendPacket(Box::new(packet)));
+    send_packet_boxed_to_player(comp, Box::new(packet));
 }
 
 /// Sends a packet to the given player.
 pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<dyn Packet>) {
-    let _ = comp.sender.send(ServerToWorkerMessage::SendPacket(packet));
+    let _ = comp
+        .sender
+        .unbounded_send(ServerToWorkerMessage::SendPacket(packet));
 }
 
 #[cfg(test)]
@@ -276,8 +272,8 @@ mod tests {
 
         let ioman = w.fetch_mut::<NetworkIoManager>();
 
-        let (send1, _recv1) = mio_extras::channel::channel();
-        let (_send2, recv2) = mio_extras::channel::channel();
+        let (send1, _recv1) = futures::channel::mpsc::unbounded();
+        let (_send2, recv2) = crossbeam::unbounded();
 
         let new_client = NewClientInfo {
             ip: SocketAddr::new("127.0.0.1".parse().unwrap(), 25565),
@@ -288,7 +284,7 @@ mod tests {
             receiver: recv2,
         };
 
-        let msg = ServerToListenerMessage::NewClient(new_client);
+        let msg = ListenerToServerMessage::NewClient(new_client);
         ioman.listener_sender.send(msg).unwrap();
 
         let mut event_reader = t::reader(&w);
@@ -359,7 +355,9 @@ mod tests {
 
         player
             .network_sender
-            .send(ServerToWorkerMessage::NotifyDisconnect)
+            .send(ServerToWorkerMessage::NotifyDisconnect(
+                "reason".to_string(),
+            ))
             .unwrap();
 
         d.dispatch(&w);
@@ -404,11 +402,16 @@ mod tests {
             Some(player1.entity),
         );
 
+        dbg!();
+
         t::assert_packet_received(&player2, PacketType::LoginStart);
+        dbg!();
         t::assert_packet_received(&player3, PacketType::LoginStart);
+        dbg!();
 
         // Check that exclusion was not sent
         let sent = t::received_packets(&player1, None);
+        dbg!();
         assert!(sent.is_empty());
     }
 }

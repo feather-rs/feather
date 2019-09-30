@@ -2,10 +2,11 @@
 //! metadata format. See https://wiki.vg/Entity_metadata
 //! for the specification.
 
-use crate::bytebuf::{BufMutAlloc, ByteBuf};
+use crate::bytes_ext::{BytesMutExt, TryGetError};
 use crate::network::mctypes::McTypeWrite;
 use crate::world::BlockPosition;
 use crate::Slot;
+use bytes::BytesMut;
 use hashbrown::HashMap;
 use uuid::Uuid;
 
@@ -142,73 +143,77 @@ impl Default for EntityMetadata {
 }
 
 pub trait EntityMetaIo {
-    fn write_metadata(&mut self, meta: &EntityMetadata);
-    fn read_metadata(&mut self) -> EntityMetadata;
+    fn push_metadata(&mut self, meta: &EntityMetadata);
+    fn try_get_metadata(&mut self) -> Result<EntityMetadata, TryGetError>;
 }
 
-impl EntityMetaIo for ByteBuf {
-    fn write_metadata(&mut self, meta: &EntityMetadata) {
+impl EntityMetaIo for BytesMut {
+    fn push_metadata(&mut self, meta: &EntityMetadata) {
         for (index, entry) in meta.values.iter() {
-            self.write_u8(*index);
-            self.write_var_int(entry.id());
+            self.push_u8(*index);
+            self.push_var_int(entry.id());
             write_entry_to_buf(entry, self);
         }
 
-        self.write_u8(0xff); // End of metadata
+        self.push_u8(0xff); // End of metadata
     }
 
-    fn read_metadata(&mut self) -> EntityMetadata {
+    fn try_get_metadata(&mut self) -> Result<EntityMetadata, TryGetError> {
         unimplemented!()
     }
 }
 
-fn write_entry_to_buf(entry: &MetaEntry, buf: &mut ByteBuf) {
+fn write_entry_to_buf(entry: &MetaEntry, buf: &mut BytesMut) {
     match entry {
-        MetaEntry::Byte(x) => buf.write_i8(*x),
-        MetaEntry::VarInt(x) => buf.write_var_int(*x),
-        MetaEntry::Float(x) => buf.write_f32_be(*x),
-        MetaEntry::String(x) => buf.write_string(x),
-        MetaEntry::Chat(x) => buf.write_string(x),
+        MetaEntry::Byte(x) => buf.push_i8(*x),
+        MetaEntry::VarInt(x) => {
+            buf.push_var_int(*x);
+        }
+        MetaEntry::Float(x) => buf.push_f32(*x),
+        MetaEntry::String(x) => buf.push_string(x),
+        MetaEntry::Chat(x) => buf.push_string(x),
         MetaEntry::OptChat(ox) => {
             if let Some(x) = ox {
-                buf.write_bool(true);
-                buf.write_string(x);
+                buf.push_bool(true);
+                buf.push_string(x);
             } else {
-                buf.write_bool(false);
+                buf.push_bool(false);
             }
         }
         MetaEntry::Slot(slot) => {
-            buf.write_slot(slot);
+            buf.push_slot(slot);
         }
-        MetaEntry::Boolean(x) => buf.write_bool(*x),
+        MetaEntry::Boolean(x) => buf.push_bool(*x),
         MetaEntry::Rotation(x, y, z) => {
-            buf.write_f32_be(*x);
-            buf.write_f32_be(*y);
-            buf.write_f32_be(*z);
+            buf.push_f32(*x);
+            buf.push_f32(*y);
+            buf.push_f32(*z);
         }
-        MetaEntry::Position(x) => buf.write_position(x),
+        MetaEntry::Position(x) => buf.push_position(x),
         MetaEntry::OptPosition(ox) => {
             if let Some(x) = ox {
-                buf.write_bool(true);
-                buf.write_position(x);
+                buf.push_bool(true);
+                buf.push_position(x);
             } else {
-                buf.write_bool(false);
+                buf.push_bool(false);
             }
         }
-        MetaEntry::Direction(x) => buf.write_var_int(x.id()),
+        MetaEntry::Direction(x) => {
+            buf.push_var_int(x.id());
+        }
         MetaEntry::OptUuid(ox) => {
             if let Some(x) = ox {
-                buf.write_bool(true);
-                buf.write_uuid(x);
+                buf.push_bool(true);
+                buf.push_uuid(x);
             } else {
-                buf.write_bool(false);
+                buf.push_bool(false);
             }
         }
         MetaEntry::OptBlockId(ox) => {
             if let Some(x) = ox {
-                buf.write_var_int(*x);
+                buf.push_var_int(*x);
             } else {
-                buf.write_var_int(0); // No value implies air
+                buf.push_var_int(0); // No value implies air
             }
         }
         MetaEntry::Nbt => unimplemented!(),
