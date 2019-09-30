@@ -49,6 +49,7 @@ pub async fn run_worker(
     let _ = tx_worker_to_server.send(ServerToWorkerMessage::NotifyDisconnect(msg));
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn _run_worker(
     stream: TcpStream,
     ip: SocketAddr,

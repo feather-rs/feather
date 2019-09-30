@@ -17,6 +17,7 @@ use ncollide3d::shape::{Compound, Cuboid, ShapeHandle};
 use smallvec::SmallVec;
 use specs::storage::GenericReadStorage;
 use specs::Entity;
+use std::cmp::Ordering;
 use std::f64::INFINITY;
 
 // TODO is a bitflag really the most
@@ -121,34 +122,46 @@ pub fn block_impacted_by_ray(
     // but it may causes subtle issues in the future.
     let mut face = Side::NONE;
 
-    if direction.x > 0.0 {
-        step.x = 1;
-        delta.x = 1.0 / direction.x;
-        next.x = ((origin.x + 1.0).floor() - origin.x) / direction.x; // Brings X position to next integer
-    } else if direction.x < 0.0 {
-        step.x = -1;
-        delta.x = (1.0 / direction.x).abs();
-        next.x = ((origin.x - (origin.x - 1.0).ceil()) / direction.x).abs();
+    match direction.x.partial_cmp(&0.0).unwrap() {
+        Ordering::Greater => {
+            step.x = 1;
+            delta.x = 1.0 / direction.x;
+            next.x = ((origin.x + 1.0).floor() - origin.x) / direction.x; // Brings X position to next integer
+        }
+        Ordering::Less => {
+            step.x = -1;
+            delta.x = (1.0 / direction.x).abs();
+            next.x = ((origin.x - (origin.x - 1.0).ceil()) / direction.x).abs();
+        }
+        _ => (),
     }
 
-    if direction.y > 0.0 {
-        step.y = 1;
-        delta.y = 1.0 / direction.y;
-        next.y = ((origin.y + 1.0).floor() - origin.y) / direction.y;
-    } else if direction.y < 0.0 {
-        step.y = -1;
-        delta.y = (1.0 / direction.y).abs();
-        next.y = ((origin.y - (origin.y - 1.0).ceil()) / direction.y).abs();
+    match direction.y.partial_cmp(&0.0).unwrap() {
+        Ordering::Greater => {
+            step.y = 1;
+            delta.y = 1.0 / direction.y;
+            next.y = ((origin.y + 1.0).floor() - origin.y) / direction.y;
+        }
+        Ordering::Less => {
+            step.y = -1;
+            delta.y = (1.0 / direction.y).abs();
+            next.y = ((origin.y - (origin.y - 1.0).ceil()) / direction.y).abs();
+        }
+        _ => (),
     }
 
-    if direction.z > 0.0 {
-        step.z = 1;
-        delta.z = 1.0 / direction.z;
-        next.z = ((origin.z + 1.0).floor() - origin.z) / direction.z;
-    } else if direction.z < 0.0 {
-        step.z = -1;
-        delta.z = (1.0 / direction.z).abs();
-        next.z = ((origin.z - (origin.z - 1.0).ceil()) / direction.z).abs();
+    match direction.z.partial_cmp(&0.0).unwrap() {
+        Ordering::Greater => {
+            step.z = 1;
+            delta.z = 1.0 / direction.z;
+            next.z = ((origin.z + 1.0).floor() - origin.z) / direction.z;
+        }
+        Ordering::Less => {
+            step.z = -1;
+            delta.z = (1.0 / direction.z).abs();
+            next.z = ((origin.z - (origin.z - 1.0).ceil()) / direction.z).abs();
+        }
+        _ => (),
     }
 
     let mut current_pos = Position::from(origin).block_pos();
