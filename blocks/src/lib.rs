@@ -261,4 +261,18 @@ mod tests {
             Block::GrassBlock(GrassBlockData { snowy: false })
         );
     }
+
+    #[test]
+    fn test_to_name_and_props() {
+        let block = Block::GrassBlock(GrassBlockData { snowy: true });
+
+        let (name, props) = block.to_name_and_props();
+
+        assert_eq!(name, "minecraft:grass_block");
+        assert_eq!(props.len(), 1);
+        let (prop_name, prop_value) = props.first().unwrap();
+
+        assert_eq!(*prop_name, "snowy");
+        assert_eq!(prop_value, "true");
+    }
 }
