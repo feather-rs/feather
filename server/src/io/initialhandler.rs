@@ -492,8 +492,13 @@ mod tests {
         );
         ih.handle_packet(Box::new(handshake)).await;
 
-        // Confirm that no packets were sent and the player wasn't disconnected
-        assert!(ih.actions_to_execute().is_empty());
+        // Confirm that stage was switched and no other actions were performed
+        let actions = ih.actions_to_execute();
+        assert_eq!(actions.len(), 1);
+        match actions.first().unwrap() {
+            Action::SetStage(stage) => assert_eq!(*stage, PacketStage::Status),
+            _ => panic!(),
+        }
 
         let request = Request::new();
         ih.handle_packet(Box::new(request)).await;
@@ -553,14 +558,19 @@ mod tests {
         );
         ih.handle_packet(Box::new(handshake)).await;
 
-        assert!(ih.actions_to_execute().is_empty());
+        let actions = ih.actions_to_execute();
+        assert_eq!(actions.len(), 1);
+        match actions.first().unwrap() {
+            Action::SetStage(stage) => assert_eq!(*stage, PacketStage::Login),
+            _ => panic!(),
+        }
 
         let username = "test";
         let login_start = LoginStart::new(username.to_string());
         ih.handle_packet(Box::new(login_start)).await;
 
         let mut actions = ih.actions_to_execute();
-        assert_eq!(actions.len(), 4);
+        assert_eq!(actions.len(), 5);
 
         let _set_compression = actions.remove(0);
 
@@ -591,6 +601,11 @@ mod tests {
                 let login_success = cast_packet::<LoginSuccess>(&*_login_success);
                 assert_eq!(login_success.username, username.to_string());
             }
+            _ => panic!(),
+        }
+
+        match actions.remove(0) {
+            Action::SetStage(stage) => assert_eq!(stage, PacketStage::Play),
             _ => panic!(),
         }
 

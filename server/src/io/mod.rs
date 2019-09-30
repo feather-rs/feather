@@ -29,7 +29,7 @@ pub struct NewClientInfo {
     pub profile: Vec<mojang_api::ProfileProperty>,
     pub uuid: Uuid,
 
-    pub sender: tokio::sync::mpsc::UnboundedSender<ServerToWorkerMessage>,
+    pub sender: futures::channel::mpsc::UnboundedSender<ServerToWorkerMessage>,
     pub receiver: crossbeam::Receiver<ServerToWorkerMessage>,
 }
 
@@ -51,13 +51,14 @@ impl NetworkIoManager {
 
         let (sender, receiver) = crossbeam::unbounded();
 
-        tokio::spawn(run_listener(
-            addr,
-            sender.clone(),
-            config,
-            player_count,
-            server_icon,
-        ));
+        let future = run_listener(addr, sender.clone(), config, player_count, server_icon);
+
+        if cfg!(test) {
+            let mut rt = tokio::runtime::current_thread::Runtime::new().unwrap();
+            rt.spawn(future);
+        } else {
+            tokio::spawn(future);
+        }
 
         Self {
             receiver,

@@ -1,12 +1,12 @@
 use parking_lot::Mutex;
 
 use crossbeam::Receiver;
+use futures::channel::mpsc::UnboundedSender as Sender;
 use shrev::EventChannel;
 use specs::{
     Component, DenseVecStorage, Entities, Entity, Join, LazyUpdate, Read, ReadStorage, System,
     WorldExt, Write, WriteStorage,
 };
-use tokio::sync::mpsc::UnboundedSender as Sender;
 
 use feather_core::network::packet::{implementation::*, Packet, PacketType};
 
@@ -15,7 +15,6 @@ use crate::io::{ListenerToServerMessage, NetworkIoManager, ServerToWorkerMessage
 use crate::joinhandler::JoinHandlerComponent;
 use crate::prelude::*;
 use crate::{disconnect_player_without_packet, TickCount};
-use futures::SinkExt;
 use strum::EnumCount;
 
 //const MAX_KEEP_ALIVE_TIME: u64 = 30;
@@ -236,11 +235,9 @@ pub fn send_packet_to_player<P: Packet + 'static>(comp: &NetworkComponent, packe
 
 /// Sends a packet to the given player.
 pub fn send_packet_boxed_to_player(comp: &NetworkComponent, packet: Box<dyn Packet>) {
-    let _ = futures::executor::block_on(
-        comp.sender
-            .clone()
-            .send(ServerToWorkerMessage::SendPacket(packet)),
-    );
+    comp.sender
+        .unbounded_send(ServerToWorkerMessage::SendPacket(packet))
+        .unwrap();
 }
 
 #[cfg(test)]
@@ -275,7 +272,7 @@ mod tests {
 
         let ioman = w.fetch_mut::<NetworkIoManager>();
 
-        let (send1, _recv1) = tokio::sync::mpsc::unbounded_channel();
+        let (send1, _recv1) = futures::channel::mpsc::unbounded();
         let (_send2, recv2) = crossbeam::unbounded();
 
         let new_client = NewClientInfo {
@@ -405,11 +402,16 @@ mod tests {
             Some(player1.entity),
         );
 
+        dbg!();
+
         t::assert_packet_received(&player2, PacketType::LoginStart);
+        dbg!();
         t::assert_packet_received(&player3, PacketType::LoginStart);
+        dbg!();
 
         // Check that exclusion was not sent
         let sent = t::received_packets(&player1, None);
+        dbg!();
         assert!(sent.is_empty());
     }
 }

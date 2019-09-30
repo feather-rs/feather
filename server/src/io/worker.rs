@@ -65,7 +65,7 @@ async fn _run_worker(
 
     let mut initial_handler = Some(InitialHandler::new(config, player_count, server_icon));
 
-    let (tx_server_to_worker, mut rx_server_to_worker) = tokio::sync::mpsc::unbounded_channel();
+    let (tx_server_to_worker, mut rx_server_to_worker) = futures::channel::mpsc::unbounded();
     let mut rx_worker_to_server = Some(rx_worker_to_server);
 
     loop {
