@@ -4,10 +4,10 @@
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
 use std::fs::File;
-use std::io;
 use std::io::prelude::*;
 use std::io::{Cursor, SeekFrom};
 use std::path::PathBuf;
+use std::{io, iter};
 
 use byteorder::{BigEndian, ReadBytesExt};
 use serde::Deserialize;
@@ -17,6 +17,8 @@ use crate::world::block::*;
 use crate::world::chunk::{BitArray, Chunk, ChunkSection};
 use crate::world::ChunkPosition;
 use crate::Biome;
+use bitvec::bitvec;
+use bitvec::vec::BitVec;
 
 /// The length and width of a region, in chunks.
 const REGION_SIZE: usize = 32;
@@ -84,12 +86,23 @@ struct LevelProperties {
     props: HashMap<String, String>,
 }
 
+/// A block of sectors in a region file.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+struct SectorBlock {
+    /// Offset, in sectors, from the start of the file (beginning of the header.)
+    offset: u32,
+    /// Number of sectors in this block. Each sector is 4KiB.
+    count: u32,
+}
+
 /// A region file handle.
 pub struct RegionHandle {
     /// The region file.
     file: File,
     /// The region file's header, pre-loaded into memory.
     header: RegionHeader,
+    /// Sector allocator to allocate sectors where we can store chunks.
+    allocator: SectorAllocator,
 }
 
 impl RegionHandle {
@@ -112,7 +125,7 @@ impl RegionHandle {
 
         // Get the offset of the chunk within the file
         // so that it can be read.
-        let offset = self.header.location_for_chunk(pos).offset;
+        let offset = self.header.location_for_chunk(pos).0.offset;
 
         // If the chunk doesn't exist, return early
         if !self.header.location_for_chunk(pos).exists() {
@@ -182,6 +195,12 @@ impl RegionHandle {
         }
 
         Ok((chunk, level.entities.to_vec()))
+    }
+
+    /// Saves the given chunk to this region file. The header will be updated
+    /// accordingly and saved as well.
+    pub fn save_chunk(&mut self, chunk: &Chunk) {
+        unimplemented!()
     }
 }
 
@@ -255,6 +274,90 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     chunk.set_section_at(usize::from(section.y as u8), Some(chunk_section));
 
     Ok(())
+}
+
+/// An allocator for sectors.
+struct SectorAllocator {
+    /// Vector of bits, with a bit set for each sector which is in use.
+    ///
+    /// TODO: use a more efficient allocation model, such as a `LinkedList`
+    /// of free blocks.
+    used_sectors: BitVec,
+}
+
+impl SectorAllocator {
+    /// Creates a `SectorAllocator` from the given file header
+    /// and total file size __in sectors.__
+    pub fn new(header: &RegionHeader, file_size: u32) -> Self {
+        let mut used_sectors = bitvec![0; file_size as usize];
+
+        // Detect used sectors
+        for chunk_location in &header.locations {
+            if !chunk_location.exists() {
+                continue;
+            }
+
+            let offset = chunk_location.0.offset;
+            let count = chunk_location.0.count;
+            (offset..offset + count).for_each(|sector| used_sectors.set(sector as usize, true));
+        }
+
+        // Allocate two sectors at start for header
+        used_sectors.set(0, true);
+        used_sectors.set(1, true);
+
+        Self { used_sectors }
+    }
+
+    /// Frees the given block from this allocator.
+    pub fn free(&mut self, block: SectorBlock) {
+        (block.offset..block.offset + block.count)
+            .for_each(|sector| self.used_sectors.set(sector as usize, false));
+    }
+
+    /// Allocates a block of sectors with the given
+    /// minimum size __in sectors__.
+    ///
+    /// The returned block may
+    /// stretch past the end of the file.
+    pub fn allocate(&mut self, min_size: u32) -> SectorBlock {
+        // TODO: fairly inefficient way to do this.
+        let mut start = 0;
+        let mut length = 0;
+
+        for (index, is_used) in self.used_sectors.iter().enumerate() {
+            if is_used {
+                start = 0;
+                length = 0;
+            } else {
+                if start == 0 {
+                    start = index;
+                }
+                length += 1;
+
+                if length >= min_size {
+                    let block = SectorBlock {
+                        offset: start as u32,
+                        count: length as u32,
+                    };
+
+                    (block.offset..block.offset + block.count)
+                        .for_each(|sector| self.used_sectors.set(sector as usize, true));
+
+                    return block;
+                }
+            }
+        }
+
+        // No sector found: must allocate into end
+        self.used_sectors
+            .extend(iter::repeat(true).take(min_size as usize));
+
+        SectorBlock {
+            offset: self.used_sectors.len() as u32,
+            count: min_size,
+        }
+    }
 }
 
 /// An error which occurred during region file processing.
@@ -333,7 +436,15 @@ pub fn load_region(dir: &PathBuf, pos: RegionPosition) -> Result<RegionHandle, E
 
     let header = read_header(&mut file)?;
 
-    Ok(RegionHandle { file, header })
+    let num_sectors = file.metadata().map_err(Error::Io)?.len() / 4096;
+
+    let allocator = SectorAllocator::new(&header, num_sectors as u32);
+
+    Ok(RegionHandle {
+        file,
+        header,
+        allocator,
+    })
 }
 
 /// Reads the region header from the given file.
@@ -361,12 +472,11 @@ fn read_header(file: &mut File) -> Result<RegionHeader, Error> {
     for _ in 0..1024 {
         let val = file.read_u32::<BigEndian>().map_err(Error::Io)?;
         let offset = val >> 8;
-        let sector_count = (val & 0b1111_1111) as u8;
+        let count = val & 0b1111_1111;
 
-        header.locations.push(ChunkLocation {
-            offset,
-            sector_count,
-        });
+        header
+            .locations
+            .push(ChunkLocation(SectorBlock { offset, count }));
     }
 
     // The next 4 KiB contains timestamp data - one
@@ -404,15 +514,7 @@ impl RegionHeader {
 /// Contains information about a chunk inside
 /// a region file.
 #[derive(Clone, Copy, Debug)]
-struct ChunkLocation {
-    /// The offset of the chunk from the start of the file
-    /// in 4 KiB sectors such that a value of 2 corresponds
-    /// to byte 8192 in the file.
-    offset: u32,
-    /// The length of the data for the chunk, also
-    /// in 4 KiB sectors. This value is always rounded up.
-    sector_count: u8,
-}
+struct ChunkLocation(SectorBlock);
 
 impl ChunkLocation {
     /// Chunks in a region which have not been generated
@@ -420,7 +522,7 @@ impl ChunkLocation {
     /// This function checks whether a chunk exists
     /// in a region file or not.
     pub fn exists(self) -> bool {
-        self.offset != 0 && self.sector_count != 0
+        self.0.offset != 0 && self.0.count != 0
     }
 }
 
@@ -439,5 +541,62 @@ impl RegionPosition {
             x: chunk_coords.x >> 5,
             z: chunk_coords.z >> 5,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sector_allocator() {
+        let header = RegionHeader {
+            locations: vec![
+                ChunkLocation(SectorBlock {
+                    offset: 0,
+                    count: 0,
+                }),
+                ChunkLocation(SectorBlock {
+                    offset: 6,
+                    count: 5,
+                }),
+            ],
+            timestamps: vec![0; 2],
+        };
+
+        let mut alloc = SectorAllocator::new(&header, 1024);
+
+        assert_eq!(
+            alloc.allocate(2),
+            SectorBlock {
+                offset: 2,
+                count: 2
+            }
+        );
+        assert_eq!(
+            alloc.allocate(2),
+            SectorBlock {
+                offset: 4,
+                count: 2
+            }
+        );
+        assert_eq!(
+            alloc.allocate(2),
+            SectorBlock {
+                offset: 11,
+                count: 2,
+            }
+        );
+        alloc.free(SectorBlock {
+            offset: 2,
+            count: 2,
+        });
+        assert_eq!(
+            alloc.allocate(2),
+            SectorBlock {
+                offset: 2,
+                count: 2
+            }
+        );
     }
 }
