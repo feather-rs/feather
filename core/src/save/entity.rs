@@ -1,4 +1,6 @@
 use crate::Position;
+use nbt::Value;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "id")]
@@ -13,6 +15,20 @@ pub enum EntityData {
     Unknown,
 }
 
+impl EntityData {
+    pub fn into_nbt_value(self) -> Value {
+        let mut map = HashMap::new();
+
+        match self {
+            EntityData::Item(data) => data.write_to_map(&mut map),
+            EntityData::Arrow(data) => data.write_to_map(&mut map),
+            EntityData::Unknown => panic!("Cannot write unknown entities"),
+        }
+
+        Value::Compound(map)
+    }
+}
+
 /// Common entity tags.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseEntityData {
@@ -22,6 +38,33 @@ pub struct BaseEntityData {
     pub rotation: Vec<f32>,
     #[serde(rename = "Motion")]
     pub velocity: Vec<f64>,
+}
+
+impl BaseEntityData {
+    fn write_to_map(self, map: &mut HashMap<String, Value>) {
+        map.insert(
+            String::from("Pos"),
+            Value::List(
+                self.position
+                    .into_iter()
+                    .map(|x| Value::Double(x))
+                    .collect(),
+            ),
+        );
+        map.insert(
+            String::from("Rotation"),
+            Value::List(self.rotation.into_iter().map(|x| Value::Float(x)).collect()),
+        );
+        map.insert(
+            String::from("Motion"),
+            Value::List(
+                self.velocity
+                    .into_iter()
+                    .map(|x| Value::Double(x))
+                    .collect(),
+            ),
+        );
+    }
 }
 
 impl BaseEntityData {
@@ -74,6 +117,13 @@ pub struct ItemData {
     pub item: String,
 }
 
+impl ItemData {
+    fn write_to_map(self, map: &mut HashMap<String, Value>) {
+        map.insert(String::from("Count"), Value::Byte(self.count as i8));
+        map.insert(String::from("id"), Value::String(self.item));
+    }
+}
+
 /// Data for an Item entity (`minecraft:item`).
 #[derive(Clone, Default, Serialize, Deserialize, Debug)]
 pub struct ItemEntityData {
@@ -90,6 +140,19 @@ pub struct ItemEntityData {
     pub item: ItemData,
 }
 
+impl ItemEntityData {
+    fn write_to_map(self, map: &mut HashMap<String, Value>) {
+        self.entity.write_to_map(map);
+        self.item.write_to_map(map);
+
+        map.insert(String::from("Age"), Value::Short(self.age));
+        map.insert(
+            String::from("PickupDelay"),
+            Value::Byte(self.pickup_delay as i8),
+        );
+    }
+}
+
 /// Data for an Arrow entity (`minecraft:arrow`).
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ArrowEntityData {
@@ -103,6 +166,14 @@ pub struct ArrowEntityData {
     // See: https://github.com/PistonDevelopers/hematite_nbt/issues/43
     #[serde(rename = "crit")]
     pub critical: u8,
+}
+
+impl ArrowEntityData {
+    fn write_to_map(self, map: &mut HashMap<String, Value>) {
+        self.entity.write_to_map(map);
+
+        map.insert(String::from("crit"), Value::Byte(self.critical as i8));
+    }
 }
 
 #[cfg(test)]

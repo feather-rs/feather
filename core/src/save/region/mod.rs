@@ -20,6 +20,8 @@ use crate::Biome;
 use bitvec::bitvec;
 use bitvec::vec::BitVec;
 
+mod blob;
+
 /// The length and width of a region, in chunks.
 const REGION_SIZE: usize = 32;
 
