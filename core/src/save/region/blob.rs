@@ -1,12 +1,12 @@
 //! Conversion of `ChunkRoot` to `nbt::Blob`.
 //! This is required due to https://github.com/PistonDevelopers/hematite_nbt/issues/27.
 
-use crate::region::ChunkLevel;
-use crate::save::region::{ChunkRoot, LevelSection};
+use super::ChunkLevel;
+use super::{ChunkRoot, LevelSection};
 use nbt::{Blob, Value};
 use std::collections::HashMap;
 
-fn chunk_root_to_blob(root: ChunkRoot) -> Blob {
+pub fn chunk_root_to_blob(root: ChunkRoot) -> Blob {
     let mut blob = Blob::new();
     blob.insert("DataVersion", root.data_version).unwrap();
 
@@ -97,7 +97,7 @@ fn section_to_value(section: LevelSection) -> Value {
                             map.insert(x, Value::String(y));
                             map
                         })
-                        .map(|map| Value::Compound(map))
+                        .map(Value::Compound)
                         .collect(),
                 ),
             );

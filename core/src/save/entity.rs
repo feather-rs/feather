@@ -44,25 +44,15 @@ impl BaseEntityData {
     fn write_to_map(self, map: &mut HashMap<String, Value>) {
         map.insert(
             String::from("Pos"),
-            Value::List(
-                self.position
-                    .into_iter()
-                    .map(|x| Value::Double(x))
-                    .collect(),
-            ),
+            Value::List(self.position.into_iter().map(Value::Double).collect()),
         );
         map.insert(
             String::from("Rotation"),
-            Value::List(self.rotation.into_iter().map(|x| Value::Float(x)).collect()),
+            Value::List(self.rotation.into_iter().map(Value::Float).collect()),
         );
         map.insert(
             String::from("Motion"),
-            Value::List(
-                self.velocity
-                    .into_iter()
-                    .map(|x| Value::Double(x))
-                    .collect(),
-            ),
+            Value::List(self.velocity.into_iter().map(Value::Double).collect()),
         );
     }
 }

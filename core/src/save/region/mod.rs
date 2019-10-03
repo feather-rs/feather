@@ -9,7 +9,7 @@ use std::io::{Cursor, SeekFrom};
 use std::path::PathBuf;
 use std::{io, iter};
 
-use byteorder::{BigEndian, ReadBytesExt};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use serde::Deserialize;
 
 use crate::save::entity::EntityData;
@@ -29,9 +29,12 @@ const REGION_SIZE: usize = 32;
 /// to 1.13.2.
 const DATA_VERSION: i32 = 1631;
 
+/// Length, in bytes, of a sector.
+const SECTOR_BYTES: usize = 4096;
+
 /// Represents the data for a chunk after the "Chunk [x, y]" tag.
 #[derive(Serialize, Deserialize, Debug)]
-struct ChunkRoot {
+pub struct ChunkRoot {
     #[serde(rename = "Level")]
     level: ChunkLevel,
     #[serde(rename = "DataVersion")]
@@ -40,7 +43,7 @@ struct ChunkRoot {
 
 /// Represents the level data for a chunk.
 #[derive(Serialize, Deserialize, Debug)]
-struct ChunkLevel {
+pub struct ChunkLevel {
     // TODO heightmaps, etc.
     #[serde(rename = "xPos")]
     x_pos: i32,
@@ -56,7 +59,7 @@ struct ChunkLevel {
 
 /// Represents a chunk section in a region file.
 #[derive(Serialize, Deserialize, Debug)]
-struct LevelSection {
+pub struct LevelSection {
     #[serde(rename = "Y")]
     y: i8,
     #[serde(rename = "BlockStates")]
@@ -71,7 +74,7 @@ struct LevelSection {
 
 /// Represents a palette entry in a region file.
 #[derive(Serialize, Deserialize, Debug)]
-struct LevelPaletteEntry {
+pub struct LevelPaletteEntry {
     /// The identifier of the type of this block
     #[serde(rename = "Name")]
     name: String,
@@ -82,7 +85,7 @@ struct LevelPaletteEntry {
 
 /// Represents the proprties for a palette entry.
 #[derive(Serialize, Deserialize, Debug)]
-struct LevelProperties {
+pub struct LevelProperties {
     /// Map containing a list of property names to values.
     #[serde(flatten)]
     props: HashMap<String, String>,
@@ -90,7 +93,7 @@ struct LevelProperties {
 
 /// A block of sectors in a region file.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-struct SectorBlock {
+pub struct SectorBlock {
     /// Offset, in sectors, from the start of the file (beginning of the header.)
     offset: u32,
     /// Number of sectors in this block. Each sector is 4KiB.
@@ -135,10 +138,10 @@ impl RegionHandle {
         }
 
         // Seek to the offset position. Note that since the offset in the header
-        // is in "sectors" of 4KiB each, the value needs to be multiplied by 4096
+        // is in "sectors" of 4KiB each, the value needs to be multiplied by SECTOR_BYTES
         // to get the offset in bytes.
         self.file
-            .seek(SeekFrom::Start(u64::from(offset) * 4096))
+            .seek(SeekFrom::Start(u64::from(offset) * SECTOR_BYTES as u64))
             .map_err(Error::Io)?;
 
         // A chunk begins with a four-byte, big-endian value
@@ -201,8 +204,55 @@ impl RegionHandle {
 
     /// Saves the given chunk to this region file. The header will be updated
     /// accordingly and saved as well.
-    pub fn save_chunk(&mut self, chunk: &Chunk) {
-        unimplemented!()
+    ///
+    /// Behavior may be unexpected if this region file does not contain the given
+    /// chunk position.
+    pub fn save_chunk(&mut self, chunk: &Chunk, entities: Vec<EntityData>) -> Result<(), Error> {
+        let chunk_pos = chunk.position();
+
+        let (local_x, local_z) = (chunk_pos.x % 32, chunk_pos.z % 32);
+
+        // Find position in header and deallocate it if it currently exists.
+        let location = self
+            .header
+            .location_for_chunk(ChunkPosition::new(local_x, local_z));
+        if location.exists() {
+            self.allocator.free(location.0);
+        }
+
+        // Write chunk to `ChunkRoot` tag.
+        let root = chunk_to_chunk_root(chunk, entities);
+
+        let blob = blob::chunk_root_to_blob(root);
+
+        // Write to intermediate buffer, because we need to know the length.
+        let mut buf = Vec::with_capacity(4096);
+        blob.to_writer(&mut buf)
+            .expect("Could not write chunk blob");
+
+        let sectors = (buf.len() + SECTOR_BYTES - 1) / SECTOR_BYTES;
+
+        let block = self.allocator.allocate(sectors as u32);
+
+        // Write to file
+        self.file
+            .seek(SeekFrom::Start(block.offset as u64 * SECTOR_BYTES as u64))
+            .map_err(Error::Io)?;
+
+        self.file.write_all(&buf).map_err(Error::Io)?;
+
+        // Update header
+        self.header
+            .set_location_for_chunk(ChunkPosition::new(local_x, local_z), ChunkLocation(block));
+        self.save_header().map_err(Error::Io)?;
+
+        Ok(())
+    }
+
+    fn save_header(&mut self) -> Result<(), io::Error> {
+        self.file.seek(SeekFrom::Start(0))?;
+
+        self.header.write_to(&mut self.file)
     }
 }
 
@@ -276,6 +326,69 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     chunk.set_section_at(usize::from(section.y as u8), Some(chunk_section));
 
     Ok(())
+}
+
+fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
+    ChunkRoot {
+        level: ChunkLevel {
+            x_pos: chunk.position().x,
+            z_pos: chunk.position().z,
+            sections: chunk
+                .sections()
+                .iter()
+                .enumerate()
+                .filter_map(|(y, sec)| sec.map(|sec| (y, sec.clone())))
+                .map(|(y, section)| {
+                    LevelSection {
+                        y: y as i8,
+                        states: section.data().inner().iter().map(|x| *x as i64).collect(),
+                        palette: section
+                            .palette()
+                            .unwrap_or(&vec![])
+                            .iter()
+                            .map(|id| {
+                                let block = Block::from_native_state_id(*id).unwrap();
+
+                                let (name, props) = block.to_name_and_props();
+
+                                let mut prop_map = HashMap::new();
+                                props.into_iter().for_each(|(name, value)| {
+                                    prop_map.insert(name.to_string(), value);
+                                });
+
+                                LevelPaletteEntry {
+                                    name: name.to_string(),
+                                    props: Some(LevelProperties { props: prop_map }),
+                                }
+                            })
+                            .collect(), // TODO: what happens with the global palette?
+                        block_light: slice_u64_to_i8(section.block_light().inner()).to_vec(),
+                        sky_light: slice_u64_to_i8(section.sky_light().inner()).to_vec(),
+                    }
+                })
+                .collect(),
+            biomes: chunk
+                .biomes()
+                .iter()
+                .map(|biome| biome.protocol_id())
+                .collect(),
+            entities,
+        },
+        data_version: DATA_VERSION,
+    }
+}
+
+fn slice_u64_to_i8(input: &[u64]) -> &[i8] {
+    // TODO: someone should check this isn't undefined behavior.
+    // Pretty sure the alignment check makes this sound,
+    // but I'm not certain.
+    let (head, body, tail) = unsafe { input.align_to::<i8>() };
+
+    // Ensure that alignment is correct
+    assert!(head.is_empty());
+    assert!(tail.is_empty());
+
+    body
 }
 
 /// An allocator for sectors.
@@ -438,7 +551,7 @@ pub fn load_region(dir: &PathBuf, pos: RegionPosition) -> Result<RegionHandle, E
 
     let header = read_header(&mut file)?;
 
-    let num_sectors = file.metadata().map_err(Error::Io)?.len() / 4096;
+    let num_sectors = file.metadata().map_err(Error::Io)?.len() / SECTOR_BYTES as u64;
 
     let allocator = SectorAllocator::new(&header, num_sectors as u32);
 
@@ -504,12 +617,41 @@ struct RegionHeader {
 
 impl RegionHeader {
     /// Returns the `ChunkLocation` for the given
-    /// chunk position. If the given position is
+    /// chunk position.
+    ///
+    /// If the given position is
     /// not inside the region this header is for,
     /// a panic will occur.
     fn location_for_chunk(&self, pos: ChunkPosition) -> ChunkLocation {
-        let index = (pos.x & 31) + (pos.z & 31) * (REGION_SIZE as i32);
-        self.locations[index as usize]
+        let index = Self::index(pos);
+        self.locations[index]
+    }
+
+    /// Sets the location for the given chunk position.
+    fn set_location_for_chunk(&mut self, pos: ChunkPosition, location: ChunkLocation) {
+        let index = Self::index(pos);
+        self.locations[index] = location;
+    }
+
+    /// Writes this header to the given writer.
+    fn write_to<W>(&self, w: &mut W) -> Result<(), io::Error>
+    where
+        W: Write,
+    {
+        for location in &self.locations {
+            let value = (location.0.offset << 8) | (location.0.count & 0b1111_1111);
+            w.write_u32::<BigEndian>(value)?;
+        }
+
+        for timestamp in &self.timestamps {
+            w.write_u32::<BigEndian>(*timestamp)?;
+        }
+
+        Ok(())
+    }
+
+    fn index(pos: ChunkPosition) -> usize {
+        ((pos.x & 31) + (pos.z & 31) * (REGION_SIZE as i32)) as usize
     }
 }
 
