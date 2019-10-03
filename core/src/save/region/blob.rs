@@ -86,21 +86,11 @@ fn section_to_value(section: LevelSection) -> Value {
         map.insert(String::from("Name"), Value::String(entry.name));
 
         if let Some(props) = entry.props {
-            map.insert(
-                String::from("Properties"),
-                Value::List(
-                    props
-                        .props
-                        .into_iter()
-                        .map(|(x, y)| {
-                            let mut map = HashMap::new();
-                            map.insert(x, Value::String(y));
-                            map
-                        })
-                        .map(Value::Compound)
-                        .collect(),
-                ),
-            );
+            let mut props_map = HashMap::new();
+            props.props.into_iter().for_each(|(name, value)| {
+                props_map.insert(name, Value::String(value));
+            });
+            map.insert(String::from("Properties"), Value::Compound(props_map));
         }
 
         entries.push(Value::Compound(map))

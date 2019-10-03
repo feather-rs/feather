@@ -19,6 +19,7 @@ use crate::systems::{CHUNK_HOLD_REMOVE, CHUNK_LOAD, CHUNK_OPTIMIZE, CHUNK_UNLOAD
 use crate::worldgen::WorldGenerator;
 use crate::{chunkworker, current_time_in_millis, TickCount, TPS};
 use feather_core::entity::EntityData;
+use feather_core::Chunk;
 use hashbrown::HashSet;
 use multimap::MultiMap;
 use specs::storage::BTreeStorage;
@@ -45,6 +46,13 @@ pub struct ChunkLoadEvent {
 #[derive(Debug, Clone, Copy)]
 pub struct ChunkLoadFailEvent {
     pub pos: ChunkPosition,
+}
+
+/// Event which is triggered when a chunk is unloaded.
+#[derive(Clone)]
+pub struct ChunkUnloadEvent {
+    /// The chunk which was unloaded.
+    pub chunk: Arc<Chunk>,
 }
 
 /// System for receiving loaded chunks from the chunk worker thread.
@@ -108,6 +116,14 @@ pub fn load_chunk(handle: &ChunkWorkerHandle, pos: ChunkPosition) {
     handle
         .sender
         .send(chunkworker::Request::LoadChunk(pos))
+        .unwrap();
+}
+
+/// Asynchronously saves the chunk at the given position.
+pub fn save_chunk(handle: &ChunkWorkerHandle, chunk: Arc<Chunk>, entities: Vec<EntityData>) {
+    handle
+        .sender
+        .send(chunkworker::Request::SaveChunk(chunk, entities))
         .unwrap();
 }
 
@@ -225,6 +241,7 @@ impl ChunkUnloadSystem {
 impl<'a> System<'a> for ChunkUnloadSystem {
     type SystemData = (
         Write<'a, ChunkMap>,
+        Write<'a, EventChannel<ChunkUnloadEvent>>,
         Read<'a, EventChannel<ChunkHolderReleaseEvent>>,
         Write<'a, ChunkUnloadQueue>,
         Read<'a, ChunkHolders>,
@@ -232,10 +249,17 @@ impl<'a> System<'a> for ChunkUnloadSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut chunk_map, events, mut unload_queue, holders, tick_count) = data;
+        let (
+            mut chunk_map,
+            mut unload_events,
+            release_events,
+            mut unload_queue,
+            holders,
+            tick_count,
+        ) = data;
 
         // Handle holder release events.
-        for event in events.read(&mut self.reader.as_mut().unwrap()) {
+        for event in release_events.read(&mut self.reader.as_mut().unwrap()) {
             // If the chunk now has zero holders, queue it for unloading.
             if !holders.chunk_has_holders(event.chunk) {
                 let unload = ChunkUnload {
@@ -261,10 +285,13 @@ impl<'a> System<'a> for ChunkUnloadSystem {
                     continue;
                 }
 
-                trace!("Unloading chunk at {:?}", unload.chunk);
+                warn!("Unloading chunk at {:?}", unload.chunk);
 
                 // Unload chunk and pop from queue.
-                chunk_map.unload_chunk_at(unload.chunk);
+                let chunk = Arc::new(chunk_map.unload_chunk_at(unload.chunk));
+                let event = ChunkUnloadEvent { chunk };
+                unload_events.single_write(event);
+
                 unload_queue.queue.pop_front();
             } else {
                 // We're done - all chunks farther up in

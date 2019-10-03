@@ -46,6 +46,7 @@ pub const ITEM_SPAWN: &str = "item_spawn";
 pub const SPAWNER: &str = "spawner";
 pub const ITEM_MERGE: &str = "item_merge";
 pub const SHOOT_ARROW: &str = "shoot_arrow";
+pub const CHUNK_SAVE: &str = "chunk_save";
 
 pub const ENTITY_MOVE_BROADCAST: &str = "entity_move_broadcast";
 pub const ENTITY_SPAWN_BROADCAST: &str = "entity_spawn_broadcast";

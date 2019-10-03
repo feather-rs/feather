@@ -3,7 +3,7 @@
 
 use std::collections::HashMap;
 use std::fmt::{self, Display, Formatter};
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::io::{Cursor, SeekFrom};
 use std::path::PathBuf;
@@ -227,7 +227,9 @@ impl RegionHandle {
 
         // Write to intermediate buffer, because we need to know the length.
         let mut buf = Vec::with_capacity(4096);
-        blob.to_writer(&mut buf)
+        buf.write_u8(2).map_err(Error::Io)?; // Compression type: zlib
+
+        blob.to_zlib_writer(&mut buf)
             .expect("Could not write chunk blob");
 
         let sectors = (buf.len() + SECTOR_BYTES - 1) / SECTOR_BYTES;
@@ -239,6 +241,9 @@ impl RegionHandle {
             .seek(SeekFrom::Start(block.offset as u64 * SECTOR_BYTES as u64))
             .map_err(Error::Io)?;
 
+        self.file
+            .write_u32::<BigEndian>(buf.len() as u32)
+            .map_err(Error::Io)?;
         self.file.write_all(&buf).map_err(Error::Io)?;
 
         // Update header
@@ -546,7 +551,13 @@ pub fn load_region(dir: &PathBuf, pos: RegionPosition) -> Result<RegionHandle, E
         let mut buf = dir.clone();
         buf.push(format!("region/r.{}.{}.mca", pos.x, pos.z));
 
-        File::open(buf.as_path()).map_err(Error::Io)?
+        OpenOptions::new()
+            .read(true)
+            .write(true)
+            .append(false)
+            .create(false)
+            .open(buf.as_path())
+            .map_err(Error::Io)?
     };
 
     let header = read_header(&mut file)?;
