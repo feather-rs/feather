@@ -33,7 +33,7 @@ rand_xorshift = "0.2.0"
 rand-legacy = { path = "../util/rand-legacy" }
 bytes = "0.4.12"
 hashbrown = { version = "0.6.0", features = ["rayon"] }
-mojang-api = { git = "https://github.com/caelunshun/mojang-api-rs", rev = "bf73e0a34d770224f69f926d78f2679b3eeabc73" }
+mojang-api = { git = "https://github.com/caelunshun/mojang-api-rs", rev = "6525e910ad53953fa16028f0fce74b1a19855733" }
 multimap = "0.6.0"
 hematite-nbt = "0.4.1"
 specs = { version = "0.15.1", features = ["storage-event-control"] }
@@ -60,8 +60,8 @@ strum = "0.15.0"
 simdnoise = "3.1.1"
 simdeez = "0.6.4"
 bitvec = "0.15.1"
-tokio = "=0.2.0-alpha.5"
-futures-preview = { version = "=0.3.0-alpha.18", features = ["async-await", "nightly"] }
+tokio = "=0.2.0-alpha.6"
+futures-preview = { version = "=0.3.0-alpha.19", features = ["async-await"] }
 
 [dev-dependencies]
 criterion = "0.3.0"
