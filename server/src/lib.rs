@@ -28,6 +28,7 @@ extern crate feather_core;
 
 extern crate nalgebra_glm as glm;
 
+use crossbeam::Receiver;
 use std::alloc::System;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -74,6 +75,7 @@ pub mod network;
 pub mod physics;
 pub mod player;
 pub mod prelude;
+pub mod shutdown;
 pub mod systems;
 #[cfg(test)]
 pub mod testframework;
@@ -133,6 +135,11 @@ pub fn main() {
 
     let (mut world, mut dispatcher) = init_world(config, player_count, io_manager, level);
 
+    // Channel used by the shutdown handler to notify the server thread.
+    let (shutdown_tx, shutdown_rx) = crossbeam::unbounded();
+
+    shutdown::init(shutdown_tx);
+
     info!("Initialized world");
 
     info!("Generating RSA keypair");
@@ -142,7 +149,38 @@ pub fn main() {
     load_spawn_chunks(&mut world);
 
     info!("Server started");
-    run_loop(&mut world, &mut dispatcher);
+    run_loop(&mut world, &mut dispatcher, shutdown_rx);
+
+    info!("Shutting down");
+
+    info!("Saving chunks");
+    let mut chunk_map = world.fetch_mut::<ChunkMap>();
+    let handle = world.fetch::<ChunkWorkerHandle>();
+    let count = entity::save_chunks(&mut chunk_map, &handle);
+
+    handle.sender.send(chunkworker::Request::ShutDown).unwrap();
+
+    let mut saved = 0;
+    // Wait for chunks to finish saving
+    while let Ok(msg) = handle.receiver.recv() {
+        match msg {
+            chunkworker::Reply::SavedChunk(_) => saved += 1,
+            _ => (),
+        }
+
+        if saved == count {
+            break;
+        }
+    }
+
+    assert!(
+        count == saved,
+        "didn't save all chunks: {} != {}",
+        count,
+        saved
+    );
+
+    info!("Goodbye");
 }
 
 /// Loads the configuration file, creating a default
@@ -263,8 +301,13 @@ fn load_spawn_chunks(world: &mut World) {
 
 /// Runs the server loop, blocking until the server
 /// is shut down.
-fn run_loop(world: &mut World, dispatcher: &mut Dispatcher) {
+fn run_loop(world: &mut World, dispatcher: &mut Dispatcher, shutdown_rx: Receiver<()>) {
     loop {
+        if let Ok(_) = shutdown_rx.try_recv() {
+            // Shut down
+            return;
+        }
+
         let start_time = current_time_in_millis();
 
         dispatcher.dispatch(&world);

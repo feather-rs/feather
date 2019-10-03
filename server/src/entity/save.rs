@@ -48,22 +48,27 @@ impl<'a> System<'a> for ChunkSaveSystem {
 
         if prev_save_time.0.elapsed() >= config.world.save_interval {
             // Save chunks
-            let mut count = 0;
-            for (_, chunk) in chunk_map.chunks_mut() {
-                if chunk.check_modified() {
-                    let entities = vec![]; // TODO
-                    chunk_logic::save_chunk(&worker_handle, Arc::new(chunk.clone()), entities);
-                    count += 1;
-                }
-            }
-
+            save_chunks(&mut chunk_map, &worker_handle);
             prev_save_time.0 = Instant::now();
-
-            debug!("Saving {} chunks", count);
         }
     }
 
     setup_impl!(reader);
+}
+
+/// Saves all modified chunks.
+pub fn save_chunks(chunk_map: &mut ChunkMap, handle: &ChunkWorkerHandle) -> u32 {
+    let mut count = 0;
+    for (_, chunk) in chunk_map.chunks_mut() {
+        if chunk.check_modified() {
+            let entities = vec![]; // TODO
+            chunk_logic::save_chunk(&handle, Arc::new(chunk.clone()), entities);
+            count += 1;
+        }
+    }
+
+    debug!("Saving {} chunks", count);
+    count
 }
 
 #[cfg(test)]

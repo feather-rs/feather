@@ -16,7 +16,10 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub type Reply = (ChunkPosition, Result<(Chunk, Vec<EntityData>), Error>);
+pub enum Reply {
+    LoadedChunk(ChunkPosition, Result<(Chunk, Vec<EntityData>), Error>),
+    SavedChunk(ChunkPosition),
+}
 
 #[derive(Clone)]
 pub enum Request {
@@ -165,13 +168,13 @@ fn load_chunk_from_handle(
     let result = handle.load_chunk(pos);
 
     match result {
-        Ok(chunk) => Some((pos, Ok(chunk))),
+        Ok(chunk) => Some(Reply::LoadedChunk(pos, Ok(chunk))),
         Err(e) => match e {
             region::Error::ChunkNotExist => {
                 schedule_generate_new_chunk(sender, pos, generator);
                 None
             }
-            err => Some((pos, Err(Error::LoadError(err)))),
+            err => Some(Reply::LoadedChunk(pos, Err(Error::LoadError(err)))),
         },
     }
 }
@@ -193,7 +196,7 @@ fn schedule_generate_new_chunk(
 /// Generates a new chunk synchronously,
 /// returning a Reply to send to a Sender.
 fn generate_new_chunk(pos: ChunkPosition, generator: &Arc<dyn WorldGenerator>) -> Reply {
-    (pos, Ok((generator.generate_chunk(pos), vec![])))
+    Reply::LoadedChunk(pos, Ok((generator.generate_chunk(pos), vec![])))
 }
 
 /// Saves the chunk at the specified position.
@@ -209,6 +212,10 @@ fn save_chunk(worker: &mut ChunkWorker, chunk: &Chunk, entities: Vec<EntityData>
     };
 
     file.handle.save_chunk(chunk, entities).unwrap();
+    worker
+        .sender
+        .send(Reply::SavedChunk(chunk.position()))
+        .unwrap();
 }
 
 /// Returns whether the given chunk's region

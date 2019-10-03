@@ -34,6 +34,8 @@ pub use metadata::{EntityBitMask, Metadata};
 pub use movement::broadcast_entity_movement;
 pub use types::EntityType;
 
+pub use save::save_chunks;
+
 use crate::entity::arrow::ShootArrowSystem;
 use crate::entity::chunk::EntityChunkLoadSystem;
 use crate::entity::destroy::EntityDestroyBroadcastSystem;

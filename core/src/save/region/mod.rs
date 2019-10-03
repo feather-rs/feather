@@ -199,6 +199,9 @@ impl RegionHandle {
                 Biome::from_protocol_id(id).ok_or_else(|| Error::InvalidBiomeId(id))?;
         }
 
+        // Chunk was not modified, but it thinks it was: disable this
+        chunk.check_modified();
+
         Ok((chunk, level.entities.to_vec()))
     }
 

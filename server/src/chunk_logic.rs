@@ -69,23 +69,25 @@ impl<'a> System<'a> for ChunkLoadSystem {
     fn run(&mut self, data: Self::SystemData) {
         let (mut chunk_map, mut load_events, mut fail_events, handle) = data;
 
-        while let Ok((pos, result)) = handle.receiver.try_recv() {
-            match result {
-                Ok((chunk, entities)) => {
-                    chunk_map.set_chunk_at(pos, chunk);
+        while let Ok(reply) = handle.receiver.try_recv() {
+            match reply {
+                chunkworker::Reply::LoadedChunk(pos, result) => match result {
+                    Ok((chunk, entities)) => {
+                        chunk_map.set_chunk_at(pos, chunk);
 
-                    // Trigger event
-                    let event = ChunkLoadEvent { pos, entities };
-                    load_events.single_write(event);
+                        // Trigger event
+                        let event = ChunkLoadEvent { pos, entities };
+                        load_events.single_write(event);
 
-                    trace!("Loaded chunk at {:?}", pos);
-                }
-                Err(err) => {
-                    // TODO generate chunk if it didn't exist
-                    warn!("Failed to load chunk at {:?}: {}", pos, err);
-                    let event = ChunkLoadFailEvent { pos };
-                    fail_events.single_write(event);
-                }
+                        trace!("Loaded chunk at {:?}", pos);
+                    }
+                    Err(err) => {
+                        warn!("Failed to load chunk at {:?}: {}", pos, err);
+                        let event = ChunkLoadFailEvent { pos };
+                        fail_events.single_write(event);
+                    }
+                },
+                _ => (),
             }
         }
     }
