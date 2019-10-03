@@ -212,6 +212,7 @@ impl Chunk {
     /// modified since the last time they were optimized
     /// are not optimized.
     pub fn optimize(&mut self) -> u32 {
+        let modified = self.modified;
         let mut count = 0;
         let mut to_remove = vec![];
         for (i, s) in self.sections.iter_mut().enumerate() {
@@ -230,6 +231,8 @@ impl Chunk {
         for i in to_remove {
             self.set_section_at(i, None);
         }
+
+        self.modified = modified;
 
         count
     }

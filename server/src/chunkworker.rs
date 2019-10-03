@@ -137,26 +137,14 @@ fn run(mut worker: ChunkWorker) {
 fn load_chunk(worker: &mut ChunkWorker, pos: ChunkPosition) -> Option<Reply> {
     let rpos = RegionPosition::from_chunk(pos);
 
-    match worker_region(&mut worker.open_regions, &worker.dir, rpos) {
-        Some(file) => {
-            // Load from region file
-            load_chunk_from_handle(
-                pos,
-                &mut file.handle,
-                &Arc::from(worker.sender.clone()),
-                &worker.world_generator,
-            )
-        }
-        None => {
-            // Region doesn't exist: generate
-            schedule_generate_new_chunk(
-                &Arc::from(worker.sender.clone()),
-                pos,
-                &worker.world_generator,
-            );
-            None
-        }
-    }
+    let file = worker_region(&mut worker.open_regions, &worker.dir, rpos);
+    // Load from region file
+    load_chunk_from_handle(
+        pos,
+        &mut file.handle,
+        &Arc::from(worker.sender.clone()),
+        &worker.world_generator,
+    )
 }
 
 fn load_chunk_from_handle(
@@ -203,13 +191,7 @@ fn generate_new_chunk(pos: ChunkPosition, generator: &Arc<dyn WorldGenerator>) -
 fn save_chunk(worker: &mut ChunkWorker, chunk: &Chunk, entities: Vec<EntityData>) {
     let rpos = RegionPosition::from_chunk(chunk.position());
 
-    let file = match worker_region(&mut worker.open_regions, &worker.dir, rpos) {
-        Some(file) => file,
-        None => {
-            warn!("Region file creation not supported; skipping saving chunk");
-            return;
-        }
-    };
+    let file = worker_region(&mut worker.open_regions, &worker.dir, rpos);
 
     file.handle.save_chunk(chunk, entities).unwrap();
     worker
@@ -231,13 +213,13 @@ fn worker_region<'a>(
     open_regions: &'a mut HashMap<RegionPosition, RegionFile>,
     dir: &PathBuf,
     rpos: RegionPosition,
-) -> Option<&'a mut RegionFile> {
+) -> &'a mut RegionFile {
     if !is_region_loaded(open_regions, rpos) {
         // Need to load region into memory
-        let handle = region::load_region(&dir, rpos);
+        let mut handle = region::load_region(&dir, rpos);
         if handle.is_err() {
-            // TODO: Create a new region file
-            return None;
+            // Create a new region file
+            handle = region::create_region(&dir, rpos);
         }
 
         let handle = handle.unwrap();
@@ -254,5 +236,5 @@ fn worker_region<'a>(
 
         open_regions.insert(rpos, file);
     }
-    open_regions.get_mut(&rpos)
+    open_regions.get_mut(&rpos).unwrap()
 }

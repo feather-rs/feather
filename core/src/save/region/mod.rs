@@ -7,7 +7,7 @@ use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::io::{Cursor, SeekFrom};
 use std::path::PathBuf;
-use std::{io, iter};
+use std::{fs, io, iter};
 
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use serde::Deserialize;
@@ -235,7 +235,9 @@ impl RegionHandle {
         blob.to_zlib_writer(&mut buf)
             .expect("Could not write chunk blob");
 
-        let sectors = (buf.len() + SECTOR_BYTES - 1) / SECTOR_BYTES;
+        let total_len = buf.len() + 4; // 4 bytes for length header
+
+        let sectors = (total_len + SECTOR_BYTES - 1) / SECTOR_BYTES;
 
         let block = self.allocator.allocate(sectors as u32);
 
@@ -248,6 +250,13 @@ impl RegionHandle {
             .write_u32::<BigEndian>(buf.len() as u32)
             .map_err(Error::Io)?;
         self.file.write_all(&buf).map_err(Error::Io)?;
+
+        // Write padding to align to sector count
+        let padding_count = SECTOR_BYTES - total_len % SECTOR_BYTES;
+
+        for _ in 0..padding_count {
+            self.file.write_u8(0).map_err(Error::Io)?;
+        }
 
         // Update header
         self.header
@@ -473,13 +482,16 @@ impl SectorAllocator {
         }
 
         // No sector found: must allocate into end
+
+        let block = SectorBlock {
+            offset: self.used_sectors.len() as u32,
+            count: min_size,
+        };
+
         self.used_sectors
             .extend(iter::repeat(true).take(min_size as usize));
 
-        SectorBlock {
-            offset: self.used_sectors.len() as u32,
-            count: min_size,
-        }
+        block
     }
 }
 
@@ -551,13 +563,9 @@ impl std::error::Error for Error {}
 /// header so that chunks can be retrieved later.
 pub fn load_region(dir: &PathBuf, pos: RegionPosition) -> Result<RegionHandle, Error> {
     let mut file = {
-        let mut buf = dir.clone();
-        buf.push(format!("region/r.{}.{}.mca", pos.x, pos.z));
+        let buf = region_file_path(dir, pos);
 
-        OpenOptions::new()
-            .read(true)
-            .write(true)
-            .append(false)
+        open_opts()
             .create(false)
             .open(buf.as_path())
             .map_err(Error::Io)?
@@ -574,6 +582,57 @@ pub fn load_region(dir: &PathBuf, pos: RegionPosition) -> Result<RegionHandle, E
         header,
         allocator,
     })
+}
+
+/// Creates the region file at the given region position and initializes
+/// a handle.
+///
+/// The world directory should be the root directory
+/// of the world, e.g. `${SERVER_DIR}/world` for
+/// normal servers.
+///
+/// # Warning
+/// If the region file already exist, it will be __overwritten__.
+/// Care must be taken to ensure that this function is only called
+/// for nonexistent regions.
+pub fn create_region(dir: &PathBuf, pos: RegionPosition) -> Result<RegionHandle, Error> {
+    create_region_dir(dir).map_err(Error::Io)?;
+    let mut file = {
+        let buf = region_file_path(dir, pos);
+
+        open_opts().create(true).open(buf.as_path())
+    }
+    .map_err(Error::Io)?;
+
+    let header = RegionHeader::default();
+    header.write_to(&mut file).map_err(Error::Io)?;
+
+    let allocator = SectorAllocator::new(&header, 2);
+    Ok(RegionHandle {
+        file,
+        header,
+        allocator,
+    })
+}
+
+fn open_opts() -> OpenOptions {
+    OpenOptions::new()
+        .read(true)
+        .write(true)
+        .append(false)
+        .clone()
+}
+
+fn region_file_path(dir: &PathBuf, pos: RegionPosition) -> PathBuf {
+    let mut buf = dir.clone();
+    buf.push(format!("region/r.{}.{}.mca", pos.x, pos.z));
+    buf
+}
+
+fn create_region_dir(dir: &PathBuf) -> Result<(), io::Error> {
+    let mut dir = dir.clone();
+    dir.push("region");
+    fs::create_dir_all(dir.as_path())
 }
 
 /// Reads the region header from the given file.
@@ -627,6 +686,21 @@ struct RegionHeader {
     /// UNIX timestamps (supposedly) indicating the last time a chunk
     /// was modified.
     timestamps: Vec<u32>,
+}
+
+impl Default for RegionHeader {
+    fn default() -> Self {
+        Self {
+            locations: vec![
+                ChunkLocation(SectorBlock {
+                    offset: 0,
+                    count: 0
+                });
+                REGION_SIZE * REGION_SIZE
+            ],
+            timestamps: vec![0; REGION_SIZE * REGION_SIZE],
+        }
+    }
 }
 
 impl RegionHeader {
