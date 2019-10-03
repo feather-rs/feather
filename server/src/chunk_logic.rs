@@ -31,8 +31,8 @@ use std::sync::Arc;
 /// worker thread.
 #[derive(Debug, Clone)]
 pub struct ChunkWorkerHandle {
-    sender: Sender<chunkworker::Request>,
-    receiver: Receiver<chunkworker::Reply>,
+    pub sender: Sender<chunkworker::Request>,
+    pub receiver: Receiver<chunkworker::Reply>,
 }
 
 /// Event which is triggered when a chunk is loaded.
@@ -284,8 +284,6 @@ impl<'a> System<'a> for ChunkUnloadSystem {
                     unload_queue.queue.pop_front();
                     continue;
                 }
-
-                warn!("Unloading chunk at {:?}", unload.chunk);
 
                 // Unload chunk and pop from queue.
                 let chunk = Arc::new(chunk_map.unload_chunk_at(unload.chunk));

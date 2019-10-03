@@ -62,6 +62,7 @@ simdeez = "0.6.4"
 bitvec = "0.15.1"
 tokio = "=0.2.0-alpha.5"
 futures-preview = { version = "=0.3.0-alpha.18", features = ["async-await", "nightly"] }
+humantime-serde = "0.1.1"
 
 [dev-dependencies]
 criterion = "0.3.0"

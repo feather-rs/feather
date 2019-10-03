@@ -56,6 +56,9 @@ pub struct Chunk {
     /// The biomes in this section, indexable by
     /// ((z << 4) | x).
     biomes: [Biome; SECTION_WIDTH * SECTION_WIDTH],
+    /// Whether this chunk has been modified since the most recent
+    /// call to `check_modified`().
+    modified: bool,
 }
 
 impl Default for Chunk {
@@ -71,6 +74,7 @@ impl Default for Chunk {
 
         Self {
             location: ChunkPosition::new(0, 0),
+            modified: true,
             sections,
             biomes: [Biome::Plains; SECTION_WIDTH * SECTION_WIDTH],
         }
@@ -83,6 +87,7 @@ impl Chunk {
     pub fn new(location: ChunkPosition) -> Self {
         Self {
             location,
+            modified: true,
             ..Default::default()
         }
     }
@@ -94,6 +99,7 @@ impl Chunk {
     pub fn new_with_default_biome(location: ChunkPosition, default_biome: Biome) -> Self {
         Self {
             location,
+            modified: true,
             biomes: [default_biome; SECTION_WIDTH * SECTION_HEIGHT],
             ..Default::default()
         }
@@ -130,6 +136,7 @@ impl Chunk {
         assert!(x < CHUNK_WIDTH);
         assert!(y < CHUNK_HEIGHT);
         assert!(z < CHUNK_WIDTH);
+        self.modified = true;
         let chunk_section = &mut self.sections[y / 16];
 
         let section;
@@ -158,6 +165,7 @@ impl Chunk {
     /// Returns a mutable slice of the 16 sections
     /// in this chunk.
     pub fn sections_mut(&mut self) -> Vec<Option<&mut ChunkSection>> {
+        self.modified = true;
         self.sections.iter_mut().map(|sec| sec.as_mut()).collect()
     }
 
@@ -186,6 +194,7 @@ impl Chunk {
     /// to be empty, meaning it consists only of air.
     pub fn section_mut(&mut self, index: usize) -> Option<&mut ChunkSection> {
         assert!(index < NUM_SECTIONS);
+        self.modified = true;
         self.sections[index].as_mut()
     }
 
@@ -193,6 +202,7 @@ impl Chunk {
     pub fn set_section_at(&mut self, index: usize, section: Option<ChunkSection>) {
         assert!(index < NUM_SECTIONS);
         self.sections[index] = section;
+        self.modified = true;
     }
 
     /// Optimizes each section in this chunk.
@@ -231,6 +241,7 @@ impl Chunk {
 
     /// Returns a mutable reference to the biomes of this chunk.
     pub fn biomes_mut(&mut self) -> &mut [Biome] {
+        self.modified = true;
         &mut self.biomes
     }
 
@@ -249,7 +260,16 @@ impl Chunk {
     /// Panics if `x < 16` or `z < 16`.
     pub fn set_biome_at(&mut self, x: usize, z: usize, biome: Biome) {
         let index = Self::biome_index(x, z);
+        self.modified = true;
         self.biomes[index] = biome;
+    }
+
+    /// Checks whether this chunk has been modified since the last
+    /// call to this function.
+    pub fn check_modified(&mut self) -> bool {
+        let res = self.modified;
+        self.modified = false;
+        res
     }
 
     fn biome_index(x: usize, z: usize) -> usize {
@@ -1033,5 +1053,16 @@ mod tests {
                 assert_eq!(chunk.biome_at(x, z), Biome::BirchForest);
             }
         }
+    }
+
+    #[test]
+    fn test_modified() {
+        let mut chunk = Chunk::default();
+        assert!(chunk.check_modified());
+        assert!(!chunk.check_modified());
+
+        chunk.set_block_at(0, 0, 0, Block::Stone);
+        assert!(chunk.check_modified());
+        assert!(!chunk.check_modified());
     }
 }
