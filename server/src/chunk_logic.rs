@@ -471,7 +471,12 @@ mod tests {
 
         let chunk_map = ChunkMap::new();
         let pos = ChunkPosition::new(0, 0);
-        send2.send((pos, Ok((Chunk::new(pos), vec![])))).unwrap();
+        send2
+            .send(chunkworker::Reply::LoadedChunk(
+                pos,
+                Ok((Chunk::new(pos), vec![])),
+            ))
+            .unwrap();
 
         let load_event_channel = EventChannel::<ChunkLoadEvent>::new();
         let fail_event_channel = EventChannel::<ChunkLoadFailEvent>::new();
