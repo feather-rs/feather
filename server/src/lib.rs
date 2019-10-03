@@ -154,31 +154,9 @@ pub fn main() {
     info!("Shutting down");
 
     info!("Saving chunks");
-    let mut chunk_map = world.fetch_mut::<ChunkMap>();
-    let handle = world.fetch::<ChunkWorkerHandle>();
-    let count = entity::save_chunks(&mut chunk_map, &handle);
-
-    handle.sender.send(chunkworker::Request::ShutDown).unwrap();
-
-    let mut saved = 0;
-    // Wait for chunks to finish saving
-    while let Ok(msg) = handle.receiver.recv() {
-        match msg {
-            chunkworker::Reply::SavedChunk(_) => saved += 1,
-            _ => (),
-        }
-
-        if saved == count {
-            break;
-        }
-    }
-
-    assert!(
-        count == saved,
-        "didn't save all chunks: {} != {}",
-        count,
-        saved
-    );
+    shutdown::save_chunks(&world);
+    info!("Saving level.dat");
+    shutdown::save_level(&world);
 
     info!("Goodbye");
 }
@@ -303,7 +281,7 @@ fn load_spawn_chunks(world: &mut World) {
 /// is shut down.
 fn run_loop(world: &mut World, dispatcher: &mut Dispatcher, shutdown_rx: Receiver<()>) {
     loop {
-        if let Ok(_) = shutdown_rx.try_recv() {
+        if shutdown_rx.try_recv().is_ok() {
             // Shut down
             return;
         }

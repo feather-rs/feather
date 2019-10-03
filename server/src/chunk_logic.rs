@@ -70,8 +70,8 @@ impl<'a> System<'a> for ChunkLoadSystem {
         let (mut chunk_map, mut load_events, mut fail_events, handle) = data;
 
         while let Ok(reply) = handle.receiver.try_recv() {
-            match reply {
-                chunkworker::Reply::LoadedChunk(pos, result) => match result {
+            if let chunkworker::Reply::LoadedChunk(pos, result) = reply {
+                match result {
                     Ok((chunk, entities)) => {
                         chunk_map.set_chunk_at(pos, chunk);
 
@@ -86,8 +86,7 @@ impl<'a> System<'a> for ChunkLoadSystem {
                         let event = ChunkLoadFailEvent { pos };
                         fail_events.single_write(event);
                     }
-                },
-                _ => (),
+                }
             }
         }
     }

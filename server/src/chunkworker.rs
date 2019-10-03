@@ -16,6 +16,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+#[allow(clippy::large_enum_variant)]
 pub enum Reply {
     LoadedChunk(ChunkPosition, Result<(Chunk, Vec<EntityData>), Error>),
     SavedChunk(ChunkPosition),
