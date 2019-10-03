@@ -480,6 +480,9 @@ mod tests {
         load_chunk(&handle, pos);
 
         let recv = recv1.try_recv().unwrap();
-        assert_eq!(recv, chunkworker::Request::LoadChunk(pos));
+        match recv {
+            chunkworker::Request::LoadChunk(recv_pos) => assert_eq!(recv_pos, pos),
+            _ => panic!(),
+        }
     }
 }
