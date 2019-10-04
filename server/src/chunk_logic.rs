@@ -287,9 +287,12 @@ impl<'a> System<'a> for ChunkUnloadSystem {
                 }
 
                 // Unload chunk and pop from queue.
-                let chunk = Arc::new(chunk_map.unload_chunk_at(unload.chunk));
-                let event = ChunkUnloadEvent { chunk };
-                unload_events.single_write(event);
+                if let Some(chunk) = chunk_map.unload_chunk_at(unload.chunk) {
+                    let event = ChunkUnloadEvent {
+                        chunk: Arc::new(chunk),
+                    };
+                    unload_events.single_write(event);
+                }
 
                 unload_queue.queue.pop_front();
             } else {
