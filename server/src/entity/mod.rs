@@ -22,7 +22,7 @@ use crate::systems::{
 pub use arrow::{ArrowComponent, ShootArrowEvent};
 pub use broadcast::EntitySendSystem;
 pub use broadcast::EntitySender;
-pub use broadcast::EntitySpawnEvent;
+pub use broadcast::{EntitySendEvent, EntitySpawnEvent};
 pub use chunk::ChunkEntities;
 pub use chunk::ChunkEntityUpdateSystem;
 pub use component::{NamedComponent, PlayerComponent, PositionComponent, VelocityComponent};

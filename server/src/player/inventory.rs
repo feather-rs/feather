@@ -1,6 +1,5 @@
 use crate::disconnect_player;
-use crate::entity::PlayerComponent;
-use crate::joinhandler::PlayerJoinEvent;
+use crate::entity::{EntitySendEvent, PlayerComponent};
 use crate::network::{send_packet_to_player, NetworkComponent, PacketQueue};
 use crate::player::digging::PlayerItemDropEvent;
 use crate::util::Util;
@@ -17,9 +16,7 @@ use feather_core::{Gamemode, ItemStack};
 use num_traits::ToPrimitive;
 use shrev::EventChannel;
 use smallvec::SmallVec;
-use specs::{
-    Component, Entities, Join, LazyUpdate, Read, ReadStorage, ReaderId, World, WriteStorage,
-};
+use specs::{Component, LazyUpdate, Read, ReadStorage, ReaderId, World, WriteStorage};
 use specs::{DenseVecStorage, SystemData};
 use specs::{Entity, System, Write};
 use std::ops::{Deref, DerefMut};
@@ -296,54 +293,49 @@ impl<'a> System<'a> for HeldItemBroadcastSystem {
     }
 }
 
-/// System which sends other players' equipment
-/// to players who have just joined.
+/// System which listens to `EntitySendEvent`s and
+/// sends entity equipment alongside.
 #[derive(Default)]
 pub struct EquipmentSendSystem {
-    reader: Option<ReaderId<PlayerJoinEvent>>,
+    reader: Option<ReaderId<EntitySendEvent>>,
 }
 
 impl<'a> System<'a> for EquipmentSendSystem {
     type SystemData = (
         ReadStorage<'a, InventoryComponent>,
         ReadStorage<'a, NetworkComponent>,
-        Read<'a, EventChannel<PlayerJoinEvent>>,
-        Entities<'a>,
+        Read<'a, EventChannel<EntitySendEvent>>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (inventories, networks, events, entities) = data;
+        let (inventories, networks, send_events) = data;
 
-        for event in events.read(&mut self.reader.as_mut().unwrap()) {
+        for event in send_events.read(&mut self.reader.as_mut().unwrap()) {
             let network = networks.get(event.player).unwrap();
+            let inventory = match inventories.get(event.entity) {
+                Some(inv) => inv,
+                None => continue,
+            };
 
-            // Send all other players' equipment to this player.
-            for (inventory, entity) in (&inventories, &entities).join() {
-                // Don't send player their own equipment
-                if entity == event.player {
-                    continue;
-                }
+            let equipments = [
+                Equipment::MainHand,
+                Equipment::Boots,
+                Equipment::Leggings,
+                Equipment::Chestplate,
+                Equipment::Helmet,
+                Equipment::OffHand,
+            ];
 
-                let equipments = [
-                    Equipment::MainHand,
-                    Equipment::Boots,
-                    Equipment::Leggings,
-                    Equipment::Chestplate,
-                    Equipment::Helmet,
-                    Equipment::OffHand,
-                ];
+            for equipment in equipments.iter() {
+                let item = {
+                    let slot = equipment.slot_index(inventory.held_item);
+                    inventory.item_at(slot).cloned()
+                };
 
-                for equipment in equipments.iter() {
-                    let item = {
-                        let slot = equipment.slot_index(inventory.held_item);
-                        inventory.item_at(slot).cloned()
-                    };
+                let equipment_slot = equipment.to_i32().unwrap();
 
-                    let equipment_slot = equipment.to_i32().unwrap();
-
-                    let packet = EntityEquipment::new(entity.id() as i32, equipment_slot, item);
-                    send_packet_to_player(network, packet);
-                }
+                let packet = EntityEquipment::new(event.entity.id() as i32, equipment_slot, item);
+                send_packet_to_player(network, packet);
             }
         }
     }
@@ -668,8 +660,9 @@ mod tests {
         let player = t::add_player(&mut w);
         let player2 = t::add_player(&mut w);
 
-        let event = PlayerJoinEvent {
+        let event = EntitySendEvent {
             player: player.entity,
+            entity: player2.entity,
         };
 
         w.fetch_mut::<EventChannel<_>>().single_write(event);
