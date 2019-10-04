@@ -119,14 +119,8 @@ pub fn save_chunks(
                     // Convert entity to entity data.
                     // If an entity doesn't have position and velocity,
                     // it won't be saved. This is normal behavior.
-                    let pos = match positions.get(*entity) {
-                        Some(pos) => pos,
-                        None => return None,
-                    };
-                    let vel = match velocities.get(*entity) {
-                        Some(vel) => vel,
-                        None => return None,
-                    };
+                    let pos = positions.get(*entity)?;
+                    let vel = velocities.get(*entity)?;
                     let item = items.get(*entity);
                     let arrow = arrows.get(*entity);
 
