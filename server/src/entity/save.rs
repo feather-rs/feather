@@ -3,9 +3,15 @@
 use crate::chunk_logic;
 use crate::chunk_logic::{ChunkUnloadEvent, ChunkWorkerHandle};
 use crate::config::Config;
+use crate::entity::{
+    ArrowComponent, ChunkEntities, ItemComponent, PositionComponent, VelocityComponent,
+};
+use feather_core::entity::{ArrowEntityData, BaseEntityData, EntityData, ItemData, ItemEntityData};
 use feather_core::world::ChunkMap;
+use rayon::prelude::*;
 use shrev::{EventChannel, ReaderId};
-use specs::{Read, ReadExpect, System, Write};
+use specs::{Read, ReadExpect, ReadStorage, System, Write};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -31,13 +37,29 @@ impl<'a> System<'a> for ChunkSaveSystem {
     type SystemData = (
         Write<'a, PreviousSaveTime>,
         Write<'a, ChunkMap>,
+        Read<'a, ChunkEntities>,
         Read<'a, EventChannel<ChunkUnloadEvent>>,
         Read<'a, Arc<Config>>,
         ReadExpect<'a, ChunkWorkerHandle>,
+        ReadStorage<'a, PositionComponent>,
+        ReadStorage<'a, VelocityComponent>,
+        ReadStorage<'a, ItemComponent>,
+        ReadStorage<'a, ArrowComponent>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut prev_save_time, mut chunk_map, unload_events, config, worker_handle) = data;
+        let (
+            mut prev_save_time,
+            mut chunk_map,
+            chunk_entities,
+            unload_events,
+            config,
+            worker_handle,
+            positions,
+            velocities,
+            items,
+            arrows,
+        ) = data;
 
         // TODO: entities
 
@@ -48,7 +70,15 @@ impl<'a> System<'a> for ChunkSaveSystem {
 
         if prev_save_time.0.elapsed() >= config.world.save_interval {
             // Save chunks
-            save_chunks(&mut chunk_map, &worker_handle);
+            save_chunks(
+                &mut chunk_map,
+                &worker_handle,
+                &chunk_entities,
+                &positions,
+                &velocities,
+                &items,
+                &arrows,
+            );
             prev_save_time.0 = Instant::now();
         }
     }
@@ -57,18 +87,70 @@ impl<'a> System<'a> for ChunkSaveSystem {
 }
 
 /// Saves all modified chunks.
-pub fn save_chunks(chunk_map: &mut ChunkMap, handle: &ChunkWorkerHandle) -> u32 {
-    let mut count = 0;
-    for (_, chunk) in chunk_map.chunks_mut() {
-        if chunk.check_modified() {
-            let entities = vec![]; // TODO
-            chunk_logic::save_chunk(&handle, Arc::new(chunk.clone()), entities);
-            count += 1;
-        }
-    }
+pub fn save_chunks(
+    chunk_map: &mut ChunkMap,
+    handle: &ChunkWorkerHandle,
+    chunk_entities: &ChunkEntities,
+    positions: &ReadStorage<PositionComponent>,
+    velocities: &ReadStorage<VelocityComponent>,
+    items: &ReadStorage<ItemComponent>,
+    arrows: &ReadStorage<ArrowComponent>,
+) -> u32 {
+    let count = AtomicUsize::new(0);
+    chunk_map
+        .chunks_mut()
+        .par_iter_mut()
+        .map(|(_, chunk)| {
+            let (dirty, entities) = chunk_entities.entities_in_chunk_and_modified(chunk.position());
+            (chunk, entities, dirty)
+        })
+        .for_each(|(chunk, entities, dirty)| {
+            if !chunk.check_modified() && !dirty {
+                return;
+            }
 
+            let entity_data: Vec<_> = entities
+                .iter()
+                .filter_map(|entity| {
+                    // Convert entity to entity data
+                    let pos = positions.get(*entity).unwrap();
+                    let vel = velocities.get(*entity).unwrap();
+                    let item = items.get(*entity);
+                    let arrow = arrows.get(*entity);
+
+                    let base = BaseEntityData {
+                        position: vec![pos.current.x, pos.current.y, pos.current.z],
+                        velocity: vec![vel.x, vel.y, vel.z],
+                        rotation: vec![pos.current.pitch, pos.current.yaw],
+                    };
+                    if arrow.is_some() {
+                        Some(EntityData::Arrow(ArrowEntityData {
+                            entity: base,
+                            critical: 0,
+                        }))
+                    } else if let Some(item) = item {
+                        Some(EntityData::Item(ItemEntityData {
+                            entity: base,
+                            age: 0,          // TODO
+                            pickup_delay: 0, // TODO
+                            item: ItemData {
+                                item: item.stack.ty.identifier().to_string(),
+                                count: item.stack.amount,
+                            },
+                        }))
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+
+            chunk_logic::save_chunk(&handle, Arc::new(chunk.clone()), entity_data);
+            count.fetch_add(1, Ordering::Release);
+        });
+
+    let count = count.load(Ordering::Acquire);
     debug!("Saving {} chunks", count);
-    count
+    count as u32
 }
 
 #[cfg(test)]

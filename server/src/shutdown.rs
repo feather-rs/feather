@@ -7,7 +7,7 @@ use crate::{chunkworker, entity};
 use crossbeam::Sender;
 use feather_core::level::{save_level_file, LevelData, Root};
 use feather_core::prelude::ChunkMap;
-use specs::World;
+use specs::{World, WorldExt};
 use std::fs::File;
 use std::sync::Arc;
 
@@ -21,7 +21,15 @@ pub fn init(tx: Sender<()>) {
 pub fn save_chunks(world: &World) {
     let mut chunk_map = world.fetch_mut::<ChunkMap>();
     let handle = world.fetch::<ChunkWorkerHandle>();
-    let count = entity::save_chunks(&mut chunk_map, &handle);
+    let count = entity::save_chunks(
+        &mut chunk_map,
+        &handle,
+        &world.fetch(),
+        &world.read_component(),
+        &world.read_component(),
+        &world.read_component(),
+        &world.read_component(),
+    );
 
     handle.sender.send(chunkworker::Request::ShutDown).unwrap();
 

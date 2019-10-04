@@ -19,6 +19,18 @@ impl EntityData {
     pub fn into_nbt_value(self) -> Value {
         let mut map = HashMap::new();
 
+        map.insert(
+            String::from("id"),
+            Value::String(
+                match self {
+                    EntityData::Item(_) => "minecraft:item",
+                    EntityData::Arrow(_) => "minecraft:arrow",
+                    EntityData::Unknown => panic!("Cannot write unknown entities"),
+                }
+                .to_string(),
+            ),
+        );
+
         match self {
             EntityData::Item(data) => data.write_to_map(&mut map),
             EntityData::Arrow(data) => data.write_to_map(&mut map),
