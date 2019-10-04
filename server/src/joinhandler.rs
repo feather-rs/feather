@@ -137,9 +137,11 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     let mut holder_comp = ChunkHolderComponent::new();
                     let mut loaded_chunks_comp = LoadedChunksComponent::default();
 
+                    let player_pos = positions.get(player).unwrap().current.chunk_pos();
+
                     // Offsets from the origin to center view distance on
-                    let chunk_offset_x = level.spawn_x >> 4;
-                    let chunk_offset_z = level.spawn_z >> 4;
+                    let chunk_offset_x = player_pos.x;
+                    let chunk_offset_z = player_pos.z;
 
                     // Queue chunks for sending.
                     let view_distance = i32::from(config.server.view_distance);
@@ -152,8 +154,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     }
 
                     // Sort chunks so that closest chunks are sent first.
-                    let player_pos = positions.get(player).unwrap().current.chunk_pos();
-                    chunks.sort_by(|a, b| {
+                    chunks.sort_unstable_by(|a, b| {
                         a.manhattan_distance(player_pos)
                             .cmp(&b.manhattan_distance(player_pos))
                     });
