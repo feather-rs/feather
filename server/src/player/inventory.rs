@@ -27,7 +27,7 @@ use std::ops::{Deref, DerefMut};
 /// Component for storing a player's inventory.
 #[derive(Clone, Debug)]
 pub struct InventoryComponent {
-    inventory: Inventory,
+    pub inventory: Inventory,
     /// The player's held item.
     /// This is stored as an index in the range 0..9.
     pub held_item: SlotIndex,

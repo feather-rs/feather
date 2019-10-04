@@ -157,6 +157,8 @@ pub fn main() {
     shutdown::save_chunks(&world);
     info!("Saving level.dat");
     shutdown::save_level(&world);
+    info!("Saving player data");
+    shutdown::save_player_data(&world);
 
     info!("Goodbye");
     exit(0);

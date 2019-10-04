@@ -22,6 +22,7 @@ mod movement;
 /// Module for handling player block placements.
 mod placement;
 mod resource_pack;
+mod save;
 mod view;
 
 pub use broadcast::PlayerDisconnectEvent;
@@ -34,15 +35,18 @@ pub use animation::PlayerAnimationEvent;
 
 pub use digging::PlayerItemDropEvent;
 pub use inventory::{InventoryComponent, InventoryUpdateEvent};
+pub use save::save_player_data;
 
 use crate::player::inventory::SetSlotSystem;
 use crate::player::placement::BlockPlacementSystem;
+use crate::player::save::PlayerDataSaveSystem;
 use crate::player::view::ViewUpdateSystem;
 use crate::systems::{
     ANIMATION_BROADCAST, BLOCK_BREAK_BROADCAST, BLOCK_PLACEMENT, CHAT_BROADCAST, CHUNK_CROSS,
     CHUNK_SEND, CLIENT_CHUNK_UNLOAD, CREATIVE_INVENTORY, DISCONNECT_BROADCAST, EQUIPMENT_SEND,
     HELD_ITEM_BROADCAST, HELD_ITEM_CHANGE, JOIN_BROADCAST, NETWORK, PLAYER_ANIMATION, PLAYER_CHAT,
-    PLAYER_DIGGING, PLAYER_INIT, PLAYER_MOVEMENT, RESOURCE_PACK_SEND, SET_SLOT, VIEW_UPDATE,
+    PLAYER_DATA_SAVE, PLAYER_DIGGING, PLAYER_INIT, PLAYER_MOVEMENT, RESOURCE_PACK_SEND, SET_SLOT,
+    VIEW_UPDATE,
 };
 use animation::{AnimationBroadcastSystem, PlayerAnimationSystem};
 use broadcast::{DisconnectBroadcastSystem, JoinBroadcastSystem};
@@ -68,6 +72,11 @@ pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
     dispatcher.add(PlayerMovementSystem, PLAYER_MOVEMENT, &[NETWORK]);
     dispatcher.add(PlayerChatSystem, PLAYER_CHAT, &[NETWORK]);
     dispatcher.add(BlockPlacementSystem, BLOCK_PLACEMENT, &[NETWORK]);
+    dispatcher.add(
+        PlayerDataSaveSystem::default(),
+        PLAYER_DATA_SAVE,
+        &[NETWORK],
+    );
 }
 
 pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
