@@ -116,9 +116,15 @@ pub fn save_chunks(
             let entity_data: Vec<_> = entities
                 .iter()
                 .filter_map(|entity| {
-                    // Convert entity to entity data
+                    // Convert entity to entity data.
+                    // All entities have positions, but some don't have velocities
+                    // (e.g. players). Those without velocities are not saved,
+                    // so we can just skip them.
                     let pos = positions.get(*entity).unwrap();
-                    let vel = velocities.get(*entity).unwrap();
+                    let vel = match velocities.get(*entity) {
+                        Some(vel) => vel,
+                        None => return None,
+                    };
                     let item = items.get(*entity);
                     let arrow = arrows.get(*entity);
 
