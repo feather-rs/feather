@@ -145,7 +145,10 @@ pub struct ItemEntityData {
 impl ItemEntityData {
     fn write_to_map(self, map: &mut HashMap<String, Value>) {
         self.entity.write_to_map(map);
-        self.item.write_to_map(map);
+
+        let mut item = HashMap::new();
+        self.item.write_to_map(&mut item);
+        map.insert(String::from("Item"), Value::Compound(item));
 
         map.insert(String::from("Age"), Value::Short(self.age));
         map.insert(

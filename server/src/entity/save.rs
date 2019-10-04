@@ -105,7 +105,11 @@ pub fn save_chunks(
             (chunk, entities, dirty)
         })
         .for_each(|(chunk, entities, dirty)| {
-            if !chunk.check_modified() && !dirty {
+            // If all of the following are true, don't save the chunk:
+            // * The chunk has not been modified since the last save.
+            // * The entities in the chunk are empty (if they weren't, it is likely they were modified)
+            // * The entities in the chunk haven't changed.
+            if !chunk.check_modified() && (entities.is_empty() && !dirty) {
                 return;
             }
 

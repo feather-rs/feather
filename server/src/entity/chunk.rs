@@ -197,7 +197,6 @@ impl<'a> System<'a> for EntityChunkLoadSystem {
             for entity in &event.entities {
                 match entity {
                     EntityData::Item(item_data) => {
-                        dbg!(200);
                         let pos = item_data.entity.read_position();
                         if let Some(pos) = pos {
                             util.spawn_item(

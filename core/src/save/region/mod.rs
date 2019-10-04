@@ -202,8 +202,6 @@ impl RegionHandle {
         // Chunk was not modified, but it thinks it was: disable this
         chunk.check_modified();
 
-        dbg!(level.entities.clone());
-
         Ok((chunk, level.entities.to_vec()))
     }
 
@@ -227,8 +225,6 @@ impl RegionHandle {
 
         // Write chunk to `ChunkRoot` tag.
         let root = chunk_to_chunk_root(chunk, entities);
-
-        dbg!(root.level.entities.clone());
 
         let blob = blob::chunk_root_to_blob(root);
 

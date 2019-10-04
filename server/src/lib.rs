@@ -159,6 +159,7 @@ pub fn main() {
     shutdown::save_level(&world);
 
     info!("Goodbye");
+    exit(0);
 }
 
 /// Loads the configuration file, creating a default
