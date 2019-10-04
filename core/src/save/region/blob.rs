@@ -49,8 +49,43 @@ fn level_to_value(level: ChunkLevel) -> Value {
     map.insert(String::from("Sections"), Value::List(sections));
 
     map.insert(String::from("TileEntities"), Value::List(vec![])); // TODO
-    map.insert(String::from("TileTicks"), Value::List(vec![])); // TODO
     map.insert(String::from("ToBeTicked"), Value::List(vec![])); // TODO
+
+    let mut liquids_to_be_ticked = vec![];
+    (0..16).for_each(|_| liquids_to_be_ticked.push(Value::List(vec![])));
+    map.insert(
+        String::from("LiquidsToBeTicked"),
+        Value::List(liquids_to_be_ticked),
+    );
+
+    let mut tile_ticks = vec![];
+    (0..16).for_each(|_| tile_ticks.push(Value::List(vec![])));
+    map.insert(String::from("TileTicks"), Value::List(tile_ticks));
+
+    let mut post_processing = vec![];
+    (0..16).for_each(|_| post_processing.push(Value::List(vec![])));
+    map.insert(String::from("PostProcessing"), Value::List(post_processing));
+
+    map.insert(String::from("LiquidTicks"), Value::List(vec![]));
+
+    let mut structures = HashMap::new();
+
+    {
+        let mut references = HashMap::new();
+        references.insert(String::from("EndCity"), Value::LongArray(vec![]));
+        references.insert(String::from("Fortress"), Value::LongArray(vec![]));
+        references.insert(String::from("Monument"), Value::LongArray(vec![]));
+        references.insert(String::from("Stronghold"), Value::LongArray(vec![]));
+        references.insert(String::from("Swamp_Hut"), Value::LongArray(vec![]));
+
+        structures.insert(String::from("References"), Value::Compound(references));
+        structures.insert(String::from("Starts"), Value::Compound(HashMap::new()));
+    }
+
+    map.insert(
+        String::from("Status"),
+        Value::String(String::from("postprocessed")),
+    );
 
     // Entities
     let mut entities = Vec::with_capacity(level.entities.len());
