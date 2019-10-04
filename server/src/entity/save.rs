@@ -211,7 +211,7 @@ mod tests {
             receiver: rx2,
         });
 
-        let last_save_time = PreviousSaveTime(Instant::now() - Duration::from_secs(1_000_000));
+        let last_save_time = PreviousSaveTime(Instant::now() - Duration::from_secs(120));
         world.insert(last_save_time);
 
         let pos = ChunkPosition::new(0, 0);
