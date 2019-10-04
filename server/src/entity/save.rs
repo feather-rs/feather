@@ -117,10 +117,12 @@ pub fn save_chunks(
                 .iter()
                 .filter_map(|entity| {
                     // Convert entity to entity data.
-                    // All entities have positions, but some don't have velocities
-                    // (e.g. players). Those without velocities are not saved,
-                    // so we can just skip them.
-                    let pos = positions.get(*entity).unwrap();
+                    // If an entity doesn't have position and velocity,
+                    // it won't be saved. This is normal behavior.
+                    let pos = match positions.get(*entity) {
+                        Some(pos) => pos,
+                        None => return None,
+                    };
                     let vel = match velocities.get(*entity) {
                         Some(vel) => vel,
                         None => return None,
