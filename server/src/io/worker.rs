@@ -16,8 +16,10 @@ use futures::{select, StreamExt};
 use futures::{FutureExt, SinkExt};
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::codec::Framed;
 use tokio::net::TcpStream;
+use tokio::timer::Timeout;
 
 /// Runs a worker task for the given client.
 pub async fn run_worker(
@@ -75,7 +77,7 @@ async fn _run_worker(
 
         select! {
             msg = rx_server_to_worker.next().fuse() => server_message = Some(msg),
-            packet = framed.next().fuse() => received_packet = Some(packet),
+            packet = Timeout::new(framed.next(), Duration::from_millis(10000)).fuse() => received_packet = Some(packet),
         }
 
         if let Some(msg) = server_message {
@@ -89,7 +91,7 @@ async fn _run_worker(
         }
 
         if let Some(packet_result) = received_packet {
-            if let Some(packet_result) = packet_result {
+            if let Some(packet_result) = packet_result? {
                 match packet_result {
                     Ok(packet) => {
                         if let Some(ih) = initial_handler.as_mut() {
