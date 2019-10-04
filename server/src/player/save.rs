@@ -67,7 +67,7 @@ pub fn save_player_data(
         entity: BaseEntityData {
             velocity: vec![0.0; 3], // Player velocity has no effect
             position: vec![position.x, position.y, position.z],
-            rotation: vec![position.pitch, position.yaw],
+            rotation: vec![position.yaw, position.pitch],
         },
         gamemode: gamemode.get_id() as i32,
         inventory: inventory

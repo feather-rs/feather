@@ -131,7 +131,7 @@ pub fn save_chunks(
                     let base = BaseEntityData {
                         position: vec![pos.current.x, pos.current.y, pos.current.z],
                         velocity: vec![vel.x, vel.y, vel.z],
-                        rotation: vec![pos.current.pitch, pos.current.yaw],
+                        rotation: vec![pos.current.yaw, pos.current.pitch],
                     };
                     if arrow.is_some() {
                         Some(EntityData::Arrow(ArrowEntityData {
