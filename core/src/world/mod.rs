@@ -219,7 +219,7 @@ impl Display for ChunkPosition {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Hash32, Default, new)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Hash32, Default)]
 pub struct BlockPosition {
     pub x: i32,
     pub y: i32,
@@ -227,6 +227,10 @@ pub struct BlockPosition {
 }
 
 impl BlockPosition {
+    pub const fn new(x: i32, y: i32, z: i32) -> Self {
+        Self { x, y, z }
+    }
+
     pub fn chunk_pos(&self) -> ChunkPosition {
         ChunkPosition::new(self.x >> 4, self.z >> 4)
     }
@@ -270,10 +274,20 @@ impl ChunkMap {
     /// If the chunk is not loaded, `None` will be returned.
     pub fn chunk_at(&self, pos: ChunkPosition) -> Option<&Chunk> {
         if let Some(chunk) = self.chunk_map.get(&pos) {
-            return Some(chunk);
+            Some(chunk)
+        } else {
+            None
         }
+    }
 
-        None
+    /// Retrieves the chunk at the specified location.
+    /// If the chunk is not loaded, `None` will be returned.
+    pub fn chunk_at_mut(&mut self, pos: ChunkPosition) -> Option<&mut Chunk> {
+        if let Some(chunk) = self.chunk_map.get_mut(&pos) {
+            Some(chunk)
+        } else {
+            None
+        }
     }
 
     /// Retrieves the block at the specified
@@ -347,7 +361,7 @@ impl Default for ChunkMap {
     }
 }
 
-fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
+pub fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
     (
         block_pos.x as usize & 0xf,
         block_pos.y as usize,
