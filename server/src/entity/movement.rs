@@ -1,30 +1,53 @@
 use specs::storage::ComponentEvent;
-use specs::{BitSet, Entities, Entity, Join, Read, ReadStorage, ReaderId, System};
+use specs::{
+    BitSet, Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, ReaderId,
+    System, WriteStorage,
+};
 
 use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
 };
 use feather_core::world::Position;
 
+use crate::chunk_logic::ChunkHolders;
 use crate::entity::{PositionComponent, VelocityComponent};
+use crate::network::{send_packet_boxed_to_player, NetworkComponent};
 use crate::util::{protocol_velocity, Util};
+use feather_core::Packet;
+use hashbrown::HashMap;
+use smallvec::SmallVec;
+
+/// Component which stores the last known position for any given entity
+/// for a player.
+///
+/// This is used to ensure position remains synced across clients, since
+/// relative movement packets are used.
+#[derive(Default, Debug)]
+pub struct LastKnownPositionComponent(pub HashMap<Entity, Position>);
+
+impl Component for LastKnownPositionComponent {
+    type Storage = DenseVecStorage<Self>;
+}
 
 /// System for broadcasting when an entity moves.
 #[derive(Default)]
 pub struct EntityMoveBroadcastSystem {
     dirty: BitSet,
     reader: Option<ReaderId<ComponentEvent>>,
+    held: BitSet,
 }
 
 impl<'a> System<'a> for EntityMoveBroadcastSystem {
     type SystemData = (
         ReadStorage<'a, PositionComponent>,
-        Read<'a, Util>,
+        WriteStorage<'a, LastKnownPositionComponent>,
+        ReadStorage<'a, NetworkComponent>,
+        Read<'a, ChunkHolders>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (positions, util, entities) = data;
+        let (positions, mut last_positions, networks, chunk_holders, entities) = data;
 
         self.dirty.clear();
 
@@ -38,11 +61,110 @@ impl<'a> System<'a> for EntityMoveBroadcastSystem {
         }
 
         for (position, entity, _) in (&positions, &entities, &self.dirty).join() {
-            broadcast_entity_movement(entity, position.previous, position.current, &util);
+            // Populate `self.held` with chunk holders for this entity's chunk
+            for entity in chunk_holders
+                .holders_for(position.current.chunk_pos())
+                .unwrap_or(&[])
+            {
+                self.held.add(entity.id());
+            }
+
+            // For each player which can see this entity's chunk, send a movement update packet.
+            for (network, last_positions, _) in (&networks, &mut last_positions, &self.held).join()
+            {
+                let last_known_position = match last_positions.0.get(&entity) {
+                    Some(pos) => pos,
+                    None => continue, // Player hasn't yet known this entity
+                };
+
+                if let Some(packets) =
+                    packet_for_movement_update(entity, *last_known_position, position.current)
+                {
+                    packets
+                        .into_iter()
+                        .for_each(|packet| send_packet_boxed_to_player(network, packet));
+                }
+
+                last_positions.0.insert(entity, position.current);
+            }
+
+            self.held.clear();
         }
     }
 
     flagged_setup_impl!(PositionComponent, reader);
+}
+
+/// Returns the packet needed to notify a client
+/// of a position update, from the old position to the new one.
+#[allow(clippy::float_cmp)]
+pub fn packet_for_movement_update(
+    entity: Entity,
+    old_pos: Position,
+    new_pos: Position,
+) -> Option<SmallVec<[Box<dyn Packet>; 2]>> {
+    if old_pos == new_pos {
+        return None;
+    }
+
+    let mut packets = smallvec![];
+
+    let has_moved = old_pos.x != new_pos.x || old_pos.y != new_pos.y || old_pos.z != new_pos.z;
+    let has_looked = old_pos.pitch != new_pos.pitch || old_pos.yaw != new_pos.yaw;
+
+    if has_moved {
+        let (rx, ry, rz) = calculate_relative_move(old_pos, new_pos);
+
+        if (rx == 0 && ry == 0 && rz == 0) && !has_looked {
+            // Because of floating point errors,
+            // the physics system may trigger an
+            // event when the distance moved is minuscule,
+            // which causes jittering on the client.
+            // Don't send the packet if it has no effect.
+            return None;
+        }
+
+        if has_looked {
+            let packet: Box<dyn Packet> = Box::new(EntityLookAndRelativeMove::new(
+                entity.id() as i32,
+                rx,
+                ry,
+                rz,
+                degrees_to_stops(new_pos.yaw),
+                degrees_to_stops(new_pos.pitch),
+                new_pos.on_ground,
+            ));
+            packets.push(packet);
+        } else {
+            let packet: Box<dyn Packet> = Box::new(EntityRelativeMove::new(
+                entity.id() as i32,
+                rx,
+                ry,
+                rz,
+                new_pos.on_ground,
+            ));
+            packets.push(packet);
+        }
+    } else {
+        let packet: Box<dyn Packet> = Box::new(EntityLook::new(
+            entity.id() as i32,
+            degrees_to_stops(new_pos.yaw),
+            degrees_to_stops(new_pos.pitch),
+            new_pos.on_ground,
+        ));
+        packets.push(packet);
+    }
+
+    // Entity Head Look also needs to be sent if the entity turned its head
+    if has_looked {
+        let packet: Box<dyn Packet> = Box::new(EntityHeadLook::new(
+            entity.id() as i32,
+            degrees_to_stops(new_pos.yaw),
+        ));
+        packets.push(packet);
+    }
+
+    Some(packets)
 }
 
 /// System for broadcasting when an entity's velocity
@@ -88,66 +210,6 @@ impl<'a> System<'a> for EntityVelocityBroadcastSystem {
     }
 
     flagged_setup_impl!(VelocityComponent, reader);
-}
-
-/// Broadcasts to nearby players that an entity has moved.
-#[allow(clippy::too_many_arguments)]
-#[allow(clippy::float_cmp)]
-pub fn broadcast_entity_movement(
-    entity: Entity,
-    old_pos: Position,
-    new_pos: Position,
-    util: &Util,
-) {
-    if old_pos == new_pos {
-        return;
-    }
-
-    let has_moved = old_pos.x != new_pos.x || old_pos.y != new_pos.y || old_pos.z != new_pos.z;
-    let has_looked = old_pos.pitch != new_pos.pitch || old_pos.yaw != new_pos.yaw;
-
-    if has_moved {
-        let (rx, ry, rz) = calculate_relative_move(old_pos, new_pos);
-
-        if (rx == 0 && ry == 0 && rz == 0) && !has_looked {
-            // Because of floating point errors,
-            // the physics system may trigger an
-            // event when the distance moved is minuscule,
-            // which causes jittering on the client.
-            // Don't send the packet if it has no effect.
-            return;
-        }
-
-        if has_looked {
-            let packet = EntityLookAndRelativeMove::new(
-                entity.id() as i32,
-                rx,
-                ry,
-                rz,
-                degrees_to_stops(new_pos.yaw),
-                degrees_to_stops(new_pos.pitch),
-                new_pos.on_ground,
-            );
-            util.broadcast_entity_update(entity, packet, Some(entity));
-        } else {
-            let packet = EntityRelativeMove::new(entity.id() as i32, rx, ry, rz, new_pos.on_ground);
-            util.broadcast_entity_update(entity, packet, Some(entity));
-        }
-    } else {
-        let packet = EntityLook::new(
-            entity.id() as i32,
-            degrees_to_stops(new_pos.yaw),
-            degrees_to_stops(new_pos.pitch),
-            new_pos.on_ground,
-        );
-        util.broadcast_entity_update(entity, packet, Some(entity));
-    }
-
-    // Entity Head Look also needs to be sent if the entity turned its head
-    if has_looked {
-        let packet = EntityHeadLook::new(entity.id() as i32, degrees_to_stops(new_pos.yaw));
-        util.broadcast_entity_update(entity, packet, Some(entity));
-    }
 }
 
 /// Calculates the relative move fields

@@ -30,7 +30,7 @@ pub use destroy::EntityDestroyEvent;
 pub use falling_block::FallingBlockComponent;
 pub use item::ItemComponent;
 pub use metadata::{EntityBitMask, Metadata};
-pub use movement::broadcast_entity_movement;
+pub use movement::LastKnownPositionComponent;
 pub use types::EntityType;
 
 use crate::entity::arrow::ShootArrowSystem;
