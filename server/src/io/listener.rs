@@ -22,7 +22,13 @@ pub async fn run_listener(
     let mut listener = TcpListener::bind(address).await?;
 
     loop {
-        let (stream, ip) = listener.accept().await?;
+        let (stream, ip) = match listener.accept().await {
+            Ok(res) => res,
+            Err(e) => {
+                debug!("Failed to accept connection: {:?}", e);
+                continue;
+            }
+        };
 
         debug!("Connection received from {}", ip);
 
