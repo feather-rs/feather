@@ -120,12 +120,9 @@ impl<'a> Context<'a> {
     }
 
     fn set_block_at(&mut self, pos: BlockPosition, block: Block) {
-        match self.chunk_at_mut(pos.chunk_pos()) {
-            Some(chunk) => {
-                let (x, y, z) = chunk_relative_pos(pos);
-                chunk.set_block_at(x, y, z, block);
-            }
-            None => (),
+        if let Some(chunk) = self.chunk_at_mut(pos.chunk_pos()) {
+            let (x, y, z) = chunk_relative_pos(pos);
+            chunk.set_block_at(x, y, z, block);
         }
     }
 }
@@ -151,7 +148,7 @@ impl ChunkLights {
                     .iter()
             })
             .flatten()
-            .map(|pos| *pos)
+            .copied()
             .collect()
     }
 }
@@ -199,11 +196,11 @@ impl<'a> System<'a> for LightingSystem {
             } else if event.new_block.light_emission() == 0 && event.old_block.light_emission() > 0
             {
                 ctx.set_block_light_at(event.pos, 0);
-                emitting_removal(&mut ctx, &mut chunk_lights, event.pos, event.old_block);
+                emitting_removal(&mut ctx, &chunk_lights, event.pos, event.old_block);
             } else if event.old_block.is_opaque() && !event.new_block.is_opaque() {
                 opaque_non_emitting_removal(&mut ctx, event.pos);
             } else {
-                warn!("Unhandled lighting update: {:?}", event);
+                opaque_non_emitting_creation(&mut ctx, &chunk_lights, event.pos, event.new_block);
             }
 
             // Update `ChunkLights`.
@@ -276,7 +273,37 @@ fn emitting_removal(
     let nearby_lights = chunk_lights.lights_within_distance(position, MAX_TRAVEL_DISTANCE * 2);
 
     nearby_lights.into_iter().for_each(|light| {
-        emitting_creation(context, light);
+        if light != position {
+            emitting_creation(context, light);
+        }
+    });
+}
+
+/// Algorithm #3, as described in the module-level docs.
+fn opaque_non_emitting_creation(
+    context: &mut Context,
+    chunk_lights: &ChunkLights,
+    position: BlockPosition,
+    new_block: Block,
+) {
+    // Re-calculate all lights that could have affected this block.
+    // We ensure that all areas are correctly set to dark by first
+    // faking that the block was never created.
+    context.set_block_at(position, Block::Air);
+
+    let nearby_lights = chunk_lights.lights_within_distance(position, MAX_TRAVEL_DISTANCE);
+
+    nearby_lights.iter().for_each(|light| {
+        let block = context.block_at(*light);
+        emitting_removal(context, chunk_lights, *light, block);
+    });
+
+    // Set block back to correct value.
+    context.set_block_at(position, new_block);
+
+    // Recalculate nearby lights.
+    nearby_lights.iter().for_each(|light| {
+        emitting_creation(context, *light);
     });
 }
 
