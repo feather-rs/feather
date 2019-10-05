@@ -238,6 +238,11 @@ impl BlockPosition {
     pub fn world_pos(&self) -> Position {
         position!(f64::from(self.x), f64::from(self.y), f64::from(self.z))
     }
+
+    /// Returns the Manhattan distance from this position to another.
+    pub fn manhattan_distance(self, other: BlockPosition) -> i32 {
+        (self.x - other.x).abs() + (self.y - other.y).abs() + (self.z - other.z).abs()
+    }
 }
 
 impl Add<BlockPosition> for BlockPosition {

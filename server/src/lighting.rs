@@ -20,7 +20,7 @@
 //!
 //! * Removal of an opaque, non-emitting block. In this case,
 //! we set the new air block's light to the highest value of an
-//! adjacent block minus 1.
+//! adjacent block minus 1. We then perform algorithm #1 on this new block.
 //!
 //! Each algorithm is implemented in a separate function, and `LightingSystem`
 //! determines which to use based on the values of the block update event.
@@ -31,9 +31,12 @@
 
 use arrayvec::ArrayVec;
 use failure::_core::marker::PhantomData;
+use feather_blocks::{Block, BlockExt};
 use feather_core::prelude::ChunkMap;
 use feather_core::world::chunk_relative_pos;
 use feather_core::{BlockPosition, Chunk, ChunkPosition};
+use hashbrown::HashSet;
+use std::collections::VecDeque;
 
 /// Lighter context, used to cache things during
 /// a lighting iteration.
@@ -95,31 +98,22 @@ impl<'a> Context<'a> {
             chunk.set_block_light_at(x, y, z, value);
         }
     }
+
+    fn block_at(&mut self, pos: BlockPosition) -> Block {
+        match self.chunk_at_mut(pos.chunk_pos()) {
+            Some(chunk) => {
+                let (x, y, z) = chunk_relative_pos(pos);
+                chunk.block_at(x, y, z)
+            }
+            None => Block::Air,
+        }
+    }
 }
 
 /// Algorithm #4, as described in the module-level docs.
 fn opaque_non_emitting_removal(context: &mut Context, position: BlockPosition) {
     // Find highest light value of 6 adjacent blocks.
-    let mut adjacent: ArrayVec<[BlockPosition; 6]> = ArrayVec::new();
-
-    let offsets = [
-        (-1, 0, 0),
-        (1, 0, 0),
-        (0, -1, 0),
-        (0, 1, 0),
-        (0, 0, -1),
-        (0, 0, 1),
-    ];
-    for (x, y, z) in offsets.iter() {
-        adjacent.push(BlockPosition::new(
-            position.x + *x,
-            position.y + *y,
-            position.z + *z,
-        ));
-    }
-
-    dbg!(adjacent.clone());
-
+    let adjacent = adjacent_blocks(position);
     let mut value = adjacent
         .into_iter()
         .map(|pos| context.block_light_at(pos))
@@ -133,9 +127,81 @@ fn opaque_non_emitting_removal(context: &mut Context, position: BlockPosition) {
     context.set_block_light_at(position, value);
 }
 
+/// Performs flood fill starting at `start` and travelling up
+/// to `max_dist` blocks.
+///
+/// For each block iterated over, the provided closure will be invoked.
+/// No block will be iterated more than once.
+fn flood_fill<F>(ctx: &mut Context, start: BlockPosition, max_dist: u8, mut func: F)
+where
+    F: FnMut(&mut Context, BlockPosition),
+{
+    // Don't iterate over same block more than once
+    let mut touched = HashSet::with_capacity(64);
+    touched.insert(start);
+
+    // We use a queue-based algorithm rather than a recursive
+    // one.
+    let mut queue = VecDeque::with_capacity(64);
+
+    queue.push_back(start);
+
+    let mut finished = false;
+
+    while let Some(pos) = queue.pop_front() {
+        if finished {
+            break;
+        }
+
+        let blocks = adjacent_blocks(pos);
+
+        blocks.into_iter().for_each(|pos| {
+            if pos.manhattan_distance(start) > max_dist as i32 {
+                // Finished
+                finished = true;
+                return;
+            }
+
+            // Skip if we already went over this block
+            if !touched.insert(pos) {
+                return;
+            }
+
+            let block = ctx.block_at(pos);
+            if block.is_opaque() {
+                return; // Stop iterating
+            }
+
+            // Call closure
+            func(ctx, pos);
+
+            // Add block to queue
+            queue.push_back(pos);
+        });
+    }
+}
+
+/// Returns the up to six adjacent blocks to a given block position.
+fn adjacent_blocks(to: BlockPosition) -> ArrayVec<[BlockPosition; 6]> {
+    let offsets = [
+        (-1, 0, 0),
+        (1, 0, 0),
+        (0, -1, 0),
+        (0, 1, 0),
+        (0, 0, -1),
+        (0, 0, 1),
+    ];
+    offsets
+        .iter()
+        .map(|(x, y, z)| BlockPosition::new(to.x + *x, to.y + *y, to.z + *z))
+        .filter(|pos| pos.y >= 0 && pos.y <= 256)
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use hashbrown::HashMap;
 
     #[test]
     fn test_context() {
@@ -155,6 +221,37 @@ mod tests {
 
     #[test]
     fn test_opaque_non_emitting_removal() {
+        let mut chunk_map = chunk_map();
+        let mut ctx = Context::new(&mut chunk_map, ChunkPosition::new(0, 0)).unwrap();
+
+        ctx.set_block_light_at(BlockPosition::new(0, 0, 0), 10);
+        ctx.set_block_light_at(BlockPosition::new(0, 2, 0), 9);
+        ctx.set_block_light_at(BlockPosition::new(1, 1, 0), 8);
+        ctx.set_block_light_at(BlockPosition::new(-1, 1, 0), 11);
+        ctx.set_block_light_at(BlockPosition::new(0, 1, 1), 0);
+        ctx.set_block_light_at(BlockPosition::new(0, 1, -1), 12);
+        ctx.set_block_light_at(BlockPosition::new(0, 1, 0), 15);
+
+        opaque_non_emitting_removal(&mut ctx, BlockPosition::new(0, 1, 0));
+
+        assert_eq!(ctx.block_light_at(BlockPosition::new(0, 1, 0)), 11);
+    }
+
+    #[test]
+    fn test_flood_fill() {
+        let mut chunk_map = chunk_map();
+        let mut ctx = Context::new(&mut chunk_map, ChunkPosition::new(0, 0)).unwrap();
+
+        let mut count = 0;
+
+        flood_fill(&mut ctx, BlockPosition::new(100, 100, 100), 1, |_, _| {
+            count += 1
+        });
+
+        assert_eq!(count, 6);
+    }
+
+    fn chunk_map() -> ChunkMap {
         let mut chunk_map = ChunkMap::new();
 
         for x in -1..=1 {
@@ -164,17 +261,6 @@ mod tests {
             }
         }
 
-        let mut ctx = Context::new(&mut chunk_map, ChunkPosition::new(0, 0)).unwrap();
-
-        ctx.set_block_light_at(BlockPosition::new(0, 0, 0), 10);
-        ctx.set_block_light_at(BlockPosition::new(0, 2, 0), 9);
-        ctx.set_block_light_at(BlockPosition::new(1, 1, 0), 8);
-        ctx.set_block_light_at(BlockPosition::new(-1, 1, 0), 11);
-        ctx.set_block_light_at(BlockPosition::new(0, 1, 1), 0);
-        ctx.set_block_light_at(BlockPosition::new(0, 1, -1), 12);
-
-        opaque_non_emitting_removal(&mut ctx, BlockPosition::new(0, 1, 0));
-
-        assert_eq!(ctx.block_light_at(BlockPosition::new(0, 1, 0)), 11);
+        chunk_map
     }
 }

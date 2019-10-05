@@ -68,6 +68,10 @@ pub trait BlockExt {
     /// Returns whether this block is "solid."
     fn is_solid(&self) -> bool;
 
+    /// Returns whether this block is opaque; i.e., whether
+    /// light will be stopped by this block.
+    fn is_opaque(&self) -> bool;
+
     /// Returns the light level emitted by this block.
     fn light_emission(&self) -> u8;
 }
@@ -193,6 +197,14 @@ impl BlockExt for Block {
             | Block::DriedKelpBlock
             | Block::VoidAir
             | Block::CaveAir => false,
+            _ => true,
+        }
+    }
+
+    fn is_opaque(&self) -> bool {
+        // TODO
+        match self {
+            Block::Air | Block::Glass | Block::GlassPane(_) | Block::IronBars(_) => false,
             _ => true,
         }
     }
