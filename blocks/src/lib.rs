@@ -202,6 +202,10 @@ impl BlockExt for Block {
     }
 
     fn is_opaque(&self) -> bool {
+        if !self.is_solid() {
+            return false;
+        }
+
         // TODO
         match self {
             Block::Air | Block::Glass | Block::GlassPane(_) | Block::IronBars(_) => false,

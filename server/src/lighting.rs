@@ -46,6 +46,8 @@ use smallvec::SmallVec;
 use specs::{DispatcherBuilder, Read, System, Write};
 use std::collections::VecDeque;
 
+const MAX_TRAVEL_DISTANCE: u8 = 15;
+
 /// Lighter context, used to cache things during
 /// a lighting iteration.
 struct Context<'a> {
@@ -191,11 +193,15 @@ impl<'a> System<'a> for LightingSystem {
             };
 
             // Determine which algorithm to use.
-            if event.old_block.is_opaque() && !event.new_block.is_opaque() {
-                opaque_non_emitting_removal(&mut ctx, event.pos);
-            } else if event.old_block.light_emission() < event.new_block.light_emission() {
+            if event.old_block.light_emission() < event.new_block.light_emission() {
                 ctx.set_block_light_at(event.pos, event.new_block.light_emission());
                 emitting_creation(&mut ctx, event.pos);
+            } else if event.new_block.light_emission() == 0 && event.old_block.light_emission() > 0
+            {
+                ctx.set_block_light_at(event.pos, 0);
+                emitting_removal(&mut ctx, &mut chunk_lights, event.pos, event.old_block);
+            } else if event.old_block.is_opaque() && !event.new_block.is_opaque() {
+                opaque_non_emitting_removal(&mut ctx, event.pos);
             } else {
                 warn!("Unhandled lighting update: {:?}", event);
             }
@@ -250,6 +256,27 @@ fn emitting_creation(context: &mut Context, position: BlockPosition) {
     flood_fill(context, position, emission, |ctx, pos| {
         let light = light_value_for_block(ctx, pos);
         ctx.set_block_light_at(pos, light);
+    });
+}
+
+/// Algorithm #2, as described in the module-level docs.
+fn emitting_removal(
+    context: &mut Context,
+    chunk_lights: &ChunkLights,
+    position: BlockPosition,
+    old_block: Block,
+) {
+    // Perform flood fill and set all blocks affected by the old light to 0 light.
+    flood_fill(context, position, old_block.light_emission(), |ctx, pos| {
+        ctx.set_block_light_at(pos, 0);
+    });
+
+    // For all lights which could have affected the blocks we just set to 0,
+    // recalculate lighting using algorithm #1.
+    let nearby_lights = chunk_lights.lights_within_distance(position, MAX_TRAVEL_DISTANCE * 2);
+
+    nearby_lights.into_iter().for_each(|light| {
+        emitting_creation(context, light);
     });
 }
 
