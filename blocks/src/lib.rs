@@ -67,6 +67,9 @@ pub trait BlockExt {
 
     /// Returns whether this block is "solid."
     fn is_solid(&self) -> bool;
+
+    /// Returns the light level emitted by this block.
+    fn light_emission(&self) -> u8;
 }
 
 impl BlockExt for Block {
@@ -191,6 +194,47 @@ impl BlockExt for Block {
             | Block::VoidAir
             | Block::CaveAir => false,
             _ => true,
+        }
+    }
+
+    fn light_emission(&self) -> u8 {
+        match self {
+            Block::Beacon
+            | Block::EndGateway
+            | Block::EndPortal
+            | Block::Fire(_)
+            | Block::Glowstone
+            | Block::JackOLantern(_)
+            | Block::Lava(_)
+            | Block::RedstoneLamp(RedstoneLampData { lit: true })
+            | Block::SeaLantern
+            | Block::SeaPickle(SeaPickleData {
+                waterlogged: true,
+                pickles: 4,
+            })
+            | Block::Conduit(_) => 15,
+            Block::EndRod(_) | Block::Torch => 14,
+            Block::Furnace(_) => 13,
+            Block::SeaPickle(SeaPickleData {
+                waterlogged: true,
+                pickles: 3,
+            }) => 12,
+            Block::NetherPortal(_) => 11,
+            Block::SeaPickle(SeaPickleData {
+                waterlogged: true,
+                pickles: 2,
+            }) => 9,
+            Block::EnderChest(_) | Block::RedstoneTorch(_) => 7,
+            Block::SeaPickle(SeaPickleData {
+                waterlogged: true,
+                pickles: 1,
+            }) => 6,
+            Block::MagmaBlock => 3,
+            Block::BrewingStand(_)
+            | Block::BrownMushroom
+            | Block::DragonEgg
+            | Block::EndPortalFrame(_) => 1,
+            _ => 0,
         }
     }
 }

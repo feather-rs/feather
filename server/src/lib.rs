@@ -70,6 +70,7 @@ pub mod config;
 pub mod entity;
 pub mod io;
 pub mod joinhandler;
+pub mod lighting;
 pub mod network;
 pub mod physics;
 pub mod player;
