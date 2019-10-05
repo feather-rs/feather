@@ -1,11 +1,9 @@
-//! This module handles the asynchronous loading of chunks from
-//! region files. It runs on a separate thread and receives
-//! load requests over a channel. Upon receiving a request,
-//! it attempts to load the chunk from the world directory.
-//! If the chunk was loaded successfully, it will send
-//! the chunk back over a channel. If the chunk did not exist,
-//! it will notify the server thread of the incident.
-//! In response, the server thread should generate the chunk.
+//! This module handles the asynchronous loading and saving
+//! of chunks. It receives load and save requests from the server
+//! (over a channel) and executes them.
+//!
+//! If a chunk cannot be loaded, it is generated on the Rayon thread pool
+//! instead.
 use crate::worldgen::WorldGenerator;
 use crossbeam::channel::{Receiver, Sender};
 use feather_core::entity::EntityData;
@@ -18,11 +16,16 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub type Reply = (ChunkPosition, Result<(Chunk, Vec<EntityData>), Error>);
+#[allow(clippy::large_enum_variant)]
+pub enum Reply {
+    LoadedChunk(ChunkPosition, Result<(Chunk, Vec<EntityData>), Error>),
+    SavedChunk(ChunkPosition),
+}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone)]
 pub enum Request {
     LoadChunk(ChunkPosition),
+    SaveChunk(Arc<Chunk>, Vec<EntityData>),
     ShutDown,
 }
 
@@ -117,6 +120,9 @@ fn run(mut worker: ChunkWorker) {
     while let Ok(request) = worker.receiver.recv() {
         match request {
             Request::ShutDown => break,
+            Request::SaveChunk(chunk, entities) => {
+                save_chunk(&mut worker, &chunk, entities);
+            }
             Request::LoadChunk(pos) => {
                 if let Some(reply) = load_chunk(&mut worker, pos) {
                     worker.sender.send(reply).unwrap();
@@ -131,41 +137,12 @@ fn run(mut worker: ChunkWorker) {
 /// Attempts to load the chunk at the specified position.
 fn load_chunk(worker: &mut ChunkWorker, pos: ChunkPosition) -> Option<Reply> {
     let rpos = RegionPosition::from_chunk(pos);
-    if !is_region_loaded(worker, pos) {
-        // Need to load region into memory
-        let handle = region::load_region(&worker.dir, rpos);
-        if handle.is_err() {
-            // TODO: Create a new region file before generating chunk
-            schedule_generate_new_chunk(
-                &Arc::from(worker.sender.clone()),
-                pos,
-                &worker.world_generator,
-            );
-            return None;
-        }
 
-        let handle = handle.unwrap();
-
-        let last_used = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-
-        let file = RegionFile {
-            handle,
-            _last_used: last_used,
-        };
-
-        worker.open_regions.insert(rpos, file);
-    }
-
+    let file = worker_region(&mut worker.open_regions, &worker.dir, rpos);
     // Load from region file
-    let file = worker.open_regions.get_mut(&rpos).unwrap();
-    let handle = &mut file.handle;
-
     load_chunk_from_handle(
         pos,
-        handle,
+        &mut file.handle,
         &Arc::from(worker.sender.clone()),
         &worker.world_generator,
     )
@@ -180,13 +157,13 @@ fn load_chunk_from_handle(
     let result = handle.load_chunk(pos);
 
     match result {
-        Ok(chunk) => Some((pos, Ok(chunk))),
+        Ok(chunk) => Some(Reply::LoadedChunk(pos, Ok(chunk))),
         Err(e) => match e {
             region::Error::ChunkNotExist => {
                 schedule_generate_new_chunk(sender, pos, generator);
                 None
             }
-            err => Some((pos, Err(Error::LoadError(err)))),
+            err => Some(Reply::LoadedChunk(pos, Err(Error::LoadError(err)))),
         },
     }
 }
@@ -208,13 +185,57 @@ fn schedule_generate_new_chunk(
 /// Generates a new chunk synchronously,
 /// returning a Reply to send to a Sender.
 fn generate_new_chunk(pos: ChunkPosition, generator: &Arc<dyn WorldGenerator>) -> Reply {
-    (pos, Ok((generator.generate_chunk(pos), vec![])))
+    Reply::LoadedChunk(pos, Ok((generator.generate_chunk(pos), vec![])))
+}
+
+/// Saves the chunk at the specified position.
+fn save_chunk(worker: &mut ChunkWorker, chunk: &Chunk, entities: Vec<EntityData>) {
+    let rpos = RegionPosition::from_chunk(chunk.position());
+
+    let file = worker_region(&mut worker.open_regions, &worker.dir, rpos);
+
+    file.handle.save_chunk(chunk, entities).unwrap();
+    worker
+        .sender
+        .send(Reply::SavedChunk(chunk.position()))
+        .unwrap();
 }
 
 /// Returns whether the given chunk's region
 /// is already loaded.
-fn is_region_loaded(worker: &ChunkWorker, chunk_pos: ChunkPosition) -> bool {
-    worker
-        .open_regions
-        .contains_key(&RegionPosition::from_chunk(chunk_pos))
+fn is_region_loaded(
+    open_regions: &HashMap<RegionPosition, RegionFile>,
+    rpos: RegionPosition,
+) -> bool {
+    open_regions.contains_key(&rpos)
+}
+
+fn worker_region<'a>(
+    open_regions: &'a mut HashMap<RegionPosition, RegionFile>,
+    dir: &PathBuf,
+    rpos: RegionPosition,
+) -> &'a mut RegionFile {
+    if !is_region_loaded(open_regions, rpos) {
+        // Need to load region into memory
+        let mut handle = region::load_region(&dir, rpos);
+        if handle.is_err() {
+            // Create a new region file
+            handle = region::create_region(&dir, rpos);
+        }
+
+        let handle = handle.unwrap();
+
+        let last_used = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        let file = RegionFile {
+            handle,
+            _last_used: last_used,
+        };
+
+        open_regions.insert(rpos, file);
+    }
+    open_regions.get_mut(&rpos).unwrap()
 }

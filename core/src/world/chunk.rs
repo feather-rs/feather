@@ -1,6 +1,7 @@
 use super::block::*;
 use super::ChunkPosition;
 use crate::Biome;
+use multimap::MultiMap;
 
 /// The number of bits used for each block
 /// in the global palette.
@@ -56,6 +57,9 @@ pub struct Chunk {
     /// The biomes in this section, indexable by
     /// ((z << 4) | x).
     biomes: [Biome; SECTION_WIDTH * SECTION_WIDTH],
+    /// Whether this chunk has been modified since the most recent
+    /// call to `check_modified`().
+    modified: bool,
 }
 
 impl Default for Chunk {
@@ -71,6 +75,7 @@ impl Default for Chunk {
 
         Self {
             location: ChunkPosition::new(0, 0),
+            modified: true,
             sections,
             biomes: [Biome::Plains; SECTION_WIDTH * SECTION_WIDTH],
         }
@@ -83,6 +88,7 @@ impl Chunk {
     pub fn new(location: ChunkPosition) -> Self {
         Self {
             location,
+            modified: true,
             ..Default::default()
         }
     }
@@ -94,6 +100,7 @@ impl Chunk {
     pub fn new_with_default_biome(location: ChunkPosition, default_biome: Biome) -> Self {
         Self {
             location,
+            modified: true,
             biomes: [default_biome; SECTION_WIDTH * SECTION_HEIGHT],
             ..Default::default()
         }
@@ -126,6 +133,8 @@ impl Chunk {
     /// if `x >= 16 || y >= 256 || z >= 16`.
     pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: Block) {
         Self::check_coords(x, y, z);
+        self.modified = true;
+
         let chunk_section = &mut self.sections[y / 16];
 
         let section;
@@ -198,6 +207,7 @@ impl Chunk {
     /// Returns a mutable slice of the 16 sections
     /// in this chunk.
     pub fn sections_mut(&mut self) -> Vec<Option<&mut ChunkSection>> {
+        self.modified = true;
         self.sections.iter_mut().map(|sec| sec.as_mut()).collect()
     }
 
@@ -226,6 +236,7 @@ impl Chunk {
     /// to be empty, meaning it consists only of air.
     pub fn section_mut(&mut self, index: usize) -> Option<&mut ChunkSection> {
         assert!(index < NUM_SECTIONS);
+        self.modified = true;
         self.sections[index].as_mut()
     }
 
@@ -233,6 +244,7 @@ impl Chunk {
     pub fn set_section_at(&mut self, index: usize, section: Option<ChunkSection>) {
         assert!(index < NUM_SECTIONS);
         self.sections[index] = section;
+        self.modified = true;
     }
 
     /// Optimizes each section in this chunk.
@@ -242,6 +254,7 @@ impl Chunk {
     /// modified since the last time they were optimized
     /// are not optimized.
     pub fn optimize(&mut self) -> u32 {
+        let modified = self.modified;
         let mut count = 0;
         let mut to_remove = vec![];
         for (i, s) in self.sections.iter_mut().enumerate() {
@@ -261,6 +274,8 @@ impl Chunk {
             self.set_section_at(i, None);
         }
 
+        self.modified = modified;
+
         count
     }
 
@@ -271,6 +286,7 @@ impl Chunk {
 
     /// Returns a mutable reference to the biomes of this chunk.
     pub fn biomes_mut(&mut self) -> &mut [Biome] {
+        self.modified = true;
         &mut self.biomes
     }
 
@@ -289,7 +305,16 @@ impl Chunk {
     /// Panics if `x < 16` or `z < 16`.
     pub fn set_biome_at(&mut self, x: usize, z: usize, biome: Biome) {
         let index = Self::biome_index(x, z);
+        self.modified = true;
         self.biomes[index] = biome;
+    }
+
+    /// Checks whether this chunk has been modified since the last
+    /// call to this function.
+    pub fn check_modified(&mut self) -> bool {
+        let res = self.modified;
+        self.modified = false;
+        res
     }
 
     fn biome_index(x: usize, z: usize) -> usize {
@@ -546,6 +571,38 @@ impl ChunkSection {
         }
 
         true // Chunk was optimized
+    }
+
+    /// If the global palette is in use, convert it to a section palette.
+    /// This is used for chunk saving.
+    pub fn convert_palette_to_section(&mut self) {
+        if self.palette.is_some() {
+            // Nothing to do: section palette already in use.
+            return;
+        }
+
+        let mut blocks = MultiMap::with_capacity(1024);
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    blocks.insert(self.block_at(x, y, z), (x, y, z));
+                }
+            }
+        }
+
+        // Create a palette based on the blocks in the chunk.
+        // We also have to modify the data array based on the new palette.
+        let mut palette = Vec::with_capacity(1024);
+        for (block, positions) in blocks.into_iter() {
+            palette.push(block.native_state_id());
+
+            for (x, y, z) in positions {
+                let index = block_index(x, y, z);
+                self.data.set(index, (palette.len() - 1) as u64);
+            }
+        }
+
+        self.palette = Some(palette);
     }
 
     /// Returns the internal data array for this section.
@@ -1093,6 +1150,51 @@ mod tests {
                 assert_eq!(chunk.biome_at(x, z), Biome::Plains);
                 chunk.set_biome_at(x, z, Biome::BirchForest);
                 assert_eq!(chunk.biome_at(x, z), Biome::BirchForest);
+            }
+        }
+    }
+
+    #[test]
+    fn test_modified() {
+        let mut chunk = Chunk::default();
+        assert!(chunk.check_modified());
+        assert!(!chunk.check_modified());
+
+        chunk.set_block_at(0, 0, 0, Block::Stone);
+        assert!(chunk.check_modified());
+        assert!(!chunk.check_modified());
+    }
+
+    #[test]
+    fn test_convert_section_to_palette() {
+        let mut chunk = Chunk::default();
+
+        let mut counter = 0;
+        for x in 0..SECTION_WIDTH {
+            for y in 0..SECTION_HEIGHT {
+                for z in 0..SECTION_WIDTH {
+                    chunk.set_block_at(x, y, z, Block::from_native_state_id(counter).unwrap());
+                    counter += 1;
+                }
+            }
+        }
+
+        let section = chunk.section_mut(0).unwrap();
+        section.convert_palette_to_section();
+
+        assert_eq!(section.palette().unwrap().len(), counter as usize);
+
+        // Ensure that data array still represents the same data
+        counter = 0;
+        for x in 0..SECTION_WIDTH {
+            for y in 0..SECTION_HEIGHT {
+                for z in 0..SECTION_WIDTH {
+                    assert_eq!(
+                        chunk.block_at(x, y, z),
+                        Block::from_native_state_id(counter).unwrap()
+                    );
+                    counter += 1;
+                }
             }
         }
     }

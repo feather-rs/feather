@@ -11,13 +11,14 @@ mod falling_block;
 mod item;
 pub mod metadata;
 mod movement;
+mod save;
 mod types;
 
 use crate::systems::{
-    BLOCK_FALLING_LANDING, CHUNK_CROSS, CHUNK_ENTITIES_LOAD, CHUNK_ENTITIES_UPDATE, ENTITY_DESTROY,
-    ENTITY_DESTROY_BROADCAST, ENTITY_METADATA_BROADCAST, ENTITY_MOVE_BROADCAST, ENTITY_PHYSICS,
-    ENTITY_SEND, ENTITY_SPAWN_BROADCAST, ENTITY_VELOCITY_BROADCAST, ITEM_COLLECT, ITEM_MERGE,
-    ITEM_SPAWN, JOIN_BROADCAST, SHOOT_ARROW,
+    BLOCK_FALLING_LANDING, CHUNK_CROSS, CHUNK_ENTITIES_LOAD, CHUNK_ENTITIES_UPDATE, CHUNK_SAVE,
+    ENTITY_DESTROY, ENTITY_DESTROY_BROADCAST, ENTITY_METADATA_BROADCAST, ENTITY_MOVE_BROADCAST,
+    ENTITY_PHYSICS, ENTITY_SEND, ENTITY_SPAWN_BROADCAST, ENTITY_VELOCITY_BROADCAST, ITEM_COLLECT,
+    ITEM_MERGE, ITEM_SPAWN, JOIN_BROADCAST, SHOOT_ARROW,
 };
 pub use arrow::{ArrowComponent, ShootArrowEvent};
 pub use broadcast::EntitySendSystem;
@@ -33,12 +34,15 @@ pub use metadata::{EntityBitMask, Metadata};
 pub use movement::broadcast_entity_movement;
 pub use types::EntityType;
 
+pub use save::save_chunks;
+
 use crate::entity::arrow::ShootArrowSystem;
 use crate::entity::chunk::EntityChunkLoadSystem;
 use crate::entity::destroy::EntityDestroyBroadcastSystem;
 use crate::entity::falling_block::FallingBlockLandSystem;
 use crate::entity::item::ItemCollectSystem;
 use crate::entity::metadata::MetadataBroadcastSystem;
+use crate::entity::save::ChunkSaveSystem;
 use broadcast::EntityBroadcastSystem;
 use component::ComponentResetSystem;
 use destroy::EntityDestroySystem;
@@ -66,6 +70,7 @@ pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
         &[],
     );
     dispatcher.add(ShootArrowSystem::default(), SHOOT_ARROW, &[]);
+    dispatcher.add(ChunkSaveSystem::default(), CHUNK_SAVE, &[]);
 }
 
 pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {

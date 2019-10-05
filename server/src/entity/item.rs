@@ -19,11 +19,12 @@ use specs::{
 };
 
 /// Component for item entitties.
-#[derive(Default)]
 pub struct ItemComponent {
     /// The tick at which this item is collectable
     /// by a player.
     pub collectable_at: u64,
+    /// This item's stack.
+    pub stack: ItemStack,
 }
 
 impl Component for ItemComponent {

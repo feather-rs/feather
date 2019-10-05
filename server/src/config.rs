@@ -1,3 +1,4 @@
+use failure::_core::time::Duration;
 use std::fs::read_to_string;
 
 #[derive(Debug, Fail)]
@@ -70,6 +71,8 @@ pub struct World {
     pub name: String,
     pub generator: String,
     pub seed: String,
+    #[serde(with = "humantime_serde")]
+    pub save_interval: Duration,
 }
 
 /// Loads the configuration from the given file/
@@ -129,5 +132,6 @@ mod tests {
         assert_eq!(world.name, "world");
         assert_eq!(world.generator, "default");
         assert_eq!(world.seed, "");
+        assert_eq!(world.save_interval.as_millis(), 1000 * 60);
     }
 }
