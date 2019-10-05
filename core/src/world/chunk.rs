@@ -115,9 +115,7 @@ impl Chunk {
     /// this chunk, so the function will panic
     /// if `x >= 16 || y >= 256 || z >= 16`.
     pub fn block_at(&self, x: usize, y: usize, z: usize) -> Block {
-        assert!(x < CHUNK_WIDTH);
-        assert!(y < CHUNK_HEIGHT);
-        assert!(z < CHUNK_WIDTH);
+        Self::check_coords(x, y, z);
         let chunk_section = &self.sections[(y / 16) as usize];
         match chunk_section {
             Some(section) => section.block_at(x, y % 16, z),
@@ -134,10 +132,9 @@ impl Chunk {
     /// this chunk, so the function will panic
     /// if `x >= 16 || y >= 256 || z >= 16`.
     pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: Block) {
-        assert!(x < CHUNK_WIDTH);
-        assert!(y < CHUNK_HEIGHT);
-        assert!(z < CHUNK_WIDTH);
+        Self::check_coords(x, y, z);
         self.modified = true;
+
         let chunk_section = &mut self.sections[y / 16];
 
         let section;
@@ -155,6 +152,50 @@ impl Chunk {
         }
 
         section.set_block_at(x, y % 16, z, block);
+    }
+
+    pub fn sky_light_at(&self, x: usize, y: usize, z: usize) -> u8 {
+        Self::check_coords(x, y, z);
+        let chunk_section = self.section_for_y(y);
+        match chunk_section {
+            Some(chunk_section) => chunk_section.sky_light_at(x, y % 16, z),
+            None => 0,
+        }
+    }
+
+    pub fn block_light_at(&self, x: usize, y: usize, z: usize) -> u8 {
+        Self::check_coords(x, y, z);
+        let chunk_section = self.section_for_y(y);
+        match chunk_section {
+            Some(chunk_section) => chunk_section.block_light_at(x, y % 16, z),
+            None => 0,
+        }
+    }
+
+    pub fn set_sky_light_at(&mut self, x: usize, y: usize, z: usize, value: u8) {
+        Self::check_coords(x, y, z);
+        let chunk_section = self.section_for_y_mut(y);
+        chunk_section.set_sky_light_at(x, y % 16, z, value);
+    }
+
+    pub fn set_block_light_at(&mut self, x: usize, y: usize, z: usize, value: u8) {
+        Self::check_coords(x, y, z);
+        let chunk_section = self.section_for_y_mut(y);
+        chunk_section.set_block_light_at(x, y % 16, z, value);
+    }
+
+    fn section_for_y(&self, y: usize) -> &Option<ChunkSection> {
+        &self.sections[y / 16]
+    }
+
+    fn section_for_y_mut(&mut self, y: usize) -> &mut ChunkSection {
+        self.sections[y / 16].get_or_insert_with(ChunkSection::default)
+    }
+
+    fn check_coords(x: usize, y: usize, z: usize) {
+        assert!(x < CHUNK_WIDTH);
+        assert!(y < CHUNK_HEIGHT);
+        assert!(z < CHUNK_WIDTH);
     }
 
     /// Returns a slice of the 16
@@ -593,6 +634,28 @@ impl ChunkSection {
 
     pub fn block_light_mut(&mut self) -> &mut BitArray {
         &mut self.block_light
+    }
+
+    pub fn sky_light_at(&self, x: usize, y: usize, z: usize) -> u8 {
+        let index = block_index(x, y, z);
+        self.sky_light.get(index) as u8
+    }
+
+    pub fn block_light_at(&self, x: usize, y: usize, z: usize) -> u8 {
+        let index = block_index(x, y, z);
+        self.block_light.get(index) as u8
+    }
+
+    pub fn set_sky_light_at(&mut self, x: usize, y: usize, z: usize, value: u8) {
+        assert!(value < 16, "light level cannot exceed 15");
+        let index = block_index(x, y, z);
+        self.sky_light.set(index, u64::from(value));
+    }
+
+    pub fn set_block_light_at(&mut self, x: usize, y: usize, z: usize, value: u8) {
+        assert!(value < 16, "light level cannot exceed 15");
+        let index = block_index(x, y, z);
+        self.block_light.set(index, u64::from(value));
     }
 }
 
@@ -1131,6 +1194,22 @@ mod tests {
                         Block::from_native_state_id(counter).unwrap()
                     );
                     counter += 1;
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_light() {
+        let mut chunk = Chunk::default();
+
+        for x in 0..SECTION_WIDTH {
+            for y in 0..SECTION_HEIGHT {
+                for z in 0..SECTION_WIDTH {
+                    chunk.set_block_light_at(x, y, z, 10);
+                    chunk.set_sky_light_at(x, y, z, 8);
+                    assert_eq!(chunk.block_light_at(x, y, z), 10);
+                    assert_eq!(chunk.sky_light_at(x, y, z), 8);
                 }
             }
         }
