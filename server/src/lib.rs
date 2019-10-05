@@ -348,6 +348,7 @@ fn init_world<'a, 'b>(
     player::init_logic(&mut dispatcher);
     chunk_logic::init_logic(&mut dispatcher);
     time::init_logic(&mut dispatcher);
+    lighting::init_logic(&mut dispatcher);
 
     dispatcher.add_barrier();
 

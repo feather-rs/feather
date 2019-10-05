@@ -68,3 +68,5 @@ pub const TIME_INCREMENT: &str = "time_increment";
 pub const TIME_SEND: &str = "time_send";
 
 pub const BROADCASTER: &str = "broadcaster";
+
+pub const LIGHTING: &str = "lighting";

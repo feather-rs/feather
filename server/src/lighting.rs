@@ -9,8 +9,8 @@
 //!
 //! * Removal of a light-emitting block. We first perform flood fill
 //! and set any blocks which were previously affected by this block's
-//! light to 0. Then, we recalculate those blocks' values based on the
-//! blocks bordering the flood fill area.
+//! light to 0. Then, we recalculate lighting for light sources within
+//! a range of 30 blocks based on algorithm #1.
 //!
 //! * Creation of an opaque, non-emitting block. We first set the created
 //! block to air temporarily. We then query for nearby lights
@@ -29,6 +29,10 @@
 //! we first zero out light, then find all light sources in the chunk and perform
 //! algorithm #1 on them as if they had just been placed.
 
+use crate::blocks::BlockUpdateEvent;
+use crate::chunk_logic::ChunkLoadEvent;
+use crate::physics::chunks_within_distance;
+use crate::systems::LIGHTING;
 use arrayvec::ArrayVec;
 use failure::_core::marker::PhantomData;
 use feather_blocks::{Block, BlockExt};
@@ -36,6 +40,10 @@ use feather_core::prelude::ChunkMap;
 use feather_core::world::chunk_relative_pos;
 use feather_core::{BlockPosition, Chunk, ChunkPosition};
 use hashbrown::HashSet;
+use multimap::MultiMap;
+use shrev::{EventChannel, ReaderId};
+use smallvec::SmallVec;
+use specs::{DispatcherBuilder, Read, System, Write};
 use std::collections::VecDeque;
 
 /// Lighter context, used to cache things during
@@ -108,10 +116,159 @@ impl<'a> Context<'a> {
             None => Block::Air,
         }
     }
+
+    fn set_block_at(&mut self, pos: BlockPosition, block: Block) {
+        match self.chunk_at_mut(pos.chunk_pos()) {
+            Some(chunk) => {
+                let (x, y, z) = chunk_relative_pos(pos);
+                chunk.set_block_at(x, y, z, block);
+            }
+            None => (),
+        }
+    }
+}
+
+/// Contains a map storing light sources for each chunk.
+/// This is used to accelerate light calculation.
+#[derive(Default)]
+pub struct ChunkLights(MultiMap<ChunkPosition, BlockPosition>);
+
+impl ChunkLights {
+    fn lights_within_distance(&self, pos: BlockPosition, dist: u8) -> SmallVec<[BlockPosition; 9]> {
+        let dist_f64 = f64::from(dist);
+        let chunks =
+            chunks_within_distance(pos.world_pos(), glm::vec3(dist_f64, dist_f64, dist_f64));
+
+        chunks
+            .into_iter()
+            .map(|chunk| {
+                self.0
+                    .get_vec(&chunk)
+                    .map(|vec| vec.as_slice())
+                    .unwrap_or(&[])
+                    .iter()
+            })
+            .flatten()
+            .map(|pos| *pos)
+            .collect()
+    }
+}
+
+/// System for handling all lighting tasks.
+#[derive(Default)]
+pub struct LightingSystem {
+    update_reader: Option<ReaderId<BlockUpdateEvent>>,
+    load_reader: Option<ReaderId<ChunkLoadEvent>>,
+}
+
+impl<'a> System<'a> for LightingSystem {
+    type SystemData = (
+        Write<'a, ChunkMap>,
+        Write<'a, ChunkLights>,
+        Read<'a, EventChannel<ChunkLoadEvent>>,
+        Read<'a, EventChannel<BlockUpdateEvent>>,
+    );
+
+    fn run(&mut self, data: Self::SystemData) {
+        let (mut chunk_map, mut chunk_lights, load_events, update_events) = data;
+
+        // Update `ChunkLights` with newly loaded chunks
+        for load in load_events.read(self.load_reader.as_mut().unwrap()) {
+            // Find all lights within this chunk.
+            if let Some(chunk) = chunk_map.chunk_at(load.pos) {
+                let lights = find_lights_in_chunk(chunk);
+                lights
+                    .into_iter()
+                    .for_each(|light| chunk_lights.0.insert(load.pos, light));
+            }
+        }
+
+        // Perform lighting updates.
+        for event in update_events.read(self.update_reader.as_mut().unwrap()) {
+            let mut ctx = match Context::new(&mut chunk_map, event.pos.chunk_pos()) {
+                Some(ctx) => ctx,
+                None => continue, // Unloaded chunk
+            };
+
+            // Determine which algorithm to use.
+            if event.old_block.is_opaque() && !event.new_block.is_opaque() {
+                opaque_non_emitting_removal(&mut ctx, event.pos);
+            } else if event.old_block.light_emission() < event.new_block.light_emission() {
+                ctx.set_block_light_at(event.pos, event.new_block.light_emission());
+                emitting_creation(&mut ctx, event.pos);
+            } else {
+                warn!("Unhandled lighting update: {:?}", event);
+            }
+
+            // Update `ChunkLights`.
+            if event.old_block.light_emission() != event.new_block.light_emission() {
+                if event.new_block.light_emission() == 0 {
+                    chunk_lights
+                        .0
+                        .get_vec_mut(&event.pos.chunk_pos())
+                        .unwrap()
+                        .retain(|pos| *pos != event.pos);
+                } else if event.old_block.light_emission() == 0 {
+                    chunk_lights.0.insert(event.pos.chunk_pos(), event.pos);
+                }
+            }
+        }
+    }
+
+    setup_impl!(update_reader, load_reader);
+}
+
+pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
+    dispatcher.add(LightingSystem::default(), LIGHTING, &[]);
+}
+
+fn find_lights_in_chunk(chunk: &Chunk) -> Vec<BlockPosition> {
+    let mut res = vec![];
+
+    for x in 0..16 {
+        for y in 0..256 {
+            for z in 0..16 {
+                let block = chunk.block_at(x, y, z);
+
+                let emission = block.light_emission();
+                if emission > 0 {
+                    res.push(BlockPosition::new(x as i32, y as i32, z as i32));
+                }
+            }
+        }
+    }
+
+    res
+}
+
+/// Algorithm #1, as described in the module-level docs.
+fn emitting_creation(context: &mut Context, position: BlockPosition) {
+    let emission = context.block_light_at(position);
+    // Perform flood fill starting from `position`.
+    // For each block, set the light value to the maximum light
+    // value of any adjacent block minus 1.
+    flood_fill(context, position, emission, |ctx, pos| {
+        let light = light_value_for_block(ctx, pos);
+        ctx.set_block_light_at(pos, light);
+    });
 }
 
 /// Algorithm #4, as described in the module-level docs.
 fn opaque_non_emitting_removal(context: &mut Context, position: BlockPosition) {
+    let value = light_value_for_block(context, position);
+
+    context.set_block_light_at(position, value);
+
+    // Propagate new light value for this block, as if it were a new light source.
+    if value > 0 {
+        emitting_creation(context, position);
+    }
+}
+
+/// Returns the light value for the block at `position`,
+/// equivalent to the maximum light value of an adjacent block
+/// minus 1.
+fn light_value_for_block(context: &mut Context, position: BlockPosition) -> u8 {
     // Find highest light value of 6 adjacent blocks.
     let adjacent = adjacent_blocks(position);
     let mut value = adjacent
@@ -124,7 +281,7 @@ fn opaque_non_emitting_removal(context: &mut Context, position: BlockPosition) {
         value -= 1;
     }
 
-    context.set_block_light_at(position, value);
+    value
 }
 
 /// Performs flood fill starting at `start` and travelling up
@@ -132,7 +289,7 @@ fn opaque_non_emitting_removal(context: &mut Context, position: BlockPosition) {
 ///
 /// For each block iterated over, the provided closure will be invoked.
 /// No block will be iterated more than once.
-fn flood_fill<F>(ctx: &mut Context, start: BlockPosition, max_dist: u8, mut func: F)
+fn flood_fill<F>(context: &mut Context, start: BlockPosition, max_dist: u8, mut func: F)
 where
     F: FnMut(&mut Context, BlockPosition),
 {
@@ -167,13 +324,13 @@ where
                 return;
             }
 
-            let block = ctx.block_at(pos);
+            let block = context.block_at(pos);
             if block.is_opaque() {
                 return; // Stop iterating
             }
 
             // Call closure
-            func(ctx, pos);
+            func(context, pos);
 
             // Add block to queue
             queue.push_back(pos);
@@ -201,7 +358,6 @@ fn adjacent_blocks(to: BlockPosition) -> ArrayVec<[BlockPosition; 6]> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use hashbrown::HashMap;
 
     #[test]
     fn test_context() {
@@ -220,6 +376,21 @@ mod tests {
     }
 
     #[test]
+    fn test_emitting_creation() {
+        let mut chunk_map = chunk_map();
+        let mut ctx = Context::new(&mut chunk_map, ChunkPosition::new(0, 0)).unwrap();
+
+        let pos = BlockPosition::new(0, 100, 0);
+        ctx.set_block_at(pos, Block::Glowstone);
+        ctx.set_block_light_at(pos, Block::Glowstone.light_emission());
+
+        emitting_creation(&mut ctx, pos);
+
+        assert_eq!(ctx.block_light_at(BlockPosition::new(0, 99, 0)), 14);
+        assert_eq!(ctx.block_light_at(BlockPosition::new(0, 99, 1)), 13);
+    }
+
+    #[test]
     fn test_opaque_non_emitting_removal() {
         let mut chunk_map = chunk_map();
         let mut ctx = Context::new(&mut chunk_map, ChunkPosition::new(0, 0)).unwrap();
@@ -235,6 +406,11 @@ mod tests {
         opaque_non_emitting_removal(&mut ctx, BlockPosition::new(0, 1, 0));
 
         assert_eq!(ctx.block_light_at(BlockPosition::new(0, 1, 0)), 11);
+        assert_eq!(ctx.block_light_at(BlockPosition::new(0, 1, 1)), 10);
+        assert_eq!(ctx.block_light_at(BlockPosition::new(0, 1, 2)), 9);
+        assert_eq!(ctx.block_light_at(BlockPosition::new(0, 1, 3)), 8);
+        assert_eq!(ctx.block_light_at(BlockPosition::new(0, 1, 4)), 7);
+        // ...
     }
 
     #[test]
@@ -249,6 +425,24 @@ mod tests {
         });
 
         assert_eq!(count, 6);
+    }
+
+    #[test]
+    fn test_chunk_lights() {
+        let mut chunk_lights = ChunkLights::default();
+        chunk_lights
+            .0
+            .insert(ChunkPosition::new(0, 0), BlockPosition::new(0, 0, 0));
+        chunk_lights
+            .0
+            .insert(ChunkPosition::new(1, 0), BlockPosition::new(16, 0, 0));
+
+        assert_eq!(
+            chunk_lights
+                .lights_within_distance(BlockPosition::new(0, 0, 0), 16)
+                .as_slice(),
+            &[BlockPosition::new(0, 0, 0), BlockPosition::new(16, 0, 0)]
+        );
     }
 
     fn chunk_map() -> ChunkMap {
