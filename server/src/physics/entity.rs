@@ -3,7 +3,9 @@
 
 use specs::{Entities, Entity, Join, Read, ReadStorage, System, Write, WriteStorage};
 
-use crate::entity::{EntityDestroyEvent, EntityType, PositionComponent, VelocityComponent};
+use crate::entity::{
+    EntityDestroyEvent, EntityType, PlayerComponent, PositionComponent, VelocityComponent,
+};
 use crate::physics::{block_impacted_by_ray, blocks_intersecting_bbox, BoundingBoxComponent, Side};
 use feather_core::world::ChunkMap;
 use feather_core::Position;
@@ -26,6 +28,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         WriteStorage<'a, VelocityComponent>,
         ReadStorage<'a, BoundingBoxComponent>,
         ReadStorage<'a, EntityType>,
+        ReadStorage<'a, PlayerComponent>,
         Write<'a, EventChannel<EntityDestroyEvent>>,
         Write<'a, EventChannel<EntityPhysicsLandEvent>>,
         Read<'a, ChunkMap>,
@@ -38,6 +41,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             mut velocities,
             bounding_boxes,
             types,
+            players,
             mut entity_destroy_events,
             mut entity_land_events,
             chunk_map,
@@ -54,12 +58,13 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         // A restricted storage is used for `velocity` so as to avoid
         // triggering a velocity update event when it is not actually
         // modified.
-        for (position, mut restrict_velocity, bounding_box, ty, entity) in (
+        for (position, mut restrict_velocity, bounding_box, ty, entity, _) in (
             &mut positions,
             &mut velocities.restrict_mut(),
             &bounding_boxes,
             &types,
             &entities,
+            !&players,
         )
             .join()
         {
