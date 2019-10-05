@@ -1,4 +1,4 @@
-use crate::entity::{EntityType, PlayerComponent, VelocityComponent};
+use crate::entity::{EntityType, LastKnownPositionComponent, PlayerComponent, VelocityComponent};
 use crate::entity::{Metadata, NamedComponent, PositionComponent};
 use crate::network::PlayerPreJoinEvent;
 use crate::player::{ChunkPendingComponent, InventoryComponent, LoadedChunksComponent};
@@ -32,6 +32,7 @@ impl<'a> System<'a> for PlayerInitSystem {
         WriteStorage<'a, InventoryComponent>,
         WriteStorage<'a, EntityType>,
         WriteStorage<'a, Metadata>,
+        WriteStorage<'a, LastKnownPositionComponent>,
         Read<'a, LevelData>,
         Read<'a, Arc<Config>>,
     );
@@ -48,6 +49,7 @@ impl<'a> System<'a> for PlayerInitSystem {
             mut inventory_comps,
             mut entity_types,
             mut metadata,
+            mut last_positions,
             level,
             config,
         ) = data;
@@ -125,6 +127,9 @@ impl<'a> System<'a> for PlayerInitSystem {
             inventory_comps
                 .insert(event.player, inventory_comp)
                 .unwrap();
+
+            let last_position = LastKnownPositionComponent::default();
+            last_positions.insert(event.player, last_position).unwrap();
 
             let ty = EntityType::Player;
             entity_types.insert(event.player, ty).unwrap();

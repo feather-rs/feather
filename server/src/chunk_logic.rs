@@ -145,8 +145,8 @@ pub struct ChunkHolders {
 }
 
 impl ChunkHolders {
-    pub fn holders_for(&self, chunk: ChunkPosition) -> Option<&Vec<Entity>> {
-        self.inner.get_vec(&chunk)
+    pub fn holders_for(&self, chunk: ChunkPosition) -> Option<&[Entity]> {
+        self.inner.get_vec(&chunk).map(|holders| holders.as_slice())
     }
 
     pub fn chunk_has_holders(&self, chunk: ChunkPosition) -> bool {

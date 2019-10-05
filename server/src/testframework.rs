@@ -21,8 +21,9 @@ use crate::chunk_logic::{ChunkHolders, ChunkLoadSystem};
 use crate::config::Config;
 use crate::entity::metadata::{self, Metadata};
 use crate::entity::{
-    ChunkEntities, EntityDestroyEvent, EntitySpawnEvent, EntityType, ItemComponent, NamedComponent,
-    PlayerComponent, PositionComponent, VelocityComponent,
+    ChunkEntities, EntityDestroyEvent, EntitySpawnEvent, EntityType, ItemComponent,
+    LastKnownPositionComponent, NamedComponent, PlayerComponent, PositionComponent,
+    VelocityComponent,
 };
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
@@ -109,6 +110,7 @@ pub fn add_player_without_holder(world: &mut World) -> Player {
         .with(InventoryComponent::default())
         .with(Metadata::Player(metadata::Player::default()))
         .with(EntityType::Player)
+        .with(LastKnownPositionComponent::default())
         .build();
 
     Player {
@@ -467,6 +469,7 @@ impl<'a, 'b> TestBuilder<'a, 'b> {
         self.world.register::<PlayerComponent>();
         self.world.register::<InventoryComponent>();
         self.world.register::<NetworkComponent>();
+        self.world.register::<LastKnownPositionComponent>();
 
         (self.world, dispatcher)
     }
