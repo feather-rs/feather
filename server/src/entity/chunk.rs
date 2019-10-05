@@ -8,17 +8,19 @@ use crate::util::Util;
 use feather_core::entity::EntityData;
 use feather_core::world::ChunkPosition;
 use feather_core::{Item, ItemStack};
-use fnv::FnvHashMap;
-use hashbrown::HashSet;
+use hashbrown::{HashMap, HashSet};
 use shrev::EventChannel;
 use specs::storage::ComponentEvent;
 use specs::{
     BitSet, Entities, Entity, Join, Read, ReadStorage, ReaderId, System, World, WorldExt, Write,
 };
+use std::sync::atomic::{AtomicBool, Ordering};
 
 /// Keeps track of which entities are in which chunk.
-#[derive(Debug, Clone, Deref, DerefMut, Default)]
-pub struct ChunkEntities(FnvHashMap<ChunkPosition, Vec<Entity>>);
+/// Also has a boolean for each chunk which indicates
+/// whether its entities have been updated recently.
+#[derive(Debug, Deref, DerefMut, Default)]
+pub struct ChunkEntities(HashMap<ChunkPosition, (AtomicBool, Vec<Entity>)>);
 
 lazy_static! {
     static ref EMPTY_VEC: Vec<Entity> = Vec::with_capacity(0);
@@ -27,10 +29,23 @@ lazy_static! {
 impl ChunkEntities {
     /// Returns all entities in a given chunk.
     pub fn entities_in_chunk(&self, chunk: ChunkPosition) -> &Vec<Entity> {
-        if let Some(entities) = self.0.get(&chunk) {
+        if let Some((_, entities)) = self.0.get(&chunk) {
             entities
         } else {
             &EMPTY_VEC
+        }
+    }
+
+    /// Returns all entities in the chunk, in addition to
+    /// a boolean indicating whether the entities have been
+    /// updated since the last call to this function.
+    pub fn entities_in_chunk_and_modified(&self, chunk: ChunkPosition) -> (bool, &[Entity]) {
+        if let Some((dirty, entities)) = self.0.get(&chunk) {
+            let d = dirty.load(Ordering::SeqCst);
+            dirty.store(false, Ordering::SeqCst);
+            (d, entities)
+        } else {
+            (false, &[])
         }
     }
 
@@ -38,8 +53,11 @@ impl ChunkEntities {
     pub fn add_to_chunk(&mut self, chunk: ChunkPosition, entity: Entity) {
         self.0
             .entry(chunk)
-            .and_modify(|vec| vec.push(entity))
-            .or_insert_with(|| vec![entity]);
+            .and_modify(|(dirty, vec)| {
+                dirty.store(true, Ordering::SeqCst);
+                vec.push(entity)
+            })
+            .or_insert_with(|| (AtomicBool::new(true), vec![entity]));
     }
 
     /// Removes an entity from a chunk.
@@ -48,7 +66,7 @@ impl ChunkEntities {
     /// May panic in some cases if the entity is not contained
     /// within the given chunk.
     pub fn remove_from_chunk(&mut self, chunk: ChunkPosition, entity: Entity) {
-        let vec = match self.0.get_mut(&chunk) {
+        let (dirty, vec) = match self.0.get_mut(&chunk) {
             Some(vec) => vec,
             _ => return,
         };
@@ -58,6 +76,8 @@ impl ChunkEntities {
             None => return,
         };
         vec.swap_remove(index);
+
+        dirty.store(true, Ordering::SeqCst);
 
         if vec.is_empty() {
             self.0.remove(&chunk);
@@ -231,7 +251,7 @@ mod tests {
     use specs::{Builder, World, WorldExt};
 
     #[test]
-    fn test_entity_chunks() {
+    fn test_chunk_entities() {
         let mut chunks = ChunkEntities::default();
 
         let mut world = World::new();
@@ -241,6 +261,8 @@ mod tests {
 
         chunks.add_to_chunk(pos, entity);
         assert_eq!(chunks.entities_in_chunk(pos).as_slice(), &[entity]);
+        assert!(chunks.entities_in_chunk_and_modified(pos).0);
+        assert!(!chunks.entities_in_chunk_and_modified(pos).0);
     }
 
     #[test]

@@ -171,11 +171,17 @@ impl<'a> System<'a> for SpawnerSystem {
 
             match request.ty {
                 EntityType::Item => {
+                    let stack = if let Extra::Item(stack) = request.extra {
+                        stack
+                    } else {
+                        unreachable!()
+                    };
                     item_markers
                         .insert(
                             entity,
                             ItemComponent {
                                 collectable_at: tick.0 + TPS,
+                                stack,
                             },
                         )
                         .unwrap();

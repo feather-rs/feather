@@ -11,7 +11,9 @@
 
 use crate::chunk_logic::ChunkHolders;
 use crate::entity::movement::degrees_to_stops;
-use crate::entity::{EntityType, FallingBlockComponent, VelocityComponent};
+use crate::entity::{
+    EntityType, FallingBlockComponent, LastKnownPositionComponent, VelocityComponent,
+};
 use crate::entity::{Metadata, NamedComponent, PositionComponent};
 use crate::network::{send_packet_boxed_to_player, send_packet_to_player, NetworkComponent};
 use crate::util::protocol_velocity;
@@ -71,6 +73,7 @@ impl<'a> System<'a> for EntitySendSystem {
         ReadStorage<'a, VelocityComponent>,
         ReadStorage<'a, EntityType>,
         WriteStorage<'a, Metadata>,
+        WriteStorage<'a, LastKnownPositionComponent>,
         Write<'a, EventChannel<EntitySendEvent>>,
         Read<'a, EntitySender>,
         ReadStorage<'a, FallingBlockComponent>,
@@ -85,6 +88,7 @@ impl<'a> System<'a> for EntitySendSystem {
             velocities,
             types,
             mut metadatas,
+            mut last_positions,
             mut send_events,
             entity_sender,
             falling_blocks,
@@ -123,6 +127,13 @@ impl<'a> System<'a> for EntitySendSystem {
             };
 
             send_packet_to_player(network, entity_metadata);
+
+            // Set last known position of this entity to the current position.
+            last_positions
+                .get_mut(request.player)
+                .unwrap()
+                .0
+                .insert(request.entity, position.current);
 
             // Trigger event.
             let event = EntitySendEvent {

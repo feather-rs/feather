@@ -54,3 +54,5 @@ generator = "default"
 # If this value is not a valid integer (i64), the string
 # will be converted using a hash function.
 seed = ""
+# Interval at which to save modified chunks.
+save_interval = "1min"

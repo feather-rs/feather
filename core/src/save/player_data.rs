@@ -1,11 +1,15 @@
 use std::fs::File;
 
 use crate::entity::BaseEntityData;
-use crate::inventory::SlotIndex;
+use crate::inventory::{
+    SlotIndex, HOTBAR_SIZE, INVENTORY_SIZE, SLOT_ARMOR_MAX, SLOT_ARMOR_MIN, SLOT_HOTBAR_OFFSET,
+    SLOT_INVENTORY_OFFSET, SLOT_OFFHAND,
+};
 use crate::ItemStack;
 use feather_items::Item;
-use std::io::Read;
-use std::path::Path;
+use std::fs;
+use std::io::{Read, Write};
+use std::path::{Path, PathBuf};
 use uuid::Uuid;
 
 /// Represents the contents of a player data file.
@@ -22,7 +26,7 @@ pub struct PlayerData {
 }
 
 /// Represents a single inventory slot (including position index).
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct InventorySlot {
     #[serde(rename = "Count")]
     pub count: i8,
@@ -38,6 +42,31 @@ impl InventorySlot {
         ItemStack {
             ty: Item::from_identifier(self.item.as_str()).unwrap_or(Item::Air),
             amount: self.count as u8,
+        }
+    }
+
+    /// Converts a network protocol index, item, and count
+    /// to an `InventorySlot`.
+    pub fn from_network_index(network: SlotIndex, stack: ItemStack) -> Self {
+        let slot = if SLOT_HOTBAR_OFFSET <= network && network < SLOT_HOTBAR_OFFSET + HOTBAR_SIZE {
+            // Hotbar
+            (network - SLOT_HOTBAR_OFFSET) as i8
+        } else if network == SLOT_OFFHAND {
+            -106
+        } else if SLOT_ARMOR_MIN <= network && network <= SLOT_ARMOR_MAX {
+            ((SLOT_ARMOR_MAX - network) + 100) as i8
+        } else if SLOT_INVENTORY_OFFSET <= network
+            && network < SLOT_INVENTORY_OFFSET + INVENTORY_SIZE
+        {
+            network as i8
+        } else {
+            panic!("Invalid slot index {} on server", network);
+        };
+
+        Self {
+            count: stack.amount as i8,
+            slot,
+            item: stack.ty.identifier().to_string(),
         }
     }
 
@@ -68,10 +97,25 @@ fn load_from_file<R: Read>(reader: R) -> Result<PlayerData, nbt::Error> {
 }
 
 pub fn load_player_data(world_dir: &Path, uuid: Uuid) -> Result<PlayerData, nbt::Error> {
-    let file_path = world_dir.join("playerdata").join(format!("{}.dat", uuid));
+    let file_path = file_path(world_dir, uuid);
     let file = File::open(file_path)?;
     let data = load_from_file(file)?;
     Ok(data)
+}
+
+fn save_to_file<W: Write>(mut writer: W, data: PlayerData) -> Result<(), nbt::Error> {
+    nbt::to_gzip_writer(&mut writer, &data, None)
+}
+
+pub fn save_player_data(world_dir: &Path, uuid: Uuid, data: PlayerData) -> Result<(), nbt::Error> {
+    fs::create_dir_all(world_dir.join("playerdata"))?;
+    let file_path = file_path(world_dir, uuid);
+    let file = File::create(file_path)?;
+    save_to_file(file, data)
+}
+
+fn file_path(world_dir: &Path, uuid: Uuid) -> PathBuf {
+    world_dir.join("playerdata").join(format!("{}.dat", uuid))
 }
 
 #[cfg(test)]
@@ -135,14 +179,20 @@ mod tests {
             map.insert(x, x as usize);
         }
 
+        dbg!(map.clone());
+
         // Check all valid slots
         for (src, expected) in map {
             let slot = InventorySlot {
                 slot: src,
                 count: 1,
-                item: String::from("invalid:identifier"),
+                item: String::from(Item::Stone.identifier()),
             };
             assert_eq!(slot.convert_index().unwrap(), expected);
+            assert_eq!(
+                InventorySlot::from_network_index(expected, ItemStack::new(Item::Stone, 1)),
+                slot
+            );
         }
 
         // Check that invalid slots error out

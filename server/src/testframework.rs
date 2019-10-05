@@ -15,14 +15,15 @@ use feather_core::network::packet::{Packet, PacketType};
 use feather_core::world::block::Block;
 use feather_core::world::chunk::Chunk;
 use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
-use feather_core::Gamemode;
+use feather_core::{Gamemode, Item, ItemStack};
 
 use crate::chunk_logic::{ChunkHolders, ChunkLoadSystem};
 use crate::config::Config;
 use crate::entity::metadata::{self, Metadata};
 use crate::entity::{
-    ChunkEntities, EntityDestroyEvent, EntitySpawnEvent, EntityType, ItemComponent, NamedComponent,
-    PlayerComponent, PositionComponent, VelocityComponent,
+    ChunkEntities, EntityDestroyEvent, EntitySpawnEvent, EntityType, ItemComponent,
+    LastKnownPositionComponent, NamedComponent, PlayerComponent, PositionComponent,
+    VelocityComponent,
 };
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
@@ -109,6 +110,7 @@ pub fn add_player_without_holder(world: &mut World) -> Player {
         .with(InventoryComponent::default())
         .with(Metadata::Player(metadata::Player::default()))
         .with(EntityType::Player)
+        .with(LastKnownPositionComponent::default())
         .build();
 
     Player {
@@ -331,7 +333,13 @@ pub fn add_entity_without_holder_with_pos_and_vel(
     if ty == EntityType::Item {
         world
             .write_component::<ItemComponent>()
-            .insert(entity, ItemComponent { collectable_at: 20 })
+            .insert(
+                entity,
+                ItemComponent {
+                    collectable_at: 20,
+                    stack: ItemStack::new(Item::Air, 0),
+                },
+            )
             .unwrap();
     }
 
@@ -461,6 +469,7 @@ impl<'a, 'b> TestBuilder<'a, 'b> {
         self.world.register::<PlayerComponent>();
         self.world.register::<InventoryComponent>();
         self.world.register::<NetworkComponent>();
+        self.world.register::<LastKnownPositionComponent>();
 
         (self.world, dispatcher)
     }

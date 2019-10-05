@@ -261,6 +261,11 @@ impl Inventory {
     pub fn slot_count(&self) -> u16 {
         self.items.len() as u16
     }
+
+    /// Returns a reference to this inventory's items.
+    pub fn items(&self) -> &[Option<ItemStack>] {
+        &self.items
+    }
 }
 
 /// Represents an item stack.

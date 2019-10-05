@@ -344,8 +344,8 @@ impl ChunkMap {
 
     /// Removes the chunk at the given location,
     /// effectively unloading it.
-    pub fn unload_chunk_at(&mut self, pos: ChunkPosition) {
-        self.chunk_map.remove(&pos);
+    pub fn unload_chunk_at(&mut self, pos: ChunkPosition) -> Option<Chunk> {
+        self.chunk_map.remove(&pos)
     }
 
     /// Returns an immutable reference to the internal map.
