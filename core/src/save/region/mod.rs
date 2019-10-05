@@ -19,6 +19,7 @@ use crate::world::ChunkPosition;
 use crate::Biome;
 use bitvec::bitvec;
 use bitvec::vec::BitVec;
+use feather_blocks::Block;
 
 mod blob;
 
@@ -355,30 +356,12 @@ fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
                 .iter()
                 .enumerate()
                 .filter_map(|(y, sec)| sec.map(|sec| (y, sec.clone())))
-                .map(|(y, section)| {
+                .map(|(y, mut section)| {
+                    let palette = convert_palette(&mut section);
                     LevelSection {
                         y: y as i8,
                         states: section.data().inner().iter().map(|x| *x as i64).collect(),
-                        palette: section
-                            .palette()
-                            .unwrap_or(&vec![])
-                            .iter()
-                            .map(|id| {
-                                let block = Block::from_native_state_id(*id).unwrap();
-
-                                let (name, props) = block.to_name_and_props();
-
-                                let mut prop_map = HashMap::new();
-                                props.into_iter().for_each(|(name, value)| {
-                                    prop_map.insert(name.to_string(), value);
-                                });
-
-                                LevelPaletteEntry {
-                                    name: name.to_string(),
-                                    props: Some(LevelProperties { props: prop_map }),
-                                }
-                            })
-                            .collect(), // TODO: what happens with the global palette?
+                        palette,
                         block_light: slice_u64_to_i8(section.block_light().inner()).to_vec(),
                         sky_light: slice_u64_to_i8(section.sky_light().inner()).to_vec(),
                     }
@@ -393,6 +376,32 @@ fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
         },
         data_version: DATA_VERSION,
     }
+}
+
+fn convert_palette(section: &mut ChunkSection) -> Vec<LevelPaletteEntry> {
+    section.convert_palette_to_section();
+    raw_palette_to_palette_entries(section.palette().unwrap())
+}
+
+fn raw_palette_to_palette_entries(palette: &[u16]) -> Vec<LevelPaletteEntry> {
+    palette
+        .iter()
+        .map(|id| {
+            let block = Block::from_native_state_id(*id).unwrap();
+
+            let (name, props) = block.to_name_and_props();
+
+            let mut prop_map = HashMap::new();
+            props.into_iter().for_each(|(name, value)| {
+                prop_map.insert(name.to_string(), value);
+            });
+
+            LevelPaletteEntry {
+                name: name.to_string(),
+                props: Some(LevelProperties { props: prop_map }),
+            }
+        })
+        .collect()
 }
 
 fn slice_u64_to_i8(input: &[u64]) -> &[i8] {

@@ -1,6 +1,7 @@
 use super::block::*;
 use super::ChunkPosition;
 use crate::Biome;
+use multimap::MultiMap;
 
 /// The number of bits used for each block
 /// in the global palette.
@@ -529,6 +530,38 @@ impl ChunkSection {
         }
 
         true // Chunk was optimized
+    }
+
+    /// If the global palette is in use, convert it to a section palette.
+    /// This is used for chunk saving.
+    pub fn convert_palette_to_section(&mut self) {
+        if self.palette.is_some() {
+            // Nothing to do: section palette already in use.
+            return;
+        }
+
+        let mut blocks = MultiMap::with_capacity(1024);
+        for x in 0..16 {
+            for y in 0..16 {
+                for z in 0..16 {
+                    blocks.insert(self.block_at(x, y, z), (x, y, z));
+                }
+            }
+        }
+
+        // Create a palette based on the blocks in the chunk.
+        // We also have to modify the data array based on the new palette.
+        let mut palette = Vec::with_capacity(1024);
+        for (block, positions) in blocks.into_iter() {
+            palette.push(block.native_state_id());
+
+            for (x, y, z) in positions {
+                let index = block_index(x, y, z);
+                self.data.set(index, (palette.len() - 1) as u64);
+            }
+        }
+
+        self.palette = Some(palette);
     }
 
     /// Returns the internal data array for this section.
@@ -1067,5 +1100,39 @@ mod tests {
         chunk.set_block_at(0, 0, 0, Block::Stone);
         assert!(chunk.check_modified());
         assert!(!chunk.check_modified());
+    }
+
+    #[test]
+    fn test_convert_section_to_palette() {
+        let mut chunk = Chunk::default();
+
+        let mut counter = 0;
+        for x in 0..SECTION_WIDTH {
+            for y in 0..SECTION_HEIGHT {
+                for z in 0..SECTION_WIDTH {
+                    chunk.set_block_at(x, y, z, Block::from_native_state_id(counter).unwrap());
+                    counter += 1;
+                }
+            }
+        }
+
+        let section = chunk.section_mut(0).unwrap();
+        section.convert_palette_to_section();
+
+        assert_eq!(section.palette().unwrap().len(), counter as usize);
+
+        // Ensure that data array still represents the same data
+        counter = 0;
+        for x in 0..SECTION_WIDTH {
+            for y in 0..SECTION_HEIGHT {
+                for z in 0..SECTION_WIDTH {
+                    assert_eq!(
+                        chunk.block_at(x, y, z),
+                        Block::from_native_state_id(counter).unwrap()
+                    );
+                    counter += 1;
+                }
+            }
+        }
     }
 }
