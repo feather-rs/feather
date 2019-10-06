@@ -5,12 +5,16 @@
 
 An experimental Minecraft server implementation written in Rust.
 
-### Current Features
+### Features
 Many basic features are already implemented:
-- [x] Highly scalable architecture—thanks to [`specs`](https://github.com/slide-rs/specs) and [`rayon`](https://github.com/rayon-rs/rayon), Feather is almost entirely multithreaded
-- [x] Anvil world loading
-- [x] Chunk streaming
+- [x] Highly scalable architecture
+- [x] Anvil world loading and saving
 - [x] Physics
+- [x] Basic world generation
+- [x] Chunk streaming
+- [x] Day/night cycle
+- [x] Arrow shooting
+- [x] Falling blocks
 - [x] Block placement and breaking
 - [x] Item dropping and collection
 - [x] Chat
@@ -24,12 +28,18 @@ We offer precompiled binaries for Windows and Linux at [GitHub Releases](https:/
 
 To run Feather:
 * Extract the downloaded archive.
-* Move a 1.13.2 Minecraft world save to the directory you extracted the archive to. Name the world save "world."
 * Run the binary.
   * On Linux and macOS: `./feather-server` in the server directory
   * On Windows: double-click `feather-server.exe`
   
 The server will create a configuration file (`feather.toml`) which you can modify.
+
+Feather will generate a world by default. If you want to load a vanilla world,
+copy the world save to the server directory under the name "world" (by default).
+
+Warning: Feather world persistence is fairly new and will likely cause problems
+when attempting to open Feather worlds in vanilla. Do not let Feather touch worlds
+you care about unless they have been backed up.
 
 Feather currently only supports 1.13.2 clients and world saves. In the future, additional versions will be supported.
 
