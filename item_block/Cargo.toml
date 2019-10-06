@@ -1,6 +1,6 @@
 [package]
 name = "feather-item-block"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["caelunshun <caelum12321@gmail.com>"]
 edition = "2018"
 
