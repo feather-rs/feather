@@ -151,8 +151,6 @@ impl<'a> System<'a> for EntitySendSystem {
 pub struct EntitySpawnEvent {
     /// The spawned entity.
     pub entity: Entity,
-    /// The type of the spawned entity.
-    pub ty: EntityType,
 }
 
 /// System for broadcasting when an entity is spawned.

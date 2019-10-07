@@ -21,18 +21,14 @@ pub fn init(tx: Sender<()>) {
     .unwrap();
 }
 
-pub fn save_chunks(world: &World) {
+pub fn save_chunks(world: &mut World) {
     let mut chunk_map = world.fetch_mut::<ChunkMap>();
     let handle = world.fetch::<ChunkWorkerHandle>();
-    let count = entity::save_chunks(
-        &mut chunk_map,
-        &handle,
-        &world.fetch(),
-        &world.read_component(),
-        &world.read_component(),
-        &world.read_component(),
-        &world.read_component(),
-    );
+    let count = entity::save_chunks(&mut chunk_map, &world.fetch(), &world.fetch());
+
+    // Need to call `world.maintain()` for lazy chunk saving
+    // to take effect
+    world.maintain();
 
     handle.sender.send(chunkworker::Request::ShutDown).unwrap();
 

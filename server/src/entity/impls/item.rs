@@ -1,5 +1,4 @@
 //! Logic for working with item entities.
-use crate::entity::metadata::Metadata;
 use crate::entity::metadata::{self, Metadata};
 use crate::entity::{
     ChunkEntities, EntityDestroyEvent, PlayerComponent, PositionComponent, VelocityComponent,
@@ -17,12 +16,14 @@ use shrev::EventChannel;
 use smallvec::SmallVec;
 use specs::storage::ComponentEvent;
 use specs::{
-    BitSet, Builder, Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage,
-    ReaderId, System, SystemData, World, Write, WriteStorage,
+    BitSet, Builder, Component, DenseVecStorage, Entities, Entity, Join, LazyUpdate, Read,
+    ReadStorage, ReaderId, System, SystemData, World, Write, WriteStorage,
 };
 
 use crate::entity::component::{PacketCreatorComponent, SerializerComponent};
 use crate::entity::movement::degrees_to_stops;
+use crate::lazy::LazyUpdateExt;
+use crate::world_ext::WorldExt;
 use feather_blocks::Block::PetrifiedOakSlab;
 use feather_core::entity::{BaseEntityData, EntityData, ItemData, ItemEntityData};
 use feather_core::packet::SpawnObject;
@@ -54,12 +55,14 @@ pub struct ItemSpawnSystem {
 impl<'a> System<'a> for ItemSpawnSystem {
     type SystemData = (
         ReadStorage<'a, PositionComponent>,
-        Read<'a, Util>,
+        Read<'a, LazyUpdate>,
+        Entities<'a>,
         Read<'a, EventChannel<PlayerItemDropEvent>>,
+        Read<'a, TickCount>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (positions, util, item_drop_events) = data;
+        let (positions, lazy, entities, item_drop_events, tick) = data;
 
         let mut rng = rand::thread_rng();
 
@@ -91,7 +94,13 @@ impl<'a> System<'a> for ItemSpawnSystem {
                 vel
             };
 
-            util.spawn_item(pos, velocity, event.stack.clone());
+            create(lazy.spawn_entity(&entities), event.stack, &tick)
+                .with(PositionComponent {
+                    current: pos,
+                    previous: pos,
+                })
+                .with(VelocityComponent(velocity))
+                .build();
         }
     }
 
@@ -322,7 +331,7 @@ impl<'a> System<'a> for ItemCollectSystem {
     flagged_setup_impl!(PositionComponent, reader);
 }
 
-pub fn create(builder: LazyBuilder, stack: ItemStack, tick: TickCount) -> LazyBuilder {
+pub fn create<'a>(builder: LazyBuilder<'a>, stack: ItemStack, tick: &TickCount) -> LazyBuilder<'a> {
     let meta = {
         let mut meta_item = crate::entity::metadata::Item::default();
         meta_item.set_item(Some(stack.clone()));

@@ -6,7 +6,7 @@ mod entity;
 mod math;
 
 use crate::systems::ENTITY_PHYSICS;
-pub use component::{PhysicsBuilder, PhysicsComponent};
+pub use component::{AABBExt, PhysicsBuilder, PhysicsComponent};
 pub use entity::{EntityPhysicsLandEvent, EntityPhysicsSystem};
 pub use math::*;
 use specs::DispatcherBuilder;

@@ -214,10 +214,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     let event = PlayerJoinEvent { player };
                     join_events.single_write(event);
 
-                    let event = EntitySpawnEvent {
-                        entity: player,
-                        ty: EntityType::Player,
-                    };
+                    let event = EntitySpawnEvent { entity: player };
                     spawn_events.single_write(event);
 
                     // Trigger inventory update event on the entire inventory

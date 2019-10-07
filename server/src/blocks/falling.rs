@@ -54,12 +54,16 @@ impl<'a> System<'a> for FallingBlockCreationSystem {
                         entity_pos.x += 0.5;
                         entity_pos.z += 0.5;
 
-                        falling_block::create(lazy.spawn_entity(&entities), event.block)
-                            .with(PositionComponent {
-                                current: entity_pos,
-                                previous: entity_pos,
-                            })
-                            .with(VelocityComponent::default());
+                        falling_block::create(
+                            lazy.spawn_entity(&entities),
+                            entity_pos,
+                            event.block,
+                        )
+                        .with(PositionComponent {
+                            current: entity_pos,
+                            previous: entity_pos,
+                        })
+                        .with(VelocityComponent::default());
                     }
                 }
                 _ => (),

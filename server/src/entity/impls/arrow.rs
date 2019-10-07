@@ -15,6 +15,7 @@ use crate::lazy::LazyUpdateExt;
 use crate::physics::PhysicsBuilder;
 use crate::player::PLAYER_EYE_HEIGHT;
 use crate::util::{protocol_velocity, Util};
+use crate::world_ext::WorldExt;
 use feather_core::entity::{ArrowEntityData, BaseEntityData, EntityData};
 use specs::world::LazyBuilder;
 use uuid::Uuid;
@@ -75,7 +76,7 @@ impl<'a> System<'a> for ShootArrowSystem {
     setup_impl!(reader);
 }
 
-pub fn create(builder: LazyBuilder, critical: bool) -> LazyBuilder {
+pub fn create<'a>(builder: LazyBuilder<'a>, critical: bool) -> LazyBuilder<'a> {
     let meta = {
         let mut meta_arrow = crate::entity::metadata::Arrow::default();
         let mask = if critical {
@@ -104,9 +105,9 @@ pub fn create(builder: LazyBuilder, critical: bool) -> LazyBuilder {
 }
 
 fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
-    let position = world.get::<PositionComponent>().current;
+    let position = world.get::<PositionComponent>(entity).current;
     let (velocity_x, velocity_y, velocity_z) =
-        protocol_velocity(world.get::<VelocityComponent>().0);
+        protocol_velocity(world.get::<VelocityComponent>(entity).0);
 
     let packet = SpawnObject {
         entity_id: entity.id() as i32,
@@ -130,7 +131,7 @@ fn serialize(world: &World, entity: Entity) -> EntityData {
     EntityData::Arrow(ArrowEntityData {
         entity: BaseEntityData::new(
             world.get::<PositionComponent>(entity).current,
-            world.get::<VelocityComponent>().0,
+            world.get::<VelocityComponent>(entity).0,
         ),
         critical: 0, // TODO
     })

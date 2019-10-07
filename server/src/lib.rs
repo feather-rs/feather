@@ -43,7 +43,7 @@ use crate::chunk_logic::{ChunkHolders, ChunkWorkerHandle};
 use crate::entity::{EntityDestroyEvent, NamedComponent};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
-use crate::systems::{BROADCASTER, ITEM_SPAWN, JOIN_HANDLER, NETWORK, PLAYER_INIT, SPAWNER};
+use crate::systems::{BROADCASTER, JOIN_HANDLER, NETWORK, PLAYER_INIT};
 use crate::util::Util;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
@@ -156,7 +156,7 @@ pub fn main() {
     info!("Shutting down");
 
     info!("Saving chunks");
-    shutdown::save_chunks(&world);
+    shutdown::save_chunks(&mut world);
     info!("Saving level.dat");
     shutdown::save_level(&world);
     info!("Saving player data");
@@ -379,7 +379,6 @@ fn init_world<'a, 'b>(
     blocks::init_handlers(&mut dispatcher);
     physics::init_handlers(&mut dispatcher);
     entity::init_handlers(&mut dispatcher);
-    dispatcher.add(util::SpawnerSystem, SPAWNER, &[ITEM_SPAWN]);
     player::init_handlers(&mut dispatcher);
     chunk_logic::init_handlers(&mut dispatcher);
 

@@ -44,7 +44,6 @@ pub const CHUNK_ENTITIES_UPDATE: &str = "chunk_entities_update";
 pub const CHUNK_ENTITIES_LOAD: &str = "chunk_entities_load";
 pub const ENTITY_DESTROY: &str = "entity_destroy";
 pub const ITEM_SPAWN: &str = "item_spawn";
-pub const SPAWNER: &str = "spawner";
 pub const ITEM_MERGE: &str = "item_merge";
 pub const SHOOT_ARROW: &str = "shoot_arrow";
 pub const CHUNK_SAVE: &str = "chunk_save";

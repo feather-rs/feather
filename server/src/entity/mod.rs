@@ -25,13 +25,15 @@ pub use broadcast::EntitySender;
 pub use broadcast::{EntitySendEvent, EntitySpawnEvent};
 pub use chunk::ChunkEntities;
 pub use chunk::ChunkEntityUpdateSystem;
-pub use component::{NamedComponent, PlayerComponent, PositionComponent, VelocityComponent};
+pub use component::{
+    NamedComponent, PacketCreatorComponent, PlayerComponent, PositionComponent,
+    SerializerComponent, VelocityComponent,
+};
 pub use destroy::EntityDestroyEvent;
 pub use falling_block::FallingBlockComponent;
 pub use item::ItemComponent;
 pub use metadata::{EntityBitMask, Metadata};
 pub use movement::LastKnownPositionComponent;
-pub use types::EntityType;
 
 pub use save::save_chunks;
 

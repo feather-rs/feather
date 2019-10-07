@@ -10,9 +10,10 @@ use crate::blocks::{BlockUpdateCause, BlockUpdateEvent};
 use crate::entity::component::{PacketCreatorComponent, SerializerComponent};
 use crate::entity::metadata::Metadata;
 use crate::entity::movement::degrees_to_stops;
-use crate::entity::{EntityDestroyEvent, EntityType, PositionComponent, VelocityComponent};
+use crate::entity::{EntityDestroyEvent, PositionComponent, VelocityComponent};
 use crate::physics::{EntityPhysicsLandEvent, PhysicsBuilder};
 use crate::util::protocol_velocity;
+use crate::world_ext::WorldExt;
 use feather_core::{Packet, Position};
 use specs::world::LazyBuilder;
 use uuid::Uuid;
@@ -87,7 +88,7 @@ impl<'a> System<'a> for FallingBlockLandSystem {
     setup_impl!(reader);
 }
 
-pub fn create(builder: LazyBuilder, position: Position, block: Block) -> LazyBuilder {
+pub fn create<'a>(builder: LazyBuilder<'a>, position: Position, block: Block) -> LazyBuilder<'a> {
     let meta = {
         let mut meta_falling_block = crate::entity::metadata::FallingBlock::default();
         meta_falling_block.set_spawn_position(position.block_pos());
@@ -113,9 +114,9 @@ fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
         .get::<FallingBlockComponent>(entity)
         .block
         .native_state_id();
-    let position = world.get::<PositionComponent>().current;
+    let position = world.get::<PositionComponent>(entity).current;
     let (velocity_x, velocity_y, velocity_z) =
-        protocol_velocity(world.get::<VelocityComponent>().0);
+        protocol_velocity(world.get::<VelocityComponent>(entity).0);
 
     let packet = SpawnObject {
         entity_id: entity.id() as i32,

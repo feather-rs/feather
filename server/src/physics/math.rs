@@ -3,7 +3,7 @@
 
 use crate::entity::{ChunkEntities, PositionComponent};
 use crate::physics::block_bboxes::bbox_for_block;
-use crate::physics::BoundingBoxComponent;
+use crate::physics::AABBExt;
 use feather_blocks::Block;
 use feather_core::world::{BlockPosition, ChunkMap, Position};
 use feather_core::{BlockExt, ChunkPosition};
@@ -321,7 +321,7 @@ pub fn blocks_intersecting_bbox(
     chunk_map: &ChunkMap,
     mut from: Position,
     mut dest: Position,
-    bbox: &BoundingBoxComponent,
+    bbox: &AABB<f64>,
 ) -> BlockIntersect {
     let bbox_size = bbox.size() / 2.0;
 
@@ -359,7 +359,7 @@ pub fn blocks_intersecting_bbox(
     // position to the block. If the time of impact is <= 1, the entity
     // has collided with the block; update the position accordingly.
     let velocity = (dest - from).as_vec();
-    let bbox_shape = bbox_to_cuboid(&bbox.0);
+    let bbox_shape = bbox_to_cuboid(&bbox);
 
     for compound in blocks {
         let toi = match query::time_of_impact(
@@ -424,7 +424,7 @@ pub fn blocks_intersecting_bbox(
 pub fn adjacent_to_bbox(
     axis: usize,
     sign: i32,
-    bbox: &BoundingBoxComponent,
+    bbox: &AABB<f64>,
     pos: Position,
     chunk_map: &ChunkMap,
     checked: &mut heapless::FnvIndexSet<BlockPosition, U32>,
