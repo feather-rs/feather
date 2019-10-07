@@ -12,12 +12,13 @@
 //! to `ChunkCrossEvent`s.
 
 use crate::config::Config;
-use crate::entity::{ChunkEntities, EntitySender};
+use crate::entity::ChunkEntities;
+use crate::lazy::LazyUpdateExt;
 use crate::network::{send_packet_to_player, NetworkComponent};
 use crate::player::movement::ChunkCrossEvent;
 use feather_core::network::packet::implementation::DestroyEntities;
 use shrev::EventChannel;
-use specs::{Read, ReadStorage, ReaderId, System};
+use specs::{LazyUpdate, Read, ReadStorage, ReaderId, System};
 use std::sync::Arc;
 
 /// System for updating entities visible
@@ -33,11 +34,11 @@ impl<'a> System<'a> for ViewUpdateSystem {
         Read<'a, EventChannel<ChunkCrossEvent>>,
         Read<'a, ChunkEntities>,
         Read<'a, Arc<Config>>,
-        Read<'a, EntitySender>,
+        Read<'a, LazyUpdate>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (networks, cross_events, chunk_entities, config, entity_sender) = data;
+        let (networks, cross_events, chunk_entities, config, lazy) = data;
 
         for event in cross_events.read(self.reader.as_mut().unwrap()) {
             // Find new and old entities.
@@ -73,10 +74,10 @@ impl<'a> System<'a> for ViewUpdateSystem {
                     // Entity is in `new_entities` but not in `old_entities`.
                     // Spawn it. If the entity is a player, also send this player
                     // to that entity.
-                    entity_sender.send_entity_to_player(event.player, *entity);
+                    lazy.send_entity_to_player(event.player, *entity);
 
                     if networks.get(*entity).is_some() {
-                        entity_sender.send_entity_to_player(*entity, event.player);
+                        lazy.send_entity_to_player(*entity, event.player);
                     }
                 }
             }

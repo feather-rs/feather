@@ -3,7 +3,7 @@
 use crate::entity::EntitySpawnEvent;
 use shrev::EventChannel;
 use specs::world::{EntitiesRes, LazyBuilder};
-use specs::LazyUpdate;
+use specs::{Entity, LazyUpdate};
 
 pub trait LazyUpdateExt {
     /// Creates an entity and lazily inserts components.
@@ -11,6 +11,10 @@ pub trait LazyUpdateExt {
     /// This should be used instead of `LazyUpdate::create_entity`
     /// because it automatically triggers an `EntitySpawnEvent`.
     fn spawn_entity(&self, entities: &EntitiesRes) -> LazyBuilder;
+
+    /// Lazily sends an entity to a player. This simply forwards
+    /// to `crate::entity::broadcast::send_entity_to_player`.
+    fn send_entity_to_player(&self, player: Entity, entity: Entity);
 }
 
 impl LazyUpdateExt for LazyUpdate {
@@ -24,5 +28,9 @@ impl LazyUpdateExt for LazyUpdate {
         });
 
         LazyBuilder { lazy: self, entity }
+    }
+
+    fn send_entity_to_player(&self, player: Entity, entity: Entity) {
+        crate::entity::send_entity_to_player(self, player, entity);
     }
 }

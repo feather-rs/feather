@@ -20,8 +20,7 @@ use crate::systems::{
     ITEM_MERGE, ITEM_SPAWN, JOIN_BROADCAST, SHOOT_ARROW,
 };
 pub use arrow::{ArrowComponent, ShootArrowEvent};
-pub use broadcast::EntitySendSystem;
-pub use broadcast::EntitySender;
+pub use broadcast::send_entity_to_player;
 pub use broadcast::{EntitySendEvent, EntitySpawnEvent};
 pub use chunk::ChunkEntities;
 pub use chunk::ChunkEntityUpdateSystem;
@@ -85,7 +84,6 @@ pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
         ENTITY_SPAWN_BROADCAST,
         &[JOIN_BROADCAST, CHUNK_CROSS],
     );
-    dispatcher.add(EntitySendSystem, ENTITY_SEND, &[ENTITY_SPAWN_BROADCAST]);
     dispatcher.add(
         EntityVelocityBroadcastSystem::default(),
         ENTITY_VELOCITY_BROADCAST,

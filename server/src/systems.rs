@@ -50,7 +50,6 @@ pub const CHUNK_SAVE: &str = "chunk_save";
 
 pub const ENTITY_MOVE_BROADCAST: &str = "entity_move_broadcast";
 pub const ENTITY_SPAWN_BROADCAST: &str = "entity_spawn_broadcast";
-pub const ENTITY_SEND: &str = "entity_send";
 pub const ENTITY_VELOCITY_BROADCAST: &str = "entity_velocity_broadcast";
 pub const ENTITY_DESTROY_BROADCAST: &str = "entity_destroy_broadcast";
 pub const ENTITY_METADATA_BROADCAST: &str = "entity_metadata_broadcast";

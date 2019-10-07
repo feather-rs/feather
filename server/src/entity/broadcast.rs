@@ -2,19 +2,18 @@
 //! range of a player. Also handles sending the correct
 //! packet to spawn entities on the client.
 //!
-//! Sending entities to a client is handled lazily:
-//! an internal queue is kept of entities to send to players,
-//! and each tick, a system flushes this queue and sends
-//! the correct packet. This is done because of the number
-//! of components which need to be accessed to send an entity
-//! to a player.
+//! Sending entities to a client is handled lazily
+//! through `LazyUpdate`, because arbitrary components
+//! may need to be accessed.
 
 use crate::chunk_logic::ChunkHolders;
 use crate::entity::movement::degrees_to_stops;
 use crate::entity::{
-    EntityType, FallingBlockComponent, LastKnownPositionComponent, VelocityComponent,
+    EntityType, FallingBlockComponent, LastKnownPositionComponent, PacketCreatorComponent,
+    VelocityComponent,
 };
 use crate::entity::{Metadata, NamedComponent, PositionComponent};
+use crate::lazy::LazyUpdateExt;
 use crate::network::{send_packet_boxed_to_player, send_packet_to_player, NetworkComponent};
 use crate::util::protocol_velocity;
 use crossbeam::queue::SegQueue;
@@ -23,22 +22,11 @@ use feather_core::network::packet::implementation::SpawnObject;
 use feather_core::network::packet::implementation::{PacketEntityMetadata, SpawnPlayer};
 use feather_core::Packet;
 use shrev::EventChannel;
-use specs::{Entities, Entity, Read, ReadStorage, ReaderId, System, Write, WriteStorage};
+use specs::{
+    Entities, Entity, LazyUpdate, Read, ReadStorage, ReaderId, System, WorldExt, Write,
+    WriteStorage,
+};
 use uuid::Uuid;
-
-/// Handles lazy sending of entities to a client.
-#[derive(Debug, Default)]
-pub struct EntitySender {
-    /// A queue of entities to lazily send.
-    queue: SegQueue<SendRequest>,
-}
-
-impl EntitySender {
-    /// Lazily sends an entity to a client.
-    pub fn send_entity_to_player(&self, player: Entity, entity: Entity) {
-        self.queue.push(SendRequest { player, entity })
-    }
-}
 
 /// An entity send request, containing
 /// the player to send to and the entity
@@ -58,91 +46,6 @@ pub struct EntitySendEvent {
     pub player: Entity,
     /// The entity which was sent to the player.
     pub entity: Entity,
-}
-
-/// System for flushing the `EntitySender` queue
-/// and sending the correct packets for the given
-/// entities.
-pub struct EntitySendSystem;
-
-impl<'a> System<'a> for EntitySendSystem {
-    type SystemData = (
-        ReadStorage<'a, PositionComponent>,
-        ReadStorage<'a, NamedComponent>,
-        ReadStorage<'a, NetworkComponent>,
-        ReadStorage<'a, VelocityComponent>,
-        ReadStorage<'a, EntityType>,
-        WriteStorage<'a, Metadata>,
-        WriteStorage<'a, LastKnownPositionComponent>,
-        Write<'a, EventChannel<EntitySendEvent>>,
-        Read<'a, EntitySender>,
-        ReadStorage<'a, FallingBlockComponent>,
-        Entities<'a>,
-    );
-
-    fn run(&mut self, data: Self::SystemData) {
-        let (
-            positions,
-            nameds,
-            networks,
-            velocities,
-            types,
-            mut metadatas,
-            mut last_positions,
-            mut send_events,
-            entity_sender,
-            falling_blocks,
-            entities,
-        ) = data;
-
-        while let Ok(request) = entity_sender.queue.pop() {
-            if !entities.is_alive(request.entity) {
-                continue; // Entity was destroyed
-            }
-
-            let ty = types.get(request.entity).unwrap();
-            let metadata = metadatas.get_mut(request.entity).unwrap();
-            let position = positions.get(request.entity).unwrap();
-            let velocity = velocities.get(request.entity);
-            let named = nameds.get(request.entity);
-
-            let network = networks.get(request.player).unwrap();
-
-            // Send corresponding packet to player.
-            let packet = packet_to_spawn_entity(
-                request.entity,
-                *ty,
-                &position,
-                metadata,
-                velocity,
-                named,
-                &falling_blocks,
-            );
-            send_packet_boxed_to_player(&network, packet);
-
-            // Send metadata.
-            let entity_metadata = PacketEntityMetadata {
-                entity_id: request.entity.id() as i32,
-                metadata: metadata.to_full_raw_metadata(),
-            };
-
-            send_packet_to_player(network, entity_metadata);
-
-            // Set last known position of this entity to the current position.
-            last_positions
-                .get_mut(request.player)
-                .unwrap()
-                .0
-                .insert(request.entity, position.current);
-
-            // Trigger event.
-            let event = EntitySendEvent {
-                player: request.player,
-                entity: request.entity,
-            };
-            send_events.single_write(event);
-        }
-    }
 }
 
 /// Event triggered when an entity of any
@@ -169,12 +72,12 @@ impl<'a> System<'a> for EntityBroadcastSystem {
         ReadStorage<'a, PositionComponent>,
         ReadStorage<'a, NetworkComponent>,
         Read<'a, ChunkHolders>,
-        Read<'a, EntitySender>,
         Read<'a, EventChannel<EntitySpawnEvent>>,
+        Read<'a, LazyUpdate>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (positions, networks, chunk_holders, entity_sender, spawn_events) = data;
+        let (positions, networks, chunk_holders, spawn_events, lazy) = data;
 
         for event in spawn_events.read(self.reader.as_mut().unwrap()) {
             // Broadcast entity to players who can see it.
@@ -196,7 +99,7 @@ impl<'a> System<'a> for EntityBroadcastSystem {
                         continue;
                     }
 
-                    entity_sender.send_entity_to_player(*holder, event.entity);
+                    lazy.send_entity_to_player(*holder, event.entity);
                 }
             }
         }
@@ -205,95 +108,27 @@ impl<'a> System<'a> for EntityBroadcastSystem {
     setup_impl!(reader);
 }
 
-/// Returns the packet needed to spawn an entity
-/// with given type, position, metadata, optional velocity,
-/// and optional name.
-fn packet_to_spawn_entity(
-    entity: Entity,
-    ty: EntityType,
-    position: &PositionComponent,
-    metadata: &mut Metadata,
-    velocity: Option<&VelocityComponent>,
-    named: Option<&NamedComponent>,
-    falling_blocks: &ReadStorage<FallingBlockComponent>,
-) -> Box<dyn Packet> {
-    let velocity = velocity.cloned().unwrap_or_default(); // Use default velocity of (0, 0, 0)
-    let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocity.0);
+/// Lazily sends an entity to a player.
+pub fn send_entity_to_player(lazy: &LazyUpdate, player: Entity, entity: Entity) {
+    lazy.exec(move |world| {
+        // Attempt to get the `PacketCreator` for the entity.
+        // If it doesn't exist, skip sending.
+        let packet_creator = match world.read_component::<PacketCreatorComponent>().get(entity) {
+            Some(packet_creator) => packet_creator,
+            None => return,
+        };
 
-    // Different entity types require different
-    // packets to send.
-    match ty {
-        EntityType::Player => {
-            let named = named.unwrap();
-            let packet = SpawnPlayer {
-                entity_id: entity.id() as i32,
-                player_uuid: named.uuid,
-                x: position.current.x,
-                y: position.current.y,
-                z: position.current.z,
-                yaw: degrees_to_stops(position.current.yaw),
-                pitch: degrees_to_stops(position.current.pitch),
-                metadata: metadata.to_raw_metadata(),
-            };
+        let create_packet = packet_creator.0;
+        let packet = create_packet(world, entity);
 
-            Box::new(packet)
+        if let Some(network) = world.read_component::<NetworkComponent>().get(player) {
+            send_packet_boxed_to_player(network, packet);
         }
-        EntityType::Item => {
-            let packet = SpawnObject {
-                entity_id: entity.id() as i32,
-                object_uuid: Uuid::new_v4(),
-                ty: 2, // Type 2 for item stack
-                x: position.current.x,
-                y: position.current.y,
-                z: position.current.z,
-                pitch: degrees_to_stops(position.current.pitch),
-                yaw: degrees_to_stops(position.current.yaw),
-                data: 1, // Has velocity
-                velocity_x,
-                velocity_y,
-                velocity_z,
-            };
 
-            Box::new(packet)
-        }
-        EntityType::Arrow => {
-            let packet = SpawnObject {
-                entity_id: entity.id() as i32,
-                object_uuid: Uuid::new_v4(),
-                ty: 60,
-                x: position.current.x,
-                y: position.current.y,
-                z: position.current.z,
-                pitch: degrees_to_stops(position.current.pitch),
-                yaw: degrees_to_stops(position.current.yaw),
-                data: 1, // TODO: Shooter entity ID
-                velocity_x,
-                velocity_y,
-                velocity_z,
-            };
-
-            Box::new(packet)
-        }
-        EntityType::FallingBlock => {
-            let packet = SpawnObject {
-                entity_id: entity.id() as i32,
-                object_uuid: Uuid::new_v4(),
-                ty: 70,
-                x: position.current.x,
-                y: position.current.y,
-                z: position.current.z,
-                pitch: degrees_to_stops(position.current.pitch),
-                yaw: degrees_to_stops(position.current.yaw),
-                data: i32::from(falling_blocks.get(entity).unwrap().block.native_state_id()),
-                velocity_x,
-                velocity_y,
-                velocity_z,
-            };
-
-            Box::new(packet)
-        }
-        _ => unimplemented!(),
-    }
+        // Trigger event
+        let event = EntitySendEvent { entity, player };
+        world.fetch_mut::<EventChannel<_>>().single_write(event);
+    });
 }
 
 #[cfg(test)]
