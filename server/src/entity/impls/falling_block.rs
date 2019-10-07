@@ -1,21 +1,24 @@
 use shrev::ReaderId;
 use specs::shrev::EventChannel;
-use specs::{Builder, Component, DenseVecStorage, Entity, Read, ReadStorage, System, World, Write};
+use specs::{
+    Builder, Component, DenseVecStorage, Entity, LazyUpdate, Read, ReadStorage, System, World,
+    WorldExt, Write,
+};
 
 use feather_blocks::{Block, BlockExt};
 use feather_core::packet::SpawnObject;
 use feather_core::world::ChunkMap;
 
 use crate::blocks::{BlockUpdateCause, BlockUpdateEvent};
-use crate::entity::component::{PacketCreatorComponent, SerializerComponent};
+use crate::entity::component::PacketCreatorComponent;
 use crate::entity::metadata::Metadata;
 use crate::entity::movement::degrees_to_stops;
 use crate::entity::{EntityDestroyEvent, PositionComponent, VelocityComponent};
+use crate::lazy::LazyUpdateExt;
 use crate::physics::{EntityPhysicsLandEvent, PhysicsBuilder};
 use crate::util::protocol_velocity;
-use crate::world_ext::WorldExt;
 use feather_core::{Packet, Position};
-use specs::world::LazyBuilder;
+use specs::world::{EntitiesRes, LazyBuilder};
 use uuid::Uuid;
 
 /// Component for falling block entities.
@@ -47,25 +50,22 @@ impl<'a> System<'a> for FallingBlockLandSystem {
     type SystemData = (
         Read<'a, EventChannel<EntityPhysicsLandEvent>>,
         ReadStorage<'a, FallingBlockComponent>,
-        ReadStorage<'a, EntityType>,
         Write<'a, EventChannel<EntityDestroyEvent>>,
         Write<'a, EventChannel<BlockUpdateEvent>>,
         Write<'a, ChunkMap>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (events, falling_blocks, types, mut destroy_events, mut block_updates, mut chunk_map) =
-            data;
+        let (events, falling_blocks, mut destroy_events, mut block_updates, mut chunk_map) = data;
 
         // Process events
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
             let entity = event.entity;
 
-            let entity_type = types.get(entity).unwrap();
-            if *entity_type != EntityType::FallingBlock {
-                return;
-            }
-            let falling_block = falling_blocks.get(entity).unwrap();
+            let falling_block = match falling_blocks.get(entity) {
+                Some(block) => block,
+                None => continue, // Not a falling block
+            };
 
             let destroy_event = EntityDestroyEvent { entity };
             destroy_events.single_write(destroy_event);
@@ -88,14 +88,19 @@ impl<'a> System<'a> for FallingBlockLandSystem {
     setup_impl!(reader);
 }
 
-pub fn create<'a>(builder: LazyBuilder<'a>, position: Position, block: Block) -> LazyBuilder<'a> {
+pub fn create<'a>(
+    lazy: &'a LazyUpdate,
+    entities: &EntitiesRes,
+    block: Block,
+    position: Position,
+) -> LazyBuilder<'a> {
     let meta = {
         let mut meta_falling_block = crate::entity::metadata::FallingBlock::default();
         meta_falling_block.set_spawn_position(position.block_pos());
         Metadata::FallingBlock(meta_falling_block)
     };
 
-    builder
+    lazy.spawn_entity(entities)
         .with(FallingBlockComponent { block })
         .with(
             PhysicsBuilder::new()
@@ -110,13 +115,13 @@ pub fn create<'a>(builder: LazyBuilder<'a>, position: Position, block: Block) ->
 }
 
 fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
-    let block = world
-        .get::<FallingBlockComponent>(entity)
-        .block
-        .native_state_id();
-    let position = world.get::<PositionComponent>(entity).current;
-    let (velocity_x, velocity_y, velocity_z) =
-        protocol_velocity(world.get::<VelocityComponent>(entity).0);
+    let blocks = world.read_component::<FallingBlockComponent>();
+    let positions = world.read_component::<PositionComponent>();
+    let velocities = world.read_component::<VelocityComponent>();
+
+    let block = blocks.get(entity).unwrap().block.native_state_id();
+    let position = positions.get(entity).unwrap().current;
+    let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocities.get(entity).unwrap().0);
 
     let packet = SpawnObject {
         entity_id: entity.id() as i32,

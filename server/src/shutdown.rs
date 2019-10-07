@@ -26,10 +26,14 @@ pub fn save_chunks(world: &mut World) {
     let handle = world.fetch::<ChunkWorkerHandle>();
     let count = entity::save_chunks(&mut chunk_map, &world.fetch(), &world.fetch());
 
+    drop(chunk_map);
+    drop(handle);
+
     // Need to call `world.maintain()` for lazy chunk saving
     // to take effect
     world.maintain();
 
+    let handle = world.fetch::<ChunkWorkerHandle>();
     handle.sender.send(chunkworker::Request::ShutDown).unwrap();
 
     let mut saved = 0;

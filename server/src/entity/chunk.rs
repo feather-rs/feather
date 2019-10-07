@@ -3,16 +3,16 @@
 //! entity queries and packet broadcasting.
 
 use crate::chunk_logic::ChunkLoadEvent;
-use crate::entity::{EntityDestroyEvent, EntitySpawnEvent, PositionComponent};
-use crate::util::Util;
+use crate::entity::{arrow, item, EntityDestroyEvent, EntitySpawnEvent, PositionComponent};
+use crate::TickCount;
 use feather_core::entity::EntityData;
 use feather_core::world::ChunkPosition;
-use feather_core::{Item, ItemStack};
 use hashbrown::{HashMap, HashSet};
 use shrev::EventChannel;
 use specs::storage::ComponentEvent;
 use specs::{
-    BitSet, Entities, Entity, Join, Read, ReadStorage, ReaderId, System, World, WorldExt, Write,
+    BitSet, Entities, Entity, Join, LazyUpdate, Read, ReadStorage, ReaderId, System, World,
+    WorldExt, Write,
 };
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -188,44 +188,24 @@ pub struct EntityChunkLoadSystem {
 }
 
 impl<'a> System<'a> for EntityChunkLoadSystem {
-    type SystemData = (Read<'a, EventChannel<ChunkLoadEvent>>, Read<'a, Util>);
+    type SystemData = (
+        Read<'a, EventChannel<ChunkLoadEvent>>,
+        Read<'a, LazyUpdate>,
+        Entities<'a>,
+        Read<'a, TickCount>,
+    );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (load_events, util) = data;
+        let (load_events, lazy, entities, tick) = data;
 
         for event in load_events.read(self.reader.as_mut().unwrap()) {
             for entity in &event.entities {
                 match entity {
                     EntityData::Item(item_data) => {
-                        let pos = item_data.entity.read_position();
-                        if let Some(pos) = pos {
-                            util.spawn_item(
-                                pos,
-                                item_data
-                                    .entity
-                                    .read_velocity()
-                                    .unwrap_or_else(|| glm::vec3(0.0, 0.0, 0.0)),
-                                ItemStack::new(
-                                    Item::from_identifier(item_data.item.item.as_str())
-                                        .unwrap_or(Item::Stone),
-                                    item_data.item.count,
-                                ),
-                            )
-                        }
+                        item::create_from_data(&lazy, &entities, item_data, &tick);
                     }
                     EntityData::Arrow(arrow_data) => {
-                        let pos = arrow_data.entity.read_position();
-                        if let Some(pos) = pos {
-                            util.spawn_arrow(
-                                pos,
-                                arrow_data
-                                    .entity
-                                    .read_velocity()
-                                    .unwrap_or_else(|| glm::vec3(0.0, 0.0, 0.0)),
-                                arrow_data.critical > 0,
-                                None, // TODO: Load shooter UUID
-                            );
-                        }
+                        arrow::create_from_data(&lazy, &entities, arrow_data);
                     }
                     // TODO: Spawn remaining entity types here.
                     EntityData::Unknown => {

@@ -1,11 +1,9 @@
 //! Assorted components relating to physics
 //! and systems to initialize them.
 
-use crate::entity::{EntitySpawnEvent, EntityType};
 use glm::DVec3;
 use ncollide3d::bounding_volume::AABB;
-use shrev::EventChannel;
-use specs::{Component, DenseVecStorage, VecStorage};
+use specs::{Component, VecStorage};
 
 pub const DEFAULT_SLIP_MULTIPLIER: f64 = 0.6;
 

@@ -5,10 +5,7 @@ use feather_core::world::Position;
 use feather_core::{Gamemode, Packet};
 use glm::DVec3;
 use specs::storage::BTreeStorage;
-use specs::{
-    Component, DenseVecStorage, Entity, FlaggedStorage, Join, System, VecStorage, World,
-    WriteStorage,
-};
+use specs::{Component, Entity, FlaggedStorage, Join, System, VecStorage, World, WriteStorage};
 use uuid::Uuid;
 
 pub struct PlayerComponent {

@@ -1,6 +1,6 @@
 //! Assorted utilities for use in Feather's codebase.
 use bumpalo::Bump;
-use feather_core::{ChunkPosition, ItemStack, Packet, Position};
+use feather_core::{ChunkPosition, Packet};
 use glm::DVec3;
 use thread_local::ThreadLocal;
 
@@ -10,10 +10,8 @@ mod broadcaster;
 
 use broadcaster::Broadcaster;
 pub use broadcaster::BroadcasterSystem;
-use feather_blocks::Block;
 pub use macros::*;
 use specs::Entity;
-use uuid::Uuid;
 
 /// Converts float-based velocity in blocks per tick
 /// to the format used by the protocol.

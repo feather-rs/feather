@@ -7,26 +7,13 @@
 //! may need to be accessed.
 
 use crate::chunk_logic::ChunkHolders;
-use crate::entity::movement::degrees_to_stops;
-use crate::entity::{
-    EntityType, FallingBlockComponent, LastKnownPositionComponent, PacketCreatorComponent,
-    VelocityComponent,
-};
-use crate::entity::{Metadata, NamedComponent, PositionComponent};
+use crate::entity::{LastKnownPositionComponent, PacketCreatorComponent};
+use crate::entity::{Metadata, PositionComponent};
 use crate::lazy::LazyUpdateExt;
 use crate::network::{send_packet_boxed_to_player, send_packet_to_player, NetworkComponent};
-use crate::util::protocol_velocity;
-use crossbeam::queue::SegQueue;
-use feather_blocks::BlockExt;
-use feather_core::network::packet::implementation::SpawnObject;
-use feather_core::network::packet::implementation::{PacketEntityMetadata, SpawnPlayer};
-use feather_core::Packet;
+use feather_core::network::packet::implementation::PacketEntityMetadata;
 use shrev::EventChannel;
-use specs::{
-    Entities, Entity, LazyUpdate, Read, ReadStorage, ReaderId, System, WorldExt, Write,
-    WriteStorage,
-};
-use uuid::Uuid;
+use specs::{Entity, LazyUpdate, Read, ReadStorage, ReaderId, System, WorldExt};
 
 /// An entity send request, containing
 /// the player to send to and the entity
@@ -113,7 +100,8 @@ pub fn send_entity_to_player(lazy: &LazyUpdate, player: Entity, entity: Entity) 
     lazy.exec(move |world| {
         // Attempt to get the `PacketCreator` for the entity.
         // If it doesn't exist, skip sending.
-        let packet_creator = match world.read_component::<PacketCreatorComponent>().get(entity) {
+        let packet_creators = world.read_component::<PacketCreatorComponent>();
+        let packet_creator = match packet_creators.get(entity) {
             Some(packet_creator) => packet_creator,
             None => return,
         };
@@ -123,6 +111,25 @@ pub fn send_entity_to_player(lazy: &LazyUpdate, player: Entity, entity: Entity) 
 
         if let Some(network) = world.read_component::<NetworkComponent>().get(player) {
             send_packet_boxed_to_player(network, packet);
+
+            // If the entity has metadata, send it.
+            let metas = world.read_component::<Metadata>();
+            if let Some(meta) = metas.get(entity) {
+                let packet = PacketEntityMetadata {
+                    entity_id: entity.id() as i32,
+                    metadata: meta.to_full_raw_metadata(),
+                };
+                send_packet_to_player(network, packet);
+            }
+        }
+
+        // Insert last known position
+        let positions = world.read_component::<PositionComponent>();
+        let mut last_positions = world.write_component::<LastKnownPositionComponent>();
+        if let Some(last_positions) = last_positions.get_mut(player) {
+            if let Some(pos) = positions.get(entity) {
+                last_positions.0.insert(entity, pos.current);
+            }
         }
 
         // Trigger event

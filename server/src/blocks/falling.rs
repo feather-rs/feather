@@ -8,8 +8,6 @@ use feather_blocks::{Block, BlockExt};
 
 use crate::blocks::{BlockNotifyEvent, BlockUpdateCause, BlockUpdateEvent};
 use crate::entity::{falling_block, PositionComponent, VelocityComponent};
-use crate::lazy::LazyUpdateExt;
-use crate::util::Util;
 use feather_core::Position;
 
 /// This system listens to `BlockNotifyEvent`s.
@@ -54,16 +52,13 @@ impl<'a> System<'a> for FallingBlockCreationSystem {
                         entity_pos.x += 0.5;
                         entity_pos.z += 0.5;
 
-                        falling_block::create(
-                            lazy.spawn_entity(&entities),
-                            entity_pos,
-                            event.block,
-                        )
-                        .with(PositionComponent {
-                            current: entity_pos,
-                            previous: entity_pos,
-                        })
-                        .with(VelocityComponent::default());
+                        falling_block::create(&lazy, &entities, event.block, entity_pos)
+                            .with(PositionComponent {
+                                current: entity_pos,
+                                previous: entity_pos,
+                            })
+                            .with(VelocityComponent::default())
+                            .build();
                     }
                 }
                 _ => (),

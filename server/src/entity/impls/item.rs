@@ -10,24 +10,22 @@ use crate::player::{
 use crate::util::{protocol_velocity, Util};
 use crate::{TickCount, TPS};
 use feather_core::network::packet::implementation::CollectItem;
-use feather_core::{ItemStack, Packet};
+use feather_core::{Item, ItemStack, Packet};
 use rand::Rng;
 use shrev::EventChannel;
 use smallvec::SmallVec;
 use specs::storage::ComponentEvent;
 use specs::{
     BitSet, Builder, Component, DenseVecStorage, Entities, Entity, Join, LazyUpdate, Read,
-    ReadStorage, ReaderId, System, SystemData, World, Write, WriteStorage,
+    ReadStorage, ReaderId, System, SystemData, World, WorldExt, Write, WriteStorage,
 };
 
 use crate::entity::component::{PacketCreatorComponent, SerializerComponent};
 use crate::entity::movement::degrees_to_stops;
 use crate::lazy::LazyUpdateExt;
-use crate::world_ext::WorldExt;
-use feather_blocks::Block::PetrifiedOakSlab;
 use feather_core::entity::{BaseEntityData, EntityData, ItemData, ItemEntityData};
 use feather_core::packet::SpawnObject;
-use specs::world::LazyBuilder;
+use specs::world::{EntitiesRes, LazyBuilder};
 use uuid::Uuid;
 
 /// Component for item entities.
@@ -94,7 +92,7 @@ impl<'a> System<'a> for ItemSpawnSystem {
                 vel
             };
 
-            create(lazy.spawn_entity(&entities), event.stack, &tick)
+            create(&lazy, &entities, event.stack.clone(), tick.0 + TPS)
                 .with(PositionComponent {
                     current: pos,
                     previous: pos,
@@ -331,17 +329,22 @@ impl<'a> System<'a> for ItemCollectSystem {
     flagged_setup_impl!(PositionComponent, reader);
 }
 
-pub fn create<'a>(builder: LazyBuilder<'a>, stack: ItemStack, tick: &TickCount) -> LazyBuilder<'a> {
+pub fn create<'a>(
+    lazy: &'a LazyUpdate,
+    entities: &EntitiesRes,
+    stack: ItemStack,
+    collectable_at: u64,
+) -> LazyBuilder<'a> {
     let meta = {
         let mut meta_item = crate::entity::metadata::Item::default();
         meta_item.set_item(Some(stack.clone()));
         Metadata::Item(meta_item)
     };
 
-    builder
+    lazy.spawn_entity(entities)
         .with(ItemComponent {
             stack,
-            collectable_at: tick.0 + TPS,
+            collectable_at,
         })
         .with(
             PhysicsBuilder::new()
@@ -355,11 +358,36 @@ pub fn create<'a>(builder: LazyBuilder<'a>, stack: ItemStack, tick: &TickCount) 
         .with(SerializerComponent(&serialize))
 }
 
-fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
-    let position = world.get::<PositionComponent>(entity).current;
+pub fn create_from_data(
+    lazy: &LazyUpdate,
+    entities: &EntitiesRes,
+    data: &ItemEntityData,
+    tick: &TickCount,
+) -> Option<Entity> {
+    let pos = data.entity.read_position()?;
+    let vel = data.entity.read_velocity()?;
 
-    let (velocity_x, velocity_y, velocity_z) =
-        protocol_velocity(world.get::<VelocityComponent>(entity).0);
+    let stack = ItemStack::new(Item::from_identifier(&data.item.item)?, data.item.count);
+
+    let collectable_at = data.pickup_delay as u64 + tick.0;
+
+    Some(
+        create(lazy, entities, stack, collectable_at)
+            .with(PositionComponent {
+                current: pos,
+                previous: pos,
+            })
+            .with(VelocityComponent(vel))
+            .build(),
+    )
+}
+
+fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
+    let positions = world.read_component::<PositionComponent>();
+    let velocities = world.read_component::<VelocityComponent>();
+
+    let position = positions.get(entity).unwrap().current;
+    let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocities.get(entity).unwrap().0);
 
     let packet = SpawnObject {
         entity_id: entity.id() as i32,
@@ -380,9 +408,13 @@ fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
 }
 
 fn serialize(world: &World, entity: Entity) -> EntityData {
-    let item = world.get::<ItemComponent>(entity);
-    let position = world.get::<PositionComponent>(entity);
-    let velocity = world.get::<VelocityComponent>(entity);
+    let positions = world.read_component::<PositionComponent>();
+    let velocities = world.read_component::<VelocityComponent>();
+    let items = world.read_component::<ItemComponent>();
+
+    let item = items.get(entity).unwrap();
+    let position = positions.get(entity).unwrap();
+    let velocity = velocities.get(entity).unwrap();
 
     EntityData::Item(ItemEntityData {
         entity: BaseEntityData::new(position.current, velocity.0),

@@ -3,15 +3,11 @@
 use crate::chunk_logic;
 use crate::chunk_logic::{ChunkUnloadEvent, ChunkWorkerHandle};
 use crate::config::Config;
-use crate::entity::{
-    ArrowComponent, ChunkEntities, ItemComponent, PositionComponent, SerializerComponent,
-    VelocityComponent,
-};
-use feather_core::entity::{ArrowEntityData, BaseEntityData, EntityData, ItemData, ItemEntityData};
+use crate::entity::{ChunkEntities, SerializerComponent};
 use feather_core::world::ChunkMap;
 use rayon::prelude::*;
 use shrev::{EventChannel, ReaderId};
-use specs::{Entity, LazyUpdate, Read, ReadExpect, ReadStorage, System, WorldExt, Write};
+use specs::{Entity, LazyUpdate, Read, ReadExpect, System, WorldExt, Write};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Instant;
@@ -107,11 +103,11 @@ pub fn save_chunks(
                 let entity_data = entities
                     .into_iter()
                     .filter_map(|entity| {
-                        let serializer =
-                            match world.read_component::<SerializerComponent>().get(entity) {
-                                Some(serializer) => serializer,
-                                None => return None, // Entity not serialized
-                            };
+                        let serializers = world.read_component::<SerializerComponent>();
+                        let serializer = match serializers.get(entity) {
+                            Some(serializer) => serializer,
+                            None => return None, // Entity not serialized
+                        };
 
                         let serialize = serializer.0;
                         Some(serialize(world, entity))

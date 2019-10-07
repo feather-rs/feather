@@ -1,7 +1,7 @@
 use shrev::EventChannel;
 use specs::{
-    Builder, Component, Entities, Entity, LazyUpdate, NullStorage, Read, ReadStorage, ReaderId,
-    System, SystemData, World,
+    Builder, Component, Entities, Entity, LazyUpdate, NullStorage, Read, ReaderId, System, World,
+    WorldExt,
 };
 
 use feather_core::packet::SpawnObject;
@@ -10,14 +10,13 @@ use feather_core::{Item, Packet, Position};
 use crate::entity::component::{PacketCreatorComponent, SerializerComponent};
 use crate::entity::metadata::Metadata;
 use crate::entity::movement::degrees_to_stops;
-use crate::entity::{NamedComponent, PositionComponent, VelocityComponent};
+use crate::entity::{PositionComponent, VelocityComponent};
 use crate::lazy::LazyUpdateExt;
 use crate::physics::PhysicsBuilder;
 use crate::player::PLAYER_EYE_HEIGHT;
-use crate::util::{protocol_velocity, Util};
-use crate::world_ext::WorldExt;
+use crate::util::protocol_velocity;
 use feather_core::entity::{ArrowEntityData, BaseEntityData, EntityData};
-use specs::world::LazyBuilder;
+use specs::world::{EntitiesRes, LazyBuilder};
 use uuid::Uuid;
 
 /// Component for arrow entities.
@@ -63,7 +62,7 @@ impl<'a> System<'a> for ShootArrowSystem {
 
             // TODO: shooter
 
-            create(lazy.spawn_entity(&entities), false)
+            create(&lazy, &entities, false)
                 .with(PositionComponent {
                     current: pos,
                     previous: pos,
@@ -76,7 +75,7 @@ impl<'a> System<'a> for ShootArrowSystem {
     setup_impl!(reader);
 }
 
-pub fn create<'a>(builder: LazyBuilder<'a>, critical: bool) -> LazyBuilder<'a> {
+pub fn create<'a>(lazy: &'a LazyUpdate, entities: &EntitiesRes, critical: bool) -> LazyBuilder<'a> {
     let meta = {
         let mut meta_arrow = crate::entity::metadata::Arrow::default();
         let mask = if critical {
@@ -89,7 +88,7 @@ pub fn create<'a>(builder: LazyBuilder<'a>, critical: bool) -> LazyBuilder<'a> {
         Metadata::Arrow(meta_arrow)
     };
 
-    builder
+    lazy.spawn_entity(entities)
         .with(ArrowComponent)
         .with(
             PhysicsBuilder::new()
@@ -104,10 +103,38 @@ pub fn create<'a>(builder: LazyBuilder<'a>, critical: bool) -> LazyBuilder<'a> {
         .with(SerializerComponent(&serialize))
 }
 
+pub fn create_from_data(
+    lazy: &LazyUpdate,
+    entities: &EntitiesRes,
+    data: &ArrowEntityData,
+) -> Option<Entity> {
+    let pos = data.entity.read_position()?;
+    let vel = data.entity.read_velocity()?;
+
+    let critical = match data.critical {
+        0 => false,
+        _ => true,
+    };
+
+    // TODO: load other attributes
+
+    Some(
+        create(lazy, entities, critical)
+            .with(PositionComponent {
+                current: pos,
+                previous: pos,
+            })
+            .with(VelocityComponent(vel))
+            .build(),
+    )
+}
+
 fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
-    let position = world.get::<PositionComponent>(entity).current;
-    let (velocity_x, velocity_y, velocity_z) =
-        protocol_velocity(world.get::<VelocityComponent>(entity).0);
+    let positions = world.read_component::<PositionComponent>();
+    let velocities = world.read_component::<VelocityComponent>();
+
+    let position = positions.get(entity).unwrap().current;
+    let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocities.get(entity).unwrap().0);
 
     let packet = SpawnObject {
         entity_id: entity.id() as i32,
@@ -128,10 +155,13 @@ fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
 }
 
 fn serialize(world: &World, entity: Entity) -> EntityData {
+    let positions = world.read_component::<PositionComponent>();
+    let velocities = world.read_component::<VelocityComponent>();
+
     EntityData::Arrow(ArrowEntityData {
         entity: BaseEntityData::new(
-            world.get::<PositionComponent>(entity).current,
-            world.get::<VelocityComponent>(entity).0,
+            positions.get(entity).unwrap().current,
+            velocities.get(entity).unwrap().0,
         ),
         critical: 0, // TODO
     })

@@ -40,7 +40,9 @@ use feather_core::network::packet::implementation::DisconnectPlay;
 use prelude::*;
 
 use crate::chunk_logic::{ChunkHolders, ChunkWorkerHandle};
-use crate::entity::{EntityDestroyEvent, NamedComponent};
+use crate::entity::{
+    EntityDestroyEvent, NamedComponent, PacketCreatorComponent, SerializerComponent,
+};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
 use crate::systems::{BROADCASTER, JOIN_HANDLER, NETWORK, PLAYER_INIT};
@@ -81,7 +83,6 @@ pub mod systems;
 #[cfg(test)]
 pub mod testframework;
 pub mod time;
-pub mod world_ext;
 pub mod worldgen;
 
 pub const TPS: u64 = 20;
@@ -350,6 +351,9 @@ fn init_world<'a, 'b>(
     world.insert(player_count);
     world.insert(ioman);
     world.insert(TickCount::default());
+
+    world.register::<PacketCreatorComponent>();
+    world.register::<SerializerComponent>();
 
     let generator: Arc<dyn WorldGenerator> = match level.generator_type() {
         LevelGeneratorType::Flat => Arc::new(SuperflatWorldGenerator {
