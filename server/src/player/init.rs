@@ -1,14 +1,18 @@
-use crate::entity::{LastKnownPositionComponent, PlayerComponent, VelocityComponent};
+use crate::entity::{
+    degrees_to_stops, LastKnownPositionComponent, PacketCreatorComponent, PlayerComponent,
+    VelocityComponent,
+};
 use crate::entity::{Metadata, NamedComponent, PositionComponent};
 use crate::network::PlayerPreJoinEvent;
 use crate::player::{ChunkPendingComponent, InventoryComponent, LoadedChunksComponent};
 use crate::prelude::*;
 use feather_core::level::LevelData;
-use feather_core::Gamemode;
+use feather_core::packet::SpawnPlayer;
 use feather_core::Position;
+use feather_core::{Gamemode, Packet};
 use hashbrown::HashSet;
 use shrev::{EventChannel, ReaderId};
-use specs::SystemData;
+use specs::{Entity, SystemData, WorldExt};
 use specs::{Read, System, World, WriteStorage};
 use std::path::Path;
 use std::sync::Arc;
@@ -32,6 +36,7 @@ impl<'a> System<'a> for PlayerInitSystem {
         WriteStorage<'a, InventoryComponent>,
         WriteStorage<'a, Metadata>,
         WriteStorage<'a, LastKnownPositionComponent>,
+        WriteStorage<'a, PacketCreatorComponent>,
         Read<'a, LevelData>,
         Read<'a, Arc<Config>>,
     );
@@ -48,6 +53,7 @@ impl<'a> System<'a> for PlayerInitSystem {
             mut inventory_comps,
             mut metadata,
             mut last_positions,
+            mut packet_creators,
             level,
             config,
         ) = data;
@@ -131,6 +137,11 @@ impl<'a> System<'a> for PlayerInitSystem {
 
             let meta = Metadata::Player(crate::entity::metadata::Player::default());
             metadata.insert(event.player, meta).unwrap();
+
+            let packet_creator = PacketCreatorComponent(&create_packet);
+            packet_creators
+                .insert(event.player, packet_creator)
+                .unwrap();
         }
     }
 
@@ -143,4 +154,25 @@ impl<'a> System<'a> for PlayerInitSystem {
                 .register_reader(),
         );
     }
+}
+
+fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
+    let positions = world.read_component::<PositionComponent>();
+    let nameds = world.read_component::<NamedComponent>();
+    let metas = world.read_component::<Metadata>();
+
+    let position = positions.get(entity).unwrap();
+
+    let packet = SpawnPlayer {
+        entity_id: entity.id() as i32,
+        player_uuid: nameds.get(entity).unwrap().uuid,
+        x: position.current.x,
+        y: position.current.y,
+        z: position.current.z,
+        yaw: degrees_to_stops(position.current.yaw),
+        pitch: degrees_to_stops(position.current.pitch),
+        metadata: metas.get(entity).unwrap().to_full_raw_metadata(),
+    };
+
+    Box::new(packet)
 }

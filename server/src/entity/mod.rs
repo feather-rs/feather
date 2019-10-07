@@ -32,7 +32,7 @@ pub use destroy::EntityDestroyEvent;
 pub use falling_block::FallingBlockComponent;
 pub use item::ItemComponent;
 pub use metadata::{EntityBitMask, Metadata};
-pub use movement::LastKnownPositionComponent;
+pub use movement::{degrees_to_stops, LastKnownPositionComponent};
 
 pub use save::save_chunks;
 
