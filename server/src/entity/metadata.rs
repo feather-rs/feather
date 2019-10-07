@@ -56,7 +56,7 @@ entity_metadata! {
         additional_hearts: f32() = 11,
         score: VarInt() = 12,
         displayed_skin_parts: u8() = 13,
-        main_hand: u8() = 14,
+        main_hand: u8(1) = 14,
     },
     Arrow: Entity {
         arrow_bit_mask: u8() = 6,
