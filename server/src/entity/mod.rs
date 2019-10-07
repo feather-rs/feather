@@ -2,17 +2,16 @@
 //! and `PlayerComponent`. In the future, will also
 //! provide entity-specific components and systems.
 
-mod arrow;
 mod broadcast;
 mod chunk;
 mod component;
 mod destroy;
-mod falling_block;
-mod item;
+mod impls;
 pub mod metadata;
 mod movement;
 mod save;
-mod types;
+
+pub use impls::*;
 
 use crate::systems::{
     BLOCK_FALLING_LANDING, CHUNK_CROSS, CHUNK_ENTITIES_LOAD, CHUNK_ENTITIES_UPDATE, CHUNK_SAVE,

@@ -1,24 +1,35 @@
 //! Logic for working with item entities.
+use crate::entity::metadata::Metadata;
 use crate::entity::metadata::{self, Metadata};
-use crate::entity::{ChunkEntities, EntityDestroyEvent, PlayerComponent, PositionComponent};
-use crate::physics::nearby_entities;
+use crate::entity::{
+    ChunkEntities, EntityDestroyEvent, PlayerComponent, PositionComponent, VelocityComponent,
+};
+use crate::physics::{nearby_entities, PhysicsBuilder};
 use crate::player::{
     InventoryComponent, InventoryUpdateEvent, PlayerItemDropEvent, PLAYER_EYE_HEIGHT,
 };
-use crate::util::Util;
-use crate::TickCount;
+use crate::util::{protocol_velocity, Util};
+use crate::{TickCount, TPS};
 use feather_core::network::packet::implementation::CollectItem;
-use feather_core::ItemStack;
+use feather_core::{ItemStack, Packet};
 use rand::Rng;
 use shrev::EventChannel;
 use smallvec::SmallVec;
 use specs::storage::ComponentEvent;
 use specs::{
-    BitSet, Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, ReaderId,
-    System, SystemData, World, Write, WriteStorage,
+    BitSet, Builder, Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage,
+    ReaderId, System, SystemData, World, Write, WriteStorage,
 };
 
-/// Component for item entitties.
+use crate::entity::component::{PacketCreatorComponent, SerializerComponent};
+use crate::entity::movement::degrees_to_stops;
+use feather_blocks::Block::PetrifiedOakSlab;
+use feather_core::entity::{BaseEntityData, EntityData, ItemData, ItemEntityData};
+use feather_core::packet::SpawnObject;
+use specs::world::LazyBuilder;
+use uuid::Uuid;
+
+/// Component for item entities.
 pub struct ItemComponent {
     /// The tick at which this item is collectable
     /// by a player.
@@ -309,6 +320,70 @@ impl<'a> System<'a> for ItemCollectSystem {
     }
 
     flagged_setup_impl!(PositionComponent, reader);
+}
+
+pub fn create(builder: LazyBuilder, stack: ItemStack, tick: TickCount) -> LazyBuilder {
+    let meta = {
+        let mut meta_item = crate::entity::metadata::Item::default();
+        meta_item.set_item(Some(stack.clone()));
+        Metadata::Item(meta_item)
+    };
+
+    builder
+        .with(ItemComponent {
+            stack,
+            collectable_at: tick.0 + TPS,
+        })
+        .with(
+            PhysicsBuilder::new()
+                .bbox(0.25, 0.25, 0.25)
+                .gravity(-0.04)
+                .drag(0.98)
+                .build(),
+        )
+        .with(meta)
+        .with(PacketCreatorComponent(&create_packet))
+        .with(SerializerComponent(&serialize))
+}
+
+fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
+    let position = world.get::<PositionComponent>(entity).current;
+
+    let (velocity_x, velocity_y, velocity_z) =
+        protocol_velocity(world.get::<VelocityComponent>(entity).0);
+
+    let packet = SpawnObject {
+        entity_id: entity.id() as i32,
+        object_uuid: Uuid::new_v4(),
+        ty: 2, // Type 2 for item stack
+        x: position.x,
+        y: position.y,
+        z: position.z,
+        pitch: degrees_to_stops(position.pitch),
+        yaw: degrees_to_stops(position.yaw),
+        data: 1, // Has velocity
+        velocity_x,
+        velocity_y,
+        velocity_z,
+    };
+
+    Box::new(packet)
+}
+
+fn serialize(world: &World, entity: Entity) -> EntityData {
+    let item = world.get::<ItemComponent>(entity);
+    let position = world.get::<PositionComponent>(entity);
+    let velocity = world.get::<VelocityComponent>(entity);
+
+    EntityData::Item(ItemEntityData {
+        entity: BaseEntityData::new(position.current, velocity.0),
+        age: 0,          // TODO
+        pickup_delay: 0, // TODO
+        item: ItemData {
+            item: item.stack.ty.identifier().to_string(),
+            count: item.stack.amount,
+        },
+    })
 }
 
 pub fn item_stack_from_meta(meta: &Metadata) -> ItemStack {

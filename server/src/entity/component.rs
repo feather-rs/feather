@@ -1,10 +1,14 @@
 //! Various Specs components.
 
+use feather_core::entity::EntityData;
 use feather_core::world::Position;
-use feather_core::Gamemode;
+use feather_core::{Gamemode, Packet};
 use glm::DVec3;
 use specs::storage::BTreeStorage;
-use specs::{Component, FlaggedStorage, Join, System, VecStorage, WriteStorage};
+use specs::{
+    Component, DenseVecStorage, Entity, FlaggedStorage, Join, System, VecStorage, World,
+    WriteStorage,
+};
 use uuid::Uuid;
 
 pub struct PlayerComponent {
@@ -63,6 +67,36 @@ pub struct NamedComponent {
 
 impl Component for NamedComponent {
     type Storage = BTreeStorage<Self>;
+}
+
+pub trait PacketCreator: Fn(&World, Entity) -> Box<dyn Packet> + Send + Sync {}
+
+impl<F: Fn(&World, Entity) -> Box<dyn Packet> + Send + Sync> PacketCreator for F {}
+
+/// Component containing a closure which returns the packet
+/// needed to spawn an entity.
+///
+/// The closure requires world access because it may need to access
+/// arbitrary components.
+pub struct PacketCreatorComponent(pub &'static dyn PacketCreator);
+
+impl Component for PacketCreatorComponent {
+    type Storage = VecStorage<Self>;
+}
+
+pub trait EntitySerializer: Fn(&World, Entity) -> EntityData + Send + Sync {}
+
+impl<F: Fn(&World, Entity) -> EntityData + Send + Sync> EntitySerializer for F {}
+
+/// Component containing a closure which returns the `EntityData`
+/// for an entity.
+///
+/// The closure requires world access because it may need to access
+/// arbitrary components.
+pub struct SerializerComponent(pub &'static dyn EntitySerializer);
+
+impl Component for SerializerComponent {
+    type Storage = VecStorage<Self>;
 }
 
 /// System for resetting an entity's components

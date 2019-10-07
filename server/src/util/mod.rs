@@ -2,19 +2,16 @@
 use bumpalo::Bump;
 use feather_core::{ChunkPosition, ItemStack, Packet, Position};
 use glm::DVec3;
-use spawn::Spawner;
 use thread_local::ThreadLocal;
 
 #[macro_use]
 mod macros;
 mod broadcaster;
-mod spawn;
 
 use broadcaster::Broadcaster;
 pub use broadcaster::BroadcasterSystem;
 use feather_blocks::Block;
 pub use macros::*;
-pub use spawn::SpawnerSystem;
 use specs::Entity;
 use uuid::Uuid;
 
@@ -42,12 +39,6 @@ pub fn protocol_velocity(vel: DVec3) -> (i16, i16, i16) {
 /// which will only be used inside a function, for example,
 /// this function should be used rather than allocating
 /// directly on the heap.
-/// * `spawn_*` - functions to lazily spawn entities of
-/// various types. This avoids the need to specify write
-/// storage dependencies for each component the entity
-/// needs. Note, however, that the entity isn't created
-/// until the handling dispatcher stage. These functions simply
-/// redirect to `entity::Spawner`.
 /// * `broadcast` - lazily broadcasts a packet to all players
 /// who are able to see a given chunk. This can be used
 /// to broadcast movement updates, for example.
@@ -58,8 +49,6 @@ pub struct Util {
     ///
     /// This is used to reduce allocation frequency.
     bump: ThreadLocal<Bump>,
-    /// The spawner, used to lazily spawn entities.
-    spawner: Spawner,
     /// The broadcaster, used to lazily broadcast packets.
     broadcaster: Broadcaster,
 }
@@ -77,28 +66,6 @@ impl Util {
     #[allow(clippy::mut_from_ref)] // This is sound—it just redirects to `bumpalo`.
     pub fn alloc<T>(&self, value: T) -> &mut T {
         self.bump().alloc(value)
-    }
-
-    /// Queues an item to be spawned.
-    ///
-    /// This redirects to `Spawner::spawn`.
-    pub fn spawn_item(&self, position: Position, velocity: DVec3, item: ItemStack) {
-        self.spawner.spawn_item(position, velocity, item);
-    }
-
-    pub fn spawn_arrow(
-        &self,
-        position: Position,
-        velocity: DVec3,
-        critical: bool,
-        shooter: Option<Uuid>,
-    ) {
-        self.spawner
-            .spawn_arrow(position, velocity, critical, shooter);
-    }
-
-    pub fn spawn_falling_block(&self, position: Position, velocity: DVec3, block: Block) {
-        self.spawner.spawn_falling_block(position, velocity, block);
     }
 
     /// This should be called at the end of every tick.

@@ -70,6 +70,15 @@ impl BaseEntityData {
 }
 
 impl BaseEntityData {
+    /// Creates a `BaseEntityData` from a position and velocity.
+    pub fn new(pos: Position, velocity: glm::DVec3) -> Self {
+        Self {
+            position: vec![pos.x, pos.y, pos.z],
+            rotation: vec![pos.yaw, pos.pitch],
+            velocity: vec![velocity.x, velocity.y, velocity.z],
+        }
+    }
+
     /// Reads the position and rotation fields. If the fields are invalid, None is returned.
     pub fn read_position(self: &BaseEntityData) -> Option<Position> {
         if self.position.len() == 3 && self.rotation.len() == 2 {
@@ -247,5 +256,15 @@ mod tests {
         };
         let vel = data.read_velocity();
         assert!(vel.is_none());
+    }
+
+    #[test]
+    fn test_new() {
+        let pos = position!(1.0, 10.0, 3.0, 115.0, -3.0);
+        let vel = glm::vec3(0.0, 1.0, 2.0);
+
+        let data = BaseEntityData::new(pos, vel);
+        assert_eq!(data.read_position(), Some(pos));
+        assert_eq!(data.read_velocity(), Some(vel));
     }
 }

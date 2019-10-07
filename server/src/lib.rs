@@ -71,6 +71,7 @@ pub mod config;
 pub mod entity;
 pub mod io;
 pub mod joinhandler;
+pub mod lazy;
 pub mod network;
 pub mod physics;
 pub mod player;
@@ -80,6 +81,7 @@ pub mod systems;
 #[cfg(test)]
 pub mod testframework;
 pub mod time;
+pub mod world_ext;
 pub mod worldgen;
 
 pub const TPS: u64 = 20;

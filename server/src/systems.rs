@@ -60,8 +60,6 @@ pub const BLOCK_FALLING_LANDING: &str = "block_falling_landing";
 // Physics
 pub const ENTITY_PHYSICS: &str = "entity_physics";
 
-pub const PHYSICS_INIT: &str = "physics_init";
-
 // Other
 pub const JOIN_HANDLER: &str = "join_handler";
 pub const NETWORK: &str = "network";
