@@ -353,6 +353,7 @@ pub fn create<'a>(
                 .drag(0.98)
                 .build(),
         )
+        .with(VelocityComponent::default())
         .with(meta)
         .with(PacketCreatorComponent(&create_packet))
         .with(SerializerComponent(&serialize))
@@ -444,7 +445,6 @@ pub fn item_meta(stack: ItemStack) -> Metadata {
 mod tests {
     use super::*;
     use crate::entity::EntitySpawnEvent;
-    use crate::entity::EntityType;
     use crate::testframework as t;
     use feather_core::inventory::SLOT_HOTBAR_OFFSET;
     use feather_core::network::cast_packet;
@@ -478,7 +478,6 @@ mod tests {
         assert_eq!(events.len(), 1);
         let first = events.first().unwrap();
         let entity = first.entity;
-        assert_eq!(first.ty, EntityType::Item);
 
         // Check position
         let pos = t::entity_pos(&w, entity);
@@ -495,21 +494,20 @@ mod tests {
             .with_dep(ItemMergeSystem::default(), "item_merge", &[])
             .build();
 
-        let item1 =
-            t::add_entity_with_pos(&mut w, EntityType::Item, position!(0.0, 0.0, 0.0), true);
-        let item2 =
-            t::add_entity_with_pos(&mut w, EntityType::Item, position!(1.0, 0.4, 1.0), true);
-
-        {
-            let mut metadatas = w.write_component::<Metadata>();
-
-            metadatas
-                .insert(item1, item_meta(ItemStack::new(Item::EnderPearl, 4)))
-                .unwrap();
-            metadatas
-                .insert(item2, item_meta(ItemStack::new(Item::EnderPearl, 7)))
-                .unwrap();
-        }
+        let item1 = create(
+            &w.fetch(),
+            &w.fetch(),
+            ItemStack::new(Item::EnderPearl, 4),
+            0,
+        )
+        .build();
+        let item2 = create(
+            &w.fetch(),
+            &w.fetch(),
+            ItemStack::new(Item::EnderPearl, 7),
+            0,
+        )
+        .build();
 
         d.dispatch(&w);
         w.maintain();
@@ -532,20 +530,15 @@ mod tests {
             .build();
 
         let player = t::add_player(&mut w);
-        let item = t::add_entity(&mut w, EntityType::Item, true);
         let stack = ItemStack::new(Item::String, 4);
+        let item = create(&w.fetch(), &w.fetch(), stack.clone(), 0).build();
 
         let mut destroy_reader = t::reader(&w);
-
-        {
-            let mut metadatas = w.write_component::<Metadata>();
-            let metadata = item_meta(stack.clone());
-            metadatas.insert(item, metadata).unwrap();
-        }
 
         // Allow item to be collected
         w.fetch_mut::<TickCount>().0 = 20;
 
+        w.maintain();
         d.dispatch(&w);
         w.maintain();
 

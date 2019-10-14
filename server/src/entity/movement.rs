@@ -227,15 +227,16 @@ pub fn degrees_to_stops(degs: f32) -> u8 {
 
 #[cfg(test)]
 mod tests {
-    use specs::WorldExt;
+    use specs::{Builder, WorldExt};
 
     use feather_core::network::cast_packet;
     use feather_core::network::packet::PacketType;
 
-    use crate::entity::EntityType;
+    use crate::entity::test;
     use crate::testframework as t;
 
     use super::*;
+    use feather_core::{Item, ItemStack};
 
     #[test]
     fn test_velocity_broadcast_system() {
@@ -245,7 +246,7 @@ mod tests {
 
         let player = t::add_player(&mut w);
 
-        let entity = t::add_entity(&mut w, EntityType::Item, false);
+        let entity = test::create(&mut w, position!(0.0, 0.0, 0.0)).build();
 
         w.write_component::<VelocityComponent>()
             .insert(entity, VelocityComponent(glm::vec3(0.0, 0.0, 0.0)))

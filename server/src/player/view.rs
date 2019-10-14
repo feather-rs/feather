@@ -97,19 +97,18 @@ impl<'a> System<'a> for ViewUpdateSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::{EntitySendSystem, EntityType};
+    use crate::entity::test;
     use crate::testframework as t;
     use feather_core::network::cast_packet;
     use feather_core::network::packet::implementation::{SpawnObject, SpawnPlayer};
-    use feather_core::{ChunkPosition, PacketType};
+    use feather_core::{ChunkPosition, Item, ItemStack, PacketType};
     use hashbrown::HashSet;
-    use specs::WorldExt;
+    use specs::{Builder, WorldExt};
 
     #[test]
     fn test_view_update_system() {
         let (mut world, mut dispatcher) = t::builder()
             .with(ViewUpdateSystem::default(), "view")
-            .with_dep(EntitySendSystem, "", &["view"])
             .build();
 
         let player_chunk = ChunkPosition::new(0, 0);
@@ -117,10 +116,10 @@ mod tests {
         let player1 = t::add_player_without_holder(&mut world);
         let player2 = t::add_player_without_holder(&mut world);
 
-        let entity1 = t::add_entity_without_holder(&mut world, EntityType::Item, true);
-        let entity2 = t::add_entity_without_holder(&mut world, EntityType::Item, true);
-        let entity3 = t::add_entity_without_holder(&mut world, EntityType::Item, true);
-        let entity4 = t::add_entity_without_holder(&mut world, EntityType::Item, true);
+        let entity1 = test::create(&mut world, position!(0.0, 0.0, 0.0)).build();
+        let entity2 = test::create(&mut world, position!(0.0, 0.0, 0.0)).build();
+        let entity3 = test::create(&mut world, position!(0.0, 0.0, 0.0)).build();
+        let entity4 = test::create(&mut world, position!(0.0, 0.0, 0.0)).build();
 
         let mut config = Config::default();
         config.server.view_distance = 4;
@@ -143,6 +142,9 @@ mod tests {
         };
         t::trigger_event(&world, event);
 
+        world.maintain();
+        dispatcher.dispatch(&world);
+        world.maintain();
         dispatcher.dispatch(&world);
         world.maintain();
 

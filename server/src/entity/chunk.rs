@@ -224,7 +224,7 @@ impl<'a> System<'a> for EntityChunkLoadSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::EntityType;
+    use crate::entity::{test, ArrowComponent, ItemComponent};
     use crate::testframework as t;
     use feather_core::entity::{ArrowEntityData, ItemEntityData};
     use feather_core::Position;
@@ -260,10 +260,7 @@ mod tests {
             })
             .build();
 
-        let event = EntitySpawnEvent {
-            entity,
-            ty: EntityType::Player,
-        };
+        let event = EntitySpawnEvent { entity };
         t::trigger_event(&w, event);
 
         d.dispatch(&w);
@@ -319,7 +316,7 @@ mod tests {
             .build();
 
         let pos = position!(100.0, -100.0, -100.0);
-        let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, false);
+        let entity = test::create(&mut w, pos).build();
 
         let event = EntityDestroyEvent { entity };
         t::trigger_event(&w, event);
@@ -377,13 +374,12 @@ mod tests {
         d.dispatch(&w);
         w.maintain();
 
-        // Confirm two spawn events were triggered
-        let events = t::triggered_events::<EntitySpawnEvent>(&w, &mut entity_spawn_reader);
-        assert_eq!(events.len(), 2);
+        // Confirm two entities were created: one arrow, one item
+        let mut events = t::triggered_events::<EntitySpawnEvent>(&w, &mut entity_spawn_reader);
 
-        let mut iter = events.iter();
-        for ty in &[EntityType::Item, EntityType::Arrow] {
-            assert_eq!(iter.next().unwrap().ty, *ty);
-        }
+        let first = events.remove(0).entity;
+        assert!(w.read_component::<ArrowComponent>().contains(first));
+        let second = events.remove(0).entity;
+        assert!(w.read_component::<ItemComponent>().contains(second));
     }
 }

@@ -141,11 +141,14 @@ pub fn send_entity_to_player(lazy: &LazyUpdate, player: Entity, entity: Entity) 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::entity::{item, test};
     use crate::player::ChunkCrossSystem;
     use crate::testframework as t;
     use feather_core::network::cast_packet;
+    use feather_core::network::packet::implementation::{SpawnObject, SpawnPlayer};
     use feather_core::network::packet::PacketType;
-    use specs::WorldExt;
+    use feather_core::{Item, ItemStack};
+    use specs::{Builder, WorldExt};
 
     #[test]
     fn test_spawn_player() {
@@ -156,7 +159,6 @@ mod tests {
 
         let event = EntitySpawnEvent {
             entity: player1.entity,
-            ty: EntityType::Player,
         };
 
         w.fetch_mut::<EventChannel<_>>().single_write(event);
@@ -177,13 +179,13 @@ mod tests {
         let (mut w, mut d) = t::builder()
             .with(EntityBroadcastSystem::default(), "broadcast")
             .with(ChunkCrossSystem::default(), "chunk_cross")
-            .with_dep(EntitySendSystem, "", &["broadcast", "chunk_cross"])
             .build();
 
         let player = t::add_player(&mut w);
 
-        let item = t::add_entity(&mut w, EntityType::Item, true);
+        let item = item::create(&w.fetch(), &w.fetch(), ItemStack::new(Item::Stone, 1), 0).build();
 
+        w.maintain();
         d.dispatch(&w);
         w.maintain();
 

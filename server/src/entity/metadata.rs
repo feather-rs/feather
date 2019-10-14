@@ -114,12 +114,12 @@ impl<'a> System<'a> for MetadataBroadcastSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::EntityType;
+    use crate::entity::test;
     use crate::testframework as t;
     use feather_core::entitymeta::MetaEntry;
     use feather_core::network::cast_packet;
     use feather_core::PacketType;
-    use specs::WorldExt;
+    use specs::{Builder, WorldExt};
 
     #[test]
     fn test_basic() {
@@ -155,7 +155,7 @@ mod tests {
             .build();
 
         // Metadata is inserted here, which causes update event
-        let entity = t::add_entity(&mut w, EntityType::Test, true);
+        let entity = test::create(&mut w, position!(0.0, 0.0, 0.0)).build();
         let player = t::add_player(&mut w);
 
         d.dispatch(&w);

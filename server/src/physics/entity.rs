@@ -193,54 +193,21 @@ impl<'a> System<'a> for EntityPhysicsSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::entity::test;
+    use crate::physics::PhysicsBuilder;
     use crate::testframework as t;
-    use specs::WorldExt;
-
-    #[test]
-    fn test_physics_basic() {
-        let (mut w, mut d) = t::builder().with(EntityPhysicsSystem, "").build();
-
-        t::populate_with_air(&mut w);
-
-        let item = t::add_entity_with_pos_and_vel(
-            &mut w,
-            EntityType::Item,
-            position!(0.0, 0.0, 0.0),
-            glm::vec3(0.0, 1.0, 0.0),
-            false,
-        );
-
-        let bbox = crate::physics::component::bbox(0.25, 0.25, 0.25);
-        w.write_component::<BoundingBoxComponent>()
-            .insert(item, BoundingBoxComponent(bbox))
-            .unwrap();
-
-        d.dispatch(&w);
-        w.maintain();
-
-        let pos = t::entity_pos(&w, item);
-        let vel = t::entity_vel(&w, item).unwrap();
-
-        assert_pos_eq!(pos, position!(0.0, 1.0, 0.0));
-        assert_float_eq!(vel.x, 0.0);
-        assert_float_eq!(vel.y, 0.94);
-        assert_float_eq!(vel.z, 0.0);
-    }
+    use feather_core::{Item, ItemStack};
+    use specs::{Builder, WorldExt};
 
     #[test]
     fn test_unloaded_chunk() {
         let (mut w, mut d) = t::builder().with(EntityPhysicsSystem, "").build();
 
-        let entity = t::add_entity_with_pos(
-            &mut w,
-            EntityType::Item,
-            position!(1000.0, 100.0, 1000.0),
-            false,
-        );
+        let entity = test::create(&mut w, position!(1000.0, 100.0, 1000.0)).build();
 
         let bbox = crate::physics::component::bbox(0.25, 0.25, 0.25);
-        w.write_component::<BoundingBoxComponent>()
-            .insert(entity, BoundingBoxComponent(bbox))
+        w.write_component::<PhysicsComponent>()
+            .insert(entity, PhysicsBuilder::new().build())
             .unwrap();
 
         d.dispatch(&w);
