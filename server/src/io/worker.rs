@@ -21,6 +21,14 @@ use tokio::codec::Framed;
 use tokio::net::TcpStream;
 use tokio::timer::Timeout;
 
+#[derive(Fail, Debug)]
+enum Error {
+    #[fail(display = "Option that should not be None was None")]
+    /// An Error type than can be used as the error type of using the Try operator on Option
+    /// types. In rust-core, this is an unstable feature (issue #42327)
+    NoneError,
+}
+
 /// Runs a worker task for the given client.
 pub async fn run_worker(
     stream: TcpStream,
@@ -121,7 +129,7 @@ async fn _run_worker(
                                     Action::JoinGame(res) => {
                                         let info = NewClientInfo {
                                             ip,
-                                            username: res.username,
+                                            username: res.username.ok_or(Error::NoneError)?,
                                             profile: res.props,
                                             uuid: res.uuid,
                                             sender: tx_server_to_worker.clone(),

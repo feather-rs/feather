@@ -35,7 +35,7 @@ pub struct IO {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Proxy {
-    pub proxy_mode: ProxyMode
+    pub proxy_mode: ProxyMode,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
