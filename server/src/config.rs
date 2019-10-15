@@ -34,7 +34,9 @@ pub struct IO {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Proxy {}
+pub struct Proxy {
+    pub proxy_mode: ProxyMode
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Server {
@@ -88,10 +90,13 @@ pub fn load(input: String) -> Result<Config, ConfigError> {
     Ok(config)
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum ProxyMode {
+    #[serde(alias = "none")]
     None,
-    Bungee,
+    #[serde(alias = "bungeecord")]
+    BungeeCord,
+    #[serde(alias = "velocity")]
     Velocity,
 }
 
@@ -133,5 +138,8 @@ mod tests {
         assert_eq!(world.generator, "default");
         assert_eq!(world.seed, "");
         assert_eq!(world.save_interval.as_millis(), 1000 * 60);
+
+        let proxy = &config.proxy;
+        assert_eq!(proxy.proxy_mode, ProxyMode::None);
     }
 }
