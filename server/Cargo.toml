@@ -25,8 +25,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.5"
 rsa = "0.1"
-# Match RSA git master
-num-bigint = { version = "0.4", features = ["rand", "i128", "u64_digit", "prime", "zeroize"], package = "num-bigint-dig" }
+num-bigint = { version = "0.5", package = "num-bigint-dig" }
 rsa-der = "0.2"
 rand = "0.7"
 rand_xorshift = "0.2"
