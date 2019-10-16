@@ -661,7 +661,7 @@ dependencies = [
  "humantime-serde 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "mojang-api 0.3.0 (git+https://github.com/caelunshun/mojang-api-rs?rev=6525e910ad53953fa16028f0fce74b1a19855733)",
+ "mojang-api 0.4.0 (git+https://github.com/caelunshun/mojang-api-rs?rev=65bcc7691e2b2a537028b6c5aeb9de0621d5d461)",
  "multimap 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "nalgebra-glm 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1235,8 +1235,8 @@ dependencies = [
 
 [[package]]
 name = "mojang-api"
-version = "0.3.0"
-source = "git+https://github.com/caelunshun/mojang-api-rs?rev=6525e910ad53953fa16028f0fce74b1a19855733#6525e910ad53953fa16028f0fce74b1a19855733"
+version = "0.4.0"
+source = "git+https://github.com/caelunshun/mojang-api-rs?rev=65bcc7691e2b2a537028b6c5aeb9de0621d5d461#65bcc7691e2b2a537028b6c5aeb9de0621d5d461"
 dependencies = [
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2950,7 +2950,7 @@ dependencies = [
 "checksum mio 0.6.19 (registry+https://github.com/rust-lang/crates.io-index)" = "83f51996a3ed004ef184e16818edc51fadffe8e7ca68be67f9dee67d84d0ff23"
 "checksum mio-uds 0.6.7 (registry+https://github.com/rust-lang/crates.io-index)" = "966257a94e196b11bb43aca423754d87429960a768de9414f3691d6957abf125"
 "checksum miow 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8c1f2f3b1cf331de6896aabf6e9d55dca90356cc9960cca7eaaf408a355ae919"
-"checksum mojang-api 0.3.0 (git+https://github.com/caelunshun/mojang-api-rs?rev=6525e910ad53953fa16028f0fce74b1a19855733)" = "<none>"
+"checksum mojang-api 0.4.0 (git+https://github.com/caelunshun/mojang-api-rs?rev=65bcc7691e2b2a537028b6c5aeb9de0621d5d461)" = "<none>"
 "checksum mopa 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "a785740271256c230f57462d3b83e52f998433a7062fc18f96d5999474a9f915"
 "checksum multimap 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "de234f818d54830a7103b9be18ad0861d75aeb5e3c89759bc3f9a004cc39cfa3"
 "checksum nalgebra 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)" = "aaa9fddbc34c8c35dd2108515587b8ce0cab396f17977b8c738568e4edb521a2"
