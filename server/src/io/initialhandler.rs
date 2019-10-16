@@ -368,8 +368,6 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
         );
         send_packet(ih, encryption_request);
 
-        let mut join_result = JoinResult::default();
-        join_result.username = Some(packet.username.clone());
         ih.info = Some(JoinResult::with_username(packet.username.clone()));
 
         ih.stage = Stage::AwaitEncryptionResponse;
@@ -432,14 +430,18 @@ async fn handle_encryption_response(
         &BigInt::from_biguint(Plus, RSA_KEY.e().clone()).to_signed_bytes_be(),
     );
 
+    // This unwrapping can be shorter with the use of .flatten() which will stabilize in Rust 1.40.
+    let username = ih
+        .info
+        .as_ref()
+        .map(|x| x.username.as_ref())
+        .and_then(|x| x)
+        .ok_or(Error::OptionIsNone)?;
+
     // Perform authentication
     let auth_result = mojang_api::server_auth(
         &mojang_api::server_hash("", ih.key.unwrap(), der.as_slice()),
-        &ih.info
-            .clone()
-            .unwrap_or_default()
-            .username
-            .ok_or(Error::NoneError)?,
+        username,
     )
     .await;
 
@@ -558,7 +560,7 @@ enum Error {
     #[fail(display = "option that should not be None was None")]
     /// An Error type than can be used as the error type of using the Try operator on Option
     /// types. In rust-core, this is an unstable feature (issue #42327)
-    NoneError,
+    OptionIsNone,
 }
 
 /// The stage of an initial handler.
