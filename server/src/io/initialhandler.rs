@@ -376,8 +376,7 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
 
         // Check if there is some info about the client available. This can be the case if the
         // handshake is made by an IP forwarding proxy.
-        if ih.info.is_some() {
-            let mut info = ih.info.as_mut().unwrap();
+        if let Some(info) = ih.info.as_mut() {
             if info.username.is_none() {
                 info.username = Some(username);
             }
