@@ -204,13 +204,11 @@ impl<'a> System<'a> for EntityChunkLoadSystem {
                     EntityData::Item(item_data) => {
                         if item::create_from_data(&lazy, &entities, item_data, &tick).is_none() {
                             debug!("Error while loading item entity");
-                            dbg!();
                         }
                     }
                     EntityData::Arrow(arrow_data) => {
                         if arrow::create_from_data(&lazy, &entities, arrow_data).is_none() {
                             debug!("Error while loading arrow entity");
-                            dbg!();
                         }
                     }
                     // TODO: Spawn remaining entity types here.
