@@ -430,7 +430,7 @@ fn serialize(world: &World, entity: Entity) -> EntityData {
 
 pub fn item_stack_from_meta(meta: &Metadata) -> ItemStack {
     match meta {
-        Metadata::Item(item) => item.item().unwrap().clone(),
+        Metadata::Item(item) => item.item().unwrap(),
         _ => panic!(),
     }
 }
@@ -448,7 +448,6 @@ mod tests {
     use crate::testframework as t;
     use feather_core::inventory::SLOT_HOTBAR_OFFSET;
     use feather_core::network::cast_packet;
-    use feather_core::world::Position;
     use feather_core::{Item, ItemStack, PacketType};
     use specs::WorldExt;
 

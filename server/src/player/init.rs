@@ -8,7 +8,6 @@ use crate::player::{ChunkPendingComponent, InventoryComponent, LoadedChunksCompo
 use crate::prelude::*;
 use feather_core::level::LevelData;
 use feather_core::packet::SpawnPlayer;
-use feather_core::Position;
 use feather_core::{Gamemode, Packet};
 use hashbrown::HashSet;
 use shrev::{EventChannel, ReaderId};

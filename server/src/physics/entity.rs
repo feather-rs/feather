@@ -196,7 +196,6 @@ mod tests {
     use crate::entity::test;
     use crate::physics::PhysicsBuilder;
     use crate::testframework as t;
-    use feather_core::{Item, ItemStack};
     use specs::{Builder, WorldExt};
 
     #[test]
@@ -205,7 +204,6 @@ mod tests {
 
         let entity = test::create(&mut w, position!(1000.0, 100.0, 1000.0)).build();
 
-        let bbox = crate::physics::component::bbox(0.25, 0.25, 0.25);
         w.write_component::<PhysicsComponent>()
             .insert(entity, PhysicsBuilder::new().build())
             .unwrap();

@@ -15,7 +15,7 @@ use feather_core::network::packet::{Packet, PacketType};
 use feather_core::world::block::Block;
 use feather_core::world::chunk::Chunk;
 use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
-use feather_core::{Gamemode, Item, ItemStack};
+use feather_core::Gamemode;
 
 use crate::chunk_logic::{ChunkHolders, ChunkLoadSystem};
 use crate::config::Config;

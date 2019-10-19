@@ -618,7 +618,7 @@ mod tests {
     use crate::testframework as t;
     use feather_core::world::chunk::Chunk;
     use feather_core::world::ChunkPosition;
-    use feather_core::{Block, Item, ItemStack};
+    use feather_core::Block;
     use specs::{Builder, WorldExt};
     use std::collections::HashSet;
 

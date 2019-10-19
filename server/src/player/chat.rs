@@ -141,7 +141,7 @@ mod tests {
             message: String::from("test"),
         };
 
-        t::trigger_event(&w, event.clone());
+        t::trigger_event(&w, event);
 
         d.dispatch(&w);
         w.maintain();

@@ -101,7 +101,7 @@ impl<'a> System<'a> for ViewUpdateSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::{item, test, PositionComponent};
+    use crate::entity::{item, PositionComponent};
     use crate::testframework as t;
     use feather_core::network::cast_packet;
     use feather_core::network::packet::implementation::{SpawnObject, SpawnPlayer};

@@ -274,7 +274,7 @@ fn handle_shoot_bow(
 
         // Consume arrow
         let (arrow_slot, arrow_stack) = arrow_to_consume.unwrap();
-        let mut arrow_stack: ItemStack = arrow_stack.clone();
+        let mut arrow_stack: ItemStack = arrow_stack;
         arrow_stack.amount -= 1;
 
         inventory.set_item_at(arrow_slot, arrow_stack);
@@ -429,7 +429,7 @@ mod tests {
             .unwrap()
             .gamemode = Gamemode::Survival;
 
-        t::receive_packet(&player, &w, packet.clone());
+        t::receive_packet(&player, &w, packet);
 
         d.dispatch(&w);
         w.maintain();

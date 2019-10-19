@@ -236,7 +236,6 @@ mod tests {
     use crate::testframework as t;
 
     use super::*;
-    use feather_core::{Item, ItemStack};
 
     #[test]
     fn test_velocity_broadcast_system() {

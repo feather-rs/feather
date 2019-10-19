@@ -233,7 +233,6 @@ mod tests {
     use crate::entity::{test, ArrowComponent, ItemComponent};
     use crate::testframework as t;
     use feather_core::entity::{ArrowEntityData, ItemEntityData};
-    use feather_core::Position;
     use specs::{Builder, World, WorldExt};
 
     #[test]

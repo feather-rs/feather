@@ -141,7 +141,7 @@ pub fn send_entity_to_player(lazy: &LazyUpdate, player: Entity, entity: Entity) 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::{item, test, VelocityComponent};
+    use crate::entity::{item, VelocityComponent};
     use crate::player::ChunkCrossSystem;
     use crate::testframework as t;
     use feather_core::network::cast_packet;
