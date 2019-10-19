@@ -15,22 +15,23 @@ use feather_core::network::packet::{Packet, PacketType};
 use feather_core::world::block::Block;
 use feather_core::world::chunk::Chunk;
 use feather_core::world::{BlockPosition, ChunkMap, ChunkPosition, Position};
-use feather_core::{Gamemode, Item, ItemStack};
+use feather_core::Gamemode;
 
 use crate::chunk_logic::{ChunkHolders, ChunkLoadSystem};
 use crate::config::Config;
 use crate::entity::metadata::{self, Metadata};
 use crate::entity::{
-    ChunkEntities, EntityDestroyEvent, EntitySpawnEvent, EntityType, ItemComponent,
-    LastKnownPositionComponent, NamedComponent, PlayerComponent, PositionComponent,
-    VelocityComponent,
+    ArrowComponent, ChunkEntities, EntityDestroyEvent, EntitySendEvent, EntitySpawnEvent,
+    ItemComponent, LastKnownPositionComponent, NamedComponent, PacketCreatorComponent,
+    PlayerComponent, PositionComponent, SerializerComponent, VelocityComponent,
 };
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
+use crate::physics::PhysicsComponent;
 use crate::player::{InventoryComponent, PlayerDisconnectEvent};
 use crate::util::BroadcasterSystem;
 use crate::worldgen::{EmptyWorldGenerator, WorldGenerator};
-use crate::PlayerCount;
+use crate::{player, PlayerCount};
 use bitflags::_core::cell::RefCell;
 
 /// Initializes a Specs world and dispatcher
@@ -51,7 +52,9 @@ pub fn init_world<'a, 'b>() -> (World, Dispatcher<'a, 'b>) {
     );
     let level = LevelData::default();
 
-    super::init_world(config, player_count, ioman, level)
+    let (mut world, dispatcher) = super::init_world(config, player_count, ioman, level);
+    register_components(&mut world);
+    (world, dispatcher)
 }
 
 pub struct Player {
@@ -109,8 +112,8 @@ pub fn add_player_without_holder(world: &mut World) -> Player {
         })
         .with(InventoryComponent::default())
         .with(Metadata::Player(metadata::Player::default()))
-        .with(EntityType::Player)
         .with(LastKnownPositionComponent::default())
+        .with(PacketCreatorComponent(&player::create_packet))
         .build();
 
     Player {
@@ -237,119 +240,6 @@ pub fn triggered_events<E: Send + Sync + Clone + 'static>(
     channel.read(reader).cloned().collect()
 }
 
-/// Creates an entity at the origin with zero
-/// velocity.
-///
-///
-/// # Notes
-/// * A `ChunkHolders` and `ChunkEntities` entry
-/// is created for the entity. If this behavior is not
-/// desired, use `add_entity_without_holder`.
-pub fn add_entity(world: &mut World, ty: EntityType, trigger_spawn_event: bool) -> Entity {
-    add_entity_with_pos(world, ty, Position::default(), trigger_spawn_event)
-}
-
-/// Creates an entity at the origin with zero velocity, without
-/// adding a chunk holder or chunk entities entry for it.
-pub fn add_entity_without_holder(
-    world: &mut World,
-    ty: EntityType,
-    trigger_spawn_event: bool,
-) -> Entity {
-    add_entity_without_holder_with_pos(world, ty, Position::default(), trigger_spawn_event)
-}
-
-/// Creates an entity with the given position
-/// and zero velocity.
-pub fn add_entity_with_pos(
-    world: &mut World,
-    ty: EntityType,
-    pos: Position,
-    trigger_spawn_event: bool,
-) -> Entity {
-    add_entity_with_pos_and_vel(
-        world,
-        ty,
-        pos,
-        glm::vec3(0.0, 0.0, 0.0),
-        trigger_spawn_event,
-    )
-}
-
-pub fn add_entity_without_holder_with_pos(
-    world: &mut World,
-    ty: EntityType,
-    pos: Position,
-    trigger_spawn_event: bool,
-) -> Entity {
-    add_entity_without_holder_with_pos_and_vel(
-        world,
-        ty,
-        pos,
-        glm::vec3(0.0, 0.0, 0.0),
-        trigger_spawn_event,
-    )
-}
-
-/// Creates an entity with the given position and velocity.
-pub fn add_entity_with_pos_and_vel(
-    world: &mut World,
-    ty: EntityType,
-    pos: Position,
-    vel: DVec3,
-    trigger_spawn_event: bool,
-) -> Entity {
-    let entity =
-        add_entity_without_holder_with_pos_and_vel(world, ty, pos, vel, trigger_spawn_event);
-
-    let mut chunk_entities = world.fetch_mut::<ChunkEntities>();
-    chunk_entities.add_to_chunk(pos.chunk_pos(), entity);
-
-    entity
-}
-
-pub fn add_entity_without_holder_with_pos_and_vel(
-    world: &mut World,
-    ty: EntityType,
-    pos: Position,
-    vel: DVec3,
-    trigger_spawn_event: bool,
-) -> Entity {
-    let entity = world
-        .create_entity()
-        .with(PositionComponent {
-            current: pos,
-            previous: pos,
-        })
-        .with(VelocityComponent(vel))
-        .with(NamedComponent {
-            uuid: Uuid::new_v4(),
-            display_name: "bla".to_string(),
-        })
-        .with(ty)
-        .with(Metadata::Entity(metadata::Entity::default()))
-        .build();
-
-    if ty == EntityType::Item {
-        world
-            .write_component::<ItemComponent>()
-            .insert(
-                entity,
-                ItemComponent {
-                    collectable_at: 20,
-                    stack: ItemStack::new(Item::Air, 0),
-                },
-            )
-            .unwrap();
-    }
-
-    if trigger_spawn_event {
-        let event = EntitySpawnEvent { entity, ty };
-        trigger_event(&world, event);
-    }
-    entity
-}
-
 /// Populates a 15x15 area of chunks around the origin
 /// with air.
 pub fn populate_with_air(world: &mut World) {
@@ -460,19 +350,30 @@ impl<'a, 'b> TestBuilder<'a, 'b> {
         let mut dispatcher = self.dispatcher.build();
         dispatcher.setup(&mut self.world);
 
-        self.world.register::<VelocityComponent>();
-        self.world.register::<PositionComponent>();
-        self.world.register::<NamedComponent>();
-        self.world.register::<Metadata>();
-        self.world.register::<EntityType>();
-        self.world.register::<ItemComponent>();
-        self.world.register::<PlayerComponent>();
-        self.world.register::<InventoryComponent>();
-        self.world.register::<NetworkComponent>();
-        self.world.register::<LastKnownPositionComponent>();
+        register_components(&mut self.world);
 
         (self.world, dispatcher)
     }
+}
+
+fn register_components(world: &mut World) {
+    world.register::<VelocityComponent>();
+    world.register::<PositionComponent>();
+    world.register::<NamedComponent>();
+    world.register::<Metadata>();
+    world.register::<ItemComponent>();
+    world.register::<PlayerComponent>();
+    world.register::<InventoryComponent>();
+    world.register::<NetworkComponent>();
+    world.register::<LastKnownPositionComponent>();
+    world.register::<PhysicsComponent>();
+    world.register::<ArrowComponent>();
+    world.register::<PacketCreatorComponent>();
+    world.register::<SerializerComponent>();
+
+    world
+        .entry()
+        .or_insert(EventChannel::<EntitySendEvent>::default());
 }
 
 pub fn builder<'a, 'b>() -> TestBuilder<'a, 'b> {

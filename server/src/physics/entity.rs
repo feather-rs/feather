@@ -3,10 +3,10 @@
 
 use specs::{Entities, Entity, Join, Read, ReadStorage, System, Write, WriteStorage};
 
-use crate::entity::{
-    EntityDestroyEvent, EntityType, PlayerComponent, PositionComponent, VelocityComponent,
+use crate::entity::{EntityDestroyEvent, PositionComponent, VelocityComponent};
+use crate::physics::{
+    block_impacted_by_ray, blocks_intersecting_bbox, AABBExt, PhysicsComponent, Side,
 };
-use crate::physics::{block_impacted_by_ray, blocks_intersecting_bbox, BoundingBoxComponent, Side};
 use feather_core::world::ChunkMap;
 use feather_core::Position;
 use feather_core::{Block, BlockExt};
@@ -26,9 +26,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
     type SystemData = (
         WriteStorage<'a, PositionComponent>,
         WriteStorage<'a, VelocityComponent>,
-        ReadStorage<'a, BoundingBoxComponent>,
-        ReadStorage<'a, EntityType>,
-        ReadStorage<'a, PlayerComponent>,
+        ReadStorage<'a, PhysicsComponent>,
         Write<'a, EventChannel<EntityDestroyEvent>>,
         Write<'a, EventChannel<EntityPhysicsLandEvent>>,
         Read<'a, ChunkMap>,
@@ -39,9 +37,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         let (
             mut positions,
             mut velocities,
-            bounding_boxes,
-            types,
-            players,
+            physics,
             mut entity_destroy_events,
             mut entity_land_events,
             chunk_map,
@@ -58,13 +54,11 @@ impl<'a> System<'a> for EntityPhysicsSystem {
         // A restricted storage is used for `velocity` so as to avoid
         // triggering a velocity update event when it is not actually
         // modified.
-        for (position, mut restrict_velocity, bounding_box, ty, entity, _) in (
+        for (position, mut restrict_velocity, physics, entity) in (
             &mut positions,
             &mut velocities.restrict_mut(),
-            &bounding_boxes,
-            &types,
+            &physics,
             &entities,
-            !&players,
         )
             .join()
         {
@@ -89,15 +83,15 @@ impl<'a> System<'a> for EntityPhysicsSystem {
 
                 if face.contains(Side::EAST) || face.contains(Side::WEST) {
                     velocity.x = 0.0;
-                    pending_position.x = impact.x + bounding_box.size().x * face.as_vector().x;
+                    pending_position.x = impact.x + physics.bbox.size().x * face.as_vector().x;
                 }
                 if face.contains(Side::NORTH) || face.contains(Side::SOUTH) {
                     velocity.z = 0.0;
-                    pending_position.z = impact.z + bounding_box.size().z * face.as_vector().z;
+                    pending_position.z = impact.z + physics.bbox.size().z * face.as_vector().z;
                 }
                 if face.contains(Side::TOP) || face.contains(Side::BOTTOM) {
                     velocity.y = 0.0;
-                    pending_position.y = impact.y + bounding_box.size().y * face.as_vector().y;
+                    pending_position.y = impact.y + physics.bbox.size().y * face.as_vector().y;
                 }
                 if face.contains(Side::TOP) {
                     pending_position.on_ground = true;
@@ -110,7 +104,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
                 &chunk_map,
                 position.current,
                 pending_position,
-                bounding_box,
+                &physics.bbox,
             );
             intersect.apply_to(&mut pending_position);
 
@@ -143,7 +137,7 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             pending_position.on_ground = match chunk_map.block_at(
                 position!(
                     pending_position.x,
-                    pending_position.y - bounding_box.size().y / 2.0 - 0.01,
+                    pending_position.y - physics.bbox.size().y / 2.0 - 0.01,
                     pending_position.z
                 )
                 .block_pos(),
@@ -159,29 +153,27 @@ impl<'a> System<'a> for EntityPhysicsSystem {
             }
 
             // Apply drag and gravity.
-            let gravity = gravitational_acceleration(*ty);
-            let drag = drag_force(*ty);
 
             // In water and lava, gravity is four times less, and velocity is multiplied by a special drag force.
             let liquid_drag = 0.8;
             match block_at_pos {
                 Block::Water(_) => {
                     velocity.0 *= liquid_drag;
-                    velocity.0.y += gravity / 4.0;
+                    velocity.0.y += physics.gravity / 4.0;
                 }
                 Block::Lava(_) => {
                     velocity.0 *= liquid_drag - 0.3;
-                    velocity.0.y += gravity / 4.0;
+                    velocity.0.y += physics.gravity / 4.0;
                 }
                 _ => {
-                    let slip_multiplier = slip_multiplier(*ty);
+                    let slip_multiplier = physics.slip_multiplier;
                     if pending_position.on_ground {
                         velocity.0.x *= slip_multiplier;
                         velocity.0.z *= slip_multiplier;
                     } else {
-                        velocity.0.y = drag * velocity.0.y + gravity;
-                        velocity.0.x *= drag;
-                        velocity.0.z *= drag;
+                        velocity.0.y = physics.drag * velocity.0.y + physics.gravity;
+                        velocity.0.x *= physics.drag;
+                        velocity.0.z *= physics.drag;
                     }
                 }
             }
@@ -198,107 +190,22 @@ impl<'a> System<'a> for EntityPhysicsSystem {
     }
 }
 
-fn slip_multiplier(ty: EntityType) -> f64 {
-    if ty.is_arrow() {
-        0.0
-    } else {
-        0.6
-    }
-}
-
-/// Retrieves the gravitational acceleration in blocks per tick squared
-/// for a given entity type.
-///
-/// This information was fetched from
-/// [the Minecraft wiki](https://minecraft.gamepedia.com/Entity#Motion_of_entities).
-fn gravitational_acceleration(ty: EntityType) -> f64 {
-    if ty.is_living() {
-        -0.08
-    } else if ty.is_item() || ty == EntityType::FallingBlock {
-        -0.04
-    } else if ty.is_arrow() {
-        -0.05
-    } else {
-        0.0
-    }
-}
-
-/*
-/// Retrieves the terminal velocity in blocks per tick
-/// for a given entity type.
-fn terminal_velocity(ty: EntityType) -> f32 {
-    if ty.is_living() {
-        -3.92
-    } else if ty.is_item() {
-        -1.96
-    } else {
-        0.0
-    }
-}
-*/
-
-/// Retrieves the drag force for a given entity type.
-fn drag_force(ty: EntityType) -> f64 {
-    if ty.is_living() || ty.is_item() || ty == EntityType::FallingBlock {
-        0.98
-    } else if ty.is_arrow() {
-        0.99
-    } else {
-        0.0
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::entity::test;
+    use crate::physics::PhysicsBuilder;
     use crate::testframework as t;
-    use specs::WorldExt;
-
-    #[test]
-    fn test_physics_basic() {
-        let (mut w, mut d) = t::builder().with(EntityPhysicsSystem, "").build();
-
-        t::populate_with_air(&mut w);
-
-        let item = t::add_entity_with_pos_and_vel(
-            &mut w,
-            EntityType::Item,
-            position!(0.0, 0.0, 0.0),
-            glm::vec3(0.0, 1.0, 0.0),
-            false,
-        );
-
-        let bbox = crate::physics::component::bbox(0.25, 0.25);
-        w.write_component::<BoundingBoxComponent>()
-            .insert(item, BoundingBoxComponent(bbox))
-            .unwrap();
-
-        d.dispatch(&w);
-        w.maintain();
-
-        let pos = t::entity_pos(&w, item);
-        let vel = t::entity_vel(&w, item).unwrap();
-
-        assert_pos_eq!(pos, position!(0.0, 1.0, 0.0));
-        assert_float_eq!(vel.x, 0.0);
-        assert_float_eq!(vel.y, 0.94);
-        assert_float_eq!(vel.z, 0.0);
-    }
+    use specs::{Builder, WorldExt};
 
     #[test]
     fn test_unloaded_chunk() {
         let (mut w, mut d) = t::builder().with(EntityPhysicsSystem, "").build();
 
-        let entity = t::add_entity_with_pos(
-            &mut w,
-            EntityType::Item,
-            position!(1000.0, 100.0, 1000.0),
-            false,
-        );
+        let entity = test::create(&mut w, position!(1000.0, 100.0, 1000.0)).build();
 
-        let bbox = crate::physics::component::bbox(0.25, 0.25);
-        w.write_component::<BoundingBoxComponent>()
-            .insert(entity, BoundingBoxComponent(bbox))
+        w.write_component::<PhysicsComponent>()
+            .insert(entity, PhysicsBuilder::new().build())
             .unwrap();
 
         d.dispatch(&w);

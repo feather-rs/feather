@@ -21,6 +21,8 @@ extern crate failure;
 
 extern crate nalgebra_glm as glm;
 
+#[macro_use]
+pub mod world;
 mod biomes;
 pub mod bytes_ext;
 pub mod entitymeta;
@@ -28,8 +30,6 @@ pub mod inventory;
 pub mod network;
 pub mod prelude;
 mod save;
-#[macro_use]
-pub mod world;
 
 pub use biomes::Biome;
 pub use entitymeta::EntityMetadata;

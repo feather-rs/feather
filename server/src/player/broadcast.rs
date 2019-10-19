@@ -1,15 +1,14 @@
 use crate::config::Config;
-use crate::entity::{
-    ChunkEntities, EntitySender, NamedComponent, PlayerComponent, PositionComponent,
-};
+use crate::entity::{ChunkEntities, NamedComponent, PlayerComponent, PositionComponent};
 use crate::joinhandler::PlayerJoinEvent;
+use crate::lazy::LazyUpdateExt;
 use crate::network::{send_packet_to_all_players, send_packet_to_player, NetworkComponent};
 use crate::player::chat::ChatBroadcastEvent;
 use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction};
 use feather_core::Gamemode;
 use shrev::EventChannel;
-use specs::SystemData;
 use specs::{Entities, Entity, Join, Read, ReadStorage, ReaderId, System, World, Write};
+use specs::{LazyUpdate, SystemData};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -34,7 +33,7 @@ impl<'a> System<'a> for JoinBroadcastSystem {
         ReadStorage<'a, NetworkComponent>,
         Write<'a, EventChannel<ChatBroadcastEvent>>,
         Read<'a, ChunkEntities>,
-        Read<'a, EntitySender>,
+        Read<'a, LazyUpdate>,
         Read<'a, Arc<Config>>,
         Entities<'a>,
     );
@@ -48,7 +47,7 @@ impl<'a> System<'a> for JoinBroadcastSystem {
             net_comps,
             mut chat,
             chunk_entities,
-            entity_sender,
+            lazy,
             config,
             entities,
         ) = data;
@@ -82,7 +81,7 @@ impl<'a> System<'a> for JoinBroadcastSystem {
                 config.server.view_distance,
             ) {
                 if entity != event.player {
-                    entity_sender.send_entity_to_player(event.player, entity);
+                    lazy.send_entity_to_player(event.player, entity);
                 }
             }
 

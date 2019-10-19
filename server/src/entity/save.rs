@@ -3,14 +3,11 @@
 use crate::chunk_logic;
 use crate::chunk_logic::{ChunkUnloadEvent, ChunkWorkerHandle};
 use crate::config::Config;
-use crate::entity::{
-    ArrowComponent, ChunkEntities, ItemComponent, PositionComponent, VelocityComponent,
-};
-use feather_core::entity::{ArrowEntityData, BaseEntityData, EntityData, ItemData, ItemEntityData};
+use crate::entity::{ChunkEntities, SerializerComponent};
 use feather_core::world::ChunkMap;
 use rayon::prelude::*;
 use shrev::{EventChannel, ReaderId};
-use specs::{Read, ReadExpect, ReadStorage, System, Write};
+use specs::{Entity, LazyUpdate, Read, ReadExpect, System, WorldExt, Write};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Instant;
@@ -40,11 +37,8 @@ impl<'a> System<'a> for ChunkSaveSystem {
         Read<'a, ChunkEntities>,
         Read<'a, EventChannel<ChunkUnloadEvent>>,
         Read<'a, Arc<Config>>,
+        Read<'a, LazyUpdate>,
         ReadExpect<'a, ChunkWorkerHandle>,
-        ReadStorage<'a, PositionComponent>,
-        ReadStorage<'a, VelocityComponent>,
-        ReadStorage<'a, ItemComponent>,
-        ReadStorage<'a, ArrowComponent>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -54,14 +48,9 @@ impl<'a> System<'a> for ChunkSaveSystem {
             chunk_entities,
             unload_events,
             config,
+            lazy,
             worker_handle,
-            positions,
-            velocities,
-            items,
-            arrows,
         ) = data;
-
-        // TODO: entities
 
         for event in unload_events.read(self.reader.as_mut().unwrap()) {
             let entities = vec![]; // TODO
@@ -70,15 +59,7 @@ impl<'a> System<'a> for ChunkSaveSystem {
 
         if prev_save_time.0.elapsed() >= config.world.save_interval {
             // Save chunks
-            save_chunks(
-                &mut chunk_map,
-                &worker_handle,
-                &chunk_entities,
-                &positions,
-                &velocities,
-                &items,
-                &arrows,
-            );
+            save_chunks(&mut chunk_map, &chunk_entities, &lazy);
             prev_save_time.0 = Instant::now();
         }
     }
@@ -87,14 +68,14 @@ impl<'a> System<'a> for ChunkSaveSystem {
 }
 
 /// Saves all modified chunks.
+///
+/// The saves themselves are performed lazily and asynchronously.
+///
+/// Returns the number of chunks queued for saving.
 pub fn save_chunks(
     chunk_map: &mut ChunkMap,
-    handle: &ChunkWorkerHandle,
     chunk_entities: &ChunkEntities,
-    positions: &ReadStorage<PositionComponent>,
-    velocities: &ReadStorage<VelocityComponent>,
-    items: &ReadStorage<ItemComponent>,
-    arrows: &ReadStorage<ArrowComponent>,
+    lazy: &LazyUpdate,
 ) -> u32 {
     let count = AtomicUsize::new(0);
     chunk_map
@@ -113,44 +94,30 @@ pub fn save_chunks(
                 return;
             }
 
-            let entity_data: Vec<_> = entities
-                .iter()
-                .filter_map(|entity| {
-                    // Convert entity to entity data.
-                    // If an entity doesn't have position and velocity,
-                    // it won't be saved. This is normal behavior.
-                    let pos = positions.get(*entity)?;
-                    let vel = velocities.get(*entity)?;
-                    let item = items.get(*entity);
-                    let arrow = arrows.get(*entity);
+            // World access is required for entity serialization,
+            // so we perform the saving itself asynchronously.
+            let chunk = Arc::new(chunk.clone());
+            let entities: Vec<Entity> = entities.to_vec();
+            lazy.exec(move |world| {
+                // Compute entity data.
+                let entity_data = entities
+                    .into_iter()
+                    .filter_map(|entity| {
+                        let serializers = world.read_component::<SerializerComponent>();
+                        let serializer = match serializers.get(entity) {
+                            Some(serializer) => serializer,
+                            None => return None, // Entity not serialized
+                        };
 
-                    let base = BaseEntityData {
-                        position: vec![pos.current.x, pos.current.y, pos.current.z],
-                        velocity: vec![vel.x, vel.y, vel.z],
-                        rotation: vec![pos.current.yaw, pos.current.pitch],
-                    };
-                    if arrow.is_some() {
-                        Some(EntityData::Arrow(ArrowEntityData {
-                            entity: base,
-                            critical: 0,
-                        }))
-                    } else if let Some(item) = item {
-                        Some(EntityData::Item(ItemEntityData {
-                            entity: base,
-                            age: 0,          // TODO
-                            pickup_delay: 0, // TODO
-                            item: ItemData {
-                                item: item.stack.ty.identifier().to_string(),
-                                count: item.stack.amount,
-                            },
-                        }))
-                    } else {
-                        None
-                    }
-                })
-                .collect();
+                        let serialize = serializer.0;
+                        Some(serialize(world, entity))
+                    })
+                    .collect();
 
-            chunk_logic::save_chunk(&handle, Arc::new(chunk.clone()), entity_data);
+                let handle = world.fetch::<ChunkWorkerHandle>();
+                chunk_logic::save_chunk(&handle, chunk, entity_data);
+            });
+
             count.fetch_add(1, Ordering::Release);
         });
 
@@ -216,6 +183,7 @@ mod tests {
             .set_chunk_at(pos, Chunk::new(pos));
 
         dispatcher.dispatch(&world);
+        world.maintain();
 
         let msg = rx.try_recv().unwrap();
 

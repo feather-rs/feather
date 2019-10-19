@@ -23,7 +23,7 @@ use feather_core::{Difficulty, Dimension};
 
 use crate::chunk_logic::{ChunkHolderComponent, ChunkHolders, ChunkWorkerHandle};
 use crate::config::Config;
-use crate::entity::{EntitySpawnEvent, EntityType, PlayerComponent, PositionComponent};
+use crate::entity::{EntitySpawnEvent, PlayerComponent, PositionComponent};
 use crate::network::NetworkComponent;
 use crate::player::{ChunkPendingComponent, InventoryUpdateEvent, LoadedChunksComponent};
 use crate::PlayerCount;
@@ -214,10 +214,7 @@ impl<'a> System<'a> for JoinHandlerSystem {
                     let event = PlayerJoinEvent { player };
                     join_events.single_write(event);
 
-                    let event = EntitySpawnEvent {
-                        entity: player,
-                        ty: EntityType::Player,
-                    };
+                    let event = EntitySpawnEvent { entity: player };
                     spawn_events.single_write(event);
 
                     // Trigger inventory update event on the entire inventory

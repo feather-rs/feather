@@ -44,14 +44,12 @@ pub const CHUNK_ENTITIES_UPDATE: &str = "chunk_entities_update";
 pub const CHUNK_ENTITIES_LOAD: &str = "chunk_entities_load";
 pub const ENTITY_DESTROY: &str = "entity_destroy";
 pub const ITEM_SPAWN: &str = "item_spawn";
-pub const SPAWNER: &str = "spawner";
 pub const ITEM_MERGE: &str = "item_merge";
 pub const SHOOT_ARROW: &str = "shoot_arrow";
 pub const CHUNK_SAVE: &str = "chunk_save";
 
 pub const ENTITY_MOVE_BROADCAST: &str = "entity_move_broadcast";
 pub const ENTITY_SPAWN_BROADCAST: &str = "entity_spawn_broadcast";
-pub const ENTITY_SEND: &str = "entity_send";
 pub const ENTITY_VELOCITY_BROADCAST: &str = "entity_velocity_broadcast";
 pub const ENTITY_DESTROY_BROADCAST: &str = "entity_destroy_broadcast";
 pub const ENTITY_METADATA_BROADCAST: &str = "entity_metadata_broadcast";
@@ -59,8 +57,6 @@ pub const BLOCK_FALLING_LANDING: &str = "block_falling_landing";
 
 // Physics
 pub const ENTITY_PHYSICS: &str = "entity_physics";
-
-pub const PHYSICS_INIT: &str = "physics_init";
 
 // Other
 pub const JOIN_HANDLER: &str = "join_handler";

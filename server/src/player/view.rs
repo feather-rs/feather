@@ -12,12 +12,13 @@
 //! to `ChunkCrossEvent`s.
 
 use crate::config::Config;
-use crate::entity::{ChunkEntities, EntitySender};
+use crate::entity::ChunkEntities;
+use crate::lazy::LazyUpdateExt;
 use crate::network::{send_packet_to_player, NetworkComponent};
 use crate::player::movement::ChunkCrossEvent;
 use feather_core::network::packet::implementation::DestroyEntities;
 use shrev::EventChannel;
-use specs::{Read, ReadStorage, ReaderId, System};
+use specs::{LazyUpdate, Read, ReadStorage, ReaderId, System};
 use std::sync::Arc;
 
 /// System for updating entities visible
@@ -33,11 +34,11 @@ impl<'a> System<'a> for ViewUpdateSystem {
         Read<'a, EventChannel<ChunkCrossEvent>>,
         Read<'a, ChunkEntities>,
         Read<'a, Arc<Config>>,
-        Read<'a, EntitySender>,
+        Read<'a, LazyUpdate>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (networks, cross_events, chunk_entities, config, entity_sender) = data;
+        let (networks, cross_events, chunk_entities, config, lazy) = data;
 
         for event in cross_events.read(self.reader.as_mut().unwrap()) {
             // Find new and old entities.
@@ -73,10 +74,10 @@ impl<'a> System<'a> for ViewUpdateSystem {
                     // Entity is in `new_entities` but not in `old_entities`.
                     // Spawn it. If the entity is a player, also send this player
                     // to that entity.
-                    entity_sender.send_entity_to_player(event.player, *entity);
+                    lazy.send_entity_to_player(event.player, *entity);
 
                     if networks.get(*entity).is_some() {
-                        entity_sender.send_entity_to_player(*entity, event.player);
+                        lazy.send_entity_to_player(*entity, event.player);
                     }
                 }
             }
@@ -96,19 +97,18 @@ impl<'a> System<'a> for ViewUpdateSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::{EntitySendSystem, EntityType};
+    use crate::entity::{item, PositionComponent};
     use crate::testframework as t;
     use feather_core::network::cast_packet;
     use feather_core::network::packet::implementation::{SpawnObject, SpawnPlayer};
-    use feather_core::{ChunkPosition, PacketType};
+    use feather_core::{ChunkPosition, Item, ItemStack, PacketType};
     use hashbrown::HashSet;
-    use specs::WorldExt;
+    use specs::{Builder, WorldExt};
 
     #[test]
     fn test_view_update_system() {
         let (mut world, mut dispatcher) = t::builder()
             .with(ViewUpdateSystem::default(), "view")
-            .with_dep(EntitySendSystem, "", &["view"])
             .build();
 
         let player_chunk = ChunkPosition::new(0, 0);
@@ -116,10 +116,38 @@ mod tests {
         let player1 = t::add_player_without_holder(&mut world);
         let player2 = t::add_player_without_holder(&mut world);
 
-        let entity1 = t::add_entity_without_holder(&mut world, EntityType::Item, true);
-        let entity2 = t::add_entity_without_holder(&mut world, EntityType::Item, true);
-        let entity3 = t::add_entity_without_holder(&mut world, EntityType::Item, true);
-        let entity4 = t::add_entity_without_holder(&mut world, EntityType::Item, true);
+        let entity1 = item::create(
+            &world.fetch(),
+            &world.fetch(),
+            ItemStack::new(Item::Stone, 0),
+            0,
+        )
+        .with(PositionComponent::default())
+        .build();
+        let entity2 = item::create(
+            &world.fetch(),
+            &world.fetch(),
+            ItemStack::new(Item::Stone, 0),
+            0,
+        )
+        .with(PositionComponent::default())
+        .build();
+        let entity3 = item::create(
+            &world.fetch(),
+            &world.fetch(),
+            ItemStack::new(Item::Stone, 0),
+            0,
+        )
+        .with(PositionComponent::default())
+        .build();
+        let entity4 = item::create(
+            &world.fetch(),
+            &world.fetch(),
+            ItemStack::new(Item::Stone, 0),
+            0,
+        )
+        .with(PositionComponent::default())
+        .build();
 
         let mut config = Config::default();
         config.server.view_distance = 4;
@@ -142,6 +170,9 @@ mod tests {
         };
         t::trigger_event(&world, event);
 
+        world.maintain();
+        dispatcher.dispatch(&world);
+        world.maintain();
         dispatcher.dispatch(&world);
         world.maintain();
 
@@ -150,6 +181,7 @@ mod tests {
         let mut received_spawns = HashSet::new();
 
         for packet in packets {
+            dbg!(packet.ty());
             match packet.ty() {
                 PacketType::DestroyEntities => {
                     let packet = cast_packet::<DestroyEntities>(&*packet);
