@@ -215,6 +215,7 @@ impl<'a> System<'a> for EntityChunkLoadSystem {
                     EntityData::Unknown => {
                         trace!("Chunk {:?} contains an unknown entity type", event.pos);
                     }
+                    _ => todo!(),
                 }
             }
         }

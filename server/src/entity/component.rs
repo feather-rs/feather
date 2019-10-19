@@ -17,7 +17,7 @@ impl Component for PlayerComponent {
     type Storage = BTreeStorage<Self>;
 }
 
-#[derive(Default, Debug, PartialEq)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub struct PositionComponent {
     /// The current position of this entity.
     pub current: Position,
@@ -43,7 +43,7 @@ impl Component for PositionComponent {
 ///
 /// Entities without this component are assumed
 /// to have a velocity of 0.
-#[derive(Deref, DerefMut, Debug, PartialEq, Clone)]
+#[derive(Deref, DerefMut, Debug, PartialEq, Clone, Copy)]
 pub struct VelocityComponent(pub DVec3);
 
 impl Component for VelocityComponent {

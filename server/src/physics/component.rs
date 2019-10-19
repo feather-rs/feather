@@ -59,6 +59,12 @@ impl PhysicsBuilder {
         Self::default()
     }
 
+    /// Returns a `PhysicsBuilder` with defaults set to the settings
+    /// for living entities.
+    pub fn for_living() -> Self {
+        Self::new().drag(0.98).gravity(-0.08).slip_multiplier(0.6)
+    }
+
     pub fn bbox(mut self, x: f64, y: f64, z: f64) -> Self {
         self.comp.bbox = bbox(x, y, z);
         self

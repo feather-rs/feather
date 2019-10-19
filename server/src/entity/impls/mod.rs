@@ -22,5 +22,67 @@
 pub mod arrow;
 pub mod falling_block;
 pub mod item;
+
+mod animal;
+pub use animal::*;
+
+use crate::entity::{degrees_to_stops, NamedComponent, PositionComponent, VelocityComponent};
+use crate::util::protocol_velocity;
+use feather_core::entity::BaseEntityData;
+use feather_core::network::packet::implementation::SpawnMob;
+use feather_core::Packet;
+use specs::{Entity, World, WorldExt};
+use uuid::Uuid;
+
 #[cfg(test)]
 pub mod test;
+
+/// Returns a `Spawn Mob` packet with the given entity type ID.
+pub fn create_mob_packet(world: &World, entity: Entity, type_id: i32) -> Box<dyn Packet> {
+    let entity_id = entity.id() as i32;
+    let entity_uuid = world
+        .read_component::<NamedComponent>()
+        .get(entity)
+        .map(|named| named.uuid)
+        .unwrap_or(Uuid::new_v4());
+
+    let positions = world.read_component::<PositionComponent>();
+    let position = positions.get(entity).copied().unwrap_or_default();
+    let velocities = world.read_component::<VelocityComponent>();
+    let velocity = velocities.get(entity).copied().unwrap_or_default();
+
+    let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocity.0);
+
+    let packet = SpawnMob {
+        entity_id,
+        entity_uuid,
+        ty: type_id,
+        x: position.current.x,
+        y: position.current.y,
+        z: position.current.z,
+        yaw: degrees_to_stops(position.current.yaw),
+        pitch: degrees_to_stops(position.current.pitch),
+        head_pitch: degrees_to_stops(position.current.pitch), // FIXME: is this correct?
+        velocity_x,
+        velocity_y,
+        velocity_z,
+    };
+
+    Box::new(packet)
+}
+
+/// Creates a `BaseEntityData` for the given entity.
+pub fn base_data(world: &World, entity: Entity) -> BaseEntityData {
+    let position = world
+        .read_component::<PositionComponent>()
+        .get(entity)
+        .copied()
+        .unwrap_or_default();
+    let velocity = world
+        .read_component::<VelocityComponent>()
+        .get(entity)
+        .copied()
+        .unwrap_or_default();
+
+    BaseEntityData::new(position.current, velocity.0)
+}

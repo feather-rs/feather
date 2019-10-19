@@ -9,6 +9,26 @@ pub enum EntityData {
     Item(ItemEntityData),
     #[serde(rename = "minecraft:arrow")]
     Arrow(ArrowEntityData),
+    #[serde(rename = "minecraft:cow")]
+    Cow(AnimalData),
+    #[serde(rename = "minecraft:pig")]
+    Pig(AnimalData),
+    #[serde(rename = "minecraft:chicken")]
+    Chicken(AnimalData),
+    #[serde(rename = "minecraft:sheep")]
+    Sheep(AnimalData),
+    #[serde(rename = "minecraft:horse")]
+    Horse(AnimalData),
+    #[serde(rename = "minecraft:llama")]
+    Llama(AnimalData),
+    #[serde(rename = "minectaft:mooshroom")]
+    Mooshroom(AnimalData),
+    #[serde(rename = "minecraft:rabbit}")]
+    Rabbit(AnimalData),
+    #[serde(rename = "minecraft:squid")]
+    Squid(AnimalData),
+    #[serde(rename = "minecraft:donkey")]
+    Donkey(AnimalData),
 
     /// Fallback type for unknown entities
     #[serde(other)]
@@ -25,6 +45,16 @@ impl EntityData {
                 match self {
                     EntityData::Item(_) => "minecraft:item",
                     EntityData::Arrow(_) => "minecraft:arrow",
+                    EntityData::Cow(_) => "minecraft:cow",
+                    EntityData::Pig(_) => "minecraft:pig",
+                    EntityData::Chicken(_) => "minecraft:chicken",
+                    EntityData::Sheep(_) => "minecraft:sheep",
+                    EntityData::Horse(_) => "minecraft:horse",
+                    EntityData::Llama(_) => "minecraft:llama",
+                    EntityData::Mooshroom(_) => "minecraft:mooshroom",
+                    EntityData::Rabbit(_) => "minecraft:rabbit",
+                    EntityData::Squid(_) => "minecraft:squid",
+                    EntityData::Donkey(_) => "minecraft:donkey",
                     EntityData::Unknown => panic!("Cannot write unknown entities"),
                 }
                 .to_string(),
@@ -34,7 +64,17 @@ impl EntityData {
         match self {
             EntityData::Item(data) => data.write_to_map(&mut map),
             EntityData::Arrow(data) => data.write_to_map(&mut map),
-            EntityData::Unknown => panic!("Cannot write unknown entities"),
+            EntityData::Cow(data) => data.write_to_map(&mut map),
+            EntityData::Pig(data) => data.write_to_map(&mut map),
+            EntityData::Chicken(data) => data.write_to_map(&mut map),
+            EntityData::Sheep(data) => data.write_to_map(&mut map),
+            EntityData::Horse(data) => data.write_to_map(&mut map),
+            EntityData::Llama(data) => data.write_to_map(&mut map),
+            EntityData::Mooshroom(data) => data.write_to_map(&mut map),
+            EntityData::Rabbit(data) => data.write_to_map(&mut map),
+            EntityData::Squid(data) => data.write_to_map(&mut map),
+            EntityData::Donkey(data) => data.write_to_map(&mut map),
+            EntityData::Unknown => unreachable!(),
         }
 
         Value::Compound(map)
@@ -116,6 +156,18 @@ impl Default for BaseEntityData {
             rotation: vec![0.0, 0.0],
             velocity: vec![0.0, 0.0, 0.0],
         }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnimalData {
+    #[serde(flatten)]
+    pub base: BaseEntityData,
+}
+
+impl AnimalData {
+    fn write_to_map(self, map: &mut HashMap<String, Value>) {
+        self.base.write_to_map(map);
     }
 }
 
