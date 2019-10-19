@@ -47,7 +47,7 @@ pub fn create_mob_packet(world: &World, entity: Entity, type_id: i32) -> Box<dyn
         .read_component::<NamedComponent>()
         .get(entity)
         .map(|named| named.uuid)
-        .unwrap_or(Uuid::new_v4());
+        .unwrap_or_else(Uuid::new_v4);
 
     let positions = world.read_component::<PositionComponent>();
     let position = positions.get(entity).copied().unwrap_or_default();

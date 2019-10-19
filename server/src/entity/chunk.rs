@@ -198,6 +198,7 @@ impl<'a> System<'a> for EntityChunkLoadSystem {
         Read<'a, TickCount>,
     );
 
+    #[allow(clippy::cognitive_complexity)] // Big match statement. Necessary
     fn run(&mut self, data: Self::SystemData) {
         let (load_events, lazy, entities, tick) = data;
 

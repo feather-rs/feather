@@ -21,7 +21,7 @@ pub fn create<'a>(lazy: &'a LazyUpdate, entities: &'a EntitiesRes) -> LazyBuilde
         .with(HorseComponent)
         .with(
             PhysicsBuilder::for_living()
-                .bbox(1.3964844, 1.6, 1.3964844)
+                .bbox(1.396_484_4, 1.6, 1.396_484_4)
                 .build(),
         )
         .with(PacketCreatorComponent(&create_packet))
