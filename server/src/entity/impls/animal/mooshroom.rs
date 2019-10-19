@@ -1,4 +1,7 @@
-use crate::entity::{base_data, create_mob_packet, PacketCreatorComponent, SerializerComponent};
+use crate::entity::{
+    base_data, create_mob_packet, PacketCreatorComponent, PositionComponent, SerializerComponent,
+    VelocityComponent,
+};
 use crate::lazy::LazyUpdateExt;
 use crate::physics::PhysicsBuilder;
 use feather_core::entity::{AnimalData, EntityData};
@@ -23,6 +26,25 @@ pub fn create<'a>(lazy: &'a LazyUpdate, entities: &'a EntitiesRes) -> LazyBuilde
 
 fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
     create_mob_packet(world, entity, 47)
+}
+
+pub fn create_from_data(
+    lazy: &LazyUpdate,
+    entities: &EntitiesRes,
+    data: &AnimalData,
+) -> Option<Entity> {
+    let position = data.base.read_position()?;
+    let velocity = data.base.read_velocity()?;
+
+    Some(
+        create(lazy, entities)
+            .with(PositionComponent {
+                current: position,
+                previous: position,
+            })
+            .with(VelocityComponent(velocity))
+            .build(),
+    )
 }
 
 fn serialize(world: &World, entity: Entity) -> EntityData {

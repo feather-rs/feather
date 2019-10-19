@@ -3,7 +3,10 @@
 //! entity queries and packet broadcasting.
 
 use crate::chunk_logic::ChunkLoadEvent;
-use crate::entity::{arrow, item, EntityDestroyEvent, EntitySpawnEvent, PositionComponent};
+use crate::entity::{
+    arrow, chicken, cow, donkey, horse, item, llama, mooshroom, pig, rabbit, sheep, squid,
+    EntityDestroyEvent, EntitySpawnEvent, PositionComponent,
+};
 use crate::TickCount;
 use feather_core::entity::EntityData;
 use feather_core::world::ChunkPosition;
@@ -211,11 +214,60 @@ impl<'a> System<'a> for EntityChunkLoadSystem {
                             debug!("Error while loading arrow entity");
                         }
                     }
+                    EntityData::Cow(data) => {
+                        if cow::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading cow entity")
+                        }
+                    }
+                    EntityData::Pig(data) => {
+                        if pig::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading pig entity")
+                        }
+                    }
+                    EntityData::Chicken(data) => {
+                        if chicken::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading chicken entity")
+                        }
+                    }
+                    EntityData::Sheep(data) => {
+                        if sheep::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading sheep entity")
+                        }
+                    }
+                    EntityData::Horse(data) => {
+                        if horse::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading horse entity")
+                        }
+                    }
+                    EntityData::Llama(data) => {
+                        if llama::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading llama entity")
+                        }
+                    }
+                    EntityData::Mooshroom(data) => {
+                        if mooshroom::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading mooshroom entity")
+                        }
+                    }
+                    EntityData::Rabbit(data) => {
+                        if rabbit::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading rabbit entity")
+                        }
+                    }
+                    EntityData::Squid(data) => {
+                        if squid::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading squid entity")
+                        }
+                    }
+                    EntityData::Donkey(data) => {
+                        if donkey::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading donkey entity")
+                        }
+                    }
                     // TODO: Spawn remaining entity types here.
                     EntityData::Unknown => {
                         trace!("Chunk {:?} contains an unknown entity type", event.pos);
                     }
-                    _ => todo!(),
                 }
             }
         }

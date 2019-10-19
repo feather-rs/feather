@@ -34,6 +34,10 @@ bitflags! {
     }
 }
 
+lazy_static! {
+    pub static ref EMPTY_METADATA: Metadata = { Metadata::Entity(Entity::default()) };
+}
+
 entity_metadata! {
     Metadata,
     Entity {

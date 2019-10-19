@@ -53,6 +53,7 @@ enum PacketParameterType {
     Uuid,
     Nbt,
     Slot,
+    EntityMetadata,
 }
 
 lazy_static! {
@@ -77,6 +78,7 @@ lazy_static! {
         m.insert("Uuid", PacketParameterType::Uuid);
         m.insert("NbtTag", PacketParameterType::Nbt);
         m.insert("Slot", PacketParameterType::Slot);
+        m.insert("EntityMetadata", PacketParameterType::EntityMetadata);
 
         m
     };
@@ -102,6 +104,7 @@ lazy_static! {
         m.insert("uuid", PacketParameterType::Uuid);
         m.insert("nbt", PacketParameterType::Nbt);
         m.insert("slot", PacketParameterType::Slot);
+        m.insert("metadata", PacketParameterType::EntityMetadata);
 
         // I wrote them in the wrong order, so I'm just going to reverse
         // the map.
@@ -165,6 +168,7 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
                 PacketParameterType::Uuid,
                 PacketParameterType::Nbt,
                 PacketParameterType::Slot,
+                PacketParameterType::EntityMetadata,
             ]
             .contains(parameter_type)
         };
@@ -193,7 +197,7 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
 
     let r = quote! {
         impl Packet for #ident {
-            fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+            fn read_from(&mut self, mut buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
                 #(#read_code)*
                 Ok(())
             }

@@ -860,7 +860,7 @@ pub struct SpawnMob {
     pub velocity_x: i16,
     pub velocity_y: i16,
     pub velocity_z: i16,
-    // TODO metadata
+    pub meta: EntityMetadata,
 }
 
 #[derive(Default, AsAny, new, Packet, Clone)]

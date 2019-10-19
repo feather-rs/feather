@@ -26,7 +26,10 @@ pub mod item;
 mod animal;
 pub use animal::*;
 
-use crate::entity::{degrees_to_stops, NamedComponent, PositionComponent, VelocityComponent};
+use crate::entity::{
+    degrees_to_stops, metadata::EMPTY_METADATA, Metadata, NamedComponent, PositionComponent,
+    VelocityComponent,
+};
 use crate::util::protocol_velocity;
 use feather_core::entity::BaseEntityData;
 use feather_core::network::packet::implementation::SpawnMob;
@@ -53,6 +56,9 @@ pub fn create_mob_packet(world: &World, entity: Entity, type_id: i32) -> Box<dyn
 
     let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocity.0);
 
+    let metadatas = world.read_component::<Metadata>();
+    let metadata = metadatas.get(entity).unwrap_or(&EMPTY_METADATA);
+
     let packet = SpawnMob {
         entity_id,
         entity_uuid,
@@ -66,6 +72,7 @@ pub fn create_mob_packet(world: &World, entity: Entity, type_id: i32) -> Box<dyn
         velocity_x,
         velocity_y,
         velocity_z,
+        meta: metadata.to_full_raw_metadata(),
     };
 
     Box::new(packet)
