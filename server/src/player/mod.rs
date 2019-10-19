@@ -26,6 +26,7 @@ mod save;
 mod view;
 
 pub use broadcast::PlayerDisconnectEvent;
+pub use init::create_packet;
 
 pub use movement::{
     send_chunk_to_player, ChunkCrossSystem, ChunkPendingComponent, LoadedChunksComponent,

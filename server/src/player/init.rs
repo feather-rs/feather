@@ -156,7 +156,7 @@ impl<'a> System<'a> for PlayerInitSystem {
     }
 }
 
-fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
+pub fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
     let positions = world.read_component::<PositionComponent>();
     let nameds = world.read_component::<NamedComponent>();
     let metas = world.read_component::<Metadata>();

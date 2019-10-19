@@ -1,4 +1,4 @@
-use crate::Position;
+use crate::{Item, Position};
 use nbt::Value;
 use std::collections::HashMap;
 
@@ -120,7 +120,7 @@ impl Default for BaseEntityData {
 }
 
 /// Represents a single item, without slot information.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ItemData {
     #[serde(rename = "Count")]
     pub count: u8,
@@ -132,6 +132,15 @@ impl ItemData {
     fn write_to_map(self, map: &mut HashMap<String, Value>) {
         map.insert(String::from("Count"), Value::Byte(self.count as i8));
         map.insert(String::from("id"), Value::String(self.item));
+    }
+}
+
+impl Default for ItemData {
+    fn default() -> Self {
+        Self {
+            count: 0,
+            item: Item::Air.identifier().to_string(),
+        }
     }
 }
 

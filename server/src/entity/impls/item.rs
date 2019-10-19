@@ -444,7 +444,7 @@ pub fn item_meta(stack: ItemStack) -> Metadata {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::EntitySpawnEvent;
+    use crate::entity::{ChunkEntityUpdateSystem, EntitySpawnEvent};
     use crate::testframework as t;
     use feather_core::inventory::SLOT_HOTBAR_OFFSET;
     use feather_core::network::cast_packet;
@@ -500,6 +500,7 @@ mod tests {
             ItemStack::new(Item::EnderPearl, 4),
             0,
         )
+        .with(PositionComponent::default())
         .build();
         let item2 = create(
             &w.fetch(),
@@ -507,7 +508,16 @@ mod tests {
             ItemStack::new(Item::EnderPearl, 7),
             0,
         )
+        .with(PositionComponent::default())
         .build();
+
+        let mut updater = ChunkEntityUpdateSystem::default();
+        updater.setup(&mut w);
+
+        w.maintain();
+
+        // Update chunk entities so `nearby_entities` works
+        specs::RunNow::run_now(&mut updater, &w);
 
         d.dispatch(&w);
         w.maintain();
@@ -531,14 +541,24 @@ mod tests {
 
         let player = t::add_player(&mut w);
         let stack = ItemStack::new(Item::String, 4);
-        let item = create(&w.fetch(), &w.fetch(), stack.clone(), 0).build();
+        let item = create(&w.fetch(), &w.fetch(), stack.clone(), 0)
+            .with(PositionComponent::default())
+            .build();
 
         let mut destroy_reader = t::reader(&w);
 
         // Allow item to be collected
-        w.fetch_mut::<TickCount>().0 = 20;
+        w.fetch_mut::<TickCount>().0 = 0;
+
+        let mut updater = ChunkEntityUpdateSystem::default();
+        updater.setup(&mut w);
 
         w.maintain();
+
+        // Update chunk entities so `nearby_entities` works
+
+        specs::RunNow::run_now(&mut updater, &w);
+
         d.dispatch(&w);
         w.maintain();
 

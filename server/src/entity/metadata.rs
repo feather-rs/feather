@@ -154,8 +154,16 @@ mod tests {
             .with(MetadataBroadcastSystem::default(), "")
             .build();
 
-        // Metadata is inserted here, which causes update event
         let entity = test::create(&mut w, position!(0.0, 0.0, 0.0)).build();
+
+        // Insert metadata
+        {
+            let mut metadatas = w.write_component::<Metadata>();
+            metadatas
+                .insert(entity, Metadata::Entity(Entity::default()))
+                .unwrap();
+        }
+
         let player = t::add_player(&mut w);
 
         d.dispatch(&w);

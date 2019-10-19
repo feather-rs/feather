@@ -47,6 +47,8 @@ impl<'a> System<'a> for ViewUpdateSystem {
             let new_entities =
                 chunk_entities.entites_within_view_distance(event.new, config.server.view_distance);
 
+            dbg!(old_entities.clone(), new_entities.clone());
+
             let mut to_destroy = vec![];
 
             // Compute entities which are only present in one of the sets.
@@ -68,6 +70,7 @@ impl<'a> System<'a> for ViewUpdateSystem {
                         let packet = DestroyEntities {
                             entity_ids: vec![event.player.id() as i32],
                         };
+                        dbg!();
                         send_packet_to_player(network, packet);
                     }
                 } else {
@@ -78,6 +81,7 @@ impl<'a> System<'a> for ViewUpdateSystem {
 
                     if networks.get(*entity).is_some() {
                         lazy.send_entity_to_player(*entity, event.player);
+                        dbg!();
                     }
                 }
             }
@@ -97,7 +101,7 @@ impl<'a> System<'a> for ViewUpdateSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::test;
+    use crate::entity::{item, test, PositionComponent};
     use crate::testframework as t;
     use feather_core::network::cast_packet;
     use feather_core::network::packet::implementation::{SpawnObject, SpawnPlayer};
@@ -116,10 +120,38 @@ mod tests {
         let player1 = t::add_player_without_holder(&mut world);
         let player2 = t::add_player_without_holder(&mut world);
 
-        let entity1 = test::create(&mut world, position!(0.0, 0.0, 0.0)).build();
-        let entity2 = test::create(&mut world, position!(0.0, 0.0, 0.0)).build();
-        let entity3 = test::create(&mut world, position!(0.0, 0.0, 0.0)).build();
-        let entity4 = test::create(&mut world, position!(0.0, 0.0, 0.0)).build();
+        let entity1 = item::create(
+            &world.fetch(),
+            &world.fetch(),
+            ItemStack::new(Item::Stone, 0),
+            0,
+        )
+        .with(PositionComponent::default())
+        .build();
+        let entity2 = item::create(
+            &world.fetch(),
+            &world.fetch(),
+            ItemStack::new(Item::Stone, 0),
+            0,
+        )
+        .with(PositionComponent::default())
+        .build();
+        let entity3 = item::create(
+            &world.fetch(),
+            &world.fetch(),
+            ItemStack::new(Item::Stone, 0),
+            0,
+        )
+        .with(PositionComponent::default())
+        .build();
+        let entity4 = item::create(
+            &world.fetch(),
+            &world.fetch(),
+            ItemStack::new(Item::Stone, 0),
+            0,
+        )
+        .with(PositionComponent::default())
+        .build();
 
         let mut config = Config::default();
         config.server.view_distance = 4;
@@ -153,6 +185,7 @@ mod tests {
         let mut received_spawns = HashSet::new();
 
         for packet in packets {
+            dbg!(packet.ty());
             match packet.ty() {
                 PacketType::DestroyEntities => {
                     let packet = cast_packet::<DestroyEntities>(&*packet);

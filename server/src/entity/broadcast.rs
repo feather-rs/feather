@@ -141,7 +141,7 @@ pub fn send_entity_to_player(lazy: &LazyUpdate, player: Entity, entity: Entity) 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::{item, test};
+    use crate::entity::{item, test, VelocityComponent};
     use crate::player::ChunkCrossSystem;
     use crate::testframework as t;
     use feather_core::network::cast_packet;
@@ -183,7 +183,10 @@ mod tests {
 
         let player = t::add_player(&mut w);
 
-        let item = item::create(&w.fetch(), &w.fetch(), ItemStack::new(Item::Stone, 1), 0).build();
+        let item = item::create(&w.fetch(), &w.fetch(), ItemStack::new(Item::Stone, 1), 0)
+            .with(PositionComponent::default())
+            .with(VelocityComponent::default())
+            .build();
 
         w.maintain();
         d.dispatch(&w);

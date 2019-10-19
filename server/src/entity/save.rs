@@ -183,6 +183,7 @@ mod tests {
             .set_chunk_at(pos, Chunk::new(pos));
 
         dispatcher.dispatch(&world);
+        world.maintain();
 
         let msg = rx.try_recv().unwrap();
 

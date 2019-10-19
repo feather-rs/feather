@@ -202,10 +202,16 @@ impl<'a> System<'a> for EntityChunkLoadSystem {
             for entity in &event.entities {
                 match entity {
                     EntityData::Item(item_data) => {
-                        item::create_from_data(&lazy, &entities, item_data, &tick);
+                        if item::create_from_data(&lazy, &entities, item_data, &tick).is_none() {
+                            debug!("Error while loading item entity");
+                            dbg!();
+                        }
                     }
                     EntityData::Arrow(arrow_data) => {
-                        arrow::create_from_data(&lazy, &entities, arrow_data);
+                        if arrow::create_from_data(&lazy, &entities, arrow_data).is_none() {
+                            debug!("Error while loading arrow entity");
+                            dbg!();
+                        }
                     }
                     // TODO: Spawn remaining entity types here.
                     EntityData::Unknown => {
@@ -359,7 +365,9 @@ mod tests {
 
     #[test]
     fn test_entities_loaded_in_chunk() {
-        let (mut w, mut d) = t::init_world();
+        let (mut w, mut d) = t::builder()
+            .with(EntityChunkLoadSystem::default(), "")
+            .build();
 
         let entities = vec![
             EntityData::Item(ItemEntityData::default()),
@@ -373,13 +381,15 @@ mod tests {
 
         d.dispatch(&w);
         w.maintain();
+        d.dispatch(&w);
+        w.maintain();
 
         // Confirm two entities were created: one arrow, one item
         let mut events = t::triggered_events::<EntitySpawnEvent>(&w, &mut entity_spawn_reader);
 
         let first = events.remove(0).entity;
-        assert!(w.read_component::<ArrowComponent>().contains(first));
         let second = events.remove(0).entity;
-        assert!(w.read_component::<ItemComponent>().contains(second));
+        assert!(w.read_component::<ItemComponent>().contains(first));
+        assert!(w.read_component::<ArrowComponent>().contains(second));
     }
 }

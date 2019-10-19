@@ -21,9 +21,9 @@ use crate::chunk_logic::{ChunkHolders, ChunkLoadSystem};
 use crate::config::Config;
 use crate::entity::metadata::{self, Metadata};
 use crate::entity::{
-    ArrowComponent, ChunkEntities, EntityDestroyEvent, EntitySpawnEvent, ItemComponent,
-    LastKnownPositionComponent, NamedComponent, PacketCreatorComponent, PlayerComponent,
-    PositionComponent, SerializerComponent, VelocityComponent,
+    ArrowComponent, ChunkEntities, EntityDestroyEvent, EntitySendEvent, EntitySpawnEvent,
+    ItemComponent, LastKnownPositionComponent, NamedComponent, PacketCreatorComponent,
+    PlayerComponent, PositionComponent, SerializerComponent, VelocityComponent,
 };
 use crate::io::ServerToWorkerMessage;
 use crate::network::{NetworkComponent, PacketQueue};
@@ -31,7 +31,7 @@ use crate::physics::PhysicsComponent;
 use crate::player::{InventoryComponent, PlayerDisconnectEvent};
 use crate::util::BroadcasterSystem;
 use crate::worldgen::{EmptyWorldGenerator, WorldGenerator};
-use crate::PlayerCount;
+use crate::{player, PlayerCount};
 use bitflags::_core::cell::RefCell;
 
 /// Initializes a Specs world and dispatcher
@@ -113,6 +113,7 @@ pub fn add_player_without_holder(world: &mut World) -> Player {
         .with(InventoryComponent::default())
         .with(Metadata::Player(metadata::Player::default()))
         .with(LastKnownPositionComponent::default())
+        .with(PacketCreatorComponent(&player::create_packet))
         .build();
 
     Player {
@@ -369,6 +370,10 @@ fn register_components(world: &mut World) {
     world.register::<ArrowComponent>();
     world.register::<PacketCreatorComponent>();
     world.register::<SerializerComponent>();
+
+    world
+        .entry()
+        .or_insert(EventChannel::<EntitySendEvent>::default());
 }
 
 pub fn builder<'a, 'b>() -> TestBuilder<'a, 'b> {
