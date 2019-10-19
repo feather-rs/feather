@@ -40,6 +40,16 @@ use feather_core::network::packet::implementation::DisconnectPlay;
 use prelude::*;
 
 use crate::chunk_logic::{ChunkHolders, ChunkWorkerHandle};
+use crate::entity::chicken::ChickenComponent;
+use crate::entity::cow::CowComponent;
+use crate::entity::donkey::DonkeyComponent;
+use crate::entity::horse::HorseComponent;
+use crate::entity::llama::LlamaComponent;
+use crate::entity::mooshroom::MooshroomComponent;
+use crate::entity::pig::PigComponent;
+use crate::entity::rabbit::RabbitComponent;
+use crate::entity::sheep::SheepComponent;
+use crate::entity::squid::SquidComponent;
 use crate::entity::{
     EntityDestroyEvent, NamedComponent, PacketCreatorComponent, SerializerComponent,
 };
@@ -406,7 +416,22 @@ fn init_world<'a, 'b>(
     let mut dispatcher = dispatcher.build();
     dispatcher.setup(&mut world);
 
+    register_components(&mut world);
+
     (world, dispatcher)
+}
+
+fn register_components(world: &mut World) {
+    world.register::<ChickenComponent>();
+    world.register::<CowComponent>();
+    world.register::<DonkeyComponent>();
+    world.register::<HorseComponent>();
+    world.register::<LlamaComponent>();
+    world.register::<MooshroomComponent>();
+    world.register::<PigComponent>();
+    world.register::<RabbitComponent>();
+    world.register::<SheepComponent>();
+    world.register::<SquidComponent>();
 }
 
 fn init_log(config: &Config) {

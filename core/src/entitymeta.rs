@@ -6,8 +6,8 @@ use crate::bytes_ext::{BytesMutExt, TryGetError};
 use crate::network::mctypes::McTypeWrite;
 use crate::world::BlockPosition;
 use crate::Slot;
-use bytes::BytesMut;
 use hashbrown::HashMap;
+use std::io::Cursor;
 use uuid::Uuid;
 
 type OptUuid = Option<Uuid>;
@@ -147,7 +147,10 @@ pub trait EntityMetaIo {
     fn try_get_metadata(&mut self) -> Result<EntityMetadata, TryGetError>;
 }
 
-impl EntityMetaIo for BytesMut {
+impl<B> EntityMetaIo for B
+where
+    B: BytesMutExt + McTypeWrite,
+{
     fn push_metadata(&mut self, meta: &EntityMetadata) {
         for (index, entry) in meta.values.iter() {
             self.push_u8(*index);
@@ -163,7 +166,20 @@ impl EntityMetaIo for BytesMut {
     }
 }
 
-fn write_entry_to_buf(entry: &MetaEntry, buf: &mut BytesMut) {
+impl EntityMetaIo for &mut Cursor<&[u8]> {
+    fn push_metadata(&mut self, _meta: &EntityMetadata) {
+        unimplemented!()
+    }
+
+    fn try_get_metadata(&mut self) -> Result<EntityMetadata, TryGetError> {
+        unimplemented!()
+    }
+}
+
+fn write_entry_to_buf<B>(entry: &MetaEntry, buf: &mut B)
+where
+    B: BytesMutExt + McTypeWrite,
+{
     match entry {
         MetaEntry::Byte(x) => buf.push_i8(*x),
         MetaEntry::VarInt(x) => {

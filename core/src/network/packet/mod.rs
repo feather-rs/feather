@@ -442,6 +442,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x03, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::SpawnMob,
+        );
+
+        m.insert(
             PacketId(0x06, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::AnimationClientbound,
         );
