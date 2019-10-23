@@ -530,7 +530,10 @@ pub fn block_isometry(pos: BlockPosition) -> Isometry3<f64> {
 /// of a position.
 ///
 /// The Y coordinate of `distance` is ignored.
-fn chunks_within_distance(mut pos: Position, mut distance: DVec3) -> SmallVec<[ChunkPosition; 9]> {
+pub fn chunks_within_distance(
+    mut pos: Position,
+    mut distance: DVec3,
+) -> SmallVec<[ChunkPosition; 9]> {
     assert!(distance.x >= 0.0);
     assert!(distance.z >= 0.0);
 
