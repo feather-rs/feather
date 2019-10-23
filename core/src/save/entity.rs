@@ -1,4 +1,4 @@
-use crate::Position;
+use crate::{Item, Position};
 use nbt::Value;
 use std::collections::HashMap;
 
@@ -9,6 +9,26 @@ pub enum EntityData {
     Item(ItemEntityData),
     #[serde(rename = "minecraft:arrow")]
     Arrow(ArrowEntityData),
+    #[serde(rename = "minecraft:cow")]
+    Cow(AnimalData),
+    #[serde(rename = "minecraft:pig")]
+    Pig(AnimalData),
+    #[serde(rename = "minecraft:chicken")]
+    Chicken(AnimalData),
+    #[serde(rename = "minecraft:sheep")]
+    Sheep(AnimalData),
+    #[serde(rename = "minecraft:horse")]
+    Horse(AnimalData),
+    #[serde(rename = "minecraft:llama")]
+    Llama(AnimalData),
+    #[serde(rename = "minectaft:mooshroom")]
+    Mooshroom(AnimalData),
+    #[serde(rename = "minecraft:rabbit}")]
+    Rabbit(AnimalData),
+    #[serde(rename = "minecraft:squid")]
+    Squid(AnimalData),
+    #[serde(rename = "minecraft:donkey")]
+    Donkey(AnimalData),
 
     /// Fallback type for unknown entities
     #[serde(other)]
@@ -25,6 +45,16 @@ impl EntityData {
                 match self {
                     EntityData::Item(_) => "minecraft:item",
                     EntityData::Arrow(_) => "minecraft:arrow",
+                    EntityData::Cow(_) => "minecraft:cow",
+                    EntityData::Pig(_) => "minecraft:pig",
+                    EntityData::Chicken(_) => "minecraft:chicken",
+                    EntityData::Sheep(_) => "minecraft:sheep",
+                    EntityData::Horse(_) => "minecraft:horse",
+                    EntityData::Llama(_) => "minecraft:llama",
+                    EntityData::Mooshroom(_) => "minecraft:mooshroom",
+                    EntityData::Rabbit(_) => "minecraft:rabbit",
+                    EntityData::Squid(_) => "minecraft:squid",
+                    EntityData::Donkey(_) => "minecraft:donkey",
                     EntityData::Unknown => panic!("Cannot write unknown entities"),
                 }
                 .to_string(),
@@ -34,7 +64,17 @@ impl EntityData {
         match self {
             EntityData::Item(data) => data.write_to_map(&mut map),
             EntityData::Arrow(data) => data.write_to_map(&mut map),
-            EntityData::Unknown => panic!("Cannot write unknown entities"),
+            EntityData::Cow(data) => data.write_to_map(&mut map),
+            EntityData::Pig(data) => data.write_to_map(&mut map),
+            EntityData::Chicken(data) => data.write_to_map(&mut map),
+            EntityData::Sheep(data) => data.write_to_map(&mut map),
+            EntityData::Horse(data) => data.write_to_map(&mut map),
+            EntityData::Llama(data) => data.write_to_map(&mut map),
+            EntityData::Mooshroom(data) => data.write_to_map(&mut map),
+            EntityData::Rabbit(data) => data.write_to_map(&mut map),
+            EntityData::Squid(data) => data.write_to_map(&mut map),
+            EntityData::Donkey(data) => data.write_to_map(&mut map),
+            EntityData::Unknown => unreachable!(),
         }
 
         Value::Compound(map)
@@ -70,6 +110,15 @@ impl BaseEntityData {
 }
 
 impl BaseEntityData {
+    /// Creates a `BaseEntityData` from a position and velocity.
+    pub fn new(pos: Position, velocity: glm::DVec3) -> Self {
+        Self {
+            position: vec![pos.x, pos.y, pos.z],
+            rotation: vec![pos.yaw, pos.pitch],
+            velocity: vec![velocity.x, velocity.y, velocity.z],
+        }
+    }
+
     /// Reads the position and rotation fields. If the fields are invalid, None is returned.
     pub fn read_position(self: &BaseEntityData) -> Option<Position> {
         if self.position.len() == 3 && self.rotation.len() == 2 {
@@ -110,8 +159,20 @@ impl Default for BaseEntityData {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnimalData {
+    #[serde(flatten)]
+    pub base: BaseEntityData,
+}
+
+impl AnimalData {
+    fn write_to_map(self, map: &mut HashMap<String, Value>) {
+        self.base.write_to_map(map);
+    }
+}
+
 /// Represents a single item, without slot information.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ItemData {
     #[serde(rename = "Count")]
     pub count: u8,
@@ -123,6 +184,15 @@ impl ItemData {
     fn write_to_map(self, map: &mut HashMap<String, Value>) {
         map.insert(String::from("Count"), Value::Byte(self.count as i8));
         map.insert(String::from("id"), Value::String(self.item));
+    }
+}
+
+impl Default for ItemData {
+    fn default() -> Self {
+        Self {
+            count: 0,
+            item: Item::Air.identifier().to_string(),
+        }
     }
 }
 
@@ -247,5 +317,15 @@ mod tests {
         };
         let vel = data.read_velocity();
         assert!(vel.is_none());
+    }
+
+    #[test]
+    fn test_new() {
+        let pos = position!(1.0, 10.0, 3.0, 115.0, -3.0);
+        let vel = glm::vec3(0.0, 1.0, 2.0);
+
+        let data = BaseEntityData::new(pos, vel);
+        assert_eq!(data.read_position(), Some(pos));
+        assert_eq!(data.read_velocity(), Some(vel));
     }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "feather-server"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
@@ -16,56 +16,56 @@ path = "src/main.rs"
 feather-blocks = { path = "../blocks" }
 feather-core = { path = "../core" }
 feather-item-block = { path = "../item_block" }
-crossbeam = "0.7.2"
-log = "0.4.8"
-simple_logger = "1.3.0"
-uuid = { version = "0.7.4", features = ["v4"] }
-derive-new = "0.5.8"
-serde = { version = "1.0.100", features = ["derive"] }
-serde_json = "1.0.40"
-toml = "0.5.3"
-rsa = "0.1.3"
+crossbeam = "0.7"
+log = "0.4"
+simple_logger = "1.3"
+uuid = { version = "0.7", features = ["v4"] }
+derive-new = "0.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.5"
+rsa = "0.1"
 # Match RSA git master
 num-bigint = { version = "0.4", features = ["rand", "i128", "u64_digit", "prime", "zeroize"], package = "num-bigint-dig" }
-rsa-der = "0.2.1"
-rand = "0.7.1"
-rand_xorshift = "0.2.0"
+rsa-der = "0.2"
+rand = "0.7"
+rand_xorshift = "0.2"
 rand-legacy = { path = "../util/rand-legacy" }
-bytes = "0.4.12"
-hashbrown = { version = "0.6.0", features = ["rayon"] }
+bytes = "0.4"
+hashbrown = { version = "0.6", features = ["rayon"] }
 mojang-api = { git = "https://github.com/caelunshun/mojang-api-rs", rev = "6525e910ad53953fa16028f0fce74b1a19855733" }
-multimap = "0.6.0"
-hematite-nbt = "0.4.1"
-specs = { version = "0.15.1", features = ["storage-event-control"] }
-rayon = "1.1.2"
-shrev = "1.1.1"
-failure = "0.1.5"
-num-derive = "0.2.5"
-num-traits = "0.2.8"
-smallvec = "0.6.10"
-arrayvec = "0.5.0"
-lazy_static = "1.4.0"
-nalgebra-glm = "0.4.2"
-nalgebra = "0.18.1"
-ncollide3d = "0.20.1"
-derive_deref = "1.1.0"
+multimap = "0.6"
+hematite-nbt = "0.4"
+specs = { version = "0.15", features = ["storage-event-control"] }
+rayon = "1.2"
+shrev = "1.1"
+failure = "0.1"
+num-derive = "0.3"
+num-traits = "0.2"
+smallvec = "0.6"
+lazy_static = "1.4"
+nalgebra-glm = "0.4"
+nalgebra = "0.18"
+ncollide3d = "0.20"
+derive_deref = "1.1"
 feather-codegen = { path = "../codegen" }
-bitflags = "1.1.0"
-fnv = "1.0.6"
-base64 = "0.10.1"
-bumpalo = "2.6.0"
-thread_local = "1.0.0"
-parking_lot = "0.9.0"
-heapless = "0.5.1"
-strum = "0.15.0"
-simdnoise = "3.1.1"
-simdeez = "0.6.4"
-bitvec = "0.15.1"
+bitflags = "1.2"
+fnv = "1.0"
+base64 = "0.10"
+bumpalo = "2.6"
+thread_local = "1.0"
+parking_lot = "0.9"
+heapless = "0.5"
+strum = "0.16"
+simdnoise = "3.1"
+simdeez = "0.6"
+bitvec = "0.15"
 tokio = "=0.2.0-alpha.6"
 tokio-executor = "=0.2.0-alpha.6"
 futures-preview = { version = "=0.3.0-alpha.19", features = ["async-await"] }
-humantime-serde = "0.1.1"
-ctrlc = "3.1.3"
+humantime-serde = "0.1"
+ctrlc = "3.1"
+arrayvec = "0.5"
 
 [dev-dependencies]
 criterion = "0.3.0"

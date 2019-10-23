@@ -34,6 +34,10 @@ bitflags! {
     }
 }
 
+lazy_static! {
+    pub static ref EMPTY_METADATA: Metadata = { Metadata::Entity(Entity::default()) };
+}
+
 entity_metadata! {
     Metadata,
     Entity {
@@ -56,7 +60,7 @@ entity_metadata! {
         additional_hearts: f32() = 11,
         score: VarInt() = 12,
         displayed_skin_parts: u8() = 13,
-        main_hand: u8() = 14,
+        main_hand: u8(1) = 14,
     },
     Arrow: Entity {
         arrow_bit_mask: u8() = 6,
@@ -114,12 +118,12 @@ impl<'a> System<'a> for MetadataBroadcastSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::EntityType;
+    use crate::entity::test;
     use crate::testframework as t;
     use feather_core::entitymeta::MetaEntry;
     use feather_core::network::cast_packet;
     use feather_core::PacketType;
-    use specs::WorldExt;
+    use specs::{Builder, WorldExt};
 
     #[test]
     fn test_basic() {
@@ -154,8 +158,16 @@ mod tests {
             .with(MetadataBroadcastSystem::default(), "")
             .build();
 
-        // Metadata is inserted here, which causes update event
-        let entity = t::add_entity(&mut w, EntityType::Test, true);
+        let entity = test::create(&mut w, position!(0.0, 0.0, 0.0)).build();
+
+        // Insert metadata
+        {
+            let mut metadatas = w.write_component::<Metadata>();
+            metadatas
+                .insert(entity, Metadata::Entity(Entity::default()))
+                .unwrap();
+        }
+
         let player = t::add_player(&mut w);
 
         d.dispatch(&w);

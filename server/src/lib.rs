@@ -40,10 +40,22 @@ use feather_core::network::packet::implementation::DisconnectPlay;
 use prelude::*;
 
 use crate::chunk_logic::{ChunkHolders, ChunkWorkerHandle};
-use crate::entity::{EntityDestroyEvent, NamedComponent};
+use crate::entity::chicken::ChickenComponent;
+use crate::entity::cow::CowComponent;
+use crate::entity::donkey::DonkeyComponent;
+use crate::entity::horse::HorseComponent;
+use crate::entity::llama::LlamaComponent;
+use crate::entity::mooshroom::MooshroomComponent;
+use crate::entity::pig::PigComponent;
+use crate::entity::rabbit::RabbitComponent;
+use crate::entity::sheep::SheepComponent;
+use crate::entity::squid::SquidComponent;
+use crate::entity::{
+    EntityDestroyEvent, NamedComponent, PacketCreatorComponent, SerializerComponent,
+};
 use crate::network::send_packet_to_player;
 use crate::player::PlayerDisconnectEvent;
-use crate::systems::{BROADCASTER, ITEM_SPAWN, JOIN_HANDLER, NETWORK, PLAYER_INIT, SPAWNER};
+use crate::systems::{BROADCASTER, JOIN_HANDLER, NETWORK, PLAYER_INIT};
 use crate::util::Util;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
@@ -71,6 +83,7 @@ pub mod config;
 pub mod entity;
 pub mod io;
 pub mod joinhandler;
+pub mod lazy;
 pub mod lighting;
 pub mod network;
 pub mod physics;
@@ -155,7 +168,7 @@ pub fn main() {
     info!("Shutting down");
 
     info!("Saving chunks");
-    shutdown::save_chunks(&world);
+    shutdown::save_chunks(&mut world);
     info!("Saving level.dat");
     shutdown::save_level(&world);
     info!("Saving player data");
@@ -350,6 +363,9 @@ fn init_world<'a, 'b>(
     world.insert(ioman);
     world.insert(TickCount::default());
 
+    world.register::<PacketCreatorComponent>();
+    world.register::<SerializerComponent>();
+
     let generator: Arc<dyn WorldGenerator> = match level.generator_type() {
         LevelGeneratorType::Flat => Arc::new(SuperflatWorldGenerator {
             options: level.clone().generator_options.unwrap_or_default(),
@@ -379,7 +395,6 @@ fn init_world<'a, 'b>(
     blocks::init_handlers(&mut dispatcher);
     physics::init_handlers(&mut dispatcher);
     entity::init_handlers(&mut dispatcher);
-    dispatcher.add(util::SpawnerSystem, SPAWNER, &[ITEM_SPAWN]);
     player::init_handlers(&mut dispatcher);
     chunk_logic::init_handlers(&mut dispatcher);
 
@@ -403,7 +418,22 @@ fn init_world<'a, 'b>(
     let mut dispatcher = dispatcher.build();
     dispatcher.setup(&mut world);
 
+    register_components(&mut world);
+
     (world, dispatcher)
+}
+
+fn register_components(world: &mut World) {
+    world.register::<ChickenComponent>();
+    world.register::<CowComponent>();
+    world.register::<DonkeyComponent>();
+    world.register::<HorseComponent>();
+    world.register::<LlamaComponent>();
+    world.register::<MooshroomComponent>();
+    world.register::<PigComponent>();
+    world.register::<RabbitComponent>();
+    world.register::<SheepComponent>();
+    world.register::<SquidComponent>();
 }
 
 fn init_log(config: &Config) {

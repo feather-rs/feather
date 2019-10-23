@@ -3,16 +3,19 @@
 //! entity queries and packet broadcasting.
 
 use crate::chunk_logic::ChunkLoadEvent;
-use crate::entity::{EntityDestroyEvent, EntitySpawnEvent, PositionComponent};
-use crate::util::Util;
+use crate::entity::{
+    arrow, chicken, cow, donkey, horse, item, llama, mooshroom, pig, rabbit, sheep, squid,
+    EntityDestroyEvent, EntitySpawnEvent, PositionComponent,
+};
+use crate::TickCount;
 use feather_core::entity::EntityData;
 use feather_core::world::ChunkPosition;
-use feather_core::{Item, ItemStack};
 use hashbrown::{HashMap, HashSet};
 use shrev::EventChannel;
 use specs::storage::ComponentEvent;
 use specs::{
-    BitSet, Entities, Entity, Join, Read, ReadStorage, ReaderId, System, World, WorldExt, Write,
+    BitSet, Entities, Entity, Join, LazyUpdate, Read, ReadStorage, ReaderId, System, World,
+    WorldExt, Write,
 };
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -188,43 +191,78 @@ pub struct EntityChunkLoadSystem {
 }
 
 impl<'a> System<'a> for EntityChunkLoadSystem {
-    type SystemData = (Read<'a, EventChannel<ChunkLoadEvent>>, Read<'a, Util>);
+    type SystemData = (
+        Read<'a, EventChannel<ChunkLoadEvent>>,
+        Read<'a, LazyUpdate>,
+        Entities<'a>,
+        Read<'a, TickCount>,
+    );
 
+    #[allow(clippy::cognitive_complexity)] // Big match statement. Necessary
     fn run(&mut self, data: Self::SystemData) {
-        let (load_events, util) = data;
+        let (load_events, lazy, entities, tick) = data;
 
         for event in load_events.read(self.reader.as_mut().unwrap()) {
             for entity in &event.entities {
                 match entity {
                     EntityData::Item(item_data) => {
-                        let pos = item_data.entity.read_position();
-                        if let Some(pos) = pos {
-                            util.spawn_item(
-                                pos,
-                                item_data
-                                    .entity
-                                    .read_velocity()
-                                    .unwrap_or_else(|| glm::vec3(0.0, 0.0, 0.0)),
-                                ItemStack::new(
-                                    Item::from_identifier(item_data.item.item.as_str())
-                                        .unwrap_or(Item::Stone),
-                                    item_data.item.count,
-                                ),
-                            )
+                        if item::create_from_data(&lazy, &entities, item_data, &tick).is_none() {
+                            debug!("Error while loading item entity");
                         }
                     }
                     EntityData::Arrow(arrow_data) => {
-                        let pos = arrow_data.entity.read_position();
-                        if let Some(pos) = pos {
-                            util.spawn_arrow(
-                                pos,
-                                arrow_data
-                                    .entity
-                                    .read_velocity()
-                                    .unwrap_or_else(|| glm::vec3(0.0, 0.0, 0.0)),
-                                arrow_data.critical > 0,
-                                None, // TODO: Load shooter UUID
-                            );
+                        if arrow::create_from_data(&lazy, &entities, arrow_data).is_none() {
+                            debug!("Error while loading arrow entity");
+                        }
+                    }
+                    EntityData::Cow(data) => {
+                        if cow::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading cow entity")
+                        }
+                    }
+                    EntityData::Pig(data) => {
+                        if pig::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading pig entity")
+                        }
+                    }
+                    EntityData::Chicken(data) => {
+                        if chicken::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading chicken entity")
+                        }
+                    }
+                    EntityData::Sheep(data) => {
+                        if sheep::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading sheep entity")
+                        }
+                    }
+                    EntityData::Horse(data) => {
+                        if horse::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading horse entity")
+                        }
+                    }
+                    EntityData::Llama(data) => {
+                        if llama::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading llama entity")
+                        }
+                    }
+                    EntityData::Mooshroom(data) => {
+                        if mooshroom::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading mooshroom entity")
+                        }
+                    }
+                    EntityData::Rabbit(data) => {
+                        if rabbit::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading rabbit entity")
+                        }
+                    }
+                    EntityData::Squid(data) => {
+                        if squid::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading squid entity")
+                        }
+                    }
+                    EntityData::Donkey(data) => {
+                        if donkey::create_from_data(&lazy, &entities, data).is_none() {
+                            debug!("Error while loading donkey entity")
                         }
                     }
                     // TODO: Spawn remaining entity types here.
@@ -244,10 +282,9 @@ impl<'a> System<'a> for EntityChunkLoadSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::EntityType;
+    use crate::entity::{test, ArrowComponent, ItemComponent};
     use crate::testframework as t;
     use feather_core::entity::{ArrowEntityData, ItemEntityData};
-    use feather_core::Position;
     use specs::{Builder, World, WorldExt};
 
     #[test]
@@ -280,10 +317,7 @@ mod tests {
             })
             .build();
 
-        let event = EntitySpawnEvent {
-            entity,
-            ty: EntityType::Player,
-        };
+        let event = EntitySpawnEvent { entity };
         t::trigger_event(&w, event);
 
         d.dispatch(&w);
@@ -339,7 +373,7 @@ mod tests {
             .build();
 
         let pos = position!(100.0, -100.0, -100.0);
-        let entity = t::add_entity_with_pos(&mut w, EntityType::Player, pos, false);
+        let entity = test::create(&mut w, pos).build();
 
         let event = EntityDestroyEvent { entity };
         t::trigger_event(&w, event);
@@ -382,7 +416,9 @@ mod tests {
 
     #[test]
     fn test_entities_loaded_in_chunk() {
-        let (mut w, mut d) = t::init_world();
+        let (mut w, mut d) = t::builder()
+            .with(EntityChunkLoadSystem::default(), "")
+            .build();
 
         let entities = vec![
             EntityData::Item(ItemEntityData::default()),
@@ -396,14 +432,15 @@ mod tests {
 
         d.dispatch(&w);
         w.maintain();
+        d.dispatch(&w);
+        w.maintain();
 
-        // Confirm two spawn events were triggered
-        let events = t::triggered_events::<EntitySpawnEvent>(&w, &mut entity_spawn_reader);
-        assert_eq!(events.len(), 2);
+        // Confirm two entities were created: one arrow, one item
+        let mut events = t::triggered_events::<EntitySpawnEvent>(&w, &mut entity_spawn_reader);
 
-        let mut iter = events.iter();
-        for ty in &[EntityType::Item, EntityType::Arrow] {
-            assert_eq!(iter.next().unwrap().ty, *ty);
-        }
+        let first = events.remove(0).entity;
+        let second = events.remove(0).entity;
+        assert!(w.read_component::<ItemComponent>().contains(first));
+        assert!(w.read_component::<ArrowComponent>().contains(second));
     }
 }

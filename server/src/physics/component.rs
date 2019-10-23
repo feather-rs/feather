@@ -1,104 +1,111 @@
 //! Assorted components relating to physics
 //! and systems to initialize them.
 
-use crate::entity::{EntitySpawnEvent, EntityType};
 use glm::DVec3;
 use ncollide3d::bounding_volume::AABB;
-use shrev::EventChannel;
-use specs::{Component, DenseVecStorage, Read, ReaderId, System, WriteStorage};
+use specs::{Component, VecStorage};
 
-/// An entity's bounding box.
-#[derive(Debug, Clone, Deref, DerefMut)]
-pub struct BoundingBoxComponent(pub AABB<f64>);
+pub const DEFAULT_SLIP_MULTIPLIER: f64 = 0.6;
 
-impl Component for BoundingBoxComponent {
-    type Storage = DenseVecStorage<Self>;
+/// Component for entities with physics applied to them.
+///
+/// Physics will only be performed on entities with this component.
+///
+/// Typically, this component should be constructed using `PhysicsBuilder`.
+#[derive(Debug)]
+pub struct PhysicsComponent {
+    /// This entity's bounding box.
+    pub bbox: AABB<f64>,
+    /// The drag coefficient for this entity. Each tick,
+    /// the entity's velocity will be multiplied by this amount
+    /// (so higher values cause less drag).
+    pub drag: f64,
+    /// Gravitational acceleration for this entity. Each tick,
+    /// this value will be added to the entity's Y speed.
+    ///
+    /// This value should generally be negative.
+    pub gravity: f64,
+    /// Slip multiplier for this entity. When on the ground,
+    /// the X and Z velocities will be multiplied by this amount
+    /// each tick.
+    ///
+    /// This value is `DEFAULT_SLIP_MULTIPLIER` for most entities.
+    pub slip_multiplier: f64,
 }
 
-impl BoundingBoxComponent {
+impl Component for PhysicsComponent {
+    type Storage = VecStorage<Self>;
+}
+
+/// Builder for physics components.
+pub struct PhysicsBuilder {
+    comp: PhysicsComponent,
+}
+
+impl Default for PhysicsBuilder {
+    fn default() -> Self {
+        let comp = PhysicsComponent {
+            bbox: bbox(0.5, 0.5, 0.5),
+            drag: 0.98,
+            gravity: -0.08,
+            slip_multiplier: DEFAULT_SLIP_MULTIPLIER,
+        };
+        Self { comp }
+    }
+}
+
+impl PhysicsBuilder {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Returns a `PhysicsBuilder` with defaults set to the settings
+    /// for living entities.
+    pub fn for_living() -> Self {
+        Self::new().drag(0.98).gravity(-0.08).slip_multiplier(0.6)
+    }
+
+    pub fn bbox(mut self, x: f64, y: f64, z: f64) -> Self {
+        self.comp.bbox = bbox(x, y, z);
+        self
+    }
+
+    pub fn drag(mut self, drag: f64) -> Self {
+        self.comp.drag = drag;
+        self
+    }
+
+    pub fn gravity(mut self, gravity: f64) -> Self {
+        self.comp.gravity = gravity;
+        self
+    }
+
+    pub fn slip_multiplier(mut self, slip_multiplier: f64) -> Self {
+        self.comp.slip_multiplier = slip_multiplier;
+        self
+    }
+
+    pub fn build(self) -> PhysicsComponent {
+        self.comp
+    }
+}
+
+pub trait AABBExt {
     /// Returns the difference between the two
     /// corners of this bounding box.
-    pub fn size(&self) -> DVec3 {
-        self.0.maxs() - self.0.mins()
-    }
+    fn size(&self) -> DVec3;
 }
 
-/// System for initializing new entities'
-/// physics components.
-#[derive(Default)]
-pub struct PhysicsInitSystem {
-    reader: Option<ReaderId<EntitySpawnEvent>>,
-}
-
-impl<'a> System<'a> for PhysicsInitSystem {
-    type SystemData = (
-        WriteStorage<'a, BoundingBoxComponent>,
-        Read<'a, EventChannel<EntitySpawnEvent>>,
-    );
-
-    fn run(&mut self, data: Self::SystemData) {
-        let (mut bboxes, events) = data;
-
-        for event in events.read(self.reader.as_mut().unwrap()) {
-            let bbox = bbox_for_type(event.ty);
-            if let Some(bbox) = bbox {
-                bboxes
-                    .insert(event.entity, BoundingBoxComponent(bbox))
-                    .unwrap();
-            }
-        }
-    }
-
-    setup_impl!(reader);
-}
-
-/// Returns the bounding box for the given entity type.
-fn bbox_for_type(ty: EntityType) -> Option<AABB<f64>> {
-    match ty {
-        EntityType::Item => Some(bbox(0.25, 0.25)),
-        EntityType::Player => Some(bbox(0.6, 1.7)),
-        EntityType::Arrow | EntityType::TippedArrow => Some(bbox(0.5, 0.5)),
-        EntityType::FallingBlock => Some(bbox(0.98, 0.98)),
-        _ => None,
+impl AABBExt for AABB<f64> {
+    fn size(&self) -> DVec3 {
+        self.maxs() - self.mins()
     }
 }
 
 /// Returns a bounding box with the given width and height.
-pub fn bbox(size_xz: f64, size_y: f64) -> AABB<f64> {
+pub fn bbox(size_x: f64, size_y: f64, size_z: f64) -> AABB<f64> {
     AABB::new(
         glm::vec3(0.0, 0.0, 0.0).into(),
-        glm::vec3(size_xz, size_y, size_xz).into(),
+        glm::vec3(size_x, size_y, size_z).into(),
     )
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::testframework as t;
-    use specs::WorldExt;
-
-    #[test]
-    fn test_physics_init() {
-        let (mut w, mut d) = t::init_world();
-
-        t::populate_with_air(&mut w); // Prevent entity from getting removed
-
-        let entity = t::add_entity(&mut w, EntityType::Player, true);
-
-        let event = EntitySpawnEvent {
-            entity,
-            ty: EntityType::Player,
-        };
-        t::trigger_event(&w, event);
-
-        d.dispatch(&w);
-        w.maintain();
-
-        let bbox = w
-            .read_component::<BoundingBoxComponent>()
-            .get(entity)
-            .unwrap()
-            .clone();
-        assert_eq!(bbox.0, bbox_for_type(EntityType::Player).unwrap());
-    }
 }

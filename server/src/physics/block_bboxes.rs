@@ -45,7 +45,7 @@ pub fn bbox_for_block(block: &Block) -> AABB<f64> {
         | Block::NetherBrickSlab(_)
         | Block::QuartzSlab(_)
         | Block::RedSandstoneSlab(_)
-        | Block::PurpurSlab(_) => bbox(1.0, 0.5),
-        _ => bbox(1.0, 1.0),
+        | Block::PurpurSlab(_) => bbox(1.0, 0.5, 1.0),
+        _ => bbox(1.0, 1.0, 1.0),
     }
 }

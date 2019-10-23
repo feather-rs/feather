@@ -13,7 +13,7 @@ pub mod chunk;
 #[macro_export]
 macro_rules! position {
     ($x:expr, $y:expr, $z:expr, $pitch:expr, $yaw:expr, $on_ground:expr) => {
-        Position {
+        $crate::Position {
             x: $x,
             y: $y,
             z: $z,

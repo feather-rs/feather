@@ -3,7 +3,7 @@
 
 use crate::entity::{ChunkEntities, PositionComponent};
 use crate::physics::block_bboxes::bbox_for_block;
-use crate::physics::BoundingBoxComponent;
+use crate::physics::AABBExt;
 use feather_blocks::Block;
 use feather_core::world::{BlockPosition, ChunkMap, Position};
 use feather_core::{BlockExt, ChunkPosition};
@@ -321,7 +321,7 @@ pub fn blocks_intersecting_bbox(
     chunk_map: &ChunkMap,
     mut from: Position,
     mut dest: Position,
-    bbox: &BoundingBoxComponent,
+    bbox: &AABB<f64>,
 ) -> BlockIntersect {
     let bbox_size = bbox.size() / 2.0;
 
@@ -359,7 +359,7 @@ pub fn blocks_intersecting_bbox(
     // position to the block. If the time of impact is <= 1, the entity
     // has collided with the block; update the position accordingly.
     let velocity = (dest - from).as_vec();
-    let bbox_shape = bbox_to_cuboid(&bbox.0);
+    let bbox_shape = bbox_to_cuboid(&bbox);
 
     for compound in blocks {
         let toi = match query::time_of_impact(
@@ -424,7 +424,7 @@ pub fn blocks_intersecting_bbox(
 pub fn adjacent_to_bbox(
     axis: usize,
     sign: i32,
-    bbox: &BoundingBoxComponent,
+    bbox: &AABB<f64>,
     pos: Position,
     chunk_map: &ChunkMap,
     checked: &mut heapless::FnvIndexSet<BlockPosition, U32>,
@@ -617,12 +617,12 @@ pub fn bbox_to_cuboid(bbox: &AABB<f64>) -> Cuboid<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::EntityType;
+    use crate::entity::test;
     use crate::testframework as t;
     use feather_core::world::chunk::Chunk;
     use feather_core::world::ChunkPosition;
     use feather_core::Block;
-    use specs::WorldExt;
+    use specs::{Builder, WorldExt};
     use std::collections::HashSet;
 
     #[test]
@@ -639,12 +639,12 @@ mod tests {
         );
 
         assert_eq!(
-            block_impacted_by_ray(&map, vec3(0.0, 65.0, 0.0), vec3(0.0, 1.0, 0.0), 256.0,),
+            block_impacted_by_ray(&map, vec3(0.0, 65.0, 0.0), vec3(0.0, 1.0, 0.0), 256.0),
             None
         );
 
         assert_eq!(
-            block_impacted_by_ray(&map, vec3(0.0, 70.0, 0.0), vec3(0.0, -1.0, 0.0), 5.0,),
+            block_impacted_by_ray(&map, vec3(0.0, 70.0, 0.0), vec3(0.0, -1.0, 0.0), 5.0),
             None
         );
 
@@ -689,25 +689,10 @@ mod tests {
 
         t::populate_with_air(&mut w); // Prevents entities from getting despawned for being outside loaded chunks
 
-        let e1 = t::add_entity_with_pos(&mut w, EntityType::Player, position!(0.0, 0.0, 0.0), true);
-        let e2 = t::add_entity_with_pos(
-            &mut w,
-            EntityType::Player,
-            position!(-100.0, 0.0, 50.0),
-            true,
-        );
-        let e3 = t::add_entity_with_pos(
-            &mut w,
-            EntityType::Player,
-            position!(100.0, 50.0, 50.0),
-            true,
-        );
-        let e4 = t::add_entity_with_pos(
-            &mut w,
-            EntityType::Player,
-            position!(100.0, 1.0, -50.0),
-            true,
-        );
+        let e1 = test::create(&mut w, position!(0.0, 0.0, 0.0)).build();
+        let e2 = test::create(&mut w, position!(-100.0, 0.0, 50.0)).build();
+        let e3 = test::create(&mut w, position!(100.0, 50.0, 50.0)).build();
+        let e4 = test::create(&mut w, position!(100.0, 1.0, -50.0)).build();
 
         d.dispatch(&w);
         w.maintain();
@@ -819,7 +804,7 @@ mod tests {
             position!(0.0, 90.0, 0.0),
         ];
 
-        let bbox = BoundingBoxComponent(crate::physics::component::bbox(0.25, 0.25));
+        let bbox = crate::physics::component::bbox(0.25, 0.25, 0.25);
 
         for ((from, dest), result) in froms.iter().zip(&dests).zip(&results) {
             let intersect = blocks_intersecting_bbox(&chunk_map, *from, *dest, &bbox);
@@ -834,7 +819,7 @@ mod tests {
     fn test_adjacent_to_bbox() {
         let chunk_map = chunk_map();
 
-        let bbox = crate::physics::component::bbox(0.25, 0.25);
+        let bbox = crate::physics::component::bbox(0.25, 0.25, 0.25);
 
         let pos = position!(0.0, 65.0, 0.0);
 
@@ -843,14 +828,7 @@ mod tests {
 
         let mut checked = heapless::FnvIndexSet::new();
 
-        let _ = adjacent_to_bbox(
-            axis,
-            sign,
-            &BoundingBoxComponent(bbox),
-            pos,
-            &chunk_map,
-            &mut checked,
-        );
+        let _ = adjacent_to_bbox(axis, sign, &bbox, pos, &chunk_map, &mut checked);
 
         assert!(checked.contains(&BlockPosition::new(0, 64, 0)));
     }

@@ -118,8 +118,96 @@ pub fn max_size(item: Item) -> u8 {
         | Item::Book
         | Item::WrittenBook
         | Item::WritableBook
-        | Item::FlintAndSteel => 1,
-        Item::EnderPearl => 16,
+        | Item::FlintAndSteel
+        | Item::WhiteBed
+        | Item::OrangeBed
+        | Item::MagentaBed
+        | Item::LightBlueBed
+        | Item::YellowBed
+        | Item::LimeBed
+        | Item::PinkBed
+        | Item::GrayBed
+        | Item::LightGrayBed
+        | Item::CyanBed
+        | Item::PurpleBed
+        | Item::BlueBed
+        | Item::BrownBed
+        | Item::GreenBed
+        | Item::RedBed
+        | Item::BlackBed
+        | Item::ShulkerBox
+        | Item::TurtleEgg
+        | Item::TurtleHelmet
+        | Item::FishingRod
+        | Item::EnchantedBook
+        | Item::Potion
+        | Item::LingeringPotion
+        | Item::SplashPotion
+        | Item::WaterBucket
+        | Item::LavaBucket
+        | Item::TropicalFishBucket
+        | Item::CodBucket
+        | Item::MilkBucket
+        | Item::PufferfishBucket
+        | Item::SalmonBucket
+        | Item::CarrotOnAStick
+        | Item::Elytra
+        | Item::Shield
+        | Item::Trident
+        | Item::MusicDisc13
+        | Item::MusicDiscCat
+        | Item::MusicDiscBlocks
+        | Item::MusicDiscChirp
+        | Item::MusicDiscFar
+        | Item::MusicDiscMall
+        | Item::MusicDiscMellohi
+        | Item::MusicDiscStal
+        | Item::MusicDiscStrad
+        | Item::MusicDiscWard
+        | Item::MusicDisc11
+        | Item::MusicDiscWait
+        | Item::TotemOfUndying
+        | Item::Shears
+        | Item::AcaciaBoat
+        | Item::DarkOakBoat
+        | Item::OakBoat
+        | Item::SpruceBoat
+        | Item::BirchBoat
+        | Item::JungleBoat
+        | Item::MushroomStew
+        | Item::BeetrootSoup
+        | Item::RabbitStew
+        | Item::Cake
+        | Item::Minecart
+        | Item::ChestMinecart
+        | Item::CommandBlockMinecart
+        | Item::FurnaceMinecart
+        | Item::HopperMinecart
+        | Item::TntMinecart
+        | Item::DiamondHorseArmor
+        | Item::GoldenHorseArmor
+        | Item::IronHorseArmor => 1,
+        Item::EnderPearl
+        | Item::Snowball
+        | Item::WhiteBanner
+        | Item::OrangeBanner
+        | Item::MagentaBanner
+        | Item::LightBlueBanner
+        | Item::YellowBanner
+        | Item::LimeBanner
+        | Item::PinkBanner
+        | Item::GrayBanner
+        | Item::LightGrayBanner
+        | Item::CyanBanner
+        | Item::PurpleBanner
+        | Item::BlueBanner
+        | Item::BrownBanner
+        | Item::GreenBanner
+        | Item::RedBanner
+        | Item::BlackBanner
+        | Item::Sign
+        | Item::ArmorStand
+        | Item::Egg => 16,
         _ => 64,
         // TODO: are we missing some here?
     }

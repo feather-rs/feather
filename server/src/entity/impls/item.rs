@@ -1,24 +1,34 @@
 //! Logic for working with item entities.
 use crate::entity::metadata::{self, Metadata};
-use crate::entity::{ChunkEntities, EntityDestroyEvent, PlayerComponent, PositionComponent};
-use crate::physics::nearby_entities;
+use crate::entity::{
+    ChunkEntities, EntityDestroyEvent, PlayerComponent, PositionComponent, VelocityComponent,
+};
+use crate::physics::{nearby_entities, PhysicsBuilder};
 use crate::player::{
     InventoryComponent, InventoryUpdateEvent, PlayerItemDropEvent, PLAYER_EYE_HEIGHT,
 };
-use crate::util::Util;
-use crate::TickCount;
+use crate::util::{protocol_velocity, Util};
+use crate::{TickCount, TPS};
 use feather_core::network::packet::implementation::CollectItem;
-use feather_core::ItemStack;
+use feather_core::{Item, ItemStack, Packet};
 use rand::Rng;
 use shrev::EventChannel;
 use smallvec::SmallVec;
 use specs::storage::ComponentEvent;
 use specs::{
-    BitSet, Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, ReaderId,
-    System, SystemData, World, Write, WriteStorage,
+    BitSet, Builder, Component, DenseVecStorage, Entities, Entity, Join, LazyUpdate, Read,
+    ReadStorage, ReaderId, System, SystemData, World, WorldExt, Write, WriteStorage,
 };
 
-/// Component for item entitties.
+use crate::entity::component::{PacketCreatorComponent, SerializerComponent};
+use crate::entity::movement::degrees_to_stops;
+use crate::lazy::LazyUpdateExt;
+use feather_core::entity::{BaseEntityData, EntityData, ItemData, ItemEntityData};
+use feather_core::packet::SpawnObject;
+use specs::world::{EntitiesRes, LazyBuilder};
+use uuid::Uuid;
+
+/// Component for item entities.
 pub struct ItemComponent {
     /// The tick at which this item is collectable
     /// by a player.
@@ -43,12 +53,14 @@ pub struct ItemSpawnSystem {
 impl<'a> System<'a> for ItemSpawnSystem {
     type SystemData = (
         ReadStorage<'a, PositionComponent>,
-        Read<'a, Util>,
+        Read<'a, LazyUpdate>,
+        Entities<'a>,
         Read<'a, EventChannel<PlayerItemDropEvent>>,
+        Read<'a, TickCount>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (positions, util, item_drop_events) = data;
+        let (positions, lazy, entities, item_drop_events, tick) = data;
 
         let mut rng = rand::thread_rng();
 
@@ -80,7 +92,13 @@ impl<'a> System<'a> for ItemSpawnSystem {
                 vel
             };
 
-            util.spawn_item(pos, velocity, event.stack.clone());
+            create(&lazy, &entities, event.stack.clone(), tick.0 + TPS)
+                .with(PositionComponent {
+                    current: pos,
+                    previous: pos,
+                })
+                .with(VelocityComponent(velocity))
+                .build();
         }
     }
 
@@ -311,9 +329,108 @@ impl<'a> System<'a> for ItemCollectSystem {
     flagged_setup_impl!(PositionComponent, reader);
 }
 
+pub fn create<'a>(
+    lazy: &'a LazyUpdate,
+    entities: &EntitiesRes,
+    stack: ItemStack,
+    collectable_at: u64,
+) -> LazyBuilder<'a> {
+    let meta = {
+        let mut meta_item = crate::entity::metadata::Item::default();
+        meta_item.set_item(Some(stack.clone()));
+        Metadata::Item(meta_item)
+    };
+
+    lazy.spawn_entity(entities)
+        .with(ItemComponent {
+            stack,
+            collectable_at,
+        })
+        .with(
+            PhysicsBuilder::new()
+                .bbox(0.25, 0.25, 0.25)
+                .gravity(-0.04)
+                .drag(0.98)
+                .build(),
+        )
+        .with(VelocityComponent::default())
+        .with(meta)
+        .with(PacketCreatorComponent(&create_packet))
+        .with(SerializerComponent(&serialize))
+}
+
+pub fn create_from_data(
+    lazy: &LazyUpdate,
+    entities: &EntitiesRes,
+    data: &ItemEntityData,
+    tick: &TickCount,
+) -> Option<Entity> {
+    let pos = data.entity.read_position()?;
+    let vel = data.entity.read_velocity()?;
+
+    let stack = ItemStack::new(Item::from_identifier(&data.item.item)?, data.item.count);
+
+    let collectable_at = data.pickup_delay as u64 + tick.0;
+
+    Some(
+        create(lazy, entities, stack, collectable_at)
+            .with(PositionComponent {
+                current: pos,
+                previous: pos,
+            })
+            .with(VelocityComponent(vel))
+            .build(),
+    )
+}
+
+fn create_packet(world: &World, entity: Entity) -> Box<dyn Packet> {
+    let positions = world.read_component::<PositionComponent>();
+    let velocities = world.read_component::<VelocityComponent>();
+
+    let position = positions.get(entity).unwrap().current;
+    let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocities.get(entity).unwrap().0);
+
+    let packet = SpawnObject {
+        entity_id: entity.id() as i32,
+        object_uuid: Uuid::new_v4(),
+        ty: 2, // Type 2 for item stack
+        x: position.x,
+        y: position.y,
+        z: position.z,
+        pitch: degrees_to_stops(position.pitch),
+        yaw: degrees_to_stops(position.yaw),
+        data: 1, // Has velocity
+        velocity_x,
+        velocity_y,
+        velocity_z,
+    };
+
+    Box::new(packet)
+}
+
+fn serialize(world: &World, entity: Entity) -> EntityData {
+    let positions = world.read_component::<PositionComponent>();
+    let velocities = world.read_component::<VelocityComponent>();
+    let items = world.read_component::<ItemComponent>();
+
+    let item = items.get(entity).unwrap();
+    let position = positions.get(entity).unwrap();
+    let velocity = velocities.get(entity).unwrap();
+
+    EntityData::Item(ItemEntityData {
+        entity: BaseEntityData::new(position.current, velocity.0),
+        age: 0,          // TODO
+        pickup_delay: 0, // TODO
+        item: ItemData {
+            item: item.stack.ty.identifier().to_string(),
+            count: item.stack.amount,
+        },
+    })
+}
+
 pub fn item_stack_from_meta(meta: &Metadata) -> ItemStack {
     match meta {
-        Metadata::Item(item) => item.item().unwrap().clone(),
+        Metadata::Item(item) => item.item().unwrap(),
         _ => panic!(),
     }
 }
@@ -327,12 +444,10 @@ pub fn item_meta(stack: ItemStack) -> Metadata {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::EntitySpawnEvent;
-    use crate::entity::EntityType;
+    use crate::entity::{ChunkEntityUpdateSystem, EntitySpawnEvent};
     use crate::testframework as t;
     use feather_core::inventory::SLOT_HOTBAR_OFFSET;
     use feather_core::network::cast_packet;
-    use feather_core::world::Position;
     use feather_core::{Item, ItemStack, PacketType};
     use specs::WorldExt;
 
@@ -362,7 +477,6 @@ mod tests {
         assert_eq!(events.len(), 1);
         let first = events.first().unwrap();
         let entity = first.entity;
-        assert_eq!(first.ty, EntityType::Item);
 
         // Check position
         let pos = t::entity_pos(&w, entity);
@@ -379,21 +493,30 @@ mod tests {
             .with_dep(ItemMergeSystem::default(), "item_merge", &[])
             .build();
 
-        let item1 =
-            t::add_entity_with_pos(&mut w, EntityType::Item, position!(0.0, 0.0, 0.0), true);
-        let item2 =
-            t::add_entity_with_pos(&mut w, EntityType::Item, position!(1.0, 0.4, 1.0), true);
+        let item1 = create(
+            &w.fetch(),
+            &w.fetch(),
+            ItemStack::new(Item::EnderPearl, 4),
+            0,
+        )
+        .with(PositionComponent::default())
+        .build();
+        let item2 = create(
+            &w.fetch(),
+            &w.fetch(),
+            ItemStack::new(Item::EnderPearl, 7),
+            0,
+        )
+        .with(PositionComponent::default())
+        .build();
 
-        {
-            let mut metadatas = w.write_component::<Metadata>();
+        let mut updater = ChunkEntityUpdateSystem::default();
+        updater.setup(&mut w);
 
-            metadatas
-                .insert(item1, item_meta(ItemStack::new(Item::EnderPearl, 4)))
-                .unwrap();
-            metadatas
-                .insert(item2, item_meta(ItemStack::new(Item::EnderPearl, 7)))
-                .unwrap();
-        }
+        w.maintain();
+
+        // Update chunk entities so `nearby_entities` works
+        specs::RunNow::run_now(&mut updater, &w);
 
         d.dispatch(&w);
         w.maintain();
@@ -416,19 +539,24 @@ mod tests {
             .build();
 
         let player = t::add_player(&mut w);
-        let item = t::add_entity(&mut w, EntityType::Item, true);
         let stack = ItemStack::new(Item::String, 4);
+        let item = create(&w.fetch(), &w.fetch(), stack.clone(), 0)
+            .with(PositionComponent::default())
+            .build();
 
         let mut destroy_reader = t::reader(&w);
 
-        {
-            let mut metadatas = w.write_component::<Metadata>();
-            let metadata = item_meta(stack.clone());
-            metadatas.insert(item, metadata).unwrap();
-        }
-
         // Allow item to be collected
-        w.fetch_mut::<TickCount>().0 = 20;
+        w.fetch_mut::<TickCount>().0 = 0;
+
+        let mut updater = ChunkEntityUpdateSystem::default();
+        updater.setup(&mut w);
+
+        w.maintain();
+
+        // Update chunk entities so `nearby_entities` works
+
+        specs::RunNow::run_now(&mut updater, &w);
 
         d.dispatch(&w);
         w.maintain();

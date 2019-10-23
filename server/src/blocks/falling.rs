@@ -1,13 +1,13 @@
 use shrev::ReaderId;
 use specs::shrev::EventChannel;
-use specs::{Read, System, Write};
+use specs::{Builder, Entities, LazyUpdate, Read, System, Write};
 
 use feather_core::world::ChunkMap;
 
 use feather_blocks::{Block, BlockExt};
 
 use crate::blocks::{BlockNotifyEvent, BlockUpdateCause, BlockUpdateEvent};
-use crate::util::Util;
+use crate::entity::{falling_block, PositionComponent, VelocityComponent};
 use feather_core::Position;
 
 /// This system listens to `BlockNotifyEvent`s.
@@ -19,13 +19,14 @@ pub struct FallingBlockCreationSystem {
 impl<'a> System<'a> for FallingBlockCreationSystem {
     type SystemData = (
         Read<'a, EventChannel<BlockNotifyEvent>>,
-        Read<'a, Util>,
         Write<'a, EventChannel<BlockUpdateEvent>>,
         Write<'a, ChunkMap>,
+        Read<'a, LazyUpdate>,
+        Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (events, util, mut block_update, mut chunk_map) = data;
+        let (events, mut block_update, mut chunk_map, lazy, entities) = data;
 
         // Process events
         for event in events.read(&mut self.reader.as_mut().unwrap()) {
@@ -47,10 +48,17 @@ impl<'a> System<'a> for FallingBlockCreationSystem {
                         block_update.single_write(update_event);
 
                         let mut entity_pos: Position = event.pos.world_pos();
+                        // Center position on block
                         entity_pos.x += 0.5;
                         entity_pos.z += 0.5;
 
-                        util.spawn_falling_block(entity_pos, glm::vec3(0.0, 0.0, 0.0), event.block)
+                        falling_block::create(&lazy, &entities, event.block, entity_pos)
+                            .with(PositionComponent {
+                                current: entity_pos,
+                                previous: entity_pos,
+                            })
+                            .with(VelocityComponent::default())
+                            .build();
                     }
                 }
                 _ => (),
