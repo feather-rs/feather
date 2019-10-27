@@ -578,7 +578,6 @@ mod tests {
 
     use super::*;
     use mojang_api::ProfileProperty;
-    use std::net::Ipv4Addr;
 
     #[test]
     fn extract_bungeecord_data_normal() {
