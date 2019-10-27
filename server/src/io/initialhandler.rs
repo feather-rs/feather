@@ -14,7 +14,6 @@
 //! speeding up the login process and making the latency calculation in
 //! the server list ping as low as possible.
 
-use std::net::IpAddr;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
@@ -268,8 +267,8 @@ fn extract_bungeecord_data(packet: &Handshake) -> Result<BungeeCordData, Error> 
 
 #[derive(PartialEq, Debug)]
 struct BungeeCordData {
-    host: IpAddr,
-    client: IpAddr,
+    host: String,
+    client: String,
     uuid: Uuid,
     properties: Vec<ProfileProperty>,
 }
@@ -280,16 +279,8 @@ impl BungeeCordData {
             return Err(Error::BungeeSpecMismatch("Incorrect length".to_string()));
         }
 
-        let host = data
-            .get(0)
-            .unwrap()
-            .parse::<IpAddr>()
-            .map_err(|e| Error::BungeeSpecMismatch(e.to_string()))?;
-        let client = data
-            .get(1)
-            .unwrap()
-            .parse::<IpAddr>()
-            .map_err(|e| Error::BungeeSpecMismatch(e.to_string()))?;
+        let host = data.get(0).unwrap().to_string();
+        let client = data.get(1).unwrap().to_string();
         let uuid = Uuid::parse_str(*data.get(2).unwrap())
             .map_err(|e| Error::BungeeSpecMismatch(e.to_string()))?;
         let properties = serde_json::from_str(data.get(3).unwrap())
@@ -601,8 +592,8 @@ mod tests {
         assert_eq!(
             extract_bungeecord_data(&handshake).unwrap(),
             BungeeCordData {
-                host: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 87)),
-                client: IpAddr::V4(Ipv4Addr::new(192, 168, 1, 67)),
+                host: "192.168.1.87".to_string(),
+                client: "192.168.1.67".to_string(),
                 uuid: Uuid::parse_str("905c7e4fb96b45139645d123225575e2").unwrap(),
                 properties: vec![ProfileProperty {
                     name: "textures".to_string(),
@@ -646,35 +637,51 @@ mod tests {
     }
 
     #[test]
-    fn extract_bungeecord_data_invalid_host_ip() {
+    fn extract_bungeecord_data_localhost_host_ip() {
         let handshake = Handshake {
             protocol_version: PROTOCOL_VERSION,
-            server_address: "256.168.1.87\0192.168.1.67\0905c7e4fb96b45139645d123225575e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
+            server_address: "localhost\0192.168.1.67\0905c7e4fb96b45139645d123225575e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
             server_port: 25565,
             next_state: HandshakeState::Login,
         };
 
         assert_eq!(
-            extract_bungeecord_data(&handshake).err().unwrap(),
-            Error::BungeeSpecMismatch("invalid IP address syntax".to_string())
+            extract_bungeecord_data(&handshake).unwrap(),
+            BungeeCordData {
+                host: "localhost".to_string(),
+                client: "192.168.1.67".to_string(),
+                uuid: Uuid::parse_str("905c7e4fb96b45139645d123225575e2").unwrap(),
+                properties: vec![ProfileProperty {
+                    name: "textures".to_string(),
+                    value: "textures_value".to_string(),
+                    signature: "textures_signature".to_string(),
+                }],
+            }
         );
     }
 
     #[test]
-    fn extract_bungeecord_data_invalid_client_ip() {
+    fn extract_bungeecord_data_localhost_client_ip() {
         let handshake = Handshake {
             protocol_version: PROTOCOL_VERSION,
-            server_address: "192.168.1.87\0192.168.1.67.21\0905c7e4fb96b45139645d123225575e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
+            server_address: "192.168.1.87\0localhost\0905c7e4fb96b45139645d123225575e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
             server_port: 25565,
             next_state: HandshakeState::Login,
         };
 
-        let error = extract_bungeecord_data(&handshake).err().unwrap();
-        if let Error::BungeeSpecMismatch(e) = error {
-            assert!(e.contains("IP"));
-        } else {
-            panic!();
-        }
+        assert_eq!(
+            extract_bungeecord_data(&handshake).unwrap(),
+            BungeeCordData {
+                host: "192.168.1.87".to_string(),
+                client: "localhost".to_string(),
+                uuid: Uuid::parse_str("905c7e4fb96b45139645d123225575e2").unwrap(),
+                properties: vec![ProfileProperty {
+                    name: "textures".to_string(),
+                    value: "textures_value".to_string(),
+                    signature: "textures_signature".to_string(),
+                }],
+            }
+        );
     }
 
     #[test]
