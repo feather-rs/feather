@@ -115,8 +115,6 @@ pub fn max_size(item: Item) -> u8 {
         | Item::IronHelmet
         | Item::DiamondHelmet
         | Item::Bow
-        | Item::Book
-        | Item::WrittenBook
         | Item::WritableBook
         | Item::FlintAndSteel
         | Item::WhiteBed
@@ -186,6 +184,9 @@ pub fn max_size(item: Item) -> u8 {
         | Item::TntMinecart
         | Item::DiamondHorseArmor
         | Item::GoldenHorseArmor
+        | Item::Saddle
+        | Item::KnowledgeBook
+        | Item::DebugStick
         | Item::IronHorseArmor => 1,
         Item::EnderPearl
         | Item::Snowball
@@ -207,9 +208,10 @@ pub fn max_size(item: Item) -> u8 {
         | Item::BlackBanner
         | Item::Sign
         | Item::ArmorStand
+        | Item::Bucket
+        | Item::WrittenBook
         | Item::Egg => 16,
         _ => 64,
-        // TODO: are we missing some here?
     }
 }
 
