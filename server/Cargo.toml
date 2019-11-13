@@ -16,6 +16,8 @@ path = "src/main.rs"
 feather-blocks = { path = "../blocks" }
 feather-core = { path = "../core" }
 feather-item-block = { path = "../item_block" }
+legion = { git = "https://github.com/TomGillen/legion", rev = "2eab55dc5a3a84fbc8505cc16eb780ef0cdd019b" }
+tonks = { git = "https://github.com/feather-rs/tonks" }
 crossbeam = "0.7"
 log = "0.4"
 simple_logger = "1.3"
@@ -36,9 +38,7 @@ hashbrown = { version = "0.6", features = ["rayon"] }
 mojang-api = { git = "https://github.com/caelunshun/mojang-api-rs", rev = "6525e910ad53953fa16028f0fce74b1a19855733" }
 multimap = "0.6"
 hematite-nbt = "0.4"
-specs = { version = "0.15", features = ["storage-event-control"] }
 rayon = "1.2"
-shrev = "1.1"
 failure = "0.1"
 num-derive = "0.3"
 num-traits = "0.2"
@@ -74,4 +74,4 @@ name = "worldgen"
 harness = false
 
 [features]
-nightly = ["specs/nightly", "parking_lot/nightly"]
+nightly = ["hashbrown/nightly", "parking_lot/nightly"]
