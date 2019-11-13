@@ -8,27 +8,27 @@ jobs:
   - job: 'CI'
     strategy:
       matrix:
-        #linux-stable:
-        #  rustup_toolchain: stable
-        #  image_name: 'ubuntu-16.04'
+        linux-stable:
+          rustup_toolchain: stable
+          image_name: 'ubuntu-16.04'
         linux-beta:
           rustup_toolchain: beta
           image_name: 'ubuntu-16.04'
         linux-nightly:
           rustup_toolchain: nightly-2019-09-28
           image_name: 'ubuntu-16.04'
-        #windows-stable:
-        #  rustup_toolchain: stable
-        #  image_name: 'windows-latest'
-        windows-beta:
-          rustup_toolchain: beta-gnu
+        windows-stable:
+          rustup_toolchain: stable
           image_name: 'windows-latest'
-        windows-nightly:
-          rustup_toolchain: nightly-2019-09-28
-          image_name: 'ubuntu-16.04'
-        #apple-stable:
-        #  rustup_toolchain: stable
-        #  image_name: 'macOS-10.13'
+        #windows-beta:
+        #  rustup_toolchain: beta-gnu
+        #  image_name: 'windows-latest'
+        #windows-nightly:
+        #  rustup_toolchain: nightly-2019-09-28
+        #  image_name: 'ubuntu-16.04'
+        apple-stable:
+          rustup_toolchain: stable
+          image_name: 'macOS-10.13'
         #apple-beta:
         #  rustup_toolchain: beta
         #  image_name: 'macos-latest'
