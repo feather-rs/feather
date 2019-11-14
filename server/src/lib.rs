@@ -1,7 +1,95 @@
-// Specs systems tend to have very long
-// tuples as their SystemData, and Clippy
-// doesn't seem to like this.
-#![allow(clippy::type_complexity)]
+//! Feather, a Minecraft server implementation in Rust.
+//!
+//! This is the developer documenation, and anyone wishing to contribute
+//! should read this first.
+//!
+//! The core of Feather is based on [`legion`](https://github.com/TomGillen/legion),
+//! a fast ECS for Rust, and [`tonks`](https://github.com/feather-rs/tonks), a system
+//! scheduler built on Legion. As a result, we use the ECS architecture: the
+//! entire server consists of _entities_, simple IDs with no data; _components_,
+//! arbitrary data, such as positions, which can be attached to an entity;
+//! and _systems_, functions which can run logic over entities and components.
+//!
+//! The benefit of this design is the splitting between data and logic. With a traditional
+//! object-oriented design, there would be an Entity class from which other entities
+//! inherit and can override logic. However, this model does not work well with Rust's
+//! borrow checker (as we found out in the early days of Feather, when this design was
+//! used), and more importantly, it reduces flexibility. Say, for example, that a plugin
+//! wants to modify the physics behavior of a cow by increasing gravity. With the object-oriented
+//! design, it would have to somehow modify the `run_physics` method on `Cow`, which is not
+//! possible in a native language (although it can be done in some languages using class rewriting).
+//! On the other hand, using Feather, there is a `Physics` component which stores gravity,
+//! drag, etc. for an entity, and all the plugin has to do is modify that component.
+//!
+//! Another benefit of the ECS architecture is performance. With the OO design, entities
+//! would likely be stored in a `Vec<Box<dyn Entity>>`, which is horribly inefficient
+//! with regards to cache locality and iteration performance. Legion, however, stores
+//! entities in an efficient manner such that many of the same type of component
+//! are stored contiguously, which is excellent for cache performance.
+//!
+//! Here is a more in-depth description of each concept in Feather.
+//!
+//! ## Entities
+//! Entities, or `legion::entity::Entity`, are simple numerical IDs: they store no
+//! data, but components can be attached to an entity. See the systems section
+//! for information on how to access this data.
+//!
+//! ## Components
+//! Components store data associated with an entity, such as `Position`.
+//! Arbitrary amounts of components can be associated with any given entity.
+//!
+//! ## Resources
+//! Resources are a branching off from the pure ECS concept. Like components, they
+//! store arbitrary data in the form of structs; however, they are not associated
+//! with any entity. An example of a resource might be the chunk map, which allows
+//! access to blocks in the world.
+//!
+//! ## Systems
+//! The systems concept is where things become more complex. `tonks`, the library
+//! which runs systems, runs them _in parallel_, effectively multithreading the
+//! entire server. This is still safe because the scheduler ensures that no
+//! two systems which write to the same data run at the same time.
+//!
+//! A consequence of the above is that systems must explicitly state which
+//! resources and components they might access. If a system needs access to positions,
+//! it needs to state this upfront so the scheduler can ensure memory safety.
+//!
+//! Systems can be written by creating a function annotated with the `system` attribute.
+//! `tonks` will automatically detect which resources are accessed based on the function
+//! parameters, and it will register them to the system scheduler without you
+//! having to do anything. (How does this work? Don't even bother.)
+//!
+//! ## Events
+//! Events are another concept unique to Feather, at least in the way they are implemented
+//! here. The name states what they are—BlockChangeEvent, for example, is triggered when
+//! a block is updated.
+//!
+//! A system can trigger an event by specifying an `&mut Trigger<E>` resource.
+//!
+//! ## Event handlers
+//! Event handlers are similar to systems, but they only run when the event they
+//! handle is triggered. Use the `event_handler` attribute on a function to register
+//! it as an event handler.
+//!
+//! # Networking model
+//! Feather consists of two key parts: the server threads, which run systems
+//! over entities, and the networking tasks, which run on [`tokio`](https://github.com/tokio-rs/tokio).
+//! The networking tasks will accept connections and parse any packets received
+//! from the player.
+//!
+//! When a connection is first made to the server's TCP listener, the networking
+//! task will spawn another task to handle the connection. It's important to note that
+//! at this time, _the server thread is totally unaware of the connection_—networking
+//! runs entirely isolated from the rest of the program.
+//!
+//! At this point, the initial handler takes over, which runs on the networking task.
+//! It will handle the login sequence or status pings, perform authentication, etc.
+//! If successful, the server is notified of the new player through a channel.
+//!
+//! When the server is notified of a new player, it's essential to realize
+//! that the player still hasn't been sent important data, such as
+//! chunk packets, inventory, time, nearby entities, etc. `PlayerJoinEvent`
+//! is used to send this data.
 
 #[macro_use]
 extern crate log;
