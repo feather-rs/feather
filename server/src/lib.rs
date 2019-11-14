@@ -25,6 +25,8 @@ extern crate feather_codegen;
 extern crate bitflags;
 #[macro_use]
 extern crate feather_core;
+#[macro_use]
+extern crate tonks;
 
 extern crate nalgebra_glm as glm;
 
@@ -39,6 +41,7 @@ use specs::{Builder, Dispatcher, DispatcherBuilder, Entity, LazyUpdate, World, W
 use feather_core::network::packet::implementation::DisconnectPlay;
 
 use crate::chunk_logic::{ChunkHolders, ChunkWorkerHandle};
+use crate::config::Config;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
@@ -51,7 +54,6 @@ use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
 use std::path::Path;
 use std::process::exit;
-use crate::config::Config;
 
 #[global_allocator]
 static ALLOC: System = System;
@@ -60,7 +62,6 @@ pub mod chunk_logic;
 pub mod chunkworker;
 pub mod config;
 pub mod io;
-pub mod joinhandler;
 pub mod network;
 pub mod physics;
 pub mod shutdown;

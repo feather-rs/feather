@@ -17,7 +17,7 @@ feather-blocks = { path = "../blocks" }
 feather-core = { path = "../core" }
 feather-item-block = { path = "../item_block" }
 legion = { git = "https://github.com/TomGillen/legion", rev = "2eab55dc5a3a84fbc8505cc16eb780ef0cdd019b" }
-tonks = { git = "https://github.com/feather-rs/tonks" }
+tonks = { git = "https://github.com/feather-rs/tonks", rev = "0691131efcffea7c0225f9d6203b58eb2cc27cd7" }
 crossbeam = "0.7"
 log = "0.4"
 simple_logger = "1.3"
