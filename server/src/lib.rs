@@ -149,11 +149,14 @@ static ALLOC: System = System;
 pub mod chunk_logic;
 pub mod chunkworker;
 pub mod config;
+pub mod entity;
 pub mod io;
+pub mod lazy;
 pub mod network;
 pub mod physics;
+pub mod player;
 pub mod shutdown;
-#[cfg(test)]
+pub mod state;
 pub mod time;
 pub mod worldgen;
 

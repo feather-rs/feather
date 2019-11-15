@@ -7,6 +7,10 @@
 //! received of a given type.
 
 use crate::io::{ListenerToServerMessage, NetworkIoManager, ServerToWorkerMessage};
+use crate::lazy::Lazy;
+use crate::player;
+use crate::player::Player;
+use crate::state::State;
 use crossbeam::Receiver;
 use feather_core::network::cast_packet;
 use feather_core::{Packet, PacketType};
@@ -70,8 +74,8 @@ impl PacketQueue {
 ///
 /// Systems should call `Self::send` to send a packet to this entity (player).
 pub struct Network {
-    sender: UnboundedSender<ServerToWorkerMessage>,
-    receiver: Receiver<ServerToWorkerMessage>,
+    pub sender: UnboundedSender<ServerToWorkerMessage>,
+    pub receiver: Receiver<ServerToWorkerMessage>,
 }
 
 impl Network {
@@ -98,6 +102,7 @@ impl Network {
 /// * Accepting new clients and creating entities for them.
 #[system]
 pub fn network(
+    state: &State,
     io: &NetworkIoManager,
     packet_queue: &PacketQueue,
     mut query: PreparedQuery<Read<Network>>,
@@ -107,7 +112,11 @@ pub fn network(
     query.par_entities_for_each(world, |(entity, network): (Entity, Network)| {
         while let Ok(msg) = network.receiver.try_recv() {
             match msg {
-                ServerToWorkerMessage::NotifyDisconnect(reason) => unimplemented!(),
+                ServerToWorkerMessage::NotifyDisconnect(reason) => {
+                    state.exec(move |world| {
+                        debug_assert!(world.delete(entity), "player already deleted");
+                    });
+                }
                 ServerToWorkerMessage::SendPacket(packet) => {
                     packet_queue.push(packet, entity);
                 }
@@ -119,7 +128,9 @@ pub fn network(
     // Handle new clients.
     while let Ok(msg) = io.receiver.try_recv() {
         match msg {
-            ListenerToServerMessage::NewClient(info) => unimplemented!(),
+            ListenerToServerMessage::NewClient(info) => {
+                player::create(state, info);
+            }
         }
     }
 }
