@@ -13,63 +13,85 @@ name = "feather-server"
 path = "src/main.rs"
 
 [dependencies]
+# Feather crates
 feather-blocks = { path = "../blocks" }
 feather-core = { path = "../core" }
 feather-item-block = { path = "../item_block" }
+feather-codegen = { path = "../codegen" }
+
+# Core ECS + systems
 legion = { git = "https://github.com/TomGillen/legion", rev = "2eab55dc5a3a84fbc8505cc16eb780ef0cdd019b" }
 tonks = { git = "https://github.com/feather-rs/tonks", rev = "3fcc5368e6ee072c530762fa2b08d020a542a809" }
+
+# Concurrency/threading
 crossbeam = "0.7"
-log = "0.4"
-simple_logger = "1.3"
-uuid = { version = "0.7", features = ["v4"] }
-derive-new = "0.5"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-toml = "0.5"
-rsa = "0.1"
-# Match RSA git master
-num-bigint = { version = "0.4", features = ["rand", "i128", "u64_digit", "prime", "zeroize"], package = "num-bigint-dig" }
-rsa-der = "0.2"
-rand = "0.7"
-rand_xorshift = "0.2"
-rand-legacy = { path = "../util/rand-legacy" }
-bytes = "0.4"
-hashbrown = { version = "0.6", features = ["rayon"] }
-mojang-api = { git = "https://github.com/caelunshun/mojang-api-rs", rev = "6525e910ad53953fa16028f0fce74b1a19855733" }
-multimap = "0.6"
-hematite-nbt = "0.4"
 rayon = "1.2"
-failure = "0.1"
-num-derive = "0.3"
-num-traits = "0.2"
-smallvec = "0.6"
-lazy_static = "1.4"
-nalgebra-glm = "0.4"
-nalgebra = "0.18"
-ncollide3d = "0.20"
-derive_deref = "1.1"
-feather-codegen = { path = "../codegen" }
-bitflags = "1.2"
-fnv = "1.0"
-base64 = "0.10"
-bumpalo = "2.6"
-thread_local = "1.0"
 parking_lot = "0.9"
-heapless = "0.5"
-strum = "0.16"
-simdnoise = "3.1"
-simdeez = "0.6"
-bitvec = "0.15"
+evmap = "7.1"
+thread_local = "1.0"
+
+# Netorking/IO
 tokio = "=0.2.0-alpha.6"
 tokio-executor = "=0.2.0-alpha.6"
 futures-preview = { version = "=0.3.0-alpha.19", features = ["async-await"] }
+bytes = "0.4"
+mojang-api = "0.4"
+
+# Crypto
+rsa = "0.1"
+rsa-der = "0.2"
+# Match RSA git master
+num-bigint = { version = "0.4", features = ["rand", "i128", "u64_digit", "prime", "zeroize"], package = "num-bigint-dig" }
+
+# Hash functions
+ahash = "0.2"
+fnv = "1.0"
+base64 = "0.10"
+
+# Math and physics
+nalgebra-glm = "0.4"
+nalgebra = "0.18"
+ncollide3d = "0.20"
+
+# Other data structures
+hashbrown = { version = "0.6", features = ["rayon"] }
+bitvec = "0.15"
+bitflags = "1.2"
+heapless = "0.5"
+uuid = { version = "0.7", features = ["v4"] }
+multimap = "0.7"
+smallvec = "0.6"
+
+# Logging
+log = "0.4"
+simple_logger = "1.3"
+
+# Serialization/deserialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.5"
+hematite-nbt = "0.4"
+
+# RNGs
+rand = "0.7"
+rand_xorshift = "0.2"
+rand-legacy = { path = "../util/rand-legacy" }
+
+# Other
+failure = "0.1"
+num-derive = "0.3"
+num-traits = "0.2"
+lazy_static = "1.4"
+derive_deref = "1.1"
+bumpalo = "2.6"
+strum = "0.16"
+simdnoise = "3.1"
+simdeez = "0.6"
 humantime-serde = "0.1"
 ctrlc = "3.1"
-evmap = "7.1"
-ahash = "0.2"
 
 [dev-dependencies]
-criterion = "0.3.0"
+criterion = "0.3"
 
 [[bench]]
 name = "worldgen"

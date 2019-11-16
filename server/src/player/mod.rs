@@ -11,6 +11,12 @@ use mojang_api::ProfileProperty;
 #[derive(Debug, Clone)]
 pub struct ProfileProperties(pub Vec<ProfileProperty>);
 
+/// Event triggered when a player joins.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PlayerJoinEvent {
+    pub player: Entity,
+}
+
 /// Tag used to mark a player.
 ///
 /// Note that this is a _tag_, not a component.
