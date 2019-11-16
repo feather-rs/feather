@@ -146,8 +146,9 @@ use std::process::exit;
 #[global_allocator]
 static ALLOC: System = System;
 
+pub mod chunk_entities;
 pub mod chunk_logic;
-pub mod chunkworker;
+pub mod chunk_worker;
 pub mod config;
 pub mod entity;
 pub mod io;

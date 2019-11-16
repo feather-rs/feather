@@ -6,6 +6,7 @@ use feather_core::{BlockPosition, Chunk, ChunkPosition};
 use legion::world::World;
 use parking_lot::RwLockReadGuard;
 use std::sync::Arc;
+use tonks::Scheduler;
 
 /// The state of the server.
 ///
@@ -36,8 +37,8 @@ impl State {
     }
 
     /// See `Lazy::flush()`.
-    pub fn flush(&self, world: &mut World) {
-        self.lazy.flush(world);
+    pub fn flush(&self, world: &mut World, scheduler: &mut Scheduler) {
+        self.lazy.flush(world, scheduler);
     }
 
     /// Retrieves the block at the given position,
@@ -58,5 +59,27 @@ impl State {
     /// or `None` if it not loaded.
     pub fn chunk_at(&self, pos: ChunkPosition) -> Option<RwLockReadGuard<Chunk>> {
         self.chunk_map.chunk_at(pos)
+    }
+
+    /// Lazily inserts the given chunk into the chunk map.
+    pub fn lazy_insert_chunk(&self, chunk: Chunk) {
+        self.lazy.exec_with_scheduler(move |_, scheduler| {
+            scheduler
+                .resources()
+                .get_mut::<State>()
+                .chunk_map
+                .insert(chunk);
+        });
+    }
+
+    /// Lazily removes the given chunk from the chunk map.
+    pub fn lazy_remove_chunk(&self, pos: ChunkPosition) {
+        self.lazy.exec_with_scheduler(move |_, scheduler| {
+            scheduler
+                .resources()
+                .get_mut::<State>()
+                .chunk_map
+                .remove(pos);
+        });
     }
 }

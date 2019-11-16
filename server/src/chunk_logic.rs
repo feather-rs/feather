@@ -3,10 +3,6 @@
 //!
 //! Also handles unloading chunks when unused.
 use crossbeam::channel::{Receiver, Sender};
-use shrev::{EventChannel, ReaderId};
-use specs::{
-    Component, DispatcherBuilder, Entity, Read, ReadExpect, ReadStorage, System, World, Write,
-};
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use feather_core::world::{ChunkMap, ChunkPosition};
@@ -14,25 +10,25 @@ use feather_core::world::{ChunkMap, ChunkPosition};
 use rayon::prelude::*;
 
 use crate::config::Config;
-use crate::entity::EntityDestroyEvent;
-use crate::systems::{CHUNK_HOLD_REMOVE, CHUNK_LOAD, CHUNK_OPTIMIZE, CHUNK_UNLOAD};
+use crate::state::State;
 use crate::worldgen::WorldGenerator;
-use crate::{chunkworker, current_time_in_millis, TickCount, TPS};
+use crate::{chunk_worker, current_time_in_millis, TickCount, TPS};
 use feather_core::entity::EntityData;
 use feather_core::Chunk;
 use hashbrown::HashSet;
+use legion::entity::Entity;
 use multimap::MultiMap;
-use specs::storage::BTreeStorage;
 use std::collections::VecDeque;
 use std::path::Path;
 use std::sync::Arc;
+use tonks::Trigger;
 
 /// A handle for interacting with the chunk
 /// worker thread.
 #[derive(Debug, Clone)]
 pub struct ChunkWorkerHandle {
-    pub sender: Sender<chunkworker::Request>,
-    pub receiver: Receiver<chunkworker::Reply>,
+    pub sender: Sender<chunk_worker::Request>,
+    pub receiver: Receiver<chunk_worker::Reply>,
 }
 
 /// Event which is triggered when a chunk is loaded.
@@ -56,53 +52,32 @@ pub struct ChunkUnloadEvent {
 }
 
 /// System for receiving loaded chunks from the chunk worker thread.
-pub struct ChunkLoadSystem;
+#[system]
+fn chunk_load_system(
+    state: &State,
+    handle: &ChunkWorkerHandle,
+    mut load_events: Trigger<ChunkLoadEvent>,
+    mut fail_events: Trigger<ChunkLoadFailEvent>,
+) {
+    while let Ok(reply) = handle.receiver.try_recv() {
+        if let chunk_worker::Reply::LoadedChunk(pos, result) = reply {
+            match result {
+                Ok((chunk, entities)) => {
+                    state.lazy_insert_chunk(chunk);
 
-impl<'a> System<'a> for ChunkLoadSystem {
-    type SystemData = (
-        Write<'a, ChunkMap>,
-        Write<'a, EventChannel<ChunkLoadEvent>>,
-        Write<'a, EventChannel<ChunkLoadFailEvent>>,
-        ReadExpect<'a, ChunkWorkerHandle>,
-    );
+                    // Trigger event
+                    let event = ChunkLoadEvent { pos, entities };
+                    load_events.trigger(event);
 
-    fn run(&mut self, data: Self::SystemData) {
-        let (mut chunk_map, mut load_events, mut fail_events, handle) = data;
-
-        while let Ok(reply) = handle.receiver.try_recv() {
-            if let chunkworker::Reply::LoadedChunk(pos, result) = reply {
-                match result {
-                    Ok((chunk, entities)) => {
-                        chunk_map.set_chunk_at(pos, chunk);
-
-                        // Trigger event
-                        let event = ChunkLoadEvent { pos, entities };
-                        load_events.single_write(event);
-
-                        trace!("Loaded chunk at {:?}", pos);
-                    }
-                    Err(err) => {
-                        warn!("Failed to load chunk at {:?}: {}", pos, err);
-                        let event = ChunkLoadFailEvent { pos };
-                        fail_events.single_write(event);
-                    }
+                    trace!("Loaded chunk at {:?}", pos);
+                }
+                Err(err) => {
+                    warn!("Failed to load chunk at {:?}: {}", pos, err);
+                    let event = ChunkLoadFailEvent { pos };
+                    fail_events.trigger(event);
                 }
             }
         }
-    }
-
-    fn setup(&mut self, world: &mut World) {
-        use specs::prelude::SystemData;
-
-        let generator = world.fetch_mut::<Arc<dyn WorldGenerator>>().clone();
-        let world_name = &world.fetch_mut::<Arc<Config>>().world.name.clone();
-        let world_dir = Path::new(world_name);
-
-        info!("Starting chunk worker thread");
-        let (sender, receiver) = chunkworker::start(world_dir, generator);
-        world.insert(ChunkWorkerHandle { sender, receiver });
-
-        Self::SystemData::setup(world);
     }
 }
 
@@ -116,7 +91,7 @@ pub fn load_chunk(handle: &ChunkWorkerHandle, pos: ChunkPosition) {
     // Send request to chunk worker thread
     handle
         .sender
-        .send(chunkworker::Request::LoadChunk(pos))
+        .send(chunk_worker::Request::LoadChunk(pos))
         .unwrap();
 }
 
@@ -124,7 +99,7 @@ pub fn load_chunk(handle: &ChunkWorkerHandle, pos: ChunkPosition) {
 pub fn save_chunk(handle: &ChunkWorkerHandle, chunk: Arc<Chunk>, entities: Vec<EntityData>) {
     handle
         .sender
-        .send(chunkworker::Request::SaveChunk(chunk, entities))
+        .send(chunk_worker::Request::SaveChunk(chunk, entities))
         .unwrap();
 }
 
@@ -163,7 +138,7 @@ impl ChunkHolders {
         &mut self,
         chunk: ChunkPosition,
         holder: Entity,
-        events: &mut EventChannel<ChunkHolderReleaseEvent>,
+        trigger: &mut Trigger<ChunkHolderReleaseEvent>,
     ) {
         if let Some(vec) = self.inner.get_vec_mut(&chunk) {
             let index = vec.iter().position(|e| *e == holder);
@@ -175,7 +150,7 @@ impl ChunkHolders {
                     entity: holder,
                     chunk,
                 };
-                events.single_write(event);
+                trigger.trigger(event);
             }
         }
     }
@@ -474,7 +449,7 @@ mod tests {
         let chunk_map = ChunkMap::new();
         let pos = ChunkPosition::new(0, 0);
         send2
-            .send(chunkworker::Reply::LoadedChunk(
+            .send(chunk_worker::Reply::LoadedChunk(
                 pos,
                 Ok((Chunk::new(pos), vec![])),
             ))
@@ -515,7 +490,7 @@ mod tests {
 
         let recv = recv1.try_recv().unwrap();
         match recv {
-            chunkworker::Request::LoadChunk(recv_pos) => assert_eq!(recv_pos, pos),
+            chunk_worker::Request::LoadChunk(recv_pos) => assert_eq!(recv_pos, pos),
             _ => panic!(),
         }
     }

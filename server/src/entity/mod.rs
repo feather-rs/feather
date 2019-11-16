@@ -2,7 +2,15 @@
 
 use crate::lazy::EntityBuilder;
 use crate::state::State;
-use feather_core::Position;
+use feather_core::{ChunkPosition, Position};
+use legion::prelude::Entity;
+use parking_lot::Mutex;
+
+/// Event triggered when an entity is removed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EntityDeleteEvent {
+    entity: Entity,
+}
 
 /// The velocity of an entity.
 #[derive(Default, Debug, PartialEq, Clone, Copy)]

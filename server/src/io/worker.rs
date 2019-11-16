@@ -7,7 +7,7 @@
 //! to the worker for any given client.
 
 use crate::config::Config;
-use crate::io::initialhandler::{Action, InitialHandler};
+use crate::io::initial_handler::{Action, InitialHandler};
 use crate::io::{ListenerToServerMessage, NewClientInfo, ServerToWorkerMessage};
 use crate::PlayerCount;
 use feather_core::network::codec::MinecraftCodec;

@@ -5,7 +5,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use uuid::Uuid;
 
-mod initialhandler;
+mod initial_handler;
 mod listener;
 mod worker;
 
@@ -75,7 +75,7 @@ impl Default for NetworkIoManager {
 
 /// Initializes certain static variables.
 pub fn init() {
-    lazy_static::initialize(&initialhandler::RSA_KEY);
+    lazy_static::initialize(&initial_handler::RSA_KEY);
 }
 
 async fn run_listener(

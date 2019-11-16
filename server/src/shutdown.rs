@@ -6,7 +6,7 @@ use crate::entity::{NamedComponent, PlayerComponent, PositionComponent};
 use crate::player;
 use crate::player::InventoryComponent;
 use crate::time::Time;
-use crate::{chunkworker, entity};
+use crate::{chunk_worker, entity};
 use crossbeam::Sender;
 use feather_core::level::{save_level_file, LevelData, Root};
 use feather_core::prelude::ChunkMap;
@@ -34,12 +34,12 @@ pub fn save_chunks(world: &mut World) {
     world.maintain();
 
     let handle = world.fetch::<ChunkWorkerHandle>();
-    handle.sender.send(chunkworker::Request::ShutDown).unwrap();
+    handle.sender.send(chunk_worker::Request::ShutDown).unwrap();
 
     let mut saved = 0;
     // Wait for chunks to finish saving
     while let Ok(msg) = handle.receiver.recv() {
-        if let chunkworker::Reply::SavedChunk(_) = msg {
+        if let chunk_worker::Reply::SavedChunk(_) = msg {
             saved += 1;
         }
 

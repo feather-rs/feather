@@ -3,6 +3,7 @@ use legion::entity::Entity;
 use legion::storage::{Component, Tag};
 use legion::world::World;
 use smallvec::SmallVec;
+use tonks::Scheduler;
 
 /// Resource which allows lazy creation of entities
 /// or execution of functions with world access.
@@ -14,6 +15,12 @@ pub struct Lazy {
 impl Lazy {
     /// Lazily executes a closure with world access.
     pub fn exec(&self, f: impl FnOnce(&mut World)) {
+        self.exec_with_scheduler(move |world, _| f(world));
+    }
+
+    /// Lazily executes a closure with world and scheduler (resource)
+    /// access.
+    pub fn exec_with_scheduler(&self, f: impl FnOnce(&mut World, &mut Scheduler)) {
         self.queue.push(Action::Exec(Box::new(f)));
     }
 
@@ -27,10 +34,10 @@ impl Lazy {
     }
 
     /// Performs all queued actions.
-    pub fn flush(&self, world: &mut World) {
+    pub fn flush(&self, world: &mut World, scheduler: &mut Scheduler) {
         while let Ok(action) = self.queue.pop() {
             match action {
-                Action::Exec(f) => f(world),
+                Action::Exec(f) => f(world, scheduler),
             }
         }
     }
@@ -38,7 +45,7 @@ impl Lazy {
 
 /// An action which the lazy updater may perform.
 enum Action {
-    Exec(Box<dyn FnOnce(&mut World)>),
+    Exec(Box<dyn FnOnce(&mut World, &mut Scheduler)>),
 }
 
 /// Builder for lazily creating entities.

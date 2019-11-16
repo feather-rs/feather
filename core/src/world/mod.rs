@@ -301,6 +301,17 @@ impl ChunkMap {
     pub fn iter_chunks(&self) -> impl IntoIterator<Item = &Arc<RwLock<Chunk>>> {
         self.0.iter()
     }
+
+    /// Inserts a new chunk into the chunk map.
+    pub fn insert(&mut self, chunk: Chunk) {
+        self.0
+            .insert(chunk.position(), Arc::new(RwLock::new(chunk)));
+    }
+
+    /// Removes the chunk at the given position, returning `true` if it existed.
+    pub fn remove(&mut self, pos: ChunkPosition) -> bool {
+        self.0.remove(&pos).is_some()
+    }
 }
 
 impl Default for ChunkMap {
