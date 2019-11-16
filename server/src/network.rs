@@ -108,7 +108,7 @@ pub fn network(
     mut query: PreparedQuery<Read<Network>>,
     world: &mut PreparedWorld,
 ) {
-    /// For each `Network`, handle any disconnects and received packets.
+    // For each `Network`, handle any disconnects and received packets.
     query.par_entities_for_each(world, |(entity, network): (Entity, Network)| {
         while let Ok(msg) = network.receiver.try_recv() {
             match msg {

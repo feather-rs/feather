@@ -265,6 +265,11 @@ pub type ChunkMapInner = HashMap<ChunkPosition, Arc<RwLock<Chunk>>>;
 pub struct ChunkMap(ChunkMapInner);
 
 impl ChunkMap {
+    /// Creates a new chunk map with no chunks.
+    pub fn new() -> Self {
+        Self(HashMap::new())
+    }
+
     /// Retrieves a handle to the chunk at the given
     /// position, or `None` if it is not loaded.
     pub fn chunk_at(&self, pos: ChunkPosition) -> Option<RwLockReadGuard<Chunk>> {
@@ -295,17 +300,17 @@ impl ChunkMap {
 
         self.chunk_at_mut(pos.chunk_pos())
             .map(|mut chunk| chunk.set_block_at(x, y, z, block))
-            .is_ok()
+            .is_some()
     }
 
     /// Returns an iterator over chunks.
     pub fn iter_chunks(&self) -> impl IntoIterator<Item = &Arc<RwLock<Chunk>>> {
-        self.0.iter()
+        self.0.values()
     }
 
     /// Returns a parallel iterator over chunks.
     pub fn par_iter_chunks(&self) -> impl ParallelIterator<Item = &Arc<RwLock<Chunk>>> {
-        self.0.par_iter()
+        self.0.par_values()
     }
 
     /// Inserts a new chunk into the chunk map.
