@@ -250,11 +250,11 @@ pub fn chunk_unload_no_holders(
 /// a hold on, rather than having
 /// to linear search all chunks (obviously ridiculous).
 #[derive(Default)]
-pub struct ChunkHolderComponent {
+pub struct ChunkHolder {
     pub holds: HashSet<ChunkPosition>,
 }
 
-impl ChunkHolderComponent {
+impl ChunkHolder {
     pub fn new() -> Self {
         Self::default()
     }
@@ -265,7 +265,7 @@ impl ChunkHolderComponent {
 #[event_handler]
 fn chunk_holder_remove(
     event: &EntityDeleteEvent,
-    mut query: PreparedQuery<Read<ChunkHolderComponent>>,
+    mut query: PreparedQuery<Read<ChunkHolder>>,
     mut world: PreparedWorld,
 ) {
     // If entity had chunk holds, remove them all
