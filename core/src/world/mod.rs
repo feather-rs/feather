@@ -3,6 +3,7 @@ use crate::world::chunk::Chunk;
 use glm::{DVec3, Vec3};
 use hashbrown::HashMap;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use rayon::iter::ParallelIterator;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};
@@ -300,6 +301,11 @@ impl ChunkMap {
     /// Returns an iterator over chunks.
     pub fn iter_chunks(&self) -> impl IntoIterator<Item = &Arc<RwLock<Chunk>>> {
         self.0.iter()
+    }
+
+    /// Returns a parallel iterator over chunks.
+    pub fn par_iter_chunks(&self) -> impl ParallelIterator<Item = &Arc<RwLock<Chunk>>> {
+        self.0.par_iter()
     }
 
     /// Inserts a new chunk into the chunk map.

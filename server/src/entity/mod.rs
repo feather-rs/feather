@@ -9,7 +9,7 @@ use parking_lot::Mutex;
 /// Event triggered when an entity is removed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct EntityDeleteEvent {
-    entity: Entity,
+    pub(crate) entity: Entity,
 }
 
 /// The velocity of an entity.

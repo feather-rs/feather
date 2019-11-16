@@ -20,8 +20,8 @@ use tonks::Scheduler;
 /// needed to update blocks.)
 pub struct State {
     pub config: Arc<Config>,
+    pub chunk_map: ChunkMap,
 
-    chunk_map: ChunkMap,
     lazy: Lazy,
 }
 

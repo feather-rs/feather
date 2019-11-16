@@ -10,6 +10,7 @@ use feather_core::world::{ChunkMap, ChunkPosition};
 use rayon::prelude::*;
 
 use crate::config::Config;
+use crate::entity::EntityDeleteEvent;
 use crate::state::State;
 use crate::worldgen::WorldGenerator;
 use crate::{chunk_worker, current_time_in_millis, TickCount, TPS};
@@ -21,7 +22,7 @@ use multimap::MultiMap;
 use std::collections::VecDeque;
 use std::path::Path;
 use std::sync::Arc;
-use tonks::Trigger;
+use tonks::{PreparedQuery, PreparedWorld, Query, Read, Trigger};
 
 /// A handle for interacting with the chunk
 /// worker thread.
@@ -42,13 +43,6 @@ pub struct ChunkLoadEvent {
 #[derive(Debug, Clone, Copy)]
 pub struct ChunkLoadFailEvent {
     pub pos: ChunkPosition,
-}
-
-/// Event which is triggered when a chunk is unloaded.
-#[derive(Clone)]
-pub struct ChunkUnloadEvent {
-    /// The chunk which was unloaded.
-    pub chunk: Arc<Chunk>,
 }
 
 /// System for receiving loaded chunks from the chunk worker thread.
@@ -166,7 +160,7 @@ pub struct ChunkHolderReleaseEvent {
 }
 
 /// The queue of chunks to be unloaded.
-/// See `ChunkUnloadSystem` for details.
+/// See `chunk_unload` for details.
 #[derive(Clone, Debug, Default)]
 pub struct ChunkUnloadQueue {
     /// The internal queue.
@@ -187,13 +181,7 @@ struct ChunkUnload {
 const CHUNK_UNLOAD_TIME: u64 = TPS * 5; // 5 seconds - TODO make this configurable
 
 /// System for unloading chunks when they have no holders.
-/// This system performs multiple actions:
-///
-/// * It listens to `ChunkHolderReleaseEvent` and
-/// checks if a chunk has no holders. If so, it queues
-/// the chunk to be unloaded after some period of time
-/// (defined by a constant).
-/// * It goes through chunks which are currently
+/// This system through chunks which are currently
 /// queued to be loaded and unloads them if the
 /// period of time has elapsed.
 ///
@@ -203,91 +191,51 @@ const CHUNK_UNLOAD_TIME: u64 = TPS * 5; // 5 seconds - TODO make this configurab
 /// could quickly move between chunk boundaries, causing
 /// chunks at the edge of their view distance
 /// to be loaded and unloaded at an alarming rate.
-#[derive(Default)]
-pub struct ChunkUnloadSystem {
-    reader: Option<ReaderId<ChunkHolderReleaseEvent>>,
-}
+#[system]
+fn chunk_unload(state: &State, unload_queue: &mut ChunkUnloadQueue, holders: &ChunkHolders) {
+    // Unload chunks which are finished in the queue.
 
-impl ChunkUnloadSystem {
-    pub fn new() -> Self {
-        Self { reader: None }
-    }
-}
-
-impl<'a> System<'a> for ChunkUnloadSystem {
-    type SystemData = (
-        Write<'a, ChunkMap>,
-        Write<'a, EventChannel<ChunkUnloadEvent>>,
-        Read<'a, EventChannel<ChunkHolderReleaseEvent>>,
-        Write<'a, ChunkUnloadQueue>,
-        Read<'a, ChunkHolders>,
-        Read<'a, TickCount>,
-    );
-
-    fn run(&mut self, data: Self::SystemData) {
-        let (
-            mut chunk_map,
-            mut unload_events,
-            release_events,
-            mut unload_queue,
-            holders,
-            tick_count,
-        ) = data;
-
-        // Handle holder release events.
-        for event in release_events.read(&mut self.reader.as_mut().unwrap()) {
-            // If the chunk now has zero holders, queue it for unloading.
-            if !holders.chunk_has_holders(event.chunk) {
-                let unload = ChunkUnload {
-                    chunk: event.chunk,
-                    time: tick_count.0 + CHUNK_UNLOAD_TIME,
-                };
-                unload_queue.queue.push_back(unload);
-            }
-        }
-
-        // Unload chunks which are finished in the queue.
-
-        // Since chunks are queued in the back and taken out
-        // from the front, the chunks in the front of the vector
-        // were queued the longest time ago. Because of this,
-        // we go through the unloads in the front of the queue
-        // to find which chunks to unload.
-        while let Some(unload) = unload_queue.queue.front() {
-            if tick_count.0 >= unload.time {
-                // Don't unload if new chunk holders have appeared.
-                if holders.chunk_has_holders(unload.chunk) {
-                    unload_queue.queue.pop_front();
-                    continue;
-                }
-
-                // Unload chunk and pop from queue.
-                if let Some(chunk) = chunk_map.unload_chunk_at(unload.chunk) {
-                    let event = ChunkUnloadEvent {
-                        chunk: Arc::new(chunk),
-                    };
-                    unload_events.single_write(event);
-                }
-
+    // Since chunks are queued in the back and taken out
+    // from the front, the chunks in the front of the vector
+    // were queued the longest time ago. Because of this,
+    // we go through the unloads in the front of the queue
+    // to find which chunks to unload.
+    while let Some(unload) = unload_queue.queue.front() {
+        if tick_count.0 >= unload.time {
+            // Don't unload if new chunk holders have appeared.
+            if holders.chunk_has_holders(unload.chunk) {
                 unload_queue.queue.pop_front();
-            } else {
-                // We're done - all chunks farther up in
-                // the queue were queued before this one,
-                // so it isn't time to unload any of those.
-                break;
+                continue;
             }
+
+            // Unload chunk and pop from queue.
+            state.lazy_remove_chunk(unload.chunk);
+            unload_queue.queue.pop_front();
+        } else {
+            // We're done - all chunks farther up in
+            // the queue were queued before this one,
+            // so it isn't time to unload any of those.
+            break;
         }
     }
+}
 
-    fn setup(&mut self, world: &mut World) {
-        use specs::SystemData;
-        Self::SystemData::setup(world);
-
-        self.reader = Some(
-            world
-                .fetch_mut::<EventChannel<ChunkHolderReleaseEvent>>()
-                .register_reader(),
-        );
+/// Event handler which handles holder release events. If
+/// a chunk has no more holders, then a chunk unload is queued.
+#[event_handler]
+pub fn chunk_unload_no_holders(
+    event: &ChunkHolderReleaseEvent,
+    holders: &ChunkHolders,
+    unload_queue: &mut ChunkUnloadQueue,
+) {
+    // Handle holder release events.
+    // If the chunk now has zero holders, queue it for unloading.
+    if !holders.chunk_has_holders(event.chunk) {
+        let unload = ChunkUnload {
+            chunk: event.chunk,
+            time: tick_count.0 + CHUNK_UNLOAD_TIME,
+        };
+        unload_queue.queue.push_back(unload);
     }
 }
 
@@ -299,7 +247,8 @@ impl<'a> System<'a> for ChunkUnloadSystem {
 /// stored in the `ChunkHolders` resource,
 /// using this component allows for efficiently
 /// finding which chunks a given entity has
-/// a hold on.
+/// a hold on, rather than having
+/// to linear search all chunks (obviously ridiculous).
 #[derive(Default)]
 pub struct ChunkHolderComponent {
     pub holds: HashSet<ChunkPosition>,
@@ -307,61 +256,24 @@ pub struct ChunkHolderComponent {
 
 impl ChunkHolderComponent {
     pub fn new() -> Self {
-        Self {
-            holds: HashSet::new(),
-        }
+        Self::default()
     }
-}
-
-impl Component for ChunkHolderComponent {
-    type Storage = BTreeStorage<Self>;
 }
 
 /// System for removing an entity's chunk holds
 /// once it is destroyed.
-#[derive(Default)]
-pub struct ChunkHoldRemoveSystem {
-    reader: Option<ReaderId<EntityDestroyEvent>>,
-}
-
-impl ChunkHoldRemoveSystem {
-    pub fn new() -> Self {
-        Self { reader: None }
-    }
-}
-
-impl<'a> System<'a> for ChunkHoldRemoveSystem {
-    type SystemData = (
-        Read<'a, EventChannel<EntityDestroyEvent>>,
-        Write<'a, ChunkHolders>,
-        ReadStorage<'a, ChunkHolderComponent>,
-        Write<'a, EventChannel<ChunkHolderReleaseEvent>>,
-    );
-
-    fn run(&mut self, data: Self::SystemData) {
-        let (events, mut holders, holder_comps, mut release_events) = data;
-
-        for event in events.read(&mut self.reader.as_mut().unwrap()) {
-            // If entity had chunk holds, remove them all
-            if let Some(holder_comp) = holder_comps.get(event.entity) {
-                debug!("Removing chunk holds for entity {:?}", event.entity);
-                holder_comp.holds.iter().for_each(|chunk| {
-                    holders.remove_holder(*chunk, event.entity, &mut release_events);
-                });
-            }
-        }
-    }
-
-    fn setup(&mut self, world: &mut World) {
-        use specs::SystemData;
-
-        Self::SystemData::setup(world);
-
-        self.reader = Some(
-            world
-                .fetch_mut::<EventChannel<EntityDestroyEvent>>()
-                .register_reader(),
-        );
+#[event_handler]
+fn chunk_holder_remove(
+    event: &EntityDeleteEvent,
+    mut query: PreparedQuery<Read<ChunkHolderComponent>>,
+    mut world: PreparedWorld,
+) {
+    // If entity had chunk holds, remove them all
+    if let Ok(holder_comp) = query.find(event.entity, &mut world) {
+        debug!("Removing chunk holds for entity {:?}", event.entity);
+        holder_comp.holds.iter().for_each(|chunk| {
+            holders.remove_holder(*chunk, event.entity, &mut release_events);
+        });
     }
 }
 
@@ -377,121 +289,29 @@ const CHUNK_OPTIMIZE_INTERVAL: u64 = TPS * 60 * 5; // 5 minutes
 /// For optimal performance, this system is fully
 /// concurrent - each chunk optimization is split
 /// into a separate job and fed into `rayon`.
-pub struct ChunkOptimizeSystem;
-
-impl<'a> System<'a> for ChunkOptimizeSystem {
-    type SystemData = (Write<'a, ChunkMap>, Read<'a, TickCount>);
-
-    fn run(&mut self, data: Self::SystemData) {
-        let (mut chunk_map, tick_count) = data;
-
-        // Only run every CHUNK_OPTIMIZE_INTERVAL ticks
-        if tick_count.0 % CHUNK_OPTIMIZE_INTERVAL != 0 {
-            return;
-        }
-
-        let chunks = chunk_map.chunks_mut();
-
-        // Don't run if there aren't any chunks loaded
-        if chunks.is_empty() {
-            return;
-        }
-
-        debug!("Optimizing chunks");
-
-        let start_time = current_time_in_millis();
-        let count = AtomicU32::new(0);
-
-        chunks.par_iter_mut().for_each(|(_, chunk)| {
-            count.fetch_add(chunk.optimize(), Ordering::SeqCst);
-        });
-
-        let end_time = current_time_in_millis();
-        let elapsed = end_time - start_time;
-
-        debug!(
-            "Optimized {} chunk sections (took {}ms - {:.2}ms/section)",
-            count.load(Ordering::SeqCst),
-            elapsed,
-            elapsed as f64 / f64::from(count.load(Ordering::SeqCst))
-        );
-    }
-}
-
-pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
-    dispatcher.add(ChunkLoadSystem, CHUNK_LOAD, &[]);
-    dispatcher.add(ChunkOptimizeSystem, CHUNK_OPTIMIZE, &[]);
-}
-
-pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
-    dispatcher.add(ChunkUnloadSystem::default(), CHUNK_UNLOAD, &[]);
-    dispatcher.add(ChunkHoldRemoveSystem::default(), CHUNK_HOLD_REMOVE, &[]);
-}
-
-#[cfg(test)]
-mod tests {
-    use specs::{RunNow, World, WorldExt};
-
-    use feather_core::world::chunk::Chunk;
-    use feather_core::world::ChunkPosition;
-
-    use super::*;
-
-    #[test]
-    fn test_chunk_system() {
-        let (send1, _recv1) = crossbeam::channel::unbounded();
-        let (send2, recv2) = crossbeam::channel::unbounded();
-        let handle = ChunkWorkerHandle {
-            sender: send1,
-            receiver: recv2,
-        };
-
-        let chunk_map = ChunkMap::new();
-        let pos = ChunkPosition::new(0, 0);
-        send2
-            .send(chunk_worker::Reply::LoadedChunk(
-                pos,
-                Ok((Chunk::new(pos), vec![])),
-            ))
-            .unwrap();
-
-        let load_event_channel = EventChannel::<ChunkLoadEvent>::new();
-        let fail_event_channel = EventChannel::<ChunkLoadFailEvent>::new();
-
-        let mut system = ChunkLoadSystem;
-        let mut world = World::new();
-        world.insert(chunk_map);
-        world.insert(handle);
-        world.insert(load_event_channel);
-        world.insert(fail_event_channel);
-
-        system.run_now(&world);
-
-        // Confirm that chunk was loaded
-        let chunk_map = world.read_resource::<ChunkMap>();
-        let chunk = chunk_map.chunk_at(pos);
-
-        assert!(chunk.is_some());
-        assert!(chunk.unwrap().position() == pos);
+#[system]
+fn chunk_optimize(state: &State, tick_count: &TickCount) {
+    // Only run every CHUNK_OPTIMIZE_INTERVAL ticks
+    if tick_count.0 % CHUNK_OPTIMIZE_INTERVAL != 0 {
+        return;
     }
 
-    #[test]
-    fn test_load_chunk() {
-        let (send1, recv1) = crossbeam::channel::unbounded();
-        let (_send2, recv2) = crossbeam::channel::unbounded();
-        let handle = ChunkWorkerHandle {
-            sender: send1,
-            receiver: recv2,
-        };
+    debug!("Optimizing chunks");
 
-        let pos = ChunkPosition::new(0, 0);
+    let start_time = current_time_in_millis();
+    let count = AtomicU32::new(0);
 
-        load_chunk(&handle, pos);
+    state.chunk_map.par_iter_chunks().for_each(|chunk| {
+        count.fetch_add(chunk.write().optimize(), Ordering::Relaxed);
+    });
 
-        let recv = recv1.try_recv().unwrap();
-        match recv {
-            chunk_worker::Request::LoadChunk(recv_pos) => assert_eq!(recv_pos, pos),
-            _ => panic!(),
-        }
-    }
+    let end_time = current_time_in_millis();
+    let elapsed = end_time - start_time;
+
+    debug!(
+        "Optimized {} chunk sections (took {}ms - {:.2}ms/section)",
+        count.load(Ordering::Relaxed),
+        elapsed,
+        elapsed as f64 / f64::from(count.load(Ordering::Relaxed))
+    );
 }
