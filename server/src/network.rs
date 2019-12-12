@@ -106,7 +106,7 @@ pub fn network(
     io: &NetworkIoManager,
     packet_queue: &PacketQueue,
     mut query: PreparedQuery<Read<Network>>,
-    world: &mut PreparedWorld,
+    world: PreparedWorld,
 ) {
     // For each `Network`, handle any disconnects and received packets.
     query.par_entities_for_each(world, |(entity, network): (Entity, Network)| {

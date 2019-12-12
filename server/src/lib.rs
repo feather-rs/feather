@@ -159,6 +159,7 @@ pub mod player;
 pub mod shutdown;
 pub mod state;
 pub mod time;
+pub mod view;
 pub mod worldgen;
 
 pub const TPS: u64 = 20;

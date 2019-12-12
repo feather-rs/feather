@@ -1,15 +1,26 @@
 //! Dealing with entities.
 
+pub use send::{EntitySendEvent, PacketCreator};
+
 use crate::lazy::EntityBuilder;
 use crate::state::State;
 use feather_core::{ChunkPosition, Position};
 use legion::prelude::Entity;
 use parking_lot::Mutex;
+use rayon::prelude::*;
+use tonks::{PreparedQuery, PreparedWorld, Read, Write};
 
 /// Event triggered when an entity is removed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct EntityDeleteEvent {
     pub(crate) entity: Entity,
+}
+
+/// Event triggered when an entity moves.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EntityMoveEvent {
+    /// Entity which moved.
+    pub entity: Entity,
 }
 
 /// The velocity of an entity.
@@ -22,6 +33,25 @@ pub struct Velocity(pub glm::DVec3);
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct NameComponent(pub String);
 
+/// Position of an entity on the last tick.
+///
+/// This is updated by `position_reset` system.
+#[derive(Debug, Clone, Copy)]
+pub struct PreviousPosition(pub Position);
+
+#[event_handler]
+pub fn position_reset(
+    events: &[EntityMoveEvent],
+    query: PreparedQuery<(Read<Position>, Write<PreviousPosition>)>,
+    world: PreparedWorld,
+) {
+    events.iter().for_each(|event| {
+        let (pos, mut prev_pos) = query.find(event.entity).unwrap();
+
+        prev_pos.0 = pos;
+    });
+}
+
 /// Inserts the base components for an entity into an `EntityBuilder`.
 ///
 /// This currently includes:
@@ -31,5 +61,6 @@ pub fn base(state: &State, position: Position) -> EntityBuilder {
     state
         .create_entity()
         .with_component(position)
+        .with_component(PreviousPosition(position))
         .with_component(Velocity::default())
 }

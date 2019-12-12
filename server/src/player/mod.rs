@@ -5,6 +5,7 @@ use crate::entity::NameComponent;
 use crate::io::NewClientInfo;
 use crate::network::Network;
 use crate::state::State;
+use legion::entity::Entity;
 use mojang_api::ProfileProperty;
 
 /// Profile properties of a player.
