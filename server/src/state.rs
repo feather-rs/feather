@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::lazy::{EntityBuilder, Lazy};
+use crate::lazy::{EntityBuilder, Lazy, LazyFn};
 use feather_blocks::Block;
 use feather_core::world::ChunkMap;
 use feather_core::{BlockPosition, Chunk, ChunkPosition};
@@ -36,7 +36,7 @@ impl State {
     }
 
     /// See `Lazy::exec()`.
-    pub fn exec(&self, f: impl FnOnce(&mut World)) {
+    pub fn exec(&self, f: impl LazyFn) {
         self.lazy.exec(f)
     }
 
@@ -61,7 +61,7 @@ impl State {
     /// If the block's chunk's is not loaded, returns `false`;
     /// otherwise, returns `true`.
     pub fn set_block_at(&self, pos: BlockPosition, block: Block) -> bool {
-        self.chunk_map.set_block_at(pos, block).is_ok()
+        self.chunk_map.set_block_at(pos, block)
     }
 
     /// Retrieves a reference to the chunk at the given position,
@@ -83,12 +83,13 @@ impl State {
 
     /// Lazily removes the given chunk from the chunk map.
     pub fn lazy_remove_chunk(&self, pos: ChunkPosition) {
-        self.lazy.exec_with_scheduler(move |_, scheduler| {
-            scheduler
-                .resources()
-                .get_mut::<State>()
-                .chunk_map
-                .remove(pos);
-        });
+        self.lazy
+            .exec_with_scheduler(move |_: &mut World, scheduler: &mut Scheduler| {
+                scheduler
+                    .resources()
+                    .get_mut::<State>()
+                    .chunk_map
+                    .remove(pos);
+            });
     }
 }

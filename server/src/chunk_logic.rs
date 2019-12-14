@@ -18,11 +18,12 @@ use feather_core::entity::EntityData;
 use feather_core::Chunk;
 use hashbrown::HashSet;
 use legion::entity::Entity;
+use legion::query::Read;
 use multimap::MultiMap;
 use std::collections::VecDeque;
 use std::path::Path;
 use std::sync::Arc;
-use tonks::{PreparedWorld, Query, Read, Trigger};
+use tonks::{PreparedWorld, Query, Trigger};
 
 /// A handle for interacting with the chunk
 /// worker thread.

@@ -4,9 +4,10 @@ use crate::lazy::EntityBuilder;
 use crate::state::State;
 use feather_core::{ChunkPosition, Position};
 use legion::prelude::Entity;
+use legion::query::{Read, Write};
 use parking_lot::Mutex;
 use rayon::prelude::*;
-use tonks::{PreparedWorld, Query, Read, Write};
+use tonks::{PreparedWorld, Query};
 
 /// Event triggered when an entity is removed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

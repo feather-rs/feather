@@ -4,7 +4,8 @@ use crate::network::Network;
 use crate::player::PlayerJoinEvent;
 use feather_core::level::LevelData;
 use feather_core::packet::TimeUpdate;
-use tonks::{PreparedWorld, Query, Read};
+use legion::query::Read;
+use tonks::{PreparedWorld, Query};
 
 /// The current time of the world.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deref, DerefMut, Default, Resource)]

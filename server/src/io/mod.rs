@@ -33,6 +33,7 @@ pub struct NewClientInfo {
     pub receiver: crossbeam::Receiver<ServerToWorkerMessage>,
 }
 
+#[derive(Resource)]
 pub struct NetworkIoManager {
     pub receiver: crossbeam::Receiver<ListenerToServerMessage>,
     /// Used for testing

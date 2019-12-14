@@ -169,10 +169,10 @@ pub const PROTOCOL_VERSION: u32 = 404;
 pub const SERVER_VERSION: &str = "Feather 1.13.2";
 pub const TICK_TIME: u64 = 1000 / TPS;
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Resource)]
 pub struct PlayerCount(AtomicUsize);
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Resource)]
 pub struct TickCount(u64);
 
 pub fn main() {

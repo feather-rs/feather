@@ -21,8 +21,9 @@ use crate::entity::{EntityMoveEvent, PreviousPosition};
 use crate::player::Player;
 use feather_core::{ChunkPosition, Position};
 use legion::entity::Entity;
+use legion::query::Read;
 use rayon::prelude::*;
-use tonks::{PreparedWorld, Query, Read, Trigger};
+use tonks::{PreparedWorld, Query, Trigger};
 
 /// Event triggered when a player's view is updated, i.e. when they
 /// cross into a new chunk.

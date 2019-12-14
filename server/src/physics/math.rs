@@ -11,6 +11,7 @@ use feather_core::{BlockExt, ChunkPosition};
 use glm::{vec3, DVec3, Vec3};
 use heapless::consts::*;
 use legion::entity::Entity;
+use legion::query::Read;
 use nalgebra::{Isometry3, Point3};
 use ncollide3d::bounding_volume::AABB;
 use ncollide3d::query;
@@ -19,7 +20,7 @@ use ncollide3d::shape::{Compound, Cuboid, ShapeHandle};
 use smallvec::SmallVec;
 use std::cmp::Ordering;
 use std::f64::INFINITY;
-use tonks::{PreparedWorld, Query, Read};
+use tonks::{PreparedWorld, Query};
 
 // TODO is a bitflag really the most
 // idiomatic way to do this?

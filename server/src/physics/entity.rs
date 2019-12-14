@@ -7,8 +7,9 @@ use crate::state::State;
 use feather_core::Position;
 use feather_core::{Block, BlockExt};
 use legion::entity::Entity;
+use legion::query::{Read, Write};
 use parking_lot::Mutex;
-use tonks::{PreparedWorld, Query, Read, Trigger, Write};
+use tonks::{PreparedWorld, Query, Trigger};
 
 /// Event triggered when an entity lands on the ground.
 #[derive(Debug, Clone)]
