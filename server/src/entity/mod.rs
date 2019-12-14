@@ -1,14 +1,12 @@
 //! Dealing with entities.
 
-pub use send::{EntitySendEvent, PacketCreator};
-
 use crate::lazy::EntityBuilder;
 use crate::state::State;
 use feather_core::{ChunkPosition, Position};
 use legion::prelude::Entity;
 use parking_lot::Mutex;
 use rayon::prelude::*;
-use tonks::{PreparedQuery, PreparedWorld, Read, Write};
+use tonks::{PreparedWorld, Query, Read, Write};
 
 /// Event triggered when an entity is removed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -42,8 +40,8 @@ pub struct PreviousPosition(pub Position);
 #[event_handler]
 pub fn position_reset(
     events: &[EntityMoveEvent],
-    query: PreparedQuery<(Read<Position>, Write<PreviousPosition>)>,
-    world: PreparedWorld,
+    query: &mut Query<(Read<Position>, Write<PreviousPosition>)>,
+    world: &mut PreparedWorld,
 ) {
     events.iter().for_each(|event| {
         let (pos, mut prev_pos) = query.find(event.entity).unwrap();

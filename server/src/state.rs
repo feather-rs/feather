@@ -18,6 +18,7 @@ use tonks::Scheduler;
 /// state; it is designed for read-only use. (The chunk
 /// map uses `RwLock` internally, so write access isn't
 /// needed to update blocks.)
+#[derive(Resource)]
 pub struct State {
     pub config: Arc<Config>,
     pub chunk_map: ChunkMap,
@@ -26,6 +27,14 @@ pub struct State {
 }
 
 impl State {
+    pub fn new(config: Arc<Config>, chunk_map: ChunkMap) -> Self {
+        Self {
+            config,
+            chunk_map,
+            lazy: Lazy::default(),
+        }
+    }
+
     /// See `Lazy::exec()`.
     pub fn exec(&self, f: impl FnOnce(&mut World)) {
         self.lazy.exec(f)

@@ -20,7 +20,7 @@ use legion::query::Read;
 use parking_lot::{MappedMutexGuard, Mutex, MutexGuard};
 use std::iter;
 use std::vec::Drain;
-use tonks::{PreparedQuery, PreparedWorld, Query};
+use tonks::{PreparedWorld, Query};
 
 type QueuedPackets = Vec<(Entity, Box<dyn Packet>)>;
 
@@ -28,6 +28,7 @@ type QueuedPackets = Vec<(Entity, Box<dyn Packet>)>;
 /// received packets of a given type.
 ///
 /// A system should never require mutable access to this type.
+#[derive(Resource)]
 pub struct PacketQueue {
     /// Vector of queued packets. This vector is indexed
     /// by the ordinal of the packet type, and each

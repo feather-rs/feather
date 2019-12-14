@@ -22,11 +22,11 @@ use multimap::MultiMap;
 use std::collections::VecDeque;
 use std::path::Path;
 use std::sync::Arc;
-use tonks::{PreparedQuery, PreparedWorld, Query, Read, Trigger};
+use tonks::{PreparedWorld, Query, Read, Trigger};
 
 /// A handle for interacting with the chunk
 /// worker thread.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Resource)]
 pub struct ChunkWorkerHandle {
     pub sender: Sender<chunk_worker::Request>,
     pub receiver: Receiver<chunk_worker::Reply>,
@@ -108,7 +108,7 @@ pub fn save_chunk(handle: &ChunkWorkerHandle, chunk: Arc<Chunk>, entities: Vec<E
 /// the movement, while other players would be outside of the view
 /// distance. This technique allows for higher performance and
 /// avoids constant nearby entity queries.
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Clone, Debug, Resource)]
 pub struct ChunkHolders {
     inner: MultiMap<ChunkPosition, Entity>,
 }
@@ -161,14 +161,14 @@ pub struct ChunkHolderReleaseEvent {
 
 /// The queue of chunks to be unloaded.
 /// See `chunk_unload` for details.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Resource)]
 pub struct ChunkUnloadQueue {
     /// The internal queue.
     queue: VecDeque<ChunkUnload>,
 }
 
 /// A chunk to be unloaded.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Resource)]
 struct ChunkUnload {
     /// The position of this chunk.
     chunk: ChunkPosition,
@@ -192,7 +192,12 @@ const CHUNK_UNLOAD_TIME: u64 = TPS * 5; // 5 seconds - TODO make this configurab
 /// chunks at the edge of their view distance
 /// to be loaded and unloaded at an alarming rate.
 #[system]
-fn chunk_unload(state: &State, unload_queue: &mut ChunkUnloadQueue, holders: &ChunkHolders) {
+fn chunk_unload(
+    state: &State,
+    unload_queue: &mut ChunkUnloadQueue,
+    holders: &ChunkHolders,
+    tick_count: &TickCount,
+) {
     // Unload chunks which are finished in the queue.
 
     // Since chunks are queued in the back and taken out
@@ -227,6 +232,7 @@ pub fn chunk_unload_no_holders(
     event: &ChunkHolderReleaseEvent,
     holders: &ChunkHolders,
     unload_queue: &mut ChunkUnloadQueue,
+    tick_count: &TickCount,
 ) {
     // Handle holder release events.
     // If the chunk now has zero holders, queue it for unloading.
@@ -267,12 +273,14 @@ fn chunk_holder_remove(
     event: &EntityDeleteEvent,
     query: &mut Query<Read<ChunkHolder>>,
     world: &mut PreparedWorld,
+    holders: &mut ChunkHolders,
+    release_events: &mut Trigger<ChunkHolderReleaseEvent>,
 ) {
     // If entity had chunk holds, remove them all
     if let Ok(holder_comp) = query.find(event.entity, world) {
         debug!("Removing chunk holds for entity {:?}", event.entity);
         holder_comp.holds.iter().for_each(|chunk| {
-            holders.remove_holder(*chunk, event.entity, &mut release_events);
+            holders.remove_holder(*chunk, event.entity, release_events);
         });
     }
 }

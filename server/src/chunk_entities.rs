@@ -3,6 +3,7 @@ use evmap::shallow_copy::CopyValue;
 use evmap::{ReadHandle, ReadHandleFactory, WriteHandle};
 use feather_core::ChunkPosition;
 use legion::entity::Entity;
+use parking_lot::Mutex;
 use thread_local::ThreadLocal;
 
 /// Stores which entities belong to every given chunk.
@@ -18,15 +19,16 @@ use thread_local::ThreadLocal;
 ///
 /// Do note that the information in this structure is not necessarily up to date,
 /// although a best effort is made to update the data.
+#[derive(Resource)]
 pub struct ChunkEntities {
-    writer: WriteHandle<ChunkPosition, CopyValue<Entity>, (), ABuildHasher>,
+    writer: Mutex<WriteHandle<ChunkPosition, CopyValue<Entity>, (), ABuildHasher>>,
     factory: ReadHandleFactory<ChunkPosition, CopyValue<Entity>, (), ABuildHasher>,
     readers: ThreadLocal<ReadHandle<ChunkPosition, CopyValue<Entity>, (), ABuildHasher>>,
 }
 
 impl ChunkEntities {
     pub fn new() -> Self {
-        let (reader, writer) = evmap::with_hasher((), ABuildHasher);
+        let (reader, writer) = evmap::with_hasher((), ABuildHasher::default());
         Self {
             writer,
             factory: reader.factory(),
@@ -35,9 +37,16 @@ impl ChunkEntities {
     }
     /// Returns a slice of entities in the given chunk.
     pub fn entities_in_chunk(&self, chunk: ChunkPosition) -> &[CopyValue<Entity>] {
+        unimplemented!();
         self.readers
             .get_or(|| self.factory.handle())
             .get_and(&chunk, |slice| slice)
             .unwrap_or(&[])
+    }
+}
+
+impl Default for ChunkEntities {
+    fn default() -> Self {
+        Self::new()
     }
 }

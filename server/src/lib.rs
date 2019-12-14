@@ -128,11 +128,13 @@ use feather_core::network::packet::implementation::DisconnectPlay;
 
 use crate::chunk_logic::{ChunkHolders, ChunkWorkerHandle};
 use crate::config::Config;
+use crate::state::State;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
 use feather_core::level;
 use feather_core::level::{deserialize_level_file, save_level_file, LevelData, LevelGeneratorType};
+use feather_core::world::ChunkMap;
 use legion::world::World;
 use rand::Rng;
 use std::collections::hash_map::DefaultHasher;
@@ -213,7 +215,9 @@ pub fn main() {
         exit(1)
     });
 
-    let mut scheduler = init_scheduler();
+    let chunk_worker_handle = init_chunk_worker(&config, world_dir, &level);
+
+    let mut scheduler = init_scheduler(Arc::clone(&config), chunk_worker_handle, level);
     let mut world = World::new();
 
     // Channel used by the shutdown handler to notify the server thread.
@@ -247,13 +251,69 @@ pub fn main() {
 
 /// Runs the main game loop.
 fn run_loop(world: &mut World, scheduler: &mut Scheduler, shutdown_rx: Receiver<()>) {
-    unimplemented!();
+    loop {
+        if shutdown_rx.try_recv().is_ok() {
+            // Shut down
+            return;
+        }
+
+        let start_time = current_time_in_millis();
+
+        scheduler.execute(world);
+        world.defrag(None); // TODO: do this at interval rate?
+
+        // Sleep correct amount
+        let end_time = current_time_in_millis();
+        let elapsed = end_time - start_time;
+        if elapsed > TICK_TIME {
+            debug!("Running behind! Starting next tick immediately");
+            continue; // Behind - start next tick immediately
+        }
+
+        // Sleep in 1ms increments until we've slept enough
+        let mut sleep_time = (TICK_TIME - elapsed) as i64;
+        let mut last_sleep_time = current_time_in_millis();
+        while sleep_time > 0 {
+            std::thread::sleep(Duration::from_millis(1));
+            sleep_time -= (current_time_in_millis() - last_sleep_time) as i64;
+            last_sleep_time = current_time_in_millis();
+        }
+    }
 }
 
-/// Initializes the scheduler.
-pub fn init_scheduler() -> Scheduler {
-    // TODO: resources
+/// Initializes the scheduler and resources.
+fn init_scheduler(
+    config: Arc<Config>,
+    chunk_worker_handle: ChunkWorkerHandle,
+    level: LevelData,
+) -> Scheduler {
+    // Insert resources which don't have a `Default` impl.
+    let mut resources = Resources::new();
+    let chunk_map = ChunkMap::new();
+    resources.insert(State::new(config, chunk_map));
+    resources.insert(chunk_worker_handle);
+    resources.insert(level);
+
     tonks::build_scheduler().build(Resources::default())
+}
+
+/// Initializes the chunk worker.
+fn init_chunk_worker(config: &Config, world_dir: &Path, level: &LevelData) -> ChunkWorkerHandle {
+    let generator: Arc<dyn WorldGenerator> = match level.generator_type() {
+        LevelGeneratorType::Flat => Arc::new(SuperflatWorldGenerator {
+            options: level.clone().generator_options.unwrap_or_default(),
+        }),
+        LevelGeneratorType::Default => {
+            Arc::new(ComposableGenerator::default_with_seed(level.seed as u64))
+        }
+        _ => Arc::new(EmptyWorldGenerator {}),
+    };
+
+    let (tx, rx) = chunk_worker::start(world_dir, generator);
+    ChunkWorkerHandle {
+        sender: tx,
+        receiver: rx,
+    }
 }
 
 /// Loads the configuration file, creating a default

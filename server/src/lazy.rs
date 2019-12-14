@@ -5,8 +5,18 @@ use legion::world::World;
 use smallvec::SmallVec;
 use tonks::Scheduler;
 
+pub trait LazyFnWithScheduler: FnOnce(&mut World, &mut Scheduler) + Send {}
+impl<F> LazyFnWithScheduler for F where F: FnOnce(&mut World, &mut Scheduler) + Send {}
+
+pub trait LazyFn: FnOnce(&mut World) + Send {}
+impl<F> LazyFn for F where F: FnOnce(&mut World) + Send {}
+
+pub trait LazyEntityFn: FnOnce(&mut World, Entity) + Send {}
+impl<F> LazyEntityFn for F where F: FnOnce(&mut World, Entity) + Send {}
+
 /// Resource which allows lazy creation of entities
 /// or execution of functions with world access.
+#[derive(Default, Resource)]
 pub struct Lazy {
     /// Internal queue of actions to perform.
     queue: SegQueue<Action>,
@@ -14,13 +24,13 @@ pub struct Lazy {
 
 impl Lazy {
     /// Lazily executes a closure with world access.
-    pub fn exec(&self, f: impl FnOnce(&mut World)) {
+    pub fn exec(&self, f: impl LazyFn) {
         self.exec_with_scheduler(move |world, _| f(world));
     }
 
     /// Lazily executes a closure with world and scheduler (resource)
     /// access.
-    pub fn exec_with_scheduler(&self, f: impl FnOnce(&mut World, &mut Scheduler)) {
+    pub fn exec_with_scheduler(&self, f: impl LazyFnWithScheduler) {
         self.queue.push(Action::Exec(Box::new(f)));
     }
 
@@ -45,13 +55,13 @@ impl Lazy {
 
 /// An action which the lazy updater may perform.
 enum Action {
-    Exec(Box<dyn FnOnce(&mut World, &mut Scheduler)>),
+    Exec(Box<dyn LazyFnWithScheduler>),
 }
 
 /// Builder for lazily creating entities.
 pub struct EntityBuilder<'a> {
     lazy: &'a Lazy,
-    fns: SmallVec<[Box<dyn FnOnce(&mut World, Entity)>; 8]>,
+    fns: SmallVec<[Box<dyn LazyEntityFn>; 8]>,
 }
 
 impl<'a> EntityBuilder<'a> {

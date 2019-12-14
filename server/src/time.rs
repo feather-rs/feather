@@ -7,7 +7,7 @@ use feather_core::packet::TimeUpdate;
 use tonks::{PreparedWorld, Query, Read};
 
 /// The current time of the world.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deref, DerefMut, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deref, DerefMut, Default, Resource)]
 pub struct Time(pub u64);
 
 impl Time {

@@ -33,8 +33,6 @@ fn physics(
     // Go through entities and update their positions according
     // to their velocities.
     query.par_entities_for_each(world, |(entity, position, velocity, physics)| {
-        let mut velocity = *restrict_velocity.get_unchecked();
-
         let mut pending_position = position.current + velocity.0;
 
         // Check for blocks along path between old position and pending position.

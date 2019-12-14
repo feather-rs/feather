@@ -1,7 +1,7 @@
 //! A bunch of math-related functions for use with
 //! the physics system.
 
-use crate::entity::{ChunkEntities, PositionComponent};
+use crate::chunk_entities::ChunkEntities;
 use crate::physics::block_bboxes::bbox_for_block;
 use crate::physics::AABBExt;
 use crate::state::State;
@@ -10,6 +10,7 @@ use feather_core::world::{BlockPosition, ChunkMap, Position};
 use feather_core::{BlockExt, ChunkPosition};
 use glm::{vec3, DVec3, Vec3};
 use heapless::consts::*;
+use legion::entity::Entity;
 use nalgebra::{Isometry3, Point3};
 use ncollide3d::bounding_volume::AABB;
 use ncollide3d::query;
@@ -18,6 +19,7 @@ use ncollide3d::shape::{Compound, Cuboid, ShapeHandle};
 use smallvec::SmallVec;
 use std::cmp::Ordering;
 use std::f64::INFINITY;
+use tonks::{PreparedWorld, Query, Read};
 
 // TODO is a bitflag really the most
 // idiomatic way to do this?
@@ -233,15 +235,13 @@ pub fn block_impacted_by_ray(
 ///
 /// # Panics
 /// Panics if either coordinate of the radius is negative.
-pub fn nearby_entities<S>(
+pub fn nearby_entities(
     chunk_entities: &ChunkEntities,
-    positions: &S,
+    query: &Query<Read<Position>>,
+    world: &PreparedWorld,
     pos: Position,
     radius: DVec3,
-) -> SmallVec<[Entity; 4]>
-where
-    S: GenericReadStorage<Component = PositionComponent>,
-{
+) -> SmallVec<[Entity; 4]> {
     assert!(radius.x >= 0.0);
     assert!(radius.y >= 0.0);
     assert!(radius.z >= 0.0);
@@ -254,7 +254,7 @@ where
             .iter()
             .copied()
             .filter(|e| {
-                let epos = positions.get(*e);
+                let epos = query.find_immutable(e, world).unwrap();
                 if let Some(epos) = epos {
                     let epos = epos.current;
                     (epos.x - pos.x).abs() <= radius.x
