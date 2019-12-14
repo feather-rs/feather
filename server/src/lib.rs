@@ -124,8 +124,6 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use specs::{Builder, Dispatcher, DispatcherBuilder, Entity, LazyUpdate, World, WorldExt};
-
 use feather_core::network::packet::implementation::DisconnectPlay;
 
 use crate::chunk_logic::{ChunkHolders, ChunkWorkerHandle};
@@ -135,6 +133,7 @@ use crate::worldgen::{
 };
 use feather_core::level;
 use feather_core::level::{deserialize_level_file, save_level_file, LevelData, LevelGeneratorType};
+use legion::world::World;
 use rand::Rng;
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
@@ -142,6 +141,7 @@ use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
 use std::path::Path;
 use std::process::exit;
+use tonks::{Resources, Scheduler};
 
 #[global_allocator]
 static ALLOC: System = System;
@@ -213,7 +213,8 @@ pub fn main() {
         exit(1)
     });
 
-    let (mut world, mut dispatcher) = init_world(config, player_count, io_manager, level);
+    let mut scheduler = init_scheduler();
+    let mut world = World::new();
 
     // Channel used by the shutdown handler to notify the server thread.
     let (shutdown_tx, shutdown_rx) = crossbeam::unbounded();
@@ -225,11 +226,11 @@ pub fn main() {
     info!("Generating RSA keypair");
     io::init();
 
-    info!("Queuing spawn chunks for loading");
-    load_spawn_chunks(&mut world);
+    info!("Queuing spawn chunks for loading UNIMPLEMENTED");
+    // load_spawn_chunks(&mut world); TODO
 
     info!("Server started");
-    run_loop(&mut world, &mut dispatcher, shutdown_rx);
+    run_loop(&mut world, &mut scheduler, shutdown_rx);
 
     info!("Shutting down");
 
@@ -242,6 +243,17 @@ pub fn main() {
 
     info!("Goodbye");
     exit(0);
+}
+
+/// Runs the main game loop.
+fn run_loop(world: &mut World, scheduler: &mut Scheduler, shutdown_rx: Receiver<()>) {
+    unimplemented!();
+}
+
+/// Initializes the scheduler.
+pub fn init_scheduler() -> Scheduler {
+    // TODO: resources
+    tonks::build_scheduler().build(Resources::default())
 }
 
 /// Loads the configuration file, creating a default
@@ -264,6 +276,35 @@ fn load_config() -> Config {
             }
         },
     }
+}
+
+/// Starts the IO threads.
+fn init_io_manager(
+    config: Arc<Config>,
+    player_count: Arc<PlayerCount>,
+    server_icon: Arc<Option<String>>,
+) -> io::NetworkIoManager {
+    io::NetworkIoManager::start(
+        format!("{}:{}", config.server.address, config.server.port)
+            .parse()
+            .unwrap(),
+        config,
+        player_count,
+        server_icon,
+    )
+}
+
+fn init_log(config: &Config) {
+    let level = match config.log.level.as_str() {
+        "trace" => log::Level::Trace,
+        "debug" => log::Level::Debug,
+        "info" => log::Level::Info,
+        "warn" => log::Level::Warn,
+        "error" => log::Level::Error,
+        _ => panic!("Unknown log level {}", config.log.level),
+    };
+
+    simple_logger::init_with_level(level).unwrap();
 }
 
 fn create_level(config: &Config) -> LevelData {
@@ -322,4 +363,48 @@ fn hash_seed(seed_raw: &str) -> i64 {
     let mut hasher = DefaultHasher::new();
     seed_raw.hash(&mut hasher);
     hasher.finish() as i64
+}
+
+/// Loads the level.dat file for the world.
+fn load_level(path: &Path) -> Result<LevelData, failure::Error> {
+    let file = File::open(path)?;
+    let data = deserialize_level_file(file)?;
+    Ok(data)
+}
+
+/// Tries to load a server icon from the current directory.
+fn load_server_icon() -> Option<String> {
+    let icon_file: Option<File> = match File::open("server-icon.png") {
+        Ok(file) => Some(file),
+        Err(_) => None,
+    };
+
+    let mut icon_file = icon_file?;
+
+    let mut data = Vec::new();
+    if icon_file.read_to_end(&mut data).is_err() {
+        warn!("Failed to load server icon.");
+        return None;
+    }
+
+    let b64_icon = base64::encode(&data);
+    Some(format!("data:image/png;base64,{}", b64_icon))
+}
+
+/// Retrieves the current time in seconds
+/// since the UNIX epoch.
+pub fn current_time_in_secs() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
+}
+
+/// Retrieves the current time in milliseconds
+/// since the UNIX epoch.
+pub fn current_time_in_millis() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as u64
 }
