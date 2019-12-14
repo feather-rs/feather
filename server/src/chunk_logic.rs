@@ -50,8 +50,8 @@ pub struct ChunkLoadFailEvent {
 fn chunk_load_system(
     state: &State,
     handle: &ChunkWorkerHandle,
-    mut load_events: Trigger<ChunkLoadEvent>,
-    mut fail_events: Trigger<ChunkLoadFailEvent>,
+    load_events: &mut Trigger<ChunkLoadEvent>,
+    fail_events: &mut Trigger<ChunkLoadFailEvent>,
 ) {
     while let Ok(reply) = handle.receiver.try_recv() {
         if let chunk_worker::Reply::LoadedChunk(pos, result) = reply {
@@ -265,11 +265,11 @@ impl ChunkHolder {
 #[event_handler]
 fn chunk_holder_remove(
     event: &EntityDeleteEvent,
-    mut query: PreparedQuery<Read<ChunkHolder>>,
-    mut world: PreparedWorld,
+    query: &mut Query<Read<ChunkHolder>>,
+    world: &mut PreparedWorld,
 ) {
     // If entity had chunk holds, remove them all
-    if let Ok(holder_comp) = query.find(event.entity, &mut world) {
+    if let Ok(holder_comp) = query.find(event.entity, world) {
         debug!("Removing chunk holds for entity {:?}", event.entity);
         holder_comp.holds.iter().for_each(|chunk| {
             holders.remove_holder(*chunk, event.entity, &mut release_events);

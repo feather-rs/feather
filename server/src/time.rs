@@ -4,7 +4,7 @@ use crate::network::Network;
 use crate::player::PlayerJoinEvent;
 use feather_core::level::LevelData;
 use feather_core::packet::TimeUpdate;
-use tonks::{PreparedQuery, PreparedWorld, Read};
+use tonks::{PreparedWorld, Query, Read};
 
 /// The current time of the world.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deref, DerefMut, Default)]
@@ -32,11 +32,12 @@ pub fn time_increment(time: &mut Time) {
 /// Event handler for sending world time to players.
 #[event_handler]
 pub fn time_send(
+    time: &Time,
     event: &PlayerJoinEvent,
-    mut query: PreparedQuery<Read<Network>>,
-    mut world: PreparedWorld,
+    query: &mut Query<Read<Network>>,
+    world: &mut PreparedWorld,
 ) {
-    let network = query.find(event.player, &mut world);
+    let network = query.find(event.player, &mut world).unwrap();
 
     // Send time to player.
     let packet = TimeUpdate {

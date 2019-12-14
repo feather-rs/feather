@@ -17,7 +17,7 @@ use feather_core::{Packet, PacketType};
 use futures::channel::mpsc::UnboundedSender;
 use legion::entity::Entity;
 use legion::query::Read;
-use parking_lot::{Mutex, MutexGuard};
+use parking_lot::{MappedMutexGuard, Mutex, MutexGuard};
 use std::iter;
 use std::vec::Drain;
 use tonks::{PreparedQuery, PreparedWorld, Query};
@@ -52,7 +52,7 @@ impl PacketQueue {
     }
 
     /// Returns an iterator over packets of a given type.
-    pub fn received<P: Packet>(&self) -> MutexGuard<impl IntoIterator<Item = (Entity, P)>> {
+    pub fn received<P: Packet>(&self) -> MappedMutexGuard<impl IntoIterator<Item = (Entity, P)>> {
         let queue = self.queue[P::ty().ordinal()].lock();
 
         MutexGuard::map(queue, |queue| {
@@ -66,7 +66,7 @@ impl PacketQueue {
     pub fn push(&self, packet: Box<dyn Packet>, entity: Entity) {
         let ordinal = packet.ty().ordinal();
 
-        self.queue[ordinal].lock().push((packet, entity));
+        self.queue[ordinal].lock().push((entity, packet));
     }
 }
 
@@ -105,8 +105,8 @@ pub fn network(
     state: &State,
     io: &NetworkIoManager,
     packet_queue: &PacketQueue,
-    mut query: PreparedQuery<Read<Network>>,
-    world: PreparedWorld,
+    query: &mut Query<Read<Network>>,
+    world: &mut PreparedWorld,
 ) {
     // For each `Network`, handle any disconnects and received packets.
     query.par_entities_for_each(world, |(entity, network): (Entity, Network)| {
@@ -151,7 +151,7 @@ mod tests {
 
         queue.push(Box::new(Handshake::default()), entities[0]);
         queue.push(Box::new(SpawnObject::default()), entities[1]);
-        queue.push(Handshake::default(), entities[1]);
+        queue.push(Box::new(Handshake::default()), entities[1]);
 
         let mut handshakes = queue.received::<Handshake>();
         assert_eq!(handshakes.next().unwrap().0, entities[0]);

@@ -8,7 +8,7 @@ use feather_core::Position;
 use feather_core::{Block, BlockExt};
 use legion::entity::Entity;
 use parking_lot::Mutex;
-use tonks::{PreparedQuery, PreparedWorld, Read, Trigger, Write};
+use tonks::{PreparedWorld, Query, Read, Trigger, Write};
 
 /// Event triggered when an entity lands on the ground.
 #[derive(Debug, Clone)]
@@ -22,17 +22,17 @@ pub struct EntityPhysicsLandEvent {
 #[system]
 fn physics(
     state: &State,
-    mut query: PreparedQuery<(Write<Position>, Write<Velocity>, Read<Physics>)>,
-    mut world: PreparedWorld,
-    land_events: Trigger<EntityPhysicsLandEvent>,
+    query: &mut Query<(Write<Position>, Write<Velocity>, Read<Physics>)>,
+    world: &mut PreparedWorld,
+    land_events: &mut Trigger<EntityPhysicsLandEvent>,
 ) {
-    // Using a mutex is fine, since land events are written very rairly
+    // Using a mutex is fine, since land events are written very rarely
     // and thus contention is low.
     let land_events = Mutex::new(land_events);
 
     // Go through entities and update their positions according
     // to their velocities.
-    query.par_entities_for_each(&mut world, |(entity, position, velocity, physics)| {
+    query.par_entities_for_each(world, |(entity, position, velocity, physics)| {
         let mut velocity = *restrict_velocity.get_unchecked();
 
         let mut pending_position = position.current + velocity.0;

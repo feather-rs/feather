@@ -22,7 +22,7 @@ use crate::player::Player;
 use feather_core::{ChunkPosition, Position};
 use legion::entity::Entity;
 use rayon::prelude::*;
-use tonks::{PreparedQuery, PreparedWorld, Read, TriggerOwned};
+use tonks::{PreparedWorld, Query, Read, Trigger};
 
 /// Event triggered when a player's view is updated, i.e. when they
 /// cross into a new chunk.
@@ -40,9 +40,9 @@ pub struct ViewUpdateEvent {
 #[event_handler]
 fn view_update(
     events: &[EntityMoveEvent],
-    query: PreparedQuery<(Read<Position>, Read<PreviousPosition>)>,
-    world: PreparedWorld,
-    trigger: TriggerOwned<ViewUpdateEvent>,
+    query: &mut Query<(Read<Position>, Read<PreviousPosition>)>,
+    world: &mut PreparedWorld,
+    trigger: &mut Trigger<ViewUpdateEvent>,
 ) {
     events.iter().for_each(|event| {
         let (pos, prev_pos) = query.find_immutable(event.entity, &world).unwrap();
