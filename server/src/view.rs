@@ -18,11 +18,9 @@
 //! This includes systems to load/unload chunks and send entities.
 
 use crate::entity::{EntityMoveEvent, PreviousPosition};
-use crate::player::Player;
 use feather_core::{ChunkPosition, Position};
 use legion::entity::Entity;
 use legion::query::Read;
-use rayon::prelude::*;
 use tonks::{PreparedWorld, Query, Trigger};
 
 /// Event triggered when a player's view is updated, i.e. when they
@@ -46,7 +44,11 @@ fn view_update(
     trigger: &mut Trigger<ViewUpdateEvent>,
 ) {
     events.iter().for_each(|event| {
-        let (pos, prev_pos) = query.find_immutable(event.entity, &world).unwrap();
+        let pos = *world.get_component::<Position>(event.entity).unwrap();
+        let prev_pos = world
+            .get_component::<PreviousPosition>(event.entity)
+            .unwrap()
+            .0;
 
         if pos.chunk_pos() != prev_pos.chunk_pos() {
             // New chunk: trigger view update.

@@ -100,19 +100,15 @@ extern crate serde_json;
 #[macro_use]
 extern crate failure;
 #[macro_use]
-extern crate num_derive;
-#[macro_use]
 extern crate smallvec;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate derive_deref;
 #[macro_use]
-extern crate feather_codegen;
+extern crate feather_core;
 #[macro_use]
 extern crate bitflags;
-#[macro_use]
-extern crate feather_core;
 #[macro_use]
 extern crate tonks;
 
@@ -120,13 +116,11 @@ extern crate nalgebra_glm as glm;
 
 use crossbeam::Receiver;
 use std::alloc::System;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use feather_core::network::packet::implementation::DisconnectPlay;
-
-use crate::chunk_logic::{ChunkHolders, ChunkWorkerHandle};
+use crate::chunk_logic::ChunkWorkerHandle;
 use crate::config::Config;
 use crate::state::State;
 use crate::worldgen::{

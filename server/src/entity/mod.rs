@@ -2,11 +2,9 @@
 
 use crate::lazy::EntityBuilder;
 use crate::state::State;
-use feather_core::{ChunkPosition, Position};
+use feather_core::Position;
 use legion::prelude::Entity;
 use legion::query::{Read, Write};
-use parking_lot::Mutex;
-use rayon::prelude::*;
 use std::ops::{Deref, DerefMut};
 use tonks::{PreparedWorld, Query};
 
@@ -62,11 +60,14 @@ pub struct PreviousPosition(pub Position);
 #[event_handler]
 pub fn position_reset(
     events: &[EntityMoveEvent],
-    query: &mut Query<(Read<Position>, Write<PreviousPosition>)>,
+    _query: &mut Query<(Read<Position>, Write<PreviousPosition>)>,
     world: &mut PreparedWorld,
 ) {
     events.iter().for_each(|event| {
-        let (pos, mut prev_pos) = query.find(event.entity).unwrap();
+        let pos = *world.get_component::<Position>(event.entity).unwrap();
+        let prev_pos = world
+            .get_component_mut::<PreviousPosition>(event.entity)
+            .unwrap();
 
         prev_pos.0 = pos;
     });

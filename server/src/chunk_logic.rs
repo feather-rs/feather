@@ -5,14 +5,12 @@
 use crossbeam::channel::{Receiver, Sender};
 use std::sync::atomic::{AtomicU32, Ordering};
 
-use feather_core::world::{ChunkMap, ChunkPosition};
+use feather_core::world::ChunkPosition;
 
 use rayon::prelude::*;
 
-use crate::config::Config;
 use crate::entity::EntityDeleteEvent;
 use crate::state::State;
-use crate::worldgen::WorldGenerator;
 use crate::{chunk_worker, current_time_in_millis, TickCount, TPS};
 use feather_core::entity::EntityData;
 use feather_core::Chunk;
@@ -21,7 +19,6 @@ use legion::entity::Entity;
 use legion::query::Read;
 use multimap::MultiMap;
 use std::collections::VecDeque;
-use std::path::Path;
 use std::sync::Arc;
 use tonks::{PreparedWorld, Query, Trigger};
 
@@ -272,13 +269,13 @@ impl ChunkHolder {
 #[event_handler]
 fn chunk_holder_remove(
     event: &EntityDeleteEvent,
-    query: &mut Query<Read<ChunkHolder>>,
+    _query: &mut Query<Read<ChunkHolder>>,
     world: &mut PreparedWorld,
     holders: &mut ChunkHolders,
     release_events: &mut Trigger<ChunkHolderReleaseEvent>,
 ) {
     // If entity had chunk holds, remove them all
-    if let Ok(holder_comp) = query.find(event.entity, world) {
+    if let Some(holder_comp) = world.get_component::<ChunkHolder>(event.entity) {
         debug!("Removing chunk holds for entity {:?}", event.entity);
         holder_comp.holds.iter().for_each(|chunk| {
             holders.remove_holder(*chunk, event.entity, release_events);

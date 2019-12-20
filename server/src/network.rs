@@ -7,9 +7,7 @@
 //! received of a given type.
 
 use crate::io::{ListenerToServerMessage, NetworkIoManager, ServerToWorkerMessage};
-use crate::lazy::Lazy;
 use crate::player;
-use crate::player::Player;
 use crate::state::State;
 use crossbeam::Receiver;
 use feather_core::network::cast_packet;
@@ -18,10 +16,8 @@ use futures::channel::mpsc::UnboundedSender;
 use legion::entity::Entity;
 use legion::query::Read;
 use lock_api::RawMutex;
-use parking_lot::{MappedMutexGuard, Mutex, MutexGuard};
-use serde::de::value::MapAccessDeserializer;
+use parking_lot::{Mutex, MutexGuard};
 use std::iter;
-use std::vec::Drain;
 use strum::EnumCount;
 use tonks::{PreparedWorld, Query};
 

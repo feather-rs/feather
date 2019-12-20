@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::lazy::{EntityBuilder, Lazy, LazyFn};
+use crate::lazy::{EntityBuilder, Lazy};
 use feather_blocks::Block;
 use feather_core::world::ChunkMap;
 use feather_core::{BlockPosition, Chunk, ChunkPosition};

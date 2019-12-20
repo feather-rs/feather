@@ -2,7 +2,6 @@
 
 use crate::network::Network;
 use crate::player::PlayerJoinEvent;
-use feather_core::level::LevelData;
 use feather_core::packet::TimeUpdate;
 use legion::query::Read;
 use tonks::{PreparedWorld, Query};
@@ -35,10 +34,10 @@ pub fn time_increment(time: &mut Time) {
 pub fn time_send(
     time: &Time,
     event: &PlayerJoinEvent,
-    query: &mut Query<Read<Network>>,
+    _query: &mut Query<Read<Network>>,
     world: &mut PreparedWorld,
 ) {
-    let network = query.find(event.player, &mut world).unwrap();
+    let network = world.get_component::<Network>(event.player).unwrap();
 
     // Send time to player.
     let packet = TimeUpdate {

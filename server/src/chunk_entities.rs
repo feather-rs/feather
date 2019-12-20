@@ -1,8 +1,6 @@
 use dashmap::DashMap;
 use feather_core::ChunkPosition;
 use legion::entity::Entity;
-use parking_lot::Mutex;
-use thread_local::ThreadLocal;
 
 static EMPTY_VEC: Vec<Entity> = Vec::new();
 
@@ -30,11 +28,6 @@ impl ChunkEntities {
     /// Returns a slice of entities in the given chunk.
     pub fn entities_in_chunk(&self, chunk: ChunkPosition) -> &[Entity] {
         todo!("implement chunk entities properly");
-        if let Some(vec) = self.0.get(&chunk) {
-            vec.as_slice()
-        } else {
-            &EMPTY_VEC
-        }
     }
 }
 
