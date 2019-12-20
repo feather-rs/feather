@@ -89,6 +89,7 @@ simdnoise = "3.1"
 simdeez = "0.6"
 humantime-serde = "0.1"
 ctrlc = "3.1"
+inventory = "0.1"
 
 [dev-dependencies]
 criterion = "0.3"

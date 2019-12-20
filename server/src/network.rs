@@ -81,7 +81,10 @@ pub struct Network {
 
 impl Network {
     /// Sends a packet to this player.
-    pub fn send<P>(&self, packet: P) {
+    pub fn send<P>(&self, packet: P)
+    where
+        P: Packet,
+    {
         self.send_boxed(Box::new(packet));
     }
 

@@ -686,6 +686,7 @@ dependencies = [
  "heapless 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "humantime-serde 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "inventory 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "legion 0.2.1 (git+https://github.com/TomGillen/legion?rev=cfb31727d9f4c8f069c559c0cdf05f56547fd9d4)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",

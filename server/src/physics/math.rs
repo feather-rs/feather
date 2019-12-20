@@ -255,7 +255,7 @@ pub fn nearby_entities(
             .iter()
             .copied()
             .filter(|e| {
-                let epos = query.find_immutable(e, world).unwrap();
+                let epos = query.find_immutable(*e, world).unwrap();
                 if let Some(epos) = epos {
                     let epos = epos.current;
                     (epos.x - pos.x).abs() <= radius.x
@@ -265,7 +265,7 @@ pub fn nearby_entities(
                     false
                 }
             })
-            .for_each(|e| result.push(e));
+            .for_each(|e| result.push(*e));
     }
 
     result
