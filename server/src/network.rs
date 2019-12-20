@@ -17,12 +17,43 @@ use feather_core::{Packet, PacketType};
 use futures::channel::mpsc::UnboundedSender;
 use legion::entity::Entity;
 use legion::query::Read;
+use lock_api::RawMutex;
 use parking_lot::{MappedMutexGuard, Mutex, MutexGuard};
+use serde::de::value::MapAccessDeserializer;
 use std::iter;
 use std::vec::Drain;
+use strum::EnumCount;
 use tonks::{PreparedWorld, Query};
 
 type QueuedPackets = Vec<(Entity, Box<dyn Packet>)>;
+
+pub struct DrainedPackets<'a, I> {
+    mutex: &'a parking_lot::RawMutex,
+    value: I,
+}
+
+impl<'a, I> DrainedPackets<'a, I> {
+    unsafe fn new(mutex: &'a parking_lot::RawMutex, value: I) -> Self {
+        Self { mutex, value }
+    }
+}
+
+impl<'a, I> Iterator for DrainedPackets<'a, I>
+where
+    I: Iterator,
+{
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.value.next()
+    }
+}
+
+impl<'a, I> Drop for DrainedPackets<'a, I> {
+    fn drop(&mut self) {
+        self.mutex.unlock();
+    }
+}
 
 /// The packet queue. This type allows systems to poll for
 /// received packets of a given type.
@@ -53,14 +84,19 @@ impl PacketQueue {
     }
 
     /// Returns an iterator over packets of a given type.
-    pub fn received<P: Packet>(&self) -> MappedMutexGuard<impl IntoIterator<Item = (Entity, P)>> {
-        let queue = self.queue[P::ty().ordinal()].lock();
+    pub fn received<P: Packet>(&self) -> impl Iterator<Item = (Entity, P)> + '_ {
+        let mut queue = self.queue[P::ty_sized().ordinal()].lock();
 
-        MutexGuard::map(queue, |queue| {
-            queue
-                .drain(..)
-                .map(|(entity, packet)| (entity, cast_packet::<P>(packet)))
-        })
+        // Hack to map to draining iterator.
+        unsafe {
+            let raw = MutexGuard::mutex(&queue).raw();
+            DrainedPackets::new(
+                raw,
+                queue
+                    .drain(..)
+                    .map(|(entity, packet)| (entity, cast_packet::<P>(packet))),
+            )
+        }
     }
 
     /// Adds a packet to the queue.
@@ -105,7 +141,7 @@ impl Network {
 /// * Pushing received packets to the packet queue.
 /// * Accepting new clients and creating entities for them.
 #[system]
-pub fn network(
+pub fn network_(
     state: &State,
     io: &NetworkIoManager,
     packet_queue: &PacketQueue,
@@ -113,7 +149,7 @@ pub fn network(
     world: &mut PreparedWorld,
 ) {
     // For each `Network`, handle any disconnects and received packets.
-    query.par_entities_for_each(world, |(entity, network): (Entity, Network)| {
+    query.par_entities_for_each(world, |(entity, network)| {
         while let Ok(msg) = network.receiver.try_recv() {
             match msg {
                 ServerToWorkerMessage::NotifyDisconnect(reason) => {

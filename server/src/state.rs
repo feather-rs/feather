@@ -36,7 +36,7 @@ impl State {
     }
 
     /// See `Lazy::exec()`.
-    pub fn exec(&self, f: impl LazyFn) {
+    pub fn exec(&self, f: impl FnOnce(&mut World) + Send + 'static) {
         self.lazy.exec(f)
     }
 

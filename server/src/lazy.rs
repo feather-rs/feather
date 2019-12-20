@@ -24,13 +24,13 @@ pub struct Lazy {
 
 impl Lazy {
     /// Lazily executes a closure with world access.
-    pub fn exec(&self, f: impl LazyFn) {
+    pub fn exec(&self, f: impl FnOnce(&mut World) + Send + 'static) {
         self.exec_with_scheduler(move |world, _| f(world));
     }
 
     /// Lazily executes a closure with world and scheduler (resource)
     /// access.
-    pub fn exec_with_scheduler(&self, f: impl LazyFnWithScheduler) {
+    pub fn exec_with_scheduler(&self, f: impl FnOnce(&mut World, &mut Scheduler) + Send + 'static) {
         self.queue.push(Action::Exec(Box::new(f)));
     }
 
@@ -66,24 +66,27 @@ pub struct EntityBuilder<'a> {
 
 impl<'a> EntityBuilder<'a> {
     pub fn with_component<C: Component>(mut self, component: C) -> Self {
-        self.fns.push(move |world, entity| {
-            world.add_component(entity, component);
-        });
+        self.fns
+            .push(Box::new(move |world: &mut World, entity: Entity| {
+                world.add_component(entity, component);
+            }));
         self
     }
 
     pub fn with_tag<T: Tag>(mut self, tag: T) -> Self {
-        self.fns.push(move |world, entity| {
-            world.add_tag(entity, tag);
-        });
+        self.fns
+            .push(Box::new(move |world: &mut World, entity: Entity| {
+                world.add_tag(entity, tag);
+            }));
         self
     }
 
     pub fn build(self) {
+        let fns = self.fns;
         self.lazy.exec(move |world| {
             let entity = world.insert((), [()].iter().copied())[0];
 
-            for f in self.fns {
+            for f in fns {
                 f(world, entity);
             }
         })

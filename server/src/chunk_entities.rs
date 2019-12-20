@@ -1,10 +1,10 @@
-use ahash::ABuildHasher;
-use evmap::shallow_copy::CopyValue;
-use evmap::{ReadHandle, ReadHandleFactory, WriteHandle};
+use dashmap::DashMap;
 use feather_core::ChunkPosition;
 use legion::entity::Entity;
 use parking_lot::Mutex;
 use thread_local::ThreadLocal;
+
+static EMPTY_VEC: Vec<Entity> = Vec::new();
 
 /// Stores which entities belong to every given chunk.
 ///
@@ -15,33 +15,26 @@ use thread_local::ThreadLocal;
 /// to a player.
 ///
 /// This structure is internally stored in `State`, using
-/// `evmap` for concurrent map access.
+/// `dashmap` for concurrent access.
 ///
 /// Do note that the information in this structure is not necessarily up to date,
 /// although a best effort is made to update the data.
 #[derive(Resource)]
-pub struct ChunkEntities {
-    writer: Mutex<WriteHandle<ChunkPosition, CopyValue<Entity>, (), ABuildHasher>>,
-    factory: ReadHandleFactory<ChunkPosition, CopyValue<Entity>, (), ABuildHasher>,
-    readers: ThreadLocal<ReadHandle<ChunkPosition, CopyValue<Entity>, (), ABuildHasher>>,
-}
+pub struct ChunkEntities(DashMap<ChunkPosition, Vec<Entity>>);
 
 impl ChunkEntities {
     pub fn new() -> Self {
-        let (reader, writer) = evmap::with_hasher((), ABuildHasher::default());
-        Self {
-            writer,
-            factory: reader.factory(),
-            readers: ThreadLocal::new(),
-        }
+        Self(DashMap::default())
     }
+
     /// Returns a slice of entities in the given chunk.
-    pub fn entities_in_chunk(&self, chunk: ChunkPosition) -> &[CopyValue<Entity>] {
-        unimplemented!();
-        self.readers
-            .get_or(|| self.factory.handle())
-            .get_and(&chunk, |slice| slice)
-            .unwrap_or(&[])
+    pub fn entities_in_chunk(&self, chunk: ChunkPosition) -> &[Entity] {
+        todo!("implement chunk entities properly");
+        if let Some(vec) = self.0.get(&chunk) {
+            vec.as_slice()
+        } else {
+            &EMPTY_VEC
+        }
     }
 }
 

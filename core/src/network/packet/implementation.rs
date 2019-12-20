@@ -138,6 +138,13 @@ impl Packet for Handshake {
         PacketType::Handshake
     }
 
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::Handshake
+    }
+
     fn box_clone(&self) -> Box<dyn Packet> {
         box_clone_impl!(self);
     }
@@ -194,6 +201,13 @@ impl Packet for EncryptionResponse {
     }
 
     fn ty(&self) -> PacketType {
+        PacketType::EncryptionResponse
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
         PacketType::EncryptionResponse
     }
 
@@ -302,6 +316,13 @@ impl Packet for PluginMessageServerbound {
         PacketType::PluginMessageServerbound
     }
 
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::PluginMessageServerbound
+    }
+
     fn box_clone(&self) -> Box<dyn Packet> {
         box_clone_impl!(self);
     }
@@ -352,6 +373,13 @@ impl Packet for UseEntity {
     }
 
     fn ty(&self) -> PacketType {
+        PacketType::UseEntity
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
         PacketType::UseEntity
     }
 
@@ -479,6 +507,13 @@ impl Packet for PlayerDigging {
         PacketType::PlayerDigging
     }
 
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::PlayerDigging
+    }
+
     fn box_clone(&self) -> Box<dyn Packet> {
         box_clone_impl!(self);
     }
@@ -525,6 +560,13 @@ impl Packet for EntityAction {
     }
 
     fn ty(&self) -> PacketType {
+        PacketType::EntityAction
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
         PacketType::EntityAction
     }
 
@@ -672,6 +714,13 @@ impl Packet for AnimationServerbound {
         PacketType::AnimationServerbound
     }
 
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::AnimationServerbound
+    }
+
     fn box_clone(&self) -> Box<dyn Packet> {
         box_clone_impl!(self);
     }
@@ -741,6 +790,13 @@ impl Packet for PlayerBlockPlacement {
         PacketType::PlayerBlockPlacement
     }
 
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::PlayerBlockPlacement
+    }
+
     fn box_clone(&self) -> Box<dyn Packet> {
         box_clone_impl!(self);
     }
@@ -780,6 +836,13 @@ impl Packet for EncryptionRequest {
     }
 
     fn ty(&self) -> PacketType {
+        PacketType::EncryptionRequest
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
         PacketType::EncryptionRequest
     }
 
@@ -906,6 +969,13 @@ impl Packet for SpawnPlayer {
         PacketType::SpawnPlayer
     }
 
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::SpawnPlayer
+    }
+
     fn box_clone(&self) -> Box<dyn Packet> {
         box_clone_impl!(self);
     }
@@ -928,6 +998,13 @@ impl Packet for AnimationClientbound {
     }
 
     fn ty(&self) -> PacketType {
+        PacketType::AnimationClientbound
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
         PacketType::AnimationClientbound
     }
 
@@ -957,6 +1034,13 @@ impl Packet for Statistics {
     }
 
     fn ty(&self) -> PacketType {
+        PacketType::Statistics
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
         PacketType::Statistics
     }
 
@@ -1034,6 +1118,13 @@ impl Packet for BossBar {
     }
 
     fn ty(&self) -> PacketType {
+        PacketType::BossBar
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
         PacketType::BossBar
     }
 
@@ -1158,6 +1249,13 @@ impl Packet for WindowItems {
         PacketType::WindowItems
     }
 
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::WindowItems
+    }
+
     fn box_clone(&self) -> Box<dyn Packet> {
         box_clone_impl!(self);
     }
@@ -1200,6 +1298,13 @@ impl Packet for PluginMessageClientbound {
     }
 
     fn ty(&self) -> PacketType {
+        PacketType::PluginMessageClientbound
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
         PacketType::PluginMessageClientbound
     }
 
@@ -1274,6 +1379,13 @@ impl Packet for Explosion {
     }
 
     fn ty(&self) -> PacketType {
+        PacketType::Explosion
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
         PacketType::Explosion
     }
 
@@ -1384,6 +1496,13 @@ impl Packet for ChunkData {
     }
 
     fn ty(&self) -> PacketType {
+        PacketType::ChunkData
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
         PacketType::ChunkData
     }
 
@@ -1509,7 +1628,14 @@ impl Packet for CombatEvent {
     }
 
     fn ty(&self) -> PacketType {
-        unimplemented!()
+        PacketType::CombatEvent
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::CombatEvent
     }
 
     fn box_clone(&self) -> Box<dyn Packet> {
@@ -1578,6 +1704,13 @@ impl Packet for PlayerInfo {
     }
 
     fn ty(&self) -> PacketType {
+        PacketType::PlayerInfo
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
         PacketType::PlayerInfo
     }
 
@@ -1656,6 +1789,13 @@ impl Packet for DestroyEntities {
         PacketType::DestroyEntities
     }
 
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::DestroyEntities
+    }
+
     fn box_clone(&self) -> Box<dyn Packet> {
         box_clone_impl!(self);
     }
@@ -1704,6 +1844,13 @@ impl Packet for PacketEntityMetadata {
     }
 
     fn ty(&self) -> PacketType {
+        PacketType::EntityMetadata
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
         PacketType::EntityMetadata
     }
 

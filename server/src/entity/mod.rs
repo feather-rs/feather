@@ -7,6 +7,7 @@ use legion::prelude::Entity;
 use legion::query::{Read, Write};
 use parking_lot::Mutex;
 use rayon::prelude::*;
+use std::ops::{Deref, DerefMut};
 use tonks::{PreparedWorld, Query};
 
 /// Event triggered when an entity is removed.
@@ -23,8 +24,28 @@ pub struct EntityMoveEvent {
 }
 
 /// The velocity of an entity.
-#[derive(Default, Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Velocity(pub glm::DVec3);
+
+impl Default for Velocity {
+    fn default() -> Self {
+        Self(glm::vec3(0.0, 0.0, 0.0))
+    }
+}
+
+impl Deref for Velocity {
+    type Target = glm::DVec3;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Velocity {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 /// The display name of the entity.
 ///

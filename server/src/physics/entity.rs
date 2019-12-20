@@ -21,7 +21,7 @@ pub struct EntityPhysicsLandEvent {
 /// System for updating all entities' positions and velocities
 /// each tick.
 #[system]
-fn physics(
+fn entity_physics(
     state: &State,
     query: &mut Query<(Write<Position>, Write<Velocity>, Read<Physics>)>,
     world: &mut PreparedWorld,
@@ -34,14 +34,14 @@ fn physics(
     // Go through entities and update their positions according
     // to their velocities.
     query.par_entities_for_each(world, |(entity, (position, velocity, physics))| {
-        let mut pending_position = position.current + velocity.0;
+        let mut pending_position = *position + velocity.0;
 
         // Check for blocks along path between old position and pending position.
         // This prevents entities from flying through blocks when their
         // velocity is sufficiently high.
-        let origin = position.current.into();
-        let direction = (pending_position - position.current).into();
-        let distance_squared = pending_position.distance_squared(position.current);
+        let origin = (*position).into();
+        let direction = (pending_position - *position).into();
+        let distance_squared = pending_position.distance_squared(*position);
 
         if let Some(impacted) = block_impacted_by_ray(&state, origin, direction, distance_squared) {
             // Set velocities along correct axis to 0 and then set position
@@ -69,7 +69,7 @@ fn physics(
         // Check for blocks around the bbox and apply offset
         // to position to stop the bbox from intersecting blocks.
         let intersect =
-            blocks_intersecting_bbox(&state, position.current, pending_position, &physics.bbox);
+            blocks_intersecting_bbox(&state, *position, pending_position, &physics.bbox);
         intersect.apply_to(&mut pending_position);
 
         if intersect.x_affected() {
@@ -108,7 +108,7 @@ fn physics(
             Some(block) => block.is_solid(),
             None => false,
         };
-        if pending_position.on_ground && !position.current.on_ground {
+        if pending_position.on_ground && !position.on_ground {
             land_events.lock().trigger(EntityPhysicsLandEvent {
                 entity,
                 pos: pending_position,
@@ -142,6 +142,6 @@ fn physics(
         }
 
         // Set new position.
-        position.current = pending_position;
+        *position = pending_position;
     });
 }

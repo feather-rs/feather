@@ -27,6 +27,9 @@ pub trait Packet: AsAny + IntoAny + Send + Sync + Any {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error>;
     fn write_to(&self, buf: &mut BytesMut);
     fn ty(&self) -> PacketType;
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized;
 
     /// Returns a clone of this packet in a dynamic box.
     fn box_clone(&self) -> Box<dyn Packet>;
