@@ -1,6 +1,8 @@
 use crate::config::Config;
 use crate::PlayerCount;
 use feather_core::network::packet::Packet;
+use feather_core::player_data::PlayerData;
+use feather_core::Position;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -28,6 +30,8 @@ pub struct NewClientInfo {
     pub username: String,
     pub profile: Vec<mojang_api::ProfileProperty>,
     pub uuid: Uuid,
+    pub data: PlayerData,
+    pub position: Position,
 
     pub sender: futures::channel::mpsc::UnboundedSender<ServerToWorkerMessage>,
     pub receiver: crossbeam::Receiver<ServerToWorkerMessage>,

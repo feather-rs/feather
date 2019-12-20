@@ -12,14 +12,23 @@ use crate::io::{ListenerToServerMessage, NewClientInfo, ServerToWorkerMessage};
 use crate::PlayerCount;
 use feather_core::network::codec::MinecraftCodec;
 use feather_core::network::packet::PacketDirection;
+use feather_core::player_data::PlayerData;
 use futures::{select, StreamExt};
 use futures::{FutureExt, SinkExt};
 use std::net::SocketAddr;
+use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::codec::Framed;
 use tokio::net::TcpStream;
 use tokio::timer::Timeout;
+use uuid::Uuid;
+
+#[derive(Debug, Fail)]
+pub enum Error {
+    #[fail(display = "failed to read player data")]
+    PlayerData,
+}
 
 /// Runs a worker task for the given client.
 pub async fn run_worker(
@@ -119,6 +128,7 @@ async fn _run_worker(
                                     }
                                     Action::SetStage(stage) => framed.codec_mut().set_stage(stage),
                                     Action::JoinGame(res) => {
+                                        let data = load_player_data(&config, res.uuid).await?;
                                         let info = NewClientInfo {
                                             ip,
                                             username: res.username,
@@ -126,6 +136,11 @@ async fn _run_worker(
                                             uuid: res.uuid,
                                             sender: tx_server_to_worker.clone(),
                                             receiver: rx_worker_to_server.take().unwrap(),
+                                            position: data
+                                                .entity
+                                                .read_position()
+                                                .ok_or_else(|| Error::PlayerData)?,
+                                            data,
                                         };
                                         global_sender
                                             .send(ListenerToServerMessage::NewClient(info))?;
@@ -143,4 +158,8 @@ async fn _run_worker(
             }
         }
     }
+}
+
+async fn load_player_data(config: &Config, uuid: Uuid) -> Result<PlayerData, nbt::Error> {
+    feather_core::player_data::load_player_data(Path::new(&config.world.name), uuid).await
 }

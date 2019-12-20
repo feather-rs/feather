@@ -10,6 +10,8 @@ use feather_items::Item;
 use std::fs;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
+use tokio::io::AsyncReadExt;
+use tokio::prelude::AsyncRead;
 use uuid::Uuid;
 
 /// Represents the contents of a player data file.
@@ -92,14 +94,16 @@ impl InventorySlot {
     }
 }
 
-fn load_from_file<R: Read>(reader: R) -> Result<PlayerData, nbt::Error> {
-    nbt::from_gzip_reader::<_, PlayerData>(reader)
+async fn load_from_file<R: AsyncRead + Unpin>(mut reader: R) -> Result<PlayerData, nbt::Error> {
+    let mut buf = vec![];
+    reader.read(&mut buf).await?;
+    nbt::from_gzip_reader(buf.as_slice())
 }
 
-pub fn load_player_data(world_dir: &Path, uuid: Uuid) -> Result<PlayerData, nbt::Error> {
+pub async fn load_player_data(world_dir: &Path, uuid: Uuid) -> Result<PlayerData, nbt::Error> {
     let file_path = file_path(world_dir, uuid);
-    let file = File::open(file_path)?;
-    let data = load_from_file(file)?;
+    let file = tokio::fs::File::open(file_path).await?;
+    let data = load_from_file(file).await?;
     Ok(data)
 }
 
