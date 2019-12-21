@@ -32,8 +32,8 @@ pub fn time_increment(time: &mut Time) {
 /// Event handler for sending world time to players.
 #[event_handler]
 pub fn time_send(
-    time: &Time,
     event: &PlayerJoinEvent,
+    time: &Time,
     _query: &mut Query<Read<Network>>,
     world: &mut PreparedWorld,
 ) {

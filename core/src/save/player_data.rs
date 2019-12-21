@@ -8,7 +8,7 @@ use crate::inventory::{
 use crate::ItemStack;
 use feather_items::Item;
 use std::fs;
-use std::io::{Read, Write};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use tokio::io::AsyncReadExt;
 use tokio::prelude::AsyncRead;

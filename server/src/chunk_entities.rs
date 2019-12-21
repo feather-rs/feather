@@ -2,8 +2,6 @@ use dashmap::DashMap;
 use feather_core::ChunkPosition;
 use legion::entity::Entity;
 
-static EMPTY_VEC: Vec<Entity> = Vec::new();
-
 /// Stores which entities belong to every given chunk.
 ///
 /// This data structure can be used to accelerate certain
@@ -26,7 +24,7 @@ impl ChunkEntities {
     }
 
     /// Returns a slice of entities in the given chunk.
-    pub fn entities_in_chunk(&self, chunk: ChunkPosition) -> &[Entity] {
+    pub fn entities_in_chunk(&self, _chunk: ChunkPosition) -> &[Entity] {
         todo!("implement chunk entities properly");
     }
 }

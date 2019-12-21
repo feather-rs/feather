@@ -39,7 +39,7 @@ pub struct ViewUpdateEvent {
 #[event_handler]
 fn view_update(
     events: &[EntityMoveEvent],
-    query: &mut Query<(Read<Position>, Read<PreviousPosition>)>,
+    _query: &mut Query<(Read<Position>, Read<PreviousPosition>)>,
     world: &mut PreparedWorld,
     trigger: &mut Trigger<ViewUpdateEvent>,
 ) {

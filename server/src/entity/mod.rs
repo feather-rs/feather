@@ -65,7 +65,7 @@ pub fn position_reset(
 ) {
     events.iter().for_each(|event| {
         let pos = *world.get_component::<Position>(event.entity).unwrap();
-        let prev_pos = world
+        let mut prev_pos = world
             .get_component_mut::<PreviousPosition>(event.entity)
             .unwrap();
 

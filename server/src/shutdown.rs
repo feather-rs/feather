@@ -9,14 +9,14 @@ pub fn init(tx: Sender<()>) {
     .unwrap();
 }
 
-pub fn save_chunks(world: &mut World) {
+pub fn save_chunks(_world: &mut World) {
     unimplemented!()
 }
 
-pub fn save_level(world: &World) {
+pub fn save_level(_world: &World) {
     unimplemented!()
 }
 
-pub fn save_player_data(world: &World) {
+pub fn save_player_data(_world: &World) {
     unimplemented!()
 }

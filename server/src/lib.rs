@@ -122,6 +122,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::chunk_logic::ChunkWorkerHandle;
 use crate::config::Config;
+use crate::io::NetworkIoManager;
 use crate::state::State;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
@@ -209,9 +210,9 @@ pub fn main() {
         exit(1)
     });
 
-    let chunk_worker_handle = init_chunk_worker(&config, world_dir, &level);
+    let chunk_worker_handle = init_chunk_worker(world_dir, &level);
 
-    let mut scheduler = init_scheduler(Arc::clone(&config), chunk_worker_handle, level);
+    let mut scheduler = init_scheduler(Arc::clone(&config), chunk_worker_handle, level, io_manager);
     let mut world = World::new();
 
     // Channel used by the shutdown handler to notify the server thread.
@@ -280,6 +281,7 @@ fn init_scheduler(
     config: Arc<Config>,
     chunk_worker_handle: ChunkWorkerHandle,
     level: LevelData,
+    io_manager: NetworkIoManager,
 ) -> Scheduler {
     // Insert resources which don't have a `Default` impl.
     let mut resources = Resources::new();
@@ -287,12 +289,13 @@ fn init_scheduler(
     resources.insert(State::new(config, chunk_map));
     resources.insert(chunk_worker_handle);
     resources.insert(level);
+    resources.insert(io_manager);
 
     tonks::build_scheduler().build(Resources::default())
 }
 
 /// Initializes the chunk worker.
-fn init_chunk_worker(config: &Config, world_dir: &Path, level: &LevelData) -> ChunkWorkerHandle {
+fn init_chunk_worker(world_dir: &Path, level: &LevelData) -> ChunkWorkerHandle {
     let generator: Arc<dyn WorldGenerator> = match level.generator_type() {
         LevelGeneratorType::Flat => Arc::new(SuperflatWorldGenerator {
             options: level.clone().generator_options.unwrap_or_default(),

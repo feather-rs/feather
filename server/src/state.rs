@@ -72,10 +72,10 @@ impl State {
 
     /// Lazily inserts the given chunk into the chunk map.
     pub fn lazy_insert_chunk(&self, chunk: Chunk) {
-        self.lazy.exec_with_scheduler(move |_, scheduler| {
+        self.lazy.exec_with_scheduler(move |_, scheduler| unsafe {
             scheduler
                 .resources()
-                .get_mut::<State>()
+                .get_mut_unchecked::<State>(tonks::resource_id_for::<State>())
                 .chunk_map
                 .insert(chunk);
         });
@@ -84,10 +84,10 @@ impl State {
     /// Lazily removes the given chunk from the chunk map.
     pub fn lazy_remove_chunk(&self, pos: ChunkPosition) {
         self.lazy
-            .exec_with_scheduler(move |_: &mut World, scheduler: &mut Scheduler| {
+            .exec_with_scheduler(move |_: &mut World, scheduler: &mut Scheduler| unsafe {
                 scheduler
                     .resources()
-                    .get_mut::<State>()
+                    .get_mut_unchecked::<State>(tonks::resource_id_for::<State>())
                     .chunk_map
                     .remove(pos);
             });

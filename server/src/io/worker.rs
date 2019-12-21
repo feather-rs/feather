@@ -75,7 +75,11 @@ async fn _run_worker(
 
     let mut framed = Framed::new(stream, codec);
 
-    let mut initial_handler = Some(InitialHandler::new(config, player_count, server_icon));
+    let mut initial_handler = Some(InitialHandler::new(
+        Arc::clone(&config),
+        player_count,
+        server_icon,
+    ));
 
     let (tx_server_to_worker, mut rx_server_to_worker) = futures::channel::mpsc::unbounded();
     let mut rx_worker_to_server = Some(rx_worker_to_server);

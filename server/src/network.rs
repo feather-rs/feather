@@ -23,6 +23,26 @@ use tonks::{PreparedWorld, Query};
 
 type QueuedPackets = Vec<(Entity, Box<dyn Packet>)>;
 
+struct UnsafeDrain<T> {
+    ptr: *const T,
+    len: usize,
+    pos: usize,
+}
+
+impl<T> Iterator for UnsafeDrain<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos == self.len {
+            return None;
+        }
+
+        let value = unsafe { std::ptr::read(self.ptr.offset(self.pos as isize)) };
+        self.pos += 1;
+        Some(value)
+    }
+}
+
 pub struct DrainedPackets<'a, I> {
     mutex: &'a parking_lot::RawMutex,
     value: I,
@@ -86,12 +106,20 @@ impl PacketQueue {
         // Hack to map to draining iterator.
         unsafe {
             let raw = MutexGuard::mutex(&queue).raw();
-            DrainedPackets::new(
-                raw,
-                queue
-                    .drain(..)
-                    .map(|(entity, packet)| (entity, cast_packet::<P>(packet))),
-            )
+
+            let drain = UnsafeDrain {
+                ptr: queue.as_ptr(),
+                len: queue.len(),
+                pos: 0,
+            };
+
+            // Safety: the vector cannot be accessed as long as the returned `UnsafeDrain`
+            // has not been dropped, since the mutex is acquired.
+            queue.set_len(0);
+
+            let iter = drain.map(|(entity, packet)| (entity, cast_packet::<P>(packet)));
+
+            DrainedPackets::new(raw, iter)
         }
     }
 
@@ -148,7 +176,7 @@ pub fn network_(
     query.par_entities_for_each(world, |(entity, network)| {
         while let Ok(msg) = network.receiver.try_recv() {
             match msg {
-                ServerToWorkerMessage::NotifyDisconnect(reason) => {
+                ServerToWorkerMessage::NotifyDisconnect(_) => {
                     state.exec(move |world| {
                         debug_assert!(world.delete(entity), "player already deleted");
                     });
