@@ -170,6 +170,12 @@ pub struct PlayerCount(AtomicUsize);
 #[derive(Default, Debug, Resource)]
 pub struct TickCount(u64);
 
+/// System to increment tick count each tick.
+#[system]
+fn tick_count_increment(tick: &mut TickCount) {
+    tick.0 += 1;
+}
+
 pub fn main() {
     let config = Arc::new(load_config());
     init_log(&config);
@@ -291,7 +297,7 @@ fn init_scheduler(
     resources.insert(level);
     resources.insert(io_manager);
 
-    tonks::build_scheduler().build(Resources::default())
+    tonks::build_scheduler().build(resources)
 }
 
 /// Initializes the chunk worker.

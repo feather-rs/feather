@@ -72,12 +72,6 @@ impl NetworkIoManager {
     }
 }
 
-impl Default for NetworkIoManager {
-    fn default() -> Self {
-        panic!("Don't try this");
-    }
-}
-
 /// Initializes certain static variables.
 pub fn init() {
     lazy_static::initialize(&initial_handler::RSA_KEY);
