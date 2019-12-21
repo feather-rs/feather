@@ -141,10 +141,11 @@ async fn _run_worker(
                                             uuid: res.uuid,
                                             sender: tx_server_to_worker.clone(),
                                             receiver: rx_worker_to_server.take().unwrap(),
-                                            position: data
-                                                .entity
-                                                .read_position()
-                                                .ok_or_else(|| Error::PlayerData)?,
+                                            /*position: data
+                                            .entity
+                                            .read_position()
+                                            .ok_or_else(|| Error::PlayerData)?,*/
+                                            position: position!(0.0, 80.0, 0.0),
                                             data,
                                         };
                                         global_sender

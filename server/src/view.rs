@@ -49,6 +49,13 @@ pub struct ViewUpdateEvent {
     pub old_chunk: Option<ChunkPosition>,
 }
 
+/// Event triggered when a chunk is sent to a player.
+#[derive(Debug)]
+pub struct ChunkSendEvent {
+    pub chunk: ChunkPosition,
+    pub player: Entity,
+}
+
 /// System which checks for players crossing chunk boundaries
 /// and triggers `ViewUpdateEvent`s.
 #[event_handler]
@@ -107,7 +114,8 @@ fn view_handle_chunks(
     state: &State,
     chunks_to_send: &ChunksToSend,
     handle: &ChunkWorkerHandle,
-    trigger: &mut Trigger<ChunkHolderReleaseEvent>,
+    holder_release_trigger: &mut Trigger<ChunkHolderReleaseEvent>,
+    chunk_send_trigger: &mut Trigger<ChunkSendEvent>,
 ) {
     events.iter().for_each(|event| {
         // Find the old chunks and new chunks.
@@ -124,6 +132,13 @@ fn view_handle_chunks(
         let mut holder =
             unsafe { world.get_component_mut_unchecked::<ChunkHolder>(event.player) }.unwrap();
 
+        // Sort sent chunks so that closer chunks are sent first.
+        let mut to_send = to_send.into_iter().copied().collect::<Vec<_>>();
+        to_send.sort_unstable_by_key(|chunk| {
+            chunk.manhattan_distance(event.new_chunk);
+        });
+
+        // Send new chunks.
         to_send.into_iter().for_each(|chunk| {
             send_chunk_to_player(
                 state,
@@ -131,17 +146,19 @@ fn view_handle_chunks(
                 &network,
                 &mut holder,
                 holders,
-                *chunk,
+                chunk,
                 chunks_to_send,
                 handle,
+                chunk_send_trigger,
             );
         });
 
+        // Unload old chunks on client.
         to_unload.into_iter().for_each(|chunk| {
             unload_chunk_for_player(
                 event.player,
                 &network,
-                trigger,
+                holder_release_trigger,
                 &mut holder,
                 holders,
                 *chunk,
@@ -165,6 +182,7 @@ fn send_chunk_to_player(
     chunk: ChunkPosition,
     chunks_to_send: &ChunksToSend,
     handle: &ChunkWorkerHandle,
+    trigger: &mut Trigger<ChunkSendEvent>,
 ) {
     // Ensure that the chunk isn't unloaded while the player has it loaded.
     chunk_logic::hold_chunk(player, holder, holders, chunk);
@@ -173,6 +191,10 @@ fn send_chunk_to_player(
     // queue it for loading.
     if let Some(chunk) = state.chunk_at(chunk) {
         network.send(create_chunk_data(&chunk));
+        trigger.trigger(ChunkSendEvent {
+            chunk: chunk.position(),
+            player,
+        });
     } else {
         let contains = chunks_to_send.0.contains_key(&chunk);
 
@@ -219,14 +241,19 @@ fn chunk_send(
     to_send: &ChunksToSend,
     _query: &mut Query<Read<Network>>,
     world: &mut PreparedWorld,
+    trigger: &mut Trigger<ChunkSendEvent>,
 ) {
     if let Some(players) = to_send.0.get(&event.pos) {
         let chunk = state
             .chunk_at(event.pos)
             .expect("chunk not loaded, but load event was triggered");
-        players.par_iter().for_each(|player| {
+        players.iter().for_each(|player| {
             let network = world.get_component::<Network>(*player).unwrap();
             network.send(create_chunk_data(&chunk));
+            trigger.trigger(ChunkSendEvent {
+                chunk: chunk.position(),
+                player: *player,
+            });
         });
     }
 

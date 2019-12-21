@@ -4,6 +4,7 @@ use crate::chunk_logic::ChunkHolder;
 use crate::entity;
 use crate::entity::NameComponent;
 use crate::io::NewClientInfo;
+use crate::join::Joined;
 use crate::network::Network;
 use crate::state::State;
 use legion::entity::Entity;
@@ -40,8 +41,9 @@ pub fn create(state: &State, info: NewClientInfo) {
         .with_component(ProfileProperties(info.profile))
         .with_component(NameComponent(info.username))
         .with_component(ChunkHolder::default())
-        .with_exec(|world, scheduler, player| {
-            scheduler.trigger(PlayerJoinEvent { player }, world);
+        .with_component(Joined(false))
+        .with_exec(|_, scheduler, player| {
+            scheduler.trigger(PlayerJoinEvent { player });
         })
         .build();
 }

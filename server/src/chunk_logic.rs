@@ -58,8 +58,8 @@ fn chunk_load_system(
 
                     // Trigger event - lazily so it happens after the chunk is inserted into the chunk map
                     let event = ChunkLoadEvent { pos, entities };
-                    state.exec_with_scheduler(move |world, scheduler| {
-                        scheduler.trigger(event, world);
+                    state.exec_with_scheduler(move |_, scheduler| {
+                        scheduler.trigger(event);
                     });
 
                     trace!("Loaded chunk at {:?}", pos);

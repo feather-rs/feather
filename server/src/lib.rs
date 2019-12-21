@@ -149,6 +149,7 @@ pub mod chunk_worker;
 pub mod config;
 pub mod entity;
 pub mod io;
+pub mod join;
 pub mod lazy;
 pub mod network;
 pub mod physics;
@@ -299,9 +300,8 @@ fn init_scheduler(
     // Insert resources which don't have a `Default` impl.
     let mut resources = Resources::new();
     let chunk_map = ChunkMap::new();
-    resources.insert(State::new(config, chunk_map));
+    resources.insert(State::new(config, chunk_map, level));
     resources.insert(chunk_worker_handle);
-    resources.insert(level);
     resources.insert(io_manager);
 
     tonks::build_scheduler().build(resources)

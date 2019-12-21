@@ -1,4 +1,4 @@
-//! Dealing with entities.
+//! Dealing with entities, including associated components and events.
 
 use crate::lazy::EntityBuilder;
 use crate::state::State;
@@ -6,7 +6,15 @@ use feather_core::Position;
 use legion::prelude::Entity;
 use legion::query::{Read, Write};
 use std::ops::{Deref, DerefMut};
+use std::sync::atomic::{AtomicI32, Ordering};
 use tonks::{PreparedWorld, Query};
+
+/// ID of an entity. This value is generally unique.
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub struct EntityId(pub i32);
+
+/// Entity ID counter, used to create new entity IDs.
+pub static ENTITY_ID_COUNTER: AtomicI32 = AtomicI32::new(0);
 
 /// Event triggered when an entity is removed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -79,8 +87,10 @@ pub fn position_reset(
 /// * Position
 /// * Velocity (0)
 pub fn base(state: &State, position: Position) -> EntityBuilder {
+    let id = ENTITY_ID_COUNTER.fetch_add(1, Ordering::Relaxed);
     state
         .create_entity()
+        .with_component(EntityId(id))
         .with_component(position)
         .with_component(PreviousPosition(position))
         .with_component(Velocity::default())

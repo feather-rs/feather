@@ -27,7 +27,7 @@ tonks = { path = "../../../dev/tonks", features = ["system-registry"] }
 # Concurrency/threading
 crossbeam = "0.7"
 rayon = "1.2"
-parking_lot = "0.9"
+parking_lot = { version = "0.9", features = ["deadlock_detection"] }
 lock_api = "0.3"
 thread_local = "1.0"
 

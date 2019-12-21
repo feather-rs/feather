@@ -181,7 +181,7 @@ pub fn network_(
                         debug_assert!(world.delete(entity), "player already deleted");
                     });
                 }
-                ServerToWorkerMessage::SendPacket(packet) => {
+                ServerToWorkerMessage::NotifyPacketReceived(packet) => {
                     packet_queue.push(packet, entity);
                 }
                 _ => unreachable!(),

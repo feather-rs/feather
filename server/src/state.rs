@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::lazy::{EntityBuilder, Lazy};
 use feather_blocks::Block;
+use feather_core::level::LevelData;
 use feather_core::world::ChunkMap;
 use feather_core::{BlockPosition, Chunk, ChunkPosition};
 use legion::world::World;
@@ -22,15 +23,17 @@ use tonks::Scheduler;
 pub struct State {
     pub config: Arc<Config>,
     pub chunk_map: ChunkMap,
+    pub level: LevelData,
 
     lazy: Lazy,
 }
 
 impl State {
-    pub fn new(config: Arc<Config>, chunk_map: ChunkMap) -> Self {
+    pub fn new(config: Arc<Config>, chunk_map: ChunkMap, level: LevelData) -> Self {
         Self {
             config,
             chunk_map,
+            level,
             lazy: Lazy::default(),
         }
     }
