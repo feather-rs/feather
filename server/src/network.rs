@@ -193,6 +193,7 @@ pub fn network_(
     while let Ok(msg) = io.receiver.try_recv() {
         match msg {
             ListenerToServerMessage::NewClient(info) => {
+                debug!("Server received connection from {}", info.username);
                 player::create(state, info);
             }
         }

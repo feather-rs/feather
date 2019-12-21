@@ -73,28 +73,6 @@ fn chunk_load_system(
     }
 }
 
-/// Asynchronously loads the chunk at the given position.
-/// At some point in time after this function is called,
-/// the chunk will appear in the chunk map.
-///
-/// In the event that the requested chunk does not exist
-/// in the world save, it will be generated asynchronously.
-pub fn load_chunk(handle: &ChunkWorkerHandle, pos: ChunkPosition) {
-    // Send request to chunk worker thread
-    handle
-        .sender
-        .send(chunk_worker::Request::LoadChunk(pos))
-        .unwrap();
-}
-
-/// Asynchronously saves the chunk at the given position.
-pub fn save_chunk(handle: &ChunkWorkerHandle, chunk: Arc<Chunk>, entities: Vec<EntityData>) {
-    handle
-        .sender
-        .send(chunk_worker::Request::SaveChunk(chunk, entities))
-        .unwrap();
-}
-
 /// The chunk holder map contains a mapping
 /// of chunk positions to any number of entities, called "holders."
 /// When a chunk position has no holders, it will be queued
@@ -320,4 +298,61 @@ fn chunk_optimize(state: &State, tick_count: &TickCount) {
         elapsed,
         elapsed as f64 / f64::from(count.load(Ordering::Relaxed))
     );
+}
+
+/// Adds a hold for a chunk for the given entity.
+pub fn hold_chunk(
+    entity: Entity,
+    holder: &mut ChunkHolder,
+    holders: &mut ChunkHolders,
+    chunk: ChunkPosition,
+) {
+    holder.holds.insert(chunk);
+    holders.inner.insert(chunk, entity);
+}
+
+/// Releases a hold for a chunk for the given entity.
+pub fn release_chunk(
+    entity: Entity,
+    holder: &mut ChunkHolder,
+    holders: &mut ChunkHolders,
+    chunk: ChunkPosition,
+    trigger: &mut Trigger<ChunkHolderReleaseEvent>,
+) {
+    holder.holds.remove(&chunk);
+    if let Some(vec) = holders.inner.get_vec_mut(&chunk) {
+        let mut index = None;
+        for (i, e) in vec.iter().enumerate() {
+            if *e == entity {
+                index = Some(i);
+            }
+        }
+
+        if let Some(index) = index {
+            vec.swap_remove(index);
+        }
+    }
+    trigger.trigger(ChunkHolderReleaseEvent { entity, chunk })
+}
+
+/// Asynchronously loads the chunk at the given position.
+/// At some point in time after this function is called,
+/// the chunk will appear in the chunk map.
+///
+/// In the event that the requested chunk does not exist
+/// in the world save, it will be generated asynchronously.
+pub fn load_chunk(handle: &ChunkWorkerHandle, pos: ChunkPosition) {
+    // Send request to chunk worker thread
+    handle
+        .sender
+        .send(chunk_worker::Request::LoadChunk(pos))
+        .unwrap();
+}
+
+/// Asynchronously saves the chunk at the given position.
+pub fn save_chunk(handle: &ChunkWorkerHandle, chunk: Arc<Chunk>, entities: Vec<EntityData>) {
+    handle
+        .sender
+        .send(chunk_worker::Request::SaveChunk(chunk, entities))
+        .unwrap();
 }

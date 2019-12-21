@@ -6,3 +6,4 @@
 **/.idea
 feather.toml
 massif.out*
+.cargo

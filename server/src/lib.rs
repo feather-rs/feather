@@ -263,6 +263,12 @@ fn run_loop(world: &mut World, scheduler: &mut Scheduler, shutdown_rx: Receiver<
         scheduler.execute(world);
         world.defrag(None); // TODO: do this at interval rate?
 
+        // Run lazily-executed closures. TODO: remove unsafe
+        unsafe {
+            let state = scheduler.resources().get::<State>() as *const State;
+            (&*state).flush(world, scheduler);
+        }
+
         // Sleep correct amount
         let end_time = current_time_in_millis();
         let elapsed = end_time - start_time;

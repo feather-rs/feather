@@ -222,6 +222,17 @@ impl Display for ChunkPosition {
     }
 }
 
+impl Add<ChunkPosition> for ChunkPosition {
+    type Output = ChunkPosition;
+
+    fn add(self, rhs: ChunkPosition) -> Self::Output {
+        ChunkPosition {
+            x: self.x + rhs.x,
+            z: self.z + rhs.z,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Hash32, Default, new)]
 pub struct BlockPosition {
     pub x: i32,

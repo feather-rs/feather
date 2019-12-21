@@ -11,8 +11,8 @@ impl<F> LazyFnWithScheduler for F where F: FnOnce(&mut World, &mut Scheduler) + 
 pub trait LazyFn: FnOnce(&mut World) + Send {}
 impl<F> LazyFn for F where F: FnOnce(&mut World) + Send {}
 
-pub trait LazyEntityFn: FnOnce(&mut World, Entity) + Send {}
-impl<F> LazyEntityFn for F where F: FnOnce(&mut World, Entity) + Send {}
+pub trait LazyEntityFn: FnOnce(&mut World, &mut Scheduler, Entity) + Send {}
+impl<F> LazyEntityFn for F where F: FnOnce(&mut World, &mut Scheduler, Entity) + Send {}
 
 /// Resource which allows lazy creation of entities
 /// or execution of functions with world access.
@@ -66,28 +66,39 @@ pub struct EntityBuilder<'a> {
 
 impl<'a> EntityBuilder<'a> {
     pub fn with_component<C: Component>(mut self, component: C) -> Self {
-        self.fns
-            .push(Box::new(move |world: &mut World, entity: Entity| {
+        self.fns.push(Box::new(
+            move |world: &mut World, _: &mut Scheduler, entity: Entity| {
                 world.add_component(entity, component);
-            }));
+            },
+        ));
         self
     }
 
     pub fn with_tag<T: Tag>(mut self, tag: T) -> Self {
-        self.fns
-            .push(Box::new(move |world: &mut World, entity: Entity| {
+        self.fns.push(Box::new(
+            move |world: &mut World, _: &mut Scheduler, entity: Entity| {
                 world.add_tag(entity, tag);
-            }));
+            },
+        ));
+        self
+    }
+
+    /// Executes a function with the entity after it is created.
+    pub fn with_exec(
+        mut self,
+        f: impl FnOnce(&mut World, &mut Scheduler, Entity) + Send + 'static,
+    ) -> Self {
+        self.fns.push(Box::new(f));
         self
     }
 
     pub fn build(self) {
         let fns = self.fns;
-        self.lazy.exec(move |world| {
+        self.lazy.exec_with_scheduler(move |world, scheduler| {
             let entity = world.insert((), [()].iter().copied())[0];
 
             for f in fns {
-                f(world, entity);
+                f(world, scheduler, entity);
             }
         })
     }

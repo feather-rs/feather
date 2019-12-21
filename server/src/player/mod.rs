@@ -25,6 +25,8 @@ pub struct PlayerJoinEvent {
 pub struct Player;
 
 /// Creates a new player from the given `NewClientInfo`.
+///
+/// This function also triggers the `PlayerJoinEvent` for this player.
 pub fn create(state: &State, info: NewClientInfo) {
     entity::base(state, info.position)
         .with_tag(Player)
@@ -36,5 +38,8 @@ pub fn create(state: &State, info: NewClientInfo) {
         .with_component(info.ip)
         .with_component(ProfileProperties(info.profile))
         .with_component(NameComponent(info.username))
+        .with_exec(|world, scheduler, player| {
+            scheduler.trigger(PlayerJoinEvent { player }, world);
+        })
         .build();
 }

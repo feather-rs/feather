@@ -132,7 +132,8 @@ async fn _run_worker(
                                     }
                                     Action::SetStage(stage) => framed.codec_mut().set_stage(stage),
                                     Action::JoinGame(res) => {
-                                        let data = load_player_data(&config, res.uuid).await?;
+                                        // let data = load_player_data(&config, res.uuid).await?;
+                                        let data = PlayerData::default();
                                         let info = NewClientInfo {
                                             ip,
                                             username: res.username,

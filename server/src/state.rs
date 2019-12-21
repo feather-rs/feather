@@ -40,6 +40,11 @@ impl State {
         self.lazy.exec(f)
     }
 
+    /// See `Lazy::exec_with_scheduler()`.
+    pub fn exec_with_scheduler(&self, f: impl FnOnce(&mut World, &mut Scheduler) + Send + 'static) {
+        self.lazy.exec_with_scheduler(f)
+    }
+
     /// See `Lazy::create_entity()`.
     pub fn create_entity(&self) -> EntityBuilder {
         self.lazy.create_entity()
