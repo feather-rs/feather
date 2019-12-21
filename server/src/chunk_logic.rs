@@ -48,7 +48,6 @@ pub struct ChunkLoadFailEvent {
 fn chunk_load_system(
     state: &State,
     handle: &ChunkWorkerHandle,
-    load_events: &mut Trigger<ChunkLoadEvent>,
     fail_events: &mut Trigger<ChunkLoadFailEvent>,
 ) {
     while let Ok(reply) = handle.receiver.try_recv() {
@@ -57,9 +56,11 @@ fn chunk_load_system(
                 Ok((chunk, entities)) => {
                     state.lazy_insert_chunk(chunk);
 
-                    // Trigger event
+                    // Trigger event - lazily so it happens after the chunk is inserted into the chunk map
                     let event = ChunkLoadEvent { pos, entities };
-                    load_events.trigger(event);
+                    state.exec_with_scheduler(move |world, scheduler| {
+                        scheduler.trigger(event, world);
+                    });
 
                     trace!("Loaded chunk at {:?}", pos);
                 }

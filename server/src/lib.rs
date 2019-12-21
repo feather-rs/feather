@@ -261,7 +261,8 @@ fn run_loop(world: &mut World, scheduler: &mut Scheduler, shutdown_rx: Receiver<
         let start_time = current_time_in_millis();
 
         scheduler.execute(world);
-        world.defrag(None); // TODO: do this at interval rate?
+        // https://github.com/TomGillen/legion/issues/60
+        // world.defrag(None); // TODO: do this at interval rate?
 
         // Run lazily-executed closures. TODO: remove unsafe
         unsafe {

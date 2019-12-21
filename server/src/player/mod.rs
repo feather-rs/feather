@@ -1,5 +1,6 @@
 //! Systems and components specific to player entities.
 
+use crate::chunk_logic::ChunkHolder;
 use crate::entity;
 use crate::entity::NameComponent;
 use crate::io::NewClientInfo;
@@ -38,6 +39,7 @@ pub fn create(state: &State, info: NewClientInfo) {
         .with_component(info.ip)
         .with_component(ProfileProperties(info.profile))
         .with_component(NameComponent(info.username))
+        .with_component(ChunkHolder::default())
         .with_exec(|world, scheduler, player| {
             scheduler.trigger(PlayerJoinEvent { player }, world);
         })

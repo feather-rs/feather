@@ -20,7 +20,7 @@ feather-item-block = { path = "../item_block" }
 feather-codegen = { path = "../codegen" }
 
 # Core ECS + systems
-legion = { git = "https://github.com/TomGillen/legion", rev = "cfb31727d9f4c8f069c559c0cdf05f56547fd9d4" }
+legion = { git = "https://github.com/feather-rs/legion", rev = "15d2b5c47b2a935dbf238698b9d7c299f3824280" }
 # tonks = { git = "https://github.com/feather-rs/tonks", rev = "226d04de294008a1f615bae40f4d19a890583f0b", features = ["system-registry"] }
 tonks = { path = "../../../dev/tonks", features = ["system-registry"] }
 
@@ -62,6 +62,7 @@ heapless = "0.5"
 uuid = { version = "0.7", features = ["v4"] }
 multimap = "0.7"
 smallvec = "0.6"
+chashmap = "2.2"
 dashmap = "2.1"
 
 # Logging

@@ -26,7 +26,7 @@ use crate::entity::{EntityMoveEvent, PreviousPosition};
 use crate::network::Network;
 use crate::player::PlayerJoinEvent;
 use crate::state::State;
-use dashmap::DashMap;
+use chashmap::CHashMap;
 use feather_core::network::packet::implementation::{ChunkData, UnloadChunk};
 use feather_core::{Chunk, ChunkPosition, Position};
 use hashbrown::HashSet;
@@ -153,7 +153,7 @@ fn view_handle_chunks(
 /// Resource containing a mapping from chunks -> sets of players indicating
 /// which chunks are pending to send to a given player.
 #[derive(Default, Resource)]
-pub struct ChunksToSend(DashMap<ChunkPosition, SmallVec<[Entity; 2]>>);
+pub struct ChunksToSend(CHashMap<ChunkPosition, SmallVec<[Entity; 2]>>);
 
 /// Asynchronously sends a chunk to a player.
 fn send_chunk_to_player(
@@ -175,11 +175,15 @@ fn send_chunk_to_player(
         network.send(create_chunk_data(&chunk));
     } else {
         let contains = chunks_to_send.0.contains_key(&chunk);
-        chunks_to_send
-            .0
-            .entry(chunk)
-            .or_insert_with(|| smallvec![])
-            .push(player);
+
+        let mut vec = match chunks_to_send.0.get_mut(&chunk) {
+            Some(vec) => vec,
+            None => {
+                chunks_to_send.0.insert(chunk, smallvec![]);
+                chunks_to_send.0.get_mut(&chunk).unwrap()
+            }
+        };
+        vec.push(player);
 
         if !contains {
             // Queue chunk for loading if it isn't already.
@@ -220,7 +224,7 @@ fn chunk_send(
         let chunk = state
             .chunk_at(event.pos)
             .expect("chunk not loaded, but load event was triggered");
-        players.value().par_iter().for_each(|player| {
+        players.par_iter().for_each(|player| {
             let network = world.get_component::<Network>(*player).unwrap();
             network.send(create_chunk_data(&chunk));
         });
