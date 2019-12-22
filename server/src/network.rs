@@ -37,7 +37,7 @@ impl<T> Iterator for UnsafeDrain<T> {
             return None;
         }
 
-        let value = unsafe { std::ptr::read(self.ptr.offset(self.pos as isize)) };
+        let value = unsafe { std::ptr::read(self.ptr.add(self.pos)) };
         self.pos += 1;
         Some(value)
     }
@@ -180,7 +180,7 @@ pub fn network_(
             match msg {
                 ServerToWorkerMessage::NotifyDisconnect(_) => {
                     state.exec(move |world| {
-                        debug_assert!(world.delete(entity), "player already deleted");
+                        assert!(world.delete(entity), "player already deleted");
                     });
                 }
                 ServerToWorkerMessage::NotifyPacketReceived(packet) => {

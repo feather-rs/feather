@@ -132,7 +132,7 @@ fn view_handle_chunks(
             unsafe { world.get_component_mut_unchecked::<ChunkHolder>(event.player) }.unwrap();
 
         // Sort sent chunks so that closer chunks are sent first.
-        let mut to_send = to_send.into_iter().copied().collect::<Vec<_>>();
+        let mut to_send = to_send.copied().collect::<Vec<_>>();
         to_send.sort_unstable_by_key(|chunk| {
             chunk.manhattan_distance(event.new_chunk);
         });
@@ -153,7 +153,7 @@ fn view_handle_chunks(
         });
 
         // Unload old chunks on client.
-        to_unload.into_iter().for_each(|chunk| {
+        to_unload.for_each(|chunk| {
             unload_chunk_for_player(
                 event.player,
                 &network,
@@ -172,6 +172,7 @@ fn view_handle_chunks(
 pub struct ChunksToSend(CHashMap<ChunkPosition, SmallVec<[Entity; 2]>>);
 
 /// Asynchronously sends a chunk to a player.
+#[allow(clippy::too_many_arguments)]
 fn send_chunk_to_player(
     state: &State,
     player: Entity,
