@@ -93,7 +93,6 @@ fn view_update_on_join(
     world: &mut PreparedWorld,
     trigger: &mut Trigger<ViewUpdateEvent>,
 ) {
-    dbg!();
     let position = *world.get_component::<Position>(event.player).unwrap();
 
     trigger.trigger(ViewUpdateEvent {

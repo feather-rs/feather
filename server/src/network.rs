@@ -113,6 +113,8 @@ impl PacketQueue {
                 pos: 0,
             };
 
+            // Ensure mutex is not released; we will do it manually in `UnsafeDrain`
+            std::mem::forget(queue);
             // Safety: the vector cannot be accessed as long as the returned `UnsafeDrain`
             // has not been dropped, since the mutex is acquired.
             queue.set_len(0);

@@ -152,6 +152,7 @@ pub mod io;
 pub mod join;
 pub mod lazy;
 pub mod network;
+pub mod packet_handlers;
 pub mod physics;
 pub mod player;
 pub mod shutdown;
