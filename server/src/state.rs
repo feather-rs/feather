@@ -1,3 +1,4 @@
+use crate::chunk_entities::ChunkEntities;
 use crate::config::Config;
 use crate::lazy::{EntityBuilder, Lazy};
 use feather_blocks::Block;
@@ -24,6 +25,7 @@ pub struct State {
     pub config: Arc<Config>,
     pub chunk_map: ChunkMap,
     pub level: LevelData,
+    pub chunk_entities: ChunkEntities,
 
     lazy: Lazy,
 }
@@ -34,6 +36,7 @@ impl State {
             config,
             chunk_map,
             level,
+            chunk_entities: ChunkEntities::default(),
             lazy: Lazy::default(),
         }
     }

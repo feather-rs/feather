@@ -21,7 +21,7 @@ feather-codegen = { path = "../codegen" }
 
 # Core ECS + systems
 legion = { git = "https://github.com/feather-rs/legion", rev = "15d2b5c47b2a935dbf238698b9d7c299f3824280" }
-tonks = { git = "https://github.com/feather-rs/tonks", rev = "f91a0639e55feb25a70c67b0679903868575f2d2", features = ["system-registry"] }
+tonks = { git = "https://github.com/feather-rs/tonks", rev = "15f8aa965a667a6b7160e60828f935b17c6ac7e6", features = ["system-registry"] }
 # tonks = { path = "../../../dev/tonks", features = ["system-registry"] }
 
 # Concurrency/threading
@@ -63,7 +63,6 @@ uuid = { version = "0.7", features = ["v4"] }
 multimap = "0.7"
 smallvec = "0.6"
 chashmap = "2.2"
-dashmap = "2.1"
 
 # Logging
 log = "0.4"

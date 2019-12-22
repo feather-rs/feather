@@ -6,12 +6,13 @@
 //! from players and allows systems to poll for packets
 //! received of a given type.
 
+use crate::entity::EntityDeleteEvent;
 use crate::io::{ListenerToServerMessage, NetworkIoManager, ServerToWorkerMessage};
 use crate::player;
 use crate::state::State;
 use crossbeam::Receiver;
 use feather_core::network::cast_packet;
-use feather_core::{Packet, PacketType};
+use feather_core::{Packet, PacketType, Position};
 use futures::channel::mpsc::UnboundedSender;
 use legion::entity::Entity;
 use legion::query::Read;
@@ -179,8 +180,13 @@ pub fn network_(
         while let Ok(msg) = network.receiver.try_recv() {
             match msg {
                 ServerToWorkerMessage::NotifyDisconnect(_) => {
-                    state.exec(move |world| {
+                    state.exec_with_scheduler(move |world, scheduler| {
                         assert!(world.delete(entity), "player already deleted");
+                        let position = *world.get_component::<Position>(entity).unwrap();
+                        scheduler.trigger(EntityDeleteEvent {
+                            entity,
+                            position: Some(position),
+                        });
                     });
                 }
                 ServerToWorkerMessage::NotifyPacketReceived(packet) => {

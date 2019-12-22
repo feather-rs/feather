@@ -16,10 +16,17 @@ pub struct EntityId(pub i32);
 /// Entity ID counter, used to create new entity IDs.
 pub static ENTITY_ID_COUNTER: AtomicI32 = AtomicI32::new(0);
 
-/// Event triggered when an entity is removed.
+/// Event triggered when an entity is created.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EntityCreateEvent {
+    pub entity: Entity,
+}
+
+/// Event triggered when an entity is removed.
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct EntityDeleteEvent {
-    pub(crate) entity: Entity,
+    pub entity: Entity,
+    pub position: Option<Position>,
 }
 
 /// Event triggered when an entity moves.
@@ -94,4 +101,5 @@ pub fn base(state: &State, position: Position) -> EntityBuilder {
         .with_component(position)
         .with_component(PreviousPosition(position))
         .with_component(Velocity::default())
+        .with_exec(|_, scheduler, entity| scheduler.trigger(EntityCreateEvent { entity }))
 }

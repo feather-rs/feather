@@ -91,6 +91,8 @@
 //! chunk packets, inventory, time, nearby entities, etc. `PlayerJoinEvent`
 //! is used to send this data.
 
+#![feature(vec_remove_item)]
+
 #[macro_use]
 extern crate log;
 #[macro_use]
