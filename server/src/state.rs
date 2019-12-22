@@ -1,10 +1,14 @@
 use crate::chunk_entities::ChunkEntities;
+use crate::chunk_logic::ChunkHolders;
 use crate::config::Config;
 use crate::lazy::{EntityBuilder, Lazy};
+use crate::network::Network;
 use feather_blocks::Block;
 use feather_core::level::LevelData;
 use feather_core::world::ChunkMap;
-use feather_core::{BlockPosition, Chunk, ChunkPosition};
+use feather_core::{BlockPosition, Chunk, ChunkPosition, Packet, Position};
+use legion::entity::Entity;
+use legion::query::{IntoQuery, Read};
 use legion::world::World;
 use parking_lot::RwLockReadGuard;
 use std::sync::Arc;
@@ -54,6 +58,50 @@ impl State {
     /// See `Lazy::create_entity()`.
     pub fn create_entity(&self) -> EntityBuilder {
         self.lazy.create_entity()
+    }
+
+    /// Lazily broadcasts a packet to all clients able to see the given entity.
+    ///
+    /// The packet will not be sent to `neq`.
+    pub fn broadcast_entity_update<P: Packet + Clone>(
+        &self,
+        entity: Entity,
+        packet: P,
+        neq: Option<Entity>,
+    ) {
+        self.exec_with_scheduler(move |world, scheduler| {
+            // Use ChunkHolders to determine which players have a hold on the entity's
+            // chunk, which would allow them to see the entity.
+            let chunk_holders = scheduler.resources().get::<ChunkHolders>();
+
+            if let Some(position) = world.get_component::<Position>(entity) {
+                let holders = chunk_holders.holders_for(position.chunk_pos());
+
+                holders.map(|entities| {
+                    for entity in entities {
+                        if let Some(network) = world.get_component::<Network>(*entity) {
+                            if neq.map_or(true, |neq| *entity != neq) {
+                                network.send(packet.clone());
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    /// Lazily broadcasts a packet to all clients.
+    pub fn broadcast_global<P: Packet + Clone>(&self, packet: P, neq: Option<Entity>) {
+        self.exec(move |world| {
+            // Standard Legion queries! How rare.
+            let query = <Read<Network>>::query();
+
+            query.par_entities_for_each(world, |(entity, network)| {
+                if neq.map_or(true, |neq| entity != neq) {
+                    network.send(packet.clone());
+                }
+            });
+        });
     }
 
     /// See `Lazy::flush()`.
