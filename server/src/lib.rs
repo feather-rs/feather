@@ -145,6 +145,7 @@ use tonks::{Resources, Scheduler};
 #[global_allocator]
 static ALLOC: System = System;
 
+pub mod broadcasters;
 pub mod chunk_entities;
 pub mod chunk_logic;
 pub mod chunk_worker;

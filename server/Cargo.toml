@@ -20,8 +20,8 @@ feather-item-block = { path = "../item_block" }
 feather-codegen = { path = "../codegen" }
 
 # Core ECS + systems
-legion = { git = "https://github.com/feather-rs/legion", rev = "15d2b5c47b2a935dbf238698b9d7c299f3824280" }
-tonks = { git = "https://github.com/feather-rs/tonks", rev = "15f8aa965a667a6b7160e60828f935b17c6ac7e6", features = ["system-registry"] }
+legion = { git = "https://github.com/TomGillen/legion", rev = "0f67adc237af35799df173f31a2c238b3d8010a2" }
+tonks = { git = "https://github.com/feather-rs/tonks", rev = "8f9cae2b2787406f28b5a4c4ef874228f018af90", features = ["system-registry"] }
 # tonks = { path = "../../../dev/tonks", features = ["system-registry"] }
 
 # Concurrency/threading
