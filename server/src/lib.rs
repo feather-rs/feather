@@ -161,6 +161,7 @@ pub mod player;
 pub mod shutdown;
 pub mod state;
 pub mod time;
+pub mod util;
 pub mod view;
 pub mod worldgen;
 

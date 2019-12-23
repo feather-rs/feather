@@ -3,6 +3,7 @@
 use crate::chunk_logic::ChunkHolders;
 use crate::entity::{EntityId, EntityMoveEvent};
 use crate::network::Network;
+use crate::util::{calculate_relative_move, degrees_to_stops};
 use crossbeam::atomic::AtomicCell;
 use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove,
@@ -18,6 +19,7 @@ use tonks::{PreparedWorld, Query};
 /// Component containing the last sent positions of all entities for a given client.
 /// This component is used to determine
 /// the relative movement for an entity.
+#[derive(Default)]
 pub struct LastKnownPositions(HashMap<Entity, AtomicCell<Position>>);
 
 /// System to broadcast when an entity moves.
@@ -143,17 +145,4 @@ fn packets_for_movement_update(
     }
 
     packets
-}
-
-/// Calculates the relative move fields
-/// as used in the Entity Relative Move packets.
-fn calculate_relative_move(old: Position, current: Position) -> (i16, i16, i16) {
-    let x = ((current.x * 32.0 - old.x * 32.0) * 128.0) as i16;
-    let y = ((current.y * 32.0 - old.y * 32.0) * 128.0) as i16;
-    let z = ((current.z * 32.0 - old.z * 32.0) * 128.0) as i16;
-    (x, y, z)
-}
-
-fn degrees_to_stops(degs: f32) -> u8 {
-    ((degs / 360.0) * 256.0) as u8
 }

@@ -90,6 +90,36 @@ impl State {
         });
     }
 
+    /// Lazily broadcasts a boxed packet to all clients able to see the given entity.
+    ///
+    /// The packet will not be sent to `neq`.
+    pub fn broadcast_entity_update_boxed(
+        &self,
+        entity: Entity,
+        packet: Box<dyn Packet>,
+        neq: Option<Entity>,
+    ) {
+        self.exec_with_scheduler(move |world, scheduler| {
+            // Use ChunkHolders to determine which players have a hold on the entity's
+            // chunk, which would allow them to see the entity.
+            let chunk_holders = scheduler.resources().get::<ChunkHolders>();
+
+            if let Some(position) = world.get_component::<Position>(entity) {
+                let holders = chunk_holders.holders_for(position.chunk_pos());
+
+                holders.map(|entities| {
+                    for entity in entities {
+                        if let Some(network) = world.get_component::<Network>(*entity) {
+                            if neq.map_or(true, |neq| *entity != neq) {
+                                network.send_boxed(packet.box_clone());
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }
+
     /// Lazily broadcasts a packet to all clients.
     pub fn broadcast_global<P: Packet + Clone>(&self, packet: P, neq: Option<Entity>) {
         self.exec(move |world| {
@@ -99,6 +129,20 @@ impl State {
             query.par_entities_for_each(world, |(entity, network)| {
                 if neq.map_or(true, |neq| entity != neq) {
                     network.send(packet.clone());
+                }
+            });
+        });
+    }
+
+    /// Lazily broadcasts a boxed packet to all clients.
+    pub fn broadcast_global_boxed(&self, packet: Box<dyn Packet>, neq: Option<Entity>) {
+        self.exec(move |world| {
+            // Standard Legion queries! How rare.
+            let query = <Read<Network>>::query();
+
+            query.par_entities_for_each(world, |(entity, network)| {
+                if neq.map_or(true, |neq| entity != neq) {
+                    network.send_boxed(packet.box_clone());
                 }
             });
         });

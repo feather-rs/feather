@@ -22,12 +22,12 @@ use crate::chunk_logic::{
     ChunkHolder, ChunkHolderReleaseEvent, ChunkHolders, ChunkLoadEvent, ChunkWorkerHandle,
 };
 use crate::config::Config;
-use crate::entity::{EntityMoveEvent, PreviousPosition};
+use crate::entity::{EntityId, EntityMoveEvent, PreviousPosition, SpawnPacketCreator};
 use crate::network::Network;
 use crate::player::PlayerJoinEvent;
 use crate::state::State;
 use chashmap::CHashMap;
-use feather_core::network::packet::implementation::{ChunkData, UnloadChunk};
+use feather_core::network::packet::implementation::{ChunkData, DestroyEntities, UnloadChunk};
 use feather_core::{Chunk, ChunkPosition, Position};
 use hashbrown::HashSet;
 use legion::entity::Entity;
@@ -35,7 +35,7 @@ use legion::query::{Read, Write};
 use parking_lot::Mutex;
 use rayon::prelude::*;
 use smallvec::SmallVec;
-use tonks::{PreparedWorld, Query, Trigger};
+use tonks::{PreparedWorld, Query, QueryAccessor, Trigger};
 
 /// Event triggered when a player's view is updated, i.e. when they
 /// cross into a new chunk or when they join.
@@ -47,6 +47,10 @@ pub struct ViewUpdateEvent {
     /// The old chunk, or `None` if there was no old chunk
     /// (i.e. this player just joined).
     pub old_chunk: Option<ChunkPosition>,
+    /// Old visible chunks.
+    pub visible_old: HashSet<ChunkPosition>,
+    /// New visible chunks.
+    pub visible_new: HashSet<ChunkPosition>,
 }
 
 /// Event triggered when a chunk is sent to a player.
@@ -63,6 +67,7 @@ fn view_update(
     events: &[EntityMoveEvent],
     _query: &mut Query<(Read<Position>, Read<PreviousPosition>)>,
     world: &mut PreparedWorld,
+    state: &State,
     trigger: &mut Trigger<ViewUpdateEvent>,
 ) {
     let trigger = Mutex::new(trigger);
@@ -73,12 +78,18 @@ fn view_update(
             .unwrap()
             .0;
 
+        // Find the old chunks and new chunks.
+        let visible_new = chunks_within_view_distance(&state.config, pos.chunk_pos());
+        let visible_old = chunks_within_view_distance(&state.config, prev_pos.chunk_pos());
+
         if pos.chunk_pos() != prev_pos.chunk_pos() {
             // New chunk: trigger view update.
             let event = ViewUpdateEvent {
                 player: event.entity,
                 new_chunk: pos.chunk_pos(),
                 old_chunk: Some(prev_pos.chunk_pos()),
+                visible_old,
+                visible_new,
             };
             trigger.lock().trigger(event);
         }
@@ -92,13 +103,19 @@ fn view_update_on_join(
     _query: &mut Query<Read<Position>>,
     world: &mut PreparedWorld,
     trigger: &mut Trigger<ViewUpdateEvent>,
+    state: &State,
 ) {
     let position = *world.get_component::<Position>(event.player).unwrap();
+
+    // Find the visible chunks.
+    let visible_new = chunks_within_view_distance(&state.config, position.chunk_pos());
 
     trigger.trigger(ViewUpdateEvent {
         player: event.player,
         new_chunk: position.chunk_pos(),
         old_chunk: None,
+        visible_new,
+        visible_old: HashSet::new(), // No chunks were previously visible, since the player just joined
     });
 }
 
@@ -117,15 +134,8 @@ fn view_handle_chunks(
     chunk_send_trigger: &mut Trigger<ChunkSendEvent>,
 ) {
     events.iter().for_each(|event| {
-        // Find the old chunks and new chunks.
-        let new_chunks = chunks_within_view_distance(&state.config, event.new_chunk);
-        let old_chunks = match event.old_chunk {
-            Some(chunk) => chunks_within_view_distance(&state.config, chunk),
-            None => HashSet::new(),
-        };
-
-        let to_send = new_chunks.difference(&old_chunks);
-        let to_unload = old_chunks.difference(&new_chunks);
+        let to_send = event.visible_new.difference(&event.visible_old);
+        let to_unload = event.visible_old.difference(&event.visible_new);
 
         let network = world.get_component::<Network>(event.player).unwrap();
         let mut holder =
@@ -163,6 +173,73 @@ fn view_handle_chunks(
                 *chunk,
             );
         });
+    });
+}
+
+/// System which sends new entities and removes
+/// old entities on the client when the player's
+/// view is updated.
+///
+/// Before this event handler is run, `crate::broadcast::entity_creation::broadcast_entity_creation`
+/// will run, sending entity initialization packets before spawn packets as dictated
+/// by the protocol.
+#[event_handler]
+fn view_handle_entities(
+    events: &[ViewUpdateEvent],
+    state: &State,
+    _query: &mut Query<(Read<Network>, Read<EntityId>)>,
+    accessor: &QueryAccessor<Read<SpawnPacketCreator>>,
+    world: &mut PreparedWorld,
+) {
+    events.par_iter().for_each(|event: &ViewUpdateEvent| {
+        let to_send = event.visible_new.difference(&event.visible_old);
+        let to_unload = event.visible_old.difference(&event.visible_new);
+
+        let network = world.get_component::<Network>(event.player).unwrap();
+
+        // Send new entities.
+        to_send.copied().for_each(|chunk| {
+            let entities = state.chunk_entities.entities_in_chunk(chunk);
+
+            entities.iter().copied().for_each(|entity| {
+                // Don't send client to themself.
+                if entity == event.player {
+                    return;
+                }
+
+                // Attempt to create spawn packet for this entity.
+                if let Some(accessor) = accessor.find(entity) {
+                    if let Some(packet_creator) =
+                        accessor.get_component::<SpawnPacketCreator>(world)
+                    {
+                        // Send packet.
+                        let packet = packet_creator.get(&accessor, world);
+                        network.send_boxed(packet);
+                    }
+                }
+            });
+        });
+
+        // Remove old entities.
+        let mut to_delete = vec![];
+        for chunk in to_unload.copied() {
+            for entity in state
+                .chunk_entities
+                .entities_in_chunk(chunk)
+                .iter()
+                .copied()
+            {
+                let id = world.get_component::<EntityId>(entity).unwrap().0;
+                to_delete.push(id);
+            }
+        }
+
+        if !to_delete.is_empty() {
+            let packet = DestroyEntities {
+                entity_ids: to_delete,
+            };
+            network.send(packet);
+        }
     });
 }
 

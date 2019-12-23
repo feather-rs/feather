@@ -1658,8 +1658,8 @@ impl Default for CombatEventType {
 
 #[derive(AsAny, new, Clone)]
 pub struct PlayerInfo {
-    action: PlayerInfoAction,
-    uuid: Uuid,
+    pub action: PlayerInfoAction,
+    pub uuid: Uuid,
 }
 
 impl Packet for PlayerInfo {
