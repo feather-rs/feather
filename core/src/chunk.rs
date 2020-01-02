@@ -36,12 +36,23 @@ pub const SECTION_VOLUME: usize = (SECTION_HEIGHT * SECTION_WIDTH * SECTION_WIDT
 /// The number of chunk sections in a column.
 pub const NUM_SECTIONS: usize = 16;
 
+use std::fmt;
+
+#[derive(Clone)]
+struct SectionArray<T> ([T; SECTION_WIDTH * SECTION_WIDTH]);
+
+impl<T: fmt::Debug> fmt::Debug for SectionArray<T> {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        self.0[..].fmt(formatter)
+    }
+}
+
 /// A chunk column consisting
 /// of a 16x256x16 section of blocks.
 /// A chunk column maintains an array
 /// of up to 16 chunk sections, each corresponding
 /// to a 16x16x16 section of blocks in the chunk.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Chunk {
     /// The location of this chunk, in chunk
     /// coordinates.
@@ -56,7 +67,7 @@ pub struct Chunk {
     sections: [Option<ChunkSection>; NUM_SECTIONS],
     /// The biomes in this section, indexable by
     /// ((z << 4) | x).
-    biomes: [Biome; SECTION_WIDTH * SECTION_WIDTH],
+    biomes: SectionArray<Biome>,
     /// Whether this chunk has been modified since the most recent
     /// call to `check_modified`().
     modified: bool,
@@ -173,7 +184,7 @@ impl Chunk {
         Self {
             location,
             modified: true,
-            biomes: [default_biome; SECTION_WIDTH * SECTION_HEIGHT],
+            biomes: SectionArray([default_biome; SECTION_WIDTH * SECTION_HEIGHT]),
             ..Default::default()
         }
     }
@@ -420,13 +431,13 @@ impl Chunk {
 
     /// Returns the biomes of this chunk.
     pub fn biomes(&self) -> &[Biome] {
-        &self.biomes
+        &self.biomes.0
     }
 
     /// Returns a mutable reference to the biomes of this chunk.
     pub fn biomes_mut(&mut self) -> &mut [Biome] {
         self.modified = true;
-        &mut self.biomes
+        &mut self.biomes.0
     }
 
     /// Gets the biome for the specified column.
@@ -435,7 +446,7 @@ impl Chunk {
     /// Panics if `x < 16` or `z < 16`.
     pub fn biome_at(&self, x: usize, z: usize) -> Biome {
         let index = Self::biome_index(x, z);
-        self.biomes[index]
+        self.biomes.0[index]
     }
 
     /// Sets the biome for the specified column.
@@ -445,7 +456,7 @@ impl Chunk {
     pub fn set_biome_at(&mut self, x: usize, z: usize, biome: Biome) {
         let index = Self::biome_index(x, z);
         self.modified = true;
-        self.biomes[index] = biome;
+        self.biomes.0[index] = biome;
     }
 
     /// Checks whether this chunk has been modified since the last
