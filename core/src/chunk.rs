@@ -835,7 +835,7 @@ fn block_index(x: usize, y: usize, z: usize) -> usize {
 /// A "bit array." This struct manages
 /// an internal array of `u64` to which
 /// values of arbitrary bit length can be written.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct BitArray {
     /// The internal data array containing all values
     data: Vec<u64>,
@@ -845,6 +845,16 @@ pub struct BitArray {
     bits_per_value: u8,
     /// The maximum value represented by an entry in this array
     value_mask: u64,
+}
+
+impl fmt::Debug for BitArray {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        let mut data = vec![];
+        for i in 0..self.capacity - 1 {
+            data.push(self.get(i));
+        }
+        data.fmt(formatter)
+    }
 }
 
 impl BitArray {
@@ -879,6 +889,7 @@ impl BitArray {
             "Bits per value cannot be more than 64"
         );
         assert!(bits_per_value > 0, "Bits per value must be positive");
+        assert!(data.len() <= (bits_per_value as usize * capacity + 63) / 64, "data too small");
 
         let value_mask = (1 << (bits_per_value as u64)) - 1;
 
