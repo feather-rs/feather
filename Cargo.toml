@@ -10,3 +10,6 @@ members = [
     "generator",
     "util/rand-legacy",
 ]
+
+[profile.dev]
+opt-level = 1
