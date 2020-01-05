@@ -20,7 +20,7 @@ use tonks::{PreparedWorld, Query};
 /// This component is used to determine
 /// the relative movement for an entity.
 #[derive(Default)]
-pub struct LastKnownPositions(HashMap<Entity, AtomicCell<Position>>);
+pub struct LastKnownPositions(pub HashMap<Entity, AtomicCell<Position>>);
 
 /// System to broadcast when an entity moves.
 #[event_handler]

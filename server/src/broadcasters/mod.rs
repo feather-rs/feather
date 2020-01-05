@@ -5,4 +5,5 @@
 //! * Those which broadcast packets to all clients who can see a given entity through `State::broadcast_entity_update()`.
 
 pub mod entity_creation;
+pub mod keepalive;
 pub mod movement;

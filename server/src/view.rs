@@ -201,6 +201,10 @@ fn view_handle_entities(
         to_send.copied().for_each(|chunk| {
             let entities = state.chunk_entities.entities_in_chunk(chunk);
 
+            if !entities.is_empty() {
+                dbg!(event.player, &entities);
+            }
+
             entities.iter().copied().for_each(|entity| {
                 // Don't send client to themself.
                 if entity == event.player {
@@ -215,6 +219,7 @@ fn view_handle_entities(
                         // Send packet.
                         let packet = packet_creator.get(&accessor, world);
                         network.send_boxed(packet);
+                        state.register_entity_send(entity, event.player);
                     }
                 }
             });
@@ -231,6 +236,7 @@ fn view_handle_entities(
             {
                 let id = world.get_component::<EntityId>(entity).unwrap().0;
                 to_delete.push(id);
+                state.register_entity_unload(entity, event.player);
             }
         }
 
