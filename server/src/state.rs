@@ -204,7 +204,7 @@ impl State {
         self.exec(move |world| {
             let pos = *world.get_component(entity).unwrap();
             if let Some(mut positions) = world.get_component_mut::<LastKnownPositions>(to) {
-                positions.0.insert(entity, AtomicCell::new(pos));
+                positions.0.insert(entity, pos);
             }
         });
     }

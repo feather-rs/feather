@@ -4,7 +4,6 @@ use crate::chunk_logic::ChunkHolders;
 use crate::entity::{EntityId, EntityMoveEvent};
 use crate::network::Network;
 use crate::util::{calculate_relative_move, degrees_to_stops};
-use crossbeam::atomic::AtomicCell;
 use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove,
 };
@@ -20,7 +19,7 @@ use tonks::{PreparedWorld, Query};
 /// This component is used to determine
 /// the relative movement for an entity.
 #[derive(Default)]
-pub struct LastKnownPositions(pub HashMap<Entity, AtomicCell<Position>>);
+pub struct LastKnownPositions(pub HashMap<Entity, Position>);
 
 /// System to broadcast when an entity moves.
 #[event_handler]
@@ -35,7 +34,7 @@ fn broadcast_move(
     world: &mut PreparedWorld,
     chunk_holders: &ChunkHolders,
 ) {
-    events.par_iter().for_each(|event: &EntityMoveEvent| {
+    events.iter().for_each(|event: &EntityMoveEvent| {
         // Find position of entity.
         let pos = *world.get_component::<Position>(event.entity).unwrap();
 
@@ -50,7 +49,7 @@ fn broadcast_move(
         // then the entity has not yet been sent to the client, so we do not send a position
         // update. (When an entity is spawned on a client, the `LastKnownPositions` entry
         // is inserted with the starting position.)
-        clients.par_iter().copied().for_each(|client: Entity| {
+        clients.iter().copied().for_each(|client: Entity| {
             // Don't sent player's position to themself
             if client == event.entity {
                 return;
@@ -60,11 +59,10 @@ fn broadcast_move(
                 return;
             }
 
-            let last_known_positions = world.get_component::<LastKnownPositions>(client).unwrap();
-            if let Some(last_position) = last_known_positions.0.get(&event.entity) {
-                let old_pos = last_position.load();
-
-                let packets = packets_for_movement_update(entity_id, old_pos, pos);
+            let mut last_known_positions =
+                unsafe { world.get_component_mut_unchecked::<LastKnownPositions>(client) }.unwrap();
+            if let Some(old_pos) = last_known_positions.0.get_mut(&event.entity) {
+                let packets = packets_for_movement_update(entity_id, *old_pos, pos);
 
                 let network = world.get_component::<Network>(client).unwrap();
 
@@ -73,7 +71,7 @@ fn broadcast_move(
                 });
 
                 // Update last known position.
-                last_position.store(pos);
+                *old_pos = pos;
             }
         });
     });
@@ -94,7 +92,9 @@ fn packets_for_movement_update(
     let mut packets = smallvec![];
 
     let has_moved = old_pos.x != new_pos.x || old_pos.y != new_pos.y || old_pos.z != new_pos.z;
-    let has_looked = old_pos.pitch != new_pos.pitch || old_pos.yaw != new_pos.yaw;
+    let has_looked = old_pos.pitch != new_pos.pitch
+        || old_pos.yaw != new_pos.yaw
+        || old_pos.on_ground != new_pos.on_ground;
 
     if has_moved {
         let (rx, ry, rz) = calculate_relative_move(old_pos, new_pos);
