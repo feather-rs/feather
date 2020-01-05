@@ -203,16 +203,18 @@ impl State {
     pub fn register_entity_send(&self, entity: Entity, to: Entity) {
         self.exec(move |world| {
             let pos = *world.get_component(entity).unwrap();
-            let mut positions = world.get_component_mut::<LastKnownPositions>(to).unwrap();
-            positions.0.insert(entity, AtomicCell::new(pos));
+            if let Some(mut positions) = world.get_component_mut::<LastKnownPositions>(to) {
+                positions.0.insert(entity, AtomicCell::new(pos));
+            }
         });
     }
 
     /// The opposite of `register_entity_send`.
     pub fn register_entity_unload(&self, entity: Entity, on: Entity) {
         self.exec(move |world| {
-            let mut positions = world.get_component_mut::<LastKnownPositions>(on).unwrap();
-            positions.0.remove(&entity);
+            if let Some(mut positions) = world.get_component_mut::<LastKnownPositions>(on) {
+                positions.0.remove(&entity);
+            }
         })
     }
 }

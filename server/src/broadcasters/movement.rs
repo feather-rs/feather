@@ -56,6 +56,10 @@ fn broadcast_move(
                 return;
             }
 
+            if !world.is_alive(client) {
+                return;
+            }
+
             let last_known_positions = world.get_component::<LastKnownPositions>(client).unwrap();
             if let Some(last_position) = last_known_positions.0.get(&event.entity) {
                 let old_pos = last_position.load();

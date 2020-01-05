@@ -6,7 +6,7 @@
 //! from players and allows systems to poll for packets
 //! received of a given type.
 
-use crate::entity::EntityDeleteEvent;
+use crate::entity::{EntityDeleteEvent, EntityId};
 use crate::io::{ListenerToServerMessage, NetworkIoManager, ServerToWorkerMessage};
 use crate::player;
 use crate::state::State;
@@ -21,6 +21,7 @@ use parking_lot::{Mutex, MutexGuard};
 use std::iter;
 use strum::EnumCount;
 use tonks::{PreparedWorld, Query};
+use uuid::Uuid;
 
 type QueuedPackets = Vec<(Entity, Box<dyn Packet>)>;
 
@@ -181,12 +182,16 @@ pub fn network_(
             match msg {
                 ServerToWorkerMessage::NotifyDisconnect(_) => {
                     state.exec_with_scheduler(move |world, scheduler| {
-                        assert!(world.delete(entity), "player already deleted");
                         let position = *world.get_component::<Position>(entity).unwrap();
+                        let id = *world.get_component::<EntityId>(entity).unwrap();
+                        let uuid = *world.get_component::<Uuid>(entity).unwrap();
                         scheduler.trigger(EntityDeleteEvent {
                             entity,
                             position: Some(position),
+                            id,
+                            uuid,
                         });
+                        assert!(world.delete(entity), "player already deleted");
                     });
                 }
                 ServerToWorkerMessage::NotifyPacketReceived(packet) => {

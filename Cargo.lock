@@ -749,7 +749,7 @@ dependencies = [
  "tokio 0.2.0-alpha.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-executor 0.2.0-alpha.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "tonks 0.1.0 (git+https://github.com/feather-rs/tonks?rev=39793d2bf2643802df006725ebff2f71795cd41e)",
+ "tonks 0.1.0 (git+https://github.com/feather-rs/tonks?rev=ccdecae02e11fc6694bd252d48cce5794499736f)",
  "uuid 0.7.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -2602,7 +2602,7 @@ dependencies = [
 [[package]]
 name = "tonks"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/tonks?rev=39793d2bf2643802df006725ebff2f71795cd41e#39793d2bf2643802df006725ebff2f71795cd41e"
+source = "git+https://github.com/feather-rs/tonks?rev=ccdecae02e11fc6694bd252d48cce5794499736f#ccdecae02e11fc6694bd252d48cce5794499736f"
 dependencies = [
  "arrayvec 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "bit-set 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2619,13 +2619,13 @@ dependencies = [
  "smallvec 0.6.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "static_assertions 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "thread_local 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "tonks-macros 0.1.0 (git+https://github.com/feather-rs/tonks?rev=39793d2bf2643802df006725ebff2f71795cd41e)",
+ "tonks-macros 0.1.0 (git+https://github.com/feather-rs/tonks?rev=ccdecae02e11fc6694bd252d48cce5794499736f)",
 ]
 
 [[package]]
 name = "tonks-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/tonks?rev=39793d2bf2643802df006725ebff2f71795cd41e#39793d2bf2643802df006725ebff2f71795cd41e"
+source = "git+https://github.com/feather-rs/tonks?rev=ccdecae02e11fc6694bd252d48cce5794499736f#ccdecae02e11fc6694bd252d48cce5794499736f"
 dependencies = [
  "proc-macro2 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3250,8 +3250,8 @@ dependencies = [
 "checksum tokio-timer 0.3.0-alpha.6 (registry+https://github.com/rust-lang/crates.io-index)" = "b97c1587fe71018eb245a4a9daa13a5a3b681bbc1f7fdadfe24720e141472c13"
 "checksum tokio-tls 0.3.0-alpha.6 (registry+https://github.com/rust-lang/crates.io-index)" = "566b4086589c7eebb86aa625d302ab80720ef2aa088649dcae18ec4d754cbd16"
 "checksum toml 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "c7aabe75941d914b72bf3e5d3932ed92ce0664d49d8432305a8b547c37227724"
-"checksum tonks 0.1.0 (git+https://github.com/feather-rs/tonks?rev=39793d2bf2643802df006725ebff2f71795cd41e)" = "<none>"
-"checksum tonks-macros 0.1.0 (git+https://github.com/feather-rs/tonks?rev=39793d2bf2643802df006725ebff2f71795cd41e)" = "<none>"
+"checksum tonks 0.1.0 (git+https://github.com/feather-rs/tonks?rev=ccdecae02e11fc6694bd252d48cce5794499736f)" = "<none>"
+"checksum tonks-macros 0.1.0 (git+https://github.com/feather-rs/tonks?rev=ccdecae02e11fc6694bd252d48cce5794499736f)" = "<none>"
 "checksum tower-make 0.3.0-alpha.2a (registry+https://github.com/rust-lang/crates.io-index)" = "316d47dd40cde4ac5d88110eaf9a10a4e2a68612d9c056cd2aa24e37dcb484cd"
 "checksum tower-service 0.3.0-alpha.2 (registry+https://github.com/rust-lang/crates.io-index)" = "63ff37396cd966ce43bea418bfa339f802857495f797dafa00bea5b7221ebdfa"
 "checksum tracing 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)" = "c21ff9457accc293386c20e8f754d0b059e67e325edf2284f04230d125d7e5ff"

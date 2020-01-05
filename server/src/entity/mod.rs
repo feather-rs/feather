@@ -8,6 +8,7 @@ use legion::query::{Read, Write};
 use std::ops::{Deref, DerefMut};
 use std::sync::atomic::{AtomicI32, Ordering};
 use tonks::{EntityAccessor, PreparedWorld, Query};
+use uuid::Uuid;
 
 /// ID of an entity. This value is generally unique.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
@@ -27,6 +28,8 @@ pub struct EntityCreateEvent {
 pub struct EntityDeleteEvent {
     pub entity: Entity,
     pub position: Option<Position>,
+    pub id: EntityId,
+    pub uuid: Uuid,
 }
 
 /// Event triggered when an entity moves.
