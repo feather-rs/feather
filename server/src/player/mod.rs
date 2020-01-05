@@ -10,7 +10,7 @@ use crate::network::Network;
 use crate::state::State;
 use crate::util::degrees_to_stops;
 use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
-use feather_core::{Gamemode, Packet, Position};
+use feather_core::{ClientboundAnimation, Gamemode, Packet, Position};
 use legion::entity::Entity;
 use mojang_api::ProfileProperty;
 use tonks::{EntityAccessor, PreparedWorld};
@@ -24,6 +24,13 @@ pub struct ProfileProperties(pub Vec<ProfileProperty>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PlayerJoinEvent {
     pub player: Entity,
+}
+
+/// Event triggered when a player causes an animation.
+#[derive(Debug, Clone)]
+pub struct PlayerAnimationEvent {
+    pub player: Entity,
+    pub animation: ClientboundAnimation,
 }
 
 /// Tag used to mark a player.

@@ -13,7 +13,7 @@ struct Buf(Vec<(Entity, Position)>);
 
 /// Handles player movement packets.
 #[system]
-fn movement(
+fn handle_movement(
     queue: &PacketQueue,
     _query: &mut Query<Write<Position>>,
     world: &mut PreparedWorld,
