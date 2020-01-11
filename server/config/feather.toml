@@ -8,10 +8,6 @@
 # Compressing packets reduces bandwidth usage but increases CPU activity.
 compression_threshold = 256
 
-[proxy]
-# IP forwarding using either "bungee" (BungeeCord/Waterfall/Travertine) or "velocity" (Velocity)
-proxy_mode = "none" # Unimplemented
-
 [server]
 online_mode = true
 motd = "A Feather server"
@@ -56,3 +52,11 @@ generator = "default"
 seed = ""
 # Interval at which to save modified chunks.
 save_interval = "1min"
+
+[proxy]
+# Select the IP forwarding mode that is used by proxies like BungeeCord or Velocity.
+# Valid values are
+# - "None" - for usage without a proxy
+# - "BungeeCord" - for BungeeCord/Waterfall/Travertine
+# - "Velocity" - for Velocity style proxies (unimplemented)
+proxy_mode = "None"

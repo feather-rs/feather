@@ -39,10 +39,10 @@ bytes = "0.4"
 mojang-api = "0.4"
 
 # Crypto
-rsa = "0.1"
+rsa = "0.2"
 rsa-der = "0.2"
 # Match RSA git master
-num-bigint = { version = "0.4", features = ["rand", "i128", "u64_digit", "prime", "zeroize"], package = "num-bigint-dig" }
+num-bigint = { version = "0.6", features = ["rand", "i128", "u64_digit"], package = "num-bigint-dig" }
 
 # Hash functions
 ahash = "0.2"
@@ -77,7 +77,6 @@ hematite-nbt = "0.4"
 # RNGs
 rand = "0.7"
 rand_xorshift = "0.2"
-rand-legacy = { path = "../util/rand-legacy" }
 
 # Other
 failure = "0.1"

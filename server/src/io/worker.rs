@@ -136,7 +136,7 @@ async fn _run_worker(
                                         let data = PlayerData::default();
                                         let info = NewClientInfo {
                                             ip,
-                                            username: res.username,
+                                            username: res.username.ok_or(Error::PlayerData)?,
                                             profile: res.props,
                                             uuid: res.uuid,
                                             sender: tx_server_to_worker.clone(),

@@ -233,7 +233,7 @@ impl Add<ChunkPosition> for ChunkPosition {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Hash32, Default, new)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Hash32, Default)]
 pub struct BlockPosition {
     pub x: i32,
     pub y: i32,
@@ -241,12 +241,21 @@ pub struct BlockPosition {
 }
 
 impl BlockPosition {
+    pub const fn new(x: i32, y: i32, z: i32) -> Self {
+        Self { x, y, z }
+    }
+
     pub fn chunk_pos(&self) -> ChunkPosition {
         ChunkPosition::new(self.x >> 4, self.z >> 4)
     }
 
     pub fn world_pos(&self) -> Position {
         position!(f64::from(self.x), f64::from(self.y), f64::from(self.z))
+    }
+
+    /// Returns the Manhattan distance from this position to another.
+    pub fn manhattan_distance(self, other: BlockPosition) -> i32 {
+        (self.x - other.x).abs() + (self.y - other.y).abs() + (self.z - other.z).abs()
     }
 }
 
@@ -292,9 +301,9 @@ impl ChunkMap {
     pub fn chunk_at_mut(&self, pos: ChunkPosition) -> Option<RwLockWriteGuard<Chunk>> {
         self.0.get(&pos).map(|lock| lock.write())
     }
-
-    /// Retrieves the block at the given position,
-    /// or `None` if its chunk is not loaded.
+    /// Retrieves the block at the specified
+    /// location. If the chunk in which the block
+    /// exists is not laoded, `None` is returned.
     pub fn block_at(&self, pos: BlockPosition) -> Option<Block> {
         let (x, y, z) = chunk_relative_pos(pos);
         self.chunk_at(pos.chunk_pos())
@@ -342,7 +351,7 @@ impl Default for ChunkMap {
     }
 }
 
-fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
+pub fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
     (
         block_pos.x as usize & 0xf,
         block_pos.y as usize,

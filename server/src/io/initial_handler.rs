@@ -17,7 +17,7 @@
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
-use rand_legacy::rngs::OsRng;
+use rand::rngs::OsRng;
 use rsa::{PaddingScheme, PublicKey, RSAPrivateKey};
 use rsa_der as der;
 use uuid::Uuid;
@@ -29,8 +29,9 @@ use feather_core::network::packet::implementation::{
 };
 use feather_core::network::packet::{Packet, PacketStage, PacketType};
 
-use crate::config::Config;
+use crate::config::{Config, ProxyMode};
 use crate::{PlayerCount, PROTOCOL_VERSION, SERVER_VERSION};
+use mojang_api::ProfileProperty;
 
 /// The key used for symmetric encryption.
 pub type Key = [u8; 16];
@@ -45,7 +46,7 @@ const SHARED_SECRET_LEN: usize = 128 / 8;
 
 lazy_static! {
     pub static ref RSA_KEY: RSAPrivateKey = {
-        let mut rng = OsRng::new().unwrap();
+        let mut rng = OsRng;
         RSAPrivateKey::new(&mut rng, RSA_KEY_BITS).unwrap()
     };
 }
@@ -64,9 +65,27 @@ pub enum Action {
 /// The type returned for when a player has completed the login process.
 #[derive(Clone, Debug)]
 pub struct JoinResult {
-    pub username: String,
+    pub username: Option<String>,
     pub uuid: Uuid,
     pub props: Vec<mojang_api::ProfileProperty>,
+}
+
+impl JoinResult {
+    fn with_username(username: String) -> Self {
+        let mut join_result = JoinResult::default();
+        join_result.username = Some(username);
+        join_result
+    }
+}
+
+impl Default for JoinResult {
+    fn default() -> Self {
+        JoinResult {
+            username: None,
+            uuid: Uuid::new_v4(),
+            props: vec![],
+        }
+    }
 }
 
 /// An initial handler for a connection.
@@ -89,6 +108,7 @@ pub struct InitialHandler {
     /// If set to a value, indicates that encryption
     /// should be enabled with the given key.
     key: Option<Key>,
+
     /// If set to a value, indicates that compression
     /// should be enabled with the given threshold.
     compression_threshold: Option<i32>,
@@ -102,10 +122,6 @@ pub struct InitialHandler {
     player_count: Arc<PlayerCount>,
     /// The server's icon, if any was loaded.
     server_icon: Arc<Option<String>>,
-
-    /// The username of the player, sent
-    /// in Login Start.
-    username: Option<String>,
 
     /// The player info, set to `Some` once
     /// the initial handler is finished and
@@ -134,8 +150,6 @@ impl InitialHandler {
             player_count,
             server_icon,
 
-            username: None,
-
             info: None,
 
             stage: Stage::AwaitHandshake,
@@ -154,11 +168,16 @@ impl InitialHandler {
         if let Err(e) = _handle_packet(self, packet).await {
             // Disconnect
             disconnect_login(self, &format!("{}", e));
-            info!(
-                "Player {} disconnected: {}",
-                self.username.as_ref().unwrap_or(&"unknown".to_string()),
-                e
-            );
+
+            if let Some(info) = &self.info {
+                info!(
+                    "Player {} disconnected: {}",
+                    info.username.as_ref().unwrap_or(&"unknown".to_string()),
+                    e
+                );
+            } else {
+                info!("Player unknown disconnected: {}", e);
+            }
         }
     }
 
@@ -206,12 +225,74 @@ fn handle_handshake(ih: &mut InitialHandler, packet: &Handshake) -> Result<(), E
                 return Err(Error::InvalidProtocol(packet.protocol_version));
             }
 
+            // If the server has BungeeCord proxy mode enabled, extract the data that is submitted
+            // by BungeeCord if IP forwarding is enabled.
+            if ih.config.proxy.proxy_mode == ProxyMode::BungeeCord {
+                let bungeecord_data = extract_bungeecord_data(packet)?;
+                ih.info = Some(JoinResult {
+                    username: None,
+                    uuid: bungeecord_data.uuid,
+                    props: bungeecord_data.properties,
+                });
+            }
+
             ih.action_queue.push(Action::SetStage(PacketStage::Login));
             Stage::AwaitLoginStart
         }
     };
 
     Ok(())
+}
+
+/// Tries to extract the player information that is sent in the `server_address` field of a
+/// Handshake packet that originates from a BungeeCord style proxy. This is used to enable IP
+/// forwarding for BungeeCord style proxies.
+///
+/// The server address field should have 4 parts if a client is connecting via BungeeCord. The field
+/// has the following format:
+///
+/// format!("{}\0{}\0{}\0{}", host, address, uuid, mojang_response);
+///
+/// | Variable        | Definition                                          |
+/// |-----------------|-----------------------------------------------------|
+/// | Host            | The IP address of the BungeeCord instance           |
+/// | Address         | The IP address of the connecting client             |
+/// | UUID            | The UUID that is associated to the clients account  |
+/// | Mojang response | A JSON formatted version of the `properties` field
+/// in [Mojangs response](https://wiki.vg/Protocol_Encryption#Server)       |
+fn extract_bungeecord_data(packet: &Handshake) -> Result<BungeeCordData, Error> {
+    let bungee_information: Vec<&str> = packet.server_address.split('\0').collect();
+    Ok(BungeeCordData::from_vec(&bungee_information)?)
+}
+
+#[derive(Debug)]
+struct BungeeCordData {
+    host: String,
+    client: String,
+    uuid: Uuid,
+    properties: Vec<ProfileProperty>,
+}
+
+impl BungeeCordData {
+    pub fn from_vec(data: &[&str]) -> Result<Self, Error> {
+        if data.len() != 4 {
+            return Err(Error::BungeeSpecMismatch("Incorrect length".to_string()));
+        }
+
+        let host = data.get(0).unwrap().to_string();
+        let client = data.get(1).unwrap().to_string();
+        let uuid = Uuid::parse_str(*data.get(2).unwrap())
+            .map_err(|e| Error::BungeeSpecMismatch(e.to_string()))?;
+        let properties = serde_json::from_str(data.get(3).unwrap())
+            .map_err(|e| Error::BungeeSpecMismatch(e.to_string()))?;
+
+        Ok(BungeeCordData {
+            host,
+            client,
+            uuid,
+            properties,
+        })
+    }
 }
 
 fn handle_request(ih: &mut InitialHandler, packet: &Request) -> Result<(), Error> {
@@ -258,8 +339,6 @@ fn handle_ping(ih: &mut InitialHandler, packet: &Ping) -> Result<(), Error> {
 fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<(), Error> {
     check_stage(ih, Stage::AwaitLoginStart, packet.ty())?;
 
-    ih.username = Some(packet.username.clone());
-
     // If in online mode, encryption needs to be enabled,
     // and authentication needs to be performed.
     // If not in online mode, the login sequence is
@@ -280,14 +359,23 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
         );
         send_packet(ih, encryption_request);
 
+        ih.info = Some(JoinResult::with_username(packet.username.clone()));
+
         ih.stage = Stage::AwaitEncryptionResponse;
     } else {
-        // Finished - set info and join
-        ih.info = Some(JoinResult {
-            username: ih.username.clone().unwrap(),
-            uuid: Uuid::new_v4(),
-            props: vec![],
-        });
+        let username = packet.username.clone();
+
+        // Check if there is some info about the client available. This can be the case if the
+        // handshake is made by an IP forwarding proxy.
+        if let Some(info) = ih.info.as_mut() {
+            if info.username.is_none() {
+                info.username = Some(username);
+            }
+        } else {
+            // Finished - set info and join
+            ih.info = Some(JoinResult::with_username(username))
+        }
+
         finish(ih);
     }
 
@@ -332,17 +420,25 @@ async fn handle_encryption_response(
         &BigInt::from_biguint(Plus, RSA_KEY.e().clone()).to_signed_bytes_be(),
     );
 
+    // This unwrapping can be shorter with the use of .flatten() which will stabilize in Rust 1.40.
+    let username = ih
+        .info
+        .as_ref()
+        .map(|x| x.username.as_ref())
+        .and_then(|x| x)
+        .ok_or(Error::OptionIsNone)?;
+
     // Perform authentication
     let auth_result = mojang_api::server_auth(
         &mojang_api::server_hash("", ih.key.unwrap(), der.as_slice()),
-        ih.username.as_ref().unwrap(),
+        username,
     )
     .await;
 
     match auth_result {
         Ok(auth) => {
             let info = JoinResult {
-                username: auth.name,
+                username: Some(auth.name),
                 uuid: auth.id,
                 props: auth.properties,
             };
@@ -373,6 +469,7 @@ fn decrypt_using_rsa(data: &[u8], key: &RSAPrivateKey) -> Result<Vec<u8>, Error>
 /// * All other login processes have already run
 fn finish(ih: &mut InitialHandler) {
     assert!(ih.info.is_some());
+    assert!(ih.info.as_ref().unwrap().username.is_some());
 
     // Enable compression if necessary
     let compression_threshold = ih.config.io.compression_threshold;
@@ -385,7 +482,7 @@ fn finish(ih: &mut InitialHandler) {
     // Send Login Success
     let login_success = LoginSuccess::new(
         info.uuid.to_hyphenated_ref().to_string(),
-        info.username.clone(),
+        info.username.as_ref().unwrap().to_string(),
     );
     send_packet(ih, login_success);
     ih.action_queue.push(Action::SetStage(PacketStage::Play));
@@ -445,6 +542,15 @@ enum Error {
     BadSecretLength,
     #[fail(display = "authentication failure: {:?}", _0)]
     AuthenticationFailed(mojang_api::Error),
+    #[fail(
+        display = "received BungeeCord data does not match the specification: {}",
+        _0
+    )]
+    BungeeSpecMismatch(String),
+    #[fail(display = "option that should not be None was None")]
+    /// An Error type than can be used as the error type of using the Try operator on Option
+    /// types. In rust-core, this is an unstable feature (issue #42327)
+    OptionIsNone,
 }
 
 /// The stage of an initial handler.
@@ -471,6 +577,145 @@ mod tests {
     use crate::PROTOCOL_VERSION;
 
     use super::*;
+    use mojang_api::ProfileProperty;
+
+    #[test]
+    fn extract_bungeecord_data_normal() {
+        let handshake = Handshake {
+           protocol_version: PROTOCOL_VERSION,
+           server_address: "192.168.1.87\0192.168.1.67\0905c7e4fb96b45139645d123225575e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
+           server_port: 25565,
+           next_state: HandshakeState::Login,
+        };
+
+        assert_eq!(
+            extract_bungeecord_data(&handshake).unwrap(),
+            BungeeCordData {
+                host: "192.168.1.87".to_string(),
+                client: "192.168.1.67".to_string(),
+                uuid: Uuid::parse_str("905c7e4fb96b45139645d123225575e2").unwrap(),
+                properties: vec![ProfileProperty {
+                    name: "textures".to_string(),
+                    value: "textures_value".to_string(),
+                    signature: "textures_signature".to_string(),
+                }],
+            }
+        );
+    }
+
+    #[test]
+    fn extract_bungeecord_data_too_short() {
+        let handshake = Handshake {
+            protocol_version: PROTOCOL_VERSION,
+            server_address: "192.168.1.87\0192.168.1.67\0905c7e4fb96b45139645d123225575e2"
+                .to_string(),
+            server_port: 25565,
+            next_state: HandshakeState::Login,
+        };
+
+        assert_eq!(
+            extract_bungeecord_data(&handshake).err().unwrap(),
+            Error::BungeeSpecMismatch("Incorrect length".to_string())
+        );
+    }
+
+    #[test]
+    fn extract_bungeecord_data_too_long() {
+        let handshake = Handshake {
+            protocol_version: PROTOCOL_VERSION,
+            server_address: "192.168.1.87\0192.168.1.67\0905c7e4fb96b45139645d123225575e2\0a\0b"
+                .to_string(),
+            server_port: 25565,
+            next_state: HandshakeState::Login,
+        };
+
+        assert_eq!(
+            extract_bungeecord_data(&handshake).err().unwrap(),
+            Error::BungeeSpecMismatch("Incorrect length".to_string())
+        );
+    }
+
+    #[test]
+    fn extract_bungeecord_data_localhost_host_ip() {
+        let handshake = Handshake {
+            protocol_version: PROTOCOL_VERSION,
+            server_address: "localhost\0192.168.1.67\0905c7e4fb96b45139645d123225575e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
+            server_port: 25565,
+            next_state: HandshakeState::Login,
+        };
+
+        assert_eq!(
+            extract_bungeecord_data(&handshake).unwrap(),
+            BungeeCordData {
+                host: "localhost".to_string(),
+                client: "192.168.1.67".to_string(),
+                uuid: Uuid::parse_str("905c7e4fb96b45139645d123225575e2").unwrap(),
+                properties: vec![ProfileProperty {
+                    name: "textures".to_string(),
+                    value: "textures_value".to_string(),
+                    signature: "textures_signature".to_string(),
+                }],
+            }
+        );
+    }
+
+    #[test]
+    fn extract_bungeecord_data_localhost_client_ip() {
+        let handshake = Handshake {
+            protocol_version: PROTOCOL_VERSION,
+            server_address: "192.168.1.87\0localhost\0905c7e4fb96b45139645d123225575e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
+            server_port: 25565,
+            next_state: HandshakeState::Login,
+        };
+
+        assert_eq!(
+            extract_bungeecord_data(&handshake).unwrap(),
+            BungeeCordData {
+                host: "192.168.1.87".to_string(),
+                client: "localhost".to_string(),
+                uuid: Uuid::parse_str("905c7e4fb96b45139645d123225575e2").unwrap(),
+                properties: vec![ProfileProperty {
+                    name: "textures".to_string(),
+                    value: "textures_value".to_string(),
+                    signature: "textures_signature".to_string(),
+                }],
+            }
+        );
+    }
+
+    #[test]
+    fn extract_bungeecord_data_invalid_uuid() {
+        let handshake = Handshake {
+            protocol_version: PROTOCOL_VERSION,
+            server_address: "192.168.1.87\0192.168.1.67\005c7e4fb9675e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"signature\":\"textures_signature\"}]".to_string(),
+            server_port: 25565,
+            next_state: HandshakeState::Login,
+        };
+
+        let error = extract_bungeecord_data(&handshake).err().unwrap();
+        if let Error::BungeeSpecMismatch(e) = error {
+            assert!(e.contains("invalid length"));
+        } else {
+            panic!();
+        }
+    }
+
+    #[test]
+    fn extract_bungeecord_data_invalid_properties() {
+        let handshake = Handshake {
+            protocol_version: PROTOCOL_VERSION,
+            server_address: "192.168.1.87\0192.168.1.67\0905c7e4fb96b45139645d123225575e2\0[{\"name\":\"textures\",\"value\":\"textures_value\",\"sinature\":\"textures_signature\"}]".to_string(),
+            server_port: 25565,
+            next_state: HandshakeState::Login,
+        };
+
+        let error = extract_bungeecord_data(&handshake).err().unwrap();
+        if let Error::BungeeSpecMismatch(e) = error {
+            assert!(e.contains("missing field `signature`"));
+        } else {
+            panic!();
+        }
+    }
 
     #[test]
     fn test_initial_handler_new() {
