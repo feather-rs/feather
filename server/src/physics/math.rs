@@ -1,24 +1,25 @@
 //! A bunch of math-related functions for use with
 //! the physics system.
 
-use crate::entity::{ChunkEntities, PositionComponent};
+use crate::chunk_entities::ChunkEntities;
 use crate::physics::block_bboxes::bbox_for_block;
 use crate::physics::AABBExt;
+use crate::state::State;
 use feather_blocks::Block;
-use feather_core::world::{BlockPosition, ChunkMap, Position};
+use feather_core::world::{BlockPosition, Position};
 use feather_core::{BlockExt, ChunkPosition};
 use glm::{vec3, DVec3, Vec3};
 use heapless::consts::*;
+use legion::entity::Entity;
 use nalgebra::{Isometry3, Point3};
 use ncollide3d::bounding_volume::AABB;
 use ncollide3d::query;
 use ncollide3d::query::{Ray, RayCast};
 use ncollide3d::shape::{Compound, Cuboid, ShapeHandle};
 use smallvec::SmallVec;
-use specs::storage::GenericReadStorage;
-use specs::Entity;
 use std::cmp::Ordering;
 use std::f64::INFINITY;
+use tonks::PreparedWorld;
 
 // TODO is a bitflag really the most
 // idiomatic way to do this?
@@ -89,7 +90,7 @@ pub struct RayImpact {
 /// Traces up to `max_distance` before returning `None`
 /// if no block was found.
 pub fn block_impacted_by_ray(
-    chunk_map: &ChunkMap,
+    state: &State,
     origin: DVec3,
     ray: DVec3,
     max_distance_squared: f64,
@@ -167,7 +168,7 @@ pub fn block_impacted_by_ray(
     let mut current_pos = Position::from(origin).block_pos();
 
     while dist_traveled.magnitude_squared() < max_distance_squared {
-        if let Some(block) = chunk_map.block_at(current_pos) {
+        if let Some(block) = state.block_at(current_pos) {
             if block.is_solid() {
                 // Calculate world-space position of
                 // impact using `ncollide`.
@@ -234,15 +235,12 @@ pub fn block_impacted_by_ray(
 ///
 /// # Panics
 /// Panics if either coordinate of the radius is negative.
-pub fn nearby_entities<S>(
+pub fn nearby_entities(
     chunk_entities: &ChunkEntities,
-    positions: &S,
+    world: &PreparedWorld,
     pos: Position,
     radius: DVec3,
-) -> SmallVec<[Entity; 4]>
-where
-    S: GenericReadStorage<Component = PositionComponent>,
-{
+) -> SmallVec<[Entity; 4]> {
     assert!(radius.x >= 0.0);
     assert!(radius.y >= 0.0);
     assert!(radius.z >= 0.0);
@@ -255,9 +253,8 @@ where
             .iter()
             .copied()
             .filter(|e| {
-                let epos = positions.get(*e);
+                let epos = world.get_component::<Position>(*e);
                 if let Some(epos) = epos {
-                    let epos = epos.current;
                     (epos.x - pos.x).abs() <= radius.x
                         && (epos.y - pos.y).abs() <= radius.y
                         && (epos.z - pos.z).abs() <= radius.z
@@ -318,7 +315,7 @@ impl BlockIntersect {
 /// than 1 are not supported. If the bounding box's size
 /// is more than 1, this function will panic.
 pub fn blocks_intersecting_bbox(
-    chunk_map: &ChunkMap,
+    state: &State,
     mut from: Position,
     mut dest: Position,
     bbox: &AABB<f64>,
@@ -351,7 +348,7 @@ pub fn blocks_intersecting_bbox(
     let mut checked = heapless::FnvIndexSet::new();
 
     for (axis, sign) in &axis {
-        let compound = adjacent_to_bbox(*axis, *sign, bbox, dest, &chunk_map, &mut checked);
+        let compound = adjacent_to_bbox(*axis, *sign, bbox, dest, &state, &mut checked);
         blocks.push(compound);
     }
 
@@ -426,7 +423,7 @@ pub fn adjacent_to_bbox(
     sign: i32,
     bbox: &AABB<f64>,
     pos: Position,
-    chunk_map: &ChunkMap,
+    state: &State,
     checked: &mut heapless::FnvIndexSet<BlockPosition, U32>,
 ) -> Compound<f64> {
     assert!(axis <= 2);
@@ -486,7 +483,7 @@ pub fn adjacent_to_bbox(
             continue;
         }
 
-        match chunk_map.block_at(block_pos) {
+        match state.block_at(block_pos) {
             Some(block) => {
                 if block.is_solid() {
                     checked.insert(block_pos).unwrap();

@@ -1,103 +1,155 @@
-//! Provides several useful components, including `EntityComponent`
-//! and `PlayerComponent`. In the future, will also
-//! provide entity-specific components and systems.
+//! Dealing with entities, including associated components and events.
 
-mod broadcast;
-mod chunk;
-mod component;
-mod destroy;
-mod impls;
-pub mod metadata;
-mod movement;
-mod save;
+use crate::lazy::EntityBuilder;
+use crate::state::State;
+use feather_core::{Packet, Position};
+use legion::prelude::Entity;
+use legion::query::{Read, Write};
+use std::ops::{Deref, DerefMut};
+use std::sync::atomic::{AtomicI32, Ordering};
+use tonks::{EntityAccessor, PreparedWorld, Query};
+use uuid::Uuid;
 
-pub use impls::*;
+/// ID of an entity. This value is generally unique.
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub struct EntityId(pub i32);
 
-use crate::systems::{
-    BLOCK_FALLING_LANDING, CHUNK_CROSS, CHUNK_ENTITIES_LOAD, CHUNK_ENTITIES_UPDATE, CHUNK_SAVE,
-    ENTITY_DESTROY, ENTITY_DESTROY_BROADCAST, ENTITY_METADATA_BROADCAST, ENTITY_MOVE_BROADCAST,
-    ENTITY_PHYSICS, ENTITY_SPAWN_BROADCAST, ENTITY_VELOCITY_BROADCAST, ITEM_COLLECT, ITEM_MERGE,
-    ITEM_SPAWN, JOIN_BROADCAST, SHOOT_ARROW,
-};
-pub use arrow::{ArrowComponent, ShootArrowEvent};
-pub use broadcast::send_entity_to_player;
-pub use broadcast::{EntitySendEvent, EntitySpawnEvent};
-pub use chunk::ChunkEntities;
-pub use chunk::ChunkEntityUpdateSystem;
-pub use component::{
-    NamedComponent, PacketCreatorComponent, PlayerComponent, PositionComponent,
-    SerializerComponent, VelocityComponent,
-};
-pub use destroy::EntityDestroyEvent;
-pub use falling_block::FallingBlockComponent;
-pub use item::ItemComponent;
-pub use metadata::{EntityBitMask, Metadata};
-pub use movement::{degrees_to_stops, LastKnownPositionComponent};
+/// Entity ID counter, used to create new entity IDs.
+pub static ENTITY_ID_COUNTER: AtomicI32 = AtomicI32::new(0);
 
-pub use save::save_chunks;
-
-use crate::entity::arrow::ShootArrowSystem;
-use crate::entity::chunk::EntityChunkLoadSystem;
-use crate::entity::destroy::EntityDestroyBroadcastSystem;
-use crate::entity::falling_block::FallingBlockLandSystem;
-use crate::entity::item::ItemCollectSystem;
-use crate::entity::metadata::MetadataBroadcastSystem;
-use crate::entity::save::ChunkSaveSystem;
-use broadcast::EntityBroadcastSystem;
-use component::ComponentResetSystem;
-use destroy::EntityDestroySystem;
-use item::{ItemMergeSystem, ItemSpawnSystem};
-use movement::{EntityMoveBroadcastSystem, EntityVelocityBroadcastSystem};
-use specs::DispatcherBuilder;
-
-pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
-    dispatcher.add(ItemCollectSystem::default(), ITEM_COLLECT, &[]);
+/// Event triggered when an entity is created.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EntityCreateEvent {
+    pub entity: Entity,
 }
 
-pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
-    dispatcher.add(
-        ChunkEntityUpdateSystem::default(),
-        CHUNK_ENTITIES_UPDATE,
-        &[],
-    );
-    dispatcher.add(EntityChunkLoadSystem::default(), CHUNK_ENTITIES_LOAD, &[]);
-    dispatcher.add(EntityDestroySystem::default(), ENTITY_DESTROY, &[]);
-    dispatcher.add(ItemSpawnSystem::default(), ITEM_SPAWN, &[]);
-    dispatcher.add(ItemMergeSystem::default(), ITEM_MERGE, &[]);
-    dispatcher.add(
-        MetadataBroadcastSystem::default(),
-        ENTITY_METADATA_BROADCAST,
-        &[],
-    );
-    dispatcher.add(ShootArrowSystem::default(), SHOOT_ARROW, &[]);
-    dispatcher.add(ChunkSaveSystem::default(), CHUNK_SAVE, &[]);
+/// Event triggered when an entity is removed.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct EntityDeleteEvent {
+    pub entity: Entity,
+    pub position: Option<Position>,
+    pub id: EntityId,
+    pub uuid: Uuid,
 }
 
-pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
-    dispatcher.add(
-        EntityMoveBroadcastSystem::default(),
-        ENTITY_MOVE_BROADCAST,
-        &[],
-    );
-    dispatcher.add(
-        EntityBroadcastSystem::default(),
-        ENTITY_SPAWN_BROADCAST,
-        &[JOIN_BROADCAST, CHUNK_CROSS],
-    );
-    dispatcher.add(
-        EntityVelocityBroadcastSystem::default(),
-        ENTITY_VELOCITY_BROADCAST,
-        &[],
-    );
-    dispatcher.add(
-        EntityDestroyBroadcastSystem::default(),
-        ENTITY_DESTROY_BROADCAST,
-        &[],
-    );
-    dispatcher.add(
-        FallingBlockLandSystem::default(),
-        BLOCK_FALLING_LANDING,
-        &[ENTITY_PHYSICS],
-    );
-    dispatcher.add_thread_local(ComponentResetSystem);
+/// Event triggered when an entity moves.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EntityMoveEvent {
+    /// Entity which moved.
+    pub entity: Entity,
+}
+
+/// The velocity of an entity.
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct Velocity(pub glm::DVec3);
+
+impl Default for Velocity {
+    fn default() -> Self {
+        Self(glm::vec3(0.0, 0.0, 0.0))
+    }
+}
+
+impl Deref for Velocity {
+    type Target = glm::DVec3;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Velocity {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+/// The display name of the entity.
+///
+/// Note that unnamed entities do not have this component.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Name(pub String);
+
+/// Position of an entity on the last tick.
+///
+/// This is updated by `position_reset` system.
+#[derive(Debug, Clone, Copy)]
+pub struct PreviousPosition(pub Position);
+
+pub trait PacketCreatorFn:
+    Fn(&EntityAccessor, &PreparedWorld) -> Box<dyn Packet> + Send + Sync + 'static
+{
+}
+impl<F> PacketCreatorFn for F where
+    F: Fn(&EntityAccessor, &PreparedWorld) -> Box<dyn Packet> + Send + Sync + 'static
+{
+}
+
+/// Component which defines a function returning a packet to send
+/// to clients when the entity comes within range. This packet
+/// spawns the entity on the client.
+pub struct SpawnPacketCreator(pub &'static dyn PacketCreatorFn);
+
+impl SpawnPacketCreator {
+    /// Returns the packet to send to clients when the entity is to be
+    /// sent to the client.
+    pub fn get(&self, accessor: &EntityAccessor, world: &PreparedWorld) -> Box<dyn Packet> {
+        let f = self.0;
+
+        f(accessor, world)
+    }
+}
+
+/// Component which defines a function returning a packet to send
+/// to _all_ clients when the entity is created or the client joins.
+/// This packet is sent before that returned by `SpawnPacketCreator`,
+/// and it differs in that the packet is broadcasted globally
+/// rather than to nearby clients.
+///
+/// Another difference is that the packet from `SpawnPacketCreator` is not sent
+/// to its own entity, while that from `CreationPacketCreator` is.
+///
+/// An example of a use case for this packet is the `PlayerInfo` packet
+/// sent when a player joins—it is sent to all players, not just those
+/// that are able to see the player.
+pub struct CreationPacketCreator(pub &'static dyn PacketCreatorFn);
+
+impl CreationPacketCreator {
+    /// Returns the packet to send to clients when the entity is created.
+    pub fn get(&self, accessor: &EntityAccessor, world: &PreparedWorld) -> Box<dyn Packet> {
+        let f = self.0;
+
+        f(accessor, world)
+    }
+}
+
+#[event_handler]
+pub fn position_reset(
+    events: &[EntityMoveEvent],
+    _query: &mut Query<(Read<Position>, Write<PreviousPosition>)>,
+    world: &mut PreparedWorld,
+) {
+    events.iter().for_each(|event| {
+        let pos = *world.get_component::<Position>(event.entity).unwrap();
+        let mut prev_pos = world
+            .get_component_mut::<PreviousPosition>(event.entity)
+            .unwrap();
+
+        prev_pos.0 = pos;
+    });
+}
+
+/// Inserts the base components for an entity into an `EntityBuilder`.
+///
+/// This currently includes:
+/// * Position
+/// * Velocity (0)
+pub fn base(state: &State, position: Position) -> EntityBuilder {
+    let id = ENTITY_ID_COUNTER.fetch_add(1, Ordering::Relaxed);
+    state
+        .create_entity()
+        .with_component(EntityId(id))
+        .with_component(position)
+        .with_component(PreviousPosition(position))
+        .with_component(Velocity::default())
+        .with_exec(|_, scheduler, entity| scheduler.trigger(EntityCreateEvent { entity }))
 }

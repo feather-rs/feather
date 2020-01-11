@@ -3,7 +3,6 @@
 
 use glm::DVec3;
 use ncollide3d::bounding_volume::AABB;
-use specs::{Component, VecStorage};
 
 pub const DEFAULT_SLIP_MULTIPLIER: f64 = 0.6;
 
@@ -13,7 +12,7 @@ pub const DEFAULT_SLIP_MULTIPLIER: f64 = 0.6;
 ///
 /// Typically, this component should be constructed using `PhysicsBuilder`.
 #[derive(Debug)]
-pub struct PhysicsComponent {
+pub struct Physics {
     /// This entity's bounding box.
     pub bbox: AABB<f64>,
     /// The drag coefficient for this entity. Each tick,
@@ -33,18 +32,14 @@ pub struct PhysicsComponent {
     pub slip_multiplier: f64,
 }
 
-impl Component for PhysicsComponent {
-    type Storage = VecStorage<Self>;
-}
-
 /// Builder for physics components.
 pub struct PhysicsBuilder {
-    comp: PhysicsComponent,
+    comp: Physics,
 }
 
 impl Default for PhysicsBuilder {
     fn default() -> Self {
-        let comp = PhysicsComponent {
+        let comp = Physics {
             bbox: bbox(0.5, 0.5, 0.5),
             drag: 0.98,
             gravity: -0.08,
@@ -85,7 +80,7 @@ impl PhysicsBuilder {
         self
     }
 
-    pub fn build(self) -> PhysicsComponent {
+    pub fn build(self) -> Physics {
         self.comp
     }
 }

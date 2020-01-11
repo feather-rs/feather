@@ -1,7 +1,97 @@
-// Specs systems tend to have very long
-// tuples as their SystemData, and Clippy
-// doesn't seem to like this.
-#![allow(clippy::type_complexity)]
+//! Feather, a Minecraft server implementation in Rust.
+//!
+//! This is the developer documenation, and anyone wishing to contribute
+//! should read this first.
+//!
+//! The core of Feather is based on [`legion`](https://github.com/TomGillen/legion),
+//! a fast ECS for Rust, and [`tonks`](https://github.com/feather-rs/tonks), a system
+//! scheduler built on Legion. As a result, we use the ECS architecture: the
+//! entire server consists of _entities_, simple IDs with no data; _components_,
+//! arbitrary data, such as positions, which can be attached to an entity;
+//! and _systems_, functions which can run logic over entities and components.
+//!
+//! The benefit of this design is the splitting between data and logic. With a traditional
+//! object-oriented design, there would be an Entity class from which other entities
+//! inherit and can override logic. However, this model does not work well with Rust's
+//! borrow checker (as we found out in the early days of Feather, when this design was
+//! used), and more importantly, it reduces flexibility. Say, for example, that a plugin
+//! wants to modify the physics behavior of a cow by increasing gravity. With the object-oriented
+//! design, it would have to somehow modify the `run_physics` method on `Cow`, which is not
+//! possible in a native language (although it can be done in some languages using class rewriting).
+//! On the other hand, using Feather, there is a `Physics` component which stores gravity,
+//! drag, etc. for an entity, and all the plugin has to do is modify that component.
+//!
+//! Another benefit of the ECS architecture is performance. With the OO design, entities
+//! would likely be stored in a `Vec<Box<dyn Entity>>`, which is horribly inefficient
+//! with regards to cache locality and iteration performance. Legion, however, stores
+//! entities in an efficient manner such that many of the same type of component
+//! are stored contiguously, which is excellent for cache performance.
+//!
+//! Here is a more in-depth description of each concept in Feather.
+//!
+//! ## Entities
+//! Entities, or `legion::entity::Entity`, are simple numerical IDs: they store no
+//! data, but components can be attached to an entity. See the systems section
+//! for information on how to access this data.
+//!
+//! ## Components
+//! Components store data associated with an entity, such as `Position`.
+//! Arbitrary amounts of components can be associated with any given entity.
+//!
+//! ## Resources
+//! Resources are a branching off from the pure ECS concept. Like components, they
+//! store arbitrary data in the form of structs; however, they are not associated
+//! with any entity. An example of a resource might be the chunk map, which allows
+//! access to blocks in the world.
+//!
+//! ## Systems
+//! The systems concept is where things become more complex. `tonks`, the library
+//! which runs systems, runs them _in parallel_, effectively multithreading the
+//! entire server. This is still safe because the scheduler ensures that no
+//! two systems which write to the same data run at the same time.
+//!
+//! A consequence of the above is that systems must explicitly state which
+//! resources and components they might access. If a system needs access to positions,
+//! it needs to state this upfront so the scheduler can ensure memory safety.
+//!
+//! Systems can be written by creating a function annotated with the `system` attribute.
+//! `tonks` will automatically detect which resources are accessed based on the function
+//! parameters, and it will register them to the system scheduler without you
+//! having to do anything. (How does this work? Don't even bother.)
+//!
+//! ## Events
+//! Events are another concept unique to Feather, at least in the way they are implemented
+//! here. The name states what they are—BlockChangeEvent, for example, is triggered when
+//! a block is updated.
+//!
+//! A system can trigger an event by specifying an `&mut Trigger<E>` resource.
+//!
+//! ## Event handlers
+//! Event handlers are similar to systems, but they only run when the event they
+//! handle is triggered. Use the `event_handler` attribute on a function to register
+//! it as an event handler.
+//!
+//! # Networking model
+//! Feather consists of two key parts: the server threads, which run systems
+//! over entities, and the networking tasks, which run on [`tokio`](https://github.com/tokio-rs/tokio).
+//! The networking tasks will accept connections and parse any packets received
+//! from the player.
+//!
+//! When a connection is first made to the server's TCP listener, the networking
+//! task will spawn another task to handle the connection. It's important to note that
+//! at this time, _the server thread is totally unaware of the connection_—networking
+//! runs entirely isolated from the rest of the program.
+//!
+//! At this point, the initial handler takes over, which runs on the networking task.
+//! It will handle the login sequence or status pings, perform authentication, etc.
+//! If successful, the server is notified of the new player through a channel.
+//!
+//! When the server is notified of a new player, it's essential to realize
+//! that the player still hasn't been sent important data, such as
+//! chunk packets, inventory, time, nearby entities, etc. `PlayerJoinEvent`
+//! is used to send this data.
+
+#![feature(vec_remove_item)]
 
 #[macro_use]
 extern crate log;
@@ -12,88 +102,67 @@ extern crate serde_json;
 #[macro_use]
 extern crate failure;
 #[macro_use]
-extern crate num_derive;
-#[macro_use]
 extern crate smallvec;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate derive_deref;
 #[macro_use]
-extern crate feather_codegen;
+extern crate feather_core;
 #[macro_use]
 extern crate bitflags;
 #[macro_use]
-extern crate feather_core;
+extern crate tonks;
 
 extern crate nalgebra_glm as glm;
 
 use crossbeam::Receiver;
 use std::alloc::System;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use specs::{Builder, Dispatcher, DispatcherBuilder, Entity, LazyUpdate, World, WorldExt};
-
-use feather_core::network::packet::implementation::DisconnectPlay;
-use prelude::*;
-
-use crate::chunk_logic::{ChunkHolders, ChunkWorkerHandle};
-use crate::entity::chicken::ChickenComponent;
-use crate::entity::cow::CowComponent;
-use crate::entity::donkey::DonkeyComponent;
-use crate::entity::horse::HorseComponent;
-use crate::entity::llama::LlamaComponent;
-use crate::entity::mooshroom::MooshroomComponent;
-use crate::entity::pig::PigComponent;
-use crate::entity::rabbit::RabbitComponent;
-use crate::entity::sheep::SheepComponent;
-use crate::entity::squid::SquidComponent;
-use crate::entity::{
-    EntityDestroyEvent, NamedComponent, PacketCreatorComponent, SerializerComponent,
-};
-use crate::network::send_packet_to_player;
-use crate::player::PlayerDisconnectEvent;
-use crate::systems::{BROADCASTER, JOIN_HANDLER, NETWORK, PLAYER_INIT};
-use crate::util::Util;
+use crate::chunk_logic::ChunkWorkerHandle;
+use crate::config::Config;
+use crate::io::NetworkIoManager;
+use crate::state::State;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
 use feather_core::level;
 use feather_core::level::{deserialize_level_file, save_level_file, LevelData, LevelGeneratorType};
+use feather_core::world::ChunkMap;
+use legion::world::World;
 use rand::Rng;
-use shrev::EventChannel;
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
 use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
 use std::path::Path;
 use std::process::exit;
+use tonks::{Resources, Scheduler};
 
 #[global_allocator]
 static ALLOC: System = System;
 
-#[macro_use]
-pub mod util;
-pub mod blocks;
+pub mod broadcasters;
+pub mod chunk_entities;
 pub mod chunk_logic;
-pub mod chunkworker;
+pub mod chunk_worker;
 pub mod config;
 pub mod entity;
 pub mod io;
-pub mod joinhandler;
+pub mod join;
 pub mod lazy;
-pub mod lighting;
 pub mod network;
+pub mod packet_handlers;
 pub mod physics;
 pub mod player;
-pub mod prelude;
 pub mod shutdown;
-pub mod systems;
-#[cfg(test)]
-pub mod testframework;
+pub mod state;
 pub mod time;
+pub mod util;
+pub mod view;
 pub mod worldgen;
 
 pub const TPS: u64 = 20;
@@ -101,11 +170,17 @@ pub const PROTOCOL_VERSION: u32 = 404;
 pub const SERVER_VERSION: &str = "Feather 1.13.2";
 pub const TICK_TIME: u64 = 1000 / TPS;
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Resource)]
 pub struct PlayerCount(AtomicUsize);
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Resource)]
 pub struct TickCount(u64);
+
+/// System to increment tick count each tick.
+#[system]
+fn tick_count_increment(tick: &mut TickCount) {
+    tick.0 += 1;
+}
 
 pub fn main() {
     let config = Arc::new(load_config());
@@ -147,7 +222,10 @@ pub fn main() {
         exit(1)
     });
 
-    let (mut world, mut dispatcher) = init_world(config, player_count, io_manager, level);
+    let chunk_worker_handle = init_chunk_worker(world_dir, &level);
+
+    let mut scheduler = init_scheduler(Arc::clone(&config), chunk_worker_handle, level, io_manager);
+    let mut world = World::new();
 
     // Channel used by the shutdown handler to notify the server thread.
     let (shutdown_tx, shutdown_rx) = crossbeam::unbounded();
@@ -159,11 +237,11 @@ pub fn main() {
     info!("Generating RSA keypair");
     io::init();
 
-    info!("Queuing spawn chunks for loading");
-    load_spawn_chunks(&mut world);
+    info!("Queuing spawn chunks for loading UNIMPLEMENTED");
+    // load_spawn_chunks(&mut world); TODO
 
     info!("Server started");
-    run_loop(&mut world, &mut dispatcher, shutdown_rx);
+    run_loop(&mut world, &mut scheduler, shutdown_rx);
 
     info!("Shutting down");
 
@@ -176,6 +254,81 @@ pub fn main() {
 
     info!("Goodbye");
     exit(0);
+}
+
+/// Runs the main game loop.
+fn run_loop(world: &mut World, scheduler: &mut Scheduler, shutdown_rx: Receiver<()>) {
+    loop {
+        if shutdown_rx.try_recv().is_ok() {
+            // Shut down
+            return;
+        }
+
+        let start_time = current_time_in_millis();
+
+        scheduler.execute(world);
+        // https://github.com/TomGillen/legion/issues/60
+        // world.defrag(None); // TODO: do this at interval rate?
+
+        // Run lazily-executed closures. TODO: remove unsafe
+        unsafe {
+            let state = scheduler.resources().get::<State>() as *const State;
+            (&*state).flush(world, scheduler);
+        }
+
+        // Sleep correct amount
+        let end_time = current_time_in_millis();
+        let elapsed = end_time - start_time;
+        if elapsed > TICK_TIME {
+            debug!("Running behind! Starting next tick immediately");
+            continue; // Behind - start next tick immediately
+        }
+
+        // Sleep in 1ms increments until we've slept enough
+        let mut sleep_time = (TICK_TIME - elapsed) as i64;
+        let mut last_sleep_time = current_time_in_millis();
+        while sleep_time > 0 {
+            std::thread::sleep(Duration::from_millis(1));
+            sleep_time -= (current_time_in_millis() - last_sleep_time) as i64;
+            last_sleep_time = current_time_in_millis();
+        }
+    }
+}
+
+/// Initializes the scheduler and resources.
+fn init_scheduler(
+    config: Arc<Config>,
+    chunk_worker_handle: ChunkWorkerHandle,
+    level: LevelData,
+    io_manager: NetworkIoManager,
+) -> Scheduler {
+    // Insert resources which don't have a `Default` impl.
+    let mut resources = Resources::new();
+    let chunk_map = ChunkMap::new();
+    resources.insert(State::new(config, chunk_map, level));
+    resources.insert(chunk_worker_handle);
+    resources.insert(io_manager);
+
+    tonks::build_scheduler().build(resources)
+}
+
+/// Initializes the chunk worker.
+fn init_chunk_worker(world_dir: &Path, level: &LevelData) -> ChunkWorkerHandle {
+    let generator: Arc<dyn WorldGenerator> = match level.generator_type() {
+        LevelGeneratorType::Flat => Arc::new(SuperflatWorldGenerator {
+            options: level.clone().generator_options.unwrap_or_default(),
+        }),
+        LevelGeneratorType::Default => {
+            Arc::new(ComposableGenerator::default_with_seed(level.seed as u64))
+        }
+        _ => Arc::new(EmptyWorldGenerator {}),
+    };
+
+    let (tx, rx) = chunk_worker::start(world_dir, generator);
+    ChunkWorkerHandle {
+        sender: tx,
+        receiver: rx,
+    }
 }
 
 /// Loads the configuration file, creating a default
@@ -198,6 +351,35 @@ fn load_config() -> Config {
             }
         },
     }
+}
+
+/// Starts the IO threads.
+fn init_io_manager(
+    config: Arc<Config>,
+    player_count: Arc<PlayerCount>,
+    server_icon: Arc<Option<String>>,
+) -> io::NetworkIoManager {
+    io::NetworkIoManager::start(
+        format!("{}:{}", config.server.address, config.server.port)
+            .parse()
+            .unwrap(),
+        config,
+        player_count,
+        server_icon,
+    )
+}
+
+fn init_log(config: &Config) {
+    let level = match config.log.level.as_str() {
+        "trace" => log::Level::Trace,
+        "debug" => log::Level::Debug,
+        "info" => log::Level::Info,
+        "warn" => log::Level::Warn,
+        "error" => log::Level::Error,
+        _ => panic!("Unknown log level {}", config.log.level),
+    };
+
+    simple_logger::init_with_level(level).unwrap();
 }
 
 fn create_level(config: &Config) -> LevelData {
@@ -265,190 +447,6 @@ fn load_level(path: &Path) -> Result<LevelData, failure::Error> {
     Ok(data)
 }
 
-/// Loads the chunks around the spawn area and creates
-/// a chunk hold on those chunks to prevent them from
-/// being unloaded.
-///
-/// Note that these chunks are loaded asynchronously,
-/// and this function will return before loading is complete.
-fn load_spawn_chunks(world: &mut World) {
-    let view_distance = i32::from(world.fetch::<Arc<Config>>().server.view_distance);
-
-    // Create an entity for the server and
-    // add chunk holders using it.
-    let server_entity = world.create_entity().build();
-
-    let mut chunk_holders = world.fetch_mut::<ChunkHolders>();
-    let chunk_worker_handle = world.fetch::<ChunkWorkerHandle>();
-
-    let level = world.fetch::<LevelData>();
-    let offset_x = level.spawn_x / 16;
-    let offset_z = level.spawn_z / 16;
-    for x in -view_distance..=view_distance {
-        for z in -view_distance..=view_distance {
-            let chunk = ChunkPosition::new(x + offset_x, z + offset_z);
-
-            chunk_logic::load_chunk(&chunk_worker_handle, chunk);
-            chunk_holders.insert_holder(chunk, server_entity);
-        }
-    }
-}
-
-/// Runs the server loop, blocking until the server
-/// is shut down.
-fn run_loop(world: &mut World, dispatcher: &mut Dispatcher, shutdown_rx: Receiver<()>) {
-    loop {
-        if shutdown_rx.try_recv().is_ok() {
-            // Shut down
-            return;
-        }
-
-        let start_time = current_time_in_millis();
-
-        dispatcher.dispatch(&world);
-        world.maintain();
-
-        world.fetch_mut::<Util>().reset();
-
-        // Increment tick count
-        let mut tick_count = world.write_resource::<TickCount>();
-        tick_count.0 += 1;
-
-        // Sleep correct amount
-        let end_time = current_time_in_millis();
-        let elapsed = end_time - start_time;
-        if elapsed > TICK_TIME {
-            debug!("Running behind! Starting next tick immediately");
-            continue; // Behind - start next tick immediately
-        }
-
-        // Sleep in 1ms increments until we've slept enough
-        let mut sleep_time = (TICK_TIME - elapsed) as i64;
-        let mut last_sleep_time = current_time_in_millis();
-        while sleep_time > 0 {
-            std::thread::sleep(Duration::from_millis(1));
-            sleep_time -= (current_time_in_millis() - last_sleep_time) as i64;
-            last_sleep_time = current_time_in_millis();
-        }
-    }
-}
-
-/// Starts the IO threads.
-fn init_io_manager(
-    config: Arc<Config>,
-    player_count: Arc<PlayerCount>,
-    server_icon: Arc<Option<String>>,
-) -> io::NetworkIoManager {
-    io::NetworkIoManager::start(
-        format!("{}:{}", config.server.address, config.server.port)
-            .parse()
-            .unwrap(),
-        config,
-        player_count,
-        server_icon,
-    )
-}
-
-/// Initializes the Specs world and dispatchers.
-fn init_world<'a, 'b>(
-    config: Arc<Config>,
-    player_count: Arc<PlayerCount>,
-    ioman: io::NetworkIoManager,
-    level: LevelData,
-) -> (World, Dispatcher<'a, 'b>) {
-    let mut world = World::new();
-    time::init_time(&mut world, &level);
-    world.insert(config);
-    world.insert(player_count);
-    world.insert(ioman);
-    world.insert(TickCount::default());
-
-    world.register::<PacketCreatorComponent>();
-    world.register::<SerializerComponent>();
-
-    let generator: Arc<dyn WorldGenerator> = match level.generator_type() {
-        LevelGeneratorType::Flat => Arc::new(SuperflatWorldGenerator {
-            options: level.clone().generator_options.unwrap_or_default(),
-        }),
-        LevelGeneratorType::Default => {
-            Arc::new(ComposableGenerator::default_with_seed(level.seed as u64))
-        }
-        _ => Arc::new(EmptyWorldGenerator {}),
-    };
-    world.insert(level);
-    world.insert(generator);
-
-    let mut dispatcher = DispatcherBuilder::new();
-
-    dispatcher.add(network::NetworkSystem, NETWORK, &[]);
-
-    blocks::init_logic(&mut dispatcher);
-    physics::init_logic(&mut dispatcher);
-    entity::init_logic(&mut dispatcher);
-    player::init_logic(&mut dispatcher);
-    chunk_logic::init_logic(&mut dispatcher);
-    time::init_logic(&mut dispatcher);
-    lighting::init_logic(&mut dispatcher);
-
-    dispatcher.add_barrier();
-
-    blocks::init_handlers(&mut dispatcher);
-    physics::init_handlers(&mut dispatcher);
-    entity::init_handlers(&mut dispatcher);
-    player::init_handlers(&mut dispatcher);
-    chunk_logic::init_handlers(&mut dispatcher);
-
-    // Player init dependency is so that player position is loaded
-    // before the join handle runs.
-    dispatcher.add(
-        joinhandler::JoinHandlerSystem,
-        JOIN_HANDLER,
-        &[NETWORK, PLAYER_INIT],
-    );
-
-    dispatcher.add_barrier();
-
-    player::init_broadcast(&mut dispatcher);
-    entity::init_broadcast(&mut dispatcher);
-
-    // Broadcast system needs to run last.
-    dispatcher.add_barrier();
-    dispatcher.add(util::BroadcasterSystem, BROADCASTER, &[]);
-
-    let mut dispatcher = dispatcher.build();
-    dispatcher.setup(&mut world);
-
-    register_components(&mut world);
-
-    (world, dispatcher)
-}
-
-fn register_components(world: &mut World) {
-    world.register::<ChickenComponent>();
-    world.register::<CowComponent>();
-    world.register::<DonkeyComponent>();
-    world.register::<HorseComponent>();
-    world.register::<LlamaComponent>();
-    world.register::<MooshroomComponent>();
-    world.register::<PigComponent>();
-    world.register::<RabbitComponent>();
-    world.register::<SheepComponent>();
-    world.register::<SquidComponent>();
-}
-
-fn init_log(config: &Config) {
-    let level = match config.log.level.as_str() {
-        "trace" => log::Level::Trace,
-        "debug" => log::Level::Debug,
-        "info" => log::Level::Info,
-        "warn" => log::Level::Warn,
-        "error" => log::Level::Error,
-        _ => panic!("Unknown log level {}", config.log.level),
-    };
-
-    simple_logger::init_with_level(level).unwrap();
-}
-
 /// Tries to load a server icon from the current directory.
 fn load_server_icon() -> Option<String> {
     let icon_file: Option<File> = match File::open("server-icon.png") {
@@ -477,78 +475,11 @@ pub fn current_time_in_secs() -> u64 {
         .as_secs()
 }
 
-/// Retrieves the current time in milleseconds
+/// Retrieves the current time in milliseconds
 /// since the UNIX epoch.
 pub fn current_time_in_millis() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_millis() as u64
-}
-
-/// Disconnects the given player, removing them from the world.
-/// This operation is performed lazily.
-pub fn disconnect_player(player: Entity, reason: String, lazy: &LazyUpdate) {
-    lazy.exec_mut(move |world| {
-        let json = json!({
-            "text": reason,
-        });
-
-        let packet = DisconnectPlay::new(json.to_string());
-        send_packet_to_player(world.read_component().get(player).unwrap(), packet);
-
-        disconnect_player_without_packet(player, world, reason);
-    })
-}
-
-/// Disconnects a player without sending Disconnect Play.
-/// This should be used when the client disconnects.
-pub fn disconnect_player_without_packet(player: Entity, world: &mut World, reason: String) {
-    let nameds = world.write_component::<NamedComponent>();
-    let named = nameds.get(player).unwrap();
-
-    info!("Disconnecting player {}: {}", named.display_name, reason);
-
-    // Decrement player count
-    let player_count = world.fetch_mut::<Arc<PlayerCount>>();
-    player_count.0.fetch_sub(1, Ordering::SeqCst);
-
-    // Trigger disconnect event
-    let event = PlayerDisconnectEvent {
-        player,
-        uuid: named.uuid,
-        reason,
-    };
-    world
-        .fetch_mut::<EventChannel<PlayerDisconnectEvent>>()
-        .single_write(event);
-
-    // Trigger entity destroy event
-    let event = EntityDestroyEvent { entity: player };
-    world
-        .fetch_mut::<EventChannel<EntityDestroyEvent>>()
-        .single_write(event);
-
-    // The entity is removed from the world by `entity::EntityDestroySystem`.
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_init_world() {
-        let config = Arc::new(Config::default());
-        let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
-        let server_icon = Arc::new(Some(String::from("server_icon")));
-        let ioman = init_io_manager(
-            Arc::clone(&config),
-            Arc::clone(&player_count),
-            Arc::clone(&server_icon),
-        );
-        let level = LevelData::default();
-
-        let (world, mut dispatcher) = init_world(config, player_count, ioman, level);
-        dispatcher.dispatch(&world);
-    }
 }

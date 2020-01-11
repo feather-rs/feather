@@ -1,11 +1,13 @@
 use crate::config::Config;
 use crate::PlayerCount;
 use feather_core::network::packet::Packet;
+use feather_core::player_data::PlayerData;
+use feather_core::Position;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use uuid::Uuid;
 
-mod initialhandler;
+mod initial_handler;
 mod listener;
 mod worker;
 
@@ -28,11 +30,14 @@ pub struct NewClientInfo {
     pub username: String,
     pub profile: Vec<mojang_api::ProfileProperty>,
     pub uuid: Uuid,
+    pub data: PlayerData,
+    pub position: Position,
 
     pub sender: futures::channel::mpsc::UnboundedSender<ServerToWorkerMessage>,
     pub receiver: crossbeam::Receiver<ServerToWorkerMessage>,
 }
 
+#[derive(Resource)]
 pub struct NetworkIoManager {
     pub receiver: crossbeam::Receiver<ListenerToServerMessage>,
     /// Used for testing
@@ -67,15 +72,9 @@ impl NetworkIoManager {
     }
 }
 
-impl Default for NetworkIoManager {
-    fn default() -> Self {
-        panic!("Don't try this");
-    }
-}
-
 /// Initializes certain static variables.
 pub fn init() {
-    lazy_static::initialize(&initialhandler::RSA_KEY);
+    lazy_static::initialize(&initial_handler::RSA_KEY);
 }
 
 async fn run_listener(

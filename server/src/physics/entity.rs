@@ -1,17 +1,17 @@
 //! Module for performing entity physics, including velocity, drag
 //! and position updates each tick.
 
-use specs::{Entities, Entity, Join, Read, ReadStorage, System, Write, WriteStorage};
-
-use crate::entity::{EntityDestroyEvent, PositionComponent, VelocityComponent};
-use crate::physics::{
-    block_impacted_by_ray, blocks_intersecting_bbox, AABBExt, PhysicsComponent, Side,
-};
-use feather_core::world::ChunkMap;
+use crate::entity::Velocity;
+use crate::physics::{block_impacted_by_ray, blocks_intersecting_bbox, AABBExt, Physics, Side};
+use crate::state::State;
 use feather_core::Position;
 use feather_core::{Block, BlockExt};
-use shrev::EventChannel;
+use legion::entity::Entity;
+use legion::query::{Read, Write};
+use parking_lot::Mutex;
+use tonks::{PreparedWorld, Query, Trigger};
 
+/// Event triggered when an entity lands on the ground.
 #[derive(Debug, Clone)]
 pub struct EntityPhysicsLandEvent {
     pub entity: Entity,
@@ -20,197 +20,128 @@ pub struct EntityPhysicsLandEvent {
 
 /// System for updating all entities' positions and velocities
 /// each tick.
-pub struct EntityPhysicsSystem;
+#[system]
+fn entity_physics(
+    state: &State,
+    query: &mut Query<(Write<Position>, Write<Velocity>, Read<Physics>)>,
+    world: &mut PreparedWorld,
+    land_events: &mut Trigger<EntityPhysicsLandEvent>,
+) {
+    // Using a mutex is fine, since land events are written very rarely
+    // and thus contention is low.
+    let land_events = Mutex::new(land_events);
 
-impl<'a> System<'a> for EntityPhysicsSystem {
-    type SystemData = (
-        WriteStorage<'a, PositionComponent>,
-        WriteStorage<'a, VelocityComponent>,
-        ReadStorage<'a, PhysicsComponent>,
-        Write<'a, EventChannel<EntityDestroyEvent>>,
-        Write<'a, EventChannel<EntityPhysicsLandEvent>>,
-        Read<'a, ChunkMap>,
-        Entities<'a>,
-    );
+    // Go through entities and update their positions according
+    // to their velocities.
+    query.par_entities_for_each(world, |(entity, (mut position, mut velocity, physics))| {
+        let mut pending_position = *position + velocity.0;
 
-    fn run(&mut self, data: Self::SystemData) {
-        let (
-            mut positions,
-            mut velocities,
-            physics,
-            mut entity_destroy_events,
-            mut entity_land_events,
-            chunk_map,
-            entities,
-        ) = data;
-        // Go through entities and update their positions according
-        // to their velocities.
+        // Check for blocks along path between old position and pending position.
+        // This prevents entities from flying through blocks when their
+        // velocity is sufficiently high.
+        let origin = (*position).into();
+        let direction = (pending_position - *position).into();
+        let distance_squared = pending_position.distance_squared(*position);
 
-        // Unfortunately, we are currently not able to parallel
-        // join over the position storage due to slide-rs/specs#541.
-        // When this issue is resolved, the join below should be switched to a parallel
-        // join.
+        if let Some(impacted) = block_impacted_by_ray(&state, origin, direction, distance_squared) {
+            // Set velocities along correct axis to 0 and then set position
+            // to just before the bbox would have impacted the block.
+            let face = impacted.face;
+            let impact = impacted.pos;
 
-        // A restricted storage is used for `velocity` so as to avoid
-        // triggering a velocity update event when it is not actually
-        // modified.
-        for (position, mut restrict_velocity, physics, entity) in (
-            &mut positions,
-            &mut velocities.restrict_mut(),
-            &physics,
-            &entities,
-        )
-            .join()
-        {
-            let mut velocity = *restrict_velocity.get_unchecked();
-
-            let mut pending_position = position.current + velocity.0;
-
-            // Check for blocks along path between old position and pending position.
-            // This prevents entities from flying through blocks when their
-            // velocity is sufficiently high.
-            let origin = position.current.into();
-            let direction = (pending_position - position.current).into();
-            let distance_squared = pending_position.distance_squared(position.current);
-
-            if let Some(impacted) =
-                block_impacted_by_ray(&chunk_map, origin, direction, distance_squared)
-            {
-                // Set velocities along correct axis to 0 and then set position
-                // to just before the bbox would have impacted the block.
-                let face = impacted.face;
-                let impact = impacted.pos;
-
-                if face.contains(Side::EAST) || face.contains(Side::WEST) {
-                    velocity.x = 0.0;
-                    pending_position.x = impact.x + physics.bbox.size().x * face.as_vector().x;
-                }
-                if face.contains(Side::NORTH) || face.contains(Side::SOUTH) {
-                    velocity.z = 0.0;
-                    pending_position.z = impact.z + physics.bbox.size().z * face.as_vector().z;
-                }
-                if face.contains(Side::TOP) || face.contains(Side::BOTTOM) {
-                    velocity.y = 0.0;
-                    pending_position.y = impact.y + physics.bbox.size().y * face.as_vector().y;
-                }
-                if face.contains(Side::TOP) {
-                    pending_position.on_ground = true;
-                }
-            }
-
-            // Check for blocks around the bbox and apply offset
-            // to position to stop the bbox from intersecting blocks.
-            let intersect = blocks_intersecting_bbox(
-                &chunk_map,
-                position.current,
-                pending_position,
-                &physics.bbox,
-            );
-            intersect.apply_to(&mut pending_position);
-
-            if intersect.x_affected() {
+            if face.contains(Side::EAST) || face.contains(Side::WEST) {
                 velocity.x = 0.0;
+                pending_position.x = impact.x + physics.bbox.size().x * face.as_vector().x;
             }
-
-            if intersect.y_affected() {
-                velocity.y = 0.0;
-            }
-
-            if intersect.z_affected() {
+            if face.contains(Side::NORTH) || face.contains(Side::SOUTH) {
                 velocity.z = 0.0;
+                pending_position.z = impact.z + physics.bbox.size().z * face.as_vector().z;
             }
-
-            // Delete entity if it has gone into unloaded chunks.
-            let block_at_pos = match chunk_map.block_at(pending_position.block_pos()) {
-                Some(block) => block,
-                None => {
-                    // Delete entity.
-                    let event = EntityDestroyEvent { entity };
-                    entity_destroy_events.single_write(event);
-
-                    entities.delete(entity).unwrap();
-                    continue;
-                }
-            };
-
-            // Set on ground status
-            pending_position.on_ground = match chunk_map.block_at(
-                position!(
-                    pending_position.x,
-                    pending_position.y - physics.bbox.size().y / 2.0 - 0.01,
-                    pending_position.z
-                )
-                .block_pos(),
-            ) {
-                Some(block) => block.is_solid(),
-                None => false,
-            };
-            if pending_position.on_ground && !position.current.on_ground {
-                entity_land_events.single_write(EntityPhysicsLandEvent {
-                    entity,
-                    pos: pending_position,
-                });
+            if face.contains(Side::TOP) || face.contains(Side::BOTTOM) {
+                velocity.y = 0.0;
+                pending_position.y = impact.y + physics.bbox.size().y * face.as_vector().y;
             }
-
-            // Apply drag and gravity.
-
-            // In water and lava, gravity is four times less, and velocity is multiplied by a special drag force.
-            let liquid_drag = 0.8;
-            match block_at_pos {
-                Block::Water(_) => {
-                    velocity.0 *= liquid_drag;
-                    velocity.0.y += physics.gravity / 4.0;
-                }
-                Block::Lava(_) => {
-                    velocity.0 *= liquid_drag - 0.3;
-                    velocity.0.y += physics.gravity / 4.0;
-                }
-                _ => {
-                    let slip_multiplier = physics.slip_multiplier;
-                    if pending_position.on_ground {
-                        velocity.0.x *= slip_multiplier;
-                        velocity.0.z *= slip_multiplier;
-                    } else {
-                        velocity.0.y = physics.drag * velocity.0.y + physics.gravity;
-                        velocity.0.x *= physics.drag;
-                        velocity.0.z *= physics.drag;
-                    }
-                }
-            }
-
-            // Set new position.
-            // A move event is triggered through FlaggedStorage.
-            position.current = pending_position;
-
-            // Update velocity, if it changed.
-            if velocity != *restrict_velocity.get_unchecked() {
-                *restrict_velocity.get_mut_unchecked() = velocity;
+            if face.contains(Side::TOP) {
+                pending_position.on_ground = true;
             }
         }
-    }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::entity::test;
-    use crate::physics::PhysicsBuilder;
-    use crate::testframework as t;
-    use specs::{Builder, WorldExt};
+        // Check for blocks around the bbox and apply offset
+        // to position to stop the bbox from intersecting blocks.
+        let intersect =
+            blocks_intersecting_bbox(&state, *position, pending_position, &physics.bbox);
+        intersect.apply_to(&mut pending_position);
 
-    #[test]
-    fn test_unloaded_chunk() {
-        let (mut w, mut d) = t::builder().with(EntityPhysicsSystem, "").build();
+        if intersect.x_affected() {
+            velocity.x = 0.0;
+        }
 
-        let entity = test::create(&mut w, position!(1000.0, 100.0, 1000.0)).build();
+        if intersect.y_affected() {
+            velocity.y = 0.0;
+        }
 
-        w.write_component::<PhysicsComponent>()
-            .insert(entity, PhysicsBuilder::new().build())
-            .unwrap();
+        if intersect.z_affected() {
+            velocity.z = 0.0;
+        }
 
-        d.dispatch(&w);
-        w.maintain();
+        // Delete entity if it has gone into unloaded chunks.
+        let block_at_pos = match state.block_at(pending_position.block_pos()) {
+            Some(block) => block,
+            None => {
+                // Delete entity.
+                state.exec(move |world| {
+                    world.delete(entity);
+                });
+                return;
+            }
+        };
 
-        t::assert_removed(&w, entity);
-    }
+        // Set on ground status.
+        pending_position.on_ground = match state.block_at(
+            position!(
+                pending_position.x,
+                pending_position.y - physics.bbox.size().y / 2.0 - 0.01,
+                pending_position.z
+            )
+            .block_pos(),
+        ) {
+            Some(block) => block.is_solid(),
+            None => false,
+        };
+        if pending_position.on_ground && !position.on_ground {
+            land_events.lock().trigger(EntityPhysicsLandEvent {
+                entity,
+                pos: pending_position,
+            });
+        }
+
+        // Apply drag and gravity.
+
+        // In water and lava, gravity is four times less, and velocity is multiplied by a special drag force.
+        let liquid_drag = 0.8;
+        match block_at_pos {
+            Block::Water(_) => {
+                velocity.0 *= liquid_drag;
+                velocity.0.y += physics.gravity / 4.0;
+            }
+            Block::Lava(_) => {
+                velocity.0 *= liquid_drag - 0.3;
+                velocity.0.y += physics.gravity / 4.0;
+            }
+            _ => {
+                let slip_multiplier = physics.slip_multiplier;
+                if pending_position.on_ground {
+                    velocity.0.x *= slip_multiplier;
+                    velocity.0.z *= slip_multiplier;
+                } else {
+                    velocity.0.y = physics.drag * velocity.0.y + physics.gravity;
+                    velocity.0.x *= physics.drag;
+                    velocity.0.z *= physics.drag;
+                }
+            }
+        }
+
+        // Set new position.
+        *position = pending_position;
+    });
 }

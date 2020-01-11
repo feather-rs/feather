@@ -10,10 +10,26 @@ pub trait AsAny {
     fn as_any(&self) -> &dyn Any;
 }
 
-pub trait Packet: AsAny + Send + Sync {
+pub trait IntoAny {
+    fn into_any(self: Box<Self>) -> Box<dyn Any>;
+}
+
+impl<T> IntoAny for T
+where
+    T: Any,
+{
+    fn into_any(self: Box<Self>) -> Box<dyn Any> {
+        self
+    }
+}
+
+pub trait Packet: AsAny + IntoAny + Send + Sync + Any {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error>;
     fn write_to(&self, buf: &mut BytesMut);
     fn ty(&self) -> PacketType;
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized;
 
     /// Returns a clone of this packet in a dynamic box.
     fn box_clone(&self) -> Box<dyn Packet>;

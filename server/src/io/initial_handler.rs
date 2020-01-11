@@ -17,7 +17,7 @@
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
-use rand_legacy::rngs::OsRng;
+use rand::rngs::OsRng;
 use rsa::{PaddingScheme, PublicKey, RSAPrivateKey};
 use rsa_der as der;
 use uuid::Uuid;
@@ -46,7 +46,7 @@ const SHARED_SECRET_LEN: usize = 128 / 8;
 
 lazy_static! {
     pub static ref RSA_KEY: RSAPrivateKey = {
-        let mut rng = OsRng::new().unwrap();
+        let mut rng = OsRng;
         RSAPrivateKey::new(&mut rng, RSA_KEY_BITS).unwrap()
     };
 }
@@ -63,7 +63,7 @@ pub enum Action {
 }
 
 /// The type returned for when a player has completed the login process.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct JoinResult {
     pub username: Option<String>,
     pub uuid: Uuid,
@@ -195,12 +195,12 @@ impl InitialHandler {
 async fn _handle_packet(ih: &mut InitialHandler, packet: Box<dyn Packet>) -> Result<(), Error> {
     // Find packet type and forward to correct function
     match packet.ty() {
-        PacketType::Handshake => handle_handshake(ih, cast_packet::<Handshake>(&*packet))?,
-        PacketType::Request => handle_request(ih, cast_packet::<Request>(&*packet))?,
-        PacketType::Ping => handle_ping(ih, cast_packet::<Ping>(&*packet))?,
-        PacketType::LoginStart => handle_login_start(ih, cast_packet::<LoginStart>(&*packet))?,
+        PacketType::Handshake => handle_handshake(ih, &cast_packet::<Handshake>(packet))?,
+        PacketType::Request => handle_request(ih, &cast_packet::<Request>(packet))?,
+        PacketType::Ping => handle_ping(ih, &cast_packet::<Ping>(packet))?,
+        PacketType::LoginStart => handle_login_start(ih, &cast_packet::<LoginStart>(packet))?,
         PacketType::EncryptionResponse => {
-            handle_encryption_response(ih, cast_packet::<EncryptionResponse>(&*packet)).await?
+            handle_encryption_response(ih, &cast_packet::<EncryptionResponse>(packet)).await?
         }
         ty => return Err(Error::InvalidPacket(ty, ih.stage)),
     }
@@ -265,7 +265,7 @@ fn extract_bungeecord_data(packet: &Handshake) -> Result<BungeeCordData, Error> 
     Ok(BungeeCordData::from_vec(&bungee_information)?)
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 struct BungeeCordData {
     host: String,
     client: String,
@@ -528,7 +528,7 @@ fn send_packet<P: Packet + 'static>(ih: &mut InitialHandler, packet: P) {
     ih.action_queue.push(Action::SendPacket(Box::new(packet)));
 }
 
-#[derive(Fail, Debug, PartialEq)]
+#[derive(Fail, Debug)]
 enum Error {
     #[fail(display = "invalid packet type {:?} sent at stage {:?}", _0, _1)]
     InvalidPacket(PacketType, Stage),

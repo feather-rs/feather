@@ -13,65 +13,91 @@ name = "feather-server"
 path = "src/main.rs"
 
 [dependencies]
+# Feather crates
 feather-blocks = { path = "../blocks" }
 feather-core = { path = "../core" }
 feather-item-block = { path = "../item_block" }
-crossbeam = "0.7"
-log = "0.4"
-simple_logger = "1.3"
-uuid = { version = "0.7", features = ["v4"] }
-derive-new = "0.5"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-toml = "0.5"
-rsa = "0.1"
-num-bigint = { version = "0.5", package = "num-bigint-dig" }
-rsa-der = "0.2"
-rand = "0.7"
-rand_xorshift = "0.2"
-rand-legacy = { path = "../util/rand-legacy" }
-bytes = "0.4"
-hashbrown = { version = "0.6", features = ["rayon"] }
-mojang-api = { git = "https://github.com/caelunshun/mojang-api-rs", rev = "65bcc7691e2b2a537028b6c5aeb9de0621d5d461" }
-multimap = "0.6"
-hematite-nbt = "0.4"
-specs = { version = "0.15", features = ["storage-event-control"] }
-rayon = "1.2"
-shrev = "1.1"
-failure = "0.1"
-num-derive = "0.3"
-num-traits = "0.2"
-smallvec = "0.6"
-lazy_static = "1.4"
-nalgebra-glm = "0.4"
-nalgebra = "0.18"
-ncollide3d = "0.20"
-derive_deref = "1.1"
 feather-codegen = { path = "../codegen" }
-bitflags = "1.2"
-fnv = "1.0"
-base64 = "0.10"
-bumpalo = "2.6"
-thread_local = "1.0"
+
+# Core ECS + systems
+legion = { git = "https://github.com/TomGillen/legion", rev = "0f67adc237af35799df173f31a2c238b3d8010a2" }
+tonks = { git = "https://github.com/feather-rs/tonks", rev = "ccdecae02e11fc6694bd252d48cce5794499736f", features = ["system-registry"] }
+# tonks = { path = "../../../dev/tonks", features = ["system-registry"] }
+
+# Concurrency/threading
+crossbeam = "0.7"
+rayon = "1.2"
 parking_lot = "0.9"
-heapless = "0.5"
-strum = "0.16"
-simdnoise = "3.1"
-simdeez = "0.6"
-bitvec = "0.15"
+lock_api = "0.3"
+thread_local = "1.0"
+
+# Netorking/IO
 tokio = "=0.2.0-alpha.6"
 tokio-executor = "=0.2.0-alpha.6"
 futures-preview = { version = "=0.3.0-alpha.19", features = ["async-await"] }
+bytes = "0.4"
+mojang-api = "0.4"
+
+# Crypto
+rsa = "0.2"
+rsa-der = "0.2"
+# Match RSA git master
+num-bigint = { version = "0.6", features = ["rand", "i128", "u64_digit"], package = "num-bigint-dig" }
+
+# Hash functions
+ahash = "0.2"
+fnv = "1.0"
+base64 = "0.10"
+
+# Math and physics
+nalgebra-glm = "0.4"
+nalgebra = "0.18"
+ncollide3d = "0.20"
+
+# Other data structures
+hashbrown = { version = "0.6", features = ["rayon"] }
+bitvec = "0.15"
+bitflags = "1.2"
+heapless = "0.5"
+uuid = { version = "0.7", features = ["v4"] }
+multimap = "0.7"
+smallvec = "0.6"
+chashmap = "2.2"
+
+# Logging
+log = "0.4"
+simple_logger = "1.3"
+
+# Serialization/deserialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.5"
+hematite-nbt = "0.4"
+
+# RNGs
+rand = "0.7"
+rand_xorshift = "0.2"
+
+# Other
+failure = "0.1"
+num-derive = "0.3"
+num-traits = "0.2"
+lazy_static = "1.4"
+derive_deref = "1.1"
+bumpalo = "2.6"
+strum = "0.16"
+simdnoise = "3.1"
+simdeez = "0.6"
 humantime-serde = "0.1"
 ctrlc = "3.1"
-arrayvec = "0.5"
+inventory = "0.1"
 
 [dev-dependencies]
-criterion = "0.3.0"
+criterion = "0.3"
 
 [[bench]]
 name = "worldgen"
 harness = false
 
 [features]
-nightly = ["specs/nightly", "parking_lot/nightly"]
+nightly = ["hashbrown/nightly", "parking_lot/nightly"]

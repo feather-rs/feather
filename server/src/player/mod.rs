@@ -1,113 +1,119 @@
-//! This module provides systems and components
-//! relating to players, including player movement
-//! and inventory handling.
+//! Systems and components specific to player entities.
 
-/// Module for handling player animation broadcasting
-/// (e.g. when a player swings their arm).
-mod animation;
-/// Module for broadcasting when a player joins and leaves.
-mod broadcast;
-/// Module for handling and broadcasting chat messages.
-mod chat;
-/// Module for handling the Player Digging packet.
-mod digging;
-/// Module for initializing the necessary components
-/// when a player joins.
-mod init;
-/// Module for handling player inventory.
-mod inventory;
-/// Module for handling player movement packets.
-/// Also handles loading/unloading chunks when necessary.
-mod movement;
-/// Module for handling player block placements.
-mod placement;
-mod resource_pack;
-mod save;
-mod view;
+use crate::broadcasters::movement::LastKnownPositions;
+use crate::chunk_logic::ChunkHolder;
+use crate::entity;
+use crate::entity::{CreationPacketCreator, EntityId, Name, SpawnPacketCreator};
+use crate::io::NewClientInfo;
+use crate::join::Joined;
+use crate::network::Network;
+use crate::state::State;
+use crate::util::degrees_to_stops;
+use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
+use feather_core::{ClientboundAnimation, Gamemode, Packet, Position};
+use legion::entity::Entity;
+use mojang_api::ProfileProperty;
+use tonks::{EntityAccessor, PreparedWorld};
+use uuid::Uuid;
 
-pub use broadcast::PlayerDisconnectEvent;
-pub use init::create_packet;
+/// Profile properties of a player.
+#[derive(Debug, Clone)]
+pub struct ProfileProperties(pub Vec<ProfileProperty>);
 
-pub use movement::{
-    send_chunk_to_player, ChunkCrossSystem, ChunkPendingComponent, LoadedChunksComponent,
-};
-
-pub use animation::PlayerAnimationEvent;
-
-pub use digging::PlayerItemDropEvent;
-pub use inventory::{InventoryComponent, InventoryUpdateEvent};
-pub use save::save_player_data;
-
-use crate::player::inventory::SetSlotSystem;
-use crate::player::placement::BlockPlacementSystem;
-use crate::player::save::PlayerDataSaveSystem;
-use crate::player::view::ViewUpdateSystem;
-use crate::systems::{
-    ANIMATION_BROADCAST, BLOCK_BREAK_BROADCAST, BLOCK_PLACEMENT, CHAT_BROADCAST, CHUNK_CROSS,
-    CHUNK_SEND, CLIENT_CHUNK_UNLOAD, CREATIVE_INVENTORY, DISCONNECT_BROADCAST, EQUIPMENT_SEND,
-    HELD_ITEM_BROADCAST, HELD_ITEM_CHANGE, JOIN_BROADCAST, NETWORK, PLAYER_ANIMATION, PLAYER_CHAT,
-    PLAYER_DATA_SAVE, PLAYER_DIGGING, PLAYER_INIT, PLAYER_MOVEMENT, RESOURCE_PACK_SEND, SET_SLOT,
-    VIEW_UPDATE,
-};
-use animation::{AnimationBroadcastSystem, PlayerAnimationSystem};
-use broadcast::{DisconnectBroadcastSystem, JoinBroadcastSystem};
-use chat::{ChatBroadcastSystem, PlayerChatSystem};
-use digging::BlockUpdateBroadcastSystem;
-use digging::PlayerDiggingSystem;
-use init::PlayerInitSystem;
-use inventory::{
-    CreativeInventorySystem, EquipmentSendSystem, HeldItemBroadcastSystem, HeldItemChangeSystem,
-};
-use movement::{ChunkSendSystem, ClientChunkUnloadSystem, PlayerMovementSystem};
-use resource_pack::ResourcePackSendSystem;
-use specs::DispatcherBuilder;
-
-pub const PLAYER_EYE_HEIGHT: f64 = 1.62;
-pub const PLAYER_EYE_HEIGHT_WHILE_SNEAKING: f64 = 1.54;
-
-pub fn init_logic(dispatcher: &mut DispatcherBuilder) {
-    dispatcher.add(PlayerDiggingSystem, PLAYER_DIGGING, &[NETWORK]);
-    dispatcher.add(PlayerAnimationSystem, PLAYER_ANIMATION, &[NETWORK]);
-    dispatcher.add(CreativeInventorySystem, CREATIVE_INVENTORY, &[NETWORK]);
-    dispatcher.add(HeldItemChangeSystem, HELD_ITEM_CHANGE, &[NETWORK]);
-    dispatcher.add(PlayerMovementSystem, PLAYER_MOVEMENT, &[NETWORK]);
-    dispatcher.add(PlayerChatSystem, PLAYER_CHAT, &[NETWORK]);
-    dispatcher.add(BlockPlacementSystem, BLOCK_PLACEMENT, &[NETWORK]);
-    dispatcher.add(
-        PlayerDataSaveSystem::default(),
-        PLAYER_DATA_SAVE,
-        &[NETWORK],
-    );
+/// Event triggered when a player joins.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PlayerJoinEvent {
+    pub player: Entity,
 }
 
-pub fn init_handlers(dispatcher: &mut DispatcherBuilder) {
-    dispatcher.add(ViewUpdateSystem::default(), VIEW_UPDATE, &[]);
-    dispatcher.add(ChunkCrossSystem::default(), CHUNK_CROSS, &[]);
-    dispatcher.add(ClientChunkUnloadSystem, CLIENT_CHUNK_UNLOAD, &[]);
-    dispatcher.add(PlayerInitSystem::default(), PLAYER_INIT, &[]);
+/// Event triggered when a player causes an animation.
+#[derive(Debug, Clone)]
+pub struct PlayerAnimationEvent {
+    pub player: Entity,
+    pub animation: ClientboundAnimation,
 }
 
-pub fn init_broadcast(dispatcher: &mut DispatcherBuilder) {
-    dispatcher.add(HeldItemBroadcastSystem::default(), HELD_ITEM_BROADCAST, &[]);
-    dispatcher.add(JoinBroadcastSystem::default(), JOIN_BROADCAST, &[]);
-    dispatcher.add(
-        DisconnectBroadcastSystem::default(),
-        DISCONNECT_BROADCAST,
-        &[],
-    );
-    dispatcher.add(
-        AnimationBroadcastSystem::default(),
-        ANIMATION_BROADCAST,
-        &[],
-    );
-    dispatcher.add(EquipmentSendSystem::default(), EQUIPMENT_SEND, &[]);
-    dispatcher.add(ResourcePackSendSystem::default(), RESOURCE_PACK_SEND, &[]);
-    dispatcher.add(ChunkSendSystem::default(), CHUNK_SEND, &[]);
-    dispatcher.add(
-        BlockUpdateBroadcastSystem::default(),
-        BLOCK_BREAK_BROADCAST,
-        &[],
-    );
-    dispatcher.add(SetSlotSystem::default(), SET_SLOT, &[]);
-    dispatcher.add(ChatBroadcastSystem::default(), CHAT_BROADCAST, &[]);
+/// Tag used to mark a player.
+///
+/// Note that this is a _tag_, not a component.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Player;
+
+/// Creates a new player from the given `NewClientInfo`.
+///
+/// This function also triggers the `PlayerJoinEvent` for this player.
+pub fn create(state: &State, info: NewClientInfo) {
+    entity::base(state, info.position)
+        .with_tag(Player)
+        .with_component(info.uuid)
+        .with_component(Network {
+            sender: info.sender,
+            receiver: info.receiver,
+        })
+        .with_component(info.ip)
+        .with_component(ProfileProperties(info.profile))
+        .with_component(Name(info.username))
+        .with_component(ChunkHolder::default())
+        .with_component(Joined(false))
+        .with_component(LastKnownPositions::default())
+        .with_component(SpawnPacketCreator(&create_spawn_packet))
+        .with_component(CreationPacketCreator(&create_initialization_packet))
+        .with_exec(|_, scheduler, player| {
+            scheduler.trigger(PlayerJoinEvent { player });
+        })
+        .build();
+}
+
+/// Function to create a `SpawnPlayer` packet to spawn the player.
+fn create_spawn_packet(accessor: &EntityAccessor, world: &PreparedWorld) -> Box<dyn Packet> {
+    let entity_id = accessor.get_component::<EntityId>(world).unwrap().0;
+    let player_uuid = *accessor.get_component::<Uuid>(world).unwrap();
+    let pos = *accessor.get_component::<Position>(world).unwrap();
+
+    // TODO: metadata
+
+    let packet = SpawnPlayer {
+        entity_id,
+        player_uuid,
+        x: pos.x,
+        y: pos.y,
+        z: pos.z,
+        yaw: degrees_to_stops(pos.yaw),
+        pitch: degrees_to_stops(pos.pitch),
+        metadata: Default::default(),
+    };
+    Box::new(packet)
+}
+
+/// Function to create a `PlayerInfo` packet to broadcast when the player joins.
+fn create_initialization_packet(
+    accessor: &EntityAccessor,
+    world: &PreparedWorld,
+) -> Box<dyn Packet> {
+    let name = accessor.get_component::<Name>(world).unwrap();
+    let props = accessor.get_component::<ProfileProperties>(world).unwrap();
+    let uuid = *accessor.get_component::<Uuid>(world).unwrap();
+
+    let props = props
+        .0
+        .iter()
+        .map(|prop| {
+            (
+                prop.name.clone(),
+                prop.value.clone(),
+                prop.signature.clone(),
+            )
+        })
+        .collect::<Vec<_>>();
+
+    let display_name = json!({
+        "text": name.0
+    })
+    .to_string();
+
+    let action =
+        PlayerInfoAction::AddPlayer(name.0.clone(), props, Gamemode::Creative, 50, display_name);
+
+    let packet = PlayerInfo { action, uuid };
+    Box::new(packet)
 }

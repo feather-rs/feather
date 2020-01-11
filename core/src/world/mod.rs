@@ -2,9 +2,12 @@ use crate::world::block::*;
 use crate::world::chunk::Chunk;
 use glm::{DVec3, Vec3};
 use hashbrown::HashMap;
+use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use rayon::iter::ParallelIterator;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};
+use std::sync::Arc;
 
 pub mod block;
 #[allow(clippy::cast_lossless)]
@@ -219,6 +222,17 @@ impl Display for ChunkPosition {
     }
 }
 
+impl Add<ChunkPosition> for ChunkPosition {
+    type Output = ChunkPosition;
+
+    fn add(self, rhs: ChunkPosition) -> Self::Output {
+        ChunkPosition {
+            x: self.x + rhs.x,
+            z: self.z + rhs.z,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Hash32, Default)]
 pub struct BlockPosition {
     pub x: i32,
@@ -256,107 +270,78 @@ impl Add<BlockPosition> for BlockPosition {
     }
 }
 
-pub struct ChunkMap {
-    chunk_map: HashMap<ChunkPosition, Chunk>,
-}
+pub type ChunkMapInner = HashMap<ChunkPosition, Arc<RwLock<Chunk>>>;
+
+/// The chunk map.
+///
+/// This struct stores all the chunks on the server,
+/// so it allows access to blocks and lighting data.
+///
+/// Chunks are internally wrapped in `Arc<RwLock>`,
+/// allowing multiple systems to access different parts
+/// of the world in parallel. Mutable access to this
+/// type is only required for inserting and removing
+/// chunks.
+pub struct ChunkMap(ChunkMapInner);
 
 impl ChunkMap {
+    /// Creates a new chunk map with no chunks.
     pub fn new() -> Self {
-        Self {
-            chunk_map: HashMap::new(),
-        }
+        Self(HashMap::new())
     }
 
-    pub fn inner(&self) -> &HashMap<ChunkPosition, Chunk> {
-        &self.chunk_map
+    /// Retrieves a handle to the chunk at the given
+    /// position, or `None` if it is not loaded.
+    pub fn chunk_at(&self, pos: ChunkPosition) -> Option<RwLockReadGuard<Chunk>> {
+        self.0.get(&pos).map(|lock| lock.read())
     }
 
-    pub fn inner_mut(&mut self) -> &mut HashMap<ChunkPosition, Chunk> {
-        &mut self.chunk_map
+    /// Retrieves a handle to the chunk at the given
+    /// position, or `None` if it is not loaded.
+    pub fn chunk_at_mut(&self, pos: ChunkPosition) -> Option<RwLockWriteGuard<Chunk>> {
+        self.0.get(&pos).map(|lock| lock.write())
     }
-
-    /// Retrieves the chunk at the specified location.
-    /// If the chunk is not loaded, `None` will be returned.
-    pub fn chunk_at(&self, pos: ChunkPosition) -> Option<&Chunk> {
-        if let Some(chunk) = self.chunk_map.get(&pos) {
-            Some(chunk)
-        } else {
-            None
-        }
-    }
-
-    /// Retrieves the chunk at the specified location.
-    /// If the chunk is not loaded, `None` will be returned.
-    pub fn chunk_at_mut(&mut self, pos: ChunkPosition) -> Option<&mut Chunk> {
-        if let Some(chunk) = self.chunk_map.get_mut(&pos) {
-            Some(chunk)
-        } else {
-            None
-        }
-    }
-
     /// Retrieves the block at the specified
     /// location. If the chunk in which the block
     /// exists is not laoded, `None` is returned.
     pub fn block_at(&self, pos: BlockPosition) -> Option<Block> {
-        if pos.y > 255 || pos.y < 0 {
-            return None;
-        }
-
-        let chunk_pos = pos.chunk_pos();
-
-        if let Some(chunk) = self.chunk_at(chunk_pos) {
-            let rpos = chunk_relative_pos(pos);
-            Some(chunk.block_at(rpos.0, rpos.1, rpos.2))
-        } else {
-            None
-        }
+        let (x, y, z) = chunk_relative_pos(pos);
+        self.chunk_at(pos.chunk_pos())
+            .map(|chunk| chunk.block_at(x, y, z))
     }
 
     /// Sets the block at the given position.
-    /// If the chunk in which the position resides
-    /// does not exist, `Err` is returned. In all
-    /// other cases, `Ok` is returned.
     ///
-    /// Note that on the server side, calling this function
-    /// does not broadcast the update in any way. As such,
-    /// the according function should be called instead.
-    pub fn set_block_at(&mut self, pos: BlockPosition, block: Block) -> Result<(), ()> {
-        if pos.y > 255 || pos.y < 0 {
-            return Err(());
-        }
+    /// Returns `true` if the block was set, or `false`
+    /// if its chunk was not loaded and thus no operation
+    /// was performed.
+    pub fn set_block_at(&self, pos: BlockPosition, block: Block) -> bool {
+        let (x, y, z) = chunk_relative_pos(pos);
 
-        let chunk_pos = pos.chunk_pos();
-
-        if let Some(chunk) = self.chunk_map.get_mut(&chunk_pos) {
-            let (x, y, z) = chunk_relative_pos(pos);
-            chunk.set_block_at(x, y, z, block);
-            Ok(())
-        } else {
-            Err(())
-        }
+        self.chunk_at_mut(pos.chunk_pos())
+            .map(|mut chunk| chunk.set_block_at(x, y, z, block))
+            .is_some()
     }
 
-    /// Sets the chunk at the given location.
-    pub fn set_chunk_at(&mut self, pos: ChunkPosition, chunk: Chunk) {
-        self.chunk_map.insert(pos, chunk);
+    /// Returns an iterator over chunks.
+    pub fn iter_chunks(&self) -> impl IntoIterator<Item = &Arc<RwLock<Chunk>>> {
+        self.0.values()
     }
 
-    /// Removes the chunk at the given location,
-    /// effectively unloading it.
-    pub fn unload_chunk_at(&mut self, pos: ChunkPosition) -> Option<Chunk> {
-        self.chunk_map.remove(&pos)
+    /// Returns a parallel iterator over chunks.
+    pub fn par_iter_chunks(&self) -> impl ParallelIterator<Item = &Arc<RwLock<Chunk>>> {
+        self.0.par_values()
     }
 
-    /// Returns an immutable reference to the internal map.
-    pub fn chunks(&self) -> &HashMap<ChunkPosition, Chunk> {
-        &self.chunk_map
+    /// Inserts a new chunk into the chunk map.
+    pub fn insert(&mut self, chunk: Chunk) {
+        self.0
+            .insert(chunk.position(), Arc::new(RwLock::new(chunk)));
     }
 
-    /// Returns a mutable reference to the internal
-    /// map.
-    pub fn chunks_mut(&mut self) -> &mut HashMap<ChunkPosition, Chunk> {
-        &mut self.chunk_map
+    /// Removes the chunk at the given position, returning `true` if it existed.
+    pub fn remove(&mut self, pos: ChunkPosition) -> bool {
+        self.0.remove(&pos).is_some()
     }
 }
 
