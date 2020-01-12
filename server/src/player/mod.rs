@@ -7,6 +7,7 @@ use crate::entity::{CreationPacketCreator, EntityId, Name, SpawnPacketCreator};
 use crate::io::NewClientInfo;
 use crate::join::Joined;
 use crate::network::Network;
+use crate::p_inventory::EntityInventory;
 use crate::state::State;
 use crate::util::degrees_to_stops;
 use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
@@ -58,6 +59,8 @@ pub fn create(state: &State, info: NewClientInfo) {
         .with_component(LastKnownPositions::default())
         .with_component(SpawnPacketCreator(&create_spawn_packet))
         .with_component(CreationPacketCreator(&create_initialization_packet))
+        .with_component(Gamemode::Creative) // TOOD: proper gamemode handling
+        .with_component(EntityInventory::default())
         .with_exec(|_, scheduler, player| {
             scheduler.trigger(PlayerJoinEvent { player });
         })

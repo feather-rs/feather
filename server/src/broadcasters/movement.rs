@@ -11,7 +11,6 @@ use feather_core::{Packet, Position};
 use hashbrown::HashMap;
 use legion::entity::Entity;
 use legion::query::{Read, Write};
-use rayon::prelude::*;
 use smallvec::SmallVec;
 use tonks::{PreparedWorld, Query};
 

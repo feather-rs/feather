@@ -23,6 +23,14 @@ pub struct EntityCreateEvent {
     pub entity: Entity,
 }
 
+/// Event triggered when an entity is spawned
+/// on a client.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EntitySendEvent {
+    pub entity: Entity,
+    pub to: Entity,
+}
+
 /// Event triggered when an entity is removed.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct EntityDeleteEvent {

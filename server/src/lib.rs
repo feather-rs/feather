@@ -113,6 +113,8 @@ extern crate feather_core;
 extern crate bitflags;
 #[macro_use]
 extern crate tonks;
+#[macro_use]
+extern crate num_derive;
 
 extern crate nalgebra_glm as glm;
 
@@ -155,6 +157,7 @@ pub mod io;
 pub mod join;
 pub mod lazy;
 pub mod network;
+pub mod p_inventory; // Prefixed to avoid conflict with inventory crate
 pub mod packet_handlers;
 pub mod physics;
 pub mod player;
