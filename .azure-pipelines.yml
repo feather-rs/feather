@@ -178,8 +178,8 @@ jobs:
 
       - task: GithubRelease@0
         inputs:
-          gitHubConnection: 'caelunshun_pat'
-          repositoryName: 'caelunshun/feather'
+          gitHubConnection: 'feather-rs'
+          repositoryName: 'feather-rs/feather'
           action: 'edit'
           target: '$(build.sourceVersion)'
           tagSource: 'manual'
@@ -192,8 +192,8 @@ jobs:
 
       - task: GithubRelease@0
         inputs:
-          gitHubConnection: 'caelunshun_pat'
-          repositoryName: 'caelunshun/feather'
+          gitHubConnection: 'feather-rs'
+          repositoryName: 'feather-rs/feather'
           action: 'edit'
           target: '$(build.sourceVersion)'
           tagSource: 'manual'
