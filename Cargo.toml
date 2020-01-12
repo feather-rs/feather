@@ -8,7 +8,6 @@ members = [
     "item_block",
     "codegen",
     "generator",
-    "util/rand-legacy",
 ]
 
 [profile.dev]

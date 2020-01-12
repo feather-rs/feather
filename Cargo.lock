@@ -2030,13 +2030,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rand-legacy"
-version = "0.1.0"
-dependencies = [
- "rand 0.6.5",
-]
-
-[[package]]
 name = "rand_chacha"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
