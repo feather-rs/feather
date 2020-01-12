@@ -127,7 +127,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use crate::chunk_logic::ChunkWorkerHandle;
 use crate::config::Config;
 use crate::io::NetworkIoManager;
-use crate::state::State;
+use crate::state::StateInner;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
@@ -147,6 +147,7 @@ use tonks::{Resources, Scheduler};
 #[global_allocator]
 static ALLOC: System = System;
 
+pub mod block;
 pub mod broadcasters;
 pub mod chunk_entities;
 pub mod chunk_logic;
@@ -275,7 +276,7 @@ fn run_loop(world: &mut World, scheduler: &mut Scheduler, shutdown_rx: Receiver<
 
         // Run lazily-executed closures. TODO: remove unsafe
         unsafe {
-            let state = scheduler.resources().get::<State>() as *const State;
+            let state = scheduler.resources().get::<StateInner>() as *const StateInner;
             (&*state).flush(world, scheduler);
         }
 
@@ -308,7 +309,7 @@ fn init_scheduler(
     // Insert resources which don't have a `Default` impl.
     let mut resources = Resources::new();
     let chunk_map = ChunkMap::new();
-    resources.insert(State::new(config, chunk_map, level));
+    resources.insert(StateInner::new(config, chunk_map, level));
     resources.insert(chunk_worker_handle);
     resources.insert(io_manager);
 
