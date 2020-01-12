@@ -7,6 +7,7 @@
 //! packets have been sent. This is done through `EntitySendEvent`.
 
 mod animation;
+mod block;
 pub mod entity_creation;
 pub mod entity_deletion;
 mod inventory;
