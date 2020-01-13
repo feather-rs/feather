@@ -75,6 +75,7 @@ pub struct State {
 }
 
 unsafe impl Send for State {}
+
 unsafe impl Sync for State {}
 
 impl<'a> SystemData<'a> for State {

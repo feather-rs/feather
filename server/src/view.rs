@@ -201,10 +201,6 @@ fn view_handle_entities(
         to_send.copied().for_each(|chunk| {
             let entities = state.chunk_entities.entities_in_chunk(chunk);
 
-            if !entities.is_empty() {
-                dbg!(event.player, &entities);
-            }
-
             entities.iter().copied().for_each(|entity| {
                 // Don't send client to themself.
                 if entity == event.player {

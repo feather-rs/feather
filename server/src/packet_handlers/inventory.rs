@@ -1,6 +1,7 @@
 //! Handling of inventory update packets.
 //! This currently includes Creative Inventory Action and Held Item Change.
 
+use crate::entity::item::ItemDropEvent;
 use crate::network::PacketQueue;
 use crate::p_inventory::{EntityInventory, InventoryUpdateEvent};
 use crate::state::State;
@@ -21,7 +22,8 @@ fn handle_creative_inventory_action(
     queue: &PacketQueue,
     _query: &mut Query<(Read<Gamemode>, Write<EntityInventory>)>,
     world: &mut PreparedWorld,
-    trigger: &mut Trigger<InventoryUpdateEvent>,
+    trigger_inventory: &mut Trigger<InventoryUpdateEvent>,
+    trigger_drop: &mut Trigger<ItemDropEvent>,
 ) {
     let packets = queue.received::<CreativeInventoryAction>();
 
@@ -42,19 +44,19 @@ fn handle_creative_inventory_action(
 
         // Slot -1 means that the user clicked outside the window,
         // dropping the item.
-        // TODO: implement this
         if packet.slot == -1 {
             match &packet.clicked_item {
-                Some(_) => {
-                    /*let event = PlayerItemDropEvent {
+                Some(stack) => {
+                    // Cause item to be dropped
+                    let event = ItemDropEvent {
                         slot: None,
                         stack: stack.clone(),
                         player,
                     };
-                    drop_events.single_write(event);
+                    trigger_drop.trigger(event);
 
                     // No need to update inventory
-                    continue;*/
+                    continue;
                 }
                 None => (),
             }
@@ -79,7 +81,7 @@ fn handle_creative_inventory_action(
             slots: smallvec![packet.slot as usize],
             player,
         };
-        trigger.trigger(event);
+        trigger_inventory.trigger(event);
     }
 }
 

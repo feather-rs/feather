@@ -3,7 +3,7 @@
 //! block entities, monsters, etc. Player entities are handled in `crate::player`,
 //! not here.
 
-mod item;
+pub mod item;
 
 use crate::lazy::EntityBuilder;
 use crate::state::State;

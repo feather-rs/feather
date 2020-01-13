@@ -47,6 +47,10 @@ fn send_entity_equipment(
     _query: &mut Query<(Read<EntityId>, Read<EntityInventory>, Read<Network>)>,
     world: &mut PreparedWorld,
 ) {
+    if !world.is_alive(event.to) {
+        return;
+    }
+
     let network = world.get_component::<Network>(event.to).unwrap();
     let inventory = match world.get_component::<EntityInventory>(event.entity) {
         Some(inv) => inv,
