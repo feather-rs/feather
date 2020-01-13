@@ -1,11 +1,8 @@
 use crate::chunk_logic::ChunkHolders;
 use crate::entity::EntityDeleteEvent;
 use crate::network::Network;
-use crate::player::Player;
 use crate::state::State;
-use feather_core::network::packet::implementation::{
-    DestroyEntities, PlayerInfo, PlayerInfoAction,
-};
+use feather_core::network::packet::implementation::DestroyEntities;
 use legion::query::Read;
 use rayon::prelude::*;
 use tonks::{PreparedWorld, Query};
@@ -15,7 +12,7 @@ use tonks::{PreparedWorld, Query};
 fn broadcast_entity_deletion(
     events: &[EntityDeleteEvent],
     holders: &ChunkHolders,
-    _query: &mut Query<(Read<Network>, Read<Player>)>,
+    _query: &mut Query<Read<Network>>,
     world: &mut PreparedWorld,
     state: &State,
 ) {
@@ -33,7 +30,9 @@ fn broadcast_entity_deletion(
             }
         }
 
-        // If entity was a player, broadcast PlayerInfo with delete status
+        // If entity was a player, broadcast PlayerInfo with delete status.
+        // TODO: fix
+        /*
         if world.get_component::<Player>(event.entity).is_some() {
             let packet = PlayerInfo {
                 action: PlayerInfoAction::RemovePlayer,
@@ -41,6 +40,6 @@ fn broadcast_entity_deletion(
             };
 
             state.broadcast_global(packet, None);
-        }
+        }*/
     });
 }

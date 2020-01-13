@@ -17,6 +17,8 @@ use mojang_api::ProfileProperty;
 use tonks::{EntityAccessor, PreparedWorld};
 use uuid::Uuid;
 
+pub const PLAYER_EYE_HEIGHT: f64 = 1.62;
+
 /// Profile properties of a player.
 #[derive(Debug, Clone)]
 pub struct ProfileProperties(pub Vec<ProfileProperty>);
@@ -34,18 +36,11 @@ pub struct PlayerAnimationEvent {
     pub animation: ClientboundAnimation,
 }
 
-/// Tag used to mark a player.
-///
-/// Note that this is a _tag_, not a component.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Player;
-
 /// Creates a new player from the given `NewClientInfo`.
 ///
 /// This function also triggers the `PlayerJoinEvent` for this player.
 pub fn create(state: &State, info: NewClientInfo) {
     entity::base(state, info.position)
-        .with_tag(Player)
         .with_component(info.uuid)
         .with_component(Network {
             sender: info.sender,

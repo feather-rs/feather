@@ -5,6 +5,7 @@ use crate::io::ServerToWorkerMessage;
 use crate::network::Network;
 use crate::state::State;
 use feather_core::Position;
+use glm::DVec3;
 use legion::entity::Entity;
 use std::borrow::Cow;
 use uuid::Uuid;
@@ -21,6 +22,17 @@ pub fn calculate_relative_move(old: Position, current: Position) -> (i16, i16, i
 /// Converts degrees to stops as used in the protocol.
 pub fn degrees_to_stops(degs: f32) -> u8 {
     ((degs / 360.0) * 256.0) as u8
+}
+
+/// Converts float-based velocity in blocks per tick
+/// to the format used by the protocol.
+pub fn protocol_velocity(vel: DVec3) -> (i16, i16, i16) {
+    // Apparently, these are in units of 1/8000 block per tick.
+    (
+        (vel.x * 8000.0) as i16,
+        (vel.y * 8000.0) as i16,
+        (vel.z * 8000.0) as i16,
+    )
 }
 
 /// Disconnects a player.

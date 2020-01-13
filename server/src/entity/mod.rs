@@ -1,4 +1,9 @@
 //! Dealing with entities, including associated components and events.
+//! Submodules here are implementations of specific entities, such as items,
+//! block entities, monsters, etc. Player entities are handled in `crate::player`,
+//! not here.
+
+mod item;
 
 use crate::lazy::EntityBuilder;
 use crate::state::State;
@@ -149,8 +154,10 @@ pub fn position_reset(
 /// Inserts the base components for an entity into an `EntityBuilder`.
 ///
 /// This currently includes:
-/// * Position
 /// * Velocity (0)
+/// * Entity ID
+/// * Position and previous position
+/// * Triggers `EntityCreateEvent`
 pub fn base(state: &State, position: Position) -> EntityBuilder {
     let id = ENTITY_ID_COUNTER.fetch_add(1, Ordering::Relaxed);
     state
