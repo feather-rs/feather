@@ -2,6 +2,7 @@
 
 use crate::entity::{EntityId, SpawnPacketCreator, Velocity};
 use crate::lazy::EntityBuilder;
+use crate::metadata::Metadata;
 use crate::player::PLAYER_EYE_HEIGHT;
 use crate::state::State;
 use crate::util::{degrees_to_stops, protocol_velocity};
@@ -76,7 +77,7 @@ pub fn item_spawn(
     };
 
     create(state, pos, event.stack.clone(), tick.0 + TPS)
-        .with_component(velocity)
+        .with_component(Velocity(velocity))
         .build();
 }
 
@@ -88,10 +89,17 @@ pub fn create(
     stack: ItemStack,
     collectable_at: u64,
 ) -> EntityBuilder {
+    let meta = {
+        let mut meta_item = crate::metadata::Item::default();
+        meta_item.set_item(Some(stack.clone()));
+        Metadata::Item(meta_item)
+    };
+
     entity::base(state, pos)
         .with_component(stack)
         .with_component(CollectableAt(collectable_at))
         .with_component(SpawnPacketCreator(&create_spawn_packet))
+        .with_component(meta)
 }
 
 fn create_spawn_packet(accessor: &EntityAccessor, world: &PreparedWorld) -> Box<dyn Packet> {
@@ -115,6 +123,8 @@ fn create_spawn_packet(accessor: &EntityAccessor, world: &PreparedWorld) -> Box<
         velocity_y,
         velocity_z,
     };
+
+    dbg!(&packet);
 
     Box::new(packet)
 }

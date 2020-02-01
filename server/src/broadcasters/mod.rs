@@ -12,4 +12,5 @@ pub mod entity_creation;
 pub mod entity_deletion;
 mod inventory;
 pub mod keepalive;
+mod metadata;
 pub mod movement;

@@ -781,7 +781,7 @@ dependencies = [
  "humantime-serde",
  "inventory",
  "lazy_static",
- "legion",
+ "legion 0.2.1 (git+https://github.com/TomGillen/legion?rev=0f67adc237af35799df173f31a2c238b3d8010a2)",
  "lock_api",
  "log",
  "mojang-api",
@@ -1320,6 +1320,25 @@ dependencies = [
 name = "legion"
 version = "0.2.1"
 source = "git+https://github.com/TomGillen/legion?rev=0f67adc237af35799df173f31a2c238b3d8010a2#0f67adc237af35799df173f31a2c238b3d8010a2"
+dependencies = [
+ "bit-set",
+ "crossbeam-channel 0.4.0",
+ "crossbeam-queue 0.2.1",
+ "derivative",
+ "downcast-rs",
+ "fxhash",
+ "itertools",
+ "parking_lot 0.9.0",
+ "paste",
+ "rayon",
+ "smallvec 0.6.13",
+ "tracing",
+]
+
+[[package]]
+name = "legion"
+version = "0.2.1"
+source = "git+https://github.com/TomGillen/legion?rev=940ef3bfcb77e5d074ee3184b776ff1600da228d#940ef3bfcb77e5d074ee3184b776ff1600da228d"
 dependencies = [
  "bit-set",
  "crossbeam-channel 0.4.0",
@@ -2860,7 +2879,7 @@ dependencies = [
 [[package]]
 name = "tonks"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/tonks?rev=a8a39d0f8d51a86a935b708090ec44debfe7bce8#a8a39d0f8d51a86a935b708090ec44debfe7bce8"
+source = "git+https://github.com/feather-rs/tonks?rev=60066a3c5cd521f697b39b2e0006578d2c6f806e#60066a3c5cd521f697b39b2e0006578d2c6f806e"
 dependencies = [
  "arrayvec",
  "bit-set",
@@ -2870,7 +2889,7 @@ dependencies = [
  "hashbrown",
  "inventory",
  "lazy_static",
- "legion",
+ "legion 0.2.1 (git+https://github.com/TomGillen/legion?rev=940ef3bfcb77e5d074ee3184b776ff1600da228d)",
  "mopa",
  "parking_lot 0.9.0",
  "rayon",
@@ -2883,7 +2902,7 @@ dependencies = [
 [[package]]
 name = "tonks-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/tonks?rev=a8a39d0f8d51a86a935b708090ec44debfe7bce8#a8a39d0f8d51a86a935b708090ec44debfe7bce8"
+source = "git+https://github.com/feather-rs/tonks?rev=60066a3c5cd521f697b39b2e0006578d2c6f806e#60066a3c5cd521f697b39b2e0006578d2c6f806e"
 dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.2",

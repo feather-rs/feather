@@ -107,7 +107,7 @@ impl IntoMetaEntry for BlockPosition {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct EntityMetadata {
     values: HashMap<u8, MetaEntry>,
 }

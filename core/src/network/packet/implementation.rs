@@ -1827,7 +1827,7 @@ pub struct EntityHeadLook {
     pub head_yaw: u8,
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, new, Clone, Debug)]
 pub struct PacketEntityMetadata {
     pub entity_id: VarInt,
     pub metadata: EntityMetadata,
