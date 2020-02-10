@@ -1,5 +1,5 @@
-use legion::entity::Entity;
 use crate::entity::Name;
+use legion::entity::Entity;
 use legion::query::Read;
 use tonks::{PreparedWorld, Query, Trigger};
 
@@ -10,7 +10,7 @@ pub struct PlayerChatEvent {
     pub player: Entity,
 
     /// The raw message that was sent
-    pub message: String
+    pub message: String,
 }
 
 /// Event that will result in a chat message being broadcasted
@@ -19,8 +19,8 @@ pub struct ChatBroadcastEvent {
     /// A JSON string representing the Chat component to sent
     pub json_data: String,
 
-    /// The position 
-    pub position: ChatPosition
+    /// The position
+    pub position: ChatPosition,
 }
 
 /// Different positions a chat message can be displayed
@@ -32,15 +32,18 @@ pub enum ChatPosition {
     SystemMessage,
 
     /// A text displayed above the hotbar
-    GameInfo
+    GameInfo,
 }
 
 /// System that broadcasts chat messages to all players
 #[event_handler]
-fn broadcast_chat(event: &PlayerChatEvent, world: &mut PreparedWorld, _query: &mut Query<Read<Name>>, trigger: &mut Trigger<ChatBroadcastEvent>) {
-    let player_name = &world.get_component::<Name>(event.player)
-        .unwrap()
-        .0;
+fn broadcast_chat(
+    event: &PlayerChatEvent,
+    world: &mut PreparedWorld,
+    _query: &mut Query<Read<Name>>,
+    trigger: &mut Trigger<ChatBroadcastEvent>,
+) {
+    let player_name = &world.get_component::<Name>(event.player).unwrap().0;
 
     let json_data = json!({
         "translate": "chat.type.text",
@@ -48,11 +51,12 @@ fn broadcast_chat(event: &PlayerChatEvent, world: &mut PreparedWorld, _query: &m
             {"text": player_name},
             {"text": event.message}
         ]
-    }).to_string();
-    
+    })
+    .to_string();
+
     trigger.trigger(ChatBroadcastEvent {
         json_data,
-        position: ChatPosition::Chat
+        position: ChatPosition::Chat,
     });
 
     info!("<{}> {}", player_name, event.message);
