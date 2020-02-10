@@ -14,3 +14,4 @@ mod inventory;
 pub mod keepalive;
 mod metadata;
 pub mod movement;
+mod chat;

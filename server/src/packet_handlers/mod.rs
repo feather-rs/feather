@@ -5,3 +5,4 @@ mod digging;
 mod inventory;
 mod movement;
 mod placement;
+mod chat;
