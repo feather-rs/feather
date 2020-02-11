@@ -8,6 +8,7 @@
 
 mod animation;
 mod block;
+mod chat;
 pub mod entity_creation;
 pub mod entity_deletion;
 mod inventory;

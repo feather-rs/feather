@@ -17,6 +17,8 @@ use mojang_api::ProfileProperty;
 use tonks::{EntityAccessor, PreparedWorld};
 use uuid::Uuid;
 
+pub mod chat;
+
 pub const PLAYER_EYE_HEIGHT: f64 = 1.62;
 
 /// Profile properties of a player.
