@@ -2,6 +2,7 @@
 /blocks/target
 /server/target
 /core/target
+/codegen/target
 **/*.rs.bk
 **/.idea
 feather.toml
