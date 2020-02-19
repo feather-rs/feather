@@ -183,8 +183,6 @@ mod tests {
             map.insert(x, x as usize);
         }
 
-        dbg!(map.clone());
-
         // Check all valid slots
         for (src, expected) in map {
             let slot = InventorySlot {

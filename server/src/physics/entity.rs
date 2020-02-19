@@ -1,9 +1,10 @@
 //! Module for performing entity physics, including velocity, drag
 //! and position updates each tick.
 
-use crate::entity::Velocity;
+use crate::entity::{EntityMoveEvent, Velocity};
 use crate::physics::{block_impacted_by_ray, blocks_intersecting_bbox, AABBExt, Physics, Side};
 use crate::state::State;
+use crossbeam::queue::SegQueue;
 use feather_core::Position;
 use feather_core::{Block, BlockExt};
 use legion::entity::Entity;
@@ -26,10 +27,14 @@ fn entity_physics(
     query: &mut Query<(Write<Position>, Write<Velocity>, Read<Physics>)>,
     world: &mut PreparedWorld,
     land_events: &mut Trigger<EntityPhysicsLandEvent>,
+    move_events: &mut Trigger<EntityMoveEvent>,
 ) {
     // Using a mutex is fine, since land events are written very rarely
     // and thus contention is low.
     let land_events = Mutex::new(land_events);
+
+    // For move events, we use a `SegQueue`. (TODO: switch to ripstruct's SegBuffer after audit)
+    let move_event_queue = SegQueue::new();
 
     // Go through entities and update their positions according
     // to their velocities.
@@ -143,5 +148,13 @@ fn entity_physics(
 
         // Set new position.
         *position = pending_position;
+
+        // Queue move event.
+        move_event_queue.push(EntityMoveEvent { entity });
     });
+
+    // Copy move events to `Trigger` instance.
+    while let Ok(ev) = move_event_queue.pop() {
+        move_events.trigger(ev);
+    }
 }

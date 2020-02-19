@@ -22,7 +22,6 @@ fn send_entity_metadata(
                 entity_id,
                 metadata: meta.to_full_raw_metadata(),
             };
-            dbg!(&packet);
             network.send(packet);
         }
     }

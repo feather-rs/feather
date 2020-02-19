@@ -37,7 +37,7 @@ entity_metadata! {
     _Metadata,
     Entity {
         bit_mask: u8() = 0,
-        air: VarInt() = 1,
+        air: VarInt(300) = 1,
         silent: bool() = 4,
         no_gravity: bool() = 5,
     },

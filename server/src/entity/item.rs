@@ -3,6 +3,7 @@
 use crate::entity::{EntityId, SpawnPacketCreator, Velocity};
 use crate::lazy::EntityBuilder;
 use crate::metadata::Metadata;
+use crate::physics::PhysicsBuilder;
 use crate::player::PLAYER_EYE_HEIGHT;
 use crate::state::State;
 use crate::util::{degrees_to_stops, protocol_velocity};
@@ -100,6 +101,13 @@ pub fn create(
         .with_component(CollectableAt(collectable_at))
         .with_component(SpawnPacketCreator(&create_spawn_packet))
         .with_component(meta)
+        .with_component(
+            PhysicsBuilder::new()
+                .bbox(0.25, 0.25, 0.25)
+                .drag(0.98)
+                .gravity(-0.04)
+                .build(),
+        )
 }
 
 fn create_spawn_packet(accessor: &EntityAccessor, world: &PreparedWorld) -> Box<dyn Packet> {
@@ -123,8 +131,6 @@ fn create_spawn_packet(accessor: &EntityAccessor, world: &PreparedWorld) -> Box<
         velocity_y,
         velocity_z,
     };
-
-    dbg!(&packet);
 
     Box::new(packet)
 }

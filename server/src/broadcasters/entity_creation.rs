@@ -16,7 +16,12 @@ fn broadcast_entity_creation(
     state: &State,
     accessor1: &QueryAccessor<Read<CreationPacketCreator>>,
     accessor2: &QueryAccessor<Read<SpawnPacketCreator>>,
-    _query: &mut Query<Read<Position>>,
+    _query: &mut Query<(
+        Read<Position>,
+        Read<crate::metadata::Metadata>,
+        Read<crate::entity::EntityId>,
+        Read<crate::network::Network>,
+    )>,
     world: &mut PreparedWorld,
     holders: &ChunkHolders,
 ) {
@@ -31,7 +36,32 @@ fn broadcast_entity_creation(
         if let Some(accessor) = accessor2.find(event.entity) {
             if let Some(packet_creator) = accessor.get_component::<SpawnPacketCreator>(world) {
                 let packet = packet_creator.get(&accessor, world);
-                state.broadcast_entity_update_boxed(event.entity, packet, Some(event.entity));
+                // state.broadcast_entity_update_boxed(event.entity, packet, Some(event.entity));
+
+                // state.broadcast_entity_update_boxed(event.entity, packet, Some(event.entity));
+                if let Some(meta) = world.get_component::<crate::metadata::Metadata>(event.entity) {
+                    let chunk = world
+                        .get_component::<Position>(event.entity)
+                        .unwrap()
+                        .chunk_pos();
+                    for entity in holders.holders_for(chunk).unwrap_or(&[]) {
+                        if let Some(network) =
+                            world.get_component::<crate::network::Network>(*entity)
+                        {
+                            use feather_core::network::packet::implementation::PacketEntityMetadata;
+                            network.send_boxed(packet.box_clone());
+                            let entity_id = world
+                                .get_component::<crate::entity::EntityId>(event.entity)
+                                .unwrap()
+                                .0;
+                            let packet = PacketEntityMetadata {
+                                entity_id,
+                                metadata: meta.to_full_raw_metadata(),
+                            };
+                            network.send(packet);
+                        }
+                    }
+                }
             }
         }
 
