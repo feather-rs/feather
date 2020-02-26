@@ -2860,7 +2860,7 @@ dependencies = [
 [[package]]
 name = "tonks"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/tonks?rev=b75a10c4a96ceddf089e0e2332255840568a2a5d#b75a10c4a96ceddf089e0e2332255840568a2a5d"
+source = "git+https://github.com/feather-rs/tonks?rev=0ed28a624a21d044011058f74771461dd0b35c2a#0ed28a624a21d044011058f74771461dd0b35c2a"
 dependencies = [
  "arrayvec",
  "bit-set",
@@ -2883,7 +2883,7 @@ dependencies = [
 [[package]]
 name = "tonks-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/tonks?rev=b75a10c4a96ceddf089e0e2332255840568a2a5d#b75a10c4a96ceddf089e0e2332255840568a2a5d"
+source = "git+https://github.com/feather-rs/tonks?rev=0ed28a624a21d044011058f74771461dd0b35c2a#0ed28a624a21d044011058f74771461dd0b35c2a"
 dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.2",
