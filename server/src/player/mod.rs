@@ -25,6 +25,10 @@ pub const PLAYER_EYE_HEIGHT: f64 = 1.62;
 #[derive(Debug, Clone)]
 pub struct ProfileProperties(pub Vec<ProfileProperty>);
 
+/// Zero-sized component used to mark players.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Player;
+
 /// Event triggered when a player joins.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PlayerJoinEvent {
@@ -58,6 +62,7 @@ pub fn create(state: &State, info: NewClientInfo) {
         .with_component(CreationPacketCreator(&create_initialization_packet))
         .with_component(Gamemode::Creative) // TOOD: proper gamemode handling
         .with_component(EntityInventory::default())
+        .with_component(Player)
         .with_exec(|_, scheduler, player| {
             scheduler.trigger(PlayerJoinEvent { player });
         })

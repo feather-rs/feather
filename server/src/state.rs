@@ -146,6 +146,11 @@ impl State {
         self.lazy.create_entity()
     }
 
+    /// See `Lazy::delete_entity()`.
+    pub fn delete_entity(&self, entity: Entity) {
+        self.lazy.delete_entity(entity)
+    }
+
     /// Lazily broadcasts a packet to all clients able to see the given entity.
     ///
     /// The packet will not be sent to `neq`.

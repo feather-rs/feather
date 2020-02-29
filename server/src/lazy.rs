@@ -1,9 +1,12 @@
+use crate::entity::{EntityDeleteEvent, EntityId};
 use crossbeam::queue::SegQueue;
+use feather_core::Position;
 use legion::entity::Entity;
 use legion::storage::{Component, Tag};
 use legion::world::World;
 use smallvec::SmallVec;
 use tonks::Scheduler;
+use uuid::Uuid;
 
 pub trait LazyFnWithScheduler: FnOnce(&mut World, &mut Scheduler) + Send {}
 impl<F> LazyFnWithScheduler for F where F: FnOnce(&mut World, &mut Scheduler) + Send {}
@@ -41,6 +44,31 @@ impl Lazy {
             lazy: self,
             fns: smallvec![],
         }
+    }
+
+    /// Deletes an entity, triggering the necessary event as well.
+    pub fn delete_entity(&self, entity: Entity) {
+        self.exec_with_scheduler(move |world, scheduler| {
+            if !world.is_alive(entity) {
+                return;
+            }
+
+            let position = world.get_component::<Position>(entity).map(|pos| *pos);
+            let id = *world.get_component::<EntityId>(entity).unwrap();
+            let uuid = world
+                .get_component::<Uuid>(entity)
+                .map(|u| *u)
+                .unwrap_or(Uuid::new_v4());
+
+            scheduler.trigger(EntityDeleteEvent {
+                entity,
+                position,
+                id,
+                uuid,
+            });
+
+            world.delete(entity);
+        });
     }
 
     /// Performs all queued actions.

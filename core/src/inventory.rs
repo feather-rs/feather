@@ -361,7 +361,7 @@ impl Inventory {
 /// Represents an item stack.
 ///
 /// An item stack includes a type, an amount, and a bunch of properties (enchantments, etc.)
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ItemStack {
     /// The type of this item.
     pub ty: Item,

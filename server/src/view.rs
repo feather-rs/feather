@@ -24,7 +24,7 @@ use crate::chunk_logic::{
 use crate::config::Config;
 use crate::entity::{EntityId, EntityMoveEvent, PreviousPosition, SpawnPacketCreator};
 use crate::network::Network;
-use crate::player::PlayerJoinEvent;
+use crate::player::{Player, PlayerJoinEvent};
 use crate::state::State;
 use chashmap::CHashMap;
 use feather_core::network::packet::implementation::{ChunkData, DestroyEntities, UnloadChunk};
@@ -65,13 +65,18 @@ pub struct ChunkSendEvent {
 #[event_handler]
 fn view_update(
     events: &[EntityMoveEvent],
-    _query: &mut Query<(Read<Position>, Read<PreviousPosition>)>,
+    _query: &mut Query<(Read<Position>, Read<PreviousPosition>, Read<Player>)>,
     world: &mut PreparedWorld,
     state: &State,
     trigger: &mut Trigger<ViewUpdateEvent>,
 ) {
     let trigger = Mutex::new(trigger);
     events.par_iter().for_each(|event| {
+        // Only process view for players.
+        if world.get_component::<Player>(event.entity).is_none() {
+            return;
+        }
+
         let pos = *world.get_component::<Position>(event.entity).unwrap();
         let prev_pos = world
             .get_component::<PreviousPosition>(event.entity)
