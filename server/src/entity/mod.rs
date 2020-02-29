@@ -52,6 +52,13 @@ pub struct EntityMoveEvent {
     pub entity: Entity,
 }
 
+/// Event triggered when an entity's velocity changes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct VelocityUpdateEvent {
+    /// Entity whose velocity changed.
+    pub entity: Entity,
+}
+
 /// The velocity of an entity.
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Velocity(pub glm::DVec3);

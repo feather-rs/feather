@@ -1,11 +1,12 @@
 //! Broadcasting of movement updates.
 
 use crate::chunk_logic::ChunkHolders;
-use crate::entity::{EntityId, EntityMoveEvent};
+use crate::entity::{EntityId, EntityMoveEvent, Velocity, VelocityUpdateEvent};
 use crate::network::Network;
-use crate::util::{calculate_relative_move, degrees_to_stops};
+use crate::state::State;
+use crate::util::{calculate_relative_move, degrees_to_stops, protocol_velocity};
 use feather_core::network::packet::implementation::{
-    EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove,
+    EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
 };
 use feather_core::{Packet, Position};
 use hashbrown::HashMap;
@@ -74,6 +75,28 @@ fn broadcast_move(
             }
         });
     });
+}
+
+/// Broadcasts an entity's velocity.
+#[event_handler]
+pub fn broadcast_velocity(
+    event: &VelocityUpdateEvent,
+    _query: &mut Query<(Read<EntityId>, Read<Velocity>)>,
+    world: &mut PreparedWorld,
+    state: &State,
+) {
+    let entity_id = world.get_component::<EntityId>(event.entity).unwrap().0;
+    let vel = *world.get_component::<Velocity>(event.entity).unwrap();
+
+    let (velocity_x, velocity_y, velocity_z) = protocol_velocity(vel.0);
+
+    let packet = EntityVelocity {
+        entity_id,
+        velocity_x,
+        velocity_y,
+        velocity_z,
+    };
+    state.broadcast_entity_update(event.entity, packet, None);
 }
 
 /// Returns the packet needed to notify a client
