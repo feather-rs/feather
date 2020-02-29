@@ -35,6 +35,17 @@ pub struct ItemDropEvent {
     pub player: Entity,
 }
 
+/// Event triggered when an item is collected.
+#[derive(Debug, Clone)]
+pub struct ItemCollectEvent {
+    /// Item entity which was collected.
+    pub item: Entity,
+    /// Entity which collected the item.
+    pub collector: Entity,
+    /// Number of the item which was picked up.
+    pub amount: u8,
+}
+
 /// Component storing the tick at which an item becomes collectable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CollectableAt(pub u64);
@@ -101,7 +112,8 @@ pub fn item_collect(
         Read<Position>,
     )>,
     world: &mut PreparedWorld,
-    trigger: &mut Trigger<InventoryUpdateEvent>,
+    inventory_updates: &mut Trigger<InventoryUpdateEvent>,
+    item_collects: &mut Trigger<ItemCollectEvent>,
 ) {
     // TODO: switch to par_iter
     events.iter().for_each(|event: &EntityMoveEvent| {
@@ -137,9 +149,15 @@ pub fn item_collect(
                     inventory.collect_item(item_stack)
                 };
 
-                trigger.trigger(InventoryUpdateEvent {
+                inventory_updates.trigger(InventoryUpdateEvent {
                     slots: affected_slots,
                     player: event.entity,
+                });
+
+                item_collects.trigger(ItemCollectEvent {
+                    item: other,
+                    collector: event.entity,
+                    amount: item_stack.amount - items_left,
                 });
 
                 if items_left == 0 {

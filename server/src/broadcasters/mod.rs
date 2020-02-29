@@ -12,6 +12,7 @@ mod chat;
 pub mod entity_creation;
 pub mod entity_deletion;
 mod inventory;
+mod item_collect;
 pub mod keepalive;
 mod metadata;
 pub mod movement;
