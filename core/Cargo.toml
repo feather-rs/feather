@@ -15,7 +15,7 @@ uuid = "0.7"
 cfb8 = "0.3"
 aes = "0.3"
 flate2 = "1.0"
-bytes = "0.4"
+bytes = "0.5"
 log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 num-traits = "0.2"
@@ -30,7 +30,8 @@ hash32 = "0.1"
 hash32-derive = "0.1"
 strum = "0.16"
 strum_macros = "0.16"
-tokio = "=0.2.0-alpha.6"
+tokio = { version = "0.2", features = ["full"] }
+tokio-util = { version = "0.2", features = ["codec"] }
 failure = "0.1"
 bitvec = "0.15"
 multimap = "0.6"

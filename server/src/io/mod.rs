@@ -59,7 +59,7 @@ impl NetworkIoManager {
         let future = run_listener(addr, sender.clone(), config, player_count, server_icon);
 
         if cfg!(test) {
-            let mut rt = tokio::runtime::current_thread::Runtime::new().unwrap();
+            let rt = tokio::runtime::Runtime::new().unwrap();
             rt.spawn(future);
         } else {
             tokio::spawn(future);

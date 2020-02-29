@@ -3,15 +3,16 @@ use crate::network::mctypes::{McTypeRead, McTypeWrite};
 use crate::network::packet::{PacketDirection, PacketId, PacketStage};
 use crate::{Packet, PacketType};
 use aes::Aes128;
-use bytes::{Buf, BufMut, BytesMut};
+use bytes::buf::BufMutExt;
+use bytes::{Buf, BytesMut};
 use cfb8::stream_cipher::{NewStreamCipher, StreamCipher};
 use cfb8::Cfb8;
 use flate2::read::ZlibDecoder;
 use flate2::write::ZlibEncoder;
 use flate2::Compression;
 use std::io::{Cursor, Read, Write};
-use tokio::codec::{Decoder, Encoder};
 use tokio::io;
+use tokio_util::codec::{Decoder, Encoder};
 
 type AesCfb8 = Cfb8<Aes128>;
 
@@ -100,12 +101,12 @@ impl Encoder for MinecraftCodec {
         // we reserve the maximum size and copy the header in with a correct offset.
         assert!(dst.is_empty());
         dst.reserve(HEADER_SIZE);
+
+        // Zero out the header.
+        dst.extend_from_slice(&[0u8; HEADER_SIZE]);
+
         let mut header = dst.split_to(HEADER_SIZE);
         assert!(dst.is_empty());
-        assert!(header.is_empty());
-
-        // Zero out `header`.
-        header.extend_from_slice(&[0u8; HEADER_SIZE]);
 
         // Write raw packet data to `dst`.
         let ty = packet.ty();
@@ -126,6 +127,7 @@ impl Encoder for MinecraftCodec {
                 dst.reserve(HEADER_SIZE);
 
                 let uncompressed = dst.split_to(data_len);
+                dst.extend_from_slice(&[0u8; HEADER_SIZE]);
                 header = dst.split_to(HEADER_SIZE);
 
                 assert!(dst.is_empty());
@@ -163,7 +165,7 @@ impl Encoder for MinecraftCodec {
         // Offset into `header` to write to.
         let header_offset = HEADER_SIZE - self.header_buffer.len();
         // Discard unused header bytes.
-        header.split_to(header_offset);
+        header.advance(header_offset);
         header.clear();
 
         // Write into header.

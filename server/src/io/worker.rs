@@ -19,9 +19,8 @@ use std::net::SocketAddr;
 use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::codec::Framed;
 use tokio::net::TcpStream;
-use tokio::timer::Timeout;
+use tokio_util::codec::Framed;
 use uuid::Uuid;
 
 #[derive(Debug, Fail)]
@@ -90,7 +89,7 @@ async fn _run_worker(
 
         select! {
             msg = rx_server_to_worker.next().fuse() => server_message = Some(msg),
-            packet = Timeout::new(framed.next(), Duration::from_millis(10000)).fuse() => received_packet = Some(packet),
+            packet = tokio::time::timeout(Duration::from_millis(10000), framed.next()).fuse() => received_packet = Some(packet),
         }
 
         if let Some(msg) = server_message {

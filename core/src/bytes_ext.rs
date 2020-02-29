@@ -50,23 +50,23 @@ impl<B: Buf> BytesExt for B {
     }
 
     fn try_get_i16(&mut self) -> Result<i16> {
-        try_get_impl!(self, 2, get_i16_be);
+        try_get_impl!(self, 2, get_i16);
     }
 
     fn try_get_i32(&mut self) -> Result<i32> {
-        try_get_impl!(self, 4, get_i32_be);
+        try_get_impl!(self, 4, get_i32);
     }
 
     fn try_get_i64(&mut self) -> Result<i64> {
-        try_get_impl!(self, 8, get_i64_be);
+        try_get_impl!(self, 8, get_i64);
     }
 
     fn try_get_f32(&mut self) -> Result<f32> {
-        try_get_impl!(self, 4, get_f32_be);
+        try_get_impl!(self, 4, get_f32);
     }
 
     fn try_get_f64(&mut self) -> Result<f64> {
-        try_get_impl!(self, 8, get_f64_be);
+        try_get_impl!(self, 8, get_f64);
     }
 
     fn try_get_u8(&mut self) -> Result<u8> {
@@ -74,15 +74,15 @@ impl<B: Buf> BytesExt for B {
     }
 
     fn try_get_u16(&mut self) -> Result<u16> {
-        try_get_impl!(self, 2, get_u16_be);
+        try_get_impl!(self, 2, get_u16);
     }
 
     fn try_get_u32(&mut self) -> Result<u32> {
-        try_get_impl!(self, 4, get_u32_be);
+        try_get_impl!(self, 4, get_u32);
     }
 
     fn try_get_u64(&mut self) -> Result<u64> {
-        try_get_impl!(self, 8, get_u64_be);
+        try_get_impl!(self, 8, get_u64);
     }
 }
 
@@ -112,27 +112,27 @@ impl BytesMutExt for BytesMut {
 
     fn push_i16(&mut self, x: i16) {
         self.reserve(2);
-        self.put_i16_be(x);
+        self.put_i16(x);
     }
 
     fn push_i32(&mut self, x: i32) {
         self.reserve(4);
-        self.put_i32_be(x);
+        self.put_i32(x);
     }
 
     fn push_i64(&mut self, x: i64) {
         self.reserve(8);
-        self.put_i64_be(x);
+        self.put_i64(x);
     }
 
     fn push_f32(&mut self, x: f32) {
         self.reserve(4);
-        self.put_f32_be(x);
+        self.put_f32(x);
     }
 
     fn push_f64(&mut self, x: f64) {
         self.reserve(8);
-        self.put_f64_be(x);
+        self.put_f64(x);
     }
 
     fn push_u8(&mut self, x: u8) {
@@ -142,16 +142,16 @@ impl BytesMutExt for BytesMut {
 
     fn push_u16(&mut self, x: u16) {
         self.reserve(2);
-        self.put_u16_be(x);
+        self.put_u16(x);
     }
 
     fn push_u32(&mut self, x: u32) {
         self.reserve(4);
-        self.put_u32_be(x);
+        self.put_u32(x);
     }
 
     fn push_u64(&mut self, x: u64) {
         self.reserve(8);
-        self.put_u64_be(x);
+        self.put_u64(x);
     }
 }

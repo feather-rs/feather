@@ -406,7 +406,7 @@ mod tests {
 
         let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
         FlatChunkGenerator {}.generate(&mut chunk);
-        world.chunk_map.insert(ChunkPosition::new(0, 0), chunk);
+        world.insert(chunk);
 
         let chunk = world.chunk_at(ChunkPosition::new(0, 0)).unwrap();
 
@@ -427,12 +427,10 @@ mod tests {
 
         let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
         GridChunkGenerator {}.generate(&mut chunk);
-        world.chunk_map.insert(ChunkPosition::new(0, 0), chunk);
+        world.insert(chunk);
 
         println!("-----");
-        world
-            .set_block_at(BlockPosition::new(1, 63, 1), Block::Air)
-            .unwrap();
+        world.set_block_at(BlockPosition::new(1, 63, 1), Block::Air);
 
         println!("-----");
         assert_eq!(

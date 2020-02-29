@@ -32,11 +32,11 @@ lock_api = "0.3"
 thread_local = "1.0"
 
 # Netorking/IO
-tokio = "=0.2.0-alpha.6"
-tokio-executor = "=0.2.0-alpha.6"
-futures-preview = { version = "=0.3.0-alpha.19", features = ["async-await"] }
-bytes = "0.4"
-mojang-api = "0.4"
+tokio = {version = "0.2", features = ["full"] }
+tokio-util = { version = "0.2", features = ["codec"] }
+futures = "0.3"
+bytes = "0.5"
+mojang-api = "0.5"
 
 # Crypto
 rsa = "0.2"
