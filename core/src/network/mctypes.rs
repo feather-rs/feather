@@ -134,7 +134,7 @@ impl<B: Buf> McTypeRead for B {
             }
             let read = self.try_get_u8()?;
             let value = i32::from(read & 0b0111_1111);
-            result |= value << (7 * num_read);
+            result |= value.overflowing_shl(7u32 * num_read).0;
 
             num_read += 1;
             if num_read > 5 {
@@ -183,15 +183,16 @@ impl<B: Buf> McTypeRead for B {
         match byte {
             0 => Ok(false),
             1 => Ok(true),
-            _ => Err(TryGetError::InvalidValue),
+            x => Err(TryGetError::InvalidValue(i32::from(x))),
         }
     }
 
     fn try_get_uuid(&mut self) -> Result<Uuid, TryGetError> {
         let mut bytes = [0u8; 16];
         self.bytes()
-            .read(&mut bytes)
+            .read_exact(&mut bytes)
             .map_err(|_| TryGetError::NotEnoughBytes)?;
+        self.advance(bytes.len());
         Ok(Uuid::from_bytes(bytes))
     }
 
@@ -207,7 +208,7 @@ impl<B: Buf> McTypeRead for B {
         }
 
         let id = self.try_get_var_int()?;
-        let ty = Item::from_native_protocol_id(id).ok_or(TryGetError::InvalidValue)?;
+        let ty = Item::from_native_protocol_id(id).ok_or(TryGetError::InvalidValue(id))?;
         let amount = self.try_get_i8()? as u8;
 
         // TODO NBT support

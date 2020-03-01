@@ -73,10 +73,12 @@ impl MinecraftCodec {
     }
 
     pub fn enable_compression(&mut self, threshold: usize) {
+        trace!("Enabling compression with threshold {}", threshold);
         self.compression_threshold = Some(threshold);
     }
 
     pub fn enable_encryption(&mut self, key: [u8; 16]) {
+        trace!("Enabling encryption");
         // This is the toppoint of security: using the same IV
         // for every packet. Typical for Mojang.
         self.encrypter = Some(AesCfb8::new_var(&key, &key).unwrap());
@@ -84,6 +86,7 @@ impl MinecraftCodec {
     }
 
     pub fn set_stage(&mut self, stage: PacketStage) {
+        trace!("Setting packet stage to {:?}", stage);
         self.stage = stage;
     }
 }
@@ -250,9 +253,21 @@ impl Decoder for MinecraftCodec {
 
         // Read packet.
         let id = cursor.try_get_var_int()? as u32;
-        let packet_type =
-            PacketType::get_from_id(PacketId(id, self.incoming_direction, self.stage))
-                .map_err(|_| Error::InvalidPacketId(id, self.stage))?;
+        // If we don't know this packet type, skip the packet.
+        let packet_type = {
+            match PacketType::get_from_id(PacketId(id, self.incoming_direction, self.stage)) {
+                Ok(ty) => ty,
+                Err(_) => {
+                    // Advance buffer and stop.
+                    trace!("Received packet type with unknown ID 0x{:x}; skipping", id);
+                    src.advance(length);
+                    self.decrypt_index = src.len();
+                    return Ok(None);
+                }
+            }
+        };
+
+        trace!("Decoding packet with type {:?}", packet_type);
 
         let mut packet = packet_type.get_implementation();
         packet.read_from(&mut cursor)?;

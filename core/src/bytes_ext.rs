@@ -10,8 +10,8 @@ pub enum TryGetError {
     NotEnoughBytes,
     #[fail(display = "value too large")]
     ValueTooLarge,
-    #[fail(display = "invalid value")]
-    InvalidValue,
+    #[fail(display = "invalid value {}", _0)]
+    InvalidValue(i32),
 }
 
 type Result<T> = std::result::Result<T, TryGetError>;

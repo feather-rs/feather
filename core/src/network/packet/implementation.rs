@@ -18,6 +18,21 @@ type VarInt = i32;
 type VarLong = i64;
 type Slot = Option<ItemStack>;
 
+macro_rules! insert_packet {
+    ($map:ident, $ty:ident) => {
+        $map.insert(
+            PacketType::$ty,
+            PacketBuilder::with(|| Box::new($ty::default())),
+        );
+    };
+}
+
+macro_rules! insert_packets {
+    ($map:ident, $($ty:ident ,)+) => {
+        $(insert_packet!($map, $ty));+
+    }
+}
+
 lazy_static! {
     pub static ref IMPL_MAP: HashMap<PacketType, PacketBuilder> = {
         let mut m = HashMap::new();
@@ -76,6 +91,74 @@ lazy_static! {
         m.insert(PacketType::PlayerBlockPlacement, PacketBuilder::with(|| Box::new(PlayerBlockPlacement::default())));
         m.insert(PacketType::UseItem, PacketBuilder::with(|| Box::new(UseItem::default())));
 
+        // Clientbound
+
+        m.insert(PacketType::EntityMetadata, PacketBuilder::with(|| Box::new(PacketEntityMetadata::default())));
+
+        insert_packets!(m,
+            DisconnectLogin,
+            EncryptionRequest,
+            LoginSuccess,
+            SetCompression,
+
+            SpawnObject,
+            SpawnExperienceOrb,
+            SpawnGlobalEntity,
+            SpawnMob,
+            SpawnPainting,
+            SpawnPlayer,
+            AnimationClientbound,
+            Statistics,
+            BlockBreakAnimation,
+            UpdateBlockEntity,
+            BlockAction,
+            BlockChange,
+            BossBar,
+            ServerDifficulty,
+            ChatMessageClientbound,
+            OpenWindow,
+            WindowItems,
+            WindowProperty,
+            SetSlot,
+            SetCooldown,
+            PluginMessageClientbound,
+            NamedSoundEffect,
+            DisconnectPlay,
+            EntityStatus,
+            NBTQueryResponse,
+            Explosion,
+            UnloadChunk,
+            ChangeGameState,
+            KeepAliveClientbound,
+            ChunkData,
+            Effect,
+            Particle,
+            JoinGame,
+            EntityRelativeMove,
+            EntityLookAndRelativeMove,
+            EntityLook,
+            VehicleMoveClientbound,
+            OpenSignEditor,
+            CraftRecipeResponse,
+            CombatEvent,
+            PlayerInfo,
+            PlayerPositionAndLookClientbound,
+            UseBed,
+            DestroyEntities,
+            RemoveEntityEffect,
+            ResourcePackSend,
+            Respawn,
+            EntityHeadLook,
+            EntityVelocity,
+            EntityEquipment,
+            SpawnPosition,
+            TimeUpdate,
+            CollectItem,
+
+            Response,
+            Pong,
+        );
+
         m
     };
 }
@@ -131,7 +214,15 @@ impl Packet for Handshake {
     }
 
     fn write_to(&self, mut buf: &mut BytesMut) {
-        unimplemented!()
+        buf.push_var_int(self.protocol_version as i32);
+        buf.push_string(&self.server_address);
+        buf.push_u16(self.server_port);
+
+        let state_id = match self.next_state {
+            HandshakeState::Status => 1,
+            HandshakeState::Login => 2,
+        };
+        buf.push_var_int(state_id);
     }
 
     fn ty(&self) -> PacketType {
@@ -197,7 +288,10 @@ impl Packet for EncryptionResponse {
     }
 
     fn write_to(&self, mut buf: &mut BytesMut) {
-        unimplemented!()
+        buf.push_var_int(self.secret.len() as i32);
+        buf.put(self.secret.as_slice());
+        buf.push_var_int(self.verify_token.len() as i32);
+        buf.put(self.verify_token.as_slice());
     }
 
     fn ty(&self) -> PacketType {
@@ -309,7 +403,9 @@ impl Packet for PluginMessageServerbound {
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
-        unimplemented!()
+        buf.push_string(&self.channel);
+
+        buf.put(self.data.as_slice());
     }
 
     fn ty(&self) -> PacketType {
@@ -369,7 +465,21 @@ impl Packet for UseEntity {
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
-        unimplemented!()
+        buf.push_var_int(self.target);
+
+        let ty_id = match self.ty {
+            UseEntityType::Interact => 0,
+            UseEntityType::Attack => 1,
+            UseEntityType::InteractAt(_, _, _, _) => 2,
+        };
+        buf.push_var_int(ty_id);
+
+        if let UseEntityType::InteractAt(x, y, z, hand) = self.ty {
+            buf.push_f32(x);
+            buf.push_f32(y);
+            buf.push_f32(z);
+            buf.push_var_int(hand);
+        }
     }
 
     fn ty(&self) -> PacketType {
@@ -500,7 +610,10 @@ impl Packet for PlayerDigging {
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
-        unimplemented!()
+        let id = self.status as i32;
+        buf.push_var_int(id);
+        buf.push_position(&self.location);
+        buf.push_i8(self.face);
     }
 
     fn ty(&self) -> PacketType {
@@ -556,7 +669,10 @@ impl Packet for EntityAction {
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
-        unimplemented!()
+        buf.push_var_int(self.entity_id);
+        let action_id = self.action_id.to_i32().unwrap();
+        buf.push_var_int(action_id);
+        buf.push_var_int(self.jump_boost);
     }
 
     fn ty(&self) -> PacketType {
@@ -707,7 +823,7 @@ impl Packet for AnimationServerbound {
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
-        unimplemented!()
+        buf.push_var_int(self.hand.to_i32().unwrap());
     }
 
     fn ty(&self) -> PacketType {
@@ -731,7 +847,7 @@ pub struct Spectate {
     pub target_player: Uuid,
 }
 
-#[derive(Debug, Clone, Copy, FromPrimitive)]
+#[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive)]
 pub enum Face {
     Bottom,
     Top,
@@ -783,7 +899,12 @@ impl Packet for PlayerBlockPlacement {
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
-        unimplemented!()
+        buf.push_position(&self.location);
+        buf.push_var_int(self.face.to_i32().unwrap());
+        buf.push_var_int(self.hand);
+        buf.push_f32(self.cursor_position_x);
+        buf.push_f32(self.cursor_position_y);
+        buf.push_f32(self.cursor_position_z);
     }
 
     fn ty(&self) -> PacketType {
@@ -822,7 +943,19 @@ pub struct EncryptionRequest {
 
 impl Packet for EncryptionRequest {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
-        unimplemented!()
+        self.server_id = buf.try_get_string()?;
+
+        let pubkey_len = buf.try_get_var_int()?;
+        for _ in 0..pubkey_len {
+            self.public_key.push(buf.try_get_u8()?);
+        }
+
+        let token_len = buf.try_get_var_int()?;
+        for _ in 0..token_len {
+            self.verify_token.push(buf.try_get_u8()?);
+        }
+
+        Ok(())
     }
 
     fn write_to(&self, mut buf: &mut BytesMut) {
@@ -936,7 +1069,7 @@ pub struct SpawnPainting {
 }
 
 #[allow(clippy::too_many_arguments)]
-#[derive(AsAny, new, Clone)]
+#[derive(AsAny, new, Clone, Default, Packet)]
 pub struct SpawnPlayer {
     pub entity_id: VarInt,
     pub player_uuid: Uuid,
@@ -948,39 +1081,6 @@ pub struct SpawnPlayer {
     pub metadata: EntityMetadata,
 }
 
-impl Packet for SpawnPlayer {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
-        unimplemented!()
-    }
-
-    fn write_to(&self, buf: &mut BytesMut) {
-        buf.push_var_int(self.entity_id);
-        buf.push_uuid(&self.player_uuid);
-        buf.push_f64(self.x);
-        buf.push_f64(self.y);
-        buf.push_f64(self.z);
-        buf.push_u8(self.yaw);
-        buf.push_u8(self.pitch);
-
-        buf.push_metadata(&self.metadata);
-    }
-
-    fn ty(&self) -> PacketType {
-        PacketType::SpawnPlayer
-    }
-
-    fn ty_sized() -> PacketType
-    where
-        Self: Sized,
-    {
-        PacketType::SpawnPlayer
-    }
-
-    fn box_clone(&self) -> Box<dyn Packet> {
-        box_clone_impl!(self);
-    }
-}
-
 #[derive(Default, AsAny, new, Clone)]
 pub struct AnimationClientbound {
     pub entity_id: VarInt,
@@ -989,7 +1089,10 @@ pub struct AnimationClientbound {
 
 impl Packet for AnimationClientbound {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
-        unimplemented!()
+        self.entity_id = buf.try_get_var_int()?;
+        self.animation =
+            ClientboundAnimation::from_u8(buf.try_get_u8()?).ok_or(Error::InvalidUseEntity(0))?;
+        Ok(())
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
@@ -1021,7 +1124,18 @@ pub struct Statistics {
 
 impl Packet for Statistics {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
-        unimplemented!()
+        let num_statistics = buf.try_get_var_int()?;
+
+        if num_statistics > 255 {
+            return Err(Error::InsufficientArrayLength.into());
+        }
+
+        for _ in 0..num_statistics {
+            self.statistics
+                .push((buf.try_get_var_int()?, buf.try_get_var_int()?));
+        }
+        self.value = buf.try_get_var_int()?;
+        Ok(())
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
@@ -1233,7 +1347,14 @@ pub struct WindowItems {
 
 impl Packet for WindowItems {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
-        unimplemented!()
+        self.window_id = buf.try_get_u8()?;
+        let num_slots = buf.try_get_i16()?;
+
+        for _ in 0..num_slots {
+            self.slots.push(buf.try_get_slot()?);
+        }
+
+        Ok(())
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
@@ -1289,7 +1410,11 @@ pub struct PluginMessageClientbound {
 
 impl Packet for PluginMessageClientbound {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
-        unimplemented!()
+        self.channel = buf.try_get_string()?;
+
+        self.data.extend_from_slice(*buf.get_ref());
+
+        Ok(())
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
@@ -1656,7 +1781,7 @@ impl Default for CombatEventType {
     }
 }
 
-#[derive(AsAny, new, Clone)]
+#[derive(AsAny, new, Clone, Default)]
 pub struct PlayerInfo {
     pub action: PlayerInfoAction,
     pub uuid: Uuid,
@@ -1664,7 +1789,50 @@ pub struct PlayerInfo {
 
 impl Packet for PlayerInfo {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
-        unimplemented!()
+        let id = buf.try_get_var_int()?;
+        let _ = buf.try_get_var_int()?;
+        self.uuid = buf.try_get_uuid()?;
+
+        self.action = match id {
+            0 => {
+                let name = buf.try_get_string()?;
+                let num_props = buf.try_get_var_int()?;
+
+                let mut props = vec![];
+                for _ in 0..num_props {
+                    let s0 = buf.try_get_string()?;
+                    let s1 = buf.try_get_string()?;
+                    let s2 = if buf.try_get_bool()? {
+                        buf.try_get_string()?
+                    } else {
+                        String::default()
+                    };
+                    props.push((s0, s1, s2));
+                }
+
+                let gamemode = Gamemode::from_id(buf.try_get_var_int()? as u8);
+                let ping = buf.try_get_var_int()?;
+                let display_name = if buf.try_get_bool()? {
+                    buf.try_get_string()?
+                } else {
+                    String::default()
+                };
+
+                PlayerInfoAction::AddPlayer(name, props, gamemode, ping, display_name)
+            }
+            1 => PlayerInfoAction::UpdateGamemode(Gamemode::from_id(buf.try_get_u8()?)),
+            2 => PlayerInfoAction::UpdateLatency(buf.try_get_var_int()?),
+            3 => {
+                if buf.try_get_bool()? {
+                    PlayerInfoAction::UpdateDisplayName(buf.try_get_string()?)
+                } else {
+                    PlayerInfoAction::UpdateDisplayName(String::default())
+                }
+            }
+            _ => PlayerInfoAction::RemovePlayer,
+        };
+
+        Ok(())
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
@@ -1743,6 +1911,12 @@ impl PlayerInfoAction {
             PlayerInfoAction::UpdateDisplayName(_) => 3,
             PlayerInfoAction::RemovePlayer => 4,
         }
+    }
+}
+
+impl Default for PlayerInfoAction {
+    fn default() -> Self {
+        PlayerInfoAction::RemovePlayer
     }
 }
 
