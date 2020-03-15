@@ -1,6 +1,5 @@
-use crate::world::block::*;
-use crate::world::chunk::Chunk;
-use glm::{DVec3, Vec3};
+use crate::Chunk;
+use crate::{vec3, Block, Vec3d, Vec3i};
 use hashbrown::HashMap;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use rayon::iter::ParallelIterator;
@@ -8,10 +7,6 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};
 use std::sync::Arc;
-
-pub mod block;
-#[allow(clippy::cast_lossless)]
-pub mod chunk;
 
 #[macro_export]
 macro_rules! position {
@@ -47,34 +42,18 @@ pub struct Position {
 }
 
 impl Position {
-    pub fn distance(&self, other: Position) -> f64 {
-        self.distance_squared(other).sqrt()
+    pub fn distance_to(&self, other: Position) -> f64 {
+        self.distance_squared_to(other).sqrt()
     }
 
-    pub fn distance_squared(&self, other: Position) -> f64 {
+    pub fn distance_squared_to(&self, other: Position) -> f64 {
         square(self.x - other.x) + square(self.y - other.y) + square(self.z - other.z)
-    }
-
-    /// Returns the position of the chunk
-    /// this position is in.
-    pub fn chunk_pos(&self) -> ChunkPosition {
-        ChunkPosition::new(self.x.floor() as i32 / 16, self.z.floor() as i32 / 16)
-    }
-
-    /// Retrieves the position of the block
-    /// this position is in.
-    pub fn block_pos(&self) -> BlockPosition {
-        BlockPosition::new(
-            self.x.floor() as i32,
-            self.y.floor() as i32,
-            self.z.floor() as i32,
-        )
     }
 
     /// Returns a unit vector representing
     /// the direction of this position's pitch
     /// and yaw.
-    pub fn direction(&self) -> DVec3 {
+    pub fn direction(&self) -> Vec3d {
         let rotation_x = f64::from(self.yaw.to_radians());
         let rotation_y = f64::from(self.pitch.to_radians());
 
@@ -85,29 +64,37 @@ impl Position {
         let x = -xz * rotation_x.sin();
         let z = xz * rotation_x.cos();
 
-        glm::vec3(x, y, z)
+        vec3(x, y, z)
     }
 
-    pub fn as_vec(&self) -> DVec3 {
+    pub fn chunk(self) -> ChunkPosition {
+        self.into()
+    }
+
+    pub fn block(self) -> BlockPosition {
+        self.into()
+    }
+
+    pub fn as_vec(&self) -> Vec3d {
         (*self).into()
     }
 }
 
-impl Add<Vec3> for Position {
+impl Add<Vec3d> for Position {
     type Output = Position;
 
-    fn add(mut self, vec: Vec3) -> Self::Output {
-        self.x += f64::from(vec.x);
-        self.y += f64::from(vec.y);
-        self.z += f64::from(vec.z);
+    fn add(mut self, rhs: Vec3d) -> Self::Output {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
         self
     }
 }
 
-impl Add<DVec3> for Position {
+impl Add<glm::DVec3> for Position {
     type Output = Position;
 
-    fn add(mut self, rhs: DVec3) -> Self::Output {
+    fn add(mut self, rhs: glm::DVec3) -> Self::Output {
         self.x += rhs.x;
         self.y += rhs.y;
         self.z += rhs.z;
@@ -128,24 +115,24 @@ impl Add<Position> for Position {
     }
 }
 
-impl Sub<Vec3> for Position {
+impl Sub<Vec3d> for Position {
     type Output = Position;
 
-    fn sub(mut self, vec: Vec3) -> Self::Output {
-        self.x -= f64::from(vec.x);
-        self.y -= f64::from(vec.y);
-        self.z -= f64::from(vec.z);
+    fn sub(mut self, rhs: Vec3d) -> Self::Output {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+        self.z -= rhs.z;
         self
     }
 }
 
-impl Sub<DVec3> for Position {
+impl Sub<glm::DVec3> for Position {
     type Output = Position;
 
-    fn sub(mut self, vec: DVec3) -> Self::Output {
-        self.x -= vec.x;
-        self.y -= vec.y;
-        self.z -= vec.z;
+    fn sub(mut self, rhs: glm::DVec3) -> Self::Output {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+        self.z -= rhs.z;
         self
     }
 }
@@ -161,37 +148,52 @@ impl Sub<Position> for Position {
     }
 }
 
-impl Into<Vec3> for Position {
-    fn into(self) -> Vec3 {
-        glm::vec3(self.x as f32, self.y as f32, self.z as f32)
+impl Into<Vec3d> for Position {
+    fn into(self) -> Vec3d {
+        vec3(self.x, self.y, self.z)
     }
 }
 
-impl Into<DVec3> for Position {
-    fn into(self) -> DVec3 {
+impl Into<glm::DVec3> for Position {
+    fn into(self) -> glm::DVec3 {
         glm::vec3(self.x, self.y, self.z)
     }
 }
 
-impl From<Vec3> for Position {
-    fn from(vec: Vec3) -> Self {
-        position!(f64::from(vec.x), f64::from(vec.y), f64::from(vec.z))
+impl From<Vec3d> for Position {
+    fn from(vec: Vec3d) -> Self {
+        position!(vec.x, vec.y, vec.z)
     }
 }
 
-impl From<DVec3> for Position {
-    fn from(vec: DVec3) -> Self {
+impl From<glm::DVec3> for Position {
+    fn from(vec: glm::DVec3) -> Self {
         position!(vec.x, vec.y, vec.z)
+    }
+}
+
+impl Into<ChunkPosition> for Position {
+    fn into(self) -> ChunkPosition {
+        ChunkPosition {
+            x: self.x.floor() as i32 / 16,
+            z: self.z.floor() as i32 / 16,
+        }
+    }
+}
+
+impl Into<BlockPosition> for Position {
+    fn into(self) -> BlockPosition {
+        BlockPosition {
+            x: self.x.floor() as i32,
+            y: self.y.floor() as i32,
+            z: self.z.floor() as i32,
+        }
     }
 }
 
 impl Display for Position {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
-        write!(
-            f,
-            "({:.2}, {:.2}, {:.2}), ({:.2}, {:.2}), on_ground: {}",
-            self.x, self.y, self.z, self.pitch, self.yaw, self.on_ground
-        )
+        write!(f, "({:.2}, {:.2}, {:.2})", self.x, self.y, self.z,)
     }
 }
 
@@ -211,7 +213,7 @@ impl ChunkPosition {
     }
 
     /// Computes the Manhattan distance from this chunk to another.
-    pub fn manhattan_distance(self, other: ChunkPosition) -> i32 {
+    pub fn manhattan_distance_to(self, other: ChunkPosition) -> i32 {
         (self.x - other.z).abs() + (self.z - other.z).abs()
     }
 }
@@ -245,14 +247,6 @@ impl BlockPosition {
         Self { x, y, z }
     }
 
-    pub fn chunk_pos(&self) -> ChunkPosition {
-        ChunkPosition::new(self.x >> 4, self.z >> 4)
-    }
-
-    pub fn world_pos(&self) -> Position {
-        position!(f64::from(self.x), f64::from(self.y), f64::from(self.z))
-    }
-
     /// Returns the Manhattan distance from this position to another.
     pub fn manhattan_distance(self, other: BlockPosition) -> i32 {
         (self.x - other.x).abs() + (self.y - other.y).abs() + (self.z - other.z).abs()
@@ -267,6 +261,64 @@ impl Add<BlockPosition> for BlockPosition {
         self.y += rhs.y;
         self.z += rhs.z;
         self
+    }
+}
+
+impl Add<Vec3i> for BlockPosition {
+    type Output = Self;
+
+    fn add(self, rhs: Vec3i) -> Self::Output {
+        self + BlockPosition::from(rhs)
+    }
+}
+
+impl Sub<BlockPosition> for BlockPosition {
+    type Output = Self;
+
+    fn sub(mut self, rhs: BlockPosition) -> Self::Output {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+        self.z -= rhs.z;
+        self
+    }
+}
+
+impl Sub<Vec3i> for BlockPosition {
+    type Output = Self;
+
+    fn sub(self, rhs: Vec3i) -> Self::Output {
+        self - BlockPosition::from(rhs)
+    }
+}
+
+impl Into<Vec3i> for BlockPosition {
+    fn into(self) -> Vec3i {
+        vec3(self.x, self.y, self.z)
+    }
+}
+
+impl From<Vec3i> for BlockPosition {
+    fn from(vec: Vec3i) -> Self {
+        BlockPosition {
+            x: vec.x,
+            y: vec.y,
+            z: vec.z,
+        }
+    }
+}
+
+impl Into<Position> for BlockPosition {
+    fn into(self) -> Position {
+        position!(self.x as f64, self.y as f64, self.z as f64)
+    }
+}
+
+impl Into<ChunkPosition> for BlockPosition {
+    fn into(self) -> ChunkPosition {
+        ChunkPosition {
+            x: self.x >> 4,
+            z: self.z >> 4,
+        }
     }
 }
 
@@ -306,7 +358,7 @@ impl ChunkMap {
     /// exists is not laoded, `None` is returned.
     pub fn block_at(&self, pos: BlockPosition) -> Option<Block> {
         let (x, y, z) = chunk_relative_pos(pos);
-        self.chunk_at(pos.chunk_pos())
+        self.chunk_at(pos.into())
             .map(|chunk| chunk.block_at(x, y, z))
     }
 
@@ -318,7 +370,7 @@ impl ChunkMap {
     pub fn set_block_at(&self, pos: BlockPosition, block: Block) -> bool {
         let (x, y, z) = chunk_relative_pos(pos);
 
-        self.chunk_at_mut(pos.chunk_pos())
+        self.chunk_at_mut(pos.into())
             .map(|mut chunk| chunk.set_block_at(x, y, z, block))
             .is_some()
     }
@@ -357,85 +409,4 @@ pub fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
         block_pos.y as usize,
         block_pos.z as usize & 0xf,
     )
-}
-
-pub trait ChunkGenerator {
-    fn generate(&self, chunk: &mut Chunk);
-}
-
-pub struct FlatChunkGenerator {}
-
-impl ChunkGenerator for FlatChunkGenerator {
-    fn generate(&self, chunk: &mut Chunk) {
-        for x in 0..16 {
-            for y in 0..64 {
-                for z in 0..16 {
-                    chunk.set_block_at(x, y, z, Block::Stone);
-                }
-            }
-        }
-    }
-}
-
-pub struct GridChunkGenerator {}
-
-impl ChunkGenerator for GridChunkGenerator {
-    fn generate(&self, chunk: &mut Chunk) {
-        for x in 0..15 {
-            for y in 0..64 {
-                for z in 0..15 {
-                    chunk.set_block_at(x, y, z, Block::Stone);
-                }
-            }
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_chunk_map() {
-        let mut world = ChunkMap::new();
-
-        let chunk = world.chunk_at(ChunkPosition::new(0, 0));
-        if chunk.is_some() {
-            panic!();
-        }
-
-        let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
-        FlatChunkGenerator {}.generate(&mut chunk);
-        world.insert(chunk);
-
-        let chunk = world.chunk_at(ChunkPosition::new(0, 0)).unwrap();
-
-        for x in 0..15 {
-            for y in 0..64 {
-                for z in 0..15 {
-                    assert_eq!(chunk.block_at(x, y, z), Block::Stone);
-                }
-            }
-        }
-
-        assert_eq!(chunk.block_at(8, 64, 8), Block::Air);
-    }
-
-    #[test]
-    fn test_set_block_at() {
-        let mut world = ChunkMap::new();
-
-        let mut chunk = Chunk::new(ChunkPosition::new(0, 0));
-        GridChunkGenerator {}.generate(&mut chunk);
-        world.insert(chunk);
-
-        println!("-----");
-        world.set_block_at(BlockPosition::new(1, 63, 1), Block::Air);
-
-        println!("-----");
-        assert_eq!(
-            world.block_at(BlockPosition::new(1, 63, 1)).unwrap(),
-            Block::Air
-        );
-    }
 }

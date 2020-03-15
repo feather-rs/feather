@@ -84,15 +84,15 @@ fn view_update(
             .0;
 
         // Find the old chunks and new chunks.
-        let visible_new = chunks_within_view_distance(&state.config, pos.chunk_pos());
-        let visible_old = chunks_within_view_distance(&state.config, prev_pos.chunk_pos());
+        let visible_new = chunks_within_view_distance(&state.config, pos.chunk());
+        let visible_old = chunks_within_view_distance(&state.config, prev_pos.chunk());
 
-        if pos.chunk_pos() != prev_pos.chunk_pos() {
+        if pos.chunk() != prev_pos.chunk() {
             // New chunk: trigger view update.
             let event = ViewUpdateEvent {
                 player: event.entity,
-                new_chunk: pos.chunk_pos(),
-                old_chunk: Some(prev_pos.chunk_pos()),
+                new_chunk: pos.chunk(),
+                old_chunk: Some(prev_pos.chunk()),
                 visible_old,
                 visible_new,
             };
@@ -113,11 +113,11 @@ fn view_update_on_join(
     let position = *world.get_component::<Position>(event.player).unwrap();
 
     // Find the visible chunks.
-    let visible_new = chunks_within_view_distance(&state.config, position.chunk_pos());
+    let visible_new = chunks_within_view_distance(&state.config, position.chunk());
 
     trigger.trigger(ViewUpdateEvent {
         player: event.player,
-        new_chunk: position.chunk_pos(),
+        new_chunk: position.chunk(),
         old_chunk: None,
         visible_new,
         visible_old: HashSet::new(), // No chunks were previously visible, since the player just joined
@@ -149,7 +149,7 @@ fn view_handle_chunks(
         // Sort sent chunks so that closer chunks are sent first.
         let mut to_send = to_send.copied().collect::<Vec<_>>();
         to_send.sort_unstable_by_key(|chunk| {
-            chunk.manhattan_distance(event.new_chunk);
+            chunk.manhattan_distance_to(event.new_chunk);
         });
 
         // Send new chunks.

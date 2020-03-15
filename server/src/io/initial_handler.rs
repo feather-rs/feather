@@ -22,6 +22,8 @@ use rsa::{PaddingScheme, PublicKey, RSAPrivateKey};
 use rsa_der as der;
 use uuid::Uuid;
 
+use thiserror::Error;
+
 use feather_core::network::cast_packet;
 use feather_core::network::packet::implementation::{
     DisconnectLogin, EncryptionRequest, EncryptionResponse, Handshake, HandshakeState, LoginStart,
@@ -315,7 +317,9 @@ fn handle_request(ih: &mut InitialHandler, packet: &Request) -> Result<(), Error
         "favicon": server_icon,
     });
 
-    let response = Response::new(json.to_string());
+    let response = Response {
+        json_response: json.to_string(),
+    };
     send_packet(ih, response);
 
     ih.stage = Stage::AwaitPing;
@@ -326,7 +330,9 @@ fn handle_request(ih: &mut InitialHandler, packet: &Request) -> Result<(), Error
 fn handle_ping(ih: &mut InitialHandler, packet: &Ping) -> Result<(), Error> {
     check_stage(ih, Stage::AwaitPing, packet.ty())?;
 
-    let pong = Pong::new(packet.payload);
+    let pong = Pong {
+        payload: packet.payload,
+    };
     send_packet(ih, pong);
 
     // After sending pong, we should disconnect.
@@ -352,11 +358,11 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
             &BigInt::from_biguint(Plus, RSA_KEY.e().clone()).to_signed_bytes_be(),
         );
 
-        let encryption_request = EncryptionRequest::new(
-            "".to_string(), // Server ID - always empty
-            der,
-            ih.verify_token.to_vec(),
-        );
+        let encryption_request = EncryptionRequest {
+            server_id: "".to_string(), // Server ID - always empty
+            public_key: der,
+            verify_token: ih.verify_token.to_vec(),
+        };
         send_packet(ih, encryption_request);
 
         ih.info = Some(JoinResult::with_username(packet.username.clone()));
@@ -480,10 +486,10 @@ fn finish(ih: &mut InitialHandler) {
     let info = ih.info.as_ref().unwrap();
 
     // Send Login Success
-    let login_success = LoginSuccess::new(
-        info.uuid.to_hyphenated_ref().to_string(),
-        info.username.as_ref().unwrap().to_string(),
-    );
+    let login_success = LoginSuccess {
+        uuid: info.uuid.to_hyphenated_ref().to_string(),
+        username: info.username.as_ref().unwrap().to_string(),
+    };
     send_packet(ih, login_success);
     ih.action_queue.push(Action::SetStage(PacketStage::Play));
     ih.action_queue
@@ -494,7 +500,7 @@ fn finish(ih: &mut InitialHandler) {
 /// packet.
 fn enable_compression(ih: &mut InitialHandler, threshold: i32) {
     ih.compression_threshold = Some(threshold);
-    send_packet(ih, SetCompression::new(threshold));
+    send_packet(ih, SetCompression { threshold });
     ih.action_queue.push(Action::EnableCompression(threshold));
 }
 
@@ -517,7 +523,7 @@ fn disconnect_login(ih: &mut InitialHandler, reason: &str) {
     })
     .to_string();
 
-    let packet = DisconnectLogin::new(json);
+    let packet = DisconnectLogin { reason: json };
     send_packet(ih, packet);
 
     ih.action_queue.push(Action::Disconnect);
@@ -528,26 +534,23 @@ fn send_packet<P: Packet + 'static>(ih: &mut InitialHandler, packet: P) {
     ih.action_queue.push(Action::SendPacket(Box::new(packet)));
 }
 
-#[derive(Fail, Debug)]
+#[derive(Error, Debug)]
 enum Error {
-    #[fail(display = "invalid packet type {:?} sent at stage {:?}", _0, _1)]
+    #[error("invalid packet type {0:?} sent at stage {1:?}")]
     InvalidPacket(PacketType, Stage),
-    #[fail(display = "unsupported protocol version {:?}", _0)]
+    #[error("unsupported protocol version {0:?}")]
     InvalidProtocol(u32),
-    #[fail(display = "invalid encryption")]
+    #[error("invalid encryption")]
     BadEncryption,
-    #[fail(display = "verify tokens do not match")]
+    #[error("verify tokens do not match")]
     VerifyTokenMismatch,
-    #[fail(display = "shared secret length is not correct")]
+    #[error("shared secret length is not correct")]
     BadSecretLength,
-    #[fail(display = "authentication failure: {:?}", _0)]
+    #[error("authentication failure: {0:?}")]
     AuthenticationFailed(mojang_api::Error),
-    #[fail(
-        display = "received BungeeCord data does not match the specification: {}",
-        _0
-    )]
+    #[error("received BungeeCord data does not match the specification: {0}")]
     BungeeSpecMismatch(String),
-    #[fail(display = "option that should not be None was None")]
+    #[error("option that should not be None was None")]
     /// An Error type than can be used as the error type of using the Try operator on Option
     /// types. In rust-core, this is an unstable feature (issue #42327)
     OptionIsNone,
@@ -729,12 +732,12 @@ mod tests {
         let player_count = 24;
         let mut ih = ih_with_player_count(player_count);
 
-        let handshake = Handshake::new(
-            PROTOCOL_VERSION,
-            "".to_string(), // Unused - server address
-            25565,
-            HandshakeState::Status,
-        );
+        let handshake = Handshake {
+            protocol_version: PROTOCOL_VERSION,
+            server_address: String::default(), // Unused - server address
+            server_port: 25565,
+            next_state: HandshakeState::Status,
+        };
         ih.handle_packet(Box::new(handshake)).await;
 
         // Confirm that stage was switched and no other actions were performed
@@ -745,20 +748,20 @@ mod tests {
             _ => panic!(),
         }
 
-        let request = Request::new();
+        let request = Request {};
         ih.handle_packet(Box::new(request)).await;
 
-        let actions = ih.actions_to_execute();
+        let mut actions = ih.actions_to_execute();
 
         // Confirm that correct response was received
         assert_eq!(actions.len(), 1);
 
-        let _response = actions.first().unwrap();
-        match _response {
-            Action::SendPacket(_response) => {
-                assert_eq!(_response.ty(), PacketType::Response);
+        let response = actions.remove(0);
+        match response {
+            Action::SendPacket(response) => {
+                assert_eq!(response.ty(), PacketType::Response);
 
-                let response = cast_packet::<Response>(&**_response);
+                let response = cast_packet::<Response>(response);
                 let _: serde_json::Value = serde_json::from_str(&response.json_response).unwrap();
             }
             _ => panic!(),
@@ -766,17 +769,17 @@ mod tests {
 
         // Send ping
         let payload = 39842;
-        let ping = Ping::new(payload);
+        let ping = Ping { payload };
         ih.handle_packet(Box::new(ping)).await;
 
         let mut actions = ih.actions_to_execute();
 
         assert_eq!(actions.len(), 2);
-        let _pong = actions.remove(0);
-        match _pong {
-            Action::SendPacket(_pong) => {
-                assert_eq!(_pong.ty(), PacketType::Pong);
-                let pong = cast_packet::<Pong>(&*_pong);
+        let pong = actions.remove(0);
+        match pong {
+            Action::SendPacket(pong) => {
+                assert_eq!(pong.ty(), PacketType::Pong);
+                let pong = cast_packet::<Pong>(pong);
                 assert_eq!(pong.payload, payload);
             }
             _ => panic!(),
@@ -795,12 +798,12 @@ mod tests {
         config.server.online_mode = false;
         let mut ih = ih_with_config(config.clone());
 
-        let handshake = Handshake::new(
-            PROTOCOL_VERSION,
-            "".to_string(), // Unused - server address
-            25565,
-            HandshakeState::Login,
-        );
+        let handshake = Handshake {
+            protocol_version: PROTOCOL_VERSION,
+            server_address: String::default(), // Unused - server address
+            server_port: 25565,
+            next_state: HandshakeState::Login,
+        };
         ih.handle_packet(Box::new(handshake)).await;
 
         let actions = ih.actions_to_execute();
@@ -811,19 +814,21 @@ mod tests {
         }
 
         let username = "test";
-        let login_start = LoginStart::new(username.to_string());
+        let login_start = LoginStart {
+            username: String::from(username),
+        };
         ih.handle_packet(Box::new(login_start)).await;
 
         let mut actions = ih.actions_to_execute();
         assert_eq!(actions.len(), 5);
 
-        let _set_compression = actions.remove(0);
+        let set_compression = actions.remove(0);
 
-        match _set_compression {
-            Action::SendPacket(_set_compression) => {
-                assert_eq!(_set_compression.ty(), PacketType::SetCompression);
+        match set_compression {
+            Action::SendPacket(set_compression) => {
+                assert_eq!(set_compression.ty(), PacketType::SetCompression);
 
-                let set_compression = cast_packet::<SetCompression>(&*_set_compression);
+                let set_compression = cast_packet::<SetCompression>(set_compression);
                 assert_eq!(set_compression.threshold, config.io.compression_threshold);
             }
             _ => panic!(),
@@ -837,13 +842,13 @@ mod tests {
             _ => panic!(),
         }
 
-        let _login_success = actions.remove(0);
+        let login_success = actions.remove(0);
 
-        match _login_success {
-            Action::SendPacket(_login_success) => {
-                assert_eq!(_login_success.ty(), PacketType::LoginSuccess);
+        match login_success {
+            Action::SendPacket(login_success) => {
+                assert_eq!(login_success.ty(), PacketType::LoginSuccess);
 
-                let login_success = cast_packet::<LoginSuccess>(&*_login_success);
+                let login_success = cast_packet::<LoginSuccess>(login_success);
                 assert_eq!(login_success.username, username.to_string());
             }
             _ => panic!(),

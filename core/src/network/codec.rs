@@ -11,6 +11,7 @@ use flate2::read::ZlibDecoder;
 use flate2::write::ZlibEncoder;
 use flate2::Compression;
 use std::io::{Cursor, Read, Write};
+use thiserror::Error;
 use tokio::io;
 use tokio_util::codec::{Decoder, Encoder};
 
@@ -23,16 +24,13 @@ const MAX_PACKET_LEN: usize = 1_048_576; // One MB
 /// Maximum possible size of a packet header.
 const HEADER_SIZE: usize = MAX_VAR_INT_SIZE * 2;
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum Error {
-    #[fail(
-        display = "Packet of length {} (under compression threshold {}) was sent compressed",
-        _0, _1
-    )]
+    #[error("Packet of length {0} (under compression threshold {1}) was sent compressed")]
     CompressedPacketTooSmall(usize, usize),
-    #[fail(display = "Packet length {} is too large", _0)]
+    #[error("Packet length {0} is too large")]
     PacketTooLarge(usize),
-    #[fail(display = "Invalid packet ID {} for stage {:?}", _0, _1)]
+    #[error("Invalid packet ID {0} for stage {1:?}")]
     InvalidPacketId(u32, PacketStage),
 }
 
@@ -190,7 +188,7 @@ impl Encoder for MinecraftCodec {
 
 impl Decoder for MinecraftCodec {
     type Item = Box<dyn Packet>;
-    type Error = failure::Error;
+    type Error = anyhow::Error;
 
     fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         // If encryption is enabled, decrypt undecrypted data.

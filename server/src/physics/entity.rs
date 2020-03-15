@@ -48,7 +48,7 @@ fn entity_physics(
         // velocity is sufficiently high.
         let origin = (*position).into();
         let direction = (pending_position - *position).into();
-        let distance_squared = pending_position.distance_squared(*position);
+        let distance_squared = pending_position.distance_squared_to(*position);
 
         if let Some(impacted) = block_impacted_by_ray(&state, origin, direction, distance_squared) {
             // Set velocities along correct axis to 0 and then set position
@@ -92,7 +92,7 @@ fn entity_physics(
         }
 
         // Delete entity if it has gone into unloaded chunks.
-        let block_at_pos = match state.block_at(pending_position.block_pos()) {
+        let block_at_pos = match state.block_at(pending_position.block()) {
             Some(block) => block,
             None => {
                 // Delete entity.
@@ -110,7 +110,7 @@ fn entity_physics(
                 pending_position.y - physics.bbox.size().y / 2.0 - 0.01,
                 pending_position.z
             )
-            .block_pos(),
+            .block(),
         ) {
             Some(block) => block.is_solid(),
             None => false,

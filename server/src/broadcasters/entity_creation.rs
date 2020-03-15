@@ -3,7 +3,7 @@ use crate::entity::{CreationPacketCreator, EntityCreateEvent, SpawnPacketCreator
 use crate::network::Network;
 use crate::player::PlayerJoinEvent;
 use crate::state::State;
-use feather_core::Position;
+use feather_core::{ChunkPosition, Position};
 use legion::query::Read;
 use rayon::prelude::*;
 use tonks::{PreparedWorld, Query, QueryAccessor};
@@ -40,10 +40,8 @@ fn broadcast_entity_creation(
 
                 // state.broadcast_entity_update_boxed(event.entity, packet, Some(event.entity));
                 if let Some(meta) = world.get_component::<crate::metadata::Metadata>(event.entity) {
-                    let chunk = world
-                        .get_component::<Position>(event.entity)
-                        .unwrap()
-                        .chunk_pos();
+                    let chunk: ChunkPosition =
+                        (*world.get_component::<Position>(event.entity).unwrap()).into();
                     for entity in holders.holders_for(chunk).unwrap_or(&[]) {
                         if let Some(network) =
                             world.get_component::<crate::network::Network>(*entity)
@@ -66,10 +64,7 @@ fn broadcast_entity_creation(
         }
 
         // Register entity sends
-        let chunk = world
-            .get_component::<Position>(event.entity)
-            .unwrap()
-            .chunk_pos();
+        let chunk = (*world.get_component::<Position>(event.entity).unwrap()).into();
         for entity in holders.holders_for(chunk).unwrap_or(&[]) {
             state.register_entity_send(event.entity, *entity);
         }

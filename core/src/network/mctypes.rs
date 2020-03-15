@@ -1,12 +1,12 @@
 use crate::bytes_ext::{BytesExt, BytesMutExt, TryGetError};
 use crate::inventory::ItemStack;
-use crate::prelude::*;
 use crate::world::BlockPosition;
 use bytes::{Buf, BytesMut};
 use feather_items::{Item, ItemExt};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::io::Read;
+use uuid::Uuid;
 
 /// Identifies a type to which Minecraft-specific
 /// types (`VarInt`, `VarLong`, etc.) can be written.
@@ -47,7 +47,7 @@ pub trait McTypeRead {
 
     fn try_get_bool(&mut self) -> Result<bool, TryGetError>;
 
-    fn try_get_uuid(&mut self) -> Result<Uuid, failure::Error>;
+    fn try_get_uuid(&mut self) -> anyhow::Result<Uuid>;
 
     fn try_get_nbt<T: DeserializeOwned>(&mut self) -> Result<T, nbt::Error>;
 
@@ -188,7 +188,7 @@ impl<B: Buf + Read> McTypeRead for B {
         }
     }
 
-    fn try_get_uuid(&mut self) -> Result<Uuid, failure::Error> {
+    fn try_get_uuid(&mut self) -> anyhow::Result<Uuid> {
         let mut bytes = [0u8; 16];
         self.read_exact(&mut bytes)?;
         Ok(Uuid::from_bytes(bytes))

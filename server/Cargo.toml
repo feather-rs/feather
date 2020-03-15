@@ -26,17 +26,17 @@ tonks = { git = "https://github.com/feather-rs/tonks", rev = "0ed28a624a21d04401
 
 # Concurrency/threading
 crossbeam = "0.7"
-rayon = "1.2"
-parking_lot = "0.9"
+rayon = "1.3"
+parking_lot = "0.10"
 lock_api = "0.3"
 thread_local = "1.0"
 
 # Netorking/IO
-tokio = {version = "0.2", features = ["full"] }
+tokio = { version = "0.2", features = ["full"] }
 tokio-util = { version = "0.2", features = ["codec"] }
 futures = "0.3"
 bytes = "0.5"
-mojang-api = "0.5"
+mojang-api = "0.6"
 
 # Crypto
 rsa = "0.2"
@@ -45,28 +45,27 @@ rsa-der = "0.2"
 num-bigint = { version = "0.6", features = ["rand", "i128", "u64_digit"], package = "num-bigint-dig" }
 
 # Hash functions
-ahash = "0.2"
-fnv = "1.0"
-base64 = "0.10"
+ahash = "0.3"
+base64 = "0.12"
 
 # Math and physics
-nalgebra-glm = "0.4"
-nalgebra = "0.18"
-ncollide3d = "0.20"
+nalgebra-glm = "0.6"
+nalgebra = "0.20"
+ncollide3d = "0.22"
 
 # Other data structures
-hashbrown = { version = "0.6", features = ["rayon"] }
-bitvec = "0.15"
+hashbrown = { version = "0.7", features = ["rayon"] }
+bitvec = "0.17"
 bitflags = "1.2"
 heapless = "0.5"
-uuid = { version = "0.7", features = ["v4"] }
-multimap = "0.7"
-smallvec = "0.6"
+uuid = { version = "0.8", features = ["v4"] }
+multimap = "0.8"
+smallvec = "1.2"
 chashmap = "2.2"
 
 # Logging
 log = "0.4"
-simple_logger = "1.3"
+simple_logger = "1.6"
 
 # Serialization/deserialization
 serde = { version = "1.0", features = ["derive"] }
@@ -79,18 +78,20 @@ rand = "0.7"
 rand_xorshift = "0.2"
 
 # Other
-failure = "0.1"
 num-derive = "0.3"
 num-traits = "0.2"
 lazy_static = "1.4"
-derive_deref = "1.1"
-bumpalo = "2.6"
-strum = "0.16"
+bumpalo = "3.2"
+strum = "0.18"
 simdnoise = "3.1"
-simdeez = "0.6"
-humantime-serde = "0.1"
+simdeez = "1.0"
+humantime-serde = "1.0"
 ctrlc = "3.1"
 inventory = "0.1"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
 
 [dev-dependencies]
 criterion = "0.3"

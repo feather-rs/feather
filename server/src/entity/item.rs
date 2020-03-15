@@ -82,7 +82,7 @@ pub fn item_spawn(
     // work. See https://github.com/GlowstoneMC/Glowstone/blob/dev/src/main/java/net/glowstone/entity/GlowHumanEntity.java
     // (method drop(ItemStack stack)) for their code.
     let velocity = {
-        let mut vel = pos.direction() * 0.3;
+        let mut vel = glm::DVec3::from_column_slice(&(pos.direction() * 0.3).into_array());
         let rand_offset = 0.02;
 
         let x = rng.gen_range(0.0, rand_offset) - rand_offset / 2.0;

@@ -1,40 +1,39 @@
-use super::block::*;
-use super::ChunkPosition;
 use crate::Biome;
+use crate::{Block, BlockExt, ChunkPosition};
 use multimap::MultiMap;
 
 /// The number of bits used for each block
 /// in the global palette.
-pub(crate) const GLOBAL_BITS_PER_BLOCK: u8 = 14;
+pub const GLOBAL_BITS_PER_BLOCK: u8 = 14;
 
 /// The minimum bits per block allowed when
 /// using a section palette.
 /// Bits per block values lower than this
 /// value will be offsetted to this value.
-pub(crate) const MIN_BITS_PER_BLOCK: u8 = 4;
+pub const MIN_BITS_PER_BLOCK: u8 = 4;
 
 /// The maximum number of bits per block
 /// allowed when using a section palette.
 /// Values above this will use the global palette
 /// instead.
-pub(crate) const MAX_BITS_PER_BLOCK: u8 = 8;
+pub const MAX_BITS_PER_BLOCK: u8 = 8;
 
 /// The height in blocks of a chunk column.
-const CHUNK_HEIGHT: usize = 256;
+pub const CHUNK_HEIGHT: usize = 256;
 /// The width in blocks of a chunk column.
-const CHUNK_WIDTH: usize = 16;
+pub const CHUNK_WIDTH: usize = 16;
 
 /// The height in blocks of a chunk section.
-const SECTION_HEIGHT: usize = 16;
+pub const SECTION_HEIGHT: usize = 16;
 
 /// The width in blocks of a chunk section.
-const SECTION_WIDTH: usize = CHUNK_WIDTH;
+pub const SECTION_WIDTH: usize = CHUNK_WIDTH;
 
 /// The volume in blocks of a chunk section.
-pub(crate) const SECTION_VOLUME: usize = (SECTION_HEIGHT * SECTION_WIDTH * SECTION_WIDTH) as usize;
+pub const SECTION_VOLUME: usize = (SECTION_HEIGHT * SECTION_WIDTH * SECTION_WIDTH) as usize;
 
 /// The number of chunk sections in a column.
-pub(crate) const NUM_SECTIONS: usize = 16;
+pub const NUM_SECTIONS: usize = 16;
 
 /// A chunk column consisting
 /// of a 16x256x16 section of blocks.

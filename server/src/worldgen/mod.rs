@@ -16,6 +16,7 @@ pub mod voronoi;
 
 use crate::worldgen::finishers::{ClumpedFoliageFinisher, SingleFoliageFinisher, SnowFinisher};
 pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
+use bitvec::order::Local;
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
 pub use composition::BasicCompositionGenerator;
@@ -211,7 +212,12 @@ pub trait DensityMapGenerator: Send + Sync {
     /// A compact array of booleans is returned, indexable
     /// by (y << 8) | (x << 4) | z. Those set to `true` will
     /// contain solid blacks; those set to `false` will be air.
-    fn generate_for_chunk(&self, chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> BitVec;
+    fn generate_for_chunk(
+        &self,
+        chunk: ChunkPosition,
+        biomes: &NearbyBiomes,
+        seed: u64,
+    ) -> BitVec<Local, u8>;
 }
 
 /// A generator which populates the given chunk using blocks
@@ -224,7 +230,7 @@ pub trait CompositionGenerator: Send + Sync {
         chunk: &mut Chunk,
         pos: ChunkPosition,
         biomes: &ChunkBiomes,
-        density: &BitSlice,
+        density: &BitSlice<Local, u8>,
         seed: u64,
     );
 }

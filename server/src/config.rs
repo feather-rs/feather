@@ -1,12 +1,13 @@
-use failure::_core::time::Duration;
 use std::fs::read_to_string;
+use std::time::Duration;
+use thiserror::Error;
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum ConfigError {
-    #[fail(display = "Badly formatted configuration file: {}", _0)]
-    Parse(#[fail(cause)] toml::de::Error),
-    #[fail(display = "Failed to read configuration file: {}", _0)]
-    Io(#[fail(cause)] std::io::Error),
+    #[error("Badly formatted configuration file: {0}")]
+    Parse(toml::de::Error),
+    #[error("Failed to read configuration file: {0}")]
+    Io(std::io::Error),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

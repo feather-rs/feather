@@ -20,5 +20,5 @@ fn broadcast_block_update(event: &BlockUpdateEvent, state: &State) {
         location: event.pos,
         block_id: event.new_block.native_state_id() as i32,
     };
-    state.broadcast_chunk_update(event.pos.chunk_pos(), packet, neq);
+    state.broadcast_chunk_update(event.pos.into(), packet, neq);
 }

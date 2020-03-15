@@ -38,7 +38,7 @@ fn join(
             let pos = world.get_component::<Position>(event.player).unwrap();
             let joined = world.get_component::<Joined>(event.player).unwrap();
 
-            if pos.chunk_pos() != event.chunk || joined.0 {
+            if pos.chunk() != event.chunk || joined.0 {
                 return;
             }
 
@@ -89,7 +89,7 @@ fn send_join_game(
     // TODO
     let packet = JoinGame {
         entity_id: id.0,
-        gamemode: Gamemode::Creative.get_id(),
+        gamemode: Gamemode::Creative.id(),
         dimension: 0,
         difficulty: 0,
         max_players: 0,

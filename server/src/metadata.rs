@@ -1,8 +1,8 @@
 //! Entity metadata implementation.
 
-use feather_core::entitymeta::EntityMetadata;
 use feather_core::inventory::Slot;
 use feather_core::world::BlockPosition;
+use feather_core::EntityMetadata;
 use uuid::Uuid;
 
 type OptUuid = Option<Uuid>;

@@ -1,18 +1,21 @@
-use super::super::mctypes::{McTypeRead, McTypeWrite};
-use super::*;
 use crate::bytes_ext::{BytesExt, BytesMutExt};
 use crate::entitymeta::{EntityMetaRead, EntityMetaWrite, EntityMetadata};
 use crate::inventory::ItemStack;
-use crate::network::packet::PacketStage::Play;
-use crate::prelude::*;
-use crate::world::chunk::{BitArray, Chunk};
-use crate::{Biome, ChunkSection, ClientboundAnimation, Hand};
-use bytes::{Buf, BufMut};
+use crate::mctypes::{McTypeRead, McTypeWrite};
+use crate::network::packet::{AsAny, PacketBuilder, PacketStage};
+use crate::{
+    chunk, Biome, BitArray, BlockPosition, Chunk, ChunkPosition, ChunkSection,
+    ClientboundAnimation, Gamemode, Hand, Packet, PacketType,
+};
+use bytes::{Buf, BufMut, BytesMut};
 use hashbrown::HashMap;
 use num_traits::{FromPrimitive, ToPrimitive};
+use std::any::Any;
 use std::io::Cursor;
 use std::io::Read;
 use std::io::Write;
+use thiserror::Error;
+use uuid::Uuid;
 
 type VarInt = i32;
 type VarLong = i64;
@@ -169,27 +172,27 @@ macro_rules! box_clone_impl {
     };
 }
 
-#[derive(Clone, Copy, Fail, Debug)]
+#[derive(Clone, Copy, Error, Debug)]
 pub enum Error {
-    #[fail(display = "invalid face value {}", _0)]
+    #[error("invalid face value {0}")]
     InvalidFace(i32),
-    #[fail(display = "invalid hand value {}", _0)]
+    #[error("invalid hand value {0}")]
     InvalidHand(i32),
-    #[fail(display = "invalid entity action type {}", _0)]
+    #[error("invalid entity action type {0}")]
     InvalidEntityAction(i32),
-    #[fail(display = "invalid player digging status {}", _0)]
+    #[error("invalid player digging status {0}")]
     InvalidPlayerDiggingStatus(i32),
-    #[fail(display = "invalid use entity value {}", _0)]
+    #[error("invalid use entity value {0}")]
     InvalidUseEntity(i32),
-    #[fail(display = "insufficient array length")]
+    #[error("insufficient array length")]
     InsufficientArrayLength,
-    #[fail(display = "invalid handshake state {}", _0)]
+    #[error("invalid handshake next state {0}")]
     InvalidHandshakeState(i32),
 }
 
 // SERVERBOUND
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct Handshake {
     pub protocol_version: u32,
     pub server_address: String,
@@ -198,7 +201,7 @@ pub struct Handshake {
 }
 
 impl Packet for Handshake {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.protocol_version = buf.try_get_var_int()? as u32;
         self.server_address = buf.try_get_string()?;
         self.server_port = buf.try_get_u16()?;
@@ -253,12 +256,12 @@ impl Default for HandshakeState {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct LoginStart {
     pub username: String,
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct EncryptionResponse {
     pub secret_length: VarInt,
     pub secret: Vec<u8>,
@@ -267,7 +270,7 @@ pub struct EncryptionResponse {
 }
 
 impl Packet for EncryptionResponse {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.secret_length = buf.try_get_var_int()?;
 
         let mut secret = vec![];
@@ -310,37 +313,37 @@ impl Packet for EncryptionResponse {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct Request {}
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct Ping {
     pub payload: u64,
 }
 
 // PLAY
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct TeleportConfirm {
     pub teleport_id: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct QueryBlockNBT {
     pub transaction_id: VarInt,
     pub location: BlockPosition,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct ChatMessageServerbound {
     pub message: String, // Raw string, not a chat component
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct ClientStatus {
     pub action_id: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct ClientSettings {
     pub locale: String,
     pub view_distance: u8,
@@ -350,26 +353,26 @@ pub struct ClientSettings {
     pub main_hand: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct TabCompleteServerbound {
     pub transaction_id: VarInt,
     pub text: String,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct ConfirmTransactionServerbound {
     pub window_id: u8,
     pub action_number: u16,
     pub accepted: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct EnchantItem {
     pub window_id: u8,
     pub enchantment: u8,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct ClickWindow {
     pub window_id: u8,
     pub slot: u16,
@@ -379,19 +382,19 @@ pub struct ClickWindow {
     pub clicked_item: Slot,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct CloseWindowServerbound {
     pub window_id: u8,
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct PluginMessageServerbound {
     pub channel: String,
     pub data: Vec<u8>,
 }
 
 impl Packet for PluginMessageServerbound {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.channel = buf.try_get_string()?;
 
         let mut data = Vec::with_capacity(buf.remaining());
@@ -424,27 +427,27 @@ impl Packet for PluginMessageServerbound {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct EditBook {
     pub new_book: Slot,
     pub is_signing: bool,
     pub hand: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct QueryEntityNBT {
     pub transaction_id: VarInt,
     pub entity_id: VarInt,
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct UseEntity {
     pub target: VarInt,
     pub ty: UseEntityType,
 }
 
 impl Packet for UseEntity {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.target = buf.try_get_var_int()?;
 
         let ty_id = buf.try_get_var_int()?;
@@ -498,7 +501,7 @@ impl Packet for UseEntity {
     }
 }
 
-#[derive(AsAny, new, Clone)]
+#[derive(AsAny, Clone)]
 pub enum UseEntityType {
     Interact,
     Attack,
@@ -511,17 +514,17 @@ impl Default for UseEntityType {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct KeepAliveServerbound {
     pub id: i64,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct Player {
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct PlayerPosition {
     pub x: f64,
     pub feet_y: f64,
@@ -529,7 +532,7 @@ pub struct PlayerPosition {
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct PlayerPositionAndLookServerbound {
     pub x: f64,
     pub feet_y: f64,
@@ -539,14 +542,14 @@ pub struct PlayerPositionAndLookServerbound {
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct PlayerLook {
     pub yaw: f32,
     pub pitch: f32,
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct VehicleMoveServerbound {
     pub x: f64,
     pub y: f64,
@@ -555,32 +558,32 @@ pub struct VehicleMoveServerbound {
     pub pitch: f32,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct SteerBoat {
     pub left_paddle_turning: bool,
     pub right_paddle_turning: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct PickItem {
     pub slot_to_use: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct CraftRecipeRequest {
     pub window_id: i8,
     pub recipe: String,
     pub make_all: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct PlayerAbilitiesServerbound {
     pub flags: u8,
     pub flying_speed: f32,
     pub walking_speed: f32,
 }
 
-#[derive(AsAny, new, Clone, Default)]
+#[derive(AsAny, Clone, Default)]
 pub struct PlayerDigging {
     pub status: PlayerDiggingStatus,
     pub location: BlockPosition,
@@ -588,7 +591,7 @@ pub struct PlayerDigging {
 }
 
 impl Packet for PlayerDigging {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.status = {
             let id = buf.try_get_var_int()?;
             match id {
@@ -650,7 +653,7 @@ impl Default for PlayerDiggingStatus {
     }
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct EntityAction {
     pub entity_id: VarInt,
     pub action_id: EntityActionType,
@@ -658,7 +661,7 @@ pub struct EntityAction {
 }
 
 impl Packet for EntityAction {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.entity_id = buf.try_get_var_int()?;
         let action_id = buf.try_get_var_int()?;
         self.action_id =
@@ -710,52 +713,52 @@ impl Default for EntityActionType {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct SteerVehicle {
     pub sideways: f32,
     pub forward: f32,
     pub flags: u8,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct RecipeBookData {
     pub ty: VarInt,
     // TODO
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct NameItem {
     pub item_name: String,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct ResourcePackStatus {
     pub result: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct AdvancementTab {
     pub action: VarInt,
     pub tab_id: String,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct SelectTrade {
     pub selected_slot: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct SetBeaconEffect {
     pub primary_effect: VarInt,
     pub secondary_effect: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct HeldItemChangeServerbound {
     pub slot: i16,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct UpdateCommandBlock {
     pub location: BlockPosition,
     pub command: String,
@@ -763,21 +766,21 @@ pub struct UpdateCommandBlock {
     pub flags: u8,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct UpdateCommandBlockMinecart {
     pub entity_id: VarInt,
     pub command: String,
     pub track_output: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct CreativeInventoryAction {
     pub slot: i16,
     pub clicked_item: Slot,
 }
 
 #[allow(clippy::too_many_arguments)]
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct UpdateStructureBlock {
     pub location: BlockPosition,
     pub action: VarInt,
@@ -797,7 +800,7 @@ pub struct UpdateStructureBlock {
     pub flags: u8,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct UpdateSign {
     pub location: BlockPosition,
     pub line_1: String,
@@ -806,13 +809,13 @@ pub struct UpdateSign {
     pub line_4: String,
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct AnimationServerbound {
     pub hand: Hand,
 }
 
 impl Packet for AnimationServerbound {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         let hand_id = buf.try_get_var_int()?;
         self.hand = match Hand::from_i32(hand_id) {
             Some(hand) => hand,
@@ -842,7 +845,7 @@ impl Packet for AnimationServerbound {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct Spectate {
     pub target_player: Uuid,
 }
@@ -876,7 +879,7 @@ impl Default for Face {
     }
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct PlayerBlockPlacement {
     pub location: BlockPosition,
     pub face: Face,
@@ -887,7 +890,7 @@ pub struct PlayerBlockPlacement {
 }
 
 impl Packet for PlayerBlockPlacement {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.location = buf.try_get_position()?;
         let face_id = buf.try_get_var_int()?;
         self.face = Face::from_i32(face_id).ok_or(Error::InvalidFace(face_id))?;
@@ -923,18 +926,18 @@ impl Packet for PlayerBlockPlacement {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct UseItem {
     pub hand: VarInt,
 }
 
 // CLIENTBOUND
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct DisconnectLogin {
     pub reason: String,
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct EncryptionRequest {
     pub server_id: String,
     pub public_key: Vec<u8>,
@@ -942,7 +945,7 @@ pub struct EncryptionRequest {
 }
 
 impl Packet for EncryptionRequest {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.server_id = buf.try_get_string()?;
 
         let pubkey_len = buf.try_get_var_int()?;
@@ -984,30 +987,30 @@ impl Packet for EncryptionRequest {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct LoginSuccess {
     pub uuid: String,
     pub username: String,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct SetCompression {
     pub threshold: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct Response {
     pub json_response: String,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct Pong {
     pub payload: u64,
 }
 
 // PLAY
 #[allow(clippy::too_many_arguments)]
-#[derive(Default, AsAny, new, Packet, Clone, Debug)]
+#[derive(Default, AsAny, Packet, Clone, Debug)]
 pub struct SpawnObject {
     pub entity_id: VarInt,
     pub object_uuid: Uuid,
@@ -1023,7 +1026,7 @@ pub struct SpawnObject {
     pub velocity_z: i16,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct SpawnExperienceOrb {
     pub entity_id: VarInt,
     pub x: f64,
@@ -1032,7 +1035,7 @@ pub struct SpawnExperienceOrb {
     pub count: i16,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct SpawnGlobalEntity {
     pub entity_id: VarInt,
     pub ty: u8,
@@ -1042,7 +1045,7 @@ pub struct SpawnGlobalEntity {
 }
 
 #[allow(clippy::too_many_arguments)]
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct SpawnMob {
     pub entity_id: VarInt,
     pub entity_uuid: Uuid,
@@ -1059,7 +1062,7 @@ pub struct SpawnMob {
     pub meta: EntityMetadata,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct SpawnPainting {
     pub entity_id: VarInt,
     pub entity_uuid: Uuid,
@@ -1069,7 +1072,7 @@ pub struct SpawnPainting {
 }
 
 #[allow(clippy::too_many_arguments)]
-#[derive(AsAny, new, Clone, Default, Packet)]
+#[derive(AsAny, Clone, Default, Packet)]
 pub struct SpawnPlayer {
     pub entity_id: VarInt,
     pub player_uuid: Uuid,
@@ -1081,14 +1084,14 @@ pub struct SpawnPlayer {
     pub metadata: EntityMetadata,
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct AnimationClientbound {
     pub entity_id: VarInt,
     pub animation: ClientboundAnimation,
 }
 
 impl Packet for AnimationClientbound {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.entity_id = buf.try_get_var_int()?;
         self.animation =
             ClientboundAnimation::from_u8(buf.try_get_u8()?).ok_or(Error::InvalidUseEntity(0))?;
@@ -1116,14 +1119,14 @@ impl Packet for AnimationClientbound {
     }
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct Statistics {
     pub statistics: Vec<(VarInt, VarInt)>,
     pub value: VarInt,
 }
 
 impl Packet for Statistics {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         let num_statistics = buf.try_get_var_int()?;
 
         if num_statistics > 255 {
@@ -1163,21 +1166,21 @@ impl Packet for Statistics {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct BlockBreakAnimation {
     pub entity_id: VarInt,
     pub location: BlockPosition,
     pub destroy_stage: i8,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct UpdateBlockEntity {
     pub location: BlockPosition,
     pub action: u8,
     // TODO pub data: NbtTag
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct BlockAction {
     pub location: BlockPosition,
     pub action_id: u8,
@@ -1185,20 +1188,20 @@ pub struct BlockAction {
     pub block_type: VarInt, // NOTE: block type ID, not the block state ID
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct BlockChange {
     pub location: BlockPosition,
     pub block_id: VarInt,
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct BossBar {
     pub uuid: Uuid,
     pub action: BossBarAction,
 }
 
 impl Packet for BossBar {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         unimplemented!()
     }
 
@@ -1308,12 +1311,12 @@ impl Default for BossBarDivision {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct ServerDifficulty {
     pub difficulty: u8,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct ChatMessageClientbound {
     pub json_data: String,
     pub position: u8,
@@ -1323,14 +1326,14 @@ pub struct ChatMessageClientbound {
 // TODO TabCompleteClientbound
 // TODO DeclareCommands
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct ConfirmTransactionClientbound {
     pub window_id: i8,
     pub action_number: i16,
     pub accepted: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct OpenWindow {
     pub window_id: u8,
     pub window_type: String,
@@ -1339,14 +1342,14 @@ pub struct OpenWindow {
     pub entity_id: i32,
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct WindowItems {
     pub window_id: u8,
     pub slots: Vec<Slot>,
 }
 
 impl Packet for WindowItems {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.window_id = buf.try_get_u8()?;
         let num_slots = buf.try_get_i16()?;
 
@@ -1382,34 +1385,34 @@ impl Packet for WindowItems {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct WindowProperty {
     pub window_id: u8,
     pub property: i16,
     pub value: i16,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct SetSlot {
     pub window_id: i8,
     pub slot: i16,
     pub slot_data: Slot,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct SetCooldown {
     pub item_id: VarInt,
     pub cooldown_ticks: VarInt,
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct PluginMessageClientbound {
     pub channel: String,
     pub data: Vec<u8>,
 }
 
 impl Packet for PluginMessageClientbound {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.channel = buf.try_get_string()?;
 
         self.data.extend_from_slice(*buf.get_ref());
@@ -1438,7 +1441,7 @@ impl Packet for PluginMessageClientbound {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct NamedSoundEffect {
     pub sound_name: String,
     pub sound_category: VarInt,
@@ -1449,25 +1452,25 @@ pub struct NamedSoundEffect {
     pub pitch: f32,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct DisconnectPlay {
     pub reason: String, // Chat
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct EntityStatus {
     pub entity_id: i32,
     pub entity_status: i8,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct NBTQueryResponse {
     pub transaction_id: VarInt,
     // TODO pub nbt: NbtTag,
 }
 
 #[allow(clippy::too_many_arguments)]
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct Explosion {
     pub x: f32,
     pub y: f32,
@@ -1480,7 +1483,7 @@ pub struct Explosion {
 }
 
 impl Packet for Explosion {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         unimplemented!()
     }
 
@@ -1519,38 +1522,36 @@ impl Packet for Explosion {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct UnloadChunk {
     pub chunk_x: i32,
     pub chunk_z: i32,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct ChangeGameState {
     pub reason: u8,
     pub value: f32,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct KeepAliveClientbound {
     pub keep_alive_id: u64,
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 enum ChunkDataError {
-    #[fail(display = "invalid bits per block value {} for section {}", _0, _1)]
+    #[error("invalid bits per block value {0} for section {1}")]
     InvalidBitsPerBlock(u8, usize),
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct ChunkData {
     pub chunk: Chunk,
 }
 
 impl Packet for ChunkData {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
-        use crate::world::chunk::{self, BitArray};
-
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.chunk
             .set_position(ChunkPosition::new(buf.try_get_i32()?, buf.try_get_i32()?));
         if buf.try_get_bool()? {
@@ -1716,7 +1717,7 @@ impl Packet for ChunkData {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct Effect {
     pub effect_id: i32,
     pub location: BlockPosition,
@@ -1724,7 +1725,7 @@ pub struct Effect {
     pub disable_relative_volume: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct Particle {
     pub particle_id: i32,
     pub long_distance: bool,
@@ -1738,7 +1739,7 @@ pub struct Particle {
     // TODO data
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct JoinGame {
     pub entity_id: i32,
     pub gamemode: u8,
@@ -1752,7 +1753,7 @@ pub struct JoinGame {
 // TODO MapData
 // TODO EntityPacket
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct EntityRelativeMove {
     pub entity_id: VarInt,
     pub delta_x: i16,
@@ -1761,7 +1762,7 @@ pub struct EntityRelativeMove {
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct EntityLookAndRelativeMove {
     pub entity_id: VarInt,
     pub delta_x: i16,
@@ -1772,7 +1773,7 @@ pub struct EntityLookAndRelativeMove {
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct EntityLook {
     pub entity_id: VarInt,
     pub yaw: u8,
@@ -1780,7 +1781,7 @@ pub struct EntityLook {
     pub on_ground: bool,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct VehicleMoveClientbound {
     pub x: f64,
     pub y: f64,
@@ -1789,31 +1790,31 @@ pub struct VehicleMoveClientbound {
     pub pitch: f32,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct OpenSignEditor {
     pub location: BlockPosition,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct CraftRecipeResponse {
     pub window_id: i8,
     pub recipe: String,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct PlayerAbilitiesClientbound {
     flags: u8,
     flying_speed: f32,
     field_of_view_modifier: f32,
 }
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct CombatEvent {
     pub event: CombatEventType,
 }
 
 impl Packet for CombatEvent {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         unimplemented!()
     }
 
@@ -1848,7 +1849,7 @@ impl Packet for CombatEvent {
     }
 }
 
-#[derive(new, Clone)]
+#[derive(Clone)]
 pub enum CombatEventType {
     EnterCombat,
     EndCombat(VarInt, i32),
@@ -1861,14 +1862,14 @@ impl Default for CombatEventType {
     }
 }
 
-#[derive(AsAny, new, Clone, Default)]
+#[derive(AsAny, Clone, Default)]
 pub struct PlayerInfo {
     pub action: PlayerInfoAction,
     pub uuid: Uuid,
 }
 
 impl Packet for PlayerInfo {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         let id = buf.try_get_var_int()?;
         let _ = buf.try_get_var_int()?;
         self.uuid = buf.try_get_uuid()?;
@@ -1932,13 +1933,13 @@ impl Packet for PlayerInfo {
                     buf.push_string(&prop.2);
                 }
 
-                buf.push_var_int(i32::from(gamemode.get_id()));
+                buf.push_var_int(i32::from(gamemode.id()));
                 buf.push_var_int(*ping);
                 buf.push_bool(true);
                 buf.push_string(display_name);
             }
             PlayerInfoAction::UpdateGamemode(gamemode) => {
-                buf.push_var_int(i32::from(gamemode.get_id()));
+                buf.push_var_int(i32::from(gamemode.id()));
             }
             PlayerInfoAction::UpdateLatency(ping) => {
                 buf.push_var_int(*ping);
@@ -2002,7 +2003,7 @@ impl Default for PlayerInfoAction {
 
 // TODO Face Player
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct PlayerPositionAndLookClientbound {
     pub x: f64,
     pub y: f64,
@@ -2013,7 +2014,7 @@ pub struct PlayerPositionAndLookClientbound {
     pub teleport_id: VarInt,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct UseBed {
     pub entity_id: VarInt,
     pub location: BlockPosition,
@@ -2021,13 +2022,13 @@ pub struct UseBed {
 
 // TODO Unlock Recipes
 
-#[derive(Default, AsAny, new, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct DestroyEntities {
     pub entity_ids: Vec<VarInt>,
 }
 
 impl Packet for DestroyEntities {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         unimplemented!()
     }
 
@@ -2055,19 +2056,19 @@ impl Packet for DestroyEntities {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct RemoveEntityEffect {
     pub entity_id: VarInt,
     pub effect_id: i8,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct ResourcePackSend {
     pub url: String,
     pub hash: String,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct Respawn {
     pub dimension: i32,
     pub difficulty: u8,
@@ -2075,20 +2076,20 @@ pub struct Respawn {
     pub level_type: String,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct EntityHeadLook {
     pub entity_id: VarInt,
     pub head_yaw: u8,
 }
 
-#[derive(Default, AsAny, new, Clone, Debug)]
+#[derive(Default, AsAny, Clone, Debug)]
 pub struct PacketEntityMetadata {
     pub entity_id: VarInt,
     pub metadata: EntityMetadata,
 }
 
 impl Packet for PacketEntityMetadata {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         self.entity_id = buf.try_get_var_int()?;
         self.metadata = buf.try_get_metadata()?;
         Ok(())
@@ -2115,7 +2116,7 @@ impl Packet for PacketEntityMetadata {
     }
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct EntityVelocity {
     pub entity_id: VarInt,
     pub velocity_x: i16,
@@ -2123,7 +2124,7 @@ pub struct EntityVelocity {
     pub velocity_z: i16,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct EntityEquipment {
     pub entity_id: VarInt,
     pub slot: VarInt,
@@ -2133,7 +2134,7 @@ pub struct EntityEquipment {
 // TODO Select Advancement Tab
 // TODO World Border
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct SpawnPosition {
     pub location: BlockPosition,
 }
@@ -2144,7 +2145,7 @@ pub struct TimeUpdate {
     pub time_of_day: i64,
 }
 
-#[derive(Default, AsAny, new, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct CollectItem {
     pub collected: VarInt,
     pub collector: VarInt,

@@ -4,11 +4,26 @@ use crate::network::Network;
 use crate::player::PlayerJoinEvent;
 use feather_core::packet::TimeUpdate;
 use legion::query::Read;
+use std::ops::{Deref, DerefMut};
 use tonks::{PreparedWorld, Query};
 
 /// The current time of the world.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deref, DerefMut, Default, Resource)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource)]
 pub struct Time(pub u64);
+
+impl Deref for Time {
+    type Target = u64;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Time {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 impl Time {
     /// Returns the time of day. This is calculated

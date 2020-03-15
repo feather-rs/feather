@@ -1,4 +1,4 @@
-use crate::{Item, Position};
+use crate::{vec3, Item, Position, Vec3d};
 use nbt::Value;
 use std::collections::HashMap;
 
@@ -111,7 +111,7 @@ impl BaseEntityData {
 
 impl BaseEntityData {
     /// Creates a `BaseEntityData` from a position and velocity.
-    pub fn new(pos: Position, velocity: glm::DVec3) -> Self {
+    pub fn new(pos: Position, velocity: Vec3d) -> Self {
         Self {
             position: vec![pos.x, pos.y, pos.z],
             rotation: vec![pos.yaw, pos.pitch],
@@ -136,13 +136,9 @@ impl BaseEntityData {
     }
 
     /// Reads the velocity field. If the field is invalid, None is returned.
-    pub fn read_velocity(self: &BaseEntityData) -> Option<glm::DVec3> {
+    pub fn read_velocity(self: &BaseEntityData) -> Option<Vec3d> {
         if self.velocity.len() == 3 {
-            Some(glm::vec3(
-                self.velocity[0],
-                self.velocity[1],
-                self.velocity[2],
-            ))
+            Some(vec3(self.velocity[0], self.velocity[1], self.velocity[2]))
         } else {
             None
         }
@@ -322,7 +318,7 @@ mod tests {
     #[test]
     fn test_new() {
         let pos = position!(1.0, 10.0, 3.0, 115.0, -3.0);
-        let vel = glm::vec3(0.0, 1.0, 2.0);
+        let vel = vec3(0.0, 1.0, 2.0);
 
         let data = BaseEntityData::new(pos, vel);
         assert_eq!(data.read_position(), Some(pos));

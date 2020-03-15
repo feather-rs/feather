@@ -1,8 +1,6 @@
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
-extern crate derive_new;
-#[macro_use]
 extern crate log;
 #[macro_use]
 extern crate serde;
@@ -16,33 +14,32 @@ extern crate smallvec;
 extern crate hash32_derive;
 #[macro_use]
 extern crate strum_macros;
-#[macro_use]
-extern crate failure;
-
-extern crate nalgebra_glm as glm;
 
 #[macro_use]
 pub mod world;
 mod biomes;
-pub mod bytes_ext;
-pub mod entitymeta;
+mod bytes_ext;
+pub mod chunk;
+mod entitymeta;
 pub mod inventory;
+mod math_types;
 pub mod network;
-pub mod prelude;
 mod save;
 
+extern crate nalgebra_glm as glm;
+
 pub use biomes::Biome;
+pub use chunk::{BitArray, Chunk, ChunkSection};
 pub use entitymeta::EntityMetadata;
+pub use feather_blocks::*;
 pub use feather_items as item;
 pub use inventory::{ItemStack, Slot};
 pub use item::{Item, ItemExt};
+pub use math_types::*;
 pub use network::packet::{implementation as packet, Packet, PacketType};
+pub use network::{cast_packet, mctypes};
 pub use save::{entity, level, player_data, region};
-pub use world::{
-    block::{self, Block, BlockExt},
-    chunk::{Chunk, ChunkSection},
-    BlockPosition, ChunkPosition, Position,
-};
+pub use world::{BlockPosition, ChunkPosition, Position};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Gamemode {
@@ -53,7 +50,7 @@ pub enum Gamemode {
 }
 
 impl Gamemode {
-    pub fn get_id(self) -> u8 {
+    pub fn id(self) -> u8 {
         match self {
             Gamemode::Survival => 0,
             Gamemode::Creative => 1,
@@ -92,7 +89,7 @@ pub enum Difficulty {
 }
 
 impl Difficulty {
-    pub fn get_id(self) -> u8 {
+    pub fn id(self) -> u8 {
         match self {
             Difficulty::Peaceful => 0,
             Difficulty::Easy => 1,
@@ -110,7 +107,7 @@ pub enum Dimension {
 }
 
 impl Dimension {
-    pub fn get_id(self) -> i32 {
+    pub fn id(self) -> i32 {
         match self {
             Dimension::Nether => -1,
             Dimension::Overwold => 0,

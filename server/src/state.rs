@@ -166,7 +166,7 @@ impl State {
             let chunk_holders = scheduler.resources().get::<ChunkHolders>();
 
             if let Some(position) = world.get_component::<Position>(entity) {
-                let holders = chunk_holders.holders_for(position.chunk_pos());
+                let holders = chunk_holders.holders_for(position.chunk());
 
                 holders.map(|entities| {
                     for entity in entities {
@@ -196,7 +196,7 @@ impl State {
             let chunk_holders = scheduler.resources().get::<ChunkHolders>();
 
             if let Some(position) = world.get_component::<Position>(entity) {
-                let holders = chunk_holders.holders_for(position.chunk_pos());
+                let holders = chunk_holders.holders_for(position.chunk());
 
                 holders.map(|entities| {
                     for entity in entities {

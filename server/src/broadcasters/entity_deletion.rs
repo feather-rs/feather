@@ -18,7 +18,7 @@ fn broadcast_entity_deletion(
 ) {
     events.par_iter().for_each(|event: &EntityDeleteEvent| {
         if let Some(pos) = event.position {
-            let chunk = pos.chunk_pos();
+            let chunk = pos.into();
 
             for entity in holders.holders_for(chunk).unwrap_or(&[]) {
                 if let Some(network) = world.get_component::<Network>(*entity) {

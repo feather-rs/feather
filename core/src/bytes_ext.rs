@@ -1,16 +1,17 @@
 use bytes::{Buf, BufMut, BytesMut};
+use thiserror::Error;
 
 /// An error which occurred while attempting
 /// to get a value from a `Buf.`
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Fail)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Error)]
 pub enum TryGetError {
     /// Indicates that there were not enough remaining
     /// bytes in the buffer to read a value.
-    #[fail(display = "not enough bytes left in buffer")]
+    #[error("not enough bytes left in buffer")]
     NotEnoughBytes,
-    #[fail(display = "value too large")]
+    #[error("value too large")]
     ValueTooLarge,
-    #[fail(display = "invalid value {}", _0)]
+    #[error("invalid value {0}")]
     InvalidValue(i32),
 }
 

@@ -2,6 +2,7 @@
 //! based on the density and biome values.
 
 use crate::worldgen::{block_index, util, ChunkBiomes, CompositionGenerator, SEA_LEVEL};
+use bitvec::order::Local;
 use bitvec::slice::BitSlice;
 use feather_blocks::{GrassBlockData, MyceliumData, WaterData};
 use feather_core::{Biome, Block, Chunk, ChunkPosition};
@@ -20,7 +21,7 @@ impl CompositionGenerator for BasicCompositionGenerator {
         chunk: &mut Chunk,
         _pos: ChunkPosition,
         biomes: &ChunkBiomes,
-        density: &BitSlice,
+        density: &BitSlice<Local, u8>,
         seed: u64,
     ) {
         // For each column in the chunk, go from top to
@@ -39,7 +40,7 @@ fn basic_composition_for_column(
     x: usize,
     z: usize,
     chunk: &mut Chunk,
-    density: &BitSlice,
+    density: &BitSlice<Local, u8>,
     seed: u64,
     biome: Biome,
 ) {
@@ -50,7 +51,7 @@ fn basic_composition_for_solid_biome(
     x: usize,
     z: usize,
     chunk: &mut Chunk,
-    density: &BitSlice,
+    density: &BitSlice<Local, u8>,
     seed: u64,
     biome: Biome,
 ) {

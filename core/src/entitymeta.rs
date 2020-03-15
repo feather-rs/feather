@@ -56,54 +56,54 @@ impl MetaEntry {
     }
 }
 
-pub trait IntoMetaEntry {
-    fn into_meta_entry(&self) -> MetaEntry;
+pub trait ToMetaEntry {
+    fn to_meta_entry(&self) -> MetaEntry;
 }
 
-impl IntoMetaEntry for u8 {
-    fn into_meta_entry(&self) -> MetaEntry {
+impl ToMetaEntry for u8 {
+    fn to_meta_entry(&self) -> MetaEntry {
         MetaEntry::Byte(*self as i8)
     }
 }
 
-impl IntoMetaEntry for i8 {
-    fn into_meta_entry(&self) -> MetaEntry {
+impl ToMetaEntry for i8 {
+    fn to_meta_entry(&self) -> MetaEntry {
         MetaEntry::Byte(*self)
     }
 }
 
-impl IntoMetaEntry for i32 {
-    fn into_meta_entry(&self) -> MetaEntry {
+impl ToMetaEntry for i32 {
+    fn to_meta_entry(&self) -> MetaEntry {
         MetaEntry::VarInt(*self)
     }
 }
 
-impl IntoMetaEntry for bool {
-    fn into_meta_entry(&self) -> MetaEntry {
+impl ToMetaEntry for bool {
+    fn to_meta_entry(&self) -> MetaEntry {
         MetaEntry::Boolean(*self)
     }
 }
 
-impl IntoMetaEntry for Slot {
-    fn into_meta_entry(&self) -> MetaEntry {
+impl ToMetaEntry for Slot {
+    fn to_meta_entry(&self) -> MetaEntry {
         MetaEntry::Slot(self.clone())
     }
 }
 
-impl IntoMetaEntry for f32 {
-    fn into_meta_entry(&self) -> MetaEntry {
+impl ToMetaEntry for f32 {
+    fn to_meta_entry(&self) -> MetaEntry {
         MetaEntry::Float(*self)
     }
 }
 
-impl IntoMetaEntry for OptUuid {
-    fn into_meta_entry(&self) -> MetaEntry {
+impl ToMetaEntry for OptUuid {
+    fn to_meta_entry(&self) -> MetaEntry {
         MetaEntry::OptUuid(*self)
     }
 }
 
-impl IntoMetaEntry for BlockPosition {
-    fn into_meta_entry(&self) -> MetaEntry {
+impl ToMetaEntry for BlockPosition {
+    fn to_meta_entry(&self) -> MetaEntry {
         MetaEntry::Position(*self)
     }
 }
@@ -128,8 +128,8 @@ impl EntityMetadata {
         self
     }
 
-    pub fn set<E: IntoMetaEntry>(&mut self, index: u8, entry: E) {
-        self.values.insert(index, entry.into_meta_entry());
+    pub fn set<E: ToMetaEntry>(&mut self, index: u8, entry: E) {
+        self.values.insert(index, entry.to_meta_entry());
     }
 
     pub fn get(&self, index: u8) -> Option<MetaEntry> {
@@ -148,7 +148,7 @@ pub trait EntityMetaWrite {
 }
 
 pub trait EntityMetaRead {
-    fn try_get_metadata(&mut self) -> Result<EntityMetadata, failure::Error>;
+    fn try_get_metadata(&mut self) -> anyhow::Result<EntityMetadata>;
 }
 
 impl<B> EntityMetaWrite for B
@@ -170,7 +170,7 @@ impl<B> EntityMetaRead for B
 where
     B: Buf + std::io::Read,
 {
-    fn try_get_metadata(&mut self) -> Result<EntityMetadata, failure::Error> {
+    fn try_get_metadata(&mut self) -> anyhow::Result<EntityMetadata> {
         let mut values = HashMap::new();
 
         while self.has_remaining() {
@@ -249,7 +249,7 @@ where
     }
 }
 
-fn try_get_entry<B>(buf: &mut B) -> Result<MetaEntry, failure::Error>
+fn try_get_entry<B>(buf: &mut B) -> anyhow::Result<MetaEntry>
 where
     B: Buf + McTypeRead,
 {

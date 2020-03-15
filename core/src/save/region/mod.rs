@@ -13,13 +13,10 @@ use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use serde::Deserialize;
 
 use crate::save::entity::EntityData;
-use crate::world::block::*;
-use crate::world::chunk::{BitArray, Chunk, ChunkSection};
 use crate::world::ChunkPosition;
 use crate::Biome;
-use bitvec::bitvec;
-use bitvec::vec::BitVec;
-use feather_blocks::Block;
+use crate::{BitArray, Block, BlockExt, Chunk, ChunkSection};
+use bitvec::{bitvec, vec::BitVec};
 
 mod blob;
 
@@ -467,7 +464,7 @@ impl SectorAllocator {
         let mut length = 0;
 
         for (index, is_used) in self.used_sectors.iter().enumerate() {
-            if is_used {
+            if *is_used {
                 start = 0;
                 length = 0;
             } else {

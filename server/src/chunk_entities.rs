@@ -66,8 +66,8 @@ fn chunk_entities_handle_movement(
             .0;
         let new_pos = *world.get_component::<Position>(event.entity).unwrap();
 
-        let old_chunk = old_pos.chunk_pos();
-        let new_chunk = new_pos.chunk_pos();
+        let old_chunk = old_pos.chunk();
+        let new_chunk = new_pos.chunk();
 
         if old_chunk != new_chunk {
             // Update chunk entities
@@ -90,7 +90,7 @@ fn chunk_entities_insert(
     world: &mut PreparedWorld,
 ) {
     if let Some(position) = world.get_component::<Position>(event.entity) {
-        let chunk = position.chunk_pos();
+        let chunk = position.chunk();
         let mut map = state.chunk_entities.0.write();
 
         map.entry(chunk)
@@ -102,7 +102,7 @@ fn chunk_entities_insert(
 #[event_handler]
 fn chunk_entities_remove(event: &EntityDeleteEvent, state: &State) {
     if let Some(position) = event.position {
-        let chunk = position.chunk_pos();
+        let chunk = position.chunk();
         let mut map = state.chunk_entities.0.write();
 
         map.entry(chunk)

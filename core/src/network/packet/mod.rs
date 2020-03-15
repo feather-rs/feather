@@ -24,7 +24,7 @@ where
 }
 
 pub trait Packet: AsAny + IntoAny + Send + Sync + Any {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error>;
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()>;
     fn write_to(&self, buf: &mut BytesMut);
     fn ty(&self) -> PacketType;
     fn ty_sized() -> PacketType

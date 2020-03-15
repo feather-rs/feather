@@ -100,13 +100,9 @@ extern crate serde;
 #[macro_use]
 extern crate serde_json;
 #[macro_use]
-extern crate failure;
-#[macro_use]
 extern crate smallvec;
 #[macro_use]
 extern crate lazy_static;
-#[macro_use]
-extern crate derive_deref;
 #[macro_use]
 extern crate feather_core;
 #[macro_use]
@@ -448,7 +444,7 @@ fn hash_seed(seed_raw: &str) -> i64 {
 }
 
 /// Loads the level.dat file for the world.
-fn load_level(path: &Path) -> Result<LevelData, failure::Error> {
+fn load_level(path: &Path) -> anyhow::Result<LevelData> {
     let file = File::open(path)?;
     let data = deserialize_level_file(file)?;
     Ok(data)

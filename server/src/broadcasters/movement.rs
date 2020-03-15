@@ -39,7 +39,7 @@ fn broadcast_move(
         let pos = *world.get_component::<Position>(event.entity).unwrap();
 
         // Find clients which can see the entity.
-        let chunk = pos.chunk_pos();
+        let chunk = pos.into();
         let clients = chunk_holders.holders_for(chunk).unwrap_or(&[]);
 
         let entity_id = world.get_component::<EntityId>(event.entity).unwrap().0;
@@ -131,42 +131,42 @@ fn packets_for_movement_update(
         }
 
         if has_looked {
-            let packet: Box<dyn Packet> = Box::new(EntityLookAndRelativeMove::new(
+            let packet: Box<dyn Packet> = Box::new(EntityLookAndRelativeMove {
                 entity_id,
-                rx,
-                ry,
-                rz,
-                degrees_to_stops(new_pos.yaw),
-                degrees_to_stops(new_pos.pitch),
-                new_pos.on_ground,
-            ));
+                delta_x: rx,
+                delta_y: ry,
+                delta_z: rz,
+                yaw: degrees_to_stops(new_pos.yaw),
+                pitch: degrees_to_stops(new_pos.pitch),
+                on_ground: new_pos.on_ground,
+            });
             packets.push(packet);
         } else {
-            let packet: Box<dyn Packet> = Box::new(EntityRelativeMove::new(
+            let packet: Box<dyn Packet> = Box::new(EntityRelativeMove {
                 entity_id,
-                rx,
-                ry,
-                rz,
-                new_pos.on_ground,
-            ));
+                delta_x: rx,
+                delta_y: ry,
+                delta_z: rz,
+                on_ground: new_pos.on_ground,
+            });
             packets.push(packet);
         }
     } else {
-        let packet: Box<dyn Packet> = Box::new(EntityLook::new(
+        let packet: Box<dyn Packet> = Box::new(EntityLook {
             entity_id,
-            degrees_to_stops(new_pos.yaw),
-            degrees_to_stops(new_pos.pitch),
-            new_pos.on_ground,
-        ));
+            yaw: degrees_to_stops(new_pos.yaw),
+            pitch: degrees_to_stops(new_pos.pitch),
+            on_ground: new_pos.on_ground,
+        });
         packets.push(packet);
     }
 
     // Entity Head Look also needs to be sent if the entity turned its head
     if has_looked {
-        let packet: Box<dyn Packet> = Box::new(EntityHeadLook::new(
+        let packet: Box<dyn Packet> = Box::new(EntityHeadLook {
             entity_id,
-            degrees_to_stops(new_pos.yaw),
-        ));
+            head_yaw: degrees_to_stops(new_pos.yaw),
+        });
         packets.push(packet);
     }
 

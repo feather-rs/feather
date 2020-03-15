@@ -19,13 +19,14 @@ use std::net::SocketAddr;
 use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
+use thiserror::Error;
 use tokio::net::TcpStream;
 use tokio_util::codec::Framed;
 use uuid::Uuid;
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum Error {
-    #[fail(display = "failed to read player data")]
+    #[error("failed to read player data")]
     PlayerData,
 }
 
@@ -69,7 +70,7 @@ async fn _run_worker(
     server_icon: Arc<Option<String>>,
     tx_worker_to_server: crossbeam::Sender<ServerToWorkerMessage>,
     rx_worker_to_server: crossbeam::Receiver<ServerToWorkerMessage>,
-) -> Result<(), failure::Error> {
+) -> anyhow::Result<()> {
     let codec = MinecraftCodec::new(PacketDirection::Serverbound);
 
     let mut framed = Framed::new(stream, codec);
@@ -165,6 +166,7 @@ async fn _run_worker(
     }
 }
 
+#[allow(dead_code)] // TODO
 async fn load_player_data(config: &Config, uuid: Uuid) -> Result<PlayerData, nbt::Error> {
     feather_core::player_data::load_player_data(Path::new(&config.world.name), uuid).await
 }

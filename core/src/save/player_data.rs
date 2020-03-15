@@ -134,7 +134,7 @@ mod tests {
         let cursor = Cursor::new(include_bytes!("player.dat").to_vec());
 
         let player = load_from_file(cursor).unwrap();
-        assert_eq!(player.gamemode, i32::from(Gamemode::Creative.get_id()));
+        assert_eq!(player.gamemode, i32::from(Gamemode::Creative.id()));
     }
 
     #[test]

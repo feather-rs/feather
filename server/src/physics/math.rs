@@ -165,7 +165,7 @@ pub fn block_impacted_by_ray(
         _ => (),
     }
 
-    let mut current_pos = Position::from(origin).block_pos();
+    let mut current_pos = Position::from(origin).block();
 
     while dist_traveled.magnitude_squared() < max_distance_squared {
         if let Some(block) = state.block_at(current_pos) {
@@ -176,7 +176,7 @@ pub fn block_impacted_by_ray(
                 let shape = block_shape(&block);
                 let isometry = block_isometry(current_pos);
 
-                let impact = match shape.toi_and_normal_with_ray(&isometry, &ray, true) {
+                let impact = match shape.toi_and_normal_with_ray(&isometry, &ray, 1000.0, true) {
                     Some(toi) => toi,
                     None => continue,
                 };
@@ -355,7 +355,7 @@ pub fn blocks_intersecting_bbox(
     // Go through blocks and check for time of impact from original
     // position to the block. If the time of impact is <= 1, the entity
     // has collided with the block; update the position accordingly.
-    let velocity = (dest - from).as_vec();
+    let velocity = (dest - from).into();
     let bbox_shape = bbox_to_cuboid(&bbox);
 
     for compound in blocks {
@@ -363,7 +363,7 @@ pub fn blocks_intersecting_bbox(
             &Isometry3::translation(0.0, 0.0, 0.0),
             &vec3(0.0, 0.0, 0.0),
             &compound,
-            &Isometry3::new(from.as_vec(), vec3(0.0, 0.0, 0.0)),
+            &Isometry3::new(from.into(), vec3(0.0, 0.0, 0.0)),
             &velocity,
             &bbox_shape,
             1.0,
@@ -390,7 +390,7 @@ pub fn blocks_intersecting_bbox(
             }
         };
 
-        result.offset += absolute_offset.as_vec().component_mul(&normal);
+        result.offset += <Position as Into<DVec3>>::into(absolute_offset).component_mul(&normal);
 
         if normal.x != 0.0 {
             result.x = true;
@@ -477,7 +477,7 @@ pub fn adjacent_to_bbox(
 
     // Go through offsets and append block position if the block is solid.
     for offset in &offsets {
-        let block_pos = (pos + *offset).block_pos();
+        let block_pos = (pos + *offset).block();
 
         if checked.contains(&block_pos) {
             continue;
@@ -539,7 +539,7 @@ pub fn chunks_within_distance(
     let mut x_len = 0;
     let mut z_len = 0;
 
-    let center_chunk_pos = pos.chunk_pos();
+    let center_chunk_pos = pos.chunk();
 
     loop {
         let needed = ((pos.x + 16.0) / 16.0).floor() * 16.0 - pos.x;
@@ -595,6 +595,7 @@ pub fn bbox_front(bbox: &AABB<f64>, direction: Vec3) -> Position {
         .toi_with_ray(
             &Isometry3::new(vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0)),
             &ray,
+            1000.0,
             false,
         )
         .unwrap();

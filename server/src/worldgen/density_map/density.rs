@@ -4,6 +4,7 @@
 //! is more interesting; overhangs and the like will be able to generate.
 
 use crate::worldgen::{block_index, noise, DensityMapGenerator, NearbyBiomes, NoiseLerper};
+use bitvec::order::Local;
 use bitvec::vec::BitVec;
 use feather_core::{Biome, ChunkPosition};
 use simdnoise::NoiseBuilder;
@@ -24,7 +25,12 @@ use simdnoise::NoiseBuilder;
 pub struct DensityMapGeneratorImpl;
 
 impl DensityMapGenerator for DensityMapGeneratorImpl {
-    fn generate_for_chunk(&self, chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> BitVec {
+    fn generate_for_chunk(
+        &self,
+        chunk: ChunkPosition,
+        biomes: &NearbyBiomes,
+        seed: u64,
+    ) -> BitVec<Local, u8> {
         let mut density = BitVec::from_vec(vec![0u8; 16 * 256 * 16 / 8]);
 
         let uninterpolated_densities = generate_density(chunk, &biomes, seed);
