@@ -5,19 +5,19 @@ use multimap::MultiMap;
 
 /// The number of bits used for each block
 /// in the global palette.
-const GLOBAL_BITS_PER_BLOCK: u8 = 14;
+pub(crate) const GLOBAL_BITS_PER_BLOCK: u8 = 14;
 
 /// The minimum bits per block allowed when
 /// using a section palette.
 /// Bits per block values lower than this
 /// value will be offsetted to this value.
-const MIN_BITS_PER_BLOCK: u8 = 4;
+pub(crate) const MIN_BITS_PER_BLOCK: u8 = 4;
 
 /// The maximum number of bits per block
 /// allowed when using a section palette.
 /// Values above this will use the global palette
 /// instead.
-const MAX_BITS_PER_BLOCK: u8 = 8;
+pub(crate) const MAX_BITS_PER_BLOCK: u8 = 8;
 
 /// The height in blocks of a chunk column.
 const CHUNK_HEIGHT: usize = 256;
@@ -31,10 +31,10 @@ const SECTION_HEIGHT: usize = 16;
 const SECTION_WIDTH: usize = CHUNK_WIDTH;
 
 /// The volume in blocks of a chunk section.
-const SECTION_VOLUME: usize = (SECTION_HEIGHT * SECTION_WIDTH * SECTION_WIDTH) as usize;
+pub(crate) const SECTION_VOLUME: usize = (SECTION_HEIGHT * SECTION_WIDTH * SECTION_WIDTH) as usize;
 
 /// The number of chunk sections in a column.
-const NUM_SECTIONS: usize = 16;
+pub(crate) const NUM_SECTIONS: usize = 16;
 
 /// A chunk column consisting
 /// of a 16x256x16 section of blocks.
@@ -215,6 +215,11 @@ impl Chunk {
     /// of this chunk.
     pub fn position(&self) -> ChunkPosition {
         self.location
+    }
+
+    /// Sets the position of this chunk.
+    pub fn set_position(&mut self, pos: ChunkPosition) {
+        self.location = pos
     }
 
     /// Returns a reference to the chunk section at the given

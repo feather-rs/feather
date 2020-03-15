@@ -33,6 +33,7 @@ extern crate failure;
 extern crate num_derive;
 
 #[allow(clippy::all)] // No, generated code isn't idiomatic. Too bad
+#[allow(warnings)]
 mod blocks;
 mod mappings;
 

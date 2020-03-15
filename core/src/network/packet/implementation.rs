@@ -1,12 +1,12 @@
 use super::super::mctypes::{McTypeRead, McTypeWrite};
 use super::*;
 use crate::bytes_ext::{BytesExt, BytesMutExt};
-use crate::entitymeta::{EntityMetaIo, EntityMetadata};
+use crate::entitymeta::{EntityMetaRead, EntityMetaWrite, EntityMetadata};
 use crate::inventory::ItemStack;
 use crate::network::packet::PacketStage::Play;
 use crate::prelude::*;
-use crate::world::chunk::Chunk;
-use crate::{Biome, ClientboundAnimation, Hand};
+use crate::world::chunk::{BitArray, Chunk};
+use crate::{Biome, ChunkSection, ClientboundAnimation, Hand};
 use bytes::{Buf, BufMut};
 use hashbrown::HashMap;
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -1536,6 +1536,12 @@ pub struct KeepAliveClientbound {
     pub keep_alive_id: u64,
 }
 
+#[derive(Debug, Fail)]
+enum ChunkDataError {
+    #[fail(display = "invalid bits per block value {} for section {}", _0, _1)]
+    InvalidBitsPerBlock(u8, usize),
+}
+
 #[derive(Default, AsAny, new, Clone)]
 pub struct ChunkData {
     pub chunk: Chunk,
@@ -1543,7 +1549,81 @@ pub struct ChunkData {
 
 impl Packet for ChunkData {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
-        unimplemented!()
+        use crate::world::chunk::{self, BitArray};
+
+        self.chunk
+            .set_position(ChunkPosition::new(buf.try_get_i32()?, buf.try_get_i32()?));
+        if buf.try_get_bool()? {
+            let primary_mask = buf.try_get_var_int()?;
+            let temp_length = buf.try_get_var_int()?;
+
+            let mut temp_buf = &mut std::iter::repeat(0u8)
+                .take(temp_length as _)
+                .collect::<Vec<_>>()[..];
+            buf.copy_to_slice(&mut temp_buf);
+
+            let mut buf = Cursor::new(temp_buf);
+            for i in 0..(chunk::NUM_SECTIONS - 1) {
+                if primary_mask & (1 << i) != 0 {
+                    let (bits_per_block, palette) = match buf.try_get_u8()? {
+                        0..=chunk::MIN_BITS_PER_BLOCK => (
+                            chunk::MIN_BITS_PER_BLOCK,
+                            Some({
+                                let palette_number = buf.try_get_var_int()? as usize;
+                                let mut palette = Vec::<_>::with_capacity(palette_number);
+                                for _ in 0..palette_number {
+                                    palette.push(buf.try_get_var_int()? as u16);
+                                }
+                                palette
+                            }),
+                        ),
+                        x @ chunk::MIN_BITS_PER_BLOCK..=chunk::MAX_BITS_PER_BLOCK => (
+                            x,
+                            Some({
+                                /* Todo: Remove duplicate. */
+                                let palette_number = buf.try_get_var_int()? as usize;
+                                let mut palette = Vec::<_>::with_capacity(palette_number);
+                                for _ in 0..palette_number {
+                                    palette.push(buf.try_get_var_int()? as u16);
+                                }
+                                palette
+                            }),
+                        ),
+                        _ => (chunk::GLOBAL_BITS_PER_BLOCK, None),
+                    };
+
+                    /* 63 and 64 because Vec is <u64> */
+                    let data_number = buf.try_get_var_int()? as usize;
+                    assert_eq!(bits_per_block as usize * 64, data_number);
+                    let mut data = Vec::<_>::with_capacity(data_number);
+                    for _ in 0..data_number {
+                        data.push(buf.try_get_u64()?);
+                    }
+                    let data = BitArray::from_raw(data, bits_per_block, chunk::SECTION_VOLUME);
+
+                    const DATA_NUMBER: usize = (63 + chunk::SECTION_VOLUME * 4) / 64;
+                    let mut light_data = Vec::<_>::with_capacity(DATA_NUMBER);
+                    for _ in 0..DATA_NUMBER {
+                        light_data.push(buf.try_get_u64()?);
+                    }
+                    let block_light = BitArray::from_raw(light_data, 4, chunk::SECTION_VOLUME);
+
+                    let mut sky_data = Vec::<_>::with_capacity(DATA_NUMBER);
+                    for _ in 0..DATA_NUMBER {
+                        /* If outsidd! */
+                        sky_data.push(buf.try_get_u64()?);
+                    }
+                    let sky_light = chunk::BitArray::from_raw(sky_data, 4, chunk::SECTION_VOLUME);
+
+                    let section = chunk::ChunkSection::new(data, palette, block_light, sky_light);
+                    self.chunk.set_section_at(i, Some(section));
+                }
+            }
+
+            Ok(())
+        } else {
+            unimplemented!();
+        }
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
@@ -2009,7 +2089,9 @@ pub struct PacketEntityMetadata {
 
 impl Packet for PacketEntityMetadata {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> Result<(), failure::Error> {
-        unimplemented!()
+        self.entity_id = buf.try_get_var_int()?;
+        self.metadata = buf.try_get_metadata()?;
+        Ok(())
     }
 
     fn write_to(&self, buf: &mut BytesMut) {

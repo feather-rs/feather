@@ -4,7 +4,8 @@ use crate::prelude::*;
 use crate::world::BlockPosition;
 use bytes::{Buf, BytesMut};
 use feather_items::{Item, ItemExt};
-use serde::{Deserialize, Serialize};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 use std::io::Read;
 
 /// Identifies a type to which Minecraft-specific
@@ -46,9 +47,9 @@ pub trait McTypeRead {
 
     fn try_get_bool(&mut self) -> Result<bool, TryGetError>;
 
-    fn try_get_uuid(&mut self) -> Result<Uuid, TryGetError>;
+    fn try_get_uuid(&mut self) -> Result<Uuid, failure::Error>;
 
-    fn try_get_nbt<'de, T: Deserialize<'de>>(&mut self) -> Result<T, nbt::Error>;
+    fn try_get_nbt<T: DeserializeOwned>(&mut self) -> Result<T, nbt::Error>;
 
     fn try_get_slot(&mut self) -> Result<Option<ItemStack>, TryGetError>;
 }
@@ -121,7 +122,7 @@ impl McTypeWrite for BytesMut {
     }
 }
 
-impl<B: Buf> McTypeRead for B {
+impl<B: Buf + Read> McTypeRead for B {
     /// Reads a `VarInt` from this object, returning
     /// `Some(x)` if successful or `None` if the object
     /// does not contain a valid `VarInt`.
@@ -187,17 +188,14 @@ impl<B: Buf> McTypeRead for B {
         }
     }
 
-    fn try_get_uuid(&mut self) -> Result<Uuid, TryGetError> {
+    fn try_get_uuid(&mut self) -> Result<Uuid, failure::Error> {
         let mut bytes = [0u8; 16];
-        self.bytes()
-            .read_exact(&mut bytes)
-            .map_err(|_| TryGetError::NotEnoughBytes)?;
-        self.advance(bytes.len());
+        self.read_exact(&mut bytes)?;
         Ok(Uuid::from_bytes(bytes))
     }
 
-    fn try_get_nbt<'de, D: Deserialize<'de>>(&mut self) -> Result<D, nbt::Error> {
-        unimplemented!()
+    fn try_get_nbt<D: DeserializeOwned>(&mut self) -> Result<D, nbt::Error> {
+        nbt::from_reader(self)
     }
 
     fn try_get_slot(&mut self) -> Result<Option<ItemStack>, TryGetError> {

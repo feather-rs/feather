@@ -2,12 +2,13 @@
 //! metadata format. See https://wiki.vg/Entity_metadata
 //! for the specification.
 
-use crate::bytes_ext::{BytesMutExt, TryGetError};
-use crate::network::mctypes::McTypeWrite;
+use crate::bytes_ext::{BytesExt, BytesMutExt, TryGetError};
+use crate::network::mctypes::{McTypeRead, McTypeWrite};
 use crate::world::BlockPosition;
 use crate::Slot;
+use bytes::Buf;
 use hashbrown::HashMap;
-use std::io::Cursor;
+use num_traits::FromPrimitive;
 use uuid::Uuid;
 
 type OptUuid = Option<Uuid>;
@@ -28,7 +29,7 @@ pub enum MetaEntry {
     Direction(Direction),
     OptUuid(OptUuid),
     OptBlockId(Option<i32>),
-    Nbt,      // TODO
+    Nbt(nbt::Blob),
     Particle, // TODO
 }
 
@@ -49,7 +50,7 @@ impl MetaEntry {
             MetaEntry::Direction(_) => 11,
             MetaEntry::OptUuid(_) => 12,
             MetaEntry::OptBlockId(_) => 13,
-            MetaEntry::Nbt => 14,
+            MetaEntry::Nbt(_) => 14,
             MetaEntry::Particle => 15,
         }
     }
@@ -142,12 +143,15 @@ impl Default for EntityMetadata {
     }
 }
 
-pub trait EntityMetaIo {
+pub trait EntityMetaWrite {
     fn push_metadata(&mut self, meta: &EntityMetadata);
-    fn try_get_metadata(&mut self) -> Result<EntityMetadata, TryGetError>;
 }
 
-impl<B> EntityMetaIo for B
+pub trait EntityMetaRead {
+    fn try_get_metadata(&mut self) -> Result<EntityMetadata, failure::Error>;
+}
+
+impl<B> EntityMetaWrite for B
 where
     B: BytesMutExt + McTypeWrite,
 {
@@ -160,19 +164,27 @@ where
 
         self.push_u8(0xff); // End of metadata
     }
-
-    fn try_get_metadata(&mut self) -> Result<EntityMetadata, TryGetError> {
-        unimplemented!()
-    }
 }
 
-impl EntityMetaIo for &mut Cursor<&[u8]> {
-    fn push_metadata(&mut self, _meta: &EntityMetadata) {
-        unimplemented!()
-    }
+impl<B> EntityMetaRead for B
+where
+    B: Buf + std::io::Read,
+{
+    fn try_get_metadata(&mut self) -> Result<EntityMetadata, failure::Error> {
+        let mut values = HashMap::new();
 
-    fn try_get_metadata(&mut self) -> Result<EntityMetadata, TryGetError> {
-        unimplemented!()
+        while self.has_remaining() {
+            let index = self.try_get_u8()?;
+
+            if index == 0xFF {
+                break;
+            }
+
+            let entry = try_get_entry(self)?;
+            values.insert(index, entry);
+        }
+
+        Ok(EntityMetadata { values })
     }
 }
 
@@ -232,12 +244,56 @@ where
                 buf.push_var_int(0); // No value implies air
             }
         }
-        MetaEntry::Nbt => unimplemented!(),
+        MetaEntry::Nbt(val) => buf.push_nbt(val),
         MetaEntry::Particle => unimplemented!(),
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+fn try_get_entry<B>(buf: &mut B) -> Result<MetaEntry, failure::Error>
+where
+    B: Buf + McTypeRead,
+{
+    let id = buf.try_get_var_int()?;
+
+    Ok(match id {
+        0 => MetaEntry::Byte(buf.try_get_i8()?),
+        1 => MetaEntry::VarInt(buf.try_get_var_int()?),
+        2 => MetaEntry::Float(buf.try_get_f32()?),
+        3 => MetaEntry::String(buf.try_get_string()?),
+        4 => MetaEntry::Chat(buf.try_get_string()?),
+        5 => MetaEntry::OptChat(if buf.try_get_bool()? {
+            Some(buf.try_get_string()?)
+        } else {
+            None
+        }),
+        6 => MetaEntry::Slot(buf.try_get_slot()?),
+        7 => MetaEntry::Boolean(buf.try_get_bool()?),
+        8 => MetaEntry::Rotation(buf.try_get_f32()?, buf.try_get_f32()?, buf.try_get_f32()?),
+        9 => MetaEntry::Position(buf.try_get_position()?),
+        10 => MetaEntry::OptPosition(if buf.try_get_bool()? {
+            Some(buf.try_get_position()?)
+        } else {
+            None
+        }),
+        11 => MetaEntry::Direction(
+            Direction::from_i32(buf.try_get_var_int()?).ok_or(TryGetError::InvalidValue(0))?,
+        ),
+        12 => MetaEntry::OptUuid(if buf.try_get_bool()? {
+            Some(buf.try_get_uuid()?)
+        } else {
+            None
+        }),
+        13 => MetaEntry::OptBlockId(if buf.try_get_bool()? {
+            Some(buf.try_get_var_int()?)
+        } else {
+            None
+        }),
+        14 => MetaEntry::Nbt(buf.try_get_nbt()?),
+        x => return Err(TryGetError::InvalidValue(x).into()),
+    })
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, FromPrimitive)]
 pub enum Direction {
     Down,
     Up,
