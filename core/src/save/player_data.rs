@@ -129,11 +129,11 @@ mod tests {
     use hashbrown::HashMap;
     use std::io::Cursor;
 
-    #[test]
-    fn test_deserialize_player() {
+    #[tokio::test]
+    async fn test_deserialize_player() {
         let cursor = Cursor::new(include_bytes!("player.dat").to_vec());
 
-        let player = load_from_file(cursor).unwrap();
+        let player = load_from_file(cursor).await.unwrap();
         assert_eq!(player.gamemode, i32::from(Gamemode::Creative.id()));
     }
 
