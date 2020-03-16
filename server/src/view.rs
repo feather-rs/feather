@@ -98,7 +98,7 @@ pub fn on_chunk_cross_update_entities(
     };
 
     // Send newly visible entities.
-    let mut to_trigger = BumpVec::new_in(game.bump());
+    let mut sends_to_trigger = BumpVec::new_in(game.bump());
     for other in find_new_chunks(old, new, game.config.server.view_distance)
         .flat_map(|chunk| game.chunk_entities.entities_in_chunk(chunk))
         .filter(|other| **other != entity)
@@ -111,13 +111,30 @@ pub fn on_chunk_cross_update_entities(
             let packet = creator.get(&accessor);
 
             network.send_boxed(packet);
-            to_trigger.push(*other);
+            sends_to_trigger.push((*other, entity));
+        }
+
+        // if this `other` is a player, also send `entity` to other
+        if let Some(network) = world.try_get::<Network>(*other) {
+            if let Some(creator) = world.try_get::<SpawnPacketCreator>(entity) {
+                let accessor = world.entity(entity).expect("entity does not exist");
+                let packet = creator.get(&accessor);
+
+                network.send_boxed(packet);
+                sends_to_trigger.push((entity, *other));
+            }
         }
     }
 
     // Tell the client to despawn entities which are no longer visible.
-    let to_destroy = find_old_chunks(old, new, game.config.server.view_distance)
-        .flat_map(|chunk| game.chunk_entities.entities_in_chunk(chunk))
+    let mut to_client_remove_trigger = BumpVec::new_in(game.bump());
+    to_client_remove_trigger.extend(
+        find_old_chunks(old, new, game.config.server.view_distance)
+            .flat_map(|chunk| game.chunk_entities.entities_in_chunk(chunk)),
+    );
+
+    let to_destroy = to_client_remove_trigger
+        .iter()
         .map(|entity| world.get::<EntityId>(*entity).0)
         .collect::<Vec<_>>();
 
@@ -131,8 +148,13 @@ pub fn on_chunk_cross_update_entities(
     drop(network);
 
     // Trigger on_entity_send
-    for other in to_trigger {
-        game.on_entity_send(world, other, entity);
+    for (entity, client) in sends_to_trigger {
+        game.on_entity_send(world, entity, client);
+    }
+
+    // Trigger on_entity_client_remmove
+    for other in to_client_remove_trigger {
+        game.on_entity_client_remove(world, other, entity);
     }
 }
 

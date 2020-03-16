@@ -1,5 +1,6 @@
 use crate::broadcasters::{
-    on_entity_despawn_broadcast_despawn, on_entity_spawn_send_to_clients,
+    on_entity_client_remove_update_last_known_positions, on_entity_despawn_broadcast_despawn,
+    on_entity_send_update_last_known_positions, on_entity_spawn_send_to_clients,
     on_player_join_send_existing_entities,
 };
 use crate::chunk_entities::{
@@ -240,7 +241,14 @@ impl Game {
     }
 
     /// Called when an entity is spawned on a client.
-    pub fn on_entity_send(&self, _world: &mut World, _entity: Entity, _client: Entity) {}
+    pub fn on_entity_send(&self, world: &mut World, entity: Entity, client: Entity) {
+        on_entity_send_update_last_known_positions(world, entity, client);
+    }
+
+    /// Called when an entity is removed on a client (Destroy Entities packet)
+    pub fn on_entity_client_remove(&mut self, world: &mut World, entity: Entity, client: Entity) {
+        on_entity_client_remove_update_last_known_positions(world, entity, client);
+    }
 
     /// Called when a player joins.
     pub fn on_player_join(&mut self, world: &mut World, player: Entity) {

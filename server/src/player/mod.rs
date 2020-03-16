@@ -1,5 +1,6 @@
 //! Systems and components specific to player entities.
 
+use crate::broadcasters::LastKnownPositions;
 use crate::chunk_logic::ChunkHolder;
 use crate::entity;
 use crate::entity::{CreationPacketCreator, EntityId, Name, PreviousPosition, SpawnPacketCreator};
@@ -48,7 +49,7 @@ pub fn create(world: &mut World, info: NewClientInfo) -> Entity {
     world.add(entity, ProfileProperties(info.profile)).unwrap();
     world.add(entity, Name(info.username)).unwrap();
     world.add(entity, ChunkHolder::default()).unwrap();
-    //world.add(entity, LastKnownPositions::default()).unwrap();
+    world.add(entity, LastKnownPositions::default()).unwrap();
     world
         .add(entity, SpawnPacketCreator(&create_spawn_packet))
         .unwrap();

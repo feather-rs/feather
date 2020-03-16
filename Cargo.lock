@@ -517,6 +517,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "dashmap"
+version = "3.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "010ef3f25ed5bb93505a3238d19957622190268640526aab07174c66ccf5d611"
+dependencies = [
+ "ahash",
+ "cfg-if",
+ "num_cpus",
+]
+
+[[package]]
 name = "derivative"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -710,6 +721,7 @@ dependencies = [
  "criterion",
  "crossbeam",
  "ctrlc",
+ "dashmap",
  "derivative 2.0.2",
  "feather-blocks",
  "feather-codegen",

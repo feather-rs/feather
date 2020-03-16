@@ -302,7 +302,6 @@ fn run_loop(
 
 /// Initializes the executor and resources.
 fn init_executor(game: Game) -> (Executor, Resources) {
-    // Insert resources which don't have a `Default` impl.
     let mut resources = Resources::new();
     resources.insert(game);
 
@@ -315,6 +314,7 @@ fn init_executor(game: Game) -> (Executor, Resources) {
         .with(chunk_logic::chunk_optimize)
         .with(view::check_crossed_chunks)
         .with(broadcasters::broadcast_keepalive)
+        .with(broadcasters::broadcast_entity_movement)
         .with(game::reset_bump_allocators)
         .with(game::increment_tick_count)
         .with(entity::position_reset); // should be at end
