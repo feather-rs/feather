@@ -141,7 +141,7 @@ static ALLOC: System = System;
 
 // pub mod block;
 // pub mod broadcasters;
-// pub mod chunk_entities;
+mod chunk_entities;
 pub mod chunk_logic;
 pub mod chunk_worker;
 pub mod config;
@@ -227,6 +227,7 @@ pub fn main() {
         chunk_unload_queue: Default::default(),
         chunk_holders: Default::default(),
         chunks_to_send: Default::default(),
+        chunk_entities: Default::default(),
     };
 
     let (executor, resources) = init_executor(game);

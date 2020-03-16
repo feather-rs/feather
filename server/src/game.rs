@@ -1,3 +1,6 @@
+use crate::chunk_entities::{
+    on_chunk_cross_update_chunk_entities, on_entity_despawn_update_chunk_entities, ChunkEntities,
+};
 use crate::chunk_logic::{ChunkHolders, ChunkUnloadQueue, ChunkWorkerHandle};
 use crate::config::Config;
 use crate::io::{NetworkIoManager, NewClientInfo};
@@ -48,6 +51,7 @@ pub struct Game {
     pub chunk_unload_queue: ChunkUnloadQueue,
     pub chunk_holders: ChunkHolders,
     pub chunks_to_send: ChunksToSend,
+    pub chunk_entities: ChunkEntities,
 }
 
 impl Game {
@@ -75,8 +79,8 @@ impl Game {
     /// Despawns an entity. This should be used instead of `World::despawn`
     /// as it properly handles events.
     pub fn despawn(&mut self, entity: Entity, world: &mut World) {
-        world.despawn(entity);
         self.on_entity_despawn(world, entity);
+        world.despawn(entity);
     }
 
     /// Spawns a player with the given `PlayerInfo`.
@@ -97,8 +101,12 @@ impl Game {
     }
 
     /// Called when an entity is despawned/removed.
+    ///
+    /// Note that this is called __before__ the entity is deleted from the world.
+    /// As such, components of the entity can still be accessed.
     pub fn on_entity_despawn(&mut self, world: &mut World, entity: Entity) {
         chunk_logic::on_entity_despawn_remove_chunk_holder(self, world, entity);
+        on_entity_despawn_update_chunk_entities(self, world, entity);
     }
 
     /// Called when a player joins.
@@ -129,6 +137,7 @@ impl Game {
         new: ChunkPosition,
     ) {
         on_chunk_cross_update_chunks(self, world, entity, old, new);
+        on_chunk_cross_update_chunk_entities(self, entity, old, new);
     }
 
     /// Called when a chunk is sent to a client.
