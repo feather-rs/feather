@@ -5,8 +5,8 @@
 
 // pub mod item;
 
-use feather_core::Position;
-use fecs::{EntityBuilder, IntoQuery, Read, World, Write};
+use feather_core::{Packet, Position};
+use fecs::{EntityBuilder, EntityRef, IntoQuery, Read, World, Write};
 use std::ops::{Deref, DerefMut};
 use std::sync::atomic::{AtomicI32, Ordering};
 
@@ -53,15 +53,8 @@ pub struct Name(pub String);
 #[derive(Debug, Clone, Copy)]
 pub struct PreviousPosition(pub Position);
 
-/*
-pub trait PacketCreatorFn:
-    Fn(&EntityAccessor, &PreparedWorld) -> Box<dyn Packet> + Send + Sync + 'static
-{
-}
-impl<F> PacketCreatorFn for F where
-    F: Fn(&EntityAccessor, &PreparedWorld) -> Box<dyn Packet> + Send + Sync + 'static
-{
-}
+pub trait PacketCreatorFn: Fn(&EntityRef) -> Box<dyn Packet> + Send + Sync + 'static {}
+impl<F> PacketCreatorFn for F where F: Fn(&EntityRef) -> Box<dyn Packet> + Send + Sync + 'static {}
 
 /// Component which defines a function returning a packet to send
 /// to clients when the entity comes within range. This packet
@@ -71,10 +64,10 @@ pub struct SpawnPacketCreator(pub &'static dyn PacketCreatorFn);
 impl SpawnPacketCreator {
     /// Returns the packet to send to clients when the entity is to be
     /// sent to the client.
-    pub fn get(&self, accessor: &EntityAccessor, world: &PreparedWorld) -> Box<dyn Packet> {
+    pub fn get(&self, accessor: &EntityRef) -> Box<dyn Packet> {
         let f = self.0;
 
-        f(accessor, world)
+        f(accessor)
     }
 }
 
@@ -94,13 +87,12 @@ pub struct CreationPacketCreator(pub &'static dyn PacketCreatorFn);
 
 impl CreationPacketCreator {
     /// Returns the packet to send to clients when the entity is created.
-    pub fn get(&self, accessor: &EntityAccessor, world: &PreparedWorld) -> Box<dyn Packet> {
+    pub fn get(&self, accessor: &EntityRef) -> Box<dyn Packet> {
         let f = self.0;
 
-        f(accessor, world)
+        f(accessor)
     }
 }
-*/
 
 #[system]
 pub fn position_reset(world: &mut World) {

@@ -157,9 +157,9 @@ mod packet_handlers;
 pub mod player;
 pub mod shutdown;
 // pub mod time;
-// pub mod util;
 pub mod game;
 pub mod packet_buffer;
+pub mod util;
 mod view;
 pub mod worldgen;
 
