@@ -2,7 +2,8 @@ use crate::broadcasters::{
     on_entity_client_remove_update_last_known_positions, on_entity_despawn_broadcast_despawn,
     on_entity_send_send_equipment, on_entity_send_update_last_known_positions,
     on_entity_spawn_send_to_clients, on_inventory_update_broadcast_equipment_update,
-    on_inventory_update_send_set_slot, on_player_join_send_existing_entities,
+    on_inventory_update_send_set_slot, on_player_animation_broadcast_animation,
+    on_player_join_send_existing_entities,
 };
 use crate::chunk_entities::{
     on_chunk_cross_update_chunk_entities, on_entity_despawn_update_chunk_entities,
@@ -28,7 +29,7 @@ use bumpalo::Bump;
 use feather_blocks::Block;
 use feather_core::level::LevelData;
 use feather_core::world::ChunkMap;
-use feather_core::{BlockPosition, ChunkPosition, Packet, Position};
+use feather_core::{BlockPosition, ChunkPosition, ClientboundAnimation, Packet, Position};
 use fecs::{Entity, IntoQuery, Read, World};
 use std::fmt::Display;
 use std::sync::atomic::{AtomicU32, Ordering};
@@ -295,6 +296,16 @@ impl Game {
     pub fn on_inventory_update(&mut self, world: &mut World, event: InventoryUpdateEvent) {
         on_inventory_update_send_set_slot(world, &event);
         on_inventory_update_broadcast_equipment_update(self, world, &event);
+    }
+
+    /// Called when a player causes an animation.
+    pub fn on_player_animation(
+        &mut self,
+        world: &mut World,
+        player: Entity,
+        animation: ClientboundAnimation,
+    ) {
+        on_player_animation_broadcast_animation(self, world, player, animation);
     }
 }
 

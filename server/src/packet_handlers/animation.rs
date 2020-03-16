@@ -1,13 +1,14 @@
-use crate::network::PacketQueue;
-use crate::player::PlayerAnimationEvent;
+use crate::game::Game;
+use crate::packet_buffer::PacketBuffers;
 use feather_core::network::packet::implementation::AnimationServerbound;
 use feather_core::{ClientboundAnimation, Hand};
-use tonks::Trigger;
+use fecs::World;
+use std::sync::Arc;
 
 /// Handles animation packets.
 #[system]
-fn handle_animation(queue: &PacketQueue, trigger: &mut Trigger<PlayerAnimationEvent>) {
-    queue
+pub fn handle_animation(game: &mut Game, world: &mut World, packet_buffers: &Arc<PacketBuffers>) {
+    packet_buffers
         .received::<AnimationServerbound>()
         .for_each(|(player, packet)| {
             let animation = match packet.hand {
@@ -15,6 +16,6 @@ fn handle_animation(queue: &PacketQueue, trigger: &mut Trigger<PlayerAnimationEv
                 Hand::Off => ClientboundAnimation::SwingOffhand,
             };
 
-            trigger.trigger(PlayerAnimationEvent { player, animation });
+            game.on_player_animation(world, player, animation);
         });
 }

@@ -10,6 +10,7 @@ pub fn build_executor() -> Executor {
         .with(packet_handlers::handle_movement_packets)
         .with(packet_handlers::handle_creative_inventory_action)
         .with(packet_handlers::handle_held_item_change)
+        .with(packet_handlers::handle_animation)
         .with(chunk_logic::chunk_load)
         .with(chunk_logic::chunk_unload)
         .with(chunk_logic::chunk_optimize)
