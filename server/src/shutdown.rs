@@ -1,6 +1,6 @@
 //! Shutdown behavior.
 use crossbeam::Sender;
-use legion::world::World;
+use fecs::World;
 
 pub fn init(tx: Sender<()>) {
     ctrlc::set_handler(move || {

@@ -3,17 +3,12 @@
 //! block entities, monsters, etc. Player entities are handled in `crate::player`,
 //! not here.
 
-pub mod item;
+// pub mod item;
 
-use crate::lazy::EntityBuilder;
-use crate::state::State;
-use feather_core::{Packet, Position};
-use legion::prelude::Entity;
-use legion::query::{Read, Write};
+use feather_core::Position;
+use fecs::EntityBuilder;
 use std::ops::{Deref, DerefMut};
 use std::sync::atomic::{AtomicI32, Ordering};
-use tonks::{EntityAccessor, PreparedWorld, Query};
-use uuid::Uuid;
 
 /// ID of an entity. This value is generally unique.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
@@ -21,43 +16,6 @@ pub struct EntityId(pub i32);
 
 /// Entity ID counter, used to create new entity IDs.
 pub static ENTITY_ID_COUNTER: AtomicI32 = AtomicI32::new(0);
-
-/// Event triggered when an entity is created.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct EntityCreateEvent {
-    pub entity: Entity,
-}
-
-/// Event triggered when an entity is spawned
-/// on a client.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct EntitySendEvent {
-    pub entity: Entity,
-    pub to: Entity,
-}
-
-/// Event triggered when an entity is removed.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct EntityDeleteEvent {
-    pub entity: Entity,
-    pub position: Option<Position>,
-    pub id: EntityId,
-    pub uuid: Uuid,
-}
-
-/// Event triggered when an entity moves.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct EntityMoveEvent {
-    /// Entity which moved.
-    pub entity: Entity,
-}
-
-/// Event triggered when an entity's velocity changes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct VelocityUpdateEvent {
-    /// Entity whose velocity changed.
-    pub entity: Entity,
-}
 
 /// The velocity of an entity.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -83,12 +41,13 @@ impl DerefMut for Velocity {
     }
 }
 
-/// The display name of the entity.
+/// The display name of an entity.
 ///
 /// Note that unnamed entities do not have this component.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Name(pub String);
 
+/*
 /// Position of an entity on the last tick.
 ///
 /// This is updated by `position_reset` system.
@@ -157,6 +116,7 @@ pub fn position_reset(
         prev_pos.0 = pos;
     });
 }
+*/
 
 /// Inserts the base components for an entity into an `EntityBuilder`.
 ///
@@ -165,13 +125,16 @@ pub fn position_reset(
 /// * Entity ID
 /// * Position and previous position
 /// * Triggers `EntityCreateEvent`
-pub fn base(state: &State, position: Position) -> EntityBuilder {
-    let id = ENTITY_ID_COUNTER.fetch_add(1, Ordering::Relaxed);
-    state
-        .create_entity()
-        .with_component(EntityId(id))
-        .with_component(position)
-        .with_component(PreviousPosition(position))
-        .with_component(Velocity::default())
-        .with_exec(|_, scheduler, entity| scheduler.trigger(EntityCreateEvent { entity }))
+pub fn base(position: Position) -> EntityBuilder {
+    let id = new_id();
+    EntityBuilder::new()
+        .with(EntityId(id))
+        .with(position)
+        //.with(PreviousPosition(position))
+        .with(Velocity::default())
+}
+
+/// Returns a new entity ID.
+pub fn new_id() -> i32 {
+    ENTITY_ID_COUNTER.fetch_add(1, Ordering::Relaxed)
 }

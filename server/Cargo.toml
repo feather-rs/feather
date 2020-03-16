@@ -20,14 +20,13 @@ feather-item-block = { path = "../item_block" }
 feather-codegen = { path = "../codegen" }
 
 # Core ECS + systems
-legion = { git = "https://github.com/TomGillen/legion", rev = "0f67adc237af35799df173f31a2c238b3d8010a2" }
-tonks = { git = "https://github.com/feather-rs/tonks", rev = "0ed28a624a21d044011058f74771461dd0b35c2a", features = ["system-registry"] }
-# tonks = { path = "../../../dev/tonks", features = ["system-registry"] }
+# fecs = { git = "https://github.com/caelunshun/fecs", rev = "e865bce3a9ac7f8fd3a9a7b5e3c139a746500137" }
+fecs = { path = "../../../dev/fecs" }
 
 # Concurrency/threading
 crossbeam = "0.7"
 rayon = "1.3"
-parking_lot = "0.10"
+parking_lot = { version = "0.10", features = ["deadlock_detection"] }
 lock_api = "0.3"
 thread_local = "1.0"
 
@@ -61,7 +60,7 @@ heapless = "0.5"
 uuid = { version = "0.8", features = ["v4"] }
 multimap = "0.8"
 smallvec = "1.2"
-chashmap = "2.2"
+indexmap = "1.3"
 
 # Logging
 log = "0.4"
@@ -81,13 +80,14 @@ rand_xorshift = "0.2"
 num-derive = "0.3"
 num-traits = "0.2"
 lazy_static = "1.4"
-bumpalo = "3.2"
+bumpalo = { version = "3.2", features = ["collections"] }
 strum = "0.18"
 simdnoise = "3.1"
 simdeez = "1.0"
 humantime-serde = "1.0"
 ctrlc = "3.1"
 inventory = "0.1"
+derivative = "2.0"
 
 # Error handling
 thiserror = "1.0"

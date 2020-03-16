@@ -91,7 +91,7 @@
 //! chunk packets, inventory, time, nearby entities, etc. `PlayerJoinEvent`
 //! is used to send this data.
 
-#![feature(vec_remove_item)]
+#![feature(alloc_layout_extra)]
 
 #[macro_use]
 extern crate log;
@@ -108,7 +108,7 @@ extern crate feather_core;
 #[macro_use]
 extern crate bitflags;
 #[macro_use]
-extern crate tonks;
+extern crate fecs;
 #[macro_use]
 extern crate num_derive;
 #[macro_use]
@@ -118,21 +118,22 @@ extern crate nalgebra_glm as glm;
 
 use crossbeam::Receiver;
 use std::alloc::System;
-use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::{AtomicU32, AtomicUsize};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use crate::chunk_logic::ChunkWorkerHandle;
 use crate::config::Config;
+use crate::game::Game;
 use crate::io::NetworkIoManager;
-use crate::state::StateInner;
+use crate::packet_buffer::PacketBuffers;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
+use bumpalo::Bump;
 use feather_core::level;
 use feather_core::level::{deserialize_level_file, save_level_file, LevelData, LevelGeneratorType};
 use feather_core::world::ChunkMap;
-use legion::world::World;
+use fecs::{Executor, Resources, World};
 use rand::Rng;
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
@@ -140,50 +141,40 @@ use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
 use std::path::Path;
 use std::process::exit;
-use tonks::{Resources, Scheduler};
 
 #[global_allocator]
 static ALLOC: System = System;
 
-pub mod block;
-pub mod broadcasters;
-pub mod chunk_entities;
-pub mod chunk_logic;
+// pub mod block;
+// pub mod broadcasters;
+// pub mod chunk_entities;
+// pub mod chunk_logic;
 pub mod chunk_worker;
 pub mod config;
 pub mod entity;
 pub mod io;
-pub mod join;
-pub mod lazy;
-pub mod metadata;
+// pub mod join;
+// pub mod lazy;
+// pub mod metadata;
 pub mod network;
-pub mod p_inventory; // Prefixed to avoid conflict with inventory crate
-pub mod packet_handlers;
-pub mod physics;
+// pub mod p_inventory; // Prefixed to avoid conflict with inventory crate
+// pub mod packet_handlers;
+// pub mod physics;
 pub mod player;
 pub mod shutdown;
-pub mod state;
-pub mod time;
-pub mod util;
-pub mod view;
+// pub mod time;
+// pub mod util;
+// pub mod view;
+pub mod game;
+pub mod packet_buffer;
 pub mod worldgen;
+
+pub type BumpVec<'a, T> = bumpalo::collections::Vec<'a, T>;
 
 pub const TPS: u64 = 20;
 pub const PROTOCOL_VERSION: u32 = 404;
 pub const SERVER_VERSION: &str = "Feather 1.13.2";
 pub const TICK_TIME: u64 = 1000 / TPS;
-
-#[derive(Default, Debug, Resource)]
-pub struct PlayerCount(AtomicUsize);
-
-#[derive(Default, Debug, Resource)]
-pub struct TickCount(u64);
-
-/// System to increment tick count each tick.
-#[system]
-fn tick_count_increment(tick: &mut TickCount) {
-    tick.0 += 1;
-}
 
 pub fn main() {
     let config = Arc::new(load_config());
@@ -193,12 +184,15 @@ pub fn main() {
 
     let server_icon = Arc::new(load_server_icon());
 
-    let player_count = Arc::new(PlayerCount(AtomicUsize::new(0)));
+    let player_count = Arc::new(AtomicU32::new(0));
 
-    let io_manager = init_io_manager(
+    let packet_buffers = Arc::new(PacketBuffers::new());
+
+    let io_handle = init_io_manager(
         Arc::clone(&config),
         Arc::clone(&player_count),
         Arc::clone(&server_icon),
+        Arc::clone(&packet_buffers),
     );
 
     let world_name = &config.world.name;
@@ -225,9 +219,19 @@ pub fn main() {
         exit(1)
     });
 
-    let chunk_worker_handle = init_chunk_worker(world_dir, &level);
+    // let chunk_worker_handle = init_chunk_worker(world_dir, &level);
 
-    let mut scheduler = init_scheduler(Arc::clone(&config), chunk_worker_handle, level, io_manager);
+    let game = Game {
+        io_handle,
+        config,
+        tick_count: 0,
+        player_count,
+        level,
+        chunk_map: ChunkMap::new(),
+        bump: Bump::new(),
+    };
+
+    let (executor, resources) = init_executor(game);
     let mut world = World::new();
 
     // Channel used by the shutdown handler to notify the server thread.
@@ -244,7 +248,7 @@ pub fn main() {
     // load_spawn_chunks(&mut world); TODO
 
     info!("Server started");
-    run_loop(&mut world, &mut scheduler, shutdown_rx);
+    run_loop(&mut world, &resources, &executor, shutdown_rx);
 
     info!("Shutting down");
 
@@ -260,7 +264,12 @@ pub fn main() {
 }
 
 /// Runs the main game loop.
-fn run_loop(world: &mut World, scheduler: &mut Scheduler, shutdown_rx: Receiver<()>) {
+fn run_loop(
+    world: &mut World,
+    resources: &Resources,
+    executor: &Executor,
+    shutdown_rx: Receiver<()>,
+) {
     loop {
         if shutdown_rx.try_recv().is_ok() {
             // Shut down
@@ -269,15 +278,9 @@ fn run_loop(world: &mut World, scheduler: &mut Scheduler, shutdown_rx: Receiver<
 
         let start_time = current_time_in_millis();
 
-        scheduler.execute(world);
-        // https://github.com/TomGillen/legion/issues/60
-        // world.defrag(None); // TODO: do this at interval rate?
+        executor.execute(resources, world);
 
-        // Run lazily-executed closures. TODO: remove unsafe
-        unsafe {
-            let state = scheduler.resources().get::<StateInner>() as *const StateInner;
-            (&*state).flush(world, scheduler);
-        }
+        world.defrag(Some(256)); // should this be done at an interval rate?
 
         // Sleep correct amount
         let end_time = current_time_in_millis();
@@ -298,23 +301,22 @@ fn run_loop(world: &mut World, scheduler: &mut Scheduler, shutdown_rx: Receiver<
     }
 }
 
-/// Initializes the scheduler and resources.
-fn init_scheduler(
-    config: Arc<Config>,
-    chunk_worker_handle: ChunkWorkerHandle,
-    level: LevelData,
-    io_manager: NetworkIoManager,
-) -> Scheduler {
+/// Initializes the executor and resources.
+fn init_executor(game: Game) -> (Executor, Resources) {
     // Insert resources which don't have a `Default` impl.
     let mut resources = Resources::new();
-    let chunk_map = ChunkMap::new();
-    resources.insert(StateInner::new(config, chunk_map, level));
-    resources.insert(chunk_worker_handle);
-    resources.insert(io_manager);
+    resources.insert(game);
 
-    tonks::build_scheduler().build(resources)
+    // todo: https://github.com/dtolnay/inventory/issues/9yutfyy5fttyhfrgthgftjhdgthyhdjfjtcynjncdtnhgd
+    let mut executor = Executor::new();
+
+    executor.add(network::poll_new_clients);
+    executor.add(network::poll_player_disconnect);
+
+    (executor, resources)
 }
 
+/*
 /// Initializes the chunk worker.
 fn init_chunk_worker(world_dir: &Path, level: &LevelData) -> ChunkWorkerHandle {
     let generator: Arc<dyn WorldGenerator> = match level.generator_type() {
@@ -333,6 +335,7 @@ fn init_chunk_worker(world_dir: &Path, level: &LevelData) -> ChunkWorkerHandle {
         receiver: rx,
     }
 }
+*/
 
 /// Loads the configuration file, creating a default
 /// one if it does not exist.
@@ -359,8 +362,9 @@ fn load_config() -> Config {
 /// Starts the IO threads.
 fn init_io_manager(
     config: Arc<Config>,
-    player_count: Arc<PlayerCount>,
+    player_count: Arc<AtomicU32>,
     server_icon: Arc<Option<String>>,
+    packet_buffers: Arc<PacketBuffers>,
 ) -> io::NetworkIoManager {
     io::NetworkIoManager::start(
         format!("{}:{}", config.server.address, config.server.port)
@@ -369,6 +373,7 @@ fn init_io_manager(
         config,
         player_count,
         server_icon,
+        packet_buffers,
     )
 }
 

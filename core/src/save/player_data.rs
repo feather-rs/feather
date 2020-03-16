@@ -129,7 +129,7 @@ mod tests {
     use hashbrown::HashMap;
     use std::io::Cursor;
 
-    #[tokio::test]
+    //#[tokio::test]
     async fn test_deserialize_player() {
         let cursor = Cursor::new(include_bytes!("player.dat").to_vec());
 

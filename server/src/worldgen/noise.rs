@@ -219,7 +219,7 @@ mod tests {
         assert_eq!(chunk.len(), 16 * 256 * 16);
 
         for x in chunk {
-            assert_float_eq!(x, 0.0);
+            assert_eq!(x, 0.0);
         }
     }
 }
