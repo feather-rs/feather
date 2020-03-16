@@ -737,6 +737,7 @@ dependencies = [
  "indexmap",
  "inventory",
  "itertools 0.9.0",
+ "jemallocator",
  "lazy_static",
  "lock_api",
  "log",
@@ -776,7 +777,6 @@ version = "0.1.0"
 [[package]]
 name = "fecs"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=7e4365c6fbf3a89676075659763daa4ecbd492c8#7e4365c6fbf3a89676075659763daa4ecbd492c8"
 dependencies = [
  "fecs-macros",
  "fxhash",
@@ -787,7 +787,6 @@ dependencies = [
 [[package]]
 name = "fecs-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=7e4365c6fbf3a89676075659763daa4ecbd492c8#7e4365c6fbf3a89676075659763daa4ecbd492c8"
 dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.2",
@@ -848,6 +847,12 @@ name = "foreign-types-shared"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
+
+[[package]]
+name = "fs_extra"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f2a4a2034423744d2cc7ca2068453168dcdb82c438419e639a26bd87839c674"
 
 [[package]]
 name = "fuchsia-zircon"
@@ -1254,6 +1259,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "501266b7edd0174f8530248f87f99c88fbe60ca4ef3dd486835b8d8d53136f7f"
 
 [[package]]
+name = "jemalloc-sys"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d3b9f3f5c9b31aa0f5ed3260385ac205db665baa41d49bb8338008ae94ede45"
+dependencies = [
+ "cc",
+ "fs_extra",
+ "libc",
+]
+
+[[package]]
+name = "jemallocator"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43ae63fcfc45e99ab3d1b29a46782ad679e98436c3169d15a167a1108a724b69"
+dependencies = [
+ "jemalloc-sys",
+ "libc",
+]
+
+[[package]]
 name = "js-sys"
 version = "0.3.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1284,7 +1310,7 @@ dependencies = [
 [[package]]
 name = "legion"
 version = "0.2.1"
-source = "git+https://github.com/TomGillen/legion?rev=c5b9628630d4f9fc54b6843b5ce02d0669434a61#c5b9628630d4f9fc54b6843b5ce02d0669434a61"
+source = "git+https://github.com/TomGillen/legion?branch=fix-zst-component-ub#b5a3dfd88f201af61fe58ad247e83583dfdde5ec"
 dependencies = [
  "legion-core",
  "legion-systems",
@@ -1293,7 +1319,7 @@ dependencies = [
 [[package]]
 name = "legion-core"
 version = "0.2.1"
-source = "git+https://github.com/TomGillen/legion?rev=c5b9628630d4f9fc54b6843b5ce02d0669434a61#c5b9628630d4f9fc54b6843b5ce02d0669434a61"
+source = "git+https://github.com/TomGillen/legion?branch=fix-zst-component-ub#b5a3dfd88f201af61fe58ad247e83583dfdde5ec"
 dependencies = [
  "crossbeam-channel",
  "derivative 1.0.3",
@@ -1310,7 +1336,7 @@ dependencies = [
 [[package]]
 name = "legion-systems"
 version = "0.2.1"
-source = "git+https://github.com/TomGillen/legion?rev=c5b9628630d4f9fc54b6843b5ce02d0669434a61#c5b9628630d4f9fc54b6843b5ce02d0669434a61"
+source = "git+https://github.com/TomGillen/legion?branch=fix-zst-component-ub#b5a3dfd88f201af61fe58ad247e83583dfdde5ec"
 dependencies = [
  "bit-set",
  "crossbeam-channel",

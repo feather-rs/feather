@@ -20,7 +20,8 @@ feather-item-block = { path = "../item_block" }
 feather-codegen = { path = "../codegen" }
 
 # Core ECS + systems
-fecs = { git = "https://github.com/feather-rs/fecs", rev = "7e4365c6fbf3a89676075659763daa4ecbd492c8" }
+# fecs = { git = "https://github.com/feather-rs/fecs", rev = "7e4365c6fbf3a89676075659763daa4ecbd492c8" }
+fecs = { path = "../../../dev/fecs" }
 
 # Concurrency/threading
 crossbeam = "0.7"
@@ -80,7 +81,6 @@ rand_xorshift = "0.2"
 num-derive = "0.3"
 num-traits = "0.2"
 lazy_static = "1.4"
-bumpalo = { version = "3.2", features = ["collections"] }
 strum = "0.18"
 simdnoise = "3.1"
 simdeez = "1.0"
@@ -89,6 +89,10 @@ ctrlc = "3.1"
 inventory = "0.1"
 derivative = "2.0"
 itertools = "0.9"
+
+# Allocators
+bumpalo = { version = "3.2", features = ["collections"] }
+jemallocator = "0.3"
 
 # Error handling
 thiserror = "1.0"

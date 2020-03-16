@@ -7,18 +7,21 @@ use crate::chunk_entities::{
     on_chunk_cross_update_chunk_entities, on_entity_despawn_update_chunk_entities,
     on_entity_spawn_update_chunk_entities, ChunkEntities,
 };
-use crate::chunk_logic::{ChunkHolders, ChunkUnloadQueue, ChunkWorkerHandle};
+use crate::chunk_logic::{
+    on_chunk_holder_release_unload_chunk, on_entity_despawn_remove_chunk_holder, ChunkHolders,
+    ChunkUnloadQueue, ChunkWorkerHandle,
+};
 use crate::config::Config;
 use crate::io::{NetworkIoManager, NewClientInfo};
 use crate::join::{on_chunk_send_join_player, on_player_join_send_join_game};
 use crate::network::Network;
 use crate::packet_buffer::PacketBuffers;
+use crate::player;
 use crate::player::Player;
 use crate::view::{
     on_chunk_cross_update_chunks, on_chunk_cross_update_entities, on_chunk_load_send_to_clients,
     on_player_join_trigger_chunk_cross, ChunksToSend,
 };
-use crate::{chunk_logic, player};
 use bumpalo::Bump;
 use feather_blocks::Block;
 use feather_core::level::LevelData;
@@ -226,7 +229,7 @@ impl Game {
     /// Note that this is called __before__ the entity is deleted from the world.
     /// As such, components of the entity can still be accessed.
     pub fn on_entity_despawn(&mut self, world: &mut World, entity: Entity) {
-        chunk_logic::on_entity_despawn_remove_chunk_holder(self, world, entity);
+        on_entity_despawn_remove_chunk_holder(self, world, entity);
         on_entity_despawn_update_chunk_entities(self, world, entity);
         on_entity_despawn_broadcast_despawn(self, world, entity);
         if world.try_get::<Player>(entity).is_some() {
@@ -276,7 +279,7 @@ impl Game {
 
     /// Called when a chunk holder is released.
     pub fn on_chunk_holder_release(&mut self, chunk: ChunkPosition, _holder: Entity) {
-        chunk_logic::on_chunk_holder_release_unload_chunk(self, chunk);
+        on_chunk_holder_release_unload_chunk(self, chunk);
     }
 
     /// Called when an entity crosses into a new chunk.

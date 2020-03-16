@@ -91,8 +91,6 @@
 //! chunk packets, inventory, time, nearby entities, etc. `PlayerJoinEvent`
 //! is used to send this data.
 
-#![feature(alloc_layout_extra)]
-
 #[macro_use]
 extern crate log;
 #[macro_use]
@@ -111,7 +109,6 @@ extern crate fecs;
 extern crate nalgebra_glm as glm;
 
 use crossbeam::Receiver;
-use std::alloc::System;
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -127,6 +124,7 @@ use feather_core::level;
 use feather_core::level::{deserialize_level_file, save_level_file, LevelData, LevelGeneratorType};
 use feather_core::world::ChunkMap;
 use fecs::{Executor, Resources, World};
+use jemallocator::Jemalloc;
 use rand::Rng;
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
@@ -137,7 +135,7 @@ use std::process::exit;
 use thread_local::CachedThreadLocal;
 
 #[global_allocator]
-static ALLOC: System = System;
+static ALLOC: Jemalloc = Jemalloc;
 
 // pub mod block;
 mod broadcasters;
