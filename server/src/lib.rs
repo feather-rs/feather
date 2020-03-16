@@ -158,6 +158,7 @@ pub mod shutdown;
 // pub mod time;
 pub mod game;
 pub mod packet_buffer;
+mod systems;
 pub mod util;
 mod view;
 pub mod worldgen;
@@ -305,19 +306,7 @@ fn init_executor(game: Game) -> (Executor, Resources) {
     let mut resources = Resources::new();
     resources.insert(game);
 
-    let executor = Executor::new()
-        .with(network::poll_player_disconnect)
-        .with(network::poll_new_clients)
-        .with(packet_handlers::handle_movement_packets)
-        .with(chunk_logic::chunk_load)
-        .with(chunk_logic::chunk_unload)
-        .with(chunk_logic::chunk_optimize)
-        .with(view::check_crossed_chunks)
-        .with(broadcasters::broadcast_keepalive)
-        .with(broadcasters::broadcast_entity_movement)
-        .with(game::reset_bump_allocators)
-        .with(game::increment_tick_count)
-        .with(entity::position_reset); // should be at end
+    let executor = systems::build_executor();
 
     (executor, resources)
 }
