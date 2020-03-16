@@ -3,97 +3,75 @@
 //! among others. This is handled by the event handler `join`.
 
 use crate::entity::EntityId;
+use crate::game::Game;
 use crate::network::Network;
-use crate::player::PlayerJoinEvent;
-use crate::state::State;
-use crate::view::ChunkSendEvent;
 use feather_core::network::packet::implementation::{
     JoinGame, PlayerPositionAndLookClientbound, SpawnPosition,
 };
-use feather_core::{BlockPosition, Gamemode, Position};
-use legion::query::{Read, Write};
-use parking_lot::RwLock;
-use rayon::prelude::*;
-use tonks::{PreparedWorld, Query};
+use feather_core::{BlockPosition, ChunkPosition, Difficulty, Dimension, Gamemode, Position};
+use fecs::{Entity, World};
 
-/// Component indicating whether a player has completed the join sequence.
+/// Component indicating that a player has completed the join sequence.
 #[derive(Default, Debug)]
-pub struct Joined(pub bool);
+pub struct Joined;
 
 /// System to run the join sequence. To determine when a player is ready to join,
 /// we wait for the chunk that the player is in to be sent—this appears to work
 /// well with the client.
-#[event_handler]
-fn join(
-    events: &[ChunkSendEvent],
-    _query: &mut Query<(Write<Joined>, Read<Position>, Read<Network>)>,
-    world: &mut PreparedWorld,
-    state: &State,
+pub fn on_chunk_send_join_player(
+    game: &Game,
+    world: &mut World,
+    chunk: ChunkPosition,
+    player: Entity,
 ) {
-    let world = RwLock::new(world);
-    events.par_iter().for_each(|event| {
-        let pos = {
-            let world = world.read();
+    if world.try_get::<Joined>(player).is_some() {
+        return; // already joined
+    }
 
-            let pos = world.get_component::<Position>(event.player).unwrap();
-            let joined = world.get_component::<Joined>(event.player).unwrap();
+    let pos = {
+        let pos = world.get::<Position>(player);
 
-            if pos.chunk() != event.chunk || joined.0 {
-                return;
-            }
+        if pos.chunk() != chunk {
+            return;
+        }
 
-            *pos
-        };
+        *pos
+    };
 
-        // Run the join sequence. TODO: inventory.
-        world
-            .write()
-            .get_component_mut::<Joined>(event.player)
-            .unwrap()
-            .0 = true;
+    // Run the join sequence.
+    world.add(player, Joined).unwrap();
 
-        let world = world.read();
-        let network = world.get_component::<Network>(event.player).unwrap();
+    let network = world.get::<Network>(player);
 
-        let packet = SpawnPosition {
-            location: BlockPosition::new(
-                state.level.spawn_x,
-                state.level.spawn_y,
-                state.level.spawn_z,
-            ),
-        };
-        network.send(packet);
+    let packet = SpawnPosition {
+        location: BlockPosition::new(game.level.spawn_x, game.level.spawn_y, game.level.spawn_z),
+    };
+    network.send(packet);
 
-        let packet = PlayerPositionAndLookClientbound {
-            x: pos.x,
-            y: pos.y,
-            z: pos.z,
-            yaw: pos.yaw,
-            pitch: pos.pitch,
-            flags: 0,
-            teleport_id: 0,
-        };
-        network.send(packet);
-    });
+    let packet = PlayerPositionAndLookClientbound {
+        x: pos.x,
+        y: pos.y,
+        z: pos.z,
+        yaw: pos.yaw,
+        pitch: pos.pitch,
+        flags: 0,
+        teleport_id: 0,
+    };
+    network.send(packet);
 }
 
-#[event_handler]
-fn send_join_game(
-    event: &PlayerJoinEvent,
-    _query: &mut Query<(Read<EntityId>, Read<Network>)>,
-    world: &mut PreparedWorld,
-) {
-    let network = world.get_component::<Network>(event.player).unwrap();
-    let id = world.get_component::<EntityId>(event.player).unwrap();
+pub fn on_player_join_send_join_game(game: &Game, world: &World, player: Entity) {
+    let network = world.get::<Network>(player);
+    let id = world.get::<EntityId>(player);
 
     // TODO
     let packet = JoinGame {
         entity_id: id.0,
         gamemode: Gamemode::Creative.id(),
-        dimension: 0,
-        difficulty: 0,
-        max_players: 0,
-        level_type: "default".to_string(),
+        dimension: Dimension::Overwold.id(),
+        difficulty: Difficulty::Medium.id(),
+        max_players: game.config.server.max_players as u8,
+        level_type: game.level.generator_name.clone(),
         reduced_debug_info: false,
     };
     network.send(packet);

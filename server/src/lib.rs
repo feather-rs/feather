@@ -147,7 +147,7 @@ pub mod chunk_worker;
 pub mod config;
 pub mod entity;
 pub mod io;
-// pub mod join;
+mod join;
 // pub mod lazy;
 // pub mod metadata;
 pub mod network;
@@ -158,9 +158,9 @@ pub mod player;
 pub mod shutdown;
 // pub mod time;
 // pub mod util;
-// pub mod view;
 pub mod game;
 pub mod packet_buffer;
+mod view;
 pub mod worldgen;
 
 pub type BumpVec<'a, T> = bumpalo::collections::Vec<'a, T>;
@@ -226,6 +226,7 @@ pub fn main() {
         chunk_worker_handle,
         chunk_unload_queue: Default::default(),
         chunk_holders: Default::default(),
+        chunks_to_send: Default::default(),
     };
 
     let (executor, resources) = init_executor(game);
@@ -304,11 +305,15 @@ fn init_executor(game: Game) -> (Executor, Resources) {
     let mut resources = Resources::new();
     resources.insert(game);
 
-    // todo: https://github.com/dtolnay/inventory/issues/9yutfyy5fttyhfrgthgftjhdgthyhdjfjtcynjncdtnhgd
-    let mut executor = Executor::new();
-
-    executor.add(network::poll_new_clients);
-    executor.add(network::poll_player_disconnect);
+    let executor = Executor::new()
+        .with(network::poll_new_clients)
+        .with(network::poll_player_disconnect)
+        .with(chunk_logic::chunk_load)
+        .with(chunk_logic::chunk_unload)
+        .with(chunk_logic::chunk_optimize)
+        .with(view::check_crossed_chunks)
+        .with(game::increment_tick_count)
+        .with(entity::position_reset); // should be at end
 
     (executor, resources)
 }

@@ -58,7 +58,7 @@ pub fn poll_player_disconnect(game: &mut Game, world: &mut World) {
             while let Ok(msg) = network.rx.try_recv() {
                 match msg {
                     WorkerToServerMessage::NotifyDisconnected { reason } => {
-                        log::debug!("Server observed player disconnect: caused by {}", reason);
+                        log::debug!("Server observed player disconnect: {}", reason);
                         to_despawn.push(entity);
                     }
                 }
@@ -66,7 +66,7 @@ pub fn poll_player_disconnect(game: &mut Game, world: &mut World) {
         });
 
     to_despawn.into_iter().for_each(|entity| {
-        world.despawn(entity);
+        game.despawn(entity, world);
     });
 }
 

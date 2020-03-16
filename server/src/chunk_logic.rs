@@ -42,7 +42,7 @@ pub struct ChunkLoadFailEvent {
 
 /// System for receiving loaded chunks from the chunk worker thread.
 #[system]
-fn chunk_load_system(game: &mut Game, world: &mut World) {
+pub fn chunk_load(game: &mut Game, world: &mut World) {
     while let Ok(reply) = game.chunk_worker_handle.receiver.try_recv() {
         if let chunk_worker::Reply::LoadedChunk(pos, result) = reply {
             match result {
@@ -142,7 +142,7 @@ const CHUNK_UNLOAD_TIME: u64 = TPS * 5; // 5 seconds - TODO make this configurab
 /// chunks at the edge of their view distance
 /// to be loaded and unloaded at an alarming rate.
 #[system]
-fn chunk_unload(game: &mut Game) {
+pub fn chunk_unload(game: &mut Game) {
     // Unload chunks which are finished in the queue.
 
     // Since chunks are queued in the back and taken out
@@ -230,7 +230,7 @@ const CHUNK_OPTIMIZE_INTERVAL: u64 = TPS * 60 * 5; // 5 minutes
 /// concurrent - each chunk optimization is split
 /// into a separate job and fed into `rayon`.
 #[system]
-fn chunk_optimize(game: &mut Game) {
+pub fn chunk_optimize(game: &mut Game) {
     // Only run every CHUNK_OPTIMIZE_INTERVAL ticks
     if game.tick_count % CHUNK_OPTIMIZE_INTERVAL != 0 {
         return;

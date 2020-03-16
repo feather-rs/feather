@@ -382,7 +382,7 @@ dependencies = [
  "clap",
  "criterion-plot",
  "csv",
- "itertools",
+ "itertools 0.8.2",
  "lazy_static",
  "num-traits 0.2.11",
  "rand_core",
@@ -403,7 +403,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eccdc6ce8bbe352ca89025bee672aa6d24f4eb8c53e3a8b5d1bc58011da072a2"
 dependencies = [
  "cast",
- "itertools",
+ "itertools 0.8.2",
 ]
 
 [[package]]
@@ -723,6 +723,7 @@ dependencies = [
  "humantime-serde",
  "indexmap",
  "inventory",
+ "itertools 0.9.0",
  "lazy_static",
  "lock_api",
  "log",
@@ -1223,6 +1224,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "284f18f85651fe11e8a991b2adb42cb078325c996ed026d994719efcfca1d54b"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1274,7 +1284,7 @@ dependencies = [
  "derivative 1.0.3",
  "downcast-rs",
  "fxhash",
- "itertools",
+ "itertools 0.8.2",
  "parking_lot",
  "rayon",
  "smallvec",
@@ -1292,7 +1302,7 @@ dependencies = [
  "derivative 1.0.3",
  "downcast-rs",
  "fxhash",
- "itertools",
+ "itertools 0.8.2",
  "legion-core",
  "paste",
  "rayon",

@@ -6,7 +6,7 @@
 // pub mod item;
 
 use feather_core::Position;
-use fecs::EntityBuilder;
+use fecs::{EntityBuilder, IntoQuery, Read, World, Write};
 use std::ops::{Deref, DerefMut};
 use std::sync::atomic::{AtomicI32, Ordering};
 
@@ -47,13 +47,13 @@ impl DerefMut for Velocity {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Name(pub String);
 
-/*
 /// Position of an entity on the last tick.
 ///
 /// This is updated by `position_reset` system.
 #[derive(Debug, Clone, Copy)]
 pub struct PreviousPosition(pub Position);
 
+/*
 pub trait PacketCreatorFn:
     Fn(&EntityAccessor, &PreparedWorld) -> Box<dyn Packet> + Send + Sync + 'static
 {
@@ -100,23 +100,17 @@ impl CreationPacketCreator {
         f(accessor, world)
     }
 }
-
-#[event_handler]
-pub fn position_reset(
-    events: &[EntityMoveEvent],
-    _query: &mut Query<(Read<Position>, Write<PreviousPosition>)>,
-    world: &mut PreparedWorld,
-) {
-    events.iter().for_each(|event| {
-        let pos = *world.get_component::<Position>(event.entity).unwrap();
-        let mut prev_pos = world
-            .get_component_mut::<PreviousPosition>(event.entity)
-            .unwrap();
-
-        prev_pos.0 = pos;
-    });
-}
 */
+
+#[system]
+pub fn position_reset(world: &mut World) {
+    <(Read<Position>, Write<PreviousPosition>)>::query().par_for_each_mut(
+        world.inner_mut(),
+        |(pos, mut previous_pos)| {
+            previous_pos.0 = *pos;
+        },
+    );
+}
 
 /// Inserts the base components for an entity into an `EntityBuilder`.
 ///
@@ -130,7 +124,7 @@ pub fn base(position: Position) -> EntityBuilder {
     EntityBuilder::new()
         .with(EntityId(id))
         .with(position)
-        //.with(PreviousPosition(position))
+        .with(PreviousPosition(position))
         .with(Velocity::default())
 }
 

@@ -1,6 +1,11 @@
 use crate::chunk_logic::{ChunkHolders, ChunkUnloadQueue, ChunkWorkerHandle};
 use crate::config::Config;
 use crate::io::{NetworkIoManager, NewClientInfo};
+use crate::join::{on_chunk_send_join_player, on_player_join_send_join_game};
+use crate::view::{
+    on_chunk_cross_update_chunks, on_chunk_load_send_to_clients,
+    on_player_join_trigger_chunk_cross, ChunksToSend,
+};
 use crate::{chunk_logic, player};
 use bumpalo::Bump;
 use feather_blocks::Block;
@@ -42,6 +47,7 @@ pub struct Game {
     /// Queue of chunks to be unloaded.
     pub chunk_unload_queue: ChunkUnloadQueue,
     pub chunk_holders: ChunkHolders,
+    pub chunks_to_send: ChunksToSend,
 }
 
 impl Game {
@@ -96,10 +102,15 @@ impl Game {
     }
 
     /// Called when a player joins.
-    pub fn on_player_join(&mut self, _world: &mut World, _player: Entity) {}
+    pub fn on_player_join(&mut self, world: &mut World, player: Entity) {
+        on_player_join_trigger_chunk_cross(self, world, player);
+        on_player_join_send_join_game(self, world, player);
+    }
 
     /// Called when a chunk loads successfully.
-    pub fn on_chunk_load(&mut self, _world: &mut World, _chunk: ChunkPosition) {}
+    pub fn on_chunk_load(&mut self, world: &mut World, chunk: ChunkPosition) {
+        on_chunk_load_send_to_clients(self, world, chunk);
+    }
 
     /// Called when a chunk fails to load.
     pub fn on_chunk_load_fail(&mut self, _world: &mut World, _chunk: ChunkPosition) {}
@@ -108,4 +119,25 @@ impl Game {
     pub fn on_chunk_holder_release(&mut self, chunk: ChunkPosition, _holder: Entity) {
         chunk_logic::on_chunk_holder_release_unload_chunk(self, chunk);
     }
+
+    /// Called when an entity crosses into a new chunk.
+    pub fn on_chunk_cross(
+        &mut self,
+        world: &mut World,
+        entity: Entity,
+        old: Option<ChunkPosition>,
+        new: ChunkPosition,
+    ) {
+        on_chunk_cross_update_chunks(self, world, entity, old, new);
+    }
+
+    /// Called when a chunk is sent to a client.
+    pub fn on_chunk_send(&self, world: &mut World, chunk: ChunkPosition, player: Entity) {
+        on_chunk_send_join_player(self, world, chunk, player);
+    }
+}
+
+#[system]
+pub fn increment_tick_count(game: &mut Game) {
+    game.tick_count += 1;
 }
