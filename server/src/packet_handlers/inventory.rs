@@ -1,49 +1,42 @@
 //! Handling of inventory update packets.
 //! This currently includes Creative Inventory Action and Held Item Change.
 
-use crate::entity::item::ItemDropEvent;
-use crate::network::PacketQueue;
+use crate::game::Game;
 use crate::p_inventory::{EntityInventory, InventoryUpdateEvent};
-use crate::state::State;
-use crate::util::disconnect_player;
+use crate::packet_buffer::PacketBuffers;
 use feather_core::inventory::{HOTBAR_SIZE, SLOT_HOTBAR_OFFSET};
 use feather_core::network::packet::implementation::{
     CreativeInventoryAction, HeldItemChangeServerbound,
 };
 use feather_core::Gamemode;
-use legion::prelude::Read;
-use legion::query::Write;
-use tonks::{PreparedWorld, Query, Trigger};
+use fecs::World;
+use std::sync::Arc;
 
 /// System for handling Creative Inventory Action packets.
 #[system]
-fn handle_creative_inventory_action(
-    state: &State,
-    queue: &PacketQueue,
-    _query: &mut Query<(Read<Gamemode>, Write<EntityInventory>)>,
-    world: &mut PreparedWorld,
-    trigger_inventory: &mut Trigger<InventoryUpdateEvent>,
-    trigger_drop: &mut Trigger<ItemDropEvent>,
+pub fn handle_creative_inventory_action(
+    game: &mut Game,
+    world: &mut World,
+    packet_buffers: &Arc<PacketBuffers>,
 ) {
-    let packets = queue.received::<CreativeInventoryAction>();
+    let packets = packet_buffers.received::<CreativeInventoryAction>();
 
     for (player, packet) in packets {
         // Creative Inventory Action can only be used in creative
         // mode.
-        let gamemode = *world.get_component::<Gamemode>(player).unwrap();
+        let gamemode = *world.get::<Gamemode>(player);
         if gamemode != Gamemode::Creative {
-            disconnect_player(
-                state,
+            game.disconnect(
                 player,
-                "Attempted to use Creative Inventory Action while not in creative mode",
+                world,
+                "attempted to use Creative Inventory Action outside of creative mode",
             );
             continue;
         }
 
-        let mut inventory = world.get_component_mut::<EntityInventory>(player).unwrap();
-
         // Slot -1 means that the user clicked outside the window,
         // dropping the item.
+        /*
         if packet.slot == -1 {
             match &packet.clicked_item {
                 Some(stack) => {
@@ -61,11 +54,18 @@ fn handle_creative_inventory_action(
                 None => (),
             }
         }
+        */
 
-        if packet.slot >= inventory.slot_count() as i16 || packet.slot < -1 {
-            disconnect_player(state, player, "Slot index out of bounds");
+        let inventory = world.get::<EntityInventory>(player);
+        let slot_count = inventory.slot_count() as i16;
+        drop(inventory);
+
+        if packet.slot >= slot_count || packet.slot < -1 {
+            game.disconnect(player, world, "Slot index out of bounds");
             continue;
         }
+
+        let mut inventory = world.get_mut::<EntityInventory>(player);
 
         match packet.clicked_item.as_ref() {
             Some(item) => {
@@ -81,28 +81,27 @@ fn handle_creative_inventory_action(
             slots: smallvec![packet.slot as usize],
             player,
         };
-        trigger_inventory.trigger(event);
+        drop(inventory);
+        game.on_inventory_update(world, event);
     }
 }
 
 /// System for handling Held Item Change packets.
 #[system]
-fn handle_held_item_change(
-    state: &State,
-    queue: &PacketQueue,
-    _query: &mut Query<Write<EntityInventory>>,
-    world: &mut PreparedWorld,
-    trigger: &mut Trigger<InventoryUpdateEvent>,
+pub fn handle_held_item_change(
+    game: &mut Game,
+    world: &mut World,
+    packet_buffers: &Arc<PacketBuffers>,
 ) {
-    let packets = queue.received::<HeldItemChangeServerbound>();
+    let packets = packet_buffers.received::<HeldItemChangeServerbound>();
 
     for (player, packet) in packets {
         if packet.slot as usize >= HOTBAR_SIZE {
-            disconnect_player(state, player, "Hotbar index out of bounds");
+            game.disconnect(player, world, "Hotbar index out of bounds");
             continue;
         }
 
-        let mut inventory = world.get_component_mut::<EntityInventory>(player).unwrap();
+        let mut inventory = world.get_mut::<EntityInventory>(player);
         inventory.held_item = packet.slot as usize;
 
         // Trigger event
@@ -110,6 +109,7 @@ fn handle_held_item_change(
             slots: smallvec![inventory.held_item as usize + SLOT_HOTBAR_OFFSET],
             player,
         };
-        trigger.trigger(event);
+        drop(inventory);
+        game.on_inventory_update(world, event);
     }
 }

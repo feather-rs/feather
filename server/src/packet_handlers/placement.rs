@@ -11,23 +11,22 @@ use feather_core::{Block, Gamemode, ItemStack};
 use feather_item_block::ItemToBlock;
 use legion::query::{Read, Write};
 use tonks::{PreparedWorld, Query, Trigger};
+use crate::game::Game;
+use fecs::World;
 
 /// System for handling Player Block Placement packets
 /// and updating the world accordingly.
 #[system]
 fn handle_player_block_placement(
-    state: &State,
-    queue: &PacketQueue,
-    _query: &mut Query<(Write<EntityInventory>, Read<Gamemode>)>,
-    world: &mut PreparedWorld,
-    inventory_update_events: &mut Trigger<InventoryUpdateEvent>,
+    game: &mut Game,
+    world: &mut World,
 ) {
-    let packets = queue.received::<PlayerBlockPlacement>();
+    let packets = game.received::<PlayerBlockPlacement>();
 
     for (player, packet) in packets {
         // TODO: handle slabs, blocks with directions, etc.
-        let gamemode = *world.get_component::<Gamemode>(player).unwrap();
-        let mut inventory = world.get_component_mut::<EntityInventory>(player).unwrap();
+        let gamemode = *world.get::<Gamemode>(player);
+        let mut inventory = world.get::<EntityInventory>(player).unwrap();
 
         let item = match inventory.item_in_main_hand() {
             Some(item) => item,

@@ -8,6 +8,8 @@ pub fn build_executor() -> Executor {
         .with(network::poll_player_disconnect)
         .with(network::poll_new_clients)
         .with(packet_handlers::handle_movement_packets)
+        .with(packet_handlers::handle_creative_inventory_action)
+        .with(packet_handlers::handle_held_item_change)
         .with(chunk_logic::chunk_load)
         .with(chunk_logic::chunk_unload)
         .with(chunk_logic::chunk_optimize)

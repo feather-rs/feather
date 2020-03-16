@@ -146,9 +146,8 @@ pub mod config;
 pub mod entity;
 pub mod io;
 mod join;
-// pub mod lazy;
 pub mod network;
-// pub mod p_inventory; // Prefixed to avoid conflict with inventory crate
+pub mod p_inventory; // Prefixed to avoid conflict with inventory crate
 mod packet_handlers;
 // pub mod physics;
 pub mod player;
@@ -215,7 +214,6 @@ pub fn main() {
 
     let game = Game {
         io_handle,
-        packet_buffers,
         config,
         tick_count: 0,
         player_count,
@@ -229,11 +227,11 @@ pub fn main() {
         chunk_entities: Default::default(),
     };
 
-    let (executor, resources) = init_executor(game);
+    let (executor, resources) = init_executor(game, packet_buffers);
     let mut world = World::new();
 
     // Channel used by the shutdown handler to notify the server thread.
-    let (shutdown_tx, shutdown_rx) = crossbeam::unbounded();
+    let (shutdown_tx, shutdown_rx) = crossbeam::bounded(1);
 
     shutdown::init(shutdown_tx);
 
@@ -300,9 +298,10 @@ fn run_loop(
 }
 
 /// Initializes the executor and resources.
-fn init_executor(game: Game) -> (Executor, Resources) {
+fn init_executor(game: Game, packet_buffers: Arc<PacketBuffers>) -> (Executor, Resources) {
     let mut resources = Resources::new();
     resources.insert(game);
+    resources.insert(packet_buffers);
 
     let executor = systems::build_executor();
 

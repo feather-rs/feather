@@ -6,6 +6,7 @@ use crate::entity;
 use crate::entity::{CreationPacketCreator, EntityId, Name, PreviousPosition, SpawnPacketCreator};
 use crate::io::NewClientInfo;
 use crate::network::Network;
+use crate::p_inventory::EntityInventory;
 use crate::util::degrees_to_stops;
 use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
 use feather_core::{Gamemode, Packet, Position};
@@ -57,7 +58,7 @@ pub fn create(world: &mut World, info: NewClientInfo) -> Entity {
         .add(entity, CreationPacketCreator(&create_initialization_packet))
         .unwrap();
     world.add(entity, Gamemode::Creative).unwrap(); // TODO: proper gamemode handling
-                                                    //world.add(entity, EntityInventory::default())
+    world.add(entity, EntityInventory::default()).unwrap();
     world.add(entity, Player).unwrap();
     entity
 }

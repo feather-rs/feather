@@ -1,7 +1,8 @@
 use crate::broadcasters::{
     on_entity_client_remove_update_last_known_positions, on_entity_despawn_broadcast_despawn,
-    on_entity_send_update_last_known_positions, on_entity_spawn_send_to_clients,
-    on_player_join_send_existing_entities,
+    on_entity_send_send_equipment, on_entity_send_update_last_known_positions,
+    on_entity_spawn_send_to_clients, on_inventory_update_broadcast_equipment_update,
+    on_inventory_update_send_set_slot, on_player_join_send_existing_entities,
 };
 use crate::chunk_entities::{
     on_chunk_cross_update_chunk_entities, on_entity_despawn_update_chunk_entities,
@@ -12,10 +13,11 @@ use crate::chunk_logic::{
     ChunkUnloadQueue, ChunkWorkerHandle,
 };
 use crate::config::Config;
-use crate::io::{NetworkIoManager, NewClientInfo};
+use crate::entity::Name;
+use crate::io::{NetworkIoManager, NewClientInfo, ServerToWorkerMessage};
 use crate::join::{on_chunk_send_join_player, on_player_join_send_join_game};
 use crate::network::Network;
-use crate::packet_buffer::PacketBuffers;
+use crate::p_inventory::InventoryUpdateEvent;
 use crate::player;
 use crate::player::Player;
 use crate::view::{
@@ -28,6 +30,7 @@ use feather_core::level::LevelData;
 use feather_core::world::ChunkMap;
 use feather_core::{BlockPosition, ChunkPosition, Packet, Position};
 use fecs::{Entity, IntoQuery, Read, World};
+use std::fmt::Display;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 use thread_local::CachedThreadLocal;
@@ -40,8 +43,6 @@ use thread_local::CachedThreadLocal;
 pub struct Game {
     /// The IO handle.
     pub io_handle: NetworkIoManager,
-    /// Packet buffers used to poll for received packets.
-    pub packet_buffers: Arc<PacketBuffers>,
     /// The server configuration.
     pub config: Arc<Config>,
     /// The server tick count, measured in ticks
@@ -110,30 +111,19 @@ impl Game {
         self.bump.get_or_default()
     }
 
-    /* PACKET HANDLING FUNCTIONS */
-    /// Returns all packets of type `T` received by `player`.
-    ///
-    /// # Panics
-    /// Panics if the packet buffer for packets of type `T` is not
-    /// a `MapBuffer` or an `ArrayBuffer`.
-    pub fn received_for<'a, T>(&'a self, player: Entity) -> impl Iterator<Item = T> + 'a
-    where
-        T: Packet,
-    {
-        self.packet_buffers.received_for(player)
-    }
+    /// Disconnects a player.
+    pub fn disconnect(&mut self, player: Entity, world: &mut World, reason: impl Display) {
+        let network = world.get::<Network>(player);
 
-    /// Returns all packets of type `T` received, along
-    /// with the players that received them.
-    ///
-    /// # Panics
-    /// Panics if the packet buffer for packets of type `T` is not
-    /// a `ChannelBuffer`.
-    pub fn received<'a, T>(&'a self) -> impl Iterator<Item = (Entity, T)> + 'a
-    where
-        T: Packet,
-    {
-        self.packet_buffers.received()
+        let name = world.get::<Name>(player);
+        info!("{} disconnected: {}", name.0, reason);
+
+        let _ = network.tx.unbounded_send(ServerToWorkerMessage::Disconnect);
+
+        drop(name);
+        drop(network);
+
+        self.despawn(player, world);
     }
 
     /* BROADCAST FUNCTIONS */
@@ -246,6 +236,7 @@ impl Game {
     /// Called when an entity is spawned on a client.
     pub fn on_entity_send(&self, world: &mut World, entity: Entity, client: Entity) {
         on_entity_send_update_last_known_positions(world, entity, client);
+        on_entity_send_send_equipment(world, entity, client);
     }
 
     /// Called when an entity is removed on a client (Destroy Entities packet)
@@ -298,6 +289,12 @@ impl Game {
     /// Called when a chunk is sent to a client.
     pub fn on_chunk_send(&self, world: &mut World, chunk: ChunkPosition, player: Entity) {
         on_chunk_send_join_player(self, world, chunk, player);
+    }
+
+    /// Called when a player's inventory is updated.
+    pub fn on_inventory_update(&mut self, world: &mut World, event: InventoryUpdateEvent) {
+        on_inventory_update_send_set_slot(world, &event);
+        on_inventory_update_broadcast_equipment_update(self, world, &event);
     }
 }
 

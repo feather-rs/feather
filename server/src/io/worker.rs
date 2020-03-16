@@ -153,6 +153,7 @@ async fn handle_server_to_worker_message(
 ) -> anyhow::Result<()> {
     match msg {
         ServerToWorkerMessage::SendPacket(packet) => worker.framed.send(packet).await?,
+        ServerToWorkerMessage::Disconnect => anyhow::bail!("server requested disconnect"),
     }
 
     Ok(())

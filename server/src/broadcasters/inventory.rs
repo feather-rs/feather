@@ -1,26 +1,21 @@
 //! Broadcasting of inventory-related events.
 
-use crate::entity::{EntityId, EntitySendEvent};
+use crate::entity::EntityId;
+use crate::game::Game;
 use crate::network::Network;
 use crate::p_inventory::{EntityInventory, Equipment, InventoryUpdateEvent};
-use crate::state::State;
 use feather_core::inventory::{SlotIndex, SLOT_HOTBAR_OFFSET};
 use feather_core::network::packet::implementation::{EntityEquipment, SetSlot};
-use legion::query::Read;
+use fecs::{Entity, World};
 use num_traits::ToPrimitive;
-use tonks::{PreparedWorld, Query};
 
 /// System for broadcasting equipment updates.
-#[event_handler]
-fn broadcast_equipment_updates(
+pub fn on_inventory_update_broadcast_equipment_update(
+    game: &mut Game,
+    world: &mut World,
     event: &InventoryUpdateEvent,
-    state: &State,
-    _query: &mut Query<(Read<EntityId>, Read<EntityInventory>)>,
-    world: &mut PreparedWorld,
 ) {
-    let inv = world
-        .get_component::<EntityInventory>(event.player)
-        .unwrap();
+    let inv = world.get::<EntityInventory>(event.player);
 
     for slot in &event.slots {
         // Skip this slot if it is not an equipment update.
@@ -29,32 +24,27 @@ fn broadcast_equipment_updates(
             let item = inv.item_at(slot).cloned();
 
             let packet = EntityEquipment {
-                entity_id: world.get_component::<EntityId>(event.player).unwrap().0,
+                entity_id: world.get::<EntityId>(event.player).0,
                 slot: equipment.to_i32().unwrap(),
                 item,
             };
 
-            state.broadcast_entity_update(event.player, packet, Some(event.player));
+            game.broadcast_entity_update(world, packet, event.player, Some(event.player));
         }
     }
 }
 
-/// System which listens to `EntitySendEvent`s and
-/// sends entity equipment alongside.
-#[event_handler]
-fn send_entity_equipment(
-    event: &EntitySendEvent,
-    _query: &mut Query<(Read<EntityId>, Read<EntityInventory>, Read<Network>)>,
-    world: &mut PreparedWorld,
-) {
-    if !world.is_alive(event.to) {
+/// System to send an entity's equipment when the
+/// entity is sent to a client.
+pub fn on_entity_send_send_equipment(world: &mut World, entity: Entity, client: Entity) {
+    if !world.is_alive(client) || !world.is_alive(entity) {
         return;
     }
 
-    let network = world.get_component::<Network>(event.to).unwrap();
-    let inventory = match world.get_component::<EntityInventory>(event.entity) {
+    let network = world.get::<Network>(client);
+    let inventory = match world.try_get::<EntityInventory>(entity) {
         Some(inv) => inv,
-        None => return,
+        None => return, // no equipment to send
     };
 
     let equipments = [
@@ -75,7 +65,7 @@ fn send_entity_equipment(
         let equipment_slot = equipment.to_i32().unwrap();
 
         let packet = EntityEquipment {
-            entity_id: world.get_component::<EntityId>(event.entity).unwrap().0,
+            entity_id: world.get::<EntityId>(entity).0,
             slot: equipment_slot,
             item,
         };
@@ -85,16 +75,9 @@ fn send_entity_equipment(
 
 /// System for sending the Set Slot packet
 /// when a player's inventory is updated.
-#[event_handler]
-fn send_set_slot(
-    event: &InventoryUpdateEvent,
-    _query: &mut Query<(Read<EntityInventory>, Read<Network>)>,
-    world: &mut PreparedWorld,
-) {
-    let inv = world
-        .get_component::<EntityInventory>(event.player)
-        .unwrap();
-    let network = world.get_component::<Network>(event.player).unwrap();
+pub fn on_inventory_update_send_set_slot(world: &mut World, event: &InventoryUpdateEvent) {
+    let inv = world.get::<EntityInventory>(event.player);
+    let network = world.get::<Network>(event.player);
 
     for slot in &event.slots {
         let packet = SetSlot {

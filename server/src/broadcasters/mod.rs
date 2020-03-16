@@ -12,12 +12,16 @@
 // mod chat;
 mod entity_creation;
 mod entity_deletion;
-// mod inventory;
+mod inventory;
 // mod item_collect;
 mod keepalive;
 // mod metadata;
 mod movement;
 
+pub use self::inventory::{
+    on_entity_send_send_equipment, on_inventory_update_broadcast_equipment_update,
+    on_inventory_update_send_set_slot,
+};
 pub use entity_creation::on_entity_spawn_send_to_clients;
 pub use entity_creation::on_player_join_send_existing_entities;
 pub use entity_deletion::on_entity_despawn_broadcast_despawn;

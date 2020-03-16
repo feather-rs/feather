@@ -20,6 +20,8 @@ mod worker;
 pub enum ServerToWorkerMessage {
     /// Requests that a packet be sent to the client.
     SendPacket(Box<dyn Packet>),
+    /// Requests that the client be disconnected.
+    Disconnect,
 }
 
 #[derive(Debug)]
