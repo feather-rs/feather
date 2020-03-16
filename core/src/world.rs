@@ -353,6 +353,12 @@ impl ChunkMap {
     pub fn chunk_at_mut(&self, pos: ChunkPosition) -> Option<RwLockWriteGuard<Chunk>> {
         self.0.get(&pos).map(|lock| lock.write())
     }
+
+    /// Returns an `Arc<RwLock<Chunk>>` at the given position.
+    pub fn chunk_handle_at(&self, pos: ChunkPosition) -> Option<Arc<RwLock<Chunk>>> {
+        self.0.get(&pos).map(Arc::clone)
+    }
+
     /// Retrieves the block at the specified
     /// location. If the chunk in which the block
     /// exists is not laoded, `None` is returned.

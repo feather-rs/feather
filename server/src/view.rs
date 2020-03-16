@@ -27,9 +27,11 @@ use feather_core::network::packet::implementation::{ChunkData, DestroyEntities, 
 use feather_core::{Chunk, ChunkPosition, Position};
 use fecs::{Entity, IntoQuery, Read, World};
 use itertools::Either;
+use parking_lot::RwLock;
 use smallvec::SmallVec;
 use std::iter;
 use std::ops::Add;
+use std::sync::Arc;
 
 /// System which polls for updated positions and
 /// calls `Game::on_chunk_cross()` accordingly.
@@ -211,30 +213,35 @@ fn chunks_within_view_distance(
 pub struct ChunksToSend(AHashMap<ChunkPosition, SmallVec<[Entity; 2]>>);
 
 /// Asynchronously sends a chunk to a player.
-fn send_chunk_to_player(game: &mut Game, world: &mut World, player: Entity, chunk: ChunkPosition) {
+fn send_chunk_to_player(
+    game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    chunk_pos: ChunkPosition,
+) {
     // Ensure that the chunk isn't unloaded while the player has it loaded.
-    chunk_logic::hold_chunk(game, &mut *world.get_mut(player), chunk, player);
+    chunk_logic::hold_chunk(game, &mut *world.get_mut(player), chunk_pos, player);
 
     // If the chunk is already loaded, send it. Otherwise, we need to
     // queue it for loading.
-    if let Some(chunk) = game.chunk_map.chunk_at(chunk) {
-        world.get::<Network>(player).send(create_chunk_data(&chunk));
-        game.on_chunk_send(world, chunk.position(), player);
+    if let Some(chunk) = game.chunk_map.chunk_handle_at(chunk_pos) {
+        world.get::<Network>(player).send(create_chunk_data(chunk));
+        game.on_chunk_send(world, chunk_pos, player);
     } else {
-        let contains = game.chunks_to_send.0.contains_key(&chunk);
+        let contains = game.chunks_to_send.0.contains_key(&chunk_pos);
 
-        let vec = match game.chunks_to_send.0.get_mut(&chunk) {
+        let vec = match game.chunks_to_send.0.get_mut(&chunk_pos) {
             Some(vec) => vec,
             None => {
-                game.chunks_to_send.0.insert(chunk, smallvec![]);
-                game.chunks_to_send.0.get_mut(&chunk).unwrap()
+                game.chunks_to_send.0.insert(chunk_pos, smallvec![]);
+                game.chunks_to_send.0.get_mut(&chunk_pos).unwrap()
             }
         };
         vec.push(player);
 
         if !contains {
             // Queue chunk for loading if it isn't already.
-            chunk_logic::load_chunk(&game.chunk_worker_handle, chunk);
+            chunk_logic::load_chunk(&game.chunk_worker_handle, chunk_pos);
         }
     }
 }
@@ -257,11 +264,11 @@ fn unload_chunk_for_player(
 }
 
 /// System which sends chunks to pending players when a chunk is loaded.
-pub fn on_chunk_load_send_to_clients(game: &mut Game, world: &mut World, chunk: ChunkPosition) {
-    if let Some(players) = game.chunks_to_send.0.get(&chunk) {
+pub fn on_chunk_load_send_to_clients(game: &mut Game, world: &mut World, chunk_pos: ChunkPosition) {
+    if let Some(players) = game.chunks_to_send.0.get(&chunk_pos) {
         let chunk = game
             .chunk_map
-            .chunk_at(chunk)
+            .chunk_handle_at(chunk_pos)
             .expect("chunk not loaded, but load event was triggered");
         for player in players {
             if !world.is_alive(*player) {
@@ -270,17 +277,15 @@ pub fn on_chunk_load_send_to_clients(game: &mut Game, world: &mut World, chunk: 
 
             world
                 .get::<Network>(*player)
-                .send(create_chunk_data(&chunk));
-            game.on_chunk_send(world, chunk.position(), *player);
+                .send(create_chunk_data(Arc::clone(&chunk)));
+            game.on_chunk_send(world, chunk_pos, *player);
         }
     }
 
-    game.chunks_to_send.0.remove(&chunk);
+    game.chunks_to_send.0.remove(&chunk_pos);
 }
 
 /// Creates a chunk data packet for the given chunk.
-fn create_chunk_data(chunk: &Chunk) -> ChunkData {
-    ChunkData {
-        chunk: chunk.clone(), // TODO: optimize
-    }
+fn create_chunk_data(chunk: Arc<RwLock<Chunk>>) -> ChunkData {
+    ChunkData { chunk }
 }
