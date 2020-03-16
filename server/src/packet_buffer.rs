@@ -30,8 +30,8 @@ pub struct PacketBuffers {
     buffers: Vec<PacketBuffer>,
 }
 
-/// The set of buffers which use a `MapBuffer` instead of an `ArrayBuffer`.
 lazy_static! {
+    /// The set of buffers which use a `MapBuffer` instead of an `ArrayBuffer`.
     static ref USE_MAP_FOR: indexmap::IndexSet<PacketType> = indexmap::indexset![];
 }
 

@@ -95,7 +95,7 @@ pub async fn run_worker(
     };
 
     let msg = match run_worker_impl(&mut worker).await {
-        Ok(()) => "normal disconnect".to_string(),
+        Ok(()) => String::from("client disconnected"),
         Err(e) => format!("{}", e),
     };
 
@@ -131,7 +131,7 @@ async fn run_worker_impl(worker: &mut Worker) -> anyhow::Result<()> {
                 }
             }
             Either::Right((packet_res, _)) => {
-                let packet_res = packet_res.ok_or(anyhow::anyhow!("packet was None"))?;
+                let packet_res = packet_res.ok_or(anyhow::anyhow!("client disconnected"))?;
 
                 let packet = packet_res?;
 

@@ -12,10 +12,10 @@
 //! delete old ones.
 //!
 //! This is handled as follows:
-//! * A system listens for player move events and checks if the player
-//! crossed a chunk boundary. If so, a `ViewUpdateEvent` is triggered.
-//! * Various systems listen to `ViewUpdateEvent` and send necessary packets.
-//! This includes systems to load/unload chunks and send entities.
+//! * A system queries all position components which have changed
+//! and adds a `CrossedChunk` component to these entities.
+//! * Other systems query for added `CrossedChunk` components
+//! and perform updates on these players' views.
 
 use crate::chunk_logic;
 use crate::chunk_logic::{

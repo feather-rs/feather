@@ -106,25 +106,19 @@ extern crate lazy_static;
 #[macro_use]
 extern crate feather_core;
 #[macro_use]
-extern crate bitflags;
-#[macro_use]
 extern crate fecs;
-#[macro_use]
-extern crate num_derive;
-#[macro_use]
-extern crate feather_codegen;
 
 extern crate nalgebra_glm as glm;
 
 use crossbeam::Receiver;
 use std::alloc::System;
-use std::sync::atomic::{AtomicU32, AtomicUsize};
+use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use crate::chunk_logic::ChunkWorkerHandle;
 use crate::config::Config;
 use crate::game::Game;
-use crate::io::NetworkIoManager;
 use crate::packet_buffer::PacketBuffers;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
@@ -148,7 +142,7 @@ static ALLOC: System = System;
 // pub mod block;
 // pub mod broadcasters;
 // pub mod chunk_entities;
-// pub mod chunk_logic;
+pub mod chunk_logic;
 pub mod chunk_worker;
 pub mod config;
 pub mod entity;
@@ -219,7 +213,7 @@ pub fn main() {
         exit(1)
     });
 
-    // let chunk_worker_handle = init_chunk_worker(world_dir, &level);
+    let chunk_worker_handle = init_chunk_worker(world_dir, &level);
 
     let game = Game {
         io_handle,
@@ -229,6 +223,9 @@ pub fn main() {
         level,
         chunk_map: ChunkMap::new(),
         bump: Bump::new(),
+        chunk_worker_handle,
+        chunk_unload_queue: Default::default(),
+        chunk_holders: Default::default(),
     };
 
     let (executor, resources) = init_executor(game);
@@ -316,7 +313,6 @@ fn init_executor(game: Game) -> (Executor, Resources) {
     (executor, resources)
 }
 
-/*
 /// Initializes the chunk worker.
 fn init_chunk_worker(world_dir: &Path, level: &LevelData) -> ChunkWorkerHandle {
     let generator: Arc<dyn WorldGenerator> = match level.generator_type() {
@@ -335,7 +331,6 @@ fn init_chunk_worker(world_dir: &Path, level: &LevelData) -> ChunkWorkerHandle {
         receiver: rx,
     }
 }
-*/
 
 /// Loads the configuration file, creating a default
 /// one if it does not exist.

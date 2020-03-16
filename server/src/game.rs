@@ -1,11 +1,12 @@
+use crate::chunk_logic::{ChunkHolders, ChunkUnloadQueue, ChunkWorkerHandle};
 use crate::config::Config;
 use crate::io::{NetworkIoManager, NewClientInfo};
-use crate::player;
+use crate::{chunk_logic, player};
 use bumpalo::Bump;
 use feather_blocks::Block;
 use feather_core::level::LevelData;
 use feather_core::world::ChunkMap;
-use feather_core::BlockPosition;
+use feather_core::{BlockPosition, ChunkPosition};
 use fecs::{Entity, World};
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
@@ -35,6 +36,12 @@ pub struct Game {
     pub chunk_map: ChunkMap,
     /// Bump allocator. Reset every tick.
     pub bump: Bump,
+    /// Chunk worker handle used for communication with
+    /// the chunk worker.
+    pub chunk_worker_handle: ChunkWorkerHandle,
+    /// Queue of chunks to be unloaded.
+    pub chunk_unload_queue: ChunkUnloadQueue,
+    pub chunk_holders: ChunkHolders,
 }
 
 impl Game {
@@ -63,7 +70,7 @@ impl Game {
     /// as it properly handles events.
     pub fn despawn(&mut self, entity: Entity, world: &mut World) {
         world.despawn(entity);
-        self.on_despawn(world, entity);
+        self.on_entity_despawn(world, entity);
     }
 
     /// Spawns a player with the given `PlayerInfo`.
@@ -84,8 +91,21 @@ impl Game {
     }
 
     /// Called when an entity is despawned/removed.
-    pub fn on_despawn(&mut self, _world: &mut World, _entity: Entity) {}
+    pub fn on_entity_despawn(&mut self, world: &mut World, entity: Entity) {
+        chunk_logic::on_entity_despawn_remove_chunk_holder(self, world, entity);
+    }
 
     /// Called when a player joins.
     pub fn on_player_join(&mut self, _world: &mut World, _player: Entity) {}
+
+    /// Called when a chunk loads successfully.
+    pub fn on_chunk_load(&mut self, _world: &mut World, _chunk: ChunkPosition) {}
+
+    /// Called when a chunk fails to load.
+    pub fn on_chunk_load_fail(&mut self, _world: &mut World, _chunk: ChunkPosition) {}
+
+    /// Called when a chunk holder is released.
+    pub fn on_chunk_holder_release(&mut self, chunk: ChunkPosition, _holder: Entity) {
+        chunk_logic::on_chunk_holder_release_unload_chunk(self, chunk);
+    }
 }
