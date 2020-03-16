@@ -132,12 +132,25 @@ pub fn on_chunk_cross_update_entities(
     let mut to_client_remove_trigger = BumpVec::new_in(game.bump());
     to_client_remove_trigger.extend(
         find_old_chunks(old, new, game.config.server.view_distance)
-            .flat_map(|chunk| game.chunk_entities.entities_in_chunk(chunk)),
+            .flat_map(|chunk| game.chunk_entities.entities_in_chunk(chunk))
+            .map(|other| (*other, entity)),
     );
+
+    // Despawn this entity on other visible entities.
+    find_old_chunks(old, new, game.config.server.view_distance)
+        .flat_map(|chunk| game.chunk_entities.entities_in_chunk(chunk))
+        .filter_map(|entity| world.try_get::<Network>(*entity).map(|net| (*entity, net)))
+        .for_each(|(other, network)| {
+            let packet = DestroyEntities {
+                entity_ids: vec![world.get::<EntityId>(entity).0],
+            };
+            network.send(packet);
+            to_client_remove_trigger.push((entity, other));
+        });
 
     let to_destroy = to_client_remove_trigger
         .iter()
-        .map(|entity| world.get::<EntityId>(*entity).0)
+        .map(|(other, _)| world.get::<EntityId>(*other).0)
         .collect::<Vec<_>>();
 
     if !to_destroy.is_empty() {
@@ -155,8 +168,8 @@ pub fn on_chunk_cross_update_entities(
     }
 
     // Trigger on_entity_client_remmove
-    for other in to_client_remove_trigger {
-        game.on_entity_client_remove(world, other, entity);
+    for (other, to) in to_client_remove_trigger {
+        game.on_entity_client_remove(world, other, to);
     }
 }
 
