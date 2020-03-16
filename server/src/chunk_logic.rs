@@ -77,7 +77,7 @@ pub fn chunk_load(game: &mut Game, world: &mut World) {
 /// avoids constant nearby entity queries.
 #[derive(Default, Clone, Debug)]
 pub struct ChunkHolders {
-    inner: MultiMap<ChunkPosition, Entity>,
+    inner: MultiMap<ChunkPosition, Entity, ahash::RandomState>,
 }
 
 impl ChunkHolders {
@@ -279,6 +279,7 @@ pub fn release_chunk(game: &mut Game, world: &mut World, chunk: ChunkPosition, e
             vec.swap_remove(index);
         }
     }
+    dbg!(game.chunk_holders.inner.get_vec(&chunk));
     game.on_chunk_holder_release(chunk, entity);
 }
 

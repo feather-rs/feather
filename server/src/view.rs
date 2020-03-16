@@ -136,7 +136,7 @@ pub fn on_chunk_cross_update_entities(
             .map(|other| (*other, entity)),
     );
 
-    // Despawn this entity on other visible entities.
+    // Despawn this entity on other visible clients.
     find_old_chunks(old, new, game.config.server.view_distance)
         .flat_map(|chunk| game.chunk_entities.entities_in_chunk(chunk))
         .filter_map(|entity| world.try_get::<Network>(*entity).map(|net| (*entity, net)))
@@ -199,8 +199,8 @@ fn find_old_chunks(
     if let Some(old) = old {
         Either::Left(
             chunks_within_view_distance(old, view_distance).filter(move |chunk| {
-                (chunk.x - new.x).abs() > view_distance as i32
-                    || (chunk.z - new.z).abs() > view_distance as i32
+                (chunk.x - new.x).abs() >= view_distance as i32
+                    || (chunk.z - new.z).abs() >= view_distance as i32
             }),
         )
     } else {

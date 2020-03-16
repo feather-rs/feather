@@ -120,10 +120,10 @@ use crate::packet_buffer::PacketBuffers;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
-use feather_core::level;
 use feather_core::level::{deserialize_level_file, save_level_file, LevelData, LevelGeneratorType};
 use feather_core::world::ChunkMap;
-use fecs::{Executor, Resources, World};
+use feather_core::{level, ChunkPosition};
+use fecs::{EntityBuilder, Executor, Resources, World};
 use jemallocator::Jemalloc;
 use rand::Rng;
 use std::collections::hash_map::DefaultHasher;
@@ -240,8 +240,8 @@ pub fn main() {
     info!("Generating RSA keypair");
     io::init();
 
-    info!("Queuing spawn chunks for loading UNIMPLEMENTED");
-    // load_spawn_chunks(&mut world); TODO
+    info!("Queuing spawn chunks for loading");
+    load_spawn_chunks(&mut *resources.get_mut::<Game>(), &mut world);
 
     info!("Server started");
     run_loop(&mut world, &resources, &executor, shutdown_rx);
@@ -324,6 +324,31 @@ fn init_chunk_worker(world_dir: &Path, level: &LevelData) -> ChunkWorkerHandle {
     ChunkWorkerHandle {
         sender: tx,
         receiver: rx,
+    }
+}
+
+/// Loads the chunks around the spawn area and creates
+/// a chunk hold on those chunks to prevent them from
+/// being unloaded.
+///
+/// Note that these chunks are loaded asynchronously,
+/// and this function will return before loading is complete.
+fn load_spawn_chunks(game: &mut Game, world: &mut World) {
+    let view_distance = i32::from(game.config.server.view_distance);
+
+    // Create an entity for the server and
+    // add chunk holders using it.
+    let server_entity = EntityBuilder::new().build().spawn_in(world);
+
+    let offset_x = game.level.spawn_x / 16;
+    let offset_z = game.level.spawn_z / 16;
+    for x in -view_distance..=view_distance {
+        for z in -view_distance..=view_distance {
+            let chunk = ChunkPosition::new(x + offset_x, z + offset_z);
+
+            chunk_logic::load_chunk(&game.chunk_worker_handle, chunk);
+            game.chunk_holders.insert_holder(chunk, server_entity);
+        }
     }
 }
 
