@@ -1,45 +1,30 @@
-use crate::chunk_logic::ChunkHolders;
-use crate::entity::EntityDeleteEvent;
-use crate::network::Network;
-use crate::state::State;
-use feather_core::network::packet::implementation::DestroyEntities;
-use legion::query::Read;
-use rayon::prelude::*;
-use tonks::{PreparedWorld, Query};
+use crate::entity::EntityId;
+use crate::game::Game;
+use crate::player::Player;
+use feather_core::network::packet::implementation::{
+    DestroyEntities, PlayerInfo, PlayerInfoAction,
+};
+use fecs::{Entity, World};
+use uuid::Uuid;
 
 /// Broadcasts when an entity is deleted.
-#[event_handler]
-fn broadcast_entity_deletion(
-    events: &[EntityDeleteEvent],
-    holders: &ChunkHolders,
-    _query: &mut Query<Read<Network>>,
-    world: &mut PreparedWorld,
-    state: &State,
-) {
-    events.par_iter().for_each(|event: &EntityDeleteEvent| {
-        if let Some(pos) = event.position {
-            let chunk = pos.into();
+pub fn on_entity_despawn_broadcast_despawn(game: &mut Game, world: &mut World, entity: Entity) {
+    let id = world.get::<EntityId>(entity).0;
+    let packet = DestroyEntities {
+        entity_ids: vec![id],
+    };
 
-            for entity in holders.holders_for(chunk).unwrap_or(&[]) {
-                if let Some(network) = world.get_component::<Network>(*entity) {
-                    network.send(DestroyEntities {
-                        entity_ids: vec![event.id.0],
-                    });
-                    state.register_entity_unload(event.entity, *entity);
-                }
-            }
-        }
+    game.broadcast_entity_update(world, packet, entity, Some(entity));
 
-        // If entity was a player, broadcast PlayerInfo with delete status.
-        // TODO: fix
-        /*
-        if world.get_component::<Player>(event.entity).is_some() {
-            let packet = PlayerInfo {
-                action: PlayerInfoAction::RemovePlayer,
-                uuid: event.uuid,
-            };
+    // If the entity was a player, send Player Info to
+    // remove them from the tablist.
+    if world.has::<Player>(entity) {
+        let uuid = *world.get::<Uuid>(entity);
+        let packet = PlayerInfo {
+            action: PlayerInfoAction::RemovePlayer,
+            uuid,
+        };
 
-            state.broadcast_global(packet, None);
-        }*/
-    });
+        game.broadcast_global(world, packet, None);
+    }
 }

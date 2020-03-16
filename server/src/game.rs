@@ -1,4 +1,7 @@
-use crate::broadcasters::{on_entity_spawn_send_to_clients, on_player_join_send_existing_entities};
+use crate::broadcasters::{
+    on_entity_despawn_broadcast_despawn, on_entity_spawn_send_to_clients,
+    on_player_join_send_existing_entities,
+};
 use crate::chunk_entities::{
     on_chunk_cross_update_chunk_entities, on_entity_despawn_update_chunk_entities,
     on_entity_spawn_update_chunk_entities, ChunkEntities,
@@ -224,6 +227,7 @@ impl Game {
     pub fn on_entity_despawn(&mut self, world: &mut World, entity: Entity) {
         chunk_logic::on_entity_despawn_remove_chunk_holder(self, world, entity);
         on_entity_despawn_update_chunk_entities(self, world, entity);
+        on_entity_despawn_broadcast_despawn(self, world, entity);
         if world.try_get::<Player>(entity).is_some() {
             self.on_player_leave(world, entity);
         }
