@@ -5,6 +5,7 @@ use crate::chunk_logic::{ChunkHolders, ChunkUnloadQueue, ChunkWorkerHandle};
 use crate::config::Config;
 use crate::io::{NetworkIoManager, NewClientInfo};
 use crate::join::{on_chunk_send_join_player, on_player_join_send_join_game};
+use crate::network::Network;
 use crate::view::{
     on_chunk_cross_update_chunks, on_chunk_load_send_to_clients,
     on_player_join_trigger_chunk_cross, ChunksToSend,
@@ -14,8 +15,8 @@ use bumpalo::Bump;
 use feather_blocks::Block;
 use feather_core::level::LevelData;
 use feather_core::world::ChunkMap;
-use feather_core::{BlockPosition, ChunkPosition};
-use fecs::{Entity, World};
+use feather_core::{BlockPosition, ChunkPosition, Packet, Position};
+use fecs::{Entity, IntoQuery, Read, World};
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
 
@@ -87,6 +88,83 @@ impl Game {
     pub fn spawn_player(&mut self, info: NewClientInfo, world: &mut World) {
         let entity = player::create(world, info);
         self.on_player_join(world, entity);
+    }
+
+    /* UTILITY FUNCTIONS */
+    /// Broadcasts a packet to all online players.
+    pub fn broadcast_global(&self, world: &World, packet: impl Packet, neq: Option<Entity>) {
+        self.broadcast_global_boxed(world, Box::new(packet), neq);
+    }
+
+    /// Broadcasts a boxed packet to all online players.
+    pub fn broadcast_global_boxed(
+        &self,
+        world: &World,
+        packet: Box<dyn Packet>,
+        neq: Option<Entity>,
+    ) {
+        for (entity, network) in <Read<Network>>::query().iter_entities(world.inner()) {
+            if neq.map(|neq| neq == entity).unwrap_or(false) {
+                continue;
+            }
+
+            network.send_boxed(packet.box_clone());
+        }
+    }
+
+    /// Broadcasts a packet to all players able to see a given chunk.
+    pub fn broadcast_chunk_update(
+        &self,
+        world: &World,
+        packet: impl Packet,
+        chunk: ChunkPosition,
+        neq: Option<Entity>,
+    ) {
+        self.broadcast_chunk_update_boxed(world, Box::new(packet), chunk, neq);
+    }
+
+    /// Broadcasts a boxed packet to all players able to see a given chunk.
+    pub fn broadcast_chunk_update_boxed(
+        &self,
+        world: &World,
+        packet: Box<dyn Packet>,
+        chunk: ChunkPosition,
+        neq: Option<Entity>,
+    ) {
+        // we can use the chunk holders structure to accelerate this
+        for entity in self.chunk_holders.holders_for(chunk) {
+            if neq.map(|neq| neq == *entity).unwrap_or(false) {
+                continue;
+            }
+
+            if let Some(network) = world.try_get::<Network>(*entity) {
+                network.send_boxed(packet.box_clone());
+            }
+        }
+    }
+
+    /// Broadcasts a packet to all players able to see a given entity.
+    pub fn broadcast_entity_update(
+        &self,
+        world: &World,
+        packet: impl Packet,
+        entity: Entity,
+        neq: Option<Entity>,
+    ) {
+        self.broadcast_entity_update_boxed(world, Box::new(packet), entity, neq);
+    }
+
+    /// Broadcasts a boxed packet to all players able to see a given entity.
+    pub fn broadcast_entity_update_boxed(
+        &self,
+        world: &World,
+        packet: Box<dyn Packet>,
+        entity: Entity,
+        neq: Option<Entity>,
+    ) {
+        // Send the packet to all players who have a hold on the entity's chunk.
+        let entity_chunk = world.get::<Position>(entity).chunk();
+        self.broadcast_chunk_update_boxed(world, packet, entity_chunk, neq);
     }
 
     /* EVENT HANDLERS */
