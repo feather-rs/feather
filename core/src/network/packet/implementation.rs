@@ -1365,7 +1365,7 @@ impl Packet for WindowItems {
         buf.push_i16(self.slots.len() as i16);
 
         for slot in &self.slots {
-            buf.push_slot(slot);
+            buf.push_slot(*slot);
         }
     }
 

@@ -20,8 +20,7 @@ feather-item-block = { path = "../item_block" }
 feather-codegen = { path = "../codegen" }
 
 # Core ECS + systems
-# fecs = { git = "https://github.com/caelunshun/fecs", rev = "e865bce3a9ac7f8fd3a9a7b5e3c139a746500137" }
-fecs = { path = "../../../dev/fecs" }
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "7e4365c6fbf3a89676075659763daa4ecbd492c8" }
 
 # Concurrency/threading
 crossbeam = "0.7"
@@ -97,6 +96,7 @@ anyhow = "1.0"
 
 [dev-dependencies]
 criterion = "0.3"
+approx = "0.3"
 
 [[bench]]
 name = "worldgen"

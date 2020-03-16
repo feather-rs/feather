@@ -57,6 +57,7 @@ struct Worker {
 }
 
 /// Runs a worker task for the given client.
+#[allow(clippy::too_many_arguments)]
 pub async fn run_worker(
     stream: TcpStream,
     ip: SocketAddr,
@@ -135,7 +136,8 @@ async fn run_worker_impl(worker: &mut Worker) -> anyhow::Result<()> {
                 }
             }
             Either::Right((packet_res, _)) => {
-                let packet_res = packet_res.ok_or(anyhow::anyhow!("client disconnected"))?;
+                let packet_res =
+                    packet_res.ok_or_else(|| anyhow::anyhow!("client disconnected"))?;
 
                 let packet = packet_res?;
 
@@ -187,7 +189,7 @@ async fn handle_ih_actions(worker: &mut Worker) -> anyhow::Result<()> {
             Action::JoinGame(info) => {
                 let info = NewClientInfo {
                     ip: worker.ip,
-                    username: info.username.unwrap_or(String::from("undefined")),
+                    username: info.username.unwrap_or_else(|| String::from("undefined")),
                     profile: info.props,
                     uuid: info.uuid,
                     data: Default::default(),            // TODO

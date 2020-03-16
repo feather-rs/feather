@@ -281,8 +281,8 @@ impl BungeeCordData {
             return Err(Error::BungeeSpecMismatch("Incorrect length".to_string()));
         }
 
-        let host = data.get(0).unwrap().to_string();
-        let client = data.get(1).unwrap().to_string();
+        let host = (*data.get(0).unwrap()).to_string();
+        let client = (*data.get(1).unwrap()).to_string();
         let uuid = Uuid::parse_str(*data.get(2).unwrap())
             .map_err(|e| Error::BungeeSpecMismatch(e.to_string()))?;
         let properties = serde_json::from_str(data.get(3).unwrap())

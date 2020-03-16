@@ -1,3 +1,5 @@
+#![allow(clippy::match_single_binding)] // https://github.com/mcarton/rust-derivative/issues/58
+
 use crate::config::Config;
 use crate::packet_buffer::PacketBuffers;
 use derivative::Derivative;
@@ -27,6 +29,7 @@ pub enum WorkerToServerMessage {
 }
 
 #[derive(Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum ListenerToServerMessage {
     /// Notifies the server thread that a new client connected.
     ///

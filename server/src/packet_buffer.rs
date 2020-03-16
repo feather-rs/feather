@@ -39,6 +39,12 @@ lazy_static! {
     ];
 }
 
+impl Default for PacketBuffers {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PacketBuffers {
     /// Creates a new packet store with buffers allocated for all packet types.
     pub fn new() -> Self {

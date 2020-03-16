@@ -86,7 +86,7 @@ impl ToMetaEntry for bool {
 
 impl ToMetaEntry for Slot {
     fn to_meta_entry(&self) -> MetaEntry {
-        MetaEntry::Slot(self.clone())
+        MetaEntry::Slot(*self)
     }
 }
 
@@ -209,7 +209,7 @@ where
             }
         }
         MetaEntry::Slot(slot) => {
-            buf.push_slot(slot);
+            buf.push_slot(*slot);
         }
         MetaEntry::Boolean(x) => buf.push_bool(*x),
         MetaEntry::Rotation(x, y, z) => {
