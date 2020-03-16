@@ -46,9 +46,9 @@ pub fn on_chunk_cross_update_chunk_entities(
                 vec.swap_remove(index);
             }
         }
-    }
 
-    game.chunk_entities.0.entry(new).or_default().push(entity);
+        game.chunk_entities.0.entry(new).or_default().push(entity);
+    }
 }
 
 pub fn on_entity_despawn_update_chunk_entities(game: &mut Game, world: &World, entity: Entity) {
@@ -62,5 +62,11 @@ pub fn on_entity_despawn_update_chunk_entities(game: &mut Game, world: &World, e
                 vec.swap_remove(index);
             }
         }
+    }
+}
+
+pub fn on_entity_spawn_update_chunk_entities(game: &mut Game, world: &World, entity: Entity) {
+    if let Some(chunk) = world.try_get::<Position>(entity).map(|pos| pos.chunk()) {
+        game.chunk_entities.0.entry(chunk).or_default().push(entity);
     }
 }

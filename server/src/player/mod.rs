@@ -46,7 +46,7 @@ pub fn create(world: &mut World, info: NewClientInfo) -> Entity {
         .unwrap();
     world.add(entity, info.ip).unwrap();
     world.add(entity, ProfileProperties(info.profile)).unwrap();
-    //world.add(entity, Name(info.username)).unwrap();
+    world.add(entity, Name(info.username)).unwrap();
     world.add(entity, ChunkHolder::default()).unwrap();
     //world.add(entity, LastKnownPositions::default()).unwrap();
     world

@@ -140,7 +140,7 @@ use thread_local::CachedThreadLocal;
 static ALLOC: System = System;
 
 // pub mod block;
-// pub mod broadcasters;
+mod broadcasters;
 mod chunk_entities;
 pub mod chunk_logic;
 pub mod chunk_worker;
@@ -149,7 +149,6 @@ pub mod entity;
 pub mod io;
 mod join;
 // pub mod lazy;
-// pub mod metadata;
 pub mod network;
 // pub mod p_inventory; // Prefixed to avoid conflict with inventory crate
 mod packet_handlers;
@@ -315,6 +314,8 @@ fn init_executor(game: Game) -> (Executor, Resources) {
         .with(chunk_logic::chunk_unload)
         .with(chunk_logic::chunk_optimize)
         .with(view::check_crossed_chunks)
+        .with(broadcasters::broadcast_keepalive)
+        .with(game::reset_bump_allocators)
         .with(game::increment_tick_count)
         .with(entity::position_reset); // should be at end
 

@@ -1,5 +1,7 @@
+use crate::broadcasters::{on_entity_spawn_send_to_clients, on_player_join_send_existing_entities};
 use crate::chunk_entities::{
-    on_chunk_cross_update_chunk_entities, on_entity_despawn_update_chunk_entities, ChunkEntities,
+    on_chunk_cross_update_chunk_entities, on_entity_despawn_update_chunk_entities,
+    on_entity_spawn_update_chunk_entities, ChunkEntities,
 };
 use crate::chunk_logic::{ChunkHolders, ChunkUnloadQueue, ChunkWorkerHandle};
 use crate::config::Config;
@@ -7,8 +9,9 @@ use crate::io::{NetworkIoManager, NewClientInfo};
 use crate::join::{on_chunk_send_join_player, on_player_join_send_join_game};
 use crate::network::Network;
 use crate::packet_buffer::PacketBuffers;
+use crate::player::Player;
 use crate::view::{
-    on_chunk_cross_update_chunks, on_chunk_load_send_to_clients,
+    on_chunk_cross_update_chunks, on_chunk_cross_update_entities, on_chunk_load_send_to_clients,
     on_player_join_trigger_chunk_cross, ChunksToSend,
 };
 use crate::{chunk_logic, player};
@@ -18,7 +21,7 @@ use feather_core::level::LevelData;
 use feather_core::world::ChunkMap;
 use feather_core::{BlockPosition, ChunkPosition, Packet, Position};
 use fecs::{Entity, IntoQuery, Read, World};
-use std::sync::atomic::AtomicU32;
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 use thread_local::CachedThreadLocal;
 
@@ -91,6 +94,7 @@ impl Game {
     /// Spawns a player with the given `PlayerInfo`.
     pub fn spawn_player(&mut self, info: NewClientInfo, world: &mut World) {
         let entity = player::create(world, info);
+        self.on_entity_spawn(world, entity);
         self.on_player_join(world, entity);
     }
 
@@ -220,12 +224,34 @@ impl Game {
     pub fn on_entity_despawn(&mut self, world: &mut World, entity: Entity) {
         chunk_logic::on_entity_despawn_remove_chunk_holder(self, world, entity);
         on_entity_despawn_update_chunk_entities(self, world, entity);
+        if world.try_get::<Player>(entity).is_some() {
+            self.on_player_leave(world, entity);
+        }
     }
+
+    /// Called when an entity of any type is spawned/created.
+    pub fn on_entity_spawn(&mut self, world: &mut World, entity: Entity) {
+        on_entity_spawn_update_chunk_entities(self, world, entity);
+        on_entity_spawn_send_to_clients(self, world, entity);
+    }
+
+    /// Called when an entity is spawned on a client.
+    pub fn on_entity_send(&self, _world: &mut World, _entity: Entity, _client: Entity) {}
 
     /// Called when a player joins.
     pub fn on_player_join(&mut self, world: &mut World, player: Entity) {
-        on_player_join_trigger_chunk_cross(self, world, player);
+        self.player_count.fetch_add(1, Ordering::Relaxed);
         on_player_join_send_join_game(self, world, player);
+        on_player_join_send_existing_entities(world, player);
+        on_player_join_trigger_chunk_cross(self, world, player)
+    }
+
+    /// Called when a player leaves.
+    ///
+    /// As with `on_entity_despawn`, this function is called __before__
+    /// `player` is removed from the world.
+    pub fn on_player_leave(&mut self, _world: &mut World, _player: Entity) {
+        self.player_count.fetch_sub(1, Ordering::Relaxed);
     }
 
     /// Called when a chunk loads successfully.
@@ -251,6 +277,7 @@ impl Game {
     ) {
         on_chunk_cross_update_chunks(self, world, entity, old, new);
         on_chunk_cross_update_chunk_entities(self, entity, old, new);
+        on_chunk_cross_update_entities(self, world, entity, old, new);
     }
 
     /// Called when a chunk is sent to a client.
@@ -262,4 +289,9 @@ impl Game {
 #[system]
 pub fn increment_tick_count(game: &mut Game) {
     game.tick_count += 1;
+}
+
+#[system]
+pub fn reset_bump_allocators(game: &mut Game) {
+    game.bump.iter_mut().for_each(Bump::reset);
 }
