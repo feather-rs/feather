@@ -167,8 +167,8 @@ fn find_new_chunks(
     let within_view_distance = chunks_within_view_distance(new, view_distance);
     if let Some(old) = old {
         Either::Left(within_view_distance.filter(move |chunk| {
-            (chunk.x - old.x).abs() <= view_distance as i32
-                && (chunk.z - old.z).abs() <= view_distance as i32
+            (chunk.x - old.x).abs() >= view_distance as i32
+                || (chunk.z - old.z).abs() >= view_distance as i32
         }))
     } else {
         Either::Right(within_view_distance)
