@@ -51,7 +51,7 @@ impl Network {
 pub fn poll_player_disconnect(game: &mut Game, world: &mut World) {
     // For each player with a Network component,
     // check their channel for disconnects.
-    let mut to_despawn = BumpVec::new_in(&game.bump);
+    let mut to_despawn = BumpVec::new_in(game.bump());
     <Read<Network>>::query()
         .iter_entities(world.inner())
         .for_each(|(entity, network)| {
@@ -84,6 +84,12 @@ pub fn poll_new_clients(game: &mut Game, world: &mut World) {
                     .io_handle
                     .tx
                     .unbounded_send(ServerToListenerMessage::Entity(entity));
+            }
+            ListenerToServerMessage::DeleteEntity(entity) => {
+                // no need to use `Game::despawn` here as
+                // the entity hasn't actually "existed" yet;
+                // it has no components
+                world.despawn(entity);
             }
         }
     }

@@ -2,7 +2,7 @@
 
 use crate::chunk_logic::ChunkHolder;
 use crate::entity;
-use crate::entity::EntityId;
+use crate::entity::{EntityId, PreviousPosition};
 use crate::io::NewClientInfo;
 use crate::network::Network;
 use feather_core::Gamemode;
@@ -29,6 +29,7 @@ pub fn create(world: &mut World, info: NewClientInfo) -> Entity {
     let entity = info.entity;
     world.add(entity, EntityId(entity::new_id())).unwrap();
     world.add(entity, info.position).unwrap();
+    world.add(entity, PreviousPosition(info.position)).unwrap();
     world.add(entity, info.uuid).unwrap();
     world.add(entity, info.uuid).unwrap();
     world

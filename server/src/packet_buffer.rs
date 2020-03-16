@@ -32,7 +32,11 @@ pub struct PacketBuffers {
 
 lazy_static! {
     /// The set of buffers which use a `MapBuffer` instead of an `ArrayBuffer`.
-    static ref USE_MAP_FOR: indexmap::IndexSet<PacketType> = indexmap::indexset![];
+    static ref USE_MAP_FOR: indexmap::IndexSet<PacketType> = indexmap::indexset![
+        PacketType::PlayerPosition,
+        PacketType::PlayerPositionAndLookServerbound,
+        PacketType::PlayerLook,
+    ];
 }
 
 impl PacketBuffers {

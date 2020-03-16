@@ -35,6 +35,13 @@ pub enum ListenerToServerMessage {
     /// Requests that the server create an empty `Entity` and send
     /// it to the listener. This entity will later be used as a player.
     RequestEntity,
+    /// Tells the server that a requested entity is no longer needed
+    /// and may be deleted.
+    ///
+    /// This typically happens when a connection comes in the form
+    /// of a status ping, where the entity is no longer needed
+    /// but has never served any purpose.
+    DeleteEntity(Entity),
 }
 
 #[derive(Debug)]

@@ -1,8 +1,10 @@
-//! Systems which handle packets through `crate::network::PacketQueue`.
+//! Systems which handle packets.
 
-mod animation;
-mod chat;
-mod digging;
-mod inventory;
+// mod animation;
+// mod chat;
+// mod digging;
+// mod inventory;
 mod movement;
-mod placement;
+// mod placement;
+
+pub use movement::handle_movement_packets;

@@ -123,7 +123,6 @@ use crate::packet_buffer::PacketBuffers;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
-use bumpalo::Bump;
 use feather_core::level;
 use feather_core::level::{deserialize_level_file, save_level_file, LevelData, LevelGeneratorType};
 use feather_core::world::ChunkMap;
@@ -135,6 +134,7 @@ use std::hash::{Hash, Hasher};
 use std::io::{Read, Write};
 use std::path::Path;
 use std::process::exit;
+use thread_local::CachedThreadLocal;
 
 #[global_allocator]
 static ALLOC: System = System;
@@ -152,7 +152,7 @@ mod join;
 // pub mod metadata;
 pub mod network;
 // pub mod p_inventory; // Prefixed to avoid conflict with inventory crate
-// pub mod packet_handlers;
+mod packet_handlers;
 // pub mod physics;
 pub mod player;
 pub mod shutdown;
@@ -217,12 +217,13 @@ pub fn main() {
 
     let game = Game {
         io_handle,
+        packet_buffers,
         config,
         tick_count: 0,
         player_count,
         level,
         chunk_map: ChunkMap::new(),
-        bump: Bump::new(),
+        bump: CachedThreadLocal::new(),
         chunk_worker_handle,
         chunk_unload_queue: Default::default(),
         chunk_holders: Default::default(),
@@ -307,8 +308,9 @@ fn init_executor(game: Game) -> (Executor, Resources) {
     resources.insert(game);
 
     let executor = Executor::new()
-        .with(network::poll_new_clients)
         .with(network::poll_player_disconnect)
+        .with(network::poll_new_clients)
+        .with(packet_handlers::handle_movement_packets)
         .with(chunk_logic::chunk_load)
         .with(chunk_logic::chunk_unload)
         .with(chunk_logic::chunk_optimize)

@@ -160,6 +160,7 @@ pub fn chunk_unload(game: &mut Game) {
 
             // Unload chunk and pop from queue.
             game.chunk_map.remove(unload.chunk);
+            trace!("Unloaded chunk at {}", unload.chunk);
             game.chunk_unload_queue.queue.pop_front();
         } else {
             // We're done - all chunks farther up in

@@ -100,6 +100,10 @@ pub async fn run_worker(
     };
 
     let _ = worker
+        .listener_tx
+        .send(ListenerToServerMessage::DeleteEntity(worker.entity));
+
+    let _ = worker
         .tx
         .send(WorkerToServerMessage::NotifyDisconnected { reason: msg });
 }

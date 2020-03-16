@@ -6,6 +6,7 @@ use crate::config::Config;
 use crate::io::{NetworkIoManager, NewClientInfo};
 use crate::join::{on_chunk_send_join_player, on_player_join_send_join_game};
 use crate::network::Network;
+use crate::packet_buffer::PacketBuffers;
 use crate::view::{
     on_chunk_cross_update_chunks, on_chunk_load_send_to_clients,
     on_player_join_trigger_chunk_cross, ChunksToSend,
@@ -19,6 +20,7 @@ use feather_core::{BlockPosition, ChunkPosition, Packet, Position};
 use fecs::{Entity, IntoQuery, Read, World};
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
+use thread_local::CachedThreadLocal;
 
 /// Uber-resource storing almost all data needed to run the game.
 ///
@@ -28,6 +30,8 @@ use std::sync::Arc;
 pub struct Game {
     /// The IO handle.
     pub io_handle: NetworkIoManager,
+    /// Packet buffers used to poll for received packets.
+    pub packet_buffers: Arc<PacketBuffers>,
     /// The server configuration.
     pub config: Arc<Config>,
     /// The server tick count, measured in ticks
@@ -44,7 +48,7 @@ pub struct Game {
     /// The chunk map.
     pub chunk_map: ChunkMap,
     /// Bump allocator. Reset every tick.
-    pub bump: Bump,
+    pub bump: CachedThreadLocal<Bump>,
     /// Chunk worker handle used for communication with
     /// the chunk worker.
     pub chunk_worker_handle: ChunkWorkerHandle,
@@ -90,7 +94,38 @@ impl Game {
         self.on_player_join(world, entity);
     }
 
-    /* UTILITY FUNCTIONS */
+    /// Returns a bump allocator.
+    pub fn bump(&self) -> &Bump {
+        self.bump.get_or_default()
+    }
+
+    /* PACKET HANDLING FUNCTIONS */
+    /// Returns all packets of type `T` received by `player`.
+    ///
+    /// # Panics
+    /// Panics if the packet buffer for packets of type `T` is not
+    /// a `MapBuffer` or an `ArrayBuffer`.
+    pub fn received_for<'a, T>(&'a self, player: Entity) -> impl Iterator<Item = T> + 'a
+    where
+        T: Packet,
+    {
+        self.packet_buffers.received_for(player)
+    }
+
+    /// Returns all packets of type `T` received, along
+    /// with the players that received them.
+    ///
+    /// # Panics
+    /// Panics if the packet buffer for packets of type `T` is not
+    /// a `ChannelBuffer`.
+    pub fn received<'a, T>(&'a self) -> impl Iterator<Item = (Entity, T)> + 'a
+    where
+        T: Packet,
+    {
+        self.packet_buffers.received()
+    }
+
+    /* BROADCAST FUNCTIONS */
     /// Broadcasts a packet to all online players.
     pub fn broadcast_global(&self, world: &World, packet: impl Packet, neq: Option<Entity>) {
         self.broadcast_global_boxed(world, Box::new(packet), neq);

@@ -35,7 +35,7 @@ use std::ops::Add;
 /// calls `Game::on_chunk_cross()` accordingly.
 #[system]
 pub fn check_crossed_chunks(world: &mut World, game: &mut Game) {
-    let mut crossed = BumpVec::new_in(&game.bump);
+    let mut crossed = BumpVec::new_in(game.bump());
     for (entity, (pos, prev_pos)) in
         <(Read<Position>, Read<PreviousPosition>)>::query().iter_entities(world.inner())
     {
@@ -69,7 +69,6 @@ pub fn on_chunk_cross_update_chunks(
     }
 
     for chunk in find_new_chunks(old, new, game.config.server.view_distance) {
-        dbg!(chunk);
         send_chunk_to_player(game, world, entity, chunk);
     }
 
@@ -87,7 +86,8 @@ fn find_new_chunks(
     let within_view_distance = chunks_within_view_distance(new, view_distance);
     if let Some(old) = old {
         Either::Left(within_view_distance.filter(move |chunk| {
-            chunk.x - old.x <= view_distance as i32 && chunk.z - old.z <= view_distance as i32
+            (chunk.x - old.x).abs() <= view_distance as i32
+                && (chunk.z - old.z).abs() <= view_distance as i32
         }))
     } else {
         Either::Right(within_view_distance)
@@ -100,14 +100,28 @@ fn find_old_chunks(
     new: ChunkPosition,
     view_distance: u8,
 ) -> impl Iterator<Item = ChunkPosition> {
-    let within_view_distance = chunks_within_view_distance(new, view_distance);
     if let Some(old) = old {
-        Either::Left(within_view_distance.filter(move |chunk| {
-            chunk.x - old.x >= view_distance as i32 && chunk.z - old.z >= view_distance as i32
-        }))
+        Either::Left(
+            chunks_within_view_distance(old, view_distance).filter(move |chunk| {
+                (chunk.x - new.x).abs() > view_distance as i32
+                    || (chunk.z - new.z).abs() > view_distance as i32
+            }),
+        )
     } else {
         Either::Right(iter::empty())
     }
+}
+
+/// Finds all chunks within the view distance of a given chunk.
+fn chunks_within_view_distance(
+    chunk: ChunkPosition,
+    view_distance: u8,
+) -> impl Iterator<Item = ChunkPosition> {
+    let view_distance = i32::from(view_distance);
+
+    (-view_distance..=view_distance).flat_map(move |x| {
+        (-view_distance..=view_distance).map(move |z| chunk.add(ChunkPosition::new(x, z)))
+    })
 }
 
 /// Resource containing a mapping from chunks -> sets of players indicating
@@ -184,16 +198,4 @@ fn create_chunk_data(chunk: &Chunk) -> ChunkData {
     ChunkData {
         chunk: chunk.clone(), // TODO: optimize
     }
-}
-
-/// Finds all chunks within the view distance of a given chunk.
-fn chunks_within_view_distance(
-    chunk: ChunkPosition,
-    view_distance: u8,
-) -> impl Iterator<Item = ChunkPosition> {
-    let view_distance = i32::from(view_distance);
-
-    (-view_distance..=view_distance).flat_map(move |x| {
-        (-view_distance..=view_distance).map(move |z| chunk.add(ChunkPosition::new(x, z)))
-    })
 }
