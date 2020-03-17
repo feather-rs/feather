@@ -167,7 +167,7 @@ pub fn on_chunk_cross_update_entities(
         game.on_entity_send(world, entity, client);
     }
 
-    // Trigger on_entity_client_remmove
+    // Trigger on_entity_client_remove
     for (other, to) in to_client_remove_trigger {
         game.on_entity_client_remove(world, other, to);
     }

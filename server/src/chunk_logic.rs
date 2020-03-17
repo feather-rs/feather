@@ -279,7 +279,6 @@ pub fn release_chunk(game: &mut Game, world: &mut World, chunk: ChunkPosition, e
             vec.swap_remove(index);
         }
     }
-    dbg!(game.chunk_holders.inner.get_vec(&chunk));
     game.on_chunk_holder_release(chunk, entity);
 }
 
