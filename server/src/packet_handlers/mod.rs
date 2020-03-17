@@ -5,8 +5,9 @@ mod animation;
 // mod digging;
 mod inventory;
 mod movement;
-// mod placement;
+mod placement;
 
 pub use self::inventory::{handle_creative_inventory_action, handle_held_item_change};
 pub use animation::handle_animation;
 pub use movement::handle_movement_packets;
+pub use placement::handle_player_block_placement;

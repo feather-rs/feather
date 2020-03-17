@@ -777,6 +777,7 @@ version = "0.1.0"
 [[package]]
 name = "fecs"
 version = "0.1.0"
+source = "git+https://github.com/feather-rs/fecs?rev=8060d8bf79db5b2d345cff14de3e8b5fa53897b0#8060d8bf79db5b2d345cff14de3e8b5fa53897b0"
 dependencies = [
  "fecs-macros",
  "fxhash",
@@ -787,6 +788,7 @@ dependencies = [
 [[package]]
 name = "fecs-macros"
 version = "0.1.0"
+source = "git+https://github.com/feather-rs/fecs?rev=8060d8bf79db5b2d345cff14de3e8b5fa53897b0#8060d8bf79db5b2d345cff14de3e8b5fa53897b0"
 dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.2",

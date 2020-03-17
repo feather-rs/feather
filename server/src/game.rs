@@ -1,9 +1,9 @@
 use crate::broadcasters::{
-    on_entity_client_remove_update_last_known_positions, on_entity_despawn_broadcast_despawn,
-    on_entity_send_send_equipment, on_entity_send_update_last_known_positions,
-    on_entity_spawn_send_to_clients, on_inventory_update_broadcast_equipment_update,
-    on_inventory_update_send_set_slot, on_player_animation_broadcast_animation,
-    on_player_join_send_existing_entities,
+    on_block_update_broadcast, on_entity_client_remove_update_last_known_positions,
+    on_entity_despawn_broadcast_despawn, on_entity_send_send_equipment,
+    on_entity_send_update_last_known_positions, on_entity_spawn_send_to_clients,
+    on_inventory_update_broadcast_equipment_update, on_inventory_update_send_set_slot,
+    on_player_animation_broadcast_animation, on_player_join_send_existing_entities,
 };
 use crate::chunk_entities::{
     on_chunk_cross_update_chunk_entities, on_entity_despawn_update_chunk_entities,
@@ -208,11 +208,12 @@ impl Game {
     /// Called when a block is updated.
     pub fn on_block_update(
         &mut self,
-        _world: &mut World,
-        _pos: BlockPosition,
+        world: &mut World,
+        pos: BlockPosition,
         _old: Block,
-        _new: Block,
+        new: Block,
     ) {
+        on_block_update_broadcast(self, world, pos, new);
     }
 
     /// Called when an entity is despawned/removed.

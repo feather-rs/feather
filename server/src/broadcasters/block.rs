@@ -1,24 +1,22 @@
 //! Broadcasting of block updates, i.e. when a block is changed to another.
 
-use crate::block::{BlockUpdateCause, BlockUpdateEvent};
-use crate::state::State;
+use crate::game::Game;
 use feather_core::network::packet::implementation::BlockChange;
-use feather_core::BlockExt;
+use feather_core::{Block, BlockExt, BlockPosition};
+use fecs::World;
 
 /// System for broadcasting block update
 /// events to all clients.
-#[event_handler]
-fn broadcast_block_update(event: &BlockUpdateEvent, state: &State) {
+pub fn on_block_update_broadcast(
+    game: &mut Game,
+    world: &mut World,
+    pos: BlockPosition,
+    new_block: Block,
+) {
     // Broadcast Block Change packet.
-    let neq = if let BlockUpdateCause::Player(player) = event.cause {
-        Some(player)
-    } else {
-        None
-    };
-
     let packet = BlockChange {
-        location: event.pos,
-        block_id: event.new_block.native_state_id() as i32,
+        location: pos,
+        block_id: new_block.native_state_id() as i32,
     };
-    state.broadcast_chunk_update(event.pos.into(), packet, neq);
+    game.broadcast_chunk_update(world, packet, pos.into(), None);
 }

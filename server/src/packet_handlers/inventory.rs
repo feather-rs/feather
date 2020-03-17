@@ -60,7 +60,7 @@ pub fn handle_creative_inventory_action(
         let slot_count = inventory.slot_count() as i16;
         drop(inventory);
 
-        if packet.slot >= slot_count || packet.slot < -1 {
+        if packet.slot >= slot_count || packet.slot < /* -1 */ 0 {
             game.disconnect(player, world, "Slot index out of bounds");
             continue;
         }
