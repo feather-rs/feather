@@ -21,6 +21,10 @@ pub static ENTITY_ID_COUNTER: AtomicI32 = AtomicI32::new(0);
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Velocity(pub glm::DVec3);
 
+/// The velocity of an entity on the previous tick.
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct PreviousVelocity(pub glm::DVec3);
+
 impl Default for Velocity {
     fn default() -> Self {
         Self(glm::vec3(0.0, 0.0, 0.0))
@@ -36,6 +40,26 @@ impl Deref for Velocity {
 }
 
 impl DerefMut for Velocity {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl Default for PreviousVelocity {
+    fn default() -> Self {
+        Self(glm::vec3(0.0, 0.0, 0.0))
+    }
+}
+
+impl Deref for PreviousVelocity {
+    type Target = glm::DVec3;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for PreviousVelocity {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
@@ -95,11 +119,17 @@ impl CreationPacketCreator {
 }
 
 #[system]
-pub fn position_reset(world: &mut World) {
+pub fn previous_position_velocity_reset(world: &mut World) {
     <(Read<Position>, Write<PreviousPosition>)>::query().par_for_each_mut(
         world.inner_mut(),
         |(pos, mut previous_pos)| {
             previous_pos.0 = *pos;
+        },
+    );
+    <(Read<Velocity>, Write<PreviousVelocity>)>::query().par_for_each_mut(
+        world.inner_mut(),
+        |(vel, mut previous_vel)| {
+            previous_vel.0 = vel.0;
         },
     );
 }
@@ -118,6 +148,7 @@ pub fn base(position: Position) -> EntityBuilder {
         .with(position)
         .with(PreviousPosition(position))
         .with(Velocity::default())
+        .with(PreviousVelocity::default())
 }
 
 /// Returns a new entity ID.

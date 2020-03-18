@@ -1,15 +1,15 @@
 //! Broadcasting of movement updates.
 
-use crate::entity::{EntityId, PreviousPosition};
+use crate::entity::{EntityId, PreviousPosition, PreviousVelocity, Velocity};
 use crate::game::Game;
 use crate::network::Network;
-use crate::util::{calculate_relative_move, degrees_to_stops};
+use crate::util::{calculate_relative_move, degrees_to_stops, protocol_velocity};
 use dashmap::DashMap;
 use feather_core::network::packet::implementation::{
-    EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove,
+    EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
 };
 use feather_core::{Packet, Position};
-use fecs::{Entity, IntoQuery, Read, World};
+use fecs::{changed, Entity, IntoQuery, Read, World};
 use smallvec::SmallVec;
 use std::ops::Deref;
 
@@ -21,7 +21,7 @@ pub struct LastKnownPositions(pub DashMap<Entity, Position>);
 
 /// System to broadcast when an entity moves.
 #[system]
-pub fn broadcast_entity_movement(game: &mut Game, world: &mut World) {
+pub fn broadcast_movement(game: &mut Game, world: &mut World) {
     <(Read<Position>, Read<PreviousPosition>, Read<EntityId>)>::query().par_entities_for_each(
         world.inner(),
         |(entity, (pos, prev_pos, id))| {
@@ -92,29 +92,33 @@ pub fn on_entity_client_remove_update_last_known_positions(
     }
 }
 
-/*
 /// Broadcasts an entity's velocity.
-#[event_handler]
-pub fn broadcast_velocity(
-    event: &VelocityUpdateEvent,
-    _query: &mut Query<(Read<EntityId>, Read<Velocity>)>,
-    world: &mut PreparedWorld,
-    state: &State,
-) {
-    let entity_id = world.get_component::<EntityId>(event.entity).unwrap().0;
-    let vel = *world.get_component::<Velocity>(event.entity).unwrap();
+#[system]
+pub fn broadcast_velocity(world: &mut World, game: &mut Game) {
+    <(Read<Velocity>, Read<PreviousVelocity>, Read<EntityId>)>::query()
+        .filter(changed::<Velocity>())
+        .par_entities_for_each(world.inner(), |(entity, (vel, prev_vel, entity_id))| {
+            let entity_id = entity_id.0;
 
-    let (velocity_x, velocity_y, velocity_z) = protocol_velocity(vel.0);
+            if vel.0 == prev_vel.0 {
+                return;
+            }
 
-    let packet = EntityVelocity {
-        entity_id,
-        velocity_x,
-        velocity_y,
-        velocity_z,
-    };
-    state.broadcast_entity_update(event.entity, packet, None);
+            let (velocity_x, velocity_y, velocity_z) = protocol_velocity(vel.0);
+
+            if velocity_x == 0 && velocity_y == 0 && velocity_z == 0 {
+                return;
+            }
+
+            let packet = EntityVelocity {
+                entity_id,
+                velocity_x,
+                velocity_y,
+                velocity_z,
+            };
+            game.broadcast_entity_update(world, packet, entity, None);
+        });
 }
-*/
 
 /// Returns the packet needed to notify a client
 /// of a position update, from the old position to the new one.

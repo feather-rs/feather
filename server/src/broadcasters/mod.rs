@@ -30,6 +30,6 @@ pub use entity_deletion::on_entity_despawn_broadcast_despawn;
 pub use keepalive::broadcast_keepalive;
 pub use metadata::on_entity_send_send_metadata;
 pub use movement::{
-    broadcast_entity_movement, on_entity_client_remove_update_last_known_positions,
+    broadcast_movement, broadcast_velocity, on_entity_client_remove_update_last_known_positions,
     on_entity_send_update_last_known_positions, LastKnownPositions,
 };

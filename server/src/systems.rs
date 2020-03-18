@@ -19,8 +19,9 @@ pub fn build_executor() -> Executor {
         .with(chunk_logic::chunk_optimize)
         .with(view::check_crossed_chunks)
         .with(broadcasters::broadcast_keepalive)
-        .with(broadcasters::broadcast_entity_movement)
+        .with(broadcasters::broadcast_movement)
+        .with(broadcasters::broadcast_velocity)
         .with(game::reset_bump_allocators)
         .with(game::increment_tick_count)
-        .with(entity::position_reset) // should be at end
+        .with(entity::previous_position_velocity_reset) // should be at end
 }
