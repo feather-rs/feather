@@ -16,7 +16,7 @@ use std::ops::Deref;
 /// Component containing the last sent positions of all entities for a given client.
 /// This component is used to determine
 /// the relative movement for an entity.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct LastKnownPositions(pub DashMap<Entity, Position>);
 
 /// System to broadcast when an entity moves.
@@ -41,6 +41,7 @@ pub fn broadcast_entity_movement(game: &mut Game, world: &mut World) {
                 if let Some(network) = world.try_get::<Network>(*player) {
                     let last_known_positions = world.get::<LastKnownPositions>(*player);
                     let last_known_positions = last_known_positions.deref();
+
                     if let Some(mut last_known_pos) = last_known_positions.0.get_mut(&entity) {
                         for packet in
                             packets_for_movement_update(entity_id, *last_known_pos.value(), pos)

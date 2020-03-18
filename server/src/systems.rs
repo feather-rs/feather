@@ -7,6 +7,7 @@ pub fn build_executor() -> Executor {
     Executor::new()
         .with(network::poll_player_disconnect)
         .with(network::poll_new_clients)
+        .with(physics::entity_physics)
         .with(packet_handlers::handle_movement_packets)
         .with(packet_handlers::handle_creative_inventory_action)
         .with(packet_handlers::handle_held_item_change)

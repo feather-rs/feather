@@ -1,6 +1,7 @@
 //! Handling of inventory update packets.
 //! This currently includes Creative Inventory Action and Held Item Change.
 
+use crate::entity::item::ItemDropEvent;
 use crate::game::Game;
 use crate::p_inventory::{EntityInventory, InventoryUpdateEvent};
 use crate::packet_buffer::PacketBuffers;
@@ -36,7 +37,6 @@ pub fn handle_creative_inventory_action(
 
         // Slot -1 means that the user clicked outside the window,
         // dropping the item.
-        /*
         if packet.slot == -1 {
             match &packet.clicked_item {
                 Some(stack) => {
@@ -46,7 +46,7 @@ pub fn handle_creative_inventory_action(
                         stack: stack.clone(),
                         player,
                     };
-                    trigger_drop.trigger(event);
+                    game.on_item_drop(world, event);
 
                     // No need to update inventory
                     continue;
@@ -54,13 +54,12 @@ pub fn handle_creative_inventory_action(
                 None => (),
             }
         }
-        */
 
         let inventory = world.get::<EntityInventory>(player);
         let slot_count = inventory.slot_count() as i16;
         drop(inventory);
 
-        if packet.slot >= slot_count || packet.slot < /* -1 */ 0 {
+        if packet.slot >= slot_count || packet.slot < -1 {
             game.disconnect(player, world, "Slot index out of bounds");
             continue;
         }

@@ -6,5 +6,6 @@ mod entity;
 mod math;
 
 pub use component::{AABBExt, Physics, PhysicsBuilder};
+pub use entity::entity_physics;
 pub use entity::EntityPhysicsLandEvent;
 pub use math::*;

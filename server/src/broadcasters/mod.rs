@@ -15,7 +15,7 @@ mod entity_deletion;
 mod inventory;
 // mod item_collect;
 mod keepalive;
-// mod metadata;
+mod metadata;
 mod movement;
 
 pub use self::inventory::{
@@ -28,6 +28,7 @@ pub use entity_creation::on_entity_spawn_send_to_clients;
 pub use entity_creation::on_player_join_send_existing_entities;
 pub use entity_deletion::on_entity_despawn_broadcast_despawn;
 pub use keepalive::broadcast_keepalive;
+pub use metadata::on_entity_send_send_metadata;
 pub use movement::{
     broadcast_entity_movement, on_entity_client_remove_update_last_known_positions,
     on_entity_send_update_last_known_positions, LastKnownPositions,

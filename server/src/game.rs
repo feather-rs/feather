@@ -1,9 +1,10 @@
 use crate::broadcasters::{
     on_block_update_broadcast, on_entity_client_remove_update_last_known_positions,
     on_entity_despawn_broadcast_despawn, on_entity_send_send_equipment,
-    on_entity_send_update_last_known_positions, on_entity_spawn_send_to_clients,
-    on_inventory_update_broadcast_equipment_update, on_inventory_update_send_set_slot,
-    on_player_animation_broadcast_animation, on_player_join_send_existing_entities,
+    on_entity_send_send_metadata, on_entity_send_update_last_known_positions,
+    on_entity_spawn_send_to_clients, on_inventory_update_broadcast_equipment_update,
+    on_inventory_update_send_set_slot, on_player_animation_broadcast_animation,
+    on_player_join_send_existing_entities,
 };
 use crate::chunk_entities::{
     on_chunk_cross_update_chunk_entities, on_entity_despawn_update_chunk_entities,
@@ -14,6 +15,7 @@ use crate::chunk_logic::{
     ChunkUnloadQueue, ChunkWorkerHandle,
 };
 use crate::config::Config;
+use crate::entity::item::{on_item_drop_spawn_item_entity, ItemDropEvent};
 use crate::entity::Name;
 use crate::io::{NetworkIoManager, NewClientInfo, ServerToWorkerMessage};
 use crate::join::{on_chunk_send_join_player, on_player_join_send_join_game};
@@ -31,6 +33,9 @@ use feather_core::level::LevelData;
 use feather_core::world::ChunkMap;
 use feather_core::{BlockPosition, ChunkPosition, ClientboundAnimation, Packet, Position};
 use fecs::{Entity, IntoQuery, Read, World};
+use rand::{Rng, SeedableRng};
+use rand_xorshift::XorShiftRng;
+use std::cell::{RefCell, RefMut};
 use std::fmt::Display;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
@@ -60,7 +65,7 @@ pub struct Game {
     /// The chunk map.
     pub chunk_map: ChunkMap,
     /// Bump allocator. Reset every tick.
-    pub bump: CachedThreadLocal<Bump>,
+    pub(super) bump: CachedThreadLocal<Bump>,
     /// Chunk worker handle used for communication with
     /// the chunk worker.
     pub chunk_worker_handle: ChunkWorkerHandle,
@@ -69,6 +74,7 @@ pub struct Game {
     pub chunk_holders: ChunkHolders,
     pub chunks_to_send: ChunksToSend,
     pub chunk_entities: ChunkEntities,
+    pub(super) rng: CachedThreadLocal<RefCell<XorShiftRng>>,
 }
 
 impl Game {
@@ -110,6 +116,13 @@ impl Game {
     /// Returns a bump allocator.
     pub fn bump(&self) -> &Bump {
         self.bump.get_or_default()
+    }
+
+    /// Returns a random number generator.
+    pub fn rng(&self) -> RefMut<impl Rng> {
+        self.rng
+            .get_or(|| RefCell::new(XorShiftRng::from_entropy()))
+            .borrow_mut()
     }
 
     /// Disconnects a player.
@@ -239,6 +252,7 @@ impl Game {
     pub fn on_entity_send(&self, world: &mut World, entity: Entity, client: Entity) {
         on_entity_send_update_last_known_positions(world, entity, client);
         on_entity_send_send_equipment(world, entity, client);
+        on_entity_send_send_metadata(world, entity, client);
     }
 
     /// Called when an entity is removed on a client (Destroy Entities packet)
@@ -307,6 +321,11 @@ impl Game {
         animation: ClientboundAnimation,
     ) {
         on_player_animation_broadcast_animation(self, world, player, animation);
+    }
+
+    /// Called when an item is dropped by a player.
+    pub fn on_item_drop(&mut self, world: &mut World, event: ItemDropEvent) {
+        on_item_drop_spawn_item_entity(self, world, &event);
     }
 }
 

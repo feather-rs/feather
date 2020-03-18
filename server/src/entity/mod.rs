@@ -3,7 +3,7 @@
 //! block entities, monsters, etc. Player entities are handled in `crate::player`,
 //! not here.
 
-// pub mod item;
+pub mod item;
 
 use feather_core::{Packet, Position};
 use fecs::{EntityBuilder, EntityRef, IntoQuery, Read, World, Write};

@@ -641,6 +641,7 @@ version = "0.5.0"
 dependencies = [
  "aes",
  "anyhow",
+ "bitflags",
  "bitvec",
  "byteorder",
  "bytes",

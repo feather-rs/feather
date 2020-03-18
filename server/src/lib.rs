@@ -149,7 +149,7 @@ mod join;
 pub mod network;
 pub mod p_inventory; // Prefixed to avoid conflict with inventory crate
 mod packet_handlers;
-// pub mod physics;
+pub mod physics;
 pub mod player;
 pub mod shutdown;
 // pub mod time;
@@ -225,6 +225,7 @@ pub fn main() {
         chunk_holders: Default::default(),
         chunks_to_send: Default::default(),
         chunk_entities: Default::default(),
+        rng: CachedThreadLocal::new(),
     };
 
     let (executor, resources) = init_executor(game, packet_buffers);
