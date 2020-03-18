@@ -10,10 +10,12 @@ use crate::{
 use bytes::{Buf, BufMut, BytesMut};
 use hashbrown::HashMap;
 use num_traits::{FromPrimitive, ToPrimitive};
+use parking_lot::RwLock;
 use std::any::Any;
 use std::io::Cursor;
 use std::io::Read;
 use std::io::Write;
+use std::sync::Arc;
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -1365,7 +1367,7 @@ impl Packet for WindowItems {
         buf.push_i16(self.slots.len() as i16);
 
         for slot in &self.slots {
-            buf.push_slot(slot);
+            buf.push_slot(*slot);
         }
     }
 
@@ -1547,13 +1549,13 @@ enum ChunkDataError {
 
 #[derive(Default, AsAny, Clone)]
 pub struct ChunkData {
-    pub chunk: Chunk,
+    pub chunk: Arc<RwLock<Chunk>>,
 }
 
 impl Packet for ChunkData {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
-        self.chunk
-            .set_position(ChunkPosition::new(buf.try_get_i32()?, buf.try_get_i32()?));
+        let mut chunk = self.chunk.write();
+        chunk.set_position(ChunkPosition::new(buf.try_get_i32()?, buf.try_get_i32()?));
         if buf.try_get_bool()? {
             let primary_mask = buf.try_get_var_int()?;
             let temp_length = buf.try_get_var_int()?;
@@ -1617,7 +1619,7 @@ impl Packet for ChunkData {
                     let sky_light = chunk::BitArray::from_raw(sky_data, 4, chunk::SECTION_VOLUME);
 
                     let section = chunk::ChunkSection::new(data, palette, block_light, sky_light);
-                    self.chunk.set_section_at(i, Some(section));
+                    chunk.set_section_at(i, Some(section));
                 }
             }
 
@@ -1628,14 +1630,15 @@ impl Packet for ChunkData {
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
-        buf.push_i32(self.chunk.position().x);
-        buf.push_i32(self.chunk.position().z);
+        let chunk = self.chunk.read();
+        buf.push_i32(chunk.position().x);
+        buf.push_i32(chunk.position().z);
         buf.push_bool(true); // Full chunk - assume true
 
         // Produce primary bit mask
         let mut primary_mask = {
             let mut r = 0;
-            for (i, section) in self.chunk.sections().iter().enumerate() {
+            for (i, section) in chunk.sections().iter().enumerate() {
                 if section.is_some() {
                     r |= 1 << i;
                 }
@@ -1648,7 +1651,7 @@ impl Packet for ChunkData {
         // TODO: approximate appropriate capacity
         let mut temp_buf = BytesMut::new();
 
-        for section in self.chunk.sections() {
+        for section in chunk.sections() {
             if let Some(section) = section {
                 temp_buf.push_u8(section.bits_per_block());
 
@@ -1689,7 +1692,7 @@ impl Packet for ChunkData {
 
         // Biomes
         temp_buf.reserve(256 * 4);
-        self.chunk
+        chunk
             .biomes()
             .iter()
             .map(|biome| biome.protocol_id())
@@ -1739,7 +1742,7 @@ pub struct Particle {
     // TODO data
 }
 
-#[derive(Default, AsAny, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone, Debug)]
 pub struct JoinGame {
     pub entity_id: i32,
     pub gamemode: u8,

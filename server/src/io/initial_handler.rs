@@ -14,7 +14,7 @@
 //! speeding up the login process and making the latency calculation in
 //! the server list ping as low as possible.
 
-use std::sync::atomic::Ordering;
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 
 use rand::rngs::OsRng;
@@ -32,7 +32,7 @@ use feather_core::network::packet::implementation::{
 use feather_core::network::packet::{Packet, PacketStage, PacketType};
 
 use crate::config::{Config, ProxyMode};
-use crate::{PlayerCount, PROTOCOL_VERSION, SERVER_VERSION};
+use crate::{PROTOCOL_VERSION, SERVER_VERSION};
 use mojang_api::ProfileProperty;
 
 /// The key used for symmetric encryption.
@@ -121,7 +121,7 @@ pub struct InitialHandler {
     /// The server's configuration.
     config: Arc<Config>,
     /// The server's player count.
-    player_count: Arc<PlayerCount>,
+    player_count: Arc<AtomicU32>,
     /// The server's icon, if any was loaded.
     server_icon: Arc<Option<String>>,
 
@@ -137,7 +137,7 @@ pub struct InitialHandler {
 impl InitialHandler {
     pub fn new(
         config: Arc<Config>,
-        player_count: Arc<PlayerCount>,
+        player_count: Arc<AtomicU32>,
         server_icon: Arc<Option<String>>,
     ) -> Self {
         Self {
@@ -267,7 +267,7 @@ fn extract_bungeecord_data(packet: &Handshake) -> Result<BungeeCordData, Error> 
     Ok(BungeeCordData::from_vec(&bungee_information)?)
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct BungeeCordData {
     host: String,
     client: String,
@@ -281,8 +281,8 @@ impl BungeeCordData {
             return Err(Error::BungeeSpecMismatch("Incorrect length".to_string()));
         }
 
-        let host = data.get(0).unwrap().to_string();
-        let client = data.get(1).unwrap().to_string();
+        let host = (*data.get(0).unwrap()).to_string();
+        let client = (*data.get(1).unwrap()).to_string();
         let uuid = Uuid::parse_str(*data.get(2).unwrap())
             .map_err(|e| Error::BungeeSpecMismatch(e.to_string()))?;
         let properties = serde_json::from_str(data.get(3).unwrap())
@@ -309,7 +309,7 @@ fn handle_request(ih: &mut InitialHandler, packet: &Request) -> Result<(), Error
         },
         "players": {
             "max": ih.config.server.max_players,
-            "online": ih.player_count.0.load(Ordering::SeqCst),
+            "online": ih.player_count.load(Ordering::SeqCst),
         },
         "description": {
             "text": ih.config.server.motd,
@@ -534,7 +534,7 @@ fn send_packet<P: Packet + 'static>(ih: &mut InitialHandler, packet: P) {
     ih.action_queue.push(Action::SendPacket(Box::new(packet)));
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 enum Error {
     #[error("invalid packet type {0:?} sent at stage {1:?}")]
     InvalidPacket(PacketType, Stage),
@@ -569,8 +569,6 @@ enum Stage {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::atomic::AtomicUsize;
-
     use feather_core::network::cast_packet;
     use feather_core::network::packet::implementation::{
         Handshake, HandshakeState, LoginSuccess, Ping, Pong, Request, Response, SetCompression,
@@ -869,15 +867,15 @@ mod tests {
     fn ih() -> InitialHandler {
         InitialHandler::new(
             Arc::new(Config::default()),
-            Arc::new(PlayerCount(AtomicUsize::new(0))),
+            Arc::new(AtomicU32::new(0)),
             Arc::new(Some(String::from("test"))),
         )
     }
 
-    fn ih_with_player_count(count: usize) -> InitialHandler {
+    fn ih_with_player_count(count: u32) -> InitialHandler {
         InitialHandler::new(
             Arc::new(Config::default()),
-            Arc::new(PlayerCount(AtomicUsize::new(count))),
+            Arc::new(AtomicU32::new(count)),
             Arc::new(Some(String::from("test"))),
         )
     }
@@ -885,7 +883,7 @@ mod tests {
     fn ih_with_config(config: Config) -> InitialHandler {
         InitialHandler::new(
             Arc::new(config),
-            Arc::new(PlayerCount(AtomicUsize::new(0))),
+            Arc::new(AtomicU32::new(0)),
             Arc::new(Some(String::from("test"))),
         )
     }

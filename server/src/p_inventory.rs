@@ -3,7 +3,8 @@ use feather_core::inventory::{
     SLOT_ARMOR_LEGS, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND,
 };
 use feather_core::ItemStack;
-use legion::entity::Entity;
+use fecs::Entity;
+use num_derive::{FromPrimitive, ToPrimitive};
 use smallvec::SmallVec;
 use std::ops::{Deref, DerefMut};
 

@@ -1,23 +1,16 @@
 //! Handling of item entities.
 
-use crate::entity::{EntityId, EntityMoveEvent, SpawnPacketCreator, Velocity};
-use crate::lazy::EntityBuilder;
-use crate::metadata::Metadata;
-use crate::p_inventory::{EntityInventory, InventoryUpdateEvent};
-use crate::physics::{nearby_entities, PhysicsBuilder};
+use crate::entity;
+use crate::entity::{EntityId, SpawnPacketCreator, Velocity};
+use crate::game::Game;
+use crate::physics::PhysicsBuilder;
 use crate::player::PLAYER_EYE_HEIGHT;
-use crate::state::State;
 use crate::util::{degrees_to_stops, protocol_velocity};
-use crate::{entity, TickCount, TPS};
 use feather_core::inventory::SlotIndex;
 use feather_core::network::packet::implementation::SpawnObject;
-use feather_core::{ItemStack, Packet, Position};
-use legion::entity::Entity;
-use legion::query::{Read, Write};
+use feather_core::{EntityMetadata, ItemStack, Packet, Position, META_INDEX_ITEM_SLOT};
+use fecs::{Entity, EntityBuilder, EntityRef, World};
 use rand::Rng;
-use std::ops::DerefMut;
-use std::sync::atomic::{AtomicBool, Ordering};
-use tonks::{EntityAccessor, PreparedWorld, Query, Trigger};
 use uuid::Uuid;
 
 /// Event triggered when an item is dropped.
@@ -35,6 +28,7 @@ pub struct ItemDropEvent {
     pub player: Entity,
 }
 
+/*
 /// Event triggered when an item is collected.
 #[derive(Debug, Clone)]
 pub struct ItemCollectEvent {
@@ -52,31 +46,25 @@ pub struct CollectableAt(pub u64);
 
 /// Component storing if an item stack has been collected and queued for removal.
 pub struct IsRemoved(AtomicBool);
+*/
 
 // Item stack of an item entity is stored in `ItemStack` component
 
 /// System for spawning an item entity when
 /// an item is dropped.
-#[event_handler]
-pub fn item_spawn(
-    event: &ItemDropEvent,
-    state: &State,
-    _query: &mut Query<Read<Position>>,
-    world: &mut PreparedWorld,
-    tick: &TickCount,
-) {
-    let mut rng = rand::thread_rng();
-
+pub fn on_item_drop_spawn_item_entity(game: &mut Game, world: &mut World, event: &ItemDropEvent) {
     // Spawn item entity.
 
     // Position is player's eye height minus 0.3
     let mut pos = {
-        let player_pos = *world.get_component::<Position>(event.player).unwrap()
-            + glm::vec3(0.0, PLAYER_EYE_HEIGHT, 0.0);
+        let player_pos =
+            *world.get::<Position>(event.player) + glm::vec3(0.0, PLAYER_EYE_HEIGHT, 0.0);
         player_pos - glm::vec3(0.0f64, 0.3, 0.0)
     };
 
     pos.on_ground = false;
+
+    let mut rng = game.rng();
 
     // This velocity calculation was sourced from Glowstone's
     // work. See https://github.com/GlowstoneMC/Glowstone/blob/dev/src/main/java/net/glowstone/entity/GlowHumanEntity.java
@@ -94,119 +82,27 @@ pub fn item_spawn(
         vel
     };
 
-    create(state, pos, event.stack.clone(), tick.0 + TPS)
-        .with_component(Velocity(velocity))
-        .build();
-}
+    drop(rng);
 
-/// System to add items to entity inventories.
-#[event_handler]
-pub fn item_collect(
-    events: &[EntityMoveEvent],
-    state: &State,
-    _query: &mut Query<(
-        Write<Metadata>,
-        Read<IsRemoved>,
-        Write<ItemStack>,
-        Write<EntityInventory>,
-        Read<Position>,
-    )>,
-    world: &mut PreparedWorld,
-    inventory_updates: &mut Trigger<InventoryUpdateEvent>,
-    item_collects: &mut Trigger<ItemCollectEvent>,
-) {
-    // TODO: switch to par_iter
-    events.iter().for_each(|event: &EntityMoveEvent| {
-        if world
-            .get_component::<EntityInventory>(event.entity)
-            .is_none()
-        {
-            return;
-        }
-
-        let pos = *world.get_component::<Position>(event.entity).unwrap();
-        // Find nearby items.
-        let nearby_entities =
-            nearby_entities(&state.chunk_entities, world, pos, glm::vec3(1.0, 0.5, 1.0));
-
-        for other in nearby_entities {
-            if let Some(item_stack) = world.get_component::<ItemStack>(other).map(|item| *item) {
-                // Ensure that this item hasn't already been collected, to avoid duplication.
-                {
-                    let is_removed = world.get_component::<IsRemoved>(other).unwrap();
-                    if is_removed
-                        .0
-                        .compare_and_swap(false, true, Ordering::Relaxed)
-                    {
-                        continue;
-                    }
-                }
-
-                let (affected_slots, items_left) = {
-                    let mut inventory = world
-                        .get_component_mut::<EntityInventory>(event.entity)
-                        .unwrap();
-                    inventory.collect_item(item_stack)
-                };
-
-                inventory_updates.trigger(InventoryUpdateEvent {
-                    slots: affected_slots,
-                    player: event.entity,
-                });
-
-                item_collects.trigger(ItemCollectEvent {
-                    item: other,
-                    collector: event.entity,
-                    amount: item_stack.amount - items_left,
-                });
-
-                if items_left == 0 {
-                    state.delete_entity(other);
-                } else {
-                    // Update item stack
-                    let new_stack = ItemStack::new(item_stack.ty, items_left);
-                    *world.get_component_mut::<ItemStack>(other).unwrap() = new_stack;
-                    match world
-                        .get_component_mut::<Metadata>(other)
-                        .unwrap()
-                        .deref_mut()
-                    {
-                        Metadata::Item(ref mut meta_item) => meta_item.set_item(Some(new_stack)),
-                        _ => unreachable!(),
-                    }
-
-                    world
-                        .get_component::<IsRemoved>(other)
-                        .unwrap()
-                        .0
-                        .store(false, Ordering::Relaxed);
-                }
-            }
-        }
-    });
+    let entity = create(game, pos, event.stack)
+        .with(Velocity(velocity))
+        .build()
+        .spawn_in(world);
+    game.on_entity_spawn(world, entity);
 }
 
 /// Returns an entity builder to create an item entity
 /// with the given stack and collectable tick.
-pub fn create(
-    state: &State,
-    pos: Position,
-    stack: ItemStack,
-    collectable_at: u64,
-) -> EntityBuilder {
-    let meta = {
-        let mut meta_item = crate::metadata::Item::default();
-        meta_item.set_item(Some(stack.clone()));
-        Metadata::Item(meta_item)
-    };
+pub fn create(_game: &mut Game, pos: Position, stack: ItemStack) -> EntityBuilder {
+    let meta = EntityMetadata::entity_base().with(META_INDEX_ITEM_SLOT, Some(stack));
 
-    entity::base(state, pos)
-        .with_component(stack)
-        .with_component(CollectableAt(collectable_at))
-        .with_component(SpawnPacketCreator(&create_spawn_packet))
-        .with_component(meta)
-        .with_component(IsRemoved(AtomicBool::new(false)))
-        .with_component(
+    entity::base(pos)
+        .with(stack)
+        //.with(CollectableAt(collectable_at))
+        .with(SpawnPacketCreator(&create_spawn_packet))
+        .with(meta)
+        //.with(IsRemoved(AtomicBool::new(false)))
+        .with(
             PhysicsBuilder::new()
                 .bbox(0.25, 0.25, 0.25)
                 .drag(0.98)
@@ -215,10 +111,10 @@ pub fn create(
         )
 }
 
-fn create_spawn_packet(accessor: &EntityAccessor, world: &PreparedWorld) -> Box<dyn Packet> {
-    let position = *accessor.get_component::<Position>(world).unwrap();
-    let velocity = *accessor.get_component::<Velocity>(world).unwrap();
-    let entity_id = accessor.get_component::<EntityId>(world).unwrap().0;
+fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
+    let position = *accessor.get::<Position>();
+    let velocity = *accessor.get::<Velocity>();
+    let entity_id = accessor.get::<EntityId>().0;
 
     let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocity.0);
 

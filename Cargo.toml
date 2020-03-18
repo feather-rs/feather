@@ -9,6 +9,3 @@ members = [
     "codegen",
     "generator",
 ]
-
-[profile.dev]
-opt-level = 1

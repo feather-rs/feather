@@ -1,26 +1,20 @@
 //! Sending of entity metadata.
 
-use crate::entity::{EntityId, EntitySendEvent};
-use crate::metadata::Metadata;
+use crate::entity::EntityId;
 use crate::network::Network;
 use feather_core::network::packet::implementation::PacketEntityMetadata;
-use legion::query::Read;
-use tonks::{PreparedWorld, Query};
+use feather_core::EntityMetadata;
+use fecs::{Entity, World};
 
 /// System which sends entity metadata when an entity
 /// is sent to a player.
-#[event_handler]
-fn send_entity_metadata(
-    event: &EntitySendEvent,
-    _query: &mut Query<(Read<EntityId>, Read<Network>, Read<Metadata>)>,
-    world: &mut PreparedWorld,
-) {
-    if let Some(meta) = world.get_component::<Metadata>(event.entity) {
-        if let Some(network) = world.get_component::<Network>(event.to) {
-            let entity_id = world.get_component::<EntityId>(event.entity).unwrap().0;
+pub fn on_entity_send_send_metadata(world: &World, entity: Entity, client: Entity) {
+    if let Some(metadata) = world.try_get::<EntityMetadata>(entity) {
+        if let Some(network) = world.try_get::<Network>(client) {
+            let entity_id = world.get::<EntityId>(entity).0;
             let packet = PacketEntityMetadata {
                 entity_id,
-                metadata: meta.to_full_raw_metadata(),
+                metadata: (&*metadata).clone(),
             };
             network.send(packet);
         }

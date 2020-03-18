@@ -4,53 +4,38 @@
 //! for actions mostly unrelated to digging including eating, shooting bows,
 //! swapping items out to the offhand, and dropping items.
 
-use crate::block::BlockUpdateCause;
-use crate::entity::item::ItemDropEvent;
-use crate::network::PacketQueue;
-use crate::p_inventory::{EntityInventory, InventoryUpdateEvent};
-use crate::state::State;
-use crate::util::disconnect_player;
-use feather_core::inventory::SLOT_HOTBAR_OFFSET;
+use crate::game::Game;
+use crate::p_inventory::EntityInventory;
+use crate::packet_buffer::PacketBuffers;
 use feather_core::network::packet::implementation::{PlayerDigging, PlayerDiggingStatus};
-use feather_core::{Block, Gamemode, Item, ItemStack, Position};
-use legion::entity::Entity;
-use legion::query::{Read, Write};
-use tonks::{PreparedWorld, Query, Trigger};
+use feather_core::{Block, Gamemode, Item};
+use fecs::{Entity, World};
+use std::sync::Arc;
 
 /// System responsible for polling for PlayerDigging
 /// packets and writing the corresponding events.
 #[system]
-fn handle_player_digging(
-    state: &State,
-    queue: &PacketQueue,
-    _query: &mut Query<(Write<EntityInventory>, Read<Position>, Read<Gamemode>)>,
-    world: &mut PreparedWorld,
-    inventory_updates: &mut Trigger<InventoryUpdateEvent>,
-    item_drops: &mut Trigger<ItemDropEvent>,
+pub fn handle_player_digging(
+    game: &mut Game,
+    world: &mut World,
+    packet_buffers: &Arc<PacketBuffers>,
 ) {
     use PlayerDiggingStatus::*;
 
-    let packets = queue.received::<PlayerDigging>();
+    let packets = packet_buffers.received::<PlayerDigging>();
 
     for (player, packet) in packets {
-        let gamemode = *world.get_component::<Gamemode>(player).unwrap();
-        let mut inventory = world.get_component_mut::<EntityInventory>(player).unwrap();
-
         match packet.status {
-            StartedDigging | FinishedDigging | CancelledDigging => handle_digging(
-                packet,
-                state,
-                player,
-                gamemode,
-                inventory.item_in_main_hand(),
-            ),
-            DropItem | DropItemStack => handle_drop_item_stack(
+            StartedDigging | FinishedDigging | CancelledDigging => {
+                handle_digging(game, world, player, packet)
+            }
+            /*DropItem | DropItemStack => handle_drop_item_stack(
                 packet,
                 player,
                 inventory_updates,
                 item_drops,
                 &mut inventory,
-            ),
+            ),*/
             /*
             ConsumeItem => handle_consume_item(
                 packet,
@@ -67,13 +52,8 @@ fn handle_player_digging(
     }
 }
 
-fn handle_digging(
-    packet: PlayerDigging,
-    state: &State,
-    player: Entity,
-    gamemode: Gamemode,
-    item_in_main_hand: Option<&ItemStack>,
-) {
+fn handle_digging(game: &mut Game, world: &mut World, player: Entity, packet: PlayerDigging) {
+    let gamemode = *world.get::<Gamemode>(player);
     // Return early if needed
     match packet.status {
         PlayerDiggingStatus::StartedDigging => {
@@ -85,6 +65,11 @@ fn handle_digging(
         _ => (),
     }
 
+    let item_in_main_hand = world
+        .get::<EntityInventory>(player)
+        .item_in_main_hand()
+        .copied();
+
     // Don't break block if player is holding a sword in creative mode.
     if gamemode == Gamemode::Creative {
         if let Some(item_in_main_hand) = item_in_main_hand {
@@ -93,22 +78,19 @@ fn handle_digging(
                 | Item::StoneSword
                 | Item::GoldenSword
                 | Item::IronSword
-                | Item::DiamondSword => return,
+                | Item::DiamondSword => return, // creative mode: don't break block with swords
                 _ => (),
             }
         }
     }
 
-    if !state.set_block_at(
-        packet.location,
-        Block::Air,
-        BlockUpdateCause::Player(player),
-    ) {
-        disconnect_player(state, player, "Attempted to break block in unloaded chunk");
+    if !game.set_block_at(world, packet.location, Block::Air) {
+        game.disconnect(player, world, "attempted to break block in unloaded chunk");
         return;
     }
 }
 
+/*
 fn handle_drop_item_stack(
     packet: PlayerDigging,
     entity: Entity,
@@ -167,6 +149,7 @@ fn handle_drop_item_stack(
         item_drops.trigger(item_drop);
     }
 }
+*/
 
 /*
 /// Handles food consumption and shooting arrows.

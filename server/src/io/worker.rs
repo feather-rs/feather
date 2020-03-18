@@ -8,162 +8,209 @@
 
 use crate::config::Config;
 use crate::io::initial_handler::{Action, InitialHandler};
-use crate::io::{ListenerToServerMessage, NewClientInfo, ServerToWorkerMessage};
-use crate::PlayerCount;
+use crate::io::{
+    ListenerToServerMessage, NewClientInfo, ServerToListenerMessage, ServerToWorkerMessage,
+    WorkerToServerMessage,
+};
+use crate::packet_buffer::PacketBuffers;
 use feather_core::network::codec::MinecraftCodec;
 use feather_core::network::packet::PacketDirection;
 use feather_core::player_data::PlayerData;
-use futures::{select, StreamExt};
-use futures::{FutureExt, SinkExt};
+use feather_core::Packet;
+use fecs::Entity;
+use futures::channel::mpsc;
+use futures::future::Either;
+use futures::SinkExt;
+use futures::StreamExt;
 use std::net::SocketAddr;
 use std::path::Path;
+use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
-use std::time::Duration;
-use thiserror::Error;
 use tokio::net::TcpStream;
+use tokio::sync::Mutex;
 use tokio_util::codec::Framed;
 use uuid::Uuid;
 
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("failed to read player data")]
-    PlayerData,
+struct Worker {
+    framed: Framed<TcpStream, MinecraftCodec>,
+    ip: SocketAddr,
+    /// The listener's sender to send the initial `NewClient` message
+    /// to the server. Also used to request an entity for the player.
+    listener_tx: crossbeam::Sender<ListenerToServerMessage>,
+    /// Packet buffers to which we write packets received from the client.
+    packet_buffers: Arc<PacketBuffers>,
+    /// The channel which will be used by the server thread
+    /// to send messages to `rx`.
+    server_tx: mpsc::UnboundedSender<ServerToWorkerMessage>,
+    /// Channel to receive messages from the server, linked to `server_tx`.
+    rx: mpsc::UnboundedReceiver<ServerToWorkerMessage>,
+    /// The channel which will be used by the server thread
+    /// to receive messages from the worker.
+    server_rx: crossbeam::Receiver<WorkerToServerMessage>,
+    /// Channel to send messages to the sserver, linked to `server_rx`.
+    tx: crossbeam::Sender<WorkerToServerMessage>,
+    /// Initial handler, set to `None` after the player has completed
+    /// the login process.
+    initial_handler: Option<InitialHandler>,
+    /// The entity for the player on the server thread.
+    entity: Entity,
 }
 
 /// Runs a worker task for the given client.
+#[allow(clippy::too_many_arguments)]
 pub async fn run_worker(
     stream: TcpStream,
     ip: SocketAddr,
-    global_sender: crossbeam::Sender<ListenerToServerMessage>,
+    listener_tx: crossbeam::Sender<ListenerToServerMessage>,
+    listener_rx: Arc<Mutex<mpsc::UnboundedReceiver<ServerToListenerMessage>>>,
     config: Arc<Config>,
-    player_count: Arc<PlayerCount>,
+    player_count: Arc<AtomicU32>,
     server_icon: Arc<Option<String>>,
+    packet_buffers: Arc<PacketBuffers>,
 ) {
-    let (tx_worker_to_server, rx_worker_to_server) = crossbeam::unbounded();
+    let (server_tx, rx) = mpsc::unbounded();
+    let (tx, server_rx) = crossbeam::unbounded();
 
-    let msg = match _run_worker(
-        stream,
+    let initial_handler = Some(InitialHandler::new(
+        Arc::clone(&config),
+        Arc::clone(&player_count),
+        Arc::clone(&server_icon),
+    ));
+
+    let codec = MinecraftCodec::new(PacketDirection::Serverbound);
+    let framed = Framed::new(stream, codec);
+
+    let entity = request_entity(&listener_tx, &mut *listener_rx.lock().await).await;
+
+    let mut worker = Worker {
+        framed,
         ip,
-        global_sender,
-        config,
-        player_count,
-        server_icon,
-        tx_worker_to_server.clone(),
-        rx_worker_to_server.clone(),
-    )
-    .await
-    {
-        Ok(()) => "normal disconnect".to_string(),
+        listener_tx,
+        packet_buffers,
+        server_tx,
+        rx,
+        server_rx,
+        tx,
+        initial_handler,
+        entity,
+    };
+
+    let msg = match run_worker_impl(&mut worker).await {
+        Ok(()) => String::from("client disconnected"),
         Err(e) => format!("{}", e),
     };
 
-    let _ = tx_worker_to_server.send(ServerToWorkerMessage::NotifyDisconnect(msg));
+    let _ = worker
+        .listener_tx
+        .send(ListenerToServerMessage::DeleteEntity(worker.entity));
+
+    let _ = worker
+        .tx
+        .send(WorkerToServerMessage::NotifyDisconnected { reason: msg });
 }
 
-#[allow(clippy::too_many_arguments)]
-async fn _run_worker(
-    stream: TcpStream,
-    ip: SocketAddr,
-    global_sender: crossbeam::Sender<ListenerToServerMessage>,
-    config: Arc<Config>,
-    player_count: Arc<PlayerCount>,
-    server_icon: Arc<Option<String>>,
-    tx_worker_to_server: crossbeam::Sender<ServerToWorkerMessage>,
-    rx_worker_to_server: crossbeam::Receiver<ServerToWorkerMessage>,
-) -> anyhow::Result<()> {
-    let codec = MinecraftCodec::new(PacketDirection::Serverbound);
+async fn request_entity(
+    listener_tx: &crossbeam::Sender<ListenerToServerMessage>,
+    listener_rx: &mut mpsc::UnboundedReceiver<ServerToListenerMessage>,
+) -> Entity {
+    let _ = listener_tx.send(ListenerToServerMessage::RequestEntity);
 
-    let mut framed = Framed::new(stream, codec);
+    let recv = listener_rx.next().await.expect("server disconnected");
 
-    let mut initial_handler = Some(InitialHandler::new(
-        Arc::clone(&config),
-        player_count,
-        server_icon,
-    ));
+    match recv {
+        ServerToListenerMessage::Entity(entity) => entity,
+    }
+}
 
-    let (tx_server_to_worker, mut rx_server_to_worker) = futures::channel::mpsc::unbounded();
-    let mut rx_worker_to_server = Some(rx_worker_to_server);
-
+async fn run_worker_impl(worker: &mut Worker) -> anyhow::Result<()> {
     loop {
-        let mut server_message = None;
-        let mut received_packet = None;
+        let received_message = worker.rx.next();
+        let received_packet = worker.framed.next();
 
-        select! {
-            msg = rx_server_to_worker.next().fuse() => server_message = Some(msg),
-            packet = tokio::time::timeout(Duration::from_millis(10000), framed.next()).fuse() => received_packet = Some(packet),
-        }
+        let select = futures::future::select(received_message, received_packet);
 
-        if let Some(msg) = server_message {
-            if let Some(msg) = msg {
-                match msg {
-                    ServerToWorkerMessage::SendPacket(packet) => framed.send(packet).await?,
-                    ServerToWorkerMessage::Disconnect => return Ok(()),
-                    _ => unreachable!(),
+        match select.await {
+            Either::Left((msg, _)) => {
+                if let Some(msg) = msg {
+                    handle_server_to_worker_message(worker, msg).await?;
                 }
             }
-        }
+            Either::Right((packet_res, _)) => {
+                let packet_res =
+                    packet_res.ok_or_else(|| anyhow::anyhow!("client disconnected"))?;
 
-        if let Some(packet_result) = received_packet {
-            if let Some(packet_result) = packet_result? {
-                match packet_result {
-                    Ok(packet) => {
-                        if let Some(ih) = initial_handler.as_mut() {
-                            ih.handle_packet(packet).await;
-                            let actions = ih.actions_to_execute();
+                let packet = packet_res?;
 
-                            for action in actions {
-                                match action {
-                                    Action::Disconnect => return Ok(()),
-                                    Action::SendPacket(packet) => framed.send(packet).await?,
-                                    Action::EnableCompression(threshold) => {
-                                        if threshold > 0 {
-                                            trace!(
-                                                "Enabling compression with threshold {}",
-                                                threshold
-                                            );
-                                            framed
-                                                .codec_mut()
-                                                .enable_compression(threshold as usize);
-                                        }
-                                    }
-                                    Action::EnableEncryption(key) => {
-                                        trace!("Enabling encryption");
-                                        framed.codec_mut().enable_encryption(key)
-                                    }
-                                    Action::SetStage(stage) => framed.codec_mut().set_stage(stage),
-                                    Action::JoinGame(res) => {
-                                        // let data = load_player_data(&config, res.uuid).await?;
-                                        let data = PlayerData::default();
-                                        let info = NewClientInfo {
-                                            ip,
-                                            username: res.username.ok_or(Error::PlayerData)?,
-                                            profile: res.props,
-                                            uuid: res.uuid,
-                                            sender: tx_server_to_worker.clone(),
-                                            receiver: rx_worker_to_server.take().unwrap(),
-                                            /*position: data
-                                            .entity
-                                            .read_position()
-                                            .ok_or_else(|| Error::PlayerData)?,*/
-                                            position: position!(0.0, 80.0, 0.0),
-                                            data,
-                                        };
-                                        global_sender
-                                            .send(ListenerToServerMessage::NewClient(info))?;
-                                        initial_handler = None;
-                                    }
-                                }
-                            }
-                        } else {
-                            let _ = tx_worker_to_server
-                                .send(ServerToWorkerMessage::NotifyPacketReceived(packet));
-                        }
-                    }
-                    Err(e) => return Err(e),
-                }
+                handle_packet(worker, packet).await?;
             }
         }
     }
+}
+
+async fn handle_server_to_worker_message(
+    worker: &mut Worker,
+    msg: ServerToWorkerMessage,
+) -> anyhow::Result<()> {
+    match msg {
+        ServerToWorkerMessage::SendPacket(packet) => worker.framed.send(packet).await?,
+        ServerToWorkerMessage::Disconnect => anyhow::bail!("server requested disconnect"),
+    }
+
+    Ok(())
+}
+
+async fn handle_packet(worker: &mut Worker, packet: Box<dyn Packet>) -> anyhow::Result<()> {
+    if let Some(ref mut ih) = worker.initial_handler {
+        ih.handle_packet(packet).await;
+
+        handle_ih_actions(worker).await?;
+    } else {
+        worker.packet_buffers.push(worker.entity, packet);
+    }
+
+    Ok(())
+}
+
+async fn handle_ih_actions(worker: &mut Worker) -> anyhow::Result<()> {
+    for action in worker
+        .initial_handler
+        .as_mut()
+        .unwrap()
+        .actions_to_execute()
+    {
+        match action {
+            Action::SendPacket(packet) => worker.framed.send(packet).await?,
+            Action::EnableCompression(threshold) => worker
+                .framed
+                .codec_mut()
+                .enable_compression(threshold as usize),
+            Action::EnableEncryption(key) => worker.framed.codec_mut().enable_encryption(key),
+            Action::Disconnect => anyhow::bail!("initial handler requested disconnect"),
+            Action::SetStage(stage) => worker.framed.codec_mut().set_stage(stage),
+            Action::JoinGame(info) => {
+                let info = NewClientInfo {
+                    ip: worker.ip,
+                    username: info.username.unwrap_or_else(|| String::from("undefined")),
+                    profile: info.props,
+                    uuid: info.uuid,
+                    data: Default::default(),            // TODO
+                    position: position!(0.0, 70.0, 0.0), // TODO
+                    sender: worker.server_tx.clone(),
+                    receiver: worker.server_rx.clone(),
+                    entity: worker.entity,
+                };
+
+                let _ = worker
+                    .listener_tx
+                    .send(ListenerToServerMessage::NewClient(info));
+
+                worker.initial_handler = None;
+                return Ok(());
+            }
+        }
+    }
+
+    Ok(())
 }
 
 #[allow(dead_code)] // TODO

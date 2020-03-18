@@ -28,7 +28,7 @@ jobs:
         #  image_name: 'ubuntu-16.04'
         apple-stable:
           rustup_toolchain: stable
-          image_name: 'macOS-10.13'
+          image_name: 'macOS-latest'
         #apple-beta:
         #  rustup_toolchain: beta
         #  image_name: 'macos-latest'

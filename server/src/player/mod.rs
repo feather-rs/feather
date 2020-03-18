@@ -1,23 +1,20 @@
 //! Systems and components specific to player entities.
 
-use crate::broadcasters::movement::LastKnownPositions;
+use crate::broadcasters::LastKnownPositions;
 use crate::chunk_logic::ChunkHolder;
 use crate::entity;
-use crate::entity::{CreationPacketCreator, EntityId, Name, SpawnPacketCreator};
+use crate::entity::{CreationPacketCreator, EntityId, Name, PreviousPosition, SpawnPacketCreator};
 use crate::io::NewClientInfo;
-use crate::join::Joined;
 use crate::network::Network;
 use crate::p_inventory::EntityInventory;
-use crate::state::State;
 use crate::util::degrees_to_stops;
 use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
-use feather_core::{ClientboundAnimation, Gamemode, Packet, Position};
-use legion::entity::Entity;
+use feather_core::{Gamemode, Packet, Position};
+use fecs::{Entity, EntityRef, World};
 use mojang_api::ProfileProperty;
-use tonks::{EntityAccessor, PreparedWorld};
 use uuid::Uuid;
 
-pub mod chat;
+// pub mod chat;
 
 pub const PLAYER_EYE_HEIGHT: f64 = 1.62;
 
@@ -29,51 +26,48 @@ pub struct ProfileProperties(pub Vec<ProfileProperty>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Player;
 
-/// Event triggered when a player joins.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct PlayerJoinEvent {
-    pub player: Entity,
-}
-
-/// Event triggered when a player causes an animation.
-#[derive(Debug, Clone)]
-pub struct PlayerAnimationEvent {
-    pub player: Entity,
-    pub animation: ClientboundAnimation,
-}
-
 /// Creates a new player from the given `NewClientInfo`.
 ///
 /// This function also triggers the `PlayerJoinEvent` for this player.
-pub fn create(state: &State, info: NewClientInfo) {
-    entity::base(state, info.position)
-        .with_component(info.uuid)
-        .with_component(Network {
-            sender: info.sender,
-            receiver: info.receiver,
-        })
-        .with_component(info.ip)
-        .with_component(ProfileProperties(info.profile))
-        .with_component(Name(info.username))
-        .with_component(ChunkHolder::default())
-        .with_component(Joined(false))
-        .with_component(LastKnownPositions::default())
-        .with_component(SpawnPacketCreator(&create_spawn_packet))
-        .with_component(CreationPacketCreator(&create_initialization_packet))
-        .with_component(Gamemode::Creative) // TOOD: proper gamemode handling
-        .with_component(EntityInventory::default())
-        .with_component(Player)
-        .with_exec(|_, scheduler, player| {
-            scheduler.trigger(PlayerJoinEvent { player });
-        })
-        .build();
+pub fn create(world: &mut World, info: NewClientInfo) -> Entity {
+    // TODO: blocked on https://github.com/TomGillen/legion/issues/36
+    let entity = info.entity;
+    world.add(entity, EntityId(entity::new_id())).unwrap();
+    world.add(entity, info.position).unwrap();
+    world.add(entity, PreviousPosition(info.position)).unwrap();
+    world.add(entity, info.uuid).unwrap();
+    world.add(entity, info.uuid).unwrap();
+    world
+        .add(
+            entity,
+            Network {
+                tx: info.sender,
+                rx: info.receiver,
+            },
+        )
+        .unwrap();
+    world.add(entity, info.ip).unwrap();
+    world.add(entity, ProfileProperties(info.profile)).unwrap();
+    world.add(entity, Name(info.username)).unwrap();
+    world.add(entity, ChunkHolder::default()).unwrap();
+    world.add(entity, LastKnownPositions::default()).unwrap();
+    world
+        .add(entity, SpawnPacketCreator(&create_spawn_packet))
+        .unwrap();
+    world
+        .add(entity, CreationPacketCreator(&create_initialization_packet))
+        .unwrap();
+    world.add(entity, Gamemode::Creative).unwrap(); // TODO: proper gamemode handling
+    world.add(entity, EntityInventory::default()).unwrap();
+    world.add(entity, Player).unwrap();
+    entity
 }
 
 /// Function to create a `SpawnPlayer` packet to spawn the player.
-fn create_spawn_packet(accessor: &EntityAccessor, world: &PreparedWorld) -> Box<dyn Packet> {
-    let entity_id = accessor.get_component::<EntityId>(world).unwrap().0;
-    let player_uuid = *accessor.get_component::<Uuid>(world).unwrap();
-    let pos = *accessor.get_component::<Position>(world).unwrap();
+fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
+    let entity_id = accessor.get::<EntityId>().0;
+    let player_uuid = *accessor.get::<Uuid>();
+    let pos = *accessor.get::<Position>();
 
     // TODO: metadata
 
@@ -91,13 +85,10 @@ fn create_spawn_packet(accessor: &EntityAccessor, world: &PreparedWorld) -> Box<
 }
 
 /// Function to create a `PlayerInfo` packet to broadcast when the player joins.
-fn create_initialization_packet(
-    accessor: &EntityAccessor,
-    world: &PreparedWorld,
-) -> Box<dyn Packet> {
-    let name = accessor.get_component::<Name>(world).unwrap();
-    let props = accessor.get_component::<ProfileProperties>(world).unwrap();
-    let uuid = *accessor.get_component::<Uuid>(world).unwrap();
+fn create_initialization_packet(accessor: &EntityRef) -> Box<dyn Packet> {
+    let name = accessor.get::<Name>();
+    let props = accessor.get::<ProfileProperties>();
+    let uuid = *accessor.get::<Uuid>();
 
     let props = props
         .0

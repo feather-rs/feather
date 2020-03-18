@@ -299,7 +299,7 @@ impl Inventory {
         for slot in COLLECT_SEARCH_ORDER.iter() {
             if let Some(slot_item) = self.item_at(*slot).cloned() {
                 if slot_item.ty == item.ty {
-                    self.add_to_stack(&mut item, &slot_item, *slot, &mut affected_slots);
+                    self.add_to_stack(&mut item, slot_item, *slot, &mut affected_slots);
 
                     if item.amount == 0 {
                         return (affected_slots, 0);
@@ -312,7 +312,7 @@ impl Inventory {
             let slot_item = self.item_at(*slot).cloned();
             if slot_item.is_none() {
                 let fake = ItemStack::new(item.ty, 0);
-                self.add_to_stack(&mut item, &fake, *slot, &mut affected_slots);
+                self.add_to_stack(&mut item, fake, *slot, &mut affected_slots);
                 if item.amount == 0 {
                     return (affected_slots, 0);
                 }
@@ -320,7 +320,7 @@ impl Inventory {
 
             if let Some(slot_item) = slot_item {
                 if slot_item.ty == item.ty {
-                    self.add_to_stack(&mut item, &slot_item, *slot, &mut affected_slots);
+                    self.add_to_stack(&mut item, slot_item, *slot, &mut affected_slots);
 
                     if item.amount == 0 {
                         return (affected_slots, 0);
@@ -336,7 +336,7 @@ impl Inventory {
     fn add_to_stack<A: Array<Item = SlotIndex>>(
         &mut self,
         item: &mut ItemStack,
-        slot_item: &ItemStack,
+        slot_item: ItemStack,
         slot: SlotIndex,
         affected_slots: &mut SmallVec<A>,
     ) {

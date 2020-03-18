@@ -6,12 +6,35 @@ use crate::bytes_ext::{BytesExt, BytesMutExt, TryGetError};
 use crate::network::mctypes::{McTypeRead, McTypeWrite};
 use crate::world::BlockPosition;
 use crate::Slot;
+use bitflags::bitflags;
 use bytes::Buf;
-use hashbrown::HashMap;
 use num_traits::FromPrimitive;
+use std::collections::BTreeMap;
 use uuid::Uuid;
 
 type OptUuid = Option<Uuid>;
+type OptChat = Option<String>;
+
+// Meta index constants.
+pub const META_INDEX_ENTITY_BITMASK: u8 = 0;
+pub const META_INDEX_AIR: u8 = 1;
+pub const META_INDEX_CUSTOM_NAME: u8 = 2;
+pub const META_INDEX_IS_CUSTOM_NAME_VISIBLE: u8 = 3;
+pub const META_INDEX_IS_SILENT: u8 = 4;
+pub const META_INDEX_NO_GRAVITY: u8 = 5;
+pub const META_INDEX_ITEM_SLOT: u8 = 6;
+
+bitflags! {
+    pub struct EntityBitMask: u8 {
+        const ON_FIRE = 0x01;
+        const CROUCHED = 0x02;
+        const SPRINTING = 0x08;
+        const SWIMMING = 0x10;
+        const INVISIBLE = 0x20;
+        const GLOWING_EFFECT = 0x40;
+        const FLYING_WITH_ELYTRA = 0x80;
+    }
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum MetaEntry {
@@ -86,7 +109,7 @@ impl ToMetaEntry for bool {
 
 impl ToMetaEntry for Slot {
     fn to_meta_entry(&self) -> MetaEntry {
-        MetaEntry::Slot(self.clone())
+        MetaEntry::Slot(*self)
     }
 }
 
@@ -108,19 +131,36 @@ impl ToMetaEntry for BlockPosition {
     }
 }
 
+impl ToMetaEntry for OptChat {
+    fn to_meta_entry(&self) -> MetaEntry {
+        MetaEntry::OptChat(self.clone())
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct EntityMetadata {
-    values: HashMap<u8, MetaEntry>,
+    values: BTreeMap<u8, MetaEntry>,
 }
 
 impl EntityMetadata {
     pub fn new() -> Self {
         Self {
-            values: HashMap::new(),
+            values: BTreeMap::new(),
         }
     }
 
-    pub fn with(mut self, values: &[(u8, MetaEntry)]) -> Self {
+    /// Returns an entity metadata with the defaults for an `Entity`.
+    pub fn entity_base() -> Self {
+        Self::new()
+        //.with(META_INDEX_ENTITY_BITMASK, EntityBitMask::empty().bits())
+        //.with(META_INDEX_AIR, 0i32)
+        //.with(META_INDEX_CUSTOM_NAME, OptChat::None)
+        //.with(META_INDEX_IS_CUSTOM_NAME_VISIBLE, false)
+        //.with(META_INDEX_IS_SILENT, false)
+        //.with(META_INDEX_NO_GRAVITY, false)
+    }
+
+    pub fn with_many(mut self, values: &[(u8, MetaEntry)]) -> Self {
         for val in values {
             self.values.insert(val.0, val.1.clone());
         }
@@ -128,8 +168,13 @@ impl EntityMetadata {
         self
     }
 
-    pub fn set<E: ToMetaEntry>(&mut self, index: u8, entry: E) {
+    pub fn set(&mut self, index: u8, entry: impl ToMetaEntry) {
         self.values.insert(index, entry.to_meta_entry());
+    }
+
+    pub fn with(mut self, index: u8, entry: impl ToMetaEntry) -> Self {
+        self.set(index, entry);
+        self
     }
 
     pub fn get(&self, index: u8) -> Option<MetaEntry> {
@@ -171,7 +216,7 @@ where
     B: Buf + std::io::Read,
 {
     fn try_get_metadata(&mut self) -> anyhow::Result<EntityMetadata> {
-        let mut values = HashMap::new();
+        let mut values = BTreeMap::new();
 
         while self.has_remaining() {
             let index = self.try_get_u8()?;
@@ -209,7 +254,7 @@ where
             }
         }
         MetaEntry::Slot(slot) => {
-            buf.push_slot(slot);
+            buf.push_slot(*slot);
         }
         MetaEntry::Boolean(x) => buf.push_bool(*x),
         MetaEntry::Rotation(x, y, z) => {

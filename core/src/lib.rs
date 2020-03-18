@@ -30,7 +30,7 @@ extern crate nalgebra_glm as glm;
 
 pub use biomes::Biome;
 pub use chunk::{BitArray, Chunk, ChunkSection};
-pub use entitymeta::EntityMetadata;
+pub use entitymeta::*;
 pub use feather_blocks::*;
 pub use feather_items as item;
 pub use inventory::{ItemStack, Slot};

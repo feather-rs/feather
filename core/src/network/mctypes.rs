@@ -30,7 +30,7 @@ pub trait McTypeWrite {
 
     fn push_nbt<T: Serialize>(&mut self, x: &T);
 
-    fn push_slot(&mut self, slot: &Option<ItemStack>);
+    fn push_slot(&mut self, slot: Option<ItemStack>);
 }
 
 /// Identifies a type from which Minecraft-specified
@@ -111,7 +111,7 @@ impl McTypeWrite for BytesMut {
         self.extend_from_slice(&temp);
     }
 
-    fn push_slot(&mut self, slot: &Option<ItemStack>) {
+    fn push_slot(&mut self, slot: Option<ItemStack>) {
         self.push_bool(slot.is_some());
 
         if let Some(slot) = slot.as_ref() {

@@ -10,7 +10,6 @@ use feather_items::Item;
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use tokio::io::AsyncReadExt;
 use tokio::prelude::AsyncRead;
 use uuid::Uuid;
 
@@ -96,7 +95,7 @@ impl InventorySlot {
 
 async fn load_from_file<R: AsyncRead + Unpin>(mut reader: R) -> Result<PlayerData, nbt::Error> {
     let mut buf = vec![];
-    reader.read(&mut buf).await?;
+    tokio::io::copy(&mut reader, &mut buf).await?;
     nbt::from_gzip_reader(buf.as_slice())
 }
 

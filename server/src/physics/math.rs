@@ -1,16 +1,16 @@
 //! A bunch of math-related functions for use with
 //! the physics system.
 
-use crate::chunk_entities::ChunkEntities;
+use crate::game::Game;
 use crate::physics::block_bboxes::bbox_for_block;
 use crate::physics::AABBExt;
-use crate::state::State;
+use bitflags::bitflags;
 use feather_blocks::Block;
 use feather_core::world::{BlockPosition, Position};
 use feather_core::{BlockExt, ChunkPosition};
+use fecs::{Entity, World};
 use glm::{vec3, DVec3, Vec3};
 use heapless::consts::*;
-use legion::entity::Entity;
 use nalgebra::{Isometry3, Point3};
 use ncollide3d::bounding_volume::AABB;
 use ncollide3d::query;
@@ -19,7 +19,6 @@ use ncollide3d::shape::{Compound, Cuboid, ShapeHandle};
 use smallvec::SmallVec;
 use std::cmp::Ordering;
 use std::f64::INFINITY;
-use tonks::PreparedWorld;
 
 // TODO is a bitflag really the most
 // idiomatic way to do this?
@@ -90,7 +89,7 @@ pub struct RayImpact {
 /// Traces up to `max_distance` before returning `None`
 /// if no block was found.
 pub fn block_impacted_by_ray(
-    state: &State,
+    game: &Game,
     origin: DVec3,
     ray: DVec3,
     max_distance_squared: f64,
@@ -168,7 +167,7 @@ pub fn block_impacted_by_ray(
     let mut current_pos = Position::from(origin).block();
 
     while dist_traveled.magnitude_squared() < max_distance_squared {
-        if let Some(block) = state.block_at(current_pos) {
+        if let Some(block) = game.block_at(current_pos) {
             if block.is_solid() {
                 // Calculate world-space position of
                 // impact using `ncollide`.
@@ -236,8 +235,8 @@ pub fn block_impacted_by_ray(
 /// # Panics
 /// Panics if either coordinate of the radius is negative.
 pub fn nearby_entities(
-    chunk_entities: &ChunkEntities,
-    world: &PreparedWorld,
+    world: &World,
+    game: &Game,
     pos: Position,
     radius: DVec3,
 ) -> SmallVec<[Entity; 4]> {
@@ -248,12 +247,12 @@ pub fn nearby_entities(
     let mut result = smallvec![];
 
     for chunk in chunks_within_distance(pos, radius) {
-        let entities = chunk_entities.entities_in_chunk(chunk);
+        let entities = game.chunk_entities.entities_in_chunk(chunk);
         entities
             .iter()
             .copied()
             .filter(|e| {
-                let epos = world.get_component::<Position>(*e);
+                let epos = world.try_get::<Position>(*e);
                 if let Some(epos) = epos {
                     (epos.x - pos.x).abs() <= radius.x
                         && (epos.y - pos.y).abs() <= radius.y
@@ -315,7 +314,7 @@ impl BlockIntersect {
 /// than 1 are not supported. If the bounding box's size
 /// is more than 1, this function will panic.
 pub fn blocks_intersecting_bbox(
-    state: &State,
+    game: &Game,
     mut from: Position,
     mut dest: Position,
     bbox: &AABB<f64>,
@@ -348,7 +347,7 @@ pub fn blocks_intersecting_bbox(
     let mut checked = heapless::FnvIndexSet::new();
 
     for (axis, sign) in &axis {
-        let compound = adjacent_to_bbox(*axis, *sign, bbox, dest, &state, &mut checked);
+        let compound = adjacent_to_bbox(*axis, *sign, bbox, dest, &game, &mut checked);
         blocks.push(compound);
     }
 
@@ -423,7 +422,7 @@ pub fn adjacent_to_bbox(
     sign: i32,
     bbox: &AABB<f64>,
     pos: Position,
-    state: &State,
+    game: &Game,
     checked: &mut heapless::FnvIndexSet<BlockPosition, U32>,
 ) -> Compound<f64> {
     assert!(axis <= 2);
@@ -483,7 +482,7 @@ pub fn adjacent_to_bbox(
             continue;
         }
 
-        match state.block_at(block_pos) {
+        match game.block_at(block_pos) {
             Some(block) => {
                 if block.is_solid() {
                     checked.insert(block_pos).unwrap();
@@ -612,15 +611,12 @@ pub fn bbox_to_cuboid(bbox: &AABB<f64>) -> Cuboid<f64> {
     Cuboid::new(half_lengths)
 }
 
+/* TODO: update
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::test;
-    use crate::testframework as t;
-    use feather_core::world::chunk::Chunk;
     use feather_core::world::ChunkPosition;
     use feather_core::Block;
-    use specs::{Builder, WorldExt};
     use std::collections::HashSet;
 
     #[test]
@@ -831,3 +827,4 @@ mod tests {
         assert!(checked.contains(&BlockPosition::new(0, 64, 0)));
     }
 }
+*/

@@ -1,102 +1,123 @@
 //! Broadcasting of movement updates.
 
-use crate::chunk_logic::ChunkHolders;
-use crate::entity::{EntityId, EntityMoveEvent, Velocity, VelocityUpdateEvent};
+use crate::entity::{EntityId, PreviousPosition, PreviousVelocity, Velocity};
+use crate::game::Game;
 use crate::network::Network;
-use crate::state::State;
 use crate::util::{calculate_relative_move, degrees_to_stops, protocol_velocity};
+use dashmap::DashMap;
 use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
 };
 use feather_core::{Packet, Position};
-use hashbrown::HashMap;
-use legion::entity::Entity;
-use legion::query::{Read, Write};
+use fecs::{changed, Entity, IntoQuery, Read, World};
 use smallvec::SmallVec;
-use tonks::{PreparedWorld, Query};
+use std::ops::Deref;
 
 /// Component containing the last sent positions of all entities for a given client.
 /// This component is used to determine
 /// the relative movement for an entity.
-#[derive(Default)]
-pub struct LastKnownPositions(pub HashMap<Entity, Position>);
+#[derive(Default, Debug)]
+pub struct LastKnownPositions(pub DashMap<Entity, Position>);
 
 /// System to broadcast when an entity moves.
-#[event_handler]
-fn broadcast_move(
-    events: &[EntityMoveEvent],
-    _query: &mut Query<(
-        Read<Network>,
-        Read<Position>,
-        Write<LastKnownPositions>,
-        Read<EntityId>,
-    )>,
-    world: &mut PreparedWorld,
-    chunk_holders: &ChunkHolders,
+#[system]
+pub fn broadcast_movement(game: &mut Game, world: &mut World) {
+    <(Read<Position>, Read<PreviousPosition>, Read<EntityId>)>::query().par_entities_for_each(
+        world.inner(),
+        |(entity, (pos, prev_pos, id))| {
+            let pos: Position = *pos;
+            let prev_pos: Position = prev_pos.0;
+
+            if pos == prev_pos {
+                return;
+            }
+
+            let entity_id = id.0;
+
+            let chunk = pos.chunk();
+            let players = game.chunk_holders.holders_for(chunk);
+
+            for player in players.iter().filter(|player| **player != entity) {
+                if let Some(network) = world.try_get::<Network>(*player) {
+                    let last_known_positions = world.get::<LastKnownPositions>(*player);
+                    let last_known_positions = last_known_positions.deref();
+
+                    if let Some(mut last_known_pos) = last_known_positions.0.get_mut(&entity) {
+                        for packet in
+                            packets_for_movement_update(entity_id, *last_known_pos.value(), pos)
+                        {
+                            network.send_boxed(packet);
+                        }
+
+                        trace!("Updated position of {:?} on client {:?}", entity, player);
+
+                        *last_known_pos.value_mut() = pos;
+                    } else {
+                        trace!(
+                            "Missing last position entry for {:?} on client {:?}",
+                            entity,
+                            player
+                        );
+                    };
+                }
+            }
+        },
+    );
+}
+
+pub fn on_entity_send_update_last_known_positions(world: &World, entity: Entity, client: Entity) {
+    if let Some(last_known_positions) = world.try_get::<LastKnownPositions>(client) {
+        let pos = *world.get::<Position>(entity);
+        last_known_positions.0.insert(entity, pos);
+        trace!(
+            "Inserted last position entry for {:?} (player: {:?})",
+            entity,
+            client
+        );
+    }
+}
+
+pub fn on_entity_client_remove_update_last_known_positions(
+    world: &World,
+    entity: Entity,
+    client: Entity,
 ) {
-    events.iter().for_each(|event: &EntityMoveEvent| {
-        // Find position of entity.
-        let pos = *world.get_component::<Position>(event.entity).unwrap();
-
-        // Find clients which can see the entity.
-        let chunk = pos.into();
-        let clients = chunk_holders.holders_for(chunk).unwrap_or(&[]);
-
-        let entity_id = world.get_component::<EntityId>(event.entity).unwrap().0;
-
-        // For each client, send the position update relative to the client's last known
-        // position for the entity. If no `LastKnownPositions` entry exists for the entity,
-        // then the entity has not yet been sent to the client, so we do not send a position
-        // update. (When an entity is spawned on a client, the `LastKnownPositions` entry
-        // is inserted with the starting position.)
-        clients.iter().copied().for_each(|client: Entity| {
-            // Don't sent player's position to themself
-            if client == event.entity {
-                return;
-            }
-
-            if !world.is_alive(client) {
-                return;
-            }
-
-            let mut last_known_positions =
-                unsafe { world.get_component_mut_unchecked::<LastKnownPositions>(client) }.unwrap();
-            if let Some(old_pos) = last_known_positions.0.get_mut(&event.entity) {
-                let packets = packets_for_movement_update(entity_id, *old_pos, pos);
-
-                let network = world.get_component::<Network>(client).unwrap();
-
-                packets.into_iter().for_each(|packet| {
-                    network.send_boxed(packet);
-                });
-
-                // Update last known position.
-                *old_pos = pos;
-            }
-        });
-    });
+    if let Some(last_known_positions) = world.try_get::<LastKnownPositions>(client) {
+        trace!(
+            "Removing last position entry for {:?} (player: {:?})",
+            entity,
+            client
+        );
+        last_known_positions.0.remove(&entity);
+    }
 }
 
 /// Broadcasts an entity's velocity.
-#[event_handler]
-pub fn broadcast_velocity(
-    event: &VelocityUpdateEvent,
-    _query: &mut Query<(Read<EntityId>, Read<Velocity>)>,
-    world: &mut PreparedWorld,
-    state: &State,
-) {
-    let entity_id = world.get_component::<EntityId>(event.entity).unwrap().0;
-    let vel = *world.get_component::<Velocity>(event.entity).unwrap();
+#[system]
+pub fn broadcast_velocity(world: &mut World, game: &mut Game) {
+    <(Read<Velocity>, Read<PreviousVelocity>, Read<EntityId>)>::query()
+        .filter(changed::<Velocity>())
+        .par_entities_for_each(world.inner(), |(entity, (vel, prev_vel, entity_id))| {
+            let entity_id = entity_id.0;
 
-    let (velocity_x, velocity_y, velocity_z) = protocol_velocity(vel.0);
+            if vel.0 == prev_vel.0 {
+                return;
+            }
 
-    let packet = EntityVelocity {
-        entity_id,
-        velocity_x,
-        velocity_y,
-        velocity_z,
-    };
-    state.broadcast_entity_update(event.entity, packet, None);
+            let (velocity_x, velocity_y, velocity_z) = protocol_velocity(vel.0);
+
+            if velocity_x == 0 && velocity_y == 0 && velocity_z == 0 {
+                return;
+            }
+
+            let packet = EntityVelocity {
+                entity_id,
+                velocity_x,
+                velocity_y,
+                velocity_z,
+            };
+            game.broadcast_entity_update(world, packet, entity, None);
+        });
 }
 
 /// Returns the packet needed to notify a client

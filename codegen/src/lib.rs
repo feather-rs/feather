@@ -167,7 +167,6 @@ pub fn derive_packet(_item: TokenStream) -> TokenStream {
                 PacketParameterType::String,
                 PacketParameterType::Uuid,
                 PacketParameterType::Nbt,
-                PacketParameterType::Slot,
                 PacketParameterType::EntityMetadata,
             ]
             .contains(parameter_type)

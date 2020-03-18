@@ -1,21 +1,19 @@
 use crate::entity::EntityId;
-use crate::player::PlayerAnimationEvent;
-use crate::state::State;
+use crate::game::Game;
 use feather_core::network::packet::implementation::AnimationClientbound;
-use legion::query::Read;
-use tonks::{PreparedWorld, Query};
+use feather_core::ClientboundAnimation;
+use fecs::{Entity, World};
 
 /// Broadcasts animations.
-#[event_handler]
-fn broadcast_animation(
-    event: &PlayerAnimationEvent,
-    state: &State,
-    _query: &mut Query<Read<EntityId>>,
-    world: &mut PreparedWorld,
+pub fn on_player_animation_broadcast_animation(
+    game: &mut Game,
+    world: &World,
+    player: Entity,
+    animation: ClientboundAnimation,
 ) {
     let packet = AnimationClientbound {
-        entity_id: world.get_component::<EntityId>(event.player).unwrap().0,
-        animation: event.animation,
+        entity_id: world.get::<EntityId>(player).0,
+        animation,
     };
-    state.broadcast_entity_update(event.player, packet, Some(event.player));
+    game.broadcast_entity_update(world, packet, player, Some(player));
 }
