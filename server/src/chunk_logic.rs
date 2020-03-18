@@ -261,6 +261,7 @@ pub fn chunk_optimize(game: &mut Game) {
 pub fn hold_chunk(game: &mut Game, holder: &mut ChunkHolder, chunk: ChunkPosition, entity: Entity) {
     holder.holds.insert(chunk);
     game.chunk_holders.inner.insert(chunk, entity);
+    trace!("Obtained chunk hold on {} for player {:?}", chunk, entity);
 }
 
 /// Releases a hold for a chunk for the given entity.
@@ -279,6 +280,7 @@ pub fn release_chunk(game: &mut Game, world: &mut World, chunk: ChunkPosition, e
             vec.swap_remove(index);
         }
     }
+    trace!("Released chunk hold on {} for player {:?}", chunk, entity);
     game.on_chunk_holder_release(chunk, entity);
 }
 

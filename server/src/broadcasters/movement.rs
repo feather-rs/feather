@@ -9,7 +9,7 @@ use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove,
 };
 use feather_core::{Packet, Position};
-use fecs::{changed, Entity, IntoQuery, Read, World};
+use fecs::{Entity, IntoQuery, Read, World};
 use smallvec::SmallVec;
 use std::ops::Deref;
 
@@ -22,9 +22,9 @@ pub struct LastKnownPositions(pub DashMap<Entity, Position>);
 /// System to broadcast when an entity moves.
 #[system]
 pub fn broadcast_entity_movement(game: &mut Game, world: &mut World) {
-    <(Read<Position>, Read<PreviousPosition>, Read<EntityId>)>::query()
-        .filter(changed::<Position>())
-        .par_entities_for_each(world.inner(), |(entity, (pos, prev_pos, id))| {
+    <(Read<Position>, Read<PreviousPosition>, Read<EntityId>)>::query().par_entities_for_each(
+        world.inner(),
+        |(entity, (pos, prev_pos, id))| {
             let pos: Position = *pos;
             let prev_pos: Position = prev_pos.0;
 
@@ -37,7 +37,7 @@ pub fn broadcast_entity_movement(game: &mut Game, world: &mut World) {
             let chunk = pos.chunk();
             let players = game.chunk_holders.holders_for(chunk);
 
-            for player in players {
+            for player in players.iter().filter(|player| **player != entity) {
                 if let Some(network) = world.try_get::<Network>(*player) {
                     let last_known_positions = world.get::<LastKnownPositions>(*player);
                     let last_known_positions = last_known_positions.deref();
@@ -49,17 +49,31 @@ pub fn broadcast_entity_movement(game: &mut Game, world: &mut World) {
                             network.send_boxed(packet);
                         }
 
+                        trace!("Updated position of {:?} on client {:?}", entity, player);
+
                         *last_known_pos.value_mut() = pos;
+                    } else {
+                        trace!(
+                            "Missing last position entry for {:?} on client {:?}",
+                            entity,
+                            player
+                        );
                     };
                 }
             }
-        });
+        },
+    );
 }
 
 pub fn on_entity_send_update_last_known_positions(world: &World, entity: Entity, client: Entity) {
     if let Some(last_known_positions) = world.try_get::<LastKnownPositions>(client) {
         let pos = *world.get::<Position>(entity);
         last_known_positions.0.insert(entity, pos);
+        trace!(
+            "Inserted last position entry for {:?} (player: {:?})",
+            entity,
+            client
+        );
     }
 }
 
@@ -69,6 +83,11 @@ pub fn on_entity_client_remove_update_last_known_positions(
     client: Entity,
 ) {
     if let Some(last_known_positions) = world.try_get::<LastKnownPositions>(client) {
+        trace!(
+            "Removing last position entry for {:?} (player: {:?})",
+            entity,
+            client
+        );
         last_known_positions.0.remove(&entity);
     }
 }

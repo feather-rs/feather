@@ -1742,7 +1742,7 @@ pub struct Particle {
     // TODO data
 }
 
-#[derive(Default, AsAny, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone, Debug)]
 pub struct JoinGame {
     pub entity_id: i32,
     pub gamemode: u8,

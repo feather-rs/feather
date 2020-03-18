@@ -778,7 +778,6 @@ version = "0.1.0"
 [[package]]
 name = "fecs"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=8060d8bf79db5b2d345cff14de3e8b5fa53897b0#8060d8bf79db5b2d345cff14de3e8b5fa53897b0"
 dependencies = [
  "fecs-macros",
  "fxhash",
@@ -789,7 +788,6 @@ dependencies = [
 [[package]]
 name = "fecs-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=8060d8bf79db5b2d345cff14de3e8b5fa53897b0#8060d8bf79db5b2d345cff14de3e8b5fa53897b0"
 dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.2",
@@ -1313,16 +1311,15 @@ dependencies = [
 [[package]]
 name = "legion"
 version = "0.2.1"
-source = "git+https://github.com/TomGillen/legion?branch=fix-zst-component-ub#b5a3dfd88f201af61fe58ad247e83583dfdde5ec"
 dependencies = [
  "legion-core",
  "legion-systems",
+ "tracing",
 ]
 
 [[package]]
 name = "legion-core"
 version = "0.2.1"
-source = "git+https://github.com/TomGillen/legion?branch=fix-zst-component-ub#b5a3dfd88f201af61fe58ad247e83583dfdde5ec"
 dependencies = [
  "crossbeam-channel",
  "derivative 1.0.3",
@@ -1339,10 +1336,10 @@ dependencies = [
 [[package]]
 name = "legion-systems"
 version = "0.2.1"
-source = "git+https://github.com/TomGillen/legion?branch=fix-zst-component-ub#b5a3dfd88f201af61fe58ad247e83583dfdde5ec"
 dependencies = [
  "bit-set",
  "crossbeam-channel",
+ "crossbeam-queue",
  "derivative 1.0.3",
  "downcast-rs",
  "fxhash",

@@ -1,8 +1,9 @@
-use crate::entity::{CreationPacketCreator, SpawnPacketCreator};
+use crate::entity::{CreationPacketCreator, EntityId, SpawnPacketCreator};
 use crate::game::Game;
 use crate::network::Network;
 use crate::BumpVec;
-use feather_core::Position;
+use feather_core::network::packet::implementation::PacketEntityMetadata;
+use feather_core::{EntityMetadata, Position};
 use fecs::{Entity, IntoQuery, Read, World};
 
 /// When an entity is created and has a `CreationPacketCreator` and/or `SpawnPacketCreator`,
@@ -17,6 +18,18 @@ pub fn on_entity_spawn_send_to_clients(game: &mut Game, world: &mut World, entit
     let mut to_trigger = BumpVec::new_in(game.bump());
 
     if let Some(creator) = world.try_get::<SpawnPacketCreator>(entity) {
+        // Send metadata before spawn packet. Not sure why this works,
+        // but if we don't do this, then the client just despawns
+        // the entity immediately after sending.
+        if let Some(meta) = world.try_get::<EntityMetadata>(entity) {
+            let packet = PacketEntityMetadata {
+                entity_id: world.get::<EntityId>(entity).0,
+                metadata: (&*meta).clone(),
+            };
+            game.broadcast_entity_update(world, packet, entity, Some(entity));
+        }
+
+        // Now send spawn packet: Spawn Object / Spawn Player / Spawn Mob / whatever.
         let packet = creator.get(&accessor);
         game.broadcast_entity_update_boxed(world, packet, entity, Some(entity));
 
