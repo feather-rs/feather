@@ -20,8 +20,8 @@ feather-item-block = { path = "../item_block" }
 feather-codegen = { path = "../codegen" }
 
 # Core ECS + systems
-# fecs = { git = "https://github.com/feather-rs/fecs", rev = "8060d8bf79db5b2d345cff14de3e8b5fa53897b0" }
-fecs = { path = "../../../dev/fecs" }
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "20d54b0ff8b11fbb76f55fec012e4feb66e20c42" }
+# fecs = { path = "../../../dev/fecs" }
 
 # Concurrency/threading
 crossbeam = "0.7"
