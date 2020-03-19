@@ -76,7 +76,7 @@ pub struct HeightMap {
 
 impl HeightMap {
     /// The highest block that is solid or contains a fluid.
-    pub fn motion_blocking(&self) -> u8 {
+    pub fn motion_blocking(self) -> u8 {
         self.motion_blocking
     }
 
