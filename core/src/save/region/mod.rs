@@ -31,7 +31,7 @@ const DATA_VERSION: i32 = 1631;
 const SECTOR_BYTES: usize = 4096;
 
 /// The offset for each heightmap value
-const HEIGHTMAP_OFFSET: usize = 9;
+const HEIGHTMAP_OFFSET: i64 = 9;
 
 /// Represents the data for a chunk after the "Chunk [x, y]" tag.
 #[derive(Serialize, Deserialize, Debug)]
@@ -351,21 +351,6 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
 }
 
 fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
-<<<<<<< HEAD
-    let heightmaps: Vec<i64> = chunk
-        .heightmaps()
-        .iter()
-        .map(|map| {
-            (map.motion_blocking() as i64)
-                << (HEIGHTMAP_OFFSET * 0) + (map.motion_blocking_no_leaves() as i64)
-                << (HEIGHTMAP_OFFSET * 1) + (map.ocean_floor() as i64)
-                << (HEIGHTMAP_OFFSET * 2) + (map.ocean_floor_wg() as i64)
-                << (HEIGHTMAP_OFFSET * 3) + (map.world_surface() as i64)
-                << (HEIGHTMAP_OFFSET * 4) + (map.world_surface_wg() as i64)
-                << (HEIGHTMAP_OFFSET * 5)
-        })
-        .collect();
-=======
     let heightmaps: Vec<i64> = chunk.heightmaps().iter().map(|map| {
         (map.motion_blocking() as i64) << (HEIGHTMAP_OFFSET * 0)
         + (map.motion_blocking_no_leaves() as i64) << (HEIGHTMAP_OFFSET * 1)
@@ -374,7 +359,6 @@ fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
         + (map.world_surface() as i64) << (HEIGHTMAP_OFFSET * 4)
         + (map.world_surface_wg() as i64) << (HEIGHTMAP_OFFSET * 5)
     }).collect();
->>>>>>> f9d226bc7e727b4ff19f1c36ee34f7228464c81f
     ChunkRoot {
         level: ChunkLevel {
             x_pos: chunk.position().x,
