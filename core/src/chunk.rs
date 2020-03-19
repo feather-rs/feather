@@ -1,7 +1,7 @@
 use crate::Biome;
 use crate::{Block, BlockExt, ChunkPosition};
-use multimap::MultiMap;
 use bitflags::bitflags;
+use multimap::MultiMap;
 
 /// The number of bits used for each block
 /// in the global palette.
@@ -75,7 +75,6 @@ pub struct HeightMap {
 }
 
 impl HeightMap {
-
     /// The highest block that is solid or contains a fluid.
     pub fn motion_blocking(&self) -> u8 {
         self.motion_blocking
@@ -273,7 +272,7 @@ impl Chunk {
 
     /// Recalculate the heightmap for the chunk
     pub fn recalculate_heightmap(&mut self) {
-        // This function can be optimized, instead of 
+        // This function can be optimized, instead of
         // fetching heightmap every time, and sections
         for x in 0..CHUNK_WIDTH {
             for z in 0..CHUNK_WIDTH {

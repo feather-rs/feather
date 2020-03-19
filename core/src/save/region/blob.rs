@@ -24,7 +24,10 @@ fn level_to_value(level: ChunkLevel) -> Value {
     map.insert(String::from("InhabitedTime"), Value::Long(0)); // TODO
     map.insert(String::from("Biomes"), Value::IntArray(level.biomes));
 
-    map.insert(String::from("Heightmaps"), Value::LongArray(level.heightmaps));
+    map.insert(
+        String::from("Heightmaps"),
+        Value::LongArray(level.heightmaps),
+    );
 
     let sections = level.sections.into_iter().map(section_to_value).collect();
     map.insert(String::from("Sections"), Value::List(sections));

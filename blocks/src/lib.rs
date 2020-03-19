@@ -223,7 +223,7 @@ impl BlockExt for Block {
     fn is_air(&self) -> bool {
         match self {
             Block::Air | Block::CaveAir | Block::VoidAir => true,
-            _ => false
+            _ => false,
         }
     }
 
