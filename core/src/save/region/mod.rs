@@ -351,14 +351,18 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
 }
 
 fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
-    let heightmaps: Vec<i64> = chunk.heightmaps().iter().map(|map| {
-        (map.motion_blocking() as i64) << (HEIGHTMAP_OFFSET * 0)
-        + (map.motion_blocking_no_leaves() as i64) << (HEIGHTMAP_OFFSET * 1)
-        + (map.ocean_floor() as i64) << (HEIGHTMAP_OFFSET * 2)
-        + (map.ocean_floor_wg() as i64) << (HEIGHTMAP_OFFSET * 3)
-        + (map.world_surface() as i64) << (HEIGHTMAP_OFFSET * 4)
-        + (map.world_surface_wg() as i64) << (HEIGHTMAP_OFFSET * 5)
-    }).collect();
+    let heightmaps: Vec<i64> = chunk
+        .heightmaps()
+        .iter()
+        .map(|map| {
+            (map.motion_blocking() as i64)
+                + ((map.motion_blocking_no_leaves() as i64) << HEIGHTMAP_OFFSET)
+                + ((map.ocean_floor() as i64) << (HEIGHTMAP_OFFSET * 2))
+                + ((map.ocean_floor_wg() as i64) << (HEIGHTMAP_OFFSET * 3))
+                + ((map.world_surface() as i64) << (HEIGHTMAP_OFFSET * 4))
+                + ((map.world_surface_wg() as i64) << (HEIGHTMAP_OFFSET * 5))
+        })
+        .collect();
     ChunkRoot {
         level: ChunkLevel {
             x_pos: chunk.position().x,

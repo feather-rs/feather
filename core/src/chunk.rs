@@ -76,60 +76,60 @@ pub struct HeightMap {
 
 impl HeightMap {
     /// The highest block that is solid or contains a fluid.
-    pub fn motion_blocking(&self) -> u8 {
+    pub fn motion_blocking(self) -> u8 {
         self.motion_blocking
     }
 
-    pub fn set_motion_blocking(&mut self, motion_blocking: u8) {
+    pub fn set_motion_blocking(mut self, motion_blocking: u8) {
         self.motion_blocking = motion_blocking;
     }
 
     /// The highest block that is solid or contains a fluid and is not leaves.
-    pub fn motion_blocking_no_leaves(&self) -> u8 {
+    pub fn motion_blocking_no_leaves(self) -> u8 {
         self.motion_blocking_no_leaves
     }
 
-    pub fn set_motion_blocking_no_leaves(&mut self, motion_blocking_no_leaves: u8) {
+    pub fn set_motion_blocking_no_leaves(mut self, motion_blocking_no_leaves: u8) {
         self.motion_blocking_no_leaves = motion_blocking_no_leaves;
     }
 
     /// The highest block that is solid.
-    pub fn ocean_floor(&self) -> u8 {
+    pub fn ocean_floor(self) -> u8 {
         self.ocean_floor
     }
 
-    pub fn set_ocean_floor(&mut self, ocean_floor: u8) {
+    pub fn set_ocean_floor(mut self, ocean_floor: u8) {
         self.ocean_floor = ocean_floor;
     }
 
     /// The highest block that is solid for world generation.
-    pub fn ocean_floor_wg(&self) -> u8 {
+    pub fn ocean_floor_wg(self) -> u8 {
         self.ocean_floor_wg
     }
 
     /// The highest block that is not air.
-    pub fn world_surface(&self) -> u8 {
+    pub fn world_surface(self) -> u8 {
         self.world_surface
     }
 
-    pub fn set_world_surface(&mut self, world_surface: u8) {
+    pub fn set_world_surface(mut self, world_surface: u8) {
         self.world_surface = world_surface;
     }
 
     /// The highest block is not air for world generation.
-    pub fn world_surface_wg(&self) -> u8 {
+    pub fn world_surface_wg(self) -> u8 {
         self.world_surface_wg
     }
 }
 
 bitflags! {
     struct HeightMapMask: u8 {
-        const MOTION_BLOCKING = 0b00000001;
-        const MOTION_BLOCKING_NO_LEAVES = 0b00000010;
-        const OCEAN_FLOOR = 0b00000100;
-        const OCEAN_FLOOR_WG = 0b00001000;
-        const WORLD_SURFACE = 0b00010000;
-        const WORLD_SURFACE_WG = 0b00100000;
+        const MOTION_BLOCKING = 0b0000_0001;
+        const MOTION_BLOCKING_NO_LEAVES = 0b0000_0010;
+        const OCEAN_FLOOR = 0b0000_0100;
+        const OCEAN_FLOOR_WG = 0b0000_1000;
+        const WORLD_SURFACE = 0b0001_0000;
+        const WORLD_SURFACE_WG = 0b0010_0000;
     }
 }
 
