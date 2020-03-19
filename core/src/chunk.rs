@@ -76,11 +76,11 @@ pub struct HeightMap {
 
 impl HeightMap {
     /// The highest block that is solid or contains a fluid.
-    pub fn motion_blocking(self) -> u8 {
+    pub fn motion_blocking(&self) -> u8 {
         self.motion_blocking
     }
 
-    pub fn set_motion_blocking(mut self, motion_blocking: u8) {
+    pub fn set_motion_blocking(&mut self, motion_blocking: u8) {
         self.motion_blocking = motion_blocking;
     }
 
@@ -89,7 +89,7 @@ impl HeightMap {
         self.motion_blocking_no_leaves
     }
 
-    pub fn set_motion_blocking_no_leaves(mut self, motion_blocking_no_leaves: u8) {
+    pub fn set_motion_blocking_no_leaves(&mut self, motion_blocking_no_leaves: u8) {
         self.motion_blocking_no_leaves = motion_blocking_no_leaves;
     }
 
@@ -98,7 +98,7 @@ impl HeightMap {
         self.ocean_floor
     }
 
-    pub fn set_ocean_floor(mut self, ocean_floor: u8) {
+    pub fn set_ocean_floor(&mut self, ocean_floor: u8) {
         self.ocean_floor = ocean_floor;
     }
 
@@ -112,7 +112,7 @@ impl HeightMap {
         self.world_surface
     }
 
-    pub fn set_world_surface(mut self, world_surface: u8) {
+    pub fn set_world_surface(&mut self, world_surface: u8) {
         self.world_surface = world_surface;
     }
 
