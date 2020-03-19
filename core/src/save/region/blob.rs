@@ -24,26 +24,7 @@ fn level_to_value(level: ChunkLevel) -> Value {
     map.insert(String::from("InhabitedTime"), Value::Long(0)); // TODO
     map.insert(String::from("Biomes"), Value::IntArray(level.biomes));
 
-    let mut hmaps = HashMap::new();
-    hmaps.insert(
-        String::from("MOTION_BLOCKING"),
-        Value::LongArray(vec![0; 32]),
-    ); // TODO
-    hmaps.insert(
-        String::from("MOTION_BLOCKING_NO_LEAVES"),
-        Value::LongArray(vec![0; 32]),
-    ); // TODO
-    hmaps.insert(String::from("OCEAN_FLOOR"), Value::LongArray(vec![0; 32])); // TODO
-    hmaps.insert(
-        String::from("OCEAN_FLOOR_WG"),
-        Value::LongArray(vec![0; 32]),
-    ); // TODO
-    hmaps.insert(String::from("WORLD_SURFACE"), Value::LongArray(vec![0; 32])); // TODO
-    hmaps.insert(
-        String::from("WORLD_SURFACE_WG"),
-        Value::LongArray(vec![0; 32]),
-    ); // TODO
-    map.insert(String::from("Heightmaps"), Value::Compound(hmaps));
+    map.insert(String::from("Heightmaps"), Value::LongArray(level.heightmaps));
 
     let sections = level.sections.into_iter().map(section_to_value).collect();
     map.insert(String::from("Sections"), Value::List(sections));
@@ -158,6 +139,7 @@ mod tests {
                 }],
                 biomes: vec![10],
                 entities: vec![],
+                heightmaps: vec![],
             },
         };
 

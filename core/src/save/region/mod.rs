@@ -53,6 +53,8 @@ pub struct ChunkLevel {
     biomes: Vec<i32>,
     #[serde(rename = "Entities")]
     entities: Vec<EntityData>,
+    #[serde(rename = "Heightmaps")]
+    heightmaps: Vec<i64>,
 }
 
 /// Represents a chunk section in a region file.
@@ -200,6 +202,8 @@ impl RegionHandle {
         // Chunk was not modified, but it thinks it was: disable this
         chunk.check_modified();
 
+        chunk.recalculate_heightmap();
+
         Ok((chunk, level.entities.to_vec()))
     }
 
@@ -344,6 +348,14 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
 }
 
 fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
+    let heightmaps: Vec<i64> = chunk.heightmaps().iter().map(|map| {
+        (map.motion_blocking() << (9 * 0)
+        + map.motion_blocking_no_leaves() << (9 * 1)
+        + map.ocean_floor() << (9 * 2)
+        + map.ocean_floor_wg() << (9 * 3)
+        + map.world_surface() << (9 * 4)
+        + map.world_surface_wg() << (9 * 5)) as i64
+    }).collect();
     ChunkRoot {
         level: ChunkLevel {
             x_pos: chunk.position().x,
@@ -370,6 +382,7 @@ fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
                 .map(|biome| biome.protocol_id())
                 .collect(),
             entities,
+            heightmaps,
         },
         data_version: DATA_VERSION,
     }

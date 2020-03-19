@@ -59,6 +59,67 @@ pub struct Chunk {
     /// Whether this chunk has been modified since the most recent
     /// call to `check_modified`().
     modified: bool,
+
+    heightmaps: [HeightMap; CHUNK_WIDTH * CHUNK_WIDTH],
+}
+
+#[derive(Clone, Copy, Default)]
+pub struct HeightMap {
+    motion_blocking: usize,
+    motion_blocking_no_leaves: usize,
+    ocean_floor: usize,
+    ocean_floor_wg: usize,
+    world_surface: usize,
+    world_surface_wg: usize,
+}
+
+impl HeightMap {
+
+    /// The highest block that is solid or contains a fluid.
+    pub fn motion_blocking(&self) -> usize {
+        self.motion_blocking
+    }
+
+    pub fn set_motion_blocking(&mut self, motion_blocking: usize) {
+        self.motion_blocking = motion_blocking;
+    }
+
+    /// The highest block that is solid or contains a fluid and is not leaves.
+    pub fn motion_blocking_no_leaves(&self) -> usize {
+        self.motion_blocking_no_leaves
+    }
+
+    pub fn set_motion_blocking_no_leaves(&mut self, motion_blocking_no_leaves: usize) {
+        self.motion_blocking_no_leaves = motion_blocking_no_leaves;
+    }
+
+    /// The highest block that is solid.
+    pub fn ocean_floor(&self) -> usize {
+        self.ocean_floor
+    }
+
+    pub fn set_ocean_floor(&mut self, ocean_floor: usize) {
+        self.ocean_floor = ocean_floor;
+    }
+
+    /// The highest block that is solid for world generation.
+    pub fn ocean_floor_wg(&self) -> usize {
+        self.ocean_floor_wg
+    }
+
+    /// The highest block that is not air.
+    pub fn world_surface(&self) -> usize {
+        self.world_surface
+    }
+
+    pub fn set_world_surface(&mut self, world_surface: usize) {
+        self.world_surface = world_surface;
+    }
+
+    /// The highest block is not air for world generation.
+    pub fn world_surface_wg(&self) -> usize {
+        self.world_surface_wg
+    }
 }
 
 impl Default for Chunk {
@@ -77,6 +138,7 @@ impl Default for Chunk {
             modified: true,
             sections,
             biomes: [Biome::Plains; SECTION_WIDTH * SECTION_WIDTH],
+            heightmaps: [HeightMap::default(); CHUNK_WIDTH * CHUNK_WIDTH],
         }
     }
 }
@@ -151,6 +213,58 @@ impl Chunk {
         }
 
         section.set_block_at(x, y % 16, z, block);
+
+        self.update_heightmap(x, y, z, block);
+    }
+
+    pub fn heightmap(&self, x: usize, z: usize) -> &HeightMap {
+        Self::check_coords(x, 0, z);
+        &self.heightmaps[x + z * CHUNK_WIDTH]
+    }
+
+    pub fn heightmap_mut(&mut self, x: usize, z: usize) -> &mut HeightMap {
+        Self::check_coords(x, 0, z);
+        &mut self.heightmaps[x + z * CHUNK_WIDTH]
+    }
+
+    pub fn heightmaps(&self) -> &[HeightMap] {
+        &self.heightmaps
+    }
+
+    fn update_heightmap(&mut self, x: usize, y: usize, z: usize, block: Block) {
+        let heightmap = self.heightmap_mut(x, z);
+        if (block.is_solid() || block.is_fluid()) && heightmap.motion_blocking() < y {
+            heightmap.set_motion_blocking(y);
+        }
+
+        if (block.is_solid() || block.is_fluid())
+            && !block.is_leaves()
+            && heightmap.motion_blocking_no_leaves() < y
+        {
+            heightmap.set_motion_blocking_no_leaves(y);
+        }
+
+        if block.is_solid() && heightmap.ocean_floor() < y {
+            heightmap.set_ocean_floor(y);
+        }
+
+        if !block.is_air() && heightmap.world_surface() < y {
+            heightmap.set_world_surface(y);
+        }
+    }
+
+    /// Recalculate the heightmap for the chunk
+    pub fn recalculate_heightmap(&mut self) {
+        // This function can be optimized, instead of 
+        // fetching heightmap every time, and sections
+        for x in 0..CHUNK_WIDTH {
+            for z in 0..CHUNK_WIDTH {
+                for y in (0..CHUNK_HEIGHT).rev() {
+                    let block = self.block_at(x, y, z);
+                    self.update_heightmap(x, y, z, block);
+                }
+            }
+        }
     }
 
     pub fn sky_light_at(&self, x: usize, y: usize, z: usize) -> u8 {
