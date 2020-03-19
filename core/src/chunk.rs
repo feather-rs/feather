@@ -1,6 +1,7 @@
 use crate::Biome;
 use crate::{Block, BlockExt, ChunkPosition};
 use multimap::MultiMap;
+use bitflags::bitflags;
 
 /// The number of bits used for each block
 /// in the global palette.
@@ -122,6 +123,17 @@ impl HeightMap {
     }
 }
 
+bitflags! {
+    struct HeightMapMask: u8 {
+        const MOTION_BLOCKING = 0b00000001;
+        const MOTION_BLOCKING_NO_LEAVES = 0b00000010;
+        const OCEAN_FLOOR = 0b00000100;
+        const OCEAN_FLOOR_WG = 0b00001000;
+        const WORLD_SURFACE = 0b00010000;
+        const WORLD_SURFACE_WG = 0b00100000;
+    }
+}
+
 impl Default for Chunk {
     fn default() -> Self {
         // Rust apparently forces you to implement
@@ -231,10 +243,12 @@ impl Chunk {
         &self.heightmaps
     }
 
-    fn update_heightmap(&mut self, x: usize, y: usize, z: usize, block: Block) {
+    fn update_heightmap(&mut self, x: usize, y: usize, z: usize, block: Block) -> HeightMapMask {
         let heightmap = self.heightmap_mut(x, z);
+        let mut mask: HeightMapMask = HeightMapMask::empty();
         if (block.is_solid() || block.is_fluid()) && heightmap.motion_blocking() < y {
             heightmap.set_motion_blocking(y);
+            mask |= HeightMapMask::MOTION_BLOCKING;
         }
 
         if (block.is_solid() || block.is_fluid())
@@ -242,15 +256,19 @@ impl Chunk {
             && heightmap.motion_blocking_no_leaves() < y
         {
             heightmap.set_motion_blocking_no_leaves(y);
+            mask |= HeightMapMask::MOTION_BLOCKING_NO_LEAVES;
         }
 
         if block.is_solid() && heightmap.ocean_floor() < y {
             heightmap.set_ocean_floor(y);
+            mask |= HeightMapMask::OCEAN_FLOOR;
         }
 
         if !block.is_air() && heightmap.world_surface() < y {
             heightmap.set_world_surface(y);
+            mask |= HeightMapMask::WORLD_SURFACE;
         }
+        mask
     }
 
     /// Recalculate the heightmap for the chunk
@@ -259,9 +277,13 @@ impl Chunk {
         // fetching heightmap every time, and sections
         for x in 0..CHUNK_WIDTH {
             for z in 0..CHUNK_WIDTH {
+                let mut mask: HeightMapMask = HeightMapMask::empty();
                 for y in (0..CHUNK_HEIGHT).rev() {
+                    if mask.is_all() {
+                        break;
+                    }
                     let block = self.block_at(x, y, z);
-                    self.update_heightmap(x, y, z, block);
+                    mask |= self.update_heightmap(x, y, z, block);
                 }
             }
         }
