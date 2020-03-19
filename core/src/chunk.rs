@@ -66,59 +66,59 @@ pub struct Chunk {
 
 #[derive(Clone, Copy, Default)]
 pub struct HeightMap {
-    motion_blocking: usize,
-    motion_blocking_no_leaves: usize,
-    ocean_floor: usize,
-    ocean_floor_wg: usize,
-    world_surface: usize,
-    world_surface_wg: usize,
+    motion_blocking: u8,
+    motion_blocking_no_leaves: u8,
+    ocean_floor: u8,
+    ocean_floor_wg: u8,
+    world_surface: u8,
+    world_surface_wg: u8,
 }
 
 impl HeightMap {
 
     /// The highest block that is solid or contains a fluid.
-    pub fn motion_blocking(&self) -> usize {
+    pub fn motion_blocking(&self) -> u8 {
         self.motion_blocking
     }
 
-    pub fn set_motion_blocking(&mut self, motion_blocking: usize) {
+    pub fn set_motion_blocking(&mut self, motion_blocking: u8) {
         self.motion_blocking = motion_blocking;
     }
 
     /// The highest block that is solid or contains a fluid and is not leaves.
-    pub fn motion_blocking_no_leaves(&self) -> usize {
+    pub fn motion_blocking_no_leaves(&self) -> u8 {
         self.motion_blocking_no_leaves
     }
 
-    pub fn set_motion_blocking_no_leaves(&mut self, motion_blocking_no_leaves: usize) {
+    pub fn set_motion_blocking_no_leaves(&mut self, motion_blocking_no_leaves: u8) {
         self.motion_blocking_no_leaves = motion_blocking_no_leaves;
     }
 
     /// The highest block that is solid.
-    pub fn ocean_floor(&self) -> usize {
+    pub fn ocean_floor(&self) -> u8 {
         self.ocean_floor
     }
 
-    pub fn set_ocean_floor(&mut self, ocean_floor: usize) {
+    pub fn set_ocean_floor(&mut self, ocean_floor: u8) {
         self.ocean_floor = ocean_floor;
     }
 
     /// The highest block that is solid for world generation.
-    pub fn ocean_floor_wg(&self) -> usize {
+    pub fn ocean_floor_wg(&self) -> u8 {
         self.ocean_floor_wg
     }
 
     /// The highest block that is not air.
-    pub fn world_surface(&self) -> usize {
+    pub fn world_surface(&self) -> u8 {
         self.world_surface
     }
 
-    pub fn set_world_surface(&mut self, world_surface: usize) {
+    pub fn set_world_surface(&mut self, world_surface: u8) {
         self.world_surface = world_surface;
     }
 
     /// The highest block is not air for world generation.
-    pub fn world_surface_wg(&self) -> usize {
+    pub fn world_surface_wg(&self) -> u8 {
         self.world_surface_wg
     }
 }
@@ -246,26 +246,26 @@ impl Chunk {
     fn update_heightmap(&mut self, x: usize, y: usize, z: usize, block: Block) -> HeightMapMask {
         let heightmap = self.heightmap_mut(x, z);
         let mut mask: HeightMapMask = HeightMapMask::empty();
-        if (block.is_solid() || block.is_fluid()) && heightmap.motion_blocking() < y {
-            heightmap.set_motion_blocking(y);
+        if (block.is_solid() || block.is_fluid()) && heightmap.motion_blocking() < y as u8 {
+            heightmap.set_motion_blocking(y as u8);
             mask |= HeightMapMask::MOTION_BLOCKING;
         }
 
         if (block.is_solid() || block.is_fluid())
             && !block.is_leaves()
-            && heightmap.motion_blocking_no_leaves() < y
+            && heightmap.motion_blocking_no_leaves() < y as u8
         {
-            heightmap.set_motion_blocking_no_leaves(y);
+            heightmap.set_motion_blocking_no_leaves(y as u8);
             mask |= HeightMapMask::MOTION_BLOCKING_NO_LEAVES;
         }
 
-        if block.is_solid() && heightmap.ocean_floor() < y {
-            heightmap.set_ocean_floor(y);
+        if block.is_solid() && heightmap.ocean_floor() < y as u8 {
+            heightmap.set_ocean_floor(y as u8);
             mask |= HeightMapMask::OCEAN_FLOOR;
         }
 
-        if !block.is_air() && heightmap.world_surface() < y {
-            heightmap.set_world_surface(y);
+        if !block.is_air() && heightmap.world_surface() < y as u8 {
+            heightmap.set_world_surface(y as u8);
             mask |= HeightMapMask::WORLD_SURFACE;
         }
         mask
