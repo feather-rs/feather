@@ -13,7 +13,7 @@ mod block;
 mod entity_creation;
 mod entity_deletion;
 mod inventory;
-// mod item_collect;
+mod item_collect;
 mod keepalive;
 mod metadata;
 mod movement;
@@ -27,6 +27,7 @@ pub use block::on_block_update_broadcast;
 pub use entity_creation::on_entity_spawn_send_to_clients;
 pub use entity_creation::on_player_join_send_existing_entities;
 pub use entity_deletion::on_entity_despawn_broadcast_despawn;
+pub use item_collect::on_item_collect_broadcast;
 pub use keepalive::broadcast_keepalive;
 pub use metadata::on_entity_send_send_metadata;
 pub use movement::{

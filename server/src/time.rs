@@ -1,14 +1,13 @@
 //! Handles world time.
 
+use crate::game::Game;
 use crate::network::Network;
-use crate::player::PlayerJoinEvent;
 use feather_core::packet::TimeUpdate;
-use legion::query::Read;
+use fecs::{Entity, World};
 use std::ops::{Deref, DerefMut};
-use tonks::{PreparedWorld, Query};
 
 /// The current time of the world.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Resource)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Time(pub u64);
 
 impl Deref for Time {
@@ -40,24 +39,18 @@ impl Time {
 
 /// System for incrementing time each tick.
 #[system]
-pub fn time_increment(time: &mut Time) {
-    time.0 += 1;
+pub fn increment_time(game: &mut Game) {
+    game.time.0 += 1;
 }
 
 /// Event handler for sending world time to players.
-#[event_handler]
-pub fn time_send(
-    event: &PlayerJoinEvent,
-    time: &Time,
-    _query: &mut Query<Read<Network>>,
-    world: &mut PreparedWorld,
-) {
-    let network = world.get_component::<Network>(event.player).unwrap();
+pub fn on_player_join_send_time(game: &Game, world: &World, player: Entity) {
+    let network = world.get::<Network>(player);
 
     // Send time to player.
     let packet = TimeUpdate {
-        world_age: time.world_age() as i64,
-        time_of_day: time.time_of_day() as i64,
+        world_age: game.time.world_age() as i64,
+        time_of_day: game.time.time_of_day() as i64,
     };
 
     network.send(packet);

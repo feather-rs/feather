@@ -3,8 +3,8 @@ use crate::broadcasters::{
     on_entity_despawn_broadcast_despawn, on_entity_send_send_equipment,
     on_entity_send_send_metadata, on_entity_send_update_last_known_positions,
     on_entity_spawn_send_to_clients, on_inventory_update_broadcast_equipment_update,
-    on_inventory_update_send_set_slot, on_player_animation_broadcast_animation,
-    on_player_join_send_existing_entities,
+    on_inventory_update_send_set_slot, on_item_collect_broadcast,
+    on_player_animation_broadcast_animation, on_player_join_send_existing_entities,
 };
 use crate::chunk_entities::{
     on_chunk_cross_update_chunk_entities, on_entity_despawn_update_chunk_entities,
@@ -15,7 +15,7 @@ use crate::chunk_logic::{
     ChunkUnloadQueue, ChunkWorkerHandle,
 };
 use crate::config::Config;
-use crate::entity::item::{on_item_drop_spawn_item_entity, ItemDropEvent};
+use crate::entity::item::{on_item_drop_spawn_item_entity, ItemCollectEvent, ItemDropEvent};
 use crate::entity::Name;
 use crate::io::{NetworkIoManager, NewClientInfo, ServerToWorkerMessage};
 use crate::join::{on_chunk_send_join_player, on_player_join_send_join_game};
@@ -23,6 +23,7 @@ use crate::network::Network;
 use crate::p_inventory::InventoryUpdateEvent;
 use crate::player;
 use crate::player::Player;
+use crate::time::{on_player_join_send_time, Time};
 use crate::view::{
     on_chunk_cross_update_chunks, on_chunk_cross_update_entities, on_chunk_load_send_to_clients,
     on_player_join_trigger_chunk_cross, ChunksToSend,
@@ -75,6 +76,7 @@ pub struct Game {
     pub chunks_to_send: ChunksToSend,
     pub chunk_entities: ChunkEntities,
     pub(super) rng: CachedThreadLocal<RefCell<XorShiftRng>>,
+    pub time: Time,
 }
 
 impl Game {
@@ -265,7 +267,8 @@ impl Game {
         self.player_count.fetch_add(1, Ordering::Relaxed);
         on_player_join_send_join_game(self, world, player);
         on_player_join_send_existing_entities(world, player);
-        on_player_join_trigger_chunk_cross(self, world, player)
+        on_player_join_send_time(self, world, player);
+        on_player_join_trigger_chunk_cross(self, world, player);
     }
 
     /// Called when a player leaves.
@@ -326,6 +329,11 @@ impl Game {
     /// Called when an item is dropped by a player.
     pub fn on_item_drop(&mut self, world: &mut World, event: ItemDropEvent) {
         on_item_drop_spawn_item_entity(self, world, &event);
+    }
+
+    /// Called when an entity collects an item entity.
+    pub fn on_item_collect(&mut self, world: &mut World, event: ItemCollectEvent) {
+        on_item_collect_broadcast(self, world, &event);
     }
 }
 

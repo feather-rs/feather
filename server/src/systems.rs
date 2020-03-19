@@ -14,6 +14,7 @@ pub fn build_executor() -> Executor {
         .with(packet_handlers::handle_animation)
         .with(packet_handlers::handle_player_block_placement)
         .with(packet_handlers::handle_player_digging)
+        .with(entity::item::item_collect)
         .with(chunk_logic::chunk_load)
         .with(chunk_logic::chunk_unload)
         .with(chunk_logic::chunk_optimize)
@@ -23,5 +24,6 @@ pub fn build_executor() -> Executor {
         .with(broadcasters::broadcast_velocity)
         .with(game::reset_bump_allocators)
         .with(game::increment_tick_count)
+        .with(time::increment_time)
         .with(entity::previous_position_velocity_reset) // should be at end
 }

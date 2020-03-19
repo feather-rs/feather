@@ -117,6 +117,7 @@ use crate::chunk_logic::ChunkWorkerHandle;
 use crate::config::Config;
 use crate::game::Game;
 use crate::packet_buffer::PacketBuffers;
+use crate::time::Time;
 use crate::worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
@@ -144,18 +145,18 @@ pub mod chunk_logic;
 pub mod chunk_worker;
 pub mod config;
 pub mod entity;
+pub mod game;
 pub mod io;
 mod join;
 pub mod network;
 pub mod p_inventory; // Prefixed to avoid conflict with inventory crate
+pub mod packet_buffer;
 mod packet_handlers;
 pub mod physics;
 pub mod player;
 pub mod shutdown;
-// pub mod time;
-pub mod game;
-pub mod packet_buffer;
 mod systems;
+mod time;
 pub mod util;
 mod view;
 pub mod worldgen;
@@ -212,6 +213,8 @@ pub fn main() {
 
     let chunk_worker_handle = init_chunk_worker(world_dir, &level);
 
+    let time = Time(level.time as u64);
+
     let game = Game {
         io_handle,
         config,
@@ -226,6 +229,7 @@ pub fn main() {
         chunks_to_send: Default::default(),
         chunk_entities: Default::default(),
         rng: CachedThreadLocal::new(),
+        time,
     };
 
     let (executor, resources) = init_executor(game, packet_buffers);
