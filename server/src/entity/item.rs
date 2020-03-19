@@ -142,7 +142,7 @@ pub fn item_collect(game: &mut Game, world: &mut World) {
                     // safe)
                     let is_removed = world.get::<IsRemoved>(item);
 
-                    if is_removed
+                    if !is_removed
                         .0
                         .compare_and_swap(false, true, Ordering::Relaxed)
                     {
@@ -190,7 +190,7 @@ pub fn item_collect(game: &mut Game, world: &mut World) {
     }
 
     // Reset `IsRemoved`.
-    <Read<IsRemoved>>::query().for_each(world.inner(), |rem| rem.0.store(true, Ordering::Relaxed));
+    <Read<IsRemoved>>::query().for_each(world.inner(), |rem| rem.0.store(false, Ordering::Relaxed));
 }
 
 /// Returns an entity builder to create an item entity
