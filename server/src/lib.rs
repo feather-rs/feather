@@ -260,7 +260,7 @@ pub fn main() {
     info!("Saving chunks");
     shutdown::save_chunks(&*resources.get::<Game>(), &world);
     info!("Saving level.dat");
-    shutdown::save_level(&world);
+    shutdown::save_level(&mut *resources.get_mut::<Game>());
     info!("Saving player data");
     shutdown::save_player_data(&world);
 
