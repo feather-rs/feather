@@ -31,7 +31,9 @@ use crate::view::{
     on_chunk_cross_update_chunks, on_chunk_cross_update_entities, on_chunk_load_send_to_clients,
     on_player_join_trigger_chunk_cross, ChunksToSend,
 };
-use crate::weather::{on_weather_change_broadcast_weather, send_weather, Weather, WeatherChangeEvent};
+use crate::weather::{
+    on_weather_change_broadcast_weather, send_weather, Weather, WeatherChangeEvent,
+};
 use bumpalo::Bump;
 use feather_blocks::Block;
 use feather_core::level::LevelData;

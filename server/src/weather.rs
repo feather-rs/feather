@@ -2,12 +2,11 @@ use crate::{network::Network, Game, World};
 use feather_core::network::packet::implementation::ChangeGameState;
 use fecs::Entity;
 use rand::Rng;
-use std::cmp;
 
 const TICKS_DAY: i32 = 24_000;
 const TICKS_HALF_DAY: i32 = TICKS_DAY / 2;
 const TICKS_WEEK: i32 = TICKS_DAY * 7;
-const THUNDER_FACTOR: i32 = 10;
+// const THUNDER_FACTOR: i32 = 10;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Weather {
@@ -23,6 +22,7 @@ pub struct WeatherChangeEvent {
     pub duration: i32,
 }
 
+#[allow(unused)]
 pub fn clear_weather(game: &mut Game) {
     let durration = game
         .rng()
