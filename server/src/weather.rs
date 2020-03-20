@@ -116,7 +116,7 @@ pub fn send_weather(world: &mut World, player: Entity, to: Weather) {
     network.send(create_weather_packet(to));
 }
 
-pub fn broadcast_weather(game: &mut Game, world: &mut World, to: Weather) {
+pub fn on_weather_change_broadcast_weather(game: &mut Game, world: &mut World, to: Weather) {
     game.broadcast_global(world, create_weather_packet(to), None);
 }
 
