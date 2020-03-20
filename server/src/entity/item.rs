@@ -101,8 +101,8 @@ pub fn on_item_drop_spawn_item_entity(game: &mut Game, world: &mut World, event:
 /// System to add items to player inventories when the player comes near.
 #[system]
 pub fn item_collect(game: &mut Game, world: &mut World) {
-    // run every 1/2 second
-    if game.tick_count % TPS / 2 != 0 {
+    // run every 1/4 second
+    if game.tick_count % TPS / 4 != 0 {
         return;
     }
 

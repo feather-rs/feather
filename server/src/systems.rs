@@ -14,6 +14,7 @@ pub fn build_executor() -> Executor {
         .with(packet_handlers::handle_animation)
         .with(packet_handlers::handle_player_block_placement)
         .with(packet_handlers::handle_player_digging)
+        .with(packet_handlers::handle_chat)
         .with(weather::handle_weather)
         .with(entity::item::item_collect)
         .with(chunk_logic::chunk_load)

@@ -1,11 +1,13 @@
 use crate::broadcasters::{
-    on_block_update_broadcast, on_entity_client_remove_update_last_known_positions,
-    on_entity_despawn_broadcast_despawn, on_entity_send_send_equipment,
-    on_entity_send_send_metadata, on_entity_send_update_last_known_positions,
-    on_entity_spawn_send_to_clients, on_inventory_update_broadcast_equipment_update,
-    on_inventory_update_send_set_slot, on_item_collect_broadcast,
-    on_player_animation_broadcast_animation, on_player_join_send_existing_entities,
+    on_block_update_broadcast, on_chat_broadcast,
+    on_entity_client_remove_update_last_known_positions, on_entity_despawn_broadcast_despawn,
+    on_entity_send_send_equipment, on_entity_send_send_metadata,
+    on_entity_send_update_last_known_positions, on_entity_spawn_send_to_clients,
+    on_inventory_update_broadcast_equipment_update, on_inventory_update_send_set_slot,
+    on_item_collect_broadcast, on_player_animation_broadcast_animation,
+    on_player_join_send_existing_entities,
 };
+use crate::chat::{on_player_join_broadcast_join_message, ChatEvent};
 use crate::chunk_entities::{
     on_chunk_cross_update_chunk_entities, on_entity_despawn_update_chunk_entities,
     on_entity_spawn_update_chunk_entities, ChunkEntities,
@@ -273,6 +275,7 @@ impl Game {
         on_player_join_send_time(self, world, player);
         on_player_join_trigger_chunk_cross(self, world, player);
         send_weather(world, player, self.weather());
+        on_player_join_broadcast_join_message(self, world, player);
     }
 
     /// Called when a player leaves.
@@ -361,6 +364,10 @@ impl Game {
     /// Sets the weather for a given duration
     pub fn set_weather(&mut self, weather: Weather, duration: i32) -> Weather {
         crate::weather::set_weather(self, weather, duration)
+    }
+    /// Called when a chat message is broadcasted.
+    pub fn on_chat(&mut self, world: &mut World, event: ChatEvent) {
+        on_chat_broadcast(self, world, &event);
     }
 }
 

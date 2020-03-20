@@ -138,8 +138,8 @@ use thread_local::CachedThreadLocal;
 #[global_allocator]
 static ALLOC: Jemalloc = Jemalloc;
 
-// pub mod block;
 mod broadcasters;
+mod chat;
 mod chunk_entities;
 pub mod chunk_logic;
 pub mod chunk_worker;

@@ -9,7 +9,7 @@
 
 mod animation;
 mod block;
-// mod chat;
+mod chat;
 mod entity_creation;
 mod entity_deletion;
 mod inventory;
@@ -24,6 +24,7 @@ pub use self::inventory::{
 };
 pub use animation::on_player_animation_broadcast_animation;
 pub use block::on_block_update_broadcast;
+pub use chat::on_chat_broadcast;
 pub use entity_creation::on_entity_spawn_send_to_clients;
 pub use entity_creation::on_player_join_send_existing_entities;
 pub use entity_deletion::on_entity_despawn_broadcast_despawn;
