@@ -9,14 +9,14 @@ const TICKS_HALF_DAY: i32 = TICKS_DAY / 2;
 const TICKS_WEEK: i32 = TICKS_DAY * 7;
 const THUNDER_FACTOR: i32 = 10;
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Weather {
     Clear,
     Rain,
     Thunder,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct WeatherChangeEvent {
     pub from: Weather,
     pub to: Weather,
