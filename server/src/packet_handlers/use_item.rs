@@ -50,6 +50,6 @@ fn handle_use_item(game: &mut Game, world: &mut World, player: Entity, packet: U
             )
             .unwrap();
         let player_name = world.get::<Name>(player);
-        info!("Added ItemTimedUse to player {}.", player_name.0);
+        trace!("Added ItemTimedUse to player {}.", player_name.0);
     }
 }
