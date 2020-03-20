@@ -175,18 +175,15 @@ pub fn block_impacted_by_ray(
                 let shape = block_shape(&block);
                 let isometry = block_isometry(current_pos);
 
-                let impact = match shape.toi_and_normal_with_ray(&isometry, &ray, 1000.0, true) {
-                    Some(toi) => toi,
-                    None => continue,
-                };
+                if let Some(impact) = shape.toi_and_normal_with_ray(&isometry, &ray, 1000.0, true) {
+                    let pos = Position::from(origin + impact.toi * direction);
 
-                let pos = Position::from(origin + impact.toi * direction);
-
-                return Some(RayImpact {
-                    block: current_pos,
-                    pos,
-                    face,
-                });
+                    return Some(RayImpact {
+                        block: current_pos,
+                        pos,
+                        face,
+                    });
+                }
             }
         } else {
             // Traveled outside loaded chunks - no blocks found

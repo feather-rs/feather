@@ -367,6 +367,7 @@ impl Game {
     pub fn set_weather(&mut self, weather: Weather, duration: i32) -> Weather {
         crate::weather::set_weather(self, weather, duration)
     }
+
     /// Called when a chat message is broadcasted.
     pub fn on_chat(&mut self, world: &mut World, event: ChatEvent) {
         on_chat_broadcast(self, world, &event);
