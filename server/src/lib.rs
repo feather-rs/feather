@@ -154,6 +154,7 @@ pub mod packet_buffer;
 mod packet_handlers;
 pub mod physics;
 pub mod player;
+mod save;
 pub mod shutdown;
 mod systems;
 mod time;
@@ -230,6 +231,7 @@ pub fn main() {
         chunk_entities: Default::default(),
         rng: CachedThreadLocal::new(),
         time,
+        save_queue: Default::default(),
     };
 
     let (executor, resources) = init_executor(game, packet_buffers);
@@ -254,7 +256,7 @@ pub fn main() {
     info!("Shutting down");
 
     info!("Saving chunks");
-    shutdown::save_chunks(&mut world);
+    shutdown::save_chunks(&*resources.get::<Game>(), &mut world);
     info!("Saving level.dat");
     shutdown::save_level(&world);
     info!("Saving player data");

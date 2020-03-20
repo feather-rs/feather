@@ -1,15 +1,16 @@
 //! Handling of item entities.
 
-use crate::entity::{EntityId, SpawnPacketCreator, Velocity};
+use crate::entity::{ComponentSerializer, EntityId, SpawnPacketCreator, Velocity};
 use crate::game::Game;
 use crate::p_inventory::{EntityInventory, InventoryUpdateEvent};
 use crate::physics::{nearby_entities, PhysicsBuilder};
 use crate::player::{Player, PLAYER_EYE_HEIGHT};
 use crate::util::{degrees_to_stops, protocol_velocity};
 use crate::{entity, TPS};
+use feather_core::entity::{BaseEntityData, EntityData, ItemData, ItemEntityData};
 use feather_core::inventory::SlotIndex;
 use feather_core::network::packet::implementation::SpawnObject;
-use feather_core::{EntityMetadata, ItemStack, Packet, Position, META_INDEX_ITEM_SLOT};
+use feather_core::{EntityMetadata, ItemStack, Packet, Position, Vec3d, META_INDEX_ITEM_SLOT};
 use fecs::{changed, component, Entity, EntityBuilder, EntityRef, IntoQuery, Read, World, Write};
 use parking_lot::Mutex;
 use rand::Rng;
@@ -204,6 +205,7 @@ pub fn create(game: &mut Game, pos: Position, stack: ItemStack) -> EntityBuilder
         .with(IsRemoved(AtomicBool::new(false)))
         .with(collectable_at)
         .with(SpawnPacketCreator(&create_spawn_packet))
+        .with(ComponentSerializer(&serialize))
         .with(meta)
         .with(
             PhysicsBuilder::new()
@@ -237,4 +239,19 @@ fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
     };
 
     Box::new(packet)
+}
+
+fn serialize(game: &Game, accessor: &EntityRef) -> EntityData {
+    let vel = accessor.get::<Velocity>();
+    let item = accessor.get::<ItemStack>();
+    EntityData::Item(ItemEntityData {
+        entity: BaseEntityData::new(*accessor.get::<Position>(), Vec3d::new(vel.x, vel.y, vel.z)),
+        age: 0, // todo
+        pickup_delay: (accessor.get::<CollectableAt>().0 as i64 - game.tick_count as i64).max(0)
+            as u8,
+        item: ItemData {
+            count: item.amount,
+            item: item.ty.identifier().to_owned(),
+        },
+    })
 }

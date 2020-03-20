@@ -5,6 +5,8 @@
 
 pub mod item;
 
+use crate::game::Game;
+use feather_core::entity::EntityData;
 use feather_core::{Packet, Position};
 use fecs::{EntityBuilder, EntityRef, IntoQuery, Read, World, Write};
 use std::ops::{Deref, DerefMut};
@@ -115,6 +117,28 @@ impl CreationPacketCreator {
         let f = self.0;
 
         f(accessor)
+    }
+}
+
+pub trait ComponentSerializerFn:
+    Fn(&Game, &EntityRef) -> EntityData + Send + Sync + 'static
+{
+}
+
+impl<F> ComponentSerializerFn for F where
+    F: Fn(&Game, &EntityRef) -> EntityData + Send + Sync + 'static
+{
+}
+
+/// Component which stores a function needed to convert an entity's
+/// components to the serializable `EntityData`.
+pub struct ComponentSerializer(pub &'static dyn ComponentSerializerFn);
+
+impl ComponentSerializer {
+    pub fn serialize(&self, game: &Game, accessor: &EntityRef) -> EntityData {
+        let f = self.0;
+
+        f(game, accessor)
     }
 }
 

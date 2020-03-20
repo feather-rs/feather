@@ -16,6 +16,7 @@ use feather_core::Chunk;
 use fecs::{Entity, World};
 use hashbrown::HashSet;
 use multimap::MultiMap;
+use parking_lot::RwLock;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
@@ -118,7 +119,7 @@ pub struct ChunkUnloadQueue {
 }
 
 /// A chunk to be unloaded.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default)]
 struct ChunkUnload {
     /// The position of this chunk.
     chunk: ChunkPosition,
@@ -142,7 +143,7 @@ const CHUNK_UNLOAD_TIME: u64 = TPS * 5; // 5 seconds - TODO make this configurab
 /// chunks at the edge of their view distance
 /// to be loaded and unloaded at an alarming rate.
 #[system]
-pub fn chunk_unload(game: &mut Game) {
+pub fn chunk_unload(game: &mut Game, world: &mut World) {
     // Unload chunks which are finished in the queue.
 
     // Since chunks are queued in the back and taken out
@@ -150,7 +151,7 @@ pub fn chunk_unload(game: &mut Game) {
     // were queued the longest time ago. Because of this,
     // we go through the unloads in the front of the queue
     // to find which chunks to unload.
-    while let Some(unload) = game.chunk_unload_queue.queue.front() {
+    while let Some(unload) = game.chunk_unload_queue.queue.front().copied() {
         if game.tick_count >= unload.time {
             // Don't unload if new chunk holders have appeared.
             if game.chunk_holders.chunk_has_holders(unload.chunk) {
@@ -159,8 +160,11 @@ pub fn chunk_unload(game: &mut Game) {
             }
 
             // Unload chunk and pop from queue.
-            game.chunk_map.remove(unload.chunk);
-            trace!("Unloaded chunk at {}", unload.chunk);
+            if game.chunk_map.chunk_at(unload.chunk).is_some() {
+                game.on_chunk_unload(world, unload.chunk);
+                game.chunk_map.remove(unload.chunk);
+                trace!("Unloaded chunk at {}", unload.chunk);
+            }
             game.chunk_unload_queue.queue.pop_front();
         } else {
             // We're done - all chunks farther up in
@@ -299,7 +303,11 @@ pub fn load_chunk(handle: &ChunkWorkerHandle, pos: ChunkPosition) {
 }
 
 /// Asynchronously saves the chunk at the given position.
-pub fn save_chunk(handle: &ChunkWorkerHandle, chunk: Arc<Chunk>, entities: Vec<EntityData>) {
+pub fn save_chunk(
+    handle: &ChunkWorkerHandle,
+    chunk: Arc<RwLock<Chunk>>,
+    entities: Vec<EntityData>,
+) {
     handle
         .sender
         .send(chunk_worker::Request::SaveChunk(chunk, entities))

@@ -11,6 +11,7 @@ use feather_core::region;
 use feather_core::region::{RegionHandle, RegionPosition};
 use feather_core::{Chunk, ChunkPosition};
 use hashbrown::HashMap;
+use parking_lot::RwLock;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -24,7 +25,7 @@ pub enum Reply {
 #[derive(Clone)]
 pub enum Request {
     LoadChunk(ChunkPosition),
-    SaveChunk(Arc<Chunk>, Vec<EntityData>),
+    SaveChunk(Arc<RwLock<Chunk>>, Vec<EntityData>),
     ShutDown,
 }
 
@@ -120,7 +121,7 @@ fn run(mut worker: ChunkWorker) {
         match request {
             Request::ShutDown => break,
             Request::SaveChunk(chunk, entities) => {
-                save_chunk(&mut worker, &chunk, entities);
+                save_chunk(&mut worker, &*chunk.read(), entities);
             }
             Request::LoadChunk(pos) => {
                 if let Some(reply) = load_chunk(&mut worker, pos) {

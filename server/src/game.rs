@@ -23,6 +23,7 @@ use crate::network::Network;
 use crate::p_inventory::InventoryUpdateEvent;
 use crate::player;
 use crate::player::Player;
+use crate::save::{on_chunk_load_queue_for_saving, on_chunk_unload_save_chunk, SaveQueue};
 use crate::time::{on_player_join_send_time, Time};
 use crate::view::{
     on_chunk_cross_update_chunks, on_chunk_cross_update_entities, on_chunk_load_send_to_clients,
@@ -77,6 +78,7 @@ pub struct Game {
     pub chunk_entities: ChunkEntities,
     pub(super) rng: CachedThreadLocal<RefCell<XorShiftRng>>,
     pub time: Time,
+    pub save_queue: SaveQueue,
 }
 
 impl Game {
@@ -282,6 +284,14 @@ impl Game {
     /// Called when a chunk loads successfully.
     pub fn on_chunk_load(&mut self, world: &mut World, chunk: ChunkPosition) {
         on_chunk_load_send_to_clients(self, world, chunk);
+        on_chunk_load_queue_for_saving(self, chunk);
+    }
+
+    /// Called when a chunk unloads.
+    ///
+    /// This is called _before_ the chunk is removed from the chunk map.
+    pub fn on_chunk_unload(&mut self, world: &mut World, chunk: ChunkPosition) {
+        on_chunk_unload_save_chunk(self, world, chunk);
     }
 
     /// Called when a chunk fails to load.
