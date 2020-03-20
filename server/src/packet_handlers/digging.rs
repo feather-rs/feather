@@ -4,21 +4,23 @@
 //! for actions mostly unrelated to digging including eating, shooting bows,
 //! swapping items out to the offhand, and dropping items.
 
-use crate::game::Game;
-use crate::p_inventory::{EntityInventory, InventoryUpdateEvent};
-use crate::packet_buffer::PacketBuffers;
-use feather_core::network::packet::implementation::{PlayerDigging, PlayerDiggingStatus, SpawnObject};
-use feather_core::{Block, Gamemode, Item, Position, ItemStack, EntityMetadata, Packet, Vec3d, vec3};
-use fecs::{Entity, World, EntityBuilder, EntityRef};
-use std::sync::Arc;
-use feather_core::inventory::{SlotIndex, SLOT_OFFHAND, SLOT_HOTBAR_OFFSET};
-use crate::player::{ItemTimedUse, PLAYER_EYE_HEIGHT};
-use crate::entity::{new_id, EntityId, PreviousPosition, PreviousVelocity, Velocity, SpawnPacketCreator, ComponentSerializer};
-use crate::physics::{PhysicsBuilder, charge_from_ticks_held, compute_projectile_velocity};
 use crate::entity;
-use crate::util::{protocol_velocity, degrees_to_stops};
+use crate::entity::{ComponentSerializer, EntityId, SpawnPacketCreator, Velocity};
+use crate::game::Game;
+use crate::p_inventory::EntityInventory;
+use crate::packet_buffer::PacketBuffers;
+use crate::physics::{charge_from_ticks_held, compute_projectile_velocity, PhysicsBuilder};
+use crate::player::{ItemTimedUse, PLAYER_EYE_HEIGHT};
+use crate::util::{degrees_to_stops, protocol_velocity};
+use feather_core::entity::{ArrowEntityData, BaseEntityData, EntityData};
+use feather_core::inventory::{SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
+use feather_core::network::packet::implementation::{
+    PlayerDigging, PlayerDiggingStatus, SpawnObject,
+};
+use feather_core::{Block, Gamemode, Item, ItemStack, Packet, Position, Vec3d};
+use fecs::{Entity, EntityRef, World};
+use std::sync::Arc;
 use uuid::Uuid;
-use feather_core::entity::{EntityData, ArrowEntityData, BaseEntityData};
 
 /// System responsible for polling for PlayerDigging
 /// packets and writing the corresponding events.
@@ -36,7 +38,7 @@ pub fn handle_player_digging(
         match packet.status {
             StartedDigging | FinishedDigging | CancelledDigging => {
                 handle_digging(game, world, player, packet)
-            },
+            }
             /*DropItem | DropItemStack => handle_drop_item_stack(
                 packet,
                 player,
@@ -44,10 +46,7 @@ pub fn handle_player_digging(
                 item_drops,
                 &mut inventory,
             ),*/
-
-            ConsumeItem => {
-                handle_consume_item(game, world, player, packet)
-            },
+            ConsumeItem => handle_consume_item(game, world, player, packet),
 
             status => warn!("Unhandled Player Digging status {:?}", status),
         }
@@ -153,7 +152,6 @@ fn handle_drop_item_stack(
 }
 */
 
-
 /// Handles food consumption and shooting arrows.
 fn handle_consume_item(game: &mut Game, world: &mut World, player: Entity, packet: PlayerDigging) {
     assert_eq!(packet.status, PlayerDiggingStatus::ConsumeItem);
@@ -164,7 +162,6 @@ fn handle_consume_item(game: &mut Game, world: &mut World, player: Entity, packe
 
     if let Some(item) = used_item {
         if item.ty == Item::Bow {
-            drop(used_item);
             drop(inventory);
             handle_shoot_bow(game, world, player);
         }
@@ -172,11 +169,7 @@ fn handle_consume_item(game: &mut Game, world: &mut World, player: Entity, packe
     }
 }
 
-fn handle_shoot_bow(
-    game: &mut Game,
-    world: &mut World,
-    player: Entity
-) {
+fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
     let inventory = world.get::<EntityInventory>(player);
     let arrow_to_consume: Option<(SlotIndex, ItemStack)> = find_arrow(&inventory);
     // Unnecessary until more gamemodes are supported
@@ -204,7 +197,7 @@ fn handle_shoot_bow(
 
     drop(inventory); // Inventory no longer used.
 
-    let arrow_type: Item = match arrow_to_consume {
+    let _arrow_type: Item = match arrow_to_consume {
         None => Item::Arrow, // Default to generic arrow in creative mode with none in inventory
         Some((_, arrow_stack)) => arrow_stack.ty,
     };
@@ -232,25 +225,35 @@ fn handle_shoot_bow(
 
     let direction = init_position.direction();
 
-    let arrow_velocity = compute_projectile_velocity(glm::vec3(direction.x, direction.y, direction.z), charge_force as f64, 0.0, &mut *game.rng());
-    debug!("Computed exit velocity: {}. Velocity is norm {}", arrow_velocity, arrow_velocity.norm());
+    let arrow_velocity = compute_projectile_velocity(
+        glm::vec3(direction.x, direction.y, direction.z),
+        charge_force as f64,
+        0.0,
+        &mut *game.rng(),
+    );
+    debug!(
+        "Computed exit velocity: {}. Velocity is norm {}",
+        arrow_velocity,
+        arrow_velocity.norm()
+    );
 
     drop(timed_use);
 
-    world.remove::<ItemTimedUse>(player);
+    world.remove::<ItemTimedUse>(player).unwrap();
 
     debug!("Preparing to spawn entity");
 
     let entity = entity::base(init_position)
-        .with(Velocity(glm::DVec3::from(arrow_velocity)))
+        .with(Velocity(arrow_velocity))
         .with(SpawnPacketCreator(&create_spawn_packet))
         .with(ComponentSerializer(&serialize))
-        .with(PhysicsBuilder::new()
-            .bbox(0.5, 0.5, 0.5)
-            .gravity(-0.05)
-            .slip_multiplier(0.0)
-            .drag(0.99)
-            .build()
+        .with(
+            PhysicsBuilder::new()
+                .bbox(0.5, 0.5, 0.5)
+                .gravity(-0.05)
+                .slip_multiplier(0.0)
+                .drag(0.99)
+                .build(),
         )
         .build()
         .spawn_in(world);
@@ -262,14 +265,14 @@ fn find_arrow(inventory: &EntityInventory) -> Option<(SlotIndex, ItemStack)> {
 
     if let Some(offhand) = inventory.item_at(SLOT_OFFHAND) {
         if is_arrow_item(offhand.ty) {
-            return Some((SLOT_OFFHAND, offhand.clone()));
+            return Some((SLOT_OFFHAND, *offhand));
         }
     }
 
     for hotbar_slot in 0..9 {
         if let Some(hotbar_stack) = inventory.item_at(SLOT_HOTBAR_OFFSET + hotbar_slot) {
             if is_arrow_item(hotbar_stack.ty) {
-                return Some((SLOT_HOTBAR_OFFSET + hotbar_slot, hotbar_stack.clone()));
+                return Some((SLOT_HOTBAR_OFFSET + hotbar_slot, *hotbar_stack));
             }
         }
     }
@@ -277,7 +280,7 @@ fn find_arrow(inventory: &EntityInventory) -> Option<(SlotIndex, ItemStack)> {
     for inv_slot in 9..=35 {
         if let Some(inv_stack) = inventory.item_at(inv_slot) {
             if is_arrow_item(inv_stack.ty) {
-                return Some((inv_slot, inv_stack.clone()));
+                return Some((inv_slot, *inv_stack));
             }
         }
     }
@@ -310,13 +313,13 @@ fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
         data: entity_id + 1,
         velocity_x,
         velocity_y,
-        velocity_z
+        velocity_z,
     };
 
     Box::new(packet)
 }
 
-fn serialize(game: &Game, accessor: &EntityRef) -> EntityData {
+fn serialize(_game: &Game, accessor: &EntityRef) -> EntityData {
     let vel = accessor.get::<Velocity>();
 
     EntityData::Arrow(ArrowEntityData {

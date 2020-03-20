@@ -26,7 +26,7 @@ pub struct Player;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ItemTimedUse {
-    pub tick_start: u64
+    pub tick_start: u64,
 }
 
 /// Creates a new player from the given `NewClientInfo`.

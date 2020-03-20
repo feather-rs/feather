@@ -16,11 +16,11 @@ use ncollide3d::bounding_volume::AABB;
 use ncollide3d::query;
 use ncollide3d::query::{Ray, RayCast};
 use ncollide3d::shape::{Compound, Cuboid, ShapeHandle};
+use rand::Rng;
+use rand_distr::{Distribution, StandardNormal};
 use smallvec::SmallVec;
 use std::cmp::Ordering;
 use std::f64::INFINITY;
-use rand_distr::{Normal, Distribution, StandardNormal};
-use rand::Rng;
 
 // TODO is a bitflag really the most
 // idiomatic way to do this?
@@ -228,7 +228,6 @@ pub fn block_impacted_by_ray(
     None
 }
 
-
 pub fn charge_from_ticks_held(ticks: u32) -> f32 {
     let ticks = ticks as f32;
 
@@ -241,8 +240,17 @@ pub fn charge_from_ticks_held(ticks: u32) -> f32 {
     unbounded_force
 }
 
-pub fn compute_projectile_velocity(direction: DVec3, charge: f64, inaccuracy: f64, rng: &mut impl Rng) -> DVec3 {
-    let gaussian = vec3(StandardNormal.sample(rng), StandardNormal.sample(rng), StandardNormal.sample(rng));
+pub fn compute_projectile_velocity(
+    direction: DVec3,
+    charge: f64,
+    inaccuracy: f64,
+    rng: &mut impl Rng,
+) -> DVec3 {
+    let gaussian = vec3(
+        StandardNormal.sample(rng),
+        StandardNormal.sample(rng),
+        StandardNormal.sample(rng),
+    );
     let inaccuracy = vec3(inaccuracy, inaccuracy, inaccuracy).component_mul(&gaussian) * 0.0075;
 
     (direction + inaccuracy) * charge
