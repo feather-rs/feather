@@ -460,6 +460,11 @@ lazy_static! {
         );
 
         m.insert(
+            PacketId(0x02, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::SpawnGlobalEntity,
+        );
+
+        m.insert(
             PacketId(0x03, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::SpawnMob,
         );
@@ -502,6 +507,11 @@ lazy_static! {
         m.insert(
             PacketId(0x0B, PacketDirection::Clientbound, PacketStage::Play),
             PacketType::BlockChange,
+        );
+
+        m.insert(
+            PacketId(0x20, PacketDirection::Clientbound, PacketStage::Play),
+            PacketType::ChangeGameState,
         );
 
         m.insert(
