@@ -270,7 +270,7 @@ impl Game {
         on_player_join_send_existing_entities(world, player);
         on_player_join_send_time(self, world, player);
         on_player_join_trigger_chunk_cross(self, world, player);
-        send_weather(self, world, player);
+        send_weather(world, player, self.weather());
     }
 
     /// Called when a player leaves.
@@ -339,13 +339,17 @@ impl Game {
     }
 
     /// Called when weather changes
-    pub fn on_weather_change(&mut self, world: &mut World, event: WeatherChangeEvent) {
+    pub fn on_weather_change(&mut self, world: &mut World, event: &mut WeatherChangeEvent) {
         broadcast_weather(self, world, event.to);
     }
 
     /// Returns the current state of the weather
     pub fn weather(&self) -> Weather {
         crate::weather::get_weather(&self)
+    }
+
+    pub fn set_weather(&mut self, weather: Weather, duration: i32) -> Weather {
+        crate::weather::set_weather(self, weather, duration)
     }
 }
 

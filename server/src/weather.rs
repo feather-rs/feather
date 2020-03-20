@@ -2,84 +2,118 @@ use crate::{network::Network, Game, World};
 use feather_core::network::packet::implementation::ChangeGameState;
 use fecs::Entity;
 use rand::Rng;
+use std::cmp;
 
 const TICKS_DAY: i32 = 24_000;
 const TICKS_HALF_DAY: i32 = TICKS_DAY / 2;
 const TICKS_WEEK: i32 = TICKS_DAY * 7;
 const THUNDER_FACTOR: i32 = 10;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum Weather {
     Clear,
     Rain,
     Thunder,
 }
 
+#[derive(Clone, Copy)]
 pub struct WeatherChangeEvent {
     pub from: Weather,
     pub to: Weather,
+    pub duration: i32,
+}
+
+pub fn clear_weather(game: &mut Game) {
+    let durration = game
+        .rng()
+        .gen_range(TICKS_HALF_DAY, TICKS_WEEK + TICKS_HALF_DAY);
+    set_weather(game, Weather::Clear, durration);
 }
 
 #[system]
 pub fn handle_weather(game: &mut Game, world: &mut World) {
+    if game.level.clear_weather_time >= 0 {
+        game.level.clear_weather_time -= 1;
+        return;
+    }
+
     let from = game.weather();
 
-    if game.level.rain_time <= 0 {
-        game.level.raining = !game.level.raining;
-
-        let duration = if game.level.raining {
-            game.rng().gen_range(TICKS_HALF_DAY, TICKS_DAY)
+    game.level.rain_time -= 1;
+    let mut to = if game.level.rain_time <= 0 {
+        if game.level.raining {
+            Weather::Clear
         } else {
-            game.rng()
-                .gen_range(TICKS_HALF_DAY, TICKS_WEEK + TICKS_HALF_DAY)
-        };
+            Weather::Rain
+        }
+    } else {
+        from
+    };
 
-        game.level.rain_time = duration;
-    }
-
-    if game.level.thunder_time <= 0 {
-        game.level.thundering = !game.level.thundering;
-
-        let duration = if game.level.raining {
-            game.rng().gen_range(TICKS_HALF_DAY, TICKS_DAY)
+    game.level.thunder_time -= 1;
+    to = if game.level.thunder_time <= 0 {
+        if game.level.thundering {
+            Weather::Clear
         } else {
-            // Let the time between thunderstorms be THUNDER_FACTOR larger than normal rain.
-            // Ie. roughly 10 normal rain between thunderstorms.
-            game.rng()
-                .gen_range(TICKS_HALF_DAY, TICKS_WEEK + TICKS_HALF_DAY)
-                * THUNDER_FACTOR
-        };
-
-        game.level.thunder_time = duration;
-    }
-
-    let to = game.weather();
+            Weather::Thunder
+        }
+    } else {
+        to
+    };
 
     if from != to {
-        game.on_weather_change(world, WeatherChangeEvent { from, to })
+        let duration = match to {
+            Weather::Clear => game
+                .rng()
+                .gen_range(TICKS_HALF_DAY, TICKS_WEEK + TICKS_HALF_DAY),
+            _ => game.rng().gen_range(TICKS_HALF_DAY, TICKS_DAY),
+        };
+        let mut event = WeatherChangeEvent { from, to, duration };
+        game.on_weather_change(world, &mut event);
+        if event.to != from {
+            set_weather(game, event.to, event.duration);
+        }
     }
-
-    game.level.rain_time -= 1;
-    game.level.thunder_time -= 1;
 }
 
 pub fn get_weather(game: &Game) -> Weather {
-    match (game.level.raining, game.level.thundering) {
-        (_, true) => Weather::Thunder,
-        (true, false) => Weather::Rain,
-        (false, false) => Weather::Clear,
+    if game.level.clear_weather_time > 0 {
+        Weather::Clear
+    } else if game.level.thundering {
+        Weather::Thunder
+    } else if game.level.raining {
+        Weather::Rain
+    } else {
+        Weather::Clear
     }
 }
 
-pub fn set_weather(world: &mut World, player: Entity, to: Weather) {
+pub fn set_weather(game: &mut Game, weather: Weather, duration: i32) -> Weather {
+    let from = get_weather(game);
+    match weather {
+        Weather::Rain => {
+            game.level.raining = true;
+            game.level.rain_time = duration;
+        }
+        Weather::Thunder => {
+            game.level.thundering = true;
+            game.level.thunder_time = duration;
+        }
+        Weather::Clear => {
+            game.level.raining = false;
+            game.level.rain_time = 0;
+            game.level.thundering = false;
+            game.level.thunder_time = 0;
+            game.level.clear_weather_time = duration;
+        }
+    };
+    from
+}
+
+pub fn send_weather(world: &mut World, player: Entity, to: Weather) {
     let network = world.get::<Network>(player);
 
     network.send(create_weather_packet(to));
-}
-
-pub fn send_weather(game: &Game, world: &mut World, player: Entity) {
-    let weather = game.weather();
-    set_weather(world, player, weather)
 }
 
 pub fn broadcast_weather(game: &mut Game, world: &mut World, to: Weather) {
