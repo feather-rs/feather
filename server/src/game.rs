@@ -28,6 +28,7 @@ use crate::view::{
     on_chunk_cross_update_chunks, on_chunk_cross_update_entities, on_chunk_load_send_to_clients,
     on_player_join_trigger_chunk_cross, ChunksToSend,
 };
+use crate::weather::{broadcast_weather, send_weather, Weather, WeatherChangeEvent};
 use bumpalo::Bump;
 use feather_blocks::Block;
 use feather_core::level::LevelData;
@@ -269,6 +270,7 @@ impl Game {
         on_player_join_send_existing_entities(world, player);
         on_player_join_send_time(self, world, player);
         on_player_join_trigger_chunk_cross(self, world, player);
+        send_weather(self, world, player);
     }
 
     /// Called when a player leaves.
@@ -334,6 +336,16 @@ impl Game {
     /// Called when an entity collects an item entity.
     pub fn on_item_collect(&mut self, world: &mut World, event: ItemCollectEvent) {
         on_item_collect_broadcast(self, world, &event);
+    }
+
+    /// Called when weather changes
+    pub fn on_weather_change(&mut self, world: &mut World, event: WeatherChangeEvent) {
+        broadcast_weather(self, world, event.to);
+    }
+
+    /// Returns the current state of the weather
+    pub fn weather(&self) -> Weather {
+        crate::weather::get_weather(&self)
     }
 }
 

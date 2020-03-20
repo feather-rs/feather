@@ -159,8 +159,8 @@ mod systems;
 mod time;
 pub mod util;
 mod view;
-pub mod worldgen;
 mod weather;
+pub mod worldgen;
 
 pub type BumpVec<'a, T> = bumpalo::collections::Vec<'a, T>;
 
