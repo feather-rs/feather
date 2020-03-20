@@ -34,6 +34,9 @@ impl WorldGenerator for SuperflatWorldGenerator {
             }
             y_counter += layer.height;
         }
+
+        chunk.recalculate_heightmap();
+
         chunk
     }
 }

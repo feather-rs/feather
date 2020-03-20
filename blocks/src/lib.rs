@@ -73,6 +73,12 @@ pub trait BlockExt {
     /// light will be stopped by this block.
     fn is_opaque(&self) -> bool;
 
+    fn is_air(&self) -> bool;
+
+    fn is_fluid(&self) -> bool;
+
+    fn is_leaves(&self) -> bool;
+
     /// Returns the light level emitted by this block.
     fn light_emission(&self) -> u8;
 }
@@ -211,6 +217,32 @@ impl BlockExt for Block {
         match self {
             Block::Air | Block::Glass | Block::GlassPane(_) | Block::IronBars(_) => false,
             _ => true,
+        }
+    }
+
+    fn is_air(&self) -> bool {
+        match self {
+            Block::Air | Block::CaveAir | Block::VoidAir => true,
+            _ => false,
+        }
+    }
+
+    fn is_fluid(&self) -> bool {
+        match self {
+            Block::Water(_) | Block::Lava(_) => true,
+            _ => false,
+        }
+    }
+
+    fn is_leaves(&self) -> bool {
+        match self {
+            Block::AcaciaLeaves(_)
+            | Block::BirchLeaves(_)
+            | Block::DarkOakLeaves(_)
+            | Block::JungleLeaves(_)
+            | Block::OakLeaves(_)
+            | Block::SpruceLeaves(_) => true,
+            _ => false,
         }
     }
 

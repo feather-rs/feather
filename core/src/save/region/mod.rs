@@ -30,6 +30,9 @@ const DATA_VERSION: i32 = 1631;
 /// Length, in bytes, of a sector.
 const SECTOR_BYTES: usize = 4096;
 
+/// The offset for each heightmap value
+const HEIGHTMAP_OFFSET: i64 = 9;
+
 /// Represents the data for a chunk after the "Chunk [x, y]" tag.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ChunkRoot {
@@ -53,6 +56,8 @@ pub struct ChunkLevel {
     biomes: Vec<i32>,
     #[serde(rename = "Entities")]
     entities: Vec<EntityData>,
+    #[serde(rename = "Heightmaps")]
+    heightmaps: Vec<i64>,
 }
 
 /// Represents a chunk section in a region file.
@@ -200,6 +205,8 @@ impl RegionHandle {
         // Chunk was not modified, but it thinks it was: disable this
         chunk.check_modified();
 
+        chunk.recalculate_heightmap();
+
         Ok((chunk, level.entities.to_vec()))
     }
 
@@ -344,6 +351,18 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
 }
 
 fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
+    let heightmaps: Vec<i64> = chunk
+        .heightmaps()
+        .iter()
+        .map(|map| {
+            (map.motion_blocking() as i64)
+                + ((map.motion_blocking_no_leaves() as i64) << HEIGHTMAP_OFFSET)
+                + ((map.ocean_floor() as i64) << (HEIGHTMAP_OFFSET * 2))
+                + ((map.ocean_floor_wg() as i64) << (HEIGHTMAP_OFFSET * 3))
+                + ((map.world_surface() as i64) << (HEIGHTMAP_OFFSET * 4))
+                + ((map.world_surface_wg() as i64) << (HEIGHTMAP_OFFSET * 5))
+        })
+        .collect();
     ChunkRoot {
         level: ChunkLevel {
             x_pos: chunk.position().x,
@@ -370,6 +389,7 @@ fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
                 .map(|biome| biome.protocol_id())
                 .collect(),
             entities,
+            heightmaps,
         },
         data_version: DATA_VERSION,
     }

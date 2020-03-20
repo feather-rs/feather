@@ -169,6 +169,8 @@ impl WorldGenerator for ComposableGenerator {
             }
         }
 
+        chunk.recalculate_heightmap();
+
         // Finishers.
         for finisher in &self.finishers {
             finisher.generate_for_chunk(
