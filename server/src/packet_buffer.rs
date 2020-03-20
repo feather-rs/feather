@@ -156,7 +156,7 @@ pub struct ChannelBuffer {
 
 impl ChannelBuffer {
     fn new() -> Self {
-        let (sender, receiver) = crossbeam::bounded(8);
+        let (sender, receiver) = crossbeam::unbounded();
         Self { sender, receiver }
     }
 

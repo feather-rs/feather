@@ -21,7 +21,7 @@ pub fn handle_chat(game: &mut Game, world: &mut World, packet_buffers: &Arc<Pack
                 ]
             });
 
-            info!("<{}> {}", player_name.0, message);
+            info!("<{}> {}", player_name.0, packet.message);
             drop(player_name);
 
             game.on_chat(
