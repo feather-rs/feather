@@ -21,6 +21,7 @@ use crate::util;
 use feather_blocks::Block;
 use feather_core::BlockPosition;
 use fecs::{EntityBuilder, World};
+use std::iter;
 
 /// Marker component stating that an entity is a notify entity.
 #[derive(Copy, Clone, Debug)]
@@ -58,6 +59,7 @@ fn notify_entity_for_block(block: Block, pos: BlockPosition) -> Option<EntityBui
 pub fn on_block_update_notify_adjacent(game: &mut Game, world: &mut World, pos: BlockPosition) {
     util::adjacent_blocks(pos)
         .into_iter()
+        .chain(iter::once(pos))
         .filter_map(|adjacent_pos| {
             if let Some(adjacent_block) = game.block_at(adjacent_pos) {
                 Some((adjacent_block, adjacent_pos))

@@ -106,9 +106,11 @@ impl Game {
             None => return false,
         };
 
+        let result = self.chunk_map.set_block_at(pos, block);
+
         self.on_block_update(world, pos, old_block, block);
 
-        self.chunk_map.set_block_at(pos, block)
+        result
     }
 
     /// Despawns an entity. This should be used instead of `World::despawn`
