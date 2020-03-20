@@ -24,6 +24,7 @@ pub fn build_executor() -> Executor {
         .with(broadcasters::broadcast_keepalive)
         .with(broadcasters::broadcast_movement)
         .with(broadcasters::broadcast_velocity)
+        .with(entity::falling_block::spawn_falling_blocks)
         .with(save::chunk_save)
         .with(game::reset_bump_allocators)
         .with(game::increment_tick_count)

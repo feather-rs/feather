@@ -1,3 +1,4 @@
+use crate::block::on_block_update_notify_adjacent;
 use crate::broadcasters::{
     on_block_update_broadcast, on_chat_broadcast,
     on_entity_client_remove_update_last_known_positions, on_entity_despawn_broadcast_despawn,
@@ -17,12 +18,14 @@ use crate::chunk_logic::{
     ChunkUnloadQueue, ChunkWorkerHandle,
 };
 use crate::config::Config;
+use crate::entity::falling_block::on_entity_land_remove_falling_block;
 use crate::entity::item::{on_item_drop_spawn_item_entity, ItemCollectEvent, ItemDropEvent};
 use crate::entity::Name;
 use crate::io::{NetworkIoManager, NewClientInfo, ServerToWorkerMessage};
 use crate::join::{on_chunk_send_join_player, on_player_join_send_join_game};
 use crate::network::Network;
 use crate::p_inventory::InventoryUpdateEvent;
+use crate::physics::EntityPhysicsLandEvent;
 use crate::player;
 use crate::player::Player;
 use crate::save::{on_chunk_load_queue_for_saving, on_chunk_unload_save_chunk, SaveQueue};
@@ -235,6 +238,7 @@ impl Game {
         _old: Block,
         new: Block,
     ) {
+        on_block_update_notify_adjacent(self, world, pos);
         on_block_update_broadcast(self, world, pos, new);
     }
 
@@ -252,6 +256,11 @@ impl Game {
     }
 
     /// Called when an entity of any type is spawned/created.
+    ///
+    /// This function is only called for "normal" entities, i.e.
+    /// those which Minecraft normally considers entities. Auxiliary
+    /// entities used by Feather, such as the block notify entity
+    /// (see `crate::block`) are not included in this function.
     pub fn on_entity_spawn(&mut self, world: &mut World, entity: Entity) {
         on_entity_spawn_update_chunk_entities(self, world, entity);
         on_entity_spawn_send_to_clients(self, world, entity);
@@ -371,6 +380,11 @@ impl Game {
     /// Called when a chat message is broadcasted.
     pub fn on_chat(&mut self, world: &mut World, event: ChatEvent) {
         on_chat_broadcast(self, world, &event);
+    }
+
+    /// Called when an entity lands on the ground.
+    pub fn on_entity_land(&mut self, world: &mut World, event: EntityPhysicsLandEvent) {
+        on_entity_land_remove_falling_block(self, world, &event);
     }
 }
 

@@ -40,7 +40,6 @@ pub fn handle_player_block_placement(
         let placed_on = match game.block_at(packet.location) {
             Some(block) => block,
             None => {
-                drop(gamemode);
                 game.disconnect(player, world, "attempted to place block in unloaded chunk");
                 continue;
             }
@@ -54,7 +53,6 @@ pub fn handle_player_block_placement(
             _ => packet.location + packet.face.placement_offset(),
         };
 
-        drop(gamemode);
         game.set_block_at(world, pos, block);
 
         let mut inventory = world.get_mut::<EntityInventory>(player);
@@ -63,7 +61,6 @@ pub fn handle_player_block_placement(
         if gamemode == Gamemode::Survival {
             if item.amount == 0 {
                 drop(inventory);
-                drop(gamemode);
                 game.disconnect(
                     player,
                     world,

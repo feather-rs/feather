@@ -43,7 +43,7 @@ pub fn handle_creative_inventory_action(
                     // Cause item to be dropped
                     let event = ItemDropEvent {
                         slot: None,
-                        stack: stack.clone(),
+                        stack: *stack,
                         player,
                     };
                     game.on_item_drop(world, event);

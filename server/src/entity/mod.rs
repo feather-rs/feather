@@ -3,6 +3,7 @@
 //! block entities, monsters, etc. Player entities are handled in `crate::player`,
 //! not here.
 
+pub mod falling_block;
 pub mod item;
 
 use crate::game::Game;

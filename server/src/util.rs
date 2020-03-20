@@ -1,6 +1,7 @@
 //! Assorted utility functions.
 
-use feather_core::Position;
+use arrayvec::ArrayVec;
+use feather_core::{BlockPosition, Position};
 use glm::DVec3;
 
 /// Calculates the relative move fields
@@ -26,4 +27,16 @@ pub fn protocol_velocity(vel: DVec3) -> (i16, i16, i16) {
         (vel.y * 8000.0) as i16,
         (vel.z * 8000.0) as i16,
     )
+}
+
+/// Returns the set of block positions adjacent to a given position.
+pub fn adjacent_blocks(pos: BlockPosition) -> ArrayVec<[BlockPosition; 6]> {
+    ArrayVec::from([
+        pos + BlockPosition::new(1, 0, 0),
+        pos + BlockPosition::new(0, 1, 0),
+        pos + BlockPosition::new(0, 0, 1),
+        pos + BlockPosition::new(-1, 0, 0),
+        pos + BlockPosition::new(0, -1, 0),
+        pos + BlockPosition::new(0, 0, -1),
+    ])
 }

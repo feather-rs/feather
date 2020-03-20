@@ -96,7 +96,7 @@ pub fn save_chunk_at(game: &Game, world: &World, pos: ChunkPosition) {
     let entities = game
         .chunk_entities
         .entities_in_chunk(pos)
-        .into_iter()
+        .iter()
         .filter_map(|entity| {
             if let Some(serializer) = world.try_get::<ComponentSerializer>(*entity) {
                 let accessor = world.entity(*entity).expect("entity does not exist");

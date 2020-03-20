@@ -138,6 +138,7 @@ use thread_local::CachedThreadLocal;
 #[global_allocator]
 static ALLOC: Jemalloc = Jemalloc;
 
+mod block;
 mod broadcasters;
 mod chat;
 mod chunk_entities;
@@ -257,7 +258,7 @@ pub fn main() {
     info!("Shutting down");
 
     info!("Saving chunks");
-    shutdown::save_chunks(&*resources.get::<Game>(), &mut world);
+    shutdown::save_chunks(&*resources.get::<Game>(), &world);
     info!("Saving level.dat");
     shutdown::save_level(&world);
     info!("Saving player data");

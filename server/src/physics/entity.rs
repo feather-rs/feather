@@ -7,6 +7,7 @@ use crate::physics::{block_impacted_by_ray, blocks_intersecting_bbox, AABBExt, P
 use feather_core::Position;
 use feather_core::{Block, BlockExt};
 use fecs::{Entity, IntoQuery, Read, World, Write};
+use parking_lot::Mutex;
 
 /// Event triggered when an entity lands on the ground.
 #[derive(Debug, Clone)]
@@ -18,13 +19,15 @@ pub struct EntityPhysicsLandEvent {
 /// System for updating all entities' positions and velocities
 /// each tick.
 #[system]
-pub fn entity_physics(game: &Game, world: &mut World) {
+pub fn entity_physics(game: &mut Game, world: &mut World) {
     // Go through entities and update their positions according
     // to their velocities.
+    let land_events = Mutex::new(vec![]);
+
     let query = <(Write<Position>, Write<Velocity>, Read<Physics>)>::query();
-    query.par_for_each_mut(
+    query.par_entities_for_each_mut(
         world.inner_mut(),
-        |(mut position, mut velocity, physics)| {
+        |(entity, (mut position, mut velocity, physics))| {
             let mut pending_position = *position + velocity.0;
 
             // Check for blocks along path between old position and pending position.
@@ -97,14 +100,12 @@ pub fn entity_physics(game: &Game, world: &mut World) {
                 Some(block) => block.is_solid(),
                 None => false,
             };
-            /* TODO: land events
             if pending_position.on_ground && !position.on_ground {
-                land_events.lock().trigger(EntityPhysicsLandEvent {
+                land_events.lock().push(EntityPhysicsLandEvent {
                     entity,
                     pos: pending_position,
                 });
             }
-            */
 
             // Apply drag and gravity.
 
@@ -136,4 +137,9 @@ pub fn entity_physics(game: &Game, world: &mut World) {
             *position = pending_position;
         },
     );
+
+    // Trigger land events.
+    for event in land_events.into_inner() {
+        game.on_entity_land(world, event);
+    }
 }

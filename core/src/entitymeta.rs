@@ -22,7 +22,10 @@ pub const META_INDEX_CUSTOM_NAME: u8 = 2;
 pub const META_INDEX_IS_CUSTOM_NAME_VISIBLE: u8 = 3;
 pub const META_INDEX_IS_SILENT: u8 = 4;
 pub const META_INDEX_NO_GRAVITY: u8 = 5;
+
 pub const META_INDEX_ITEM_SLOT: u8 = 6;
+
+pub const META_INDEX_FALLING_BLOCK_SPAWN_POSITION: u8 = 7;
 
 bitflags! {
     pub struct EntityBitMask: u8 {

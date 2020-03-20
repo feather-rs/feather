@@ -251,6 +251,11 @@ impl BlockPosition {
     pub fn manhattan_distance(self, other: BlockPosition) -> i32 {
         (self.x - other.x).abs() + (self.y - other.y).abs() + (self.z - other.z).abs()
     }
+
+    /// Converts this `BlockPosition` to a `Position`.
+    pub fn position(self) -> Position {
+        self.into()
+    }
 }
 
 impl Add<BlockPosition> for BlockPosition {
