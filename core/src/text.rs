@@ -1,4 +1,5 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::borrow::Cow;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -21,6 +22,12 @@ pub enum Color {
     Black,
 }
 
+impl From<Color> for Text {
+    fn from(color: Color) -> Self {
+        Text::empty().color(color)
+    }
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Style {
@@ -31,7 +38,14 @@ pub enum Style {
     Obfuscated,
 }
 
+impl From<Style> for Text {
+    fn from(style: Style) -> Self {
+        Text::empty().style(style)
+    }
+}
+
 // TODO: use instead of string as keybind
+#[derive(Debug, PartialEq)]
 pub enum KeyBind {
     Attack,
     UseItem,
@@ -53,6 +67,7 @@ pub enum KeyBind {
     MouseSmoothing,
     Fullscreen,
     SpectatorOutlines,
+    SwapHands,
     SaveToolbar,
     LoadToolbar,
     Advancements,
@@ -65,20 +80,193 @@ pub enum KeyBind {
     Hotbar7,
     Hotbar8,
     Hotbar9,
-    // Suport custom keybinds?
-    Custom(String),
+    Custom(Cow<'static, str>),
+}
+
+impl From<KeyBind> for Text {
+    fn from(keybind: KeyBind) -> Self {
+        Text::keybind(keybind)
+    }
+}
+
+impl Serialize for KeyBind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(String::from(self).as_ref())
+    }
+}
+
+impl<'de> Deserialize<'de> for KeyBind {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Ok(KeyBind::from(s))
+    }
+}
+
+impl<T> From<T> for KeyBind
+where
+    T: Into<Cow<'static, str>>,
+{
+    fn from(keybind: T) -> Self {
+        let keybind = keybind.into();
+        match keybind.as_ref() {
+            "key_key.attack" => KeyBind::Attack,
+            "key_key.use" => KeyBind::UseItem,
+            "key_key.forward" => KeyBind::Forward,
+            "key_key.left" => KeyBind::Left,
+            "key_key.back" => KeyBind::Back,
+            "key_key.right" => KeyBind::Right,
+            "key_key.jump" => KeyBind::Jump,
+            "key_key.sneak" => KeyBind::Sneak,
+            "key_key.sprint" => KeyBind::Sprint,
+            "key_key.drop" => KeyBind::Drop,
+            "key_key.inventory" => KeyBind::Iventory,
+            "key_key.chat" => KeyBind::Chat,
+            "key_key.playerlist" => KeyBind::ListPlayers,
+            "key_key.pickItem" => KeyBind::PickBlock,
+            "key_key.command" => KeyBind::Command,
+            "key_key.screenshot" => KeyBind::Screenshot,
+            "key_key.togglePerspective" => KeyBind::Perspective,
+            "key_key.smoothCamera" => KeyBind::MouseSmoothing,
+            "key_key.fullscreen" => KeyBind::Fullscreen,
+            "key_key.spectatorOutlines" => KeyBind::SpectatorOutlines,
+            "key_key.swapHands" => KeyBind::SwapHands,
+            "key_key.saveToolbarActivator" => KeyBind::SaveToolbar,
+            "key_key.loadToolbarActivator" => KeyBind::LoadToolbar,
+            "key_key.advancements" => KeyBind::Advancements,
+            "key_key.hotbar.1" => KeyBind::Hotbar1,
+            "key_key.hotbar.2" => KeyBind::Hotbar2,
+            "key_key.hotbar.3" => KeyBind::Hotbar3,
+            "key_key.hotbar.4" => KeyBind::Hotbar4,
+            "key_key.hotbar.5" => KeyBind::Hotbar5,
+            "key_key.hotbar.6" => KeyBind::Hotbar6,
+            "key_key.hotbar.7" => KeyBind::Hotbar7,
+            "key_key.hotbar.8" => KeyBind::Hotbar8,
+            "key_key.hotbar.9" => KeyBind::Hotbar9,
+            _ => KeyBind::Custom(keybind),
+        }
+    }
+}
+
+impl From<&KeyBind> for String {
+    fn from(keybind: &KeyBind) -> Self {
+        match keybind {
+            KeyBind::Attack => "key_key.attack",
+            KeyBind::UseItem => "key_key.use",
+            KeyBind::Forward => "key_key.forward",
+            KeyBind::Left => "key_key.left",
+            KeyBind::Back => "key_key.back",
+            KeyBind::Right => "key_key.right",
+            KeyBind::Jump => "key_key.jump",
+            KeyBind::Sneak => "key_key.sneak",
+            KeyBind::Sprint => "key_key.sprint",
+            KeyBind::Drop => "key_key.drop",
+            KeyBind::Iventory => "key_key.inventory",
+            KeyBind::Chat => "key_key.chat",
+            KeyBind::ListPlayers => "key_key.playerlist",
+            KeyBind::PickBlock => "key_key.pickItem",
+            KeyBind::Command => "key_key.command",
+            KeyBind::Screenshot => "key_key.screenshot",
+            KeyBind::Perspective => "key_key.togglePerspective",
+            KeyBind::MouseSmoothing => "key_key.smoothCamera",
+            KeyBind::Fullscreen => "key_key.fullscreen",
+            KeyBind::SpectatorOutlines => "key_key.spectatorOutlines",
+            KeyBind::SwapHands => "key_key.swapHands",
+            KeyBind::SaveToolbar => "key_key.saveToolbarActivator",
+            KeyBind::LoadToolbar => "key_key.loadToolbarActivator",
+            KeyBind::Advancements => "key_key.advancements",
+            KeyBind::Hotbar1 => "key_key.hotbar.1",
+            KeyBind::Hotbar2 => "key_key.hotbar.2",
+            KeyBind::Hotbar3 => "key_key.hotbar.3",
+            KeyBind::Hotbar4 => "key_key.hotbar.4",
+            KeyBind::Hotbar5 => "key_key.hotbar.5",
+            KeyBind::Hotbar6 => "key_key.hotbar.6",
+            KeyBind::Hotbar7 => "key_key.hotbar.7",
+            KeyBind::Hotbar8 => "key_key.hotbar.8",
+            KeyBind::Hotbar9 => "key_key.hotbar.9",
+            KeyBind::Custom(bind) => bind.as_ref(),
+        }
+        .into()
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Translate {
+    ChatTypeText,
+    MultiplayerPlayerJoined,
+    Custom(Cow<'static, str>),
+}
+
+impl Serialize for Translate {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(String::from(self).as_ref())
+    }
+}
+
+impl<'de> Deserialize<'de> for Translate {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Ok(Translate::from(s))
+    }
+}
+
+impl<T> std::ops::Mul<T> for Translate
+where
+    T: IntoIterator,
+    T::Item: Into<Text>,
+{
+    type Output = Text;
+    fn mul(self, rhs: T) -> Text {
+        Text::translate_with(self, rhs)
+    }
+}
+
+impl<T> From<T> for Translate
+where
+    T: Into<Cow<'static, str>>,
+{
+    fn from(value: T) -> Translate {
+        let value = value.into();
+        match value.as_ref() {
+            "chat.type.text" => Translate::ChatTypeText,
+            "multiplayer.player.joined" => Translate::MultiplayerPlayerJoined,
+            _ => Translate::Custom(value),
+        }
+    }
+}
+
+impl<'a> From<&Translate> for String {
+    fn from(translate: &Translate) -> Self {
+        match translate {
+            Translate::ChatTypeText => "chat.type.text",
+            Translate::MultiplayerPlayerJoined => "multiplayer.player.joined",
+            Translate::Custom(key) => key.as_ref(),
+        }
+        .into()
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "action", content = "value")]
 // TODO: Accept any json primitive as string
 pub enum Click {
-    OpenUrl(String),
-    OpenFile(String),
-    RunCommand(String),
+    OpenUrl(Cow<'static, str>),
+    OpenFile(Cow<'static, str>),
+    RunCommand(Cow<'static, str>),
     ChangePage(i32),
-    SuggestCommand(String),
-    CopyToClipboard(String),
+    SuggestCommand(Cow<'static, str>),
+    CopyToClipboard(Cow<'static, str>),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -86,81 +274,99 @@ pub enum Click {
 // TODO: Accept any json primitive as string
 pub enum Hover {
     #[serde(rename = "show_text")]
-    ShowText(Box<RawText>),
+    ShowText(Box<Text>),
     #[serde(rename = "show_item")]
-    // TODO: Item struct 
+    // TODO: Item struct
     ShowItem(String),
-    #[serde(rename = "show_entity")] 
+    #[serde(rename = "show_entity")]
     // TODO: Entity struct
     ShowEntity(String),
 }
 
+// TODO: Transform into string, fn(self, translator: Translator) -> String
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum TextValue {
-    Text {
-        text: String,
+    TextComponent {
+        text: Cow<'static, str>,
     },
     Translate {
-        // TODO: Use translate enum?
-        translate: String,
-        with: Vec<String>,
+        translate: Translate,
+        with: Vec<Text>,
     },
     Score {
-        name: String,
-        objective: String,
-        value: Option<String>,
+        name: Cow<'static, str>,
+        objective: Cow<'static, str>,
+        value: Option<Cow<'static, str>>,
     },
     Selector {
-        selector: String,
+        selector: Cow<'static, str>,
     },
-    // TODO: Use keybind
     Keybind {
-        keybind: String,
+        keybind: KeyBind,
     },
-    // TODO: use NBT
     Nbt {
-        nbt: String,
+        nbt: nbt::Blob,
     },
 }
 
-impl<'a> From<&'a str> for TextValue {
-    fn from(value: &'a str) -> Self {
-        Self::text(value)
+impl<T> From<T> for TextValue
+where
+    T: Into<Cow<'static, str>>,
+{
+    fn from(value: T) -> Self {
+        Self::text(value.into())
     }
 }
 
 impl TextValue {
-    pub fn text(text: &str) -> Self {
-        TextValue::Text { text: text.into() }
+    pub fn text<T: Into<Cow<'static, str>>>(text: T) -> Self {
+        TextValue::TextComponent { text: text.into() }
     }
 
-    pub fn translate(translate: String, with: Vec<String>) -> Self {
-        TextValue::Translate { translate, with }
-    }
-
-    pub fn score(name: String, objective: String, value: Option<String>) -> Self {
-        TextValue::Score {
-            name,
-            objective,
-            value,
+    pub fn translate_with<A, B>(translate: A, with: B) -> Self
+    where
+        A: Into<Translate>,
+        B: IntoIterator,
+        B::Item: Into<Text>,
+    {
+        let with = with.into_iter().map(|e| e.into()).collect();
+        TextValue::Translate {
+            translate: translate.into(),
+            with,
         }
     }
 
-    // TODO: Use Keybind enum
-    pub fn keybind(keybind: String) -> Self {
-        TextValue::Keybind { keybind }
+    pub fn score<
+        A: Into<Cow<'static, str>>,
+        B: Into<Cow<'static, str>>,
+        C: Into<Cow<'static, str>>,
+    >(
+        name: A,
+        objective: B,
+        value: Option<C>,
+    ) -> Self {
+        TextValue::Score {
+            name: name.into(),
+            objective: objective.into(),
+            value: value.map(|v| v.into()),
+        }
     }
 
-    // TODO: use Nbt struct
-    pub fn nbt(nbt: String) -> Self {
-        TextValue::Nbt { nbt }
+    pub fn keybind<A: Into<KeyBind>>(keybind: A) -> Self {
+        TextValue::Keybind {
+            keybind: keybind.into(),
+        }
+    }
+
+    pub fn nbt<A: Into<nbt::Blob>>(nbt: A) -> Self {
+        TextValue::Nbt { nbt: nbt.into() }
     }
 }
 
 #[serde_with::skip_serializing_none]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Text {
+pub struct TextComponent {
     #[serde(flatten)]
     value: TextValue,
     color: Option<Color>,
@@ -169,191 +375,327 @@ pub struct Text {
     underlined: Option<bool>,
     strikethrough: Option<bool>,
     obfuscated: Option<bool>,
-    insertion: Option<String>,
-    #[serde(rename = "clickEvent")] 
+    insertion: Option<Cow<'static, str>>,
+    #[serde(rename = "clickEvent")]
     click: Option<Click>,
-    #[serde(rename = "hoverEvent")] 
+    #[serde(rename = "hoverEvent")]
     hover: Option<Hover>,
-    extra: Option<Vec<RawText>>,
+    extra: Option<Vec<Text>>,
 }
 
-impl Text {
-    pub fn style(mut self, style: Style) -> Self {
-        let value = Some(true);
-        match style {
-            Style::Bold => self.bold = value,
-            Style::Italic => self.italic = value,
-            Style::Obfuscated => self.obfuscated = value,
-            Style::Strikethrough => self.strikethrough = value,
-            Style::Underlined => self.underlined = value,
-        };
+impl std::ops::Add for TextComponent {
+    type Output = Text;
+
+    fn add(self, rhs: Self) -> Text {
+        Text::Array(vec![self.into(), rhs.into()])
+    }
+}
+
+impl std::ops::Mul<Color> for TextComponent {
+    type Output = TextComponent;
+    fn mul(self, rhs: Color) -> TextComponent {
+        self.color(rhs)
+    }
+}
+
+impl std::ops::Mul<Style> for TextComponent {
+    type Output = TextComponent;
+    fn mul(self, rhs: Style) -> TextComponent {
+        self.style(rhs)
+    }
+}
+
+impl std::ops::Mul<Click> for TextComponent {
+    type Output = TextComponent;
+    fn mul(self, rhs: Click) -> TextComponent {
+        self.on_click(rhs)
+    }
+}
+
+impl std::ops::Mul<Hover> for TextComponent {
+    type Output = TextComponent;
+    fn mul(self, rhs: Hover) -> TextComponent {
+        self.on_hover(rhs)
+    }
+}
+
+impl Default for TextComponent {
+    fn default() -> Self {
+        Self::empty()
+    }
+}
+
+pub trait IntoTextComponent {
+    fn into_component(self) -> TextComponent;
+}
+
+// TODO: unset styles, set styles to false, unset color
+impl TextComponent {
+    pub fn empty() -> TextComponent {
+        TextComponent::from("")
+    }
+}
+
+pub trait TextComponentBuilder {
+    fn style(self, style: Style) -> Self;
+    fn bold(self) -> Self;
+    fn italic(self) -> Self;
+    fn obfuscated(self) -> Self;
+    fn strikethrough(self) -> Self;
+    fn underlined(self) -> Self;
+
+    fn color(self, color: Color) -> Self;
+    fn dark_red(self) -> Self;
+    fn red(self) -> Self;
+    fn gold(self) -> Self;
+    fn yellow(self) -> Self;
+    fn dark_green(self) -> Self;
+    fn green(self) -> Self;
+    fn aqua(self) -> Self;
+    fn dark_aqua(self) -> Self;
+    fn dark_blue(self) -> Self;
+    fn blue(self) -> Self;
+    fn light_purple(self) -> Self;
+    fn dark_purple(self) -> Self;
+    fn white(self) -> Self;
+    fn gray(self) -> Self;
+    fn dark_gray(self) -> Self;
+    fn black(self) -> Self;
+
+    fn insertion<A: Into<Cow<'static, str>>>(self, insertion: A) -> Self;
+
+    fn on_click(self, click: Click) -> Self;
+    fn on_click_change_page(self, page: i32) -> Self;
+    fn on_click_copy_to_clipboard<A: Into<Cow<'static, str>>>(self, to_copy: A) -> Self;
+    fn on_click_open_file<A: Into<Cow<'static, str>>>(self, path: A) -> Self;
+    fn on_click_open_url<A: Into<Cow<'static, str>>>(self, url: A) -> Self;
+    fn on_click_run_command<A: Into<Cow<'static, str>>>(self, command: A) -> Self;
+    fn on_click_suggest_command<A: Into<Cow<'static, str>>>(self, command: A) -> Self;
+
+    fn on_hover(self, hover: Hover) -> Self;
+    fn on_hover_show_entity(self, entity: String) -> Self;
+    fn on_hover_show_item(self, item: String) -> Self;
+    fn on_hover_show_text<A: Into<Text>>(self, text: A) -> Self;
+
+    fn extra<A>(self, extra: A) -> Self
+    where
+        A: IntoIterator,
+        A::Item: Into<Text>;
+    fn push_extra<A: Into<Text>>(self, extra: A) -> Self;
+
+    fn reset(self) -> Self;
+}
+
+impl IntoTextComponent for TextComponent {
+    fn into_component(self) -> TextComponent {
         self
     }
+}
 
-    pub fn bold(mut self) -> Self {
+impl<T> TextComponentBuilder for T
+where
+    T: IntoTextComponent + From<TextComponent>,
+{
+    fn style(self, style: Style) -> Self {
+        let mut component = self.into_component();
+        let value = Some(true);
+        match style {
+            Style::Bold => component.bold = value,
+            Style::Italic => component.italic = value,
+            Style::Obfuscated => component.obfuscated = value,
+            Style::Strikethrough => component.strikethrough = value,
+            Style::Underlined => component.underlined = value,
+        };
+        component.into()
+    }
+
+    fn bold(self) -> Self {
         self.style(Style::Bold)
     }
 
-    pub fn italic(mut self) -> Self {
+    fn italic(self) -> Self {
         self.style(Style::Italic)
     }
 
-    pub fn obfuscated(mut self) -> Self {
+    fn obfuscated(self) -> Self {
         self.style(Style::Obfuscated)
     }
 
-    pub fn strikethrough(mut self) -> Self {
+    fn strikethrough(self) -> Self {
         self.style(Style::Strikethrough)
     }
 
-    pub fn underlined(mut self) -> Self {
+    fn underlined(self) -> Self {
         self.style(Style::Underlined)
     }
 
     // Colors
-    pub fn color(mut self, color: Color) -> Self {
-        self.color = Some(color);
-        self
+    fn color(self, color: Color) -> Self {
+        let mut component = self.into_component();
+        component.color = Some(color);
+        component.into()
     }
 
-    pub fn dark_red(mut self) -> Self {
+    fn dark_red(self) -> Self {
         self.color(Color::DarkRed)
     }
 
-    pub fn red(mut self) -> Self {
+    fn red(self) -> Self {
         self.color(Color::Red)
     }
 
-    pub fn gold(mut self) -> Self {
+    fn gold(self) -> Self {
         self.color(Color::Gold)
     }
 
-    pub fn yellow(mut self) -> Self {
+    fn yellow(self) -> Self {
         self.color(Color::Yellow)
     }
 
-    pub fn dark_green(mut self) -> Self {
+    fn dark_green(self) -> Self {
         self.color(Color::DarkGreen)
     }
 
-    pub fn green(mut self) -> Self {
+    fn green(self) -> Self {
         self.color(Color::Green)
     }
 
-    pub fn aqua(mut self) -> Self {
+    fn aqua(self) -> Self {
         self.color(Color::Aqua)
     }
 
-    pub fn dark_aqua(mut self) -> Self {
+    fn dark_aqua(self) -> Self {
         self.color(Color::DarkAqua)
     }
 
-    pub fn dark_blue(mut self) -> Self {
+    fn dark_blue(self) -> Self {
         self.color(Color::DarkBlue)
     }
 
-    pub fn blue(mut self) -> Self {
+    fn blue(self) -> Self {
         self.color(Color::Blue)
     }
 
-    pub fn light_purple(mut self) -> Self {
+    fn light_purple(self) -> Self {
         self.color(Color::LightPurple)
     }
 
-    pub fn dark_purple(mut self) -> Self {
+    fn dark_purple(self) -> Self {
         self.color(Color::DarkPurple)
     }
 
-    pub fn white(mut self) -> Self {
+    fn white(self) -> Self {
         self.color(Color::White)
     }
 
-    pub fn gray(mut self) -> Self {
+    fn gray(self) -> Self {
         self.color(Color::Gray)
     }
 
-    pub fn dark_gray(mut self) -> Self {
+    fn dark_gray(self) -> Self {
         self.color(Color::DarkGray)
     }
 
-    pub fn black(mut self) -> Self {
+    fn black(self) -> Self {
         self.color(Color::Black)
     }
 
-    pub fn insertion(mut self, insertion: String) -> Self {
-        self.insertion = Some(insertion);
-        self
+    fn insertion<A: Into<Cow<'static, str>>>(self, insertion: A) -> Self {
+        let mut component = self.into_component();
+        component.insertion = Some(insertion.into());
+        component.into()
     }
 
-    pub fn on_click(mut self, click: Click) -> Self {
-        self.click = Some(click);
-        self
+    fn on_click(self, click: Click) -> Self {
+        let mut component = self.into_component();
+        component.click = Some(click);
+        component.into()
     }
 
-    pub fn on_click_change_page(mut self, page: i32) -> Self {
+    fn on_click_change_page(self, page: i32) -> Self {
         self.on_click(Click::ChangePage(page))
     }
 
-    pub fn on_click_copy_to_clipboard(mut self, to_copy: String) -> Self {
-        self.on_click(Click::CopyToClipboard(to_copy))
+    fn on_click_copy_to_clipboard<A: Into<Cow<'static, str>>>(self, to_copy: A) -> Self {
+        self.on_click(Click::CopyToClipboard(to_copy.into()))
     }
 
-    pub fn on_click_open_file(mut self, path: String) -> Self {
-        self.on_click(Click::OpenFile(path))
+    fn on_click_open_file<A: Into<Cow<'static, str>>>(self, path: A) -> Self {
+        self.on_click(Click::OpenFile(path.into()))
     }
 
-    pub fn on_click_open_url(mut self, url: String) -> Self {
-        self.on_click(Click::OpenUrl(url))
+    fn on_click_open_url<A: Into<Cow<'static, str>>>(self, url: A) -> Self {
+        self.on_click(Click::OpenUrl(url.into()))
     }
 
-    pub fn on_click_run_command(mut self, command: String) -> Self {
-        self.on_click(Click::RunCommand(command))
+    fn on_click_run_command<A: Into<Cow<'static, str>>>(self, command: A) -> Self {
+        self.on_click(Click::RunCommand(command.into()))
     }
-    
-    pub fn on_click_(mut self, command: String) -> Self {
-        self.on_click(Click::SuggestCommand(command))
+    fn on_click_suggest_command<A: Into<Cow<'static, str>>>(self, command: A) -> Self {
+        self.on_click(Click::SuggestCommand(command.into()))
     }
 
-    pub fn on_hover(mut self, hover: Hover) -> Self {
-        self.hover = Some(hover);
-        self
+    fn on_hover(self, hover: Hover) -> Self {
+        let mut component = self.into_component();
+        component.hover = Some(hover);
+        component.into()
     }
 
     // TODO: Entity
-    pub fn on_hover_show_entity(mut self, entity: String) -> Self {
+    fn on_hover_show_entity(self, entity: String) -> Self {
         self.on_hover(Hover::ShowEntity(entity))
     }
 
     // TODO: ItemStack
-    pub fn on_hover_show_item(mut self, item: String) -> Self {
+    fn on_hover_show_item(self, item: String) -> Self {
         self.on_hover(Hover::ShowItem(item))
     }
 
-    // TODO: any kind of text
-    pub fn on_hover_show_text<T: Into<RawText>>(mut self, text: T) -> Self {
+    fn on_hover_show_text<A: Into<Text>>(self, text: A) -> Self {
         self.on_hover(Hover::ShowText(Box::new(text.into())))
     }
 
-    pub fn extra(mut self, extra: Vec<RawText>) -> Self {
-        self.extra = Some(extra);
-        self
+    fn extra<A>(self, extra: A) -> Self
+    where
+        A: IntoIterator,
+        A::Item: Into<Text>,
+    {
+        let mut component = self.into_component();
+        component.extra = Some(extra.into_iter().map(|e| e.into()).collect());
+        component.into()
     }
 
-    pub fn extra_push(mut self, extra: RawText) -> Self {
-        match self.extra {
-            Some(ref mut extras) => extras.push(extra),
-            None => self.extra = Some(vec![extra]),
+    fn push_extra<A: Into<Text>>(self, extra: A) -> Self {
+        let mut component = self.into_component();
+        match component.extra {
+            Some(ref mut extras) => extras.push(extra.into()),
+            None => component.extra = Some(vec![extra.into()]),
         };
-        self
+        component.into()
+    }
+
+    fn reset(self) -> Self {
+        let mut component = self.into_component();
+        component.color = None;
+        component.bold = None;
+        component.italic = None;
+        component.underlined = None;
+        component.strikethrough = None;
+        component.obfuscated = None;
+        component.insertion = None;
+        component.click = None;
+        component.hover = None;
+        component.extra = None;
+        component.into()
     }
 }
 
-impl<T> From<T> for Text
+impl<T> From<T> for TextComponent
 where
     T: Into<TextValue>,
 {
     fn from(value: T) -> Self {
-        Text {
+        TextComponent {
             value: value.into(),
             color: None,
             bold: None,
@@ -369,58 +711,184 @@ where
     }
 }
 
+impl From<Text> for TextComponent {
+    fn from(value: Text) -> Self {
+        match value {
+            Text::String(s) => TextComponent::from(s),
+            Text::Component(c) => *c,
+            Text::Array(arr) => TextComponent::from("").extra(arr),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum RawText {
-    String(String),
-    Array(Vec<RawText>),
-    Object(Text),
+pub enum Text {
+    String(Cow<'static, str>),
+    Array(Vec<Text>),
+    Component(Box<TextComponent>),
 }
 
-impl RawText {
-    pub fn text(text: &str) -> Self {
-        RawText::String(text.into())
-    }
-
-    // TODO: Shrink Text::Object and Text::Array when objects only contain TextValue and turn it into Text::String
-    pub fn shrink(&self) -> Self {
-        unimplemented!()
+impl IntoTextComponent for Text {
+    fn into_component(self) -> TextComponent {
+        match self {
+            Text::Component(c) => *c,
+            Text::String(text) => TextComponent::from(text),
+            Text::Array(arr) => TextComponent::empty().extra(arr),
+        }
     }
 }
 
-impl<T> From<T> for RawText
+impl Text {
+    pub fn empty() -> Self {
+        Self::from("")
+    }
+
+    pub fn of<A: Into<Cow<'static, str>>>(text: A) -> Self {
+        Text::from(text)
+    }
+
+    pub fn translate_with<A, B>(translate: A, with: B) -> Self
+    where
+        A: Into<Translate>,
+        B: IntoIterator,
+        B::Item: Into<Text>,
+    {
+        Text::from(TextValue::translate_with(translate, with))
+    }
+
+    pub fn score<
+        A: Into<Cow<'static, str>>,
+        B: Into<Cow<'static, str>>,
+        C: Into<Cow<'static, str>>,
+    >(
+        name: A,
+        objective: B,
+        value: Option<C>,
+    ) -> Text {
+        Text::from(TextValue::score(name, objective, value))
+    }
+
+    pub fn keybind<A: Into<KeyBind>>(keybind: A) -> Text {
+        Text::from(TextValue::keybind(keybind))
+    }
+
+    pub fn nbt<A: Into<nbt::Blob>>(nbt: A) -> Text {
+        Text::from(TextValue::nbt(nbt))
+    }
+}
+
+impl From<TextComponent> for Text {
+    fn from(component: TextComponent) -> Self {
+        Text::Component(Box::new(component))
+    }
+}
+
+impl From<TextValue> for Text {
+    fn from(value: TextValue) -> Self {
+        Text::from(TextComponent::from(value))
+    }
+}
+
+impl<T> From<T> for Text
+where
+    T: Into<Cow<'static, str>>,
+{
+    fn from(value: T) -> Self {
+        Text::String(value.into())
+    }
+}
+
+impl std::ops::Add<TextComponent> for Text {
+    type Output = Text;
+    fn add(self, rhs: TextComponent) -> Text {
+        self + Text::from(rhs)
+    }
+}
+
+impl std::ops::Add<Text> for Text {
+    type Output = Text;
+    fn add(mut self, rhs: Text) -> Text {
+        match self {
+            s @ Text::String(_) => Text::Array(vec![s, rhs]),
+            c @ Text::Component(_) => Text::Array(vec![Text::empty(), c, rhs]),
+            Text::Array(ref mut inner) => {
+                inner.push(rhs);
+                self
+            }
+        }
+    }
+}
+
+impl std::ops::Mul<Color> for Text {
+    type Output = Text;
+    fn mul(self, rhs: Color) -> Text {
+        self.into_component().color(rhs).into()
+    }
+}
+
+impl std::ops::Mul<Style> for Text {
+    type Output = Text;
+    fn mul(self, rhs: Style) -> Text {
+        self.into_component().style(rhs).into()
+    }
+}
+
+impl std::ops::Mul<Click> for Text {
+    type Output = Text;
+    fn mul(self, rhs: Click) -> Text {
+        self.into_component().on_click(rhs).into()
+    }
+}
+
+impl std::ops::Mul<Hover> for Text {
+    type Output = Text;
+    fn mul(self, rhs: Hover) -> Text {
+        self.into_component().on_hover(rhs).into()
+    }
+}
+
+impl From<Text> for String {
+    fn from(text: Text) -> String {
+        serde_json::to_string(&text).unwrap()
+    }
+}
+
+pub struct TextRoot(Text);
+
+impl From<TextRoot> for String {
+    fn from(text: TextRoot) -> String {
+        text.0.into()
+    }
+}
+
+impl<T> From<T> for TextRoot
 where
     T: Into<Text>,
 {
-    fn from(object: T) -> Self {
-        RawText::Object(object.into())
-    }
-}
-
-impl<T> From<Vec<T>> for RawText
-where
-    T: Into<Self> + Copy,
-{
-    fn from(value: Vec<T>) -> Self {
-        let value: Vec<RawText> = value.iter().map(|v| (*v).into()).collect();
-        RawText::Array(value)
+    fn from(text: T) -> Self {
+        match text.into() {
+            s @ Text::String(_) => TextRoot(s.into_component().into()),
+            c @ Text::Component(_) => TextRoot(c),
+            a @ Text::Array(_) => TextRoot(a),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::text::{Color, RawText, Text};
+    use crate::text::{Color, Style, Text, Translate};
     use std::error::Error;
 
     #[test]
     pub fn text_text_single() -> Result<(), Box<dyn Error>> {
-        let text_orignal = RawText::from("hello");
+        let text_orignal: Text = Text::from("hello").into();
 
         let text_json = serde_json::to_string(&text_orignal)?;
 
         assert_eq!(&text_json, r#"{"text":"hello"}"#);
 
-        let text: RawText = serde_json::from_str(&text_json)?;
+        let text: Text = serde_json::from_str(&text_json)?;
         assert_eq!(text_orignal, text);
 
         Ok(())
@@ -428,13 +896,16 @@ mod tests {
 
     #[test]
     fn text_text_array() -> Result<(), Box<dyn Error>> {
-        let text_orignal = RawText::from(vec!["hello", "world"]);
+        let text_orignal = Text::from("hello") + Text::from(" ") + Text::from("world!");
 
         let text_json = serde_json::to_string(&text_orignal)?;
 
-        assert_eq!(&text_json, r#"[{"text":"hello"},{"text":"world"}]"#);
+        assert_eq!(
+            &text_json,
+            r#"[{"text":"hello"},{"text":" "},{"text":"world!"}]"#
+        );
 
-        let text: RawText = serde_json::from_str(&text_json)?;
+        let text: Text = serde_json::from_str(&text_json)?;
         assert_eq!(text_orignal, text);
 
         Ok(())
@@ -442,20 +913,56 @@ mod tests {
 
     #[test]
     fn text_text_color() -> Result<(), Box<dyn Error>> {
-        let mut text_orignal: RawText = Text::from("hello world")
-            .red()
-            .into();
+        let text_orignal: Text = (Text::from("hello world") * Color::DarkRed).into();
 
         let text_json = serde_json::to_string(&text_orignal)?;
 
-        assert_eq!(&text_json, r#"{"text":"hello","color":"dark_red"}"#);
+        assert_eq!(&text_json, r#"{"text":"hello world","color":"dark_red"}"#);
 
-        let text: RawText = serde_json::from_str(&text_json)?;
+        let text: Text = serde_json::from_str(&text_json)?;
         assert_eq!(text_orignal, text);
 
         Ok(())
     }
 
     #[test]
-    fn text_translate() {}
+    fn text_hello_space_world() -> Result<(), Box<dyn Error>> {
+        let hello: Text = Text::from("hello") * Color::Red * Style::Italic * Style::Bold;
+        let space: Text = Text::from(" ");
+        let world: Text = Text::from("world") * Color::Blue * Style::Bold;
+        let hello_space_world: Text = hello + space + world;
+
+        let text_json = serde_json::to_string(&hello_space_world)?;
+
+        assert_eq!(
+            text_json,
+            r#"["",{"text":"hello","color":"red","bold":true,"italic":true}," ",{"text":"world","color":"blue","bold":true}]"#
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn text_translate() -> Result<(), Box<dyn Error>> {
+        let join =
+            Translate::from("multiplayer.player.joined") * vec!["The_Defman"] * Color::Yellow;
+
+        let text_json = serde_json::to_string(&join)?;
+
+        assert_eq!(
+            text_json,
+            r#"{"translate":"multiplayer.player.joined","with":["The_Defman"],"color":"yellow"}"#
+        );
+
+        let join = Translate::MultiplayerPlayerJoined * vec!["The_Defman"] * Color::Yellow;
+
+        let text_json = serde_json::to_string(&join)?;
+
+        assert_eq!(
+            text_json,
+            r#"{"translate":"multiplayer.player.joined","with":["The_Defman"],"color":"yellow"}"#
+        );
+
+        Ok(())
+    }
 }
