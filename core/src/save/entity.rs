@@ -147,7 +147,7 @@ impl BaseEntityData {
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq, Eq)]
 pub enum EntityLoadError {
     #[error("missing position/rotation/velocity data")]
     MissingData,
@@ -320,7 +320,7 @@ mod tests {
             velocity: vec![6.0, 7.0, 8.0],
         };
         let pos = data.read_position();
-        assert!(pos.is_none());
+        assert!(pos.is_err());
     }
 
     #[test]
@@ -331,7 +331,7 @@ mod tests {
             velocity: vec![6.0, 7.0, 8.0],
         };
         let pos = data.read_position();
-        assert!(pos.is_none());
+        assert!(pos.is_err());
     }
 
     #[test]
@@ -356,7 +356,7 @@ mod tests {
             velocity: vec![6.0, 7.0],
         };
         let vel = data.read_velocity();
-        assert!(vel.is_none());
+        assert!(vel.is_err());
     }
 
     #[test]
@@ -365,7 +365,7 @@ mod tests {
         let vel = vec3(0.0, 1.0, 2.0);
 
         let data = BaseEntityData::new(pos, vel);
-        assert_eq!(data.read_position(), Some(pos));
-        assert_eq!(data.read_velocity(), Some(vel));
+        assert_eq!(data.read_position(), Ok(pos));
+        assert_eq!(data.read_velocity(), Ok(vel));
     }
 }
