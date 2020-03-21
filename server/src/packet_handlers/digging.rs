@@ -236,7 +236,10 @@ fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
     world.remove::<ItemTimedUse>(player).unwrap();
 
     trace!("Spawning arrow entity.");
-    arrow::spawn_arrow(game, world, arrow_velocity, init_position);
+    let entity = arrow::create(init_position, arrow_velocity)
+        .build()
+        .spawn_in(world);
+    game.on_entity_spawn(world, entity);
 }
 
 fn find_arrow(inventory: &EntityInventory) -> Option<(SlotIndex, ItemStack)> {

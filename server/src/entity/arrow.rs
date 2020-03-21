@@ -6,11 +6,11 @@ use crate::util::{degrees_to_stops, protocol_velocity};
 use feather_core::entity::{ArrowEntityData, BaseEntityData, EntityData};
 use feather_core::network::packet::implementation::SpawnObject;
 use feather_core::{Packet, Position, Vec3d};
-use fecs::{EntityRef, World};
+use fecs::{EntityRef, World, EntityBuilder};
 use uuid::Uuid;
 
-pub fn spawn_arrow(game: &mut Game, world: &mut World, velocity: glm::DVec3, position: Position) {
-    let entity = entity::base(position)
+pub fn create(position: Position, velocity: glm::DVec3) -> EntityBuilder {
+    entity::base(position)
         .with(Velocity(velocity))
         .with(SpawnPacketCreator(&create_spawn_packet))
         .with(ComponentSerializer(&serialize))
@@ -22,9 +22,6 @@ pub fn spawn_arrow(game: &mut Game, world: &mut World, velocity: glm::DVec3, pos
                 .drag(0.99)
                 .build(),
         )
-        .build()
-        .spawn_in(world);
-    game.on_entity_spawn(world, entity);
 }
 
 fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
