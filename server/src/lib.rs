@@ -258,6 +258,8 @@ pub fn main() {
 
     info!("Shutting down");
 
+    info!("Disconnecting players");
+    shutdown::disconnect_players(&world);
     info!("Saving chunks");
     shutdown::save_chunks(&*resources.get::<Game>(), &world);
     info!("Saving level.dat");
