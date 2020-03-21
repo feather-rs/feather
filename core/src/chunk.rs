@@ -61,7 +61,7 @@ pub struct Chunk {
     /// call to `check_modified`().
     modified: bool,
 
-    heightmaps: [HeightMap; CHUNK_WIDTH * CHUNK_WIDTH],
+    heightmaps: Box<[HeightMap]>,
 }
 
 #[derive(Clone, Copy, Default)]
@@ -149,7 +149,7 @@ impl Default for Chunk {
             modified: true,
             sections,
             biomes: [Biome::Plains; SECTION_WIDTH * SECTION_WIDTH],
-            heightmaps: [HeightMap::default(); CHUNK_WIDTH * CHUNK_WIDTH],
+            heightmaps: vec![HeightMap::default(); CHUNK_WIDTH * CHUNK_WIDTH].into_boxed_slice(),
         }
     }
 }
