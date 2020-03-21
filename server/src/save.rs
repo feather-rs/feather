@@ -88,7 +88,7 @@ pub fn save_chunk_at(game: &Game, world: &World, pos: ChunkPosition) {
         .chunk_handle_at(pos)
         .expect("chunk does not exist");
 
-    if !chunk.write().check_modified() {
+    if !chunk.write().check_modified() && game.chunk_entities.entities_in_chunk(pos).is_empty() {
         return;
     }
 

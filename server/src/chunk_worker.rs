@@ -4,21 +4,27 @@
 //!
 //! If a chunk cannot be loaded, it is generated on the Rayon thread pool
 //! instead.
+use crate::load::EntityLoader;
 use crate::worldgen::WorldGenerator;
 use crossbeam::channel::{Receiver, Sender};
 use feather_core::entity::EntityData;
 use feather_core::region;
 use feather_core::region::{RegionHandle, RegionPosition};
 use feather_core::{Chunk, ChunkPosition};
+use fecs::EntityBuilder;
 use hashbrown::HashMap;
 use parking_lot::RwLock;
+use smallvec::SmallVec;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[allow(clippy::large_enum_variant)]
 pub enum Reply {
-    LoadedChunk(ChunkPosition, Result<(Chunk, Vec<EntityData>), Error>),
+    LoadedChunk(
+        ChunkPosition,
+        Result<(Chunk, SmallVec<[EntityBuilder; 4]>), Error>,
+    ),
     SavedChunk(ChunkPosition),
 }
 
@@ -33,6 +39,7 @@ pub enum Request {
 pub enum Error {
     ChunkNotExist,
     LoadError(region::Error),
+    Other(anyhow::Error),
 }
 
 impl std::fmt::Display for Error {
@@ -42,6 +49,10 @@ impl std::fmt::Display for Error {
                 f.write_str("The specified chunk does not exist in the world save")?
             }
             Error::LoadError(e) => {
+                f.write_str("Error loading chunk: ")?;
+                e.fmt(f)?;
+            }
+            Error::Other(e) => {
                 f.write_str("Error loading chunk: ")?;
                 e.fmt(f)?;
             }
@@ -82,6 +93,9 @@ struct ChunkWorker {
 
     /// World generator for new chunks.
     world_generator: Arc<dyn WorldGenerator>,
+
+    /// State for loading entities.
+    entity_loader: EntityLoader,
 }
 
 /// Starts a chunk worker on a new thread.
@@ -100,6 +114,7 @@ pub fn start(
         receiver: request_rx,
         open_regions: HashMap::new(),
         world_generator: world_gen,
+        entity_loader: EntityLoader::new(),
     };
 
     // Without changing the stack size,
@@ -145,6 +160,7 @@ fn load_chunk(worker: &mut ChunkWorker, pos: ChunkPosition) -> Option<Reply> {
         &mut file.handle,
         &Arc::from(worker.sender.clone()),
         &worker.world_generator,
+        &worker.entity_loader,
     )
 }
 
@@ -153,11 +169,25 @@ fn load_chunk_from_handle(
     handle: &mut RegionHandle,
     sender: &Arc<Sender<Reply>>,
     generator: &Arc<dyn WorldGenerator>,
+    entity_loader: &EntityLoader,
 ) -> Option<Reply> {
     let result = handle.load_chunk(pos);
 
     match result {
-        Ok(chunk) => Some(Reply::LoadedChunk(pos, Ok(chunk))),
+        Ok((chunk, entities)) => {
+            let entities = entities
+                .into_iter()
+                .filter_map(|entity| entity_loader.load(entity))
+                .collect::<Result<SmallVec<_>, anyhow::Error>>();
+
+            Some(Reply::LoadedChunk(
+                pos,
+                match entities {
+                    Ok(entities) => Ok((chunk, entities)),
+                    Err(e) => Err(Error::Other(e)),
+                },
+            ))
+        }
         Err(e) => match e {
             region::Error::ChunkNotExist => {
                 schedule_generate_new_chunk(sender, pos, generator);
@@ -185,7 +215,7 @@ fn schedule_generate_new_chunk(
 /// Generates a new chunk synchronously,
 /// returning a Reply to send to a Sender.
 fn generate_new_chunk(pos: ChunkPosition, generator: &Arc<dyn WorldGenerator>) -> Reply {
-    Reply::LoadedChunk(pos, Ok((generator.generate_chunk(pos), vec![])))
+    Reply::LoadedChunk(pos, Ok((generator.generate_chunk(pos), smallvec![])))
 }
 
 /// Saves the chunk at the specified position.

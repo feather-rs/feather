@@ -149,6 +149,7 @@ pub mod entity;
 pub mod game;
 pub mod io;
 mod join;
+mod load;
 pub mod network;
 pub mod p_inventory; // Prefixed to avoid conflict with inventory crate
 pub mod packet_buffer;

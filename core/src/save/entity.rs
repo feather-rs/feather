@@ -1,6 +1,44 @@
 use crate::{vec3, Item, Position, Vec3d};
 use nbt::Value;
 use std::collections::HashMap;
+use thiserror::Error;
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum EntityDataKind {
+    Item,
+    Arrow,
+    Cow,
+    Pig,
+    Chicken,
+    Sheep,
+    Horse,
+    Llama,
+    Mooshroom,
+    Rabbit,
+    Squid,
+    Donkey,
+    Unknown,
+}
+
+impl<'a> From<&'a EntityData> for EntityDataKind {
+    fn from(data: &'a EntityData) -> Self {
+        match data {
+            EntityData::Arrow(_) => EntityDataKind::Arrow,
+            EntityData::Item(_) => EntityDataKind::Item,
+            EntityData::Cow(_) => EntityDataKind::Cow,
+            EntityData::Pig(_) => EntityDataKind::Pig,
+            EntityData::Chicken(_) => EntityDataKind::Chicken,
+            EntityData::Sheep(_) => EntityDataKind::Sheep,
+            EntityData::Horse(_) => EntityDataKind::Horse,
+            EntityData::Llama(_) => EntityDataKind::Llama,
+            EntityData::Mooshroom(_) => EntityDataKind::Mooshroom,
+            EntityData::Rabbit(_) => EntityDataKind::Rabbit,
+            EntityData::Squid(_) => EntityDataKind::Squid,
+            EntityData::Donkey(_) => EntityDataKind::Donkey,
+            EntityData::Unknown => EntityDataKind::Unknown,
+        }
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "id")]
@@ -109,6 +147,12 @@ impl BaseEntityData {
     }
 }
 
+#[derive(Error, Debug)]
+pub enum EntityLoadError {
+    #[error("missing position/rotation/velocity data")]
+    MissingData,
+}
+
 impl BaseEntityData {
     /// Creates a `BaseEntityData` from a position and velocity.
     pub fn new(pos: Position, velocity: Vec3d) -> Self {
@@ -119,10 +163,10 @@ impl BaseEntityData {
         }
     }
 
-    /// Reads the position and rotation fields. If the fields are invalid, None is returned.
-    pub fn read_position(self: &BaseEntityData) -> Option<Position> {
+    /// Reads the position and rotation fields. If the fields are invalid, an error is returned.
+    pub fn read_position(self: &BaseEntityData) -> Result<Position, EntityLoadError> {
         if self.position.len() == 3 && self.rotation.len() == 2 {
-            Some(Position {
+            Ok(Position {
                 x: self.position[0],
                 y: self.position[1],
                 z: self.position[2],
@@ -131,16 +175,16 @@ impl BaseEntityData {
                 on_ground: true,
             })
         } else {
-            None
+            Err(EntityLoadError::MissingData)
         }
     }
 
-    /// Reads the velocity field. If the field is invalid, None is returned.
-    pub fn read_velocity(self: &BaseEntityData) -> Option<Vec3d> {
+    /// Reads the velocity field. If the field is invalid, an error is returned.
+    pub fn read_velocity(self: &BaseEntityData) -> Result<Vec3d, EntityLoadError> {
         if self.velocity.len() == 3 {
-            Some(vec3(self.velocity[0], self.velocity[1], self.velocity[2]))
+            Ok(vec3(self.velocity[0], self.velocity[1], self.velocity[2]))
         } else {
-            None
+            Err(EntityLoadError::MissingData)
         }
     }
 }

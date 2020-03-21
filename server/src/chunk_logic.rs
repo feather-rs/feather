@@ -47,12 +47,15 @@ pub fn chunk_load(game: &mut Game, world: &mut World) {
     while let Ok(reply) = game.chunk_worker_handle.receiver.try_recv() {
         if let chunk_worker::Reply::LoadedChunk(pos, result) = reply {
             match result {
-                Ok((chunk, _entities)) => {
+                Ok((chunk, entities)) => {
                     game.chunk_map.insert(chunk);
 
-                    game.on_chunk_load(world, pos);
+                    entities.into_iter().for_each(|builder| {
+                        let entity = builder.build().spawn_in(world);
+                        game.on_entity_spawn(world, entity);
+                    });
 
-                    // TODO: entities
+                    game.on_chunk_load(world, pos);
 
                     trace!("Loaded chunk at {:?}", pos);
                 }

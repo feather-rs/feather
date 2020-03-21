@@ -10,7 +10,9 @@ use crate::{entity, TPS};
 use feather_core::entity::{BaseEntityData, EntityData, ItemData, ItemEntityData};
 use feather_core::inventory::SlotIndex;
 use feather_core::network::packet::implementation::SpawnObject;
-use feather_core::{EntityMetadata, ItemStack, Packet, Position, Vec3d, META_INDEX_ITEM_SLOT};
+use feather_core::{
+    EntityMetadata, Item, ItemStack, Packet, Position, Vec3d, META_INDEX_ITEM_SLOT,
+};
 use fecs::{changed, component, Entity, EntityBuilder, EntityRef, IntoQuery, Read, World, Write};
 use parking_lot::Mutex;
 use rand::Rng;
@@ -57,6 +59,10 @@ pub struct CollectableAt(u64);
 #[derive(Debug)]
 struct IsRemoved(AtomicBool);
 
+inventory::submit! {
+    crate::load::EntityLoaderRegistration::new(feather_core::entity::EntityDataKind::Item, &load)
+}
+
 /// System for spawning an item entity when
 /// an item is dropped.
 pub fn on_item_drop_spawn_item_entity(game: &mut Game, world: &mut World, event: &ItemDropEvent) {
@@ -91,7 +97,7 @@ pub fn on_item_drop_spawn_item_entity(game: &mut Game, world: &mut World, event:
 
     drop(rng);
 
-    let entity = create(game, pos, event.stack)
+    let entity = create(pos, event.stack, game.tick_count + TPS)
         .with(Velocity(velocity))
         .build()
         .spawn_in(world);
@@ -196,9 +202,9 @@ pub fn item_collect(game: &mut Game, world: &mut World) {
 
 /// Returns an entity builder to create an item entity
 /// with the given stack and collectable tick.
-pub fn create(game: &mut Game, pos: Position, stack: ItemStack) -> EntityBuilder {
+pub fn create(pos: Position, stack: ItemStack, collectable_at: u64) -> EntityBuilder {
     let meta = EntityMetadata::entity_base().with(META_INDEX_ITEM_SLOT, Some(stack));
-    let collectable_at = CollectableAt(game.time.world_age() + TPS);
+    let collectable_at = CollectableAt(collectable_at);
 
     entity::base(pos)
         .with(stack)
@@ -254,4 +260,25 @@ fn serialize(game: &Game, accessor: &EntityRef) -> EntityData {
             item: item.ty.identifier().to_owned(),
         },
     })
+}
+
+fn load(data: EntityData) -> anyhow::Result<EntityBuilder> {
+    match data {
+        EntityData::Item(data) => {
+            let pos = data.entity.read_position()?;
+            let vel = data.entity.read_velocity()?;
+
+            let stack = ItemStack::new(
+                Item::from_identifier(&data.item.item)
+                    .ok_or_else(|| anyhow::anyhow!("invalid item {}", data.item.item))?,
+                data.item.count,
+            );
+
+            let collectable_at = data.pickup_delay;
+
+            Ok(create(pos, stack, collectable_at as u64)
+                .with(Velocity(glm::vec3(vel.x, vel.y, vel.z))))
+        }
+        _ => panic!("attempted to use item::load to load a non-item"),
+    }
 }
