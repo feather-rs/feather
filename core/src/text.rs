@@ -44,7 +44,6 @@ impl From<Style> for Text {
     }
 }
 
-// TODO: use instead of string as keybind
 #[derive(Debug, PartialEq)]
 pub enum KeyBind {
     Attack,
@@ -283,7 +282,6 @@ pub enum Hover {
     ShowEntity(String),
 }
 
-// TODO: Transform into string, fn(self, translator: Translator) -> String
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum TextValue {
@@ -429,7 +427,6 @@ pub trait IntoTextComponent {
     fn into_component(self) -> TextComponent;
 }
 
-// TODO: unset styles, set styles to false, unset color
 impl TextComponent {
     pub fn empty() -> TextComponent {
         TextComponent::from("")
@@ -437,12 +434,28 @@ impl TextComponent {
 }
 
 pub trait TextComponentBuilder {
+    fn set_style(self, style: Style, value: Option<bool>) -> Self;
+
     fn style(self, style: Style) -> Self;
     fn bold(self) -> Self;
     fn italic(self) -> Self;
     fn obfuscated(self) -> Self;
     fn strikethrough(self) -> Self;
     fn underlined(self) -> Self;
+
+    fn not_style(self, Style) -> Self;
+    fn not_bold(self) -> Self;
+    fn not_italic(self) -> Self;
+    fn not_obfuscated(self) -> Self;
+    fn not_strikethrough(self) -> Self;
+    fn not_underlined(self) -> Self;
+
+    fn reset_style(self, style: Style) -> Self;
+    fn reset_bold(self) -> Self;
+    fn reset_italic(self) -> Self;
+    fn reset_obfuscated(self) -> Self;
+    fn reset_strikethrough(self) -> Self;
+    fn reset_underlined(self) -> Self;
 
     fn color(self, color: Color) -> Self;
     fn dark_red(self) -> Self;
@@ -462,7 +475,11 @@ pub trait TextComponentBuilder {
     fn dark_gray(self) -> Self;
     fn black(self) -> Self;
 
+    fn reset_color(self) -> Self;
+
     fn insertion<A: Into<Cow<'static, str>>>(self, insertion: A) -> Self;
+    
+    fn reset_insertion(self) -> Self;
 
     fn on_click(self, click: Click) -> Self;
     fn on_click_change_page(self, page: i32) -> Self;
@@ -471,11 +488,15 @@ pub trait TextComponentBuilder {
     fn on_click_open_url<A: Into<Cow<'static, str>>>(self, url: A) -> Self;
     fn on_click_run_command<A: Into<Cow<'static, str>>>(self, command: A) -> Self;
     fn on_click_suggest_command<A: Into<Cow<'static, str>>>(self, command: A) -> Self;
+    
+    fn reset_on_click(self) -> Self;
 
     fn on_hover(self, hover: Hover) -> Self;
     fn on_hover_show_entity(self, entity: String) -> Self;
     fn on_hover_show_item(self, item: String) -> Self;
     fn on_hover_show_text<A: Into<Text>>(self, text: A) -> Self;
+
+    fn reset_on_hover(self) -> Self;
 
     fn extra<A>(self, extra: A) -> Self
     where
@@ -483,7 +504,9 @@ pub trait TextComponentBuilder {
         A::Item: Into<Text>;
     fn push_extra<A: Into<Text>>(self, extra: A) -> Self;
 
-    fn reset(self) -> Self;
+    fn reset_extra(self) -> Self;
+
+    fn reset_all(self) -> Self;
 }
 
 impl IntoTextComponent for TextComponent {
@@ -496,9 +519,8 @@ impl<T> TextComponentBuilder for T
 where
     T: IntoTextComponent + From<TextComponent>,
 {
-    fn style(self, style: Style) -> Self {
+    fn set_style(self, style: Style, value: Option<bool>) -> Self {
         let mut component = self.into_component();
-        let value = Some(true);
         match style {
             Style::Bold => component.bold = value,
             Style::Italic => component.italic = value,
@@ -507,6 +529,10 @@ where
             Style::Underlined => component.underlined = value,
         };
         component.into()
+    }
+
+    fn style(self, style: Style) -> Self {
+        self.set_style(style, Some(true))
     }
 
     fn bold(self) -> Self {
@@ -526,6 +552,54 @@ where
     }
 
     fn underlined(self) -> Self {
+        self.style(Style::Underlined)
+    }
+
+    fn not_style(self, style: Style) -> Self {
+        self.set_style(style, None)
+    }
+
+    fn not_bold(self) -> Self {
+        self.style(Style::Bold)
+    }
+
+    fn not_italic(self) -> Self {
+        self.style(Style::Italic)
+    }
+
+    fn not_obfuscated(self) -> Self {
+        self.style(Style::Obfuscated)
+    }
+
+    fn not_strikethrough(self) -> Self {
+        self.style(Style::Strikethrough)
+    }
+
+    fn not_underlined(self) -> Self {
+        self.style(Style::Underlined)
+    }
+
+    fn reset_style(self, style: Style) -> Self {
+        self.set_style(style, None)
+    }
+
+    fn reset_bold(self) -> Self {
+        self.style(Style::Bold)
+    }
+
+    fn reset_italic(self) -> Self {
+        self.style(Style::Italic)
+    }
+
+    fn reset_obfuscated(self) -> Self {
+        self.style(Style::Obfuscated)
+    }
+
+    fn reset_strikethrough(self) -> Self {
+        self.style(Style::Strikethrough)
+    }
+
+    fn reset_underlined(self) -> Self {
         self.style(Style::Underlined)
     }
 
@@ -600,9 +674,21 @@ where
         self.color(Color::Black)
     }
 
+    fn reset_color(self) -> Self {
+        let mut component = self.into_component();
+        component.color = None;
+        component.into()
+    }
+
     fn insertion<A: Into<Cow<'static, str>>>(self, insertion: A) -> Self {
         let mut component = self.into_component();
         component.insertion = Some(insertion.into());
+        component.into()
+    }
+
+    fn reset_insertion(self) -> Self {
+        let mut component = self.into_component();
+        component.insertion = None;
         component.into()
     }
 
@@ -635,6 +721,12 @@ where
         self.on_click(Click::SuggestCommand(command.into()))
     }
 
+    fn reset_on_click(self) -> Self {
+        let mut component = self.into_component();
+        component.click = None;
+        component.into()
+    }
+
     fn on_hover(self, hover: Hover) -> Self {
         let mut component = self.into_component();
         component.hover = Some(hover);
@@ -653,6 +745,12 @@ where
 
     fn on_hover_show_text<A: Into<Text>>(self, text: A) -> Self {
         self.on_hover(Hover::ShowText(Box::new(text.into())))
+    }
+
+    fn reset_on_hover(self) -> Self {
+        let mut component = self.into_component();
+        component.hover = None;
+        component.into()
     }
 
     fn extra<A>(self, extra: A) -> Self
@@ -674,7 +772,13 @@ where
         component.into()
     }
 
-    fn reset(self) -> Self {
+    fn reset_extra(self) -> Self {
+        let mut component = self.into_component();
+        component.extra = None;
+        component.into()
+    }
+
+    fn reset_all(self) -> Self {
         let mut component = self.into_component();
         component.color = None;
         component.bold = None;
