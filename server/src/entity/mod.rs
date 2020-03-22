@@ -4,6 +4,7 @@
 //! not here.
 
 pub mod falling_block;
+pub mod arrow;
 pub mod item;
 
 use crate::game::Game;

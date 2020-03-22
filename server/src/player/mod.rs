@@ -24,6 +24,11 @@ pub struct ProfileProperties(pub Vec<ProfileProperty>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Player;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ItemTimedUse {
+    pub tick_start: u64,
+}
+
 /// Creates a new player from the given `NewClientInfo`.
 ///
 /// This function also triggers the `PlayerJoinEvent` for this player.

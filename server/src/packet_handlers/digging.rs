@@ -4,11 +4,15 @@
 //! for actions mostly unrelated to digging including eating, shooting bows,
 //! swapping items out to the offhand, and dropping items.
 
+use crate::entity::arrow;
 use crate::game::Game;
 use crate::p_inventory::EntityInventory;
 use crate::packet_buffer::PacketBuffers;
+use crate::physics::{charge_from_ticks_held, compute_projectile_velocity};
+use crate::player::{ItemTimedUse, PLAYER_EYE_HEIGHT};
+use feather_core::inventory::{SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use feather_core::network::packet::implementation::{PlayerDigging, PlayerDiggingStatus};
-use feather_core::{Block, Gamemode, Item};
+use feather_core::{Block, Gamemode, Item, ItemStack, Position};
 use fecs::{Entity, World};
 use std::sync::Arc;
 
@@ -36,17 +40,8 @@ pub fn handle_player_digging(
                 item_drops,
                 &mut inventory,
             ),*/
-            /*
-            ConsumeItem => handle_consume_item(
-                packet,
-                players.get(player).unwrap(),
-                player,
-                inventories.get_mut(player).unwrap(),
-                &mut inventory_updates,
-                positions.get(player).unwrap().current,
-                &mut shoot_arrow_events,
-            ),
-            */
+            ConsumeItem => handle_consume_item(game, world, player, packet),
+
             status => warn!("Unhandled Player Digging status {:?}", status),
         }
     }
@@ -151,46 +146,28 @@ fn handle_drop_item_stack(
 }
 */
 
-/*
 /// Handles food consumption and shooting arrows.
-fn handle_consume_item(
-    packet: &PlayerDigging,
-    player: &PlayerComponent,
-    entity: Entity,
-    inventory: &mut InventoryComponent,
-    inventory_updates: &mut EventChannel<InventoryUpdateEvent>,
-    position: Position,
-    shoot_arrow_events: &mut EventChannel<ShootArrowEvent>,
-) {
+fn handle_consume_item(game: &mut Game, world: &mut World, player: Entity, packet: PlayerDigging) {
     assert_eq!(packet.status, PlayerDiggingStatus::ConsumeItem);
 
     // TODO: Fallback to off-hand if main-hand is not a consumable
+    let inventory = world.get::<EntityInventory>(player);
     let used_item = inventory.item_in_main_hand();
 
     if let Some(item) = used_item {
         if item.ty == Item::Bow {
-            handle_shoot_bow(
-                player,
-                entity,
-                inventory,
-                inventory_updates,
-                position,
-                shoot_arrow_events,
-            );
+            drop(inventory);
+            handle_shoot_bow(game, world, player);
         }
         // TODO: Food, potions
     }
 }
 
-fn handle_shoot_bow(
-    player: &PlayerComponent,
-    entity: Entity,
-    inventory: &mut InventoryComponent,
-    inventory_updates: &mut EventChannel<InventoryUpdateEvent>,
-    position: Position,
-    shoot_arrow_events: &mut EventChannel<ShootArrowEvent>,
-) {
+fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
+    let inventory = world.get::<EntityInventory>(player);
     let arrow_to_consume: Option<(SlotIndex, ItemStack)> = find_arrow(&inventory);
+    // Unnecessary until more gamemodes are supported
+    /*
     if player.gamemode == Gamemode::Survival || player.gamemode == Gamemode::Adventure {
         // If no arrow was found, don't shoot
         let arrow_to_consume = arrow_to_consume.clone();
@@ -210,33 +187,74 @@ fn handle_shoot_bow(
             player: entity,
         });
     }
+    */
 
-    let arrow_type: Item = match arrow_to_consume {
+    drop(inventory); // Inventory no longer used.
+
+    let _arrow_type: Item = match arrow_to_consume {
         None => Item::Arrow, // Default to generic arrow in creative mode with none in inventory
         Some((_, arrow_stack)) => arrow_stack.ty,
     };
 
-    shoot_arrow_events.single_write(ShootArrowEvent {
-        shooter: Some(entity),
-        position,
-        arrow_type,
-        critical: false, // TODO: Determine critical based on how long bow was pulled back
-    });
+    let timed_use = world.try_get::<ItemTimedUse>(player);
+
+    // Spam clicking can lead to a scenario where this system is called before the UseItem system adds the component
+    // In that case just return.
+    if timed_use.is_none() {
+        return;
+    }
+
+    let timed_use = timed_use.unwrap();
+
+    let mut time_held = game.tick_count - timed_use.tick_start;
+
+    if time_held > 20 {
+        time_held = 20;
+    }
+
+    let charge_force = charge_from_ticks_held(time_held as u32);
+    trace!("Held for {} ticks. Force of {}", time_held, charge_force);
+
+    let init_position = *world.get::<Position>(player) + glm::vec3(0.0, PLAYER_EYE_HEIGHT, 0.0);
+
+    let direction = init_position.direction();
+
+    let arrow_velocity = compute_projectile_velocity(
+        glm::vec3(direction.x, direction.y, direction.z),
+        charge_force as f64,
+        0.0,
+        &mut *game.rng(),
+    );
+    trace!(
+        "Computed exit velocity: {}. Velocity is norm {}",
+        arrow_velocity,
+        arrow_velocity.norm()
+    );
+
+    drop(timed_use);
+
+    world.remove::<ItemTimedUse>(player).unwrap();
+
+    trace!("Spawning arrow entity.");
+    let entity = arrow::create(init_position, arrow_velocity)
+        .build()
+        .spawn_in(world);
+    game.on_entity_spawn(world, entity);
 }
 
-fn find_arrow(inventory: &InventoryComponent) -> Option<(SlotIndex, ItemStack)> {
+fn find_arrow(inventory: &EntityInventory) -> Option<(SlotIndex, ItemStack)> {
     // Order of priority is: off-hand, hotbar (0 to 8), rest of inventory
 
     if let Some(offhand) = inventory.item_at(SLOT_OFFHAND) {
         if is_arrow_item(offhand.ty) {
-            return Some((SLOT_OFFHAND, offhand.clone()));
+            return Some((SLOT_OFFHAND, *offhand));
         }
     }
 
     for hotbar_slot in 0..9 {
         if let Some(hotbar_stack) = inventory.item_at(SLOT_HOTBAR_OFFSET + hotbar_slot) {
             if is_arrow_item(hotbar_stack.ty) {
-                return Some((SLOT_HOTBAR_OFFSET + hotbar_slot, hotbar_stack.clone()));
+                return Some((SLOT_HOTBAR_OFFSET + hotbar_slot, *hotbar_stack));
             }
         }
     }
@@ -244,7 +262,7 @@ fn find_arrow(inventory: &InventoryComponent) -> Option<(SlotIndex, ItemStack)> 
     for inv_slot in 9..=35 {
         if let Some(inv_stack) = inventory.item_at(inv_slot) {
             if is_arrow_item(inv_stack.ty) {
-                return Some((inv_slot, inv_stack.clone()));
+                return Some((inv_slot, *inv_stack));
             }
         }
     }
@@ -257,4 +275,3 @@ fn is_arrow_item(item: Item) -> bool {
         _ => false,
     }
 }
-*/
