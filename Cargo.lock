@@ -759,6 +759,7 @@ dependencies = [
  "num-traits 0.2.11",
  "parking_lot",
  "rand",
+ "rand_distr",
  "rand_xorshift",
  "rayon",
  "rsa",
