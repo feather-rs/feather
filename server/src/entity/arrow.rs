@@ -6,7 +6,7 @@ use crate::util::{degrees_to_stops, protocol_velocity};
 use feather_core::entity::{ArrowEntityData, BaseEntityData, EntityData};
 use feather_core::network::packet::implementation::SpawnObject;
 use feather_core::{Packet, Position, Vec3d};
-use fecs::{EntityRef, World, EntityBuilder};
+use fecs::{EntityBuilder, EntityRef};
 use uuid::Uuid;
 
 pub fn create(position: Position, velocity: glm::DVec3) -> EntityBuilder {
