@@ -149,6 +149,7 @@ pub mod entity;
 pub mod game;
 pub mod io;
 mod join;
+mod lighting;
 mod load;
 pub mod network;
 pub mod p_inventory; // Prefixed to avoid conflict with inventory crate
@@ -235,6 +236,7 @@ pub fn main() {
         rng: CachedThreadLocal::new(),
         time,
         save_queue: Default::default(),
+        lighting_worker_handle: lighting::start_worker(),
     };
 
     let (executor, resources) = init_executor(game, packet_buffers);
@@ -260,6 +262,8 @@ pub fn main() {
 
     info!("Disconnecting players");
     shutdown::disconnect_players(&world);
+    info!("Shutting down workers");
+    shutdown::shut_down_workers(&*resources.get::<Game>());
     info!("Saving chunks");
     shutdown::save_chunks(&*resources.get::<Game>(), &world);
     info!("Saving level.dat");

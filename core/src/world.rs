@@ -256,6 +256,11 @@ impl BlockPosition {
     pub fn position(self) -> Position {
         self.into()
     }
+
+    /// Converts into a `ChunkPosition`.
+    pub fn chunk(self) -> ChunkPosition {
+        self.into()
+    }
 }
 
 impl Add<BlockPosition> for BlockPosition {
@@ -339,7 +344,7 @@ pub type ChunkMapInner = HashMap<ChunkPosition, Arc<RwLock<Chunk>>>;
 /// of the world in parallel. Mutable access to this
 /// type is only required for inserting and removing
 /// chunks.
-pub struct ChunkMap(ChunkMapInner);
+pub struct ChunkMap(pub ChunkMapInner);
 
 impl ChunkMap {
     /// Creates a new chunk map with no chunks.

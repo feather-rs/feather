@@ -2,7 +2,7 @@
 use crate::chunk_worker::Request;
 use crate::game::Game;
 use crate::network::Network;
-use crate::save;
+use crate::{lighting, save};
 use crossbeam::Sender;
 use feather_core::level;
 use feather_core::level::save_level_file;
@@ -57,3 +57,13 @@ pub fn save_level(game: &mut Game) {
 }
 
 pub fn save_player_data(_world: &World) {}
+
+pub fn shut_down_workers(game: &Game) {
+    let _ = game
+        .lighting_worker_handle
+        .tx
+        .send(lighting::Request::ShutDown);
+
+    // wait for disconnect
+    let _ = game.lighting_worker_handle.shutdown_rx.recv();
+}
