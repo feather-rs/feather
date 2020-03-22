@@ -26,7 +26,7 @@ pub fn handle_chat(game: &mut Game, world: &mut World, packet_buffers: &Arc<Pack
             game.on_chat(
                 world,
                 ChatEvent {
-                    message: message.to_string(),
+                    message,
                     position: ChatPosition::Chat,
                 },
             );
