@@ -1,5 +1,6 @@
 use crate::entity::Name;
 use crate::game::Game;
+use feather_core::text::{Color, TextRoot, Translate};
 use fecs::{Entity, World};
 
 /// Event triggered when a chat message is sent out
@@ -26,16 +27,9 @@ pub enum ChatPosition {
 }
 
 pub fn on_player_join_broadcast_join_message(game: &mut Game, world: &mut World, player: Entity) {
-    let message = {
+    let message: String = {
         let name = world.get::<Name>(player);
-        json!({
-            "translate": "multiplayer.player.joined",
-            "color": "yellow",
-            "with": [
-                { "text": name.0 },
-            ],
-        })
-        .to_string()
+        TextRoot::from(Translate::MultiplayerPlayerJoined * vec![name.0.to_string()] * Color::Yellow).into()
     };
 
     game.on_chat(
