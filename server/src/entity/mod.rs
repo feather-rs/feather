@@ -3,11 +3,9 @@
 //! block entities, monsters, etc. Player entities are handled in `crate::player`,
 //! not here.
 
-mod mob;
-mod object;
-
-pub use mob::*;
-pub use object::*;
+pub mod falling_block;
+pub mod arrow;
+pub mod item;
 
 use crate::game::Game;
 use feather_core::entity::EntityData;
