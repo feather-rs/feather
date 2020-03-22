@@ -16,7 +16,7 @@ pub fn handle_chat(game: &mut Game, world: &mut World, packet_buffers: &Arc<Pack
             let player_name = world.get::<Name>(player);
             let message: String = TextRoot::from(
                 Translate::ChatTypeText
-                    * vec![player_name.0.to_string(), packet.message.to_string()]
+                    * vec![player_name.0.to_string(), packet.message.to_string()],
             )
             .into();
 

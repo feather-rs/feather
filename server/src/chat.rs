@@ -29,7 +29,10 @@ pub enum ChatPosition {
 pub fn on_player_join_broadcast_join_message(game: &mut Game, world: &mut World, player: Entity) {
     let message: String = {
         let name = world.get::<Name>(player);
-        TextRoot::from(Translate::MultiplayerPlayerJoined * vec![name.0.to_string()] * Color::Yellow).into()
+        TextRoot::from(
+            Translate::MultiplayerPlayerJoined * vec![name.0.to_string()] * Color::Yellow,
+        )
+        .into()
     };
 
     game.on_chat(

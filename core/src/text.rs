@@ -443,7 +443,7 @@ pub trait TextComponentBuilder {
     fn strikethrough(self) -> Self;
     fn underlined(self) -> Self;
 
-    fn not_style(self, Style) -> Self;
+    fn not_style(self, style: Style) -> Self;
     fn not_bold(self) -> Self;
     fn not_italic(self) -> Self;
     fn not_obfuscated(self) -> Self;
@@ -478,7 +478,7 @@ pub trait TextComponentBuilder {
     fn reset_color(self) -> Self;
 
     fn insertion<A: Into<Cow<'static, str>>>(self, insertion: A) -> Self;
-    
+
     fn reset_insertion(self) -> Self;
 
     fn on_click(self, click: Click) -> Self;
@@ -488,7 +488,7 @@ pub trait TextComponentBuilder {
     fn on_click_open_url<A: Into<Cow<'static, str>>>(self, url: A) -> Self;
     fn on_click_run_command<A: Into<Cow<'static, str>>>(self, command: A) -> Self;
     fn on_click_suggest_command<A: Into<Cow<'static, str>>>(self, command: A) -> Self;
-    
+
     fn reset_on_click(self) -> Self;
 
     fn on_hover(self, hover: Hover) -> Self;
