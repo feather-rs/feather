@@ -12,6 +12,11 @@ pub fn handle_chat(game: &mut Game, world: &mut World, packet_buffers: &Arc<Pack
     packet_buffers
         .received::<ChatMessageServerbound>()
         .for_each(|(player, packet)| {
+            if packet.message.starts_with('/') {
+                debug!("Skipping command {}", packet.message);
+                return;
+            }
+
             let player_name = world.get::<Name>(player);
             let message = json!({
                 "translate": "chat.type.text",
