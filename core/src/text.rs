@@ -1020,7 +1020,7 @@ impl_operators!(TextRoot, Text, TextComponent);
 
 #[cfg(test)]
 mod tests {
-    use crate::text::{Color, Style, Text, Translate};
+    use crate::text::{Color, Style, Text, TextRoot, Translate};
     use std::error::Error;
 
     #[test]
@@ -1029,7 +1029,7 @@ mod tests {
 
         let text_json = serde_json::to_string(&text_orignal)?;
 
-        assert_eq!(&text_json, r#"{"text":"hello"}"#);
+        assert_eq!(&text_json, r#""hello""#);
 
         let text: Text = serde_json::from_str(&text_json)?;
         assert_eq!(text_orignal, text);
@@ -1043,10 +1043,7 @@ mod tests {
 
         let text_json = serde_json::to_string(&text_orignal)?;
 
-        assert_eq!(
-            &text_json,
-            r#"[{"text":"hello"},{"text":" "},{"text":"world!"}]"#
-        );
+        assert_eq!(&text_json, r#"["hello"," ","world!"]"#);
 
         let text: Text = serde_json::from_str(&text_json)?;
         assert_eq!(text_orignal, text);
@@ -1107,5 +1104,16 @@ mod tests {
         );
 
         Ok(())
+    }
+
+    #[test]
+    fn text_root() {
+        let hello = Text::from("hello");
+
+        let root = TextRoot::from(hello);
+
+        let root_json = String::from(root);
+
+        assert_eq!(root_json, r#"{"text":"hello"}"#);
     }
 }
