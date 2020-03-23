@@ -17,18 +17,18 @@ jobs:
         #linux-nightly:
         #  rustup_toolchain: nightly-2019-09-28
         #  image_name: 'ubuntu-16.04'
-        windows-stable:
-          rustup_toolchain: stable
-          image_name: 'windows-latest'
+        #windows-stable:
+        #  rustup_toolchain: stable
+        #  image_name: 'windows-latest'
         #windows-beta:
         #  rustup_toolchain: beta-gnu
         #  image_name: 'windows-latest'
         #windows-nightly:
         #  rustup_toolchain: nightly-2019-09-28
         #  image_name: 'ubuntu-16.04'
-        apple-stable:
-          rustup_toolchain: stable
-          image_name: 'macOS-latest'
+        #apple-stable:
+        #  rustup_toolchain: stable
+        #  image_name: 'macOS-latest'
         #apple-beta:
         #  rustup_toolchain: beta
         #  image_name: 'macos-latest'
@@ -37,10 +37,6 @@ jobs:
       vmImage: $(image_name)
 
     steps:
-      - script: export CARGO_MAKE_RUN_CODECOV="true" && export CODECOV_TOKEN=$(CODECOV_TOKEN) && export RUSTFLAGS="-C link-dead-code"
-        displayName: Set up environment variables
-        condition: ne( variables['Agent.OS'], 'Windows_NT' )
-
       - script: |
           set -e
           curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
@@ -57,35 +53,17 @@ jobs:
           echo "##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin"
         env:
           RUSTUP_TOOLCHAIN: ${rustup_toolchain}
-        displayName: "Install rust (windows)"
+        displayName: "Install rust (Windows)"
         condition: eq(variables['Agent.OS'], 'Windows_NT')
-
-      - script: RUSTFLAGS="-C link-dead-code" cargo build
-        displayName: Build
-        condition: ne( variables['Agent.OS'], 'Windows_NT' )
 
       - script: cargo build
         displayName: Build
-        condition: eq( variables['Agent.OS'], 'Windows_NT' )
-
-      - script: RUSTFLAGS="-C link-dead-code" cargo test
-        displayName: Test
-        condition: ne( variables['Agent.OS'], 'Windows_NT' )
 
       - script: cargo test
         displayName: Test
-        condition: eq( variables['Agent.OS'], 'Windows_NT' )
 
         # The following steps are not platform-dependent,
         # so we only have to run them on Linux.
-
-      - script: cargo install --debug cargo-make
-        displayName: Install cargo-make
-        condition: eq( variables['Agent.OS'], 'Linux' )
-
-      - script: RUSTFLAGS="-C link-dead-code" CODECOV_TOKEN=$(CODECOV_TOKEN) cargo make --no-workspace workspace-coverage
-        displayName: Run test coverage
-        condition: eq( variables['Agent.OS'], 'Linux' )
 
       - script: rustup component add rustfmt
         displayName: Install rustfmt
@@ -97,11 +75,11 @@ jobs:
 
       - script: rustup component add clippy
         displayName: Install clippy
-        condition: eq( variables['Agent.OS'], 'Linux' )
+        condition: and( eq( variables['Agent.OS'], 'Linux' ), eq( variables['rustup_toolchain'], 'stable') )
 
       - script: cargo clippy --all-targets -- -D warnings
         displayName: Run clippy
-        condition: eq( variables['Agent.OS'], 'Linux' )
+        condition: and( eq( variables['Agent.OS'], 'Linux' ), eq( variables['rustup_toolchain'], 'stable') )
 
   - job: 'Publish'
     condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
@@ -110,11 +88,11 @@ jobs:
         linux:
           image_name: 'ubuntu-16.04'
           platform: 'linux'
-          rustup_toolchain: 'beta'
+          rustup_toolchain: 'stable'
         windows:
           image_name: 'windows-latest'
           platform: 'windows'
-          rustup_toolchain: 'beta'
+          rustup_toolchain: 'stable'
         #macos:
         #  image_name: 'macOS-10.13'
         #  platform: 'macos'
