@@ -9,9 +9,8 @@ use feather_core::{Packet, Position, Vec3d};
 use fecs::{EntityBuilder, EntityRef};
 use uuid::Uuid;
 
-pub fn create(position: Position, velocity: glm::DVec3) -> EntityBuilder {
-    entity::base(position)
-        .with(Velocity(velocity))
+pub fn create() -> EntityBuilder {
+    entity::base()
         .with(SpawnPacketCreator(&create_spawn_packet))
         .with(ComponentSerializer(&serialize))
         .with(
