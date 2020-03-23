@@ -1,5 +1,6 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -45,7 +46,8 @@ impl From<Style> for Text {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum KeyBind {
+/// Represent all possible keybinds in vanilla.
+pub enum Keybind {
     Attack,
     UseItem,
     Forward,
@@ -82,13 +84,13 @@ pub enum KeyBind {
     Custom(Cow<'static, str>),
 }
 
-impl From<KeyBind> for Text {
-    fn from(keybind: KeyBind) -> Self {
+impl From<Keybind> for Text {
+    fn from(keybind: Keybind) -> Self {
         Text::keybind(keybind)
     }
 }
 
-impl Serialize for KeyBind {
+impl Serialize for Keybind {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -97,104 +99,105 @@ impl Serialize for KeyBind {
     }
 }
 
-impl<'de> Deserialize<'de> for KeyBind {
+impl<'de> Deserialize<'de> for Keybind {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        Ok(KeyBind::from(s))
+        Ok(Keybind::from(s))
     }
 }
 
-impl<T> From<T> for KeyBind
+impl<T> From<T> for Keybind
 where
     T: Into<Cow<'static, str>>,
 {
     fn from(keybind: T) -> Self {
         let keybind = keybind.into();
         match keybind.as_ref() {
-            "key_key.attack" => KeyBind::Attack,
-            "key_key.use" => KeyBind::UseItem,
-            "key_key.forward" => KeyBind::Forward,
-            "key_key.left" => KeyBind::Left,
-            "key_key.back" => KeyBind::Back,
-            "key_key.right" => KeyBind::Right,
-            "key_key.jump" => KeyBind::Jump,
-            "key_key.sneak" => KeyBind::Sneak,
-            "key_key.sprint" => KeyBind::Sprint,
-            "key_key.drop" => KeyBind::Drop,
-            "key_key.inventory" => KeyBind::Iventory,
-            "key_key.chat" => KeyBind::Chat,
-            "key_key.playerlist" => KeyBind::ListPlayers,
-            "key_key.pickItem" => KeyBind::PickBlock,
-            "key_key.command" => KeyBind::Command,
-            "key_key.screenshot" => KeyBind::Screenshot,
-            "key_key.togglePerspective" => KeyBind::Perspective,
-            "key_key.smoothCamera" => KeyBind::MouseSmoothing,
-            "key_key.fullscreen" => KeyBind::Fullscreen,
-            "key_key.spectatorOutlines" => KeyBind::SpectatorOutlines,
-            "key_key.swapHands" => KeyBind::SwapHands,
-            "key_key.saveToolbarActivator" => KeyBind::SaveToolbar,
-            "key_key.loadToolbarActivator" => KeyBind::LoadToolbar,
-            "key_key.advancements" => KeyBind::Advancements,
-            "key_key.hotbar.1" => KeyBind::Hotbar1,
-            "key_key.hotbar.2" => KeyBind::Hotbar2,
-            "key_key.hotbar.3" => KeyBind::Hotbar3,
-            "key_key.hotbar.4" => KeyBind::Hotbar4,
-            "key_key.hotbar.5" => KeyBind::Hotbar5,
-            "key_key.hotbar.6" => KeyBind::Hotbar6,
-            "key_key.hotbar.7" => KeyBind::Hotbar7,
-            "key_key.hotbar.8" => KeyBind::Hotbar8,
-            "key_key.hotbar.9" => KeyBind::Hotbar9,
-            _ => KeyBind::Custom(keybind),
+            "key_key.attack" => Keybind::Attack,
+            "key_key.use" => Keybind::UseItem,
+            "key_key.forward" => Keybind::Forward,
+            "key_key.left" => Keybind::Left,
+            "key_key.back" => Keybind::Back,
+            "key_key.right" => Keybind::Right,
+            "key_key.jump" => Keybind::Jump,
+            "key_key.sneak" => Keybind::Sneak,
+            "key_key.sprint" => Keybind::Sprint,
+            "key_key.drop" => Keybind::Drop,
+            "key_key.inventory" => Keybind::Iventory,
+            "key_key.chat" => Keybind::Chat,
+            "key_key.playerlist" => Keybind::ListPlayers,
+            "key_key.pickItem" => Keybind::PickBlock,
+            "key_key.command" => Keybind::Command,
+            "key_key.screenshot" => Keybind::Screenshot,
+            "key_key.togglePerspective" => Keybind::Perspective,
+            "key_key.smoothCamera" => Keybind::MouseSmoothing,
+            "key_key.fullscreen" => Keybind::Fullscreen,
+            "key_key.spectatorOutlines" => Keybind::SpectatorOutlines,
+            "key_key.swapHands" => Keybind::SwapHands,
+            "key_key.saveToolbarActivator" => Keybind::SaveToolbar,
+            "key_key.loadToolbarActivator" => Keybind::LoadToolbar,
+            "key_key.advancements" => Keybind::Advancements,
+            "key_key.hotbar.1" => Keybind::Hotbar1,
+            "key_key.hotbar.2" => Keybind::Hotbar2,
+            "key_key.hotbar.3" => Keybind::Hotbar3,
+            "key_key.hotbar.4" => Keybind::Hotbar4,
+            "key_key.hotbar.5" => Keybind::Hotbar5,
+            "key_key.hotbar.6" => Keybind::Hotbar6,
+            "key_key.hotbar.7" => Keybind::Hotbar7,
+            "key_key.hotbar.8" => Keybind::Hotbar8,
+            "key_key.hotbar.9" => Keybind::Hotbar9,
+            _ => Keybind::Custom(keybind),
         }
     }
 }
 
-impl From<&KeyBind> for String {
-    fn from(keybind: &KeyBind) -> Self {
+impl From<&Keybind> for String {
+    fn from(keybind: &Keybind) -> Self {
         match keybind {
-            KeyBind::Attack => "key_key.attack",
-            KeyBind::UseItem => "key_key.use",
-            KeyBind::Forward => "key_key.forward",
-            KeyBind::Left => "key_key.left",
-            KeyBind::Back => "key_key.back",
-            KeyBind::Right => "key_key.right",
-            KeyBind::Jump => "key_key.jump",
-            KeyBind::Sneak => "key_key.sneak",
-            KeyBind::Sprint => "key_key.sprint",
-            KeyBind::Drop => "key_key.drop",
-            KeyBind::Iventory => "key_key.inventory",
-            KeyBind::Chat => "key_key.chat",
-            KeyBind::ListPlayers => "key_key.playerlist",
-            KeyBind::PickBlock => "key_key.pickItem",
-            KeyBind::Command => "key_key.command",
-            KeyBind::Screenshot => "key_key.screenshot",
-            KeyBind::Perspective => "key_key.togglePerspective",
-            KeyBind::MouseSmoothing => "key_key.smoothCamera",
-            KeyBind::Fullscreen => "key_key.fullscreen",
-            KeyBind::SpectatorOutlines => "key_key.spectatorOutlines",
-            KeyBind::SwapHands => "key_key.swapHands",
-            KeyBind::SaveToolbar => "key_key.saveToolbarActivator",
-            KeyBind::LoadToolbar => "key_key.loadToolbarActivator",
-            KeyBind::Advancements => "key_key.advancements",
-            KeyBind::Hotbar1 => "key_key.hotbar.1",
-            KeyBind::Hotbar2 => "key_key.hotbar.2",
-            KeyBind::Hotbar3 => "key_key.hotbar.3",
-            KeyBind::Hotbar4 => "key_key.hotbar.4",
-            KeyBind::Hotbar5 => "key_key.hotbar.5",
-            KeyBind::Hotbar6 => "key_key.hotbar.6",
-            KeyBind::Hotbar7 => "key_key.hotbar.7",
-            KeyBind::Hotbar8 => "key_key.hotbar.8",
-            KeyBind::Hotbar9 => "key_key.hotbar.9",
-            KeyBind::Custom(bind) => bind.as_ref(),
+            Keybind::Attack => "key_key.attack",
+            Keybind::UseItem => "key_key.use",
+            Keybind::Forward => "key_key.forward",
+            Keybind::Left => "key_key.left",
+            Keybind::Back => "key_key.back",
+            Keybind::Right => "key_key.right",
+            Keybind::Jump => "key_key.jump",
+            Keybind::Sneak => "key_key.sneak",
+            Keybind::Sprint => "key_key.sprint",
+            Keybind::Drop => "key_key.drop",
+            Keybind::Iventory => "key_key.inventory",
+            Keybind::Chat => "key_key.chat",
+            Keybind::ListPlayers => "key_key.playerlist",
+            Keybind::PickBlock => "key_key.pickItem",
+            Keybind::Command => "key_key.command",
+            Keybind::Screenshot => "key_key.screenshot",
+            Keybind::Perspective => "key_key.togglePerspective",
+            Keybind::MouseSmoothing => "key_key.smoothCamera",
+            Keybind::Fullscreen => "key_key.fullscreen",
+            Keybind::SpectatorOutlines => "key_key.spectatorOutlines",
+            Keybind::SwapHands => "key_key.swapHands",
+            Keybind::SaveToolbar => "key_key.saveToolbarActivator",
+            Keybind::LoadToolbar => "key_key.loadToolbarActivator",
+            Keybind::Advancements => "key_key.advancements",
+            Keybind::Hotbar1 => "key_key.hotbar.1",
+            Keybind::Hotbar2 => "key_key.hotbar.2",
+            Keybind::Hotbar3 => "key_key.hotbar.3",
+            Keybind::Hotbar4 => "key_key.hotbar.4",
+            Keybind::Hotbar5 => "key_key.hotbar.5",
+            Keybind::Hotbar6 => "key_key.hotbar.6",
+            Keybind::Hotbar7 => "key_key.hotbar.7",
+            Keybind::Hotbar8 => "key_key.hotbar.8",
+            Keybind::Hotbar9 => "key_key.hotbar.9",
+            Keybind::Custom(bind) => bind.as_ref(),
         }
         .into()
     }
 }
 
 #[derive(Debug, PartialEq)]
+/// Represent all possible translation keys in vanilla.
 pub enum Translate {
     ChatTypeText,
     MultiplayerPlayerJoined,
@@ -268,6 +271,14 @@ pub enum Click {
     CopyToClipboard(Cow<'static, str>),
 }
 
+#[serde_with::skip_serializing_none]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Entity {
+    id: Uuid,
+    ty: Option<Cow<'static, str>>,
+    name: Cow<'static, str>,
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "action", content = "value")]
 // TODO: Accept any json primitive as string
@@ -278,14 +289,14 @@ pub enum Hover {
     // TODO: Item struct
     ShowItem(String),
     #[serde(rename = "show_entity")]
-    // TODO: Entity struct
-    ShowEntity(String),
+    ShowEntity(Entity),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
+/// Text component can either be Text, Translate, Score, Selector, Keybind, or Nbt.
 pub enum TextValue {
-    TextComponent {
+    Text {
         text: Cow<'static, str>,
     },
     Translate {
@@ -301,7 +312,7 @@ pub enum TextValue {
         selector: Cow<'static, str>,
     },
     Keybind {
-        keybind: KeyBind,
+        keybind: Keybind,
     },
     Nbt {
         nbt: nbt::Blob,
@@ -319,7 +330,7 @@ where
 
 impl TextValue {
     pub fn text<T: Into<Cow<'static, str>>>(text: T) -> Self {
-        TextValue::TextComponent { text: text.into() }
+        TextValue::Text { text: text.into() }
     }
 
     pub fn translate_with<A, B>(translate: A, with: B) -> Self
@@ -351,7 +362,7 @@ impl TextValue {
         }
     }
 
-    pub fn keybind<A: Into<KeyBind>>(keybind: A) -> Self {
+    pub fn keybind<A: Into<Keybind>>(keybind: A) -> Self {
         TextValue::Keybind {
             keybind: keybind.into(),
         }
@@ -364,6 +375,7 @@ impl TextValue {
 
 #[serde_with::skip_serializing_none]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+/// Text json object that holds all styles.
 pub struct TextComponent {
     #[serde(flatten)]
     value: TextValue,
@@ -379,42 +391,6 @@ pub struct TextComponent {
     #[serde(rename = "hoverEvent")]
     hover: Option<Hover>,
     extra: Option<Vec<Text>>,
-}
-
-impl std::ops::Add for TextComponent {
-    type Output = Text;
-
-    fn add(self, rhs: Self) -> Text {
-        Text::Array(vec![self.into(), rhs.into()])
-    }
-}
-
-impl std::ops::Mul<Color> for TextComponent {
-    type Output = TextComponent;
-    fn mul(self, rhs: Color) -> TextComponent {
-        self.color(rhs)
-    }
-}
-
-impl std::ops::Mul<Style> for TextComponent {
-    type Output = TextComponent;
-    fn mul(self, rhs: Style) -> TextComponent {
-        self.style(rhs)
-    }
-}
-
-impl std::ops::Mul<Click> for TextComponent {
-    type Output = TextComponent;
-    fn mul(self, rhs: Click) -> TextComponent {
-        self.on_click(rhs)
-    }
-}
-
-impl std::ops::Mul<Hover> for TextComponent {
-    type Output = TextComponent;
-    fn mul(self, rhs: Hover) -> TextComponent {
-        self.on_hover(rhs)
-    }
 }
 
 impl Default for TextComponent {
@@ -433,9 +409,20 @@ impl TextComponent {
     }
 }
 
+pub enum Reset {
+    Color,
+    Style,
+    Insertion,
+    OnClick,
+    OnHover,
+}
+
+/// Text component interface.
 pub trait TextComponentBuilder {
+    /// Sets the given style to either None, true, or false.
     fn set_style(self, style: Style, value: Option<bool>) -> Self;
 
+    /// Applies the given style.
     fn style(self, style: Style) -> Self;
     fn bold(self) -> Self;
     fn italic(self) -> Self;
@@ -443,6 +430,7 @@ pub trait TextComponentBuilder {
     fn strikethrough(self) -> Self;
     fn underlined(self) -> Self;
 
+    /// Removes the given style.
     fn not_style(self, style: Style) -> Self;
     fn not_bold(self) -> Self;
     fn not_italic(self) -> Self;
@@ -450,13 +438,16 @@ pub trait TextComponentBuilder {
     fn not_strikethrough(self) -> Self;
     fn not_underlined(self) -> Self;
 
+    /// Resets the given style; the parent's color will be inherited.
     fn reset_style(self, style: Style) -> Self;
     fn reset_bold(self) -> Self;
     fn reset_italic(self) -> Self;
     fn reset_obfuscated(self) -> Self;
     fn reset_strikethrough(self) -> Self;
     fn reset_underlined(self) -> Self;
+    fn reset_style_all(self) -> Self;
 
+    /// Aplies the given color.
     fn color(self, color: Color) -> Self;
     fn dark_red(self) -> Self;
     fn red(self) -> Self;
@@ -475,29 +466,36 @@ pub trait TextComponentBuilder {
     fn dark_gray(self) -> Self;
     fn black(self) -> Self;
 
+    /// Resets the given color; the parent's color will be inherited.
     fn reset_color(self) -> Self;
 
+    /// Inserts the given text into the chat, when shift is held and clicked.
+    /// Only useable for messages in chat.
     fn insertion<A: Into<Cow<'static, str>>>(self, insertion: A) -> Self;
 
+    /// Resets the insertions.
     fn reset_insertion(self) -> Self;
 
     fn on_click(self, click: Click) -> Self;
     fn on_click_change_page(self, page: i32) -> Self;
     fn on_click_copy_to_clipboard<A: Into<Cow<'static, str>>>(self, to_copy: A) -> Self;
+    /// Can only be used on the client.
     fn on_click_open_file<A: Into<Cow<'static, str>>>(self, path: A) -> Self;
     fn on_click_open_url<A: Into<Cow<'static, str>>>(self, url: A) -> Self;
     fn on_click_run_command<A: Into<Cow<'static, str>>>(self, command: A) -> Self;
+    /// Only useable for messages in chat.
     fn on_click_suggest_command<A: Into<Cow<'static, str>>>(self, command: A) -> Self;
 
     fn reset_on_click(self) -> Self;
 
     fn on_hover(self, hover: Hover) -> Self;
-    fn on_hover_show_entity(self, entity: String) -> Self;
+    fn on_hover_show_entity<A: Into<Entity>>(self, entity: A) -> Self;
     fn on_hover_show_item(self, item: String) -> Self;
     fn on_hover_show_text<A: Into<Text>>(self, text: A) -> Self;
 
     fn reset_on_hover(self) -> Self;
 
+    /// Inherited Text; they will inherent the parent's style, color, insertion, on_click, and on_hover.
     fn extra<A>(self, extra: A) -> Self
     where
         A: IntoIterator,
@@ -506,12 +504,52 @@ pub trait TextComponentBuilder {
 
     fn reset_extra(self) -> Self;
 
+    /// Will inherent the parent's style, color, insertion, on_click, and on_hover.
     fn reset_all(self) -> Self;
+
+    /// Aplies the given reset
+    fn reset(self, reset: Reset) -> Self;
 }
 
 impl IntoTextComponent for TextComponent {
     fn into_component(self) -> TextComponent {
         self
+    }
+}
+
+impl<T> std::ops::Mul<Color> for T
+where
+    T: TextComponentBuilder,
+{
+    fn mul(self, rhs: Color) -> Self {
+        self.color(rhs)
+    }
+}
+
+impl<T> std::ops::Mul<Style> for T
+where
+    T: TextComponentBuilder,
+{
+    fn mul(self, rhs: Style) -> Self {
+        self.style(rhs)
+    }
+}
+
+impl<T> std::ops::Div<Style> for T
+where
+    T: TextComponentBuilder,
+{
+    fn div(self, rhs: Style) -> Self {
+        self.not_style(rhs)
+    }
+}
+
+impl<T> std::ops::Div<Reset> for T
+where
+    T: TextComponentBuilder,
+{
+    fn div(self, rhs: Reset) -> Self {
+        self.reset(rhs)
     }
 }
 
@@ -603,7 +641,16 @@ where
         self.style(Style::Underlined)
     }
 
-    // Colors
+    fn reset_style_all(self) -> Self {
+        let mut component = self.into_component();
+        component.bold = None;
+        component.italic = None;
+        component.obfuscated = None;
+        component.strikethrough = None;
+        component.underlined = None;
+        component.into()
+    }
+
     fn color(self, color: Color) -> Self {
         let mut component = self.into_component();
         component.color = Some(color);
@@ -733,12 +780,10 @@ where
         component.into()
     }
 
-    // TODO: Entity
-    fn on_hover_show_entity(self, entity: String) -> Self {
-        self.on_hover(Hover::ShowEntity(entity))
+    fn on_hover_show_entity<A: Into<Entity>>(self, entity: A) -> Self {
+        self.on_hover(Hover::ShowEntity(entity.into()))
     }
 
-    // TODO: ItemStack
     fn on_hover_show_item(self, item: String) -> Self {
         self.on_hover(Hover::ShowItem(item))
     }
@@ -792,6 +837,16 @@ where
         component.extra = None;
         component.into()
     }
+
+    fn reset(self, reset: Reset) -> Self {
+        match reset {
+            Reset::Color => self.reset_color(),
+            Reset::Insertion => self.reset_insertion(),
+            Reset::OnClick => self.reset_on_click(),
+            Reset::OnHover => self.reset_on_hover(),
+            Reset::Style => self.reset_style_all(),
+        }
+    }
 }
 
 impl<T> From<T> for TextComponent
@@ -825,6 +880,7 @@ impl From<Text> for TextComponent {
     }
 }
 
+/// Text can either be a json String, Object, or an Array.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Text {
@@ -873,7 +929,7 @@ impl Text {
         Text::from(TextValue::score(name, objective, value))
     }
 
-    pub fn keybind<A: Into<KeyBind>>(keybind: A) -> Text {
+    pub fn keybind<A: Into<Keybind>>(keybind: A) -> Text {
         Text::from(TextValue::keybind(keybind))
     }
 
@@ -924,40 +980,14 @@ impl std::ops::Add<Text> for Text {
     }
 }
 
-impl std::ops::Mul<Color> for Text {
-    type Output = Text;
-    fn mul(self, rhs: Color) -> Text {
-        self.into_component().color(rhs).into()
-    }
-}
-
-impl std::ops::Mul<Style> for Text {
-    type Output = Text;
-    fn mul(self, rhs: Style) -> Text {
-        self.into_component().style(rhs).into()
-    }
-}
-
-impl std::ops::Mul<Click> for Text {
-    type Output = Text;
-    fn mul(self, rhs: Click) -> Text {
-        self.into_component().on_click(rhs).into()
-    }
-}
-
-impl std::ops::Mul<Hover> for Text {
-    type Output = Text;
-    fn mul(self, rhs: Hover) -> Text {
-        self.into_component().on_hover(rhs).into()
-    }
-}
-
 impl From<Text> for String {
     fn from(text: Text) -> String {
         serde_json::to_string(&text).unwrap()
     }
 }
 
+/// Ensures Text is either an Array or Object.
+/// This is required at some places when sending to the client.
 pub struct TextRoot(Text);
 
 impl From<TextRoot> for String {
@@ -976,6 +1006,12 @@ where
             c @ Text::Component(_) => TextRoot(c),
             a @ Text::Array(_) => TextRoot(a),
         }
+    }
+}
+
+impl IntoTextComponent for TextRoot {
+    fn into_component(self) -> TextComponent {
+        self.0.into_component()
     }
 }
 
