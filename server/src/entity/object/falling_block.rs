@@ -36,11 +36,10 @@ pub fn spawn_falling_blocks(game: &mut Game, world: &mut World) {
                 let builder = if game.block_at(position.0 - BlockPosition::new(0, 1, 0))
                     == Some(Block::Air)
                 {
-                    Some(create(
-                        position.0.position() + position!(0.5, 0.0, 0.5),
-                        block.0,
-                        position.0,
-                    ))
+                    Some(
+                        create(block.0, position.0)
+                            .with(position.0.position() + position!(0.5, 0.0, 0.5)),
+                    )
                 } else {
                     None
                 };
@@ -80,11 +79,11 @@ pub fn on_entity_land_remove_falling_block(
 }
 
 /// Returns an `EntityBuilder` for a falling block of the given type.
-pub fn create(pos: Position, ty: Block, spawn_pos: BlockPosition) -> EntityBuilder {
+pub fn create(ty: Block, spawn_pos: BlockPosition) -> EntityBuilder {
     let meta =
         EntityMetadata::entity_base().with(META_INDEX_FALLING_BLOCK_SPAWN_POSITION, spawn_pos);
 
-    entity::base(pos)
+    entity::base()
         .with(FallingBlock)
         .with(FallingBlockType(ty))
         .with(SpawnPacketCreator(&create_spawn_packet))

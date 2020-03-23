@@ -3,9 +3,11 @@
 //! block entities, monsters, etc. Player entities are handled in `crate::player`,
 //! not here.
 
-pub mod arrow;
-pub mod falling_block;
-pub mod item;
+mod mob;
+mod object;
+
+pub use mob::*;
+pub use object::*;
 
 use crate::game::Game;
 use feather_core::entity::EntityData;
@@ -163,18 +165,15 @@ pub fn previous_position_velocity_reset(world: &mut World) {
 /// Inserts the base components for an entity into an `EntityBuilder`.
 ///
 /// This currently includes:
-/// * Velocity (0)
-/// * Entity ID
-/// * Position and previous position
-/// * Triggers `EntityCreateEvent`
-pub fn base(position: Position) -> EntityBuilder {
+/// * Velocity (0) and PreviousVelocity
+/// * Entity ID for the protocol
+pub fn base() -> EntityBuilder {
     let id = new_id();
     EntityBuilder::new()
         .with(EntityId(id))
-        .with(position)
-        .with(PreviousPosition(position))
         .with(Velocity::default())
         .with(PreviousVelocity::default())
+        .with(PreviousPosition(position!(0.0, 0.0, 0.0)))
 }
 
 /// Returns a new entity ID.
