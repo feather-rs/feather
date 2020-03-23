@@ -11,12 +11,12 @@ jobs:
         linux-stable:
           rustup_toolchain: stable
           image_name: 'ubuntu-16.04'
-        linux-beta:
-          rustup_toolchain: beta
-          image_name: 'ubuntu-16.04'
-        linux-nightly:
-          rustup_toolchain: nightly-2019-09-28
-          image_name: 'ubuntu-16.04'
+        #linux-beta:
+        #  rustup_toolchain: beta
+        #  image_name: 'ubuntu-16.04'
+        #linux-nightly:
+        #  rustup_toolchain: nightly-2019-09-28
+        #  image_name: 'ubuntu-16.04'
         windows-stable:
           rustup_toolchain: stable
           image_name: 'windows-latest'
