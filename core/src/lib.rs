@@ -25,6 +25,7 @@ pub mod inventory;
 mod math_types;
 pub mod network;
 mod save;
+pub mod text;
 
 extern crate nalgebra_glm as glm;
 
