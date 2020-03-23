@@ -517,46 +517,6 @@ impl IntoTextComponent for TextComponent {
     }
 }
 
-impl<T> std::ops::Mul<Color> for T
-where
-    T: TextComponentBuilder,
-{
-    type Output = Self;
-    fn mul(self, rhs: Color) -> Self {
-        self.color(rhs)
-    }
-}
-
-impl<T> std::ops::Mul<Style> for T
-where
-    T: TextComponentBuilder,
-{
-    type Output = Self;
-    fn mul(self, rhs: Style) -> Self {
-        self.style(rhs)
-    }
-}
-
-impl<T> std::ops::Div<Style> for T
-where
-    T: TextComponentBuilder,
-{
-    type Output = Self;
-    fn div(self, rhs: Style) -> Self {
-        self.not_style(rhs)
-    }
-}
-
-impl<T> std::ops::Div<Reset> for T
-where
-    T: TextComponentBuilder,
-{
-    type Output = Self;
-    fn div(self, rhs: Reset) -> Self {
-        self.reset(rhs)
-    }
-}
-
 impl<T> TextComponentBuilder for T
 where
     T: IntoTextComponent + From<TextComponent>,
@@ -1018,6 +978,45 @@ impl IntoTextComponent for TextRoot {
         self.0.into_component()
     }
 }
+
+macro_rules! impl_operators {
+    ($ty:ident) => {
+        impl std::ops::Mul<Color> for $ty {
+            type Output = Self;
+            fn mul(self, rhs: Color) -> Self {
+                self.color(rhs)
+            }
+        }
+
+        impl std::ops::Mul<Style> for $ty {
+            type Output = Self;
+            fn mul(self, rhs: Style) -> Self {
+                self.style(rhs)
+            }
+        }
+
+        impl std::ops::Div<Style> for $ty {
+            type Output = Self;
+            fn div(self, rhs: Style) -> Self {
+                self.not_style(rhs)
+            }
+        }
+
+        impl std::ops::Div<Reset> for $ty {
+            type Output = Self;
+            fn div(self, rhs: Reset) -> Self {
+                self.reset(rhs)
+            }
+        }
+    };
+    ($($ty:ident),+) => {
+        $(
+            impl_operators!($ty);
+        )+
+    }
+}
+
+impl_operators!(TextRoot, Text, TextComponent);
 
 #[cfg(test)]
 mod tests {
