@@ -42,17 +42,23 @@ jobs:
         condition: ne( variables['Agent.OS'], 'Windows_NT' )
 
       - script: |
+          set -e
           curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
           echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
-        displayName: Install Rust
-        condition: ne( variables['Agent.OS'], 'Windows_NT' )
+        env:
+          RUSTUP_TOOLCHAIN: ${{parameters.rustup_toolchain}}
+        displayName: "Install rust (*nix)"
+        condition: not(eq(variables['Agent.OS'], 'Windows_NT'))
 
       - script: |
           curl -sSf -o rustup-init.exe https://win.rustup.rs
           rustup-init.exe -y --default-toolchain %RUSTUP_TOOLCHAIN%
+          set PATH=%PATH%;%USERPROFILE%\.cargo\bin
           echo "##vso[task.setvariable variable=PATH;]%PATH%;%USERPROFILE%\.cargo\bin"
-        displayName: Install Rust
-        condition: eq( variables['Agent.OS'], 'Windows_NT' )
+        env:
+          RUSTUP_TOOLCHAIN: ${{parameters.rustup_toolchain}}
+        displayName: "Install rust (windows)"
+        condition: eq(variables['Agent.OS'], 'Windows_NT')
 
       - script: RUSTFLAGS="-C link-dead-code" cargo build
         displayName: Build
