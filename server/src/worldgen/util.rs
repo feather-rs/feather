@@ -16,3 +16,7 @@ pub fn shuffle_seed_for_column(seed: u64, chunk: ChunkPosition, col_x: usize, co
         .wrapping_mul(((col_x as u64) << 4) + 4)
         .wrapping_mul(col_z as u64 + 4)
 }
+
+pub fn shuffle_seed_for_block(seed: u64, x: i32, z: i32) -> u64 {
+    seed.wrapping_mul((x as u64).wrapping_mul(9324) ^ (z as u64).wrapping_shl(10))
+}

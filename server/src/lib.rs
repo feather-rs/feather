@@ -145,6 +145,8 @@ mod chunk_entities;
 pub mod chunk_logic;
 pub mod chunk_worker;
 pub mod config;
+#[cfg(feature = "dev-tools")]
+mod devtools;
 pub mod entity;
 pub mod game;
 pub mod io;
@@ -173,7 +175,31 @@ pub const PROTOCOL_VERSION: u32 = 404;
 pub const SERVER_VERSION: &str = "Feather 1.13.2";
 pub const TICK_TIME: u64 = 1000 / TPS;
 
+use structopt::StructOpt;
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "feather", about = "A Minecraft server implementation in Rust.")]
+struct Options {
+    /// Launches Feather in the dev tools GUI mode instead
+    /// of running a server. Currently used for developing
+    /// the world generator.
+    #[structopt(long = "dev-tools")]
+    dev_tools: bool,
+}
+
 pub fn main() {
+    let options = Options::from_args();
+
+    if options.dev_tools {
+        simple_logger::init_with_level(log::Level::Info).expect("failed to init logging");
+        info!("Launching the dev tools GUI");
+        run_dev_tools();
+    } else {
+        run_game();
+    }
+}
+
+fn run_game() {
     let config = Arc::new(load_config());
     init_log(&config);
 
@@ -273,6 +299,18 @@ pub fn main() {
 
     info!("Goodbye");
     exit(0);
+}
+
+fn run_dev_tools() {
+    if cfg!(feature = "dev-tools") {
+        if let Err(e) = devtools::run() {
+            error!("An error occurred: {}", e);
+            exit(-1);
+        }
+    } else {
+        error!("To run the dev tools GUI, please enable the `dev-tools` Cargo feature");
+        exit(-1);
+    }
 }
 
 /// Runs the main game loop.
