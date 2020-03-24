@@ -21,8 +21,6 @@ Many basic features are already implemented:
 - [x] Inventory handling
 - [x] Movement broadcasting
 
-Be aware that a major refactor is currently undergoing [here](https://github.com/feather-rs/feather/pull/170) which is hindering development of new features. Once this refactor is complete, a rapid pace of feature development will begin.
-
 ### Running
 We offer precompiled binaries for Windows and Linux at [GitHub Releases](https://github.com/caelunshun/feather/releases).
 
