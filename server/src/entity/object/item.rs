@@ -97,7 +97,8 @@ pub fn on_item_drop_spawn_item_entity(game: &mut Game, world: &mut World, event:
 
     drop(rng);
 
-    let entity = create(pos, event.stack, game.tick_count + TPS)
+    let entity = create(event.stack, game.tick_count + TPS)
+        .with(pos)
         .with(Velocity(velocity))
         .build()
         .spawn_in(world);
@@ -202,11 +203,11 @@ pub fn item_collect(game: &mut Game, world: &mut World) {
 
 /// Returns an entity builder to create an item entity
 /// with the given stack and collectable tick.
-pub fn create(pos: Position, stack: ItemStack, collectable_at: u64) -> EntityBuilder {
+pub fn create(stack: ItemStack, collectable_at: u64) -> EntityBuilder {
     let meta = EntityMetadata::entity_base().with(META_INDEX_ITEM_SLOT, Some(stack));
     let collectable_at = CollectableAt(collectable_at);
 
-    entity::base(pos)
+    entity::base()
         .with(stack)
         .with(IsRemoved(AtomicBool::new(false)))
         .with(collectable_at)
@@ -276,7 +277,8 @@ fn load(data: EntityData) -> anyhow::Result<EntityBuilder> {
 
             let collectable_at = data.pickup_delay;
 
-            Ok(create(pos, stack, collectable_at as u64)
+            Ok(create(stack, collectable_at as u64)
+                .with(pos)
                 .with(Velocity(glm::vec3(vel.x, vel.y, vel.z))))
         }
         _ => panic!("attempted to use item::load to load a non-item"),

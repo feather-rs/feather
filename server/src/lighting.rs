@@ -239,7 +239,11 @@ struct Context<'a> {
 impl<'a> Context<'a> {
     fn new(chunk_map: &'a ChunkMap, start_chunk: ChunkPosition) -> Option<Self> {
         Some(Self {
-            current_chunk: unsafe { std::mem::transmute(chunk_map.chunk_at_mut(start_chunk)?) },
+            current_chunk: unsafe {
+                std::mem::transmute::<RwLockWriteGuard<'a, Chunk>, RwLockWriteGuard<'static, Chunk>>(
+                    chunk_map.chunk_at_mut(start_chunk)?,
+                )
+            },
             chunk_map: chunk_map as *const _,
             _phantom: PhantomData,
         })
