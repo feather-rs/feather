@@ -6,15 +6,17 @@
 //! See http://cuberite.xoft.cz/docs/Generator.html#biomegen (section "Grown biomes")
 //! for an expanded explanation.
 
+use crate::worldgen::noise::normalized_fbm;
+use crate::worldgen::util::map;
 use crate::worldgen::{BiomeGenerator, ChunkBiomes};
-use feather_core::ChunkPosition;
-use simdnoise::NoiseBuilder;
+use feather_core::{Biome, ChunkPosition};
+use zoom::zoom;
 
 mod zoom;
 
 /// Wrapper over `Vec`.
 #[derive(Debug, Clone)]
-struct Grid {
+pub struct Grid {
     vec: Vec<u16>,
     size_x: usize,
     /// Global offsets of the origin of this grid in blocks
@@ -88,15 +90,7 @@ impl Grid {
     }
 }
 
-/// Operates an a biome grid, outputting a new grid.
-trait GridOperator: Send + Sync + 'static {
-    /// Performs an operation on the input grid, returning
-    /// new grid. The returned grid may have a greater size
-    /// than the input, though it must have the same relative
-    /// dimensions.
-    fn operate(&self, input: Grid, seed: u64) -> Grid;
-}
-
+#[derive(Debug, Default)]
 pub struct GridBiomeGenerator;
 
 // starting grid is 3x3 with scale 512: i.e. each
@@ -107,26 +101,45 @@ const STARTING_GRID_OFFSET_RELATIVE_TO_CHUNK: i32 = -(STARTING_GRID_SCALE as i32
 
 impl BiomeGenerator for GridBiomeGenerator {
     fn generate_for_chunk(&self, chunk: ChunkPosition, seed: u64) -> ChunkBiomes {
-        let mut starting_grid = Grid::new(
+        let mut grid = Grid::new(
             STARTING_GRID_SIZE,
             STARTING_GRID_SIZE,
             STARTING_GRID_OFFSET_RELATIVE_TO_CHUNK + chunk.x * 16,
             STARTING_GRID_OFFSET_RELATIVE_TO_CHUNK + chunk.z * 16,
             STARTING_GRID_SCALE,
         );
-        fill_with_ocean_land(&mut starting_grid, seed);
+        fill_with_ocean_land(&mut grid, seed);
+        for _ in 0..8 {
+            grid = zoom(grid, seed + 1);
+        }
 
-        todo!()
+        let mut biomes = ChunkBiomes::default();
+
+        for x in 0..16 {
+            for z in 0..16 {
+                let biome = if grid.sample(x + chunk.x * 16, z + chunk.z * 16) > 0 {
+                    Biome::Ocean
+                } else {
+                    Biome::Plains
+                };
+                biomes.set_biome_at(x as usize, z as usize, biome);
+            }
+        }
+
+        biomes
     }
 }
 
-/// Fills in a grid with ocean-land values. 0=ocean; >0=land.
+/// Fills in a grid with ocean-land values. 0=land; >0=ocean.
 fn fill_with_ocean_land(grid: &mut Grid, seed: u64) {
-    let _noise = NoiseBuilder::gradient_2d_offset(
-        grid.offset_x as f32,
-        grid.size_x(),
-        grid.offset_z as f32,
-        grid.size_z(),
-    )
-    .with_seed(seed as i32);
+    for x in 0..grid.size_x() {
+        for z in 0..grid.size_z() {
+            let abs_x = x as i32 * grid.scale as i32 + grid.offset_x;
+            let abs_z = z as i32 * grid.scale as i32 + grid.offset_z;
+
+            let noise = normalized_fbm(abs_x as f32, abs_z as f32, 0.02, 0.5, 2.0, 3, seed);
+
+            grid.set_at(x, z, map(noise, 0.0, 1.0, 0.0, 2.0).floor() as u16);
+        }
+    }
 }

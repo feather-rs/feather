@@ -302,12 +302,15 @@ fn run_game() {
 }
 
 fn run_dev_tools() {
-    if cfg!(feature = "dev-tools") {
+    #[cfg(feature = "dev-tools")]
+    {
         if let Err(e) = devtools::run() {
             error!("An error occurred: {}", e);
             exit(-1);
         }
-    } else {
+    }
+    #[cfg(not(feature = "dev-tools"))]
+    {
         error!("To run the dev tools GUI, please enable the `dev-tools` Cargo feature");
         exit(-1);
     }

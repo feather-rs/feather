@@ -19,7 +19,7 @@ impl Default for State {
 }
 
 impl State {
-    pub fn render(&mut self, ui: &imgui::Ui, buffer: &mut [u32]) -> bool {
+    pub fn render(&mut self, ui: &imgui::Ui, buffer: &mut [u32], is_first_run: bool) -> bool {
         let mut current_mode = self.mode.ordinal();
         ComboBox::new(im_str!("Mode")).build_simple_string(
             ui,
@@ -31,7 +31,7 @@ impl State {
             self.mode = Mode::default_from_ordinal(current_mode);
         }
 
-        self.mode.render(ui, buffer)
+        self.mode.render(ui, buffer, is_first_run)
     }
 
     pub fn dimensions(&self) -> u32 {
@@ -69,7 +69,7 @@ impl Mode {
         }
     }
 
-    fn render(&mut self, ui: &imgui::Ui, buffer: &mut [u32]) -> bool {
+    fn render(&mut self, ui: &imgui::Ui, buffer: &mut [u32], is_first_run: bool) -> bool {
         match &mut self.kind {
             ModeKind::DisplayNoise(settings) => {
                 let prev_settings = *settings;
@@ -97,7 +97,7 @@ impl Mode {
 
                 settings.render(ui);
 
-                if prev_settings != *settings || dim_changed || multiplier_changed {
+                if prev_settings != *settings || dim_changed || multiplier_changed || is_first_run {
                     // Re-render noise
                     let data = SampledGrid::new(
                         settings.generate(self.dimensions as usize, self.dimensions as usize),

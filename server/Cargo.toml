@@ -116,7 +116,6 @@ minifb = { version = "0.15", optional = true }
 # to run Feather in this mode.
 dev-tools = ["imgui", "winit", "imgui-wgpu", "imgui-winit-support", "wgpu", "minifb"]
 nightly = ["hashbrown/nightly", "parking_lot/nightly"]
-default = ["dev-tools"]
 
 [dev-dependencies]
 criterion = "0.3"

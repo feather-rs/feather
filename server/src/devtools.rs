@@ -44,9 +44,10 @@ pub fn run() -> anyhow::Result<()> {
         minifb::WindowOptions::default(),
     )?;
 
+    let mut is_first_run = true;
     event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
         let mut buffer_changed = false;
+        *control_flow = ControlFlow::Poll;
         match event {
             Event::WindowEvent {
                 event: WindowEvent::ScaleFactorChanged { scale_factor, .. },
@@ -107,7 +108,9 @@ pub fn run() -> anyhow::Result<()> {
                 {
                     match &mut state {
                         State::Worldgen(state) => {
-                            buffer_changed = state.render(&ui, &mut buffer);
+                            if state.render(&ui, &mut buffer, is_first_run) {
+                                buffer_changed = true;
+                            }
                         }
                     }
                 }
@@ -131,11 +134,13 @@ pub fn run() -> anyhow::Result<()> {
             .platform
             .handle_event(imgui.io_mut(), &context.window, &event);
 
-        if buffer_changed {
+        if buffer_changed || is_first_run {
             display_window
                 .update_with_buffer(&buffer, VIEWER_WIDTH, VIEWER_HEIGHT)
                 .unwrap();
         }
+
+        is_first_run = false;
     });
 }
 

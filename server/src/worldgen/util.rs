@@ -20,3 +20,7 @@ pub fn shuffle_seed_for_column(seed: u64, chunk: ChunkPosition, col_x: usize, co
 pub fn shuffle_seed_for_block(seed: u64, x: i32, z: i32) -> u64 {
     seed.wrapping_mul((x as u64).wrapping_mul(9324) ^ (z as u64).wrapping_shl(10))
 }
+
+pub fn map(x: f32, bmin: f32, bmax: f32, amin: f32, amax: f32) -> f32 {
+    (x - bmin) * ((amax - amin) / (bmax - bmin)) + bmin
+}

@@ -111,7 +111,7 @@ impl ComposableGenerator {
             Box::new(ClumpedFoliageFinisher::default()),
         ];
         Self::new(
-            TwoLevelBiomeGenerator::default(),
+            GridBiomeGenerator::default(),
             DensityMapGeneratorImpl::default(),
             BasicCompositionGenerator::default(),
             finishers,
@@ -344,6 +344,12 @@ pub struct ChunkBiomes {
     /// column local to the chunk can be indexed using
     /// (x << 4) | z.
     biomes: [Biome; 16 * 16],
+}
+
+impl Default for ChunkBiomes {
+    fn default() -> Self {
+        Self::from_array([Biome::Plains; 16 * 16])
+    }
 }
 
 impl ChunkBiomes {
