@@ -8,4 +8,6 @@ members = [
     "item_block",
     "codegen",
     "generator",
+    "worldgen",
+    "worldgen/devtools"
 ]

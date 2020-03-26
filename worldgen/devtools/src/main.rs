@@ -1,7 +1,5 @@
-//! Implements a GUI for performing assorted debugging tasks.
-//! Currently only used for world generation.
+//! Implements a GUI for debugging world generation.
 
-use crate::worldgen;
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use std::time::Instant;
 use winit::dpi::LogicalSize;
@@ -13,6 +11,8 @@ pub const UI_WIDTH: usize = 1920 / 2;
 pub const UI_HEIGHT: usize = 1080 / 2;
 pub const VIEWER_WIDTH: usize = 512;
 pub const VIEWER_HEIGHT: usize = 512;
+
+mod biomes;
 
 struct Context {
     window: Window,
@@ -27,12 +27,19 @@ struct Context {
 }
 
 enum State {
-    Worldgen(worldgen::devtools::State),
+    Biomes(biomes::State),
+}
+
+fn main() {
+    match run() {
+        Err(e) => println!("ERROR: {}", e),
+        Ok(_) => (),
+    }
 }
 
 pub fn run() -> anyhow::Result<()> {
     let (mut context, event_loop, mut imgui) = init_context()?;
-    let mut state = State::Worldgen(worldgen::devtools::State::default());
+    let mut state = State::Biomes(biomes::State::default());
 
     let mut last_frame = Instant::now();
 
@@ -107,10 +114,12 @@ pub fn run() -> anyhow::Result<()> {
 
                 {
                     match &mut state {
-                        State::Worldgen(state) => {
+                        State::Biomes(state) => {
                             if state.render(&ui, &mut buffer, is_first_run) {
                                 buffer_changed = true;
                             }
+
+                            is_first_run = false;
                         }
                     }
                 }
@@ -134,14 +143,12 @@ pub fn run() -> anyhow::Result<()> {
             .platform
             .handle_event(imgui.io_mut(), &context.window, &event);
 
-        if buffer_changed || is_first_run {
+        if buffer_changed {
             display_window
                 .update_with_buffer(&buffer, VIEWER_WIDTH, VIEWER_HEIGHT)
                 .unwrap();
         }
-
-        is_first_run = false;
-    });
+    })
 }
 
 fn init_context() -> anyhow::Result<(Context, EventLoop<()>, imgui::Context)> {

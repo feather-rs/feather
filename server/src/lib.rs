@@ -145,8 +145,6 @@ mod chunk_entities;
 pub mod chunk_logic;
 pub mod chunk_worker;
 pub mod config;
-#[cfg(feature = "dev-tools")]
-mod devtools;
 pub mod entity;
 pub mod game;
 pub mod io;

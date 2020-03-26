@@ -1,46 +1,4 @@
 use num_traits::ToPrimitive;
-use simdnoise::FbmSettings;
-
-/// Extension trait for noise settings.
-pub trait NoiseExt {
-    /// Generates noise normalized to `[0, 1]`.
-    ///
-    /// http://digitalfreepen.com/2017/06/20/range-perlin-noise.html
-    fn generate_normalized(self) -> Vec<f32>;
-}
-
-impl NoiseExt for FbmSettings {
-    fn generate_normalized(self) -> Vec<f32> {
-        let mut res = self.generate().0;
-
-        res.iter_mut().for_each(|x| {
-            *x = normalize(*x);
-        });
-
-        res
-    }
-}
-
-pub fn normalized_fbm(
-    x: f32,
-    y: f32,
-    freq: f32,
-    lacunarity: f32,
-    gain: f32,
-    octaves: u8,
-    seed: u64,
-) -> f32 {
-    normalize(unsafe {
-        simdnoise::scalar::fbm_2d(x * freq, y * freq, lacunarity, gain, octaves, seed as i32)
-    })
-}
-
-/// Normalizes a noise value to [0, 1].
-pub fn normalize(mut x: f32) -> f32 {
-    x += 0.5f32.sqrt();
-    x /= 0.5f32.sqrt() * 2.0;
-    x
-}
 
 /// Struct for applying linear interpolation to a 3D
 /// density array.

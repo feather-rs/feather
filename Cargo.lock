@@ -914,15 +914,13 @@ dependencies = [
  "feather-codegen",
  "feather-core",
  "feather-item-block",
+ "feather-worldgen",
  "fecs",
  "futures",
  "hashbrown",
  "heapless",
  "hematite-nbt",
  "humantime-serde",
- "imgui",
- "imgui-wgpu",
- "imgui-winit-support",
  "indexmap",
  "inventory",
  "itertools 0.9.0",
@@ -930,7 +928,6 @@ dependencies = [
  "lazy_static",
  "lock_api",
  "log",
- "minifb",
  "mojang-api",
  "multimap",
  "nalgebra",
@@ -960,6 +957,30 @@ dependencies = [
  "tokio-util",
  "toml",
  "uuid",
+]
+
+[[package]]
+name = "feather-worldgen"
+version = "0.1.0"
+dependencies = [
+ "feather-core",
+ "num-traits 0.2.11",
+ "rand 0.7.3",
+ "rand_xorshift 0.2.0",
+ "simdnoise",
+]
+
+[[package]]
+name = "feather-worldgen-devtools"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "feather-core",
+ "feather-worldgen",
+ "imgui",
+ "imgui-wgpu",
+ "imgui-winit-support",
+ "minifb",
  "wgpu",
  "winit",
 ]

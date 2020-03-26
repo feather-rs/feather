@@ -1,0 +1,16 @@
+[package]
+name = "feather-worldgen-devtools"
+version = "0.1.0"
+authors = ["caelunshun <caelum12321@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-worldgen = { path = ".." }
+feather-core = { path = "../../core" }
+wgpu = "0.4"
+winit = "0.21"
+imgui = "0.3"
+imgui-wgpu = "0.5"
+imgui-winit-support = "0.3"
+minifb = "0.15"
+anyhow = "1.0"
