@@ -23,7 +23,7 @@ pub enum Reset {
     OnHover,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(tag = "action", content = "value")]
 // TODO: Accept any json primitive as string
 pub enum Click {
@@ -36,14 +36,14 @@ pub enum Click {
 }
 
 #[serde_with::skip_serializing_none]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Entity {
     id: Uuid,
     ty: Option<Cow<'static, str>>,
     name: Cow<'static, str>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(tag = "action", content = "value")]
 // TODO: Accept any json primitive as string
 pub enum Hover {
@@ -57,23 +57,21 @@ pub enum Hover {
 }
 
 #[serde_with::skip_serializing_none]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 /// Text json object that holds all styles.
 pub struct TextComponent {
     #[serde(flatten)]
-    value: TextValue,
-    color: Option<Color>,
-    bold: Option<bool>,
-    italic: Option<bool>,
-    underlined: Option<bool>,
-    strikethrough: Option<bool>,
-    obfuscated: Option<bool>,
-    insertion: Option<Cow<'static, str>>,
-    #[serde(rename = "clickEvent")]
-    click: Option<Click>,
-    #[serde(rename = "hoverEvent")]
-    hover: Option<Hover>,
-    extra: Option<Vec<Text>>,
+    pub value: TextValue,
+    pub color: Option<Color>,
+    pub bold: Option<bool>,
+    pub italic: Option<bool>,
+    pub underlined: Option<bool>,
+    pub strikethrough: Option<bool>,
+    pub obfuscated: Option<bool>,
+    pub insertion: Option<Cow<'static, str>>,
+    pub click: Option<Click>,
+    pub hover: Option<Hover>,
+    pub extra: Option<Vec<Text>>,
 }
 
 impl TextComponent {
@@ -108,6 +106,18 @@ impl TextComponent {
 
     pub fn nbt<A: Into<nbt::Blob>>(nbt: A) -> Self {
         TextValue::nbt(nbt).into()
+    }
+
+    pub fn is_plain(&self) -> bool {
+        self.color.is_none()
+            && self.bold.is_none() 
+            && self.italic.is_none() 
+            && self.underlined.is_none() 
+            && self.strikethrough.is_none() 
+            && self.obfuscated.is_none()
+            && self.insertion.is_none()
+            && self.hover.is_none()
+            && self.extra.is_none()
     }
 }
 

@@ -5,6 +5,9 @@ mod constants;
 pub use constants::{Color, Keybind, Translate};
 mod component;
 pub use component::{Click, Entity, Hover, Reset, Style, TextComponent, TextValue};
+mod language;
+mod simplification;
+pub use simplification::Simplification;
 
 impl<T> std::ops::Mul<T> for Translate
 where
@@ -18,7 +21,7 @@ where
 }
 
 /// Text can either be a json String, Object, or an Array.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Text {
     String(Cow<'static, str>),

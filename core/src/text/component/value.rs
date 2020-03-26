@@ -1,7 +1,7 @@
 use crate::text::{Keybind, Text, Translate};
 use std::borrow::Cow;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 /// Text component can either be Text, Translate, Score, Selector, Keybind, or Nbt.
 pub enum TextValue {

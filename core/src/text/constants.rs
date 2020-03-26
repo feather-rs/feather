@@ -3,7 +3,7 @@ use std::borrow::Cow;
 
 macro_rules! constants {
     ($typ:ident, $(($name:ident, $value:literal)),*) => {
-        #[derive(Debug, PartialEq)]
+        #[derive(Debug, PartialEq, Clone)]
         pub enum $typ {
             $(
                 $name,
