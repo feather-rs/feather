@@ -222,8 +222,8 @@ impl TextComponent {
         self.on_hover(Hover::ShowEntity(entity.into()))
     }
 
-    pub fn on_hover_show_item(self, item: String) -> Self {
-        self.on_hover(Hover::ShowItem(item))
+    pub fn on_hover_show_item<A: Into<Cow<'static, str>>>(self, item: A) -> Self {
+        self.on_hover(Hover::ShowItem(item.into()))
     }
 
     pub fn on_hover_show_text<A: Into<Text>>(self, text: A) -> Self {

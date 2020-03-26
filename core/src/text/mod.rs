@@ -132,61 +132,57 @@ impl std::ops::Add<Text> for Text {
     }
 }
 
-impl From<&Text> for String {
+impl From<&Text> for serde_json::Value {
     fn from(text: &Text) -> Self {
-        serde_json::to_string(text).unwrap()
+        serde_json::to_value(text).unwrap()
     }
 }
 
-impl From<Text> for String {
+impl From<Text> for serde_json::Value {
     fn from(text: Text) -> Self {
         (&text).into()
     }
 }
 
-impl From<TextComponent> for String {
+impl From<&Text> for String {
+    fn from(text: &Text) -> Self {
+        serde_json::Value::from(text).to_string()
+    }
+}
+
+impl From<Text> for String {
+    fn from(text: Text) -> Self {
+        serde_json::Value::from(text).to_string()
+    }
+}
+
+impl From<TextComponent> for serde_json::Value {
     fn from(text: TextComponent) -> Self {
         Text::from(text).into()
     }
 }
 
-/// Ensures Text is either an Array or Object.
-/// This is required at some places when sending to the client.
-pub struct TextRoot(Text);
-
-impl<'a> From<TextRoot> for String {
-    fn from(text: TextRoot) -> Self {
-        text.0.into()
-    }
-}
-
-impl<T> From<T> for TextRoot
-where
-    T: Into<Text>,
-{
-    fn from(text: T) -> Self {
-        match text.into() {
-            s @ Text::String(_) => TextRoot(Text::from(TextComponent::from(s))),
-            c @ Text::Component(_) => TextRoot(c),
-            a @ Text::Array(_) => TextRoot(a),
-        }
+impl From<TextComponent> for String {
+    fn from(text: TextComponent) -> Self {
+        serde_json::Value::from(text).to_string()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::text::{Color, Style, Text, TextRoot, Translate};
+    use crate::text::{Color, Entity, Style, Text, TextComponent, Translate};
+    use serde_json::json;
     use std::error::Error;
 
     #[test]
     pub fn text_text_single() -> Result<(), Box<dyn Error>> {
         let text_orignal: Text = Text::from("hello").into();
 
-        let text_json = serde_json::to_string(&text_orignal)?;
+        let text_json = serde_json::Value::from(&text_orignal);
 
-        assert_eq!(&text_json, r#""hello""#);
+        assert_eq!(&text_json, &json!("hello"));
 
-        let text: Text = serde_json::from_str(&text_json)?;
+        let text: Text = Text::from_json(&text_json.to_string().as_str())?;
         assert_eq!(text_orignal, text);
 
         Ok(())
@@ -196,11 +192,11 @@ mod tests {
     fn text_text_array() -> Result<(), Box<dyn Error>> {
         let text_orignal = Text::from("hello") + Text::from(" ") + Text::from("world!");
 
-        let text_json = serde_json::to_string(&text_orignal)?;
+        let text_json = serde_json::Value::from(&text_orignal);
 
-        assert_eq!(&text_json, r#"["hello"," ","world!"]"#);
+        assert_eq!(&text_json, &json!(["hello", " ", "world!"]));
 
-        let text: Text = serde_json::from_str(&text_json)?;
+        let text: Text = Text::from_json(&text_json.to_string().as_str())?;
         assert_eq!(text_orignal, text);
 
         Ok(())
@@ -211,11 +207,17 @@ mod tests {
         let text_orignal = "hello world" * Color::DarkRed;
         let text_orignal = Text::from(text_orignal);
 
-        let text_json = String::from(&text_orignal);
+        let text_json = serde_json::Value::from(&text_orignal);
 
-        assert_eq!(&text_json, r#"{"text":"hello world","color":"dark_red"}"#);
+        assert_eq!(
+            &text_json,
+            &json!({
+                "text": "hello world",
+                "color": "dark_red",
+            })
+        );
 
-        let text = Text::from_json(text_json.as_str())?;
+        let text = Text::from_json(text_json.to_string().as_str())?;
         assert_eq!(text_orignal, text);
         Ok(())
     }
@@ -227,11 +229,25 @@ mod tests {
         let world = "world" * Color::Blue * Style::Bold;
         let hello_space_world = hello + space + world;
 
-        let text_json = String::from(hello_space_world);
+        let text_json = serde_json::Value::from(&hello_space_world);
 
         assert_eq!(
-            text_json,
-            r#"["",{"text":"hello","color":"red","bold":true,"italic":true}," ",{"text":"world","color":"blue","bold":true}]"#
+            &text_json,
+            &json!([
+                "",
+                {
+                    "text": "hello",
+                    "color": "red",
+                    "bold": true,
+                    "italic": true,
+                },
+                " ",
+                {
+                    "text": "world",
+                    "color": "blue",
+                    "bold": true,
+                }
+            ])
         );
     }
 
@@ -240,31 +256,52 @@ mod tests {
         let join =
             Translate::from("multiplayer.player.joined") * vec!["The_Defman"] * Color::Yellow;
 
-        let text_json = String::from(join);
+        let text_json = serde_json::Value::from(join);
 
         assert_eq!(
-            text_json,
-            r#"{"translate":"multiplayer.player.joined","with":["The_Defman"],"color":"yellow"}"#
+            &text_json,
+            &json!({
+                "translate": "multiplayer.player.joined",
+                "with": ["The_Defman"],
+                "color": "yellow"
+            })
         );
 
         let join = Translate::MultiplayerPlayerJoined * vec!["The_Defman"] * Color::Yellow;
 
-        let text_json = String::from(join);
+        let text_json = serde_json::Value::from(join);
 
         assert_eq!(
-            text_json,
-            r#"{"translate":"multiplayer.player.joined","with":["The_Defman"],"color":"yellow"}"#
+            &text_json,
+            &json!({
+                "translate": "multiplayer.player.joined",
+                "with": ["The_Defman"],
+                "color": "yellow"
+            })
         );
     }
 
     #[test]
-    fn text_root() {
-        let hello = Text::from("hello");
-
-        let root = TextRoot::from(hello);
-
-        let root_json = String::from(root);
-
-        assert_eq!(root_json, r#"{"text":"hello"}"#);
+    fn text_entity() {
+        let entity = TextComponent::from("hello").on_hover_show_entity(Entity::new(
+            uuid::Uuid::nil(),
+            "player",
+            "The_Defman",
+        ));
+        let json = serde_json::Value::from(entity);
+        assert_eq!(
+            &json,
+            &json!({
+                "text": "hello",
+                "hover": {
+                    "action": "show_entity",
+                    "value": {
+                        "id": "00000000-0000-0000-0000-000000000000",
+                        "type": "player",
+                        "name": "The_Defman"
+                    }
+                }
+            })
+        );
     }
 }

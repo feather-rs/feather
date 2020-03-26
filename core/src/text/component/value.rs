@@ -3,7 +3,6 @@ use std::borrow::Cow;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-/// Text component can either be Text, Translate, Score, Selector, Keybind, or Nbt.
 pub enum TextValue {
     Text {
         text: Cow<'static, str>,

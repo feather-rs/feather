@@ -3,7 +3,7 @@ use crate::entity::Name;
 use crate::game::Game;
 use crate::packet_buffer::PacketBuffers;
 use feather_core::network::packet::implementation::ChatMessageServerbound;
-use feather_core::text::{TextRoot, Translate};
+use feather_core::text::Translate;
 use fecs::World;
 use std::sync::Arc;
 
@@ -19,11 +19,8 @@ pub fn handle_chat(game: &mut Game, world: &mut World, packet_buffers: &Arc<Pack
             }
 
             let player_name = world.get::<Name>(player);
-            let message: String = TextRoot::from(
-                Translate::ChatTypeText
-                    * vec![player_name.0.to_string(), packet.message.to_string()],
-            )
-            .into();
+            let message = Translate::ChatTypeText
+                * vec![player_name.0.to_string(), packet.message.to_string()];
 
             info!("<{}> {}", player_name.0, packet.message);
             drop(player_name);
@@ -31,7 +28,7 @@ pub fn handle_chat(game: &mut Game, world: &mut World, packet_buffers: &Arc<Pack
             game.on_chat(
                 world,
                 ChatEvent {
-                    message,
+                    message: message.into(),
                     position: ChatPosition::Chat,
                 },
             );

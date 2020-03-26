@@ -25,7 +25,6 @@ pub enum Reset {
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(tag = "action", content = "value")]
-// TODO: Accept any json primitive as string
 pub enum Click {
     OpenUrl(Cow<'static, str>),
     OpenFile(Cow<'static, str>),
@@ -39,19 +38,34 @@ pub enum Click {
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Entity {
     id: Uuid,
-    ty: Option<Cow<'static, str>>,
+    #[serde(rename = "type")]
+    kind: Option<Cow<'static, str>>,
     name: Cow<'static, str>,
+}
+
+impl Entity {
+    pub fn new<A, B, C, D>(id: A, kind: B, name: C) -> Entity
+    where
+        A: Into<Uuid>,
+        B: Into<Option<D>>,
+        D: Into<Cow<'static, str>>,
+        C: Into<Cow<'static, str>>,
+    {
+        Entity {
+            id: id.into(),
+            kind: kind.into().map(Into::into),
+            name: name.into(),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[serde(tag = "action", content = "value")]
-// TODO: Accept any json primitive as string
 pub enum Hover {
     #[serde(rename = "show_text")]
     ShowText(Box<Text>),
     #[serde(rename = "show_item")]
-    // TODO: Item struct
-    ShowItem(String),
+    ShowItem(Cow<'static, str>),
     #[serde(rename = "show_entity")]
     ShowEntity(Entity),
 }
@@ -110,10 +124,10 @@ impl TextComponent {
 
     pub fn is_plain(&self) -> bool {
         self.color.is_none()
-            && self.bold.is_none() 
-            && self.italic.is_none() 
-            && self.underlined.is_none() 
-            && self.strikethrough.is_none() 
+            && self.bold.is_none()
+            && self.italic.is_none()
+            && self.underlined.is_none()
+            && self.strikethrough.is_none()
             && self.obfuscated.is_none()
             && self.insertion.is_none()
             && self.hover.is_none()
@@ -165,7 +179,13 @@ impl From<Text> for TextComponent {
         match value {
             Text::String(s) => TextComponent::from(s),
             Text::Component(c) => *c,
-            Text::Array(arr) => TextComponent::from("").extra(arr),
+            Text::Array(mut arr) => {
+                if arr.is_empty() {
+                    TextComponent::empty()
+                } else {
+                    TextComponent::from(arr.remove(0)).extra(arr)
+                }
+            }
         }
     }
 }

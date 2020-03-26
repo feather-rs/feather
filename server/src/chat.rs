@@ -1,13 +1,13 @@
 use crate::entity::Name;
 use crate::game::Game;
-use feather_core::text::{Color, TextRoot, Translate};
+use feather_core::text::{Color, Text, Translate};
 use fecs::{Entity, World};
 
 /// Event triggered when a chat message is sent out
 #[derive(Debug, Clone)]
 pub struct ChatEvent {
     /// The JSON-formatted message
-    pub message: String,
+    pub message: Text,
 
     /// The position of the message
     pub position: ChatPosition,
@@ -27,18 +27,15 @@ pub enum ChatPosition {
 }
 
 pub fn on_player_join_broadcast_join_message(game: &mut Game, world: &mut World, player: Entity) {
-    let message: String = {
+    let message = {
         let name = world.get::<Name>(player);
-        TextRoot::from(
-            Translate::MultiplayerPlayerJoined * vec![name.0.to_string()] * Color::Yellow,
-        )
-        .into()
+        Translate::MultiplayerPlayerJoined * vec![name.0.to_string()] * Color::Yellow
     };
 
     game.on_chat(
         world,
         ChatEvent {
-            message,
+            message: message.into(),
             position: ChatPosition::Chat,
         },
     );
