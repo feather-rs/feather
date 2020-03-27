@@ -10,15 +10,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path_version = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/data/1.13.2"));
     let path_server = path_version.join("server.jar");
     
-    println!("cargo:rerun-if-changed={}", path_server.display());
-    
     // Create folder data/{version}
     fs::create_dir_all(path_version)?;
     
     donwload(path_server)?;
     generate(path_version)?;
     extract(path_version)?;
-
+    println!("cargo:rerun-if-changed={}", path_server.display());
+    
     Ok(())
 }
 
