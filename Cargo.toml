@@ -12,6 +12,7 @@ members = [
     "core/entity_metadata",
     "core/item_block",
     "core/items",
+    "core/loot",
     "core/misc",
     "core/inventory",
     "core/network",

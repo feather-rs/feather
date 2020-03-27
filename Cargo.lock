@@ -866,6 +866,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "feather-loot"
+version = "0.1.0"
+dependencies = [
+ "hashbrown",
+ "serde",
+ "uuid",
+]
+
+[[package]]
 name = "feather-misc"
 version = "0.1.0"
 dependencies = [
