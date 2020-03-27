@@ -654,6 +654,7 @@ dependencies = [
  "cfb8",
  "feather-blocks",
  "feather-codegen",
+ "feather-data",
  "feather-items",
  "flate2 1.0.13",
  "hash32",
@@ -679,6 +680,13 @@ dependencies = [
  "tokio-util",
  "uuid",
  "vek",
+]
+
+[[package]]
+name = "feather-data"
+version = "0.5.0"
+dependencies = [
+ "reqwest",
 ]
 
 [[package]]
