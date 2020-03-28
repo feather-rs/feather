@@ -8,5 +8,6 @@ members = [
     "item_block",
     "codegen",
     "generator",
-    "data"
+    "data",
+    "data/macro"
 ]
