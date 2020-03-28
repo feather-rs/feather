@@ -25,5 +25,5 @@ pub mod util;
 /// * Finishers, which add additional structures on top of the
 /// generated chunk: e.g. grass, trees, buildings, caves.
 pub struct WorldGenerator {
-    biome_generator: Box<dyn BiomeGenerator>,
+    _biome_generator: Box<dyn BiomeGenerator>,
 }

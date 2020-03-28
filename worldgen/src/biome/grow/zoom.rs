@@ -1,6 +1,6 @@
-use crate::biome::grow::{Grid, GridLayer};
+use crate::biome::grow::{select, Grid, GridLayer};
 use crate::util::scramble2;
-use rand::{Rng, SeedableRng};
+use rand::SeedableRng;
 use rand_xorshift::XorShiftRng;
 
 pub struct ZoomLayer {
@@ -26,7 +26,7 @@ impl GridLayer for ZoomLayer {
             let mut upper_left = input.at(0, i);
             let mut lower_left = input.at(0, i + 1);
             for j in 0..below_size_z - 1 {
-                let mut rng = XorShiftRng::seed_from_u64(scramble2(seed, i, j));
+                let mut rng = XorShiftRng::seed_from_u64(scramble2(seed, z + i, x + j));
 
                 temp.set_at(j * 2, i * 2, upper_left);
                 temp.set_at(
@@ -61,18 +61,10 @@ impl GridLayer for ZoomLayer {
 
         for i in 0..size_z {
             for j in 0..size_x {
-                result.set_at(j, i, temp.at((x % 2) + j, (z % 2) + i));
+                result.set_at(j, i, temp.at((x.abs() % 2) + j, (z.abs() % 2) + i));
             }
         }
 
         result
     }
-}
-
-fn select<T>(rng: &mut impl Rng, values: &[T]) -> T
-where
-    T: Copy,
-{
-    let index = rng.gen_range(0, values.len());
-    values[index]
 }

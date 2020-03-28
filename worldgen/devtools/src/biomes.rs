@@ -1,10 +1,9 @@
 //! Debugging of the biomes grid.
 
 use crate::{VIEWER_HEIGHT, VIEWER_WIDTH};
-use feather_core::chunk::CHUNK_WIDTH;
-use feather_core::{Biome, ChunkPosition};
+use feather_core::Biome;
+use feather_worldgen::biome::grow::continents::{DRY, ICE, MOUNTAIN, OCEAN, TEMPERATE};
 use feather_worldgen::biome::grow::GrowBiomeGenerator;
-use feather_worldgen::biome::BiomeGenerator;
 use imgui::{im_str, Ui};
 
 pub struct State {
@@ -33,7 +32,7 @@ impl State {
 
         if dimensions_changed || seed_changed || is_first_run {
             let mut grid = vec![Biome::Plains; self.dimensions as usize * self.dimensions as usize];
-
+            /*
             let generator = GrowBiomeGenerator::new();
 
             for x in 0..self.dimensions / CHUNK_WIDTH as i32 {
@@ -59,6 +58,32 @@ impl State {
                         }
                     }
                 }
+            }*/
+
+            let generator = GrowBiomeGenerator::new();
+
+            let generated =
+                generator
+                    .root
+                    .generate(self.seed as u64, 0, 0, self.dimensions, self.dimensions);
+
+            for x in 0..self.dimensions {
+                for z in 0..self.dimensions {
+                    let val = generated.at(x, z);
+                    grid[(x * self.dimensions + z) as usize] = if val == OCEAN {
+                        Biome::Ocean
+                    } else if val == DRY {
+                        Biome::Desert
+                    } else if val == TEMPERATE {
+                        Biome::Plains
+                    } else if val == MOUNTAIN {
+                        Biome::Mountains
+                    } else if val == ICE {
+                        Biome::SnowyTaiga
+                    } else {
+                        panic!("invalid biome value {}", val);
+                    }
+                }
             }
 
             let scale = self.dimensions as f64 / VIEWER_WIDTH as f64;
@@ -77,8 +102,16 @@ impl State {
 
                         if biome == Biome::Ocean {
                             0xFF // blue
-                        } else {
+                        } else if biome == Biome::Plains {
                             0xFF << 8 // green
+                        } else if biome == Biome::SnowyTaiga {
+                            (0xFF << 16) | (0xFF << 8) | 0xFF // white
+                        } else if biome == Biome::Desert {
+                            (0xFF << 16) | (0xFF << 8) // yellow
+                        } else if biome == Biome::Mountains {
+                            (0xFF / 2) << 8 // dark green
+                        } else {
+                            panic!();
                         }
                     };
 

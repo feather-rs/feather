@@ -8,10 +8,7 @@ use feather_core::{Biome, Block, Chunk, ChunkPosition};
 mod biomes;
 mod composition;
 mod density_map;
-#[cfg(feature = "dev-tools")]
-pub mod devtools;
 mod finishers;
-pub mod noise;
 mod superflat;
 mod util;
 pub mod voronoi;

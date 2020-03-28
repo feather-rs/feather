@@ -1,12 +1,15 @@
 pub mod continents;
 pub mod grid;
+pub mod smooth;
 pub mod zoom;
 
 use crate::biome::grow::continents::ContinentsLayer;
 use crate::biome::grow::zoom::ZoomLayer;
 use crate::biome::{BiomeGenerator, Biomes};
-use feather_core::{Biome, ChunkPosition};
+use feather_core::ChunkPosition;
 pub use grid::Grid;
+use rand::Rng;
+use smooth::SmoothLayer;
 
 const CHUNK_WIDTH: i32 = feather_core::chunk::CHUNK_WIDTH as i32;
 
@@ -17,7 +20,7 @@ pub trait GridLayer: Send + Sync + 'static {
 
 pub struct GrowBiomeGenerator {
     /// Recursive chain of biome operators.
-    root: Box<dyn GridLayer>,
+    pub root: Box<dyn GridLayer>,
 }
 
 macro_rules! layer_chain {
@@ -35,11 +38,25 @@ macro_rules! layer_chain {
     }
 }
 
+impl Default for GrowBiomeGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GrowBiomeGenerator {
     pub fn new() -> Self {
         let root = layer_chain! {
+            SmoothLayer,
             ZoomLayer,
             ZoomLayer,
+            SmoothLayer,
+            ZoomLayer,
+            ZoomLayer,
+            SmoothLayer,
+            ZoomLayer,
+            ZoomLayer,
+            SmoothLayer,
             ZoomLayer,
             ZoomLayer,
             ContinentsLayer
@@ -51,9 +68,9 @@ impl GrowBiomeGenerator {
 
 impl BiomeGenerator for GrowBiomeGenerator {
     fn generate(&self, seed: u64, position: ChunkPosition) -> Biomes {
-        let mut biomes = Biomes::default();
+        let biomes = Biomes::default();
 
-        let grid = self.root.generate(
+        let _grid = self.root.generate(
             seed,
             position.x * CHUNK_WIDTH,
             position.z * CHUNK_WIDTH,
@@ -62,13 +79,15 @@ impl BiomeGenerator for GrowBiomeGenerator {
         );
 
         // Interpret final grid results as biome IDs.
-        for x in 0..CHUNK_WIDTH {
-            for z in 0..CHUNK_WIDTH {
-                biomes[x as usize][z as usize] = Biome::from_protocol_id(i32::from(grid.at(x, z)))
-                    .expect("biome generator returned invalid biome ID");
-            }
-        }
 
         biomes
     }
+}
+
+pub fn select<T>(rng: &mut impl Rng, values: &[T]) -> T
+where
+    T: Copy,
+{
+    let index = rng.gen_range(0, values.len());
+    values[index]
 }
