@@ -28,10 +28,18 @@ fn include_dirs_files<P: AsRef<Path>>(path: P) -> (TokenStream, Vec<syn::Path>) 
         .partition(|p| p.is_file());
     let (files_tokens, files_idents): (Vec<_>, Vec<_>) = files.iter().map(include_file).unzip();
     let (dirs_tokens, dirs_idents): (Vec<_>, Vec<_>) = dirs.iter().map(include_dir).unzip();
-    let mut idents: Vec<syn::Path> = files_idents.into_iter()
+    let mut idents: Vec<syn::Path> = files_idents
+        .into_iter()
         .map(|ident| {
-            let segments = std::iter::once(syn::PathSegment { ident, arguments: syn::PathArguments::None }).collect();
-            syn::Path { leading_colon: None, segments }
+            let segments = std::iter::once(syn::PathSegment {
+                ident,
+                arguments: syn::PathArguments::None,
+            })
+            .collect();
+            syn::Path {
+                leading_colon: None,
+                segments,
+            }
         })
         .collect();
     idents.extend(dirs_idents.into_iter().flatten());
@@ -56,11 +64,18 @@ fn include_dir<P: AsRef<Path>>(path: P) -> (TokenStream, Vec<syn::Path>) {
     let idents: Vec<syn::Path> = idents
         .into_iter()
         .map(|path| {
-            let segments = std::iter::once(syn::PathSegment { ident: name.clone(), arguments: syn::PathArguments::None })
-                .chain(path.segments.into_iter())
-                .collect();
-            syn::Path { leading_colon: None, segments }
-        }).collect();
+            let segments = std::iter::once(syn::PathSegment {
+                ident: name.clone(),
+                arguments: syn::PathArguments::None,
+            })
+            .chain(path.segments.into_iter())
+            .collect();
+            syn::Path {
+                leading_colon: None,
+                segments,
+            }
+        })
+        .collect();
     (
         quote! {
             pub mod #name {
@@ -77,7 +92,14 @@ fn include_file<P: AsRef<Path>>(path: P) -> (TokenStream, Ident) {
         .file_stem()
         .and_then(OsStr::to_str)
         .expect("Could not extract file stem.");
-    let name = format_ident!("_{}", stem.to_uppercase());
+    let name = {
+        let stem = stem.to_uppercase();
+        if stem.starts_with(char::is_numeric) {
+            format_ident!("_{}", stem)
+        } else {
+            format_ident!("{}", stem)
+        }
+    };
     let path = format!("{}", path.display());
     (
         quote! {

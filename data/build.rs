@@ -10,10 +10,10 @@ use std::process::Command;
 fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/minecraft"));
     let path_server = path.join("server.jar");
-    
+
     let _ = fs::remove_dir_all(&path);
     fs::create_dir_all(&path)?;
-    
+
     donwload(&path_server)?;
     generate(&path)?;
     extract(&path)?;
