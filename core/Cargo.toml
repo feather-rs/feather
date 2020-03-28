@@ -10,6 +10,7 @@ publish = false
 feather-codegen = { path = "../codegen" }
 feather-blocks = { path = "../blocks" }
 feather-items = { path = "../items" }
+feather-data = { path = "../data" }
 
 # Networking
 tokio = { version = "0.2", features = ["full"] }
@@ -53,6 +54,3 @@ rayon = "1.3"
 # Error handling
 thiserror = "1.0"
 anyhow = "1.0"
-
-[dev-dependencies]
-feather-data = { path = "../data" }
