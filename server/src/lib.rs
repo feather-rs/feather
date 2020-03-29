@@ -125,7 +125,13 @@ use feather_core::level::{deserialize_level_file, save_level_file, LevelData, Le
 use feather_core::world::ChunkMap;
 use feather_core::{level, ChunkPosition};
 use fecs::{EntityBuilder, Executor, Resources, World};
+
+#[cfg(not(target_env = "msvc"))]
 use jemallocator::Jemalloc;
+
+#[cfg(target_env = "msvc")]
+use std::alloc::System;
+
 use rand::Rng;
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
@@ -134,9 +140,14 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::process::exit;
 use thread_local::CachedThreadLocal;
-
+//
+#[cfg(not(target_env = "msvc"))]
 #[global_allocator]
 static ALLOC: Jemalloc = Jemalloc;
+
+#[cfg(target_env = "msvc")]
+#[global_allocator]
+static ALLOC: System = System;
 
 mod block;
 mod broadcasters;
