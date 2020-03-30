@@ -70,6 +70,17 @@ impl Text {
     pub fn from_json(json: &str) -> serde_json::Result<Text> {
         serde_json::from_str(json)
     }
+
+    pub fn concat(mut self, rhs: Self) -> Self {
+        match self {
+            s @ Text::String(_) => Text::Array(vec![s, rhs]),
+            c @ Text::Component(_) => Text::Array(vec![Text::empty(), c, rhs]),
+            Text::Array(ref mut inner) => {
+                inner.push(rhs);
+                self
+            }
+        }
+    }
 }
 
 impl From<Color> for Text {
@@ -118,20 +129,15 @@ impl std::ops::Add<TextComponent> for Text {
     }
 }
 
+// Addition is equivalent to concatenation
 impl std::ops::Add<Text> for Text {
     type Output = Text;
-    fn add(mut self, rhs: Text) -> Text {
-        match self {
-            s @ Text::String(_) => Text::Array(vec![s, rhs]),
-            c @ Text::Component(_) => Text::Array(vec![Text::empty(), c, rhs]),
-            Text::Array(ref mut inner) => {
-                inner.push(rhs);
-                self
-            }
-        }
+    fn add(self, rhs: Text) -> Text {
+        self.concat(rhs)
     }
 }
 
+// Serilization of Text
 impl From<&Text> for serde_json::Value {
     fn from(text: &Text) -> Self {
         serde_json::to_value(text).unwrap()
@@ -144,6 +150,7 @@ impl From<&Text> for String {
     }
 }
 
+// Serilize TextComponent as Text
 impl From<TextComponent> for serde_json::Value {
     fn from(text: TextComponent) -> Self {
         (&Text::from(text)).into()
