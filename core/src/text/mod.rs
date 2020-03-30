@@ -138,33 +138,21 @@ impl From<&Text> for serde_json::Value {
     }
 }
 
-impl From<Text> for serde_json::Value {
-    fn from(text: Text) -> Self {
-        (&text).into()
-    }
-}
-
 impl From<&Text> for String {
     fn from(text: &Text) -> Self {
-        serde_json::Value::from(text).to_string()
-    }
-}
-
-impl From<Text> for String {
-    fn from(text: Text) -> Self {
-        serde_json::Value::from(text).to_string()
+        serde_json::to_string(text).unwrap()
     }
 }
 
 impl From<TextComponent> for serde_json::Value {
     fn from(text: TextComponent) -> Self {
-        Text::from(text).into()
+        (&Text::from(text)).into()
     }
 }
 
 impl From<TextComponent> for String {
     fn from(text: TextComponent) -> Self {
-        serde_json::Value::from(text).to_string()
+        (&Text::from(text)).into()
     }
 }
 
