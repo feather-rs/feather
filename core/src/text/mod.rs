@@ -170,9 +170,6 @@ mod tests {
 
         assert_eq!(&text_json, &json!("hello"));
 
-        let text: Text = Text::from_json(&text_json.to_string().as_str())?;
-        assert_eq!(text_orignal, text);
-
         Ok(())
     }
 
