@@ -291,10 +291,10 @@ pub struct EncryptionResponse {
 
 impl Packet for EncryptionResponse {
     fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
-        self.secret_length = buf.try_get_var_int()?;
+        let secret_length = buf.try_get_var_int()?;
 
         let mut secret = vec![];
-        for _ in 0..self.secret_length {
+        for _ in 0..secret_length {
             secret.push(buf.get_u8());
         }
 
@@ -2016,12 +2016,6 @@ impl PlayerInfoAction {
             PlayerInfoAction::UpdateDisplayName(_) => 3,
             PlayerInfoAction::RemovePlayer => 4,
         }
-    }
-}
-
-impl Default for PlayerInfoAction {
-    fn default() -> Self {
-        PlayerInfoAction::RemovePlayer
     }
 }
 

@@ -36,23 +36,12 @@ pub const SECTION_VOLUME: usize = (SECTION_HEIGHT * SECTION_WIDTH * SECTION_WIDT
 /// The number of chunk sections in a column.
 pub const NUM_SECTIONS: usize = 16;
 
-use std::fmt;
-
-#[derive(Clone)]
-struct SectionArray<T> ([T; SECTION_WIDTH * SECTION_WIDTH]);
-
-impl<T: fmt::Debug> fmt::Debug for SectionArray<T> {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        self.0[..].fmt(formatter)
-    }
-}
-
 /// A chunk column consisting
 /// of a 16x256x16 section of blocks.
 /// A chunk column maintains an array
 /// of up to 16 chunk sections, each corresponding
 /// to a 16x16x16 section of blocks in the chunk.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Chunk {
     /// The location of this chunk, in chunk
     /// coordinates.
@@ -67,7 +56,7 @@ pub struct Chunk {
     sections: [Option<ChunkSection>; NUM_SECTIONS],
     /// The biomes in this section, indexable by
     /// ((z << 4) | x).
-    biomes: SectionArray<Biome>,
+    biomes: [Biome; SECTION_WIDTH * SECTION_WIDTH],
     /// Whether this chunk has been modified since the most recent
     /// call to `check_modified`().
     modified: bool,
@@ -184,7 +173,7 @@ impl Chunk {
         Self {
             location,
             modified: true,
-            biomes: SectionArray([default_biome; SECTION_WIDTH * SECTION_HEIGHT]),
+            biomes: [default_biome; SECTION_WIDTH * SECTION_HEIGHT],
             ..Default::default()
         }
     }
@@ -431,13 +420,13 @@ impl Chunk {
 
     /// Returns the biomes of this chunk.
     pub fn biomes(&self) -> &[Biome] {
-        &self.biomes.0
+        &self.biomes
     }
 
     /// Returns a mutable reference to the biomes of this chunk.
     pub fn biomes_mut(&mut self) -> &mut [Biome] {
         self.modified = true;
-        &mut self.biomes.0
+        &mut self.biomes
     }
 
     /// Gets the biome for the specified column.
@@ -446,7 +435,7 @@ impl Chunk {
     /// Panics if `x < 16` or `z < 16`.
     pub fn biome_at(&self, x: usize, z: usize) -> Biome {
         let index = Self::biome_index(x, z);
-        self.biomes.0[index]
+        self.biomes[index]
     }
 
     /// Sets the biome for the specified column.
@@ -456,7 +445,7 @@ impl Chunk {
     pub fn set_biome_at(&mut self, x: usize, z: usize, biome: Biome) {
         let index = Self::biome_index(x, z);
         self.modified = true;
-        self.biomes.0[index] = biome;
+        self.biomes[index] = biome;
     }
 
     /// Checks whether this chunk has been modified since the last
@@ -835,7 +824,7 @@ fn block_index(x: usize, y: usize, z: usize) -> usize {
 /// A "bit array." This struct manages
 /// an internal array of `u64` to which
 /// values of arbitrary bit length can be written.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct BitArray {
     /// The internal data array containing all values
     data: Vec<u64>,
@@ -845,16 +834,6 @@ pub struct BitArray {
     bits_per_value: u8,
     /// The maximum value represented by an entry in this array
     value_mask: u64,
-}
-
-impl fmt::Debug for BitArray {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        let mut data = vec![];
-        for i in 0..self.capacity - 1 {
-            data.push(self.get(i));
-        }
-        data.fmt(formatter)
-    }
 }
 
 impl BitArray {
@@ -889,7 +868,6 @@ impl BitArray {
             "Bits per value cannot be more than 64"
         );
         assert!(bits_per_value > 0, "Bits per value must be positive");
-        assert!(data.len() <= (bits_per_value as usize * capacity + 63) / 64, "data too small");
 
         let value_mask = (1 << (bits_per_value as u64)) - 1;
 

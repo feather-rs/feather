@@ -86,18 +86,6 @@ pub trait ToMetaEntry {
     fn to_meta_entry(&self) -> MetaEntry;
 }
 
-impl IntoMetaEntry for MetaEntry {
-    fn into_meta_entry(&self) -> MetaEntry {
-        self.clone()
-    }
-}
-
-impl IntoMetaEntry for u8 {
-    fn into_meta_entry(&self) -> MetaEntry {
-        MetaEntry::Byte(*self as i8)
-    }
-}
-
 impl ToMetaEntry for i8 {
     fn to_meta_entry(&self) -> MetaEntry {
         MetaEntry::Byte(*self)
