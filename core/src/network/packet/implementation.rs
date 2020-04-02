@@ -1333,7 +1333,7 @@ pub struct ServerDifficulty {
     pub difficulty: u8,
 }
 
-#[derive(Default, AsAny, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone, Debug)]
 pub struct ChatMessageClientbound {
     pub json_data: String,
     pub position: u8,
@@ -1409,7 +1409,7 @@ pub struct WindowProperty {
     pub value: i16,
 }
 
-#[derive(Default, AsAny, Packet, Clone)]
+#[derive(Default, AsAny, Packet, Clone, Debug)]
 pub struct SetSlot {
     pub window_id: i8,
     pub slot: i16,
@@ -1880,7 +1880,7 @@ impl Default for CombatEventType {
     }
 }
 
-#[derive(AsAny, Clone, Default)]
+#[derive(AsAny, Clone, Default, Debug)]
 pub struct PlayerInfo {
     pub action: PlayerInfoAction,
     pub uuid: Uuid,
