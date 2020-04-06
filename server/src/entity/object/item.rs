@@ -13,7 +13,7 @@ use feather_core::network::packet::implementation::SpawnObject;
 use feather_core::{
     EntityMetadata, Item, ItemStack, Packet, Position, Vec3d, META_INDEX_ITEM_SLOT,
 };
-use fecs::{changed, component, Entity, EntityBuilder, EntityRef, IntoQuery, Read, World, Write};
+use fecs::{component, Entity, EntityBuilder, EntityRef, IntoQuery, Read, World, Write};
 use parking_lot::Mutex;
 use rand::Rng;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -108,8 +108,8 @@ pub fn on_item_drop_spawn_item_entity(game: &mut Game, world: &mut World, event:
 /// System to add items to player inventories when the player comes near.
 #[system]
 pub fn item_collect(game: &mut Game, world: &mut World) {
-    // run every 1/4 second
-    if game.tick_count % TPS / 4 != 0 {
+    // run every 1/10 second
+    if game.tick_count % (TPS / 10) != 0 {
         return;
     }
 
@@ -124,7 +124,6 @@ pub fn item_collect(game: &mut Game, world: &mut World) {
     unsafe {
         <(Read<Position>, Write<EntityInventory>)>::query()
             .filter(component::<Player>())
-            .filter(changed::<Position>())
             .par_entities_for_each_unchecked(world.inner(), |(player, (pos, mut inventory))| {
                 let inventory: &mut EntityInventory = &mut *inventory;
 

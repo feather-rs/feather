@@ -9,7 +9,7 @@ use feather_core::network::packet::implementation::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
 };
 use feather_core::{Packet, Position};
-use fecs::{changed, Entity, IntoQuery, Read, World};
+use fecs::{Entity, IntoQuery, Read, World};
 use smallvec::SmallVec;
 use std::ops::Deref;
 
@@ -95,9 +95,9 @@ pub fn on_entity_client_remove_update_last_known_positions(
 /// Broadcasts an entity's velocity.
 #[system]
 pub fn broadcast_velocity(world: &mut World, game: &mut Game) {
-    <(Read<Velocity>, Read<PreviousVelocity>, Read<EntityId>)>::query()
-        .filter(changed::<Velocity>())
-        .par_entities_for_each(world.inner(), |(entity, (vel, prev_vel, entity_id))| {
+    <(Read<Velocity>, Read<PreviousVelocity>, Read<EntityId>)>::query().par_entities_for_each(
+        world.inner(),
+        |(entity, (vel, prev_vel, entity_id))| {
             let entity_id = entity_id.0;
 
             if vel.0 == prev_vel.0 {
@@ -117,7 +117,8 @@ pub fn broadcast_velocity(world: &mut World, game: &mut Game) {
                 velocity_z,
             };
             game.broadcast_entity_update(world, packet, entity, None);
-        });
+        },
+    );
 }
 
 /// Returns the packet needed to notify a client
