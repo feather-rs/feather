@@ -10,9 +10,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/minecraft"));
     let path_server = path.join("server.jar");
 
-    println!("cargo:rerun-if-changed={}", &path.display());
-
     if data_exists(path).unwrap_or(false) {
+        println!("cargo:rerun-if-changed={}", &path.display());
         return Ok(());
     }
 
@@ -22,6 +21,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     donwload(&path_server)?;
     generate(&path)?;
     extract(&path)?;
+
+    println!("cargo:rerun-if-changed={}", &path.display());
     Ok(())
 }
 
