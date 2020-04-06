@@ -1,3 +1,4 @@
+use feather_core::Gamemode;
 use std::fs::read_to_string;
 use std::time::Duration;
 use thiserror::Error;
@@ -47,7 +48,7 @@ pub struct Server {
     pub view_distance: u8,
     pub address: String,
     pub port: u16,
-    pub default_gamemode: String,
+    pub default_gamemode: Gamemode,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -2,6 +2,7 @@
 use crate::chunk_worker::Request;
 use crate::game::Game;
 use crate::network::Network;
+use crate::player::Player;
 use crate::{lighting, save};
 use crossbeam::Sender;
 use feather_core::level;
@@ -56,7 +57,15 @@ pub fn save_level(game: &mut Game) {
         .expect("Failed to save level file");
 }
 
-pub fn save_player_data(_world: &World) {}
+pub fn save_player_data(game: &Game, world: &World) {
+    <Read<Player>>::query().for_each_entities(&world.inner(), |(player, _)| {
+        save::save_player_data(game, world, player);
+    });
+}
+
+pub async fn wait_for_task_completion(game: &Game) {
+    game.running_tasks.wait().await;
+}
 
 pub fn shut_down_workers(game: &Game) {
     let _ = game

@@ -43,6 +43,7 @@ pub use save::{entity, level, player_data, region};
 pub use world::{BlockPosition, ChunkPosition, Position};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[serde(rename_all = "lowercase")]
 pub enum Gamemode {
     Survival,
     Creative,
