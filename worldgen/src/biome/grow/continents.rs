@@ -1,4 +1,6 @@
 use crate::biome::grow::{Grid, GridLayer};
+use rand::SeedableRng;
+use rand_xorshift::XorShiftRng;
 use simdnoise::NoiseBuilder;
 
 pub struct ContinentsLayer;
@@ -16,19 +18,27 @@ impl GridLayer for ContinentsLayer {
         let (continents_noise, _min, _max) =
             NoiseBuilder::fbm_2d_offset(x as f32, size_x as usize, z as f32, size_x as usize)
                 .with_seed(seed as i32)
-                .with_freq(0.5)
+                .with_freq(0.3)
                 .generate();
 
         let biome_group_noise =
             NoiseBuilder::fbm_2d_offset(x as f32, size_x as usize, z as f32, size_z as usize)
                 .with_seed(seed as i32 + 1000)
-                .with_freq(1.5)
+                .with_freq(1.2)
                 .generate()
                 .0;
 
         for i in 0..size_x {
             for j in 0..size_z {
-                let noise_val = continents_noise[(i + j * size_x) as usize] * 2.0;
+                let mut noise_val = continents_noise[(i + j * size_x) as usize] as f64 * 2.0;
+
+                // Ensure area around origin will be land.
+                // This is done by giving a boost to noise_val
+                // f(x)=1/x where x is the distance to the origin
+                // times a coefficient.
+                let abs_x = i + x;
+                let abs_z = j + z;
+                noise_val += 1.0 / (f64::from(abs_x * abs_x + abs_z * abs_z).sqrt() * 3.0);
 
                 let val = if noise_val > 0.045 {
                     let biome_group = biome_group_noise[(i + j * size_x) as usize] * 2.0;
