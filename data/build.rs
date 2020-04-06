@@ -1,4 +1,3 @@
-use reqwest;
 use std::env;
 use std::error::Error;
 use std::fs;
@@ -9,9 +8,13 @@ use std::process::Command;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/minecraft"));
-    dbg!(path);
     let path_server = path.join("server.jar");
+
     println!("cargo:rerun-if-changed={}", &path.display());
+
+    if data_exists(path).unwrap_or(false) {
+        return Ok(());
+    }
 
     let _ = fs::remove_dir_all(&path);
     fs::create_dir_all(&path)?;
@@ -22,11 +25,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn donwload<P: AsRef<Path>>(server: P) -> Result<(), Box<dyn Error>> {
-    if File::open(&server).is_ok() {
-        return Ok(());
-    }
+fn data_exists(path: &Path) -> Result<bool, Box<dyn Error>> {
+    Ok(File::open(path.join("server.jar")).is_ok()
+        && File::open(path.join("assets")).is_ok()
+        && File::open(path.join("data")).is_ok()
+        && File::open(path.join("generated")).is_ok())
+}
 
+fn donwload<P: AsRef<Path>>(server: P) -> Result<(), Box<dyn Error>> {
     let mut response = reqwest::blocking::get("https://launcher.mojang.com/v1/objects/3737db93722a9e39eeada7c27e7aca28b144ffa7/server.jar")?;
     let mut dest = File::create(server)?;
     copy(&mut response, &mut dest)?;
