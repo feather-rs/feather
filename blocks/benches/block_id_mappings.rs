@@ -10,22 +10,20 @@ use feather_blocks::{
 fn to_id_complex_state(c: &mut Criterion) {
     c.bench_function("to_id_complex_state", |b| {
         b.iter(|| {
-            let _id = black_box(Block::RedSandstoneStairs(RedSandstoneStairsData {
+            black_box(Block::RedSandstoneStairs(RedSandstoneStairsData {
                 waterlogged: true,
                 half: RedSandstoneStairsHalf::Top,
                 shape: RedSandstoneStairsShape::Straight,
                 facing: RedSandstoneStairsFacing::South,
             }))
-            .native_state_id();
+            .native_state_id()
         });
     });
 }
 
 fn from_id_complex_state(c: &mut Criterion) {
     c.bench_function("from_id_complex_state", |b| {
-        b.iter(|| {
-            let _block = Block::from_native_state_id(black_box(7198));
-        });
+        b.iter(|| Block::from_native_state_id(black_box(7198)));
     });
 }
 

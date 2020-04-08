@@ -43,7 +43,7 @@ fn donwload<P: AsRef<Path>>(server: P) -> Result<(), Box<dyn Error>> {
 fn generate<P: AsRef<Path>>(working: P) -> Result<(), Box<dyn Error>> {
     let status = Command::new("java")
         .current_dir(working)
-        .args(&["-cp", "server.jar", "net.minecraft.data.Main", "--reports"])
+        .args(&["-cp", "server.jar", "net.minecraft.data.Main", "--all"])
         .status()?;
     if !status.success() {
         panic!("Failed to generate data from server jar.")
