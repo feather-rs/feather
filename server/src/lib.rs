@@ -125,7 +125,6 @@ use feather_core::level::{deserialize_level_file, save_level_file, LevelData, Le
 use feather_core::world::ChunkMap;
 use feather_core::{level, ChunkPosition};
 use fecs::{EntityBuilder, Executor, Resources, World};
-use jemallocator::Jemalloc;
 use rand::Rng;
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
@@ -134,9 +133,6 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::process::exit;
 use thread_local::CachedThreadLocal;
-
-#[global_allocator]
-static ALLOC: Jemalloc = Jemalloc;
 
 mod block;
 mod broadcasters;

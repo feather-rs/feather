@@ -1,0 +1,104 @@
+name: build
+
+on:
+  push:
+    branches: [ develop, master, staging ]
+  pull_request:
+    branches: [ develop, master, staging ]
+
+jobs:
+  build:
+    name: "Build and Test"
+    strategy:
+      matrix:
+        os: [ ubuntu-18.04, windows-2019, macos-10.15 ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+      # Necessary for now for the cargo cache:
+      # https://github.com/actions/cache/issues/133#issuecomment-599102035
+    - name: Fix ~/.cargo directory permissions
+      run: rm -r ~/.cargo
+      if:
+    
+    - name: Cache target directory
+      uses: actions/cache@v1
+      env:
+        cache-name: build-target-directory
+      with:
+        path: target
+        key: ${{ runner.os }}-build-${{ env.cache-name }} }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: Cache cargo directory
+      uses: actions/cache@v1
+      env:
+        cache-name: cargo-registry-directory
+      with:
+        path: ~/.cargo
+        key: ${{ runner.os }}-build-${{ env.cache-name }} }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+      
+    - name: Build
+      run: cargo build
+      
+    - name: Run tests
+      run: cargo test
+    
+    - name: Run Clippy
+      uses: actions-rs/clippy-check@v1.0.5
+      with:
+        # GitHub token
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --all-targets -- -D warnings
+    
+    - name: Check formatting
+      run: cargo fmt -- --check
+      
+  create-release:
+    name: Publish to GitHub Releases
+    strategy:
+      matrix:
+        os: [ ubuntu-18.04, windows-2019, macos-10.15 ]
+        include:
+          - os: ubuntu-18.04
+            os-name: linux
+          - os: windows-2019
+            os-name: windows
+          - os: macos-10.15
+            os-name: macOS
+    runs-on: ${{ matrix.os }}
+    
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: ['build']
+    
+    steps:
+      - name: Build (release mode)
+        run: cargo build --release
+      
+      - name: Get tag name
+        uses: olegtarasov/get-tag@v2
+        id: tagName
+      
+      - name: Compress executable
+        uses: papeloto/action-zip@v1
+        with:
+          files: target/release/feather-server
+          dest: target/release/feather-${{ steps.tagName.outputs.tag }}-${{ matrix.os-name }}.zip
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1.6.1
+        with:
+          # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
+          artifact: target/release/feather-${{ steps.tagName.outputs.tag }}-${{ matrix.os-name }}.zip
+          # The Github token.
+          token: ${{ secrets.GITHUB_TOKEN }}
+      

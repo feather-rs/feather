@@ -94,7 +94,6 @@ itertools = "0.9"
 
 # Allocators
 bumpalo = { version = "3.2", features = ["collections"] }
-jemallocator = "0.3"
 
 # Error handling
 thiserror = "1.0"

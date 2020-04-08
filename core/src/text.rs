@@ -1025,7 +1025,7 @@ mod tests {
 
     #[test]
     pub fn text_text_single() -> Result<(), Box<dyn Error>> {
-        let text_orignal: Text = Text::from("hello").into();
+        let text_orignal: Text = Text::from("hello");
 
         let text_json = serde_json::to_string(&text_orignal)?;
 
@@ -1053,7 +1053,7 @@ mod tests {
 
     #[test]
     fn text_text_color() -> Result<(), Box<dyn Error>> {
-        let text_orignal: Text = (Text::from("hello world") * Color::DarkRed).into();
+        let text_orignal: Text = Text::from("hello world") * Color::DarkRed;
 
         let text_json = serde_json::to_string(&text_orignal)?;
 
