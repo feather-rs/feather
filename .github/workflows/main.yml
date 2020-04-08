@@ -1,0 +1,84 @@
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    name: "Build, Test, and Check"
+    strategy:
+      matrix:
+        os: [ ubuntu-18.04, windows-2019, macos-10.15 ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Cache target directory
+      uses: actions/cache@v1
+      env:
+        cache-name: target-directory
+      with:
+        path: target/
+        key: ${{ runner.os }}-build-${{ env.cache-name }} }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+      
+    - name: Build
+      run: cargo build
+      
+    - name: Run tests
+      run: cargo test
+    
+    - name: Run Clippy
+      uses: actions-rs/clippy-check@v1.0.5
+      with:
+        # GitHub token
+        token: ${{ secrets.GITHUB_TOKEN }}
+        args: --all-targets -- -D warnings
+    
+    - name: Check formatting
+      run: cargo fmt -- --check
+      
+  create-release:
+    name: Publish to GitHub Releases
+    strategy:
+      matrix:
+        os: [ ubuntu-18.04, windows-2019, macos-10.15 ]
+        include:
+          - os: ubuntu-18.04
+            os-name: linux
+          - os: windows-2019
+            os-name: windows
+          - os: macos-10.15
+            os-name: macOS
+    runs-on: ${{ matrix.os }}
+    
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: ['build']
+    
+    steps:
+      - name: Build (release mode)
+        run: cargo build --release
+      
+      - name: Get tag name
+        uses: olegtarasov/get-tag@v2
+        id: tagName
+      
+      - name: Compress executable
+        uses: papeloto/action-zip@v1
+        with:
+          files: target/release/feather-server
+          dest: target/release/feather-${{ steps.tagName.outputs.tag }}-${{ matrix.os-name }}.zip
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1.6.1
+        with:
+          # An optional set of paths representing artifacts to upload to the release. This may be a single path or a comma delimited list of paths (or globs)
+          artifact: target/release/feather-${{ steps.tagName.outputs.tag }}-${{ matrix.os-name }}.zip
+          # The Github token.
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
