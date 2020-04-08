@@ -1,5 +1,3 @@
-#[macro_use]
-mod generated;
 mod prototype;
 mod registry;
 

@@ -55,8 +55,6 @@ struct Blocks(Vec<Block>);
 pub struct Block {
     /// Lowercase name of this block, minecraft: prefix removed.
     name: Ident,
-    /// Base state ID for this block, i.e. min(state_ids)
-    base_id: u16,
     /// Name of the block's properties struct.
     property_struct_name: Ident,
     /// This block's properties.
@@ -87,7 +85,7 @@ impl Property {
                 let start = *range.start();
                 let end = *range.end();
                 quote! {
-                    { #start..=end }
+                    { #start..=#end }
                 }
             }
             PropertyKind::Boolean => {
@@ -104,6 +102,15 @@ impl Property {
                     .copied()
                 }
             }
+        }
+    }
+
+    /// Returns the tokens to create an instance of this property from a `u16`.
+    pub fn tokens_for_from_u16(&self, input: TokenStream) -> TokenStream {
+        match &self.kind {
+            PropertyKind::Integer { .. } => quote! { Ok(#input as i32) },
+            PropertyKind::Boolean { .. } => quote! { Ok(if #input == 0 { false } else { true }) },
+            PropertyKind::Enum { name, .. } => quote! { #name::try_from(#input) },
         }
     }
 
@@ -202,7 +209,7 @@ impl ToTokens for PropertyValue {
             }
             PropertyValue::Boolean(value) => {
                 let value = *value;
-                quote! { value }
+                quote! { #value }
             }
             PropertyValue::Enum { name, variant } => quote! { #name::#variant },
         };
@@ -250,6 +257,19 @@ impl State {
     }
 }
 
+/// Generates code for the block report.
+pub fn generate() -> anyhow::Result<String> {
+    let blocks = load::load()?;
+
+    let mut res = String::new();
+
+    for block in blocks.0 {
+        res.push_str(&generate_properties_struct_and_impl(&block).to_string());
+    }
+
+    Ok(res)
+}
+
 /// Generates the implementation and definition of a block properties struct.
 pub fn generate_properties_struct_and_impl(block: &Block) -> TokenStream {
     let definition = generate_properties_struct(block);
@@ -264,7 +284,7 @@ pub fn generate_properties_struct_and_impl(block: &Block) -> TokenStream {
 fn generate_properties_struct(block: &Block) -> TokenStream {
     let mut fields = vec![];
 
-    for (_, property) in &block.properties {
+    for property in block.properties.values() {
         let name = &property.name;
         fields.push(quote! {
             #name: #property
@@ -286,6 +306,8 @@ fn generate_properties_struct(block: &Block) -> TokenStream {
 fn generate_properties_impl(block: &Block) -> TokenStream {
     let possible_states = generate_function_possible_states(block);
     let id_offset = generate_function_id_offset(block);
+    let from_id_offset = generate_function_from_id_offset(block);
+    let vanilla_id_offset = generate_function_vanilla_id_offset(block);
 
     let name = &block.property_struct_name;
 
@@ -293,6 +315,8 @@ fn generate_properties_impl(block: &Block) -> TokenStream {
         impl #name {
             #possible_states
             #id_offset
+            #from_id_offset
+            #vanilla_id_offset
         }
     }
 }
@@ -323,27 +347,19 @@ fn generate_function_possible_states(block: &Block) -> TokenStream {
             });
         }
 
-        let capture = {
-            let mut capture = TokenStream::new();
-            let opening_parenthesis = iterators.len();
-            (0..opening_parenthesis)
-                .for_each(|_| capture.extend(TokenStream::from_str("(").unwrap()));
+        let capture = if block.properties.len() == 1 {
+            let first = &block.properties.values().next().unwrap().name;
 
+            quote! { #first }
+        } else {
             let mut iter = block.properties.values().map(|prop| &prop.name);
-            for _ in 0..block.properties.len() / 2 {
-                let name1 = iter.next().unwrap();
-                let name2 = iter.next();
+            let mut capture = format!("({}, {})", iter.next().unwrap(), iter.next().unwrap());
 
-                capture.extend(quote! {
-                    #name1, #name2
-                });
-                capture.extend(TokenStream::from_str(")").unwrap());
-                if block.properties.len() > 1 {
-                    capture.extend(quote! { , })
-                }
+            while let Some(next) = iter.next() {
+                capture = format!("({}, {})", capture, next);
             }
 
-            capture
+            TokenStream::from_str(&capture).unwrap()
         };
 
         let initializers: Vec<_> = block.properties.values().map(|prop| &prop.name).collect();
@@ -378,15 +394,20 @@ fn generate_function_id_offset(block: &Block) -> TokenStream {
         let strides = find_property_strides(&possible_values);
 
         let mut res = TokenStream::new();
-        for (name, stride) in block
+        for (i, (name, stride)) in block
             .properties
             .values()
             .map(|prop| &prop.name)
             .zip(strides)
+            .enumerate()
         {
             res.extend(quote! {
                 self.#name as u16 * #stride
             });
+
+            if i != block.properties.len() - 1 {
+                res.extend(quote! { + });
+            }
         }
 
         res
@@ -394,6 +415,80 @@ fn generate_function_id_offset(block: &Block) -> TokenStream {
 
     quote! {
         pub fn id_offset(self) -> u16 {
+            #body
+        }
+    }
+}
+
+fn generate_function_from_id_offset(block: &Block) -> TokenStream {
+    let name = &block.name;
+    let body = if block.properties.is_empty() {
+        quote! { Ok(#name {}) }
+    } else {
+        let possible_values: Vec<_> = block
+            .properties
+            .values()
+            .map(|prop| prop.num_possible_values())
+            .collect();
+
+        let strides = find_property_strides(&possible_values);
+
+        let from_u16: Vec<_> = block
+            .properties
+            .values()
+            .map(|prop| {
+                let name = &prop.name;
+                prop.tokens_for_from_u16(quote! { #name })
+            })
+            .collect();
+
+        let properties: Vec<_> = block.properties.values().map(|prop| &prop.name).collect();
+        let initializers: Vec<_> = block.properties.values().map(|prop| &prop.name).collect();
+
+        // Constant-time hackery. Don't try to figure out how this works.
+        quote! {
+            #(
+                let #properties = offset / #strides;
+                offset -= #properties * #strides;
+                let #properties = #from_u16?;
+            )*
+
+            Self {
+                #(
+                    #initializers,
+                )*
+            }
+        }
+    };
+
+    quote! {
+        pub fn from_id_offset(mut offset: u16) -> anyhow::Result<Self> {
+            #body
+        }
+    }
+}
+
+fn generate_function_vanilla_id_offset(block: &Block) -> TokenStream {
+    let body = if block.properties.is_empty() {
+        quote! { 0 }
+    } else {
+        let name = &block.name;
+        let state_ids: Vec<_> = block.states.iter().map(|state| state.vanilla_id).collect();
+
+        quote! {
+            static MAP: Lazy<HashMap<#name, u16>> = Lazy::new(|| {
+                #name::possible_states()
+                    .into_iter()
+                    .zip([#(#state_ids),*].iter().copied())
+                    .collect()
+            });
+
+            *MAP.get(&self).unwrap()
+        }
+    };
+
+    quote! {
+        pub fn vanilla_id_offset(self) -> u16 {
             #body
         }
     }
