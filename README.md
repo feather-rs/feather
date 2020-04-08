@@ -1,6 +1,5 @@
 # Feather
-[![build](https://dev.azure.com/caelunshun/feather/_apis/build/status/caelunshun.feather?branchName=develop)](https://dev.azure.com/caelunshun/feather/_build/latest?definitionId=1&branchName=develop)
-[![coverage](https://codecov.io/gh/caelunshun/feather/branch/develop/graph/badge.svg)](https://codecov.io/gh/caelunshun/feather)
+[![build](https://github.com/feather-rs/feather/workflows/build/badge.svg)](https://github.com/feather-rs/feather/actions)
 [![Discord](https://img.shields.io/discord/619316022800809995)](https://discordapp.com/invite/4eYmK69)
 
 An experimental Minecraft server implementation written in Rust.
@@ -44,7 +43,7 @@ Feather currently only supports 1.13.2 clients and world saves. In the future, a
 ### Compiling
 If you are on another platform, compile the server yourself to try it out:
 ```bash
-git clone https://github.com/caelunshun/feather
+git clone https://github.com/feather-rs/feather
 cd feather
 cargo build --release
 ```
