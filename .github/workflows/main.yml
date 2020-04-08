@@ -16,12 +16,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
-      # Necessary for now for the cargo cache:
-      # https://github.com/actions/cache/issues/133#issuecomment-599102035
-    - name: Fix ~/.cargo directory permissions
-      run: rm -r ~/.cargo
-      if:
     
     - name: Cache target directory
       uses: actions/cache@v1
