@@ -20,9 +20,9 @@ jobs:
     - name: Cache target directory
       uses: actions/cache@v1
       env:
-        cache-name: target-directory
+        cache-name: build-target-directory
       with:
-        path: target/
+        path: target
         key: ${{ runner.os }}-build-${{ env.cache-name }} }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-
@@ -32,9 +32,9 @@ jobs:
     - name: Cache cargo directory
       uses: actions/cache@v1
       env:
-        cache-name: cargo-directory
+        cache-name: cargo-registry-directory
       with:
-        path: ~/.cargo/
+        path: ~/.cargo
         key: ${{ runner.os }}-build-${{ env.cache-name }} }}-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-
