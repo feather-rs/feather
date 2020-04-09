@@ -10,6 +10,7 @@ once_cell = { version = "1.3", features = ["parking_lot"] }
 strum = "0.18"
 strum_macros = "0.18"
 anyhow = "1.0"
+thiserror = "1.0"
 
 [build-dependencies]
 feather-blocks-generator = { path = "generator" }

@@ -4,9 +4,7 @@ use std::process::Command;
 
 fn main() {
     match feather_blocks_generator::generate() {
-        Ok(mut code) => {
-            code = code.replace(" ", "\n"); // for debugging: make sure everything isn't on one line
-
+        Ok(code) => {
             let path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/generated.rs");
             let mut file = File::create(path).unwrap();
             file.write_all(code.as_bytes()).unwrap();

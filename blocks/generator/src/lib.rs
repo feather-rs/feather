@@ -40,11 +40,13 @@ static CATEGORIES: Lazy<BTreeMap<Vec<CategoryDetector>, &'static str>> = Lazy::n
         detectors!(Yes "bed") => "Bed",
         detectors!(Yes "stairs") => "Stairs",
         detectors!(Yes "fence", Not "gate") => "Fence",
-        detectors!(Yes "stained_glass", Not "pane") => "StainedGlass",
+        detectors!(Yes "stainedglass", Not "pane") => "StainedGlass",
         detectors!(Yes "trapdoor") => "Trapdoor",
-        detectors!(Yes "fence_gate") => "FenceGate",
-        detectors!(Yes "stained_glass_pane") => "StainedGlassPane",
+        detectors!(Yes "fencegate") => "FenceGate",
+        detectors!(Yes "stainedglasspane") => "StainedGlassPane",
         detectors!(Yes "slab") => "Slab",
+        detectors!(Yes "planks") => "Planks",
+        detectors!(Yes "concretepowder") => "ConcretePowder",
     }
 });
 
@@ -61,6 +63,8 @@ pub struct Block {
     properties: HashMap<PropertyIdentifier, Property>,
     /// The possible states for this block.
     states: Vec<State>,
+    /// The minimum state ID for this block.
+    base_id: u16,
 }
 
 #[derive(Debug)]
@@ -108,9 +112,9 @@ impl Property {
     /// Returns the tokens to create an instance of this property from a `u16`.
     pub fn tokens_for_from_u16(&self, input: TokenStream) -> TokenStream {
         match &self.kind {
-            PropertyKind::Integer { .. } => quote! { Ok(#input as i32) },
-            PropertyKind::Boolean { .. } => quote! { Ok(if #input == 0 { false } else { true }) },
-            PropertyKind::Enum { name, .. } => quote! { #name::try_from(#input) },
+            PropertyKind::Integer { .. } => quote! {{ #input as i32 }},
+            PropertyKind::Boolean { .. } => quote! { if #input == 0 { false } else { true } },
+            PropertyKind::Enum { name, .. } => quote! { #name::try_from(#input)? },
         }
     }
 
@@ -152,11 +156,11 @@ impl Property {
                     }
                 };
 
-                let variant_indices: Vec<_> = (0..variants.len()).collect();
+                let variant_indices: Vec<_> = (0..variants.len() as u16).collect();
                 let try_from_error_msg = format!("invalid value {{}} for {}", name);
 
                 let imp = quote! {
-                    impl std::ops::TryFrom<u16> for #name {
+                    impl TryFrom<u16> for #name {
                         type Error = anyhow::Error;
 
                         fn try_from(value: u16) -> anyhow::Result<Self> {
@@ -233,6 +237,7 @@ struct State {
 }
 
 impl State {
+    /*
     /// Returns the tokens to create an instance of the block
     /// properties struct corresponding to this state.
     fn tokens(&self, block: &Block) -> TokenStream {
@@ -255,13 +260,16 @@ impl State {
             }
         }
     }
+    */
 }
 
 /// Generates code for the block report.
 pub fn generate() -> anyhow::Result<String> {
     let blocks = load::load()?;
 
-    let mut res = String::new();
+    let mut res = String::from(
+        "use std::collections::HashMap; use once_cell::sync::Lazy; use std::convert::TryFrom;\n",
+    );
 
     for block in blocks.0 {
         res.push_str(&generate_properties_struct_and_impl(&block).to_string());
@@ -275,9 +283,17 @@ pub fn generate_properties_struct_and_impl(block: &Block) -> TokenStream {
     let definition = generate_properties_struct(block);
     let imp = generate_properties_impl(block);
 
+    let extra_types: Vec<_> = block
+        .properties
+        .values()
+        .map(|prop| prop.tokens_for_definition())
+        .collect();
+
     quote! {
         #definition
         #imp
+
+        #(#extra_types)*
     }
 }
 
@@ -355,7 +371,7 @@ fn generate_function_possible_states(block: &Block) -> TokenStream {
             let mut iter = block.properties.values().map(|prop| &prop.name);
             let mut capture = format!("({}, {})", iter.next().unwrap(), iter.next().unwrap());
 
-            while let Some(next) = iter.next() {
+            for next in iter {
                 capture = format!("({}, {})", capture, next);
             }
 
@@ -421,7 +437,7 @@ fn generate_function_id_offset(block: &Block) -> TokenStream {
 }
 
 fn generate_function_from_id_offset(block: &Block) -> TokenStream {
-    let name = &block.name;
+    let name = &block.property_struct_name;
     let body = if block.properties.is_empty() {
         quote! { Ok(#name {}) }
     } else {
@@ -450,14 +466,14 @@ fn generate_function_from_id_offset(block: &Block) -> TokenStream {
             #(
                 let #properties = offset / #strides;
                 offset -= #properties * #strides;
-                let #properties = #from_u16?;
+                let #properties = #from_u16;
             )*
 
-            Self {
+            Ok(Self {
                 #(
                     #initializers,
                 )*
-            }
+            })
         }
     };
 
@@ -472,14 +488,15 @@ fn generate_function_vanilla_id_offset(block: &Block) -> TokenStream {
     let body = if block.properties.is_empty() {
         quote! { 0 }
     } else {
-        let name = &block.name;
-        let state_ids: Vec<_> = block.states.iter().map(|state| state.vanilla_id).collect();
+        let name = &block.property_struct_name;
+
+        let num_ids = block.states.len() as u16;
 
         quote! {
             static MAP: Lazy<HashMap<#name, u16>> = Lazy::new(|| {
                 #name::possible_states()
                     .into_iter()
-                    .zip([#(#state_ids),*].iter().copied())
+                    .zip(0..#num_ids)
                     .collect()
             });
 

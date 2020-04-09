@@ -61,11 +61,14 @@ fn load_block(identifier: &str, block: &BlockDefinition) -> anyhow::Result<Optio
     let properties = load_block_properties(block, &property_struct_name);
     let states = load_block_states(&properties, block);
 
+    let base_id = states.iter().map(|state| state.vanilla_id).min().unwrap();
+
     let block = Block {
         name: ident(identifier),
         property_struct_name: ident(property_struct_name),
         properties,
         states,
+        base_id,
     };
 
     Ok(Some(block))
@@ -79,11 +82,16 @@ fn load_block_properties(
 
     for (identifier, possible_values) in &block.properties {
         let identifier = fix_keywords(identifier);
-        let (kind, possible_values) = guess_property_kind(possible_values, property_struct_name);
+        let (kind, possible_values) =
+            guess_property_kind(possible_values, property_struct_name, identifier);
 
         let property = Property {
             name: ident(identifier),
-            struct_name: ident(property_struct_name),
+            struct_name: ident(format!(
+                "{}{}",
+                property_struct_name,
+                identifier.to_camel_case()
+            )),
             possible_values,
             kind,
         };
@@ -132,6 +140,7 @@ fn load_block_states(
 fn guess_property_kind(
     possible_values: &[String],
     property_struct_name: &str,
+    property_name: &str,
 ) -> (PropertyKind, Vec<PropertyValue>) {
     let first = &possible_values[0];
 
@@ -163,6 +172,11 @@ fn guess_property_kind(
         )
     } else {
         // enum
+        let name = ident(format!(
+            "{}{}",
+            property_struct_name,
+            property_name.to_camel_case()
+        ));
         let variants: Vec<_> = possible_values
             .iter()
             .map(|variant| variant.to_camel_case())
@@ -172,14 +186,11 @@ fn guess_property_kind(
             .iter()
             .cloned()
             .map(|variant| PropertyValue::Enum {
-                name: ident(property_struct_name),
+                name: name.clone(),
                 variant,
             })
             .collect();
-        let kind = PropertyKind::Enum {
-            name: ident(property_struct_name),
-            variants,
-        };
+        let kind = PropertyKind::Enum { name, variants };
 
         (kind, possible_values)
     }

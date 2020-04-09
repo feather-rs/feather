@@ -626,6 +626,7 @@ dependencies = [
  "once_cell",
  "strum 0.18.0",
  "strum_macros 0.18.0",
+ "thiserror",
 ]
 
 [[package]]
