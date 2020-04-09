@@ -1,30 +1,13 @@
+use num_traits::FromPrimitive;
 use std::convert::TryFrom;
 use thiserror::Error;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-#[repr(u16)]
-pub enum BlockKind {
-    Air,
-    Stone,
-}
+#[macro_use]
+extern crate num_derive;
 
-impl TryFrom<u16> for BlockKind {
-    type Error = BlockIdFromU32Error;
+mod generated;
 
-    fn try_from(value: u16) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(BlockKind::Air),
-            1 => Ok(BlockKind::Stone),
-            x => Err(BlockIdFromU32Error::InvalidKind(x)),
-        }
-    }
-}
-
-impl From<BlockKind> for u16 {
-    fn from(kind: BlockKind) -> Self {
-        kind as u16
-    }
-}
+pub use generated::kind::BlockKind;
 
 impl Default for BlockKind {
     fn default() -> Self {
@@ -57,11 +40,16 @@ impl TryFrom<u32> for BlockId {
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         let kind_id = (value >> 16) as u16;
-        let kind = BlockKind::try_from(kind_id)?;
+        let kind = BlockKind::from_u16(kind_id).ok_or(BlockIdFromU32Error::InvalidKind(kind_id))?;
 
         let state = (value | ((1 << 16) - 1)) as u16;
 
-        // todo: verify state
+        // TODO: verify state
         Ok(BlockId { kind, state })
     }
+}
+
+// This is where the magic happens.
+pub(crate) fn n_dimensional_index(x: u16, offset_coefficient: u16, stride: u16) -> u16 {
+    (x % offset_coefficient) / stride
 }

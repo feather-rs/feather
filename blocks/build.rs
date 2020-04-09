@@ -5,12 +5,21 @@ use std::process::Command;
 fn main() {
     match feather_blocks_generator::generate() {
         Ok(code) => {
-            let path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/generated.rs");
-            let mut file = File::create(path).unwrap();
-            file.write_all(code.as_bytes()).unwrap();
-            file.flush().unwrap();
+            let base = concat!(env!("CARGO_MANIFEST_DIR"), "/src/generated");
 
-            Command::new("rustfmt").arg(path).output().unwrap();
+            let _ = std::fs::create_dir_all(base);
+
+            let kind = format!("{}/kind.rs", base);
+            let block_fns = format!("{}/block_fns.rs", base);
+            let table = format!("{}/table.rs", base);
+
+            write_to_file(&kind, &code.kind);
+            write_to_file(&block_fns, &code.block_fns);
+            write_to_file(&table, &code.block_table);
+
+            [kind, block_fns, table].iter().for_each(|path| {
+                Command::new("rustfmt").arg(path).output().unwrap();
+            });
 
             println!(
                 "cargo:rerun-if-changed={}",
@@ -22,4 +31,11 @@ fn main() {
             std::process::exit(1);
         }
     }
+}
+
+fn write_to_file(path: impl AsRef<str>, s: impl AsRef<str>) {
+    File::create(path.as_ref())
+        .unwrap()
+        .write_all(s.as_ref().as_bytes())
+        .unwrap();
 }

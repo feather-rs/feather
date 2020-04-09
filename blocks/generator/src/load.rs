@@ -1,10 +1,7 @@
 //! Loads the vanilla blocks.json report into a `BlocksReport`, then
 //! converts this report into a `Blocks`.
 
-use crate::{
-    Block, Blocks, CategoryDetector, Property, PropertyIdentifier, PropertyKind, PropertyValue,
-    State, CATEGORIES,
-};
+use crate::{Block, Blocks, Property, PropertyIdentifier, PropertyKind, PropertyValue, State};
 use heck::CamelCase;
 use indexmap::map::IndexMap;
 use proc_macro2::{Ident, Span};
@@ -53,10 +50,6 @@ fn load_block(identifier: &str, block: &BlockDefinition) -> anyhow::Result<Optio
     let identifier = strip_prefix(identifier)?;
 
     let property_struct_name = identifier.to_camel_case();
-
-    if belongs_to_category(&property_struct_name).is_some() {
-        return Ok(None); // skip those in categories: we will do these later
-    }
 
     let properties = load_block_properties(block, &property_struct_name);
     let states = load_block_states(&properties, block);
@@ -196,32 +189,6 @@ fn guess_property_kind(
     }
 }
 
-fn belongs_to_category(name: &str) -> Option<&'static str> {
-    for (detectors, category_name) in CATEGORIES.iter() {
-        // rule: must satisfy at least one CategoryDetector::Yes
-        // and all CategoryDetector::Not
-        if detectors
-            .iter()
-            .filter_map(|detector| match detector {
-                CategoryDetector::Yes(x) => Some(x),
-                CategoryDetector::Not(_) => None,
-            })
-            .any(|x| name.to_lowercase().contains(x))
-            && detectors
-                .iter()
-                .filter_map(|detector| match detector {
-                    CategoryDetector::Not(x) => Some(x),
-                    CategoryDetector::Yes(_) => None,
-                })
-                .all(|x| !name.to_lowercase().contains(x))
-        {
-            return Some(*category_name);
-        }
-    }
-
-    None
-}
-
 /// Renames Rust keywords to alternative identifiers.
 fn fix_keywords(x: &str) -> &str {
     match x {
@@ -241,7 +208,7 @@ fn strip_prefix(x: &str) -> anyhow::Result<&str> {
     Ok(&x[PREFIX.len()..])
 }
 
-fn ident(x: impl AsRef<str>) -> Ident {
+pub fn ident(x: impl AsRef<str>) -> Ident {
     Ident::new(x.as_ref(), Span::call_site()) // span doesn't matter as this is not a proc macro
 }
 
