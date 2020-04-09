@@ -1,12 +1,12 @@
 //! Loads the vanilla blocks.json report into a `BlocksReport`, then
 //! converts this report into a `Blocks`.
 
-use crate::{Block, Blocks, Property, PropertyIdentifier, PropertyKind, PropertyValue, State};
+use crate::{Block, Blocks, Property, PropertyKind};
 use heck::CamelCase;
 use indexmap::map::IndexMap;
 use proc_macro2::{Ident, Span};
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::str::FromStr;
 
 #[derive(Debug, Deserialize)]
@@ -28,7 +28,69 @@ struct StateDefinition {
     #[serde(default)]
     default: bool,
     #[serde(default)]
-    properties: HashMap<PropertyIdentifier, String>,
+    properties: HashMap<String, String>,
+}
+
+#[derive(Debug, Default)]
+struct PropertyStore {
+    /// Mapping from property name to the set of different sets
+    /// of values known for this property.
+    properties: HashMap<String, BTreeSet<Vec<String>>>,
+}
+
+impl PropertyStore {
+    fn register(&mut self, property: String, possible_values: impl IntoIterator<Item = String>) {
+        self.properties
+            .entry(property)
+            .or_default()
+            .insert(possible_values.into_iter().collect());
+    }
+
+    fn finish(self) -> BTreeMap<String, Property> {
+        let mut map = BTreeMap::new();
+
+        for (name, possible_value_sets) in self.properties {
+            if possible_value_sets.len() == 1
+                || possible_value_sets.iter().next().unwrap()[0]
+                    .parse::<i32>()
+                    .is_ok()
+            {
+                let possible_values = possible_value_sets.into_iter().next().unwrap();
+                map.insert(
+                    name.clone(),
+                    Self::prop_from_possible_values_and_name(&name, possible_values),
+                );
+            } else {
+                // There are multiple variants of this property, each with their own set of values.
+                // Create properties suffixed with an index to differentiate between these variants.
+                for (i, possible_values) in possible_value_sets.into_iter().enumerate() {
+                    // Name is the name of the property followed by the first letter of each possible value.
+                    let name = {
+                        let mut name = format!("{}_", name);
+                        for value in &possible_values {
+                            name.push(value.chars().next().unwrap().to_ascii_lowercase());
+                        }
+                        name
+                    };
+
+                    map.insert(
+                        name.clone(),
+                        Self::prop_from_possible_values_and_name(&name, possible_values),
+                    );
+                }
+            }
+        }
+
+        map
+    }
+
+    fn prop_from_possible_values_and_name(name: &str, possible_values: Vec<String>) -> Property {
+        Property {
+            name: ident(name),
+            name_camel_case: ident(name.to_camel_case()),
+            kind: guess_property_kind(&possible_values, &name.to_camel_case()),
+        }
+    }
 }
 
 /// Parses the vanilla blocks report, returning a `Blocks`.
@@ -36,32 +98,37 @@ pub(super) fn load() -> anyhow::Result<Blocks> {
     let report = parse_report()?;
 
     let mut blocks = vec![];
+    let mut properties = PropertyStore::default();
 
     for (identifier, block) in &report.blocks {
-        if let Some(block) = load_block(identifier, block)? {
+        if let Some(block) = load_block(identifier, block, &mut properties)? {
             blocks.push(block);
         }
     }
 
-    Ok(Blocks(blocks))
+    Ok(Blocks {
+        blocks,
+        property_types: properties.finish(),
+    })
 }
 
-fn load_block(identifier: &str, block: &BlockDefinition) -> anyhow::Result<Option<Block>> {
+fn load_block(
+    identifier: &str,
+    block: &BlockDefinition,
+    properties: &mut PropertyStore,
+) -> anyhow::Result<Option<Block>> {
     let identifier = strip_prefix(identifier)?;
 
-    let property_struct_name = identifier.to_camel_case();
+    let name_camel_case = identifier.to_camel_case();
 
-    let properties = load_block_properties(block, &property_struct_name);
-    let states = load_block_states(&properties, block);
-
-    let base_id = states.iter().map(|state| state.vanilla_id).min().unwrap();
+    let properties = load_block_properties(block, &name_camel_case, properties);
 
     let block = Block {
         name: ident(identifier),
-        property_struct_name: ident(property_struct_name),
+        name_camel_case: ident(name_camel_case),
         properties,
-        states,
-        base_id,
+        ids: Default::default(),
+        index_parameters: Default::default(),
     };
 
     Ok(Some(block))
@@ -69,72 +136,22 @@ fn load_block(identifier: &str, block: &BlockDefinition) -> anyhow::Result<Optio
 
 fn load_block_properties(
     block: &BlockDefinition,
-    property_struct_name: &str,
-) -> HashMap<PropertyIdentifier, Property> {
-    let mut map = HashMap::with_capacity(block.properties.len());
+    name_camel_case: &str,
+    properties: &mut PropertyStore,
+) -> Vec<String> {
+    let mut props = vec![];
 
     for (identifier, possible_values) in &block.properties {
         let identifier = fix_keywords(identifier);
-        let (kind, possible_values) =
-            guess_property_kind(possible_values, property_struct_name, identifier);
 
-        let property = Property {
-            name: ident(identifier),
-            struct_name: ident(format!(
-                "{}{}",
-                property_struct_name,
-                identifier.to_camel_case()
-            )),
-            possible_values,
-            kind,
-        };
-        map.insert(identifier.to_owned(), property);
+        properties.register(identifier.to_owned(), possible_values.clone());
+        props.push(identifier.to_owned());
     }
 
-    map
+    props
 }
 
-fn load_block_states(
-    properties: &HashMap<PropertyIdentifier, Property>,
-    block: &BlockDefinition,
-) -> Vec<State> {
-    let mut states = vec![];
-
-    for state in &block.states {
-        let mut property_values = HashMap::new();
-
-        for (prop_identifier, value) in &state.properties {
-            let prop_identifier = fix_keywords(prop_identifier);
-            let property = &properties[prop_identifier];
-            let value = match &property.kind {
-                PropertyKind::Integer { range } => PropertyValue::Integer {
-                    range: range.clone(),
-                    value: value.parse().unwrap(),
-                },
-                PropertyKind::Boolean => PropertyValue::Boolean(value.parse().unwrap()),
-                PropertyKind::Enum { name, .. } => PropertyValue::Enum {
-                    name: name.clone(),
-                    variant: ident(value.to_camel_case()),
-                },
-            };
-            property_values.insert(prop_identifier.to_owned(), value);
-        }
-
-        let state = State {
-            property_values,
-            vanilla_id: state.id,
-        };
-        states.push(state);
-    }
-
-    states
-}
-
-fn guess_property_kind(
-    possible_values: &[String],
-    property_struct_name: &str,
-    property_name: &str,
-) -> (PropertyKind, Vec<PropertyValue>) {
+fn guess_property_kind(possible_values: &[String], property_struct_name: &str) -> PropertyKind {
     let first = &possible_values[0];
 
     if i32::from_str(first).is_ok() {
@@ -147,45 +164,19 @@ fn guess_property_kind(
         let min = *as_integer.iter().min().unwrap();
         let max = *as_integer.iter().max().unwrap();
 
-        let kind = PropertyKind::Integer { range: min..=max };
-
-        let values = as_integer
-            .into_iter()
-            .map(|value| PropertyValue::Integer {
-                value,
-                range: min..=max,
-            })
-            .collect();
-        (kind, values)
+        PropertyKind::Integer { range: min..=max }
     } else if bool::from_str(first).is_ok() {
         // boolean
-        (
-            PropertyKind::Boolean,
-            vec![PropertyValue::Boolean(false), PropertyValue::Boolean(true)],
-        )
+        PropertyKind::Boolean
     } else {
         // enum
-        let name = ident(format!(
-            "{}{}",
-            property_struct_name,
-            property_name.to_camel_case()
-        ));
+        let name = ident(property_struct_name);
         let variants: Vec<_> = possible_values
             .iter()
             .map(|variant| variant.to_camel_case())
             .map(ident)
             .collect();
-        let possible_values = variants
-            .iter()
-            .cloned()
-            .map(|variant| PropertyValue::Enum {
-                name: name.clone(),
-                variant,
-            })
-            .collect();
-        let kind = PropertyKind::Enum { name, variants };
-
-        (kind, possible_values)
+        PropertyKind::Enum { name, variants }
     }
 }
 

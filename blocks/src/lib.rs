@@ -5,6 +5,8 @@ use thiserror::Error;
 #[macro_use]
 extern crate num_derive;
 
+#[allow(warnings)]
+#[allow(clippy::all)]
 mod generated;
 
 pub use generated::kind::BlockKind;
@@ -50,6 +52,6 @@ impl TryFrom<u32> for BlockId {
 }
 
 // This is where the magic happens.
-pub(crate) fn n_dimensional_index(x: u16, offset_coefficient: u16, stride: u16) -> u16 {
-    (x % offset_coefficient) / stride
+pub(crate) fn n_dimensional_index(state: u16, offset_coefficient: u16, stride: u16) -> u16 {
+    (state % offset_coefficient) / stride
 }

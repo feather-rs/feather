@@ -623,7 +623,10 @@ dependencies = [
  "bit-set",
  "criterion",
  "feather-blocks-generator",
+ "num-derive",
+ "num-traits 0.2.11",
  "once_cell",
+ "serde_cbor",
  "strum 0.18.0",
  "strum_macros 0.18.0",
  "thiserror",
@@ -642,6 +645,7 @@ dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.1",
  "serde",
+ "serde_cbor",
  "serde_json",
  "syn 1.0.13",
 ]
@@ -1070,6 +1074,12 @@ dependencies = [
  "tokio",
  "tokio-util",
 ]
+
+[[package]]
+name = "half"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f36b5f248235f45773d4944f555f83ea61fe07b18b561ccf99d7483d7381e54d"
 
 [[package]]
 name = "hash32"
@@ -2348,6 +2358,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "414115f25f818d7dfccec8ee535d76949ae78584fc4f79a6f45a904bf8ab4449"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde_cbor"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e18acfa2f90e8b735b2836ab8d538de304cbb6729a7360729ea5a895d15a622"
+dependencies = [
+ "half",
+ "serde",
 ]
 
 [[package]]

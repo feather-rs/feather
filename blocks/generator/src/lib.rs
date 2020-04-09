@@ -1,5 +1,4 @@
 use crate::load::ident;
-use once_cell::sync::Lazy;
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use std::collections::{BTreeMap, HashMap};
@@ -8,49 +7,22 @@ use syn::export::ToTokens;
 
 mod load;
 
-type PropertyIdentifier = String;
+struct Blocks {
+    property_types: BTreeMap<String, Property>,
+    blocks: Vec<Block>,
+}
 
-#[derive(Debug)]
-struct Blocks(Vec<Block>);
-
-static KNOWN_PROPERTY_TYPES: Lazy<Vec<(fn(&str, &[&str]) -> bool, &'static str)>> =
-    Lazy::new(|| {
-        vec![
-            (
-                |name, values| {
-                    name == "facing" && values.contains(&"north") && !values.contains(&"down")
-                },
-                "FacingCardinal",
-            ),
-            (
-                |name, values| {
-                    name == "facing" && values.contains(&"north") && values.contains(&"down")
-                },
-                "FacingCubic",
-            ),
-            (
-                |name, values| name == "shape" && values.contains(&"straight"),
-                "StairsShape",
-            ),
-            (
-                |name, values| name == "half" && values == ["top", "bottom"],
-                "Half",
-            ),
-        ]
-    });
-
-#[derive(Debug)]
 pub struct Block {
     /// Lowercase name of this block, minecraft: prefix removed.
     name: Ident,
-    /// Name of the block's properties struct.
-    property_struct_name: Ident,
+    /// `name.to_camel_case()`
+    name_camel_case: Ident,
     /// This block's properties.
-    properties: HashMap<PropertyIdentifier, Property>,
-    /// The possible states for this block.
-    states: Vec<State>,
-    /// The minimum state ID for this block.
-    base_id: u16,
+    properties: Vec<String>,
+    /// Block states mapped to vanilla state IDs.
+    ids: Vec<(Vec<(String, TokenStream)>, u16)>,
+    /// Strides and offset coefficients for each property of this block.
+    index_parameters: HashMap<String, (u16, u16)>,
 }
 
 #[derive(Debug)]
@@ -60,9 +32,7 @@ struct Property {
     /// CamelCase name of this property if it were a struct or enum.
     ///
     /// Often prefixed with the name of the block to which this property belongs.
-    struct_name: Ident,
-    /// The possible values of this property.
-    possible_values: Vec<PropertyValue>,
+    name_camel_case: Ident,
     /// The kind of this property.
     kind: PropertyKind,
 }
@@ -73,7 +43,9 @@ impl Property {
         match &self.kind {
             PropertyKind::Integer { .. } => quote! {{ #input as i32 }},
             PropertyKind::Boolean { .. } => quote! { if #input == 0 { false } else { true } },
-            PropertyKind::Enum { name, .. } => quote! { #name::try_from(#input)? },
+            PropertyKind::Enum { name, .. } => {
+                quote! { #name::try_from(#input).expect("invalid block state") }
+            }
         }
     }
 
@@ -144,31 +116,10 @@ impl Property {
 }
 
 #[derive(Debug)]
-enum PropertyValue {
-    Integer {
-        range: RangeInclusive<i32>,
-        value: i32,
-    },
-    Boolean(bool),
-    Enum {
-        name: Ident,
-        variant: Ident,
-    },
-}
-
-#[derive(Debug)]
 enum PropertyKind {
     Integer { range: RangeInclusive<i32> },
     Boolean,
     Enum { name: Ident, variants: Vec<Ident> },
-}
-
-#[derive(Debug)]
-struct State {
-    /// The values of each property for this state.
-    property_values: HashMap<PropertyIdentifier, PropertyValue>,
-    /// The Minecraft state ID for this state.
-    vanilla_id: u16,
 }
 
 #[derive(Debug, Default)]
@@ -184,119 +135,102 @@ pub fn generate() -> anyhow::Result<Output> {
 
     let mut output = Output::default();
 
-    output.kind.push_str(&generate_kind(&blocks.0).to_string());
-    let (table_src, table_encoded) = generate_table(&blocks.0);
+    output.kind.push_str(&generate_kind(&blocks).to_string());
+    let table_src = generate_table(&blocks);
     output.block_table.push_str(&table_src.to_string());
 
     Ok(output)
 }
 
-fn generate_kind(blocks: &[Block]) -> TokenStream {
-    let mut body = TokenStream::new();
+/// Generates the `BlockKind` enum.
+fn generate_kind(blocks: &Blocks) -> TokenStream {
+    let mut variants = vec![];
 
-    for block in blocks {
-        let name = &block.property_struct_name;
-        body.extend(quote! {
-            #name,
-        })
+    for block in &blocks.blocks {
+        let name = &block.name_camel_case;
+        variants.push(quote! { #name });
     }
 
     quote! {
-        #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, FromPrimitive, ToPrimitive)]
+        #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ToPrimitive, FromPrimitive)]
         #[repr(u16)]
         pub enum BlockKind {
-            #body
+            #(#variants,)*
         }
     }
 }
 
-fn generate_table(blocks: &[Block]) -> (TokenStream, serde_cbor::Value) {
-    let property_struct_names: BTreeMap<_, _> = blocks
-        .iter()
-        .flat_map(|block| block.properties.iter())
-        .map(|(_, prop)| (prop.name.clone(), property_type_name(prop)))
-        .collect();
-
+/// Generates the `BlockTable` struct and its implementation.
+fn generate_table(blocks: &Blocks) -> TokenStream {
     let mut fields = vec![];
-    for identifier in property_struct_names.keys() {
+    let mut fns = vec![];
+    let mut types = vec![];
+
+    for property in blocks.property_types.values() {
+        let name = &property.name;
+
+        types.push(property.tokens_for_definition());
+
         fields.push(quote! {
-            pub(crate) #identifier: Vec<(u16, u16)>,
+            #name: Vec<(u16, u16)>
         });
-    }
 
-    let table = quote! {
-        #[derive(Deserialize, Debug)]
-        pub struct BlocksTable {
-            #(#fields)*
-        }
-    };
+        let from_u16 = property.tokens_for_from_u16(quote! { x });
 
-    let mut fs = vec![];
-
-    for (identifier, typ) in &property_struct_names {
-        let convert_fn = if &typ.to_string() == "bool" {
-            quote! { match x { 1 => Some(true), 0 => Some(false), _ => None } }
-        } else {
-            quote! { #typ::from_u16(x) }
-        };
-
-        let f = quote! {
-            pub fn #identifier(&self, index: u16) -> Option<#typ> {
-                let (offset_coefficient, stride) = self.#identifier[index as usize];
+        let doc = format!(
+            "Retrieves the `{}` value for the given block kind with the given state value.
+        Returns the value of the property, or `None` if it does not exist.",
+            name
+        );
+        fns.push(quote! {
+            #[doc = #doc]
+            pub fn #name(&self, kind: BlockKind, state: u16) -> Option<#property> {
+                let (offset_coefficient, stride) = self.#name[kind as u16 as usize];
 
                 if offset_coefficient == 0 {
                     return None;
                 }
 
-                let x = crate::n_dimensional_index(index, offset_coefficient, stride);
-                #convert_fn
+                let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+                Some(#from_u16)
             }
-        };
-        fs.push(f);
+        });
+
+        let set = ident(format!("set_{}", name));
+        let doc = format!("Updates the state value for the given block kind such that its `{}` value is updated. Returns the new state,
+        or `None` if the block does not have this property.", name);
+        fns.push(quote! {
+            #[doc = #doc]
+            pub fn #set(&self, kind: BlockKind, state: u16, value: #property) -> Option<u16> {
+                let (offset_coefficient, stride) = self.#name[kind as u16 as usize];
+
+                if offset_coefficient == 0 {
+                    return None;
+                }
+
+                let base = state % offset_coefficient;
+                let multiplier = state / offset_coefficient;
+
+                let mut new = (value as u16 - (base / stride)) * stride + base;
+                new += multiplier * offset_coefficient;
+                Some(new)
+            }
+        });
     }
 
-    let table = quote! {
-        use num_traits::FromPrimitive;
-        #table
+    quote! {
+        use crate::BlockKind;
+        use std::convert::TryFrom;
 
-        impl BlocksTable {
-            #(#fs)*
+        #[derive(Debug)]
+        pub struct BlockTable {
+            #(#fields,)*
         }
-    };
 
-    (table, serde_cbor::Value::Integer(0))
-}
-
-fn property_type_name(property: &Property) -> TokenStream {
-    match &property.kind {
-        PropertyKind::Enum { name, variants } => {
-            let possible_values: Vec<_> = property
-                .possible_values
-                .iter()
-                .map(|value| match value {
-                    PropertyValue::Enum { variant, .. } => variant.to_string(),
-                    _ => unreachable!(),
-                })
-                .collect();
-            let possible_values: Vec<_> = possible_values.iter().map(String::as_str).collect();
-
-            if let Some(typ) = KNOWN_PROPERTY_TYPES
-                .iter()
-                .filter_map(|(f, typ)| {
-                    if f(&name.to_string(), &possible_values) {
-                        Some(*typ)
-                    } else {
-                        None
-                    }
-                })
-                .next()
-            {
-                ident(typ).into_token_stream()
-            } else {
-                property.struct_name.clone().into_token_stream()
-            }
+        impl BlockTable {
+            #(#fns)*
         }
-        PropertyKind::Integer { .. } => quote! { i32 },
-        PropertyKind::Boolean => quote! { bool },
+
+        #(#types)*
     }
 }
