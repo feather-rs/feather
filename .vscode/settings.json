@@ -1,0 +1,7 @@
+{
+    "files.watcherExclude": {
+        "**/.git/modules/**": true,
+        "**/target/**": true,
+        "**/upstream/**": true
+    }
+}

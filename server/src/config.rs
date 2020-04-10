@@ -1,3 +1,4 @@
+use feather_core::Gamemode;
 use std::fs::read_to_string;
 use std::time::Duration;
 use thiserror::Error;
@@ -47,7 +48,7 @@ pub struct Server {
     pub view_distance: u8,
     pub address: String,
     pub port: u16,
-    pub default_gamemode: String,
+    pub default_gamemode: Gamemode,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -116,7 +117,7 @@ mod tests {
         assert_eq!(server.online_mode, true);
         assert_eq!(server.motd, "A Feather server");
         assert_eq!(server.max_players, 16);
-        assert_eq!(server.default_gamemode, "creative");
+        assert_eq!(server.default_gamemode, Gamemode::Creative);
         assert_eq!(server.view_distance, 6);
         assert_eq!(server.address, "0.0.0.0");
         assert_eq!(server.port, 25565);

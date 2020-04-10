@@ -32,7 +32,11 @@ use crate::p_inventory::InventoryUpdateEvent;
 use crate::physics::EntityPhysicsLandEvent;
 use crate::player;
 use crate::player::Player;
-use crate::save::{on_chunk_load_queue_for_saving, on_chunk_unload_save_chunk, SaveQueue};
+use crate::save::{
+    on_chunk_load_queue_for_saving, on_chunk_unload_save_chunk, on_player_leave_save_data,
+    SaveQueue,
+};
+use crate::task::RunningTasks;
 use crate::time::{on_player_join_send_time, Time};
 use crate::view::{
     on_chunk_cross_update_chunks, on_chunk_cross_update_entities, on_chunk_load_send_to_clients,
@@ -92,6 +96,7 @@ pub struct Game {
     pub time: Time,
     pub save_queue: SaveQueue,
     pub lighting_worker_handle: LightingWorkerHandle,
+    pub running_tasks: RunningTasks,
 }
 
 impl Game {
@@ -127,9 +132,7 @@ impl Game {
 
     /// Spawns a player with the given `PlayerInfo`.
     pub fn spawn_player(&mut self, info: NewClientInfo, world: &mut World) {
-        let entity = player::create(world, info);
-        self.on_entity_spawn(world, entity);
-        self.on_player_join(world, entity);
+        player::create(self, world, info);
     }
 
     /// Returns a bump allocator.
@@ -301,8 +304,9 @@ impl Game {
     ///
     /// As with `on_entity_despawn`, this function is called __before__
     /// `player` is removed from the world.
-    pub fn on_player_leave(&mut self, _world: &mut World, _player: Entity) {
+    pub fn on_player_leave(&mut self, world: &mut World, player: Entity) {
         self.player_count.fetch_sub(1, Ordering::Relaxed);
+        on_player_leave_save_data(self, world, player);
     }
 
     /// Called when a chunk loads successfully.

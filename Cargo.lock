@@ -524,9 +524,9 @@ dependencies = [
 
 [[package]]
 name = "dashmap"
-version = "3.7.0"
+version = "3.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "010ef3f25ed5bb93505a3238d19957622190268640526aab07174c66ccf5d611"
+checksum = "0899c830f359a74834c84ed43b4c0cb6fd714a6fa64e20ab78c78f8cf86d8fc0"
 dependencies = [
  "ahash",
  "cfg-if",
@@ -765,7 +765,6 @@ dependencies = [
  "indexmap",
  "inventory",
  "itertools 0.9.0",
- "jemallocator",
  "lazy_static",
  "lock_api",
  "log",
@@ -806,7 +805,7 @@ version = "0.1.0"
 [[package]]
 name = "fecs"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=3a27d8434e0734efcc309ec0aa764bfb699c271d#3a27d8434e0734efcc309ec0aa764bfb699c271d"
+source = "git+https://github.com/feather-rs/fecs?rev=d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617#d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617"
 dependencies = [
  "fecs-macros",
  "fxhash",
@@ -817,7 +816,7 @@ dependencies = [
 [[package]]
 name = "fecs-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=3a27d8434e0734efcc309ec0aa764bfb699c271d#3a27d8434e0734efcc309ec0aa764bfb699c271d"
+source = "git+https://github.com/feather-rs/fecs?rev=d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617#d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617"
 dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.1",
@@ -878,12 +877,6 @@ name = "foreign-types-shared"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
-
-[[package]]
-name = "fs_extra"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f2a4a2034423744d2cc7ca2068453168dcdb82c438419e639a26bd87839c674"
 
 [[package]]
 name = "fuchsia-zircon"
@@ -1290,27 +1283,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "501266b7edd0174f8530248f87f99c88fbe60ca4ef3dd486835b8d8d53136f7f"
 
 [[package]]
-name = "jemalloc-sys"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d3b9f3f5c9b31aa0f5ed3260385ac205db665baa41d49bb8338008ae94ede45"
-dependencies = [
- "cc",
- "fs_extra",
- "libc",
-]
-
-[[package]]
-name = "jemallocator"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43ae63fcfc45e99ab3d1b29a46782ad679e98436c3169d15a167a1108a724b69"
-dependencies = [
- "jemalloc-sys",
- "libc",
-]
-
-[[package]]
 name = "js-sys"
 version = "0.3.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1341,7 +1313,7 @@ dependencies = [
 [[package]]
 name = "legion"
 version = "0.2.1"
-source = "git+https://github.com/TomGillen/legion?branch=fix-zst-component-ub#b5a3dfd88f201af61fe58ad247e83583dfdde5ec"
+source = "git+https://github.com/TomGillen/legion?rev=24091d73353d639eb280fc8196ddd74bceebbecc#24091d73353d639eb280fc8196ddd74bceebbecc"
 dependencies = [
  "legion-core",
  "legion-systems",
@@ -1350,7 +1322,7 @@ dependencies = [
 [[package]]
 name = "legion-core"
 version = "0.2.1"
-source = "git+https://github.com/TomGillen/legion?branch=fix-zst-component-ub#b5a3dfd88f201af61fe58ad247e83583dfdde5ec"
+source = "git+https://github.com/TomGillen/legion?rev=24091d73353d639eb280fc8196ddd74bceebbecc#24091d73353d639eb280fc8196ddd74bceebbecc"
 dependencies = [
  "crossbeam-channel",
  "derivative 1.0.3",
@@ -1367,7 +1339,7 @@ dependencies = [
 [[package]]
 name = "legion-systems"
 version = "0.2.1"
-source = "git+https://github.com/TomGillen/legion?branch=fix-zst-component-ub#b5a3dfd88f201af61fe58ad247e83583dfdde5ec"
+source = "git+https://github.com/TomGillen/legion?rev=24091d73353d639eb280fc8196ddd74bceebbecc#24091d73353d639eb280fc8196ddd74bceebbecc"
 dependencies = [
  "bit-set",
  "crossbeam-channel",

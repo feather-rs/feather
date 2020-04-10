@@ -125,7 +125,6 @@ use feather_core::level::{deserialize_level_file, save_level_file, LevelData, Le
 use feather_core::world::ChunkMap;
 use feather_core::{level, ChunkPosition};
 use fecs::{EntityBuilder, Executor, Resources, World};
-use jemallocator::Jemalloc;
 use rand::Rng;
 use std::collections::hash_map::DefaultHasher;
 use std::fs::File;
@@ -134,9 +133,6 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::process::exit;
 use thread_local::CachedThreadLocal;
-
-#[global_allocator]
-static ALLOC: Jemalloc = Jemalloc;
 
 mod block;
 mod broadcasters;
@@ -160,6 +156,7 @@ pub mod player;
 mod save;
 pub mod shutdown;
 mod systems;
+mod task;
 mod time;
 pub mod util;
 mod view;
@@ -173,7 +170,7 @@ pub const PROTOCOL_VERSION: u32 = 404;
 pub const SERVER_VERSION: &str = "Feather 1.13.2";
 pub const TICK_TIME: u64 = 1000 / TPS;
 
-pub fn main() {
+pub async fn main() {
     let config = Arc::new(load_config());
     init_log(&config);
 
@@ -237,6 +234,7 @@ pub fn main() {
         time,
         save_queue: Default::default(),
         lighting_worker_handle: lighting::start_worker(),
+        running_tasks: Default::default(),
     };
 
     let (executor, resources) = init_executor(game, packet_buffers);
@@ -269,7 +267,9 @@ pub fn main() {
     info!("Saving level.dat");
     shutdown::save_level(&mut *resources.get_mut::<Game>());
     info!("Saving player data");
-    shutdown::save_player_data(&world);
+    shutdown::save_player_data(&*resources.get::<Game>(), &world);
+    info!("Waiting for tasks to finish");
+    shutdown::wait_for_task_completion(&*resources.get::<Game>()).await;
 
     info!("Goodbye");
     exit(0);

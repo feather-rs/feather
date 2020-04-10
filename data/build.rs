@@ -1,4 +1,3 @@
-use reqwest;
 use std::env;
 use std::error::Error;
 use std::fs;
@@ -11,6 +10,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/minecraft"));
     let path_server = path.join("server.jar");
 
+    if data_exists(path).unwrap_or(false) {
+        println!("cargo:rerun-if-changed={}", &path.display());
+        return Ok(());
+    }
+
     let _ = fs::remove_dir_all(&path);
     fs::create_dir_all(&path)?;
 
@@ -20,6 +24,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("cargo:rerun-if-changed={}", &path.display());
     Ok(())
+}
+
+fn data_exists(path: &Path) -> Result<bool, Box<dyn Error>> {
+    Ok(File::open(path.join("server.jar")).is_ok()
+        && File::open(path.join("assets")).is_ok()
+        && File::open(path.join("data")).is_ok()
+        && File::open(path.join("generated")).is_ok())
 }
 
 fn donwload<P: AsRef<Path>>(server: P) -> Result<(), Box<dyn Error>> {

@@ -1,5 +1,3 @@
-use std::fs::File;
-
 use crate::entity::BaseEntityData;
 use crate::inventory::{
     SlotIndex, HOTBAR_SIZE, INVENTORY_SIZE, SLOT_ARMOR_MAX, SLOT_ARMOR_MIN, SLOT_HOTBAR_OFFSET,
@@ -7,10 +5,9 @@ use crate::inventory::{
 };
 use crate::ItemStack;
 use feather_items::Item;
-use std::fs;
-use std::io::Write;
 use std::path::{Path, PathBuf};
-use tokio::prelude::AsyncRead;
+use tokio::io::AsyncWriteExt;
+use tokio::prelude::{AsyncRead, AsyncWrite};
 use uuid::Uuid;
 
 /// Represents the contents of a player data file.
@@ -106,15 +103,25 @@ pub async fn load_player_data(world_dir: &Path, uuid: Uuid) -> Result<PlayerData
     Ok(data)
 }
 
-fn save_to_file<W: Write>(mut writer: W, data: PlayerData) -> Result<(), nbt::Error> {
-    nbt::to_gzip_writer(&mut writer, &data, None)
+async fn save_to_file<W: AsyncWrite + Unpin>(
+    mut writer: W,
+    data: &PlayerData,
+) -> Result<(), anyhow::Error> {
+    let mut buf = vec![];
+    nbt::to_gzip_writer(&mut buf, data, None)?;
+    writer.write_all(&buf).await?;
+    Ok(())
 }
 
-pub fn save_player_data(world_dir: &Path, uuid: Uuid, data: PlayerData) -> Result<(), nbt::Error> {
-    fs::create_dir_all(world_dir.join("playerdata"))?;
+pub async fn save_player_data(
+    world_dir: &Path,
+    uuid: Uuid,
+    data: &PlayerData,
+) -> Result<(), anyhow::Error> {
+    tokio::fs::create_dir_all(world_dir.join("playerdata")).await?;
     let file_path = file_path(world_dir, uuid);
-    let file = File::create(file_path)?;
-    save_to_file(file, data)
+    let file = tokio::fs::File::create(file_path).await?;
+    save_to_file(file, data).await
 }
 
 fn file_path(world_dir: &Path, uuid: Uuid) -> PathBuf {

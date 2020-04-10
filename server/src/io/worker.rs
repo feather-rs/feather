@@ -13,10 +13,11 @@ use crate::io::{
     WorkerToServerMessage,
 };
 use crate::packet_buffer::PacketBuffers;
+use feather_core::entity::BaseEntityData;
 use feather_core::network::codec::MinecraftCodec;
 use feather_core::network::packet::PacketDirection;
 use feather_core::player_data::PlayerData;
-use feather_core::Packet;
+use feather_core::{Packet, Position, Vec3d};
 use fecs::Entity;
 use futures::channel::mpsc;
 use futures::future::Either;
@@ -33,6 +34,7 @@ use uuid::Uuid;
 
 struct Worker {
     framed: Framed<TcpStream, MinecraftCodec>,
+    config: Arc<Config>,
     ip: SocketAddr,
     /// The listener's sender to send the initial `NewClient` message
     /// to the server. Also used to request an entity for the player.
@@ -93,6 +95,7 @@ pub async fn run_worker(
         tx,
         initial_handler,
         entity,
+        config,
     };
 
     let msg = match run_worker_impl(&mut worker).await {
@@ -188,13 +191,15 @@ async fn handle_ih_actions(worker: &mut Worker) -> anyhow::Result<()> {
             Action::Disconnect => anyhow::bail!("initial handler requested disconnect"),
             Action::SetStage(stage) => worker.framed.codec_mut().set_stage(stage),
             Action::JoinGame(info) => {
+                let data = load_player_data(&worker.config, info.uuid).await?;
+                let position = data.entity.read_position()?;
                 let info = NewClientInfo {
                     ip: worker.ip,
                     username: info.username.unwrap_or_else(|| String::from("undefined")),
                     profile: info.props,
                     uuid: info.uuid,
-                    data: Default::default(),            // TODO
-                    position: position!(0.0, 70.0, 0.0), // TODO
+                    data,
+                    position,
                     sender: worker.server_tx.clone(),
                     receiver: worker.server_rx.clone(),
                     entity: worker.entity,
@@ -213,7 +218,29 @@ async fn handle_ih_actions(worker: &mut Worker) -> anyhow::Result<()> {
     Ok(())
 }
 
-#[allow(dead_code)] // TODO
-async fn load_player_data(config: &Config, uuid: Uuid) -> Result<PlayerData, nbt::Error> {
-    feather_core::player_data::load_player_data(Path::new(&config.world.name), uuid).await
+const DEFAULT_POSITION: Position = position!(0.0, 70.0, 0.0); // TODO: better calculation
+
+async fn load_player_data(config: &Config, uuid: Uuid) -> Result<PlayerData, anyhow::Error> {
+    log::debug!("Loading player data for UUID {}", uuid);
+    match feather_core::player_data::load_player_data(Path::new(&config.world.name), uuid).await {
+        Ok(data) => Ok(data),
+        Err(e) => {
+            log::debug!(
+                "Failed to load player data for {} ({}); creating default data",
+                uuid,
+                e,
+            );
+
+            let data = PlayerData {
+                entity: BaseEntityData::new(DEFAULT_POSITION, Vec3d::broadcast(0.0)),
+                gamemode: config.server.default_gamemode.id() as i32,
+                inventory: vec![],
+            };
+
+            feather_core::player_data::save_player_data(Path::new(&config.world.name), uuid, &data)
+                .await?;
+
+            Ok(data)
+        }
+    }
 }

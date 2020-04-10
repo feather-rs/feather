@@ -2,10 +2,16 @@
 
 use crate::entity::ComponentSerializer;
 use crate::game::Game;
+use crate::p_inventory::EntityInventory;
 use crate::{chunk_logic, TICK_TIME, TPS};
-use feather_core::ChunkPosition;
-use fecs::World;
+use feather_core::entity::BaseEntityData;
+use feather_core::player_data::{InventorySlot, PlayerData};
+use feather_core::{ChunkPosition, Gamemode, Position, Vec3d};
+use fecs::{Entity, World};
 use std::collections::VecDeque;
+use std::path::Path;
+use std::sync::Arc;
+use uuid::Uuid;
 
 /// A chunk to save + the tick count at which to do so.
 #[derive(Clone, Copy, Debug)]
@@ -114,4 +120,46 @@ pub fn save_chunk_at(game: &Game, world: &World, pos: ChunkPosition) {
         game.chunk_map.chunk_handle_at(pos).unwrap(),
         entities,
     );
+}
+
+pub fn on_player_leave_save_data(game: &Game, world: &World, player: Entity) {
+    save_player_data(game, world, player);
+}
+
+pub fn save_player_data(game: &Game, world: &World, player: Entity) {
+    let inventory = world
+        .get::<EntityInventory>(player)
+        .inventory
+        .items()
+        .iter()
+        .enumerate()
+        .filter_map(|(i, item)| item.map(|item| (i, item)))
+        .map(|(slot, item)| InventorySlot {
+            count: item.amount as i8,
+            slot: slot as i8,
+            item: item.ty.identifier().to_owned(),
+        })
+        .collect();
+
+    let data = PlayerData {
+        entity: BaseEntityData::new(*world.get::<Position>(player), Vec3d::broadcast(0.0)),
+        gamemode: world.get::<Gamemode>(player).id() as i32,
+        inventory,
+    };
+
+    let uuid = *world.get::<Uuid>(player);
+    let config = Arc::clone(&game.config);
+
+    game.running_tasks.schedule(async move {
+        match feather_core::player_data::save_player_data(
+            &Path::new(&config.world.name),
+            uuid,
+            &data,
+        )
+        .await
+        {
+            Ok(_) => (),
+            Err(e) => error!("Failed to save player data for UUID {}: {}", uuid, e),
+        }
+    });
 }

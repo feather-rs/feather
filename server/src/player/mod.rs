@@ -4,12 +4,13 @@ use crate::broadcasters::LastKnownPositions;
 use crate::chunk_logic::ChunkHolder;
 use crate::entity;
 use crate::entity::{CreationPacketCreator, EntityId, Name, PreviousPosition, SpawnPacketCreator};
+use crate::game::Game;
 use crate::io::NewClientInfo;
 use crate::network::Network;
-use crate::p_inventory::EntityInventory;
+use crate::p_inventory::{EntityInventory, InventoryUpdateEvent};
 use crate::util::degrees_to_stops;
 use feather_core::network::packet::implementation::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
-use feather_core::{Gamemode, Packet, Position};
+use feather_core::{Gamemode, Item, ItemStack, Packet, Position};
 use fecs::{Entity, EntityRef, World};
 use mojang_api::ProfileProperty;
 use uuid::Uuid;
@@ -31,8 +32,8 @@ pub struct ItemTimedUse {
 
 /// Creates a new player from the given `NewClientInfo`.
 ///
-/// This function also triggers the `PlayerJoinEvent` for this player.
-pub fn create(world: &mut World, info: NewClientInfo) -> Entity {
+/// This function also triggers events for the player join.
+pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity {
     // TODO: blocked on https://github.com/TomGillen/legion/issues/36
     let entity = info.entity;
     world.add(entity, EntityId(entity::new_id())).unwrap();
@@ -60,9 +61,38 @@ pub fn create(world: &mut World, info: NewClientInfo) -> Entity {
     world
         .add(entity, CreationPacketCreator(&create_initialization_packet))
         .unwrap();
-    world.add(entity, Gamemode::Creative).unwrap(); // TODO: proper gamemode handling
-    world.add(entity, EntityInventory::default()).unwrap();
+    world
+        .add(entity, Gamemode::from_id(info.data.gamemode as u8))
+        .unwrap();
+
+    let items = info.data.inventory.iter().map(|slot| {
+        (
+            slot.slot as usize,
+            ItemStack::new(
+                Item::from_identifier(&slot.item).unwrap_or(Item::Air),
+                slot.count as u8,
+            ),
+        )
+    });
+    let slots = info.data.inventory.iter().map(|slot| slot.slot as usize);
+
+    let mut inventory = EntityInventory::new();
+    items.for_each(|(index, item)| inventory.set_item_at(index, item));
+
+    world.add(entity, inventory).unwrap();
+
     world.add(entity, Player).unwrap();
+
+    game.on_entity_spawn(world, entity);
+    game.on_player_join(world, entity);
+    game.on_inventory_update(
+        world,
+        InventoryUpdateEvent {
+            slots: slots.collect(),
+            player: entity,
+        },
+    );
+
     entity
 }
 
