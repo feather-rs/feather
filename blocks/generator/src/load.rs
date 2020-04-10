@@ -4,10 +4,38 @@
 use crate::{Block, Blocks, Property, PropertyKind};
 use heck::CamelCase;
 use indexmap::map::IndexMap;
+use once_cell::sync::Lazy;
 use proc_macro2::{Ident, Span};
 use serde::Deserialize;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::str::FromStr;
+
+/// Special property name overrides, to avoid names like "shape_neaaaassnn."
+static NAME_OVERRIDES: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| {
+    maplit::hashmap! {
+        "east_tf" => "east_connected",
+        "east_usn" => "east_wire",
+        "north_tf" => "north_connected",
+        "north_usn" => "north_wire",
+        "west_tf" => "west_connected",
+        "west_usn" => "west_wire",
+        "south_tf" => "south_connected",
+        "south_usn" => "south_wire",
+        "facing_dnswe" => "facing_cardinal_and_down",
+        "facing_neswud" => "facing_cubic",
+        "facing_nswe" => "facing_cardinal",
+        "half_ul" => "half", // not sure why there is a "top-bottom" variant and an "upper-lower" variant
+        "half_tb" => "half",
+        "kind_slr" => "chest_kind",
+        "kind_tbd" => "slab_kind",
+        "kind_ns" => "piston_kind",
+        "mode_cs" => "comparator_mode",
+        "mode_slcd" => "structure_block_mode",
+        "shape_neaaaa" => "powered_rail_shape",
+        "shape_siioo" => "stairs_shape",
+        "shape_neaaaassnn" => "rail_shape",
+    }
+});
 
 #[derive(Debug, Deserialize)]
 struct BlocksReport {
@@ -50,6 +78,8 @@ impl PropertyStore {
         let mut map = BTreeMap::new();
 
         for (name, possible_value_sets) in self.properties {
+            let name = Self::update_name(&name);
+
             if possible_value_sets.len() == 1
                 || possible_value_sets.iter().next().unwrap()[0]
                     .parse::<i32>()
@@ -57,13 +87,13 @@ impl PropertyStore {
             {
                 let possible_values = possible_value_sets.into_iter().next().unwrap();
                 map.insert(
-                    name.clone(),
+                    name.to_owned(),
                     Self::prop_from_possible_values_and_name(&name, possible_values),
                 );
             } else {
                 // There are multiple variants of this property, each with their own set of values.
                 // Create properties suffixed with an index to differentiate between these variants.
-                for (i, possible_values) in possible_value_sets.into_iter().enumerate() {
+                for possible_values in possible_value_sets {
                     // Name is the name of the property followed by the first letter of each possible value.
                     let name = {
                         let mut name = format!("{}_", name);
@@ -73,8 +103,10 @@ impl PropertyStore {
                         name
                     };
 
+                    let name = Self::update_name(&name);
+
                     map.insert(
-                        name.clone(),
+                        name.to_owned(),
                         Self::prop_from_possible_values_and_name(&name, possible_values),
                     );
                 }
@@ -82,6 +114,13 @@ impl PropertyStore {
         }
 
         map
+    }
+
+    fn update_name(name: &str) -> &str {
+        match NAME_OVERRIDES.get(&name) {
+            Some(x) => *x,
+            None => name,
+        }
     }
 
     fn prop_from_possible_values_and_name(name: &str, possible_values: Vec<String>) -> Property {
@@ -121,7 +160,7 @@ fn load_block(
 
     let name_camel_case = identifier.to_camel_case();
 
-    let properties = load_block_properties(block, &name_camel_case, properties);
+    let properties = load_block_properties(block, properties);
 
     let block = Block {
         name: ident(identifier),
@@ -134,11 +173,7 @@ fn load_block(
     Ok(Some(block))
 }
 
-fn load_block_properties(
-    block: &BlockDefinition,
-    name_camel_case: &str,
-    properties: &mut PropertyStore,
-) -> Vec<String> {
+fn load_block_properties(block: &BlockDefinition, properties: &mut PropertyStore) -> Vec<String> {
     let mut props = vec![];
 
     for (identifier, possible_values) in &block.properties {
