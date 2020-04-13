@@ -21,6 +21,12 @@ fn main() {
                 Command::new("rustfmt").arg(path).output().unwrap();
             });
 
+            let data = format!("{}/block_table.dat", base);
+            File::create(&data)
+                .unwrap()
+                .write_all(&code.block_table_serialized)
+                .unwrap();
+
             println!(
                 "cargo:rerun-if-changed={}",
                 concat!(env!("CARGO_MANIFEST_DIR"), "/../data/minecraft")

@@ -1,6 +1,7 @@
 use crate::BlockKind;
+use serde::Deserialize;
 use std::convert::TryFrom;
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct BlockTable {
     age: Vec<(u16, u16)>,
     attached: Vec<(u16, u16)>,

@@ -37,6 +37,20 @@ static NAME_OVERRIDES: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| 
     }
 });
 
+fn property_override<'a>(orig_name: &'a str, possible_values: &[String]) -> &'a str {
+    let mut name = orig_name.to_owned();
+    possible_values
+        .iter()
+        .map(|s| s.chars().next().unwrap())
+        .for_each(|c| name.push(c));
+
+    if let Some(name) = NAME_OVERRIDES.get(&name.as_str()) {
+        *name
+    } else {
+        orig_name
+    }
+}
+
 #[derive(Debug, Deserialize)]
 struct BlocksReport {
     #[serde(flatten)]
@@ -162,12 +176,14 @@ fn load_block(
 
     let properties = load_block_properties(block, properties);
 
+    let index_parameters = load_block_index_parameters(block, &properties);
+
     let block = Block {
         name: ident(identifier),
         name_camel_case: ident(name_camel_case),
         properties,
         ids: Default::default(),
-        index_parameters: Default::default(),
+        index_parameters,
     };
 
     Ok(Some(block))
@@ -177,13 +193,41 @@ fn load_block_properties(block: &BlockDefinition, properties: &mut PropertyStore
     let mut props = vec![];
 
     for (identifier, possible_values) in &block.properties {
-        let identifier = fix_keywords(identifier);
+        let identifier = property_override(fix_keywords(identifier), &possible_values);
 
         properties.register(identifier.to_owned(), possible_values.clone());
         props.push(identifier.to_owned());
     }
 
     props
+}
+
+fn load_block_index_parameters(
+    block: &BlockDefinition,
+    block_props: &[String],
+) -> HashMap<String, (u16, u16)> {
+    let mut map = HashMap::with_capacity(block_props.len());
+
+    let possible_values = block_props
+        .iter()
+        .map(|block_prop| block.properties.get(block_prop).map(Vec::len).unwrap_or(0))
+        .map(|x| x as u16)
+        .collect::<Vec<_>>();
+
+    let mut previous_product = u16::max_value();
+    for (i, block_prop) in block_props.iter().enumerate() {
+        let stride = possible_values.iter().skip(i + 1).product::<u16>();
+        let offset_coefficient = previous_product;
+        if previous_product == u16::max_value() {
+            previous_product = possible_values[i];
+        } else {
+            previous_product *= possible_values[i];
+        }
+
+        map.insert(block_prop.clone(), (offset_coefficient, stride));
+    }
+
+    map
 }
 
 fn guess_property_kind(possible_values: &[String], property_struct_name: &str) -> PropertyKind {

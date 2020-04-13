@@ -9,7 +9,14 @@ extern crate num_derive;
 #[allow(clippy::all)]
 mod generated;
 
+static BLOCK_TABLE: Lazy<BlockTable> = Lazy::new(|| {
+    let bytes = include_bytes!("generated/block_table.dat");
+    bincode::deserialize(bytes).expect("failed to deserialize generated block table (bincode)")
+});
+
+use crate::generated::table::{BlockTable, Instrument};
 pub use generated::kind::BlockKind;
+use once_cell::sync::Lazy;
 
 impl Default for BlockKind {
     fn default() -> Self {
@@ -21,6 +28,25 @@ impl Default for BlockKind {
 pub struct BlockId {
     kind: BlockKind,
     state: u16,
+}
+
+impl BlockId {
+    pub fn instrument(self) -> Option<Instrument> {
+        BLOCK_TABLE.instrument(self.kind, self.state)
+    }
+
+    pub fn with_instrument(self, instrument: Instrument) -> Option<BlockId> {
+        BLOCK_TABLE
+            .set_instrument(self.kind, self.state, instrument)
+            .map(|state| self.with_state(state))
+    }
+
+    fn with_state(self, state: u16) -> Self {
+        Self {
+            kind: self.kind,
+            state,
+        }
+    }
 }
 
 impl From<BlockId> for u32 {
@@ -54,4 +80,21 @@ impl TryFrom<u32> for BlockId {
 // This is where the magic happens.
 pub(crate) fn n_dimensional_index(state: u16, offset_coefficient: u16, stride: u16) -> u16 {
     (state % offset_coefficient) / stride
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn instrument() {
+        let mut block = BlockId {
+            kind: BlockKind::NoteBlock,
+            state: 0,
+        };
+        assert!(block.instrument().is_some());
+
+        block = block.with_instrument(Instrument::Basedrum).unwrap();
+        assert_eq!(block.instrument(), Some(Instrument::Basedrum));
+    }
 }

@@ -1,6 +1,8 @@
 use crate::load::ident;
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
+use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 use std::collections::{BTreeMap, HashMap};
 use std::ops::RangeInclusive;
 use syn::export::ToTokens;
@@ -46,15 +48,6 @@ impl Property {
             PropertyKind::Enum { name, .. } => {
                 quote! { #name::try_from(#input).expect("invalid block state") }
             }
-        }
-    }
-
-    /// Returns the number of possible values for this property.
-    pub fn num_possible_values(&self) -> u16 {
-        match &self.kind {
-            PropertyKind::Integer { range } => (*range.end() - *range.start() + 1) as u16,
-            PropertyKind::Boolean => 2,
-            PropertyKind::Enum { variants, .. } => variants.len() as u16,
         }
     }
 }
@@ -127,6 +120,7 @@ pub struct Output {
     pub kind: String,
     pub block_fns: String,
     pub block_table: String,
+    pub block_table_serialized: Vec<u8>,
 }
 
 /// Generates code for the block report.
@@ -138,6 +132,8 @@ pub fn generate() -> anyhow::Result<Output> {
     output.kind.push_str(&generate_kind(&blocks).to_string());
     let table_src = generate_table(&blocks);
     output.block_table.push_str(&table_src.to_string());
+
+    output.block_table_serialized = serialize_block_table(&blocks);
 
     Ok(output)
 }
@@ -221,8 +217,9 @@ fn generate_table(blocks: &Blocks) -> TokenStream {
     quote! {
         use crate::BlockKind;
         use std::convert::TryFrom;
+        use serde::Deserialize;
 
-        #[derive(Debug)]
+        #[derive(Debug, Deserialize)]
         pub struct BlockTable {
             #(#fields,)*
         }
@@ -232,5 +229,60 @@ fn generate_table(blocks: &Blocks) -> TokenStream {
         }
 
         #(#types)*
+    }
+}
+
+/// Returns the serialized `BlockTable`.
+fn serialize_block_table(blocks: &Blocks) -> Vec<u8> {
+    let table = BlockTableSerialize::new(&blocks.blocks, &blocks.property_types);
+
+    bincode::serialize(&table).expect("bincode failed to serialize block table")
+}
+
+/// Serializable form of the generated `BlockTable`.
+#[derive(Debug)]
+struct BlockTableSerialize {
+    fields: BTreeMap<String, Vec<(u16, u16)>>,
+}
+
+// custom serialize impl needed because of https://github.com/servo/bincode/issues/245
+impl Serialize for BlockTableSerialize {
+    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("BlockTable", self.fields.len())?;
+
+        for (name, value) in &self.fields {
+            // Leak memory! This is a build script; it doesn't matter.
+            let name = Box::leak(name.clone().into_boxed_str());
+            state.serialize_field(name, value)?;
+        }
+
+        state.end()
+    }
+}
+
+impl BlockTableSerialize {
+    pub fn new(blocks: &[Block], property_types: &BTreeMap<String, Property>) -> Self {
+        let mut fields: BTreeMap<String, Vec<(u16, u16)>> = BTreeMap::new();
+
+        for block in blocks {
+            for property_name in property_types.keys() {
+                let index_parameters = match block.index_parameters.get(property_name) {
+                    Some(params) => *params,
+                    None => (0, 0),
+                };
+
+                fields
+                    .entry(property_name.clone())
+                    .or_default()
+                    .push(index_parameters);
+            }
+        }
+
+        assert!(fields.values().map(Vec::len).all(|len| len == blocks.len()));
+
+        Self { fields }
     }
 }
