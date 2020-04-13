@@ -38,11 +38,11 @@ static NAME_OVERRIDES: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| 
 });
 
 fn property_override<'a>(orig_name: &'a str, possible_values: &[String]) -> &'a str {
-    let mut name = orig_name.to_owned();
+    let mut name = format!("{}_", orig_name);
     possible_values
         .iter()
         .map(|s| s.chars().next().unwrap())
-        .for_each(|c| name.push(c));
+        .for_each(|c| name.push(c.to_ascii_lowercase()));
 
     if let Some(name) = NAME_OVERRIDES.get(&name.as_str()) {
         *name
@@ -168,21 +168,42 @@ pub(super) fn load() -> anyhow::Result<Blocks> {
 fn load_block(
     identifier: &str,
     block: &BlockDefinition,
-    properties: &mut PropertyStore,
+    properties_store: &mut PropertyStore,
 ) -> anyhow::Result<Option<Block>> {
     let identifier = strip_prefix(identifier)?;
 
     let name_camel_case = identifier.to_camel_case();
 
-    let properties = load_block_properties(block, properties);
+    let properties = load_block_properties(block, properties_store);
 
     let index_parameters = load_block_index_parameters(block, &properties);
+
+    let default_state = block
+        .states
+        .iter()
+        .find(|state| state.default)
+        .map(|state| state.properties.clone())
+        .unwrap_or_default()
+        .into_iter()
+        .map(|(name, value)| {
+            let name = fix_keywords(&name).to_owned();
+            (
+                if properties_store.properties[dbg!(&name)].len() > 1 {
+                    property_override(&name, &block.properties[&name]).to_owned()
+                } else {
+                    name
+                },
+                value,
+            )
+        })
+        .collect();
 
     let block = Block {
         name: ident(identifier),
         name_camel_case: ident(name_camel_case),
         properties,
         ids: Default::default(),
+        default_state,
         index_parameters,
     };
 
@@ -193,7 +214,7 @@ fn load_block_properties(block: &BlockDefinition, properties: &mut PropertyStore
     let mut props = vec![];
 
     for (identifier, possible_values) in &block.properties {
-        let identifier = property_override(fix_keywords(identifier), &possible_values);
+        let identifier = fix_keywords(identifier);
 
         properties.register(identifier.to_owned(), possible_values.clone());
         props.push(identifier.to_owned());

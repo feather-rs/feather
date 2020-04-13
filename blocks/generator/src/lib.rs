@@ -5,6 +5,7 @@ use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 use std::collections::{BTreeMap, HashMap};
 use std::ops::RangeInclusive;
+use std::str::FromStr;
 use syn::export::ToTokens;
 
 mod load;
@@ -21,6 +22,8 @@ pub struct Block {
     name_camel_case: Ident,
     /// This block's properties.
     properties: Vec<String>,
+    /// Default state and its property values.
+    default_state: Vec<(String, String)>,
     /// Block states mapped to vanilla state IDs.
     ids: Vec<(Vec<(String, TokenStream)>, u16)>,
     /// Strides and offset coefficients for each property of this block.
@@ -47,6 +50,24 @@ impl Property {
             PropertyKind::Boolean { .. } => quote! { if #input == 0 { false } else { true } },
             PropertyKind::Enum { name, .. } => {
                 quote! { #name::try_from(#input).expect("invalid block state") }
+            }
+        }
+    }
+
+    /// Returns an expression for a value of this property.
+    fn expr_for_value(&self, value: &str) -> TokenStream {
+        match &self.kind {
+            PropertyKind::Integer { .. } => {
+                let value = i32::from_str(value).unwrap();
+                quote! { #value }
+            }
+            PropertyKind::Boolean => {
+                let value = bool::from_str(value).unwrap();
+                quote! { #value }
+            }
+            PropertyKind::Enum { name, .. } => {
+                let variant = ident(value);
+                quote! { #name::#variant }
             }
         }
     }
@@ -132,6 +153,8 @@ pub fn generate() -> anyhow::Result<Output> {
     output.kind.push_str(&generate_kind(&blocks).to_string());
     let table_src = generate_table(&blocks);
     output.block_table.push_str(&table_src.to_string());
+    let block_fns_src = generate_block_fns(&blocks);
+    output.block_fns.push_str(&block_fns_src.to_string());
 
     output.block_table_serialized = serialize_block_table(&blocks);
 
@@ -230,6 +253,59 @@ fn generate_table(blocks: &Blocks) -> TokenStream {
 
         #(#types)*
     }
+}
+
+/// Generated functions for `BlockId`.
+fn generate_block_fns(blocks: &Blocks) -> TokenStream {
+    let mut fns = vec![];
+
+    for block in &blocks.blocks {
+        let name = &block.name;
+        let name_camel_case = &block.name_camel_case;
+
+        let default_state = &block.default_state;
+
+        let mut state_intializers = vec![];
+        for (name, value) in default_state {
+            let value_expr = blocks.property_types[name].expr_for_value(value);
+
+            let name_fn = ident(format!("with_{}", name));
+            state_intializers.push(quote! {
+                block = block.#name_fn(#value_expr).unwrap();
+            });
+        }
+
+        let mut doc = format!(
+            "Returns an instance of `{}` with default state values.
+        
+        The default state values are as follows:",
+            block.name
+        );
+        for (name, value) in default_state {
+            doc.push_str(&format!("* `{}`: {}", name, value));
+        }
+
+        fns.push(quote! {
+            #[doc = #doc]
+            pub fn #name() -> Self {
+                let mut block = Self {
+                    kind: BlockKind::#name_camel_case,
+                    state: 0,
+                };
+                #(#state_intializers)*
+                block
+            }
+        })
+    }
+
+    let res = quote! {
+        use crate::{BlockId, BlockKind, BLOCK_TABLE};
+
+        impl BlockId {
+            #(#fns)*
+        }
+    };
+    res
 }
 
 /// Returns the serialized `BlockTable`.
