@@ -1,5 +1,6 @@
 use crate::load::ident;
 use heck::CamelCase;
+use heck::SnakeCase;
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use serde::ser::{SerializeSeq, SerializeStruct};
@@ -8,7 +9,6 @@ use std::collections::BTreeMap;
 use std::ops::RangeInclusive;
 use std::str::FromStr;
 use syn::export::ToTokens;
-use heck::SnakeCase;
 
 mod load;
 
@@ -97,6 +97,28 @@ impl Property {
         }
     }
 
+    fn tokens_for_from_str(&self, input: TokenStream) -> TokenStream {
+        match &self.kind {
+            PropertyKind::Integer { range } => {
+                let start = *range.start();
+                let end = *range.end();
+                quote! {
+                    {
+                        let x = i32::from_str(#input).ok()?;
+                        if !(#start..=#end).contains(&x) {
+                            return None;
+                        }
+                        x
+                    }
+                }
+            }
+            PropertyKind::Boolean => quote! {
+                bool::from_str(#input).ok()?
+            },
+            PropertyKind::Enum { name, .. } => quote! { #name::from_str(#input).ok()?},
+        }
+    }
+
     /// Returns an expression for a value of this property.
     fn expr_for_value(&self, value: &str) -> TokenStream {
         match &self.kind {
@@ -146,7 +168,11 @@ impl Property {
 
                 let variant_indices: Vec<_> = (0..variants.len() as u16).collect();
                 let try_from_error_msg = format!("invalid value {{}} for {}", name);
-                let as_str: Vec<_> = variants.iter().map(|ident| ident.to_string()).map(|x| x.to_snake_case()).collect();
+                let as_str: Vec<_> = variants
+                    .iter()
+                    .map(|ident| ident.to_string())
+                    .map(|x| x.to_snake_case())
+                    .collect();
 
                 let imp = quote! {
                     impl TryFrom<u16> for #name {
@@ -158,6 +184,19 @@ impl Property {
                                     #variant_indices => Ok(#name::#variants),
                                 )*
                                 x => Err(anyhow::anyhow!(#try_from_error_msg, x)),
+                            }
+                        }
+                    }
+
+                    impl FromStr for #name {
+                        type Err = anyhow::Error;
+
+                        fn from_str(s: &str) -> anyhow::Result<Self> {
+                            match s {
+                                #(
+                                    #as_str => Ok(#name::#variants),
+                                )*
+                                _ => Err(anyhow::anyhow!("invalid value for {}", stringify!(#name))),
                             }
                         }
                     }
@@ -294,6 +333,7 @@ fn generate_table(blocks: &Blocks) -> TokenStream {
     quote! {
         use crate::BlockKind;
         use std::convert::TryFrom;
+        use std::str::FromStr;
         use serde::Deserialize;
 
         #[derive(Debug, Deserialize)]
@@ -387,8 +427,9 @@ fn generate_block_fns(blocks: &Blocks) -> TokenStream {
 
     let res = quote! {
         use std::collections::BTreeMap;
+        use std::str::FromStr;
         use crate::*;
-        
+
         impl BlockId {
             #(#fns)*
         }
@@ -402,8 +443,8 @@ fn generate_block_serializing_fns(blocks: &Blocks) -> Vec<TokenStream> {
 
     let mut identifier_fn_match_arms = vec![];
     for block in &blocks.blocks {
-        let name_camel_case =  &block.name_camel_case;
-        
+        let name_camel_case = &block.name_camel_case;
+
         let name = format!("minecraft:{}", block.name);
 
         identifier_fn_match_arms.push(quote! {
@@ -428,7 +469,7 @@ fn generate_block_serializing_fns(blocks: &Blocks) -> Vec<TokenStream> {
 
         to_properties_map_fn_match_arms.push(quote! {
             BlockKind::#name_camel_case => self.#fn_to_call()
-        }); 
+        });
 
         let mut inserts = vec![];
         for property_name in &block.properties {
@@ -461,6 +502,53 @@ fn generate_block_serializing_fns(blocks: &Blocks) -> Vec<TokenStream> {
         }
 
         #(#to_properties_map_util_fns)*
+    });
+
+    let mut from_identifier_and_properties_fn_match_arms = vec![];
+    let mut from_identifier_and_properties_util_fns = vec![];
+    for block in &blocks.blocks {
+        let name = &block.name;
+        let name_str = name.to_string();
+        let fn_to_call = ident(format!("{}_from_identifier_and_properties", block.name));
+
+        from_identifier_and_properties_fn_match_arms.push(quote! {
+            #name_str => Self::#fn_to_call(properties)
+        });
+
+        let mut retrievals = vec![];
+        for property_name in &block.properties {
+            let property = &blocks.property_types[property_name];
+
+            let name = &property.name;
+            let from_str = property.tokens_for_from_str(quote! { #name });
+            let set_fn = ident(format!("set_{}", name));
+
+            retrievals.push(quote! {
+                let #name = map.get(#property_name)?;
+                let #name = #from_str;
+                block.#set_fn(#name);
+            });
+        }
+
+        from_identifier_and_properties_util_fns.push(quote! {
+            fn #fn_to_call(map: &BTreeMap<String, String>) -> Option<Self> {
+                let mut block = BlockId::#name();
+                #(#retrievals)*
+                Some(block)
+            }
+        });
+    }
+
+    fns.push(quote! {
+        #[doc = "Attempts to convert a block kind identifier (e.g. `minecraft::air`) and properties map to a `BlockId`."]
+        pub fn from_identifier_and_properties(identifier: &str, properties: &BTreeMap<String, String>) -> Option<Self> {
+            match identifier {
+                #(#from_identifier_and_properties_fn_match_arms,)*
+                _ => None,
+            }
+        }
+
+       #(#from_identifier_and_properties_util_fns)*
     });
 
     fns

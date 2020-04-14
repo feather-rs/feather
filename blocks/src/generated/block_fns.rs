@@ -1,5 +1,6 @@
 use crate::*;
 use std::collections::BTreeMap;
+use std::str::FromStr;
 impl BlockId {
     #[doc = "Returns an instance of `air` with default state values."]
     pub fn air() -> Self {
@@ -14713,5 +14714,6747 @@ impl BlockId {
         let structure_block_mode = self.structure_block_mode().unwrap();
         map.insert("structure_block_mode", { structure_block_mode.as_str() });
         map
+    }
+    #[doc = "Attempts to convert a block kind identifier (e.g. `minecraft::air`) and properties map to a `BlockId`."]
+    pub fn from_identifier_and_properties(
+        identifier: &str,
+        properties: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        match identifier {
+            "air" => Self::air_from_identifier_and_properties(properties),
+            "stone" => Self::stone_from_identifier_and_properties(properties),
+            "granite" => Self::granite_from_identifier_and_properties(properties),
+            "polished_granite" => Self::polished_granite_from_identifier_and_properties(properties),
+            "diorite" => Self::diorite_from_identifier_and_properties(properties),
+            "polished_diorite" => Self::polished_diorite_from_identifier_and_properties(properties),
+            "andesite" => Self::andesite_from_identifier_and_properties(properties),
+            "polished_andesite" => {
+                Self::polished_andesite_from_identifier_and_properties(properties)
+            }
+            "grass_block" => Self::grass_block_from_identifier_and_properties(properties),
+            "dirt" => Self::dirt_from_identifier_and_properties(properties),
+            "coarse_dirt" => Self::coarse_dirt_from_identifier_and_properties(properties),
+            "podzol" => Self::podzol_from_identifier_and_properties(properties),
+            "cobblestone" => Self::cobblestone_from_identifier_and_properties(properties),
+            "oak_planks" => Self::oak_planks_from_identifier_and_properties(properties),
+            "spruce_planks" => Self::spruce_planks_from_identifier_and_properties(properties),
+            "birch_planks" => Self::birch_planks_from_identifier_and_properties(properties),
+            "jungle_planks" => Self::jungle_planks_from_identifier_and_properties(properties),
+            "acacia_planks" => Self::acacia_planks_from_identifier_and_properties(properties),
+            "dark_oak_planks" => Self::dark_oak_planks_from_identifier_and_properties(properties),
+            "oak_sapling" => Self::oak_sapling_from_identifier_and_properties(properties),
+            "spruce_sapling" => Self::spruce_sapling_from_identifier_and_properties(properties),
+            "birch_sapling" => Self::birch_sapling_from_identifier_and_properties(properties),
+            "jungle_sapling" => Self::jungle_sapling_from_identifier_and_properties(properties),
+            "acacia_sapling" => Self::acacia_sapling_from_identifier_and_properties(properties),
+            "dark_oak_sapling" => Self::dark_oak_sapling_from_identifier_and_properties(properties),
+            "bedrock" => Self::bedrock_from_identifier_and_properties(properties),
+            "water" => Self::water_from_identifier_and_properties(properties),
+            "lava" => Self::lava_from_identifier_and_properties(properties),
+            "sand" => Self::sand_from_identifier_and_properties(properties),
+            "red_sand" => Self::red_sand_from_identifier_and_properties(properties),
+            "gravel" => Self::gravel_from_identifier_and_properties(properties),
+            "gold_ore" => Self::gold_ore_from_identifier_and_properties(properties),
+            "iron_ore" => Self::iron_ore_from_identifier_and_properties(properties),
+            "coal_ore" => Self::coal_ore_from_identifier_and_properties(properties),
+            "oak_log" => Self::oak_log_from_identifier_and_properties(properties),
+            "spruce_log" => Self::spruce_log_from_identifier_and_properties(properties),
+            "birch_log" => Self::birch_log_from_identifier_and_properties(properties),
+            "jungle_log" => Self::jungle_log_from_identifier_and_properties(properties),
+            "acacia_log" => Self::acacia_log_from_identifier_and_properties(properties),
+            "dark_oak_log" => Self::dark_oak_log_from_identifier_and_properties(properties),
+            "stripped_spruce_log" => {
+                Self::stripped_spruce_log_from_identifier_and_properties(properties)
+            }
+            "stripped_birch_log" => {
+                Self::stripped_birch_log_from_identifier_and_properties(properties)
+            }
+            "stripped_jungle_log" => {
+                Self::stripped_jungle_log_from_identifier_and_properties(properties)
+            }
+            "stripped_acacia_log" => {
+                Self::stripped_acacia_log_from_identifier_and_properties(properties)
+            }
+            "stripped_dark_oak_log" => {
+                Self::stripped_dark_oak_log_from_identifier_and_properties(properties)
+            }
+            "stripped_oak_log" => Self::stripped_oak_log_from_identifier_and_properties(properties),
+            "oak_wood" => Self::oak_wood_from_identifier_and_properties(properties),
+            "spruce_wood" => Self::spruce_wood_from_identifier_and_properties(properties),
+            "birch_wood" => Self::birch_wood_from_identifier_and_properties(properties),
+            "jungle_wood" => Self::jungle_wood_from_identifier_and_properties(properties),
+            "acacia_wood" => Self::acacia_wood_from_identifier_and_properties(properties),
+            "dark_oak_wood" => Self::dark_oak_wood_from_identifier_and_properties(properties),
+            "stripped_oak_wood" => {
+                Self::stripped_oak_wood_from_identifier_and_properties(properties)
+            }
+            "stripped_spruce_wood" => {
+                Self::stripped_spruce_wood_from_identifier_and_properties(properties)
+            }
+            "stripped_birch_wood" => {
+                Self::stripped_birch_wood_from_identifier_and_properties(properties)
+            }
+            "stripped_jungle_wood" => {
+                Self::stripped_jungle_wood_from_identifier_and_properties(properties)
+            }
+            "stripped_acacia_wood" => {
+                Self::stripped_acacia_wood_from_identifier_and_properties(properties)
+            }
+            "stripped_dark_oak_wood" => {
+                Self::stripped_dark_oak_wood_from_identifier_and_properties(properties)
+            }
+            "oak_leaves" => Self::oak_leaves_from_identifier_and_properties(properties),
+            "spruce_leaves" => Self::spruce_leaves_from_identifier_and_properties(properties),
+            "birch_leaves" => Self::birch_leaves_from_identifier_and_properties(properties),
+            "jungle_leaves" => Self::jungle_leaves_from_identifier_and_properties(properties),
+            "acacia_leaves" => Self::acacia_leaves_from_identifier_and_properties(properties),
+            "dark_oak_leaves" => Self::dark_oak_leaves_from_identifier_and_properties(properties),
+            "sponge" => Self::sponge_from_identifier_and_properties(properties),
+            "wet_sponge" => Self::wet_sponge_from_identifier_and_properties(properties),
+            "glass" => Self::glass_from_identifier_and_properties(properties),
+            "lapis_ore" => Self::lapis_ore_from_identifier_and_properties(properties),
+            "lapis_block" => Self::lapis_block_from_identifier_and_properties(properties),
+            "dispenser" => Self::dispenser_from_identifier_and_properties(properties),
+            "sandstone" => Self::sandstone_from_identifier_and_properties(properties),
+            "chiseled_sandstone" => {
+                Self::chiseled_sandstone_from_identifier_and_properties(properties)
+            }
+            "cut_sandstone" => Self::cut_sandstone_from_identifier_and_properties(properties),
+            "note_block" => Self::note_block_from_identifier_and_properties(properties),
+            "white_bed" => Self::white_bed_from_identifier_and_properties(properties),
+            "orange_bed" => Self::orange_bed_from_identifier_and_properties(properties),
+            "magenta_bed" => Self::magenta_bed_from_identifier_and_properties(properties),
+            "light_blue_bed" => Self::light_blue_bed_from_identifier_and_properties(properties),
+            "yellow_bed" => Self::yellow_bed_from_identifier_and_properties(properties),
+            "lime_bed" => Self::lime_bed_from_identifier_and_properties(properties),
+            "pink_bed" => Self::pink_bed_from_identifier_and_properties(properties),
+            "gray_bed" => Self::gray_bed_from_identifier_and_properties(properties),
+            "light_gray_bed" => Self::light_gray_bed_from_identifier_and_properties(properties),
+            "cyan_bed" => Self::cyan_bed_from_identifier_and_properties(properties),
+            "purple_bed" => Self::purple_bed_from_identifier_and_properties(properties),
+            "blue_bed" => Self::blue_bed_from_identifier_and_properties(properties),
+            "brown_bed" => Self::brown_bed_from_identifier_and_properties(properties),
+            "green_bed" => Self::green_bed_from_identifier_and_properties(properties),
+            "red_bed" => Self::red_bed_from_identifier_and_properties(properties),
+            "black_bed" => Self::black_bed_from_identifier_and_properties(properties),
+            "powered_rail" => Self::powered_rail_from_identifier_and_properties(properties),
+            "detector_rail" => Self::detector_rail_from_identifier_and_properties(properties),
+            "sticky_piston" => Self::sticky_piston_from_identifier_and_properties(properties),
+            "cobweb" => Self::cobweb_from_identifier_and_properties(properties),
+            "grass" => Self::grass_from_identifier_and_properties(properties),
+            "fern" => Self::fern_from_identifier_and_properties(properties),
+            "dead_bush" => Self::dead_bush_from_identifier_and_properties(properties),
+            "seagrass" => Self::seagrass_from_identifier_and_properties(properties),
+            "tall_seagrass" => Self::tall_seagrass_from_identifier_and_properties(properties),
+            "piston" => Self::piston_from_identifier_and_properties(properties),
+            "piston_head" => Self::piston_head_from_identifier_and_properties(properties),
+            "white_wool" => Self::white_wool_from_identifier_and_properties(properties),
+            "orange_wool" => Self::orange_wool_from_identifier_and_properties(properties),
+            "magenta_wool" => Self::magenta_wool_from_identifier_and_properties(properties),
+            "light_blue_wool" => Self::light_blue_wool_from_identifier_and_properties(properties),
+            "yellow_wool" => Self::yellow_wool_from_identifier_and_properties(properties),
+            "lime_wool" => Self::lime_wool_from_identifier_and_properties(properties),
+            "pink_wool" => Self::pink_wool_from_identifier_and_properties(properties),
+            "gray_wool" => Self::gray_wool_from_identifier_and_properties(properties),
+            "light_gray_wool" => Self::light_gray_wool_from_identifier_and_properties(properties),
+            "cyan_wool" => Self::cyan_wool_from_identifier_and_properties(properties),
+            "purple_wool" => Self::purple_wool_from_identifier_and_properties(properties),
+            "blue_wool" => Self::blue_wool_from_identifier_and_properties(properties),
+            "brown_wool" => Self::brown_wool_from_identifier_and_properties(properties),
+            "green_wool" => Self::green_wool_from_identifier_and_properties(properties),
+            "red_wool" => Self::red_wool_from_identifier_and_properties(properties),
+            "black_wool" => Self::black_wool_from_identifier_and_properties(properties),
+            "moving_piston" => Self::moving_piston_from_identifier_and_properties(properties),
+            "dandelion" => Self::dandelion_from_identifier_and_properties(properties),
+            "poppy" => Self::poppy_from_identifier_and_properties(properties),
+            "blue_orchid" => Self::blue_orchid_from_identifier_and_properties(properties),
+            "allium" => Self::allium_from_identifier_and_properties(properties),
+            "azure_bluet" => Self::azure_bluet_from_identifier_and_properties(properties),
+            "red_tulip" => Self::red_tulip_from_identifier_and_properties(properties),
+            "orange_tulip" => Self::orange_tulip_from_identifier_and_properties(properties),
+            "white_tulip" => Self::white_tulip_from_identifier_and_properties(properties),
+            "pink_tulip" => Self::pink_tulip_from_identifier_and_properties(properties),
+            "oxeye_daisy" => Self::oxeye_daisy_from_identifier_and_properties(properties),
+            "brown_mushroom" => Self::brown_mushroom_from_identifier_and_properties(properties),
+            "red_mushroom" => Self::red_mushroom_from_identifier_and_properties(properties),
+            "gold_block" => Self::gold_block_from_identifier_and_properties(properties),
+            "iron_block" => Self::iron_block_from_identifier_and_properties(properties),
+            "bricks" => Self::bricks_from_identifier_and_properties(properties),
+            "tnt" => Self::tnt_from_identifier_and_properties(properties),
+            "bookshelf" => Self::bookshelf_from_identifier_and_properties(properties),
+            "mossy_cobblestone" => {
+                Self::mossy_cobblestone_from_identifier_and_properties(properties)
+            }
+            "obsidian" => Self::obsidian_from_identifier_and_properties(properties),
+            "torch" => Self::torch_from_identifier_and_properties(properties),
+            "wall_torch" => Self::wall_torch_from_identifier_and_properties(properties),
+            "fire" => Self::fire_from_identifier_and_properties(properties),
+            "spawner" => Self::spawner_from_identifier_and_properties(properties),
+            "oak_stairs" => Self::oak_stairs_from_identifier_and_properties(properties),
+            "chest" => Self::chest_from_identifier_and_properties(properties),
+            "redstone_wire" => Self::redstone_wire_from_identifier_and_properties(properties),
+            "diamond_ore" => Self::diamond_ore_from_identifier_and_properties(properties),
+            "diamond_block" => Self::diamond_block_from_identifier_and_properties(properties),
+            "crafting_table" => Self::crafting_table_from_identifier_and_properties(properties),
+            "wheat" => Self::wheat_from_identifier_and_properties(properties),
+            "farmland" => Self::farmland_from_identifier_and_properties(properties),
+            "furnace" => Self::furnace_from_identifier_and_properties(properties),
+            "sign" => Self::sign_from_identifier_and_properties(properties),
+            "oak_door" => Self::oak_door_from_identifier_and_properties(properties),
+            "ladder" => Self::ladder_from_identifier_and_properties(properties),
+            "rail" => Self::rail_from_identifier_and_properties(properties),
+            "cobblestone_stairs" => {
+                Self::cobblestone_stairs_from_identifier_and_properties(properties)
+            }
+            "wall_sign" => Self::wall_sign_from_identifier_and_properties(properties),
+            "lever" => Self::lever_from_identifier_and_properties(properties),
+            "stone_pressure_plate" => {
+                Self::stone_pressure_plate_from_identifier_and_properties(properties)
+            }
+            "iron_door" => Self::iron_door_from_identifier_and_properties(properties),
+            "oak_pressure_plate" => {
+                Self::oak_pressure_plate_from_identifier_and_properties(properties)
+            }
+            "spruce_pressure_plate" => {
+                Self::spruce_pressure_plate_from_identifier_and_properties(properties)
+            }
+            "birch_pressure_plate" => {
+                Self::birch_pressure_plate_from_identifier_and_properties(properties)
+            }
+            "jungle_pressure_plate" => {
+                Self::jungle_pressure_plate_from_identifier_and_properties(properties)
+            }
+            "acacia_pressure_plate" => {
+                Self::acacia_pressure_plate_from_identifier_and_properties(properties)
+            }
+            "dark_oak_pressure_plate" => {
+                Self::dark_oak_pressure_plate_from_identifier_and_properties(properties)
+            }
+            "redstone_ore" => Self::redstone_ore_from_identifier_and_properties(properties),
+            "redstone_torch" => Self::redstone_torch_from_identifier_and_properties(properties),
+            "redstone_wall_torch" => {
+                Self::redstone_wall_torch_from_identifier_and_properties(properties)
+            }
+            "stone_button" => Self::stone_button_from_identifier_and_properties(properties),
+            "snow" => Self::snow_from_identifier_and_properties(properties),
+            "ice" => Self::ice_from_identifier_and_properties(properties),
+            "snow_block" => Self::snow_block_from_identifier_and_properties(properties),
+            "cactus" => Self::cactus_from_identifier_and_properties(properties),
+            "clay" => Self::clay_from_identifier_and_properties(properties),
+            "sugar_cane" => Self::sugar_cane_from_identifier_and_properties(properties),
+            "jukebox" => Self::jukebox_from_identifier_and_properties(properties),
+            "oak_fence" => Self::oak_fence_from_identifier_and_properties(properties),
+            "pumpkin" => Self::pumpkin_from_identifier_and_properties(properties),
+            "netherrack" => Self::netherrack_from_identifier_and_properties(properties),
+            "soul_sand" => Self::soul_sand_from_identifier_and_properties(properties),
+            "glowstone" => Self::glowstone_from_identifier_and_properties(properties),
+            "nether_portal" => Self::nether_portal_from_identifier_and_properties(properties),
+            "carved_pumpkin" => Self::carved_pumpkin_from_identifier_and_properties(properties),
+            "jack_o_lantern" => Self::jack_o_lantern_from_identifier_and_properties(properties),
+            "cake" => Self::cake_from_identifier_and_properties(properties),
+            "repeater" => Self::repeater_from_identifier_and_properties(properties),
+            "white_stained_glass" => {
+                Self::white_stained_glass_from_identifier_and_properties(properties)
+            }
+            "orange_stained_glass" => {
+                Self::orange_stained_glass_from_identifier_and_properties(properties)
+            }
+            "magenta_stained_glass" => {
+                Self::magenta_stained_glass_from_identifier_and_properties(properties)
+            }
+            "light_blue_stained_glass" => {
+                Self::light_blue_stained_glass_from_identifier_and_properties(properties)
+            }
+            "yellow_stained_glass" => {
+                Self::yellow_stained_glass_from_identifier_and_properties(properties)
+            }
+            "lime_stained_glass" => {
+                Self::lime_stained_glass_from_identifier_and_properties(properties)
+            }
+            "pink_stained_glass" => {
+                Self::pink_stained_glass_from_identifier_and_properties(properties)
+            }
+            "gray_stained_glass" => {
+                Self::gray_stained_glass_from_identifier_and_properties(properties)
+            }
+            "light_gray_stained_glass" => {
+                Self::light_gray_stained_glass_from_identifier_and_properties(properties)
+            }
+            "cyan_stained_glass" => {
+                Self::cyan_stained_glass_from_identifier_and_properties(properties)
+            }
+            "purple_stained_glass" => {
+                Self::purple_stained_glass_from_identifier_and_properties(properties)
+            }
+            "blue_stained_glass" => {
+                Self::blue_stained_glass_from_identifier_and_properties(properties)
+            }
+            "brown_stained_glass" => {
+                Self::brown_stained_glass_from_identifier_and_properties(properties)
+            }
+            "green_stained_glass" => {
+                Self::green_stained_glass_from_identifier_and_properties(properties)
+            }
+            "red_stained_glass" => {
+                Self::red_stained_glass_from_identifier_and_properties(properties)
+            }
+            "black_stained_glass" => {
+                Self::black_stained_glass_from_identifier_and_properties(properties)
+            }
+            "oak_trapdoor" => Self::oak_trapdoor_from_identifier_and_properties(properties),
+            "spruce_trapdoor" => Self::spruce_trapdoor_from_identifier_and_properties(properties),
+            "birch_trapdoor" => Self::birch_trapdoor_from_identifier_and_properties(properties),
+            "jungle_trapdoor" => Self::jungle_trapdoor_from_identifier_and_properties(properties),
+            "acacia_trapdoor" => Self::acacia_trapdoor_from_identifier_and_properties(properties),
+            "dark_oak_trapdoor" => {
+                Self::dark_oak_trapdoor_from_identifier_and_properties(properties)
+            }
+            "infested_stone" => Self::infested_stone_from_identifier_and_properties(properties),
+            "infested_cobblestone" => {
+                Self::infested_cobblestone_from_identifier_and_properties(properties)
+            }
+            "infested_stone_bricks" => {
+                Self::infested_stone_bricks_from_identifier_and_properties(properties)
+            }
+            "infested_mossy_stone_bricks" => {
+                Self::infested_mossy_stone_bricks_from_identifier_and_properties(properties)
+            }
+            "infested_cracked_stone_bricks" => {
+                Self::infested_cracked_stone_bricks_from_identifier_and_properties(properties)
+            }
+            "infested_chiseled_stone_bricks" => {
+                Self::infested_chiseled_stone_bricks_from_identifier_and_properties(properties)
+            }
+            "stone_bricks" => Self::stone_bricks_from_identifier_and_properties(properties),
+            "mossy_stone_bricks" => {
+                Self::mossy_stone_bricks_from_identifier_and_properties(properties)
+            }
+            "cracked_stone_bricks" => {
+                Self::cracked_stone_bricks_from_identifier_and_properties(properties)
+            }
+            "chiseled_stone_bricks" => {
+                Self::chiseled_stone_bricks_from_identifier_and_properties(properties)
+            }
+            "brown_mushroom_block" => {
+                Self::brown_mushroom_block_from_identifier_and_properties(properties)
+            }
+            "red_mushroom_block" => {
+                Self::red_mushroom_block_from_identifier_and_properties(properties)
+            }
+            "mushroom_stem" => Self::mushroom_stem_from_identifier_and_properties(properties),
+            "iron_bars" => Self::iron_bars_from_identifier_and_properties(properties),
+            "glass_pane" => Self::glass_pane_from_identifier_and_properties(properties),
+            "melon" => Self::melon_from_identifier_and_properties(properties),
+            "attached_pumpkin_stem" => {
+                Self::attached_pumpkin_stem_from_identifier_and_properties(properties)
+            }
+            "attached_melon_stem" => {
+                Self::attached_melon_stem_from_identifier_and_properties(properties)
+            }
+            "pumpkin_stem" => Self::pumpkin_stem_from_identifier_and_properties(properties),
+            "melon_stem" => Self::melon_stem_from_identifier_and_properties(properties),
+            "vine" => Self::vine_from_identifier_and_properties(properties),
+            "oak_fence_gate" => Self::oak_fence_gate_from_identifier_and_properties(properties),
+            "brick_stairs" => Self::brick_stairs_from_identifier_and_properties(properties),
+            "stone_brick_stairs" => {
+                Self::stone_brick_stairs_from_identifier_and_properties(properties)
+            }
+            "mycelium" => Self::mycelium_from_identifier_and_properties(properties),
+            "lily_pad" => Self::lily_pad_from_identifier_and_properties(properties),
+            "nether_bricks" => Self::nether_bricks_from_identifier_and_properties(properties),
+            "nether_brick_fence" => {
+                Self::nether_brick_fence_from_identifier_and_properties(properties)
+            }
+            "nether_brick_stairs" => {
+                Self::nether_brick_stairs_from_identifier_and_properties(properties)
+            }
+            "nether_wart" => Self::nether_wart_from_identifier_and_properties(properties),
+            "enchanting_table" => Self::enchanting_table_from_identifier_and_properties(properties),
+            "brewing_stand" => Self::brewing_stand_from_identifier_and_properties(properties),
+            "cauldron" => Self::cauldron_from_identifier_and_properties(properties),
+            "end_portal" => Self::end_portal_from_identifier_and_properties(properties),
+            "end_portal_frame" => Self::end_portal_frame_from_identifier_and_properties(properties),
+            "end_stone" => Self::end_stone_from_identifier_and_properties(properties),
+            "dragon_egg" => Self::dragon_egg_from_identifier_and_properties(properties),
+            "redstone_lamp" => Self::redstone_lamp_from_identifier_and_properties(properties),
+            "cocoa" => Self::cocoa_from_identifier_and_properties(properties),
+            "sandstone_stairs" => Self::sandstone_stairs_from_identifier_and_properties(properties),
+            "emerald_ore" => Self::emerald_ore_from_identifier_and_properties(properties),
+            "ender_chest" => Self::ender_chest_from_identifier_and_properties(properties),
+            "tripwire_hook" => Self::tripwire_hook_from_identifier_and_properties(properties),
+            "tripwire" => Self::tripwire_from_identifier_and_properties(properties),
+            "emerald_block" => Self::emerald_block_from_identifier_and_properties(properties),
+            "spruce_stairs" => Self::spruce_stairs_from_identifier_and_properties(properties),
+            "birch_stairs" => Self::birch_stairs_from_identifier_and_properties(properties),
+            "jungle_stairs" => Self::jungle_stairs_from_identifier_and_properties(properties),
+            "command_block" => Self::command_block_from_identifier_and_properties(properties),
+            "beacon" => Self::beacon_from_identifier_and_properties(properties),
+            "cobblestone_wall" => Self::cobblestone_wall_from_identifier_and_properties(properties),
+            "mossy_cobblestone_wall" => {
+                Self::mossy_cobblestone_wall_from_identifier_and_properties(properties)
+            }
+            "flower_pot" => Self::flower_pot_from_identifier_and_properties(properties),
+            "potted_oak_sapling" => {
+                Self::potted_oak_sapling_from_identifier_and_properties(properties)
+            }
+            "potted_spruce_sapling" => {
+                Self::potted_spruce_sapling_from_identifier_and_properties(properties)
+            }
+            "potted_birch_sapling" => {
+                Self::potted_birch_sapling_from_identifier_and_properties(properties)
+            }
+            "potted_jungle_sapling" => {
+                Self::potted_jungle_sapling_from_identifier_and_properties(properties)
+            }
+            "potted_acacia_sapling" => {
+                Self::potted_acacia_sapling_from_identifier_and_properties(properties)
+            }
+            "potted_dark_oak_sapling" => {
+                Self::potted_dark_oak_sapling_from_identifier_and_properties(properties)
+            }
+            "potted_fern" => Self::potted_fern_from_identifier_and_properties(properties),
+            "potted_dandelion" => Self::potted_dandelion_from_identifier_and_properties(properties),
+            "potted_poppy" => Self::potted_poppy_from_identifier_and_properties(properties),
+            "potted_blue_orchid" => {
+                Self::potted_blue_orchid_from_identifier_and_properties(properties)
+            }
+            "potted_allium" => Self::potted_allium_from_identifier_and_properties(properties),
+            "potted_azure_bluet" => {
+                Self::potted_azure_bluet_from_identifier_and_properties(properties)
+            }
+            "potted_red_tulip" => Self::potted_red_tulip_from_identifier_and_properties(properties),
+            "potted_orange_tulip" => {
+                Self::potted_orange_tulip_from_identifier_and_properties(properties)
+            }
+            "potted_white_tulip" => {
+                Self::potted_white_tulip_from_identifier_and_properties(properties)
+            }
+            "potted_pink_tulip" => {
+                Self::potted_pink_tulip_from_identifier_and_properties(properties)
+            }
+            "potted_oxeye_daisy" => {
+                Self::potted_oxeye_daisy_from_identifier_and_properties(properties)
+            }
+            "potted_red_mushroom" => {
+                Self::potted_red_mushroom_from_identifier_and_properties(properties)
+            }
+            "potted_brown_mushroom" => {
+                Self::potted_brown_mushroom_from_identifier_and_properties(properties)
+            }
+            "potted_dead_bush" => Self::potted_dead_bush_from_identifier_and_properties(properties),
+            "potted_cactus" => Self::potted_cactus_from_identifier_and_properties(properties),
+            "carrots" => Self::carrots_from_identifier_and_properties(properties),
+            "potatoes" => Self::potatoes_from_identifier_and_properties(properties),
+            "oak_button" => Self::oak_button_from_identifier_and_properties(properties),
+            "spruce_button" => Self::spruce_button_from_identifier_and_properties(properties),
+            "birch_button" => Self::birch_button_from_identifier_and_properties(properties),
+            "jungle_button" => Self::jungle_button_from_identifier_and_properties(properties),
+            "acacia_button" => Self::acacia_button_from_identifier_and_properties(properties),
+            "dark_oak_button" => Self::dark_oak_button_from_identifier_and_properties(properties),
+            "skeleton_wall_skull" => {
+                Self::skeleton_wall_skull_from_identifier_and_properties(properties)
+            }
+            "skeleton_skull" => Self::skeleton_skull_from_identifier_and_properties(properties),
+            "wither_skeleton_wall_skull" => {
+                Self::wither_skeleton_wall_skull_from_identifier_and_properties(properties)
+            }
+            "wither_skeleton_skull" => {
+                Self::wither_skeleton_skull_from_identifier_and_properties(properties)
+            }
+            "zombie_wall_head" => Self::zombie_wall_head_from_identifier_and_properties(properties),
+            "zombie_head" => Self::zombie_head_from_identifier_and_properties(properties),
+            "player_wall_head" => Self::player_wall_head_from_identifier_and_properties(properties),
+            "player_head" => Self::player_head_from_identifier_and_properties(properties),
+            "creeper_wall_head" => {
+                Self::creeper_wall_head_from_identifier_and_properties(properties)
+            }
+            "creeper_head" => Self::creeper_head_from_identifier_and_properties(properties),
+            "dragon_wall_head" => Self::dragon_wall_head_from_identifier_and_properties(properties),
+            "dragon_head" => Self::dragon_head_from_identifier_and_properties(properties),
+            "anvil" => Self::anvil_from_identifier_and_properties(properties),
+            "chipped_anvil" => Self::chipped_anvil_from_identifier_and_properties(properties),
+            "damaged_anvil" => Self::damaged_anvil_from_identifier_and_properties(properties),
+            "trapped_chest" => Self::trapped_chest_from_identifier_and_properties(properties),
+            "light_weighted_pressure_plate" => {
+                Self::light_weighted_pressure_plate_from_identifier_and_properties(properties)
+            }
+            "heavy_weighted_pressure_plate" => {
+                Self::heavy_weighted_pressure_plate_from_identifier_and_properties(properties)
+            }
+            "comparator" => Self::comparator_from_identifier_and_properties(properties),
+            "daylight_detector" => {
+                Self::daylight_detector_from_identifier_and_properties(properties)
+            }
+            "redstone_block" => Self::redstone_block_from_identifier_and_properties(properties),
+            "nether_quartz_ore" => {
+                Self::nether_quartz_ore_from_identifier_and_properties(properties)
+            }
+            "hopper" => Self::hopper_from_identifier_and_properties(properties),
+            "quartz_block" => Self::quartz_block_from_identifier_and_properties(properties),
+            "chiseled_quartz_block" => {
+                Self::chiseled_quartz_block_from_identifier_and_properties(properties)
+            }
+            "quartz_pillar" => Self::quartz_pillar_from_identifier_and_properties(properties),
+            "quartz_stairs" => Self::quartz_stairs_from_identifier_and_properties(properties),
+            "activator_rail" => Self::activator_rail_from_identifier_and_properties(properties),
+            "dropper" => Self::dropper_from_identifier_and_properties(properties),
+            "white_terracotta" => Self::white_terracotta_from_identifier_and_properties(properties),
+            "orange_terracotta" => {
+                Self::orange_terracotta_from_identifier_and_properties(properties)
+            }
+            "magenta_terracotta" => {
+                Self::magenta_terracotta_from_identifier_and_properties(properties)
+            }
+            "light_blue_terracotta" => {
+                Self::light_blue_terracotta_from_identifier_and_properties(properties)
+            }
+            "yellow_terracotta" => {
+                Self::yellow_terracotta_from_identifier_and_properties(properties)
+            }
+            "lime_terracotta" => Self::lime_terracotta_from_identifier_and_properties(properties),
+            "pink_terracotta" => Self::pink_terracotta_from_identifier_and_properties(properties),
+            "gray_terracotta" => Self::gray_terracotta_from_identifier_and_properties(properties),
+            "light_gray_terracotta" => {
+                Self::light_gray_terracotta_from_identifier_and_properties(properties)
+            }
+            "cyan_terracotta" => Self::cyan_terracotta_from_identifier_and_properties(properties),
+            "purple_terracotta" => {
+                Self::purple_terracotta_from_identifier_and_properties(properties)
+            }
+            "blue_terracotta" => Self::blue_terracotta_from_identifier_and_properties(properties),
+            "brown_terracotta" => Self::brown_terracotta_from_identifier_and_properties(properties),
+            "green_terracotta" => Self::green_terracotta_from_identifier_and_properties(properties),
+            "red_terracotta" => Self::red_terracotta_from_identifier_and_properties(properties),
+            "black_terracotta" => Self::black_terracotta_from_identifier_and_properties(properties),
+            "white_stained_glass_pane" => {
+                Self::white_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "orange_stained_glass_pane" => {
+                Self::orange_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "magenta_stained_glass_pane" => {
+                Self::magenta_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "light_blue_stained_glass_pane" => {
+                Self::light_blue_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "yellow_stained_glass_pane" => {
+                Self::yellow_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "lime_stained_glass_pane" => {
+                Self::lime_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "pink_stained_glass_pane" => {
+                Self::pink_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "gray_stained_glass_pane" => {
+                Self::gray_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "light_gray_stained_glass_pane" => {
+                Self::light_gray_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "cyan_stained_glass_pane" => {
+                Self::cyan_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "purple_stained_glass_pane" => {
+                Self::purple_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "blue_stained_glass_pane" => {
+                Self::blue_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "brown_stained_glass_pane" => {
+                Self::brown_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "green_stained_glass_pane" => {
+                Self::green_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "red_stained_glass_pane" => {
+                Self::red_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "black_stained_glass_pane" => {
+                Self::black_stained_glass_pane_from_identifier_and_properties(properties)
+            }
+            "acacia_stairs" => Self::acacia_stairs_from_identifier_and_properties(properties),
+            "dark_oak_stairs" => Self::dark_oak_stairs_from_identifier_and_properties(properties),
+            "slime_block" => Self::slime_block_from_identifier_and_properties(properties),
+            "barrier" => Self::barrier_from_identifier_and_properties(properties),
+            "iron_trapdoor" => Self::iron_trapdoor_from_identifier_and_properties(properties),
+            "prismarine" => Self::prismarine_from_identifier_and_properties(properties),
+            "prismarine_bricks" => {
+                Self::prismarine_bricks_from_identifier_and_properties(properties)
+            }
+            "dark_prismarine" => Self::dark_prismarine_from_identifier_and_properties(properties),
+            "prismarine_stairs" => {
+                Self::prismarine_stairs_from_identifier_and_properties(properties)
+            }
+            "prismarine_brick_stairs" => {
+                Self::prismarine_brick_stairs_from_identifier_and_properties(properties)
+            }
+            "dark_prismarine_stairs" => {
+                Self::dark_prismarine_stairs_from_identifier_and_properties(properties)
+            }
+            "prismarine_slab" => Self::prismarine_slab_from_identifier_and_properties(properties),
+            "prismarine_brick_slab" => {
+                Self::prismarine_brick_slab_from_identifier_and_properties(properties)
+            }
+            "dark_prismarine_slab" => {
+                Self::dark_prismarine_slab_from_identifier_and_properties(properties)
+            }
+            "sea_lantern" => Self::sea_lantern_from_identifier_and_properties(properties),
+            "hay_block" => Self::hay_block_from_identifier_and_properties(properties),
+            "white_carpet" => Self::white_carpet_from_identifier_and_properties(properties),
+            "orange_carpet" => Self::orange_carpet_from_identifier_and_properties(properties),
+            "magenta_carpet" => Self::magenta_carpet_from_identifier_and_properties(properties),
+            "light_blue_carpet" => {
+                Self::light_blue_carpet_from_identifier_and_properties(properties)
+            }
+            "yellow_carpet" => Self::yellow_carpet_from_identifier_and_properties(properties),
+            "lime_carpet" => Self::lime_carpet_from_identifier_and_properties(properties),
+            "pink_carpet" => Self::pink_carpet_from_identifier_and_properties(properties),
+            "gray_carpet" => Self::gray_carpet_from_identifier_and_properties(properties),
+            "light_gray_carpet" => {
+                Self::light_gray_carpet_from_identifier_and_properties(properties)
+            }
+            "cyan_carpet" => Self::cyan_carpet_from_identifier_and_properties(properties),
+            "purple_carpet" => Self::purple_carpet_from_identifier_and_properties(properties),
+            "blue_carpet" => Self::blue_carpet_from_identifier_and_properties(properties),
+            "brown_carpet" => Self::brown_carpet_from_identifier_and_properties(properties),
+            "green_carpet" => Self::green_carpet_from_identifier_and_properties(properties),
+            "red_carpet" => Self::red_carpet_from_identifier_and_properties(properties),
+            "black_carpet" => Self::black_carpet_from_identifier_and_properties(properties),
+            "terracotta" => Self::terracotta_from_identifier_and_properties(properties),
+            "coal_block" => Self::coal_block_from_identifier_and_properties(properties),
+            "packed_ice" => Self::packed_ice_from_identifier_and_properties(properties),
+            "sunflower" => Self::sunflower_from_identifier_and_properties(properties),
+            "lilac" => Self::lilac_from_identifier_and_properties(properties),
+            "rose_bush" => Self::rose_bush_from_identifier_and_properties(properties),
+            "peony" => Self::peony_from_identifier_and_properties(properties),
+            "tall_grass" => Self::tall_grass_from_identifier_and_properties(properties),
+            "large_fern" => Self::large_fern_from_identifier_and_properties(properties),
+            "white_banner" => Self::white_banner_from_identifier_and_properties(properties),
+            "orange_banner" => Self::orange_banner_from_identifier_and_properties(properties),
+            "magenta_banner" => Self::magenta_banner_from_identifier_and_properties(properties),
+            "light_blue_banner" => {
+                Self::light_blue_banner_from_identifier_and_properties(properties)
+            }
+            "yellow_banner" => Self::yellow_banner_from_identifier_and_properties(properties),
+            "lime_banner" => Self::lime_banner_from_identifier_and_properties(properties),
+            "pink_banner" => Self::pink_banner_from_identifier_and_properties(properties),
+            "gray_banner" => Self::gray_banner_from_identifier_and_properties(properties),
+            "light_gray_banner" => {
+                Self::light_gray_banner_from_identifier_and_properties(properties)
+            }
+            "cyan_banner" => Self::cyan_banner_from_identifier_and_properties(properties),
+            "purple_banner" => Self::purple_banner_from_identifier_and_properties(properties),
+            "blue_banner" => Self::blue_banner_from_identifier_and_properties(properties),
+            "brown_banner" => Self::brown_banner_from_identifier_and_properties(properties),
+            "green_banner" => Self::green_banner_from_identifier_and_properties(properties),
+            "red_banner" => Self::red_banner_from_identifier_and_properties(properties),
+            "black_banner" => Self::black_banner_from_identifier_and_properties(properties),
+            "white_wall_banner" => {
+                Self::white_wall_banner_from_identifier_and_properties(properties)
+            }
+            "orange_wall_banner" => {
+                Self::orange_wall_banner_from_identifier_and_properties(properties)
+            }
+            "magenta_wall_banner" => {
+                Self::magenta_wall_banner_from_identifier_and_properties(properties)
+            }
+            "light_blue_wall_banner" => {
+                Self::light_blue_wall_banner_from_identifier_and_properties(properties)
+            }
+            "yellow_wall_banner" => {
+                Self::yellow_wall_banner_from_identifier_and_properties(properties)
+            }
+            "lime_wall_banner" => Self::lime_wall_banner_from_identifier_and_properties(properties),
+            "pink_wall_banner" => Self::pink_wall_banner_from_identifier_and_properties(properties),
+            "gray_wall_banner" => Self::gray_wall_banner_from_identifier_and_properties(properties),
+            "light_gray_wall_banner" => {
+                Self::light_gray_wall_banner_from_identifier_and_properties(properties)
+            }
+            "cyan_wall_banner" => Self::cyan_wall_banner_from_identifier_and_properties(properties),
+            "purple_wall_banner" => {
+                Self::purple_wall_banner_from_identifier_and_properties(properties)
+            }
+            "blue_wall_banner" => Self::blue_wall_banner_from_identifier_and_properties(properties),
+            "brown_wall_banner" => {
+                Self::brown_wall_banner_from_identifier_and_properties(properties)
+            }
+            "green_wall_banner" => {
+                Self::green_wall_banner_from_identifier_and_properties(properties)
+            }
+            "red_wall_banner" => Self::red_wall_banner_from_identifier_and_properties(properties),
+            "black_wall_banner" => {
+                Self::black_wall_banner_from_identifier_and_properties(properties)
+            }
+            "red_sandstone" => Self::red_sandstone_from_identifier_and_properties(properties),
+            "chiseled_red_sandstone" => {
+                Self::chiseled_red_sandstone_from_identifier_and_properties(properties)
+            }
+            "cut_red_sandstone" => {
+                Self::cut_red_sandstone_from_identifier_and_properties(properties)
+            }
+            "red_sandstone_stairs" => {
+                Self::red_sandstone_stairs_from_identifier_and_properties(properties)
+            }
+            "oak_slab" => Self::oak_slab_from_identifier_and_properties(properties),
+            "spruce_slab" => Self::spruce_slab_from_identifier_and_properties(properties),
+            "birch_slab" => Self::birch_slab_from_identifier_and_properties(properties),
+            "jungle_slab" => Self::jungle_slab_from_identifier_and_properties(properties),
+            "acacia_slab" => Self::acacia_slab_from_identifier_and_properties(properties),
+            "dark_oak_slab" => Self::dark_oak_slab_from_identifier_and_properties(properties),
+            "stone_slab" => Self::stone_slab_from_identifier_and_properties(properties),
+            "sandstone_slab" => Self::sandstone_slab_from_identifier_and_properties(properties),
+            "petrified_oak_slab" => {
+                Self::petrified_oak_slab_from_identifier_and_properties(properties)
+            }
+            "cobblestone_slab" => Self::cobblestone_slab_from_identifier_and_properties(properties),
+            "brick_slab" => Self::brick_slab_from_identifier_and_properties(properties),
+            "stone_brick_slab" => Self::stone_brick_slab_from_identifier_and_properties(properties),
+            "nether_brick_slab" => {
+                Self::nether_brick_slab_from_identifier_and_properties(properties)
+            }
+            "quartz_slab" => Self::quartz_slab_from_identifier_and_properties(properties),
+            "red_sandstone_slab" => {
+                Self::red_sandstone_slab_from_identifier_and_properties(properties)
+            }
+            "purpur_slab" => Self::purpur_slab_from_identifier_and_properties(properties),
+            "smooth_stone" => Self::smooth_stone_from_identifier_and_properties(properties),
+            "smooth_sandstone" => Self::smooth_sandstone_from_identifier_and_properties(properties),
+            "smooth_quartz" => Self::smooth_quartz_from_identifier_and_properties(properties),
+            "smooth_red_sandstone" => {
+                Self::smooth_red_sandstone_from_identifier_and_properties(properties)
+            }
+            "spruce_fence_gate" => {
+                Self::spruce_fence_gate_from_identifier_and_properties(properties)
+            }
+            "birch_fence_gate" => Self::birch_fence_gate_from_identifier_and_properties(properties),
+            "jungle_fence_gate" => {
+                Self::jungle_fence_gate_from_identifier_and_properties(properties)
+            }
+            "acacia_fence_gate" => {
+                Self::acacia_fence_gate_from_identifier_and_properties(properties)
+            }
+            "dark_oak_fence_gate" => {
+                Self::dark_oak_fence_gate_from_identifier_and_properties(properties)
+            }
+            "spruce_fence" => Self::spruce_fence_from_identifier_and_properties(properties),
+            "birch_fence" => Self::birch_fence_from_identifier_and_properties(properties),
+            "jungle_fence" => Self::jungle_fence_from_identifier_and_properties(properties),
+            "acacia_fence" => Self::acacia_fence_from_identifier_and_properties(properties),
+            "dark_oak_fence" => Self::dark_oak_fence_from_identifier_and_properties(properties),
+            "spruce_door" => Self::spruce_door_from_identifier_and_properties(properties),
+            "birch_door" => Self::birch_door_from_identifier_and_properties(properties),
+            "jungle_door" => Self::jungle_door_from_identifier_and_properties(properties),
+            "acacia_door" => Self::acacia_door_from_identifier_and_properties(properties),
+            "dark_oak_door" => Self::dark_oak_door_from_identifier_and_properties(properties),
+            "end_rod" => Self::end_rod_from_identifier_and_properties(properties),
+            "chorus_plant" => Self::chorus_plant_from_identifier_and_properties(properties),
+            "chorus_flower" => Self::chorus_flower_from_identifier_and_properties(properties),
+            "purpur_block" => Self::purpur_block_from_identifier_and_properties(properties),
+            "purpur_pillar" => Self::purpur_pillar_from_identifier_and_properties(properties),
+            "purpur_stairs" => Self::purpur_stairs_from_identifier_and_properties(properties),
+            "end_stone_bricks" => Self::end_stone_bricks_from_identifier_and_properties(properties),
+            "beetroots" => Self::beetroots_from_identifier_and_properties(properties),
+            "grass_path" => Self::grass_path_from_identifier_and_properties(properties),
+            "end_gateway" => Self::end_gateway_from_identifier_and_properties(properties),
+            "repeating_command_block" => {
+                Self::repeating_command_block_from_identifier_and_properties(properties)
+            }
+            "chain_command_block" => {
+                Self::chain_command_block_from_identifier_and_properties(properties)
+            }
+            "frosted_ice" => Self::frosted_ice_from_identifier_and_properties(properties),
+            "magma_block" => Self::magma_block_from_identifier_and_properties(properties),
+            "nether_wart_block" => {
+                Self::nether_wart_block_from_identifier_and_properties(properties)
+            }
+            "red_nether_bricks" => {
+                Self::red_nether_bricks_from_identifier_and_properties(properties)
+            }
+            "bone_block" => Self::bone_block_from_identifier_and_properties(properties),
+            "structure_void" => Self::structure_void_from_identifier_and_properties(properties),
+            "observer" => Self::observer_from_identifier_and_properties(properties),
+            "shulker_box" => Self::shulker_box_from_identifier_and_properties(properties),
+            "white_shulker_box" => {
+                Self::white_shulker_box_from_identifier_and_properties(properties)
+            }
+            "orange_shulker_box" => {
+                Self::orange_shulker_box_from_identifier_and_properties(properties)
+            }
+            "magenta_shulker_box" => {
+                Self::magenta_shulker_box_from_identifier_and_properties(properties)
+            }
+            "light_blue_shulker_box" => {
+                Self::light_blue_shulker_box_from_identifier_and_properties(properties)
+            }
+            "yellow_shulker_box" => {
+                Self::yellow_shulker_box_from_identifier_and_properties(properties)
+            }
+            "lime_shulker_box" => Self::lime_shulker_box_from_identifier_and_properties(properties),
+            "pink_shulker_box" => Self::pink_shulker_box_from_identifier_and_properties(properties),
+            "gray_shulker_box" => Self::gray_shulker_box_from_identifier_and_properties(properties),
+            "light_gray_shulker_box" => {
+                Self::light_gray_shulker_box_from_identifier_and_properties(properties)
+            }
+            "cyan_shulker_box" => Self::cyan_shulker_box_from_identifier_and_properties(properties),
+            "purple_shulker_box" => {
+                Self::purple_shulker_box_from_identifier_and_properties(properties)
+            }
+            "blue_shulker_box" => Self::blue_shulker_box_from_identifier_and_properties(properties),
+            "brown_shulker_box" => {
+                Self::brown_shulker_box_from_identifier_and_properties(properties)
+            }
+            "green_shulker_box" => {
+                Self::green_shulker_box_from_identifier_and_properties(properties)
+            }
+            "red_shulker_box" => Self::red_shulker_box_from_identifier_and_properties(properties),
+            "black_shulker_box" => {
+                Self::black_shulker_box_from_identifier_and_properties(properties)
+            }
+            "white_glazed_terracotta" => {
+                Self::white_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "orange_glazed_terracotta" => {
+                Self::orange_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "magenta_glazed_terracotta" => {
+                Self::magenta_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "light_blue_glazed_terracotta" => {
+                Self::light_blue_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "yellow_glazed_terracotta" => {
+                Self::yellow_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "lime_glazed_terracotta" => {
+                Self::lime_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "pink_glazed_terracotta" => {
+                Self::pink_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "gray_glazed_terracotta" => {
+                Self::gray_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "light_gray_glazed_terracotta" => {
+                Self::light_gray_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "cyan_glazed_terracotta" => {
+                Self::cyan_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "purple_glazed_terracotta" => {
+                Self::purple_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "blue_glazed_terracotta" => {
+                Self::blue_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "brown_glazed_terracotta" => {
+                Self::brown_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "green_glazed_terracotta" => {
+                Self::green_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "red_glazed_terracotta" => {
+                Self::red_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "black_glazed_terracotta" => {
+                Self::black_glazed_terracotta_from_identifier_and_properties(properties)
+            }
+            "white_concrete" => Self::white_concrete_from_identifier_and_properties(properties),
+            "orange_concrete" => Self::orange_concrete_from_identifier_and_properties(properties),
+            "magenta_concrete" => Self::magenta_concrete_from_identifier_and_properties(properties),
+            "light_blue_concrete" => {
+                Self::light_blue_concrete_from_identifier_and_properties(properties)
+            }
+            "yellow_concrete" => Self::yellow_concrete_from_identifier_and_properties(properties),
+            "lime_concrete" => Self::lime_concrete_from_identifier_and_properties(properties),
+            "pink_concrete" => Self::pink_concrete_from_identifier_and_properties(properties),
+            "gray_concrete" => Self::gray_concrete_from_identifier_and_properties(properties),
+            "light_gray_concrete" => {
+                Self::light_gray_concrete_from_identifier_and_properties(properties)
+            }
+            "cyan_concrete" => Self::cyan_concrete_from_identifier_and_properties(properties),
+            "purple_concrete" => Self::purple_concrete_from_identifier_and_properties(properties),
+            "blue_concrete" => Self::blue_concrete_from_identifier_and_properties(properties),
+            "brown_concrete" => Self::brown_concrete_from_identifier_and_properties(properties),
+            "green_concrete" => Self::green_concrete_from_identifier_and_properties(properties),
+            "red_concrete" => Self::red_concrete_from_identifier_and_properties(properties),
+            "black_concrete" => Self::black_concrete_from_identifier_and_properties(properties),
+            "white_concrete_powder" => {
+                Self::white_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "orange_concrete_powder" => {
+                Self::orange_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "magenta_concrete_powder" => {
+                Self::magenta_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "light_blue_concrete_powder" => {
+                Self::light_blue_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "yellow_concrete_powder" => {
+                Self::yellow_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "lime_concrete_powder" => {
+                Self::lime_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "pink_concrete_powder" => {
+                Self::pink_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "gray_concrete_powder" => {
+                Self::gray_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "light_gray_concrete_powder" => {
+                Self::light_gray_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "cyan_concrete_powder" => {
+                Self::cyan_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "purple_concrete_powder" => {
+                Self::purple_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "blue_concrete_powder" => {
+                Self::blue_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "brown_concrete_powder" => {
+                Self::brown_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "green_concrete_powder" => {
+                Self::green_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "red_concrete_powder" => {
+                Self::red_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "black_concrete_powder" => {
+                Self::black_concrete_powder_from_identifier_and_properties(properties)
+            }
+            "kelp" => Self::kelp_from_identifier_and_properties(properties),
+            "kelp_plant" => Self::kelp_plant_from_identifier_and_properties(properties),
+            "dried_kelp_block" => Self::dried_kelp_block_from_identifier_and_properties(properties),
+            "turtle_egg" => Self::turtle_egg_from_identifier_and_properties(properties),
+            "dead_tube_coral_block" => {
+                Self::dead_tube_coral_block_from_identifier_and_properties(properties)
+            }
+            "dead_brain_coral_block" => {
+                Self::dead_brain_coral_block_from_identifier_and_properties(properties)
+            }
+            "dead_bubble_coral_block" => {
+                Self::dead_bubble_coral_block_from_identifier_and_properties(properties)
+            }
+            "dead_fire_coral_block" => {
+                Self::dead_fire_coral_block_from_identifier_and_properties(properties)
+            }
+            "dead_horn_coral_block" => {
+                Self::dead_horn_coral_block_from_identifier_and_properties(properties)
+            }
+            "tube_coral_block" => Self::tube_coral_block_from_identifier_and_properties(properties),
+            "brain_coral_block" => {
+                Self::brain_coral_block_from_identifier_and_properties(properties)
+            }
+            "bubble_coral_block" => {
+                Self::bubble_coral_block_from_identifier_and_properties(properties)
+            }
+            "fire_coral_block" => Self::fire_coral_block_from_identifier_and_properties(properties),
+            "horn_coral_block" => Self::horn_coral_block_from_identifier_and_properties(properties),
+            "dead_tube_coral" => Self::dead_tube_coral_from_identifier_and_properties(properties),
+            "dead_brain_coral" => Self::dead_brain_coral_from_identifier_and_properties(properties),
+            "dead_bubble_coral" => {
+                Self::dead_bubble_coral_from_identifier_and_properties(properties)
+            }
+            "dead_fire_coral" => Self::dead_fire_coral_from_identifier_and_properties(properties),
+            "dead_horn_coral" => Self::dead_horn_coral_from_identifier_and_properties(properties),
+            "tube_coral" => Self::tube_coral_from_identifier_and_properties(properties),
+            "brain_coral" => Self::brain_coral_from_identifier_and_properties(properties),
+            "bubble_coral" => Self::bubble_coral_from_identifier_and_properties(properties),
+            "fire_coral" => Self::fire_coral_from_identifier_and_properties(properties),
+            "horn_coral" => Self::horn_coral_from_identifier_and_properties(properties),
+            "dead_tube_coral_wall_fan" => {
+                Self::dead_tube_coral_wall_fan_from_identifier_and_properties(properties)
+            }
+            "dead_brain_coral_wall_fan" => {
+                Self::dead_brain_coral_wall_fan_from_identifier_and_properties(properties)
+            }
+            "dead_bubble_coral_wall_fan" => {
+                Self::dead_bubble_coral_wall_fan_from_identifier_and_properties(properties)
+            }
+            "dead_fire_coral_wall_fan" => {
+                Self::dead_fire_coral_wall_fan_from_identifier_and_properties(properties)
+            }
+            "dead_horn_coral_wall_fan" => {
+                Self::dead_horn_coral_wall_fan_from_identifier_and_properties(properties)
+            }
+            "tube_coral_wall_fan" => {
+                Self::tube_coral_wall_fan_from_identifier_and_properties(properties)
+            }
+            "brain_coral_wall_fan" => {
+                Self::brain_coral_wall_fan_from_identifier_and_properties(properties)
+            }
+            "bubble_coral_wall_fan" => {
+                Self::bubble_coral_wall_fan_from_identifier_and_properties(properties)
+            }
+            "fire_coral_wall_fan" => {
+                Self::fire_coral_wall_fan_from_identifier_and_properties(properties)
+            }
+            "horn_coral_wall_fan" => {
+                Self::horn_coral_wall_fan_from_identifier_and_properties(properties)
+            }
+            "dead_tube_coral_fan" => {
+                Self::dead_tube_coral_fan_from_identifier_and_properties(properties)
+            }
+            "dead_brain_coral_fan" => {
+                Self::dead_brain_coral_fan_from_identifier_and_properties(properties)
+            }
+            "dead_bubble_coral_fan" => {
+                Self::dead_bubble_coral_fan_from_identifier_and_properties(properties)
+            }
+            "dead_fire_coral_fan" => {
+                Self::dead_fire_coral_fan_from_identifier_and_properties(properties)
+            }
+            "dead_horn_coral_fan" => {
+                Self::dead_horn_coral_fan_from_identifier_and_properties(properties)
+            }
+            "tube_coral_fan" => Self::tube_coral_fan_from_identifier_and_properties(properties),
+            "brain_coral_fan" => Self::brain_coral_fan_from_identifier_and_properties(properties),
+            "bubble_coral_fan" => Self::bubble_coral_fan_from_identifier_and_properties(properties),
+            "fire_coral_fan" => Self::fire_coral_fan_from_identifier_and_properties(properties),
+            "horn_coral_fan" => Self::horn_coral_fan_from_identifier_and_properties(properties),
+            "sea_pickle" => Self::sea_pickle_from_identifier_and_properties(properties),
+            "blue_ice" => Self::blue_ice_from_identifier_and_properties(properties),
+            "conduit" => Self::conduit_from_identifier_and_properties(properties),
+            "void_air" => Self::void_air_from_identifier_and_properties(properties),
+            "cave_air" => Self::cave_air_from_identifier_and_properties(properties),
+            "bubble_column" => Self::bubble_column_from_identifier_and_properties(properties),
+            "structure_block" => Self::structure_block_from_identifier_and_properties(properties),
+            _ => None,
+        }
+    }
+    fn air_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::air();
+        Some(block)
+    }
+    fn stone_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::stone();
+        Some(block)
+    }
+    fn granite_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::granite();
+        Some(block)
+    }
+    fn polished_granite_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::polished_granite();
+        Some(block)
+    }
+    fn diorite_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::diorite();
+        Some(block)
+    }
+    fn polished_diorite_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::polished_diorite();
+        Some(block)
+    }
+    fn andesite_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::andesite();
+        Some(block)
+    }
+    fn polished_andesite_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::polished_andesite();
+        Some(block)
+    }
+    fn grass_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::grass_block();
+        let snowy = map.get("snowy")?;
+        let snowy = bool::from_str(snowy).ok()?;
+        block.set_snowy(snowy);
+        Some(block)
+    }
+    fn dirt_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::dirt();
+        Some(block)
+    }
+    fn coarse_dirt_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::coarse_dirt();
+        Some(block)
+    }
+    fn podzol_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::podzol();
+        let snowy = map.get("snowy")?;
+        let snowy = bool::from_str(snowy).ok()?;
+        block.set_snowy(snowy);
+        Some(block)
+    }
+    fn cobblestone_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::cobblestone();
+        Some(block)
+    }
+    fn oak_planks_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::oak_planks();
+        Some(block)
+    }
+    fn spruce_planks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::spruce_planks();
+        Some(block)
+    }
+    fn birch_planks_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::birch_planks();
+        Some(block)
+    }
+    fn jungle_planks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::jungle_planks();
+        Some(block)
+    }
+    fn acacia_planks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::acacia_planks();
+        Some(block)
+    }
+    fn dark_oak_planks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_oak_planks();
+        Some(block)
+    }
+    fn oak_sapling_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::oak_sapling();
+        let stage = map.get("stage")?;
+        let stage = {
+            let x = i32::from_str(stage).ok()?;
+            if !(0i32..=1i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_stage(stage);
+        Some(block)
+    }
+    fn spruce_sapling_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::spruce_sapling();
+        let stage = map.get("stage")?;
+        let stage = {
+            let x = i32::from_str(stage).ok()?;
+            if !(0i32..=1i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_stage(stage);
+        Some(block)
+    }
+    fn birch_sapling_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::birch_sapling();
+        let stage = map.get("stage")?;
+        let stage = {
+            let x = i32::from_str(stage).ok()?;
+            if !(0i32..=1i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_stage(stage);
+        Some(block)
+    }
+    fn jungle_sapling_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::jungle_sapling();
+        let stage = map.get("stage")?;
+        let stage = {
+            let x = i32::from_str(stage).ok()?;
+            if !(0i32..=1i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_stage(stage);
+        Some(block)
+    }
+    fn acacia_sapling_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::acacia_sapling();
+        let stage = map.get("stage")?;
+        let stage = {
+            let x = i32::from_str(stage).ok()?;
+            if !(0i32..=1i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_stage(stage);
+        Some(block)
+    }
+    fn dark_oak_sapling_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_oak_sapling();
+        let stage = map.get("stage")?;
+        let stage = {
+            let x = i32::from_str(stage).ok()?;
+            if !(0i32..=1i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_stage(stage);
+        Some(block)
+    }
+    fn bedrock_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::bedrock();
+        Some(block)
+    }
+    fn water_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::water();
+        let water_level = map.get("water_level")?;
+        let water_level = {
+            let x = i32::from_str(water_level).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_water_level(water_level);
+        Some(block)
+    }
+    fn lava_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::lava();
+        let water_level = map.get("water_level")?;
+        let water_level = {
+            let x = i32::from_str(water_level).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_water_level(water_level);
+        Some(block)
+    }
+    fn sand_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::sand();
+        Some(block)
+    }
+    fn red_sand_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::red_sand();
+        Some(block)
+    }
+    fn gravel_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::gravel();
+        Some(block)
+    }
+    fn gold_ore_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::gold_ore();
+        Some(block)
+    }
+    fn iron_ore_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::iron_ore();
+        Some(block)
+    }
+    fn coal_ore_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::coal_ore();
+        Some(block)
+    }
+    fn oak_log_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::oak_log();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn spruce_log_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::spruce_log();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn birch_log_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::birch_log();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn jungle_log_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::jungle_log();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn acacia_log_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::acacia_log();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn dark_oak_log_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::dark_oak_log();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn stripped_spruce_log_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stripped_spruce_log();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn stripped_birch_log_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stripped_birch_log();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn stripped_jungle_log_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stripped_jungle_log();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn stripped_acacia_log_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stripped_acacia_log();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn stripped_dark_oak_log_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stripped_dark_oak_log();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn stripped_oak_log_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stripped_oak_log();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn oak_wood_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::oak_wood();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn spruce_wood_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::spruce_wood();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn birch_wood_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::birch_wood();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn jungle_wood_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::jungle_wood();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn acacia_wood_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::acacia_wood();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn dark_oak_wood_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_oak_wood();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn stripped_oak_wood_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stripped_oak_wood();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn stripped_spruce_wood_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stripped_spruce_wood();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn stripped_birch_wood_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stripped_birch_wood();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn stripped_jungle_wood_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stripped_jungle_wood();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn stripped_acacia_wood_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stripped_acacia_wood();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn stripped_dark_oak_wood_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stripped_dark_oak_wood();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn oak_leaves_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::oak_leaves();
+        let distance = map.get("distance")?;
+        let distance = {
+            let x = i32::from_str(distance).ok()?;
+            if !(1i32..=7i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_distance(distance);
+        let persistent = map.get("persistent")?;
+        let persistent = bool::from_str(persistent).ok()?;
+        block.set_persistent(persistent);
+        Some(block)
+    }
+    fn spruce_leaves_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::spruce_leaves();
+        let distance = map.get("distance")?;
+        let distance = {
+            let x = i32::from_str(distance).ok()?;
+            if !(1i32..=7i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_distance(distance);
+        let persistent = map.get("persistent")?;
+        let persistent = bool::from_str(persistent).ok()?;
+        block.set_persistent(persistent);
+        Some(block)
+    }
+    fn birch_leaves_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::birch_leaves();
+        let distance = map.get("distance")?;
+        let distance = {
+            let x = i32::from_str(distance).ok()?;
+            if !(1i32..=7i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_distance(distance);
+        let persistent = map.get("persistent")?;
+        let persistent = bool::from_str(persistent).ok()?;
+        block.set_persistent(persistent);
+        Some(block)
+    }
+    fn jungle_leaves_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::jungle_leaves();
+        let distance = map.get("distance")?;
+        let distance = {
+            let x = i32::from_str(distance).ok()?;
+            if !(1i32..=7i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_distance(distance);
+        let persistent = map.get("persistent")?;
+        let persistent = bool::from_str(persistent).ok()?;
+        block.set_persistent(persistent);
+        Some(block)
+    }
+    fn acacia_leaves_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::acacia_leaves();
+        let distance = map.get("distance")?;
+        let distance = {
+            let x = i32::from_str(distance).ok()?;
+            if !(1i32..=7i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_distance(distance);
+        let persistent = map.get("persistent")?;
+        let persistent = bool::from_str(persistent).ok()?;
+        block.set_persistent(persistent);
+        Some(block)
+    }
+    fn dark_oak_leaves_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_oak_leaves();
+        let distance = map.get("distance")?;
+        let distance = {
+            let x = i32::from_str(distance).ok()?;
+            if !(1i32..=7i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_distance(distance);
+        let persistent = map.get("persistent")?;
+        let persistent = bool::from_str(persistent).ok()?;
+        block.set_persistent(persistent);
+        Some(block)
+    }
+    fn sponge_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::sponge();
+        Some(block)
+    }
+    fn wet_sponge_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::wet_sponge();
+        Some(block)
+    }
+    fn glass_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::glass();
+        Some(block)
+    }
+    fn lapis_ore_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::lapis_ore();
+        Some(block)
+    }
+    fn lapis_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::lapis_block();
+        Some(block)
+    }
+    fn dispenser_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::dispenser();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        let triggered = map.get("triggered")?;
+        let triggered = bool::from_str(triggered).ok()?;
+        block.set_triggered(triggered);
+        Some(block)
+    }
+    fn sandstone_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::sandstone();
+        Some(block)
+    }
+    fn chiseled_sandstone_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::chiseled_sandstone();
+        Some(block)
+    }
+    fn cut_sandstone_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cut_sandstone();
+        Some(block)
+    }
+    fn note_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::note_block();
+        let instrument = map.get("instrument")?;
+        let instrument = Instrument::from_str(instrument).ok()?;
+        block.set_instrument(instrument);
+        let note = map.get("note")?;
+        let note = {
+            let x = i32::from_str(note).ok()?;
+            if !(0i32..=24i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_note(note);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn white_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::white_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn orange_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::orange_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn magenta_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::magenta_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn light_blue_bed_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_blue_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn yellow_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::yellow_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn lime_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::lime_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn pink_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::pink_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn gray_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::gray_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn light_gray_bed_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_gray_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn cyan_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::cyan_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn purple_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::purple_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn blue_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::blue_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn brown_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::brown_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn green_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::green_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn red_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::red_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn black_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::black_bed();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let occupied = map.get("occupied")?;
+        let occupied = bool::from_str(occupied).ok()?;
+        block.set_occupied(occupied);
+        let part = map.get("part")?;
+        let part = Part::from_str(part).ok()?;
+        block.set_part(part);
+        Some(block)
+    }
+    fn powered_rail_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::powered_rail();
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        let powered_rail_shape = map.get("powered_rail_shape")?;
+        let powered_rail_shape = PoweredRailShape::from_str(powered_rail_shape).ok()?;
+        block.set_powered_rail_shape(powered_rail_shape);
+        Some(block)
+    }
+    fn detector_rail_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::detector_rail();
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        let powered_rail_shape = map.get("powered_rail_shape")?;
+        let powered_rail_shape = PoweredRailShape::from_str(powered_rail_shape).ok()?;
+        block.set_powered_rail_shape(powered_rail_shape);
+        Some(block)
+    }
+    fn sticky_piston_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::sticky_piston();
+        let extended = map.get("extended")?;
+        let extended = bool::from_str(extended).ok()?;
+        block.set_extended(extended);
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn cobweb_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::cobweb();
+        Some(block)
+    }
+    fn grass_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::grass();
+        Some(block)
+    }
+    fn fern_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::fern();
+        Some(block)
+    }
+    fn dead_bush_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::dead_bush();
+        Some(block)
+    }
+    fn seagrass_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::seagrass();
+        Some(block)
+    }
+    fn tall_seagrass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::tall_seagrass();
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        Some(block)
+    }
+    fn piston_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::piston();
+        let extended = map.get("extended")?;
+        let extended = bool::from_str(extended).ok()?;
+        block.set_extended(extended);
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn piston_head_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::piston_head();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        let piston_kind = map.get("piston_kind")?;
+        let piston_kind = PistonKind::from_str(piston_kind).ok()?;
+        block.set_piston_kind(piston_kind);
+        let short = map.get("short")?;
+        let short = bool::from_str(short).ok()?;
+        block.set_short(short);
+        Some(block)
+    }
+    fn white_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::white_wool();
+        Some(block)
+    }
+    fn orange_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::orange_wool();
+        Some(block)
+    }
+    fn magenta_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::magenta_wool();
+        Some(block)
+    }
+    fn light_blue_wool_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_blue_wool();
+        Some(block)
+    }
+    fn yellow_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::yellow_wool();
+        Some(block)
+    }
+    fn lime_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::lime_wool();
+        Some(block)
+    }
+    fn pink_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::pink_wool();
+        Some(block)
+    }
+    fn gray_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::gray_wool();
+        Some(block)
+    }
+    fn light_gray_wool_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_gray_wool();
+        Some(block)
+    }
+    fn cyan_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::cyan_wool();
+        Some(block)
+    }
+    fn purple_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::purple_wool();
+        Some(block)
+    }
+    fn blue_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::blue_wool();
+        Some(block)
+    }
+    fn brown_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::brown_wool();
+        Some(block)
+    }
+    fn green_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::green_wool();
+        Some(block)
+    }
+    fn red_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::red_wool();
+        Some(block)
+    }
+    fn black_wool_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::black_wool();
+        Some(block)
+    }
+    fn moving_piston_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::moving_piston();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        let piston_kind = map.get("piston_kind")?;
+        let piston_kind = PistonKind::from_str(piston_kind).ok()?;
+        block.set_piston_kind(piston_kind);
+        Some(block)
+    }
+    fn dandelion_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::dandelion();
+        Some(block)
+    }
+    fn poppy_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::poppy();
+        Some(block)
+    }
+    fn blue_orchid_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::blue_orchid();
+        Some(block)
+    }
+    fn allium_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::allium();
+        Some(block)
+    }
+    fn azure_bluet_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::azure_bluet();
+        Some(block)
+    }
+    fn red_tulip_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::red_tulip();
+        Some(block)
+    }
+    fn orange_tulip_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::orange_tulip();
+        Some(block)
+    }
+    fn white_tulip_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::white_tulip();
+        Some(block)
+    }
+    fn pink_tulip_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::pink_tulip();
+        Some(block)
+    }
+    fn oxeye_daisy_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::oxeye_daisy();
+        Some(block)
+    }
+    fn brown_mushroom_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brown_mushroom();
+        Some(block)
+    }
+    fn red_mushroom_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::red_mushroom();
+        Some(block)
+    }
+    fn gold_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::gold_block();
+        Some(block)
+    }
+    fn iron_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::iron_block();
+        Some(block)
+    }
+    fn bricks_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::bricks();
+        Some(block)
+    }
+    fn tnt_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::tnt();
+        let unstable = map.get("unstable")?;
+        let unstable = bool::from_str(unstable).ok()?;
+        block.set_unstable(unstable);
+        Some(block)
+    }
+    fn bookshelf_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::bookshelf();
+        Some(block)
+    }
+    fn mossy_cobblestone_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::mossy_cobblestone();
+        Some(block)
+    }
+    fn obsidian_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::obsidian();
+        Some(block)
+    }
+    fn torch_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::torch();
+        Some(block)
+    }
+    fn wall_torch_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::wall_torch();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn fire_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::fire();
+        let age_0_15 = map.get("age_0_15")?;
+        let age_0_15 = {
+            let x = i32::from_str(age_0_15).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_15(age_0_15);
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let up = map.get("up")?;
+        let up = bool::from_str(up).ok()?;
+        block.set_up(up);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn spawner_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::spawner();
+        Some(block)
+    }
+    fn oak_stairs_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::oak_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn chest_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::chest();
+        let chest_kind = map.get("chest_kind")?;
+        let chest_kind = ChestKind::from_str(chest_kind).ok()?;
+        block.set_chest_kind(chest_kind);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn redstone_wire_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::redstone_wire();
+        let east_wire = map.get("east_wire")?;
+        let east_wire = EastWire::from_str(east_wire).ok()?;
+        block.set_east_wire(east_wire);
+        let north_wire = map.get("north_wire")?;
+        let north_wire = NorthWire::from_str(north_wire).ok()?;
+        block.set_north_wire(north_wire);
+        let power = map.get("power")?;
+        let power = {
+            let x = i32::from_str(power).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_power(power);
+        let south_wire = map.get("south_wire")?;
+        let south_wire = SouthWire::from_str(south_wire).ok()?;
+        block.set_south_wire(south_wire);
+        let west_wire = map.get("west_wire")?;
+        let west_wire = WestWire::from_str(west_wire).ok()?;
+        block.set_west_wire(west_wire);
+        Some(block)
+    }
+    fn diamond_ore_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::diamond_ore();
+        Some(block)
+    }
+    fn diamond_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::diamond_block();
+        Some(block)
+    }
+    fn crafting_table_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::crafting_table();
+        Some(block)
+    }
+    fn wheat_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::wheat();
+        let age_0_7 = map.get("age_0_7")?;
+        let age_0_7 = {
+            let x = i32::from_str(age_0_7).ok()?;
+            if !(0i32..=7i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_7(age_0_7);
+        Some(block)
+    }
+    fn farmland_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::farmland();
+        let moisture = map.get("moisture")?;
+        let moisture = {
+            let x = i32::from_str(moisture).ok()?;
+            if !(0i32..=7i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_moisture(moisture);
+        Some(block)
+    }
+    fn furnace_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::furnace();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let lit = map.get("lit")?;
+        let lit = bool::from_str(lit).ok()?;
+        block.set_lit(lit);
+        Some(block)
+    }
+    fn sign_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::sign();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn oak_door_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::oak_door();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        let hinge = map.get("hinge")?;
+        let hinge = Hinge::from_str(hinge).ok()?;
+        block.set_hinge(hinge);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn ladder_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::ladder();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn rail_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::rail();
+        let rail_shape = map.get("rail_shape")?;
+        let rail_shape = RailShape::from_str(rail_shape).ok()?;
+        block.set_rail_shape(rail_shape);
+        Some(block)
+    }
+    fn cobblestone_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cobblestone_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn wall_sign_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::wall_sign();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn lever_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::lever();
+        let face = map.get("face")?;
+        let face = Face::from_str(face).ok()?;
+        block.set_face(face);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn stone_pressure_plate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stone_pressure_plate();
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn iron_door_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::iron_door();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        let hinge = map.get("hinge")?;
+        let hinge = Hinge::from_str(hinge).ok()?;
+        block.set_hinge(hinge);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn oak_pressure_plate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::oak_pressure_plate();
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn spruce_pressure_plate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::spruce_pressure_plate();
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn birch_pressure_plate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::birch_pressure_plate();
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn jungle_pressure_plate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::jungle_pressure_plate();
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn acacia_pressure_plate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::acacia_pressure_plate();
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn dark_oak_pressure_plate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_oak_pressure_plate();
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn redstone_ore_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::redstone_ore();
+        let lit = map.get("lit")?;
+        let lit = bool::from_str(lit).ok()?;
+        block.set_lit(lit);
+        Some(block)
+    }
+    fn redstone_torch_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::redstone_torch();
+        let lit = map.get("lit")?;
+        let lit = bool::from_str(lit).ok()?;
+        block.set_lit(lit);
+        Some(block)
+    }
+    fn redstone_wall_torch_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::redstone_wall_torch();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let lit = map.get("lit")?;
+        let lit = bool::from_str(lit).ok()?;
+        block.set_lit(lit);
+        Some(block)
+    }
+    fn stone_button_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::stone_button();
+        let face = map.get("face")?;
+        let face = Face::from_str(face).ok()?;
+        block.set_face(face);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn snow_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::snow();
+        let layers = map.get("layers")?;
+        let layers = {
+            let x = i32::from_str(layers).ok()?;
+            if !(1i32..=8i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_layers(layers);
+        Some(block)
+    }
+    fn ice_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::ice();
+        Some(block)
+    }
+    fn snow_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::snow_block();
+        Some(block)
+    }
+    fn cactus_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::cactus();
+        let age_0_15 = map.get("age_0_15")?;
+        let age_0_15 = {
+            let x = i32::from_str(age_0_15).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_15(age_0_15);
+        Some(block)
+    }
+    fn clay_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::clay();
+        Some(block)
+    }
+    fn sugar_cane_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::sugar_cane();
+        let age_0_15 = map.get("age_0_15")?;
+        let age_0_15 = {
+            let x = i32::from_str(age_0_15).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_15(age_0_15);
+        Some(block)
+    }
+    fn jukebox_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::jukebox();
+        let has_record = map.get("has_record")?;
+        let has_record = bool::from_str(has_record).ok()?;
+        block.set_has_record(has_record);
+        Some(block)
+    }
+    fn oak_fence_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::oak_fence();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn pumpkin_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::pumpkin();
+        Some(block)
+    }
+    fn netherrack_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::netherrack();
+        Some(block)
+    }
+    fn soul_sand_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::soul_sand();
+        Some(block)
+    }
+    fn glowstone_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::glowstone();
+        Some(block)
+    }
+    fn nether_portal_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::nether_portal();
+        let axis_xz = map.get("axis_xz")?;
+        let axis_xz = AxisXz::from_str(axis_xz).ok()?;
+        block.set_axis_xz(axis_xz);
+        Some(block)
+    }
+    fn carved_pumpkin_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::carved_pumpkin();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn jack_o_lantern_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::jack_o_lantern();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn cake_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::cake();
+        let bites = map.get("bites")?;
+        let bites = {
+            let x = i32::from_str(bites).ok()?;
+            if !(0i32..=6i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_bites(bites);
+        Some(block)
+    }
+    fn repeater_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::repeater();
+        let delay = map.get("delay")?;
+        let delay = {
+            let x = i32::from_str(delay).ok()?;
+            if !(1i32..=4i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_delay(delay);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let locked = map.get("locked")?;
+        let locked = bool::from_str(locked).ok()?;
+        block.set_locked(locked);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn white_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::white_stained_glass();
+        Some(block)
+    }
+    fn orange_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::orange_stained_glass();
+        Some(block)
+    }
+    fn magenta_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::magenta_stained_glass();
+        Some(block)
+    }
+    fn light_blue_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_blue_stained_glass();
+        Some(block)
+    }
+    fn yellow_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::yellow_stained_glass();
+        Some(block)
+    }
+    fn lime_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::lime_stained_glass();
+        Some(block)
+    }
+    fn pink_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::pink_stained_glass();
+        Some(block)
+    }
+    fn gray_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::gray_stained_glass();
+        Some(block)
+    }
+    fn light_gray_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_gray_stained_glass();
+        Some(block)
+    }
+    fn cyan_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cyan_stained_glass();
+        Some(block)
+    }
+    fn purple_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::purple_stained_glass();
+        Some(block)
+    }
+    fn blue_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::blue_stained_glass();
+        Some(block)
+    }
+    fn brown_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brown_stained_glass();
+        Some(block)
+    }
+    fn green_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::green_stained_glass();
+        Some(block)
+    }
+    fn red_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::red_stained_glass();
+        Some(block)
+    }
+    fn black_stained_glass_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::black_stained_glass();
+        Some(block)
+    }
+    fn oak_trapdoor_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::oak_trapdoor();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn spruce_trapdoor_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::spruce_trapdoor();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn birch_trapdoor_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::birch_trapdoor();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn jungle_trapdoor_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::jungle_trapdoor();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn acacia_trapdoor_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::acacia_trapdoor();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dark_oak_trapdoor_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_oak_trapdoor();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn infested_stone_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::infested_stone();
+        Some(block)
+    }
+    fn infested_cobblestone_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::infested_cobblestone();
+        Some(block)
+    }
+    fn infested_stone_bricks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::infested_stone_bricks();
+        Some(block)
+    }
+    fn infested_mossy_stone_bricks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::infested_mossy_stone_bricks();
+        Some(block)
+    }
+    fn infested_cracked_stone_bricks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::infested_cracked_stone_bricks();
+        Some(block)
+    }
+    fn infested_chiseled_stone_bricks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::infested_chiseled_stone_bricks();
+        Some(block)
+    }
+    fn stone_bricks_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::stone_bricks();
+        Some(block)
+    }
+    fn mossy_stone_bricks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::mossy_stone_bricks();
+        Some(block)
+    }
+    fn cracked_stone_bricks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cracked_stone_bricks();
+        Some(block)
+    }
+    fn chiseled_stone_bricks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::chiseled_stone_bricks();
+        Some(block)
+    }
+    fn brown_mushroom_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brown_mushroom_block();
+        let down = map.get("down")?;
+        let down = bool::from_str(down).ok()?;
+        block.set_down(down);
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let up = map.get("up")?;
+        let up = bool::from_str(up).ok()?;
+        block.set_up(up);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn red_mushroom_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::red_mushroom_block();
+        let down = map.get("down")?;
+        let down = bool::from_str(down).ok()?;
+        block.set_down(down);
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let up = map.get("up")?;
+        let up = bool::from_str(up).ok()?;
+        block.set_up(up);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn mushroom_stem_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::mushroom_stem();
+        let down = map.get("down")?;
+        let down = bool::from_str(down).ok()?;
+        block.set_down(down);
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let up = map.get("up")?;
+        let up = bool::from_str(up).ok()?;
+        block.set_up(up);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn iron_bars_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::iron_bars();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn glass_pane_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn melon_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::melon();
+        Some(block)
+    }
+    fn attached_pumpkin_stem_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::attached_pumpkin_stem();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn attached_melon_stem_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::attached_melon_stem();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn pumpkin_stem_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::pumpkin_stem();
+        let age_0_7 = map.get("age_0_7")?;
+        let age_0_7 = {
+            let x = i32::from_str(age_0_7).ok()?;
+            if !(0i32..=7i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_7(age_0_7);
+        Some(block)
+    }
+    fn melon_stem_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::melon_stem();
+        let age_0_7 = map.get("age_0_7")?;
+        let age_0_7 = {
+            let x = i32::from_str(age_0_7).ok()?;
+            if !(0i32..=7i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_7(age_0_7);
+        Some(block)
+    }
+    fn vine_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::vine();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let up = map.get("up")?;
+        let up = bool::from_str(up).ok()?;
+        block.set_up(up);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn oak_fence_gate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::oak_fence_gate();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let in_wall = map.get("in_wall")?;
+        let in_wall = bool::from_str(in_wall).ok()?;
+        block.set_in_wall(in_wall);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn brick_stairs_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::brick_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn stone_brick_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stone_brick_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn mycelium_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::mycelium();
+        let snowy = map.get("snowy")?;
+        let snowy = bool::from_str(snowy).ok()?;
+        block.set_snowy(snowy);
+        Some(block)
+    }
+    fn lily_pad_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::lily_pad();
+        Some(block)
+    }
+    fn nether_bricks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::nether_bricks();
+        Some(block)
+    }
+    fn nether_brick_fence_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::nether_brick_fence();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn nether_brick_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::nether_brick_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn nether_wart_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::nether_wart();
+        let age_0_3 = map.get("age_0_3")?;
+        let age_0_3 = {
+            let x = i32::from_str(age_0_3).ok()?;
+            if !(0i32..=3i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_3(age_0_3);
+        Some(block)
+    }
+    fn enchanting_table_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::enchanting_table();
+        Some(block)
+    }
+    fn brewing_stand_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brewing_stand();
+        let has_bottle_0 = map.get("has_bottle_0")?;
+        let has_bottle_0 = bool::from_str(has_bottle_0).ok()?;
+        block.set_has_bottle_0(has_bottle_0);
+        let has_bottle_1 = map.get("has_bottle_1")?;
+        let has_bottle_1 = bool::from_str(has_bottle_1).ok()?;
+        block.set_has_bottle_1(has_bottle_1);
+        let has_bottle_2 = map.get("has_bottle_2")?;
+        let has_bottle_2 = bool::from_str(has_bottle_2).ok()?;
+        block.set_has_bottle_2(has_bottle_2);
+        Some(block)
+    }
+    fn cauldron_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::cauldron();
+        let cauldron_level = map.get("cauldron_level")?;
+        let cauldron_level = {
+            let x = i32::from_str(cauldron_level).ok()?;
+            if !(0i32..=3i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_cauldron_level(cauldron_level);
+        Some(block)
+    }
+    fn end_portal_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::end_portal();
+        Some(block)
+    }
+    fn end_portal_frame_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::end_portal_frame();
+        let eye = map.get("eye")?;
+        let eye = bool::from_str(eye).ok()?;
+        block.set_eye(eye);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn end_stone_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::end_stone();
+        Some(block)
+    }
+    fn dragon_egg_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::dragon_egg();
+        Some(block)
+    }
+    fn redstone_lamp_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::redstone_lamp();
+        let lit = map.get("lit")?;
+        let lit = bool::from_str(lit).ok()?;
+        block.set_lit(lit);
+        Some(block)
+    }
+    fn cocoa_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::cocoa();
+        let age_0_2 = map.get("age_0_2")?;
+        let age_0_2 = {
+            let x = i32::from_str(age_0_2).ok()?;
+            if !(0i32..=2i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_2(age_0_2);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn sandstone_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::sandstone_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn emerald_ore_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::emerald_ore();
+        Some(block)
+    }
+    fn ender_chest_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::ender_chest();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn tripwire_hook_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::tripwire_hook();
+        let attached = map.get("attached")?;
+        let attached = bool::from_str(attached).ok()?;
+        block.set_attached(attached);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn tripwire_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::tripwire();
+        let attached = map.get("attached")?;
+        let attached = bool::from_str(attached).ok()?;
+        block.set_attached(attached);
+        let disarmed = map.get("disarmed")?;
+        let disarmed = bool::from_str(disarmed).ok()?;
+        block.set_disarmed(disarmed);
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn emerald_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::emerald_block();
+        Some(block)
+    }
+    fn spruce_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::spruce_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn birch_stairs_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::birch_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn jungle_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::jungle_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn command_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::command_block();
+        let conditional = map.get("conditional")?;
+        let conditional = bool::from_str(conditional).ok()?;
+        block.set_conditional(conditional);
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn beacon_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::beacon();
+        Some(block)
+    }
+    fn cobblestone_wall_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cobblestone_wall();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let up = map.get("up")?;
+        let up = bool::from_str(up).ok()?;
+        block.set_up(up);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn mossy_cobblestone_wall_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::mossy_cobblestone_wall();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let up = map.get("up")?;
+        let up = bool::from_str(up).ok()?;
+        block.set_up(up);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn flower_pot_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::flower_pot();
+        Some(block)
+    }
+    fn potted_oak_sapling_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_oak_sapling();
+        Some(block)
+    }
+    fn potted_spruce_sapling_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_spruce_sapling();
+        Some(block)
+    }
+    fn potted_birch_sapling_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_birch_sapling();
+        Some(block)
+    }
+    fn potted_jungle_sapling_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_jungle_sapling();
+        Some(block)
+    }
+    fn potted_acacia_sapling_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_acacia_sapling();
+        Some(block)
+    }
+    fn potted_dark_oak_sapling_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_dark_oak_sapling();
+        Some(block)
+    }
+    fn potted_fern_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::potted_fern();
+        Some(block)
+    }
+    fn potted_dandelion_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_dandelion();
+        Some(block)
+    }
+    fn potted_poppy_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::potted_poppy();
+        Some(block)
+    }
+    fn potted_blue_orchid_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_blue_orchid();
+        Some(block)
+    }
+    fn potted_allium_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_allium();
+        Some(block)
+    }
+    fn potted_azure_bluet_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_azure_bluet();
+        Some(block)
+    }
+    fn potted_red_tulip_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_red_tulip();
+        Some(block)
+    }
+    fn potted_orange_tulip_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_orange_tulip();
+        Some(block)
+    }
+    fn potted_white_tulip_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_white_tulip();
+        Some(block)
+    }
+    fn potted_pink_tulip_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_pink_tulip();
+        Some(block)
+    }
+    fn potted_oxeye_daisy_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_oxeye_daisy();
+        Some(block)
+    }
+    fn potted_red_mushroom_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_red_mushroom();
+        Some(block)
+    }
+    fn potted_brown_mushroom_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_brown_mushroom();
+        Some(block)
+    }
+    fn potted_dead_bush_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_dead_bush();
+        Some(block)
+    }
+    fn potted_cactus_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::potted_cactus();
+        Some(block)
+    }
+    fn carrots_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::carrots();
+        let age_0_7 = map.get("age_0_7")?;
+        let age_0_7 = {
+            let x = i32::from_str(age_0_7).ok()?;
+            if !(0i32..=7i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_7(age_0_7);
+        Some(block)
+    }
+    fn potatoes_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::potatoes();
+        let age_0_7 = map.get("age_0_7")?;
+        let age_0_7 = {
+            let x = i32::from_str(age_0_7).ok()?;
+            if !(0i32..=7i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_7(age_0_7);
+        Some(block)
+    }
+    fn oak_button_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::oak_button();
+        let face = map.get("face")?;
+        let face = Face::from_str(face).ok()?;
+        block.set_face(face);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn spruce_button_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::spruce_button();
+        let face = map.get("face")?;
+        let face = Face::from_str(face).ok()?;
+        block.set_face(face);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn birch_button_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::birch_button();
+        let face = map.get("face")?;
+        let face = Face::from_str(face).ok()?;
+        block.set_face(face);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn jungle_button_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::jungle_button();
+        let face = map.get("face")?;
+        let face = Face::from_str(face).ok()?;
+        block.set_face(face);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn acacia_button_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::acacia_button();
+        let face = map.get("face")?;
+        let face = Face::from_str(face).ok()?;
+        block.set_face(face);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn dark_oak_button_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_oak_button();
+        let face = map.get("face")?;
+        let face = Face::from_str(face).ok()?;
+        block.set_face(face);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn skeleton_wall_skull_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::skeleton_wall_skull();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn skeleton_skull_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::skeleton_skull();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn wither_skeleton_wall_skull_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::wither_skeleton_wall_skull();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn wither_skeleton_skull_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::wither_skeleton_skull();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn zombie_wall_head_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::zombie_wall_head();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn zombie_head_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::zombie_head();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn player_wall_head_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::player_wall_head();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn player_head_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::player_head();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn creeper_wall_head_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::creeper_wall_head();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn creeper_head_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::creeper_head();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn dragon_wall_head_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dragon_wall_head();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn dragon_head_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::dragon_head();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn anvil_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::anvil();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn chipped_anvil_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::chipped_anvil();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn damaged_anvil_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::damaged_anvil();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn trapped_chest_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::trapped_chest();
+        let chest_kind = map.get("chest_kind")?;
+        let chest_kind = ChestKind::from_str(chest_kind).ok()?;
+        block.set_chest_kind(chest_kind);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn light_weighted_pressure_plate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_weighted_pressure_plate();
+        let power = map.get("power")?;
+        let power = {
+            let x = i32::from_str(power).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_power(power);
+        Some(block)
+    }
+    fn heavy_weighted_pressure_plate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::heavy_weighted_pressure_plate();
+        let power = map.get("power")?;
+        let power = {
+            let x = i32::from_str(power).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_power(power);
+        Some(block)
+    }
+    fn comparator_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::comparator();
+        let comparator_mode = map.get("comparator_mode")?;
+        let comparator_mode = ComparatorMode::from_str(comparator_mode).ok()?;
+        block.set_comparator_mode(comparator_mode);
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn daylight_detector_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::daylight_detector();
+        let inverted = map.get("inverted")?;
+        let inverted = bool::from_str(inverted).ok()?;
+        block.set_inverted(inverted);
+        let power = map.get("power")?;
+        let power = {
+            let x = i32::from_str(power).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_power(power);
+        Some(block)
+    }
+    fn redstone_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::redstone_block();
+        Some(block)
+    }
+    fn nether_quartz_ore_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::nether_quartz_ore();
+        Some(block)
+    }
+    fn hopper_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::hopper();
+        let enabled = map.get("enabled")?;
+        let enabled = bool::from_str(enabled).ok()?;
+        block.set_enabled(enabled);
+        let facing_cardinal_and_down = map.get("facing_cardinal_and_down")?;
+        let facing_cardinal_and_down =
+            FacingCardinalAndDown::from_str(facing_cardinal_and_down).ok()?;
+        block.set_facing_cardinal_and_down(facing_cardinal_and_down);
+        Some(block)
+    }
+    fn quartz_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::quartz_block();
+        Some(block)
+    }
+    fn chiseled_quartz_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::chiseled_quartz_block();
+        Some(block)
+    }
+    fn quartz_pillar_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::quartz_pillar();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn quartz_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::quartz_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn activator_rail_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::activator_rail();
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        let powered_rail_shape = map.get("powered_rail_shape")?;
+        let powered_rail_shape = PoweredRailShape::from_str(powered_rail_shape).ok()?;
+        block.set_powered_rail_shape(powered_rail_shape);
+        Some(block)
+    }
+    fn dropper_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::dropper();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        let triggered = map.get("triggered")?;
+        let triggered = bool::from_str(triggered).ok()?;
+        block.set_triggered(triggered);
+        Some(block)
+    }
+    fn white_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::white_terracotta();
+        Some(block)
+    }
+    fn orange_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::orange_terracotta();
+        Some(block)
+    }
+    fn magenta_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::magenta_terracotta();
+        Some(block)
+    }
+    fn light_blue_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_blue_terracotta();
+        Some(block)
+    }
+    fn yellow_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::yellow_terracotta();
+        Some(block)
+    }
+    fn lime_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::lime_terracotta();
+        Some(block)
+    }
+    fn pink_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::pink_terracotta();
+        Some(block)
+    }
+    fn gray_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::gray_terracotta();
+        Some(block)
+    }
+    fn light_gray_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_gray_terracotta();
+        Some(block)
+    }
+    fn cyan_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cyan_terracotta();
+        Some(block)
+    }
+    fn purple_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::purple_terracotta();
+        Some(block)
+    }
+    fn blue_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::blue_terracotta();
+        Some(block)
+    }
+    fn brown_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brown_terracotta();
+        Some(block)
+    }
+    fn green_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::green_terracotta();
+        Some(block)
+    }
+    fn red_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::red_terracotta();
+        Some(block)
+    }
+    fn black_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::black_terracotta();
+        Some(block)
+    }
+    fn white_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::white_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn orange_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::orange_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn magenta_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::magenta_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn light_blue_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_blue_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn yellow_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::yellow_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn lime_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::lime_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn pink_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::pink_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn gray_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::gray_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn light_gray_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_gray_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn cyan_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cyan_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn purple_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::purple_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn blue_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::blue_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn brown_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brown_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn green_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::green_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn red_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::red_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn black_stained_glass_pane_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::black_stained_glass_pane();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn acacia_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::acacia_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dark_oak_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_oak_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn slime_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::slime_block();
+        Some(block)
+    }
+    fn barrier_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::barrier();
+        Some(block)
+    }
+    fn iron_trapdoor_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::iron_trapdoor();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn prismarine_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::prismarine();
+        Some(block)
+    }
+    fn prismarine_bricks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::prismarine_bricks();
+        Some(block)
+    }
+    fn dark_prismarine_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_prismarine();
+        Some(block)
+    }
+    fn prismarine_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::prismarine_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn prismarine_brick_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::prismarine_brick_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dark_prismarine_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_prismarine_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn prismarine_slab_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::prismarine_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn prismarine_brick_slab_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::prismarine_brick_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dark_prismarine_slab_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_prismarine_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn sea_lantern_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::sea_lantern();
+        Some(block)
+    }
+    fn hay_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::hay_block();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn white_carpet_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::white_carpet();
+        Some(block)
+    }
+    fn orange_carpet_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::orange_carpet();
+        Some(block)
+    }
+    fn magenta_carpet_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::magenta_carpet();
+        Some(block)
+    }
+    fn light_blue_carpet_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_blue_carpet();
+        Some(block)
+    }
+    fn yellow_carpet_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::yellow_carpet();
+        Some(block)
+    }
+    fn lime_carpet_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::lime_carpet();
+        Some(block)
+    }
+    fn pink_carpet_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::pink_carpet();
+        Some(block)
+    }
+    fn gray_carpet_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::gray_carpet();
+        Some(block)
+    }
+    fn light_gray_carpet_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_gray_carpet();
+        Some(block)
+    }
+    fn cyan_carpet_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::cyan_carpet();
+        Some(block)
+    }
+    fn purple_carpet_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::purple_carpet();
+        Some(block)
+    }
+    fn blue_carpet_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::blue_carpet();
+        Some(block)
+    }
+    fn brown_carpet_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::brown_carpet();
+        Some(block)
+    }
+    fn green_carpet_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::green_carpet();
+        Some(block)
+    }
+    fn red_carpet_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::red_carpet();
+        Some(block)
+    }
+    fn black_carpet_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::black_carpet();
+        Some(block)
+    }
+    fn terracotta_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::terracotta();
+        Some(block)
+    }
+    fn coal_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::coal_block();
+        Some(block)
+    }
+    fn packed_ice_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::packed_ice();
+        Some(block)
+    }
+    fn sunflower_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::sunflower();
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        Some(block)
+    }
+    fn lilac_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::lilac();
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        Some(block)
+    }
+    fn rose_bush_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::rose_bush();
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        Some(block)
+    }
+    fn peony_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::peony();
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        Some(block)
+    }
+    fn tall_grass_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::tall_grass();
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        Some(block)
+    }
+    fn large_fern_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::large_fern();
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        Some(block)
+    }
+    fn white_banner_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::white_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn orange_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::orange_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn magenta_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::magenta_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn light_blue_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_blue_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn yellow_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::yellow_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn lime_banner_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::lime_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn pink_banner_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::pink_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn gray_banner_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::gray_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn light_gray_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_gray_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn cyan_banner_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::cyan_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn purple_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::purple_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn blue_banner_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::blue_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn brown_banner_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::brown_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn green_banner_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::green_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn red_banner_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::red_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn black_banner_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::black_banner();
+        let rotation = map.get("rotation")?;
+        let rotation = {
+            let x = i32::from_str(rotation).ok()?;
+            if !(0i32..=15i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_rotation(rotation);
+        Some(block)
+    }
+    fn white_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::white_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn orange_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::orange_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn magenta_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::magenta_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn light_blue_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_blue_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn yellow_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::yellow_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn lime_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::lime_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn pink_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::pink_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn gray_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::gray_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn light_gray_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_gray_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn cyan_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cyan_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn purple_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::purple_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn blue_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::blue_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn brown_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brown_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn green_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::green_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn red_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::red_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn black_wall_banner_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::black_wall_banner();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn red_sandstone_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::red_sandstone();
+        Some(block)
+    }
+    fn chiseled_red_sandstone_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::chiseled_red_sandstone();
+        Some(block)
+    }
+    fn cut_red_sandstone_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cut_red_sandstone();
+        Some(block)
+    }
+    fn red_sandstone_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::red_sandstone_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn oak_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::oak_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn spruce_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::spruce_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn birch_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::birch_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn jungle_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::jungle_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn acacia_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::acacia_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dark_oak_slab_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_oak_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn stone_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::stone_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn sandstone_slab_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::sandstone_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn petrified_oak_slab_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::petrified_oak_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn cobblestone_slab_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cobblestone_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn brick_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::brick_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn stone_brick_slab_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::stone_brick_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn nether_brick_slab_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::nether_brick_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn quartz_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::quartz_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn red_sandstone_slab_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::red_sandstone_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn purpur_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::purpur_slab();
+        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = SlabKind::from_str(slab_kind).ok()?;
+        block.set_slab_kind(slab_kind);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn smooth_stone_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::smooth_stone();
+        Some(block)
+    }
+    fn smooth_sandstone_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::smooth_sandstone();
+        Some(block)
+    }
+    fn smooth_quartz_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::smooth_quartz();
+        Some(block)
+    }
+    fn smooth_red_sandstone_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::smooth_red_sandstone();
+        Some(block)
+    }
+    fn spruce_fence_gate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::spruce_fence_gate();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let in_wall = map.get("in_wall")?;
+        let in_wall = bool::from_str(in_wall).ok()?;
+        block.set_in_wall(in_wall);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn birch_fence_gate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::birch_fence_gate();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let in_wall = map.get("in_wall")?;
+        let in_wall = bool::from_str(in_wall).ok()?;
+        block.set_in_wall(in_wall);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn jungle_fence_gate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::jungle_fence_gate();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let in_wall = map.get("in_wall")?;
+        let in_wall = bool::from_str(in_wall).ok()?;
+        block.set_in_wall(in_wall);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn acacia_fence_gate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::acacia_fence_gate();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let in_wall = map.get("in_wall")?;
+        let in_wall = bool::from_str(in_wall).ok()?;
+        block.set_in_wall(in_wall);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn dark_oak_fence_gate_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_oak_fence_gate();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let in_wall = map.get("in_wall")?;
+        let in_wall = bool::from_str(in_wall).ok()?;
+        block.set_in_wall(in_wall);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn spruce_fence_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::spruce_fence();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn birch_fence_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::birch_fence();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn jungle_fence_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::jungle_fence();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn acacia_fence_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::acacia_fence();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn dark_oak_fence_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_oak_fence();
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn spruce_door_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::spruce_door();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        let hinge = map.get("hinge")?;
+        let hinge = Hinge::from_str(hinge).ok()?;
+        block.set_hinge(hinge);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn birch_door_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::birch_door();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        let hinge = map.get("hinge")?;
+        let hinge = Hinge::from_str(hinge).ok()?;
+        block.set_hinge(hinge);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn jungle_door_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::jungle_door();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        let hinge = map.get("hinge")?;
+        let hinge = Hinge::from_str(hinge).ok()?;
+        block.set_hinge(hinge);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn acacia_door_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::acacia_door();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        let hinge = map.get("hinge")?;
+        let hinge = Hinge::from_str(hinge).ok()?;
+        block.set_hinge(hinge);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn dark_oak_door_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dark_oak_door();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
+        block.set_half_upper_lower(half_upper_lower);
+        let hinge = map.get("hinge")?;
+        let hinge = Hinge::from_str(hinge).ok()?;
+        block.set_hinge(hinge);
+        let open = map.get("open")?;
+        let open = bool::from_str(open).ok()?;
+        block.set_open(open);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn end_rod_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::end_rod();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn chorus_plant_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::chorus_plant();
+        let down = map.get("down")?;
+        let down = bool::from_str(down).ok()?;
+        block.set_down(down);
+        let east_connected = map.get("east_connected")?;
+        let east_connected = bool::from_str(east_connected).ok()?;
+        block.set_east_connected(east_connected);
+        let north_connected = map.get("north_connected")?;
+        let north_connected = bool::from_str(north_connected).ok()?;
+        block.set_north_connected(north_connected);
+        let south_connected = map.get("south_connected")?;
+        let south_connected = bool::from_str(south_connected).ok()?;
+        block.set_south_connected(south_connected);
+        let up = map.get("up")?;
+        let up = bool::from_str(up).ok()?;
+        block.set_up(up);
+        let west_connected = map.get("west_connected")?;
+        let west_connected = bool::from_str(west_connected).ok()?;
+        block.set_west_connected(west_connected);
+        Some(block)
+    }
+    fn chorus_flower_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::chorus_flower();
+        let age_0_5 = map.get("age_0_5")?;
+        let age_0_5 = {
+            let x = i32::from_str(age_0_5).ok()?;
+            if !(0i32..=5i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_5(age_0_5);
+        Some(block)
+    }
+    fn purpur_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::purpur_block();
+        Some(block)
+    }
+    fn purpur_pillar_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::purpur_pillar();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn purpur_stairs_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::purpur_stairs();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
+        block.set_half_top_bottom(half_top_bottom);
+        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
+        block.set_stairs_shape(stairs_shape);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn end_stone_bricks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::end_stone_bricks();
+        Some(block)
+    }
+    fn beetroots_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::beetroots();
+        let age_0_3 = map.get("age_0_3")?;
+        let age_0_3 = {
+            let x = i32::from_str(age_0_3).ok()?;
+            if !(0i32..=3i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_3(age_0_3);
+        Some(block)
+    }
+    fn grass_path_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::grass_path();
+        Some(block)
+    }
+    fn end_gateway_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::end_gateway();
+        Some(block)
+    }
+    fn repeating_command_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::repeating_command_block();
+        let conditional = map.get("conditional")?;
+        let conditional = bool::from_str(conditional).ok()?;
+        block.set_conditional(conditional);
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn chain_command_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::chain_command_block();
+        let conditional = map.get("conditional")?;
+        let conditional = bool::from_str(conditional).ok()?;
+        block.set_conditional(conditional);
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn frosted_ice_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::frosted_ice();
+        let age_0_3 = map.get("age_0_3")?;
+        let age_0_3 = {
+            let x = i32::from_str(age_0_3).ok()?;
+            if !(0i32..=3i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_3(age_0_3);
+        Some(block)
+    }
+    fn magma_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::magma_block();
+        Some(block)
+    }
+    fn nether_wart_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::nether_wart_block();
+        Some(block)
+    }
+    fn red_nether_bricks_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::red_nether_bricks();
+        Some(block)
+    }
+    fn bone_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::bone_block();
+        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
+        block.set_axis_xyz(axis_xyz);
+        Some(block)
+    }
+    fn structure_void_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::structure_void();
+        Some(block)
+    }
+    fn observer_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::observer();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        let powered = map.get("powered")?;
+        let powered = bool::from_str(powered).ok()?;
+        block.set_powered(powered);
+        Some(block)
+    }
+    fn shulker_box_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn white_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::white_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn orange_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::orange_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn magenta_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::magenta_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn light_blue_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_blue_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn yellow_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::yellow_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn lime_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::lime_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn pink_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::pink_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn gray_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::gray_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn light_gray_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_gray_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn cyan_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cyan_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn purple_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::purple_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn blue_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::blue_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn brown_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brown_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn green_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::green_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn red_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::red_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn black_shulker_box_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::black_shulker_box();
+        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
+        block.set_facing_cubic(facing_cubic);
+        Some(block)
+    }
+    fn white_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::white_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn orange_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::orange_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn magenta_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::magenta_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn light_blue_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_blue_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn yellow_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::yellow_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn lime_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::lime_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn pink_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::pink_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn gray_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::gray_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn light_gray_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_gray_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn cyan_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cyan_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn purple_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::purple_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn blue_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::blue_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn brown_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brown_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn green_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::green_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn red_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::red_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn black_glazed_terracotta_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::black_glazed_terracotta();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        Some(block)
+    }
+    fn white_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::white_concrete();
+        Some(block)
+    }
+    fn orange_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::orange_concrete();
+        Some(block)
+    }
+    fn magenta_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::magenta_concrete();
+        Some(block)
+    }
+    fn light_blue_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_blue_concrete();
+        Some(block)
+    }
+    fn yellow_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::yellow_concrete();
+        Some(block)
+    }
+    fn lime_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::lime_concrete();
+        Some(block)
+    }
+    fn pink_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::pink_concrete();
+        Some(block)
+    }
+    fn gray_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::gray_concrete();
+        Some(block)
+    }
+    fn light_gray_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_gray_concrete();
+        Some(block)
+    }
+    fn cyan_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cyan_concrete();
+        Some(block)
+    }
+    fn purple_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::purple_concrete();
+        Some(block)
+    }
+    fn blue_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::blue_concrete();
+        Some(block)
+    }
+    fn brown_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brown_concrete();
+        Some(block)
+    }
+    fn green_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::green_concrete();
+        Some(block)
+    }
+    fn red_concrete_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::red_concrete();
+        Some(block)
+    }
+    fn black_concrete_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::black_concrete();
+        Some(block)
+    }
+    fn white_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::white_concrete_powder();
+        Some(block)
+    }
+    fn orange_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::orange_concrete_powder();
+        Some(block)
+    }
+    fn magenta_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::magenta_concrete_powder();
+        Some(block)
+    }
+    fn light_blue_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_blue_concrete_powder();
+        Some(block)
+    }
+    fn yellow_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::yellow_concrete_powder();
+        Some(block)
+    }
+    fn lime_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::lime_concrete_powder();
+        Some(block)
+    }
+    fn pink_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::pink_concrete_powder();
+        Some(block)
+    }
+    fn gray_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::gray_concrete_powder();
+        Some(block)
+    }
+    fn light_gray_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::light_gray_concrete_powder();
+        Some(block)
+    }
+    fn cyan_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::cyan_concrete_powder();
+        Some(block)
+    }
+    fn purple_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::purple_concrete_powder();
+        Some(block)
+    }
+    fn blue_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::blue_concrete_powder();
+        Some(block)
+    }
+    fn brown_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brown_concrete_powder();
+        Some(block)
+    }
+    fn green_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::green_concrete_powder();
+        Some(block)
+    }
+    fn red_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::red_concrete_powder();
+        Some(block)
+    }
+    fn black_concrete_powder_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::black_concrete_powder();
+        Some(block)
+    }
+    fn kelp_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::kelp();
+        let age_0_25 = map.get("age_0_25")?;
+        let age_0_25 = {
+            let x = i32::from_str(age_0_25).ok()?;
+            if !(0i32..=25i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_age_0_25(age_0_25);
+        Some(block)
+    }
+    fn kelp_plant_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::kelp_plant();
+        Some(block)
+    }
+    fn dried_kelp_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dried_kelp_block();
+        Some(block)
+    }
+    fn turtle_egg_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::turtle_egg();
+        let eggs = map.get("eggs")?;
+        let eggs = {
+            let x = i32::from_str(eggs).ok()?;
+            if !(1i32..=4i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_eggs(eggs);
+        let hatch = map.get("hatch")?;
+        let hatch = {
+            let x = i32::from_str(hatch).ok()?;
+            if !(0i32..=2i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_hatch(hatch);
+        Some(block)
+    }
+    fn dead_tube_coral_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_tube_coral_block();
+        Some(block)
+    }
+    fn dead_brain_coral_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_brain_coral_block();
+        Some(block)
+    }
+    fn dead_bubble_coral_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_bubble_coral_block();
+        Some(block)
+    }
+    fn dead_fire_coral_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_fire_coral_block();
+        Some(block)
+    }
+    fn dead_horn_coral_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_horn_coral_block();
+        Some(block)
+    }
+    fn tube_coral_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::tube_coral_block();
+        Some(block)
+    }
+    fn brain_coral_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brain_coral_block();
+        Some(block)
+    }
+    fn bubble_coral_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::bubble_coral_block();
+        Some(block)
+    }
+    fn fire_coral_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::fire_coral_block();
+        Some(block)
+    }
+    fn horn_coral_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::horn_coral_block();
+        Some(block)
+    }
+    fn dead_tube_coral_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_tube_coral();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_brain_coral_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_brain_coral();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_bubble_coral_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_bubble_coral();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_fire_coral_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_fire_coral();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_horn_coral_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_horn_coral();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn tube_coral_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::tube_coral();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn brain_coral_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::brain_coral();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn bubble_coral_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::bubble_coral();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn fire_coral_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::fire_coral();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn horn_coral_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::horn_coral();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_tube_coral_wall_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_tube_coral_wall_fan();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_brain_coral_wall_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_brain_coral_wall_fan();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_bubble_coral_wall_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_bubble_coral_wall_fan();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_fire_coral_wall_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_fire_coral_wall_fan();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_horn_coral_wall_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_horn_coral_wall_fan();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn tube_coral_wall_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::tube_coral_wall_fan();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn brain_coral_wall_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brain_coral_wall_fan();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn bubble_coral_wall_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::bubble_coral_wall_fan();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn fire_coral_wall_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::fire_coral_wall_fan();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn horn_coral_wall_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::horn_coral_wall_fan();
+        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
+        block.set_facing_cardinal(facing_cardinal);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_tube_coral_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_tube_coral_fan();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_brain_coral_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_brain_coral_fan();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_bubble_coral_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_bubble_coral_fan();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_fire_coral_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_fire_coral_fan();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn dead_horn_coral_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::dead_horn_coral_fan();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn tube_coral_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::tube_coral_fan();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn brain_coral_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::brain_coral_fan();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn bubble_coral_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::bubble_coral_fan();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn fire_coral_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::fire_coral_fan();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn horn_coral_fan_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::horn_coral_fan();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn sea_pickle_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::sea_pickle();
+        let pickles = map.get("pickles")?;
+        let pickles = {
+            let x = i32::from_str(pickles).ok()?;
+            if !(1i32..=4i32).contains(&x) {
+                return None;
+            }
+            x
+        };
+        block.set_pickles(pickles);
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn blue_ice_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::blue_ice();
+        Some(block)
+    }
+    fn conduit_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::conduit();
+        let waterlogged = map.get("waterlogged")?;
+        let waterlogged = bool::from_str(waterlogged).ok()?;
+        block.set_waterlogged(waterlogged);
+        Some(block)
+    }
+    fn void_air_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::void_air();
+        Some(block)
+    }
+    fn cave_air_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
+        let mut block = BlockId::cave_air();
+        Some(block)
+    }
+    fn bubble_column_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::bubble_column();
+        let drag = map.get("drag")?;
+        let drag = bool::from_str(drag).ok()?;
+        block.set_drag(drag);
+        Some(block)
+    }
+    fn structure_block_from_identifier_and_properties(
+        map: &BTreeMap<String, String>,
+    ) -> Option<Self> {
+        let mut block = BlockId::structure_block();
+        let structure_block_mode = map.get("structure_block_mode")?;
+        let structure_block_mode = StructureBlockMode::from_str(structure_block_mode).ok()?;
+        block.set_structure_block_mode(structure_block_mode);
+        Some(block)
     }
 }

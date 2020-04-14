@@ -1,6 +1,7 @@
 use crate::BlockKind;
 use serde::Deserialize;
 use std::convert::TryFrom;
+use std::str::FromStr;
 #[derive(Debug, Deserialize)]
 pub struct BlockTable {
     age_0_15: Vec<(u16, u16)>,
@@ -1523,6 +1524,17 @@ impl TryFrom<u16> for AxisXyz {
         }
     }
 }
+impl FromStr for AxisXyz {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "x" => Ok(AxisXyz::X),
+            "y" => Ok(AxisXyz::Y),
+            "z" => Ok(AxisXyz::Z),
+            _ => Err(anyhow::anyhow!("invalid value for {}", stringify!(AxisXyz))),
+        }
+    }
+}
 impl AxisXyz {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -1545,6 +1557,16 @@ impl TryFrom<u16> for AxisXz {
             0u16 => Ok(AxisXz::X),
             1u16 => Ok(AxisXz::Z),
             x => Err(anyhow::anyhow!("invalid value {} for AxisXz", x)),
+        }
+    }
+}
+impl FromStr for AxisXz {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "x" => Ok(AxisXz::X),
+            "z" => Ok(AxisXz::Z),
+            _ => Err(anyhow::anyhow!("invalid value for {}", stringify!(AxisXz))),
         }
     }
 }
@@ -1574,6 +1596,20 @@ impl TryFrom<u16> for ChestKind {
         }
     }
 }
+impl FromStr for ChestKind {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "single" => Ok(ChestKind::Single),
+            "left" => Ok(ChestKind::Left),
+            "right" => Ok(ChestKind::Right),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(ChestKind)
+            )),
+        }
+    }
+}
 impl ChestKind {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -1596,6 +1632,19 @@ impl TryFrom<u16> for ComparatorMode {
             0u16 => Ok(ComparatorMode::Compare),
             1u16 => Ok(ComparatorMode::Subtract),
             x => Err(anyhow::anyhow!("invalid value {} for ComparatorMode", x)),
+        }
+    }
+}
+impl FromStr for ComparatorMode {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "compare" => Ok(ComparatorMode::Compare),
+            "subtract" => Ok(ComparatorMode::Subtract),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(ComparatorMode)
+            )),
         }
     }
 }
@@ -1622,6 +1671,20 @@ impl TryFrom<u16> for EastWire {
             1u16 => Ok(EastWire::Side),
             2u16 => Ok(EastWire::None),
             x => Err(anyhow::anyhow!("invalid value {} for EastWire", x)),
+        }
+    }
+}
+impl FromStr for EastWire {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "up" => Ok(EastWire::Up),
+            "side" => Ok(EastWire::Side),
+            "none" => Ok(EastWire::None),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(EastWire)
+            )),
         }
     }
 }
@@ -1652,6 +1715,17 @@ impl TryFrom<u16> for Face {
         }
     }
 }
+impl FromStr for Face {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "floor" => Ok(Face::Floor),
+            "wall" => Ok(Face::Wall),
+            "ceiling" => Ok(Face::Ceiling),
+            _ => Err(anyhow::anyhow!("invalid value for {}", stringify!(Face))),
+        }
+    }
+}
 impl Face {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -1678,6 +1752,21 @@ impl TryFrom<u16> for FacingCardinal {
             2u16 => Ok(FacingCardinal::West),
             3u16 => Ok(FacingCardinal::East),
             x => Err(anyhow::anyhow!("invalid value {} for FacingCardinal", x)),
+        }
+    }
+}
+impl FromStr for FacingCardinal {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "north" => Ok(FacingCardinal::North),
+            "south" => Ok(FacingCardinal::South),
+            "west" => Ok(FacingCardinal::West),
+            "east" => Ok(FacingCardinal::East),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(FacingCardinal)
+            )),
         }
     }
 }
@@ -1712,6 +1801,22 @@ impl TryFrom<u16> for FacingCardinalAndDown {
             x => Err(anyhow::anyhow!(
                 "invalid value {} for FacingCardinalAndDown",
                 x
+            )),
+        }
+    }
+}
+impl FromStr for FacingCardinalAndDown {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "down" => Ok(FacingCardinalAndDown::Down),
+            "north" => Ok(FacingCardinalAndDown::North),
+            "south" => Ok(FacingCardinalAndDown::South),
+            "west" => Ok(FacingCardinalAndDown::West),
+            "east" => Ok(FacingCardinalAndDown::East),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(FacingCardinalAndDown)
             )),
         }
     }
@@ -1751,6 +1856,23 @@ impl TryFrom<u16> for FacingCubic {
         }
     }
 }
+impl FromStr for FacingCubic {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "north" => Ok(FacingCubic::North),
+            "east" => Ok(FacingCubic::East),
+            "south" => Ok(FacingCubic::South),
+            "west" => Ok(FacingCubic::West),
+            "up" => Ok(FacingCubic::Up),
+            "down" => Ok(FacingCubic::Down),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(FacingCubic)
+            )),
+        }
+    }
+}
 impl FacingCubic {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -1779,6 +1901,19 @@ impl TryFrom<u16> for HalfTopBottom {
         }
     }
 }
+impl FromStr for HalfTopBottom {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "top" => Ok(HalfTopBottom::Top),
+            "bottom" => Ok(HalfTopBottom::Bottom),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(HalfTopBottom)
+            )),
+        }
+    }
+}
 impl HalfTopBottom {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -1803,6 +1938,19 @@ impl TryFrom<u16> for HalfUpperLower {
         }
     }
 }
+impl FromStr for HalfUpperLower {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "upper" => Ok(HalfUpperLower::Upper),
+            "lower" => Ok(HalfUpperLower::Lower),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(HalfUpperLower)
+            )),
+        }
+    }
+}
 impl HalfUpperLower {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -1824,6 +1972,16 @@ impl TryFrom<u16> for Hinge {
             0u16 => Ok(Hinge::Left),
             1u16 => Ok(Hinge::Right),
             x => Err(anyhow::anyhow!("invalid value {} for Hinge", x)),
+        }
+    }
+}
+impl FromStr for Hinge {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "left" => Ok(Hinge::Left),
+            "right" => Ok(Hinge::Right),
+            _ => Err(anyhow::anyhow!("invalid value for {}", stringify!(Hinge))),
         }
     }
 }
@@ -1867,6 +2025,27 @@ impl TryFrom<u16> for Instrument {
         }
     }
 }
+impl FromStr for Instrument {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "harp" => Ok(Instrument::Harp),
+            "basedrum" => Ok(Instrument::Basedrum),
+            "snare" => Ok(Instrument::Snare),
+            "hat" => Ok(Instrument::Hat),
+            "bass" => Ok(Instrument::Bass),
+            "flute" => Ok(Instrument::Flute),
+            "bell" => Ok(Instrument::Bell),
+            "guitar" => Ok(Instrument::Guitar),
+            "chime" => Ok(Instrument::Chime),
+            "xylophone" => Ok(Instrument::Xylophone),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(Instrument)
+            )),
+        }
+    }
+}
 impl Instrument {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -1901,6 +2080,20 @@ impl TryFrom<u16> for NorthWire {
         }
     }
 }
+impl FromStr for NorthWire {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "up" => Ok(NorthWire::Up),
+            "side" => Ok(NorthWire::Side),
+            "none" => Ok(NorthWire::None),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(NorthWire)
+            )),
+        }
+    }
+}
 impl NorthWire {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -1926,6 +2119,16 @@ impl TryFrom<u16> for Part {
         }
     }
 }
+impl FromStr for Part {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "head" => Ok(Part::Head),
+            "foot" => Ok(Part::Foot),
+            _ => Err(anyhow::anyhow!("invalid value for {}", stringify!(Part))),
+        }
+    }
+}
 impl Part {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -1947,6 +2150,19 @@ impl TryFrom<u16> for PistonKind {
             0u16 => Ok(PistonKind::Normal),
             1u16 => Ok(PistonKind::Sticky),
             x => Err(anyhow::anyhow!("invalid value {} for PistonKind", x)),
+        }
+    }
+}
+impl FromStr for PistonKind {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "normal" => Ok(PistonKind::Normal),
+            "sticky" => Ok(PistonKind::Sticky),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(PistonKind)
+            )),
         }
     }
 }
@@ -1979,6 +2195,23 @@ impl TryFrom<u16> for PoweredRailShape {
             4u16 => Ok(PoweredRailShape::AscendingNorth),
             5u16 => Ok(PoweredRailShape::AscendingSouth),
             x => Err(anyhow::anyhow!("invalid value {} for PoweredRailShape", x)),
+        }
+    }
+}
+impl FromStr for PoweredRailShape {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "north_south" => Ok(PoweredRailShape::NorthSouth),
+            "east_west" => Ok(PoweredRailShape::EastWest),
+            "ascending_east" => Ok(PoweredRailShape::AscendingEast),
+            "ascending_west" => Ok(PoweredRailShape::AscendingWest),
+            "ascending_north" => Ok(PoweredRailShape::AscendingNorth),
+            "ascending_south" => Ok(PoweredRailShape::AscendingSouth),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(PoweredRailShape)
+            )),
         }
     }
 }
@@ -2026,6 +2259,27 @@ impl TryFrom<u16> for RailShape {
         }
     }
 }
+impl FromStr for RailShape {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "north_south" => Ok(RailShape::NorthSouth),
+            "east_west" => Ok(RailShape::EastWest),
+            "ascending_east" => Ok(RailShape::AscendingEast),
+            "ascending_west" => Ok(RailShape::AscendingWest),
+            "ascending_north" => Ok(RailShape::AscendingNorth),
+            "ascending_south" => Ok(RailShape::AscendingSouth),
+            "south_east" => Ok(RailShape::SouthEast),
+            "south_west" => Ok(RailShape::SouthWest),
+            "north_west" => Ok(RailShape::NorthWest),
+            "north_east" => Ok(RailShape::NorthEast),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(RailShape)
+            )),
+        }
+    }
+}
 impl RailShape {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -2060,6 +2314,20 @@ impl TryFrom<u16> for SlabKind {
         }
     }
 }
+impl FromStr for SlabKind {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "top" => Ok(SlabKind::Top),
+            "bottom" => Ok(SlabKind::Bottom),
+            "double" => Ok(SlabKind::Double),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(SlabKind)
+            )),
+        }
+    }
+}
 impl SlabKind {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -2084,6 +2352,20 @@ impl TryFrom<u16> for SouthWire {
             1u16 => Ok(SouthWire::Side),
             2u16 => Ok(SouthWire::None),
             x => Err(anyhow::anyhow!("invalid value {} for SouthWire", x)),
+        }
+    }
+}
+impl FromStr for SouthWire {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "up" => Ok(SouthWire::Up),
+            "side" => Ok(SouthWire::Side),
+            "none" => Ok(SouthWire::None),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(SouthWire)
+            )),
         }
     }
 }
@@ -2115,6 +2397,22 @@ impl TryFrom<u16> for StairsShape {
             3u16 => Ok(StairsShape::OuterLeft),
             4u16 => Ok(StairsShape::OuterRight),
             x => Err(anyhow::anyhow!("invalid value {} for StairsShape", x)),
+        }
+    }
+}
+impl FromStr for StairsShape {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "straight" => Ok(StairsShape::Straight),
+            "inner_left" => Ok(StairsShape::InnerLeft),
+            "inner_right" => Ok(StairsShape::InnerRight),
+            "outer_left" => Ok(StairsShape::OuterLeft),
+            "outer_right" => Ok(StairsShape::OuterRight),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(StairsShape)
+            )),
         }
     }
 }
@@ -2152,6 +2450,21 @@ impl TryFrom<u16> for StructureBlockMode {
         }
     }
 }
+impl FromStr for StructureBlockMode {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "save" => Ok(StructureBlockMode::Save),
+            "load" => Ok(StructureBlockMode::Load),
+            "corner" => Ok(StructureBlockMode::Corner),
+            "data" => Ok(StructureBlockMode::Data),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(StructureBlockMode)
+            )),
+        }
+    }
+}
 impl StructureBlockMode {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -2177,6 +2490,20 @@ impl TryFrom<u16> for WestWire {
             1u16 => Ok(WestWire::Side),
             2u16 => Ok(WestWire::None),
             x => Err(anyhow::anyhow!("invalid value {} for WestWire", x)),
+        }
+    }
+}
+impl FromStr for WestWire {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "up" => Ok(WestWire::Up),
+            "side" => Ok(WestWire::Side),
+            "none" => Ok(WestWire::None),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(WestWire)
+            )),
         }
     }
 }
