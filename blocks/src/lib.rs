@@ -42,10 +42,10 @@ pub fn init() {
     Lazy::force(&BLOCK_TABLE);
 }
 
-use crate::generated::BlockKind;
 use once_cell::sync::Lazy;
 
 pub use crate::generated::table::*;
+pub use crate::generated::BlockKind;
 
 impl Default for BlockKind {
     fn default() -> Self {

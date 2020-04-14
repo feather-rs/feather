@@ -3,16 +3,13 @@
 //! and breaks.
 
 use crate::item::ItemReport;
-use crate::rust::{correct_variable_name, PropValueType};
-use crate::{Block, BlockReport, State};
+use crate::BlockReport;
 use failure::Error;
 use heck::CamelCase;
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Ident, Span};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::process::Command;
-use std::str::FromStr;
-use syn::{Lit, LitBool};
 
 /// Given a block report and an item report, generates
 /// mappings from items to blocks and writes them to
@@ -52,19 +49,19 @@ fn _internal_generate_mappings(
     // Go through item report and find blocks with the same
     // name as the item.
     for (name, _) in &items.mappings {
-        if let Some(match_arm) = block_state_by_name(&blocks, name.as_str()) {
-            item_to_block_match_arms.push(match_arm);
+        for block_name in blocks.blocks.keys() {
+            if block_name == name {
+                let block_ident = Ident::new(&block_name[10..], Span::call_site());
+                let item_ident = Ident::new(&name[10..].to_camel_case(), Span::call_site());
+                let block_ident_cc =
+                    Ident::new(&block_ident.to_string().to_camel_case(), Span::call_site());
 
-            let variant_ident = Ident::new(&block_variant(name), Span::call_site());
-
-            if blocks.blocks[name].properties.is_some() {
-                block_to_item_match_arms.push(quote! {
-                    Block::#variant_ident(_) => Some(Item::#variant_ident)
+                item_to_block_match_arms.push(quote! {
+                    Item::#item_ident => Some(BlockId::#block_ident())
                 });
-            } else {
                 block_to_item_match_arms.push(quote! {
-                    Block::#variant_ident => Some(Item::#variant_ident)
-                });
+                    BlockKind::#block_ident_cc => Some(Item::#item_ident)
+                })
             }
         }
     }
@@ -73,15 +70,15 @@ fn _internal_generate_mappings(
         use feather_items::Item;
         use feather_blocks::*;
 
-        pub fn item_to_block(item: Item) -> Option<Block> {
+        pub fn item_to_block(item: Item) -> Option<BlockId> {
             match item {
                 #(#item_to_block_match_arms ,)*
                 _ => None,
             }
         }
 
-        pub fn block_to_item(block: Block) -> Option<Item> {
-            match block {
+        pub fn block_to_item(block: BlockId) -> Option<Item> {
+            match block.kind() {
                 #(#block_to_item_match_arms ,)*
                 _ => None,
             }
@@ -92,82 +89,4 @@ fn _internal_generate_mappings(
     output.flush()?;
 
     Ok(())
-}
-
-fn block_state_by_name(blocks: &BlockReport, original_name: &str) -> Option<TokenStream> {
-    let name = block_variant(original_name);
-
-    if let Some(block) = blocks.blocks.get(original_name) {
-        // The block state corresponding to the item is labeled
-        // in the report as "default."
-        let state = default_state(&block);
-
-        let item_block_ident = Ident::new(&name, Span::call_site());
-
-        if block.states.len() == 1 {
-            Some(quote! {
-                Item::#item_block_ident => Some(Block::#item_block_ident)
-            })
-        } else {
-            // Need to declare properties of block state
-            let mut props = vec![];
-            let state_props = state.properties.as_ref().unwrap(); // we know the block has properties, since it has multiple states
-
-            for (prop_name, prop_value) in &state_props.props {
-                let ty = PropValueType::guess_from_value(prop_value);
-
-                let enum_name = format!("{}{}", name.to_camel_case(), prop_name.to_camel_case());
-                let enum_name = Ident::new(&enum_name, Span::call_site());
-
-                let field_name =
-                    Ident::new(correct_variable_name(prop_name.as_str()), Span::call_site());
-
-                let entry = if ty == PropValueType::Enum {
-                    let variant = prop_value.to_camel_case();
-                    let variant = Ident::new(&variant, Span::call_site());
-                    quote! {
-                        #field_name: #enum_name::#variant
-                    }
-                } else if ty == PropValueType::Bool {
-                    let value = Lit::Bool(LitBool {
-                        value: bool::from_str(prop_value).unwrap(),
-                        span: Span::call_site(),
-                    });
-                    quote! {
-                        #field_name: #value
-                    }
-                } else {
-                    let value = i32::from_str(prop_value).unwrap();
-                    quote! {
-                        #field_name: #value
-                    }
-                };
-                props.push(entry);
-            }
-
-            let data_struct_ident = format!("{}Data", name.to_camel_case());
-            let data_struct_ident = Ident::new(&data_struct_ident, Span::call_site());
-
-            Some(quote! {
-                Item::#item_block_ident => Some(Block::#item_block_ident(#data_struct_ident {
-                    #(#props ,)*
-                }))
-            })
-        }
-    } else {
-        None
-    }
-}
-
-fn block_variant(name: &str) -> String {
-    name[10..].to_camel_case()
-}
-
-fn default_state(block: &Block) -> State {
-    block
-        .states
-        .iter()
-        .find(|state| state.default)
-        .unwrap()
-        .clone()
 }

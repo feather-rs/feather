@@ -1,14 +1,14 @@
-use feather_blocks::Block;
+use feather_blocks::BlockId;
 use feather_items::Item;
 
 mod mappings;
 
 pub trait ItemToBlock {
-    fn to_block(self) -> Option<Block>;
+    fn to_block(self) -> Option<BlockId>;
 }
 
 impl ItemToBlock for Item {
-    fn to_block(self) -> Option<Block> {
+    fn to_block(self) -> Option<BlockId> {
         mappings::item_to_block(self)
     }
 }
@@ -17,7 +17,7 @@ pub trait BlockToItem {
     fn to_item(self) -> Option<Item>;
 }
 
-impl BlockToItem for Block {
+impl BlockToItem for BlockId {
     fn to_item(self) -> Option<Item> {
         mappings::block_to_item(self)
     }
@@ -26,7 +26,6 @@ impl BlockToItem for Block {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use feather_blocks::{AcaciaWoodAxis, AcaciaWoodData, GrassBlockData};
 
     #[test]
     fn test_item_to_block() {
@@ -39,11 +38,9 @@ mod tests {
         ];
         let blocks = [
             None,
-            Some(Block::Stone),
-            Some(Block::AcaciaWood(AcaciaWoodData {
-                axis: AcaciaWoodAxis::Y,
-            })),
-            Some(Block::Cobblestone),
+            Some(BlockId::stone()),
+            Some(BlockId::acacia_wood()),
+            Some(BlockId::cobblestone()),
             None,
         ];
 
@@ -55,10 +52,10 @@ mod tests {
     #[test]
     fn test_block_to_item() {
         let blocks = [
-            Block::Cobblestone,
-            Block::GrassBlock(GrassBlockData { snowy: true }),
-            Block::GrassBlock(GrassBlockData { snowy: false }),
-            Block::Sandstone,
+            BlockId::cobblestone(),
+            BlockId::grass_block().with_snowy(true),
+            BlockId::grass_block().with_snowy(false),
+            BlockId::sandstone(),
         ];
 
         let items = [
@@ -69,7 +66,7 @@ mod tests {
         ];
 
         for (block, item) in blocks.iter().zip(items.iter()) {
-            assert_eq!(block.clone().to_item(), Some(*item));
+            assert_eq!(block.to_item(), Some(*item));
         }
     }
 }
