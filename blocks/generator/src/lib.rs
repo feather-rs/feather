@@ -8,6 +8,7 @@ use std::collections::BTreeMap;
 use std::ops::RangeInclusive;
 use std::str::FromStr;
 use syn::export::ToTokens;
+use heck::SnakeCase;
 
 mod load;
 
@@ -71,6 +72,31 @@ impl Property {
         }
     }
 
+    fn tokens_for_as_str(&self, input: TokenStream) -> TokenStream {
+        match &self.kind {
+            PropertyKind::Integer { range } => {
+                let nums = range.clone().collect::<Vec<_>>();
+                let strs = range.clone().map(|x| x.to_string()).collect::<Vec<_>>();
+
+                quote! {
+                    match #input {
+                        #(
+                            #nums => #strs,
+                        )*
+                        _ => "unknown",
+                    }
+                }
+            }
+            PropertyKind::Boolean => quote! {
+                match #input {
+                    true => "true",
+                    false => "false",
+                }
+            },
+            PropertyKind::Enum { .. } => quote! { #input.as_str() },
+        }
+    }
+
     /// Returns an expression for a value of this property.
     fn expr_for_value(&self, value: &str) -> TokenStream {
         match &self.kind {
@@ -120,6 +146,7 @@ impl Property {
 
                 let variant_indices: Vec<_> = (0..variants.len() as u16).collect();
                 let try_from_error_msg = format!("invalid value {{}} for {}", name);
+                let as_str: Vec<_> = variants.iter().map(|ident| ident.to_string()).map(|x| x.to_snake_case()).collect();
 
                 let imp = quote! {
                     impl TryFrom<u16> for #name {
@@ -131,6 +158,16 @@ impl Property {
                                     #variant_indices => Ok(#name::#variants),
                                 )*
                                 x => Err(anyhow::anyhow!(#try_from_error_msg, x)),
+                            }
+                        }
+                    }
+
+                    impl #name {
+                        pub fn as_str(self) -> &'static str {
+                            match self {
+                                #(
+                                    #name::#variants => #as_str,
+                                )*
                             }
                         }
                     }
@@ -346,14 +383,87 @@ fn generate_block_fns(blocks: &Blocks) -> TokenStream {
         fns.push(f);
     }
 
-    let res = quote! {
-        use crate::*;
+    fns.extend(generate_block_serializing_fns(blocks));
 
+    let res = quote! {
+        use std::collections::BTreeMap;
+        use crate::*;
+        
         impl BlockId {
             #(#fns)*
         }
     };
     res
+}
+
+/// Generates `BlockId::identifier()`, `BlockId::to_properties_map()`, and `BlockId::from_properties_and_identifier()`.
+fn generate_block_serializing_fns(blocks: &Blocks) -> Vec<TokenStream> {
+    let mut fns = vec![];
+
+    let mut identifier_fn_match_arms = vec![];
+    for block in &blocks.blocks {
+        let name_camel_case =  &block.name_camel_case;
+        
+        let name = format!("minecraft:{}", block.name);
+
+        identifier_fn_match_arms.push(quote! {
+            BlockKind::#name_camel_case => #name
+        });
+    }
+
+    fns.push(quote! {
+        #[doc = "Returns the identifier of this block. For example, returns `minecraft::air` for an air block."]
+        pub fn identifier(self) -> &'static str {
+            match self.kind {
+                #(#identifier_fn_match_arms,)*
+            }
+        }
+    });
+
+    let mut to_properties_map_fn_match_arms = vec![];
+    let mut to_properties_map_util_fns = vec![];
+    for block in &blocks.blocks {
+        let name_camel_case = &block.name_camel_case;
+        let fn_to_call = ident(format!("{}_to_properties_map", block.name));
+
+        to_properties_map_fn_match_arms.push(quote! {
+            BlockKind::#name_camel_case => self.#fn_to_call()
+        }); 
+
+        let mut inserts = vec![];
+        for property_name in &block.properties {
+            let property = &blocks.property_types[property_name];
+
+            let name = &property.name;
+            let as_str = property.tokens_for_as_str(quote! { #name });
+
+            inserts.push(quote! {
+                let #name = self.#name().unwrap();
+                map.insert(#property_name, { #as_str });
+            })
+        }
+
+        to_properties_map_util_fns.push(quote! {
+            fn #fn_to_call(self) -> BTreeMap<&'static str, &'static str> {
+                let mut map = BTreeMap::new();
+                #(#inserts)*
+                map
+            }
+        });
+    }
+
+    fns.push(quote! {
+        #[doc = "Returns a mapping from property name to property value for this block. Used to serialize blocks in vanilla world saves."]
+        pub fn to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+            match self.kind {
+                #(#to_properties_map_fn_match_arms,)*
+            }
+        }
+
+        #(#to_properties_map_util_fns)*
+    });
+
+    fns
 }
 
 /// Returns the serialized `BlockTable`.

@@ -36,6 +36,12 @@ static FROM_VANILLA_ID_TABLE: Lazy<Vec<BlockId>> = Lazy::new(|| {
     res
 });
 
+/// Can be called at startup to pre-initialize the global block table.
+pub fn init() {
+    Lazy::force(&FROM_VANILLA_ID_TABLE);
+    Lazy::force(&BLOCK_TABLE);
+}
+
 use crate::generated::BlockKind;
 use once_cell::sync::Lazy;
 

@@ -1523,6 +1523,15 @@ impl TryFrom<u16> for AxisXyz {
         }
     }
 }
+impl AxisXyz {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            AxisXyz::X => "x",
+            AxisXyz::Y => "y",
+            AxisXyz::Z => "z",
+        }
+    }
+}
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum AxisXz {
@@ -1536,6 +1545,14 @@ impl TryFrom<u16> for AxisXz {
             0u16 => Ok(AxisXz::X),
             1u16 => Ok(AxisXz::Z),
             x => Err(anyhow::anyhow!("invalid value {} for AxisXz", x)),
+        }
+    }
+}
+impl AxisXz {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            AxisXz::X => "x",
+            AxisXz::Z => "z",
         }
     }
 }
@@ -1557,6 +1574,15 @@ impl TryFrom<u16> for ChestKind {
         }
     }
 }
+impl ChestKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            ChestKind::Single => "single",
+            ChestKind::Left => "left",
+            ChestKind::Right => "right",
+        }
+    }
+}
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum ComparatorMode {
@@ -1570,6 +1596,14 @@ impl TryFrom<u16> for ComparatorMode {
             0u16 => Ok(ComparatorMode::Compare),
             1u16 => Ok(ComparatorMode::Subtract),
             x => Err(anyhow::anyhow!("invalid value {} for ComparatorMode", x)),
+        }
+    }
+}
+impl ComparatorMode {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            ComparatorMode::Compare => "compare",
+            ComparatorMode::Subtract => "subtract",
         }
     }
 }
@@ -1591,6 +1625,15 @@ impl TryFrom<u16> for EastWire {
         }
     }
 }
+impl EastWire {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            EastWire::Up => "up",
+            EastWire::Side => "side",
+            EastWire::None => "none",
+        }
+    }
+}
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum Face {
@@ -1606,6 +1649,15 @@ impl TryFrom<u16> for Face {
             1u16 => Ok(Face::Wall),
             2u16 => Ok(Face::Ceiling),
             x => Err(anyhow::anyhow!("invalid value {} for Face", x)),
+        }
+    }
+}
+impl Face {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Face::Floor => "floor",
+            Face::Wall => "wall",
+            Face::Ceiling => "ceiling",
         }
     }
 }
@@ -1626,6 +1678,16 @@ impl TryFrom<u16> for FacingCardinal {
             2u16 => Ok(FacingCardinal::West),
             3u16 => Ok(FacingCardinal::East),
             x => Err(anyhow::anyhow!("invalid value {} for FacingCardinal", x)),
+        }
+    }
+}
+impl FacingCardinal {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            FacingCardinal::North => "north",
+            FacingCardinal::South => "south",
+            FacingCardinal::West => "west",
+            FacingCardinal::East => "east",
         }
     }
 }
@@ -1654,6 +1716,17 @@ impl TryFrom<u16> for FacingCardinalAndDown {
         }
     }
 }
+impl FacingCardinalAndDown {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            FacingCardinalAndDown::Down => "down",
+            FacingCardinalAndDown::North => "north",
+            FacingCardinalAndDown::South => "south",
+            FacingCardinalAndDown::West => "west",
+            FacingCardinalAndDown::East => "east",
+        }
+    }
+}
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum FacingCubic {
@@ -1678,6 +1751,18 @@ impl TryFrom<u16> for FacingCubic {
         }
     }
 }
+impl FacingCubic {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            FacingCubic::North => "north",
+            FacingCubic::East => "east",
+            FacingCubic::South => "south",
+            FacingCubic::West => "west",
+            FacingCubic::Up => "up",
+            FacingCubic::Down => "down",
+        }
+    }
+}
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum HalfTopBottom {
@@ -1691,6 +1776,14 @@ impl TryFrom<u16> for HalfTopBottom {
             0u16 => Ok(HalfTopBottom::Top),
             1u16 => Ok(HalfTopBottom::Bottom),
             x => Err(anyhow::anyhow!("invalid value {} for HalfTopBottom", x)),
+        }
+    }
+}
+impl HalfTopBottom {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            HalfTopBottom::Top => "top",
+            HalfTopBottom::Bottom => "bottom",
         }
     }
 }
@@ -1710,6 +1803,14 @@ impl TryFrom<u16> for HalfUpperLower {
         }
     }
 }
+impl HalfUpperLower {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            HalfUpperLower::Upper => "upper",
+            HalfUpperLower::Lower => "lower",
+        }
+    }
+}
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum Hinge {
@@ -1723,6 +1824,14 @@ impl TryFrom<u16> for Hinge {
             0u16 => Ok(Hinge::Left),
             1u16 => Ok(Hinge::Right),
             x => Err(anyhow::anyhow!("invalid value {} for Hinge", x)),
+        }
+    }
+}
+impl Hinge {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Hinge::Left => "left",
+            Hinge::Right => "right",
         }
     }
 }
@@ -1758,6 +1867,22 @@ impl TryFrom<u16> for Instrument {
         }
     }
 }
+impl Instrument {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Instrument::Harp => "harp",
+            Instrument::Basedrum => "basedrum",
+            Instrument::Snare => "snare",
+            Instrument::Hat => "hat",
+            Instrument::Bass => "bass",
+            Instrument::Flute => "flute",
+            Instrument::Bell => "bell",
+            Instrument::Guitar => "guitar",
+            Instrument::Chime => "chime",
+            Instrument::Xylophone => "xylophone",
+        }
+    }
+}
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum NorthWire {
@@ -1773,6 +1898,15 @@ impl TryFrom<u16> for NorthWire {
             1u16 => Ok(NorthWire::Side),
             2u16 => Ok(NorthWire::None),
             x => Err(anyhow::anyhow!("invalid value {} for NorthWire", x)),
+        }
+    }
+}
+impl NorthWire {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            NorthWire::Up => "up",
+            NorthWire::Side => "side",
+            NorthWire::None => "none",
         }
     }
 }
@@ -1792,6 +1926,14 @@ impl TryFrom<u16> for Part {
         }
     }
 }
+impl Part {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Part::Head => "head",
+            Part::Foot => "foot",
+        }
+    }
+}
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum PistonKind {
@@ -1805,6 +1947,14 @@ impl TryFrom<u16> for PistonKind {
             0u16 => Ok(PistonKind::Normal),
             1u16 => Ok(PistonKind::Sticky),
             x => Err(anyhow::anyhow!("invalid value {} for PistonKind", x)),
+        }
+    }
+}
+impl PistonKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            PistonKind::Normal => "normal",
+            PistonKind::Sticky => "sticky",
         }
     }
 }
@@ -1829,6 +1979,18 @@ impl TryFrom<u16> for PoweredRailShape {
             4u16 => Ok(PoweredRailShape::AscendingNorth),
             5u16 => Ok(PoweredRailShape::AscendingSouth),
             x => Err(anyhow::anyhow!("invalid value {} for PoweredRailShape", x)),
+        }
+    }
+}
+impl PoweredRailShape {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            PoweredRailShape::NorthSouth => "north_south",
+            PoweredRailShape::EastWest => "east_west",
+            PoweredRailShape::AscendingEast => "ascending_east",
+            PoweredRailShape::AscendingWest => "ascending_west",
+            PoweredRailShape::AscendingNorth => "ascending_north",
+            PoweredRailShape::AscendingSouth => "ascending_south",
         }
     }
 }
@@ -1864,6 +2026,22 @@ impl TryFrom<u16> for RailShape {
         }
     }
 }
+impl RailShape {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            RailShape::NorthSouth => "north_south",
+            RailShape::EastWest => "east_west",
+            RailShape::AscendingEast => "ascending_east",
+            RailShape::AscendingWest => "ascending_west",
+            RailShape::AscendingNorth => "ascending_north",
+            RailShape::AscendingSouth => "ascending_south",
+            RailShape::SouthEast => "south_east",
+            RailShape::SouthWest => "south_west",
+            RailShape::NorthWest => "north_west",
+            RailShape::NorthEast => "north_east",
+        }
+    }
+}
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum SlabKind {
@@ -1882,6 +2060,15 @@ impl TryFrom<u16> for SlabKind {
         }
     }
 }
+impl SlabKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            SlabKind::Top => "top",
+            SlabKind::Bottom => "bottom",
+            SlabKind::Double => "double",
+        }
+    }
+}
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum SouthWire {
@@ -1897,6 +2084,15 @@ impl TryFrom<u16> for SouthWire {
             1u16 => Ok(SouthWire::Side),
             2u16 => Ok(SouthWire::None),
             x => Err(anyhow::anyhow!("invalid value {} for SouthWire", x)),
+        }
+    }
+}
+impl SouthWire {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            SouthWire::Up => "up",
+            SouthWire::Side => "side",
+            SouthWire::None => "none",
         }
     }
 }
@@ -1919,6 +2115,17 @@ impl TryFrom<u16> for StairsShape {
             3u16 => Ok(StairsShape::OuterLeft),
             4u16 => Ok(StairsShape::OuterRight),
             x => Err(anyhow::anyhow!("invalid value {} for StairsShape", x)),
+        }
+    }
+}
+impl StairsShape {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            StairsShape::Straight => "straight",
+            StairsShape::InnerLeft => "inner_left",
+            StairsShape::InnerRight => "inner_right",
+            StairsShape::OuterLeft => "outer_left",
+            StairsShape::OuterRight => "outer_right",
         }
     }
 }
@@ -1945,6 +2152,16 @@ impl TryFrom<u16> for StructureBlockMode {
         }
     }
 }
+impl StructureBlockMode {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            StructureBlockMode::Save => "save",
+            StructureBlockMode::Load => "load",
+            StructureBlockMode::Corner => "corner",
+            StructureBlockMode::Data => "data",
+        }
+    }
+}
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
 pub enum WestWire {
@@ -1960,6 +2177,15 @@ impl TryFrom<u16> for WestWire {
             1u16 => Ok(WestWire::Side),
             2u16 => Ok(WestWire::None),
             x => Err(anyhow::anyhow!("invalid value {} for WestWire", x)),
+        }
+    }
+}
+impl WestWire {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            WestWire::Up => "up",
+            WestWire::Side => "side",
+            WestWire::None => "none",
         }
     }
 }

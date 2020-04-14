@@ -1,4 +1,5 @@
 use crate::*;
+use std::collections::BTreeMap;
 impl BlockId {
     #[doc = "Returns an instance of `air` with default state values."]
     pub fn air() -> Self {
@@ -6709,5 +6710,8008 @@ impl BlockId {
     pub fn with_west_wire(mut self, west_wire: WestWire) -> Self {
         self.set_west_wire(west_wire);
         self
+    }
+    #[doc = "Returns the identifier of this block. For example, returns `minecraft::air` for an air block."]
+    pub fn identifier(self) -> &'static str {
+        match self.kind {
+            BlockKind::Air => "minecraft:air",
+            BlockKind::Stone => "minecraft:stone",
+            BlockKind::Granite => "minecraft:granite",
+            BlockKind::PolishedGranite => "minecraft:polished_granite",
+            BlockKind::Diorite => "minecraft:diorite",
+            BlockKind::PolishedDiorite => "minecraft:polished_diorite",
+            BlockKind::Andesite => "minecraft:andesite",
+            BlockKind::PolishedAndesite => "minecraft:polished_andesite",
+            BlockKind::GrassBlock => "minecraft:grass_block",
+            BlockKind::Dirt => "minecraft:dirt",
+            BlockKind::CoarseDirt => "minecraft:coarse_dirt",
+            BlockKind::Podzol => "minecraft:podzol",
+            BlockKind::Cobblestone => "minecraft:cobblestone",
+            BlockKind::OakPlanks => "minecraft:oak_planks",
+            BlockKind::SprucePlanks => "minecraft:spruce_planks",
+            BlockKind::BirchPlanks => "minecraft:birch_planks",
+            BlockKind::JunglePlanks => "minecraft:jungle_planks",
+            BlockKind::AcaciaPlanks => "minecraft:acacia_planks",
+            BlockKind::DarkOakPlanks => "minecraft:dark_oak_planks",
+            BlockKind::OakSapling => "minecraft:oak_sapling",
+            BlockKind::SpruceSapling => "minecraft:spruce_sapling",
+            BlockKind::BirchSapling => "minecraft:birch_sapling",
+            BlockKind::JungleSapling => "minecraft:jungle_sapling",
+            BlockKind::AcaciaSapling => "minecraft:acacia_sapling",
+            BlockKind::DarkOakSapling => "minecraft:dark_oak_sapling",
+            BlockKind::Bedrock => "minecraft:bedrock",
+            BlockKind::Water => "minecraft:water",
+            BlockKind::Lava => "minecraft:lava",
+            BlockKind::Sand => "minecraft:sand",
+            BlockKind::RedSand => "minecraft:red_sand",
+            BlockKind::Gravel => "minecraft:gravel",
+            BlockKind::GoldOre => "minecraft:gold_ore",
+            BlockKind::IronOre => "minecraft:iron_ore",
+            BlockKind::CoalOre => "minecraft:coal_ore",
+            BlockKind::OakLog => "minecraft:oak_log",
+            BlockKind::SpruceLog => "minecraft:spruce_log",
+            BlockKind::BirchLog => "minecraft:birch_log",
+            BlockKind::JungleLog => "minecraft:jungle_log",
+            BlockKind::AcaciaLog => "minecraft:acacia_log",
+            BlockKind::DarkOakLog => "minecraft:dark_oak_log",
+            BlockKind::StrippedSpruceLog => "minecraft:stripped_spruce_log",
+            BlockKind::StrippedBirchLog => "minecraft:stripped_birch_log",
+            BlockKind::StrippedJungleLog => "minecraft:stripped_jungle_log",
+            BlockKind::StrippedAcaciaLog => "minecraft:stripped_acacia_log",
+            BlockKind::StrippedDarkOakLog => "minecraft:stripped_dark_oak_log",
+            BlockKind::StrippedOakLog => "minecraft:stripped_oak_log",
+            BlockKind::OakWood => "minecraft:oak_wood",
+            BlockKind::SpruceWood => "minecraft:spruce_wood",
+            BlockKind::BirchWood => "minecraft:birch_wood",
+            BlockKind::JungleWood => "minecraft:jungle_wood",
+            BlockKind::AcaciaWood => "minecraft:acacia_wood",
+            BlockKind::DarkOakWood => "minecraft:dark_oak_wood",
+            BlockKind::StrippedOakWood => "minecraft:stripped_oak_wood",
+            BlockKind::StrippedSpruceWood => "minecraft:stripped_spruce_wood",
+            BlockKind::StrippedBirchWood => "minecraft:stripped_birch_wood",
+            BlockKind::StrippedJungleWood => "minecraft:stripped_jungle_wood",
+            BlockKind::StrippedAcaciaWood => "minecraft:stripped_acacia_wood",
+            BlockKind::StrippedDarkOakWood => "minecraft:stripped_dark_oak_wood",
+            BlockKind::OakLeaves => "minecraft:oak_leaves",
+            BlockKind::SpruceLeaves => "minecraft:spruce_leaves",
+            BlockKind::BirchLeaves => "minecraft:birch_leaves",
+            BlockKind::JungleLeaves => "minecraft:jungle_leaves",
+            BlockKind::AcaciaLeaves => "minecraft:acacia_leaves",
+            BlockKind::DarkOakLeaves => "minecraft:dark_oak_leaves",
+            BlockKind::Sponge => "minecraft:sponge",
+            BlockKind::WetSponge => "minecraft:wet_sponge",
+            BlockKind::Glass => "minecraft:glass",
+            BlockKind::LapisOre => "minecraft:lapis_ore",
+            BlockKind::LapisBlock => "minecraft:lapis_block",
+            BlockKind::Dispenser => "minecraft:dispenser",
+            BlockKind::Sandstone => "minecraft:sandstone",
+            BlockKind::ChiseledSandstone => "minecraft:chiseled_sandstone",
+            BlockKind::CutSandstone => "minecraft:cut_sandstone",
+            BlockKind::NoteBlock => "minecraft:note_block",
+            BlockKind::WhiteBed => "minecraft:white_bed",
+            BlockKind::OrangeBed => "minecraft:orange_bed",
+            BlockKind::MagentaBed => "minecraft:magenta_bed",
+            BlockKind::LightBlueBed => "minecraft:light_blue_bed",
+            BlockKind::YellowBed => "minecraft:yellow_bed",
+            BlockKind::LimeBed => "minecraft:lime_bed",
+            BlockKind::PinkBed => "minecraft:pink_bed",
+            BlockKind::GrayBed => "minecraft:gray_bed",
+            BlockKind::LightGrayBed => "minecraft:light_gray_bed",
+            BlockKind::CyanBed => "minecraft:cyan_bed",
+            BlockKind::PurpleBed => "minecraft:purple_bed",
+            BlockKind::BlueBed => "minecraft:blue_bed",
+            BlockKind::BrownBed => "minecraft:brown_bed",
+            BlockKind::GreenBed => "minecraft:green_bed",
+            BlockKind::RedBed => "minecraft:red_bed",
+            BlockKind::BlackBed => "minecraft:black_bed",
+            BlockKind::PoweredRail => "minecraft:powered_rail",
+            BlockKind::DetectorRail => "minecraft:detector_rail",
+            BlockKind::StickyPiston => "minecraft:sticky_piston",
+            BlockKind::Cobweb => "minecraft:cobweb",
+            BlockKind::Grass => "minecraft:grass",
+            BlockKind::Fern => "minecraft:fern",
+            BlockKind::DeadBush => "minecraft:dead_bush",
+            BlockKind::Seagrass => "minecraft:seagrass",
+            BlockKind::TallSeagrass => "minecraft:tall_seagrass",
+            BlockKind::Piston => "minecraft:piston",
+            BlockKind::PistonHead => "minecraft:piston_head",
+            BlockKind::WhiteWool => "minecraft:white_wool",
+            BlockKind::OrangeWool => "minecraft:orange_wool",
+            BlockKind::MagentaWool => "minecraft:magenta_wool",
+            BlockKind::LightBlueWool => "minecraft:light_blue_wool",
+            BlockKind::YellowWool => "minecraft:yellow_wool",
+            BlockKind::LimeWool => "minecraft:lime_wool",
+            BlockKind::PinkWool => "minecraft:pink_wool",
+            BlockKind::GrayWool => "minecraft:gray_wool",
+            BlockKind::LightGrayWool => "minecraft:light_gray_wool",
+            BlockKind::CyanWool => "minecraft:cyan_wool",
+            BlockKind::PurpleWool => "minecraft:purple_wool",
+            BlockKind::BlueWool => "minecraft:blue_wool",
+            BlockKind::BrownWool => "minecraft:brown_wool",
+            BlockKind::GreenWool => "minecraft:green_wool",
+            BlockKind::RedWool => "minecraft:red_wool",
+            BlockKind::BlackWool => "minecraft:black_wool",
+            BlockKind::MovingPiston => "minecraft:moving_piston",
+            BlockKind::Dandelion => "minecraft:dandelion",
+            BlockKind::Poppy => "minecraft:poppy",
+            BlockKind::BlueOrchid => "minecraft:blue_orchid",
+            BlockKind::Allium => "minecraft:allium",
+            BlockKind::AzureBluet => "minecraft:azure_bluet",
+            BlockKind::RedTulip => "minecraft:red_tulip",
+            BlockKind::OrangeTulip => "minecraft:orange_tulip",
+            BlockKind::WhiteTulip => "minecraft:white_tulip",
+            BlockKind::PinkTulip => "minecraft:pink_tulip",
+            BlockKind::OxeyeDaisy => "minecraft:oxeye_daisy",
+            BlockKind::BrownMushroom => "minecraft:brown_mushroom",
+            BlockKind::RedMushroom => "minecraft:red_mushroom",
+            BlockKind::GoldBlock => "minecraft:gold_block",
+            BlockKind::IronBlock => "minecraft:iron_block",
+            BlockKind::Bricks => "minecraft:bricks",
+            BlockKind::Tnt => "minecraft:tnt",
+            BlockKind::Bookshelf => "minecraft:bookshelf",
+            BlockKind::MossyCobblestone => "minecraft:mossy_cobblestone",
+            BlockKind::Obsidian => "minecraft:obsidian",
+            BlockKind::Torch => "minecraft:torch",
+            BlockKind::WallTorch => "minecraft:wall_torch",
+            BlockKind::Fire => "minecraft:fire",
+            BlockKind::Spawner => "minecraft:spawner",
+            BlockKind::OakStairs => "minecraft:oak_stairs",
+            BlockKind::Chest => "minecraft:chest",
+            BlockKind::RedstoneWire => "minecraft:redstone_wire",
+            BlockKind::DiamondOre => "minecraft:diamond_ore",
+            BlockKind::DiamondBlock => "minecraft:diamond_block",
+            BlockKind::CraftingTable => "minecraft:crafting_table",
+            BlockKind::Wheat => "minecraft:wheat",
+            BlockKind::Farmland => "minecraft:farmland",
+            BlockKind::Furnace => "minecraft:furnace",
+            BlockKind::Sign => "minecraft:sign",
+            BlockKind::OakDoor => "minecraft:oak_door",
+            BlockKind::Ladder => "minecraft:ladder",
+            BlockKind::Rail => "minecraft:rail",
+            BlockKind::CobblestoneStairs => "minecraft:cobblestone_stairs",
+            BlockKind::WallSign => "minecraft:wall_sign",
+            BlockKind::Lever => "minecraft:lever",
+            BlockKind::StonePressurePlate => "minecraft:stone_pressure_plate",
+            BlockKind::IronDoor => "minecraft:iron_door",
+            BlockKind::OakPressurePlate => "minecraft:oak_pressure_plate",
+            BlockKind::SprucePressurePlate => "minecraft:spruce_pressure_plate",
+            BlockKind::BirchPressurePlate => "minecraft:birch_pressure_plate",
+            BlockKind::JunglePressurePlate => "minecraft:jungle_pressure_plate",
+            BlockKind::AcaciaPressurePlate => "minecraft:acacia_pressure_plate",
+            BlockKind::DarkOakPressurePlate => "minecraft:dark_oak_pressure_plate",
+            BlockKind::RedstoneOre => "minecraft:redstone_ore",
+            BlockKind::RedstoneTorch => "minecraft:redstone_torch",
+            BlockKind::RedstoneWallTorch => "minecraft:redstone_wall_torch",
+            BlockKind::StoneButton => "minecraft:stone_button",
+            BlockKind::Snow => "minecraft:snow",
+            BlockKind::Ice => "minecraft:ice",
+            BlockKind::SnowBlock => "minecraft:snow_block",
+            BlockKind::Cactus => "minecraft:cactus",
+            BlockKind::Clay => "minecraft:clay",
+            BlockKind::SugarCane => "minecraft:sugar_cane",
+            BlockKind::Jukebox => "minecraft:jukebox",
+            BlockKind::OakFence => "minecraft:oak_fence",
+            BlockKind::Pumpkin => "minecraft:pumpkin",
+            BlockKind::Netherrack => "minecraft:netherrack",
+            BlockKind::SoulSand => "minecraft:soul_sand",
+            BlockKind::Glowstone => "minecraft:glowstone",
+            BlockKind::NetherPortal => "minecraft:nether_portal",
+            BlockKind::CarvedPumpkin => "minecraft:carved_pumpkin",
+            BlockKind::JackOLantern => "minecraft:jack_o_lantern",
+            BlockKind::Cake => "minecraft:cake",
+            BlockKind::Repeater => "minecraft:repeater",
+            BlockKind::WhiteStainedGlass => "minecraft:white_stained_glass",
+            BlockKind::OrangeStainedGlass => "minecraft:orange_stained_glass",
+            BlockKind::MagentaStainedGlass => "minecraft:magenta_stained_glass",
+            BlockKind::LightBlueStainedGlass => "minecraft:light_blue_stained_glass",
+            BlockKind::YellowStainedGlass => "minecraft:yellow_stained_glass",
+            BlockKind::LimeStainedGlass => "minecraft:lime_stained_glass",
+            BlockKind::PinkStainedGlass => "minecraft:pink_stained_glass",
+            BlockKind::GrayStainedGlass => "minecraft:gray_stained_glass",
+            BlockKind::LightGrayStainedGlass => "minecraft:light_gray_stained_glass",
+            BlockKind::CyanStainedGlass => "minecraft:cyan_stained_glass",
+            BlockKind::PurpleStainedGlass => "minecraft:purple_stained_glass",
+            BlockKind::BlueStainedGlass => "minecraft:blue_stained_glass",
+            BlockKind::BrownStainedGlass => "minecraft:brown_stained_glass",
+            BlockKind::GreenStainedGlass => "minecraft:green_stained_glass",
+            BlockKind::RedStainedGlass => "minecraft:red_stained_glass",
+            BlockKind::BlackStainedGlass => "minecraft:black_stained_glass",
+            BlockKind::OakTrapdoor => "minecraft:oak_trapdoor",
+            BlockKind::SpruceTrapdoor => "minecraft:spruce_trapdoor",
+            BlockKind::BirchTrapdoor => "minecraft:birch_trapdoor",
+            BlockKind::JungleTrapdoor => "minecraft:jungle_trapdoor",
+            BlockKind::AcaciaTrapdoor => "minecraft:acacia_trapdoor",
+            BlockKind::DarkOakTrapdoor => "minecraft:dark_oak_trapdoor",
+            BlockKind::InfestedStone => "minecraft:infested_stone",
+            BlockKind::InfestedCobblestone => "minecraft:infested_cobblestone",
+            BlockKind::InfestedStoneBricks => "minecraft:infested_stone_bricks",
+            BlockKind::InfestedMossyStoneBricks => "minecraft:infested_mossy_stone_bricks",
+            BlockKind::InfestedCrackedStoneBricks => "minecraft:infested_cracked_stone_bricks",
+            BlockKind::InfestedChiseledStoneBricks => "minecraft:infested_chiseled_stone_bricks",
+            BlockKind::StoneBricks => "minecraft:stone_bricks",
+            BlockKind::MossyStoneBricks => "minecraft:mossy_stone_bricks",
+            BlockKind::CrackedStoneBricks => "minecraft:cracked_stone_bricks",
+            BlockKind::ChiseledStoneBricks => "minecraft:chiseled_stone_bricks",
+            BlockKind::BrownMushroomBlock => "minecraft:brown_mushroom_block",
+            BlockKind::RedMushroomBlock => "minecraft:red_mushroom_block",
+            BlockKind::MushroomStem => "minecraft:mushroom_stem",
+            BlockKind::IronBars => "minecraft:iron_bars",
+            BlockKind::GlassPane => "minecraft:glass_pane",
+            BlockKind::Melon => "minecraft:melon",
+            BlockKind::AttachedPumpkinStem => "minecraft:attached_pumpkin_stem",
+            BlockKind::AttachedMelonStem => "minecraft:attached_melon_stem",
+            BlockKind::PumpkinStem => "minecraft:pumpkin_stem",
+            BlockKind::MelonStem => "minecraft:melon_stem",
+            BlockKind::Vine => "minecraft:vine",
+            BlockKind::OakFenceGate => "minecraft:oak_fence_gate",
+            BlockKind::BrickStairs => "minecraft:brick_stairs",
+            BlockKind::StoneBrickStairs => "minecraft:stone_brick_stairs",
+            BlockKind::Mycelium => "minecraft:mycelium",
+            BlockKind::LilyPad => "minecraft:lily_pad",
+            BlockKind::NetherBricks => "minecraft:nether_bricks",
+            BlockKind::NetherBrickFence => "minecraft:nether_brick_fence",
+            BlockKind::NetherBrickStairs => "minecraft:nether_brick_stairs",
+            BlockKind::NetherWart => "minecraft:nether_wart",
+            BlockKind::EnchantingTable => "minecraft:enchanting_table",
+            BlockKind::BrewingStand => "minecraft:brewing_stand",
+            BlockKind::Cauldron => "minecraft:cauldron",
+            BlockKind::EndPortal => "minecraft:end_portal",
+            BlockKind::EndPortalFrame => "minecraft:end_portal_frame",
+            BlockKind::EndStone => "minecraft:end_stone",
+            BlockKind::DragonEgg => "minecraft:dragon_egg",
+            BlockKind::RedstoneLamp => "minecraft:redstone_lamp",
+            BlockKind::Cocoa => "minecraft:cocoa",
+            BlockKind::SandstoneStairs => "minecraft:sandstone_stairs",
+            BlockKind::EmeraldOre => "minecraft:emerald_ore",
+            BlockKind::EnderChest => "minecraft:ender_chest",
+            BlockKind::TripwireHook => "minecraft:tripwire_hook",
+            BlockKind::Tripwire => "minecraft:tripwire",
+            BlockKind::EmeraldBlock => "minecraft:emerald_block",
+            BlockKind::SpruceStairs => "minecraft:spruce_stairs",
+            BlockKind::BirchStairs => "minecraft:birch_stairs",
+            BlockKind::JungleStairs => "minecraft:jungle_stairs",
+            BlockKind::CommandBlock => "minecraft:command_block",
+            BlockKind::Beacon => "minecraft:beacon",
+            BlockKind::CobblestoneWall => "minecraft:cobblestone_wall",
+            BlockKind::MossyCobblestoneWall => "minecraft:mossy_cobblestone_wall",
+            BlockKind::FlowerPot => "minecraft:flower_pot",
+            BlockKind::PottedOakSapling => "minecraft:potted_oak_sapling",
+            BlockKind::PottedSpruceSapling => "minecraft:potted_spruce_sapling",
+            BlockKind::PottedBirchSapling => "minecraft:potted_birch_sapling",
+            BlockKind::PottedJungleSapling => "minecraft:potted_jungle_sapling",
+            BlockKind::PottedAcaciaSapling => "minecraft:potted_acacia_sapling",
+            BlockKind::PottedDarkOakSapling => "minecraft:potted_dark_oak_sapling",
+            BlockKind::PottedFern => "minecraft:potted_fern",
+            BlockKind::PottedDandelion => "minecraft:potted_dandelion",
+            BlockKind::PottedPoppy => "minecraft:potted_poppy",
+            BlockKind::PottedBlueOrchid => "minecraft:potted_blue_orchid",
+            BlockKind::PottedAllium => "minecraft:potted_allium",
+            BlockKind::PottedAzureBluet => "minecraft:potted_azure_bluet",
+            BlockKind::PottedRedTulip => "minecraft:potted_red_tulip",
+            BlockKind::PottedOrangeTulip => "minecraft:potted_orange_tulip",
+            BlockKind::PottedWhiteTulip => "minecraft:potted_white_tulip",
+            BlockKind::PottedPinkTulip => "minecraft:potted_pink_tulip",
+            BlockKind::PottedOxeyeDaisy => "minecraft:potted_oxeye_daisy",
+            BlockKind::PottedRedMushroom => "minecraft:potted_red_mushroom",
+            BlockKind::PottedBrownMushroom => "minecraft:potted_brown_mushroom",
+            BlockKind::PottedDeadBush => "minecraft:potted_dead_bush",
+            BlockKind::PottedCactus => "minecraft:potted_cactus",
+            BlockKind::Carrots => "minecraft:carrots",
+            BlockKind::Potatoes => "minecraft:potatoes",
+            BlockKind::OakButton => "minecraft:oak_button",
+            BlockKind::SpruceButton => "minecraft:spruce_button",
+            BlockKind::BirchButton => "minecraft:birch_button",
+            BlockKind::JungleButton => "minecraft:jungle_button",
+            BlockKind::AcaciaButton => "minecraft:acacia_button",
+            BlockKind::DarkOakButton => "minecraft:dark_oak_button",
+            BlockKind::SkeletonWallSkull => "minecraft:skeleton_wall_skull",
+            BlockKind::SkeletonSkull => "minecraft:skeleton_skull",
+            BlockKind::WitherSkeletonWallSkull => "minecraft:wither_skeleton_wall_skull",
+            BlockKind::WitherSkeletonSkull => "minecraft:wither_skeleton_skull",
+            BlockKind::ZombieWallHead => "minecraft:zombie_wall_head",
+            BlockKind::ZombieHead => "minecraft:zombie_head",
+            BlockKind::PlayerWallHead => "minecraft:player_wall_head",
+            BlockKind::PlayerHead => "minecraft:player_head",
+            BlockKind::CreeperWallHead => "minecraft:creeper_wall_head",
+            BlockKind::CreeperHead => "minecraft:creeper_head",
+            BlockKind::DragonWallHead => "minecraft:dragon_wall_head",
+            BlockKind::DragonHead => "minecraft:dragon_head",
+            BlockKind::Anvil => "minecraft:anvil",
+            BlockKind::ChippedAnvil => "minecraft:chipped_anvil",
+            BlockKind::DamagedAnvil => "minecraft:damaged_anvil",
+            BlockKind::TrappedChest => "minecraft:trapped_chest",
+            BlockKind::LightWeightedPressurePlate => "minecraft:light_weighted_pressure_plate",
+            BlockKind::HeavyWeightedPressurePlate => "minecraft:heavy_weighted_pressure_plate",
+            BlockKind::Comparator => "minecraft:comparator",
+            BlockKind::DaylightDetector => "minecraft:daylight_detector",
+            BlockKind::RedstoneBlock => "minecraft:redstone_block",
+            BlockKind::NetherQuartzOre => "minecraft:nether_quartz_ore",
+            BlockKind::Hopper => "minecraft:hopper",
+            BlockKind::QuartzBlock => "minecraft:quartz_block",
+            BlockKind::ChiseledQuartzBlock => "minecraft:chiseled_quartz_block",
+            BlockKind::QuartzPillar => "minecraft:quartz_pillar",
+            BlockKind::QuartzStairs => "minecraft:quartz_stairs",
+            BlockKind::ActivatorRail => "minecraft:activator_rail",
+            BlockKind::Dropper => "minecraft:dropper",
+            BlockKind::WhiteTerracotta => "minecraft:white_terracotta",
+            BlockKind::OrangeTerracotta => "minecraft:orange_terracotta",
+            BlockKind::MagentaTerracotta => "minecraft:magenta_terracotta",
+            BlockKind::LightBlueTerracotta => "minecraft:light_blue_terracotta",
+            BlockKind::YellowTerracotta => "minecraft:yellow_terracotta",
+            BlockKind::LimeTerracotta => "minecraft:lime_terracotta",
+            BlockKind::PinkTerracotta => "minecraft:pink_terracotta",
+            BlockKind::GrayTerracotta => "minecraft:gray_terracotta",
+            BlockKind::LightGrayTerracotta => "minecraft:light_gray_terracotta",
+            BlockKind::CyanTerracotta => "minecraft:cyan_terracotta",
+            BlockKind::PurpleTerracotta => "minecraft:purple_terracotta",
+            BlockKind::BlueTerracotta => "minecraft:blue_terracotta",
+            BlockKind::BrownTerracotta => "minecraft:brown_terracotta",
+            BlockKind::GreenTerracotta => "minecraft:green_terracotta",
+            BlockKind::RedTerracotta => "minecraft:red_terracotta",
+            BlockKind::BlackTerracotta => "minecraft:black_terracotta",
+            BlockKind::WhiteStainedGlassPane => "minecraft:white_stained_glass_pane",
+            BlockKind::OrangeStainedGlassPane => "minecraft:orange_stained_glass_pane",
+            BlockKind::MagentaStainedGlassPane => "minecraft:magenta_stained_glass_pane",
+            BlockKind::LightBlueStainedGlassPane => "minecraft:light_blue_stained_glass_pane",
+            BlockKind::YellowStainedGlassPane => "minecraft:yellow_stained_glass_pane",
+            BlockKind::LimeStainedGlassPane => "minecraft:lime_stained_glass_pane",
+            BlockKind::PinkStainedGlassPane => "minecraft:pink_stained_glass_pane",
+            BlockKind::GrayStainedGlassPane => "minecraft:gray_stained_glass_pane",
+            BlockKind::LightGrayStainedGlassPane => "minecraft:light_gray_stained_glass_pane",
+            BlockKind::CyanStainedGlassPane => "minecraft:cyan_stained_glass_pane",
+            BlockKind::PurpleStainedGlassPane => "minecraft:purple_stained_glass_pane",
+            BlockKind::BlueStainedGlassPane => "minecraft:blue_stained_glass_pane",
+            BlockKind::BrownStainedGlassPane => "minecraft:brown_stained_glass_pane",
+            BlockKind::GreenStainedGlassPane => "minecraft:green_stained_glass_pane",
+            BlockKind::RedStainedGlassPane => "minecraft:red_stained_glass_pane",
+            BlockKind::BlackStainedGlassPane => "minecraft:black_stained_glass_pane",
+            BlockKind::AcaciaStairs => "minecraft:acacia_stairs",
+            BlockKind::DarkOakStairs => "minecraft:dark_oak_stairs",
+            BlockKind::SlimeBlock => "minecraft:slime_block",
+            BlockKind::Barrier => "minecraft:barrier",
+            BlockKind::IronTrapdoor => "minecraft:iron_trapdoor",
+            BlockKind::Prismarine => "minecraft:prismarine",
+            BlockKind::PrismarineBricks => "minecraft:prismarine_bricks",
+            BlockKind::DarkPrismarine => "minecraft:dark_prismarine",
+            BlockKind::PrismarineStairs => "minecraft:prismarine_stairs",
+            BlockKind::PrismarineBrickStairs => "minecraft:prismarine_brick_stairs",
+            BlockKind::DarkPrismarineStairs => "minecraft:dark_prismarine_stairs",
+            BlockKind::PrismarineSlab => "minecraft:prismarine_slab",
+            BlockKind::PrismarineBrickSlab => "minecraft:prismarine_brick_slab",
+            BlockKind::DarkPrismarineSlab => "minecraft:dark_prismarine_slab",
+            BlockKind::SeaLantern => "minecraft:sea_lantern",
+            BlockKind::HayBlock => "minecraft:hay_block",
+            BlockKind::WhiteCarpet => "minecraft:white_carpet",
+            BlockKind::OrangeCarpet => "minecraft:orange_carpet",
+            BlockKind::MagentaCarpet => "minecraft:magenta_carpet",
+            BlockKind::LightBlueCarpet => "minecraft:light_blue_carpet",
+            BlockKind::YellowCarpet => "minecraft:yellow_carpet",
+            BlockKind::LimeCarpet => "minecraft:lime_carpet",
+            BlockKind::PinkCarpet => "minecraft:pink_carpet",
+            BlockKind::GrayCarpet => "minecraft:gray_carpet",
+            BlockKind::LightGrayCarpet => "minecraft:light_gray_carpet",
+            BlockKind::CyanCarpet => "minecraft:cyan_carpet",
+            BlockKind::PurpleCarpet => "minecraft:purple_carpet",
+            BlockKind::BlueCarpet => "minecraft:blue_carpet",
+            BlockKind::BrownCarpet => "minecraft:brown_carpet",
+            BlockKind::GreenCarpet => "minecraft:green_carpet",
+            BlockKind::RedCarpet => "minecraft:red_carpet",
+            BlockKind::BlackCarpet => "minecraft:black_carpet",
+            BlockKind::Terracotta => "minecraft:terracotta",
+            BlockKind::CoalBlock => "minecraft:coal_block",
+            BlockKind::PackedIce => "minecraft:packed_ice",
+            BlockKind::Sunflower => "minecraft:sunflower",
+            BlockKind::Lilac => "minecraft:lilac",
+            BlockKind::RoseBush => "minecraft:rose_bush",
+            BlockKind::Peony => "minecraft:peony",
+            BlockKind::TallGrass => "minecraft:tall_grass",
+            BlockKind::LargeFern => "minecraft:large_fern",
+            BlockKind::WhiteBanner => "minecraft:white_banner",
+            BlockKind::OrangeBanner => "minecraft:orange_banner",
+            BlockKind::MagentaBanner => "minecraft:magenta_banner",
+            BlockKind::LightBlueBanner => "minecraft:light_blue_banner",
+            BlockKind::YellowBanner => "minecraft:yellow_banner",
+            BlockKind::LimeBanner => "minecraft:lime_banner",
+            BlockKind::PinkBanner => "minecraft:pink_banner",
+            BlockKind::GrayBanner => "minecraft:gray_banner",
+            BlockKind::LightGrayBanner => "minecraft:light_gray_banner",
+            BlockKind::CyanBanner => "minecraft:cyan_banner",
+            BlockKind::PurpleBanner => "minecraft:purple_banner",
+            BlockKind::BlueBanner => "minecraft:blue_banner",
+            BlockKind::BrownBanner => "minecraft:brown_banner",
+            BlockKind::GreenBanner => "minecraft:green_banner",
+            BlockKind::RedBanner => "minecraft:red_banner",
+            BlockKind::BlackBanner => "minecraft:black_banner",
+            BlockKind::WhiteWallBanner => "minecraft:white_wall_banner",
+            BlockKind::OrangeWallBanner => "minecraft:orange_wall_banner",
+            BlockKind::MagentaWallBanner => "minecraft:magenta_wall_banner",
+            BlockKind::LightBlueWallBanner => "minecraft:light_blue_wall_banner",
+            BlockKind::YellowWallBanner => "minecraft:yellow_wall_banner",
+            BlockKind::LimeWallBanner => "minecraft:lime_wall_banner",
+            BlockKind::PinkWallBanner => "minecraft:pink_wall_banner",
+            BlockKind::GrayWallBanner => "minecraft:gray_wall_banner",
+            BlockKind::LightGrayWallBanner => "minecraft:light_gray_wall_banner",
+            BlockKind::CyanWallBanner => "minecraft:cyan_wall_banner",
+            BlockKind::PurpleWallBanner => "minecraft:purple_wall_banner",
+            BlockKind::BlueWallBanner => "minecraft:blue_wall_banner",
+            BlockKind::BrownWallBanner => "minecraft:brown_wall_banner",
+            BlockKind::GreenWallBanner => "minecraft:green_wall_banner",
+            BlockKind::RedWallBanner => "minecraft:red_wall_banner",
+            BlockKind::BlackWallBanner => "minecraft:black_wall_banner",
+            BlockKind::RedSandstone => "minecraft:red_sandstone",
+            BlockKind::ChiseledRedSandstone => "minecraft:chiseled_red_sandstone",
+            BlockKind::CutRedSandstone => "minecraft:cut_red_sandstone",
+            BlockKind::RedSandstoneStairs => "minecraft:red_sandstone_stairs",
+            BlockKind::OakSlab => "minecraft:oak_slab",
+            BlockKind::SpruceSlab => "minecraft:spruce_slab",
+            BlockKind::BirchSlab => "minecraft:birch_slab",
+            BlockKind::JungleSlab => "minecraft:jungle_slab",
+            BlockKind::AcaciaSlab => "minecraft:acacia_slab",
+            BlockKind::DarkOakSlab => "minecraft:dark_oak_slab",
+            BlockKind::StoneSlab => "minecraft:stone_slab",
+            BlockKind::SandstoneSlab => "minecraft:sandstone_slab",
+            BlockKind::PetrifiedOakSlab => "minecraft:petrified_oak_slab",
+            BlockKind::CobblestoneSlab => "minecraft:cobblestone_slab",
+            BlockKind::BrickSlab => "minecraft:brick_slab",
+            BlockKind::StoneBrickSlab => "minecraft:stone_brick_slab",
+            BlockKind::NetherBrickSlab => "minecraft:nether_brick_slab",
+            BlockKind::QuartzSlab => "minecraft:quartz_slab",
+            BlockKind::RedSandstoneSlab => "minecraft:red_sandstone_slab",
+            BlockKind::PurpurSlab => "minecraft:purpur_slab",
+            BlockKind::SmoothStone => "minecraft:smooth_stone",
+            BlockKind::SmoothSandstone => "minecraft:smooth_sandstone",
+            BlockKind::SmoothQuartz => "minecraft:smooth_quartz",
+            BlockKind::SmoothRedSandstone => "minecraft:smooth_red_sandstone",
+            BlockKind::SpruceFenceGate => "minecraft:spruce_fence_gate",
+            BlockKind::BirchFenceGate => "minecraft:birch_fence_gate",
+            BlockKind::JungleFenceGate => "minecraft:jungle_fence_gate",
+            BlockKind::AcaciaFenceGate => "minecraft:acacia_fence_gate",
+            BlockKind::DarkOakFenceGate => "minecraft:dark_oak_fence_gate",
+            BlockKind::SpruceFence => "minecraft:spruce_fence",
+            BlockKind::BirchFence => "minecraft:birch_fence",
+            BlockKind::JungleFence => "minecraft:jungle_fence",
+            BlockKind::AcaciaFence => "minecraft:acacia_fence",
+            BlockKind::DarkOakFence => "minecraft:dark_oak_fence",
+            BlockKind::SpruceDoor => "minecraft:spruce_door",
+            BlockKind::BirchDoor => "minecraft:birch_door",
+            BlockKind::JungleDoor => "minecraft:jungle_door",
+            BlockKind::AcaciaDoor => "minecraft:acacia_door",
+            BlockKind::DarkOakDoor => "minecraft:dark_oak_door",
+            BlockKind::EndRod => "minecraft:end_rod",
+            BlockKind::ChorusPlant => "minecraft:chorus_plant",
+            BlockKind::ChorusFlower => "minecraft:chorus_flower",
+            BlockKind::PurpurBlock => "minecraft:purpur_block",
+            BlockKind::PurpurPillar => "minecraft:purpur_pillar",
+            BlockKind::PurpurStairs => "minecraft:purpur_stairs",
+            BlockKind::EndStoneBricks => "minecraft:end_stone_bricks",
+            BlockKind::Beetroots => "minecraft:beetroots",
+            BlockKind::GrassPath => "minecraft:grass_path",
+            BlockKind::EndGateway => "minecraft:end_gateway",
+            BlockKind::RepeatingCommandBlock => "minecraft:repeating_command_block",
+            BlockKind::ChainCommandBlock => "minecraft:chain_command_block",
+            BlockKind::FrostedIce => "minecraft:frosted_ice",
+            BlockKind::MagmaBlock => "minecraft:magma_block",
+            BlockKind::NetherWartBlock => "minecraft:nether_wart_block",
+            BlockKind::RedNetherBricks => "minecraft:red_nether_bricks",
+            BlockKind::BoneBlock => "minecraft:bone_block",
+            BlockKind::StructureVoid => "minecraft:structure_void",
+            BlockKind::Observer => "minecraft:observer",
+            BlockKind::ShulkerBox => "minecraft:shulker_box",
+            BlockKind::WhiteShulkerBox => "minecraft:white_shulker_box",
+            BlockKind::OrangeShulkerBox => "minecraft:orange_shulker_box",
+            BlockKind::MagentaShulkerBox => "minecraft:magenta_shulker_box",
+            BlockKind::LightBlueShulkerBox => "minecraft:light_blue_shulker_box",
+            BlockKind::YellowShulkerBox => "minecraft:yellow_shulker_box",
+            BlockKind::LimeShulkerBox => "minecraft:lime_shulker_box",
+            BlockKind::PinkShulkerBox => "minecraft:pink_shulker_box",
+            BlockKind::GrayShulkerBox => "minecraft:gray_shulker_box",
+            BlockKind::LightGrayShulkerBox => "minecraft:light_gray_shulker_box",
+            BlockKind::CyanShulkerBox => "minecraft:cyan_shulker_box",
+            BlockKind::PurpleShulkerBox => "minecraft:purple_shulker_box",
+            BlockKind::BlueShulkerBox => "minecraft:blue_shulker_box",
+            BlockKind::BrownShulkerBox => "minecraft:brown_shulker_box",
+            BlockKind::GreenShulkerBox => "minecraft:green_shulker_box",
+            BlockKind::RedShulkerBox => "minecraft:red_shulker_box",
+            BlockKind::BlackShulkerBox => "minecraft:black_shulker_box",
+            BlockKind::WhiteGlazedTerracotta => "minecraft:white_glazed_terracotta",
+            BlockKind::OrangeGlazedTerracotta => "minecraft:orange_glazed_terracotta",
+            BlockKind::MagentaGlazedTerracotta => "minecraft:magenta_glazed_terracotta",
+            BlockKind::LightBlueGlazedTerracotta => "minecraft:light_blue_glazed_terracotta",
+            BlockKind::YellowGlazedTerracotta => "minecraft:yellow_glazed_terracotta",
+            BlockKind::LimeGlazedTerracotta => "minecraft:lime_glazed_terracotta",
+            BlockKind::PinkGlazedTerracotta => "minecraft:pink_glazed_terracotta",
+            BlockKind::GrayGlazedTerracotta => "minecraft:gray_glazed_terracotta",
+            BlockKind::LightGrayGlazedTerracotta => "minecraft:light_gray_glazed_terracotta",
+            BlockKind::CyanGlazedTerracotta => "minecraft:cyan_glazed_terracotta",
+            BlockKind::PurpleGlazedTerracotta => "minecraft:purple_glazed_terracotta",
+            BlockKind::BlueGlazedTerracotta => "minecraft:blue_glazed_terracotta",
+            BlockKind::BrownGlazedTerracotta => "minecraft:brown_glazed_terracotta",
+            BlockKind::GreenGlazedTerracotta => "minecraft:green_glazed_terracotta",
+            BlockKind::RedGlazedTerracotta => "minecraft:red_glazed_terracotta",
+            BlockKind::BlackGlazedTerracotta => "minecraft:black_glazed_terracotta",
+            BlockKind::WhiteConcrete => "minecraft:white_concrete",
+            BlockKind::OrangeConcrete => "minecraft:orange_concrete",
+            BlockKind::MagentaConcrete => "minecraft:magenta_concrete",
+            BlockKind::LightBlueConcrete => "minecraft:light_blue_concrete",
+            BlockKind::YellowConcrete => "minecraft:yellow_concrete",
+            BlockKind::LimeConcrete => "minecraft:lime_concrete",
+            BlockKind::PinkConcrete => "minecraft:pink_concrete",
+            BlockKind::GrayConcrete => "minecraft:gray_concrete",
+            BlockKind::LightGrayConcrete => "minecraft:light_gray_concrete",
+            BlockKind::CyanConcrete => "minecraft:cyan_concrete",
+            BlockKind::PurpleConcrete => "minecraft:purple_concrete",
+            BlockKind::BlueConcrete => "minecraft:blue_concrete",
+            BlockKind::BrownConcrete => "minecraft:brown_concrete",
+            BlockKind::GreenConcrete => "minecraft:green_concrete",
+            BlockKind::RedConcrete => "minecraft:red_concrete",
+            BlockKind::BlackConcrete => "minecraft:black_concrete",
+            BlockKind::WhiteConcretePowder => "minecraft:white_concrete_powder",
+            BlockKind::OrangeConcretePowder => "minecraft:orange_concrete_powder",
+            BlockKind::MagentaConcretePowder => "minecraft:magenta_concrete_powder",
+            BlockKind::LightBlueConcretePowder => "minecraft:light_blue_concrete_powder",
+            BlockKind::YellowConcretePowder => "minecraft:yellow_concrete_powder",
+            BlockKind::LimeConcretePowder => "minecraft:lime_concrete_powder",
+            BlockKind::PinkConcretePowder => "minecraft:pink_concrete_powder",
+            BlockKind::GrayConcretePowder => "minecraft:gray_concrete_powder",
+            BlockKind::LightGrayConcretePowder => "minecraft:light_gray_concrete_powder",
+            BlockKind::CyanConcretePowder => "minecraft:cyan_concrete_powder",
+            BlockKind::PurpleConcretePowder => "minecraft:purple_concrete_powder",
+            BlockKind::BlueConcretePowder => "minecraft:blue_concrete_powder",
+            BlockKind::BrownConcretePowder => "minecraft:brown_concrete_powder",
+            BlockKind::GreenConcretePowder => "minecraft:green_concrete_powder",
+            BlockKind::RedConcretePowder => "minecraft:red_concrete_powder",
+            BlockKind::BlackConcretePowder => "minecraft:black_concrete_powder",
+            BlockKind::Kelp => "minecraft:kelp",
+            BlockKind::KelpPlant => "minecraft:kelp_plant",
+            BlockKind::DriedKelpBlock => "minecraft:dried_kelp_block",
+            BlockKind::TurtleEgg => "minecraft:turtle_egg",
+            BlockKind::DeadTubeCoralBlock => "minecraft:dead_tube_coral_block",
+            BlockKind::DeadBrainCoralBlock => "minecraft:dead_brain_coral_block",
+            BlockKind::DeadBubbleCoralBlock => "minecraft:dead_bubble_coral_block",
+            BlockKind::DeadFireCoralBlock => "minecraft:dead_fire_coral_block",
+            BlockKind::DeadHornCoralBlock => "minecraft:dead_horn_coral_block",
+            BlockKind::TubeCoralBlock => "minecraft:tube_coral_block",
+            BlockKind::BrainCoralBlock => "minecraft:brain_coral_block",
+            BlockKind::BubbleCoralBlock => "minecraft:bubble_coral_block",
+            BlockKind::FireCoralBlock => "minecraft:fire_coral_block",
+            BlockKind::HornCoralBlock => "minecraft:horn_coral_block",
+            BlockKind::DeadTubeCoral => "minecraft:dead_tube_coral",
+            BlockKind::DeadBrainCoral => "minecraft:dead_brain_coral",
+            BlockKind::DeadBubbleCoral => "minecraft:dead_bubble_coral",
+            BlockKind::DeadFireCoral => "minecraft:dead_fire_coral",
+            BlockKind::DeadHornCoral => "minecraft:dead_horn_coral",
+            BlockKind::TubeCoral => "minecraft:tube_coral",
+            BlockKind::BrainCoral => "minecraft:brain_coral",
+            BlockKind::BubbleCoral => "minecraft:bubble_coral",
+            BlockKind::FireCoral => "minecraft:fire_coral",
+            BlockKind::HornCoral => "minecraft:horn_coral",
+            BlockKind::DeadTubeCoralWallFan => "minecraft:dead_tube_coral_wall_fan",
+            BlockKind::DeadBrainCoralWallFan => "minecraft:dead_brain_coral_wall_fan",
+            BlockKind::DeadBubbleCoralWallFan => "minecraft:dead_bubble_coral_wall_fan",
+            BlockKind::DeadFireCoralWallFan => "minecraft:dead_fire_coral_wall_fan",
+            BlockKind::DeadHornCoralWallFan => "minecraft:dead_horn_coral_wall_fan",
+            BlockKind::TubeCoralWallFan => "minecraft:tube_coral_wall_fan",
+            BlockKind::BrainCoralWallFan => "minecraft:brain_coral_wall_fan",
+            BlockKind::BubbleCoralWallFan => "minecraft:bubble_coral_wall_fan",
+            BlockKind::FireCoralWallFan => "minecraft:fire_coral_wall_fan",
+            BlockKind::HornCoralWallFan => "minecraft:horn_coral_wall_fan",
+            BlockKind::DeadTubeCoralFan => "minecraft:dead_tube_coral_fan",
+            BlockKind::DeadBrainCoralFan => "minecraft:dead_brain_coral_fan",
+            BlockKind::DeadBubbleCoralFan => "minecraft:dead_bubble_coral_fan",
+            BlockKind::DeadFireCoralFan => "minecraft:dead_fire_coral_fan",
+            BlockKind::DeadHornCoralFan => "minecraft:dead_horn_coral_fan",
+            BlockKind::TubeCoralFan => "minecraft:tube_coral_fan",
+            BlockKind::BrainCoralFan => "minecraft:brain_coral_fan",
+            BlockKind::BubbleCoralFan => "minecraft:bubble_coral_fan",
+            BlockKind::FireCoralFan => "minecraft:fire_coral_fan",
+            BlockKind::HornCoralFan => "minecraft:horn_coral_fan",
+            BlockKind::SeaPickle => "minecraft:sea_pickle",
+            BlockKind::BlueIce => "minecraft:blue_ice",
+            BlockKind::Conduit => "minecraft:conduit",
+            BlockKind::VoidAir => "minecraft:void_air",
+            BlockKind::CaveAir => "minecraft:cave_air",
+            BlockKind::BubbleColumn => "minecraft:bubble_column",
+            BlockKind::StructureBlock => "minecraft:structure_block",
+        }
+    }
+    #[doc = "Returns a mapping from property name to property value for this block. Used to serialize blocks in vanilla world saves."]
+    pub fn to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        match self.kind {
+            BlockKind::Air => self.air_to_properties_map(),
+            BlockKind::Stone => self.stone_to_properties_map(),
+            BlockKind::Granite => self.granite_to_properties_map(),
+            BlockKind::PolishedGranite => self.polished_granite_to_properties_map(),
+            BlockKind::Diorite => self.diorite_to_properties_map(),
+            BlockKind::PolishedDiorite => self.polished_diorite_to_properties_map(),
+            BlockKind::Andesite => self.andesite_to_properties_map(),
+            BlockKind::PolishedAndesite => self.polished_andesite_to_properties_map(),
+            BlockKind::GrassBlock => self.grass_block_to_properties_map(),
+            BlockKind::Dirt => self.dirt_to_properties_map(),
+            BlockKind::CoarseDirt => self.coarse_dirt_to_properties_map(),
+            BlockKind::Podzol => self.podzol_to_properties_map(),
+            BlockKind::Cobblestone => self.cobblestone_to_properties_map(),
+            BlockKind::OakPlanks => self.oak_planks_to_properties_map(),
+            BlockKind::SprucePlanks => self.spruce_planks_to_properties_map(),
+            BlockKind::BirchPlanks => self.birch_planks_to_properties_map(),
+            BlockKind::JunglePlanks => self.jungle_planks_to_properties_map(),
+            BlockKind::AcaciaPlanks => self.acacia_planks_to_properties_map(),
+            BlockKind::DarkOakPlanks => self.dark_oak_planks_to_properties_map(),
+            BlockKind::OakSapling => self.oak_sapling_to_properties_map(),
+            BlockKind::SpruceSapling => self.spruce_sapling_to_properties_map(),
+            BlockKind::BirchSapling => self.birch_sapling_to_properties_map(),
+            BlockKind::JungleSapling => self.jungle_sapling_to_properties_map(),
+            BlockKind::AcaciaSapling => self.acacia_sapling_to_properties_map(),
+            BlockKind::DarkOakSapling => self.dark_oak_sapling_to_properties_map(),
+            BlockKind::Bedrock => self.bedrock_to_properties_map(),
+            BlockKind::Water => self.water_to_properties_map(),
+            BlockKind::Lava => self.lava_to_properties_map(),
+            BlockKind::Sand => self.sand_to_properties_map(),
+            BlockKind::RedSand => self.red_sand_to_properties_map(),
+            BlockKind::Gravel => self.gravel_to_properties_map(),
+            BlockKind::GoldOre => self.gold_ore_to_properties_map(),
+            BlockKind::IronOre => self.iron_ore_to_properties_map(),
+            BlockKind::CoalOre => self.coal_ore_to_properties_map(),
+            BlockKind::OakLog => self.oak_log_to_properties_map(),
+            BlockKind::SpruceLog => self.spruce_log_to_properties_map(),
+            BlockKind::BirchLog => self.birch_log_to_properties_map(),
+            BlockKind::JungleLog => self.jungle_log_to_properties_map(),
+            BlockKind::AcaciaLog => self.acacia_log_to_properties_map(),
+            BlockKind::DarkOakLog => self.dark_oak_log_to_properties_map(),
+            BlockKind::StrippedSpruceLog => self.stripped_spruce_log_to_properties_map(),
+            BlockKind::StrippedBirchLog => self.stripped_birch_log_to_properties_map(),
+            BlockKind::StrippedJungleLog => self.stripped_jungle_log_to_properties_map(),
+            BlockKind::StrippedAcaciaLog => self.stripped_acacia_log_to_properties_map(),
+            BlockKind::StrippedDarkOakLog => self.stripped_dark_oak_log_to_properties_map(),
+            BlockKind::StrippedOakLog => self.stripped_oak_log_to_properties_map(),
+            BlockKind::OakWood => self.oak_wood_to_properties_map(),
+            BlockKind::SpruceWood => self.spruce_wood_to_properties_map(),
+            BlockKind::BirchWood => self.birch_wood_to_properties_map(),
+            BlockKind::JungleWood => self.jungle_wood_to_properties_map(),
+            BlockKind::AcaciaWood => self.acacia_wood_to_properties_map(),
+            BlockKind::DarkOakWood => self.dark_oak_wood_to_properties_map(),
+            BlockKind::StrippedOakWood => self.stripped_oak_wood_to_properties_map(),
+            BlockKind::StrippedSpruceWood => self.stripped_spruce_wood_to_properties_map(),
+            BlockKind::StrippedBirchWood => self.stripped_birch_wood_to_properties_map(),
+            BlockKind::StrippedJungleWood => self.stripped_jungle_wood_to_properties_map(),
+            BlockKind::StrippedAcaciaWood => self.stripped_acacia_wood_to_properties_map(),
+            BlockKind::StrippedDarkOakWood => self.stripped_dark_oak_wood_to_properties_map(),
+            BlockKind::OakLeaves => self.oak_leaves_to_properties_map(),
+            BlockKind::SpruceLeaves => self.spruce_leaves_to_properties_map(),
+            BlockKind::BirchLeaves => self.birch_leaves_to_properties_map(),
+            BlockKind::JungleLeaves => self.jungle_leaves_to_properties_map(),
+            BlockKind::AcaciaLeaves => self.acacia_leaves_to_properties_map(),
+            BlockKind::DarkOakLeaves => self.dark_oak_leaves_to_properties_map(),
+            BlockKind::Sponge => self.sponge_to_properties_map(),
+            BlockKind::WetSponge => self.wet_sponge_to_properties_map(),
+            BlockKind::Glass => self.glass_to_properties_map(),
+            BlockKind::LapisOre => self.lapis_ore_to_properties_map(),
+            BlockKind::LapisBlock => self.lapis_block_to_properties_map(),
+            BlockKind::Dispenser => self.dispenser_to_properties_map(),
+            BlockKind::Sandstone => self.sandstone_to_properties_map(),
+            BlockKind::ChiseledSandstone => self.chiseled_sandstone_to_properties_map(),
+            BlockKind::CutSandstone => self.cut_sandstone_to_properties_map(),
+            BlockKind::NoteBlock => self.note_block_to_properties_map(),
+            BlockKind::WhiteBed => self.white_bed_to_properties_map(),
+            BlockKind::OrangeBed => self.orange_bed_to_properties_map(),
+            BlockKind::MagentaBed => self.magenta_bed_to_properties_map(),
+            BlockKind::LightBlueBed => self.light_blue_bed_to_properties_map(),
+            BlockKind::YellowBed => self.yellow_bed_to_properties_map(),
+            BlockKind::LimeBed => self.lime_bed_to_properties_map(),
+            BlockKind::PinkBed => self.pink_bed_to_properties_map(),
+            BlockKind::GrayBed => self.gray_bed_to_properties_map(),
+            BlockKind::LightGrayBed => self.light_gray_bed_to_properties_map(),
+            BlockKind::CyanBed => self.cyan_bed_to_properties_map(),
+            BlockKind::PurpleBed => self.purple_bed_to_properties_map(),
+            BlockKind::BlueBed => self.blue_bed_to_properties_map(),
+            BlockKind::BrownBed => self.brown_bed_to_properties_map(),
+            BlockKind::GreenBed => self.green_bed_to_properties_map(),
+            BlockKind::RedBed => self.red_bed_to_properties_map(),
+            BlockKind::BlackBed => self.black_bed_to_properties_map(),
+            BlockKind::PoweredRail => self.powered_rail_to_properties_map(),
+            BlockKind::DetectorRail => self.detector_rail_to_properties_map(),
+            BlockKind::StickyPiston => self.sticky_piston_to_properties_map(),
+            BlockKind::Cobweb => self.cobweb_to_properties_map(),
+            BlockKind::Grass => self.grass_to_properties_map(),
+            BlockKind::Fern => self.fern_to_properties_map(),
+            BlockKind::DeadBush => self.dead_bush_to_properties_map(),
+            BlockKind::Seagrass => self.seagrass_to_properties_map(),
+            BlockKind::TallSeagrass => self.tall_seagrass_to_properties_map(),
+            BlockKind::Piston => self.piston_to_properties_map(),
+            BlockKind::PistonHead => self.piston_head_to_properties_map(),
+            BlockKind::WhiteWool => self.white_wool_to_properties_map(),
+            BlockKind::OrangeWool => self.orange_wool_to_properties_map(),
+            BlockKind::MagentaWool => self.magenta_wool_to_properties_map(),
+            BlockKind::LightBlueWool => self.light_blue_wool_to_properties_map(),
+            BlockKind::YellowWool => self.yellow_wool_to_properties_map(),
+            BlockKind::LimeWool => self.lime_wool_to_properties_map(),
+            BlockKind::PinkWool => self.pink_wool_to_properties_map(),
+            BlockKind::GrayWool => self.gray_wool_to_properties_map(),
+            BlockKind::LightGrayWool => self.light_gray_wool_to_properties_map(),
+            BlockKind::CyanWool => self.cyan_wool_to_properties_map(),
+            BlockKind::PurpleWool => self.purple_wool_to_properties_map(),
+            BlockKind::BlueWool => self.blue_wool_to_properties_map(),
+            BlockKind::BrownWool => self.brown_wool_to_properties_map(),
+            BlockKind::GreenWool => self.green_wool_to_properties_map(),
+            BlockKind::RedWool => self.red_wool_to_properties_map(),
+            BlockKind::BlackWool => self.black_wool_to_properties_map(),
+            BlockKind::MovingPiston => self.moving_piston_to_properties_map(),
+            BlockKind::Dandelion => self.dandelion_to_properties_map(),
+            BlockKind::Poppy => self.poppy_to_properties_map(),
+            BlockKind::BlueOrchid => self.blue_orchid_to_properties_map(),
+            BlockKind::Allium => self.allium_to_properties_map(),
+            BlockKind::AzureBluet => self.azure_bluet_to_properties_map(),
+            BlockKind::RedTulip => self.red_tulip_to_properties_map(),
+            BlockKind::OrangeTulip => self.orange_tulip_to_properties_map(),
+            BlockKind::WhiteTulip => self.white_tulip_to_properties_map(),
+            BlockKind::PinkTulip => self.pink_tulip_to_properties_map(),
+            BlockKind::OxeyeDaisy => self.oxeye_daisy_to_properties_map(),
+            BlockKind::BrownMushroom => self.brown_mushroom_to_properties_map(),
+            BlockKind::RedMushroom => self.red_mushroom_to_properties_map(),
+            BlockKind::GoldBlock => self.gold_block_to_properties_map(),
+            BlockKind::IronBlock => self.iron_block_to_properties_map(),
+            BlockKind::Bricks => self.bricks_to_properties_map(),
+            BlockKind::Tnt => self.tnt_to_properties_map(),
+            BlockKind::Bookshelf => self.bookshelf_to_properties_map(),
+            BlockKind::MossyCobblestone => self.mossy_cobblestone_to_properties_map(),
+            BlockKind::Obsidian => self.obsidian_to_properties_map(),
+            BlockKind::Torch => self.torch_to_properties_map(),
+            BlockKind::WallTorch => self.wall_torch_to_properties_map(),
+            BlockKind::Fire => self.fire_to_properties_map(),
+            BlockKind::Spawner => self.spawner_to_properties_map(),
+            BlockKind::OakStairs => self.oak_stairs_to_properties_map(),
+            BlockKind::Chest => self.chest_to_properties_map(),
+            BlockKind::RedstoneWire => self.redstone_wire_to_properties_map(),
+            BlockKind::DiamondOre => self.diamond_ore_to_properties_map(),
+            BlockKind::DiamondBlock => self.diamond_block_to_properties_map(),
+            BlockKind::CraftingTable => self.crafting_table_to_properties_map(),
+            BlockKind::Wheat => self.wheat_to_properties_map(),
+            BlockKind::Farmland => self.farmland_to_properties_map(),
+            BlockKind::Furnace => self.furnace_to_properties_map(),
+            BlockKind::Sign => self.sign_to_properties_map(),
+            BlockKind::OakDoor => self.oak_door_to_properties_map(),
+            BlockKind::Ladder => self.ladder_to_properties_map(),
+            BlockKind::Rail => self.rail_to_properties_map(),
+            BlockKind::CobblestoneStairs => self.cobblestone_stairs_to_properties_map(),
+            BlockKind::WallSign => self.wall_sign_to_properties_map(),
+            BlockKind::Lever => self.lever_to_properties_map(),
+            BlockKind::StonePressurePlate => self.stone_pressure_plate_to_properties_map(),
+            BlockKind::IronDoor => self.iron_door_to_properties_map(),
+            BlockKind::OakPressurePlate => self.oak_pressure_plate_to_properties_map(),
+            BlockKind::SprucePressurePlate => self.spruce_pressure_plate_to_properties_map(),
+            BlockKind::BirchPressurePlate => self.birch_pressure_plate_to_properties_map(),
+            BlockKind::JunglePressurePlate => self.jungle_pressure_plate_to_properties_map(),
+            BlockKind::AcaciaPressurePlate => self.acacia_pressure_plate_to_properties_map(),
+            BlockKind::DarkOakPressurePlate => self.dark_oak_pressure_plate_to_properties_map(),
+            BlockKind::RedstoneOre => self.redstone_ore_to_properties_map(),
+            BlockKind::RedstoneTorch => self.redstone_torch_to_properties_map(),
+            BlockKind::RedstoneWallTorch => self.redstone_wall_torch_to_properties_map(),
+            BlockKind::StoneButton => self.stone_button_to_properties_map(),
+            BlockKind::Snow => self.snow_to_properties_map(),
+            BlockKind::Ice => self.ice_to_properties_map(),
+            BlockKind::SnowBlock => self.snow_block_to_properties_map(),
+            BlockKind::Cactus => self.cactus_to_properties_map(),
+            BlockKind::Clay => self.clay_to_properties_map(),
+            BlockKind::SugarCane => self.sugar_cane_to_properties_map(),
+            BlockKind::Jukebox => self.jukebox_to_properties_map(),
+            BlockKind::OakFence => self.oak_fence_to_properties_map(),
+            BlockKind::Pumpkin => self.pumpkin_to_properties_map(),
+            BlockKind::Netherrack => self.netherrack_to_properties_map(),
+            BlockKind::SoulSand => self.soul_sand_to_properties_map(),
+            BlockKind::Glowstone => self.glowstone_to_properties_map(),
+            BlockKind::NetherPortal => self.nether_portal_to_properties_map(),
+            BlockKind::CarvedPumpkin => self.carved_pumpkin_to_properties_map(),
+            BlockKind::JackOLantern => self.jack_o_lantern_to_properties_map(),
+            BlockKind::Cake => self.cake_to_properties_map(),
+            BlockKind::Repeater => self.repeater_to_properties_map(),
+            BlockKind::WhiteStainedGlass => self.white_stained_glass_to_properties_map(),
+            BlockKind::OrangeStainedGlass => self.orange_stained_glass_to_properties_map(),
+            BlockKind::MagentaStainedGlass => self.magenta_stained_glass_to_properties_map(),
+            BlockKind::LightBlueStainedGlass => self.light_blue_stained_glass_to_properties_map(),
+            BlockKind::YellowStainedGlass => self.yellow_stained_glass_to_properties_map(),
+            BlockKind::LimeStainedGlass => self.lime_stained_glass_to_properties_map(),
+            BlockKind::PinkStainedGlass => self.pink_stained_glass_to_properties_map(),
+            BlockKind::GrayStainedGlass => self.gray_stained_glass_to_properties_map(),
+            BlockKind::LightGrayStainedGlass => self.light_gray_stained_glass_to_properties_map(),
+            BlockKind::CyanStainedGlass => self.cyan_stained_glass_to_properties_map(),
+            BlockKind::PurpleStainedGlass => self.purple_stained_glass_to_properties_map(),
+            BlockKind::BlueStainedGlass => self.blue_stained_glass_to_properties_map(),
+            BlockKind::BrownStainedGlass => self.brown_stained_glass_to_properties_map(),
+            BlockKind::GreenStainedGlass => self.green_stained_glass_to_properties_map(),
+            BlockKind::RedStainedGlass => self.red_stained_glass_to_properties_map(),
+            BlockKind::BlackStainedGlass => self.black_stained_glass_to_properties_map(),
+            BlockKind::OakTrapdoor => self.oak_trapdoor_to_properties_map(),
+            BlockKind::SpruceTrapdoor => self.spruce_trapdoor_to_properties_map(),
+            BlockKind::BirchTrapdoor => self.birch_trapdoor_to_properties_map(),
+            BlockKind::JungleTrapdoor => self.jungle_trapdoor_to_properties_map(),
+            BlockKind::AcaciaTrapdoor => self.acacia_trapdoor_to_properties_map(),
+            BlockKind::DarkOakTrapdoor => self.dark_oak_trapdoor_to_properties_map(),
+            BlockKind::InfestedStone => self.infested_stone_to_properties_map(),
+            BlockKind::InfestedCobblestone => self.infested_cobblestone_to_properties_map(),
+            BlockKind::InfestedStoneBricks => self.infested_stone_bricks_to_properties_map(),
+            BlockKind::InfestedMossyStoneBricks => {
+                self.infested_mossy_stone_bricks_to_properties_map()
+            }
+            BlockKind::InfestedCrackedStoneBricks => {
+                self.infested_cracked_stone_bricks_to_properties_map()
+            }
+            BlockKind::InfestedChiseledStoneBricks => {
+                self.infested_chiseled_stone_bricks_to_properties_map()
+            }
+            BlockKind::StoneBricks => self.stone_bricks_to_properties_map(),
+            BlockKind::MossyStoneBricks => self.mossy_stone_bricks_to_properties_map(),
+            BlockKind::CrackedStoneBricks => self.cracked_stone_bricks_to_properties_map(),
+            BlockKind::ChiseledStoneBricks => self.chiseled_stone_bricks_to_properties_map(),
+            BlockKind::BrownMushroomBlock => self.brown_mushroom_block_to_properties_map(),
+            BlockKind::RedMushroomBlock => self.red_mushroom_block_to_properties_map(),
+            BlockKind::MushroomStem => self.mushroom_stem_to_properties_map(),
+            BlockKind::IronBars => self.iron_bars_to_properties_map(),
+            BlockKind::GlassPane => self.glass_pane_to_properties_map(),
+            BlockKind::Melon => self.melon_to_properties_map(),
+            BlockKind::AttachedPumpkinStem => self.attached_pumpkin_stem_to_properties_map(),
+            BlockKind::AttachedMelonStem => self.attached_melon_stem_to_properties_map(),
+            BlockKind::PumpkinStem => self.pumpkin_stem_to_properties_map(),
+            BlockKind::MelonStem => self.melon_stem_to_properties_map(),
+            BlockKind::Vine => self.vine_to_properties_map(),
+            BlockKind::OakFenceGate => self.oak_fence_gate_to_properties_map(),
+            BlockKind::BrickStairs => self.brick_stairs_to_properties_map(),
+            BlockKind::StoneBrickStairs => self.stone_brick_stairs_to_properties_map(),
+            BlockKind::Mycelium => self.mycelium_to_properties_map(),
+            BlockKind::LilyPad => self.lily_pad_to_properties_map(),
+            BlockKind::NetherBricks => self.nether_bricks_to_properties_map(),
+            BlockKind::NetherBrickFence => self.nether_brick_fence_to_properties_map(),
+            BlockKind::NetherBrickStairs => self.nether_brick_stairs_to_properties_map(),
+            BlockKind::NetherWart => self.nether_wart_to_properties_map(),
+            BlockKind::EnchantingTable => self.enchanting_table_to_properties_map(),
+            BlockKind::BrewingStand => self.brewing_stand_to_properties_map(),
+            BlockKind::Cauldron => self.cauldron_to_properties_map(),
+            BlockKind::EndPortal => self.end_portal_to_properties_map(),
+            BlockKind::EndPortalFrame => self.end_portal_frame_to_properties_map(),
+            BlockKind::EndStone => self.end_stone_to_properties_map(),
+            BlockKind::DragonEgg => self.dragon_egg_to_properties_map(),
+            BlockKind::RedstoneLamp => self.redstone_lamp_to_properties_map(),
+            BlockKind::Cocoa => self.cocoa_to_properties_map(),
+            BlockKind::SandstoneStairs => self.sandstone_stairs_to_properties_map(),
+            BlockKind::EmeraldOre => self.emerald_ore_to_properties_map(),
+            BlockKind::EnderChest => self.ender_chest_to_properties_map(),
+            BlockKind::TripwireHook => self.tripwire_hook_to_properties_map(),
+            BlockKind::Tripwire => self.tripwire_to_properties_map(),
+            BlockKind::EmeraldBlock => self.emerald_block_to_properties_map(),
+            BlockKind::SpruceStairs => self.spruce_stairs_to_properties_map(),
+            BlockKind::BirchStairs => self.birch_stairs_to_properties_map(),
+            BlockKind::JungleStairs => self.jungle_stairs_to_properties_map(),
+            BlockKind::CommandBlock => self.command_block_to_properties_map(),
+            BlockKind::Beacon => self.beacon_to_properties_map(),
+            BlockKind::CobblestoneWall => self.cobblestone_wall_to_properties_map(),
+            BlockKind::MossyCobblestoneWall => self.mossy_cobblestone_wall_to_properties_map(),
+            BlockKind::FlowerPot => self.flower_pot_to_properties_map(),
+            BlockKind::PottedOakSapling => self.potted_oak_sapling_to_properties_map(),
+            BlockKind::PottedSpruceSapling => self.potted_spruce_sapling_to_properties_map(),
+            BlockKind::PottedBirchSapling => self.potted_birch_sapling_to_properties_map(),
+            BlockKind::PottedJungleSapling => self.potted_jungle_sapling_to_properties_map(),
+            BlockKind::PottedAcaciaSapling => self.potted_acacia_sapling_to_properties_map(),
+            BlockKind::PottedDarkOakSapling => self.potted_dark_oak_sapling_to_properties_map(),
+            BlockKind::PottedFern => self.potted_fern_to_properties_map(),
+            BlockKind::PottedDandelion => self.potted_dandelion_to_properties_map(),
+            BlockKind::PottedPoppy => self.potted_poppy_to_properties_map(),
+            BlockKind::PottedBlueOrchid => self.potted_blue_orchid_to_properties_map(),
+            BlockKind::PottedAllium => self.potted_allium_to_properties_map(),
+            BlockKind::PottedAzureBluet => self.potted_azure_bluet_to_properties_map(),
+            BlockKind::PottedRedTulip => self.potted_red_tulip_to_properties_map(),
+            BlockKind::PottedOrangeTulip => self.potted_orange_tulip_to_properties_map(),
+            BlockKind::PottedWhiteTulip => self.potted_white_tulip_to_properties_map(),
+            BlockKind::PottedPinkTulip => self.potted_pink_tulip_to_properties_map(),
+            BlockKind::PottedOxeyeDaisy => self.potted_oxeye_daisy_to_properties_map(),
+            BlockKind::PottedRedMushroom => self.potted_red_mushroom_to_properties_map(),
+            BlockKind::PottedBrownMushroom => self.potted_brown_mushroom_to_properties_map(),
+            BlockKind::PottedDeadBush => self.potted_dead_bush_to_properties_map(),
+            BlockKind::PottedCactus => self.potted_cactus_to_properties_map(),
+            BlockKind::Carrots => self.carrots_to_properties_map(),
+            BlockKind::Potatoes => self.potatoes_to_properties_map(),
+            BlockKind::OakButton => self.oak_button_to_properties_map(),
+            BlockKind::SpruceButton => self.spruce_button_to_properties_map(),
+            BlockKind::BirchButton => self.birch_button_to_properties_map(),
+            BlockKind::JungleButton => self.jungle_button_to_properties_map(),
+            BlockKind::AcaciaButton => self.acacia_button_to_properties_map(),
+            BlockKind::DarkOakButton => self.dark_oak_button_to_properties_map(),
+            BlockKind::SkeletonWallSkull => self.skeleton_wall_skull_to_properties_map(),
+            BlockKind::SkeletonSkull => self.skeleton_skull_to_properties_map(),
+            BlockKind::WitherSkeletonWallSkull => {
+                self.wither_skeleton_wall_skull_to_properties_map()
+            }
+            BlockKind::WitherSkeletonSkull => self.wither_skeleton_skull_to_properties_map(),
+            BlockKind::ZombieWallHead => self.zombie_wall_head_to_properties_map(),
+            BlockKind::ZombieHead => self.zombie_head_to_properties_map(),
+            BlockKind::PlayerWallHead => self.player_wall_head_to_properties_map(),
+            BlockKind::PlayerHead => self.player_head_to_properties_map(),
+            BlockKind::CreeperWallHead => self.creeper_wall_head_to_properties_map(),
+            BlockKind::CreeperHead => self.creeper_head_to_properties_map(),
+            BlockKind::DragonWallHead => self.dragon_wall_head_to_properties_map(),
+            BlockKind::DragonHead => self.dragon_head_to_properties_map(),
+            BlockKind::Anvil => self.anvil_to_properties_map(),
+            BlockKind::ChippedAnvil => self.chipped_anvil_to_properties_map(),
+            BlockKind::DamagedAnvil => self.damaged_anvil_to_properties_map(),
+            BlockKind::TrappedChest => self.trapped_chest_to_properties_map(),
+            BlockKind::LightWeightedPressurePlate => {
+                self.light_weighted_pressure_plate_to_properties_map()
+            }
+            BlockKind::HeavyWeightedPressurePlate => {
+                self.heavy_weighted_pressure_plate_to_properties_map()
+            }
+            BlockKind::Comparator => self.comparator_to_properties_map(),
+            BlockKind::DaylightDetector => self.daylight_detector_to_properties_map(),
+            BlockKind::RedstoneBlock => self.redstone_block_to_properties_map(),
+            BlockKind::NetherQuartzOre => self.nether_quartz_ore_to_properties_map(),
+            BlockKind::Hopper => self.hopper_to_properties_map(),
+            BlockKind::QuartzBlock => self.quartz_block_to_properties_map(),
+            BlockKind::ChiseledQuartzBlock => self.chiseled_quartz_block_to_properties_map(),
+            BlockKind::QuartzPillar => self.quartz_pillar_to_properties_map(),
+            BlockKind::QuartzStairs => self.quartz_stairs_to_properties_map(),
+            BlockKind::ActivatorRail => self.activator_rail_to_properties_map(),
+            BlockKind::Dropper => self.dropper_to_properties_map(),
+            BlockKind::WhiteTerracotta => self.white_terracotta_to_properties_map(),
+            BlockKind::OrangeTerracotta => self.orange_terracotta_to_properties_map(),
+            BlockKind::MagentaTerracotta => self.magenta_terracotta_to_properties_map(),
+            BlockKind::LightBlueTerracotta => self.light_blue_terracotta_to_properties_map(),
+            BlockKind::YellowTerracotta => self.yellow_terracotta_to_properties_map(),
+            BlockKind::LimeTerracotta => self.lime_terracotta_to_properties_map(),
+            BlockKind::PinkTerracotta => self.pink_terracotta_to_properties_map(),
+            BlockKind::GrayTerracotta => self.gray_terracotta_to_properties_map(),
+            BlockKind::LightGrayTerracotta => self.light_gray_terracotta_to_properties_map(),
+            BlockKind::CyanTerracotta => self.cyan_terracotta_to_properties_map(),
+            BlockKind::PurpleTerracotta => self.purple_terracotta_to_properties_map(),
+            BlockKind::BlueTerracotta => self.blue_terracotta_to_properties_map(),
+            BlockKind::BrownTerracotta => self.brown_terracotta_to_properties_map(),
+            BlockKind::GreenTerracotta => self.green_terracotta_to_properties_map(),
+            BlockKind::RedTerracotta => self.red_terracotta_to_properties_map(),
+            BlockKind::BlackTerracotta => self.black_terracotta_to_properties_map(),
+            BlockKind::WhiteStainedGlassPane => self.white_stained_glass_pane_to_properties_map(),
+            BlockKind::OrangeStainedGlassPane => self.orange_stained_glass_pane_to_properties_map(),
+            BlockKind::MagentaStainedGlassPane => {
+                self.magenta_stained_glass_pane_to_properties_map()
+            }
+            BlockKind::LightBlueStainedGlassPane => {
+                self.light_blue_stained_glass_pane_to_properties_map()
+            }
+            BlockKind::YellowStainedGlassPane => self.yellow_stained_glass_pane_to_properties_map(),
+            BlockKind::LimeStainedGlassPane => self.lime_stained_glass_pane_to_properties_map(),
+            BlockKind::PinkStainedGlassPane => self.pink_stained_glass_pane_to_properties_map(),
+            BlockKind::GrayStainedGlassPane => self.gray_stained_glass_pane_to_properties_map(),
+            BlockKind::LightGrayStainedGlassPane => {
+                self.light_gray_stained_glass_pane_to_properties_map()
+            }
+            BlockKind::CyanStainedGlassPane => self.cyan_stained_glass_pane_to_properties_map(),
+            BlockKind::PurpleStainedGlassPane => self.purple_stained_glass_pane_to_properties_map(),
+            BlockKind::BlueStainedGlassPane => self.blue_stained_glass_pane_to_properties_map(),
+            BlockKind::BrownStainedGlassPane => self.brown_stained_glass_pane_to_properties_map(),
+            BlockKind::GreenStainedGlassPane => self.green_stained_glass_pane_to_properties_map(),
+            BlockKind::RedStainedGlassPane => self.red_stained_glass_pane_to_properties_map(),
+            BlockKind::BlackStainedGlassPane => self.black_stained_glass_pane_to_properties_map(),
+            BlockKind::AcaciaStairs => self.acacia_stairs_to_properties_map(),
+            BlockKind::DarkOakStairs => self.dark_oak_stairs_to_properties_map(),
+            BlockKind::SlimeBlock => self.slime_block_to_properties_map(),
+            BlockKind::Barrier => self.barrier_to_properties_map(),
+            BlockKind::IronTrapdoor => self.iron_trapdoor_to_properties_map(),
+            BlockKind::Prismarine => self.prismarine_to_properties_map(),
+            BlockKind::PrismarineBricks => self.prismarine_bricks_to_properties_map(),
+            BlockKind::DarkPrismarine => self.dark_prismarine_to_properties_map(),
+            BlockKind::PrismarineStairs => self.prismarine_stairs_to_properties_map(),
+            BlockKind::PrismarineBrickStairs => self.prismarine_brick_stairs_to_properties_map(),
+            BlockKind::DarkPrismarineStairs => self.dark_prismarine_stairs_to_properties_map(),
+            BlockKind::PrismarineSlab => self.prismarine_slab_to_properties_map(),
+            BlockKind::PrismarineBrickSlab => self.prismarine_brick_slab_to_properties_map(),
+            BlockKind::DarkPrismarineSlab => self.dark_prismarine_slab_to_properties_map(),
+            BlockKind::SeaLantern => self.sea_lantern_to_properties_map(),
+            BlockKind::HayBlock => self.hay_block_to_properties_map(),
+            BlockKind::WhiteCarpet => self.white_carpet_to_properties_map(),
+            BlockKind::OrangeCarpet => self.orange_carpet_to_properties_map(),
+            BlockKind::MagentaCarpet => self.magenta_carpet_to_properties_map(),
+            BlockKind::LightBlueCarpet => self.light_blue_carpet_to_properties_map(),
+            BlockKind::YellowCarpet => self.yellow_carpet_to_properties_map(),
+            BlockKind::LimeCarpet => self.lime_carpet_to_properties_map(),
+            BlockKind::PinkCarpet => self.pink_carpet_to_properties_map(),
+            BlockKind::GrayCarpet => self.gray_carpet_to_properties_map(),
+            BlockKind::LightGrayCarpet => self.light_gray_carpet_to_properties_map(),
+            BlockKind::CyanCarpet => self.cyan_carpet_to_properties_map(),
+            BlockKind::PurpleCarpet => self.purple_carpet_to_properties_map(),
+            BlockKind::BlueCarpet => self.blue_carpet_to_properties_map(),
+            BlockKind::BrownCarpet => self.brown_carpet_to_properties_map(),
+            BlockKind::GreenCarpet => self.green_carpet_to_properties_map(),
+            BlockKind::RedCarpet => self.red_carpet_to_properties_map(),
+            BlockKind::BlackCarpet => self.black_carpet_to_properties_map(),
+            BlockKind::Terracotta => self.terracotta_to_properties_map(),
+            BlockKind::CoalBlock => self.coal_block_to_properties_map(),
+            BlockKind::PackedIce => self.packed_ice_to_properties_map(),
+            BlockKind::Sunflower => self.sunflower_to_properties_map(),
+            BlockKind::Lilac => self.lilac_to_properties_map(),
+            BlockKind::RoseBush => self.rose_bush_to_properties_map(),
+            BlockKind::Peony => self.peony_to_properties_map(),
+            BlockKind::TallGrass => self.tall_grass_to_properties_map(),
+            BlockKind::LargeFern => self.large_fern_to_properties_map(),
+            BlockKind::WhiteBanner => self.white_banner_to_properties_map(),
+            BlockKind::OrangeBanner => self.orange_banner_to_properties_map(),
+            BlockKind::MagentaBanner => self.magenta_banner_to_properties_map(),
+            BlockKind::LightBlueBanner => self.light_blue_banner_to_properties_map(),
+            BlockKind::YellowBanner => self.yellow_banner_to_properties_map(),
+            BlockKind::LimeBanner => self.lime_banner_to_properties_map(),
+            BlockKind::PinkBanner => self.pink_banner_to_properties_map(),
+            BlockKind::GrayBanner => self.gray_banner_to_properties_map(),
+            BlockKind::LightGrayBanner => self.light_gray_banner_to_properties_map(),
+            BlockKind::CyanBanner => self.cyan_banner_to_properties_map(),
+            BlockKind::PurpleBanner => self.purple_banner_to_properties_map(),
+            BlockKind::BlueBanner => self.blue_banner_to_properties_map(),
+            BlockKind::BrownBanner => self.brown_banner_to_properties_map(),
+            BlockKind::GreenBanner => self.green_banner_to_properties_map(),
+            BlockKind::RedBanner => self.red_banner_to_properties_map(),
+            BlockKind::BlackBanner => self.black_banner_to_properties_map(),
+            BlockKind::WhiteWallBanner => self.white_wall_banner_to_properties_map(),
+            BlockKind::OrangeWallBanner => self.orange_wall_banner_to_properties_map(),
+            BlockKind::MagentaWallBanner => self.magenta_wall_banner_to_properties_map(),
+            BlockKind::LightBlueWallBanner => self.light_blue_wall_banner_to_properties_map(),
+            BlockKind::YellowWallBanner => self.yellow_wall_banner_to_properties_map(),
+            BlockKind::LimeWallBanner => self.lime_wall_banner_to_properties_map(),
+            BlockKind::PinkWallBanner => self.pink_wall_banner_to_properties_map(),
+            BlockKind::GrayWallBanner => self.gray_wall_banner_to_properties_map(),
+            BlockKind::LightGrayWallBanner => self.light_gray_wall_banner_to_properties_map(),
+            BlockKind::CyanWallBanner => self.cyan_wall_banner_to_properties_map(),
+            BlockKind::PurpleWallBanner => self.purple_wall_banner_to_properties_map(),
+            BlockKind::BlueWallBanner => self.blue_wall_banner_to_properties_map(),
+            BlockKind::BrownWallBanner => self.brown_wall_banner_to_properties_map(),
+            BlockKind::GreenWallBanner => self.green_wall_banner_to_properties_map(),
+            BlockKind::RedWallBanner => self.red_wall_banner_to_properties_map(),
+            BlockKind::BlackWallBanner => self.black_wall_banner_to_properties_map(),
+            BlockKind::RedSandstone => self.red_sandstone_to_properties_map(),
+            BlockKind::ChiseledRedSandstone => self.chiseled_red_sandstone_to_properties_map(),
+            BlockKind::CutRedSandstone => self.cut_red_sandstone_to_properties_map(),
+            BlockKind::RedSandstoneStairs => self.red_sandstone_stairs_to_properties_map(),
+            BlockKind::OakSlab => self.oak_slab_to_properties_map(),
+            BlockKind::SpruceSlab => self.spruce_slab_to_properties_map(),
+            BlockKind::BirchSlab => self.birch_slab_to_properties_map(),
+            BlockKind::JungleSlab => self.jungle_slab_to_properties_map(),
+            BlockKind::AcaciaSlab => self.acacia_slab_to_properties_map(),
+            BlockKind::DarkOakSlab => self.dark_oak_slab_to_properties_map(),
+            BlockKind::StoneSlab => self.stone_slab_to_properties_map(),
+            BlockKind::SandstoneSlab => self.sandstone_slab_to_properties_map(),
+            BlockKind::PetrifiedOakSlab => self.petrified_oak_slab_to_properties_map(),
+            BlockKind::CobblestoneSlab => self.cobblestone_slab_to_properties_map(),
+            BlockKind::BrickSlab => self.brick_slab_to_properties_map(),
+            BlockKind::StoneBrickSlab => self.stone_brick_slab_to_properties_map(),
+            BlockKind::NetherBrickSlab => self.nether_brick_slab_to_properties_map(),
+            BlockKind::QuartzSlab => self.quartz_slab_to_properties_map(),
+            BlockKind::RedSandstoneSlab => self.red_sandstone_slab_to_properties_map(),
+            BlockKind::PurpurSlab => self.purpur_slab_to_properties_map(),
+            BlockKind::SmoothStone => self.smooth_stone_to_properties_map(),
+            BlockKind::SmoothSandstone => self.smooth_sandstone_to_properties_map(),
+            BlockKind::SmoothQuartz => self.smooth_quartz_to_properties_map(),
+            BlockKind::SmoothRedSandstone => self.smooth_red_sandstone_to_properties_map(),
+            BlockKind::SpruceFenceGate => self.spruce_fence_gate_to_properties_map(),
+            BlockKind::BirchFenceGate => self.birch_fence_gate_to_properties_map(),
+            BlockKind::JungleFenceGate => self.jungle_fence_gate_to_properties_map(),
+            BlockKind::AcaciaFenceGate => self.acacia_fence_gate_to_properties_map(),
+            BlockKind::DarkOakFenceGate => self.dark_oak_fence_gate_to_properties_map(),
+            BlockKind::SpruceFence => self.spruce_fence_to_properties_map(),
+            BlockKind::BirchFence => self.birch_fence_to_properties_map(),
+            BlockKind::JungleFence => self.jungle_fence_to_properties_map(),
+            BlockKind::AcaciaFence => self.acacia_fence_to_properties_map(),
+            BlockKind::DarkOakFence => self.dark_oak_fence_to_properties_map(),
+            BlockKind::SpruceDoor => self.spruce_door_to_properties_map(),
+            BlockKind::BirchDoor => self.birch_door_to_properties_map(),
+            BlockKind::JungleDoor => self.jungle_door_to_properties_map(),
+            BlockKind::AcaciaDoor => self.acacia_door_to_properties_map(),
+            BlockKind::DarkOakDoor => self.dark_oak_door_to_properties_map(),
+            BlockKind::EndRod => self.end_rod_to_properties_map(),
+            BlockKind::ChorusPlant => self.chorus_plant_to_properties_map(),
+            BlockKind::ChorusFlower => self.chorus_flower_to_properties_map(),
+            BlockKind::PurpurBlock => self.purpur_block_to_properties_map(),
+            BlockKind::PurpurPillar => self.purpur_pillar_to_properties_map(),
+            BlockKind::PurpurStairs => self.purpur_stairs_to_properties_map(),
+            BlockKind::EndStoneBricks => self.end_stone_bricks_to_properties_map(),
+            BlockKind::Beetroots => self.beetroots_to_properties_map(),
+            BlockKind::GrassPath => self.grass_path_to_properties_map(),
+            BlockKind::EndGateway => self.end_gateway_to_properties_map(),
+            BlockKind::RepeatingCommandBlock => self.repeating_command_block_to_properties_map(),
+            BlockKind::ChainCommandBlock => self.chain_command_block_to_properties_map(),
+            BlockKind::FrostedIce => self.frosted_ice_to_properties_map(),
+            BlockKind::MagmaBlock => self.magma_block_to_properties_map(),
+            BlockKind::NetherWartBlock => self.nether_wart_block_to_properties_map(),
+            BlockKind::RedNetherBricks => self.red_nether_bricks_to_properties_map(),
+            BlockKind::BoneBlock => self.bone_block_to_properties_map(),
+            BlockKind::StructureVoid => self.structure_void_to_properties_map(),
+            BlockKind::Observer => self.observer_to_properties_map(),
+            BlockKind::ShulkerBox => self.shulker_box_to_properties_map(),
+            BlockKind::WhiteShulkerBox => self.white_shulker_box_to_properties_map(),
+            BlockKind::OrangeShulkerBox => self.orange_shulker_box_to_properties_map(),
+            BlockKind::MagentaShulkerBox => self.magenta_shulker_box_to_properties_map(),
+            BlockKind::LightBlueShulkerBox => self.light_blue_shulker_box_to_properties_map(),
+            BlockKind::YellowShulkerBox => self.yellow_shulker_box_to_properties_map(),
+            BlockKind::LimeShulkerBox => self.lime_shulker_box_to_properties_map(),
+            BlockKind::PinkShulkerBox => self.pink_shulker_box_to_properties_map(),
+            BlockKind::GrayShulkerBox => self.gray_shulker_box_to_properties_map(),
+            BlockKind::LightGrayShulkerBox => self.light_gray_shulker_box_to_properties_map(),
+            BlockKind::CyanShulkerBox => self.cyan_shulker_box_to_properties_map(),
+            BlockKind::PurpleShulkerBox => self.purple_shulker_box_to_properties_map(),
+            BlockKind::BlueShulkerBox => self.blue_shulker_box_to_properties_map(),
+            BlockKind::BrownShulkerBox => self.brown_shulker_box_to_properties_map(),
+            BlockKind::GreenShulkerBox => self.green_shulker_box_to_properties_map(),
+            BlockKind::RedShulkerBox => self.red_shulker_box_to_properties_map(),
+            BlockKind::BlackShulkerBox => self.black_shulker_box_to_properties_map(),
+            BlockKind::WhiteGlazedTerracotta => self.white_glazed_terracotta_to_properties_map(),
+            BlockKind::OrangeGlazedTerracotta => self.orange_glazed_terracotta_to_properties_map(),
+            BlockKind::MagentaGlazedTerracotta => {
+                self.magenta_glazed_terracotta_to_properties_map()
+            }
+            BlockKind::LightBlueGlazedTerracotta => {
+                self.light_blue_glazed_terracotta_to_properties_map()
+            }
+            BlockKind::YellowGlazedTerracotta => self.yellow_glazed_terracotta_to_properties_map(),
+            BlockKind::LimeGlazedTerracotta => self.lime_glazed_terracotta_to_properties_map(),
+            BlockKind::PinkGlazedTerracotta => self.pink_glazed_terracotta_to_properties_map(),
+            BlockKind::GrayGlazedTerracotta => self.gray_glazed_terracotta_to_properties_map(),
+            BlockKind::LightGrayGlazedTerracotta => {
+                self.light_gray_glazed_terracotta_to_properties_map()
+            }
+            BlockKind::CyanGlazedTerracotta => self.cyan_glazed_terracotta_to_properties_map(),
+            BlockKind::PurpleGlazedTerracotta => self.purple_glazed_terracotta_to_properties_map(),
+            BlockKind::BlueGlazedTerracotta => self.blue_glazed_terracotta_to_properties_map(),
+            BlockKind::BrownGlazedTerracotta => self.brown_glazed_terracotta_to_properties_map(),
+            BlockKind::GreenGlazedTerracotta => self.green_glazed_terracotta_to_properties_map(),
+            BlockKind::RedGlazedTerracotta => self.red_glazed_terracotta_to_properties_map(),
+            BlockKind::BlackGlazedTerracotta => self.black_glazed_terracotta_to_properties_map(),
+            BlockKind::WhiteConcrete => self.white_concrete_to_properties_map(),
+            BlockKind::OrangeConcrete => self.orange_concrete_to_properties_map(),
+            BlockKind::MagentaConcrete => self.magenta_concrete_to_properties_map(),
+            BlockKind::LightBlueConcrete => self.light_blue_concrete_to_properties_map(),
+            BlockKind::YellowConcrete => self.yellow_concrete_to_properties_map(),
+            BlockKind::LimeConcrete => self.lime_concrete_to_properties_map(),
+            BlockKind::PinkConcrete => self.pink_concrete_to_properties_map(),
+            BlockKind::GrayConcrete => self.gray_concrete_to_properties_map(),
+            BlockKind::LightGrayConcrete => self.light_gray_concrete_to_properties_map(),
+            BlockKind::CyanConcrete => self.cyan_concrete_to_properties_map(),
+            BlockKind::PurpleConcrete => self.purple_concrete_to_properties_map(),
+            BlockKind::BlueConcrete => self.blue_concrete_to_properties_map(),
+            BlockKind::BrownConcrete => self.brown_concrete_to_properties_map(),
+            BlockKind::GreenConcrete => self.green_concrete_to_properties_map(),
+            BlockKind::RedConcrete => self.red_concrete_to_properties_map(),
+            BlockKind::BlackConcrete => self.black_concrete_to_properties_map(),
+            BlockKind::WhiteConcretePowder => self.white_concrete_powder_to_properties_map(),
+            BlockKind::OrangeConcretePowder => self.orange_concrete_powder_to_properties_map(),
+            BlockKind::MagentaConcretePowder => self.magenta_concrete_powder_to_properties_map(),
+            BlockKind::LightBlueConcretePowder => {
+                self.light_blue_concrete_powder_to_properties_map()
+            }
+            BlockKind::YellowConcretePowder => self.yellow_concrete_powder_to_properties_map(),
+            BlockKind::LimeConcretePowder => self.lime_concrete_powder_to_properties_map(),
+            BlockKind::PinkConcretePowder => self.pink_concrete_powder_to_properties_map(),
+            BlockKind::GrayConcretePowder => self.gray_concrete_powder_to_properties_map(),
+            BlockKind::LightGrayConcretePowder => {
+                self.light_gray_concrete_powder_to_properties_map()
+            }
+            BlockKind::CyanConcretePowder => self.cyan_concrete_powder_to_properties_map(),
+            BlockKind::PurpleConcretePowder => self.purple_concrete_powder_to_properties_map(),
+            BlockKind::BlueConcretePowder => self.blue_concrete_powder_to_properties_map(),
+            BlockKind::BrownConcretePowder => self.brown_concrete_powder_to_properties_map(),
+            BlockKind::GreenConcretePowder => self.green_concrete_powder_to_properties_map(),
+            BlockKind::RedConcretePowder => self.red_concrete_powder_to_properties_map(),
+            BlockKind::BlackConcretePowder => self.black_concrete_powder_to_properties_map(),
+            BlockKind::Kelp => self.kelp_to_properties_map(),
+            BlockKind::KelpPlant => self.kelp_plant_to_properties_map(),
+            BlockKind::DriedKelpBlock => self.dried_kelp_block_to_properties_map(),
+            BlockKind::TurtleEgg => self.turtle_egg_to_properties_map(),
+            BlockKind::DeadTubeCoralBlock => self.dead_tube_coral_block_to_properties_map(),
+            BlockKind::DeadBrainCoralBlock => self.dead_brain_coral_block_to_properties_map(),
+            BlockKind::DeadBubbleCoralBlock => self.dead_bubble_coral_block_to_properties_map(),
+            BlockKind::DeadFireCoralBlock => self.dead_fire_coral_block_to_properties_map(),
+            BlockKind::DeadHornCoralBlock => self.dead_horn_coral_block_to_properties_map(),
+            BlockKind::TubeCoralBlock => self.tube_coral_block_to_properties_map(),
+            BlockKind::BrainCoralBlock => self.brain_coral_block_to_properties_map(),
+            BlockKind::BubbleCoralBlock => self.bubble_coral_block_to_properties_map(),
+            BlockKind::FireCoralBlock => self.fire_coral_block_to_properties_map(),
+            BlockKind::HornCoralBlock => self.horn_coral_block_to_properties_map(),
+            BlockKind::DeadTubeCoral => self.dead_tube_coral_to_properties_map(),
+            BlockKind::DeadBrainCoral => self.dead_brain_coral_to_properties_map(),
+            BlockKind::DeadBubbleCoral => self.dead_bubble_coral_to_properties_map(),
+            BlockKind::DeadFireCoral => self.dead_fire_coral_to_properties_map(),
+            BlockKind::DeadHornCoral => self.dead_horn_coral_to_properties_map(),
+            BlockKind::TubeCoral => self.tube_coral_to_properties_map(),
+            BlockKind::BrainCoral => self.brain_coral_to_properties_map(),
+            BlockKind::BubbleCoral => self.bubble_coral_to_properties_map(),
+            BlockKind::FireCoral => self.fire_coral_to_properties_map(),
+            BlockKind::HornCoral => self.horn_coral_to_properties_map(),
+            BlockKind::DeadTubeCoralWallFan => self.dead_tube_coral_wall_fan_to_properties_map(),
+            BlockKind::DeadBrainCoralWallFan => self.dead_brain_coral_wall_fan_to_properties_map(),
+            BlockKind::DeadBubbleCoralWallFan => {
+                self.dead_bubble_coral_wall_fan_to_properties_map()
+            }
+            BlockKind::DeadFireCoralWallFan => self.dead_fire_coral_wall_fan_to_properties_map(),
+            BlockKind::DeadHornCoralWallFan => self.dead_horn_coral_wall_fan_to_properties_map(),
+            BlockKind::TubeCoralWallFan => self.tube_coral_wall_fan_to_properties_map(),
+            BlockKind::BrainCoralWallFan => self.brain_coral_wall_fan_to_properties_map(),
+            BlockKind::BubbleCoralWallFan => self.bubble_coral_wall_fan_to_properties_map(),
+            BlockKind::FireCoralWallFan => self.fire_coral_wall_fan_to_properties_map(),
+            BlockKind::HornCoralWallFan => self.horn_coral_wall_fan_to_properties_map(),
+            BlockKind::DeadTubeCoralFan => self.dead_tube_coral_fan_to_properties_map(),
+            BlockKind::DeadBrainCoralFan => self.dead_brain_coral_fan_to_properties_map(),
+            BlockKind::DeadBubbleCoralFan => self.dead_bubble_coral_fan_to_properties_map(),
+            BlockKind::DeadFireCoralFan => self.dead_fire_coral_fan_to_properties_map(),
+            BlockKind::DeadHornCoralFan => self.dead_horn_coral_fan_to_properties_map(),
+            BlockKind::TubeCoralFan => self.tube_coral_fan_to_properties_map(),
+            BlockKind::BrainCoralFan => self.brain_coral_fan_to_properties_map(),
+            BlockKind::BubbleCoralFan => self.bubble_coral_fan_to_properties_map(),
+            BlockKind::FireCoralFan => self.fire_coral_fan_to_properties_map(),
+            BlockKind::HornCoralFan => self.horn_coral_fan_to_properties_map(),
+            BlockKind::SeaPickle => self.sea_pickle_to_properties_map(),
+            BlockKind::BlueIce => self.blue_ice_to_properties_map(),
+            BlockKind::Conduit => self.conduit_to_properties_map(),
+            BlockKind::VoidAir => self.void_air_to_properties_map(),
+            BlockKind::CaveAir => self.cave_air_to_properties_map(),
+            BlockKind::BubbleColumn => self.bubble_column_to_properties_map(),
+            BlockKind::StructureBlock => self.structure_block_to_properties_map(),
+        }
+    }
+    fn air_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn stone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn granite_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn polished_granite_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn diorite_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn polished_diorite_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn andesite_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn polished_andesite_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn grass_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let snowy = self.snowy().unwrap();
+        map.insert("snowy", {
+            match snowy {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dirt_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn coarse_dirt_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn podzol_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let snowy = self.snowy().unwrap();
+        map.insert("snowy", {
+            match snowy {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn cobblestone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn oak_planks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn spruce_planks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn birch_planks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn jungle_planks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn acacia_planks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn dark_oak_planks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn oak_sapling_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let stage = self.stage().unwrap();
+        map.insert("stage", {
+            match stage {
+                0i32 => "0",
+                1i32 => "1",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn spruce_sapling_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let stage = self.stage().unwrap();
+        map.insert("stage", {
+            match stage {
+                0i32 => "0",
+                1i32 => "1",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn birch_sapling_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let stage = self.stage().unwrap();
+        map.insert("stage", {
+            match stage {
+                0i32 => "0",
+                1i32 => "1",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn jungle_sapling_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let stage = self.stage().unwrap();
+        map.insert("stage", {
+            match stage {
+                0i32 => "0",
+                1i32 => "1",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn acacia_sapling_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let stage = self.stage().unwrap();
+        map.insert("stage", {
+            match stage {
+                0i32 => "0",
+                1i32 => "1",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn dark_oak_sapling_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let stage = self.stage().unwrap();
+        map.insert("stage", {
+            match stage {
+                0i32 => "0",
+                1i32 => "1",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn bedrock_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn water_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let water_level = self.water_level().unwrap();
+        map.insert("water_level", {
+            match water_level {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn lava_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let water_level = self.water_level().unwrap();
+        map.insert("water_level", {
+            match water_level {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn sand_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn red_sand_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn gravel_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn gold_ore_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn iron_ore_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn coal_ore_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn oak_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn spruce_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn birch_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn jungle_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn acacia_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn dark_oak_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn stripped_spruce_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn stripped_birch_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn stripped_jungle_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn stripped_acacia_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn stripped_dark_oak_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn stripped_oak_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn oak_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn spruce_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn birch_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn jungle_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn acacia_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn dark_oak_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn stripped_oak_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn stripped_spruce_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn stripped_birch_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn stripped_jungle_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn stripped_acacia_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn stripped_dark_oak_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn oak_leaves_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let distance = self.distance().unwrap();
+        map.insert("distance", {
+            match distance {
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                _ => "unknown",
+            }
+        });
+        let persistent = self.persistent().unwrap();
+        map.insert("persistent", {
+            match persistent {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn spruce_leaves_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let distance = self.distance().unwrap();
+        map.insert("distance", {
+            match distance {
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                _ => "unknown",
+            }
+        });
+        let persistent = self.persistent().unwrap();
+        map.insert("persistent", {
+            match persistent {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn birch_leaves_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let distance = self.distance().unwrap();
+        map.insert("distance", {
+            match distance {
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                _ => "unknown",
+            }
+        });
+        let persistent = self.persistent().unwrap();
+        map.insert("persistent", {
+            match persistent {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn jungle_leaves_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let distance = self.distance().unwrap();
+        map.insert("distance", {
+            match distance {
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                _ => "unknown",
+            }
+        });
+        let persistent = self.persistent().unwrap();
+        map.insert("persistent", {
+            match persistent {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn acacia_leaves_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let distance = self.distance().unwrap();
+        map.insert("distance", {
+            match distance {
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                _ => "unknown",
+            }
+        });
+        let persistent = self.persistent().unwrap();
+        map.insert("persistent", {
+            match persistent {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dark_oak_leaves_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let distance = self.distance().unwrap();
+        map.insert("distance", {
+            match distance {
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                _ => "unknown",
+            }
+        });
+        let persistent = self.persistent().unwrap();
+        map.insert("persistent", {
+            match persistent {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn sponge_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn wet_sponge_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn lapis_ore_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn lapis_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn dispenser_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        let triggered = self.triggered().unwrap();
+        map.insert("triggered", {
+            match triggered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn sandstone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn chiseled_sandstone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn cut_sandstone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn note_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let instrument = self.instrument().unwrap();
+        map.insert("instrument", { instrument.as_str() });
+        let note = self.note().unwrap();
+        map.insert("note", {
+            match note {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                16i32 => "16",
+                17i32 => "17",
+                18i32 => "18",
+                19i32 => "19",
+                20i32 => "20",
+                21i32 => "21",
+                22i32 => "22",
+                23i32 => "23",
+                24i32 => "24",
+                _ => "unknown",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn white_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn orange_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn magenta_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn light_blue_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn yellow_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn lime_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn pink_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn gray_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn light_gray_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn cyan_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn purple_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn blue_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn brown_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn green_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn red_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn black_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let occupied = self.occupied().unwrap();
+        map.insert("occupied", {
+            match occupied {
+                true => "true",
+                false => "false",
+            }
+        });
+        let part = self.part().unwrap();
+        map.insert("part", { part.as_str() });
+        map
+    }
+    fn powered_rail_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered_rail_shape = self.powered_rail_shape().unwrap();
+        map.insert("powered_rail_shape", { powered_rail_shape.as_str() });
+        map
+    }
+    fn detector_rail_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered_rail_shape = self.powered_rail_shape().unwrap();
+        map.insert("powered_rail_shape", { powered_rail_shape.as_str() });
+        map
+    }
+    fn sticky_piston_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let extended = self.extended().unwrap();
+        map.insert("extended", {
+            match extended {
+                true => "true",
+                false => "false",
+            }
+        });
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn cobweb_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn grass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn fern_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn dead_bush_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn seagrass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn tall_seagrass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map
+    }
+    fn piston_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let extended = self.extended().unwrap();
+        map.insert("extended", {
+            match extended {
+                true => "true",
+                false => "false",
+            }
+        });
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn piston_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        let piston_kind = self.piston_kind().unwrap();
+        map.insert("piston_kind", { piston_kind.as_str() });
+        let short = self.short().unwrap();
+        map.insert("short", {
+            match short {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn white_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn orange_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn magenta_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn light_blue_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn yellow_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn lime_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn pink_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn gray_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn light_gray_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn cyan_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn purple_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn blue_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn brown_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn green_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn red_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn black_wool_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn moving_piston_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        let piston_kind = self.piston_kind().unwrap();
+        map.insert("piston_kind", { piston_kind.as_str() });
+        map
+    }
+    fn dandelion_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn poppy_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn blue_orchid_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn allium_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn azure_bluet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn red_tulip_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn orange_tulip_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn white_tulip_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn pink_tulip_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn oxeye_daisy_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn brown_mushroom_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn red_mushroom_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn gold_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn iron_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn bricks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn tnt_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let unstable = self.unstable().unwrap();
+        map.insert("unstable", {
+            match unstable {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn bookshelf_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn mossy_cobblestone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn obsidian_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn torch_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn wall_torch_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn fire_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_15 = self.age_0_15().unwrap();
+        map.insert("age_0_15", {
+            match age_0_15 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let up = self.up().unwrap();
+        map.insert("up", {
+            match up {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn spawner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn oak_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn chest_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let chest_kind = self.chest_kind().unwrap();
+        map.insert("chest_kind", { chest_kind.as_str() });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn redstone_wire_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_wire = self.east_wire().unwrap();
+        map.insert("east_wire", { east_wire.as_str() });
+        let north_wire = self.north_wire().unwrap();
+        map.insert("north_wire", { north_wire.as_str() });
+        let power = self.power().unwrap();
+        map.insert("power", {
+            match power {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        let south_wire = self.south_wire().unwrap();
+        map.insert("south_wire", { south_wire.as_str() });
+        let west_wire = self.west_wire().unwrap();
+        map.insert("west_wire", { west_wire.as_str() });
+        map
+    }
+    fn diamond_ore_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn diamond_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn crafting_table_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn wheat_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_7 = self.age_0_7().unwrap();
+        map.insert("age_0_7", {
+            match age_0_7 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn farmland_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let moisture = self.moisture().unwrap();
+        map.insert("moisture", {
+            match moisture {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn furnace_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let lit = self.lit().unwrap();
+        map.insert("lit", {
+            match lit {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn sign_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn oak_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        let hinge = self.hinge().unwrap();
+        map.insert("hinge", { hinge.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn ladder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn rail_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rail_shape = self.rail_shape().unwrap();
+        map.insert("rail_shape", { rail_shape.as_str() });
+        map
+    }
+    fn cobblestone_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn wall_sign_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn lever_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let face = self.face().unwrap();
+        map.insert("face", { face.as_str() });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn stone_pressure_plate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn iron_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        let hinge = self.hinge().unwrap();
+        map.insert("hinge", { hinge.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn oak_pressure_plate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn spruce_pressure_plate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn birch_pressure_plate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn jungle_pressure_plate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn acacia_pressure_plate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dark_oak_pressure_plate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn redstone_ore_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let lit = self.lit().unwrap();
+        map.insert("lit", {
+            match lit {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn redstone_torch_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let lit = self.lit().unwrap();
+        map.insert("lit", {
+            match lit {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn redstone_wall_torch_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let lit = self.lit().unwrap();
+        map.insert("lit", {
+            match lit {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn stone_button_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let face = self.face().unwrap();
+        map.insert("face", { face.as_str() });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn snow_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let layers = self.layers().unwrap();
+        map.insert("layers", {
+            match layers {
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn ice_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn snow_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn cactus_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_15 = self.age_0_15().unwrap();
+        map.insert("age_0_15", {
+            match age_0_15 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn clay_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn sugar_cane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_15 = self.age_0_15().unwrap();
+        map.insert("age_0_15", {
+            match age_0_15 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn jukebox_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let has_record = self.has_record().unwrap();
+        map.insert("has_record", {
+            match has_record {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn oak_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn pumpkin_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn netherrack_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn soul_sand_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn glowstone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn nether_portal_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xz = self.axis_xz().unwrap();
+        map.insert("axis_xz", { axis_xz.as_str() });
+        map
+    }
+    fn carved_pumpkin_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn jack_o_lantern_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn cake_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let bites = self.bites().unwrap();
+        map.insert("bites", {
+            match bites {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn repeater_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let delay = self.delay().unwrap();
+        map.insert("delay", {
+            match delay {
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                _ => "unknown",
+            }
+        });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let locked = self.locked().unwrap();
+        map.insert("locked", {
+            match locked {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn white_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn orange_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn magenta_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn light_blue_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn yellow_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn lime_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn pink_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn gray_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn light_gray_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn cyan_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn purple_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn blue_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn brown_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn green_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn red_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn black_stained_glass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn oak_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn spruce_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn birch_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn jungle_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn acacia_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dark_oak_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn infested_stone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn infested_cobblestone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn infested_stone_bricks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn infested_mossy_stone_bricks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn infested_cracked_stone_bricks_to_properties_map(
+        self,
+    ) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn infested_chiseled_stone_bricks_to_properties_map(
+        self,
+    ) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn stone_bricks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn mossy_stone_bricks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn cracked_stone_bricks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn chiseled_stone_bricks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn brown_mushroom_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let down = self.down().unwrap();
+        map.insert("down", {
+            match down {
+                true => "true",
+                false => "false",
+            }
+        });
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let up = self.up().unwrap();
+        map.insert("up", {
+            match up {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn red_mushroom_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let down = self.down().unwrap();
+        map.insert("down", {
+            match down {
+                true => "true",
+                false => "false",
+            }
+        });
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let up = self.up().unwrap();
+        map.insert("up", {
+            match up {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn mushroom_stem_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let down = self.down().unwrap();
+        map.insert("down", {
+            match down {
+                true => "true",
+                false => "false",
+            }
+        });
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let up = self.up().unwrap();
+        map.insert("up", {
+            match up {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn iron_bars_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn melon_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn attached_pumpkin_stem_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn attached_melon_stem_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn pumpkin_stem_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_7 = self.age_0_7().unwrap();
+        map.insert("age_0_7", {
+            match age_0_7 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn melon_stem_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_7 = self.age_0_7().unwrap();
+        map.insert("age_0_7", {
+            match age_0_7 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn vine_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let up = self.up().unwrap();
+        map.insert("up", {
+            match up {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn oak_fence_gate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let in_wall = self.in_wall().unwrap();
+        map.insert("in_wall", {
+            match in_wall {
+                true => "true",
+                false => "false",
+            }
+        });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn brick_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn stone_brick_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn mycelium_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let snowy = self.snowy().unwrap();
+        map.insert("snowy", {
+            match snowy {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn lily_pad_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn nether_bricks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn nether_brick_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn nether_brick_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn nether_wart_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_3 = self.age_0_3().unwrap();
+        map.insert("age_0_3", {
+            match age_0_3 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn enchanting_table_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn brewing_stand_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let has_bottle_0 = self.has_bottle_0().unwrap();
+        map.insert("has_bottle_0", {
+            match has_bottle_0 {
+                true => "true",
+                false => "false",
+            }
+        });
+        let has_bottle_1 = self.has_bottle_1().unwrap();
+        map.insert("has_bottle_1", {
+            match has_bottle_1 {
+                true => "true",
+                false => "false",
+            }
+        });
+        let has_bottle_2 = self.has_bottle_2().unwrap();
+        map.insert("has_bottle_2", {
+            match has_bottle_2 {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn cauldron_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let cauldron_level = self.cauldron_level().unwrap();
+        map.insert("cauldron_level", {
+            match cauldron_level {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn end_portal_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn end_portal_frame_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let eye = self.eye().unwrap();
+        map.insert("eye", {
+            match eye {
+                true => "true",
+                false => "false",
+            }
+        });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn end_stone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn dragon_egg_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn redstone_lamp_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let lit = self.lit().unwrap();
+        map.insert("lit", {
+            match lit {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn cocoa_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_2 = self.age_0_2().unwrap();
+        map.insert("age_0_2", {
+            match age_0_2 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                _ => "unknown",
+            }
+        });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn sandstone_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn emerald_ore_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn ender_chest_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn tripwire_hook_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let attached = self.attached().unwrap();
+        map.insert("attached", {
+            match attached {
+                true => "true",
+                false => "false",
+            }
+        });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn tripwire_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let attached = self.attached().unwrap();
+        map.insert("attached", {
+            match attached {
+                true => "true",
+                false => "false",
+            }
+        });
+        let disarmed = self.disarmed().unwrap();
+        map.insert("disarmed", {
+            match disarmed {
+                true => "true",
+                false => "false",
+            }
+        });
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn emerald_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn spruce_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn birch_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn jungle_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn command_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let conditional = self.conditional().unwrap();
+        map.insert("conditional", {
+            match conditional {
+                true => "true",
+                false => "false",
+            }
+        });
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn beacon_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn cobblestone_wall_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let up = self.up().unwrap();
+        map.insert("up", {
+            match up {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn mossy_cobblestone_wall_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let up = self.up().unwrap();
+        map.insert("up", {
+            match up {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn flower_pot_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_oak_sapling_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_spruce_sapling_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_birch_sapling_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_jungle_sapling_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_acacia_sapling_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_dark_oak_sapling_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_fern_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_dandelion_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_poppy_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_blue_orchid_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_allium_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_azure_bluet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_red_tulip_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_orange_tulip_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_white_tulip_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_pink_tulip_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_oxeye_daisy_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_red_mushroom_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_brown_mushroom_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_dead_bush_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn potted_cactus_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn carrots_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_7 = self.age_0_7().unwrap();
+        map.insert("age_0_7", {
+            match age_0_7 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn potatoes_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_7 = self.age_0_7().unwrap();
+        map.insert("age_0_7", {
+            match age_0_7 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn oak_button_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let face = self.face().unwrap();
+        map.insert("face", { face.as_str() });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn spruce_button_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let face = self.face().unwrap();
+        map.insert("face", { face.as_str() });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn birch_button_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let face = self.face().unwrap();
+        map.insert("face", { face.as_str() });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn jungle_button_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let face = self.face().unwrap();
+        map.insert("face", { face.as_str() });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn acacia_button_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let face = self.face().unwrap();
+        map.insert("face", { face.as_str() });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dark_oak_button_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let face = self.face().unwrap();
+        map.insert("face", { face.as_str() });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn skeleton_wall_skull_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn skeleton_skull_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn wither_skeleton_wall_skull_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn wither_skeleton_skull_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn zombie_wall_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn zombie_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn player_wall_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn player_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn creeper_wall_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn creeper_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn dragon_wall_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn dragon_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn anvil_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn chipped_anvil_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn damaged_anvil_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn trapped_chest_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let chest_kind = self.chest_kind().unwrap();
+        map.insert("chest_kind", { chest_kind.as_str() });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn light_weighted_pressure_plate_to_properties_map(
+        self,
+    ) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let power = self.power().unwrap();
+        map.insert("power", {
+            match power {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn heavy_weighted_pressure_plate_to_properties_map(
+        self,
+    ) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let power = self.power().unwrap();
+        map.insert("power", {
+            match power {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn comparator_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let comparator_mode = self.comparator_mode().unwrap();
+        map.insert("comparator_mode", { comparator_mode.as_str() });
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn daylight_detector_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let inverted = self.inverted().unwrap();
+        map.insert("inverted", {
+            match inverted {
+                true => "true",
+                false => "false",
+            }
+        });
+        let power = self.power().unwrap();
+        map.insert("power", {
+            match power {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn redstone_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn nether_quartz_ore_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn hopper_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let enabled = self.enabled().unwrap();
+        map.insert("enabled", {
+            match enabled {
+                true => "true",
+                false => "false",
+            }
+        });
+        let facing_cardinal_and_down = self.facing_cardinal_and_down().unwrap();
+        map.insert("facing_cardinal_and_down", {
+            facing_cardinal_and_down.as_str()
+        });
+        map
+    }
+    fn quartz_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn chiseled_quartz_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn quartz_pillar_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn quartz_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn activator_rail_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered_rail_shape = self.powered_rail_shape().unwrap();
+        map.insert("powered_rail_shape", { powered_rail_shape.as_str() });
+        map
+    }
+    fn dropper_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        let triggered = self.triggered().unwrap();
+        map.insert("triggered", {
+            match triggered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn white_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn orange_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn magenta_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn light_blue_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn yellow_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn lime_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn pink_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn gray_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn light_gray_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn cyan_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn purple_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn blue_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn brown_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn green_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn red_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn black_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn white_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn orange_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn magenta_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn light_blue_stained_glass_pane_to_properties_map(
+        self,
+    ) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn yellow_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn lime_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn pink_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn gray_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn light_gray_stained_glass_pane_to_properties_map(
+        self,
+    ) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn cyan_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn purple_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn blue_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn brown_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn green_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn red_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn black_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn acacia_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dark_oak_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn slime_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn barrier_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn iron_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn prismarine_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn prismarine_bricks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn dark_prismarine_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn prismarine_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn prismarine_brick_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dark_prismarine_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn prismarine_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn prismarine_brick_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dark_prismarine_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn sea_lantern_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn hay_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn white_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn orange_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn magenta_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn light_blue_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn yellow_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn lime_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn pink_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn gray_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn light_gray_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn cyan_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn purple_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn blue_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn brown_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn green_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn red_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn black_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn coal_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn packed_ice_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn sunflower_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map
+    }
+    fn lilac_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map
+    }
+    fn rose_bush_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map
+    }
+    fn peony_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map
+    }
+    fn tall_grass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map
+    }
+    fn large_fern_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map
+    }
+    fn white_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn orange_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn magenta_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn light_blue_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn yellow_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn lime_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn pink_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn gray_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn light_gray_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn cyan_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn purple_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn blue_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn brown_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn green_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn red_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn black_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let rotation = self.rotation().unwrap();
+        map.insert("rotation", {
+            match rotation {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn white_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn orange_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn magenta_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn light_blue_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn yellow_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn lime_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn pink_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn gray_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn light_gray_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn cyan_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn purple_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn blue_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn brown_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn green_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn red_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn black_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn red_sandstone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn chiseled_red_sandstone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn cut_red_sandstone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn red_sandstone_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn oak_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn spruce_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn birch_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn jungle_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn acacia_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dark_oak_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn stone_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn sandstone_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn petrified_oak_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn cobblestone_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn brick_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn stone_brick_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn nether_brick_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn quartz_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn red_sandstone_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn purpur_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let slab_kind = self.slab_kind().unwrap();
+        map.insert("slab_kind", { slab_kind.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn smooth_stone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn smooth_sandstone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn smooth_quartz_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn smooth_red_sandstone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn spruce_fence_gate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let in_wall = self.in_wall().unwrap();
+        map.insert("in_wall", {
+            match in_wall {
+                true => "true",
+                false => "false",
+            }
+        });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn birch_fence_gate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let in_wall = self.in_wall().unwrap();
+        map.insert("in_wall", {
+            match in_wall {
+                true => "true",
+                false => "false",
+            }
+        });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn jungle_fence_gate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let in_wall = self.in_wall().unwrap();
+        map.insert("in_wall", {
+            match in_wall {
+                true => "true",
+                false => "false",
+            }
+        });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn acacia_fence_gate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let in_wall = self.in_wall().unwrap();
+        map.insert("in_wall", {
+            match in_wall {
+                true => "true",
+                false => "false",
+            }
+        });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dark_oak_fence_gate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let in_wall = self.in_wall().unwrap();
+        map.insert("in_wall", {
+            match in_wall {
+                true => "true",
+                false => "false",
+            }
+        });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn spruce_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn birch_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn jungle_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn acacia_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dark_oak_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn spruce_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        let hinge = self.hinge().unwrap();
+        map.insert("hinge", { hinge.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn birch_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        let hinge = self.hinge().unwrap();
+        map.insert("hinge", { hinge.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn jungle_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        let hinge = self.hinge().unwrap();
+        map.insert("hinge", { hinge.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn acacia_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        let hinge = self.hinge().unwrap();
+        map.insert("hinge", { hinge.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dark_oak_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_upper_lower = self.half_upper_lower().unwrap();
+        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        let hinge = self.hinge().unwrap();
+        map.insert("hinge", { hinge.as_str() });
+        let open = self.open().unwrap();
+        map.insert("open", {
+            match open {
+                true => "true",
+                false => "false",
+            }
+        });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn end_rod_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn chorus_plant_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let down = self.down().unwrap();
+        map.insert("down", {
+            match down {
+                true => "true",
+                false => "false",
+            }
+        });
+        let east_connected = self.east_connected().unwrap();
+        map.insert("east_connected", {
+            match east_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let north_connected = self.north_connected().unwrap();
+        map.insert("north_connected", {
+            match north_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let south_connected = self.south_connected().unwrap();
+        map.insert("south_connected", {
+            match south_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        let up = self.up().unwrap();
+        map.insert("up", {
+            match up {
+                true => "true",
+                false => "false",
+            }
+        });
+        let west_connected = self.west_connected().unwrap();
+        map.insert("west_connected", {
+            match west_connected {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn chorus_flower_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_5 = self.age_0_5().unwrap();
+        map.insert("age_0_5", {
+            match age_0_5 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn purpur_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn purpur_pillar_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn purpur_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let half_top_bottom = self.half_top_bottom().unwrap();
+        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        let stairs_shape = self.stairs_shape().unwrap();
+        map.insert("stairs_shape", { stairs_shape.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn end_stone_bricks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn beetroots_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_3 = self.age_0_3().unwrap();
+        map.insert("age_0_3", {
+            match age_0_3 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn grass_path_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn end_gateway_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn repeating_command_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let conditional = self.conditional().unwrap();
+        map.insert("conditional", {
+            match conditional {
+                true => "true",
+                false => "false",
+            }
+        });
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn chain_command_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let conditional = self.conditional().unwrap();
+        map.insert("conditional", {
+            match conditional {
+                true => "true",
+                false => "false",
+            }
+        });
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn frosted_ice_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_3 = self.age_0_3().unwrap();
+        map.insert("age_0_3", {
+            match age_0_3 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn magma_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn nether_wart_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn red_nether_bricks_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn bone_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let axis_xyz = self.axis_xyz().unwrap();
+        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map
+    }
+    fn structure_void_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn observer_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        let powered = self.powered().unwrap();
+        map.insert("powered", {
+            match powered {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn white_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn orange_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn magenta_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn light_blue_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn yellow_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn lime_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn pink_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn gray_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn light_gray_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn cyan_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn purple_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn blue_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn brown_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn green_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn red_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn black_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cubic = self.facing_cubic().unwrap();
+        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map
+    }
+    fn white_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn orange_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn magenta_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn light_blue_glazed_terracotta_to_properties_map(
+        self,
+    ) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn yellow_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn lime_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn pink_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn gray_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn light_gray_glazed_terracotta_to_properties_map(
+        self,
+    ) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn cyan_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn purple_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn blue_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn brown_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn green_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn red_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn black_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map
+    }
+    fn white_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn orange_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn magenta_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn light_blue_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn yellow_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn lime_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn pink_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn gray_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn light_gray_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn cyan_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn purple_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn blue_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn brown_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn green_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn red_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn black_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn white_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn orange_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn magenta_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn light_blue_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn yellow_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn lime_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn pink_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn gray_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn light_gray_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn cyan_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn purple_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn blue_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn brown_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn green_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn red_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn black_concrete_powder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn kelp_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let age_0_25 = self.age_0_25().unwrap();
+        map.insert("age_0_25", {
+            match age_0_25 {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                5i32 => "5",
+                6i32 => "6",
+                7i32 => "7",
+                8i32 => "8",
+                9i32 => "9",
+                10i32 => "10",
+                11i32 => "11",
+                12i32 => "12",
+                13i32 => "13",
+                14i32 => "14",
+                15i32 => "15",
+                16i32 => "16",
+                17i32 => "17",
+                18i32 => "18",
+                19i32 => "19",
+                20i32 => "20",
+                21i32 => "21",
+                22i32 => "22",
+                23i32 => "23",
+                24i32 => "24",
+                25i32 => "25",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn kelp_plant_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn dried_kelp_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn turtle_egg_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let eggs = self.eggs().unwrap();
+        map.insert("eggs", {
+            match eggs {
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                _ => "unknown",
+            }
+        });
+        let hatch = self.hatch().unwrap();
+        map.insert("hatch", {
+            match hatch {
+                0i32 => "0",
+                1i32 => "1",
+                2i32 => "2",
+                _ => "unknown",
+            }
+        });
+        map
+    }
+    fn dead_tube_coral_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn dead_brain_coral_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn dead_bubble_coral_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn dead_fire_coral_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn dead_horn_coral_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn tube_coral_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn brain_coral_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn bubble_coral_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn fire_coral_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn horn_coral_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn dead_tube_coral_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_brain_coral_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_bubble_coral_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_fire_coral_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_horn_coral_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn tube_coral_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn brain_coral_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn bubble_coral_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn fire_coral_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn horn_coral_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_tube_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_brain_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_bubble_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_fire_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_horn_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn tube_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn brain_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn bubble_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn fire_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn horn_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let facing_cardinal = self.facing_cardinal().unwrap();
+        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_tube_coral_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_brain_coral_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_bubble_coral_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_fire_coral_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn dead_horn_coral_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn tube_coral_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn brain_coral_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn bubble_coral_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn fire_coral_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn horn_coral_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn sea_pickle_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let pickles = self.pickles().unwrap();
+        map.insert("pickles", {
+            match pickles {
+                1i32 => "1",
+                2i32 => "2",
+                3i32 => "3",
+                4i32 => "4",
+                _ => "unknown",
+            }
+        });
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn blue_ice_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn conduit_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let waterlogged = self.waterlogged().unwrap();
+        map.insert("waterlogged", {
+            match waterlogged {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn void_air_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn cave_air_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        map
+    }
+    fn bubble_column_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let drag = self.drag().unwrap();
+        map.insert("drag", {
+            match drag {
+                true => "true",
+                false => "false",
+            }
+        });
+        map
+    }
+    fn structure_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
+        let mut map = BTreeMap::new();
+        let structure_block_mode = self.structure_block_mode().unwrap();
+        map.insert("structure_block_mode", { structure_block_mode.as_str() });
+        map
     }
 }
