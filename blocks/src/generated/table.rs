@@ -3,11 +3,17 @@ use serde::Deserialize;
 use std::convert::TryFrom;
 #[derive(Debug, Deserialize)]
 pub struct BlockTable {
-    age: Vec<(u16, u16)>,
+    age_0_15: Vec<(u16, u16)>,
+    age_0_2: Vec<(u16, u16)>,
+    age_0_25: Vec<(u16, u16)>,
+    age_0_3: Vec<(u16, u16)>,
+    age_0_5: Vec<(u16, u16)>,
+    age_0_7: Vec<(u16, u16)>,
     attached: Vec<(u16, u16)>,
     axis_xyz: Vec<(u16, u16)>,
     axis_xz: Vec<(u16, u16)>,
     bites: Vec<(u16, u16)>,
+    cauldron_level: Vec<(u16, u16)>,
     chest_kind: Vec<(u16, u16)>,
     comparator_mode: Vec<(u16, u16)>,
     conditional: Vec<(u16, u16)>,
@@ -26,7 +32,8 @@ pub struct BlockTable {
     facing_cardinal: Vec<(u16, u16)>,
     facing_cardinal_and_down: Vec<(u16, u16)>,
     facing_cubic: Vec<(u16, u16)>,
-    half: Vec<(u16, u16)>,
+    half_top_bottom: Vec<(u16, u16)>,
+    half_upper_lower: Vec<(u16, u16)>,
     has_bottle_0: Vec<(u16, u16)>,
     has_bottle_1: Vec<(u16, u16)>,
     has_bottle_2: Vec<(u16, u16)>,
@@ -37,7 +44,6 @@ pub struct BlockTable {
     instrument: Vec<(u16, u16)>,
     inverted: Vec<(u16, u16)>,
     layers: Vec<(u16, u16)>,
-    level: Vec<(u16, u16)>,
     lit: Vec<(u16, u16)>,
     locked: Vec<(u16, u16)>,
     moisture: Vec<(u16, u16)>,
@@ -66,31 +72,125 @@ pub struct BlockTable {
     triggered: Vec<(u16, u16)>,
     unstable: Vec<(u16, u16)>,
     up: Vec<(u16, u16)>,
+    water_level: Vec<(u16, u16)>,
     waterlogged: Vec<(u16, u16)>,
     west_connected: Vec<(u16, u16)>,
     west_wire: Vec<(u16, u16)>,
 }
 impl BlockTable {
-    #[doc = "Retrieves the `age` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
-    pub fn age(&self, kind: BlockKind, state: u16) -> Option<i32> {
-        let (offset_coefficient, stride) = self.age[kind as u16 as usize];
+    #[doc = "Retrieves the `age_0_15` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn age_0_15(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.age_0_15[kind as u16 as usize];
         if offset_coefficient == 0 {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
         Some({ x as i32 })
     }
-    #[doc = "Updates the state value for the given block kind such that its `age` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
-    pub fn set_age(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
-        let (offset_coefficient, stride) = self.age[kind as u16 as usize];
+    #[doc = "Updates the state value for the given block kind such that its `age_0_15` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_age_0_15(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.age_0_15[kind as u16 as usize];
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `age_0_2` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn age_0_2(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.age_0_2[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some({ x as i32 })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `age_0_2` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_age_0_2(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.age_0_2[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `age_0_25` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn age_0_25(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.age_0_25[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some({ x as i32 })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `age_0_25` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_age_0_25(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.age_0_25[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `age_0_3` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn age_0_3(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.age_0_3[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some({ x as i32 })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `age_0_3` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_age_0_3(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.age_0_3[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `age_0_5` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn age_0_5(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.age_0_5[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some({ x as i32 })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `age_0_5` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_age_0_5(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.age_0_5[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `age_0_7` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn age_0_7(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.age_0_7[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some({ x as i32 })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `age_0_7` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_age_0_7(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.age_0_7[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `attached` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn attached(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -107,11 +207,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `axis_xyz` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn axis_xyz(&self, kind: BlockKind, state: u16) -> Option<AxisXyz> {
@@ -128,11 +226,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `axis_xz` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn axis_xz(&self, kind: BlockKind, state: u16) -> Option<AxisXz> {
@@ -149,11 +245,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `bites` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn bites(&self, kind: BlockKind, state: u16) -> Option<i32> {
@@ -170,11 +264,28 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `cauldron_level` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn cauldron_level(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.cauldron_level[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some({ x as i32 })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `cauldron_level` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_cauldron_level(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.cauldron_level[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `chest_kind` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn chest_kind(&self, kind: BlockKind, state: u16) -> Option<ChestKind> {
@@ -191,11 +302,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `comparator_mode` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn comparator_mode(&self, kind: BlockKind, state: u16) -> Option<ComparatorMode> {
@@ -217,11 +326,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `conditional` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn conditional(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -238,11 +345,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `delay` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn delay(&self, kind: BlockKind, state: u16) -> Option<i32> {
@@ -259,11 +364,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 1u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `disarmed` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn disarmed(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -280,11 +383,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `distance` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn distance(&self, kind: BlockKind, state: u16) -> Option<i32> {
@@ -301,11 +402,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 1u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `down` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn down(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -322,11 +421,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `drag` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn drag(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -343,11 +440,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `east_connected` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn east_connected(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -364,11 +459,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `east_wire` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn east_wire(&self, kind: BlockKind, state: u16) -> Option<EastWire> {
@@ -385,11 +478,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `eggs` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn eggs(&self, kind: BlockKind, state: u16) -> Option<i32> {
@@ -406,11 +497,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 1u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `enabled` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn enabled(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -427,11 +516,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `extended` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn extended(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -448,11 +535,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `eye` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn eye(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -469,11 +554,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `face` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn face(&self, kind: BlockKind, state: u16) -> Option<Face> {
@@ -490,11 +573,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `facing_cardinal` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn facing_cardinal(&self, kind: BlockKind, state: u16) -> Option<FacingCardinal> {
@@ -516,11 +597,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `facing_cardinal_and_down` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn facing_cardinal_and_down(
@@ -546,11 +625,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `facing_cubic` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn facing_cubic(&self, kind: BlockKind, state: u16) -> Option<FacingCubic> {
@@ -567,32 +644,57 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
-    #[doc = "Retrieves the `half` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
-    pub fn half(&self, kind: BlockKind, state: u16) -> Option<Half> {
-        let (offset_coefficient, stride) = self.half[kind as u16 as usize];
+    #[doc = "Retrieves the `half_top_bottom` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn half_top_bottom(&self, kind: BlockKind, state: u16) -> Option<HalfTopBottom> {
+        let (offset_coefficient, stride) = self.half_top_bottom[kind as u16 as usize];
         if offset_coefficient == 0 {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some(Half::try_from(x).expect("invalid block state"))
+        Some(HalfTopBottom::try_from(x).expect("invalid block state"))
     }
-    #[doc = "Updates the state value for the given block kind such that its `half` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
-    pub fn set_half(&self, kind: BlockKind, state: u16, value: Half) -> Option<u16> {
-        let (offset_coefficient, stride) = self.half[kind as u16 as usize];
+    #[doc = "Updates the state value for the given block kind such that its `half_top_bottom` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_half_top_bottom(
+        &self,
+        kind: BlockKind,
+        state: u16,
+        value: HalfTopBottom,
+    ) -> Option<u16> {
+        let (offset_coefficient, stride) = self.half_top_bottom[kind as u16 as usize];
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `half_upper_lower` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn half_upper_lower(&self, kind: BlockKind, state: u16) -> Option<HalfUpperLower> {
+        let (offset_coefficient, stride) = self.half_upper_lower[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some(HalfUpperLower::try_from(x).expect("invalid block state"))
+    }
+    #[doc = "Updates the state value for the given block kind such that its `half_upper_lower` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_half_upper_lower(
+        &self,
+        kind: BlockKind,
+        state: u16,
+        value: HalfUpperLower,
+    ) -> Option<u16> {
+        let (offset_coefficient, stride) = self.half_upper_lower[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `has_bottle_0` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn has_bottle_0(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -609,11 +711,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `has_bottle_1` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn has_bottle_1(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -630,11 +730,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `has_bottle_2` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn has_bottle_2(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -651,11 +749,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `has_record` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn has_record(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -672,11 +768,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `hatch` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn hatch(&self, kind: BlockKind, state: u16) -> Option<i32> {
@@ -693,11 +787,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `hinge` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn hinge(&self, kind: BlockKind, state: u16) -> Option<Hinge> {
@@ -714,11 +806,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `in_wall` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn in_wall(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -735,11 +825,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `instrument` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn instrument(&self, kind: BlockKind, state: u16) -> Option<Instrument> {
@@ -756,11 +844,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `inverted` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn inverted(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -777,11 +863,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `layers` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn layers(&self, kind: BlockKind, state: u16) -> Option<i32> {
@@ -798,32 +882,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
-    }
-    #[doc = "Retrieves the `level` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
-    pub fn level(&self, kind: BlockKind, state: u16) -> Option<i32> {
-        let (offset_coefficient, stride) = self.level[kind as u16 as usize];
-        if offset_coefficient == 0 {
-            return None;
-        }
-        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
-    }
-    #[doc = "Updates the state value for the given block kind such that its `level` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
-    pub fn set_level(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
-        let (offset_coefficient, stride) = self.level[kind as u16 as usize];
-        if offset_coefficient == 0 {
-            return None;
-        }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 1u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `lit` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn lit(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -840,11 +901,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `locked` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn locked(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -861,11 +920,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `moisture` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn moisture(&self, kind: BlockKind, state: u16) -> Option<i32> {
@@ -882,11 +939,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `north_connected` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn north_connected(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -903,11 +958,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `north_wire` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn north_wire(&self, kind: BlockKind, state: u16) -> Option<NorthWire> {
@@ -924,11 +977,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `note` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn note(&self, kind: BlockKind, state: u16) -> Option<i32> {
@@ -945,11 +996,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `occupied` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn occupied(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -966,11 +1015,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `open` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn open(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -987,11 +1034,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `part` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn part(&self, kind: BlockKind, state: u16) -> Option<Part> {
@@ -1008,11 +1053,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `persistent` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn persistent(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -1029,11 +1072,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `pickles` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn pickles(&self, kind: BlockKind, state: u16) -> Option<i32> {
@@ -1050,11 +1091,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 1u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `piston_kind` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn piston_kind(&self, kind: BlockKind, state: u16) -> Option<PistonKind> {
@@ -1071,11 +1110,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `power` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn power(&self, kind: BlockKind, state: u16) -> Option<i32> {
@@ -1092,11 +1129,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `powered` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn powered(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -1113,11 +1148,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `powered_rail_shape` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn powered_rail_shape(&self, kind: BlockKind, state: u16) -> Option<PoweredRailShape> {
@@ -1139,11 +1172,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `rail_shape` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn rail_shape(&self, kind: BlockKind, state: u16) -> Option<RailShape> {
@@ -1160,11 +1191,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `rotation` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn rotation(&self, kind: BlockKind, state: u16) -> Option<i32> {
@@ -1181,11 +1210,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `short` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn short(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -1202,11 +1229,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `slab_kind` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn slab_kind(&self, kind: BlockKind, state: u16) -> Option<SlabKind> {
@@ -1223,11 +1248,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `snowy` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn snowy(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -1244,11 +1267,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `south_connected` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn south_connected(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -1265,11 +1286,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `south_wire` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn south_wire(&self, kind: BlockKind, state: u16) -> Option<SouthWire> {
@@ -1286,11 +1305,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `stage` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn stage(&self, kind: BlockKind, state: u16) -> Option<i32> {
@@ -1307,11 +1324,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `stairs_shape` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn stairs_shape(&self, kind: BlockKind, state: u16) -> Option<StairsShape> {
@@ -1328,11 +1343,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `structure_block_mode` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn structure_block_mode(&self, kind: BlockKind, state: u16) -> Option<StructureBlockMode> {
@@ -1354,11 +1367,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `triggered` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn triggered(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -1375,11 +1386,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `unstable` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn unstable(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -1396,11 +1405,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `up` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn up(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -1417,11 +1424,28 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `water_level` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn water_level(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.water_level[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some({ x as i32 })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `water_level` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_water_level(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.water_level[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `waterlogged` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn waterlogged(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -1438,11 +1462,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `west_connected` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn west_connected(&self, kind: BlockKind, state: u16) -> Option<bool> {
@@ -1459,11 +1481,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
     #[doc = "Retrieves the `west_wire` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn west_wire(&self, kind: BlockKind, state: u16) -> Option<WestWire> {
@@ -1480,11 +1500,9 @@ impl BlockTable {
         if offset_coefficient == 0 {
             return None;
         }
-        let base = state % offset_coefficient;
-        let multiplier = state / offset_coefficient;
-        let mut new = (value as u16 - (base / stride)) * stride + base;
-        new += multiplier * offset_coefficient;
-        Some(new)
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
     }
 }
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -1662,17 +1680,33 @@ impl TryFrom<u16> for FacingCubic {
 }
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
-pub enum Half {
-    Upper,
-    Lower,
+pub enum HalfTopBottom {
+    Top,
+    Bottom,
 }
-impl TryFrom<u16> for Half {
+impl TryFrom<u16> for HalfTopBottom {
     type Error = anyhow::Error;
     fn try_from(value: u16) -> anyhow::Result<Self> {
         match value {
-            0u16 => Ok(Half::Upper),
-            1u16 => Ok(Half::Lower),
-            x => Err(anyhow::anyhow!("invalid value {} for Half", x)),
+            0u16 => Ok(HalfTopBottom::Top),
+            1u16 => Ok(HalfTopBottom::Bottom),
+            x => Err(anyhow::anyhow!("invalid value {} for HalfTopBottom", x)),
+        }
+    }
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum HalfUpperLower {
+    Upper,
+    Lower,
+}
+impl TryFrom<u16> for HalfUpperLower {
+    type Error = anyhow::Error;
+    fn try_from(value: u16) -> anyhow::Result<Self> {
+        match value {
+            0u16 => Ok(HalfUpperLower::Upper),
+            1u16 => Ok(HalfUpperLower::Lower),
+            x => Err(anyhow::anyhow!("invalid value {} for HalfUpperLower", x)),
         }
     }
 }

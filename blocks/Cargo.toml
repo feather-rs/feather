@@ -7,8 +7,6 @@ edition = "2018"
 [dependencies]
 bit-set = "0.5"
 once_cell = { version = "1.3", features = ["parking_lot"] }
-strum = "0.18"
-strum_macros = "0.18"
 anyhow = "1.0"
 thiserror = "1.0"
 num-traits = "0.2"

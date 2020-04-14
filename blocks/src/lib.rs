@@ -10,13 +10,36 @@ extern crate num_derive;
 mod generated;
 
 static BLOCK_TABLE: Lazy<BlockTable> = Lazy::new(|| {
-    let bytes = include_bytes!("generated/block_table.dat");
+    let bytes = include_bytes!("generated/table.dat");
     bincode::deserialize(bytes).expect("failed to deserialize generated block table (bincode)")
 });
 
-use crate::generated::table::{BlockTable, Instrument};
-pub use generated::kind::BlockKind;
+static VANILLA_ID_TABLE: Lazy<Vec<Vec<u16>>> = Lazy::new(|| {
+    let bytes = include_bytes!("generated/vanilla_ids.dat");
+    bincode::deserialize(bytes).expect("failed to deserialize generated vanilla ID table (bincode)")
+});
+
+static FROM_VANILLA_ID_TABLE: Lazy<Vec<BlockId>> = Lazy::new(|| {
+    let mut res = vec![BlockId::default(); u16::max_value() as usize];
+
+    for (kind_id, ids) in VANILLA_ID_TABLE.iter().enumerate() {
+        let kind = BlockKind::from_u16(kind_id as u16).expect("invalid block kind ID");
+
+        for (state, id) in ids.iter().enumerate() {
+            res[*id as usize] = BlockId {
+                state: state as u16,
+                kind,
+            };
+        }
+    }
+
+    res
+});
+
+use crate::generated::BlockKind;
 use once_cell::sync::Lazy;
+
+pub use crate::generated::table::*;
 
 impl Default for BlockKind {
     fn default() -> Self {
@@ -31,21 +54,21 @@ pub struct BlockId {
 }
 
 impl BlockId {
-    pub fn instrument(self) -> Option<Instrument> {
-        BLOCK_TABLE.instrument(self.kind, self.state)
+    /// Returns the kind of this block.
+    pub fn kind(self) -> BlockKind {
+        self.kind
     }
 
-    pub fn with_instrument(self, instrument: Instrument) -> Option<BlockId> {
-        BLOCK_TABLE
-            .set_instrument(self.kind, self.state, instrument)
-            .map(|state| self.with_state(state))
+    /// Returns the vanilla state ID for this block.
+    pub fn vanilla_id(self) -> u16 {
+        VANILLA_ID_TABLE[self.kind as u16 as usize][self.state as usize]
     }
 
-    fn with_state(self, state: u16) -> Self {
-        Self {
-            kind: self.kind,
-            state,
-        }
+    /// Returns the block corresponding to the given vanilla ID.
+    ///
+    /// (Invalid IDs currently return `BlockId::air()`).
+    pub fn from_vanilla_id(id: u16) -> Self {
+        FROM_VANILLA_ID_TABLE[id as usize]
     }
 }
 
@@ -94,7 +117,48 @@ mod tests {
         };
         assert!(block.instrument().is_some());
 
-        block = block.with_instrument(Instrument::Basedrum).unwrap();
+        block.set_instrument(Instrument::Basedrum);
         assert_eq!(block.instrument(), Some(Instrument::Basedrum));
+    }
+
+    #[test]
+    fn vanilla_ids() {
+        let block = BlockId::rose_bush().with_half_upper_lower(HalfUpperLower::Lower);
+
+        assert_eq!(block.vanilla_id(), 6848);
+        assert_eq!(BlockId::from_vanilla_id(block.vanilla_id()), block);
+
+        let block =
+            BlockId::structure_block().with_structure_block_mode(StructureBlockMode::Corner);
+
+        assert_eq!(block.vanilla_id(), 8597);
+        assert_eq!(BlockId::from_vanilla_id(block.vanilla_id()), block);
+
+        let mut block = BlockId::redstone_wire();
+        block.set_power(2);
+        block.set_south_wire(SouthWire::Side);
+        block.set_west_wire(WestWire::Side);
+        block.set_east_wire(EastWire::Side);
+        block.set_north_wire(NorthWire::Up);
+
+        assert_eq!(block.power(), Some(2));
+        assert_eq!(block.south_wire(), Some(SouthWire::Side));
+        assert_eq!(block.west_wire(), Some(WestWire::Side));
+        assert_eq!(block.east_wire(), Some(EastWire::Side));
+        assert_eq!(block.north_wire(), Some(NorthWire::Up));
+
+        assert_eq!(block.vanilla_id(), 2207);
+        assert_eq!(BlockId::from_vanilla_id(block.vanilla_id()), block);
+    }
+
+    #[test]
+    fn vanilla_ids_roundtrip() {
+        for id in 0..8598 {
+            assert_eq!(BlockId::from_vanilla_id(id).vanilla_id(), id);
+
+            if id != 0 {
+                assert_ne!(BlockId::from_vanilla_id(id), BlockId::air());
+            }
+        }
     }
 }

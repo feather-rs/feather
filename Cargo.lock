@@ -638,8 +638,6 @@ dependencies = [
  "num-traits 0.2.11",
  "once_cell",
  "serde",
- "strum 0.18.0",
- "strum_macros 0.18.0",
  "thiserror",
 ]
 

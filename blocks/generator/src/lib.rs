@@ -1,20 +1,23 @@
 use crate::load::ident;
+use heck::CamelCase;
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use serde::ser::SerializeStruct;
+use serde::ser::{SerializeSeq, SerializeStruct};
 use serde::{Serialize, Serializer};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::ops::RangeInclusive;
 use std::str::FromStr;
 use syn::export::ToTokens;
 
 mod load;
 
+#[derive(Debug)]
 struct Blocks {
     property_types: BTreeMap<String, Property>,
     blocks: Vec<Block>,
 }
 
+#[derive(Debug)]
 pub struct Block {
     /// Lowercase name of this block, minecraft: prefix removed.
     name: Ident,
@@ -25,9 +28,9 @@ pub struct Block {
     /// Default state and its property values.
     default_state: Vec<(String, String)>,
     /// Block states mapped to vanilla state IDs.
-    ids: Vec<(Vec<(String, TokenStream)>, u16)>,
+    ids: Vec<(Vec<(String, String)>, u16)>,
     /// Strides and offset coefficients for each property of this block.
-    index_parameters: HashMap<String, (u16, u16)>,
+    index_parameters: BTreeMap<String, (u16, u16)>,
 }
 
 #[derive(Debug)]
@@ -40,17 +43,31 @@ struct Property {
     name_camel_case: Ident,
     /// The kind of this property.
     kind: PropertyKind,
+    /// Possible values of this property.
+    possible_values: Vec<String>,
 }
 
 impl Property {
     /// Returns the tokens to create an instance of this property from a `u16`.
-    pub fn tokens_for_from_u16(&self, input: TokenStream) -> TokenStream {
+    fn tokens_for_from_u16(&self, input: TokenStream) -> TokenStream {
         match &self.kind {
             PropertyKind::Integer { .. } => quote! {{ #input as i32 }},
             PropertyKind::Boolean { .. } => quote! { if #input == 0 { false } else { true } },
             PropertyKind::Enum { name, .. } => {
                 quote! { #name::try_from(#input).expect("invalid block state") }
             }
+        }
+    }
+
+    fn tokens_for_to_u16(&self, input: TokenStream) -> TokenStream {
+        match &self.kind {
+            PropertyKind::Integer { range } => {
+                let min = *range.start() as u16;
+                quote! {
+                    #input as u16 - #min
+                }
+            }
+            _ => quote! { #input as u16 },
         }
     }
 
@@ -66,7 +83,7 @@ impl Property {
                 quote! { #value }
             }
             PropertyKind::Enum { name, .. } => {
-                let variant = ident(value);
+                let variant = ident(value.to_camel_case());
                 quote! { #name::#variant }
             }
         }
@@ -142,6 +159,7 @@ pub struct Output {
     pub block_fns: String,
     pub block_table: String,
     pub block_table_serialized: Vec<u8>,
+    pub vanilla_ids_serialized: Vec<u8>,
 }
 
 /// Generates code for the block report.
@@ -157,6 +175,7 @@ pub fn generate() -> anyhow::Result<Output> {
     output.block_fns.push_str(&block_fns_src.to_string());
 
     output.block_table_serialized = serialize_block_table(&blocks);
+    output.vanilla_ids_serialized = serialized_vanilla_ids(&blocks);
 
     Ok(output)
 }
@@ -218,6 +237,7 @@ fn generate_table(blocks: &Blocks) -> TokenStream {
         let set = ident(format!("set_{}", name));
         let doc = format!("Updates the state value for the given block kind such that its `{}` value is updated. Returns the new state,
         or `None` if the block does not have this property.", name);
+        let to_u16 = property.tokens_for_to_u16(quote! { value });
         fns.push(quote! {
             #[doc = #doc]
             pub fn #set(&self, kind: BlockKind, state: u16, value: #property) -> Option<u16> {
@@ -227,12 +247,9 @@ fn generate_table(blocks: &Blocks) -> TokenStream {
                     return None;
                 }
 
-                let base = state % offset_coefficient;
-                let multiplier = state / offset_coefficient;
-
-                let mut new = (value as u16 - (base / stride)) * stride + base;
-                new += multiplier * offset_coefficient;
-                Some(new)
+                let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+                let new = ({ #to_u16 } as i32 - old) * stride as i32 + state as i32;
+                Some(new as u16)
             }
         });
     }
@@ -269,20 +286,23 @@ fn generate_block_fns(blocks: &Blocks) -> TokenStream {
         for (name, value) in default_state {
             let value_expr = blocks.property_types[name].expr_for_value(value);
 
-            let name_fn = ident(format!("with_{}", name));
+            let name_fn = ident(format!("set_{}", name));
             state_intializers.push(quote! {
-                block = block.#name_fn(#value_expr).unwrap();
+                block.#name_fn(#value_expr);
             });
         }
 
         let mut doc = format!(
-            "Returns an instance of `{}` with default state values.
-        
-        The default state values are as follows:",
+            "Returns an instance of `{}` with default state values.",
             block.name
         );
+
+        if !default_state.is_empty() {
+            doc.push_str("\nThe default state values are as follows:\n");
+        }
+
         for (name, value) in default_state {
-            doc.push_str(&format!("* `{}`: {}", name, value));
+            doc.push_str(&format!("* `{}`: {}\n", name, value));
         }
 
         fns.push(quote! {
@@ -298,8 +318,36 @@ fn generate_block_fns(blocks: &Blocks) -> TokenStream {
         })
     }
 
+    for property in blocks.property_types.values() {
+        let property_name = &property.name;
+        let set = ident(format!("set_{}", property_name));
+        let with = ident(format!("with_{}", property_name));
+
+        let f = quote! {
+            pub fn #property_name(self) -> Option<#property> {
+                BLOCK_TABLE.#property_name(self.kind, self.state)
+            }
+
+            pub fn #set(&mut self, #property_name: #property) -> bool {
+                match BLOCK_TABLE.#set(self.kind, self.state, #property_name) {
+                    Some(new_state) => {
+                        self.state = new_state;
+                        true
+                    }
+                    None => false,
+                }
+            }
+
+            pub fn #with(mut self, #property_name: #property) -> Self {
+                self.#set(#property_name);
+                self
+            }
+        };
+        fns.push(f);
+    }
+
     let res = quote! {
-        use crate::{BlockId, BlockKind, BLOCK_TABLE};
+        use crate::*;
 
         impl BlockId {
             #(#fns)*
@@ -360,5 +408,92 @@ impl BlockTableSerialize {
         assert!(fields.values().map(Vec::len).all(|len| len == blocks.len()));
 
         Self { fields }
+    }
+}
+
+/// Returns the serialized state ID map.
+fn serialized_vanilla_ids(blocks: &Blocks) -> Vec<u8> {
+    let table = VanillaStateIdSerialize::new(blocks);
+
+    bincode::serialize(&table).expect("bincode failed to serialize vanilla ID table")
+}
+
+/// Serializable state ID table.
+#[derive(Debug)]
+struct VanillaStateIdSerialize {
+    ids: Vec<Vec<u16>>, // indexed by [kind as u16 as usize][state as usize]
+}
+
+impl Serialize for VanillaStateIdSerialize {
+    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_seq(Some(self.ids.len()))?;
+
+        for id in &self.ids {
+            state.serialize_element(id)?;
+        }
+
+        state.end()
+    }
+}
+
+impl VanillaStateIdSerialize {
+    pub fn new(blocks: &Blocks) -> Self {
+        let mut ids: Vec<Vec<u16>> = std::iter::repeat_with(Vec::new)
+            .take(blocks.blocks.len())
+            .collect();
+
+        for (i, block) in blocks.blocks.iter().enumerate() {
+            for (state, id) in &block.ids {
+                let mut internal_id = 0;
+
+                for (property_name, property_value) in state {
+                    let (offset_coefficient, stride) = block.index_parameters[property_name];
+
+                    let index = blocks.property_types[property_name]
+                        .possible_values
+                        .iter()
+                        .position(|val| val == property_value)
+                        .unwrap();
+
+                    let multiplier = internal_id / offset_coefficient;
+                    let mut new = property_value_as_u16(
+                        property_value,
+                        index,
+                        &blocks.property_types[property_name].kind,
+                    ) * stride;
+                    new += multiplier * offset_coefficient;
+                    internal_id = new;
+                }
+
+                let internal_id = internal_id as usize;
+                // pad with zeroes
+                if internal_id >= ids[i].len() {
+                    let to_extend = internal_id - ids[i].len() + 1;
+                    ids[i].extend(std::iter::repeat(0).take(to_extend));
+                }
+                assert_eq!(ids[i][internal_id], 0, "failed for {}", block.name);
+                ids[i][internal_id] = *id;
+            }
+        }
+
+        Self { ids }
+    }
+}
+
+fn property_value_as_u16(value: &str, index: usize, kind: &PropertyKind) -> u16 {
+    let start = match kind {
+        PropertyKind::Integer { range } => *range.start() as u16,
+        _ => 0,
+    };
+
+    if let Ok(x) = i32::from_str(value) {
+        x as u16 - start
+    } else if let Ok(x) = bool::from_str(value) {
+        x as u16
+    } else {
+        index as u16
     }
 }

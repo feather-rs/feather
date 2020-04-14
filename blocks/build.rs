@@ -21,10 +21,16 @@ fn main() {
                 Command::new("rustfmt").arg(path).output().unwrap();
             });
 
-            let data = format!("{}/block_table.dat", base);
+            let data = format!("{}/table.dat", base);
             File::create(&data)
                 .unwrap()
                 .write_all(&code.block_table_serialized)
+                .unwrap();
+
+            let data = format!("{}/vanilla_ids.dat", base);
+            File::create(&data)
+                .unwrap()
+                .write_all(&code.vanilla_ids_serialized)
                 .unwrap();
 
             println!(
