@@ -551,6 +551,25 @@ fn generate_block_serializing_fns(blocks: &Blocks) -> Vec<TokenStream> {
        #(#from_identifier_and_properties_util_fns)*
     });
 
+    let mut from_identifier_and_default_props_match_arms = vec![];
+    for block in &blocks.blocks {
+        let name_str = format!("minecraft:{}", block.name);
+        let name = &block.name;
+
+        from_identifier_and_default_props_match_arms.push(quote! {
+            #name_str => Some(Self::#name())
+        });
+    }
+    fns.push(quote! {
+        #[doc = "Attempts to convert a block identifier to a block with default property values."]
+        pub fn from_identifier(identifier: &str) -> Option<Self> {
+            match identifier {
+                #(#from_identifier_and_default_props_match_arms,)*
+                _ => None,
+            }
+        }
+    });
+
     fns
 }
 

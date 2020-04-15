@@ -2,7 +2,6 @@ use crate::worldgen::WorldGenerator;
 use feather_blocks::BlockId;
 use feather_core::level::SuperflatGeneratorOptions;
 use feather_core::{Biome, Chunk, ChunkPosition};
-use std::collections::BTreeMap;
 
 pub struct SuperflatWorldGenerator {
     pub options: SuperflatGeneratorOptions,
@@ -18,8 +17,7 @@ impl WorldGenerator for SuperflatWorldGenerator {
             if layer.height == 0 {
                 continue;
             }
-            let layer_block =
-                BlockId::from_identifier_and_properties(layer.block.as_str(), &BTreeMap::new());
+            let layer_block = BlockId::from_identifier(layer.block.as_str());
             if let Some(layer_block) = layer_block {
                 for y in y_counter..(y_counter + layer.height) {
                     for x in 0..16 {
@@ -49,6 +47,7 @@ mod tests {
     #[test]
     pub fn test_worldgen_flat() {
         let mut options = SuperflatGeneratorOptions::default();
+        dbg!(&options);
         options.biome = Biome::Mountains.identifier().to_string();
 
         let chunk_pos = ChunkPosition { x: 1, z: 2 };
