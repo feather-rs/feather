@@ -6,7 +6,7 @@ use crate::game::Game;
 use crate::physics::{EntityPhysicsLandEvent, PhysicsBuilder};
 use crate::util::{degrees_to_stops, protocol_velocity};
 use crate::{entity, BumpVec};
-use feather_blocks::{Block, BlockExt};
+use feather_blocks::BlockId;
 use feather_core::network::packet::implementation::SpawnObject;
 use feather_core::{
     BlockPosition, EntityMetadata, Packet, Position, META_INDEX_FALLING_BLOCK_SPAWN_POSITION,
@@ -20,7 +20,7 @@ pub struct FallingBlock;
 
 /// Component storing the block type for a falling block.
 #[derive(Copy, Clone, Debug)]
-pub struct FallingBlockType(pub Block);
+pub struct FallingBlockType(pub BlockId);
 
 /// System to create a falling block when a block notify
 /// entity is spawned with `BlockNotifyFallingBlock`.
@@ -34,7 +34,7 @@ pub fn spawn_falling_blocks(game: &mut Game, world: &mut World) {
             .iter_entities(world.inner())
             .map(|(entity, (block, position))| {
                 let builder = if game.block_at(position.0 - BlockPosition::new(0, 1, 0))
-                    == Some(Block::Air)
+                    == Some(BlockId::air())
                 {
                     Some(
                         create(block.0, position.0)
@@ -55,7 +55,7 @@ pub fn spawn_falling_blocks(game: &mut Game, world: &mut World) {
             let created_entity = entity_builder.build().spawn_in(world);
             game.on_entity_spawn(world, created_entity);
 
-            game.set_block_at(world, block_to_clear, Block::Air);
+            game.set_block_at(world, block_to_clear, BlockId::air());
         }
     }
 }
@@ -79,7 +79,7 @@ pub fn on_entity_land_remove_falling_block(
 }
 
 /// Returns an `EntityBuilder` for a falling block of the given type.
-pub fn create(ty: Block, spawn_pos: BlockPosition) -> EntityBuilder {
+pub fn create(ty: BlockId, spawn_pos: BlockPosition) -> EntityBuilder {
     let meta =
         EntityMetadata::entity_base().with(META_INDEX_FALLING_BLOCK_SPAWN_POSITION, spawn_pos);
 
@@ -98,7 +98,7 @@ pub fn create(ty: Block, spawn_pos: BlockPosition) -> EntityBuilder {
 }
 
 fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
-    let data = i32::from(accessor.get::<FallingBlockType>().0.native_state_id());
+    let data = i32::from(accessor.get::<FallingBlockType>().0.vanilla_id());
     let position = accessor.get::<Position>();
     let entity_id = accessor.get::<EntityId>().0;
 

@@ -102,14 +102,22 @@ fn section_to_value(section: LevelSection) -> Value {
     let mut entries = vec![];
     for entry in section.palette {
         let mut map = HashMap::new();
-        map.insert(String::from("Name"), Value::String(entry.name));
+        map.insert(String::from("Name"), Value::String(entry.name.into_owned()));
 
         if let Some(props) = entry.props {
             let mut props_map = HashMap::new();
             props.props.into_iter().for_each(|(name, value)| {
-                props_map.insert(name, Value::String(value));
+                props_map.insert(name, Value::String(value.into_owned()));
             });
-            map.insert(String::from("Properties"), Value::Compound(props_map));
+            map.insert(
+                String::from("Properties"),
+                Value::Compound(
+                    props_map
+                        .into_iter()
+                        .map(|(k, v)| (k.into_owned(), v))
+                        .collect(),
+                ),
+            );
         }
 
         entries.push(Value::Compound(map))

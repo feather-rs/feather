@@ -3,9 +3,10 @@
 use crate::game::Game;
 use crate::p_inventory::{EntityInventory, InventoryUpdateEvent};
 use crate::packet_buffer::PacketBuffers;
+use feather_blocks::BlockKind;
 use feather_core::inventory::SLOT_HOTBAR_OFFSET;
 use feather_core::network::packet::implementation::PlayerBlockPlacement;
-use feather_core::{Block, Gamemode, ItemStack};
+use feather_core::{Gamemode, ItemStack};
 use feather_item_block::ItemToBlock;
 use fecs::World;
 use std::sync::Arc;
@@ -46,8 +47,8 @@ pub fn handle_player_block_placement(
         };
 
         // TODO: waterlogged blocks, more
-        let pos = match placed_on {
-            Block::Grass | Block::TallGrass(_) | Block::Water(_) | Block::Lava(_) => {
+        let pos = match placed_on.kind() {
+            BlockKind::Grass | BlockKind::TallGrass | BlockKind::Water | BlockKind::Lava => {
                 packet.location
             }
             _ => packet.location + packet.face.placement_offset(),

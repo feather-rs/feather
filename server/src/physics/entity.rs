@@ -4,8 +4,8 @@
 use crate::entity::Velocity;
 use crate::game::Game;
 use crate::physics::{block_impacted_by_ray, blocks_intersecting_bbox, AABBExt, Physics, Side};
+use feather_blocks::BlockKind;
 use feather_core::Position;
-use feather_core::{Block, BlockExt};
 use fecs::{Entity, IntoQuery, Read, World, Write};
 use parking_lot::Mutex;
 
@@ -111,12 +111,12 @@ pub fn entity_physics(game: &mut Game, world: &mut World) {
 
             // In water and lava, gravity is four times less, and velocity is multiplied by a special drag force.
             let liquid_drag = 0.8;
-            match block_at_pos {
-                Block::Water(_) => {
+            match block_at_pos.kind() {
+                BlockKind::Water => {
                     velocity.0 *= liquid_drag;
                     velocity.0.y += physics.gravity / 4.0;
                 }
-                Block::Lava(_) => {
+                BlockKind::Lava => {
                     velocity.0 *= liquid_drag - 0.3;
                     velocity.0.y += physics.gravity / 4.0;
                 }

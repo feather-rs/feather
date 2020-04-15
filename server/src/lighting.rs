@@ -42,7 +42,7 @@
 use crate::physics::chunks_within_distance;
 use ahash::{AHashMap, AHashSet};
 use arrayvec::ArrayVec;
-use feather_blocks::{Block, BlockExt};
+use feather_blocks::BlockId;
 use feather_core::world::{chunk_relative_pos, ChunkMap};
 use feather_core::{BlockPosition, Chunk, ChunkPosition};
 
@@ -56,8 +56,8 @@ use std::sync::Arc;
 pub fn on_block_update_notify_lighting_worker(
     game: &mut Game,
     pos: BlockPosition,
-    old: Block,
-    new: Block,
+    old: BlockId,
+    new: BlockId,
 ) {
     game.lighting_worker_handle
         .tx
@@ -100,9 +100,9 @@ pub enum Request {
         /// The position of the block which was updated.
         pos: BlockPosition,
         /// The old value of the block.
-        old: Block,
+        old: BlockId,
         /// The new value of the block.
-        new: Block,
+        new: BlockId,
     },
 }
 
@@ -275,17 +275,17 @@ impl<'a> Context<'a> {
         }
     }
 
-    fn block_at(&mut self, pos: BlockPosition) -> Block {
+    fn block_at(&mut self, pos: BlockPosition) -> BlockId {
         match self.chunk_at_mut(pos.chunk()) {
             Some(chunk) => {
                 let (x, y, z) = chunk_relative_pos(pos);
                 chunk.block_at(x, y, z)
             }
-            None => Block::Air,
+            None => BlockId::air(),
         }
     }
 
-    fn set_block_at(&mut self, pos: BlockPosition, block: Block) {
+    fn set_block_at(&mut self, pos: BlockPosition, block: BlockId) {
         if let Some(chunk) = self.chunk_at_mut(pos.chunk()) {
             let (x, y, z) = chunk_relative_pos(pos);
             chunk.set_block_at(x, y, z, block);
@@ -295,7 +295,7 @@ impl<'a> Context<'a> {
 
 const MAX_TRAVEL_DISTANCE: u8 = 15;
 
-fn handle_block_update(worker: &mut Worker, pos: BlockPosition, old: Block, new: Block) {
+fn handle_block_update(worker: &mut Worker, pos: BlockPosition, old: BlockId, new: BlockId) {
     let mut ctx = match Context::new(&worker.chunk_map, pos.chunk()) {
         Some(ctx) => ctx,
         None => return, // Unloaded chunk
@@ -346,7 +346,7 @@ fn emitting_removal(
     context: &mut Context,
     chunk_lights: &ChunkLights,
     position: BlockPosition,
-    old_block: Block,
+    old_block: BlockId,
 ) {
     // Perform flood fill and set all blocks affected by the old light to 0 light.
     flood_fill(context, position, old_block.light_emission(), |ctx, pos| {
@@ -369,12 +369,12 @@ fn opaque_non_emitting_creation(
     context: &mut Context,
     chunk_lights: &ChunkLights,
     position: BlockPosition,
-    new_block: Block,
+    new_block: BlockId,
 ) {
     // Re-calculate all lights that could have affected this block.
     // We ensure that all areas are correctly set to dark by first
     // faking that the block was never created.
-    context.set_block_at(position, Block::Air);
+    context.set_block_at(position, BlockId::air());
 
     let nearby_lights = chunk_lights.lights_within_radius(position, MAX_TRAVEL_DISTANCE);
 
@@ -517,8 +517,8 @@ mod tests {
         let mut ctx = Context::new(&chunk_map, ChunkPosition::new(0, 0)).unwrap();
 
         let pos = BlockPosition::new(0, 100, 0);
-        ctx.set_block_at(pos, Block::Glowstone);
-        ctx.set_block_light_at(pos, Block::Glowstone.light_emission());
+        ctx.set_block_at(pos, BlockId::glowstone());
+        ctx.set_block_light_at(pos, BlockId::glowstone().light_emission());
 
         emitting_creation(&mut ctx, pos);
 

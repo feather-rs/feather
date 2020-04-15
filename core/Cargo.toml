@@ -40,6 +40,7 @@ bitvec = "0.17"
 hash32 = "0.1"
 hash32-derive = "0.1"
 bitflags = "1.2"
+ahash = "0.3"
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }

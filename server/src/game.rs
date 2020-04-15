@@ -46,7 +46,7 @@ use crate::weather::{
     on_weather_change_broadcast_weather, send_weather, Weather, WeatherChangeEvent,
 };
 use bumpalo::Bump;
-use feather_blocks::Block;
+use feather_blocks::BlockId;
 use feather_core::level::LevelData;
 use feather_core::world::ChunkMap;
 use feather_core::{BlockPosition, ChunkPosition, ClientboundAnimation, Packet, Position};
@@ -102,7 +102,7 @@ pub struct Game {
 impl Game {
     /// Retrieves the block at the given position,
     /// or `None` if the block's chunk is not loaded.
-    pub fn block_at(&self, pos: BlockPosition) -> Option<Block> {
+    pub fn block_at(&self, pos: BlockPosition) -> Option<BlockId> {
         self.chunk_map.block_at(pos)
     }
 
@@ -110,7 +110,7 @@ impl Game {
     ///
     /// If the block's chunk's is not loaded, returns `false`;
     /// otherwise, returns `true`.
-    pub fn set_block_at(&mut self, world: &mut World, pos: BlockPosition, block: Block) -> bool {
+    pub fn set_block_at(&mut self, world: &mut World, pos: BlockPosition, block: BlockId) -> bool {
         let old_block = match self.block_at(pos) {
             Some(block) => block,
             None => return false,
@@ -245,8 +245,8 @@ impl Game {
         &mut self,
         world: &mut World,
         pos: BlockPosition,
-        old: Block,
-        new: Block,
+        old: BlockId,
+        new: BlockId,
     ) {
         on_block_update_notify_adjacent(self, world, pos);
         on_block_update_broadcast(self, world, pos, new);

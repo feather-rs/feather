@@ -18,7 +18,7 @@
 
 use crate::game::Game;
 use crate::util;
-use feather_blocks::Block;
+use feather_blocks::{BlockId, BlockKind};
 use feather_core::BlockPosition;
 use fecs::{EntityBuilder, World};
 use std::iter;
@@ -33,7 +33,7 @@ pub struct BlockNotifyPosition(pub BlockPosition);
 
 /// Component storing the type of block notified.
 #[derive(Copy, Clone, Debug)]
-pub struct BlockNotifyBlock(pub Block);
+pub struct BlockNotifyBlock(pub BlockId);
 
 /// Marker component for block notify entities created for falling
 /// blocks, such as sand and gravel.
@@ -42,14 +42,16 @@ pub struct BlockNotifyFallingBlock;
 
 /// Returns an `EntityBuilder` to create the block notify entity for
 /// the given block type.
-fn notify_entity_for_block(block: Block, pos: BlockPosition) -> Option<EntityBuilder> {
+fn notify_entity_for_block(block: BlockId, pos: BlockPosition) -> Option<EntityBuilder> {
     let builder = EntityBuilder::new()
         .with(BlockNotify)
         .with(BlockNotifyPosition(pos))
         .with(BlockNotifyBlock(block));
 
-    match block {
-        Block::Sand | Block::Gravel | Block::RedSand => Some(builder.with(BlockNotifyFallingBlock)),
+    match block.kind() {
+        BlockKind::Sand | BlockKind::Gravel | BlockKind::RedSand => {
+            Some(builder.with(BlockNotifyFallingBlock))
+        }
         _ => None,
     }
 }

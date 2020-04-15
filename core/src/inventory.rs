@@ -1,6 +1,6 @@
 //! Module for creating and modifying inventories of any type.
 
-use crate::item::Item;
+use feather_items::Item;
 use smallvec::{Array, SmallVec};
 use std::cmp::min;
 
