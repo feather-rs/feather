@@ -1,0 +1,16 @@
+[package]
+name = "feather-chunk"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+feather-blocks = { path = "../blocks" }
+feather-biomes = { path = "../biomes" }
+feather-util = { path = "../util" }
+
+bitflags = "1.2"
+ahash = "0.3"
+smallvec = "1.3"

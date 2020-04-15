@@ -1,0 +1,13 @@
+[package]
+name = "feather-chunk-map"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-chunk = { path = "../chunk" }
+feather-util = { path = "../util" }
+feather-blocks = { path = "../blocks" }
+
+hashbrown = "0.7"
+parking_lot = "0.10"
