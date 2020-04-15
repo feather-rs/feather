@@ -1,6 +1,6 @@
 use crate::worldgen::util::shuffle_seed_for_chunk;
 use crate::worldgen::{ChunkBiomes, FinishingGenerator, TopBlocks};
-use feather_blocks::Block;
+use feather_blocks::BlockId;
 use feather_core::{Biome, Chunk};
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
@@ -56,7 +56,7 @@ impl FinishingGenerator for ClumpedFoliageFinisher {
     }
 }
 
-fn biome_clump_block(biome: Biome) -> Option<Block> {
+fn biome_clump_block(biome: Biome) -> Option<BlockId> {
     match biome {
         Biome::Plains
         | Biome::SunflowerPlains
@@ -70,7 +70,7 @@ fn biome_clump_block(biome: Biome) -> Option<Block> {
         | Biome::BirchForest
         | Biome::TallBirchForest
         | Biome::BirchForestHills
-        | Biome::Swamp => Some(Block::Grass),
+        | Biome::Swamp => Some(BlockId::grass()),
         _ => None,
     }
 }

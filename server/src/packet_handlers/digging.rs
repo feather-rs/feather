@@ -10,9 +10,11 @@ use crate::p_inventory::EntityInventory;
 use crate::packet_buffer::PacketBuffers;
 use crate::physics::{charge_from_ticks_held, compute_projectile_velocity};
 use crate::player::{ItemTimedUse, PLAYER_EYE_HEIGHT};
+use feather_blocks::BlockId;
 use feather_core::inventory::{SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use feather_core::network::packet::implementation::{PlayerDigging, PlayerDiggingStatus};
-use feather_core::{Block, Gamemode, Item, ItemStack, Position};
+use feather_core::{Gamemode, ItemStack, Position};
+use feather_items::Item;
 use fecs::{Entity, World};
 use std::sync::Arc;
 
@@ -79,7 +81,7 @@ fn handle_digging(game: &mut Game, world: &mut World, player: Entity, packet: Pl
         }
     }
 
-    if !game.set_block_at(world, packet.location, Block::Air) {
+    if !game.set_block_at(world, packet.location, BlockId::air()) {
         game.disconnect(player, world, "attempted to break block in unloaded chunk");
         return;
     }

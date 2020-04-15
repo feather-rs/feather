@@ -4,8 +4,8 @@
 use crate::worldgen::{block_index, util, ChunkBiomes, CompositionGenerator, SEA_LEVEL};
 use bitvec::order::Local;
 use bitvec::slice::BitSlice;
-use feather_blocks::{GrassBlockData, MyceliumData, WaterData};
-use feather_core::{Biome, Block, Chunk, ChunkPosition};
+use feather_blocks::BlockId;
+use feather_core::{Biome, Chunk, ChunkPosition};
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
 use std::cmp::min;
@@ -63,7 +63,7 @@ fn basic_composition_for_solid_biome(
     let mut topsoil_remaining = -1;
     let mut water_level = 0; // `level` block data starts at 0 and skips to min(8+n, 15) for each level of water downward
     for y in (0..256).rev() {
-        let mut block = Block::Air;
+        let mut block = BlockId::air();
 
         let is_solid = density[block_index(x, y, z)];
 
@@ -71,7 +71,7 @@ fn basic_composition_for_solid_biome(
 
         if biome == Biome::Ocean {
             if y <= SEA_LEVEL && !is_solid {
-                block = Block::Water(WaterData { level: water_level });
+                block = BlockId::water().with_water_level(water_level);
                 if water_level == 0 {
                     water_level = 8;
                 } else {
@@ -85,7 +85,7 @@ fn basic_composition_for_solid_biome(
 
         if !skip {
             if y <= rng.gen_range(0, 4) {
-                block = Block::Bedrock;
+                block = BlockId::bedrock();
             } else {
                 block = if is_solid {
                     if topsoil_remaining == -1 {
@@ -96,62 +96,63 @@ fn basic_composition_for_solid_biome(
                         topsoil_remaining -= 1;
                         block
                     } else {
-                        Block::Stone
+                        BlockId::stone()
                     }
                 } else {
                     topsoil_remaining = -1;
-                    Block::Air
+                    BlockId::air()
                 };
             }
         }
 
-        if block != Block::Air {
+        if !block.is_air() {
             chunk.set_block_at(x, y, z, block);
         }
     }
 }
 
 /// Returns the top soil block for the given biome.
-fn top_soil_block(biome: Biome) -> Block {
+fn top_soil_block(biome: Biome) -> BlockId {
     match biome {
         Biome::SnowyTundra
         | Biome::IceSpikes
         | Biome::SnowyTaiga
         | Biome::SnowyTaigaMountains
-        | Biome::SnowyBeach => Block::GrassBlock(GrassBlockData { snowy: true }),
-        Biome::GravellyMountains | Biome::ModifiedGravellyMountains => Block::Gravel,
-        Biome::StoneShore => Block::Stone,
-        Biome::Beach | Biome::Desert | Biome::DesertHills | Biome::DesertLakes => Block::Sand,
-        Biome::MushroomFields | Biome::MushroomFieldShore => {
-            Block::Mycelium(MyceliumData { snowy: false })
-        }
+        | Biome::SnowyBeach => BlockId::grass_block().with_snowy(true),
+        Biome::GravellyMountains | Biome::ModifiedGravellyMountains => BlockId::gravel(),
+        Biome::StoneShore => BlockId::stone(),
+        Biome::Beach | Biome::Desert | Biome::DesertHills | Biome::DesertLakes => BlockId::sand(),
+        Biome::MushroomFields | Biome::MushroomFieldShore => BlockId::mycelium(),
+
         Biome::Badlands
         | Biome::ErodedBadlands
         | Biome::WoodedBadlandsPlateau
         | Biome::BadlandsPlateau
         | Biome::ModifiedBadlandsPlateau
-        | Biome::ModifiedWoodedBadlandsPlateau => Block::RedSand,
-        Biome::Ocean => Block::Sand,
-        _ => Block::GrassBlock(GrassBlockData::default()),
+        | Biome::ModifiedWoodedBadlandsPlateau => BlockId::red_sand(),
+        Biome::Ocean => BlockId::sand(),
+        _ => BlockId::grass_block(),
     }
 }
 
 /// Returns the block under the top soil block for the given biome.
-fn underneath_top_soil_block(biome: Biome) -> Block {
+fn underneath_top_soil_block(biome: Biome) -> BlockId {
     match biome {
-        Biome::SnowyBeach => Block::SnowBlock,
-        Biome::GravellyMountains | Biome::ModifiedGravellyMountains => Block::Gravel,
-        Biome::StoneShore => Block::Stone,
-        Biome::Beach | Biome::Desert | Biome::DesertHills | Biome::DesertLakes => Block::Sandstone,
-        Biome::MushroomFields | Biome::MushroomFieldShore => Block::Dirt,
+        Biome::SnowyBeach => BlockId::snow_block(),
+        Biome::GravellyMountains | Biome::ModifiedGravellyMountains => BlockId::gravel(),
+        Biome::StoneShore => BlockId::stone(),
+        Biome::Beach | Biome::Desert | Biome::DesertHills | Biome::DesertLakes => {
+            BlockId::sandstone()
+        }
+        Biome::MushroomFields | Biome::MushroomFieldShore => BlockId::dirt(),
         Biome::Badlands
         | Biome::ErodedBadlands
         | Biome::WoodedBadlandsPlateau
         | Biome::BadlandsPlateau
         | Biome::ModifiedBadlandsPlateau
-        | Biome::ModifiedWoodedBadlandsPlateau => Block::RedSandstone,
-        Biome::Ocean => Block::Sand,
-        _ => Block::Dirt,
+        | Biome::ModifiedWoodedBadlandsPlateau => BlockId::red_sandstone(),
+        Biome::Ocean => BlockId::sand(),
+        _ => BlockId::dirt(),
     }
 }
 
@@ -179,24 +180,21 @@ mod tests {
         basic_composition_for_column(x, z, &mut chunk, &density[..], 435, Biome::Plains);
 
         for y in 4..=28 {
-            assert_eq!(chunk.block_at(x, y, z), Block::Stone);
+            assert_eq!(chunk.block_at(x, y, z), BlockId::stone());
         }
 
         for y in 29..=31 {
-            assert_eq!(chunk.block_at(x, y, z), Block::Dirt);
+            assert_eq!(chunk.block_at(x, y, z), BlockId::dirt());
         }
 
         for y in 33..40 {
-            assert_eq!(chunk.block_at(x, y, z), Block::Air);
+            assert_eq!(chunk.block_at(x, y, z), BlockId::air());
         }
 
         for y in 40..=60 {
-            assert_eq!(chunk.block_at(x, y, z), Block::Stone);
+            assert_eq!(chunk.block_at(x, y, z), BlockId::stone());
         }
 
-        assert_eq!(
-            chunk.block_at(x, 64, z),
-            Block::GrassBlock(GrassBlockData::default())
-        );
+        assert_eq!(chunk.block_at(x, 64, z), BlockId::grass_block());
     }
 }

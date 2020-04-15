@@ -8,6 +8,7 @@ use crate::{
     ClientboundAnimation, Gamemode, Hand, Packet, PacketType,
 };
 use bytes::{Buf, BufMut, BytesMut};
+use feather_blocks::BlockId;
 use hashbrown::HashMap;
 use num_traits::{FromPrimitive, ToPrimitive};
 use parking_lot::RwLock;
@@ -1575,7 +1576,9 @@ impl Packet for ChunkData {
                                 let palette_number = buf.try_get_var_int()? as usize;
                                 let mut palette = Vec::<_>::with_capacity(palette_number);
                                 for _ in 0..palette_number {
-                                    palette.push(buf.try_get_var_int()? as u16);
+                                    palette.push(BlockId::from_vanilla_id(
+                                        buf.try_get_var_int()? as u16
+                                    ));
                                 }
                                 palette
                             }),
@@ -1587,7 +1590,9 @@ impl Packet for ChunkData {
                                 let palette_number = buf.try_get_var_int()? as usize;
                                 let mut palette = Vec::<_>::with_capacity(palette_number);
                                 for _ in 0..palette_number {
-                                    palette.push(buf.try_get_var_int()? as u16);
+                                    palette.push(BlockId::from_vanilla_id(
+                                        buf.try_get_var_int()? as u16
+                                    ));
                                 }
                                 palette
                             }),
@@ -1658,8 +1663,8 @@ impl Packet for ChunkData {
                 let palette = section.palette();
                 if let Some(palette) = palette {
                     let mut palette_buf = BytesMut::with_capacity(palette.len() + 4);
-                    for val in palette {
-                        palette_buf.push_var_int(i32::from(*val));
+                    for block in palette {
+                        palette_buf.push_var_int(i32::from(block.vanilla_id()));
                     }
 
                     temp_buf.push_var_int(palette.len() as i32);

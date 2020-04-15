@@ -5,9 +5,9 @@ use crate::game::Game;
 use crate::physics::block_bboxes::bbox_for_block;
 use crate::physics::AABBExt;
 use bitflags::bitflags;
-use feather_blocks::Block;
+use feather_blocks::BlockId;
 use feather_core::world::{BlockPosition, Position};
-use feather_core::{BlockExt, ChunkPosition};
+use feather_core::ChunkPosition;
 use fecs::{Entity, World};
 use glm::{vec3, DVec3, Vec3};
 use heapless::consts::*;
@@ -174,7 +174,7 @@ pub fn block_impacted_by_ray(
                 // Calculate world-space position of
                 // impact using `ncollide`.
                 let ray = Ray::new(Point3::from(origin), direction);
-                let shape = block_shape(&block);
+                let shape = block_shape(block);
                 let isometry = block_isometry(current_pos);
 
                 if let Some(impact) = shape.toi_and_normal_with_ray(&isometry, &ray, 1000.0, true) {
@@ -458,7 +458,7 @@ pub fn adjacent_to_bbox(
     let sign = f64::from(sign);
 
     let size = bbox.size() / 2.0;
-    let mut blocks: SmallVec<[(BlockPosition, Block); 4]> = smallvec![];
+    let mut blocks: SmallVec<[(BlockPosition, BlockId); 4]> = smallvec![];
 
     let other_axis1 = match axis {
         0 => 1,
@@ -524,7 +524,7 @@ pub fn adjacent_to_bbox(
 
     for (block_pos, block) in &blocks {
         let isometry = block_isometry(*block_pos);
-        let shape = block_shape(&block);
+        let shape = block_shape(*block);
         shapes.push((isometry, ShapeHandle::new(shape)));
     }
 
@@ -532,7 +532,7 @@ pub fn adjacent_to_bbox(
 }
 
 /// Returns an `ncollide` `Cuboid` corresponding to the given block.
-pub fn block_shape(block: &Block) -> Cuboid<f64> {
+pub fn block_shape(block: BlockId) -> Cuboid<f64> {
     let bbox = bbox_for_block(block);
     Cuboid::new(bbox.half_extents())
 }

@@ -508,7 +508,7 @@ fn generate_block_serializing_fns(blocks: &Blocks) -> Vec<TokenStream> {
     let mut from_identifier_and_properties_util_fns = vec![];
     for block in &blocks.blocks {
         let name = &block.name;
-        let name_str = name.to_string();
+        let name_str = format!("minecraft:{}", name);
         let fn_to_call = ident(format!("{}_from_identifier_and_properties", block.name));
 
         from_identifier_and_properties_fn_match_arms.push(quote! {

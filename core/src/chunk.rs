@@ -1,6 +1,7 @@
 use crate::Biome;
-use crate::{Block, BlockExt, ChunkPosition};
+use crate::ChunkPosition;
 use bitflags::bitflags;
+use feather_blocks::BlockId;
 use multimap::MultiMap;
 
 /// The number of bits used for each block
@@ -186,12 +187,12 @@ impl Chunk {
     /// The specified coordinates must be inside
     /// this chunk, so the function will panic
     /// if `x >= 16 || y >= 256 || z >= 16`.
-    pub fn block_at(&self, x: usize, y: usize, z: usize) -> Block {
+    pub fn block_at(&self, x: usize, y: usize, z: usize) -> BlockId {
         Self::check_coords(x, y, z);
         let chunk_section = &self.sections[(y / 16) as usize];
         match chunk_section {
             Some(section) => section.block_at(x, y % 16, z),
-            None => Block::Air,
+            None => BlockId::air(),
         }
     }
 
@@ -203,7 +204,7 @@ impl Chunk {
     /// The specified coordinates must be inside
     /// this chunk, so the function will panic
     /// if `x >= 16 || y >= 256 || z >= 16`.
-    pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: Block) {
+    pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: BlockId) {
         Self::check_coords(x, y, z);
         self.modified = true;
 
@@ -214,7 +215,7 @@ impl Chunk {
             section = sec;
         } else {
             // The section is empty - create it
-            if block == Block::Air {
+            if block == BlockId::air() {
                 return; // Nothing to do - section already empty
             }
 
@@ -242,7 +243,7 @@ impl Chunk {
         &self.heightmaps
     }
 
-    fn update_heightmap(&mut self, x: usize, y: usize, z: usize, block: Block) -> HeightMapMask {
+    fn update_heightmap(&mut self, x: usize, y: usize, z: usize, block: BlockId) -> HeightMapMask {
         let heightmap = self.heightmap_mut(x, z);
         let mut mask: HeightMapMask = HeightMapMask::empty();
         if (block.is_solid() || block.is_fluid()) && heightmap.motion_blocking() < y as u8 {
@@ -473,7 +474,7 @@ pub struct ChunkSection {
     /// This section's palette. `None` if using the global palette.
     /// The palette should always remain sorted so that a binary
     /// search can be performed on it.
-    palette: Option<Vec<u16>>,
+    palette: Option<Vec<BlockId>>,
     /// The number of solid blocks in this chunk, i.e. those
     /// that are not air. This value is used to figure out when
     /// the section becomes empty.
@@ -491,7 +492,7 @@ impl ChunkSection {
     /// Creates a new, empty `ChunkSection`.
     pub fn new(
         mut data: BitArray,
-        mut palette: Option<Vec<u16>>,
+        mut palette: Option<Vec<BlockId>>,
         block_light: BitArray,
         sky_light: BitArray,
     ) -> Self {
@@ -531,7 +532,7 @@ impl ChunkSection {
     /// sources.
     ///
     /// The correction is done in-place.
-    fn correct_data_and_palette(data: &mut BitArray, palette: &mut Vec<u16>) {
+    fn correct_data_and_palette(data: &mut BitArray, palette: &mut Vec<BlockId>) {
         let original_palette = palette.clone(); // Palette without sorting guarantees
 
         palette.sort_unstable();
@@ -559,36 +560,33 @@ impl ChunkSection {
 
     /// Retrieves the block at the given position in this chunk section.
     /// The position is local to this section.
-    pub fn block_at(&self, x: usize, y: usize, z: usize) -> Block {
+    pub fn block_at(&self, x: usize, y: usize, z: usize) -> BlockId {
         let index = block_index(x, y, z);
         let block_id = self.data.get(index);
 
-        let global_id = match &self.palette {
-            Some(palette) => palette[block_id as usize] as u16,
-            None => block_id as u16,
-        };
-
-        Block::from_native_state_id(global_id).unwrap()
+        match &self.palette {
+            Some(palette) => palette[block_id as usize],
+            None => BlockId::from_vanilla_id(block_id as u16),
+        }
     }
 
     /// Sets the block at the given position in this chunk section.
     /// The position is local to this section.
-    pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: Block) {
+    pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: BlockId) {
         self.dirty = true;
 
         let index = block_index(x, y, z);
-        let block_id = block.native_state_id();
 
-        // The value that will be put into the
+        // The value that will be put into the data array.
         let mut paletted_index;
         if let Some(palette) = self.palette.as_mut() {
             // Retrieve the block index from the palette.
 
             // If necessary, add the block to the palette.
-            match palette.binary_search(&block_id) {
+            match palette.binary_search(&block) {
                 Ok(index) => paletted_index = index,
                 Err(insertion_index) => {
-                    palette.insert(insertion_index, block_id);
+                    palette.insert(insertion_index, block);
                     paletted_index = insertion_index;
 
                     // Resize if necessary
@@ -606,14 +604,14 @@ impl ChunkSection {
                                         let block = self.block_at(_x, _y, _z);
                                         new_data.set(
                                             block_index(_x, _y, _z),
-                                            block.native_state_id() as u64,
+                                            block.vanilla_id() as u64,
                                         );
                                     }
                                 }
                             }
 
                             self.palette = None;
-                            paletted_index = block_id as usize;
+                            paletted_index = block.vanilla_id() as usize;
                             self.data = new_data;
                         }
                     }
@@ -637,13 +635,13 @@ impl ChunkSection {
             }
         } else {
             // Use the global palette.
-            paletted_index = block_id as usize;
+            paletted_index = block.vanilla_id() as usize;
         }
 
         let old_block = self.block_at(x, y, z);
-        if block == Block::Air && old_block != Block::Air {
+        if block.is_air() && !old_block.is_air() {
             self.solid_block_count -= 1;
-        } else if block != Block::Air && old_block == Block::Air {
+        } else if !block.is_air() && old_block.is_air() {
             self.solid_block_count += 1;
         }
 
@@ -672,7 +670,7 @@ impl ChunkSection {
         for x in 0..16 {
             for y in 0..16 {
                 for z in 0..16 {
-                    let block = self.block_at(x, y, z).native_state_id();
+                    let block = self.block_at(x, y, z);
                     match new_palette.binary_search(&block) {
                         Ok(_) => (),
                         Err(insert_index) => {
@@ -687,7 +685,7 @@ impl ChunkSection {
         for x in 0..16 {
             for y in 0..16 {
                 for z in 0..16 {
-                    let block = self.block_at(x, y, z).native_state_id();
+                    let block = self.block_at(x, y, z);
                     self.data.set(
                         block_index(x, y, z),
                         new_palette.binary_search(&block).unwrap() as u64,
@@ -720,7 +718,7 @@ impl ChunkSection {
             return;
         }
 
-        let mut blocks = MultiMap::with_capacity(1024);
+        let mut blocks = MultiMap::with_capacity_and_hasher(1024, ahash::RandomState::new());
         for x in 0..16 {
             for y in 0..16 {
                 for z in 0..16 {
@@ -731,9 +729,9 @@ impl ChunkSection {
 
         // Create a palette based on the blocks in the chunk.
         // We also have to modify the data array based on the new palette.
-        let mut palette = Vec::with_capacity(1024);
+        let mut palette = Vec::with_capacity(512);
         for (block, positions) in blocks.into_iter() {
-            palette.push(block.native_state_id());
+            palette.push(block);
 
             for (x, y, z) in positions {
                 let index = block_index(x, y, z);
@@ -750,8 +748,8 @@ impl ChunkSection {
     }
 
     /// Returns the palette for this section.
-    pub fn palette(&self) -> Option<&Vec<u16>> {
-        self.palette.as_ref()
+    pub fn palette(&self) -> Option<&[BlockId]> {
+        self.palette.as_deref()
     }
 
     /// Returns the number of bits used to store each block.
@@ -800,10 +798,10 @@ impl ChunkSection {
 
 impl Default for ChunkSection {
     fn default() -> Self {
-        let air_id = Block::Air.native_state_id();
+        let air = BlockId::air();
         Self {
             data: BitArray::new(4, SECTION_VOLUME),
-            palette: Some(vec![air_id]),
+            palette: Some(vec![air]),
             solid_block_count: 0,
             dirty: false,
             block_light: BitArray::new(4, SECTION_VOLUME),
@@ -1031,8 +1029,8 @@ mod tests {
         let pos = ChunkPosition::new(0, 0);
         let mut chunk = Chunk::new(pos);
 
-        chunk.set_block_at(0, 0, 0, Block::Andesite);
-        assert_eq!(chunk.block_at(0, 0, 0), Block::Andesite);
+        chunk.set_block_at(0, 0, 0, BlockId::andesite());
+        assert_eq!(chunk.block_at(0, 0, 0), BlockId::andesite());
         assert!(chunk.section(0).is_some());
     }
 
@@ -1041,7 +1039,7 @@ mod tests {
         let pos = ChunkPosition::new(0, 0);
         let mut chunk = Chunk::new(pos);
 
-        let block = Block::Stone;
+        let block = BlockId::stone();
 
         for x in 0..16 {
             for y in 0..256 {
@@ -1081,11 +1079,15 @@ mod tests {
             for x in 0..16 {
                 for y in 0..16 {
                     for z in 0..16 {
-                        let block = Block::from_native_state_id(counter).unwrap();
+                        let block = BlockId::from_vanilla_id(counter);
                         chunk.set_block_at(x, (section * 16) + y, z, block);
                         assert_eq!(chunk.block_at(x, (section * 16) + y, z), block);
                         if counter != 0 {
-                            assert!(chunk.section(section).is_some(), "Section {} bad", section);
+                            assert!(
+                                chunk.section(section).is_some(),
+                                "Section {} failed",
+                                section
+                            );
                         }
                         counter += 1;
                     }
@@ -1100,7 +1102,7 @@ mod tests {
             for x in 0..16 {
                 for y in 0..16 {
                     for z in 0..16 {
-                        let block = Block::from_native_state_id(counter).unwrap();
+                        let block = BlockId::from_vanilla_id(counter);
                         assert_eq!(chunk.block_at(x, (section * 16) + y, z), block);
                         assert!(chunk.section(section).is_some());
                         counter += 1;
@@ -1114,7 +1116,7 @@ mod tests {
         for x in 0..16 {
             for y in 0..256 {
                 for z in 0..16 {
-                    chunk.set_block_at(x, y, z, Block::Air);
+                    chunk.set_block_at(x, y, z, BlockId::air());
                 }
             }
         }
@@ -1140,7 +1142,7 @@ mod tests {
             }
         }
 
-        let palette = vec![1];
+        let palette = vec![BlockId::stone()];
         let section = ChunkSection::new(
             data,
             Some(palette),
@@ -1152,7 +1154,7 @@ mod tests {
         for x in 0..16 {
             for y in 0..16 {
                 for z in 0..16 {
-                    assert_eq!(chunk.block_at(x, y, z), Block::Stone);
+                    assert_eq!(chunk.block_at(x, y, z), BlockId::stone());
                 }
             }
         }
@@ -1264,20 +1266,30 @@ mod tests {
     #[test]
     fn test_correct_data_and_palette() {
         let mut data = BitArray::new(4, 4096);
-        let mut palette = vec![0, 4, 2, 7, 3];
+        let mut palette = vec![
+            BlockId::redstone_wire(),
+            BlockId::stone(),
+            BlockId::stone_brick_slab(),
+            BlockId::sea_pickle(),
+            BlockId::acacia_button(),
+        ];
         ChunkSection::correct_data_and_palette(&mut data, &mut palette);
         assert_eq!(palette.len(), 5);
+
+        let mut sorted = palette.clone();
+        sorted.sort();
+        assert_eq!(sorted, palette);
     }
 
     #[test]
     fn test_palette_insertion_in_middle() {
         let mut chunk = ChunkSection::default();
 
-        chunk.set_block_at(0, 0, 0, Block::Cobblestone);
-        chunk.set_block_at(0, 1, 0, Block::Stone);
+        chunk.set_block_at(0, 0, 0, BlockId::cobblestone());
+        chunk.set_block_at(0, 1, 0, BlockId::stone());
 
-        assert_eq!(chunk.block_at(0, 0, 0), Block::Cobblestone);
-        assert_eq!(chunk.block_at(0, 1, 0), Block::Stone);
+        assert_eq!(chunk.block_at(0, 0, 0), BlockId::cobblestone());
+        assert_eq!(chunk.block_at(0, 1, 0), BlockId::stone());
     }
 
     #[test]
@@ -1299,7 +1311,7 @@ mod tests {
         assert!(chunk.check_modified());
         assert!(!chunk.check_modified());
 
-        chunk.set_block_at(0, 0, 0, Block::Stone);
+        chunk.set_block_at(0, 0, 0, BlockId::stone());
         assert!(chunk.check_modified());
         assert!(!chunk.check_modified());
     }
@@ -1312,7 +1324,8 @@ mod tests {
         for x in 0..SECTION_WIDTH {
             for y in 0..SECTION_HEIGHT {
                 for z in 0..SECTION_WIDTH {
-                    chunk.set_block_at(x, y, z, Block::from_native_state_id(counter).unwrap());
+                    chunk.set_block_at(x, y, z, BlockId::from_vanilla_id(counter));
+
                     counter += 1;
                 }
             }
@@ -1328,10 +1341,7 @@ mod tests {
         for x in 0..SECTION_WIDTH {
             for y in 0..SECTION_HEIGHT {
                 for z in 0..SECTION_WIDTH {
-                    assert_eq!(
-                        chunk.block_at(x, y, z),
-                        Block::from_native_state_id(counter).unwrap()
-                    );
+                    assert_eq!(chunk.block_at(x, y, z), BlockId::from_vanilla_id(counter));
                     counter += 1;
                 }
             }

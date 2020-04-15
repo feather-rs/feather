@@ -1,7 +1,8 @@
 use crate::worldgen::WorldGenerator;
-use feather_blocks::Block;
+use feather_blocks::BlockId;
 use feather_core::level::SuperflatGeneratorOptions;
 use feather_core::{Biome, Chunk, ChunkPosition};
+use std::collections::BTreeMap;
 
 pub struct SuperflatWorldGenerator {
     pub options: SuperflatGeneratorOptions,
@@ -17,21 +18,21 @@ impl WorldGenerator for SuperflatWorldGenerator {
             if layer.height == 0 {
                 continue;
             }
-            let layer_block = Block::from_name_and_default_props(layer.block.as_str());
-            if layer_block.is_none() {
-                // Skip this layer
-                debug!("Failed to generate layer: unknown block {}", layer.block);
-                y_counter += layer.height;
-                continue;
-            }
-            let layer_block = layer_block.unwrap();
-            for y in y_counter..(y_counter + layer.height) {
-                for x in 0..16 {
-                    for z in 0..16 {
-                        chunk.set_block_at(x as usize, y as usize, z as usize, layer_block);
+            let layer_block =
+                BlockId::from_identifier_and_properties(layer.block.as_str(), &BTreeMap::new());
+            if let Some(layer_block) = layer_block {
+                for y in y_counter..(y_counter + layer.height) {
+                    for x in 0..16 {
+                        for z in 0..16 {
+                            chunk.set_block_at(x as usize, y as usize, z as usize, layer_block);
+                        }
                     }
                 }
+            } else {
+                // Skip this layer
+                debug!("Failed to generate layer: unknown block {}", layer.block);
             }
+
             y_counter += layer.height;
         }
 
@@ -44,7 +45,6 @@ impl WorldGenerator for SuperflatWorldGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use feather_blocks::GrassBlockData;
 
     #[test]
     pub fn test_worldgen_flat() {
@@ -59,17 +59,17 @@ mod tests {
         for x in 0usize..16 {
             for z in 0usize..16 {
                 for (y, block) in &[
-                    (0usize, Block::Bedrock),
-                    (1usize, Block::Dirt),
-                    (2usize, Block::Dirt),
-                    (3usize, Block::GrassBlock(GrassBlockData { snowy: false })),
+                    (0usize, BlockId::bedrock()),
+                    (1usize, BlockId::dirt()),
+                    (2usize, BlockId::dirt()),
+                    (3usize, BlockId::grass_block()),
                 ] {
                     assert_eq!(chunk.block_at(x, *y, z), *block);
                 }
                 for y in 4..256 {
                     assert_eq!(
                         chunk.block_at(x as usize, y as usize, z as usize),
-                        Block::Air
+                        BlockId::air()
                     );
                 }
                 assert_eq!(chunk.biome_at(x, z), Biome::Mountains);

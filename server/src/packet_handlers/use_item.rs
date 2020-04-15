@@ -4,7 +4,8 @@ use crate::p_inventory::EntityInventory;
 use crate::packet_buffer::PacketBuffers;
 use crate::player::ItemTimedUse;
 use feather_core::network::packet::implementation::UseItem;
-use feather_core::{Hand, Item};
+use feather_core::Hand;
+use feather_items::Item;
 use fecs::{Entity, World};
 use std::sync::Arc;
 

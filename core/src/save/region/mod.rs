@@ -1,7 +1,7 @@
 //! This module implements the loading and saving (soon)
 //! of Anvil region files.
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fmt::{self, Display, Formatter};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
@@ -15,8 +15,10 @@ use serde::Deserialize;
 use crate::save::entity::EntityData;
 use crate::world::ChunkPosition;
 use crate::Biome;
-use crate::{BitArray, Block, BlockExt, Chunk, ChunkSection};
+use crate::{BitArray, Chunk, ChunkSection};
 use bitvec::{bitvec, vec::BitVec};
+use feather_blocks::BlockId;
+use std::borrow::Cow;
 
 mod blob;
 
@@ -80,7 +82,7 @@ pub struct LevelSection {
 pub struct LevelPaletteEntry {
     /// The identifier of the type of this block
     #[serde(rename = "Name")]
-    name: String,
+    name: Cow<'static, str>,
     /// Optional properties for this block
     #[serde(rename = "Properties")]
     props: Option<LevelProperties>,
@@ -91,7 +93,7 @@ pub struct LevelPaletteEntry {
 pub struct LevelProperties {
     /// Map containing a list of property names to values.
     #[serde(flatten)]
-    props: HashMap<String, String>,
+    props: BTreeMap<Cow<'static, str>, Cow<'static, str>>,
 }
 
 /// A block of sectors in a region file.
@@ -285,19 +287,20 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     let mut palette = vec![];
     for entry in &section.palette {
         // Construct properties map
-        let mut props = HashMap::new();
+        let mut props = BTreeMap::new();
         if let Some(entry_props) = entry.props.as_ref() {
             props.extend(
                 entry_props
                     .props
                     .iter()
-                    .map(|(k, v)| (k.clone(), v.clone())),
+                    .map(|(k, v)| (k.clone().into_owned(), v.clone().into_owned())),
             );
         }
 
         // Attempt to get block from the given values
-        let block = Block::from_name_and_props(&entry.name, &props).ok_or(Error::InvalidBlock)?;
-        palette.push(block.native_state_id());
+        let block = BlockId::from_identifier_and_properties(&entry.name, &props)
+            .ok_or(Error::InvalidBlock)?;
+        palette.push(block);
     }
 
     // Create section
@@ -400,22 +403,21 @@ fn convert_palette(section: &mut ChunkSection) -> Vec<LevelPaletteEntry> {
     raw_palette_to_palette_entries(section.palette().unwrap())
 }
 
-fn raw_palette_to_palette_entries(palette: &[u16]) -> Vec<LevelPaletteEntry> {
+fn raw_palette_to_palette_entries(palette: &[BlockId]) -> Vec<LevelPaletteEntry> {
     palette
         .iter()
-        .map(|id| {
-            let block = Block::from_native_state_id(*id).unwrap();
-
-            let (name, props) = block.to_name_and_props();
-
-            let mut prop_map = HashMap::new();
-            props.into_iter().for_each(|(name, value)| {
-                prop_map.insert(name.to_string(), value);
-            });
+        .map(|block| {
+            let props = block.to_properties_map();
+            let identifier = block.identifier();
 
             LevelPaletteEntry {
-                name: name.to_string(),
-                props: Some(LevelProperties { props: prop_map }),
+                name: identifier.into(),
+                props: Some(LevelProperties {
+                    props: props
+                        .into_iter()
+                        .map(|(k, v)| (Cow::from(k), Cow::from(v)))
+                        .collect(),
+                }),
             }
         })
         .collect()

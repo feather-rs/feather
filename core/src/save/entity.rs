@@ -1,4 +1,5 @@
-use crate::{vec3, Item, Position, Vec3d};
+use crate::{vec3, Position, Vec3d};
+use feather_items::Item;
 use nbt::Value;
 use std::collections::HashMap;
 use thiserror::Error;

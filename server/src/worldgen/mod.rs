@@ -3,7 +3,7 @@
 //! Generation is primarily based around the `ComposableGenerator`,
 //! which allows configuration of a world generator pipeline.
 
-use feather_core::{Biome, Block, Chunk, ChunkPosition};
+use feather_core::{Biome, Chunk, ChunkPosition};
 
 mod biomes;
 mod composition;
@@ -21,6 +21,7 @@ use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
 pub use composition::BasicCompositionGenerator;
 pub use density_map::{DensityMapGeneratorImpl, HeightMapGenerator};
+use feather_blocks::BlockId;
 pub use noise::NoiseLerper;
 use num_traits::ToPrimitive;
 use rand::{Rng, SeedableRng};
@@ -161,7 +162,7 @@ impl WorldGenerator for ComposableGenerator {
         for x in 0..16 {
             for z in 0..16 {
                 for y in (0..256).rev() {
-                    if chunk.block_at(x, y, z) != Block::Air {
+                    if chunk.block_at(x, y, z) != BlockId::air() {
                         top_blocks.set_top_block_at(x, z, y);
                         break;
                     }

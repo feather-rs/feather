@@ -10,9 +10,8 @@ use crate::{entity, TPS};
 use feather_core::entity::{BaseEntityData, EntityData, ItemData, ItemEntityData};
 use feather_core::inventory::SlotIndex;
 use feather_core::network::packet::implementation::SpawnObject;
-use feather_core::{
-    EntityMetadata, Item, ItemStack, Packet, Position, Vec3d, META_INDEX_ITEM_SLOT,
-};
+use feather_core::{EntityMetadata, ItemStack, Packet, Position, Vec3d, META_INDEX_ITEM_SLOT};
+use feather_items::Item;
 use fecs::{component, Entity, EntityBuilder, EntityRef, IntoQuery, Read, World, Write};
 use parking_lot::Mutex;
 use rand::Rng;

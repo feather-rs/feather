@@ -5,6 +5,7 @@ use thiserror::Error;
 #[macro_use]
 extern crate num_derive;
 
+mod categories;
 #[allow(warnings)]
 #[allow(clippy::all)]
 mod generated;
@@ -18,6 +19,8 @@ static VANILLA_ID_TABLE: Lazy<Vec<Vec<u16>>> = Lazy::new(|| {
     let bytes = include_bytes!("generated/vanilla_ids.dat");
     bincode::deserialize(bytes).expect("failed to deserialize generated vanilla ID table (bincode)")
 });
+
+const HIGHEST_ID: u16 = 8596;
 
 static FROM_VANILLA_ID_TABLE: Lazy<Vec<BlockId>> = Lazy::new(|| {
     let mut res = vec![BlockId::default(); u16::max_value() as usize];
@@ -33,6 +36,13 @@ static FROM_VANILLA_ID_TABLE: Lazy<Vec<BlockId>> = Lazy::new(|| {
         }
     }
 
+    debug_assert!((1..=HIGHEST_ID).all(|id| res[id as usize] != BlockId::default()));
+    // Verify distinction
+    if cfg!(debug_assertions) {
+        let mut known_blocks = HashSet::with_capacity(HIGHEST_ID as usize);
+        assert!((1..=HIGHEST_ID).all(|id| known_blocks.insert(res[id as usize])));
+    }
+
     res
 });
 
@@ -46,6 +56,8 @@ use once_cell::sync::Lazy;
 
 pub use crate::generated::table::*;
 pub use crate::generated::BlockKind;
+
+use std::collections::HashSet;
 
 impl Default for BlockKind {
     fn default() -> Self {

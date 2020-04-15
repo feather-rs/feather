@@ -14,8 +14,9 @@ path = "src/main.rs"
 
 [dependencies]
 # Feather crates
-feather-blocks = { path = "../blocks" }
 feather-core = { path = "../core" }
+feather-blocks = { path = "../blocks" }
+feather-items = { path = "../items" }
 feather-item-block = { path = "../item_block" }
 feather-codegen = { path = "../codegen" }
 

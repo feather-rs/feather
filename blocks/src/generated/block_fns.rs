@@ -14721,1010 +14721,1380 @@ impl BlockId {
         properties: &BTreeMap<String, String>,
     ) -> Option<Self> {
         match identifier {
-            "air" => Self::air_from_identifier_and_properties(properties),
-            "stone" => Self::stone_from_identifier_and_properties(properties),
-            "granite" => Self::granite_from_identifier_and_properties(properties),
-            "polished_granite" => Self::polished_granite_from_identifier_and_properties(properties),
-            "diorite" => Self::diorite_from_identifier_and_properties(properties),
-            "polished_diorite" => Self::polished_diorite_from_identifier_and_properties(properties),
-            "andesite" => Self::andesite_from_identifier_and_properties(properties),
-            "polished_andesite" => {
+            "minecraft:air" => Self::air_from_identifier_and_properties(properties),
+            "minecraft:stone" => Self::stone_from_identifier_and_properties(properties),
+            "minecraft:granite" => Self::granite_from_identifier_and_properties(properties),
+            "minecraft:polished_granite" => {
+                Self::polished_granite_from_identifier_and_properties(properties)
+            }
+            "minecraft:diorite" => Self::diorite_from_identifier_and_properties(properties),
+            "minecraft:polished_diorite" => {
+                Self::polished_diorite_from_identifier_and_properties(properties)
+            }
+            "minecraft:andesite" => Self::andesite_from_identifier_and_properties(properties),
+            "minecraft:polished_andesite" => {
                 Self::polished_andesite_from_identifier_and_properties(properties)
             }
-            "grass_block" => Self::grass_block_from_identifier_and_properties(properties),
-            "dirt" => Self::dirt_from_identifier_and_properties(properties),
-            "coarse_dirt" => Self::coarse_dirt_from_identifier_and_properties(properties),
-            "podzol" => Self::podzol_from_identifier_and_properties(properties),
-            "cobblestone" => Self::cobblestone_from_identifier_and_properties(properties),
-            "oak_planks" => Self::oak_planks_from_identifier_and_properties(properties),
-            "spruce_planks" => Self::spruce_planks_from_identifier_and_properties(properties),
-            "birch_planks" => Self::birch_planks_from_identifier_and_properties(properties),
-            "jungle_planks" => Self::jungle_planks_from_identifier_and_properties(properties),
-            "acacia_planks" => Self::acacia_planks_from_identifier_and_properties(properties),
-            "dark_oak_planks" => Self::dark_oak_planks_from_identifier_and_properties(properties),
-            "oak_sapling" => Self::oak_sapling_from_identifier_and_properties(properties),
-            "spruce_sapling" => Self::spruce_sapling_from_identifier_and_properties(properties),
-            "birch_sapling" => Self::birch_sapling_from_identifier_and_properties(properties),
-            "jungle_sapling" => Self::jungle_sapling_from_identifier_and_properties(properties),
-            "acacia_sapling" => Self::acacia_sapling_from_identifier_and_properties(properties),
-            "dark_oak_sapling" => Self::dark_oak_sapling_from_identifier_and_properties(properties),
-            "bedrock" => Self::bedrock_from_identifier_and_properties(properties),
-            "water" => Self::water_from_identifier_and_properties(properties),
-            "lava" => Self::lava_from_identifier_and_properties(properties),
-            "sand" => Self::sand_from_identifier_and_properties(properties),
-            "red_sand" => Self::red_sand_from_identifier_and_properties(properties),
-            "gravel" => Self::gravel_from_identifier_and_properties(properties),
-            "gold_ore" => Self::gold_ore_from_identifier_and_properties(properties),
-            "iron_ore" => Self::iron_ore_from_identifier_and_properties(properties),
-            "coal_ore" => Self::coal_ore_from_identifier_and_properties(properties),
-            "oak_log" => Self::oak_log_from_identifier_and_properties(properties),
-            "spruce_log" => Self::spruce_log_from_identifier_and_properties(properties),
-            "birch_log" => Self::birch_log_from_identifier_and_properties(properties),
-            "jungle_log" => Self::jungle_log_from_identifier_and_properties(properties),
-            "acacia_log" => Self::acacia_log_from_identifier_and_properties(properties),
-            "dark_oak_log" => Self::dark_oak_log_from_identifier_and_properties(properties),
-            "stripped_spruce_log" => {
+            "minecraft:grass_block" => Self::grass_block_from_identifier_and_properties(properties),
+            "minecraft:dirt" => Self::dirt_from_identifier_and_properties(properties),
+            "minecraft:coarse_dirt" => Self::coarse_dirt_from_identifier_and_properties(properties),
+            "minecraft:podzol" => Self::podzol_from_identifier_and_properties(properties),
+            "minecraft:cobblestone" => Self::cobblestone_from_identifier_and_properties(properties),
+            "minecraft:oak_planks" => Self::oak_planks_from_identifier_and_properties(properties),
+            "minecraft:spruce_planks" => {
+                Self::spruce_planks_from_identifier_and_properties(properties)
+            }
+            "minecraft:birch_planks" => {
+                Self::birch_planks_from_identifier_and_properties(properties)
+            }
+            "minecraft:jungle_planks" => {
+                Self::jungle_planks_from_identifier_and_properties(properties)
+            }
+            "minecraft:acacia_planks" => {
+                Self::acacia_planks_from_identifier_and_properties(properties)
+            }
+            "minecraft:dark_oak_planks" => {
+                Self::dark_oak_planks_from_identifier_and_properties(properties)
+            }
+            "minecraft:oak_sapling" => Self::oak_sapling_from_identifier_and_properties(properties),
+            "minecraft:spruce_sapling" => {
+                Self::spruce_sapling_from_identifier_and_properties(properties)
+            }
+            "minecraft:birch_sapling" => {
+                Self::birch_sapling_from_identifier_and_properties(properties)
+            }
+            "minecraft:jungle_sapling" => {
+                Self::jungle_sapling_from_identifier_and_properties(properties)
+            }
+            "minecraft:acacia_sapling" => {
+                Self::acacia_sapling_from_identifier_and_properties(properties)
+            }
+            "minecraft:dark_oak_sapling" => {
+                Self::dark_oak_sapling_from_identifier_and_properties(properties)
+            }
+            "minecraft:bedrock" => Self::bedrock_from_identifier_and_properties(properties),
+            "minecraft:water" => Self::water_from_identifier_and_properties(properties),
+            "minecraft:lava" => Self::lava_from_identifier_and_properties(properties),
+            "minecraft:sand" => Self::sand_from_identifier_and_properties(properties),
+            "minecraft:red_sand" => Self::red_sand_from_identifier_and_properties(properties),
+            "minecraft:gravel" => Self::gravel_from_identifier_and_properties(properties),
+            "minecraft:gold_ore" => Self::gold_ore_from_identifier_and_properties(properties),
+            "minecraft:iron_ore" => Self::iron_ore_from_identifier_and_properties(properties),
+            "minecraft:coal_ore" => Self::coal_ore_from_identifier_and_properties(properties),
+            "minecraft:oak_log" => Self::oak_log_from_identifier_and_properties(properties),
+            "minecraft:spruce_log" => Self::spruce_log_from_identifier_and_properties(properties),
+            "minecraft:birch_log" => Self::birch_log_from_identifier_and_properties(properties),
+            "minecraft:jungle_log" => Self::jungle_log_from_identifier_and_properties(properties),
+            "minecraft:acacia_log" => Self::acacia_log_from_identifier_and_properties(properties),
+            "minecraft:dark_oak_log" => {
+                Self::dark_oak_log_from_identifier_and_properties(properties)
+            }
+            "minecraft:stripped_spruce_log" => {
                 Self::stripped_spruce_log_from_identifier_and_properties(properties)
             }
-            "stripped_birch_log" => {
+            "minecraft:stripped_birch_log" => {
                 Self::stripped_birch_log_from_identifier_and_properties(properties)
             }
-            "stripped_jungle_log" => {
+            "minecraft:stripped_jungle_log" => {
                 Self::stripped_jungle_log_from_identifier_and_properties(properties)
             }
-            "stripped_acacia_log" => {
+            "minecraft:stripped_acacia_log" => {
                 Self::stripped_acacia_log_from_identifier_and_properties(properties)
             }
-            "stripped_dark_oak_log" => {
+            "minecraft:stripped_dark_oak_log" => {
                 Self::stripped_dark_oak_log_from_identifier_and_properties(properties)
             }
-            "stripped_oak_log" => Self::stripped_oak_log_from_identifier_and_properties(properties),
-            "oak_wood" => Self::oak_wood_from_identifier_and_properties(properties),
-            "spruce_wood" => Self::spruce_wood_from_identifier_and_properties(properties),
-            "birch_wood" => Self::birch_wood_from_identifier_and_properties(properties),
-            "jungle_wood" => Self::jungle_wood_from_identifier_and_properties(properties),
-            "acacia_wood" => Self::acacia_wood_from_identifier_and_properties(properties),
-            "dark_oak_wood" => Self::dark_oak_wood_from_identifier_and_properties(properties),
-            "stripped_oak_wood" => {
+            "minecraft:stripped_oak_log" => {
+                Self::stripped_oak_log_from_identifier_and_properties(properties)
+            }
+            "minecraft:oak_wood" => Self::oak_wood_from_identifier_and_properties(properties),
+            "minecraft:spruce_wood" => Self::spruce_wood_from_identifier_and_properties(properties),
+            "minecraft:birch_wood" => Self::birch_wood_from_identifier_and_properties(properties),
+            "minecraft:jungle_wood" => Self::jungle_wood_from_identifier_and_properties(properties),
+            "minecraft:acacia_wood" => Self::acacia_wood_from_identifier_and_properties(properties),
+            "minecraft:dark_oak_wood" => {
+                Self::dark_oak_wood_from_identifier_and_properties(properties)
+            }
+            "minecraft:stripped_oak_wood" => {
                 Self::stripped_oak_wood_from_identifier_and_properties(properties)
             }
-            "stripped_spruce_wood" => {
+            "minecraft:stripped_spruce_wood" => {
                 Self::stripped_spruce_wood_from_identifier_and_properties(properties)
             }
-            "stripped_birch_wood" => {
+            "minecraft:stripped_birch_wood" => {
                 Self::stripped_birch_wood_from_identifier_and_properties(properties)
             }
-            "stripped_jungle_wood" => {
+            "minecraft:stripped_jungle_wood" => {
                 Self::stripped_jungle_wood_from_identifier_and_properties(properties)
             }
-            "stripped_acacia_wood" => {
+            "minecraft:stripped_acacia_wood" => {
                 Self::stripped_acacia_wood_from_identifier_and_properties(properties)
             }
-            "stripped_dark_oak_wood" => {
+            "minecraft:stripped_dark_oak_wood" => {
                 Self::stripped_dark_oak_wood_from_identifier_and_properties(properties)
             }
-            "oak_leaves" => Self::oak_leaves_from_identifier_and_properties(properties),
-            "spruce_leaves" => Self::spruce_leaves_from_identifier_and_properties(properties),
-            "birch_leaves" => Self::birch_leaves_from_identifier_and_properties(properties),
-            "jungle_leaves" => Self::jungle_leaves_from_identifier_and_properties(properties),
-            "acacia_leaves" => Self::acacia_leaves_from_identifier_and_properties(properties),
-            "dark_oak_leaves" => Self::dark_oak_leaves_from_identifier_and_properties(properties),
-            "sponge" => Self::sponge_from_identifier_and_properties(properties),
-            "wet_sponge" => Self::wet_sponge_from_identifier_and_properties(properties),
-            "glass" => Self::glass_from_identifier_and_properties(properties),
-            "lapis_ore" => Self::lapis_ore_from_identifier_and_properties(properties),
-            "lapis_block" => Self::lapis_block_from_identifier_and_properties(properties),
-            "dispenser" => Self::dispenser_from_identifier_and_properties(properties),
-            "sandstone" => Self::sandstone_from_identifier_and_properties(properties),
-            "chiseled_sandstone" => {
+            "minecraft:oak_leaves" => Self::oak_leaves_from_identifier_and_properties(properties),
+            "minecraft:spruce_leaves" => {
+                Self::spruce_leaves_from_identifier_and_properties(properties)
+            }
+            "minecraft:birch_leaves" => {
+                Self::birch_leaves_from_identifier_and_properties(properties)
+            }
+            "minecraft:jungle_leaves" => {
+                Self::jungle_leaves_from_identifier_and_properties(properties)
+            }
+            "minecraft:acacia_leaves" => {
+                Self::acacia_leaves_from_identifier_and_properties(properties)
+            }
+            "minecraft:dark_oak_leaves" => {
+                Self::dark_oak_leaves_from_identifier_and_properties(properties)
+            }
+            "minecraft:sponge" => Self::sponge_from_identifier_and_properties(properties),
+            "minecraft:wet_sponge" => Self::wet_sponge_from_identifier_and_properties(properties),
+            "minecraft:glass" => Self::glass_from_identifier_and_properties(properties),
+            "minecraft:lapis_ore" => Self::lapis_ore_from_identifier_and_properties(properties),
+            "minecraft:lapis_block" => Self::lapis_block_from_identifier_and_properties(properties),
+            "minecraft:dispenser" => Self::dispenser_from_identifier_and_properties(properties),
+            "minecraft:sandstone" => Self::sandstone_from_identifier_and_properties(properties),
+            "minecraft:chiseled_sandstone" => {
                 Self::chiseled_sandstone_from_identifier_and_properties(properties)
             }
-            "cut_sandstone" => Self::cut_sandstone_from_identifier_and_properties(properties),
-            "note_block" => Self::note_block_from_identifier_and_properties(properties),
-            "white_bed" => Self::white_bed_from_identifier_and_properties(properties),
-            "orange_bed" => Self::orange_bed_from_identifier_and_properties(properties),
-            "magenta_bed" => Self::magenta_bed_from_identifier_and_properties(properties),
-            "light_blue_bed" => Self::light_blue_bed_from_identifier_and_properties(properties),
-            "yellow_bed" => Self::yellow_bed_from_identifier_and_properties(properties),
-            "lime_bed" => Self::lime_bed_from_identifier_and_properties(properties),
-            "pink_bed" => Self::pink_bed_from_identifier_and_properties(properties),
-            "gray_bed" => Self::gray_bed_from_identifier_and_properties(properties),
-            "light_gray_bed" => Self::light_gray_bed_from_identifier_and_properties(properties),
-            "cyan_bed" => Self::cyan_bed_from_identifier_and_properties(properties),
-            "purple_bed" => Self::purple_bed_from_identifier_and_properties(properties),
-            "blue_bed" => Self::blue_bed_from_identifier_and_properties(properties),
-            "brown_bed" => Self::brown_bed_from_identifier_and_properties(properties),
-            "green_bed" => Self::green_bed_from_identifier_and_properties(properties),
-            "red_bed" => Self::red_bed_from_identifier_and_properties(properties),
-            "black_bed" => Self::black_bed_from_identifier_and_properties(properties),
-            "powered_rail" => Self::powered_rail_from_identifier_and_properties(properties),
-            "detector_rail" => Self::detector_rail_from_identifier_and_properties(properties),
-            "sticky_piston" => Self::sticky_piston_from_identifier_and_properties(properties),
-            "cobweb" => Self::cobweb_from_identifier_and_properties(properties),
-            "grass" => Self::grass_from_identifier_and_properties(properties),
-            "fern" => Self::fern_from_identifier_and_properties(properties),
-            "dead_bush" => Self::dead_bush_from_identifier_and_properties(properties),
-            "seagrass" => Self::seagrass_from_identifier_and_properties(properties),
-            "tall_seagrass" => Self::tall_seagrass_from_identifier_and_properties(properties),
-            "piston" => Self::piston_from_identifier_and_properties(properties),
-            "piston_head" => Self::piston_head_from_identifier_and_properties(properties),
-            "white_wool" => Self::white_wool_from_identifier_and_properties(properties),
-            "orange_wool" => Self::orange_wool_from_identifier_and_properties(properties),
-            "magenta_wool" => Self::magenta_wool_from_identifier_and_properties(properties),
-            "light_blue_wool" => Self::light_blue_wool_from_identifier_and_properties(properties),
-            "yellow_wool" => Self::yellow_wool_from_identifier_and_properties(properties),
-            "lime_wool" => Self::lime_wool_from_identifier_and_properties(properties),
-            "pink_wool" => Self::pink_wool_from_identifier_and_properties(properties),
-            "gray_wool" => Self::gray_wool_from_identifier_and_properties(properties),
-            "light_gray_wool" => Self::light_gray_wool_from_identifier_and_properties(properties),
-            "cyan_wool" => Self::cyan_wool_from_identifier_and_properties(properties),
-            "purple_wool" => Self::purple_wool_from_identifier_and_properties(properties),
-            "blue_wool" => Self::blue_wool_from_identifier_and_properties(properties),
-            "brown_wool" => Self::brown_wool_from_identifier_and_properties(properties),
-            "green_wool" => Self::green_wool_from_identifier_and_properties(properties),
-            "red_wool" => Self::red_wool_from_identifier_and_properties(properties),
-            "black_wool" => Self::black_wool_from_identifier_and_properties(properties),
-            "moving_piston" => Self::moving_piston_from_identifier_and_properties(properties),
-            "dandelion" => Self::dandelion_from_identifier_and_properties(properties),
-            "poppy" => Self::poppy_from_identifier_and_properties(properties),
-            "blue_orchid" => Self::blue_orchid_from_identifier_and_properties(properties),
-            "allium" => Self::allium_from_identifier_and_properties(properties),
-            "azure_bluet" => Self::azure_bluet_from_identifier_and_properties(properties),
-            "red_tulip" => Self::red_tulip_from_identifier_and_properties(properties),
-            "orange_tulip" => Self::orange_tulip_from_identifier_and_properties(properties),
-            "white_tulip" => Self::white_tulip_from_identifier_and_properties(properties),
-            "pink_tulip" => Self::pink_tulip_from_identifier_and_properties(properties),
-            "oxeye_daisy" => Self::oxeye_daisy_from_identifier_and_properties(properties),
-            "brown_mushroom" => Self::brown_mushroom_from_identifier_and_properties(properties),
-            "red_mushroom" => Self::red_mushroom_from_identifier_and_properties(properties),
-            "gold_block" => Self::gold_block_from_identifier_and_properties(properties),
-            "iron_block" => Self::iron_block_from_identifier_and_properties(properties),
-            "bricks" => Self::bricks_from_identifier_and_properties(properties),
-            "tnt" => Self::tnt_from_identifier_and_properties(properties),
-            "bookshelf" => Self::bookshelf_from_identifier_and_properties(properties),
-            "mossy_cobblestone" => {
+            "minecraft:cut_sandstone" => {
+                Self::cut_sandstone_from_identifier_and_properties(properties)
+            }
+            "minecraft:note_block" => Self::note_block_from_identifier_and_properties(properties),
+            "minecraft:white_bed" => Self::white_bed_from_identifier_and_properties(properties),
+            "minecraft:orange_bed" => Self::orange_bed_from_identifier_and_properties(properties),
+            "minecraft:magenta_bed" => Self::magenta_bed_from_identifier_and_properties(properties),
+            "minecraft:light_blue_bed" => {
+                Self::light_blue_bed_from_identifier_and_properties(properties)
+            }
+            "minecraft:yellow_bed" => Self::yellow_bed_from_identifier_and_properties(properties),
+            "minecraft:lime_bed" => Self::lime_bed_from_identifier_and_properties(properties),
+            "minecraft:pink_bed" => Self::pink_bed_from_identifier_and_properties(properties),
+            "minecraft:gray_bed" => Self::gray_bed_from_identifier_and_properties(properties),
+            "minecraft:light_gray_bed" => {
+                Self::light_gray_bed_from_identifier_and_properties(properties)
+            }
+            "minecraft:cyan_bed" => Self::cyan_bed_from_identifier_and_properties(properties),
+            "minecraft:purple_bed" => Self::purple_bed_from_identifier_and_properties(properties),
+            "minecraft:blue_bed" => Self::blue_bed_from_identifier_and_properties(properties),
+            "minecraft:brown_bed" => Self::brown_bed_from_identifier_and_properties(properties),
+            "minecraft:green_bed" => Self::green_bed_from_identifier_and_properties(properties),
+            "minecraft:red_bed" => Self::red_bed_from_identifier_and_properties(properties),
+            "minecraft:black_bed" => Self::black_bed_from_identifier_and_properties(properties),
+            "minecraft:powered_rail" => {
+                Self::powered_rail_from_identifier_and_properties(properties)
+            }
+            "minecraft:detector_rail" => {
+                Self::detector_rail_from_identifier_and_properties(properties)
+            }
+            "minecraft:sticky_piston" => {
+                Self::sticky_piston_from_identifier_and_properties(properties)
+            }
+            "minecraft:cobweb" => Self::cobweb_from_identifier_and_properties(properties),
+            "minecraft:grass" => Self::grass_from_identifier_and_properties(properties),
+            "minecraft:fern" => Self::fern_from_identifier_and_properties(properties),
+            "minecraft:dead_bush" => Self::dead_bush_from_identifier_and_properties(properties),
+            "minecraft:seagrass" => Self::seagrass_from_identifier_and_properties(properties),
+            "minecraft:tall_seagrass" => {
+                Self::tall_seagrass_from_identifier_and_properties(properties)
+            }
+            "minecraft:piston" => Self::piston_from_identifier_and_properties(properties),
+            "minecraft:piston_head" => Self::piston_head_from_identifier_and_properties(properties),
+            "minecraft:white_wool" => Self::white_wool_from_identifier_and_properties(properties),
+            "minecraft:orange_wool" => Self::orange_wool_from_identifier_and_properties(properties),
+            "minecraft:magenta_wool" => {
+                Self::magenta_wool_from_identifier_and_properties(properties)
+            }
+            "minecraft:light_blue_wool" => {
+                Self::light_blue_wool_from_identifier_and_properties(properties)
+            }
+            "minecraft:yellow_wool" => Self::yellow_wool_from_identifier_and_properties(properties),
+            "minecraft:lime_wool" => Self::lime_wool_from_identifier_and_properties(properties),
+            "minecraft:pink_wool" => Self::pink_wool_from_identifier_and_properties(properties),
+            "minecraft:gray_wool" => Self::gray_wool_from_identifier_and_properties(properties),
+            "minecraft:light_gray_wool" => {
+                Self::light_gray_wool_from_identifier_and_properties(properties)
+            }
+            "minecraft:cyan_wool" => Self::cyan_wool_from_identifier_and_properties(properties),
+            "minecraft:purple_wool" => Self::purple_wool_from_identifier_and_properties(properties),
+            "minecraft:blue_wool" => Self::blue_wool_from_identifier_and_properties(properties),
+            "minecraft:brown_wool" => Self::brown_wool_from_identifier_and_properties(properties),
+            "minecraft:green_wool" => Self::green_wool_from_identifier_and_properties(properties),
+            "minecraft:red_wool" => Self::red_wool_from_identifier_and_properties(properties),
+            "minecraft:black_wool" => Self::black_wool_from_identifier_and_properties(properties),
+            "minecraft:moving_piston" => {
+                Self::moving_piston_from_identifier_and_properties(properties)
+            }
+            "minecraft:dandelion" => Self::dandelion_from_identifier_and_properties(properties),
+            "minecraft:poppy" => Self::poppy_from_identifier_and_properties(properties),
+            "minecraft:blue_orchid" => Self::blue_orchid_from_identifier_and_properties(properties),
+            "minecraft:allium" => Self::allium_from_identifier_and_properties(properties),
+            "minecraft:azure_bluet" => Self::azure_bluet_from_identifier_and_properties(properties),
+            "minecraft:red_tulip" => Self::red_tulip_from_identifier_and_properties(properties),
+            "minecraft:orange_tulip" => {
+                Self::orange_tulip_from_identifier_and_properties(properties)
+            }
+            "minecraft:white_tulip" => Self::white_tulip_from_identifier_and_properties(properties),
+            "minecraft:pink_tulip" => Self::pink_tulip_from_identifier_and_properties(properties),
+            "minecraft:oxeye_daisy" => Self::oxeye_daisy_from_identifier_and_properties(properties),
+            "minecraft:brown_mushroom" => {
+                Self::brown_mushroom_from_identifier_and_properties(properties)
+            }
+            "minecraft:red_mushroom" => {
+                Self::red_mushroom_from_identifier_and_properties(properties)
+            }
+            "minecraft:gold_block" => Self::gold_block_from_identifier_and_properties(properties),
+            "minecraft:iron_block" => Self::iron_block_from_identifier_and_properties(properties),
+            "minecraft:bricks" => Self::bricks_from_identifier_and_properties(properties),
+            "minecraft:tnt" => Self::tnt_from_identifier_and_properties(properties),
+            "minecraft:bookshelf" => Self::bookshelf_from_identifier_and_properties(properties),
+            "minecraft:mossy_cobblestone" => {
                 Self::mossy_cobblestone_from_identifier_and_properties(properties)
             }
-            "obsidian" => Self::obsidian_from_identifier_and_properties(properties),
-            "torch" => Self::torch_from_identifier_and_properties(properties),
-            "wall_torch" => Self::wall_torch_from_identifier_and_properties(properties),
-            "fire" => Self::fire_from_identifier_and_properties(properties),
-            "spawner" => Self::spawner_from_identifier_and_properties(properties),
-            "oak_stairs" => Self::oak_stairs_from_identifier_and_properties(properties),
-            "chest" => Self::chest_from_identifier_and_properties(properties),
-            "redstone_wire" => Self::redstone_wire_from_identifier_and_properties(properties),
-            "diamond_ore" => Self::diamond_ore_from_identifier_and_properties(properties),
-            "diamond_block" => Self::diamond_block_from_identifier_and_properties(properties),
-            "crafting_table" => Self::crafting_table_from_identifier_and_properties(properties),
-            "wheat" => Self::wheat_from_identifier_and_properties(properties),
-            "farmland" => Self::farmland_from_identifier_and_properties(properties),
-            "furnace" => Self::furnace_from_identifier_and_properties(properties),
-            "sign" => Self::sign_from_identifier_and_properties(properties),
-            "oak_door" => Self::oak_door_from_identifier_and_properties(properties),
-            "ladder" => Self::ladder_from_identifier_and_properties(properties),
-            "rail" => Self::rail_from_identifier_and_properties(properties),
-            "cobblestone_stairs" => {
+            "minecraft:obsidian" => Self::obsidian_from_identifier_and_properties(properties),
+            "minecraft:torch" => Self::torch_from_identifier_and_properties(properties),
+            "minecraft:wall_torch" => Self::wall_torch_from_identifier_and_properties(properties),
+            "minecraft:fire" => Self::fire_from_identifier_and_properties(properties),
+            "minecraft:spawner" => Self::spawner_from_identifier_and_properties(properties),
+            "minecraft:oak_stairs" => Self::oak_stairs_from_identifier_and_properties(properties),
+            "minecraft:chest" => Self::chest_from_identifier_and_properties(properties),
+            "minecraft:redstone_wire" => {
+                Self::redstone_wire_from_identifier_and_properties(properties)
+            }
+            "minecraft:diamond_ore" => Self::diamond_ore_from_identifier_and_properties(properties),
+            "minecraft:diamond_block" => {
+                Self::diamond_block_from_identifier_and_properties(properties)
+            }
+            "minecraft:crafting_table" => {
+                Self::crafting_table_from_identifier_and_properties(properties)
+            }
+            "minecraft:wheat" => Self::wheat_from_identifier_and_properties(properties),
+            "minecraft:farmland" => Self::farmland_from_identifier_and_properties(properties),
+            "minecraft:furnace" => Self::furnace_from_identifier_and_properties(properties),
+            "minecraft:sign" => Self::sign_from_identifier_and_properties(properties),
+            "minecraft:oak_door" => Self::oak_door_from_identifier_and_properties(properties),
+            "minecraft:ladder" => Self::ladder_from_identifier_and_properties(properties),
+            "minecraft:rail" => Self::rail_from_identifier_and_properties(properties),
+            "minecraft:cobblestone_stairs" => {
                 Self::cobblestone_stairs_from_identifier_and_properties(properties)
             }
-            "wall_sign" => Self::wall_sign_from_identifier_and_properties(properties),
-            "lever" => Self::lever_from_identifier_and_properties(properties),
-            "stone_pressure_plate" => {
+            "minecraft:wall_sign" => Self::wall_sign_from_identifier_and_properties(properties),
+            "minecraft:lever" => Self::lever_from_identifier_and_properties(properties),
+            "minecraft:stone_pressure_plate" => {
                 Self::stone_pressure_plate_from_identifier_and_properties(properties)
             }
-            "iron_door" => Self::iron_door_from_identifier_and_properties(properties),
-            "oak_pressure_plate" => {
+            "minecraft:iron_door" => Self::iron_door_from_identifier_and_properties(properties),
+            "minecraft:oak_pressure_plate" => {
                 Self::oak_pressure_plate_from_identifier_and_properties(properties)
             }
-            "spruce_pressure_plate" => {
+            "minecraft:spruce_pressure_plate" => {
                 Self::spruce_pressure_plate_from_identifier_and_properties(properties)
             }
-            "birch_pressure_plate" => {
+            "minecraft:birch_pressure_plate" => {
                 Self::birch_pressure_plate_from_identifier_and_properties(properties)
             }
-            "jungle_pressure_plate" => {
+            "minecraft:jungle_pressure_plate" => {
                 Self::jungle_pressure_plate_from_identifier_and_properties(properties)
             }
-            "acacia_pressure_plate" => {
+            "minecraft:acacia_pressure_plate" => {
                 Self::acacia_pressure_plate_from_identifier_and_properties(properties)
             }
-            "dark_oak_pressure_plate" => {
+            "minecraft:dark_oak_pressure_plate" => {
                 Self::dark_oak_pressure_plate_from_identifier_and_properties(properties)
             }
-            "redstone_ore" => Self::redstone_ore_from_identifier_and_properties(properties),
-            "redstone_torch" => Self::redstone_torch_from_identifier_and_properties(properties),
-            "redstone_wall_torch" => {
+            "minecraft:redstone_ore" => {
+                Self::redstone_ore_from_identifier_and_properties(properties)
+            }
+            "minecraft:redstone_torch" => {
+                Self::redstone_torch_from_identifier_and_properties(properties)
+            }
+            "minecraft:redstone_wall_torch" => {
                 Self::redstone_wall_torch_from_identifier_and_properties(properties)
             }
-            "stone_button" => Self::stone_button_from_identifier_and_properties(properties),
-            "snow" => Self::snow_from_identifier_and_properties(properties),
-            "ice" => Self::ice_from_identifier_and_properties(properties),
-            "snow_block" => Self::snow_block_from_identifier_and_properties(properties),
-            "cactus" => Self::cactus_from_identifier_and_properties(properties),
-            "clay" => Self::clay_from_identifier_and_properties(properties),
-            "sugar_cane" => Self::sugar_cane_from_identifier_and_properties(properties),
-            "jukebox" => Self::jukebox_from_identifier_and_properties(properties),
-            "oak_fence" => Self::oak_fence_from_identifier_and_properties(properties),
-            "pumpkin" => Self::pumpkin_from_identifier_and_properties(properties),
-            "netherrack" => Self::netherrack_from_identifier_and_properties(properties),
-            "soul_sand" => Self::soul_sand_from_identifier_and_properties(properties),
-            "glowstone" => Self::glowstone_from_identifier_and_properties(properties),
-            "nether_portal" => Self::nether_portal_from_identifier_and_properties(properties),
-            "carved_pumpkin" => Self::carved_pumpkin_from_identifier_and_properties(properties),
-            "jack_o_lantern" => Self::jack_o_lantern_from_identifier_and_properties(properties),
-            "cake" => Self::cake_from_identifier_and_properties(properties),
-            "repeater" => Self::repeater_from_identifier_and_properties(properties),
-            "white_stained_glass" => {
+            "minecraft:stone_button" => {
+                Self::stone_button_from_identifier_and_properties(properties)
+            }
+            "minecraft:snow" => Self::snow_from_identifier_and_properties(properties),
+            "minecraft:ice" => Self::ice_from_identifier_and_properties(properties),
+            "minecraft:snow_block" => Self::snow_block_from_identifier_and_properties(properties),
+            "minecraft:cactus" => Self::cactus_from_identifier_and_properties(properties),
+            "minecraft:clay" => Self::clay_from_identifier_and_properties(properties),
+            "minecraft:sugar_cane" => Self::sugar_cane_from_identifier_and_properties(properties),
+            "minecraft:jukebox" => Self::jukebox_from_identifier_and_properties(properties),
+            "minecraft:oak_fence" => Self::oak_fence_from_identifier_and_properties(properties),
+            "minecraft:pumpkin" => Self::pumpkin_from_identifier_and_properties(properties),
+            "minecraft:netherrack" => Self::netherrack_from_identifier_and_properties(properties),
+            "minecraft:soul_sand" => Self::soul_sand_from_identifier_and_properties(properties),
+            "minecraft:glowstone" => Self::glowstone_from_identifier_and_properties(properties),
+            "minecraft:nether_portal" => {
+                Self::nether_portal_from_identifier_and_properties(properties)
+            }
+            "minecraft:carved_pumpkin" => {
+                Self::carved_pumpkin_from_identifier_and_properties(properties)
+            }
+            "minecraft:jack_o_lantern" => {
+                Self::jack_o_lantern_from_identifier_and_properties(properties)
+            }
+            "minecraft:cake" => Self::cake_from_identifier_and_properties(properties),
+            "minecraft:repeater" => Self::repeater_from_identifier_and_properties(properties),
+            "minecraft:white_stained_glass" => {
                 Self::white_stained_glass_from_identifier_and_properties(properties)
             }
-            "orange_stained_glass" => {
+            "minecraft:orange_stained_glass" => {
                 Self::orange_stained_glass_from_identifier_and_properties(properties)
             }
-            "magenta_stained_glass" => {
+            "minecraft:magenta_stained_glass" => {
                 Self::magenta_stained_glass_from_identifier_and_properties(properties)
             }
-            "light_blue_stained_glass" => {
+            "minecraft:light_blue_stained_glass" => {
                 Self::light_blue_stained_glass_from_identifier_and_properties(properties)
             }
-            "yellow_stained_glass" => {
+            "minecraft:yellow_stained_glass" => {
                 Self::yellow_stained_glass_from_identifier_and_properties(properties)
             }
-            "lime_stained_glass" => {
+            "minecraft:lime_stained_glass" => {
                 Self::lime_stained_glass_from_identifier_and_properties(properties)
             }
-            "pink_stained_glass" => {
+            "minecraft:pink_stained_glass" => {
                 Self::pink_stained_glass_from_identifier_and_properties(properties)
             }
-            "gray_stained_glass" => {
+            "minecraft:gray_stained_glass" => {
                 Self::gray_stained_glass_from_identifier_and_properties(properties)
             }
-            "light_gray_stained_glass" => {
+            "minecraft:light_gray_stained_glass" => {
                 Self::light_gray_stained_glass_from_identifier_and_properties(properties)
             }
-            "cyan_stained_glass" => {
+            "minecraft:cyan_stained_glass" => {
                 Self::cyan_stained_glass_from_identifier_and_properties(properties)
             }
-            "purple_stained_glass" => {
+            "minecraft:purple_stained_glass" => {
                 Self::purple_stained_glass_from_identifier_and_properties(properties)
             }
-            "blue_stained_glass" => {
+            "minecraft:blue_stained_glass" => {
                 Self::blue_stained_glass_from_identifier_and_properties(properties)
             }
-            "brown_stained_glass" => {
+            "minecraft:brown_stained_glass" => {
                 Self::brown_stained_glass_from_identifier_and_properties(properties)
             }
-            "green_stained_glass" => {
+            "minecraft:green_stained_glass" => {
                 Self::green_stained_glass_from_identifier_and_properties(properties)
             }
-            "red_stained_glass" => {
+            "minecraft:red_stained_glass" => {
                 Self::red_stained_glass_from_identifier_and_properties(properties)
             }
-            "black_stained_glass" => {
+            "minecraft:black_stained_glass" => {
                 Self::black_stained_glass_from_identifier_and_properties(properties)
             }
-            "oak_trapdoor" => Self::oak_trapdoor_from_identifier_and_properties(properties),
-            "spruce_trapdoor" => Self::spruce_trapdoor_from_identifier_and_properties(properties),
-            "birch_trapdoor" => Self::birch_trapdoor_from_identifier_and_properties(properties),
-            "jungle_trapdoor" => Self::jungle_trapdoor_from_identifier_and_properties(properties),
-            "acacia_trapdoor" => Self::acacia_trapdoor_from_identifier_and_properties(properties),
-            "dark_oak_trapdoor" => {
+            "minecraft:oak_trapdoor" => {
+                Self::oak_trapdoor_from_identifier_and_properties(properties)
+            }
+            "minecraft:spruce_trapdoor" => {
+                Self::spruce_trapdoor_from_identifier_and_properties(properties)
+            }
+            "minecraft:birch_trapdoor" => {
+                Self::birch_trapdoor_from_identifier_and_properties(properties)
+            }
+            "minecraft:jungle_trapdoor" => {
+                Self::jungle_trapdoor_from_identifier_and_properties(properties)
+            }
+            "minecraft:acacia_trapdoor" => {
+                Self::acacia_trapdoor_from_identifier_and_properties(properties)
+            }
+            "minecraft:dark_oak_trapdoor" => {
                 Self::dark_oak_trapdoor_from_identifier_and_properties(properties)
             }
-            "infested_stone" => Self::infested_stone_from_identifier_and_properties(properties),
-            "infested_cobblestone" => {
+            "minecraft:infested_stone" => {
+                Self::infested_stone_from_identifier_and_properties(properties)
+            }
+            "minecraft:infested_cobblestone" => {
                 Self::infested_cobblestone_from_identifier_and_properties(properties)
             }
-            "infested_stone_bricks" => {
+            "minecraft:infested_stone_bricks" => {
                 Self::infested_stone_bricks_from_identifier_and_properties(properties)
             }
-            "infested_mossy_stone_bricks" => {
+            "minecraft:infested_mossy_stone_bricks" => {
                 Self::infested_mossy_stone_bricks_from_identifier_and_properties(properties)
             }
-            "infested_cracked_stone_bricks" => {
+            "minecraft:infested_cracked_stone_bricks" => {
                 Self::infested_cracked_stone_bricks_from_identifier_and_properties(properties)
             }
-            "infested_chiseled_stone_bricks" => {
+            "minecraft:infested_chiseled_stone_bricks" => {
                 Self::infested_chiseled_stone_bricks_from_identifier_and_properties(properties)
             }
-            "stone_bricks" => Self::stone_bricks_from_identifier_and_properties(properties),
-            "mossy_stone_bricks" => {
+            "minecraft:stone_bricks" => {
+                Self::stone_bricks_from_identifier_and_properties(properties)
+            }
+            "minecraft:mossy_stone_bricks" => {
                 Self::mossy_stone_bricks_from_identifier_and_properties(properties)
             }
-            "cracked_stone_bricks" => {
+            "minecraft:cracked_stone_bricks" => {
                 Self::cracked_stone_bricks_from_identifier_and_properties(properties)
             }
-            "chiseled_stone_bricks" => {
+            "minecraft:chiseled_stone_bricks" => {
                 Self::chiseled_stone_bricks_from_identifier_and_properties(properties)
             }
-            "brown_mushroom_block" => {
+            "minecraft:brown_mushroom_block" => {
                 Self::brown_mushroom_block_from_identifier_and_properties(properties)
             }
-            "red_mushroom_block" => {
+            "minecraft:red_mushroom_block" => {
                 Self::red_mushroom_block_from_identifier_and_properties(properties)
             }
-            "mushroom_stem" => Self::mushroom_stem_from_identifier_and_properties(properties),
-            "iron_bars" => Self::iron_bars_from_identifier_and_properties(properties),
-            "glass_pane" => Self::glass_pane_from_identifier_and_properties(properties),
-            "melon" => Self::melon_from_identifier_and_properties(properties),
-            "attached_pumpkin_stem" => {
+            "minecraft:mushroom_stem" => {
+                Self::mushroom_stem_from_identifier_and_properties(properties)
+            }
+            "minecraft:iron_bars" => Self::iron_bars_from_identifier_and_properties(properties),
+            "minecraft:glass_pane" => Self::glass_pane_from_identifier_and_properties(properties),
+            "minecraft:melon" => Self::melon_from_identifier_and_properties(properties),
+            "minecraft:attached_pumpkin_stem" => {
                 Self::attached_pumpkin_stem_from_identifier_and_properties(properties)
             }
-            "attached_melon_stem" => {
+            "minecraft:attached_melon_stem" => {
                 Self::attached_melon_stem_from_identifier_and_properties(properties)
             }
-            "pumpkin_stem" => Self::pumpkin_stem_from_identifier_and_properties(properties),
-            "melon_stem" => Self::melon_stem_from_identifier_and_properties(properties),
-            "vine" => Self::vine_from_identifier_and_properties(properties),
-            "oak_fence_gate" => Self::oak_fence_gate_from_identifier_and_properties(properties),
-            "brick_stairs" => Self::brick_stairs_from_identifier_and_properties(properties),
-            "stone_brick_stairs" => {
+            "minecraft:pumpkin_stem" => {
+                Self::pumpkin_stem_from_identifier_and_properties(properties)
+            }
+            "minecraft:melon_stem" => Self::melon_stem_from_identifier_and_properties(properties),
+            "minecraft:vine" => Self::vine_from_identifier_and_properties(properties),
+            "minecraft:oak_fence_gate" => {
+                Self::oak_fence_gate_from_identifier_and_properties(properties)
+            }
+            "minecraft:brick_stairs" => {
+                Self::brick_stairs_from_identifier_and_properties(properties)
+            }
+            "minecraft:stone_brick_stairs" => {
                 Self::stone_brick_stairs_from_identifier_and_properties(properties)
             }
-            "mycelium" => Self::mycelium_from_identifier_and_properties(properties),
-            "lily_pad" => Self::lily_pad_from_identifier_and_properties(properties),
-            "nether_bricks" => Self::nether_bricks_from_identifier_and_properties(properties),
-            "nether_brick_fence" => {
+            "minecraft:mycelium" => Self::mycelium_from_identifier_and_properties(properties),
+            "minecraft:lily_pad" => Self::lily_pad_from_identifier_and_properties(properties),
+            "minecraft:nether_bricks" => {
+                Self::nether_bricks_from_identifier_and_properties(properties)
+            }
+            "minecraft:nether_brick_fence" => {
                 Self::nether_brick_fence_from_identifier_and_properties(properties)
             }
-            "nether_brick_stairs" => {
+            "minecraft:nether_brick_stairs" => {
                 Self::nether_brick_stairs_from_identifier_and_properties(properties)
             }
-            "nether_wart" => Self::nether_wart_from_identifier_and_properties(properties),
-            "enchanting_table" => Self::enchanting_table_from_identifier_and_properties(properties),
-            "brewing_stand" => Self::brewing_stand_from_identifier_and_properties(properties),
-            "cauldron" => Self::cauldron_from_identifier_and_properties(properties),
-            "end_portal" => Self::end_portal_from_identifier_and_properties(properties),
-            "end_portal_frame" => Self::end_portal_frame_from_identifier_and_properties(properties),
-            "end_stone" => Self::end_stone_from_identifier_and_properties(properties),
-            "dragon_egg" => Self::dragon_egg_from_identifier_and_properties(properties),
-            "redstone_lamp" => Self::redstone_lamp_from_identifier_and_properties(properties),
-            "cocoa" => Self::cocoa_from_identifier_and_properties(properties),
-            "sandstone_stairs" => Self::sandstone_stairs_from_identifier_and_properties(properties),
-            "emerald_ore" => Self::emerald_ore_from_identifier_and_properties(properties),
-            "ender_chest" => Self::ender_chest_from_identifier_and_properties(properties),
-            "tripwire_hook" => Self::tripwire_hook_from_identifier_and_properties(properties),
-            "tripwire" => Self::tripwire_from_identifier_and_properties(properties),
-            "emerald_block" => Self::emerald_block_from_identifier_and_properties(properties),
-            "spruce_stairs" => Self::spruce_stairs_from_identifier_and_properties(properties),
-            "birch_stairs" => Self::birch_stairs_from_identifier_and_properties(properties),
-            "jungle_stairs" => Self::jungle_stairs_from_identifier_and_properties(properties),
-            "command_block" => Self::command_block_from_identifier_and_properties(properties),
-            "beacon" => Self::beacon_from_identifier_and_properties(properties),
-            "cobblestone_wall" => Self::cobblestone_wall_from_identifier_and_properties(properties),
-            "mossy_cobblestone_wall" => {
+            "minecraft:nether_wart" => Self::nether_wart_from_identifier_and_properties(properties),
+            "minecraft:enchanting_table" => {
+                Self::enchanting_table_from_identifier_and_properties(properties)
+            }
+            "minecraft:brewing_stand" => {
+                Self::brewing_stand_from_identifier_and_properties(properties)
+            }
+            "minecraft:cauldron" => Self::cauldron_from_identifier_and_properties(properties),
+            "minecraft:end_portal" => Self::end_portal_from_identifier_and_properties(properties),
+            "minecraft:end_portal_frame" => {
+                Self::end_portal_frame_from_identifier_and_properties(properties)
+            }
+            "minecraft:end_stone" => Self::end_stone_from_identifier_and_properties(properties),
+            "minecraft:dragon_egg" => Self::dragon_egg_from_identifier_and_properties(properties),
+            "minecraft:redstone_lamp" => {
+                Self::redstone_lamp_from_identifier_and_properties(properties)
+            }
+            "minecraft:cocoa" => Self::cocoa_from_identifier_and_properties(properties),
+            "minecraft:sandstone_stairs" => {
+                Self::sandstone_stairs_from_identifier_and_properties(properties)
+            }
+            "minecraft:emerald_ore" => Self::emerald_ore_from_identifier_and_properties(properties),
+            "minecraft:ender_chest" => Self::ender_chest_from_identifier_and_properties(properties),
+            "minecraft:tripwire_hook" => {
+                Self::tripwire_hook_from_identifier_and_properties(properties)
+            }
+            "minecraft:tripwire" => Self::tripwire_from_identifier_and_properties(properties),
+            "minecraft:emerald_block" => {
+                Self::emerald_block_from_identifier_and_properties(properties)
+            }
+            "minecraft:spruce_stairs" => {
+                Self::spruce_stairs_from_identifier_and_properties(properties)
+            }
+            "minecraft:birch_stairs" => {
+                Self::birch_stairs_from_identifier_and_properties(properties)
+            }
+            "minecraft:jungle_stairs" => {
+                Self::jungle_stairs_from_identifier_and_properties(properties)
+            }
+            "minecraft:command_block" => {
+                Self::command_block_from_identifier_and_properties(properties)
+            }
+            "minecraft:beacon" => Self::beacon_from_identifier_and_properties(properties),
+            "minecraft:cobblestone_wall" => {
+                Self::cobblestone_wall_from_identifier_and_properties(properties)
+            }
+            "minecraft:mossy_cobblestone_wall" => {
                 Self::mossy_cobblestone_wall_from_identifier_and_properties(properties)
             }
-            "flower_pot" => Self::flower_pot_from_identifier_and_properties(properties),
-            "potted_oak_sapling" => {
+            "minecraft:flower_pot" => Self::flower_pot_from_identifier_and_properties(properties),
+            "minecraft:potted_oak_sapling" => {
                 Self::potted_oak_sapling_from_identifier_and_properties(properties)
             }
-            "potted_spruce_sapling" => {
+            "minecraft:potted_spruce_sapling" => {
                 Self::potted_spruce_sapling_from_identifier_and_properties(properties)
             }
-            "potted_birch_sapling" => {
+            "minecraft:potted_birch_sapling" => {
                 Self::potted_birch_sapling_from_identifier_and_properties(properties)
             }
-            "potted_jungle_sapling" => {
+            "minecraft:potted_jungle_sapling" => {
                 Self::potted_jungle_sapling_from_identifier_and_properties(properties)
             }
-            "potted_acacia_sapling" => {
+            "minecraft:potted_acacia_sapling" => {
                 Self::potted_acacia_sapling_from_identifier_and_properties(properties)
             }
-            "potted_dark_oak_sapling" => {
+            "minecraft:potted_dark_oak_sapling" => {
                 Self::potted_dark_oak_sapling_from_identifier_and_properties(properties)
             }
-            "potted_fern" => Self::potted_fern_from_identifier_and_properties(properties),
-            "potted_dandelion" => Self::potted_dandelion_from_identifier_and_properties(properties),
-            "potted_poppy" => Self::potted_poppy_from_identifier_and_properties(properties),
-            "potted_blue_orchid" => {
+            "minecraft:potted_fern" => Self::potted_fern_from_identifier_and_properties(properties),
+            "minecraft:potted_dandelion" => {
+                Self::potted_dandelion_from_identifier_and_properties(properties)
+            }
+            "minecraft:potted_poppy" => {
+                Self::potted_poppy_from_identifier_and_properties(properties)
+            }
+            "minecraft:potted_blue_orchid" => {
                 Self::potted_blue_orchid_from_identifier_and_properties(properties)
             }
-            "potted_allium" => Self::potted_allium_from_identifier_and_properties(properties),
-            "potted_azure_bluet" => {
+            "minecraft:potted_allium" => {
+                Self::potted_allium_from_identifier_and_properties(properties)
+            }
+            "minecraft:potted_azure_bluet" => {
                 Self::potted_azure_bluet_from_identifier_and_properties(properties)
             }
-            "potted_red_tulip" => Self::potted_red_tulip_from_identifier_and_properties(properties),
-            "potted_orange_tulip" => {
+            "minecraft:potted_red_tulip" => {
+                Self::potted_red_tulip_from_identifier_and_properties(properties)
+            }
+            "minecraft:potted_orange_tulip" => {
                 Self::potted_orange_tulip_from_identifier_and_properties(properties)
             }
-            "potted_white_tulip" => {
+            "minecraft:potted_white_tulip" => {
                 Self::potted_white_tulip_from_identifier_and_properties(properties)
             }
-            "potted_pink_tulip" => {
+            "minecraft:potted_pink_tulip" => {
                 Self::potted_pink_tulip_from_identifier_and_properties(properties)
             }
-            "potted_oxeye_daisy" => {
+            "minecraft:potted_oxeye_daisy" => {
                 Self::potted_oxeye_daisy_from_identifier_and_properties(properties)
             }
-            "potted_red_mushroom" => {
+            "minecraft:potted_red_mushroom" => {
                 Self::potted_red_mushroom_from_identifier_and_properties(properties)
             }
-            "potted_brown_mushroom" => {
+            "minecraft:potted_brown_mushroom" => {
                 Self::potted_brown_mushroom_from_identifier_and_properties(properties)
             }
-            "potted_dead_bush" => Self::potted_dead_bush_from_identifier_and_properties(properties),
-            "potted_cactus" => Self::potted_cactus_from_identifier_and_properties(properties),
-            "carrots" => Self::carrots_from_identifier_and_properties(properties),
-            "potatoes" => Self::potatoes_from_identifier_and_properties(properties),
-            "oak_button" => Self::oak_button_from_identifier_and_properties(properties),
-            "spruce_button" => Self::spruce_button_from_identifier_and_properties(properties),
-            "birch_button" => Self::birch_button_from_identifier_and_properties(properties),
-            "jungle_button" => Self::jungle_button_from_identifier_and_properties(properties),
-            "acacia_button" => Self::acacia_button_from_identifier_and_properties(properties),
-            "dark_oak_button" => Self::dark_oak_button_from_identifier_and_properties(properties),
-            "skeleton_wall_skull" => {
+            "minecraft:potted_dead_bush" => {
+                Self::potted_dead_bush_from_identifier_and_properties(properties)
+            }
+            "minecraft:potted_cactus" => {
+                Self::potted_cactus_from_identifier_and_properties(properties)
+            }
+            "minecraft:carrots" => Self::carrots_from_identifier_and_properties(properties),
+            "minecraft:potatoes" => Self::potatoes_from_identifier_and_properties(properties),
+            "minecraft:oak_button" => Self::oak_button_from_identifier_and_properties(properties),
+            "minecraft:spruce_button" => {
+                Self::spruce_button_from_identifier_and_properties(properties)
+            }
+            "minecraft:birch_button" => {
+                Self::birch_button_from_identifier_and_properties(properties)
+            }
+            "minecraft:jungle_button" => {
+                Self::jungle_button_from_identifier_and_properties(properties)
+            }
+            "minecraft:acacia_button" => {
+                Self::acacia_button_from_identifier_and_properties(properties)
+            }
+            "minecraft:dark_oak_button" => {
+                Self::dark_oak_button_from_identifier_and_properties(properties)
+            }
+            "minecraft:skeleton_wall_skull" => {
                 Self::skeleton_wall_skull_from_identifier_and_properties(properties)
             }
-            "skeleton_skull" => Self::skeleton_skull_from_identifier_and_properties(properties),
-            "wither_skeleton_wall_skull" => {
+            "minecraft:skeleton_skull" => {
+                Self::skeleton_skull_from_identifier_and_properties(properties)
+            }
+            "minecraft:wither_skeleton_wall_skull" => {
                 Self::wither_skeleton_wall_skull_from_identifier_and_properties(properties)
             }
-            "wither_skeleton_skull" => {
+            "minecraft:wither_skeleton_skull" => {
                 Self::wither_skeleton_skull_from_identifier_and_properties(properties)
             }
-            "zombie_wall_head" => Self::zombie_wall_head_from_identifier_and_properties(properties),
-            "zombie_head" => Self::zombie_head_from_identifier_and_properties(properties),
-            "player_wall_head" => Self::player_wall_head_from_identifier_and_properties(properties),
-            "player_head" => Self::player_head_from_identifier_and_properties(properties),
-            "creeper_wall_head" => {
+            "minecraft:zombie_wall_head" => {
+                Self::zombie_wall_head_from_identifier_and_properties(properties)
+            }
+            "minecraft:zombie_head" => Self::zombie_head_from_identifier_and_properties(properties),
+            "minecraft:player_wall_head" => {
+                Self::player_wall_head_from_identifier_and_properties(properties)
+            }
+            "minecraft:player_head" => Self::player_head_from_identifier_and_properties(properties),
+            "minecraft:creeper_wall_head" => {
                 Self::creeper_wall_head_from_identifier_and_properties(properties)
             }
-            "creeper_head" => Self::creeper_head_from_identifier_and_properties(properties),
-            "dragon_wall_head" => Self::dragon_wall_head_from_identifier_and_properties(properties),
-            "dragon_head" => Self::dragon_head_from_identifier_and_properties(properties),
-            "anvil" => Self::anvil_from_identifier_and_properties(properties),
-            "chipped_anvil" => Self::chipped_anvil_from_identifier_and_properties(properties),
-            "damaged_anvil" => Self::damaged_anvil_from_identifier_and_properties(properties),
-            "trapped_chest" => Self::trapped_chest_from_identifier_and_properties(properties),
-            "light_weighted_pressure_plate" => {
+            "minecraft:creeper_head" => {
+                Self::creeper_head_from_identifier_and_properties(properties)
+            }
+            "minecraft:dragon_wall_head" => {
+                Self::dragon_wall_head_from_identifier_and_properties(properties)
+            }
+            "minecraft:dragon_head" => Self::dragon_head_from_identifier_and_properties(properties),
+            "minecraft:anvil" => Self::anvil_from_identifier_and_properties(properties),
+            "minecraft:chipped_anvil" => {
+                Self::chipped_anvil_from_identifier_and_properties(properties)
+            }
+            "minecraft:damaged_anvil" => {
+                Self::damaged_anvil_from_identifier_and_properties(properties)
+            }
+            "minecraft:trapped_chest" => {
+                Self::trapped_chest_from_identifier_and_properties(properties)
+            }
+            "minecraft:light_weighted_pressure_plate" => {
                 Self::light_weighted_pressure_plate_from_identifier_and_properties(properties)
             }
-            "heavy_weighted_pressure_plate" => {
+            "minecraft:heavy_weighted_pressure_plate" => {
                 Self::heavy_weighted_pressure_plate_from_identifier_and_properties(properties)
             }
-            "comparator" => Self::comparator_from_identifier_and_properties(properties),
-            "daylight_detector" => {
+            "minecraft:comparator" => Self::comparator_from_identifier_and_properties(properties),
+            "minecraft:daylight_detector" => {
                 Self::daylight_detector_from_identifier_and_properties(properties)
             }
-            "redstone_block" => Self::redstone_block_from_identifier_and_properties(properties),
-            "nether_quartz_ore" => {
+            "minecraft:redstone_block" => {
+                Self::redstone_block_from_identifier_and_properties(properties)
+            }
+            "minecraft:nether_quartz_ore" => {
                 Self::nether_quartz_ore_from_identifier_and_properties(properties)
             }
-            "hopper" => Self::hopper_from_identifier_and_properties(properties),
-            "quartz_block" => Self::quartz_block_from_identifier_and_properties(properties),
-            "chiseled_quartz_block" => {
+            "minecraft:hopper" => Self::hopper_from_identifier_and_properties(properties),
+            "minecraft:quartz_block" => {
+                Self::quartz_block_from_identifier_and_properties(properties)
+            }
+            "minecraft:chiseled_quartz_block" => {
                 Self::chiseled_quartz_block_from_identifier_and_properties(properties)
             }
-            "quartz_pillar" => Self::quartz_pillar_from_identifier_and_properties(properties),
-            "quartz_stairs" => Self::quartz_stairs_from_identifier_and_properties(properties),
-            "activator_rail" => Self::activator_rail_from_identifier_and_properties(properties),
-            "dropper" => Self::dropper_from_identifier_and_properties(properties),
-            "white_terracotta" => Self::white_terracotta_from_identifier_and_properties(properties),
-            "orange_terracotta" => {
+            "minecraft:quartz_pillar" => {
+                Self::quartz_pillar_from_identifier_and_properties(properties)
+            }
+            "minecraft:quartz_stairs" => {
+                Self::quartz_stairs_from_identifier_and_properties(properties)
+            }
+            "minecraft:activator_rail" => {
+                Self::activator_rail_from_identifier_and_properties(properties)
+            }
+            "minecraft:dropper" => Self::dropper_from_identifier_and_properties(properties),
+            "minecraft:white_terracotta" => {
+                Self::white_terracotta_from_identifier_and_properties(properties)
+            }
+            "minecraft:orange_terracotta" => {
                 Self::orange_terracotta_from_identifier_and_properties(properties)
             }
-            "magenta_terracotta" => {
+            "minecraft:magenta_terracotta" => {
                 Self::magenta_terracotta_from_identifier_and_properties(properties)
             }
-            "light_blue_terracotta" => {
+            "minecraft:light_blue_terracotta" => {
                 Self::light_blue_terracotta_from_identifier_and_properties(properties)
             }
-            "yellow_terracotta" => {
+            "minecraft:yellow_terracotta" => {
                 Self::yellow_terracotta_from_identifier_and_properties(properties)
             }
-            "lime_terracotta" => Self::lime_terracotta_from_identifier_and_properties(properties),
-            "pink_terracotta" => Self::pink_terracotta_from_identifier_and_properties(properties),
-            "gray_terracotta" => Self::gray_terracotta_from_identifier_and_properties(properties),
-            "light_gray_terracotta" => {
+            "minecraft:lime_terracotta" => {
+                Self::lime_terracotta_from_identifier_and_properties(properties)
+            }
+            "minecraft:pink_terracotta" => {
+                Self::pink_terracotta_from_identifier_and_properties(properties)
+            }
+            "minecraft:gray_terracotta" => {
+                Self::gray_terracotta_from_identifier_and_properties(properties)
+            }
+            "minecraft:light_gray_terracotta" => {
                 Self::light_gray_terracotta_from_identifier_and_properties(properties)
             }
-            "cyan_terracotta" => Self::cyan_terracotta_from_identifier_and_properties(properties),
-            "purple_terracotta" => {
+            "minecraft:cyan_terracotta" => {
+                Self::cyan_terracotta_from_identifier_and_properties(properties)
+            }
+            "minecraft:purple_terracotta" => {
                 Self::purple_terracotta_from_identifier_and_properties(properties)
             }
-            "blue_terracotta" => Self::blue_terracotta_from_identifier_and_properties(properties),
-            "brown_terracotta" => Self::brown_terracotta_from_identifier_and_properties(properties),
-            "green_terracotta" => Self::green_terracotta_from_identifier_and_properties(properties),
-            "red_terracotta" => Self::red_terracotta_from_identifier_and_properties(properties),
-            "black_terracotta" => Self::black_terracotta_from_identifier_and_properties(properties),
-            "white_stained_glass_pane" => {
+            "minecraft:blue_terracotta" => {
+                Self::blue_terracotta_from_identifier_and_properties(properties)
+            }
+            "minecraft:brown_terracotta" => {
+                Self::brown_terracotta_from_identifier_and_properties(properties)
+            }
+            "minecraft:green_terracotta" => {
+                Self::green_terracotta_from_identifier_and_properties(properties)
+            }
+            "minecraft:red_terracotta" => {
+                Self::red_terracotta_from_identifier_and_properties(properties)
+            }
+            "minecraft:black_terracotta" => {
+                Self::black_terracotta_from_identifier_and_properties(properties)
+            }
+            "minecraft:white_stained_glass_pane" => {
                 Self::white_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "orange_stained_glass_pane" => {
+            "minecraft:orange_stained_glass_pane" => {
                 Self::orange_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "magenta_stained_glass_pane" => {
+            "minecraft:magenta_stained_glass_pane" => {
                 Self::magenta_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "light_blue_stained_glass_pane" => {
+            "minecraft:light_blue_stained_glass_pane" => {
                 Self::light_blue_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "yellow_stained_glass_pane" => {
+            "minecraft:yellow_stained_glass_pane" => {
                 Self::yellow_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "lime_stained_glass_pane" => {
+            "minecraft:lime_stained_glass_pane" => {
                 Self::lime_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "pink_stained_glass_pane" => {
+            "minecraft:pink_stained_glass_pane" => {
                 Self::pink_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "gray_stained_glass_pane" => {
+            "minecraft:gray_stained_glass_pane" => {
                 Self::gray_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "light_gray_stained_glass_pane" => {
+            "minecraft:light_gray_stained_glass_pane" => {
                 Self::light_gray_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "cyan_stained_glass_pane" => {
+            "minecraft:cyan_stained_glass_pane" => {
                 Self::cyan_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "purple_stained_glass_pane" => {
+            "minecraft:purple_stained_glass_pane" => {
                 Self::purple_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "blue_stained_glass_pane" => {
+            "minecraft:blue_stained_glass_pane" => {
                 Self::blue_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "brown_stained_glass_pane" => {
+            "minecraft:brown_stained_glass_pane" => {
                 Self::brown_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "green_stained_glass_pane" => {
+            "minecraft:green_stained_glass_pane" => {
                 Self::green_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "red_stained_glass_pane" => {
+            "minecraft:red_stained_glass_pane" => {
                 Self::red_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "black_stained_glass_pane" => {
+            "minecraft:black_stained_glass_pane" => {
                 Self::black_stained_glass_pane_from_identifier_and_properties(properties)
             }
-            "acacia_stairs" => Self::acacia_stairs_from_identifier_and_properties(properties),
-            "dark_oak_stairs" => Self::dark_oak_stairs_from_identifier_and_properties(properties),
-            "slime_block" => Self::slime_block_from_identifier_and_properties(properties),
-            "barrier" => Self::barrier_from_identifier_and_properties(properties),
-            "iron_trapdoor" => Self::iron_trapdoor_from_identifier_and_properties(properties),
-            "prismarine" => Self::prismarine_from_identifier_and_properties(properties),
-            "prismarine_bricks" => {
+            "minecraft:acacia_stairs" => {
+                Self::acacia_stairs_from_identifier_and_properties(properties)
+            }
+            "minecraft:dark_oak_stairs" => {
+                Self::dark_oak_stairs_from_identifier_and_properties(properties)
+            }
+            "minecraft:slime_block" => Self::slime_block_from_identifier_and_properties(properties),
+            "minecraft:barrier" => Self::barrier_from_identifier_and_properties(properties),
+            "minecraft:iron_trapdoor" => {
+                Self::iron_trapdoor_from_identifier_and_properties(properties)
+            }
+            "minecraft:prismarine" => Self::prismarine_from_identifier_and_properties(properties),
+            "minecraft:prismarine_bricks" => {
                 Self::prismarine_bricks_from_identifier_and_properties(properties)
             }
-            "dark_prismarine" => Self::dark_prismarine_from_identifier_and_properties(properties),
-            "prismarine_stairs" => {
+            "minecraft:dark_prismarine" => {
+                Self::dark_prismarine_from_identifier_and_properties(properties)
+            }
+            "minecraft:prismarine_stairs" => {
                 Self::prismarine_stairs_from_identifier_and_properties(properties)
             }
-            "prismarine_brick_stairs" => {
+            "minecraft:prismarine_brick_stairs" => {
                 Self::prismarine_brick_stairs_from_identifier_and_properties(properties)
             }
-            "dark_prismarine_stairs" => {
+            "minecraft:dark_prismarine_stairs" => {
                 Self::dark_prismarine_stairs_from_identifier_and_properties(properties)
             }
-            "prismarine_slab" => Self::prismarine_slab_from_identifier_and_properties(properties),
-            "prismarine_brick_slab" => {
+            "minecraft:prismarine_slab" => {
+                Self::prismarine_slab_from_identifier_and_properties(properties)
+            }
+            "minecraft:prismarine_brick_slab" => {
                 Self::prismarine_brick_slab_from_identifier_and_properties(properties)
             }
-            "dark_prismarine_slab" => {
+            "minecraft:dark_prismarine_slab" => {
                 Self::dark_prismarine_slab_from_identifier_and_properties(properties)
             }
-            "sea_lantern" => Self::sea_lantern_from_identifier_and_properties(properties),
-            "hay_block" => Self::hay_block_from_identifier_and_properties(properties),
-            "white_carpet" => Self::white_carpet_from_identifier_and_properties(properties),
-            "orange_carpet" => Self::orange_carpet_from_identifier_and_properties(properties),
-            "magenta_carpet" => Self::magenta_carpet_from_identifier_and_properties(properties),
-            "light_blue_carpet" => {
+            "minecraft:sea_lantern" => Self::sea_lantern_from_identifier_and_properties(properties),
+            "minecraft:hay_block" => Self::hay_block_from_identifier_and_properties(properties),
+            "minecraft:white_carpet" => {
+                Self::white_carpet_from_identifier_and_properties(properties)
+            }
+            "minecraft:orange_carpet" => {
+                Self::orange_carpet_from_identifier_and_properties(properties)
+            }
+            "minecraft:magenta_carpet" => {
+                Self::magenta_carpet_from_identifier_and_properties(properties)
+            }
+            "minecraft:light_blue_carpet" => {
                 Self::light_blue_carpet_from_identifier_and_properties(properties)
             }
-            "yellow_carpet" => Self::yellow_carpet_from_identifier_and_properties(properties),
-            "lime_carpet" => Self::lime_carpet_from_identifier_and_properties(properties),
-            "pink_carpet" => Self::pink_carpet_from_identifier_and_properties(properties),
-            "gray_carpet" => Self::gray_carpet_from_identifier_and_properties(properties),
-            "light_gray_carpet" => {
+            "minecraft:yellow_carpet" => {
+                Self::yellow_carpet_from_identifier_and_properties(properties)
+            }
+            "minecraft:lime_carpet" => Self::lime_carpet_from_identifier_and_properties(properties),
+            "minecraft:pink_carpet" => Self::pink_carpet_from_identifier_and_properties(properties),
+            "minecraft:gray_carpet" => Self::gray_carpet_from_identifier_and_properties(properties),
+            "minecraft:light_gray_carpet" => {
                 Self::light_gray_carpet_from_identifier_and_properties(properties)
             }
-            "cyan_carpet" => Self::cyan_carpet_from_identifier_and_properties(properties),
-            "purple_carpet" => Self::purple_carpet_from_identifier_and_properties(properties),
-            "blue_carpet" => Self::blue_carpet_from_identifier_and_properties(properties),
-            "brown_carpet" => Self::brown_carpet_from_identifier_and_properties(properties),
-            "green_carpet" => Self::green_carpet_from_identifier_and_properties(properties),
-            "red_carpet" => Self::red_carpet_from_identifier_and_properties(properties),
-            "black_carpet" => Self::black_carpet_from_identifier_and_properties(properties),
-            "terracotta" => Self::terracotta_from_identifier_and_properties(properties),
-            "coal_block" => Self::coal_block_from_identifier_and_properties(properties),
-            "packed_ice" => Self::packed_ice_from_identifier_and_properties(properties),
-            "sunflower" => Self::sunflower_from_identifier_and_properties(properties),
-            "lilac" => Self::lilac_from_identifier_and_properties(properties),
-            "rose_bush" => Self::rose_bush_from_identifier_and_properties(properties),
-            "peony" => Self::peony_from_identifier_and_properties(properties),
-            "tall_grass" => Self::tall_grass_from_identifier_and_properties(properties),
-            "large_fern" => Self::large_fern_from_identifier_and_properties(properties),
-            "white_banner" => Self::white_banner_from_identifier_and_properties(properties),
-            "orange_banner" => Self::orange_banner_from_identifier_and_properties(properties),
-            "magenta_banner" => Self::magenta_banner_from_identifier_and_properties(properties),
-            "light_blue_banner" => {
+            "minecraft:cyan_carpet" => Self::cyan_carpet_from_identifier_and_properties(properties),
+            "minecraft:purple_carpet" => {
+                Self::purple_carpet_from_identifier_and_properties(properties)
+            }
+            "minecraft:blue_carpet" => Self::blue_carpet_from_identifier_and_properties(properties),
+            "minecraft:brown_carpet" => {
+                Self::brown_carpet_from_identifier_and_properties(properties)
+            }
+            "minecraft:green_carpet" => {
+                Self::green_carpet_from_identifier_and_properties(properties)
+            }
+            "minecraft:red_carpet" => Self::red_carpet_from_identifier_and_properties(properties),
+            "minecraft:black_carpet" => {
+                Self::black_carpet_from_identifier_and_properties(properties)
+            }
+            "minecraft:terracotta" => Self::terracotta_from_identifier_and_properties(properties),
+            "minecraft:coal_block" => Self::coal_block_from_identifier_and_properties(properties),
+            "minecraft:packed_ice" => Self::packed_ice_from_identifier_and_properties(properties),
+            "minecraft:sunflower" => Self::sunflower_from_identifier_and_properties(properties),
+            "minecraft:lilac" => Self::lilac_from_identifier_and_properties(properties),
+            "minecraft:rose_bush" => Self::rose_bush_from_identifier_and_properties(properties),
+            "minecraft:peony" => Self::peony_from_identifier_and_properties(properties),
+            "minecraft:tall_grass" => Self::tall_grass_from_identifier_and_properties(properties),
+            "minecraft:large_fern" => Self::large_fern_from_identifier_and_properties(properties),
+            "minecraft:white_banner" => {
+                Self::white_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:orange_banner" => {
+                Self::orange_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:magenta_banner" => {
+                Self::magenta_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:light_blue_banner" => {
                 Self::light_blue_banner_from_identifier_and_properties(properties)
             }
-            "yellow_banner" => Self::yellow_banner_from_identifier_and_properties(properties),
-            "lime_banner" => Self::lime_banner_from_identifier_and_properties(properties),
-            "pink_banner" => Self::pink_banner_from_identifier_and_properties(properties),
-            "gray_banner" => Self::gray_banner_from_identifier_and_properties(properties),
-            "light_gray_banner" => {
+            "minecraft:yellow_banner" => {
+                Self::yellow_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:lime_banner" => Self::lime_banner_from_identifier_and_properties(properties),
+            "minecraft:pink_banner" => Self::pink_banner_from_identifier_and_properties(properties),
+            "minecraft:gray_banner" => Self::gray_banner_from_identifier_and_properties(properties),
+            "minecraft:light_gray_banner" => {
                 Self::light_gray_banner_from_identifier_and_properties(properties)
             }
-            "cyan_banner" => Self::cyan_banner_from_identifier_and_properties(properties),
-            "purple_banner" => Self::purple_banner_from_identifier_and_properties(properties),
-            "blue_banner" => Self::blue_banner_from_identifier_and_properties(properties),
-            "brown_banner" => Self::brown_banner_from_identifier_and_properties(properties),
-            "green_banner" => Self::green_banner_from_identifier_and_properties(properties),
-            "red_banner" => Self::red_banner_from_identifier_and_properties(properties),
-            "black_banner" => Self::black_banner_from_identifier_and_properties(properties),
-            "white_wall_banner" => {
+            "minecraft:cyan_banner" => Self::cyan_banner_from_identifier_and_properties(properties),
+            "minecraft:purple_banner" => {
+                Self::purple_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:blue_banner" => Self::blue_banner_from_identifier_and_properties(properties),
+            "minecraft:brown_banner" => {
+                Self::brown_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:green_banner" => {
+                Self::green_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:red_banner" => Self::red_banner_from_identifier_and_properties(properties),
+            "minecraft:black_banner" => {
+                Self::black_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:white_wall_banner" => {
                 Self::white_wall_banner_from_identifier_and_properties(properties)
             }
-            "orange_wall_banner" => {
+            "minecraft:orange_wall_banner" => {
                 Self::orange_wall_banner_from_identifier_and_properties(properties)
             }
-            "magenta_wall_banner" => {
+            "minecraft:magenta_wall_banner" => {
                 Self::magenta_wall_banner_from_identifier_and_properties(properties)
             }
-            "light_blue_wall_banner" => {
+            "minecraft:light_blue_wall_banner" => {
                 Self::light_blue_wall_banner_from_identifier_and_properties(properties)
             }
-            "yellow_wall_banner" => {
+            "minecraft:yellow_wall_banner" => {
                 Self::yellow_wall_banner_from_identifier_and_properties(properties)
             }
-            "lime_wall_banner" => Self::lime_wall_banner_from_identifier_and_properties(properties),
-            "pink_wall_banner" => Self::pink_wall_banner_from_identifier_and_properties(properties),
-            "gray_wall_banner" => Self::gray_wall_banner_from_identifier_and_properties(properties),
-            "light_gray_wall_banner" => {
+            "minecraft:lime_wall_banner" => {
+                Self::lime_wall_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:pink_wall_banner" => {
+                Self::pink_wall_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:gray_wall_banner" => {
+                Self::gray_wall_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:light_gray_wall_banner" => {
                 Self::light_gray_wall_banner_from_identifier_and_properties(properties)
             }
-            "cyan_wall_banner" => Self::cyan_wall_banner_from_identifier_and_properties(properties),
-            "purple_wall_banner" => {
+            "minecraft:cyan_wall_banner" => {
+                Self::cyan_wall_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:purple_wall_banner" => {
                 Self::purple_wall_banner_from_identifier_and_properties(properties)
             }
-            "blue_wall_banner" => Self::blue_wall_banner_from_identifier_and_properties(properties),
-            "brown_wall_banner" => {
+            "minecraft:blue_wall_banner" => {
+                Self::blue_wall_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:brown_wall_banner" => {
                 Self::brown_wall_banner_from_identifier_and_properties(properties)
             }
-            "green_wall_banner" => {
+            "minecraft:green_wall_banner" => {
                 Self::green_wall_banner_from_identifier_and_properties(properties)
             }
-            "red_wall_banner" => Self::red_wall_banner_from_identifier_and_properties(properties),
-            "black_wall_banner" => {
+            "minecraft:red_wall_banner" => {
+                Self::red_wall_banner_from_identifier_and_properties(properties)
+            }
+            "minecraft:black_wall_banner" => {
                 Self::black_wall_banner_from_identifier_and_properties(properties)
             }
-            "red_sandstone" => Self::red_sandstone_from_identifier_and_properties(properties),
-            "chiseled_red_sandstone" => {
+            "minecraft:red_sandstone" => {
+                Self::red_sandstone_from_identifier_and_properties(properties)
+            }
+            "minecraft:chiseled_red_sandstone" => {
                 Self::chiseled_red_sandstone_from_identifier_and_properties(properties)
             }
-            "cut_red_sandstone" => {
+            "minecraft:cut_red_sandstone" => {
                 Self::cut_red_sandstone_from_identifier_and_properties(properties)
             }
-            "red_sandstone_stairs" => {
+            "minecraft:red_sandstone_stairs" => {
                 Self::red_sandstone_stairs_from_identifier_and_properties(properties)
             }
-            "oak_slab" => Self::oak_slab_from_identifier_and_properties(properties),
-            "spruce_slab" => Self::spruce_slab_from_identifier_and_properties(properties),
-            "birch_slab" => Self::birch_slab_from_identifier_and_properties(properties),
-            "jungle_slab" => Self::jungle_slab_from_identifier_and_properties(properties),
-            "acacia_slab" => Self::acacia_slab_from_identifier_and_properties(properties),
-            "dark_oak_slab" => Self::dark_oak_slab_from_identifier_and_properties(properties),
-            "stone_slab" => Self::stone_slab_from_identifier_and_properties(properties),
-            "sandstone_slab" => Self::sandstone_slab_from_identifier_and_properties(properties),
-            "petrified_oak_slab" => {
+            "minecraft:oak_slab" => Self::oak_slab_from_identifier_and_properties(properties),
+            "minecraft:spruce_slab" => Self::spruce_slab_from_identifier_and_properties(properties),
+            "minecraft:birch_slab" => Self::birch_slab_from_identifier_and_properties(properties),
+            "minecraft:jungle_slab" => Self::jungle_slab_from_identifier_and_properties(properties),
+            "minecraft:acacia_slab" => Self::acacia_slab_from_identifier_and_properties(properties),
+            "minecraft:dark_oak_slab" => {
+                Self::dark_oak_slab_from_identifier_and_properties(properties)
+            }
+            "minecraft:stone_slab" => Self::stone_slab_from_identifier_and_properties(properties),
+            "minecraft:sandstone_slab" => {
+                Self::sandstone_slab_from_identifier_and_properties(properties)
+            }
+            "minecraft:petrified_oak_slab" => {
                 Self::petrified_oak_slab_from_identifier_and_properties(properties)
             }
-            "cobblestone_slab" => Self::cobblestone_slab_from_identifier_and_properties(properties),
-            "brick_slab" => Self::brick_slab_from_identifier_and_properties(properties),
-            "stone_brick_slab" => Self::stone_brick_slab_from_identifier_and_properties(properties),
-            "nether_brick_slab" => {
+            "minecraft:cobblestone_slab" => {
+                Self::cobblestone_slab_from_identifier_and_properties(properties)
+            }
+            "minecraft:brick_slab" => Self::brick_slab_from_identifier_and_properties(properties),
+            "minecraft:stone_brick_slab" => {
+                Self::stone_brick_slab_from_identifier_and_properties(properties)
+            }
+            "minecraft:nether_brick_slab" => {
                 Self::nether_brick_slab_from_identifier_and_properties(properties)
             }
-            "quartz_slab" => Self::quartz_slab_from_identifier_and_properties(properties),
-            "red_sandstone_slab" => {
+            "minecraft:quartz_slab" => Self::quartz_slab_from_identifier_and_properties(properties),
+            "minecraft:red_sandstone_slab" => {
                 Self::red_sandstone_slab_from_identifier_and_properties(properties)
             }
-            "purpur_slab" => Self::purpur_slab_from_identifier_and_properties(properties),
-            "smooth_stone" => Self::smooth_stone_from_identifier_and_properties(properties),
-            "smooth_sandstone" => Self::smooth_sandstone_from_identifier_and_properties(properties),
-            "smooth_quartz" => Self::smooth_quartz_from_identifier_and_properties(properties),
-            "smooth_red_sandstone" => {
+            "minecraft:purpur_slab" => Self::purpur_slab_from_identifier_and_properties(properties),
+            "minecraft:smooth_stone" => {
+                Self::smooth_stone_from_identifier_and_properties(properties)
+            }
+            "minecraft:smooth_sandstone" => {
+                Self::smooth_sandstone_from_identifier_and_properties(properties)
+            }
+            "minecraft:smooth_quartz" => {
+                Self::smooth_quartz_from_identifier_and_properties(properties)
+            }
+            "minecraft:smooth_red_sandstone" => {
                 Self::smooth_red_sandstone_from_identifier_and_properties(properties)
             }
-            "spruce_fence_gate" => {
+            "minecraft:spruce_fence_gate" => {
                 Self::spruce_fence_gate_from_identifier_and_properties(properties)
             }
-            "birch_fence_gate" => Self::birch_fence_gate_from_identifier_and_properties(properties),
-            "jungle_fence_gate" => {
+            "minecraft:birch_fence_gate" => {
+                Self::birch_fence_gate_from_identifier_and_properties(properties)
+            }
+            "minecraft:jungle_fence_gate" => {
                 Self::jungle_fence_gate_from_identifier_and_properties(properties)
             }
-            "acacia_fence_gate" => {
+            "minecraft:acacia_fence_gate" => {
                 Self::acacia_fence_gate_from_identifier_and_properties(properties)
             }
-            "dark_oak_fence_gate" => {
+            "minecraft:dark_oak_fence_gate" => {
                 Self::dark_oak_fence_gate_from_identifier_and_properties(properties)
             }
-            "spruce_fence" => Self::spruce_fence_from_identifier_and_properties(properties),
-            "birch_fence" => Self::birch_fence_from_identifier_and_properties(properties),
-            "jungle_fence" => Self::jungle_fence_from_identifier_and_properties(properties),
-            "acacia_fence" => Self::acacia_fence_from_identifier_and_properties(properties),
-            "dark_oak_fence" => Self::dark_oak_fence_from_identifier_and_properties(properties),
-            "spruce_door" => Self::spruce_door_from_identifier_and_properties(properties),
-            "birch_door" => Self::birch_door_from_identifier_and_properties(properties),
-            "jungle_door" => Self::jungle_door_from_identifier_and_properties(properties),
-            "acacia_door" => Self::acacia_door_from_identifier_and_properties(properties),
-            "dark_oak_door" => Self::dark_oak_door_from_identifier_and_properties(properties),
-            "end_rod" => Self::end_rod_from_identifier_and_properties(properties),
-            "chorus_plant" => Self::chorus_plant_from_identifier_and_properties(properties),
-            "chorus_flower" => Self::chorus_flower_from_identifier_and_properties(properties),
-            "purpur_block" => Self::purpur_block_from_identifier_and_properties(properties),
-            "purpur_pillar" => Self::purpur_pillar_from_identifier_and_properties(properties),
-            "purpur_stairs" => Self::purpur_stairs_from_identifier_and_properties(properties),
-            "end_stone_bricks" => Self::end_stone_bricks_from_identifier_and_properties(properties),
-            "beetroots" => Self::beetroots_from_identifier_and_properties(properties),
-            "grass_path" => Self::grass_path_from_identifier_and_properties(properties),
-            "end_gateway" => Self::end_gateway_from_identifier_and_properties(properties),
-            "repeating_command_block" => {
+            "minecraft:spruce_fence" => {
+                Self::spruce_fence_from_identifier_and_properties(properties)
+            }
+            "minecraft:birch_fence" => Self::birch_fence_from_identifier_and_properties(properties),
+            "minecraft:jungle_fence" => {
+                Self::jungle_fence_from_identifier_and_properties(properties)
+            }
+            "minecraft:acacia_fence" => {
+                Self::acacia_fence_from_identifier_and_properties(properties)
+            }
+            "minecraft:dark_oak_fence" => {
+                Self::dark_oak_fence_from_identifier_and_properties(properties)
+            }
+            "minecraft:spruce_door" => Self::spruce_door_from_identifier_and_properties(properties),
+            "minecraft:birch_door" => Self::birch_door_from_identifier_and_properties(properties),
+            "minecraft:jungle_door" => Self::jungle_door_from_identifier_and_properties(properties),
+            "minecraft:acacia_door" => Self::acacia_door_from_identifier_and_properties(properties),
+            "minecraft:dark_oak_door" => {
+                Self::dark_oak_door_from_identifier_and_properties(properties)
+            }
+            "minecraft:end_rod" => Self::end_rod_from_identifier_and_properties(properties),
+            "minecraft:chorus_plant" => {
+                Self::chorus_plant_from_identifier_and_properties(properties)
+            }
+            "minecraft:chorus_flower" => {
+                Self::chorus_flower_from_identifier_and_properties(properties)
+            }
+            "minecraft:purpur_block" => {
+                Self::purpur_block_from_identifier_and_properties(properties)
+            }
+            "minecraft:purpur_pillar" => {
+                Self::purpur_pillar_from_identifier_and_properties(properties)
+            }
+            "minecraft:purpur_stairs" => {
+                Self::purpur_stairs_from_identifier_and_properties(properties)
+            }
+            "minecraft:end_stone_bricks" => {
+                Self::end_stone_bricks_from_identifier_and_properties(properties)
+            }
+            "minecraft:beetroots" => Self::beetroots_from_identifier_and_properties(properties),
+            "minecraft:grass_path" => Self::grass_path_from_identifier_and_properties(properties),
+            "minecraft:end_gateway" => Self::end_gateway_from_identifier_and_properties(properties),
+            "minecraft:repeating_command_block" => {
                 Self::repeating_command_block_from_identifier_and_properties(properties)
             }
-            "chain_command_block" => {
+            "minecraft:chain_command_block" => {
                 Self::chain_command_block_from_identifier_and_properties(properties)
             }
-            "frosted_ice" => Self::frosted_ice_from_identifier_and_properties(properties),
-            "magma_block" => Self::magma_block_from_identifier_and_properties(properties),
-            "nether_wart_block" => {
+            "minecraft:frosted_ice" => Self::frosted_ice_from_identifier_and_properties(properties),
+            "minecraft:magma_block" => Self::magma_block_from_identifier_and_properties(properties),
+            "minecraft:nether_wart_block" => {
                 Self::nether_wart_block_from_identifier_and_properties(properties)
             }
-            "red_nether_bricks" => {
+            "minecraft:red_nether_bricks" => {
                 Self::red_nether_bricks_from_identifier_and_properties(properties)
             }
-            "bone_block" => Self::bone_block_from_identifier_and_properties(properties),
-            "structure_void" => Self::structure_void_from_identifier_and_properties(properties),
-            "observer" => Self::observer_from_identifier_and_properties(properties),
-            "shulker_box" => Self::shulker_box_from_identifier_and_properties(properties),
-            "white_shulker_box" => {
+            "minecraft:bone_block" => Self::bone_block_from_identifier_and_properties(properties),
+            "minecraft:structure_void" => {
+                Self::structure_void_from_identifier_and_properties(properties)
+            }
+            "minecraft:observer" => Self::observer_from_identifier_and_properties(properties),
+            "minecraft:shulker_box" => Self::shulker_box_from_identifier_and_properties(properties),
+            "minecraft:white_shulker_box" => {
                 Self::white_shulker_box_from_identifier_and_properties(properties)
             }
-            "orange_shulker_box" => {
+            "minecraft:orange_shulker_box" => {
                 Self::orange_shulker_box_from_identifier_and_properties(properties)
             }
-            "magenta_shulker_box" => {
+            "minecraft:magenta_shulker_box" => {
                 Self::magenta_shulker_box_from_identifier_and_properties(properties)
             }
-            "light_blue_shulker_box" => {
+            "minecraft:light_blue_shulker_box" => {
                 Self::light_blue_shulker_box_from_identifier_and_properties(properties)
             }
-            "yellow_shulker_box" => {
+            "minecraft:yellow_shulker_box" => {
                 Self::yellow_shulker_box_from_identifier_and_properties(properties)
             }
-            "lime_shulker_box" => Self::lime_shulker_box_from_identifier_and_properties(properties),
-            "pink_shulker_box" => Self::pink_shulker_box_from_identifier_and_properties(properties),
-            "gray_shulker_box" => Self::gray_shulker_box_from_identifier_and_properties(properties),
-            "light_gray_shulker_box" => {
+            "minecraft:lime_shulker_box" => {
+                Self::lime_shulker_box_from_identifier_and_properties(properties)
+            }
+            "minecraft:pink_shulker_box" => {
+                Self::pink_shulker_box_from_identifier_and_properties(properties)
+            }
+            "minecraft:gray_shulker_box" => {
+                Self::gray_shulker_box_from_identifier_and_properties(properties)
+            }
+            "minecraft:light_gray_shulker_box" => {
                 Self::light_gray_shulker_box_from_identifier_and_properties(properties)
             }
-            "cyan_shulker_box" => Self::cyan_shulker_box_from_identifier_and_properties(properties),
-            "purple_shulker_box" => {
+            "minecraft:cyan_shulker_box" => {
+                Self::cyan_shulker_box_from_identifier_and_properties(properties)
+            }
+            "minecraft:purple_shulker_box" => {
                 Self::purple_shulker_box_from_identifier_and_properties(properties)
             }
-            "blue_shulker_box" => Self::blue_shulker_box_from_identifier_and_properties(properties),
-            "brown_shulker_box" => {
+            "minecraft:blue_shulker_box" => {
+                Self::blue_shulker_box_from_identifier_and_properties(properties)
+            }
+            "minecraft:brown_shulker_box" => {
                 Self::brown_shulker_box_from_identifier_and_properties(properties)
             }
-            "green_shulker_box" => {
+            "minecraft:green_shulker_box" => {
                 Self::green_shulker_box_from_identifier_and_properties(properties)
             }
-            "red_shulker_box" => Self::red_shulker_box_from_identifier_and_properties(properties),
-            "black_shulker_box" => {
+            "minecraft:red_shulker_box" => {
+                Self::red_shulker_box_from_identifier_and_properties(properties)
+            }
+            "minecraft:black_shulker_box" => {
                 Self::black_shulker_box_from_identifier_and_properties(properties)
             }
-            "white_glazed_terracotta" => {
+            "minecraft:white_glazed_terracotta" => {
                 Self::white_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "orange_glazed_terracotta" => {
+            "minecraft:orange_glazed_terracotta" => {
                 Self::orange_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "magenta_glazed_terracotta" => {
+            "minecraft:magenta_glazed_terracotta" => {
                 Self::magenta_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "light_blue_glazed_terracotta" => {
+            "minecraft:light_blue_glazed_terracotta" => {
                 Self::light_blue_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "yellow_glazed_terracotta" => {
+            "minecraft:yellow_glazed_terracotta" => {
                 Self::yellow_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "lime_glazed_terracotta" => {
+            "minecraft:lime_glazed_terracotta" => {
                 Self::lime_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "pink_glazed_terracotta" => {
+            "minecraft:pink_glazed_terracotta" => {
                 Self::pink_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "gray_glazed_terracotta" => {
+            "minecraft:gray_glazed_terracotta" => {
                 Self::gray_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "light_gray_glazed_terracotta" => {
+            "minecraft:light_gray_glazed_terracotta" => {
                 Self::light_gray_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "cyan_glazed_terracotta" => {
+            "minecraft:cyan_glazed_terracotta" => {
                 Self::cyan_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "purple_glazed_terracotta" => {
+            "minecraft:purple_glazed_terracotta" => {
                 Self::purple_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "blue_glazed_terracotta" => {
+            "minecraft:blue_glazed_terracotta" => {
                 Self::blue_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "brown_glazed_terracotta" => {
+            "minecraft:brown_glazed_terracotta" => {
                 Self::brown_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "green_glazed_terracotta" => {
+            "minecraft:green_glazed_terracotta" => {
                 Self::green_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "red_glazed_terracotta" => {
+            "minecraft:red_glazed_terracotta" => {
                 Self::red_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "black_glazed_terracotta" => {
+            "minecraft:black_glazed_terracotta" => {
                 Self::black_glazed_terracotta_from_identifier_and_properties(properties)
             }
-            "white_concrete" => Self::white_concrete_from_identifier_and_properties(properties),
-            "orange_concrete" => Self::orange_concrete_from_identifier_and_properties(properties),
-            "magenta_concrete" => Self::magenta_concrete_from_identifier_and_properties(properties),
-            "light_blue_concrete" => {
+            "minecraft:white_concrete" => {
+                Self::white_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:orange_concrete" => {
+                Self::orange_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:magenta_concrete" => {
+                Self::magenta_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:light_blue_concrete" => {
                 Self::light_blue_concrete_from_identifier_and_properties(properties)
             }
-            "yellow_concrete" => Self::yellow_concrete_from_identifier_and_properties(properties),
-            "lime_concrete" => Self::lime_concrete_from_identifier_and_properties(properties),
-            "pink_concrete" => Self::pink_concrete_from_identifier_and_properties(properties),
-            "gray_concrete" => Self::gray_concrete_from_identifier_and_properties(properties),
-            "light_gray_concrete" => {
+            "minecraft:yellow_concrete" => {
+                Self::yellow_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:lime_concrete" => {
+                Self::lime_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:pink_concrete" => {
+                Self::pink_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:gray_concrete" => {
+                Self::gray_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:light_gray_concrete" => {
                 Self::light_gray_concrete_from_identifier_and_properties(properties)
             }
-            "cyan_concrete" => Self::cyan_concrete_from_identifier_and_properties(properties),
-            "purple_concrete" => Self::purple_concrete_from_identifier_and_properties(properties),
-            "blue_concrete" => Self::blue_concrete_from_identifier_and_properties(properties),
-            "brown_concrete" => Self::brown_concrete_from_identifier_and_properties(properties),
-            "green_concrete" => Self::green_concrete_from_identifier_and_properties(properties),
-            "red_concrete" => Self::red_concrete_from_identifier_and_properties(properties),
-            "black_concrete" => Self::black_concrete_from_identifier_and_properties(properties),
-            "white_concrete_powder" => {
+            "minecraft:cyan_concrete" => {
+                Self::cyan_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:purple_concrete" => {
+                Self::purple_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:blue_concrete" => {
+                Self::blue_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:brown_concrete" => {
+                Self::brown_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:green_concrete" => {
+                Self::green_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:red_concrete" => {
+                Self::red_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:black_concrete" => {
+                Self::black_concrete_from_identifier_and_properties(properties)
+            }
+            "minecraft:white_concrete_powder" => {
                 Self::white_concrete_powder_from_identifier_and_properties(properties)
             }
-            "orange_concrete_powder" => {
+            "minecraft:orange_concrete_powder" => {
                 Self::orange_concrete_powder_from_identifier_and_properties(properties)
             }
-            "magenta_concrete_powder" => {
+            "minecraft:magenta_concrete_powder" => {
                 Self::magenta_concrete_powder_from_identifier_and_properties(properties)
             }
-            "light_blue_concrete_powder" => {
+            "minecraft:light_blue_concrete_powder" => {
                 Self::light_blue_concrete_powder_from_identifier_and_properties(properties)
             }
-            "yellow_concrete_powder" => {
+            "minecraft:yellow_concrete_powder" => {
                 Self::yellow_concrete_powder_from_identifier_and_properties(properties)
             }
-            "lime_concrete_powder" => {
+            "minecraft:lime_concrete_powder" => {
                 Self::lime_concrete_powder_from_identifier_and_properties(properties)
             }
-            "pink_concrete_powder" => {
+            "minecraft:pink_concrete_powder" => {
                 Self::pink_concrete_powder_from_identifier_and_properties(properties)
             }
-            "gray_concrete_powder" => {
+            "minecraft:gray_concrete_powder" => {
                 Self::gray_concrete_powder_from_identifier_and_properties(properties)
             }
-            "light_gray_concrete_powder" => {
+            "minecraft:light_gray_concrete_powder" => {
                 Self::light_gray_concrete_powder_from_identifier_and_properties(properties)
             }
-            "cyan_concrete_powder" => {
+            "minecraft:cyan_concrete_powder" => {
                 Self::cyan_concrete_powder_from_identifier_and_properties(properties)
             }
-            "purple_concrete_powder" => {
+            "minecraft:purple_concrete_powder" => {
                 Self::purple_concrete_powder_from_identifier_and_properties(properties)
             }
-            "blue_concrete_powder" => {
+            "minecraft:blue_concrete_powder" => {
                 Self::blue_concrete_powder_from_identifier_and_properties(properties)
             }
-            "brown_concrete_powder" => {
+            "minecraft:brown_concrete_powder" => {
                 Self::brown_concrete_powder_from_identifier_and_properties(properties)
             }
-            "green_concrete_powder" => {
+            "minecraft:green_concrete_powder" => {
                 Self::green_concrete_powder_from_identifier_and_properties(properties)
             }
-            "red_concrete_powder" => {
+            "minecraft:red_concrete_powder" => {
                 Self::red_concrete_powder_from_identifier_and_properties(properties)
             }
-            "black_concrete_powder" => {
+            "minecraft:black_concrete_powder" => {
                 Self::black_concrete_powder_from_identifier_and_properties(properties)
             }
-            "kelp" => Self::kelp_from_identifier_and_properties(properties),
-            "kelp_plant" => Self::kelp_plant_from_identifier_and_properties(properties),
-            "dried_kelp_block" => Self::dried_kelp_block_from_identifier_and_properties(properties),
-            "turtle_egg" => Self::turtle_egg_from_identifier_and_properties(properties),
-            "dead_tube_coral_block" => {
+            "minecraft:kelp" => Self::kelp_from_identifier_and_properties(properties),
+            "minecraft:kelp_plant" => Self::kelp_plant_from_identifier_and_properties(properties),
+            "minecraft:dried_kelp_block" => {
+                Self::dried_kelp_block_from_identifier_and_properties(properties)
+            }
+            "minecraft:turtle_egg" => Self::turtle_egg_from_identifier_and_properties(properties),
+            "minecraft:dead_tube_coral_block" => {
                 Self::dead_tube_coral_block_from_identifier_and_properties(properties)
             }
-            "dead_brain_coral_block" => {
+            "minecraft:dead_brain_coral_block" => {
                 Self::dead_brain_coral_block_from_identifier_and_properties(properties)
             }
-            "dead_bubble_coral_block" => {
+            "minecraft:dead_bubble_coral_block" => {
                 Self::dead_bubble_coral_block_from_identifier_and_properties(properties)
             }
-            "dead_fire_coral_block" => {
+            "minecraft:dead_fire_coral_block" => {
                 Self::dead_fire_coral_block_from_identifier_and_properties(properties)
             }
-            "dead_horn_coral_block" => {
+            "minecraft:dead_horn_coral_block" => {
                 Self::dead_horn_coral_block_from_identifier_and_properties(properties)
             }
-            "tube_coral_block" => Self::tube_coral_block_from_identifier_and_properties(properties),
-            "brain_coral_block" => {
+            "minecraft:tube_coral_block" => {
+                Self::tube_coral_block_from_identifier_and_properties(properties)
+            }
+            "minecraft:brain_coral_block" => {
                 Self::brain_coral_block_from_identifier_and_properties(properties)
             }
-            "bubble_coral_block" => {
+            "minecraft:bubble_coral_block" => {
                 Self::bubble_coral_block_from_identifier_and_properties(properties)
             }
-            "fire_coral_block" => Self::fire_coral_block_from_identifier_and_properties(properties),
-            "horn_coral_block" => Self::horn_coral_block_from_identifier_and_properties(properties),
-            "dead_tube_coral" => Self::dead_tube_coral_from_identifier_and_properties(properties),
-            "dead_brain_coral" => Self::dead_brain_coral_from_identifier_and_properties(properties),
-            "dead_bubble_coral" => {
+            "minecraft:fire_coral_block" => {
+                Self::fire_coral_block_from_identifier_and_properties(properties)
+            }
+            "minecraft:horn_coral_block" => {
+                Self::horn_coral_block_from_identifier_and_properties(properties)
+            }
+            "minecraft:dead_tube_coral" => {
+                Self::dead_tube_coral_from_identifier_and_properties(properties)
+            }
+            "minecraft:dead_brain_coral" => {
+                Self::dead_brain_coral_from_identifier_and_properties(properties)
+            }
+            "minecraft:dead_bubble_coral" => {
                 Self::dead_bubble_coral_from_identifier_and_properties(properties)
             }
-            "dead_fire_coral" => Self::dead_fire_coral_from_identifier_and_properties(properties),
-            "dead_horn_coral" => Self::dead_horn_coral_from_identifier_and_properties(properties),
-            "tube_coral" => Self::tube_coral_from_identifier_and_properties(properties),
-            "brain_coral" => Self::brain_coral_from_identifier_and_properties(properties),
-            "bubble_coral" => Self::bubble_coral_from_identifier_and_properties(properties),
-            "fire_coral" => Self::fire_coral_from_identifier_and_properties(properties),
-            "horn_coral" => Self::horn_coral_from_identifier_and_properties(properties),
-            "dead_tube_coral_wall_fan" => {
+            "minecraft:dead_fire_coral" => {
+                Self::dead_fire_coral_from_identifier_and_properties(properties)
+            }
+            "minecraft:dead_horn_coral" => {
+                Self::dead_horn_coral_from_identifier_and_properties(properties)
+            }
+            "minecraft:tube_coral" => Self::tube_coral_from_identifier_and_properties(properties),
+            "minecraft:brain_coral" => Self::brain_coral_from_identifier_and_properties(properties),
+            "minecraft:bubble_coral" => {
+                Self::bubble_coral_from_identifier_and_properties(properties)
+            }
+            "minecraft:fire_coral" => Self::fire_coral_from_identifier_and_properties(properties),
+            "minecraft:horn_coral" => Self::horn_coral_from_identifier_and_properties(properties),
+            "minecraft:dead_tube_coral_wall_fan" => {
                 Self::dead_tube_coral_wall_fan_from_identifier_and_properties(properties)
             }
-            "dead_brain_coral_wall_fan" => {
+            "minecraft:dead_brain_coral_wall_fan" => {
                 Self::dead_brain_coral_wall_fan_from_identifier_and_properties(properties)
             }
-            "dead_bubble_coral_wall_fan" => {
+            "minecraft:dead_bubble_coral_wall_fan" => {
                 Self::dead_bubble_coral_wall_fan_from_identifier_and_properties(properties)
             }
-            "dead_fire_coral_wall_fan" => {
+            "minecraft:dead_fire_coral_wall_fan" => {
                 Self::dead_fire_coral_wall_fan_from_identifier_and_properties(properties)
             }
-            "dead_horn_coral_wall_fan" => {
+            "minecraft:dead_horn_coral_wall_fan" => {
                 Self::dead_horn_coral_wall_fan_from_identifier_and_properties(properties)
             }
-            "tube_coral_wall_fan" => {
+            "minecraft:tube_coral_wall_fan" => {
                 Self::tube_coral_wall_fan_from_identifier_and_properties(properties)
             }
-            "brain_coral_wall_fan" => {
+            "minecraft:brain_coral_wall_fan" => {
                 Self::brain_coral_wall_fan_from_identifier_and_properties(properties)
             }
-            "bubble_coral_wall_fan" => {
+            "minecraft:bubble_coral_wall_fan" => {
                 Self::bubble_coral_wall_fan_from_identifier_and_properties(properties)
             }
-            "fire_coral_wall_fan" => {
+            "minecraft:fire_coral_wall_fan" => {
                 Self::fire_coral_wall_fan_from_identifier_and_properties(properties)
             }
-            "horn_coral_wall_fan" => {
+            "minecraft:horn_coral_wall_fan" => {
                 Self::horn_coral_wall_fan_from_identifier_and_properties(properties)
             }
-            "dead_tube_coral_fan" => {
+            "minecraft:dead_tube_coral_fan" => {
                 Self::dead_tube_coral_fan_from_identifier_and_properties(properties)
             }
-            "dead_brain_coral_fan" => {
+            "minecraft:dead_brain_coral_fan" => {
                 Self::dead_brain_coral_fan_from_identifier_and_properties(properties)
             }
-            "dead_bubble_coral_fan" => {
+            "minecraft:dead_bubble_coral_fan" => {
                 Self::dead_bubble_coral_fan_from_identifier_and_properties(properties)
             }
-            "dead_fire_coral_fan" => {
+            "minecraft:dead_fire_coral_fan" => {
                 Self::dead_fire_coral_fan_from_identifier_and_properties(properties)
             }
-            "dead_horn_coral_fan" => {
+            "minecraft:dead_horn_coral_fan" => {
                 Self::dead_horn_coral_fan_from_identifier_and_properties(properties)
             }
-            "tube_coral_fan" => Self::tube_coral_fan_from_identifier_and_properties(properties),
-            "brain_coral_fan" => Self::brain_coral_fan_from_identifier_and_properties(properties),
-            "bubble_coral_fan" => Self::bubble_coral_fan_from_identifier_and_properties(properties),
-            "fire_coral_fan" => Self::fire_coral_fan_from_identifier_and_properties(properties),
-            "horn_coral_fan" => Self::horn_coral_fan_from_identifier_and_properties(properties),
-            "sea_pickle" => Self::sea_pickle_from_identifier_and_properties(properties),
-            "blue_ice" => Self::blue_ice_from_identifier_and_properties(properties),
-            "conduit" => Self::conduit_from_identifier_and_properties(properties),
-            "void_air" => Self::void_air_from_identifier_and_properties(properties),
-            "cave_air" => Self::cave_air_from_identifier_and_properties(properties),
-            "bubble_column" => Self::bubble_column_from_identifier_and_properties(properties),
-            "structure_block" => Self::structure_block_from_identifier_and_properties(properties),
+            "minecraft:tube_coral_fan" => {
+                Self::tube_coral_fan_from_identifier_and_properties(properties)
+            }
+            "minecraft:brain_coral_fan" => {
+                Self::brain_coral_fan_from_identifier_and_properties(properties)
+            }
+            "minecraft:bubble_coral_fan" => {
+                Self::bubble_coral_fan_from_identifier_and_properties(properties)
+            }
+            "minecraft:fire_coral_fan" => {
+                Self::fire_coral_fan_from_identifier_and_properties(properties)
+            }
+            "minecraft:horn_coral_fan" => {
+                Self::horn_coral_fan_from_identifier_and_properties(properties)
+            }
+            "minecraft:sea_pickle" => Self::sea_pickle_from_identifier_and_properties(properties),
+            "minecraft:blue_ice" => Self::blue_ice_from_identifier_and_properties(properties),
+            "minecraft:conduit" => Self::conduit_from_identifier_and_properties(properties),
+            "minecraft:void_air" => Self::void_air_from_identifier_and_properties(properties),
+            "minecraft:cave_air" => Self::cave_air_from_identifier_and_properties(properties),
+            "minecraft:bubble_column" => {
+                Self::bubble_column_from_identifier_and_properties(properties)
+            }
+            "minecraft:structure_block" => {
+                Self::structure_block_from_identifier_and_properties(properties)
+            }
             _ => None,
         }
     }

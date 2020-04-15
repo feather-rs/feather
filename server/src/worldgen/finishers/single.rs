@@ -1,6 +1,6 @@
 use crate::worldgen::util::shuffle_seed_for_chunk;
 use crate::worldgen::{ChunkBiomes, FinishingGenerator, TopBlocks};
-use feather_blocks::{Block, WaterData};
+use feather_blocks::BlockId;
 use feather_core::{Biome, Chunk};
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
@@ -37,24 +37,21 @@ impl FinishingGenerator for SingleFoliageFinisher {
 struct Foliage {
     /// The block required at the top of the column
     /// for the foliage to generate.
-    required: Block,
+    required: BlockId,
     /// The foliage block.
-    block: Block,
+    block: BlockId,
 }
 
 impl Foliage {
-    fn new(required: Block, block: Block) -> Self {
+    fn new(required: BlockId, block: BlockId) -> Self {
         Self { required, block }
     }
 }
 
 fn biome_foliage(biome: Biome) -> Option<Foliage> {
     match biome {
-        Biome::Desert => Some(Foliage::new(Block::Sand, Block::DeadBush)),
-        Biome::Swamp => Some(Foliage::new(
-            Block::Water(WaterData::default()),
-            Block::LilyPad,
-        )),
+        Biome::Desert => Some(Foliage::new(BlockId::sand(), BlockId::dead_bush())),
+        Biome::Swamp => Some(Foliage::new(BlockId::water(), BlockId::lily_pad())),
         _ => None,
     }
 }

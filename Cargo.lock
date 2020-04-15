@@ -677,6 +677,7 @@ name = "feather-core"
 version = "0.5.0"
 dependencies = [
  "aes",
+ "ahash",
  "anyhow",
  "bitflags",
  "bitvec",
@@ -787,6 +788,7 @@ dependencies = [
  "feather-codegen",
  "feather-core",
  "feather-item-block",
+ "feather-items",
  "fecs",
  "futures",
  "hashbrown",
