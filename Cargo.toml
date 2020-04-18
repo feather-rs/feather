@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "api",
-    "server",
+
     "core",
     "core/anvil",
     "core/blocks",
@@ -15,6 +15,23 @@ members = [
     "core/inventory",
     "core/network",
     "core/util",
+
+    "server",
+    "server/template",
+    "server/chat",
+    "server/chunk",
+    "server/config",
+    "server/entities",
+    "server/interaction",
+    "server/inventory",
+    "server/lighting",
+    "server/network",
+    "server/packet_buffer",
+    "server/physics",
+    "server/types",
+    "server/util",
+    "server/weather",
+
     "codegen",
     "generator",
     "data",

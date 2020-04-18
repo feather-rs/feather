@@ -1,3 +1,9 @@
+#![forbid(unsafe_code)]
+
+//! The networking implementation for the server, based on async/await
+//! and Tokio. Contains a listener task which accepts new connections
+//! and a worker task for each client which reads and writes packets.
+
 use crate::config::Config;
 use crate::packet_buffer::PacketBuffers;
 use derivative::Derivative;

@@ -1,0 +1,15 @@
+[package]
+name = "feather-server-types"
+version = "0.5.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-inventory = { path = "../../core/inventory" }
+feather-util = { path = "../../core/util" }
+feather-chunk-map = { path = "../../core/chunk_map" }
+
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "93471f3db3cf62b6f86bab2942ecf56158d2d242" }
+uuid = "0.8"
+nalgebra-glm = "0.6"
+ncollide3d = "0.22"
