@@ -13,8 +13,12 @@ use crate::player::{ItemTimedUse, PLAYER_EYE_HEIGHT};
 use feather_blocks::BlockId;
 use feather_core::inventory::{SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use feather_core::network::packet::implementation::{PlayerDigging, PlayerDiggingStatus};
+<<<<<<< HEAD
 use feather_core::{Gamemode, ItemStack, Position};
 use feather_items::Item;
+=======
+use feather_core::{Block, BlockExt, BlockPosition, Gamemode, Item, ItemStack, Position};
+>>>>>>> 4b2c29d... Destroy non-solid blocks when the block underneath is broken
 use fecs::{Entity, World};
 use std::sync::Arc;
 
@@ -81,9 +85,18 @@ fn handle_digging(game: &mut Game, world: &mut World, player: Entity, packet: Pl
         }
     }
 
+    let offset_pos = packet.location.clone() + BlockPosition::new(0, 1, 0);
+    let block = game.block_at(offset_pos);
+
     if !game.set_block_at(world, packet.location, BlockId::air()) {
         game.disconnect(player, world, "attempted to break block in unloaded chunk");
         return;
+    }
+
+    // At this point the chunk of the block will be loaded so this set will never fail
+    //TODO: Also send particles to the client for the transparent block, it doesn't do that itself.
+    if !block.unwrap().is_solid() {
+        game.set_block_at(world, offset_pos, BlockId::air());
     }
 }
 
