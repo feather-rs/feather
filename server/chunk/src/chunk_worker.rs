@@ -4,15 +4,16 @@
 //!
 //! If a chunk cannot be loaded, it is generated on the Rayon thread pool
 //! instead.
-use crate::load::EntityLoader;
-use crate::worldgen::WorldGenerator;
+use ahash::AHashMap;
 use crossbeam::channel::{Receiver, Sender};
-use feather_core::entity::EntityData;
-use feather_core::region;
-use feather_core::region::{RegionHandle, RegionPosition};
-use feather_core::{Chunk, ChunkPosition};
+use feather_core::anvil::entity::EntityData;
+use feather_core::anvil::region;
+use feather_core::anvil::region::{RegionHandle, RegionPosition};
+use feather_core::chunk::Chunk;
+use feather_core::util::ChunkPosition;
+use feather_server_util::EntityLoader;
+use feather_server_worldgen::WorldGenerator;
 use fecs::EntityBuilder;
-use hashbrown::HashMap;
 use parking_lot::RwLock;
 use smallvec::SmallVec;
 use std::path::{Path, PathBuf};
@@ -23,7 +24,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub enum Reply {
     LoadedChunk(
         ChunkPosition,
-        Result<(Chunk, SmallVec<[EntityBuilder; 4]>), Error>,
+        anyhow::Result<(Chunk, SmallVec<[EntityBuilder; 4]>)>,
     ),
     SavedChunk(ChunkPosition),
 }
@@ -33,33 +34,6 @@ pub enum Request {
     LoadChunk(ChunkPosition),
     SaveChunk(Arc<RwLock<Chunk>>, Vec<EntityData>),
     ShutDown,
-}
-
-#[derive(Debug)]
-pub enum Error {
-    ChunkNotExist,
-    LoadError(region::Error),
-    Other(anyhow::Error),
-}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
-        match self {
-            Error::ChunkNotExist => {
-                f.write_str("The specified chunk does not exist in the world save")?
-            }
-            Error::LoadError(e) => {
-                f.write_str("Error loading chunk: ")?;
-                e.fmt(f)?;
-            }
-            Error::Other(e) => {
-                f.write_str("Error loading chunk: ")?;
-                e.fmt(f)?;
-            }
-        }
-
-        Ok(())
-    }
 }
 
 /// An open region file
@@ -89,7 +63,7 @@ struct ChunkWorker {
     receiver: Receiver<Request>,
 
     /// A map of currently open region files
-    open_regions: HashMap<RegionPosition, RegionFile>,
+    open_regions: AHashMap<RegionPosition, RegionFile>,
 
     /// World generator for new chunks.
     world_generator: Arc<dyn WorldGenerator>,
@@ -112,10 +86,12 @@ pub fn start(
         dir: world_dir.to_path_buf(),
         sender: reply_tx,
         receiver: request_rx,
-        open_regions: HashMap::new(),
+        open_regions: AHashMap::new(),
         world_generator: world_gen,
         entity_loader: EntityLoader::new(),
     };
+
+    log::info!("Starting chunk worker");
 
     // Without changing the stack size,
     // a stack overflow occurs here.
@@ -146,7 +122,7 @@ fn run(mut worker: ChunkWorker) {
         }
     }
 
-    info!("Chunk worker terminating");
+    log::info!("Chunk worker terminating");
 }
 
 /// Attempts to load the chunk at the specified position.
@@ -184,7 +160,7 @@ fn load_chunk_from_handle(
                 pos,
                 match entities {
                     Ok(entities) => Ok((chunk, entities)),
-                    Err(e) => Err(Error::Other(e)),
+                    Err(e) => Err(e),
                 },
             ))
         }
@@ -193,7 +169,7 @@ fn load_chunk_from_handle(
                 schedule_generate_new_chunk(sender, pos, generator);
                 None
             }
-            err => Some(Reply::LoadedChunk(pos, Err(Error::LoadError(err)))),
+            err => Some(Reply::LoadedChunk(pos, Err(err.into()))),
         },
     }
 }
@@ -215,7 +191,7 @@ fn schedule_generate_new_chunk(
 /// Generates a new chunk synchronously,
 /// returning a Reply to send to a Sender.
 fn generate_new_chunk(pos: ChunkPosition, generator: &Arc<dyn WorldGenerator>) -> Reply {
-    Reply::LoadedChunk(pos, Ok((generator.generate_chunk(pos), smallvec![])))
+    Reply::LoadedChunk(pos, Ok((generator.generate_chunk(pos), SmallVec::new())))
 }
 
 /// Saves the chunk at the specified position.
@@ -234,14 +210,14 @@ fn save_chunk(worker: &mut ChunkWorker, chunk: &Chunk, entities: Vec<EntityData>
 /// Returns whether the given chunk's region
 /// is already loaded.
 fn is_region_loaded(
-    open_regions: &HashMap<RegionPosition, RegionFile>,
+    open_regions: &AHashMap<RegionPosition, RegionFile>,
     rpos: RegionPosition,
 ) -> bool {
     open_regions.contains_key(&rpos)
 }
 
 fn worker_region<'a>(
-    open_regions: &'a mut HashMap<RegionPosition, RegionFile>,
+    open_regions: &'a mut AHashMap<RegionPosition, RegionFile>,
     dir: &PathBuf,
     rpos: RegionPosition,
 ) -> &'a mut RegionFile {

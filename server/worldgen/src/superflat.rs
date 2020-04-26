@@ -1,7 +1,9 @@
-use crate::worldgen::WorldGenerator;
-use feather_blocks::BlockId;
-use feather_core::level::SuperflatGeneratorOptions;
-use feather_core::{Biome, Chunk, ChunkPosition};
+use crate::WorldGenerator;
+use feather_core::anvil::level::SuperflatGeneratorOptions;
+use feather_core::biomes::Biome;
+use feather_core::blocks::BlockId;
+use feather_core::chunk::Chunk;
+use feather_core::util::ChunkPosition;
 
 pub struct SuperflatWorldGenerator {
     pub options: SuperflatGeneratorOptions,
@@ -28,7 +30,7 @@ impl WorldGenerator for SuperflatWorldGenerator {
                 }
             } else {
                 // Skip this layer
-                debug!("Failed to generate layer: unknown block {}", layer.block);
+                log::debug!("Failed to generate layer: unknown block {}", layer.block);
             }
 
             y_counter += layer.height;

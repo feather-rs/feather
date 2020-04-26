@@ -1,4 +1,5 @@
 use crate::{vec3, Vec3d, Vec3i};
+use hash32_derive::Hash32;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Sub};
@@ -230,7 +231,7 @@ impl Add<ChunkPosition> for ChunkPosition {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Default, Hash32)]
 pub struct BlockPosition {
     pub x: i32,
     pub y: i32,

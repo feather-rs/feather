@@ -30,6 +30,7 @@ members = [
     "server/types",
     "server/util",
     "server/weather",
+    "server/worldgen",
 
     "codegen",
     "generator",

@@ -918,6 +918,20 @@ version = "0.5.0"
 [[package]]
 name = "feather-server-chunk"
 version = "0.5.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "crossbeam",
+ "feather-core",
+ "feather-server-types",
+ "feather-server-util",
+ "feather-server-worldgen",
+ "fecs",
+ "log",
+ "parking_lot 0.10.0",
+ "rayon",
+ "smallvec 1.4.0",
+]
 
 [[package]]
 name = "feather-server-config"
@@ -997,6 +1011,18 @@ dependencies = [
 [[package]]
 name = "feather-server-physics"
 version = "0.5.0"
+dependencies = [
+ "bitflags",
+ "feather-core",
+ "feather-server-types",
+ "fecs",
+ "heapless",
+ "nalgebra",
+ "nalgebra-glm",
+ "ncollide3d",
+ "parking_lot 0.10.0",
+ "smallvec 1.4.0",
+]
 
 [[package]]
 name = "feather-server-player"
@@ -1055,19 +1081,42 @@ dependencies = [
 name = "feather-server-util"
 version = "0.5.0"
 dependencies = [
+ "ahash",
+ "anyhow",
  "arrayvec",
  "feather-core",
  "feather-server-types",
  "fecs",
+ "futures",
+ "inventory",
+ "itertools 0.9.0",
  "nalgebra-glm",
  "rand",
  "rand_distr",
  "smallvec 1.4.0",
+ "tokio",
 ]
 
 [[package]]
 name = "feather-server-weather"
 version = "0.5.0"
+
+[[package]]
+name = "feather-server-worldgen"
+version = "0.5.0"
+dependencies = [
+ "approx",
+ "bitvec",
+ "feather-core",
+ "log",
+ "num-traits",
+ "once_cell",
+ "rand",
+ "rand_xorshift",
+ "simdnoise",
+ "smallvec 1.4.0",
+ "strum 0.18.0",
+]
 
 [[package]]
 name = "feather-text"
@@ -1084,6 +1133,8 @@ dependencies = [
 name = "feather-util"
 version = "0.1.0"
 dependencies = [
+ "hash32",
+ "hash32-derive",
  "nalgebra-glm",
  "num-derive",
  "num-traits",
@@ -1363,6 +1414,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4041af86e63ac4298ce40e5cca669066e75b6f1aa3390fe2561ffa5e1d9f4cc"
 dependencies = [
  "byteorder",
+]
+
+[[package]]
+name = "hash32-derive"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ebc0efbd154a17cddc3616d83faef479c0076d871a2143c157b310cc7ca799a2"
+dependencies = [
+ "proc-macro2 0.3.8",
+ "quote 0.5.2",
+ "syn 0.13.11",
 ]
 
 [[package]]
@@ -2271,6 +2333,15 @@ checksum = "369a6ed065f249a159e06c45752c780bda2fb53c995718f9e484d08daa9eb42e"
 
 [[package]]
 name = "proc-macro2"
+version = "0.3.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b06e2f335f48d24442b35a19df506a835fb3547bc3c06ef27340da9acf5cae7"
+dependencies = [
+ "unicode-xid 0.1.0",
+]
+
+[[package]]
+name = "proc-macro2"
 version = "0.4.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf3d2011ab5c909338f7887f4fc896d35932e29146c12c8d01da6b22a80ba759"
@@ -2285,6 +2356,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0319972dcae462681daf4da1adeeaa066e3ebd29c69be96c6abb1259d2ee2bcc"
 dependencies = [
  "unicode-xid 0.2.0",
+]
+
+[[package]]
+name = "quote"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9949cfe66888ffe1d53e6ec9d9f3b70714083854be20fd5e271b232a017401e8"
+dependencies = [
+ "proc-macro2 0.3.8",
 ]
 
 [[package]]
@@ -2839,6 +2919,17 @@ name = "subtle"
 version = "2.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c65d530b10ccaeac294f349038a597e435b18fb456aadd0840a623f83b9e941"
+
+[[package]]
+name = "syn"
+version = "0.13.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14f9bf6292f3a61d2c716723fdb789a41bbe104168e6f496dc6497e531ea1b9b"
+dependencies = [
+ "proc-macro2 0.3.8",
+ "quote 0.5.2",
+ "unicode-xid 0.1.0",
+]
 
 [[package]]
 name = "syn"

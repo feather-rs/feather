@@ -9,5 +9,5 @@ feather-chunk = { path = "../chunk" }
 feather-util = { path = "../util" }
 feather-blocks = { path = "../blocks" }
 
-hashbrown = "0.7"
+hashbrown = { version ="0.7", features = ["rayon"] }
 parking_lot = "0.10"

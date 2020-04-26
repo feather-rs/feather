@@ -1,10 +1,11 @@
 //! Implements a basic height map generator using 2D Perlin noise.
 //! A superior generator would use 3D noise to allow for overhangs.
 
-use crate::worldgen::{block_index, DensityMapGenerator, NearbyBiomes, OCEAN_DEPTH, SKY_LIMIT};
+use crate::{block_index, DensityMapGenerator, NearbyBiomes, OCEAN_DEPTH, SKY_LIMIT};
 use bitvec::order::Local;
 use bitvec::vec::BitVec;
-use feather_core::{Biome, ChunkPosition};
+use feather_core::biomes::Biome;
+use feather_core::util::ChunkPosition;
 use simdnoise::NoiseBuilder;
 use std::cmp::min;
 

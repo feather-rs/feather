@@ -1,29 +1,27 @@
-use crate::game::Game;
-use ahash::AHashMap;
-use feather_core::{ChunkPosition, Position};
+use feather_core::util::Position;
+use feather_server_types::{ChunkCrossEvent, Game};
 use fecs::{Entity, World};
 use itertools::Itertools;
-use smallvec::SmallVec;
 
 /// System to update ChunkEntities when entities move into new chunks.
-pub fn on_chunk_cross_update_chunk_entities(
-    game: &mut Game,
-    entity: Entity,
-    old: Option<ChunkPosition>,
-    new: ChunkPosition,
-) {
-    if let Some(old) = old {
+#[fecs::event_handler]
+pub fn on_chunk_cross_update_chunk_entities(event: &ChunkCrossEvent, game: &mut Game) {
+    if let Some(old) = event.old {
         if let Some(vec) = game.chunk_entities.0.get_mut(&old) {
             let index = vec
                 .iter()
-                .find_position(|e| **e == entity)
+                .find_position(|e| **e == event.entity)
                 .map(|(index, _)| index);
             if let Some(index) = index {
                 vec.swap_remove(index);
             }
         }
 
-        game.chunk_entities.0.entry(new).or_default().push(entity);
+        game.chunk_entities
+            .0
+            .entry(event.new)
+            .or_default()
+            .push(event.entity);
     }
 }
 

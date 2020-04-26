@@ -3,10 +3,12 @@
 //! Over the 2D height map generator, this has the advantage that terrain
 //! is more interesting; overhangs and the like will be able to generate.
 
-use crate::worldgen::{block_index, noise, DensityMapGenerator, NearbyBiomes, NoiseLerper};
+use crate::{block_index, noise, DensityMapGenerator, NearbyBiomes, NoiseLerper};
 use bitvec::order::Local;
 use bitvec::vec::BitVec;
-use feather_core::{Biome, ChunkPosition};
+use feather_core::biomes::Biome;
+use feather_core::util::ChunkPosition;
+use once_cell::sync::Lazy;
 use simdnoise::NoiseBuilder;
 
 /// A density map generator using 3D Perlin noise.
@@ -153,23 +155,21 @@ fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> V
     result
 }
 
-lazy_static! {
-    /// Elevation height field, used to weight
-    /// the averaging of nearby biome heights.
-    static ref ELEVATION_WEIGHT: [[f32; 19]; 19] = {
-        let mut array = [[0.0; 19]; 19];
-        for (x, values) in array.iter_mut().enumerate() {
-            for (z, value) in values.iter_mut().enumerate() {
-                let mut x_squared = x as i32 - 9;
-                x_squared *= x_squared;
-                let mut z_sqaured = z as i32 - 9;
-                z_sqaured *= z_sqaured;
-                *value = 10.0 / (x_squared as f32 + z_sqaured as f32 + 0.2).sqrt();
-            }
+/// Elevation height field, used to weight
+/// the averaging of nearby biome heights.
+static ELEVATION_WEIGHT: Lazy<[[f32; 19]; 19]> = Lazy::new(|| {
+    let mut array = [[0.0; 19]; 19];
+    for (x, values) in array.iter_mut().enumerate() {
+        for (z, value) in values.iter_mut().enumerate() {
+            let mut x_squared = x as i32 - 9;
+            x_squared *= x_squared;
+            let mut z_sqaured = z as i32 - 9;
+            z_sqaured *= z_sqaured;
+            *value = 10.0 / (x_squared as f32 + z_sqaured as f32 + 0.2).sqrt();
         }
-        array
-    };
-}
+    }
+    array
+});
 
 /// Computes the target amplitude and midpoint for the
 /// given column, using a 9x9 grid of biomes

@@ -1,19 +1,27 @@
-use crate::worldgen::voronoi::VoronoiGrid;
-use crate::worldgen::{voronoi, BiomeGenerator, ChunkBiomes};
-use feather_core::{Biome, ChunkPosition};
+use crate::voronoi::VoronoiGrid;
+use crate::{voronoi, BiomeGenerator, ChunkBiomes};
+use feather_core::biomes::Biome;
+use feather_core::util::ChunkPosition;
+use once_cell::sync::Lazy;
 
-lazy_static! {
-    /// Array of biome groups, each containing biomes
-    /// which may appear next to each other. This is used in the
-    /// two-level biome generator.
-    static ref BIOME_GROUPS: Vec<Vec<Biome>> = {
+/// Array of biome groups, each containing biomes
+/// which may appear next to each other. This is used in the
+/// two-level biome generator.
+static BIOME_GROUPS: Lazy<Vec<Vec<Biome>>> = Lazy::new(|| {
+    vec![
+        vec![Biome::SnowyTundra, Biome::SnowyTaiga],
         vec![
-            vec![Biome::SnowyTundra, Biome::SnowyTaiga],
-            vec![Biome::Plains, Biome::BirchForest, Biome::Forest, Biome::Taiga, Biome::Mountains, Biome::Swamp, Biome::DarkForest],
-            vec![Biome::Savanna, Biome::Desert],
-        ]
-    };
-}
+            Biome::Plains,
+            Biome::BirchForest,
+            Biome::Forest,
+            Biome::Taiga,
+            Biome::Mountains,
+            Biome::Swamp,
+            Biome::DarkForest,
+        ],
+        vec![Biome::Savanna, Biome::Desert],
+    ]
+});
 
 /// Biome grid generator which works using two layers
 /// of Voronoi. The first layer defines the biome group,

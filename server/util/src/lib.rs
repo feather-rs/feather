@@ -8,11 +8,39 @@ use nalgebra_glm::{vec3, DVec3};
 
 mod block;
 pub use block::*;
+mod chunk_entities;
+pub use chunk_entities::*;
+mod time;
+pub use time::*;
+mod task;
+pub use task::*;
+mod load;
+pub use load::*;
+
 use feather_server_types::Game;
 use fecs::{Entity, World};
 use rand::Rng;
 use rand_distr::{Distribution, StandardNormal};
 use smallvec::SmallVec;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+/// Retrieves the current time in seconds
+/// since the UNIX epoch.
+pub fn current_time_in_secs() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
+}
+
+/// Retrieves the current time in milliseconds
+/// since the UNIX epoch.
+pub fn current_time_in_millis() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as u64
+}
 
 /// Calculates the relative move fields
 /// as used in the Entity Relative Move packets.

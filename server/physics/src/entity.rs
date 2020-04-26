@@ -1,20 +1,13 @@
 //! Module for performing entity physics, including velocity, drag
 //! and position updates each tick.
 
-use crate::entity::Velocity;
-use crate::game::Game;
-use crate::physics::{block_impacted_by_ray, blocks_intersecting_bbox, AABBExt, Physics, Side};
-use feather_blocks::BlockKind;
-use feather_core::Position;
+use crate::{block_impacted_by_ray, blocks_intersecting_bbox, Side};
+use feather_core::blocks::BlockKind;
+use feather_core::position;
+use feather_core::util::Position;
+use feather_server_types::{AABBExt, EntityLandEvent, Game, Physics, Velocity};
 use fecs::{Entity, IntoQuery, Read, World, Write};
 use parking_lot::Mutex;
-
-/// Event triggered when an entity lands on the ground.
-#[derive(Debug, Clone)]
-pub struct EntityPhysicsLandEvent {
-    pub entity: Entity,
-    pub pos: Position,
-}
 
 /// System for updating all entities' positions and velocities
 /// each tick.
@@ -45,15 +38,15 @@ pub fn entity_physics(game: &mut Game, world: &mut World) {
                 let impact = impacted.pos;
 
                 if face.contains(Side::EAST) || face.contains(Side::WEST) {
-                    velocity.x = 0.0;
+                    velocity.0.x = 0.0;
                     pending_position.x = impact.x + physics.bbox.size().x * face.as_vector().x;
                 }
                 if face.contains(Side::NORTH) || face.contains(Side::SOUTH) {
-                    velocity.z = 0.0;
+                    velocity.0.z = 0.0;
                     pending_position.z = impact.z + physics.bbox.size().z * face.as_vector().z;
                 }
                 if face.contains(Side::TOP) || face.contains(Side::BOTTOM) {
-                    velocity.y = 0.0;
+                    velocity.0.y = 0.0;
                     pending_position.y = impact.y + physics.bbox.size().y * face.as_vector().y;
                 }
                 if face.contains(Side::TOP) {
@@ -68,15 +61,15 @@ pub fn entity_physics(game: &mut Game, world: &mut World) {
             intersect.apply_to(&mut pending_position);
 
             if intersect.x_affected() {
-                velocity.x = 0.0;
+                velocity.0.x = 0.0;
             }
 
             if intersect.y_affected() {
-                velocity.y = 0.0;
+                velocity.0.y = 0.0;
             }
 
             if intersect.z_affected() {
-                velocity.z = 0.0;
+                velocity.0.z = 0.0;
             }
 
             // Delete entity if it has gone into unloaded chunks.
@@ -101,7 +94,7 @@ pub fn entity_physics(game: &mut Game, world: &mut World) {
                 None => false,
             };
             if pending_position.on_ground && !position.on_ground {
-                land_events.lock().push(EntityPhysicsLandEvent {
+                land_events.lock().push(EntityLandEvent {
                     entity,
                     pos: pending_position,
                 });
@@ -140,6 +133,6 @@ pub fn entity_physics(game: &mut Game, world: &mut World) {
 
     // Trigger land events.
     for event in land_events.into_inner() {
-        game.on_entity_land(world, event);
+        game.handle(world, event);
     }
 }

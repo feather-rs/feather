@@ -1,10 +1,7 @@
-//! Implements the loading of entities.
-
 use ahash::AHashMap;
-use feather_core::entity::{EntityData, EntityDataKind};
+use feather_core::anvil::entity::{EntityData, EntityDataKind};
+use feather_server_types::{EntityLoaderFn, EntityLoaderRegistration};
 use fecs::EntityBuilder;
-
-inventory::collect!(EntityLoaderRegistration);
 
 /// Stores state for loading entities.
 pub struct EntityLoader {

@@ -361,6 +361,28 @@ pub struct ChunkLoadEvent {
     pub chunk: ChunkPosition,
 }
 
+/// Event which is triggered when a chunk fails to load.
+#[derive(Debug)]
+pub struct ChunkLoadFailEvent {
+    pub pos: ChunkPosition,
+    pub error: anyhow::Error,
+}
+
+/// Event triggeered when a chunk is unloaded.
+#[derive(Copy, Clone, Debug)]
+pub struct ChunkUnloadEvent {
+    pub chunk: ChunkPosition,
+}
+
+/// Event triggered when a chunk holder releases their hold on a chunk.
+#[derive(Copy, Clone, Debug)]
+pub struct ChunkHolderReleaseEvent {
+    /// Entity which released their hold.
+    pub entity: Entity,
+    /// The chunk which was released.
+    pub chunk: ChunkPosition,
+}
+
 /// Requests that a chunk be held for the given client.
 ///
 /// This is a "request"-type event: it has one handler defined

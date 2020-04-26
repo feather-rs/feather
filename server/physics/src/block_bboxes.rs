@@ -1,7 +1,7 @@
 //! Bounding boxes for every non-cubic block.
 
-use crate::physics::component::bbox;
-use feather_blocks::{BlockId, BlockKind};
+use feather_core::blocks::{BlockId, BlockKind};
+use nalgebra::Point3;
 use ncollide3d::bounding_volume::AABB;
 
 /// Returns the bounding box for the given block.
@@ -48,4 +48,8 @@ pub fn bbox_for_block(block: BlockId) -> AABB<f64> {
         | BlockKind::PurpurSlab => bbox(1.0, 0.5, 1.0),
         _ => bbox(1.0, 1.0, 1.0),
     }
+}
+
+fn bbox(x: f64, y: f64, z: f64) -> AABB<f64> {
+    AABB::new(Point3::from([0.0, 0.0, 0.0]), Point3::from([x, y, z]))
 }

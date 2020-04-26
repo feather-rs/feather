@@ -504,21 +504,3 @@ fn load_server_icon() -> Option<String> {
     let b64_icon = base64::encode(&data);
     Some(format!("data:image/png;base64,{}", b64_icon))
 }
-
-/// Retrieves the current time in seconds
-/// since the UNIX epoch.
-pub fn current_time_in_secs() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs()
-}
-
-/// Retrieves the current time in milliseconds
-/// since the UNIX epoch.
-pub fn current_time_in_millis() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_millis() as u64
-}

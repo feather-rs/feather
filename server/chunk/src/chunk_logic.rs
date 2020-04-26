@@ -5,18 +5,18 @@
 use crossbeam::channel::{Receiver, Sender};
 use std::sync::atomic::{AtomicU32, Ordering};
 
-use feather_core::world::ChunkPosition;
-
-use rayon::prelude::*;
-
-use crate::game::Game;
-use crate::{chunk_worker, current_time_in_millis, TPS};
-use feather_core::entity::EntityData;
-use feather_core::Chunk;
+use crate::chunk_worker;
+use feather_core::anvil::entity::EntityData;
+use feather_core::chunk::Chunk;
+use feather_core::util::ChunkPosition;
+use feather_server_types::{
+    ChunkHolder, ChunkHolderReleaseEvent, ChunkLoadEvent, ChunkLoadFailEvent, ChunkUnloadEvent,
+    EntityDespawnEvent, EntitySpawnEvent, Game, TPS,
+};
+use feather_server_util::current_time_in_millis;
 use fecs::{Entity, World};
-use hashbrown::HashSet;
-use multimap::MultiMap;
 use parking_lot::RwLock;
+use rayon::prelude::*;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
@@ -28,23 +28,10 @@ pub struct ChunkWorkerHandle {
     pub receiver: Receiver<chunk_worker::Reply>,
 }
 
-/// Event which is triggered when a chunk is loaded.
-#[derive(Debug, Clone)]
-pub struct ChunkLoadEvent {
-    pub pos: ChunkPosition,
-    pub entities: Vec<EntityData>,
-}
-
-/// Event which is triggered when a chunk fails to load.
-#[derive(Debug, Clone, Copy)]
-pub struct ChunkLoadFailEvent {
-    pub pos: ChunkPosition,
-}
-
 /// System for receiving loaded chunks from the chunk worker thread.
 #[fecs::system]
-pub fn chunk_load(game: &mut Game, world: &mut World) {
-    while let Ok(reply) = game.chunk_worker_handle.receiver.try_recv() {
+pub fn chunk_load(game: &mut Game, world: &mut World, chunk_worker_handle: &ChunkWorkerHandle) {
+    while let Ok(reply) = chunk_worker_handle.receiver.try_recv() {
         if let chunk_worker::Reply::LoadedChunk(pos, result) = reply {
             match result {
                 Ok((chunk, entities)) => {
@@ -52,63 +39,46 @@ pub fn chunk_load(game: &mut Game, world: &mut World) {
 
                     entities.into_iter().for_each(|builder| {
                         let entity = builder.build().spawn_in(world);
-                        game.on_entity_spawn(world, entity);
+                        game.handle(world, EntitySpawnEvent { entity });
                     });
 
-                    game.on_chunk_load(world, pos);
+                    game.handle(world, ChunkLoadEvent { chunk: pos });
 
-                    trace!("Loaded chunk at {:?}", pos);
+                    log::trace!("Loaded chunk at {:?}", pos);
                 }
-                Err(err) => {
-                    warn!("Failed to load chunk at {:?}: {}", pos, err);
-                    game.on_chunk_load_fail(world, pos);
+                Err(error) => {
+                    log::warn!("Failed to load chunk at {:?}: {}", pos, error);
+                    game.handle(
+                        world,
+                        ChunkLoadFailEvent {
+                            pos,
+                            error: error.into(),
+                        },
+                    );
                 }
             }
         }
     }
 }
 
-/// The chunk holder map contains a mapping
-/// of chunk positions to any number of entities, called "holders."
-/// When a chunk position has no holders, it will be queued
-/// for unloading.
-///
-/// In addition, the chunk holders map can be used to select
-/// which players to broadcast an entity movement to: a player
-/// who has a chunk hold on the entity's chunk would be able to see
-/// the movement, while other players would be outside of the view
-/// distance. This technique allows for higher performance and
-/// avoids constant nearby entity queries.
-#[derive(Default, Clone, Debug)]
-pub struct ChunkHolders {
-    inner: MultiMap<ChunkPosition, Entity, ahash::RandomState>,
-}
-
-impl ChunkHolders {
-    pub fn holders_for(&self, chunk: ChunkPosition) -> &[Entity] {
-        self.inner
-            .get_vec(&chunk)
-            .map(|holders| holders.as_slice())
-            .unwrap_or(&[])
-    }
-
-    pub fn chunk_has_holders(&self, chunk: ChunkPosition) -> bool {
-        let holders = self.holders_for(chunk);
-
-        !holders.is_empty()
-    }
-
-    pub fn insert_holder(&mut self, chunk: ChunkPosition, holder: Entity) {
-        self.inner.insert(chunk, holder);
-    }
-}
-pub fn remove_chunk_holder(game: &mut Game, chunk: ChunkPosition, holder: Entity) {
-    if let Some(vec) = game.chunk_holders.inner.get_vec_mut(&chunk) {
+pub fn remove_chunk_holder(
+    game: &mut Game,
+    world: &mut World,
+    chunk: ChunkPosition,
+    holder: Entity,
+) {
+    if let Some(vec) = game.chunk_holders.inner.get_mut(&chunk) {
         let index = vec.iter().position(|e| *e == holder);
         if let Some(index) = index {
             vec.remove(index);
 
-            game.on_chunk_holder_release(chunk, holder);
+            game.handle(
+                world,
+                ChunkHolderReleaseEvent {
+                    chunk,
+                    entity: holder,
+                },
+            );
         }
     }
 }
@@ -146,7 +116,11 @@ const CHUNK_UNLOAD_TIME: u64 = TPS * 5; // 5 seconds - TODO make this configurab
 /// chunks at the edge of their view distance
 /// to be loaded and unloaded at an alarming rate.
 #[fecs::system]
-pub fn chunk_unload(game: &mut Game, world: &mut World) {
+pub fn chunk_unload(
+    game: &mut Game,
+    world: &mut World,
+    #[default] chunk_unload_queue: &mut ChunkUnloadQueue,
+) {
     // Unload chunks which are finished in the queue.
 
     // Since chunks are queued in the back and taken out
@@ -154,21 +128,26 @@ pub fn chunk_unload(game: &mut Game, world: &mut World) {
     // were queued the longest time ago. Because of this,
     // we go through the unloads in the front of the queue
     // to find which chunks to unload.
-    while let Some(unload) = game.chunk_unload_queue.queue.front().copied() {
+    while let Some(unload) = chunk_unload_queue.queue.front().copied() {
         if game.tick_count >= unload.time {
             // Don't unload if new chunk holders have appeared.
             if game.chunk_holders.chunk_has_holders(unload.chunk) {
-                game.chunk_unload_queue.queue.pop_front();
+                chunk_unload_queue.queue.pop_front();
                 continue;
             }
 
             // Unload chunk and pop from queue.
             if game.chunk_map.chunk_at(unload.chunk).is_some() {
-                game.on_chunk_unload(world, unload.chunk);
+                game.handle(
+                    world,
+                    ChunkUnloadEvent {
+                        chunk: unload.chunk,
+                    },
+                );
                 game.chunk_map.remove(unload.chunk);
-                trace!("Unloaded chunk at {}", unload.chunk);
+                log::trace!("Unloaded chunk at {}", unload.chunk);
             }
-            game.chunk_unload_queue.queue.pop_front();
+            chunk_unload_queue.queue.pop_front();
         } else {
             // We're done - all chunks farther up in
             // the queue were queued before this one,
@@ -180,27 +159,42 @@ pub fn chunk_unload(game: &mut Game, world: &mut World) {
 
 /// Event handler which handles holder release events. If
 /// a chunk has no more holders, then a chunk unload is queued.
-pub fn on_chunk_holder_release_unload_chunk(game: &mut Game, chunk: ChunkPosition) {
+#[fecs::event_handler]
+pub fn on_chunk_holder_release_unload_chunk(
+    event: &ChunkHolderReleaseEvent,
+    game: &mut Game,
+    chunk_unload_queue: &mut ChunkUnloadQueue,
+) {
     // Handle holder release events.
     // If the chunk now has zero holders, queue it for unloading.
-    if !game.chunk_holders.chunk_has_holders(chunk) {
+    if !game.chunk_holders.chunk_has_holders(event.chunk) {
         let unload = ChunkUnload {
-            chunk,
+            chunk: event.chunk,
             time: game.tick_count + CHUNK_UNLOAD_TIME,
         };
-        game.chunk_unload_queue.queue.push_back(unload);
+        chunk_unload_queue.queue.push_back(unload);
     }
 }
 
 /// System for removing an entity's chunk holds
 /// once it is destroyed.
-pub fn on_entity_despawn_remove_chunk_holder(game: &mut Game, world: &mut World, entity: Entity) {
+#[fecs::event_handler]
+pub fn on_entity_despawn_remove_chunk_holder(
+    event: &EntityDespawnEvent,
+    game: &mut Game,
+    world: &mut World,
+) {
     // If entity had chunk holds, remove them all
-    if let Some(holder_comp) = world.try_get::<ChunkHolder>(entity) {
-        debug!("Removing chunk holds for entity {:?}", entity);
-        holder_comp.holds.iter().for_each(|chunk| {
-            remove_chunk_holder(game, *chunk, entity);
-        });
+    let holds = if let Some(holds) = world.try_get::<ChunkHolder>(event.entity) {
+        log::debug!("Removing chunk holds for entity {:?}", event.entity);
+        let vec = holds.holds.iter().copied().collect::<Vec<_>>(); // todo: remove allocation
+        vec
+    } else {
+        Vec::new()
+    };
+
+    for hold in holds {
+        remove_chunk_holder(game, world, hold, event.entity);
     }
 }
 
@@ -223,19 +217,19 @@ pub fn chunk_optimize(game: &mut Game) {
         return;
     }
 
-    debug!("Optimizing chunks");
+    log::debug!("Optimizing chunks");
 
     let start_time = current_time_in_millis();
     let count = AtomicU32::new(0);
 
-    game.chunk_map.par_iter_chunks().for_each(|chunk| {
+    game.chunk_map.0.par_values().for_each(|chunk| {
         count.fetch_add(chunk.write().optimize(), Ordering::Relaxed);
     });
 
     let end_time = current_time_in_millis();
     let elapsed = end_time - start_time;
 
-    debug!(
+    log::debug!(
         "Optimized {} chunk sections (took {}ms - {:.2}ms/section)",
         count.load(Ordering::Relaxed),
         elapsed,
@@ -246,15 +240,19 @@ pub fn chunk_optimize(game: &mut Game) {
 /// Adds a hold for a chunk for the given entity.
 pub fn hold_chunk(game: &mut Game, holder: &mut ChunkHolder, chunk: ChunkPosition, entity: Entity) {
     holder.holds.insert(chunk);
-    game.chunk_holders.inner.insert(chunk, entity);
-    trace!("Obtained chunk hold on {} for player {:?}", chunk, entity);
+    game.chunk_holders
+        .inner
+        .entry(chunk)
+        .or_default()
+        .push(entity);
+    log::trace!("Obtained chunk hold on {} for player {:?}", chunk, entity);
 }
 
 /// Releases a hold for a chunk for the given entity.
 pub fn release_chunk(game: &mut Game, world: &mut World, chunk: ChunkPosition, entity: Entity) {
     let mut holder = world.get_mut::<ChunkHolder>(entity);
     holder.holds.remove(&chunk);
-    if let Some(vec) = game.chunk_holders.inner.get_vec_mut(&chunk) {
+    if let Some(vec) = game.chunk_holders.inner.get_mut(&chunk) {
         let mut index = None;
         for (i, e) in vec.iter().enumerate() {
             if *e == entity {
@@ -266,8 +264,9 @@ pub fn release_chunk(game: &mut Game, world: &mut World, chunk: ChunkPosition, e
             vec.swap_remove(index);
         }
     }
-    trace!("Released chunk hold on {} for player {:?}", chunk, entity);
-    game.on_chunk_holder_release(chunk, entity);
+    log::trace!("Released chunk hold on {} for player {:?}", chunk, entity);
+    drop(holder);
+    game.handle(world, ChunkHolderReleaseEvent { chunk, entity });
 }
 
 /// Asynchronously loads the chunk at the given position.

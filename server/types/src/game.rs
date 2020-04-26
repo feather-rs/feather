@@ -214,7 +214,7 @@ impl Game {
 /// avoids constant nearby entity queries.
 #[derive(Default, Clone, Debug)]
 pub struct ChunkHolders {
-    inner: AHashMap<ChunkPosition, SmallVec<[Entity; 4]>>,
+    pub inner: AHashMap<ChunkPosition, SmallVec<[Entity; 4]>>,
 }
 
 impl ChunkHolders {
@@ -247,7 +247,7 @@ impl ChunkHolders {
 /// Do note that the information in this structure is not necessarily up to date,
 /// although a best effort is made to update the data.
 #[derive(Default)]
-pub struct ChunkEntities(AHashMap<ChunkPosition, SmallVec<[Entity; 4]>>);
+pub struct ChunkEntities(pub AHashMap<ChunkPosition, SmallVec<[Entity; 4]>>);
 
 impl ChunkEntities {
     pub fn new() -> Self {

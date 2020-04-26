@@ -1,9 +1,9 @@
+#![forbid(unsafe_code)]
+
 //! World generation for Feather.
 //!
 //! Generation is primarily based around the `ComposableGenerator`,
 //! which allows configuration of a world generator pipeline.
-
-use feather_core::{Biome, Chunk, ChunkPosition};
 
 mod biomes;
 mod composition;
@@ -14,14 +14,17 @@ mod superflat;
 mod util;
 pub mod voronoi;
 
-use crate::worldgen::finishers::{ClumpedFoliageFinisher, SingleFoliageFinisher, SnowFinisher};
 pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
 use bitvec::order::Local;
 use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
 pub use composition::BasicCompositionGenerator;
 pub use density_map::{DensityMapGeneratorImpl, HeightMapGenerator};
-use feather_blocks::BlockId;
+use feather_core::biomes::Biome;
+use feather_core::blocks::BlockId;
+use feather_core::chunk::Chunk;
+use feather_core::util::ChunkPosition;
+use finishers::{ClumpedFoliageFinisher, SingleFoliageFinisher, SnowFinisher};
 pub use noise::NoiseLerper;
 use num_traits::ToPrimitive;
 use rand::{Rng, SeedableRng};

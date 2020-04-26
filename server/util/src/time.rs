@@ -1,10 +1,8 @@
 //! Handles world time.
 
-use crate::game::Game;
-use crate::network::Network;
-use feather_core::packet::TimeUpdate;
-use fecs::{Entity, World};
-use std::ops::{Deref, DerefMut};
+use feather_core::network::packets::TimeUpdate;
+use feather_server_types::{Game, Network, PlayerJoinEvent};
+use fecs::World;
 
 /// System for incrementing time each tick.
 #[fecs::system]
@@ -13,8 +11,9 @@ pub fn increment_time(game: &mut Game) {
 }
 
 /// Event handler for sending world time to players.
-pub fn on_player_join_send_time(game: &Game, world: &World, player: Entity) {
-    let network = world.get::<Network>(player);
+#[fecs::event_handler]
+pub fn on_player_join_send_time(event: &PlayerJoinEvent, game: &Game, world: &mut World) {
+    let network = world.get::<Network>(event.player);
 
     // Send time to player.
     let packet = TimeUpdate {

@@ -1,13 +1,11 @@
 //! A bunch of math-related functions for use with
 //! the physics system.
 
-use crate::game::Game;
-use crate::physics::block_bboxes::bbox_for_block;
-use crate::physics::AABBExt;
+use crate::block_bboxes::bbox_for_block;
 use bitflags::bitflags;
-use feather_blocks::BlockId;
-use feather_core::world::{BlockPosition, Position};
-use feather_core::ChunkPosition;
+use feather_core::blocks::BlockId;
+use feather_core::util::{BlockPosition, ChunkPosition, Position};
+use feather_server_types::{AABBExt, Game};
 use fecs::{Entity, World};
 use glm::{vec3, DVec3, Vec3};
 use heapless::consts::*;
@@ -16,8 +14,6 @@ use ncollide3d::bounding_volume::AABB;
 use ncollide3d::query;
 use ncollide3d::query::{Ray, RayCast};
 use ncollide3d::shape::{Compound, Cuboid, ShapeHandle};
-use rand::Rng;
-use rand_distr::{Distribution, StandardNormal};
 use smallvec::SmallVec;
 use std::cmp::Ordering;
 use std::f64::INFINITY;
@@ -302,7 +298,7 @@ pub fn blocks_intersecting_bbox(
     let axis = [(1, 1), (1, -1), (0, 1), (0, -1), (2, 1), (2, -1)];
 
     // Compute a vector of compound shapes and axis normals representing adjacent blocks.
-    let mut blocks: SmallVec<[Compound<f64>; 4]> = smallvec![];
+    let mut blocks: SmallVec<[Compound<f64>; 4]> = SmallVec::new();
 
     // Don't check the same block twice.
     let mut checked = heapless::FnvIndexSet::new();
@@ -392,7 +388,7 @@ pub fn adjacent_to_bbox(
     let sign = f64::from(sign);
 
     let size = bbox.size() / 2.0;
-    let mut blocks: SmallVec<[(BlockPosition, BlockId); 4]> = smallvec![];
+    let mut blocks: SmallVec<[(BlockPosition, BlockId); 4]> = SmallVec::new();
 
     let other_axis1 = match axis {
         0 => 1,

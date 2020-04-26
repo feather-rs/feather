@@ -1,6 +1,7 @@
-use crate::worldgen::voronoi::VoronoiGrid;
-use crate::worldgen::{BiomeGenerator, ChunkBiomes};
-use feather_core::{Biome, ChunkPosition};
+use crate::voronoi::VoronoiGrid;
+use crate::{BiomeGenerator, ChunkBiomes};
+use feather_core::biomes::Biome;
+use feather_core::util::ChunkPosition;
 use num_traits::FromPrimitive;
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;

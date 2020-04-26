@@ -1,11 +1,13 @@
 //! Composition generator, used to populate chunks with blocks
 //! based on the density and biome values.
 
-use crate::worldgen::{block_index, util, ChunkBiomes, CompositionGenerator, SEA_LEVEL};
+use crate::{block_index, util, ChunkBiomes, CompositionGenerator, SEA_LEVEL};
 use bitvec::order::Local;
 use bitvec::slice::BitSlice;
-use feather_blocks::BlockId;
-use feather_core::{Biome, Chunk, ChunkPosition};
+use feather_core::biomes::Biome;
+use feather_core::blocks::BlockId;
+use feather_core::chunk::Chunk;
+use feather_core::util::ChunkPosition;
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
 use std::cmp::min;

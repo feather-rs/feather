@@ -5,3 +5,14 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+feather-core = { path = "../../core" }
+feather-server-types = { path = "../types" }
+
+fecs = { path = "/home/caelum/dev/fecs" }
+nalgebra = "0.20"
+nalgebra-glm = "0.6"
+ncollide3d = "0.22"
+heapless = "0.5"
+smallvec = "1.4"
+bitflags = "1.2"
+parking_lot = "0.10"
