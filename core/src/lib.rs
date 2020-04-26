@@ -10,3 +10,5 @@ pub extern crate feather_items as items;
 pub extern crate feather_network as network;
 pub extern crate feather_text as text;
 pub extern crate feather_util as util;
+
+pub use util::position;

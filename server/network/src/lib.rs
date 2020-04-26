@@ -4,35 +4,28 @@
 //! and Tokio. Contains a listener task which accepts new connections
 //! and a worker task for each client which reads and writes packets.
 
-use crate::config::Config;
-use crate::packet_buffer::PacketBuffers;
+pub const PROTOCOL_VERSION: u32 = 404;
+pub const SERVER_VERSION: &str = "Feather 1.13.2";
+
+#[macro_use]
+extern crate feather_core;
+
 use derivative::Derivative;
-use feather_core::network::packet::Packet;
-use feather_core::player_data::PlayerData;
-use feather_core::Position;
+use feather_core::anvil::player::PlayerData;
+use feather_core::util::Position;
+use feather_server_types::{
+    Config, PacketBuffers, ServerToWorkerMessage, Uuid, WorkerToServerMessage,
+};
 use fecs::Entity;
-use futures::channel::mpsc;
+use once_cell::sync::Lazy;
+use parking_lot::Mutex;
 use std::net::SocketAddr;
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
-use uuid::Uuid;
 
 mod initial_handler;
 mod listener;
 mod worker;
-
-pub enum ServerToWorkerMessage {
-    /// Requests that a packet be sent to the client.
-    SendPacket(Box<dyn Packet>),
-    /// Requests that the client be disconnected.
-    Disconnect,
-}
-
-#[derive(Debug)]
-pub enum WorkerToServerMessage {
-    /// Notifies the server thread that the player disconnected.
-    NotifyDisconnected { reason: String },
-}
 
 #[derive(Debug)]
 #[allow(clippy::large_enum_variant)]
@@ -71,18 +64,18 @@ pub struct NewClientInfo {
     pub position: Position,
 
     #[derivative(Debug = "ignore")]
-    pub sender: mpsc::UnboundedSender<ServerToWorkerMessage>,
+    pub sender: flume::Sender<ServerToWorkerMessage>,
     #[derivative(Debug = "ignore")]
-    pub receiver: crossbeam::Receiver<WorkerToServerMessage>,
+    pub receiver: flume::Receiver<WorkerToServerMessage>,
 
     pub entity: Entity,
 }
 
 pub struct NetworkIoManager {
-    pub rx: crossbeam::Receiver<ListenerToServerMessage>,
-    pub tx: mpsc::UnboundedSender<ServerToListenerMessage>,
+    pub rx: Mutex<flume::Receiver<ListenerToServerMessage>>,
+    pub tx: flume::Sender<ServerToListenerMessage>,
     /// Used for testing
-    pub listener_tx: crossbeam::Sender<ListenerToServerMessage>,
+    pub listener_tx: flume::Sender<ListenerToServerMessage>,
 }
 
 impl NetworkIoManager {
@@ -94,10 +87,10 @@ impl NetworkIoManager {
         server_icon: Arc<Option<String>>,
         packet_buffers: Arc<PacketBuffers>,
     ) -> Self {
-        info!("Starting IO listener on {}", addr,);
+        log::info!("Starting IO listener on {}", addr,);
 
-        let (listener_tx, rx) = crossbeam::unbounded();
-        let (tx, listener_rx) = mpsc::unbounded();
+        let (listener_tx, rx) = flume::bounded(16);
+        let (tx, listener_rx) = flume::bounded(16);
 
         let future = run_listener(
             addr,
@@ -117,7 +110,7 @@ impl NetworkIoManager {
         }
 
         Self {
-            rx,
+            rx: Mutex::new(rx),
             tx,
             listener_tx,
         }
@@ -126,13 +119,13 @@ impl NetworkIoManager {
 
 /// Initializes certain static variables.
 pub fn init() {
-    lazy_static::initialize(&initial_handler::RSA_KEY);
+    Lazy::force(&initial_handler::RSA_KEY);
 }
 
 async fn run_listener(
     addr: SocketAddr,
-    tx: crossbeam::Sender<ListenerToServerMessage>,
-    rx: mpsc::UnboundedReceiver<ServerToListenerMessage>,
+    tx: flume::Sender<ListenerToServerMessage>,
+    rx: flume::Receiver<ServerToListenerMessage>,
     config: Arc<Config>,
     player_count: Arc<AtomicU32>,
     server_icon: Arc<Option<String>>,
@@ -149,7 +142,7 @@ async fn run_listener(
     )
     .await
     {
-        error!("An error occurred while binding to socket: {:?}", e);
+        log::error!("An error occurred while binding to socket: {:?}", e);
         std::process::exit(1);
     }
 }

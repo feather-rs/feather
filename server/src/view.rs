@@ -35,7 +35,7 @@ use std::sync::Arc;
 
 /// System which polls for updated positions and
 /// calls `Game::on_chunk_cross()` accordingly.
-#[system]
+#[fecs::system]
 pub fn check_crossed_chunks(world: &mut World, game: &mut Game) {
     let mut crossed = BumpVec::new_in(game.bump());
     for (entity, (pos, prev_pos)) in

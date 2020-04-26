@@ -30,7 +30,7 @@ pub fn clear_weather(game: &mut Game) {
     set_weather(game, Weather::Clear, durration);
 }
 
-#[system]
+#[fecs::system]
 pub fn handle_weather(game: &mut Game, world: &mut World) {
     if game.level.clear_weather_time >= 0 {
         game.level.clear_weather_time -= 1;

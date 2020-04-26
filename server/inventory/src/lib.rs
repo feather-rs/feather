@@ -1,1 +1,0 @@
-#![forbid(unsafe_code)]

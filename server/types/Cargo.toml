@@ -5,11 +5,22 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-feather-inventory = { path = "../../core/inventory" }
-feather-util = { path = "../../core/util" }
-feather-chunk-map = { path = "../../core/chunk_map" }
+feather-core = { path = "../../core" }
+feather-server-config = { path = "../config" }
+feather-server-packet-buffer = { path = "../packet_buffer" }
 
-fecs = { git = "https://github.com/feather-rs/fecs", rev = "93471f3db3cf62b6f86bab2942ecf56158d2d242" }
-uuid = "0.8"
+fecs = { path = "/home/caelum/dev/fecs" }
+uuid = { version = "0.8", features = ["v4"] }
 nalgebra-glm = "0.6"
 ncollide3d = "0.22"
+ahash = "0.3"
+smallvec = "1.4"
+rand = { version = "0.7", features = ["small_rng"] }
+thread_local = "1.0"
+bumpalo = { version = "3.2", features = ["collections"] }
+log = "0.4"
+flume = "0.7"
+parking_lot = "0.10"
+anyhow = "1.0"
+inventory = "0.1"
+dashmap = "3.11"

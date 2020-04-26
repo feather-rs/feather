@@ -5,3 +5,25 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+feather-core = { path = "../../core" }
+feather-server-types = { path = "../types" }
+
+fecs = { path = "/home/caelum/dev/fecs" }
+tokio = { version = "0.2", features = ["full"] }
+tokio-util = { version = "0.3", features = ["codec"] }
+flume = "0.7"
+derivative = "2.1"
+mojang-api = "0.6"
+parking_lot = "0.10"
+log = "0.4"
+once_cell = "1.3"
+futures = "0.3"
+anyhow = "1.0"
+thiserror = "1.0"
+serde_json = "1.0"
+num-bigint-dig = "0.6"
+
+# Crypto
+rsa = "0.2"
+rsa-der = "0.2"
+rand = "0.7"

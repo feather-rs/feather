@@ -17,8 +17,7 @@ path = "src/main.rs"
 feather-core = { path = "../core" }
 
 # Core ECS + systems
-fecs = { git = "https://github.com/feather-rs/fecs", rev = "d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617" }
-# fecs = { path = "../../../dev/fecs" }
+# fecs = { path = "/home/caelum/dev/fecs" }
 
 # Concurrency/threading
 crossbeam = "0.7"
@@ -99,10 +98,6 @@ anyhow = "1.0"
 [dev-dependencies]
 criterion = "0.3"
 approx = "0.3"
-
-[[bench]]
-name = "worldgen"
-harness = false
 
 [features]
 nightly = ["hashbrown/nightly", "parking_lot/nightly"]

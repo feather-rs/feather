@@ -1,0 +1,17 @@
+[package]
+name = "feather-server-player"
+version = "0.5.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-core = { path = "../../core" }
+feather-server-types = { path = "../types" }
+feather-server-util = { path = "../util" }
+feather-server-network = { path = "../network" }
+entity = { path = "../entities", package = "feather-server-entities" }
+
+fecs = { path = "/home/caelum/dev/fecs" }
+log = "0.4"
+mojang-api = "0.6"
+nalgebra-glm = "0.6"

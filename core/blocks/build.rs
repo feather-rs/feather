@@ -35,7 +35,7 @@ fn main() {
 
             println!(
                 "cargo:rerun-if-changed={}",
-                concat!(env!("CARGO_MANIFEST_DIR"), "/../data/minecraft")
+                concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/minecraft")
             );
         }
         Err(e) => {

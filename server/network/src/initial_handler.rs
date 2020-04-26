@@ -20,20 +20,19 @@ use std::sync::Arc;
 use rand::rngs::OsRng;
 use rsa::{PaddingScheme, PublicKey, RSAPrivateKey};
 use rsa_der as der;
-use uuid::Uuid;
 
 use thiserror::Error;
 
-use feather_core::network::cast_packet;
-use feather_core::network::packet::implementation::{
+use feather_core::network::{cast_packet, Packet, PacketStage, PacketType};
+
+use crate::{PROTOCOL_VERSION, SERVER_VERSION};
+use feather_core::network::packets::{
     DisconnectLogin, EncryptionRequest, EncryptionResponse, Handshake, HandshakeState, LoginStart,
     LoginSuccess, Ping, Pong, Request, Response, SetCompression,
 };
-use feather_core::network::packet::{Packet, PacketStage, PacketType};
-
-use crate::config::{Config, ProxyMode};
-use crate::{PROTOCOL_VERSION, SERVER_VERSION};
+use feather_server_types::{Config, ProxyMode, Uuid};
 use mojang_api::ProfileProperty;
+use once_cell::sync::Lazy;
 
 /// The key used for symmetric encryption.
 pub type Key = [u8; 16];
@@ -46,12 +45,10 @@ const RSA_KEY_BITS: usize = 1024;
 /// The number of bytes in the shared secret
 const SHARED_SECRET_LEN: usize = 128 / 8;
 
-lazy_static! {
-    pub static ref RSA_KEY: RSAPrivateKey = {
-        let mut rng = OsRng;
-        RSAPrivateKey::new(&mut rng, RSA_KEY_BITS).unwrap()
-    };
-}
+pub static RSA_KEY: Lazy<RSAPrivateKey> = Lazy::new(|| {
+    let mut rng = OsRng;
+    RSAPrivateKey::new(&mut rng, RSA_KEY_BITS).unwrap()
+});
 
 /// An action for the worker thread to execute
 /// after `InitialHandler::handle_packet` is called.
@@ -172,13 +169,13 @@ impl InitialHandler {
             disconnect_login(self, &format!("{}", e));
 
             if let Some(info) = &self.info {
-                info!(
+                log::info!(
                     "Player {} disconnected: {}",
                     info.username.as_ref().unwrap_or(&"unknown".to_string()),
                     e
                 );
             } else {
-                info!("Player unknown disconnected: {}", e);
+                log::info!("Player unknown disconnected: {}", e);
             }
         }
     }
@@ -302,7 +299,7 @@ fn handle_request(ih: &mut InitialHandler, packet: &Request) -> Result<(), Error
     let server_icon = (*ih.server_icon).clone().unwrap_or_default();
 
     // Send response packet
-    let json = json!({
+    let json = serde_json::json!({
         "version": {
             "name": SERVER_VERSION,
             "protocol": PROTOCOL_VERSION,
@@ -351,7 +348,7 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
     // already finished, so we can call `finish` after
     // setting the player's info.
     if ih.config.server.online_mode {
-        use num_bigint::{BigInt, Sign::Plus};
+        use num_bigint_dig::{BigInt, Sign::Plus};
         // Start enabling encryption
         let der = der::public_key_to_der(
             &BigInt::from_biguint(Plus, RSA_KEY.n().clone()).to_signed_bytes_be(),
@@ -420,7 +417,7 @@ async fn handle_encryption_response(
     ih.action_queue
         .push(Action::EnableEncryption(ih.key.unwrap()));
 
-    use num_bigint::{BigInt, Sign::Plus};
+    use num_bigint_dig::{BigInt, Sign::Plus};
     let der = der::public_key_to_der(
         &BigInt::from_biguint(Plus, RSA_KEY.n().clone()).to_signed_bytes_be(),
         &BigInt::from_biguint(Plus, RSA_KEY.e().clone()).to_signed_bytes_be(),
@@ -518,7 +515,7 @@ fn check_stage(ih: &InitialHandler, expected: Stage, packet_ty: PacketType) -> R
 /// Disconnects the initial handler, sending
 /// a disconnect packet containing the reason.
 fn disconnect_login(ih: &mut InitialHandler, reason: &str) {
-    let json = json!({
+    let json = serde_json::json!({
         "text": reason,
     })
     .to_string();
@@ -570,10 +567,10 @@ enum Stage {
 #[cfg(test)]
 mod tests {
     use feather_core::network::cast_packet;
-    use feather_core::network::packet::implementation::{
+    use feather_core::network::packets::{
         Handshake, HandshakeState, LoginSuccess, Ping, Pong, Request, Response, SetCompression,
     };
-    use feather_core::network::packet::PacketType;
+    use feather_core::network::PacketType;
 
     use crate::PROTOCOL_VERSION;
 

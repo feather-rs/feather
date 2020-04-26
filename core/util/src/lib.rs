@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 
 extern crate nalgebra_glm as glm;
 
+mod math_types;
 #[macro_use]
 mod positions;
-mod math_types;
 
 pub use math_types::*;
 pub use positions::{BlockPosition, ChunkPosition, Position};

@@ -42,7 +42,7 @@ pub struct ChunkLoadFailEvent {
 }
 
 /// System for receiving loaded chunks from the chunk worker thread.
-#[system]
+#[fecs::system]
 pub fn chunk_load(game: &mut Game, world: &mut World) {
     while let Ok(reply) = game.chunk_worker_handle.receiver.try_recv() {
         if let chunk_worker::Reply::LoadedChunk(pos, result) = reply {
@@ -145,7 +145,7 @@ const CHUNK_UNLOAD_TIME: u64 = TPS * 5; // 5 seconds - TODO make this configurab
 /// could quickly move between chunk boundaries, causing
 /// chunks at the edge of their view distance
 /// to be loaded and unloaded at an alarming rate.
-#[system]
+#[fecs::system]
 pub fn chunk_unload(game: &mut Game, world: &mut World) {
     // Unload chunks which are finished in the queue.
 
@@ -192,27 +192,6 @@ pub fn on_chunk_holder_release_unload_chunk(game: &mut Game, chunk: ChunkPositio
     }
 }
 
-/// Component which stores which
-/// chunks a given entity has a holder
-/// on.
-///
-/// Although this information is also
-/// stored in the `ChunkHolders` resource,
-/// using this component allows for efficiently
-/// finding which chunks a given entity has
-/// a hold on, rather than having
-/// to linear search all chunks (obviously ridiculous).
-#[derive(Default)]
-pub struct ChunkHolder {
-    pub holds: HashSet<ChunkPosition>,
-}
-
-impl ChunkHolder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
 /// System for removing an entity's chunk holds
 /// once it is destroyed.
 pub fn on_entity_despawn_remove_chunk_holder(game: &mut Game, world: &mut World, entity: Entity) {
@@ -237,7 +216,7 @@ const CHUNK_OPTIMIZE_INTERVAL: u64 = TPS * 60 * 5; // 5 minutes
 /// For optimal performance, this system is fully
 /// concurrent - each chunk optimization is split
 /// into a separate job and fed into `rayon`.
-#[system]
+#[fecs::system]
 pub fn chunk_optimize(game: &mut Game) {
     // Only run every CHUNK_OPTIMIZE_INTERVAL ticks
     if game.tick_count % CHUNK_OPTIMIZE_INTERVAL != 0 {

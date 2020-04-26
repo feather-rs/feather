@@ -13,14 +13,8 @@ use fecs::{Entity, IntoQuery, Read, World};
 use smallvec::SmallVec;
 use std::ops::Deref;
 
-/// Component containing the last sent positions of all entities for a given client.
-/// This component is used to determine
-/// the relative movement for an entity.
-#[derive(Default, Debug)]
-pub struct LastKnownPositions(pub DashMap<Entity, Position>);
-
 /// System to broadcast when an entity moves.
-#[system]
+#[fecs::system]
 pub fn broadcast_movement(game: &mut Game, world: &mut World) {
     <(Read<Position>, Read<PreviousPosition>, Read<EntityId>)>::query().par_entities_for_each(
         world.inner(),
@@ -93,7 +87,7 @@ pub fn on_entity_client_remove_update_last_known_positions(
 }
 
 /// Broadcasts an entity's velocity.
-#[system]
+#[fecs::system]
 pub fn broadcast_velocity(world: &mut World, game: &mut Game) {
     <(Read<Velocity>, Read<PreviousVelocity>, Read<EntityId>)>::query().par_entities_for_each(
         world.inner(),

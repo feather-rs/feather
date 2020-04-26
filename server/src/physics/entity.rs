@@ -18,7 +18,7 @@ pub struct EntityPhysicsLandEvent {
 
 /// System for updating all entities' positions and velocities
 /// each tick.
-#[system]
+#[fecs::system]
 pub fn entity_physics(game: &mut Game, world: &mut World) {
     // Go through entities and update their positions according
     // to their velocities.

@@ -228,72 +228,6 @@ pub fn block_impacted_by_ray(
     None
 }
 
-pub fn charge_from_ticks_held(ticks: u32) -> f32 {
-    let ticks = ticks as f32;
-
-    let mut unbounded_force = (ticks * (ticks + 40.0)) / 400.0;
-
-    if unbounded_force > 3.0 {
-        unbounded_force = 3.0
-    }
-
-    unbounded_force
-}
-
-pub fn compute_projectile_velocity(
-    direction: DVec3,
-    charge: f64,
-    inaccuracy: f64,
-    rng: &mut impl Rng,
-) -> DVec3 {
-    let gaussian = vec3(
-        StandardNormal.sample(rng),
-        StandardNormal.sample(rng),
-        StandardNormal.sample(rng),
-    );
-    let inaccuracy = vec3(inaccuracy, inaccuracy, inaccuracy).component_mul(&gaussian) * 0.0075;
-
-    (direction + inaccuracy) * charge
-}
-
-/// Returns all entities within the given distance of the given
-/// position.
-///
-/// # Panics
-/// Panics if either coordinate of the radius is negative.
-pub fn nearby_entities(
-    world: &World,
-    game: &Game,
-    pos: Position,
-    radius: DVec3,
-) -> SmallVec<[Entity; 4]> {
-    assert!(radius.x >= 0.0);
-    assert!(radius.y >= 0.0);
-    assert!(radius.z >= 0.0);
-
-    let mut result = smallvec![];
-
-    for chunk in chunks_within_distance(pos, radius) {
-        let entities = game.chunk_entities.entities_in_chunk(chunk);
-        entities
-            .iter()
-            .copied()
-            .filter(|e| {
-                let epos = world.try_get::<Position>(*e);
-                if let Some(epos) = epos {
-                    (epos.x - pos.x).abs() <= radius.x
-                        && (epos.y - pos.y).abs() <= radius.y
-                        && (epos.z - pos.z).abs() <= radius.z
-                } else {
-                    false
-                }
-            })
-            .for_each(|e| result.push(e));
-    }
-
-    result
-}
-
 /// The offsets which need to be applied to a position
 /// to prevent it from intersecting with a block.
 #[derive(Debug, Clone)]
@@ -547,58 +481,6 @@ pub fn block_isometry(pos: BlockPosition) -> Isometry3<f64> {
         ),
         vec3(0.0, 0.0, 0.0),
     )
-}
-
-/// Finds all chunks within a given distance (in blocks)
-/// of a position.
-///
-/// The Y coordinate of `distance` is ignored.
-pub fn chunks_within_distance(
-    mut pos: Position,
-    mut distance: DVec3,
-) -> SmallVec<[ChunkPosition; 9]> {
-    assert!(distance.x >= 0.0);
-    assert!(distance.z >= 0.0);
-
-    let mut result = smallvec![];
-
-    let mut x_len = 0;
-    let mut z_len = 0;
-
-    let center_chunk_pos = pos.chunk();
-
-    loop {
-        let needed = ((pos.x + 16.0) / 16.0).floor() * 16.0 - pos.x;
-        if needed > distance.x {
-            break;
-        }
-
-        distance.x -= needed;
-        pos.x += needed;
-        x_len += 1;
-    }
-
-    loop {
-        let needed = ((pos.z + 16.0) / 16.0).floor() * 16.0 - pos.z;
-        if needed > distance.z {
-            break;
-        }
-
-        distance.z -= needed;
-        pos.z += needed;
-        z_len += 1;
-    }
-
-    for x in -x_len..=x_len {
-        for z in -z_len..=z_len {
-            result.push(ChunkPosition::new(
-                x + center_chunk_pos.x,
-                z + center_chunk_pos.z,
-            ));
-        }
-    }
-
-    result
 }
 
 /// Returns a point at the "front" of the bounding

@@ -3,11 +3,9 @@
 //! This task listens on a `TcpListener` and accepts
 //! connections, spawning worker tasks to handle them,4.
 
-use crate::config::Config;
-use crate::io::worker::run_worker;
-use crate::io::{ListenerToServerMessage, ServerToListenerMessage};
-use crate::packet_buffer::PacketBuffers;
-use futures::channel::mpsc;
+use crate::worker::run_worker;
+use crate::{ListenerToServerMessage, ServerToListenerMessage};
+use feather_server_types::{Config, PacketBuffers};
 use std::net::SocketAddr;
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
@@ -17,8 +15,8 @@ use tokio::sync::Mutex;
 
 pub async fn run_listener(
     address: SocketAddr,
-    tx: crossbeam::Sender<ListenerToServerMessage>,
-    rx: mpsc::UnboundedReceiver<ServerToListenerMessage>,
+    tx: flume::Sender<ListenerToServerMessage>,
+    rx: flume::Receiver<ServerToListenerMessage>,
     config: Arc<Config>,
     player_count: Arc<AtomicU32>,
     server_icon: Arc<Option<String>>,
@@ -32,12 +30,12 @@ pub async fn run_listener(
         let (stream, ip) = match listener.accept().await {
             Ok(res) => res,
             Err(e) => {
-                info!("Failed to accept connection: {:?}", e);
+                log::info!("Failed to accept connection: {:?}", e);
                 continue;
             }
         };
 
-        info!("Connection received from {}", ip);
+        log::info!("Connection received from {}", ip);
 
         tokio::spawn(run_worker(
             stream,

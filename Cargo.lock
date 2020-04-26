@@ -528,9 +528,9 @@ dependencies = [
 
 [[package]]
 name = "dashmap"
-version = "3.10.0"
+version = "3.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0899c830f359a74834c84ed43b4c0cb6fd714a6fa64e20ab78c78f8cf86d8fc0"
+checksum = "0f87a04c37da1d3d27db1fb7f372802b72fb8c3ff3e9c0914530995127f4a6a1"
 dependencies = [
  "ahash",
  "cfg-if",
@@ -550,9 +550,9 @@ dependencies = [
 
 [[package]]
 name = "derivative"
-version = "2.0.2"
+version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b94d2eb97732ec84b4e25eaf37db890e317b80e921f168c82cb5282473f8151"
+checksum = "cb582b60359da160a9477ee80f15c8d784c477e69c217ef2cdd4169c24ea380f"
 dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.1",
@@ -702,7 +702,7 @@ dependencies = [
  "feather-biomes",
  "feather-blocks",
  "feather-util",
- "smallvec 1.3.0",
+ "smallvec 1.4.0",
 ]
 
 [[package]]
@@ -800,7 +800,7 @@ version = "0.1.0"
 dependencies = [
  "feather-items",
  "once_cell",
- "smallvec 1.3.0",
+ "smallvec 1.4.0",
 ]
 
 [[package]]
@@ -868,9 +868,8 @@ dependencies = [
  "crossbeam",
  "ctrlc",
  "dashmap",
- "derivative 2.0.2",
+ "derivative 2.1.1",
  "feather-core",
- "fecs 0.1.0 (git+https://github.com/feather-rs/fecs?rev=d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617)",
  "futures",
  "hashbrown",
  "heapless",
@@ -884,8 +883,8 @@ dependencies = [
  "log",
  "mojang-api",
  "multimap",
- "nalgebra 0.20.0",
- "nalgebra-glm 0.6.0",
+ "nalgebra",
+ "nalgebra-glm",
  "ncollide3d",
  "num-bigint-dig",
  "num-derive",
@@ -902,7 +901,7 @@ dependencies = [
  "simdeez",
  "simdnoise",
  "simple_logger",
- "smallvec 1.3.0",
+ "smallvec 1.4.0",
  "strum 0.18.0",
  "thiserror",
  "thread_local",
@@ -934,14 +933,17 @@ dependencies = [
 [[package]]
 name = "feather-server-entities"
 version = "0.5.0"
-
-[[package]]
-name = "feather-server-interaction"
-version = "0.5.0"
-
-[[package]]
-name = "feather-server-inventory"
-version = "0.5.0"
+dependencies = [
+ "anyhow",
+ "feather-core",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
+ "inventory",
+ "nalgebra-glm",
+ "parking_lot 0.10.0",
+ "rand",
+]
 
 [[package]]
 name = "feather-server-lighting"
@@ -950,35 +952,110 @@ version = "0.5.0"
 [[package]]
 name = "feather-server-network"
 version = "0.5.0"
+dependencies = [
+ "anyhow",
+ "derivative 2.1.1",
+ "feather-core",
+ "feather-server-types",
+ "fecs",
+ "flume",
+ "futures",
+ "log",
+ "mojang-api",
+ "num-bigint-dig",
+ "once_cell",
+ "parking_lot 0.10.0",
+ "rand",
+ "rsa",
+ "rsa-der",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tokio-util 0.3.1",
+]
 
 [[package]]
 name = "feather-server-packet-buffer"
 version = "0.5.0"
+dependencies = [
+ "ahash",
+ "crossbeam",
+ "feather-core",
+ "fecs",
+ "indexmap",
+ "num-traits",
+ "once_cell",
+ "parking_lot 0.10.0",
+ "smallvec 1.4.0",
+ "strum 0.18.0",
+]
 
 [[package]]
 name = "feather-server-physics"
 version = "0.5.0"
 
 [[package]]
+name = "feather-server-player"
+version = "0.5.0"
+dependencies = [
+ "feather-core",
+ "feather-server-entities",
+ "feather-server-network",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
+ "log",
+ "mojang-api",
+ "nalgebra-glm",
+]
+
+[[package]]
 name = "feather-server-template"
 version = "0.5.0"
+dependencies = [
+ "feather-core",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
+]
 
 [[package]]
 name = "feather-server-types"
 version = "0.5.0"
 dependencies = [
- "feather-chunk-map",
- "feather-inventory",
- "feather-util",
- "fecs 0.1.0 (git+https://github.com/feather-rs/fecs?rev=93471f3db3cf62b6f86bab2942ecf56158d2d242)",
- "nalgebra-glm 0.6.0",
+ "ahash",
+ "anyhow",
+ "bumpalo",
+ "dashmap",
+ "feather-core",
+ "feather-server-config",
+ "feather-server-packet-buffer",
+ "fecs",
+ "flume",
+ "inventory",
+ "log",
+ "nalgebra-glm",
  "ncollide3d",
+ "parking_lot 0.10.0",
+ "rand",
+ "smallvec 1.4.0",
+ "thread_local",
  "uuid",
 ]
 
 [[package]]
 name = "feather-server-util"
 version = "0.5.0"
+dependencies = [
+ "arrayvec",
+ "feather-core",
+ "feather-server-types",
+ "fecs",
+ "nalgebra-glm",
+ "rand",
+ "rand_distr",
+ "smallvec 1.4.0",
+]
 
 [[package]]
 name = "feather-server-weather"
@@ -999,7 +1076,7 @@ dependencies = [
 name = "feather-util"
 version = "0.1.0"
 dependencies = [
- "nalgebra-glm 0.7.0",
+ "nalgebra-glm",
  "num-derive",
  "num-traits",
  "serde",
@@ -1013,40 +1090,18 @@ version = "0.1.0"
 [[package]]
 name = "fecs"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=93471f3db3cf62b6f86bab2942ecf56158d2d242#93471f3db3cf62b6f86bab2942ecf56158d2d242"
 dependencies = [
+ "arrayvec",
  "erasable",
- "fecs-macros 0.1.0 (git+https://github.com/feather-rs/fecs?rev=93471f3db3cf62b6f86bab2942ecf56158d2d242)",
+ "fecs-macros",
  "fxhash",
  "legion",
- "smallvec 1.3.0",
-]
-
-[[package]]
-name = "fecs"
-version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617#d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617"
-dependencies = [
- "fecs-macros 0.1.0 (git+https://github.com/feather-rs/fecs?rev=d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617)",
- "fxhash",
- "inventory",
- "legion",
+ "smallvec 1.4.0",
 ]
 
 [[package]]
 name = "fecs-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=93471f3db3cf62b6f86bab2942ecf56158d2d242#93471f3db3cf62b6f86bab2942ecf56158d2d242"
-dependencies = [
- "proc-macro2 1.0.7",
- "quote 1.0.1",
- "syn 1.0.13",
-]
-
-[[package]]
-name = "fecs-macros"
-version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617#d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617"
 dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.1",
@@ -1085,6 +1140,16 @@ dependencies = [
  "crc32fast",
  "libc",
  "miniz_oxide",
+]
+
+[[package]]
+name = "flume"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "855e285c3835897065a6ba6f9463b44553eb9f29c7988d692f3d41283b47388b"
+dependencies = [
+ "futures",
+ "spin",
 ]
 
 [[package]]
@@ -1549,7 +1614,7 @@ dependencies = [
  "itertools 0.8.2",
  "parking_lot 0.10.0",
  "rayon",
- "smallvec 1.3.0",
+ "smallvec 1.4.0",
  "thiserror",
  "tracing",
 ]
@@ -1796,24 +1861,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nalgebra"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d630f146ae751cfb43db9e0ad6bd73819a546a38baa5d4a9de69823c389c78a1"
-dependencies = [
- "approx",
- "generic-array 0.13.2",
- "matrixmultiply",
- "num-complex",
- "num-rational",
- "num-traits",
- "rand",
- "rand_distr",
- "simba",
- "typenum",
-]
-
-[[package]]
 name = "nalgebra-glm"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1821,20 +1868,8 @@ checksum = "5ae78da13d67be0d2e4ab567490477e4c9f314fc151ddfff6713b15bdbb2aa72"
 dependencies = [
  "alga",
  "approx",
- "nalgebra 0.20.0",
+ "nalgebra",
  "num-traits",
-]
-
-[[package]]
-name = "nalgebra-glm"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0689d473f0cbf5d763219dc9faf5d3c3136d20583f533317cc9463f85400ca1"
-dependencies = [
- "approx",
- "nalgebra 0.21.0",
- "num-traits",
- "simba",
 ]
 
 [[package]]
@@ -1866,12 +1901,12 @@ dependencies = [
  "bitflags",
  "downcast-rs",
  "either",
- "nalgebra 0.20.0",
+ "nalgebra",
  "num-traits",
  "petgraph 0.5.0",
  "slab",
  "slotmap",
- "smallvec 1.3.0",
+ "smallvec 1.4.0",
 ]
 
 [[package]]
@@ -1934,7 +1969,7 @@ dependencies = [
  "num-traits",
  "rand",
  "serde",
- "smallvec 1.3.0",
+ "smallvec 1.4.0",
  "zeroize",
 ]
 
@@ -1998,7 +2033,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c62be47e61d1842b9170f0fdeec8eba98e60e90e5446449a0545e5152acd7096"
 dependencies = [
  "autocfg 1.0.0",
- "libm 0.2.1",
 ]
 
 [[package]]
@@ -2113,7 +2147,7 @@ dependencies = [
  "libc",
  "petgraph 0.4.13",
  "redox_syscall",
- "smallvec 1.3.0",
+ "smallvec 1.4.0",
  "thread-id",
  "winapi 0.3.8",
 ]
@@ -2280,6 +2314,7 @@ dependencies = [
  "rand_chacha",
  "rand_core",
  "rand_hc",
+ "rand_pcg",
 ]
 
 [[package]]
@@ -2326,6 +2361,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a788ae3edb696cfcba1c19bfd388cc4b8c21f8a408432b199c072825084da58a"
 dependencies = [
  "getrandom",
+ "rand_core",
+]
+
+[[package]]
+name = "rand_pcg"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16abd0c1b639e9eb4d7c50c0b8100b0d0f849be2349829c740fe8e6eb4816429"
+dependencies = [
  "rand_core",
 ]
 
@@ -2626,18 +2670,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "simba"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d771bffb178827708f83829713e3a214bc8a9879a8f27ca548965bd849ed130"
-dependencies = [
- "approx",
- "num-complex",
- "num-traits",
- "paste",
-]
-
-[[package]]
 name = "simdeez"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2703,9 +2735,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.3.0"
+version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05720e22615919e4734f6a99ceae50d00226c3c5aca406e102ebc33298214e0a"
+checksum = "c7cb5678e1615754284ec264d9bb5b4c27d2018577fd90ac0ceb578591ed5ee4"
 
 [[package]]
 name = "socket2"
@@ -3072,7 +3104,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b561e267b2326bb4cebfc0ef9e68355c7abe6c6f522aeac2f5bf95d56c59bdcf"
 dependencies = [
- "smallvec 1.3.0",
+ "smallvec 1.4.0",
 ]
 
 [[package]]

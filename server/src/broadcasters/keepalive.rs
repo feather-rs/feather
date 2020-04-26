@@ -4,7 +4,7 @@ use feather_core::network::packet::implementation::KeepAliveClientbound;
 use fecs::World;
 
 /// Broadcasts keepalives every second.
-#[system]
+#[fecs::system]
 pub fn broadcast_keepalive(game: &Game, world: &mut World) {
     if game.tick_count % TPS == 0 {
         let packet = KeepAliveClientbound {

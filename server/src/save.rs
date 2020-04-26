@@ -50,7 +50,7 @@ fn queue_for_saving(game: &mut Game, chunk: ChunkPosition) {
 
 /// System which checks for chunks which have been queued for saving
 /// and, if it is time, saves them.
-#[system]
+#[fecs::system]
 pub fn chunk_save(game: &mut Game, world: &mut World) {
     // no need to run this system every tick
     if game.tick_count % TPS != 0 {

@@ -1,7 +1,0 @@
-[package]
-name = "feather-server-inventory"
-version = "0.5.0"
-authors = ["caelunshun <caelunshun@gmail.com>"]
-edition = "2018"
-
-[dependencies]

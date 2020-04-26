@@ -6,20 +6,16 @@
 //! Packet send requests are sent over a channel from the server threads
 //! to the worker for any given client.
 
-use crate::config::Config;
-use crate::io::initial_handler::{Action, InitialHandler};
-use crate::io::{
-    ListenerToServerMessage, NewClientInfo, ServerToListenerMessage, ServerToWorkerMessage,
-    WorkerToServerMessage,
+use crate::initial_handler::{Action, InitialHandler};
+use crate::{ListenerToServerMessage, NewClientInfo, ServerToListenerMessage};
+use feather_core::anvil::entity::BaseEntityData;
+use feather_core::anvil::player::PlayerData;
+use feather_core::network::{MinecraftCodec, Packet, PacketDirection};
+use feather_core::util::{Position, Vec3d};
+use feather_server_types::{
+    Config, PacketBuffers, ServerToWorkerMessage, Uuid, WorkerToServerMessage,
 };
-use crate::packet_buffer::PacketBuffers;
-use feather_core::entity::BaseEntityData;
-use feather_core::network::codec::MinecraftCodec;
-use feather_core::network::packet::PacketDirection;
-use feather_core::player_data::PlayerData;
-use feather_core::{Packet, Position, Vec3d};
 use fecs::Entity;
-use futures::channel::mpsc;
 use futures::future::Either;
 use futures::SinkExt;
 use futures::StreamExt;
@@ -30,7 +26,6 @@ use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use tokio_util::codec::Framed;
-use uuid::Uuid;
 
 struct Worker {
     framed: Framed<TcpStream, MinecraftCodec>,
@@ -38,19 +33,19 @@ struct Worker {
     ip: SocketAddr,
     /// The listener's sender to send the initial `NewClient` message
     /// to the server. Also used to request an entity for the player.
-    listener_tx: crossbeam::Sender<ListenerToServerMessage>,
+    listener_tx: flume::Sender<ListenerToServerMessage>,
     /// Packet buffers to which we write packets received from the client.
     packet_buffers: Arc<PacketBuffers>,
     /// The channel which will be used by the server thread
     /// to send messages to `rx`.
-    server_tx: mpsc::UnboundedSender<ServerToWorkerMessage>,
+    server_tx: flume::Sender<ServerToWorkerMessage>,
     /// Channel to receive messages from the server, linked to `server_tx`.
-    rx: mpsc::UnboundedReceiver<ServerToWorkerMessage>,
+    rx: flume::Receiver<ServerToWorkerMessage>,
     /// The channel which will be used by the server thread
     /// to receive messages from the worker.
-    server_rx: crossbeam::Receiver<WorkerToServerMessage>,
-    /// Channel to send messages to the sserver, linked to `server_rx`.
-    tx: crossbeam::Sender<WorkerToServerMessage>,
+    server_rx: Option<flume::Receiver<WorkerToServerMessage>>,
+    /// Channel to send messages to the server, linked to `server_rx`.
+    tx: flume::Sender<WorkerToServerMessage>,
     /// Initial handler, set to `None` after the player has completed
     /// the login process.
     initial_handler: Option<InitialHandler>,
@@ -63,15 +58,15 @@ struct Worker {
 pub async fn run_worker(
     stream: TcpStream,
     ip: SocketAddr,
-    listener_tx: crossbeam::Sender<ListenerToServerMessage>,
-    listener_rx: Arc<Mutex<mpsc::UnboundedReceiver<ServerToListenerMessage>>>,
+    listener_tx: flume::Sender<ListenerToServerMessage>,
+    listener_rx: Arc<Mutex<flume::Receiver<ServerToListenerMessage>>>,
     config: Arc<Config>,
     player_count: Arc<AtomicU32>,
     server_icon: Arc<Option<String>>,
     packet_buffers: Arc<PacketBuffers>,
 ) {
-    let (server_tx, rx) = mpsc::unbounded();
-    let (tx, server_rx) = crossbeam::unbounded();
+    let (server_tx, rx) = flume::bounded(16);
+    let (tx, server_rx) = flume::bounded(16);
 
     let initial_handler = Some(InitialHandler::new(
         Arc::clone(&config),
@@ -91,7 +86,7 @@ pub async fn run_worker(
         packet_buffers,
         server_tx,
         rx,
-        server_rx,
+        server_rx: Some(server_rx),
         tx,
         initial_handler,
         entity,
@@ -113,8 +108,8 @@ pub async fn run_worker(
 }
 
 async fn request_entity(
-    listener_tx: &crossbeam::Sender<ListenerToServerMessage>,
-    listener_rx: &mut mpsc::UnboundedReceiver<ServerToListenerMessage>,
+    listener_tx: &flume::Sender<ListenerToServerMessage>,
+    listener_rx: &mut flume::Receiver<ServerToListenerMessage>,
 ) -> Entity {
     let _ = listener_tx.send(ListenerToServerMessage::RequestEntity);
 
@@ -201,7 +196,7 @@ async fn handle_ih_actions(worker: &mut Worker) -> anyhow::Result<()> {
                     data,
                     position,
                     sender: worker.server_tx.clone(),
-                    receiver: worker.server_rx.clone(),
+                    receiver: worker.server_rx.take().unwrap(),
                     entity: worker.entity,
                 };
 
@@ -222,7 +217,7 @@ const DEFAULT_POSITION: Position = position!(0.0, 70.0, 0.0); // TODO: better ca
 
 async fn load_player_data(config: &Config, uuid: Uuid) -> Result<PlayerData, anyhow::Error> {
     log::debug!("Loading player data for UUID {}", uuid);
-    match feather_core::player_data::load_player_data(Path::new(&config.world.name), uuid).await {
+    match feather_core::anvil::player::load_player_data(Path::new(&config.world.name), uuid).await {
         Ok(data) => Ok(data),
         Err(e) => {
             log::debug!(
@@ -237,8 +232,12 @@ async fn load_player_data(config: &Config, uuid: Uuid) -> Result<PlayerData, any
                 inventory: vec![],
             };
 
-            feather_core::player_data::save_player_data(Path::new(&config.world.name), uuid, &data)
-                .await?;
+            feather_core::anvil::player::save_player_data(
+                Path::new(&config.world.name),
+                uuid,
+                &data,
+            )
+            .await?;
 
             Ok(data)
         }
