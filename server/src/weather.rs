@@ -1,5 +1,5 @@
 use crate::{network::Network, Game, World};
-use feather_core::network::packet::implementation::ChangeGameState;
+use feather_core::network::packets::ChangeGameState;
 use fecs::Entity;
 use rand::Rng;
 

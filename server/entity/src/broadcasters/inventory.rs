@@ -1,26 +1,28 @@
 //! Broadcasting of inventory-related events.
 
-use crate::entity::EntityId;
-use crate::game::Game;
-use crate::network::Network;
-use crate::p_inventory::{EntityInventory, Equipment, InventoryUpdateEvent};
-use feather_core::inventory::{SlotIndex, SLOT_HOTBAR_OFFSET};
-use feather_core::network::packet::implementation::{EntityEquipment, SetSlot};
-use fecs::{Entity, World};
+use crate::inventory::Equipment;
+use feather_core::inventory::{Inventory, SlotIndex, SLOT_HOTBAR_OFFSET};
+use feather_core::network::packets::{EntityEquipment, SetSlot};
+use feather_server_types::{
+    EntityId, EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, Network,
+};
+use fecs::World;
 use num_traits::ToPrimitive;
 
 /// System for broadcasting equipment updates.
+#[fecs::event_handler]
 pub fn on_inventory_update_broadcast_equipment_update(
+    event: &InventoryUpdateEvent,
     game: &mut Game,
     world: &mut World,
-    event: &InventoryUpdateEvent,
 ) {
-    let inv = world.get::<EntityInventory>(event.player);
+    let inv = world.get::<Inventory>(event.player);
+    let held_item = world.get::<HeldItem>(event.player);
 
     for slot in &event.slots {
         // Skip this slot if it is not an equipment update.
-        if let Ok(equipment) = is_equipment_update(&inv, *slot) {
-            let slot = equipment.slot_index(inv.held_item);
+        if let Ok(equipment) = is_equipment_update(held_item.0, *slot) {
+            let slot = equipment.slot_index(held_item.0);
             let item = inv.item_at(slot).cloned();
 
             let packet = EntityEquipment {
@@ -36,16 +38,20 @@ pub fn on_inventory_update_broadcast_equipment_update(
 
 /// System to send an entity's equipment when the
 /// entity is sent to a client.
-pub fn on_entity_send_send_equipment(world: &mut World, entity: Entity, client: Entity) {
+#[fecs::event_handler]
+pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World) {
+    let client = event.client;
+    let entity = event.entity;
     if !world.is_alive(client) || !world.is_alive(entity) {
         return;
     }
 
     let network = world.get::<Network>(client);
-    let inventory = match world.try_get::<EntityInventory>(entity) {
+    let inventory = match world.try_get::<Inventory>(entity) {
         Some(inv) => inv,
         None => return, // no equipment to send
     };
+    let held_item = world.get::<HeldItem>(entity);
 
     let equipments = [
         Equipment::MainHand,
@@ -58,7 +64,7 @@ pub fn on_entity_send_send_equipment(world: &mut World, entity: Entity, client: 
 
     for equipment in equipments.iter() {
         let item = {
-            let slot = equipment.slot_index(inventory.held_item);
+            let slot = equipment.slot_index(held_item.0);
             inventory.item_at(slot).cloned()
         };
 
@@ -76,7 +82,7 @@ pub fn on_entity_send_send_equipment(world: &mut World, entity: Entity, client: 
 /// System for sending the Set Slot packet
 /// when a player's inventory is updated.
 pub fn on_inventory_update_send_set_slot(world: &mut World, event: &InventoryUpdateEvent) {
-    let inv = world.get::<EntityInventory>(event.player);
+    let inv = world.get::<Inventory>(event.player);
     let network = world.get::<Network>(event.player);
 
     for slot in &event.slots {
@@ -92,8 +98,8 @@ pub fn on_inventory_update_send_set_slot(world: &mut World, event: &InventoryUpd
 
 /// Returns whether the given update to an inventory
 /// is an equipment update.
-fn is_equipment_update(inv: &EntityInventory, slot: SlotIndex) -> Result<Equipment, ()> {
-    if slot >= SLOT_HOTBAR_OFFSET && slot - SLOT_HOTBAR_OFFSET == inv.held_item {
+fn is_equipment_update(held_item: SlotIndex, slot: SlotIndex) -> Result<Equipment, ()> {
+    if slot >= SLOT_HOTBAR_OFFSET && slot - SLOT_HOTBAR_OFFSET == held_item {
         Ok(Equipment::MainHand)
     } else if let Some(equipment) = Equipment::from_slot_index(slot) {
         Ok(equipment)

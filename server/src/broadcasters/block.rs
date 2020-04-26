@@ -2,7 +2,7 @@
 
 use crate::game::Game;
 use feather_blocks::BlockId;
-use feather_core::network::packet::implementation::BlockChange;
+use feather_core::network::packets::BlockChange;
 use feather_core::BlockPosition;
 use fecs::World;
 

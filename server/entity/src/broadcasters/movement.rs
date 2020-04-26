@@ -1,14 +1,14 @@
 //! Broadcasting of movement updates.
 
-use crate::entity::{EntityId, PreviousPosition, PreviousVelocity, Velocity};
-use crate::game::Game;
-use crate::network::Network;
-use crate::util::{calculate_relative_move, degrees_to_stops, protocol_velocity};
-use dashmap::DashMap;
-use feather_core::network::packet::implementation::{
+use feather_core::network::packets::{
     EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
 };
-use feather_core::{Packet, Position};
+use feather_core::network::Packet;
+use feather_core::util::Position;
+use feather_server_types::{
+    EntityId, Game, LastKnownPositions, Network, PreviousPosition, PreviousVelocity, Velocity,
+};
+use feather_server_util::{calculate_relative_move, degrees_to_stops, protocol_velocity};
 use fecs::{Entity, IntoQuery, Read, World};
 use smallvec::SmallVec;
 use std::ops::Deref;
@@ -43,11 +43,11 @@ pub fn broadcast_movement(game: &mut Game, world: &mut World) {
                             network.send_boxed(packet);
                         }
 
-                        trace!("Updated position of {:?} on client {:?}", entity, player);
+                        log::trace!("Updated position of {:?} on client {:?}", entity, player);
 
                         *last_known_pos.value_mut() = pos;
                     } else {
-                        trace!(
+                        log::trace!(
                             "Missing last position entry for {:?} on client {:?}",
                             entity,
                             player
@@ -63,7 +63,7 @@ pub fn on_entity_send_update_last_known_positions(world: &World, entity: Entity,
     if let Some(last_known_positions) = world.try_get::<LastKnownPositions>(client) {
         let pos = *world.get::<Position>(entity);
         last_known_positions.0.insert(entity, pos);
-        trace!(
+        log::trace!(
             "Inserted last position entry for {:?} (player: {:?})",
             entity,
             client
@@ -77,7 +77,7 @@ pub fn on_entity_client_remove_update_last_known_positions(
     client: Entity,
 ) {
     if let Some(last_known_positions) = world.try_get::<LastKnownPositions>(client) {
-        trace!(
+        log::trace!(
             "Removing last position entry for {:?} (player: {:?})",
             entity,
             client
@@ -124,10 +124,10 @@ fn packets_for_movement_update(
     new_pos: Position,
 ) -> SmallVec<[Box<dyn Packet>; 2]> {
     if old_pos == new_pos {
-        return smallvec![];
+        return SmallVec::new();
     }
 
-    let mut packets = smallvec![];
+    let mut packets = SmallVec::new();
 
     let has_moved = old_pos.x != new_pos.x || old_pos.y != new_pos.y || old_pos.z != new_pos.z;
     let has_looked = old_pos.pitch != new_pos.pitch
@@ -143,7 +143,7 @@ fn packets_for_movement_update(
             // event when the distance moved is minuscule,
             // which causes jittering on the client.
             // Don't send the packet if it has no effect.
-            return smallvec![];
+            return SmallVec::new();
         }
 
         if has_looked {

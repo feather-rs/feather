@@ -1,7 +1,7 @@
 use crate::entity::item::ItemCollectEvent;
 use crate::entity::EntityId;
 use crate::game::Game;
-use feather_core::network::packet::implementation::CollectItem;
+use feather_core::network::packets::CollectItem;
 use fecs::World;
 
 /// Sends `CollectItem` packet when an item is collected.

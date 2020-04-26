@@ -5,6 +5,7 @@ extern crate nalgebra_glm as glm;
 mod chat;
 mod join;
 mod packet_handlers;
+mod view;
 
 use feather_core::inventory::{Inventory, InventoryType, SLOT_HOTBAR_OFFSET};
 use feather_core::items::{Item, ItemStack};
@@ -20,9 +21,11 @@ use feather_server_types::{
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
-pub use join::*;
 use mojang_api::ProfileProperty;
+
+pub use join::*;
 pub use packet_handlers::*;
+pub use view::*;
 
 pub const PLAYER_INVENTORY_SIZE: u32 = 46;
 

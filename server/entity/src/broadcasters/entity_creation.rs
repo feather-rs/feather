@@ -1,39 +1,45 @@
-use crate::entity::{CreationPacketCreator, EntityId, SpawnPacketCreator};
-use crate::game::Game;
-use crate::network::Network;
-use crate::BumpVec;
-use feather_core::network::packet::implementation::PacketEntityMetadata;
-use feather_core::{EntityMetadata, Position};
+use feather_core::entitymeta::EntityMetadata;
+use feather_core::network::packets::PacketEntityMetadata;
+use feather_core::util::Position;
+use feather_server_types::{
+    CreationPacketCreator, EntityId, EntitySendEvent, Game, Network, PlayerJoinEvent,
+    SpawnPacketCreator,
+};
 use fecs::{Entity, IntoQuery, Read, World};
 
 /// When an entity is created and has a `CreationPacketCreator` and/or `SpawnPacketCreator`,
 /// broadcasts the packets to all online clients.
-pub fn on_entity_spawn_send_to_clients(game: &mut Game, world: &mut World, entity: Entity) {
-    let accessor = world.entity(entity).expect("entity does not exist");
+#[fecs::event_handler]
+pub fn on_entity_spawn_send_to_clients(
+    event: &EntitySendEvent,
+    game: &mut Game,
+    world: &mut World,
+) {
+    let accessor = world.entity(event.entity).expect("entity does not exist");
 
-    if let Some(creator) = world.try_get::<CreationPacketCreator>(entity) {
+    if let Some(creator) = world.try_get::<CreationPacketCreator>(event.entity) {
         let packet = creator.get(&accessor);
         game.broadcast_global_boxed(world, packet, None);
     }
-    let mut to_trigger = BumpVec::new_in(game.bump());
+    let mut to_trigger = vec![];
 
-    if let Some(creator) = world.try_get::<SpawnPacketCreator>(entity) {
+    if let Some(creator) = world.try_get::<SpawnPacketCreator>(event.entity) {
         // Send metadata before spawn packet. Not sure why this works,
         // but if we don't do this, then the client just despawns
         // the entity immediately after sending.
-        if let Some(meta) = world.try_get::<EntityMetadata>(entity) {
+        if let Some(meta) = world.try_get::<EntityMetadata>(event.entity) {
             let packet = PacketEntityMetadata {
-                entity_id: world.get::<EntityId>(entity).0,
+                entity_id: world.get::<EntityId>(event.entity).0,
                 metadata: (&*meta).clone(),
             };
-            game.broadcast_entity_update(world, packet, entity, Some(entity));
+            game.broadcast_entity_update(world, packet, event.entity, Some(event.entity));
         }
 
         // Now send spawn packet: Spawn Object / Spawn Player / Spawn Mob / whatever.
         let packet = creator.get(&accessor);
-        game.broadcast_entity_update_boxed(world, packet, entity, Some(entity));
+        game.broadcast_entity_update_boxed(world, packet, event.entity, Some(event.entity));
 
-        let chunk = world.get::<Position>(entity).chunk();
+        let chunk = world.get::<Position>(event.entity).chunk();
 
         drop(creator);
 
@@ -46,7 +52,13 @@ pub fn on_entity_spawn_send_to_clients(game: &mut Game, world: &mut World, entit
     }
 
     for client in to_trigger {
-        game.on_entity_send(world, entity, client);
+        game.handle(
+            world,
+            EntitySendEvent {
+                entity: event.entity,
+                client,
+            },
+        );
     }
 }
 
@@ -54,8 +66,9 @@ pub fn on_entity_spawn_send_to_clients(game: &mut Game, world: &mut World, entit
 ///
 /// This only handles init packets (PlayerInfo, etc.)—spawn packets
 /// are handled by the view update mechanism in `crate::view`.
-pub fn on_player_join_send_existing_entities(world: &mut World, player: Entity) {
-    let network = world.get::<Network>(player);
+#[fecs::event_handler]
+pub fn on_player_join_send_existing_entities(event: &PlayerJoinEvent, world: &mut World) {
+    let network = world.get::<Network>(event.player);
     for (entity, creator) in <Read<CreationPacketCreator>>::query().iter_entities(world.inner()) {
         let accessor = world
             .entity(entity)

@@ -21,7 +21,7 @@ members = [
     "server/chat",
     "server/chunk",
     "server/config",
-    "server/entities",
+    "server/entity",
     "server/lighting",
     "server/network",
     "server/packet_buffer",

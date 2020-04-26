@@ -320,3 +320,66 @@ pub enum ChatPosition {
     /// A text displayed above the hotbar
     GameInfo,
 }
+
+/// Event triggered when an entity crosses into a new chunk.
+#[derive(Copy, Clone, Debug)]
+pub struct ChunkCrossEvent {
+    pub entity: Entity,
+    pub old: Option<ChunkPosition>,
+    pub new: ChunkPosition,
+}
+
+/// Event triggered when an entity is sent to a client.
+///
+/// This can be used to send additional packets along with the Spawn *
+/// packet, such as entity metadata.
+#[derive(Copy, Clone, Debug)]
+pub struct EntitySendEvent {
+    /// The entity which was sent.
+    pub entity: Entity,
+    /// The client to which the entity was sent.
+    pub client: Entity,
+}
+
+/// Event triggered when an entity is destroyed on a client.
+///
+/// This can be used to clean up data. For example, the movement
+/// broadcast system stores the last known position of all visible
+/// entities for each client. It uses this event to remove
+/// entries in that map.
+#[derive(Copy, Clone, Debug)]
+pub struct EntityClientRemoveEvent {
+    /// The entity which was destroyed on the client.
+    pub entity: Entity,
+    /// The client on which the entity was destroyed.
+    pub client: Entity,
+}
+
+/// Event triggered when a chunk is loaded.
+#[derive(Copy, Clone, Debug)]
+pub struct ChunkLoadEvent {
+    pub chunk: ChunkPosition,
+}
+
+/// Requests that a chunk be held for the given client.
+///
+/// This is a "request"-type event: it has one handler defined
+/// in the `chunk` crate which executes the request.
+#[derive(Copy, Clone, Debug)]
+pub struct HoldChunkRequest {
+    pub player: Entity,
+    pub chunk: ChunkPosition,
+}
+
+/// Requests that a chunk hold be removed for the given client.
+#[derive(Copy, Clone, Debug)]
+pub struct ReleaseChunkRequest {
+    pub player: Entity,
+    pub chunk: ChunkPosition,
+}
+
+/// Requests that a chunk be queued for loading.
+#[derive(Copy, Clone, Debug)]
+pub struct LoadChunkRequest {
+    pub chunk: ChunkPosition,
+}

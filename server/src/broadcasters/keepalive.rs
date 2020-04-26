@@ -1,6 +1,6 @@
 use crate::game::Game;
 use crate::TPS;
-use feather_core::network::packet::implementation::KeepAliveClientbound;
+use feather_core::network::packets::KeepAliveClientbound;
 use fecs::World;
 
 /// Broadcasts keepalives every second.

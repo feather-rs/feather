@@ -7,7 +7,7 @@ use crate::{lighting, save};
 use crossbeam::Sender;
 use feather_core::level;
 use feather_core::level::save_level_file;
-use feather_core::network::packet::implementation::DisconnectPlay;
+use feather_core::network::packets::DisconnectPlay;
 use fecs::{IntoQuery, Read, World};
 use std::fs::File;
 

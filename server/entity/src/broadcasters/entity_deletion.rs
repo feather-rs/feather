@@ -1,11 +1,6 @@
-use crate::entity::EntityId;
-use crate::game::Game;
-use crate::player::Player;
-use feather_core::network::packet::implementation::{
-    DestroyEntities, PlayerInfo, PlayerInfoAction,
-};
+use feather_core::network::packets::{DestroyEntities, Player, PlayerInfo, PlayerInfoAction};
+use feather_server_types::{EntityId, Game, Uuid};
 use fecs::{Entity, World};
-use uuid::Uuid;
 
 /// Broadcasts when an entity is deleted.
 pub fn on_entity_despawn_broadcast_despawn(game: &mut Game, world: &mut World, entity: Entity) {

@@ -2,7 +2,7 @@
 
 use crate::chat::{ChatEvent, ChatPosition};
 use crate::game::Game;
-use feather_core::network::packet::implementation::ChatMessageClientbound;
+use feather_core::network::packets::ChatMessageClientbound;
 use fecs::World;
 
 /// System that broadcasts chat messages to all players

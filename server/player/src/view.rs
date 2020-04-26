@@ -17,14 +17,16 @@
 //! * Other systems query for added `CrossedChunk` components
 //! and perform updates on these players' views.
 
-use crate::entity::{EntityId, PreviousPosition, SpawnPacketCreator};
-use crate::game::Game;
-use crate::network::Network;
-use crate::player::Player;
-use crate::{chunk_logic, BumpVec};
+use crate::Player;
 use ahash::AHashMap;
-use feather_core::network::packet::implementation::{ChunkData, DestroyEntities, UnloadChunk};
-use feather_core::{Chunk, ChunkPosition, Position};
+use feather_core::chunk::Chunk;
+use feather_core::network::packets::{ChunkData, DestroyEntities, UnloadChunk};
+use feather_core::util::{ChunkPosition, Position};
+use feather_server_types::{
+    BumpVec, ChunkCrossEvent, ChunkLoadEvent, ChunkSendEvent, EntityClientRemoveEvent, EntityId,
+    EntitySendEvent, Game, HoldChunkRequest, LoadChunkRequest, Network, PlayerJoinEvent,
+    PreviousPosition, ReleaseChunkRequest, SpawnPacketCreator,
+};
 use fecs::{Entity, IntoQuery, Read, World};
 use itertools::Either;
 use parking_lot::RwLock;
@@ -47,63 +49,81 @@ pub fn check_crossed_chunks(world: &mut World, game: &mut Game) {
     }
 
     for (entity, new, old) in crossed {
-        game.on_chunk_cross(world, entity, Some(old), new);
+        game.handle(
+            world,
+            ChunkCrossEvent {
+                entity,
+                old: Some(old),
+                new,
+            },
+        );
     }
 }
 
 /// Triggers a chunk cross when a new player joins.
-pub fn on_player_join_trigger_chunk_cross(game: &mut Game, world: &mut World, player: Entity) {
-    let chunk = world.get::<Position>(player).chunk();
-    game.on_chunk_cross(world, player, None, chunk);
+#[fecs::event_handler]
+pub fn on_player_join_trigger_chunk_cross(
+    event: &PlayerJoinEvent,
+    game: &mut Game,
+    world: &mut World,
+) {
+    let chunk = world.get::<Position>(event.player).chunk();
+    game.handle(
+        world,
+        ChunkCrossEvent {
+            old: None,
+            new: chunk,
+            entity: event.player,
+        },
+    );
 }
 
 /// System which sends new chunks and unloads old chunks on the client
 /// when the view is updated.
+#[fecs::event_handler]
 pub fn on_chunk_cross_update_chunks(
+    event: &ChunkCrossEvent,
     game: &mut Game,
+    #[default] chunks_to_send: &mut ChunksToSend,
     world: &mut World,
-    entity: Entity,
-    old: Option<ChunkPosition>,
-    new: ChunkPosition,
 ) {
-    if world.try_get::<Player>(entity).is_none() {
+    if world.try_get::<Player>(event.entity).is_none() {
         return;
     }
 
     // The client likes it if we send closer chunks first,
     // so we'll sort on the Manhattan distance to the player.
-    let mut chunks_to_send = BumpVec::new_in(game.bump());
-    chunks_to_send.extend(find_new_chunks(old, new, game.config.server.view_distance));
-    chunks_to_send.sort_unstable_by_key(|chunk| chunk.manhattan_distance_to(new));
+    let mut pending_send = BumpVec::new_in(game.bump());
+    pending_send.extend(find_new_chunks(
+        event.old,
+        event.new,
+        game.config.server.view_distance,
+    ));
+    pending_send.sort_unstable_by_key(|chunk| chunk.manhattan_distance_to(event.new));
 
-    for chunk in chunks_to_send {
-        send_chunk_to_player(game, world, entity, chunk);
+    for chunk in pending_send {
+        send_chunk_to_player(game, world, chunks_to_send, event.entity, chunk);
     }
 
-    for chunk in find_old_chunks(old, new, game.config.server.view_distance) {
-        unload_chunk_for_player(game, world, chunk, entity);
+    for chunk in find_old_chunks(event.old, event.new, game.config.server.view_distance) {
+        unload_chunk_for_player(game, world, chunk, event.entity);
     }
 }
 
 /// System which sends new entities and removes old entities
 /// when a player crosses into a new view.
-pub fn on_chunk_cross_update_entities(
-    game: &mut Game,
-    world: &mut World,
-    entity: Entity,
-    old: Option<ChunkPosition>,
-    new: ChunkPosition,
-) {
-    let network = match world.try_get::<Network>(entity) {
+#[fecs::event_handler]
+pub fn on_chunk_cross_update_entities(event: &ChunkCrossEvent, game: &mut Game, world: &mut World) {
+    let network = match world.try_get::<Network>(event.entity) {
         Some(net) => net,
         None => return, // not a player
     };
 
     // Send newly visible entities.
-    let mut sends_to_trigger = BumpVec::new_in(game.bump());
-    for other in find_new_chunks(old, new, game.config.server.view_distance)
+    let mut sends_to_trigger = vec![];
+    for other in find_new_chunks(event.old, event.new, game.config.server.view_distance)
         .flat_map(|chunk| game.chunk_entities.entities_in_chunk(chunk))
-        .filter(|other| **other != entity)
+        .filter(|other| **other != event.entity)
     // don't send player to themselves!
     {
         if let Some(creator) = world.try_get::<SpawnPacketCreator>(*other) {
@@ -113,39 +133,39 @@ pub fn on_chunk_cross_update_entities(
             let packet = creator.get(&accessor);
 
             network.send_boxed(packet);
-            sends_to_trigger.push((*other, entity));
+            sends_to_trigger.push((*other, event.entity));
         }
 
         // if this `other` is a player, also send `entity` to other
         if let Some(network) = world.try_get::<Network>(*other) {
-            if let Some(creator) = world.try_get::<SpawnPacketCreator>(entity) {
-                let accessor = world.entity(entity).expect("entity does not exist");
+            if let Some(creator) = world.try_get::<SpawnPacketCreator>(event.entity) {
+                let accessor = world.entity(event.entity).expect("entity does not exist");
                 let packet = creator.get(&accessor);
 
                 network.send_boxed(packet);
-                sends_to_trigger.push((entity, *other));
+                sends_to_trigger.push((event.entity, *other));
             }
         }
     }
 
     // Tell the client to despawn entities which are no longer visible.
-    let mut to_client_remove_trigger = BumpVec::new_in(game.bump());
+    let mut to_client_remove_trigger = vec![];
     to_client_remove_trigger.extend(
-        find_old_chunks(old, new, game.config.server.view_distance)
+        find_old_chunks(event.old, event.new, game.config.server.view_distance)
             .flat_map(|chunk| game.chunk_entities.entities_in_chunk(chunk))
-            .map(|other| (*other, entity)),
+            .map(|other| (*other, event.entity)),
     );
 
     // Despawn this entity on other visible clients.
-    find_old_chunks(old, new, game.config.server.view_distance)
+    find_old_chunks(event.old, event.new, game.config.server.view_distance)
         .flat_map(|chunk| game.chunk_entities.entities_in_chunk(chunk))
         .filter_map(|entity| world.try_get::<Network>(*entity).map(|net| (*entity, net)))
         .for_each(|(other, network)| {
             let packet = DestroyEntities {
-                entity_ids: vec![world.get::<EntityId>(entity).0],
+                entity_ids: vec![world.get::<EntityId>(event.entity).0],
             };
             network.send(packet);
-            to_client_remove_trigger.push((entity, other));
+            to_client_remove_trigger.push((event.entity, other));
         });
 
     let to_destroy = to_client_remove_trigger
@@ -164,12 +184,18 @@ pub fn on_chunk_cross_update_entities(
 
     // Trigger on_entity_send
     for (entity, client) in sends_to_trigger {
-        game.on_entity_send(world, entity, client);
+        game.handle(world, EntitySendEvent { entity, client });
     }
 
     // Trigger on_entity_client_remove
     for (other, to) in to_client_remove_trigger {
-        game.on_entity_client_remove(world, other, to);
+        game.handle(
+            world,
+            EntityClientRemoveEvent {
+                entity: other,
+                client: to,
+            },
+        );
     }
 }
 
@@ -229,32 +255,45 @@ pub struct ChunksToSend(AHashMap<ChunkPosition, SmallVec<[Entity; 2]>>);
 fn send_chunk_to_player(
     game: &mut Game,
     world: &mut World,
+    chunks_to_send: &mut ChunksToSend,
     player: Entity,
     chunk_pos: ChunkPosition,
 ) {
     // Ensure that the chunk isn't unloaded while the player has it loaded.
-    chunk_logic::hold_chunk(game, &mut *world.get_mut(player), chunk_pos, player);
+    game.handle(
+        world,
+        HoldChunkRequest {
+            player,
+            chunk: chunk_pos,
+        },
+    );
 
     // If the chunk is already loaded, send it. Otherwise, we need to
     // queue it for loading.
     if let Some(chunk) = game.chunk_map.chunk_handle_at(chunk_pos) {
         world.get::<Network>(player).send(create_chunk_data(chunk));
-        game.on_chunk_send(world, chunk_pos, player);
+        game.handle(
+            world,
+            ChunkSendEvent {
+                player,
+                chunk: chunk_pos,
+            },
+        );
     } else {
-        let contains = game.chunks_to_send.0.contains_key(&chunk_pos);
+        let contains = chunks_to_send.0.contains_key(&chunk_pos);
 
-        let vec = match game.chunks_to_send.0.get_mut(&chunk_pos) {
+        let vec = match chunks_to_send.0.get_mut(&chunk_pos) {
             Some(vec) => vec,
             None => {
-                game.chunks_to_send.0.insert(chunk_pos, smallvec![]);
-                game.chunks_to_send.0.get_mut(&chunk_pos).unwrap()
+                chunks_to_send.0.insert(chunk_pos, SmallVec::new());
+                chunks_to_send.0.get_mut(&chunk_pos).unwrap()
             }
         };
         vec.push(player);
 
         if !contains {
             // Queue chunk for loading if it isn't already.
-            chunk_logic::load_chunk(&game.chunk_worker_handle, chunk_pos);
+            game.handle(world, LoadChunkRequest { chunk: chunk_pos });
         }
     }
 }
@@ -267,7 +306,7 @@ fn unload_chunk_for_player(
     player: Entity,
 ) {
     // Release hold on chunk so it can be unloaded on the server
-    chunk_logic::release_chunk(game, world, chunk, player);
+    game.handle(world, ReleaseChunkRequest { player, chunk });
 
     // Send Unload Chunk packet.
     world.get::<Network>(player).send(UnloadChunk {
@@ -277,11 +316,17 @@ fn unload_chunk_for_player(
 }
 
 /// System which sends chunks to pending players when a chunk is loaded.
-pub fn on_chunk_load_send_to_clients(game: &mut Game, world: &mut World, chunk_pos: ChunkPosition) {
-    if let Some(players) = game.chunks_to_send.0.get(&chunk_pos) {
+#[fecs::event_handler]
+pub fn on_chunk_load_send_to_clients(
+    event: &ChunkLoadEvent,
+    game: &mut Game,
+    world: &mut World,
+    chunks_to_send: &mut ChunksToSend,
+) {
+    if let Some(players) = chunks_to_send.0.get(&event.chunk) {
         let chunk = game
             .chunk_map
-            .chunk_handle_at(chunk_pos)
+            .chunk_handle_at(event.chunk)
             .expect("chunk not loaded, but load event was triggered");
         for player in players {
             if !world.is_alive(*player) {
@@ -291,11 +336,17 @@ pub fn on_chunk_load_send_to_clients(game: &mut Game, world: &mut World, chunk_p
             world
                 .get::<Network>(*player)
                 .send(create_chunk_data(Arc::clone(&chunk)));
-            game.on_chunk_send(world, chunk_pos, *player);
+            game.handle(
+                world,
+                ChunkSendEvent {
+                    chunk: event.chunk,
+                    player: *player,
+                },
+            );
         }
     }
 
-    game.chunks_to_send.0.remove(&chunk_pos);
+    chunks_to_send.0.remove(&event.chunk);
 }
 
 /// Creates a chunk data packet for the given chunk.

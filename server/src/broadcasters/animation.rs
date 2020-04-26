@@ -1,6 +1,6 @@
 use crate::entity::EntityId;
 use crate::game::Game;
-use feather_core::network::packet::implementation::AnimationClientbound;
+use feather_core::network::packets::AnimationClientbound;
 use feather_core::ClientboundAnimation;
 use fecs::{Entity, World};
 

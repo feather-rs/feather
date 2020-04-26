@@ -9,9 +9,13 @@ feather-core = { path = "../../core" }
 feather-server-types = { path = "../types" }
 feather-server-util = { path = "../util" }
 feather-server-network = { path = "../network" }
-entity = { path = "../entities", package = "feather-server-entities" }
+entity = { path = "../entity", package = "feather-server-entity" }
 
 fecs = { path = "/home/caelum/dev/fecs" }
 log = "0.4"
 mojang-api = "0.6"
 nalgebra-glm = "0.6"
+smallvec = "1.4"
+itertools = "0.9"
+ahash = "0.3"
+parking_lot = "0.10"
