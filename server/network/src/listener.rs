@@ -14,7 +14,7 @@ use tokio::net::TcpListener;
 use tokio::sync::Mutex;
 
 pub async fn run_listener(
-    address: SocketAddr,
+    mut listener: TcpListener,
     tx: flume::Sender<ListenerToServerMessage>,
     rx: flume::Receiver<ServerToListenerMessage>,
     config: Arc<Config>,
@@ -22,8 +22,6 @@ pub async fn run_listener(
     server_icon: Arc<Option<String>>,
     packet_buffers: Arc<PacketBuffers>,
 ) -> Result<(), io::Error> {
-    let mut listener = TcpListener::bind(address).await?;
-
     let rx = Arc::new(Mutex::new(rx));
 
     loop {

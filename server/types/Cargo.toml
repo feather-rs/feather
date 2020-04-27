@@ -24,3 +24,5 @@ parking_lot = "0.10"
 anyhow = "1.0"
 inventory = "0.1"
 dashmap = "3.11"
+futures = "0.3"
+tokio = { version = "0.2", features = ["full"] }

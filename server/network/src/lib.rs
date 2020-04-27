@@ -22,6 +22,7 @@ use parking_lot::Mutex;
 use std::net::SocketAddr;
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
+use tokio::net::TcpListener;
 
 mod initial_handler;
 mod listener;
@@ -81,19 +82,17 @@ pub struct NetworkIoManager {
 impl NetworkIoManager {
     /// Starts a new IO listener.
     pub fn start(
-        addr: SocketAddr,
+        listener: TcpListener,
         config: Arc<Config>,
         player_count: Arc<AtomicU32>,
         server_icon: Arc<Option<String>>,
         packet_buffers: Arc<PacketBuffers>,
     ) -> Self {
-        log::info!("Starting IO listener on {}", addr,);
-
         let (listener_tx, rx) = flume::bounded(16);
         let (tx, listener_rx) = flume::bounded(16);
 
         let future = run_listener(
-            addr,
+            listener,
             listener_tx.clone(),
             listener_rx,
             config,
@@ -123,7 +122,7 @@ pub fn init() {
 }
 
 async fn run_listener(
-    addr: SocketAddr,
+    listener: TcpListener,
     tx: flume::Sender<ListenerToServerMessage>,
     rx: flume::Receiver<ServerToListenerMessage>,
     config: Arc<Config>,
@@ -132,7 +131,7 @@ async fn run_listener(
     packet_buffers: Arc<PacketBuffers>,
 ) {
     if let Err(e) = listener::run_listener(
-        addr,
+        listener,
         tx,
         rx,
         config,

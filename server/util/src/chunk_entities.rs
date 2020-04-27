@@ -1,5 +1,5 @@
 use feather_core::util::Position;
-use feather_server_types::{ChunkCrossEvent, Game};
+use feather_server_types::{ChunkCrossEvent, EntityDespawnEvent, EntitySpawnEvent, Game};
 use fecs::{Entity, World};
 use itertools::Itertools;
 
@@ -25,12 +25,17 @@ pub fn on_chunk_cross_update_chunk_entities(event: &ChunkCrossEvent, game: &mut 
     }
 }
 
-pub fn on_entity_despawn_update_chunk_entities(game: &mut Game, world: &World, entity: Entity) {
-    if let Some(pos) = world.try_get::<Position>(entity) {
+#[fecs::event_handler]
+pub fn on_entity_despawn_update_chunk_entities(
+    event: &EntityDespawnEvent,
+    game: &mut Game,
+    world: &mut World,
+) {
+    if let Some(pos) = world.try_get::<Position>(event.entity) {
         if let Some(vec) = game.chunk_entities.0.get_mut(&pos.chunk()) {
             let index = vec
                 .iter()
-                .find_position(|e| **e == entity)
+                .find_position(|e| **e == event.entity)
                 .map(|(index, _)| index);
             if let Some(index) = index {
                 vec.swap_remove(index);
@@ -39,8 +44,20 @@ pub fn on_entity_despawn_update_chunk_entities(game: &mut Game, world: &World, e
     }
 }
 
-pub fn on_entity_spawn_update_chunk_entities(game: &mut Game, world: &World, entity: Entity) {
-    if let Some(chunk) = world.try_get::<Position>(entity).map(|pos| pos.chunk()) {
-        game.chunk_entities.0.entry(chunk).or_default().push(entity);
+#[fecs::event_handler]
+pub fn on_entity_spawn_update_chunk_entities(
+    event: &EntitySpawnEvent,
+    game: &mut Game,
+    world: &mut World,
+) {
+    if let Some(chunk) = world
+        .try_get::<Position>(event.entity)
+        .map(|pos| pos.chunk())
+    {
+        game.chunk_entities
+            .0
+            .entry(chunk)
+            .or_default()
+            .push(event.entity);
     }
 }

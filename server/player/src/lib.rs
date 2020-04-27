@@ -2,6 +2,7 @@
 
 extern crate nalgebra_glm as glm;
 
+mod broadcasters;
 mod chat;
 mod join;
 mod packet_handlers;
@@ -23,8 +24,11 @@ use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
 use mojang_api::ProfileProperty;
 
+pub use broadcasters::*;
+pub use chat::*;
 pub use join::*;
 pub use packet_handlers::*;
+use std::sync::atomic::Ordering;
 pub use view::*;
 
 pub const PLAYER_INVENTORY_SIZE: u32 = 46;
@@ -96,6 +100,7 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
 
     world.add(entity, Player).unwrap();
 
+    game.player_count.fetch_add(1, Ordering::SeqCst);
     game.handle(world, EntitySpawnEvent { entity });
     game.handle(world, PlayerJoinEvent { player: entity });
     game.handle(

@@ -4,7 +4,9 @@ use feather_biomes::Biome;
 use feather_items::Item;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::io::{Read, Write};
+use std::io::{Cursor, Read, Write};
+use tokio::fs::File;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 /// Root level tag
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -75,6 +77,25 @@ pub struct LevelData {
     pub generator_name: String,
     #[serde(rename = "generatorOptions")]
     pub generator_options: Option<SuperflatGeneratorOptions>,
+}
+
+impl LevelData {
+    pub async fn load_from_file(file: &mut File) -> anyhow::Result<Self> {
+        let mut buf = vec![];
+        file.read_to_end(&mut buf).await?;
+
+        nbt::from_gzip_reader::<_, Root>(Cursor::new(&buf))
+            .map_err(Into::into)
+            .map(|root| root.data)
+    }
+
+    pub async fn save_to_file(&self, file: &mut File) -> anyhow::Result<()> {
+        let mut buf = vec![];
+        nbt::to_gzip_writer(&mut buf, &Root { data: self.clone() }, None)?;
+
+        file.write_all(&buf).await?;
+        Ok(())
+    }
 }
 
 /// Represents level version data.
@@ -154,21 +175,6 @@ impl LevelData {
     }
 }
 
-/// Deserializes a level.dat file from the given reader.
-pub fn deserialize_level_file<R: Read>(reader: R) -> Result<LevelData, nbt::Error> {
-    match nbt::from_gzip_reader::<_, Root>(reader) {
-        Ok(root) => Ok(root.data),
-        Err(e) => Err(e),
-    }
-}
-
-pub fn save_level_file<W: Write>(level: &Root, writer: &mut W) -> Result<(), nbt::Error> {
-    match nbt::to_gzip_writer::<_, Root>(writer, level, None) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -178,7 +184,7 @@ mod tests {
     fn test_deserialize_level_file() {
         let cursor = Cursor::new(include_bytes!("level.dat").to_vec());
 
-        let level = deserialize_level_file(cursor).unwrap();
+        let level = nbt::from_gzip_reader::<_, Root>(cursor).unwrap().data;
 
         assert!(!level.allow_commands);
         assert_eq!(level.clear_weather_time, 0);

@@ -1,78 +1,86 @@
 //! Shutdown behavior.
-use crate::chunk_worker::Request;
-use crate::game::Game;
-use crate::network::Network;
-use crate::player::Player;
-use crate::{lighting, save};
-use crossbeam::Sender;
-use feather_core::level;
-use feather_core::level::save_level_file;
+use anyhow::Context;
 use feather_core::network::packets::DisconnectPlay;
+use feather_core::text::{Text, TextRoot};
+use feather_server_chunk::chunk_worker::Request;
+use feather_server_chunk::{save_chunk_at, ChunkWorkerHandle};
+use feather_server_lighting::LightingWorkerHandle;
+use feather_server_player::Player;
+use feather_server_types::{Game, Network};
 use fecs::{IntoQuery, Read, World};
-use std::fs::File;
+use tokio::fs::File;
 
-pub fn init(tx: Sender<()>) {
+pub fn init(tx: crossbeam::Sender<()>) {
     ctrlc::set_handler(move || {
         tx.send(()).unwrap();
     })
     .unwrap();
 }
 
-pub fn disconnect_players(world: &World) {
+pub fn disconnect_players(world: &World) -> anyhow::Result<()> {
     <Read<Network>>::query().for_each(world.inner(), |network| {
         let packet = DisconnectPlay {
-            reason: json!({
-                "text": "Server closed"
-            })
-            .to_string(),
+            reason: TextRoot::from(Text::from("Server closed")).into(),
         };
 
         network.send(packet);
-    })
+    });
+
+    Ok(())
 }
 
-pub fn save_chunks(game: &Game, world: &World) {
+pub fn save_chunks(
+    game: &Game,
+    cworker_handle: &ChunkWorkerHandle,
+    world: &World,
+) -> anyhow::Result<()> {
     for chunk in game.chunk_map.iter_chunks() {
         let pos = chunk.read().position();
-        save::save_chunk_at(game, world, pos);
+        save_chunk_at(game, world, pos, cworker_handle);
     }
 
     // Wait for chunk worker to shut down
-    let _ = game.chunk_worker_handle.sender.send(Request::ShutDown);
+    let _ = cworker_handle.sender.send(Request::ShutDown);
 
-    while let Ok(_) = game.chunk_worker_handle.receiver.recv() {}
+    while let Ok(_) = cworker_handle.receiver.recv() {}
+
+    Ok(())
 }
 
-pub fn save_level(game: &mut Game) {
+pub async fn save_level(game: &mut Game) -> anyhow::Result<()> {
     // Sync world time + level time
     let time = game.time.world_age() as i64;
     game.level.time = time;
 
     let level_path = format!("{}/{}", game.config.world.name, "level.dat");
 
-    let root = level::Root {
-        data: game.level.clone(),
-    };
-    save_level_file(&root, &mut File::create(&level_path).unwrap())
-        .expect("Failed to save level file");
+    game.level
+        .save_to_file(&mut File::create(&level_path).await.unwrap())
+        .await
+        .context("failed to save level file")?;
+
+    Ok(())
 }
 
-pub fn save_player_data(game: &Game, world: &World) {
+pub fn save_player_data(game: &Game, world: &World) -> anyhow::Result<()> {
     <Read<Player>>::query().for_each_entities(&world.inner(), |(player, _)| {
-        save::save_player_data(game, world, player);
+        feather_server_chunk::save_player_data(game, world, player);
     });
+
+    Ok(())
 }
 
-pub async fn wait_for_task_completion(game: &Game) {
+pub async fn wait_for_task_completion(game: &Game) -> anyhow::Result<()> {
     game.running_tasks.wait().await;
+    Ok(())
 }
 
-pub fn shut_down_workers(game: &Game) {
-    let _ = game
-        .lighting_worker_handle
+pub fn shut_down_workers(game: &Game, light_handle: &LightingWorkerHandle) -> anyhow::Result<()> {
+    let _ = light_handle
         .tx
-        .send(lighting::Request::ShutDown);
+        .send(feather_server_lighting::Request::ShutDown);
 
     // wait for disconnect
-    let _ = game.lighting_worker_handle.shutdown_rx.recv();
+    let _ = light_handle.shutdown_rx.recv();
+    Ok(())
 }

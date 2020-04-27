@@ -19,6 +19,13 @@ impl<F> EntityLoaderFn for F where
 {
 }
 
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Weather {
+    Clear,
+    Rain,
+    Thunder,
+}
+
 /// A registration for a function to convert an `EntityData`
 /// to an `EntityBuilder` for spawning into the world. The
 /// registration must provide the `EntityDataKind` it handles
@@ -52,6 +59,7 @@ pub const PLAYER_EYE_HEIGHT: f64 = 1.62;
 
 mod network;
 mod physics;
+mod task;
 
 pub use feather_core::inventory::Inventory;
 pub use network::{Network, ServerToWorkerMessage, WorkerToServerMessage};
@@ -189,7 +197,6 @@ pub struct LastKnownPositions(pub DashMap<Entity, Position>);
 
 // RESOURCES
 
-mod game;
 use ahash::AHashSet;
 use dashmap::DashMap;
 use feather_core::anvil::entity::{EntityData, EntityDataKind};
@@ -199,8 +206,10 @@ use feather_core::network::Packet;
 pub use feather_server_config::{Config, ProxyMode};
 pub use feather_server_packet_buffer::{PacketBuffer, PacketBuffers};
 use fecs::{Entity, EntityBuilder, EntityRef};
-pub use game::Game;
 use smallvec::SmallVec;
+
+pub use game::*;
+mod game;
 
 // EVENTS
 
@@ -232,6 +241,12 @@ pub struct ChunkSendEvent {
 /// Triggered when a player joins the server.
 #[derive(Copy, Clone, Debug)]
 pub struct PlayerJoinEvent {
+    pub player: Entity,
+}
+
+/// Triggered when a player leaves.
+#[derive(Copy, Clone, Debug)]
+pub struct PlayerLeaveEvent {
     pub player: Entity,
 }
 
@@ -381,6 +396,14 @@ pub struct ChunkHolderReleaseEvent {
     pub entity: Entity,
     /// The chunk which was released.
     pub chunk: ChunkPosition,
+}
+
+/// Triggered when the weather changes.
+#[derive(Copy, Clone, Debug)]
+pub struct WeatherChangeEvent {
+    pub from: Weather,
+    pub to: Weather,
+    pub duration: i32,
 }
 
 /// Requests that a chunk be held for the given client.

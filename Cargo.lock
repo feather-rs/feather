@@ -518,9 +518,9 @@ dependencies = [
 
 [[package]]
 name = "ctrlc"
-version = "3.1.3"
+version = "3.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7dfd2d8b4c82121dfdff120f818e09fc4380b0b7e17a742081a89b94853e87f"
+checksum = "7a4ba686dff9fa4c1c9636ce1010b0cf98ceb421361b0bb3d6faeec43bd217a7"
 dependencies = [
  "nix",
  "winapi 0.3.8",
@@ -855,60 +855,31 @@ dependencies = [
 name = "feather-server"
 version = "0.5.0"
 dependencies = [
- "ahash",
  "anyhow",
- "approx",
- "arrayvec",
  "base64 0.12.0",
- "bitflags",
- "bitvec",
- "bumpalo",
- "bytes",
- "criterion",
  "crossbeam",
  "ctrlc",
- "dashmap",
- "derivative 2.1.1",
  "feather-core",
- "futures",
- "hashbrown",
- "heapless",
- "hematite-nbt",
- "humantime-serde",
- "indexmap",
- "inventory",
- "itertools 0.9.0",
- "lazy_static",
- "lock_api",
+ "feather-server-chat",
+ "feather-server-chunk",
+ "feather-server-config",
+ "feather-server-entity",
+ "feather-server-lighting",
+ "feather-server-network",
+ "feather-server-packet-buffer",
+ "feather-server-physics",
+ "feather-server-player",
+ "feather-server-types",
+ "feather-server-util",
+ "feather-server-weather",
+ "feather-server-worldgen",
+ "fecs",
+ "fxhash",
  "log",
- "mojang-api",
- "multimap",
- "nalgebra",
- "nalgebra-glm",
- "ncollide3d",
- "num-bigint-dig",
- "num-derive",
- "num-traits",
- "parking_lot 0.10.0",
  "rand",
- "rand_distr",
- "rand_xorshift",
- "rayon",
- "rsa",
- "rsa-der",
- "serde",
- "serde_json",
- "simdeez",
- "simdnoise",
  "simple_logger",
- "smallvec 1.4.0",
- "strum 0.18.0",
- "thiserror",
- "thread_local",
+ "spin_sleep",
  "tokio",
- "tokio-util 0.2.0",
- "toml",
- "uuid",
 ]
 
 [[package]]
@@ -937,10 +908,11 @@ dependencies = [
 name = "feather-server-config"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "feather-util",
  "humantime-serde",
  "serde",
- "thiserror",
+ "tokio",
  "toml",
 ]
 
@@ -966,6 +938,20 @@ dependencies = [
 [[package]]
 name = "feather-server-lighting"
 version = "0.5.0"
+dependencies = [
+ "ahash",
+ "arrayvec",
+ "crossbeam",
+ "feather-core",
+ "feather-server-physics",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
+ "log",
+ "nalgebra-glm",
+ "parking_lot 0.10.0",
+ "smallvec 1.4.0",
+]
 
 [[package]]
 name = "feather-server-network"
@@ -1066,6 +1052,7 @@ dependencies = [
  "feather-server-packet-buffer",
  "fecs",
  "flume",
+ "futures",
  "inventory",
  "log",
  "nalgebra-glm",
@@ -1074,6 +1061,7 @@ dependencies = [
  "rand",
  "smallvec 1.4.0",
  "thread_local",
+ "tokio",
  "uuid",
 ]
 
@@ -1087,19 +1075,24 @@ dependencies = [
  "feather-core",
  "feather-server-types",
  "fecs",
- "futures",
  "inventory",
  "itertools 0.9.0",
  "nalgebra-glm",
  "rand",
  "rand_distr",
  "smallvec 1.4.0",
- "tokio",
 ]
 
 [[package]]
 name = "feather-server-weather"
 version = "0.5.0"
+dependencies = [
+ "feather-core",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
+ "rand",
+]
 
 [[package]]
 name = "feather-server-worldgen"
@@ -1156,6 +1149,7 @@ dependencies = [
  "fxhash",
  "legion",
  "smallvec 1.4.0",
+ "thiserror",
 ]
 
 [[package]]
@@ -1166,12 +1160,6 @@ dependencies = [
  "quote 1.0.1",
  "syn 1.0.13",
 ]
-
-[[package]]
-name = "fixedbitset"
-version = "0.1.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86d4de0081402f5e88cdac65c8dcdcc73118c1a7a465e2a05f0da05843a8ea33"
 
 [[package]]
 name = "fixedbitset"
@@ -1904,15 +1892,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "multimap"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a97fbd5d00e0e37bfb10f433af8f5aaf631e739368dc9fc28286ca81ca4948dc"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "nalgebra"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1973,7 +1952,7 @@ dependencies = [
  "either",
  "nalgebra",
  "num-traits",
- "petgraph 0.5.0",
+ "petgraph",
  "slab",
  "slotmap",
  "smallvec 1.4.0",
@@ -1992,9 +1971,9 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.14.1"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c722bee1037d430d0f8e687bbdbf222f27cc6e4e68d5caf630857bb2b6dbdce"
+checksum = "50e4785f2c3b7589a0d0c1dd60285e1188adac4006e8abd6dd578e1567027363"
 dependencies = [
  "bitflags",
  "cc",
@@ -2164,12 +2143,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ordermap"
-version = "0.3.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a86ed3f5f244b372d6b1a00b72ef7f8876d0bc6a78a4c9985c53614041512063"
-
-[[package]]
 name = "parking_lot"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2211,14 +2184,11 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7582838484df45743c8434fbff785e8edf260c28748353d44bc0da32e0ceabf1"
 dependencies = [
- "backtrace",
  "cfg-if",
  "cloudabi",
  "libc",
- "petgraph 0.4.13",
  "redox_syscall",
  "smallvec 1.4.0",
- "thread-id",
  "winapi 0.3.8",
 ]
 
@@ -2252,21 +2222,11 @@ checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
 
 [[package]]
 name = "petgraph"
-version = "0.4.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c3659d1ee90221741f65dd128d9998311b0e40c5d3c23a62445938214abce4f"
-dependencies = [
- "fixedbitset 0.1.9",
- "ordermap",
-]
-
-[[package]]
-name = "petgraph"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29c127eea4a29ec6c85d153c59dc1213f33ec74cead30fe4730aecc88cc1fd92"
 dependencies = [
- "fixedbitset 0.2.0",
+ "fixedbitset",
  "indexmap",
 ]
 
@@ -2852,6 +2812,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
+name = "spin_sleep"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a98101bdc3833e192713c2af0b0dd2614f50d1cf1f7a97c5221b7aac052acc7"
+dependencies = [
+ "once_cell",
+ "winapi 0.3.8",
+]
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3006,17 +2976,6 @@ dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.1",
  "syn 1.0.13",
-]
-
-[[package]]
-name = "thread-id"
-version = "3.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7fbf4c9d56b320106cd64fd024dadfa0be7cb4706725fc44a7d7ce952d820c1"
-dependencies = [
- "libc",
- "redox_syscall",
- "winapi 0.3.8",
 ]
 
 [[package]]

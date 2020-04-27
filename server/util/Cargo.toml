@@ -15,8 +15,6 @@ smallvec = "1.4"
 rand = "0.7"
 rand_distr = "0.2"
 itertools = "0.9"
-futures = "0.3"
-tokio = { version = "0.2", features = ["full"] }
 ahash = "0.3"
 inventory = "0.1"
 anyhow = "1.0"

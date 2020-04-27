@@ -1,12 +1,12 @@
 //! Broadcasting of chat messages
 
-use crate::chat::{ChatEvent, ChatPosition};
-use crate::game::Game;
 use feather_core::network::packets::ChatMessageClientbound;
+use feather_server_types::{ChatEvent, ChatPosition, Game};
 use fecs::World;
 
 /// System that broadcasts chat messages to all players
-pub fn on_chat_broadcast(game: &Game, world: &World, event: &ChatEvent) {
+#[fecs::event_handler]
+pub fn on_chat_broadcast(event: &ChatEvent, game: &Game, world: &mut World) {
     let packet = ChatMessageClientbound {
         json_data: event.message.clone(),
         position: match event.position {

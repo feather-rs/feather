@@ -15,6 +15,9 @@ pub use broadcasters::*;
 pub use mob::*;
 pub use object::*;
 
+pub use object::falling_block::{on_entity_land_remove_falling_block, spawn_falling_blocks};
+pub use object::item::{item_collect, on_item_drop_spawn_item_entity};
+
 extern crate nalgebra_glm as glm;
 
 use feather_core::util::Position;

@@ -5,3 +5,16 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+feather-core = { path = "../../core" }
+feather-server-physics = { path = "../physics" }
+feather-server-types = { path = "../types" }
+feather-server-util = { path = "../util" }
+
+fecs = { path = "/home/caelum/dev/fecs" }
+arrayvec = "0.5"
+smallvec = "1.4"
+ahash = "0.3"
+crossbeam = "0.7"
+parking_lot = "0.10"
+log = "0.4"
+nalgebra-glm = "0.6"

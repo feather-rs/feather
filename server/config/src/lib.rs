@@ -4,17 +4,9 @@
 
 use feather_util::Gamemode;
 use serde::{Deserialize, Serialize};
-use std::fs::read_to_string;
 use std::time::Duration;
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum ConfigError {
-    #[error("Badly formatted configuration file: {0}")]
-    Parse(toml::de::Error),
-    #[error("Failed to read configuration file: {0}")]
-    Io(std::io::Error),
-}
+use tokio::fs::File;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
@@ -25,6 +17,32 @@ pub struct Config {
     pub log: Log,
     pub resource_pack: ResourcePack,
     pub world: World,
+}
+
+impl Config {
+    /// Loads a config from the given string.
+    pub fn load(s: &str) -> anyhow::Result<Config> {
+        toml::from_str(s).map_err(Into::into)
+    }
+
+    /// Loads a config from the given file.
+    pub async fn load_from_file(f: &mut File) -> anyhow::Result<Config> {
+        let mut s = String::new();
+        f.read_to_string(&mut s).await?;
+        Self::load(&s)
+    }
+
+    /// Saves the configuration, writing its contents to the given string.
+    pub fn save(&self) -> String {
+        toml::to_string_pretty(self).expect("failed to serialize config")
+    }
+
+    /// Saves the configuration to the given file.
+    pub async fn save_to_file(&self, f: &mut File) -> anyhow::Result<()> {
+        let string = self.save();
+
+        f.write_all(string.as_bytes()).await.map_err(Into::into)
+    }
 }
 
 pub const DEFAULT_CONFIG_STR: &str = include_str!("../feather.toml");
@@ -84,19 +102,6 @@ pub struct World {
     pub save_interval: Duration,
 }
 
-/// Loads the configuration from the given file/
-pub fn load_from_file(path: &str) -> Result<Config, ConfigError> {
-    let input = read_to_string(path).map_err(ConfigError::Io)?;
-    load(input)
-}
-
-/// Loads the configuration from the given string.
-pub fn load(input: String) -> Result<Config, ConfigError> {
-    let config: Config = toml::from_str(&input).map_err(ConfigError::Parse)?;
-
-    Ok(config)
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum ProxyMode {
     #[serde(alias = "none")]
@@ -114,7 +119,7 @@ mod tests {
     fn test_load_config() {
         let input = include_str!("../feather.toml");
 
-        let config = load(input.to_string()).expect("Config load failed");
+        let config = Config::load(input).expect("invalid default configuration");
         let io = &config.io;
         assert_eq!(io.compression_threshold, 256);
 

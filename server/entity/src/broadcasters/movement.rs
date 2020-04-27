@@ -6,7 +6,8 @@ use feather_core::network::packets::{
 use feather_core::network::Packet;
 use feather_core::util::Position;
 use feather_server_types::{
-    EntityId, Game, LastKnownPositions, Network, PreviousPosition, PreviousVelocity, Velocity,
+    EntityClientRemoveEvent, EntityId, EntitySendEvent, Game, LastKnownPositions, Network,
+    PreviousPosition, PreviousVelocity, Velocity,
 };
 use feather_server_util::{calculate_relative_move, degrees_to_stops, protocol_velocity};
 use fecs::{Entity, IntoQuery, Read, World};
@@ -59,30 +60,31 @@ pub fn broadcast_movement(game: &mut Game, world: &mut World) {
     );
 }
 
-pub fn on_entity_send_update_last_known_positions(world: &World, entity: Entity, client: Entity) {
-    if let Some(last_known_positions) = world.try_get::<LastKnownPositions>(client) {
-        let pos = *world.get::<Position>(entity);
-        last_known_positions.0.insert(entity, pos);
+#[fecs::event_handler]
+pub fn on_entity_send_update_last_known_positions(event: &EntitySendEvent, world: &mut World) {
+    if let Some(last_known_positions) = world.try_get::<LastKnownPositions>(event.client) {
+        let pos = *world.get::<Position>(event.entity);
+        last_known_positions.0.insert(event.entity, pos);
         log::trace!(
             "Inserted last position entry for {:?} (player: {:?})",
-            entity,
-            client
+            event.entity,
+            event.client
         );
     }
 }
 
+#[fecs::event_handler]
 pub fn on_entity_client_remove_update_last_known_positions(
-    world: &World,
-    entity: Entity,
-    client: Entity,
+    event: &EntityClientRemoveEvent,
+    world: &mut World,
 ) {
-    if let Some(last_known_positions) = world.try_get::<LastKnownPositions>(client) {
+    if let Some(last_known_positions) = world.try_get::<LastKnownPositions>(event.client) {
         log::trace!(
             "Removing last position entry for {:?} (player: {:?})",
-            entity,
-            client
+            event.entity,
+            event.client
         );
-        last_known_positions.0.remove(&entity);
+        last_known_positions.0.remove(&event.entity);
     }
 }
 

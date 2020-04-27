@@ -1,4 +1,5 @@
 use crate::network::{Network, ServerToWorkerMessage};
+use crate::task::RunningTasks;
 use crate::{BlockUpdateEvent, EntityDespawnEvent, Name};
 use ahash::AHashMap;
 use bumpalo::Bump;
@@ -15,6 +16,7 @@ use smallvec::SmallVec;
 use std::cell::{RefCell, RefMut};
 use std::fmt::Display;
 use std::ops::{Deref, DerefMut};
+use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
 use thread_local::CachedThreadLocal;
 
@@ -38,14 +40,19 @@ pub struct Game {
     pub chunk_entities: ChunkEntities,
     /// World time, in the Minecraft way.
     pub time: Time,
+    /// Server task manager, which allows executing futures
+    /// which will not be interrupted on shutdown.
+    pub running_tasks: RunningTasks,
     /// The event handler map.
-    event_handlers: Arc<EventHandlers>,
+    pub event_handlers: Arc<EventHandlers>,
     /// Resources other than `Game`, used to run event handlers.
-    resources: Arc<OwnedResources>,
+    pub resources: Arc<OwnedResources>,
     /// General-purpose, non-cryptographic random number generator
-    rng: CachedThreadLocal<RefCell<SmallRng>>,
+    pub rng: CachedThreadLocal<RefCell<SmallRng>>,
     /// Shared bump allocator, reset each tick.
-    bump: CachedThreadLocal<Bump>,
+    pub bump: CachedThreadLocal<Bump>,
+    /// The server player count.
+    pub player_count: Arc<AtomicU32>,
 }
 
 impl Game {
@@ -289,4 +296,14 @@ impl Time {
     pub fn world_age(self) -> u64 {
         self.0
     }
+}
+
+#[fecs::system]
+pub fn reset_bump_allocators(game: &mut Game) {
+    game.bump.iter_mut().for_each(Bump::reset);
+}
+
+#[fecs::system]
+pub fn increment_tick_count(game: &mut Game) {
+    game.tick_count += 1;
 }

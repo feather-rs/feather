@@ -81,7 +81,8 @@ pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World)
 
 /// System for sending the Set Slot packet
 /// when a player's inventory is updated.
-pub fn on_inventory_update_send_set_slot(world: &mut World, event: &InventoryUpdateEvent) {
+#[fecs::event_handler]
+pub fn on_inventory_update_send_set_slot(event: &InventoryUpdateEvent, world: &mut World) {
     let inv = world.get::<Inventory>(event.player);
     let network = world.get::<Network>(event.player);
 
