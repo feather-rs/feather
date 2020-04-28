@@ -10,7 +10,7 @@ use fecs::EventHandlers;
 macro_rules! event_handlers {
     ($($handler:ident,)*) => {
         {
-            let mut handlers = EventHandlers::new()
+            let handlers = EventHandlers::new()
                 $(.with($handler))*;
             handlers
         }
@@ -71,5 +71,11 @@ pub fn build_event_handlers() -> EventHandlers {
         on_chat_broadcast,
 
         on_entity_land_remove_falling_block,
+
+        load_chunk_request,
+
+        release_chunk_request,
+
+        hold_chunk_request,
     }
 }

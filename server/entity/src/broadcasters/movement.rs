@@ -10,7 +10,7 @@ use feather_server_types::{
     PreviousPosition, PreviousVelocity, Velocity,
 };
 use feather_server_util::{calculate_relative_move, degrees_to_stops, protocol_velocity};
-use fecs::{Entity, IntoQuery, Read, World};
+use fecs::{IntoQuery, Read, World};
 use smallvec::SmallVec;
 use std::ops::Deref;
 

@@ -6,7 +6,7 @@ use feather_core::blocks::BlockKind;
 use feather_core::position;
 use feather_core::util::Position;
 use feather_server_types::{AABBExt, EntityLandEvent, Game, Physics, Velocity};
-use fecs::{Entity, IntoQuery, Read, World, Write};
+use fecs::{IntoQuery, Read, World, Write};
 use parking_lot::Mutex;
 
 /// System for updating all entities' positions and velocities

@@ -26,3 +26,4 @@ inventory = "0.1"
 dashmap = "3.11"
 futures = "0.3"
 tokio = { version = "0.2", features = ["full"] }
+mojang-api = "0.6"

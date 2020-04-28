@@ -94,6 +94,9 @@ name = "arrayvec"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cff77d8686867eceff3105329d4698d96c2391c176d5d03adc90c7389162b5b8"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "as-slice"
@@ -634,6 +637,7 @@ name = "feather-anvil"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arrayvec",
  "bitvec",
  "byteorder",
  "feather-biomes",
@@ -642,7 +646,7 @@ dependencies = [
  "feather-inventory",
  "feather-items",
  "feather-util",
- "hematite-nbt",
+ "hematite-nbt 0.4.1 (git+https://github.com/feather-rs/hematite_nbt)",
  "serde",
  "thiserror",
  "tokio",
@@ -771,7 +775,7 @@ dependencies = [
  "bitflags",
  "feather-inventory",
  "feather-util",
- "hematite-nbt",
+ "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid",
 ]
 
@@ -837,7 +841,7 @@ dependencies = [
  "feather-items",
  "feather-util",
  "flate2 1.0.14",
- "hematite-nbt",
+ "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log",
  "num-derive",
  "num-traits",
@@ -1055,6 +1059,7 @@ dependencies = [
  "futures",
  "inventory",
  "log",
+ "mojang-api",
  "nalgebra-glm",
  "ncollide3d",
  "parking_lot 0.10.0",
@@ -1115,7 +1120,7 @@ dependencies = [
 name = "feather-text"
 version = "0.1.0"
 dependencies = [
- "hematite-nbt",
+ "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
  "serde_json",
  "serde_with",
@@ -1444,6 +1449,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20564e78d53d2bb135c343b3f47714a56af2061f1c928fdb541dc7b9fdd94205"
 dependencies = [
  "unicode-segmentation",
+]
+
+[[package]]
+name = "hematite-nbt"
+version = "0.4.1"
+source = "git+https://github.com/feather-rs/hematite_nbt#e15ab917c185e87293fcaf19365924f054a7cdc5"
+dependencies = [
+ "byteorder",
+ "cesu8",
+ "flate2 0.2.20",
+ "serde",
 ]
 
 [[package]]

@@ -1,3 +1,4 @@
+use arrayvec::ArrayVec;
 use feather_items::Item;
 use feather_util::{vec3, Position, Vec3d};
 use nbt::Value;
@@ -125,11 +126,11 @@ impl EntityData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseEntityData {
     #[serde(rename = "Pos")]
-    pub position: [f64; 3],
+    pub position: ArrayVec<[f64; 3]>,
     #[serde(rename = "Rotation")]
-    pub rotation: [f32; 2],
+    pub rotation: ArrayVec<[f32; 2]>,
     #[serde(rename = "Motion")]
-    pub velocity: [f64; 3],
+    pub velocity: ArrayVec<[f64; 3]>,
 }
 
 impl BaseEntityData {
@@ -159,9 +160,9 @@ impl BaseEntityData {
     /// Creates a `BaseEntityData` from a position and velocity.
     pub fn new(pos: Position, velocity: Vec3d) -> Self {
         Self {
-            position: [pos.x, pos.y, pos.z],
-            rotation: [pos.yaw, pos.pitch],
-            velocity: [velocity.x, velocity.y, velocity.z],
+            position: [pos.x, pos.y, pos.z].into(),
+            rotation: [pos.yaw, pos.pitch].into(),
+            velocity: [velocity.x, velocity.y, velocity.z].into(),
         }
     }
 
@@ -194,9 +195,9 @@ impl BaseEntityData {
 impl Default for BaseEntityData {
     fn default() -> Self {
         BaseEntityData {
-            position: [0.0, 0.0, 0.0],
-            rotation: [0.0, 0.0],
-            velocity: [0.0, 0.0, 0.0],
+            position: [0.0, 0.0, 0.0].into(),
+            rotation: [0.0, 0.0].into(),
+            velocity: [0.0, 0.0, 0.0].into(),
         }
     }
 }
@@ -301,9 +302,9 @@ mod tests {
     #[test]
     fn test_read_position() {
         let data = BaseEntityData {
-            position: [1.0, 2.0, 3.0],
-            rotation: [4.0, 5.0],
-            velocity: [6.0, 7.0, 8.0],
+            position: [1.0, 2.0, 3.0].into(),
+            rotation: [4.0, 5.0].into(),
+            velocity: [6.0, 7.0, 8.0].into(),
         };
         let pos = data.read_position().unwrap();
 
@@ -318,9 +319,9 @@ mod tests {
     #[test]
     fn test_read_velocity() {
         let data = BaseEntityData {
-            position: [1.0, 2.0, 3.0],
-            rotation: [4.0, 5.0],
-            velocity: [6.0, 7.0, 8.0],
+            position: [1.0, 2.0, 3.0].into(),
+            rotation: [4.0, 5.0].into(),
+            velocity: [6.0, 7.0, 8.0].into(),
         };
         let vel = data.read_velocity().unwrap();
 

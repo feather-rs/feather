@@ -5,8 +5,7 @@ use feather_core::text::{Text, TextRoot};
 use feather_server_chunk::chunk_worker::Request;
 use feather_server_chunk::{save_chunk_at, ChunkWorkerHandle};
 use feather_server_lighting::LightingWorkerHandle;
-use feather_server_player::Player;
-use feather_server_types::{Game, Network};
+use feather_server_types::{Game, Network, Player};
 use fecs::{IntoQuery, Read, World};
 use tokio::fs::File;
 
@@ -55,7 +54,7 @@ pub async fn save_level(game: &mut Game) -> anyhow::Result<()> {
     let level_path = format!("{}/{}", game.config.world.name, "level.dat");
 
     game.level
-        .save_to_file(&mut File::create(&level_path).await.unwrap())
+        .save_to_file(&mut File::create(&level_path).await?)
         .await
         .context("failed to save level file")?;
 
@@ -75,7 +74,7 @@ pub async fn wait_for_task_completion(game: &Game) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn shut_down_workers(game: &Game, light_handle: &LightingWorkerHandle) -> anyhow::Result<()> {
+pub fn shut_down_workers(_game: &Game, light_handle: &LightingWorkerHandle) -> anyhow::Result<()> {
     let _ = light_handle
         .tx
         .send(feather_server_lighting::Request::ShutDown);

@@ -6,8 +6,8 @@ use feather_core::anvil::player::{InventorySlot, PlayerData};
 use feather_core::inventory::Inventory;
 use feather_core::util::{ChunkPosition, Gamemode, Position, Vec3d};
 use feather_server_types::{
-    ChunkLoadEvent, ChunkUnloadEvent, ComponentSerializer, Game, PlayerJoinEvent, PlayerLeaveEvent,
-    Uuid, TICK_LENGTH, TPS,
+    ChunkLoadEvent, ChunkUnloadEvent, ComponentSerializer, Game, PlayerLeaveEvent, Uuid,
+    TICK_LENGTH, TPS,
 };
 use fecs::{Entity, World};
 use std::collections::VecDeque;

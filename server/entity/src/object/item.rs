@@ -6,13 +6,13 @@ use feather_core::anvil::entity::{
 use feather_core::entitymeta::{EntityMetadata, META_INDEX_ITEM_SLOT};
 use feather_core::inventory::Inventory;
 use feather_core::items::{Item, ItemStack};
-use feather_core::network::packets::{Player, SpawnObject};
+use feather_core::network::packets::SpawnObject;
 use feather_core::network::Packet;
 use feather_core::util::{Position, Vec3d};
 use feather_server_types::{
     ComponentSerializer, EntityId, EntityLoaderRegistration, EntitySpawnEvent, Game,
-    InventoryUpdateEvent, ItemCollectEvent, ItemDropEvent, PhysicsBuilder, SpawnPacketCreator,
-    Uuid, Velocity, PLAYER_EYE_HEIGHT, TPS,
+    InventoryUpdateEvent, ItemCollectEvent, ItemDropEvent, PhysicsBuilder, Player,
+    SpawnPacketCreator, Uuid, Velocity, PLAYER_EYE_HEIGHT, TPS,
 };
 use feather_server_util::{degrees_to_stops, nearby_entities, protocol_velocity};
 use fecs::{component, EntityBuilder, EntityRef, IntoQuery, Read, World, Write};

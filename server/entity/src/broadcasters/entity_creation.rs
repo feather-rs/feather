@@ -2,16 +2,16 @@ use feather_core::entitymeta::EntityMetadata;
 use feather_core::network::packets::PacketEntityMetadata;
 use feather_core::util::Position;
 use feather_server_types::{
-    CreationPacketCreator, EntityId, EntitySendEvent, Game, Network, PlayerJoinEvent,
-    SpawnPacketCreator,
+    CreationPacketCreator, EntityId, EntitySendEvent, EntitySpawnEvent, Game, Network,
+    PlayerJoinEvent, SpawnPacketCreator,
 };
-use fecs::{Entity, IntoQuery, Read, World};
+use fecs::{IntoQuery, Read, World};
 
 /// When an entity is created and has a `CreationPacketCreator` and/or `SpawnPacketCreator`,
 /// broadcasts the packets to all online clients.
 #[fecs::event_handler]
 pub fn on_entity_spawn_send_to_clients(
-    event: &EntitySendEvent,
+    event: &EntitySpawnEvent,
     game: &mut Game,
     world: &mut World,
 ) {

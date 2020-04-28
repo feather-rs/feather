@@ -1,18 +1,14 @@
 use crate::bytes_ext::{BytesExt, BytesMutExt};
 use crate::mctypes::{EntityMetaRead, EntityMetaWrite, McTypeRead, McTypeWrite};
-use crate::packet::{AsAny, PacketBuilder, PacketStage};
+use crate::packet::{AsAny, PacketBuilder};
 use crate::{Packet, PacketType};
 use ahash::AHashMap;
 use bytes::{Buf, BufMut, BytesMut};
-use feather_blocks::BlockId;
-use feather_chunk::{
-    BitArray, Chunk, ChunkSection, GLOBAL_BITS_PER_BLOCK, MAX_BITS_PER_BLOCK, MIN_BITS_PER_BLOCK,
-    NUM_SECTIONS, SECTION_VOLUME,
-};
+use feather_chunk::Chunk;
 use feather_codegen::{AsAny, Packet};
 use feather_entity_metadata::EntityMetadata;
 use feather_items::ItemStack;
-use feather_util::{BlockPosition, ChunkPosition, ClientboundAnimation, Gamemode, Hand};
+use feather_util::{BlockPosition, ClientboundAnimation, Gamemode, Hand};
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
 use once_cell::sync::Lazy;
@@ -20,13 +16,11 @@ use parking_lot::RwLock;
 use std::any::Any;
 use std::io::Cursor;
 use std::io::Read;
-use std::io::Write;
 use std::sync::Arc;
 use thiserror::Error;
 use uuid::Uuid;
 
 type VarInt = i32;
-type VarLong = i64;
 type Slot = Option<ItemStack>;
 
 macro_rules! insert_packet {
@@ -371,7 +365,7 @@ impl Packet for Handshake {
         Ok(())
     }
 
-    fn write_to(&self, mut buf: &mut BytesMut) {
+    fn write_to(&self, buf: &mut BytesMut) {
         buf.push_var_int(self.protocol_version as i32);
         buf.push_string(&self.server_address);
         buf.push_u16(self.server_port);
@@ -445,7 +439,7 @@ impl Packet for EncryptionResponse {
         Ok(())
     }
 
-    fn write_to(&self, mut buf: &mut BytesMut) {
+    fn write_to(&self, buf: &mut BytesMut) {
         buf.push_var_int(self.secret.len() as i32);
         buf.put(self.secret.as_slice());
         buf.push_var_int(self.verify_token.len() as i32);
@@ -554,7 +548,7 @@ impl Packet for PluginMessageServerbound {
 
         let mut data = Vec::with_capacity(buf.remaining());
         buf.read(&mut data)
-            .map_err(|_| Error::InsufficientArrayLength);
+            .map_err(|_| Error::InsufficientArrayLength)?;
         self.data = data;
 
         Ok(())
@@ -1116,7 +1110,7 @@ impl Packet for EncryptionRequest {
         Ok(())
     }
 
-    fn write_to(&self, mut buf: &mut BytesMut) {
+    fn write_to(&self, buf: &mut BytesMut) {
         buf.push_string(self.server_id.as_str());
 
         buf.push_var_int(self.public_key.len() as i32);
@@ -1356,7 +1350,7 @@ pub struct BossBar {
 }
 
 impl Packet for BossBar {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
+    fn read_from(&mut self, _buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         unimplemented!()
     }
 
@@ -1638,7 +1632,7 @@ pub struct Explosion {
 }
 
 impl Packet for Explosion {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
+    fn read_from(&mut self, _buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         unimplemented!()
     }
 
@@ -1694,96 +1688,14 @@ pub struct KeepAliveClientbound {
     pub keep_alive_id: u64,
 }
 
-#[derive(Debug, Error)]
-enum ChunkDataError {
-    #[error("invalid bits per block value {0} for section {1}")]
-    InvalidBitsPerBlock(u8, usize),
-}
-
 #[derive(Default, AsAny, Clone)]
 pub struct ChunkData {
     pub chunk: Arc<RwLock<Chunk>>,
 }
 
 impl Packet for ChunkData {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
-        let mut chunk = self.chunk.write();
-        chunk.set_position(ChunkPosition::new(buf.try_get_i32()?, buf.try_get_i32()?));
-        if buf.try_get_bool()? {
-            let primary_mask = buf.try_get_var_int()?;
-            let temp_length = buf.try_get_var_int()?;
-
-            let mut temp_buf = &mut std::iter::repeat(0u8)
-                .take(temp_length as _)
-                .collect::<Vec<_>>()[..];
-            buf.copy_to_slice(&mut temp_buf);
-
-            let mut buf = Cursor::new(temp_buf);
-            for i in 0..(NUM_SECTIONS - 1) {
-                if primary_mask & (1 << i) != 0 {
-                    let (bits_per_block, palette) = match buf.try_get_u8()? {
-                        0..=MIN_BITS_PER_BLOCK => (
-                            MIN_BITS_PER_BLOCK,
-                            Some({
-                                let palette_number = buf.try_get_var_int()? as usize;
-                                let mut palette = Vec::<_>::with_capacity(palette_number);
-                                for _ in 0..palette_number {
-                                    palette.push(BlockId::from_vanilla_id(
-                                        buf.try_get_var_int()? as u16
-                                    ));
-                                }
-                                palette
-                            }),
-                        ),
-                        x @ MIN_BITS_PER_BLOCK..=MAX_BITS_PER_BLOCK => (
-                            x,
-                            Some({
-                                /* Todo: Remove duplicate. */
-                                let palette_number = buf.try_get_var_int()? as usize;
-                                let mut palette = Vec::<_>::with_capacity(palette_number);
-                                for _ in 0..palette_number {
-                                    palette.push(BlockId::from_vanilla_id(
-                                        buf.try_get_var_int()? as u16
-                                    ));
-                                }
-                                palette
-                            }),
-                        ),
-                        _ => (GLOBAL_BITS_PER_BLOCK, None),
-                    };
-
-                    /* 63 and 64 because Vec is <u64> */
-                    let data_number = buf.try_get_var_int()? as usize;
-                    assert_eq!(bits_per_block as usize * 64, data_number);
-                    let mut data = Vec::<_>::with_capacity(data_number);
-                    for _ in 0..data_number {
-                        data.push(buf.try_get_u64()?);
-                    }
-                    let data = BitArray::from_raw(data, bits_per_block, SECTION_VOLUME);
-
-                    const DATA_NUMBER: usize = (63 + SECTION_VOLUME * 4) / 64;
-                    let mut light_data = Vec::<_>::with_capacity(DATA_NUMBER);
-                    for _ in 0..DATA_NUMBER {
-                        light_data.push(buf.try_get_u64()?);
-                    }
-                    let block_light = BitArray::from_raw(light_data, 4, SECTION_VOLUME);
-
-                    let mut sky_data = Vec::<_>::with_capacity(DATA_NUMBER);
-                    for _ in 0..DATA_NUMBER {
-                        /* If outsidd! */
-                        sky_data.push(buf.try_get_u64()?);
-                    }
-                    let sky_light = BitArray::from_raw(sky_data, 4, SECTION_VOLUME);
-
-                    let section = ChunkSection::new(data, palette, block_light, sky_light);
-                    chunk.set_section_at(i, Some(section));
-                }
-            }
-
-            Ok(())
-        } else {
-            unimplemented!();
-        }
+    fn read_from(&mut self, _buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
+        unimplemented!()
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
@@ -1793,7 +1705,7 @@ impl Packet for ChunkData {
         buf.push_bool(true); // Full chunk - assume true
 
         // Produce primary bit mask
-        let mut primary_mask = {
+        let primary_mask = {
             let mut r = 0;
             for (i, section) in chunk.sections().iter().enumerate() {
                 if section.is_some() {
@@ -1974,7 +1886,7 @@ pub struct CombatEvent {
 }
 
 impl Packet for CombatEvent {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
+    fn read_from(&mut self, _buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         unimplemented!()
     }
 
@@ -2188,7 +2100,7 @@ pub struct DestroyEntities {
 }
 
 impl Packet for DestroyEntities {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
+    fn read_from(&mut self, _buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
         unimplemented!()
     }
 

@@ -36,7 +36,11 @@ pub async fn main() {
     run_loop(&mut world, &resources, &executor, shutdown_rx);
 
     log::info!("Shutting down");
-    shut_down(&resources, &mut world).await;
+    if let Err(e) = shut_down(&resources, &mut world).await {
+        log::error!("An error occurred while shutting down: {}", e);
+        log::error!("Exiting.");
+        exit(1);
+    }
 
     log::info!("Goodbye");
     exit(0);

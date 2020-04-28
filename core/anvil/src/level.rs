@@ -4,7 +4,7 @@ use feather_biomes::Biome;
 use feather_items::Item;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::io::{Cursor, Read, Write};
+use std::io::Cursor;
 use tokio::fs::File;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 

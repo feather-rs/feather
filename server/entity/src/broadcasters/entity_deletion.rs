@@ -1,6 +1,6 @@
 use feather_core::network::packets::{DestroyEntities, Player, PlayerInfo, PlayerInfoAction};
 use feather_server_types::{EntityDespawnEvent, EntityId, Game, Uuid};
-use fecs::{Entity, World};
+use fecs::World;
 
 /// Broadcasts when an entity is deleted.
 #[fecs::event_handler]

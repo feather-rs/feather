@@ -4,9 +4,9 @@
 use crate::block_bboxes::bbox_for_block;
 use bitflags::bitflags;
 use feather_core::blocks::BlockId;
-use feather_core::util::{BlockPosition, ChunkPosition, Position};
+use feather_core::util::{BlockPosition, Position};
 use feather_server_types::{AABBExt, Game};
-use fecs::{Entity, World};
+
 use glm::{vec3, DVec3, Vec3};
 use heapless::consts::*;
 use nalgebra::{Isometry3, Point3};

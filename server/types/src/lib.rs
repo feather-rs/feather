@@ -195,6 +195,14 @@ impl ChunkHolder {
 #[derive(Default, Debug)]
 pub struct LastKnownPositions(pub DashMap<Entity, Position>);
 
+/// Profile properties of a player.
+#[derive(Debug, Clone)]
+pub struct ProfileProperties(pub Vec<mojang_api::ProfileProperty>);
+
+/// Zero-sized marker component used to mark players.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Player;
+
 // RESOURCES
 
 use ahash::AHashSet;

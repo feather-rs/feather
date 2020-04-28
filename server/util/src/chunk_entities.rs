@@ -1,6 +1,6 @@
 use feather_core::util::Position;
 use feather_server_types::{ChunkCrossEvent, EntityDespawnEvent, EntitySpawnEvent, Game};
-use fecs::{Entity, World};
+use fecs::World;
 use itertools::Itertools;
 
 /// System to update ChunkEntities when entities move into new chunks.

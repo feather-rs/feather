@@ -8,7 +8,7 @@ mod join;
 mod packet_handlers;
 mod view;
 
-use feather_core::inventory::{Inventory, InventoryType, SLOT_HOTBAR_OFFSET};
+use feather_core::inventory::{Inventory, InventoryType};
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
 use feather_core::network::Packet;
@@ -17,12 +17,11 @@ use feather_core::util::{Gamemode, Position};
 use feather_server_network::NewClientInfo;
 use feather_server_types::{
     ChunkHolder, CreationPacketCreator, EntityId, EntitySpawnEvent, Game, HeldItem,
-    InventoryUpdateEvent, LastKnownPositions, Name, Network, PlayerJoinEvent, PreviousPosition,
-    SpawnPacketCreator, Uuid,
+    InventoryUpdateEvent, LastKnownPositions, Name, Network, Player, PlayerJoinEvent,
+    PreviousPosition, ProfileProperties, SpawnPacketCreator, Uuid,
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
-use mojang_api::ProfileProperty;
 
 pub use broadcasters::*;
 pub use chat::*;
@@ -32,14 +31,6 @@ use std::sync::atomic::Ordering;
 pub use view::*;
 
 pub const PLAYER_INVENTORY_SIZE: u32 = 46;
-
-/// Profile properties of a player.
-#[derive(Debug, Clone)]
-pub struct ProfileProperties(pub Vec<ProfileProperty>);
-
-/// Zero-sized marker component used to mark players.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Player;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ItemTimedUse {
@@ -55,7 +46,6 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     world.add(entity, EntityId(entity::new_id())).unwrap();
     world.add(entity, info.position).unwrap();
     world.add(entity, PreviousPosition(info.position)).unwrap();
-    world.add(entity, info.uuid).unwrap();
     world.add(entity, info.uuid).unwrap();
     world
         .add(
@@ -96,7 +86,7 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     items.for_each(|(index, item)| inventory.set_item_at(index, item));
 
     world.add(entity, inventory).unwrap();
-    world.add(entity, HeldItem(SLOT_HOTBAR_OFFSET)).unwrap(); // todo: load from player data
+    world.add(entity, HeldItem(0)).unwrap(); // todo: load from player data
 
     world.add(entity, Player).unwrap();
 

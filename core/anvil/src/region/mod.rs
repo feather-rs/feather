@@ -15,6 +15,7 @@ use std::fmt::{self, Display, Formatter};
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::io::{Cursor, SeekFrom};
+use std::ops::Deref;
 use std::path::PathBuf;
 use std::{fs, io, iter};
 
@@ -297,7 +298,7 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
 
         // Attempt to get block from the given values
         let block = BlockId::from_identifier_and_properties(&entry.name, &props)
-            .ok_or(Error::InvalidBlock)?;
+            .ok_or_else(|| Error::InvalidBlock(entry.name.deref().to_owned()))?;
         palette.push(block);
     }
 
@@ -535,7 +536,7 @@ pub enum Error {
     /// An IO error occurred
     Io(io::Error),
     /// There was an invalid block in the chunk
-    InvalidBlock,
+    InvalidBlock(String),
     /// The chunk does not exist
     ChunkNotExist,
     /// The chunk uses an unsupported data version
@@ -562,7 +563,7 @@ impl Display for Error {
             Error::InvalidCompression(id) => {
                 f.write_str(&format!("Chunk uses invalid compression type {}", id))?
             }
-            Error::InvalidBlock => f.write_str("Chunk contains invalid block")?,
+            Error::InvalidBlock(name) => f.write_str(&format!("Chunk contains invalid block {}", name))?,
             Error::ChunkNotExist => f.write_str("The chunk does not exist")?,
             Error::UnsupportedDataVersion(_) => f.write_str("The chunk uses an unsupported data version. Feather currently only supports 1.13.2 region files.")?,
             Error::InvalidBlockType => f.write_str("Chunk contains invalid block type")?,

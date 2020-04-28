@@ -1,6 +1,6 @@
 use crate::network::{Network, ServerToWorkerMessage};
 use crate::task::RunningTasks;
-use crate::{BlockUpdateEvent, EntityDespawnEvent, Name};
+use crate::{BlockUpdateEvent, EntityDespawnEvent, Name, PlayerLeaveEvent};
 use ahash::AHashMap;
 use bumpalo::Bump;
 use feather_core::anvil::level::LevelData;
@@ -127,6 +127,7 @@ impl Game {
         drop(name);
         drop(network);
 
+        self.handle(world, PlayerLeaveEvent { player });
         self.despawn(player, world);
     }
 

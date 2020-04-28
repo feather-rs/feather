@@ -11,7 +11,8 @@ use feather_core::chunk::Chunk;
 use feather_core::util::ChunkPosition;
 use feather_server_types::{
     ChunkHolder, ChunkHolderReleaseEvent, ChunkLoadEvent, ChunkLoadFailEvent, ChunkUnloadEvent,
-    EntityDespawnEvent, EntitySpawnEvent, Game, TPS,
+    EntityDespawnEvent, EntitySpawnEvent, Game, HoldChunkRequest, LoadChunkRequest,
+    ReleaseChunkRequest, TPS,
 };
 use feather_server_util::current_time_in_millis;
 use fecs::{Entity, World};
@@ -48,13 +49,7 @@ pub fn chunk_load(game: &mut Game, world: &mut World, chunk_worker_handle: &Chun
                 }
                 Err(error) => {
                     log::warn!("Failed to load chunk at {:?}: {}", pos, error);
-                    game.handle(
-                        world,
-                        ChunkLoadFailEvent {
-                            pos,
-                            error: error.into(),
-                        },
-                    );
+                    game.handle(world, ChunkLoadFailEvent { pos, error });
                 }
             }
         }
@@ -187,8 +182,7 @@ pub fn on_entity_despawn_remove_chunk_holder(
     // If entity had chunk holds, remove them all
     let holds = if let Some(holds) = world.try_get::<ChunkHolder>(event.entity) {
         log::debug!("Removing chunk holds for entity {:?}", event.entity);
-        let vec = holds.holds.iter().copied().collect::<Vec<_>>(); // todo: remove allocation
-        vec
+        holds.holds.iter().copied().collect::<Vec<_>>() // todo: remove allocation
     } else {
         Vec::new()
     };
@@ -293,4 +287,24 @@ pub fn save_chunk(
         .sender
         .send(chunk_worker::Request::SaveChunk(chunk, entities))
         .unwrap();
+}
+
+#[fecs::event_handler]
+pub fn release_chunk_request(event: &ReleaseChunkRequest, game: &mut Game, world: &mut World) {
+    release_chunk(game, world, event.chunk, event.player);
+}
+
+#[fecs::event_handler]
+pub fn hold_chunk_request(event: &HoldChunkRequest, game: &mut Game, world: &mut World) {
+    hold_chunk(
+        game,
+        &mut *world.get_mut::<ChunkHolder>(event.player),
+        event.chunk,
+        event.player,
+    );
+}
+
+#[fecs::event_handler]
+pub fn load_chunk_request(event: &LoadChunkRequest, handle: &ChunkWorkerHandle) {
+    load_chunk(handle, event.chunk);
 }

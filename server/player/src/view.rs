@@ -92,7 +92,7 @@ pub fn on_chunk_cross_update_chunks(
     }
 
     // The client likes it if we send closer chunks first,
-    // so we'll sort on the Manhattan distance to the player.
+    // so we'll sort by the Manhattan distance to the player.
     let mut pending_send = BumpVec::new_in(game.bump());
     pending_send.extend(find_new_chunks(
         event.old,

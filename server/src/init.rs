@@ -12,7 +12,7 @@ use feather_server_types::{Config, Game};
 use feather_server_worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
-use fecs::{EntityBuilder, EventHandlers, Executor, OwnedResources, ResourcesProvider, World};
+use fecs::{EntityBuilder, Executor, OwnedResources, ResourcesProvider, World};
 use fxhash::FxHasher;
 use rand::Rng;
 use std::hash::{Hash, Hasher};
@@ -300,7 +300,7 @@ fn create_resources(
     packet_buffers: Arc<PacketBuffers>,
 ) -> Arc<OwnedResources> {
     let resources = {
-        let mut resources = resources
+        let resources = resources
             .with(game)
             .with(cworker_handle)
             .with(networking_handle)

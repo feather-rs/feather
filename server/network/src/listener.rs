@@ -6,7 +6,7 @@
 use crate::worker::run_worker;
 use crate::{ListenerToServerMessage, ServerToListenerMessage};
 use feather_server_types::{Config, PacketBuffers};
-use std::net::SocketAddr;
+
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
 use tokio::io;
@@ -28,7 +28,7 @@ pub async fn run_listener(
         let (stream, ip) = match listener.accept().await {
             Ok(res) => res,
             Err(e) => {
-                log::info!("Failed to accept connection: {:?}", e);
+                log::info!("Failed to accept connection: {}", e);
                 continue;
             }
         };
