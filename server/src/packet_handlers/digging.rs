@@ -13,12 +13,8 @@ use crate::player::{ItemTimedUse, PLAYER_EYE_HEIGHT};
 use feather_blocks::BlockId;
 use feather_core::inventory::{SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use feather_core::network::packet::implementation::{PlayerDigging, PlayerDiggingStatus};
-<<<<<<< HEAD
-use feather_core::{Gamemode, ItemStack, Position};
+use feather_core::{Gamemode, ItemStack, Position, BlockPosition};
 use feather_items::Item;
-=======
-use feather_core::{Block, BlockExt, BlockPosition, Gamemode, Item, ItemStack, Position};
->>>>>>> 4b2c29d... Destroy non-solid blocks when the block underneath is broken
 use fecs::{Entity, World};
 use std::sync::Arc;
 
