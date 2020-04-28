@@ -7,7 +7,8 @@ use std::path::Path;
 use std::process::Command;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/minecraft"));
+    let path = format!("{}/minecraft", env::var("OUT_DIR").unwrap());
+    let path = Path::new(&path);
     let path_server = path.join("server.jar");
 
     if data_exists(path).unwrap_or(false) {
