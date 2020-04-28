@@ -179,4 +179,12 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn property_starting_at_1() {
+        let block = BlockId::snow().with_layers(1);
+
+        assert_eq!(block.layers(), Some(1));
+        assert_eq!(block.to_properties_map()["layers"], "1");
+    }
 }

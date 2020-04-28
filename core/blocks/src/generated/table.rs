@@ -86,7 +86,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `age_0_15` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_age_0_15(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -105,7 +105,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `age_0_2` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_age_0_2(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -124,7 +124,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `age_0_25` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_age_0_25(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -143,7 +143,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `age_0_3` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_age_0_3(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -162,7 +162,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `age_0_5` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_age_0_5(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -181,7 +181,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `age_0_7` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_age_0_7(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -257,7 +257,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `bites` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_bites(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -276,7 +276,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `cauldron_level` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_cauldron_level(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -357,7 +357,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 1i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `delay` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_delay(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -395,7 +395,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 1i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `distance` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_distance(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -490,7 +490,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 1i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `eggs` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_eggs(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -780,7 +780,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `hatch` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_hatch(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -875,7 +875,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 1i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `layers` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_layers(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -932,7 +932,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `moisture` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_moisture(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -989,7 +989,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `note` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_note(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -1084,7 +1084,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 1i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `pickles` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_pickles(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -1122,7 +1122,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `power` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_power(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -1203,7 +1203,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `rotation` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_rotation(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -1317,7 +1317,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `stage` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_stage(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
@@ -1436,7 +1436,7 @@ impl BlockTable {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
-        Some({ x as i32 })
+        Some({ x as i32 + 0i32 })
     }
     #[doc = "Updates the state value for the given block kind such that its `water_level` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_water_level(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {

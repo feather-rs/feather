@@ -52,7 +52,10 @@ impl Property {
     /// Returns the tokens to create an instance of this property from a `u16`.
     fn tokens_for_from_u16(&self, input: TokenStream) -> TokenStream {
         match &self.kind {
-            PropertyKind::Integer { .. } => quote! {{ #input as i32 }},
+            PropertyKind::Integer { range } => {
+                let min = *range.start();
+                quote! {{ #input as i32 + #min }}
+            }
             PropertyKind::Boolean { .. } => quote! { if #input == 0 { false } else { true } },
             PropertyKind::Enum { name, .. } => {
                 quote! { #name::try_from(#input).expect("invalid block state") }
