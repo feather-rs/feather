@@ -8,9 +8,9 @@ use syn::{parse_macro_input, Ident, LitStr};
 #[proc_macro]
 pub fn include_data(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input: LitStr = parse_macro_input!(input as LitStr);
-    let crate_root = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let build_dir = env::var("OUT_DIR").unwrap();
 
-    let path = PathBuf::from(crate_root).join(input.value());
+    let path = PathBuf::from(build_dir).join(input.value());
     if !path.exists() {
         panic!("Path \"{}\" does not exist.", path.display());
     }
