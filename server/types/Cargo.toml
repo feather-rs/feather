@@ -9,7 +9,7 @@ feather-core = { path = "../../core" }
 feather-server-config = { path = "../config" }
 feather-server-packet-buffer = { path = "../packet_buffer" }
 
-fecs = { path = "/home/caelum/dev/fecs" }
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "1dae7a1870209a8af0326e3b6e18dff9e1a2f67e" }
 uuid = { version = "0.8", features = ["v4"] }
 nalgebra-glm = "0.6"
 ncollide3d = "0.22"

@@ -1,5 +1,3 @@
-#[allow(unused)]
-#[allow(clippy::too_many_arguments)]
 use bytes::BytesMut;
 use std::any::Any;
 use std::io::Cursor;

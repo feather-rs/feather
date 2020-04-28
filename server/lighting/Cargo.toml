@@ -10,7 +10,7 @@ feather-server-physics = { path = "../physics" }
 feather-server-types = { path = "../types" }
 feather-server-util = { path = "../util" }
 
-fecs = { path = "/home/caelum/dev/fecs" }
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "1dae7a1870209a8af0326e3b6e18dff9e1a2f67e" }
 arrayvec = "0.5"
 smallvec = "1.4"
 ahash = "0.3"

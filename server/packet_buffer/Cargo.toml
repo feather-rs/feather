@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 feather-core = { path = "../../core" }
 
-fecs = { path = "/home/caelum/dev/fecs" }
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "1dae7a1870209a8af0326e3b6e18dff9e1a2f67e" }
 smallvec = "1.4"
 parking_lot = "0.10"
 strum = "0.18"
