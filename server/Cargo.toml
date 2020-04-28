@@ -3,6 +3,7 @@ name = "feather-server"
 version = "0.5.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
+default-run = "feather-server"
 
 [lib]
 name = "feather_server"
@@ -15,98 +16,28 @@ path = "src/main.rs"
 [dependencies]
 # Feather crates
 feather-core = { path = "../core" }
-feather-blocks = { path = "../blocks" }
-feather-items = { path = "../items" }
-feather-item-block = { path = "../item_block" }
-feather-codegen = { path = "../codegen" }
+feather-server-chat = { path = "chat" }
+feather-server-chunk = { path = "chunk" }
+feather-server-config = { path = "config" }
+feather-server-entity = { path = "entity" }
+feather-server-lighting = { path = "lighting" }
+feather-server-network = { path = "network" }
+feather-server-packet-buffer = { path = "packet_buffer" }
+feather-server-physics = { path = "physics" }
+feather-server-player = { path = "player" }
+feather-server-types = { path = "types" }
+feather-server-util = { path = "util" }
+feather-server-weather = { path = "weather" }
+feather-server-worldgen = { path = "worldgen" }
 
-# Core ECS + systems
-fecs = { git = "https://github.com/feather-rs/fecs", rev = "d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617" }
-# fecs = { path = "../../../dev/fecs" }
-
-# Concurrency/threading
-crossbeam = "0.7"
-rayon = "1.3"
-parking_lot = { version = "0.10", features = ["deadlock_detection"] }
-lock_api = "0.3"
-thread_local = "1.0"
-
-# Netorking/IO
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "1dae7a1870209a8af0326e3b6e18dff9e1a2f67e" }
 tokio = { version = "0.2", features = ["full"] }
-tokio-util = { version = "0.2", features = ["codec"] }
-futures = "0.3"
-bytes = "0.5"
-mojang-api = "0.6"
-
-# Crypto
-rsa = "0.2"
-rsa-der = "0.2"
-# Match RSA git master
-num-bigint = { version = "0.6", features = ["rand", "i128", "u64_digit"], package = "num-bigint-dig" }
-
-# Hash functions
-ahash = "0.3"
-base64 = "0.12"
-
-# Math and physics
-nalgebra-glm = "0.6"
-nalgebra = "0.20"
-ncollide3d = "0.22"
-
-# Other data structures
-hashbrown = { version = "0.7", features = ["rayon"] }
-bitvec = "0.17"
-bitflags = "1.2"
-heapless = "0.5"
-uuid = { version = "0.8", features = ["v4"] }
-multimap = "0.8"
-smallvec = "1.2"
-arrayvec = "0.5"
-indexmap = "1.3"
-dashmap = "3.10"
-
-# Logging
-log = "0.4"
 simple_logger = "1.6"
-
-# Serialization/deserialization
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-toml = "0.5"
-hematite-nbt = "0.4"
-
-# RNGs
-rand = "0.7"
-rand_distr = "0.2.2"
-rand_xorshift = "0.2"
-
-# Other
-num-derive = "0.3"
-num-traits = "0.2"
-lazy_static = "1.4"
-strum = "0.18"
-simdnoise = "3.1"
-simdeez = "1.0"
-humantime-serde = "1.0"
-ctrlc = "3.1"
-inventory = "0.1"
-derivative = "2.0"
-itertools = "0.9"
-
-# Allocators
-bumpalo = { version = "3.2", features = ["collections"] }
-
-# Error handling
-thiserror = "1.0"
+log = "0.4"
 anyhow = "1.0"
-
-[dev-dependencies]
-criterion = "0.3"
-approx = "0.3"
-
-[[bench]]
-name = "worldgen"
-harness = false
-
-[features]
-nightly = ["hashbrown/nightly", "parking_lot/nightly"]
+rand = "0.7"
+fxhash = "0.2"
+base64 = "0.12"
+spin_sleep = "1.0"
+crossbeam = "0.7"
+ctrlc = "3.1"

@@ -41,18 +41,26 @@ jobs:
           ${{ runner.os }}-build-
           ${{ runner.os }}-
       
+    - name: Install rustfmt
+      run: rustup component add rustfmt
+
     - name: Build
       run: cargo build
+      env:
+        RUSTFLAGS: "-C opt-level=0"
       
     - name: Run tests
       run: cargo test
+      env:
+        RUSTFLAGS: "-C opt-level=0"
+
+    - name: Install Clippy
+      run: rustup component add clippy
     
     - name: Run Clippy
-      uses: actions-rs/clippy-check@v1.0.5
-      with:
-        # GitHub token
-        token: ${{ secrets.GITHUB_TOKEN }}
-        args: --all-targets -- -D warnings
+      run: cargo clippy --all-targets -- -D warnings
+      env:
+        RUSTFLAGS: "-C opt-level=0"
     
     - name: Check formatting
       run: cargo fmt -- --check

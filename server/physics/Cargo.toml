@@ -1,0 +1,18 @@
+[package]
+name = "feather-server-physics"
+version = "0.5.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-core = { path = "../../core" }
+feather-server-types = { path = "../types" }
+
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "1dae7a1870209a8af0326e3b6e18dff9e1a2f67e" }
+nalgebra = "0.20"
+nalgebra-glm = "0.6"
+ncollide3d = "0.22"
+heapless = "0.5"
+smallvec = "1.4"
+bitflags = "1.2"
+parking_lot = "0.10"

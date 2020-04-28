@@ -1,0 +1,13 @@
+[package]
+name = "feather-entity-metadata"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-util = { path = "../util" }
+feather-inventory = { path = "../inventory" }
+
+bitflags = "1.2"
+uuid = "0.8"
+hematite-nbt = "0.4"

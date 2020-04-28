@@ -1,0 +1,13 @@
+[package]
+name = "feather-server-weather"
+version = "0.5.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-core = { path = "../../core" }
+feather-server-types = { path = "../types" }
+feather-server-util = { path = "../util" }
+
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "1dae7a1870209a8af0326e3b6e18dff9e1a2f67e" }
+rand = "0.7"

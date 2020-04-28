@@ -53,10 +53,10 @@ version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "658f9468113d34781f6ca9d014d174c74b73de870f1e0e3ad32079bbab253b19"
 dependencies = [
- "approx 0.3.2",
+ "approx",
  "libm 0.1.4",
  "num-complex",
- "num-traits 0.2.11",
+ "num-traits",
 ]
 
 [[package]]
@@ -76,17 +76,11 @@ checksum = "7825f6833612eb2414095684fcf6c635becf3ce97fe48cf6421321e93bfbd53c"
 
 [[package]]
 name = "approx"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08abcc3b4e9339e33a3d0a5ed15d84a687350c05689d825e0f6655eef9e76a94"
-
-[[package]]
-name = "approx"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f0e60b75072ecd4168020818c0107f2857bb6c4e64252d8d3983f6263b40a5c3"
 dependencies = [
- "num-traits 0.2.11",
+ "num-traits",
 ]
 
 [[package]]
@@ -100,6 +94,9 @@ name = "arrayvec"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cff77d8686867eceff3105329d4698d96c2391c176d5d03adc90c7389162b5b8"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "as-slice"
@@ -302,7 +299,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "31850b4a4d6bae316f7a09e691c944c28299298837edc0a03f755618c23cbc01"
 dependencies = [
  "num-integer",
- "num-traits 0.2.11",
+ "num-traits",
  "time",
 ]
 
@@ -400,7 +397,7 @@ dependencies = [
  "csv",
  "itertools 0.8.2",
  "lazy_static",
- "num-traits 0.2.11",
+ "num-traits",
  "rand_core",
  "rand_os",
  "rand_xoshiro",
@@ -524,9 +521,9 @@ dependencies = [
 
 [[package]]
 name = "ctrlc"
-version = "3.1.3"
+version = "3.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7dfd2d8b4c82121dfdff120f818e09fc4380b0b7e17a742081a89b94853e87f"
+checksum = "7a4ba686dff9fa4c1c9636ce1010b0cf98ceb421361b0bb3d6faeec43bd217a7"
 dependencies = [
  "nix",
  "winapi 0.3.8",
@@ -534,9 +531,9 @@ dependencies = [
 
 [[package]]
 name = "dashmap"
-version = "3.10.0"
+version = "3.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0899c830f359a74834c84ed43b4c0cb6fd714a6fa64e20ab78c78f8cf86d8fc0"
+checksum = "0f87a04c37da1d3d27db1fb7f372802b72fb8c3ff3e9c0914530995127f4a6a1"
 dependencies = [
  "ahash",
  "cfg-if",
@@ -556,9 +553,9 @@ dependencies = [
 
 [[package]]
 name = "derivative"
-version = "2.0.2"
+version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b94d2eb97732ec84b4e25eaf37db890e317b80e921f168c82cb5282473f8151"
+checksum = "cb582b60359da160a9477ee80f15c8d784c477e69c217ef2cdd4169c24ea380f"
 dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.1",
@@ -604,6 +601,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "erasable"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3c976c341ea61d28e7ba0e9c894d6f37b9ef52e7a83d5d9a61442b4c6e7a49f"
+dependencies = [
+ "autocfg 1.0.0",
+ "scopeguard",
+]
+
+[[package]]
 name = "failure"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -626,6 +633,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "feather-anvil"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "arrayvec",
+ "bitvec",
+ "byteorder",
+ "feather-biomes",
+ "feather-blocks",
+ "feather-chunk",
+ "feather-inventory",
+ "feather-items",
+ "feather-util",
+ "hematite-nbt 0.4.1 (git+https://github.com/feather-rs/hematite_nbt)",
+ "serde",
+ "thiserror",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "feather-biomes"
+version = "0.1.0"
+dependencies = [
+ "num-derive",
+ "num-traits",
+ "strum 0.18.0",
+ "strum_macros 0.18.0",
+]
+
+[[package]]
 name = "feather-blocks"
 version = "0.5.0"
 dependencies = [
@@ -635,7 +673,7 @@ dependencies = [
  "criterion",
  "feather-blocks-generator",
  "num-derive",
- "num-traits 0.2.11",
+ "num-traits",
  "once_cell",
  "serde",
  "thiserror",
@@ -660,6 +698,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "feather-chunk"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "bitflags",
+ "feather-biomes",
+ "feather-blocks",
+ "feather-util",
+ "smallvec 1.4.0",
+]
+
+[[package]]
+name = "feather-chunk-map"
+version = "0.1.0"
+dependencies = [
+ "feather-blocks",
+ "feather-chunk",
+ "feather-util",
+ "hashbrown",
+ "parking_lot 0.10.0",
+]
+
+[[package]]
 name = "feather-codegen"
 version = "0.5.0"
 dependencies = [
@@ -674,44 +735,20 @@ dependencies = [
 
 [[package]]
 name = "feather-core"
-version = "0.5.0"
+version = "0.1.0"
 dependencies = [
- "aes",
- "ahash",
- "anyhow",
- "bitflags",
- "bitvec",
- "byteorder",
- "bytes",
- "cfb8",
+ "feather-anvil",
+ "feather-biomes",
  "feather-blocks",
- "feather-codegen",
- "feather-data",
+ "feather-chunk",
+ "feather-chunk-map",
+ "feather-entity-metadata",
+ "feather-inventory",
+ "feather-item-block",
  "feather-items",
- "flate2 1.0.13",
- "hash32",
- "hash32-derive",
- "hashbrown",
- "hematite-nbt",
- "lazy_static",
- "log",
- "multimap",
- "nalgebra-glm",
- "num-derive",
- "num-traits 0.2.11",
- "parking_lot 0.10.0",
- "rayon",
- "serde",
- "serde_json",
- "serde_with",
- "smallvec 1.2.0",
- "strum 0.18.0",
- "strum_macros 0.18.0",
- "thiserror",
- "tokio",
- "tokio-util",
- "uuid",
- "vek",
+ "feather-network",
+ "feather-text",
+ "feather-util",
 ]
 
 [[package]]
@@ -729,6 +766,17 @@ dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.1",
  "syn 1.0.13",
+]
+
+[[package]]
+name = "feather-entity-metadata"
+version = "0.1.0"
+dependencies = [
+ "bitflags",
+ "feather-inventory",
+ "feather-util",
+ "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uuid",
 ]
 
 [[package]]
@@ -751,6 +799,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "feather-inventory"
+version = "0.1.0"
+dependencies = [
+ "feather-items",
+ "once_cell",
+ "smallvec 1.4.0",
+]
+
+[[package]]
 name = "feather-item-block"
 version = "0.5.0"
 dependencies = [
@@ -763,72 +820,324 @@ name = "feather-items"
 version = "0.5.0"
 dependencies = [
  "num-derive",
- "num-traits 0.2.11",
+ "num-traits",
+]
+
+[[package]]
+name = "feather-network"
+version = "0.1.0"
+dependencies = [
+ "aes",
+ "ahash",
+ "anyhow",
+ "byteorder",
+ "bytes",
+ "cfb8",
+ "feather-blocks",
+ "feather-chunk",
+ "feather-codegen",
+ "feather-entity-metadata",
+ "feather-inventory",
+ "feather-items",
+ "feather-util",
+ "flate2 1.0.14",
+ "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log",
+ "num-derive",
+ "num-traits",
+ "once_cell",
+ "parking_lot 0.10.0",
+ "serde",
+ "strum 0.18.0",
+ "strum_macros 0.18.0",
+ "thiserror",
+ "tokio-util 0.3.1",
+ "uuid",
 ]
 
 [[package]]
 name = "feather-server"
 version = "0.5.0"
 dependencies = [
- "ahash",
  "anyhow",
- "approx 0.3.2",
- "arrayvec",
  "base64 0.12.0",
- "bitflags",
- "bitvec",
- "bumpalo",
- "bytes",
- "criterion",
  "crossbeam",
  "ctrlc",
- "dashmap",
- "derivative 2.0.2",
- "feather-blocks",
- "feather-codegen",
  "feather-core",
- "feather-item-block",
- "feather-items",
+ "feather-server-chat",
+ "feather-server-chunk",
+ "feather-server-config",
+ "feather-server-entity",
+ "feather-server-lighting",
+ "feather-server-network",
+ "feather-server-packet-buffer",
+ "feather-server-physics",
+ "feather-server-player",
+ "feather-server-types",
+ "feather-server-util",
+ "feather-server-weather",
+ "feather-server-worldgen",
  "fecs",
- "futures",
- "hashbrown",
- "heapless",
- "hematite-nbt",
+ "fxhash",
+ "log",
+ "rand",
+ "simple_logger",
+ "spin_sleep",
+ "tokio",
+]
+
+[[package]]
+name = "feather-server-chat"
+version = "0.5.0"
+
+[[package]]
+name = "feather-server-chunk"
+version = "0.5.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "crossbeam",
+ "feather-core",
+ "feather-server-types",
+ "feather-server-util",
+ "feather-server-worldgen",
+ "fecs",
+ "log",
+ "parking_lot 0.10.0",
+ "rayon",
+ "smallvec 1.4.0",
+]
+
+[[package]]
+name = "feather-server-config"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "feather-util",
  "humantime-serde",
- "indexmap",
+ "serde",
+ "tokio",
+ "toml",
+]
+
+[[package]]
+name = "feather-server-entity"
+version = "0.5.0"
+dependencies = [
+ "anyhow",
+ "feather-core",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
  "inventory",
- "itertools 0.9.0",
- "lazy_static",
- "lock_api",
+ "log",
+ "nalgebra-glm",
+ "num-derive",
+ "num-traits",
+ "parking_lot 0.10.0",
+ "rand",
+ "smallvec 1.4.0",
+]
+
+[[package]]
+name = "feather-server-lighting"
+version = "0.5.0"
+dependencies = [
+ "ahash",
+ "arrayvec",
+ "crossbeam",
+ "feather-core",
+ "feather-server-physics",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
+ "log",
+ "nalgebra-glm",
+ "parking_lot 0.10.0",
+ "smallvec 1.4.0",
+]
+
+[[package]]
+name = "feather-server-network"
+version = "0.5.0"
+dependencies = [
+ "anyhow",
+ "derivative 2.1.1",
+ "feather-core",
+ "feather-server-types",
+ "fecs",
+ "flume",
+ "futures",
  "log",
  "mojang-api",
- "multimap",
+ "num-bigint-dig",
+ "once_cell",
+ "parking_lot 0.10.0",
+ "rand",
+ "rsa",
+ "rsa-der",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tokio-util 0.3.1",
+]
+
+[[package]]
+name = "feather-server-packet-buffer"
+version = "0.5.0"
+dependencies = [
+ "ahash",
+ "crossbeam",
+ "feather-core",
+ "fecs",
+ "indexmap",
+ "num-traits",
+ "once_cell",
+ "parking_lot 0.10.0",
+ "smallvec 1.4.0",
+ "strum 0.18.0",
+]
+
+[[package]]
+name = "feather-server-physics"
+version = "0.5.0"
+dependencies = [
+ "bitflags",
+ "feather-core",
+ "feather-server-types",
+ "fecs",
+ "heapless",
  "nalgebra",
  "nalgebra-glm",
  "ncollide3d",
- "num-bigint-dig",
- "num-derive",
- "num-traits 0.2.11",
+ "parking_lot 0.10.0",
+ "smallvec 1.4.0",
+]
+
+[[package]]
+name = "feather-server-player"
+version = "0.5.0"
+dependencies = [
+ "ahash",
+ "feather-core",
+ "feather-server-entity",
+ "feather-server-network",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
+ "itertools 0.9.0",
+ "log",
+ "mojang-api",
+ "nalgebra-glm",
+ "parking_lot 0.10.0",
+ "smallvec 1.4.0",
+]
+
+[[package]]
+name = "feather-server-template"
+version = "0.5.0"
+dependencies = [
+ "feather-core",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
+]
+
+[[package]]
+name = "feather-server-types"
+version = "0.5.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "bumpalo",
+ "dashmap",
+ "feather-core",
+ "feather-server-config",
+ "feather-server-packet-buffer",
+ "fecs",
+ "flume",
+ "futures",
+ "inventory",
+ "log",
+ "mojang-api",
+ "nalgebra-glm",
+ "ncollide3d",
  "parking_lot 0.10.0",
  "rand",
- "rand_distr",
- "rand_xorshift",
- "rayon",
- "rsa",
- "rsa-der",
- "serde",
- "serde_json",
- "simdeez",
- "simdnoise",
- "simple_logger",
- "smallvec 1.2.0",
- "strum 0.18.0",
- "thiserror",
+ "smallvec 1.4.0",
  "thread_local",
  "tokio",
- "tokio-util",
- "toml",
  "uuid",
+]
+
+[[package]]
+name = "feather-server-util"
+version = "0.5.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "arrayvec",
+ "feather-core",
+ "feather-server-types",
+ "fecs",
+ "inventory",
+ "itertools 0.9.0",
+ "nalgebra-glm",
+ "rand",
+ "rand_distr",
+ "smallvec 1.4.0",
+]
+
+[[package]]
+name = "feather-server-weather"
+version = "0.5.0"
+dependencies = [
+ "feather-core",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
+ "rand",
+]
+
+[[package]]
+name = "feather-server-worldgen"
+version = "0.5.0"
+dependencies = [
+ "approx",
+ "bitvec",
+ "feather-core",
+ "log",
+ "num-traits",
+ "once_cell",
+ "rand",
+ "rand_xorshift",
+ "simdnoise",
+ "smallvec 1.4.0",
+ "strum 0.18.0",
+]
+
+[[package]]
+name = "feather-text"
+version = "0.1.0"
+dependencies = [
+ "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "uuid",
+]
+
+[[package]]
+name = "feather-util"
+version = "0.1.0"
+dependencies = [
+ "hash32",
+ "hash32-derive",
+ "nalgebra-glm",
+ "num-derive",
+ "num-traits",
+ "serde",
+ "vek",
 ]
 
 [[package]]
@@ -838,29 +1147,26 @@ version = "0.1.0"
 [[package]]
 name = "fecs"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617#d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617"
+source = "git+https://github.com/feather-rs/fecs?rev=1dae7a1870209a8af0326e3b6e18dff9e1a2f67e#1dae7a1870209a8af0326e3b6e18dff9e1a2f67e"
 dependencies = [
+ "arrayvec",
+ "erasable",
  "fecs-macros",
  "fxhash",
- "inventory",
  "legion",
+ "smallvec 1.4.0",
+ "thiserror",
 ]
 
 [[package]]
 name = "fecs-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617#d84d9e49c6caf3f95b82b0e5b11e4b97c54a2617"
+source = "git+https://github.com/feather-rs/fecs?rev=1dae7a1870209a8af0326e3b6e18dff9e1a2f67e#1dae7a1870209a8af0326e3b6e18dff9e1a2f67e"
 dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.1",
  "syn 1.0.13",
 ]
-
-[[package]]
-name = "fixedbitset"
-version = "0.1.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86d4de0081402f5e88cdac65c8dcdcc73118c1a7a465e2a05f0da05843a8ea33"
 
 [[package]]
 name = "fixedbitset"
@@ -880,14 +1186,24 @@ dependencies = [
 
 [[package]]
 name = "flate2"
-version = "1.0.13"
+version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6bd6d6f4752952feb71363cffc9ebac9411b75b87c6ab6058c40c8900cf43c0f"
+checksum = "2cfff41391129e0a856d6d822600b8d71179d46879e310417eb9c762eb178b42"
 dependencies = [
  "cfg-if",
  "crc32fast",
  "libc",
  "miniz_oxide",
+]
+
+[[package]]
+name = "flume"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "855e285c3835897065a6ba6f9463b44553eb9f29c7988d692f3d41283b47388b"
+dependencies = [
+ "futures",
+ "spin",
 ]
 
 [[package]]
@@ -1083,7 +1399,7 @@ dependencies = [
  "log",
  "slab",
  "tokio",
- "tokio-util",
+ "tokio-util 0.2.0",
 ]
 
 [[package]]
@@ -1115,7 +1431,6 @@ dependencies = [
  "ahash",
  "autocfg 1.0.0",
  "rayon",
- "serde",
 ]
 
 [[package]]
@@ -1136,6 +1451,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20564e78d53d2bb135c343b3f47714a56af2061f1c928fdb541dc7b9fdd94205"
 dependencies = [
  "unicode-segmentation",
+]
+
+[[package]]
+name = "hematite-nbt"
+version = "0.4.1"
+source = "git+https://github.com/feather-rs/hematite_nbt#e15ab917c185e87293fcaf19365924f054a7cdc5"
+dependencies = [
+ "byteorder",
+ "cesu8",
+ "flate2 0.2.20",
+ "serde",
 ]
 
 [[package]]
@@ -1346,7 +1672,7 @@ dependencies = [
 [[package]]
 name = "legion"
 version = "0.2.1"
-source = "git+https://github.com/TomGillen/legion?rev=24091d73353d639eb280fc8196ddd74bceebbecc#24091d73353d639eb280fc8196ddd74bceebbecc"
+source = "git+https://github.com/TomGillen/legion?rev=bd441f4811e7a9e877a0f479a674bbdbf4e4cda3#bd441f4811e7a9e877a0f479a674bbdbf4e4cda3"
 dependencies = [
  "legion-core",
  "legion-systems",
@@ -1355,7 +1681,7 @@ dependencies = [
 [[package]]
 name = "legion-core"
 version = "0.2.1"
-source = "git+https://github.com/TomGillen/legion?rev=24091d73353d639eb280fc8196ddd74bceebbecc#24091d73353d639eb280fc8196ddd74bceebbecc"
+source = "git+https://github.com/TomGillen/legion?rev=bd441f4811e7a9e877a0f479a674bbdbf4e4cda3#bd441f4811e7a9e877a0f479a674bbdbf4e4cda3"
 dependencies = [
  "crossbeam-channel",
  "derivative 1.0.3",
@@ -1364,7 +1690,7 @@ dependencies = [
  "itertools 0.8.2",
  "parking_lot 0.10.0",
  "rayon",
- "smallvec 1.2.0",
+ "smallvec 1.4.0",
  "thiserror",
  "tracing",
 ]
@@ -1372,7 +1698,7 @@ dependencies = [
 [[package]]
 name = "legion-systems"
 version = "0.2.1"
-source = "git+https://github.com/TomGillen/legion?rev=24091d73353d639eb280fc8196ddd74bceebbecc#24091d73353d639eb280fc8196ddd74bceebbecc"
+source = "git+https://github.com/TomGillen/legion?rev=bd441f4811e7a9e877a0f479a674bbdbf4e4cda3#bd441f4811e7a9e877a0f479a674bbdbf4e4cda3"
 dependencies = [
  "bit-set",
  "crossbeam-channel",
@@ -1496,9 +1822,9 @@ dependencies = [
 
 [[package]]
 name = "miniz_oxide"
-version = "0.3.5"
+version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f3f74f726ae935c3f514300cc6773a0c9492abc5e972d42ba0c0ebb88757625"
+checksum = "aa679ff6578b1cddee93d7e82e263b94a575e0bfced07284eb0c037c1d2416a5"
 dependencies = [
  "adler32",
 ]
@@ -1584,27 +1910,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "multimap"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a97fbd5d00e0e37bfb10f433af8f5aaf631e739368dc9fc28286ca81ca4948dc"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "nalgebra"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c6511777ed3da44b6a11e732a66a7d6274dfbbcd68ad968e64b778dcb829d94a"
 dependencies = [
  "alga",
- "approx 0.3.2",
+ "approx",
  "generic-array 0.13.2",
  "matrixmultiply",
  "num-complex",
  "num-rational",
- "num-traits 0.2.11",
+ "num-traits",
  "rand",
  "rand_distr",
  "typenum",
@@ -1617,9 +1934,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5ae78da13d67be0d2e4ab567490477e4c9f314fc151ddfff6713b15bdbb2aa72"
 dependencies = [
  "alga",
- "approx 0.3.2",
+ "approx",
  "nalgebra",
- "num-traits 0.2.11",
+ "num-traits",
 ]
 
 [[package]]
@@ -1647,16 +1964,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf6b0aa58474dc252fd96782f46315e9a3ae7ad18014a65d70975865e1d19754"
 dependencies = [
  "alga",
- "approx 0.3.2",
+ "approx",
  "bitflags",
  "downcast-rs",
  "either",
  "nalgebra",
- "num-traits 0.2.11",
- "petgraph 0.5.0",
+ "num-traits",
+ "petgraph",
  "slab",
  "slotmap",
- "smallvec 1.2.0",
+ "smallvec 1.4.0",
 ]
 
 [[package]]
@@ -1672,9 +1989,9 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.14.1"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c722bee1037d430d0f8e687bbdbf222f27cc6e4e68d5caf630857bb2b6dbdce"
+checksum = "50e4785f2c3b7589a0d0c1dd60285e1188adac4006e8abd6dd578e1567027363"
 dependencies = [
  "bitflags",
  "cc",
@@ -1701,7 +2018,7 @@ checksum = "f6f115de20ad793e857f76da2563ff4a09fbcfd6fe93cca0c5d996ab5f3ee38d"
 dependencies = [
  "autocfg 1.0.0",
  "num-integer",
- "num-traits 0.2.11",
+ "num-traits",
 ]
 
 [[package]]
@@ -1716,10 +2033,10 @@ dependencies = [
  "libm 0.2.1",
  "num-integer",
  "num-iter",
- "num-traits 0.2.11",
+ "num-traits",
  "rand",
  "serde",
- "smallvec 1.2.0",
+ "smallvec 1.4.0",
  "zeroize",
 ]
 
@@ -1730,7 +2047,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6b19411a9719e753aff12e5187b74d60d3dc449ec3f4dc21e3989c3f554bc95"
 dependencies = [
  "autocfg 1.0.0",
- "num-traits 0.2.11",
+ "num-traits",
 ]
 
 [[package]]
@@ -1751,7 +2068,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f6ea62e9d81a77cd3ee9a2a5b9b609447857f3d358704331e4ef39eb247fcba"
 dependencies = [
  "autocfg 1.0.0",
- "num-traits 0.2.11",
+ "num-traits",
 ]
 
 [[package]]
@@ -1762,7 +2079,7 @@ checksum = "dfb0800a0291891dd9f4fe7bd9c19384f98f7fbe0cd0f39a2c6b88b9868bbc00"
 dependencies = [
  "autocfg 1.0.0",
  "num-integer",
- "num-traits 0.2.11",
+ "num-traits",
 ]
 
 [[package]]
@@ -1773,16 +2090,7 @@ checksum = "da4dc79f9e6c81bef96148c8f6b8e72ad4541caa4a24373e900a36da07de03a3"
 dependencies = [
  "autocfg 1.0.0",
  "num-integer",
- "num-traits 0.2.11",
-]
-
-[[package]]
-name = "num-traits"
-version = "0.1.43"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92e5113e9fd4cc14ded8e499429f396a20f98c772a47cc8622a736e1ec843c31"
-dependencies = [
- "num-traits 0.2.11",
+ "num-traits",
 ]
 
 [[package]]
@@ -1853,12 +2161,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ordermap"
-version = "0.3.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a86ed3f5f244b372d6b1a00b72ef7f8876d0bc6a78a4c9985c53614041512063"
-
-[[package]]
 name = "parking_lot"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1900,14 +2202,11 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7582838484df45743c8434fbff785e8edf260c28748353d44bc0da32e0ceabf1"
 dependencies = [
- "backtrace",
  "cfg-if",
  "cloudabi",
  "libc",
- "petgraph 0.4.13",
  "redox_syscall",
- "smallvec 1.2.0",
- "thread-id",
+ "smallvec 1.4.0",
  "winapi 0.3.8",
 ]
 
@@ -1941,21 +2240,11 @@ checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
 
 [[package]]
 name = "petgraph"
-version = "0.4.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c3659d1ee90221741f65dd128d9998311b0e40c5d3c23a62445938214abce4f"
-dependencies = [
- "fixedbitset 0.1.9",
- "ordermap",
-]
-
-[[package]]
-name = "petgraph"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29c127eea4a29ec6c85d153c59dc1213f33ec74cead30fe4730aecc88cc1fd92"
 dependencies = [
- "fixedbitset 0.2.0",
+ "fixedbitset",
  "indexmap",
 ]
 
@@ -2091,6 +2380,7 @@ dependencies = [
  "rand_chacha",
  "rand_core",
  "rand_hc",
+ "rand_pcg",
 ]
 
 [[package]]
@@ -2137,6 +2427,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a788ae3edb696cfcba1c19bfd388cc4b8c21f8a408432b199c072825084da58a"
 dependencies = [
  "getrandom",
+ "rand_core",
+]
+
+[[package]]
+name = "rand_pcg"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16abd0c1b639e9eb4d7c50c0b8100b0d0f849be2349829c740fe8e6eb4816429"
+dependencies = [
  "rand_core",
 ]
 
@@ -2259,7 +2558,7 @@ dependencies = [
  "num-bigint-dig",
  "num-integer",
  "num-iter",
- "num-traits 0.2.11",
+ "num-traits",
  "rand",
  "subtle",
  "zeroize",
@@ -2358,18 +2657,18 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"
-version = "1.0.104"
+version = "1.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "414115f25f818d7dfccec8ee535d76949ae78584fc4f79a6f45a904bf8ab4449"
+checksum = "36df6ac6412072f67cf767ebbde4133a5b2e88e76dc6187fa7104cd16f783399"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.104"
+version = "1.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "128f9e303a5a29922045a830221b8f78ec74a5f544944f3d5984f8ec3895ef64"
+checksum = "9e549e3abf4fb8621bd1609f11dfc9f5e50320802273b12f3811a67e6716ea6c"
 dependencies = [
  "proc-macro2 1.0.7",
  "quote 1.0.1",
@@ -2463,7 +2762,7 @@ checksum = "2b25ecba7165254f0c97d6c22a64b1122a03634b18d20a34daf21e18f892e618"
 dependencies = [
  "chrono",
  "num-bigint",
- "num-traits 0.2.11",
+ "num-traits",
 ]
 
 [[package]]
@@ -2502,9 +2801,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.2.0"
+version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c2fb2ec9bcd216a5b0d0ccf31ab17b5ed1d627960edff65bbe95d3ce221cefc"
+checksum = "c7cb5678e1615754284ec264d9bb5b4c27d2018577fd90ac0ceb578591ed5ee4"
 
 [[package]]
 name = "socket2"
@@ -2531,6 +2830,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
+name = "spin_sleep"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a98101bdc3833e192713c2af0b0dd2614f50d1cf1f7a97c5221b7aac052acc7"
+dependencies = [
+ "once_cell",
+ "winapi 0.3.8",
+]
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2538,9 +2847,9 @@ checksum = "dba1a27d3efae4351c8051072d619e3ade2820635c3958d826bfea39d59b54c8"
 
 [[package]]
 name = "static_assertions"
-version = "0.2.5"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c19be23126415861cb3a23e501d34a708f7f9b2183c5252d690941c2e69199d5"
+checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "stream-cipher"
@@ -2688,17 +2997,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "thread-id"
-version = "3.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7fbf4c9d56b320106cd64fd024dadfa0be7cb4706725fc44a7d7ce952d820c1"
-dependencies = [
- "libc",
- "redox_syscall",
- "winapi 0.3.8",
-]
-
-[[package]]
 name = "thread_local"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2778,6 +3076,20 @@ name = "tokio-util"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "571da51182ec208780505a32528fc5512a8fe1443ab960b3f2f3ef093cd16930"
+dependencies = [
+ "bytes",
+ "futures-core",
+ "futures-sink",
+ "log",
+ "pin-project-lite",
+ "tokio",
+]
+
+[[package]]
+name = "tokio-util"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be8242891f2b6cbef26a2d7e8605133c2c554cd35b3e4948ea892d6d68436499"
 dependencies = [
  "bytes",
  "futures-core",
@@ -2868,7 +3180,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b561e267b2326bb4cebfc0ef9e68355c7abe6c6f522aeac2f5bf95d56c59bdcf"
 dependencies = [
- "smallvec 1.2.0",
+ "smallvec 1.4.0",
 ]
 
 [[package]]
@@ -2930,14 +3242,15 @@ checksum = "05c78687fb1a80548ae3250346c3db86a80a7cdd77bda190189f2d0a0987c81a"
 
 [[package]]
 name = "vek"
-version = "0.9.12"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b833a133490ae98e9e3db1c77fc28e844f8e51b12eb35b4ab8a2082cb7cb441a"
+checksum = "c275cd1b501b28aef0a7e04cad09d6cca06e2c8adc7289f14162a9fb118d5318"
 dependencies = [
- "approx 0.1.1",
+ "approx",
  "num-integer",
- "num-traits 0.1.43",
+ "num-traits",
  "rustc_version",
+ "serde",
  "static_assertions",
 ]
 

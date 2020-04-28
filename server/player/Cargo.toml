@@ -1,0 +1,21 @@
+[package]
+name = "feather-server-player"
+version = "0.5.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-core = { path = "../../core" }
+feather-server-types = { path = "../types" }
+feather-server-util = { path = "../util" }
+feather-server-network = { path = "../network" }
+entity = { path = "../entity", package = "feather-server-entity" }
+
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "1dae7a1870209a8af0326e3b6e18dff9e1a2f67e" }
+log = "0.4"
+mojang-api = "0.6"
+nalgebra-glm = "0.6"
+smallvec = "1.4"
+itertools = "0.9"
+ahash = "0.3"
+parking_lot = "0.10"

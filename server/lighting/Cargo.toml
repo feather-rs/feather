@@ -1,0 +1,20 @@
+[package]
+name = "feather-server-lighting"
+version = "0.5.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-core = { path = "../../core" }
+feather-server-physics = { path = "../physics" }
+feather-server-types = { path = "../types" }
+feather-server-util = { path = "../util" }
+
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "1dae7a1870209a8af0326e3b6e18dff9e1a2f67e" }
+arrayvec = "0.5"
+smallvec = "1.4"
+ahash = "0.3"
+crossbeam = "0.7"
+parking_lot = "0.10"
+log = "0.4"
+nalgebra-glm = "0.6"

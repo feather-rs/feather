@@ -1,0 +1,20 @@
+[package]
+name = "feather-server-util"
+version = "0.5.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-core = { path = "../../core" }
+feather-server-types = { path = "../types" }
+
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "1dae7a1870209a8af0326e3b6e18dff9e1a2f67e" }
+nalgebra-glm = "0.6"
+arrayvec = "0.5"
+smallvec = "1.4"
+rand = "0.7"
+rand_distr = "0.2"
+itertools = "0.9"
+ahash = "0.3"
+inventory = "0.1"
+anyhow = "1.0"

@@ -1,14 +1,43 @@
 [workspace]
 members = [
-    "core",
     "api",
+
+    "core",
+    "core/anvil",
+    "core/blocks",
+    "core/blocks/generator",
+    "core/biomes",
+    "core/chunk",
+    "core/chunk_map",
+    "core/entity_metadata",
+    "core/item_block",
+    "core/items",
+    "core/inventory",
+    "core/network",
+    "core/util",
+
     "server",
-    "blocks",
-    "blocks/generator",
-    "items",
-    "item_block",
+    "server/template",
+    "server/chat",
+    "server/chunk",
+    "server/config",
+    "server/entity",
+    "server/lighting",
+    "server/network",
+    "server/packet_buffer",
+    "server/physics",
+    "server/player",
+    "server/types",
+    "server/util",
+    "server/weather",
+    "server/worldgen",
+
     "codegen",
     "generator",
     "data",
     "data/macro"
 ]
+
+# To make sure the server isn't dirt slow in debug mode.
+[profile.dev]
+opt-level = 1
