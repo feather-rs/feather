@@ -65,7 +65,7 @@ pub fn adjacent_blocks(pos: BlockPosition) -> ArrayVec<[BlockPosition; 6]> {
         pos + BlockPosition::new(0, 0, -1),
     ]
     .iter()
-    .filter(|pos| pos.y > 0 && pos.y < 256)
+    .filter(|pos| pos.y >= 0 && pos.y < 256)
     .copied()
     .collect()
 }

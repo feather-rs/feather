@@ -1,5 +1,5 @@
 use feather_blocks::BlockId;
-use feather_chunk::Chunk;
+use feather_chunk::{Chunk, CHUNK_HEIGHT};
 use feather_util::{BlockPosition, ChunkPosition};
 use hashbrown::HashMap;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
@@ -47,6 +47,7 @@ impl ChunkMap {
     /// location. If the chunk in which the block
     /// exists is not laoded, `None` is returned.
     pub fn block_at(&self, pos: BlockPosition) -> Option<BlockId> {
+        check_coords(pos)?;
         let (x, y, z) = chunk_relative_pos(pos);
         self.chunk_at(pos.into())
             .map(|chunk| chunk.block_at(x, y, z))
@@ -58,6 +59,9 @@ impl ChunkMap {
     /// if its chunk was not loaded and thus no operation
     /// was performed.
     pub fn set_block_at(&self, pos: BlockPosition, block: BlockId) -> bool {
+        if check_coords(pos).is_none() {
+            return false;
+        }
         let (x, y, z) = chunk_relative_pos(pos);
 
         self.chunk_at_mut(pos.into())
@@ -82,10 +86,32 @@ impl ChunkMap {
     }
 }
 
+fn check_coords(pos: BlockPosition) -> Option<()> {
+    if pos.y >= 0 && pos.y < CHUNK_HEIGHT as i32 {
+        Some(())
+    } else {
+        None
+    }
+}
+
 pub fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
     (
         block_pos.x as usize & 0xf,
         block_pos.y as usize,
         block_pos.z as usize & 0xf,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn chunk_map_out_of_bounds() {
+        let mut map = ChunkMap::new();
+        map.insert(Chunk::new(ChunkPosition::new(0, 0)));
+
+        assert!(map.block_at(BlockPosition::new(0, -1, 0)).is_none());
+        assert!(map.block_at(BlockPosition::new(0, 0, 0)).is_some());
+    }
 }
