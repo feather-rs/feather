@@ -6,6 +6,7 @@ use crossbeam::channel::{Receiver, Sender};
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use crate::chunk_worker;
+use ahash::AHashSet;
 use feather_core::anvil::entity::EntityData;
 use feather_core::chunk::Chunk;
 use feather_core::util::ChunkPosition;
@@ -21,6 +22,10 @@ use rayon::prelude::*;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
+/// Set of chunks which are currently being loaded.
+#[derive(Debug, Clone, Default)]
+pub struct LoadingChunks(pub AHashSet<ChunkPosition>);
+
 /// A handle for interacting with the chunk
 /// worker thread.
 #[derive(Debug, Clone)]
@@ -31,9 +36,15 @@ pub struct ChunkWorkerHandle {
 
 /// System for receiving loaded chunks from the chunk worker thread.
 #[fecs::system]
-pub fn chunk_load(game: &mut Game, world: &mut World, chunk_worker_handle: &ChunkWorkerHandle) {
+pub fn chunk_load(
+    game: &mut Game,
+    world: &mut World,
+    chunk_worker_handle: &ChunkWorkerHandle,
+    #[default] loading_chunks: &mut LoadingChunks,
+) {
     while let Ok(reply) = chunk_worker_handle.receiver.try_recv() {
         if let chunk_worker::Reply::LoadedChunk(pos, result) = reply {
+            loading_chunks.0.remove(&pos);
             match result {
                 Ok((chunk, entities)) => {
                     game.chunk_map.insert(chunk);
@@ -305,6 +316,16 @@ pub fn hold_chunk_request(event: &HoldChunkRequest, game: &mut Game, world: &mut
 }
 
 #[fecs::event_handler]
-pub fn load_chunk_request(event: &LoadChunkRequest, handle: &ChunkWorkerHandle) {
+pub fn load_chunk_request(
+    event: &LoadChunkRequest,
+    handle: &ChunkWorkerHandle,
+    loading_chunks: &mut LoadingChunks,
+    game: &mut Game,
+) {
+    // Don't load chunk if it's already loading or already loaded.
+    if !loading_chunks.0.insert(event.chunk) || game.chunk_map.0.contains_key(&event.chunk) {
+        return;
+    }
+
     load_chunk(handle, event.chunk);
 }
