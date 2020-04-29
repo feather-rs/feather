@@ -49,3 +49,20 @@ cargo build --release
 ```
 
 The server executable will be located in `target/release`.
+
+# FAQ
+
+* Is Feather production ready?
+
+Not yet. There are numerous bugs and missing features which have yet to be resolved,
+and the codebase has not been tested enough to consider the server production ready.
+
+* How can I contribute?
+
+Check out our [issue tracker](https://github.com/feather-rs/feather/issues) to find an issue which appeals to you. Feel free
+to join [our Discord](https://discordapp.com/invite/4eYmK69) and ask questions whenever you need. Thanks for your interest in contributing!
+
+* Are there other ways I can help?
+
+Yes! We're always looking for people to test out the server and find bugs. If you find anything that doesn't
+seem right to you, please submit an issue on the issue tracker.
