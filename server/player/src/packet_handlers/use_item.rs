@@ -1,4 +1,4 @@
-use crate::ItemTimedUse;
+use crate::{ItemTimedUse, IteratorExt};
 use feather_core::inventory::Inventory;
 use feather_core::items::Item;
 use feather_core::network::packets::UseItem;
@@ -13,11 +13,11 @@ pub fn handle_player_use_item(
     world: &mut World,
     packet_buffers: &Arc<PacketBuffers>,
 ) {
-    let packets = packet_buffers.received::<UseItem>();
-
-    for (player, packet) in packets {
-        handle_use_item(game, world, player, packet);
-    }
+    packet_buffers
+        .received::<UseItem>()
+        .for_each_valid(world, |world, (player, packet)| {
+            handle_use_item(game, world, player, packet)
+        });
 }
 
 fn handle_use_item(game: &mut Game, world: &mut World, player: Entity, packet: UseItem) {

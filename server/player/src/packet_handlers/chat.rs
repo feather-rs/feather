@@ -1,3 +1,4 @@
+use crate::IteratorExt;
 use feather_core::network::packets::ChatMessageServerbound;
 use feather_core::text::{TextRoot, Translate};
 use feather_server_types::{ChatEvent, ChatPosition, Game, Name, PacketBuffers};
@@ -9,7 +10,7 @@ use std::sync::Arc;
 pub fn handle_chat(game: &mut Game, world: &mut World, packet_buffers: &Arc<PacketBuffers>) {
     packet_buffers
         .received::<ChatMessageServerbound>()
-        .for_each(|(player, packet)| {
+        .for_each_valid(world, |world, (player, packet)| {
             if packet.message.starts_with('/') {
                 log::debug!("Skipping command {}", packet.message);
                 return;

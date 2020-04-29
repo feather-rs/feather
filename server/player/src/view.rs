@@ -170,7 +170,7 @@ pub fn on_chunk_cross_update_entities(event: &ChunkCrossEvent, game: &mut Game, 
 
     let to_destroy = to_client_remove_trigger
         .iter()
-        .map(|(other, _)| world.get::<EntityId>(*other).0)
+        .filter_map(|(other, _)| world.try_get::<EntityId>(*other).map(|id| id.0))
         .collect::<Vec<_>>();
 
     if !to_destroy.is_empty() {
@@ -259,6 +259,10 @@ fn send_chunk_to_player(
     player: Entity,
     chunk_pos: ChunkPosition,
 ) {
+    if !world.is_alive(player) {
+        return;
+    }
+
     // Ensure that the chunk isn't unloaded while the player has it loaded.
     game.handle(
         world,

@@ -4,7 +4,7 @@
 //! for actions mostly unrelated to digging including eating, shooting bows,
 //! swapping items out to the offhand, and dropping items.
 
-use crate::ItemTimedUse;
+use crate::{ItemTimedUse, IteratorExt};
 use feather_core::blocks::BlockId;
 use feather_core::inventory::{Inventory, SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use feather_core::items::{Item, ItemStack};
@@ -25,25 +25,25 @@ pub fn handle_player_digging(
 ) {
     use PlayerDiggingStatus::*;
 
-    let packets = packet_buffers.received::<PlayerDigging>();
+    packet_buffers
+        .received::<PlayerDigging>()
+        .for_each_valid(world, |world, (player, packet)| {
+            match packet.status {
+                StartedDigging | FinishedDigging | CancelledDigging => {
+                    handle_digging(game, world, player, packet)
+                }
+                /*DropItem | DropItemStack => handle_drop_item_stack(
+                    packet,
+                    player,
+                    inventory_updates,
+                    item_drops,
+                    &mut inventory,
+                ),*/
+                ConsumeItem => handle_consume_item(game, world, player, packet),
 
-    for (player, packet) in packets {
-        match packet.status {
-            StartedDigging | FinishedDigging | CancelledDigging => {
-                handle_digging(game, world, player, packet)
+                status => log::warn!("Unhandled Player Digging status {:?}", status),
             }
-            /*DropItem | DropItemStack => handle_drop_item_stack(
-                packet,
-                player,
-                inventory_updates,
-                item_drops,
-                &mut inventory,
-            ),*/
-            ConsumeItem => handle_consume_item(game, world, player, packet),
-
-            status => log::warn!("Unhandled Player Digging status {:?}", status),
-        }
-    }
+        });
 }
 
 fn handle_digging(game: &mut Game, world: &mut World, player: Entity, packet: PlayerDigging) {
