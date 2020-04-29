@@ -342,6 +342,11 @@ fn handle_ping(ih: &mut InitialHandler, packet: &Ping) -> Result<(), Error> {
 fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<(), Error> {
     check_stage(ih, Stage::AwaitLoginStart, packet.ty())?;
 
+    if ih.player_count.load(Ordering::Acquire) >= ih.config.server.max_players as u32 {
+        disconnect_login(ih, "Server is full!");
+        return Ok(());
+    }
+
     // If in online mode, encryption needs to be enabled,
     // and authentication needs to be performed.
     // If not in online mode, the login sequence is
