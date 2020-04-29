@@ -16,7 +16,7 @@ use smallvec::SmallVec;
 use std::cell::{RefCell, RefMut};
 use std::fmt::Display;
 use std::ops::{Deref, DerefMut};
-use std::sync::atomic::AtomicU32;
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 use thread_local::CachedThreadLocal;
 
@@ -126,6 +126,8 @@ impl Game {
 
         drop(name);
         drop(network);
+
+        self.player_count.fetch_sub(1, Ordering::AcqRel);
 
         self.handle(world, PlayerLeaveEvent { player });
         self.despawn(player, world);
