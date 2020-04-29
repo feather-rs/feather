@@ -56,14 +56,18 @@ pub fn degrees_to_stops(degs: f32) -> u8 {
 
 /// Returns the set of block positions adjacent to a given position.
 pub fn adjacent_blocks(pos: BlockPosition) -> ArrayVec<[BlockPosition; 6]> {
-    ArrayVec::from([
+    [
         pos + BlockPosition::new(1, 0, 0),
         pos + BlockPosition::new(0, 1, 0),
         pos + BlockPosition::new(0, 0, 1),
         pos + BlockPosition::new(-1, 0, 0),
         pos + BlockPosition::new(0, -1, 0),
         pos + BlockPosition::new(0, 0, -1),
-    ])
+    ]
+    .iter()
+    .filter(|pos| pos.y > 0 && pos.y < 256)
+    .copied()
+    .collect()
 }
 
 /// Converts float-based velocity in blocks per tick
