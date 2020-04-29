@@ -8,7 +8,7 @@ use feather_server_chunk::{chunk_worker, ChunkWorkerHandle};
 use feather_server_config::DEFAULT_CONFIG_STR;
 use feather_server_network::NetworkIoManager;
 use feather_server_packet_buffer::PacketBuffers;
-use feather_server_types::{Config, Game, RunningTasks};
+use feather_server_types::{game, task, Config, Game};
 use feather_server_worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
@@ -49,20 +49,22 @@ pub async fn init(
     let cworker_handle = create_cworker_handle(&config, &level);
 
     let mut game = Game {
+        shared: Arc::new(game::Shared {
+            config: Arc::clone(&config),
+            rng: Default::default(),
+            player_count: Arc::new(Default::default()),
+        }),
         chunk_map: Default::default(),
         tick_count: 0,
         chunk_holders: Default::default(),
-        config: Arc::clone(&config),
         level,
         chunk_entities: Default::default(),
         time: Default::default(),
-        running_tasks: RunningTasks::new(runtime),
         event_handlers: Arc::new(event_handlers),
         resources: Arc::new(Default::default()), // we override this momentarily
-        rng: Default::default(),
         bump: Default::default(),
-        player_count: Arc::new(Default::default()),
     };
+    task::init(runtime);
     let packet_buffers = Arc::new(PacketBuffers::new());
 
     log::info!("Queueing spawn chunks for loading");

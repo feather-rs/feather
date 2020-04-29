@@ -1,5 +1,3 @@
-#![forbid(unsafe_code)]
-
 //! Defines components and resources so that subcrates can interact
 //! in some ways without depending on each other.
 
@@ -59,7 +57,6 @@ pub const PLAYER_EYE_HEIGHT: f64 = 1.62;
 
 mod network;
 mod physics;
-mod task;
 
 pub use feather_core::inventory::Inventory;
 pub use network::{Network, ServerToWorkerMessage, WorkerToServerMessage};
@@ -203,6 +200,34 @@ pub struct ProfileProperties(pub Vec<mojang_api::ProfileProperty>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Player;
 
+/// Component added to entities to which messages can be sent.
+#[derive(Default, Debug)]
+pub struct MessageReceiver {
+    /// Internal buffer of messages to send
+    buffer: Vec<Text>,
+}
+
+impl MessageReceiver {
+    /// Sends a message to the entity.
+    pub fn send(&mut self, message: impl Into<Text>) {
+        self.buffer.push(message.into());
+    }
+
+    /// Flushes the message buffer, returning an iterator
+    /// over messages.
+    pub fn flush<'a>(&'a mut self) -> impl Iterator<Item = Text> + 'a {
+        self.buffer.drain(..)
+    }
+}
+
+/// Component which marks a player as having teleported.
+///
+/// If a player's position is mutated without the client's
+/// knowledge, then this component should be added
+/// so that the client will be informed of its new position.
+#[derive(Debug, Copy, Clone)]
+pub struct Teleported;
+
 // RESOURCES
 
 use ahash::AHashSet;
@@ -214,7 +239,10 @@ use feather_core::network::Packet;
 use fecs::{Entity, EntityBuilder, EntityRef};
 use smallvec::SmallVec;
 
-mod game;
+pub mod game;
+pub mod task;
+
+use feather_core::text::Text;
 pub use feather_server_config::{Config, ProxyMode};
 pub use feather_server_packet_buffer::{PacketBuffer, PacketBuffers};
 pub use game::*;

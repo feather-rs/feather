@@ -20,6 +20,7 @@ members = [
     "server/template",
     "server/chat",
     "server/chunk",
+    "server/commands",
     "server/config",
     "server/entity",
     "server/lighting",

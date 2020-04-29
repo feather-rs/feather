@@ -17,8 +17,8 @@ use feather_core::util::{Gamemode, Position};
 use feather_server_network::NewClientInfo;
 use feather_server_types::{
     ChunkHolder, CreationPacketCreator, EntityId, EntitySpawnEvent, Game, HeldItem,
-    InventoryUpdateEvent, LastKnownPositions, Name, Network, Player, PlayerJoinEvent,
-    PreviousPosition, ProfileProperties, SpawnPacketCreator, Uuid,
+    InventoryUpdateEvent, LastKnownPositions, MessageReceiver, Name, Network, Player,
+    PlayerJoinEvent, PreviousPosition, ProfileProperties, SpawnPacketCreator, Uuid,
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
@@ -87,6 +87,8 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
 
     world.add(entity, inventory).unwrap();
     world.add(entity, HeldItem(0)).unwrap(); // todo: load from player data
+
+    world.add(entity, MessageReceiver::default()).unwrap();
 
     world.add(entity, Player).unwrap();
 

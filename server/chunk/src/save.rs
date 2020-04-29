@@ -6,7 +6,7 @@ use feather_core::anvil::player::{InventorySlot, PlayerData};
 use feather_core::inventory::Inventory;
 use feather_core::util::{ChunkPosition, Gamemode, Position, Vec3d};
 use feather_server_types::{
-    ChunkLoadEvent, ChunkUnloadEvent, ComponentSerializer, Game, PlayerLeaveEvent, Uuid,
+    tasks, ChunkLoadEvent, ChunkUnloadEvent, ComponentSerializer, Game, PlayerLeaveEvent, Uuid,
     TICK_LENGTH, TPS,
 };
 use fecs::{Entity, World};
@@ -172,7 +172,7 @@ pub fn save_player_data(game: &Game, world: &World, player: Entity) {
     let uuid = *world.get::<Uuid>(player);
     let config = Arc::clone(&game.config);
 
-    game.running_tasks.schedule(async move {
+    tasks().spawn(async move {
         match feather_core::anvil::player::save_player_data(
             &Path::new(&config.world.name),
             uuid,

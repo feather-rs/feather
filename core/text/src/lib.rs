@@ -1,8 +1,11 @@
+use serde::export::Formatter;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
+use std::fmt;
+use std::fmt::Display;
 use uuid::Uuid;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Color {
     DarkRed,
@@ -29,7 +32,7 @@ impl From<Color> for Text {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Style {
     Bold,
@@ -45,7 +48,7 @@ impl From<Style> for Text {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 /// Represent all possible keybinds in vanilla.
 pub enum Keybind {
     Attack,
@@ -58,7 +61,7 @@ pub enum Keybind {
     Sneak,
     Sprint,
     Drop,
-    Iventory,
+    Inventory,
     Chat,
     ListPlayers,
     PickBlock,
@@ -126,7 +129,7 @@ where
             "key_key.sneak" => Keybind::Sneak,
             "key_key.sprint" => Keybind::Sprint,
             "key_key.drop" => Keybind::Drop,
-            "key_key.inventory" => Keybind::Iventory,
+            "key_key.inventory" => Keybind::Inventory,
             "key_key.chat" => Keybind::Chat,
             "key_key.playerlist" => Keybind::ListPlayers,
             "key_key.pickItem" => Keybind::PickBlock,
@@ -167,7 +170,7 @@ impl From<&Keybind> for String {
             Keybind::Sneak => "key_key.sneak",
             Keybind::Sprint => "key_key.sprint",
             Keybind::Drop => "key_key.drop",
-            Keybind::Iventory => "key_key.inventory",
+            Keybind::Inventory => "key_key.inventory",
             Keybind::Chat => "key_key.chat",
             Keybind::ListPlayers => "key_key.playerlist",
             Keybind::PickBlock => "key_key.pickItem",
@@ -196,7 +199,7 @@ impl From<&Keybind> for String {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 /// Represent all possible translation keys in vanilla.
 pub enum Translate {
     ChatTypeText,
@@ -259,7 +262,7 @@ impl<'a> From<&Translate> for String {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "action", content = "value")]
 // TODO: Accept any json primitive as string
 pub enum Click {
@@ -272,14 +275,14 @@ pub enum Click {
 }
 
 #[serde_with::skip_serializing_none]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Entity {
     id: Uuid,
     ty: Option<Cow<'static, str>>,
     name: Cow<'static, str>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "action", content = "value")]
 // TODO: Accept any json primitive as string
 pub enum Hover {
@@ -292,7 +295,7 @@ pub enum Hover {
     ShowEntity(Entity),
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 /// Text component can either be Text, Translate, Score, Selector, Keybind, or Nbt.
 pub enum TextValue {
@@ -374,7 +377,7 @@ impl TextValue {
 }
 
 #[serde_with::skip_serializing_none]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 /// Text json object that holds all styles.
 pub struct TextComponent {
     #[serde(flatten)]
@@ -845,7 +848,7 @@ impl From<Text> for TextComponent {
 }
 
 /// Text can either be a json String, Object, or an Array.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Text {
     String(Cow<'static, str>),
@@ -902,6 +905,18 @@ impl Text {
     }
 }
 
+impl From<Text> for String {
+    fn from(text: Text) -> Self {
+        TextRoot(text).into()
+    }
+}
+
+impl Display for Text {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.write_str(&serde_json::to_string(self).unwrap())
+    }
+}
+
 impl From<TextComponent> for Text {
     fn from(component: TextComponent) -> Self {
         Text::Component(Box::new(component))
@@ -944,19 +959,13 @@ impl std::ops::Add<Text> for Text {
     }
 }
 
-impl From<Text> for String {
-    fn from(text: Text) -> String {
-        serde_json::to_string(&text).unwrap()
-    }
-}
-
 /// Ensures Text is either an Array or Object.
 /// This is required at some places when sending to the client.
 pub struct TextRoot(Text);
 
 impl From<TextRoot> for String {
     fn from(text: TextRoot) -> String {
-        text.0.into()
+        text.0.to_string()
     }
 }
 

@@ -1,5 +1,5 @@
 [package]
-name = "feather-server-player"
+name = "feather-server-commands"
 version = "0.6.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
@@ -8,15 +8,11 @@ edition = "2018"
 feather-core = { path = "../../core" }
 feather-server-types = { path = "../types" }
 feather-server-util = { path = "../util" }
-feather-server-network = { path = "../network" }
-feather-server-commands = { path = "../commands" }
-entity = { path = "../entity", package = "feather-server-entity" }
 
 fecs = { git = "https://github.com/feather-rs/fecs", rev = "fed8bcb516941b12cb980e354e77b699be075a89" }
-log = "0.4"
-mojang-api = "0.6"
-nalgebra-glm = "0.6"
+lieutenant = { git = "https://github.com/feather-rs/lieutenant", branch = "cleanup" }
 smallvec = "1.4"
-itertools = "0.9"
-ahash = "0.3"
-parking_lot = "0.10"
+anyhow = "1.0"
+thiserror = "1.0"
+rand = "0.7"
+vek = "0.10"

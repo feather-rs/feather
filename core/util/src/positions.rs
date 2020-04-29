@@ -6,7 +6,7 @@ use std::ops::{Add, Sub};
 
 #[macro_export]
 macro_rules! position {
-    ($x:expr, $y:expr, $z:expr, $pitch:expr, $yaw:expr, $on_ground:expr) => {
+    ($x:expr, $y:expr, $z:expr, $pitch:expr, $yaw:expr, $on_ground:expr $(,)?) => {
         $crate::Position {
             x: $x,
             y: $y,
@@ -16,13 +16,13 @@ macro_rules! position {
             on_ground: $on_ground,
         }
     };
-    ($x:expr, $y:expr, $z:expr, $pitch: expr, $yaw: expr) => {
+    ($x:expr, $y:expr, $z:expr, $pitch: expr, $yaw: expr $(,)?) => {
         position!($x, $y, $z, $pitch, $yaw, true)
     };
-    ($x:expr, $y:expr, $z:expr) => {
+    ($x:expr, $y:expr, $z:expr $(,)?) => {
         position!($x, $y, $z, 0.0, 0.0)
     };
-    ($x:expr, $y:expr, $z:expr, $on_ground: expr) => {
+    ($x:expr, $y:expr, $z:expr, $on_ground: expr $(,)?) => {
         position!($x, $y, $z, 0.0, 0.0, $on_ground)
     };
 }

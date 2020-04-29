@@ -1,5 +1,4 @@
 use crate::network::{Network, ServerToWorkerMessage};
-use crate::task::RunningTasks;
 use crate::{BlockUpdateEvent, EntityDespawnEvent, Name, PlayerLeaveEvent};
 use ahash::AHashMap;
 use bumpalo::Bump;
@@ -20,6 +19,17 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 use thread_local::CachedThreadLocal;
 
+/// Resources which can be _shared_ between threads.
+/// These only require immutable access.
+pub struct Shared {
+    /// The server configuration.
+    pub config: Arc<Config>,
+    /// General-purpose, non-cryptographic random number generator
+    pub rng: CachedThreadLocal<RefCell<SmallRng>>,
+    /// The server player count.
+    pub player_count: Arc<AtomicU32>, // fixme: double Arc
+}
+
 /// The `Game` resource, which acts as a central bus to bind together
 /// the feather-server-* crates. Resources which are accessed frequently,
 /// such as the chunk map, are stored in here.
@@ -31,8 +41,6 @@ pub struct Game {
     /// Stores entities which have a hold on chunks,
     /// preventing the chunk from being unloaded.
     pub chunk_holders: ChunkHolders,
-    /// The server configuration.
-    pub config: Arc<Config>,
     /// The level data.
     pub level: LevelData,
     /// Associates chunks with the entities that reside in them. Used
@@ -40,19 +48,22 @@ pub struct Game {
     pub chunk_entities: ChunkEntities,
     /// World time, in the Minecraft way.
     pub time: Time,
-    /// Server task manager, which allows executing futures
-    /// which will not be interrupted on shutdown.
-    pub running_tasks: RunningTasks,
     /// The event handler map.
     pub event_handlers: Arc<EventHandlers>,
     /// Resources other than `Game`, used to run event handlers.
     pub resources: Arc<OwnedResources>,
-    /// General-purpose, non-cryptographic random number generator
-    pub rng: CachedThreadLocal<RefCell<SmallRng>>,
     /// Shared bump allocator, reset each tick.
     pub bump: CachedThreadLocal<Bump>,
-    /// The server player count.
-    pub player_count: Arc<AtomicU32>,
+    /// Values which can be shared between threads.
+    pub shared: Arc<Shared>,
+}
+
+impl Deref for Game {
+    type Target = Shared;
+
+    fn deref(&self) -> &Self::Target {
+        &self.shared
+    }
 }
 
 impl Game {

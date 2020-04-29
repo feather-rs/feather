@@ -10,7 +10,7 @@ use feather_server_chunk::{
 use feather_server_network::NewClientInfo;
 use feather_server_player::on_chunk_cross_update_chunks;
 use feather_server_types::{
-    ChunkCrossEvent, ChunkHolder, EntityId, Game, Name, RunningTasks, ServerToWorkerMessage, Uuid,
+    game, ChunkCrossEvent, ChunkHolder, EntityId, Game, Name, ServerToWorkerMessage, Uuid,
     WorkerToServerMessage,
 };
 use feather_server_util::on_chunk_cross_update_chunk_entities;
@@ -74,23 +74,17 @@ impl Test {
             chunk_map: Default::default(),
             tick_count: 0,
             chunk_holders: Default::default(),
-            config: Arc::new(Default::default()),
             level: Default::default(),
             chunk_entities: Default::default(),
             time: Default::default(),
-            running_tasks: RunningTasks::new(
-                tokio::runtime::Builder::new()
-                    .basic_scheduler()
-                    .build()
-                    .unwrap()
-                    .handle()
-                    .clone(),
-            ),
             event_handlers: Arc::new(event_handlers),
             resources: Arc::new(Default::default()),
-            rng: Default::default(),
             bump: Default::default(),
-            player_count: Arc::new(Default::default()),
+            shared: Arc::new(game::Shared {
+                config: Arc::new(Default::default()),
+                rng: Default::default(),
+                player_count: Arc::new(Default::default()),
+            }),
         };
         resources.insert(cworker_handle);
 
