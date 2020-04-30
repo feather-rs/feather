@@ -139,6 +139,39 @@ impl Test {
         self
     }
 
+    /// Runs a broadcast test routine. This:
+    /// * Creates three players, two of whom are able to see each other
+    /// * Calls `event` to trigger an event for the first player
+    /// * Asserts that no packet was sent to the third player, who is too far away
+    /// * Asserts that packet of type `P` was sent to the second player, returning it
+    pub fn broadcast_routine<P, E, F, H>(
+        &mut self,
+        event: F,
+        handler: H,
+        send_to_self: bool,
+    ) -> (P, Entity)
+    where
+        E: Event,
+        P: Packet,
+        F: FnOnce(&mut Self, Entity, Entity) -> E,
+        H: RawEventHandler<Event = E>,
+    {
+        use feather_core::position;
+        let player1 = self.player("", position!(0.0, 64.0, 0.0));
+        let player2 = self.player("", position!(45.0, 1000.0, -37.9));
+        let player3 = self.player("", position!(1000.0, -450.0, 100.0));
+
+        let event = event(self, player1, player2);
+        self.handle(event, handler);
+
+        if !send_to_self {
+            assert!(self.sent::<P>(player1).is_none());
+        }
+        assert!(self.sent::<P>(player3).is_none());
+
+        (self.sent::<P>(player2).unwrap(), player1)
+    }
+
     /// Creates a dummy player with the given name.
     pub fn player(&mut self, name: impl Into<Cow<'static, str>>, position: Position) -> Entity {
         let mut name = name.into();
