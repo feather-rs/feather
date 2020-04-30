@@ -85,46 +85,52 @@ mod tests {
     use feather_core::items::{Item, ItemStack};
     use feather_core::network::packets::{PlayerInfo, SpawnObject};
     use feather_core::position;
-    use feather_test_framework::TestRun;
+    use feather_test_framework::Test;
+    use std::collections::HashSet;
 
     #[test]
     fn send_on_spawn() {
         let stack = ItemStack::new(Item::Sand, 47);
-        TestRun::new()
-            .with_entity(
-                "item1",
-                item::create(stack, Default::default()).with(position!(0.0, 100.0, 0.0)),
-            )
-            .with_player("player1")
-            .with_player("player2_too_far_away")
-            .with_position("player2_too_far_away", position!(234_234.0, 342.0, 23.0))
-            .handle_with(
-                |run| EntitySpawnEvent {
-                    entity: run.entity("item1"),
-                },
-                on_entity_spawn_send_to_clients,
-            )
-            .assert_packet_sent::<SpawnObject, _>("player1")
-            .assert_not_packet_sent::<SpawnObject, _>("player2_too_far_away");
+        let mut test = Test::new();
+
+        let item1 =
+            test.entity(item::create(stack, Default::default()).with(position!(0.0, 100.0, 0.0)));
+        let player1 = test.player("player1", Position::default());
+        let player2 = test.player("player2", position!(234_234.0, 342.0, 23.0));
+
+        test.handle(
+            EntitySpawnEvent { entity: item1 },
+            on_entity_spawn_send_to_clients,
+        );
+
+        let sent = test.sent::<SpawnObject>(player1).unwrap();
+        assert_eq!(sent.entity_id, test.id(item1));
+
+        assert!(test.sent::<SpawnObject>(player2).is_none());
     }
 
     #[test]
     fn send_existing_entities() {
-        TestRun::new()
-            .with_player("player1")
-            .with_position("player1", position!(1000.0, -5.0, 0.0))
-            .with_player("player2")
-            .with_position("player2", position!(2000.0, 2_138_901.0, 0.0))
-            .with_player("player3")
-            .with_position("player3", position!(950.0, 255.0, 0.0))
-            .handle_with(
-                |run| PlayerJoinEvent {
-                    player: run.entity("player3"),
-                },
-                on_player_join_send_existing_entities,
-            )
-            .assert_packet_sent::<PlayerInfo, _>("player3")
-            .assert_packet_sent::<PlayerInfo, _>("player3")
-            .assert_packet_sent::<PlayerInfo, _>("player3");
+        let mut test = Test::new();
+
+        let player1 = test.player("player1", position!(1000.0, -5.0, 0.0));
+        let player2 = test.player("player2", position!(2000.0, 2_138_901.0, 0.0));
+        let player3 = test.player("player3", position!(950.0, 255.0, 0.0));
+
+        test.handle(
+            PlayerJoinEvent { player: player3 },
+            on_player_join_send_existing_entities,
+        );
+
+        let mut players_sent = HashSet::new();
+        for _ in 0..3 {
+            let packet = test.sent::<PlayerInfo>(player3).unwrap();
+
+            players_sent.insert(packet.uuid);
+        }
+
+        for expected in &[player1, player2, player3] {
+            assert!(players_sent.contains(&test.uuid(*expected)));
+        }
     }
 }

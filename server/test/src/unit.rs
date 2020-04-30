@@ -2,7 +2,7 @@
 
 use feather_core::anvil::entity::BaseEntityData;
 use feather_core::anvil::player::PlayerData;
-use feather_core::network::Packet;
+use feather_core::network::{cast_packet, Packet};
 use feather_core::util::{vec3, Position};
 use feather_server_chunk::{
     chunk_worker, hold_chunk_request, release_chunk_request, ChunkWorkerHandle,
@@ -10,14 +10,15 @@ use feather_server_chunk::{
 use feather_server_network::NewClientInfo;
 use feather_server_player::on_chunk_cross_update_chunks;
 use feather_server_types::{
-    ChunkCrossEvent, ChunkHolder, Game, ServerToWorkerMessage, Uuid, WorkerToServerMessage,
+    ChunkCrossEvent, ChunkHolder, EntityId, Game, Name, ServerToWorkerMessage, Uuid,
+    WorkerToServerMessage,
 };
 use feather_server_util::on_chunk_cross_update_chunk_entities;
 use fecs::{
     Entity, EntityBuilder, Event, EventHandlers, Executor, OwnedResources, RawEventHandler,
     RawSystem, RefResources, ResourcesEnum, ResourcesProvider, World,
 };
-use std::any::{type_name, Any};
+use std::any::Any;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::net::{IpAddr, SocketAddr};
@@ -29,28 +30,25 @@ struct TrackedPlayer {
     worker_rx: Mutex<flume::Receiver<ServerToWorkerMessage>>,
     _worker_tx: flume::Sender<WorkerToServerMessage>,
 
-    entity: Entity,
-
     buffered_sent_packets: Vec<Box<dyn Packet>>,
     disconnected: bool,
 }
 
-pub struct TestRun {
+pub struct Test {
     pub game: Game,
     pub world: World,
     pub cworker_tester: ChunkWorkerTester,
-    players: HashMap<Cow<'static, str>, TrackedPlayer>,
-    entities: HashMap<Cow<'static, str>, Entity>,
+    players: HashMap<Entity, TrackedPlayer>,
 }
 
-impl Default for TestRun {
+impl Default for Test {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl TestRun {
-    /// Starts a new `TestRun`.
+impl Test {
+    /// Starts a new `Test`.
     pub fn new() -> Self {
         let (cworker_tester, cworker_handle) = ChunkWorkerTester::new();
         let mut world = World::new();
@@ -61,7 +59,6 @@ impl TestRun {
             world,
             cworker_tester,
             players: HashMap::new(),
-            entities: HashMap::new(),
         }
     }
 
@@ -96,19 +93,14 @@ impl TestRun {
     }
 
     /// Adds a resource into the resource set.
-    pub fn with_resource(&mut self, resource: impl Any + Send + Sync) -> &mut Self {
+    pub fn with_resource(mut self, resource: impl Any + Send + Sync) -> Self {
         let resources = Arc::get_mut(&mut self.game.resources).expect("resources already borrowed");
         resources.insert(resource);
 
         self
     }
 
-    /// Alias for `with_resource`
-    pub fn add_resource(&mut self, resource: impl Any + Send + Sync) {
-        self.with_resource(resource);
-    }
-
-    /// Runs a system for this `TestRun`.
+    /// Runs a system for this `Test`.
     pub fn run(&mut self, mut system: impl RawSystem) -> &mut Self {
         system.set_up(
             Arc::get_mut(&mut self.game.resources).expect("resources already borrowed"),
@@ -129,22 +121,6 @@ impl TestRun {
             Arc::get_mut(&mut self.game.resources).expect("resources already borrowed"),
             &mut self.world,
         );
-        self.handle_with(move |_| event, handler)
-    }
-
-    /// Handles a lazily-created event with the given handler.
-    ///
-    /// The lazy closure has access to the `TestRun` and may
-    /// as such query for player entity handles, etc.
-    pub fn handle_with<E>(
-        &mut self,
-        event: impl FnOnce(&mut Self) -> E,
-        handler: impl RawEventHandler<Event = E>,
-    ) -> &mut Self
-    where
-        E: Event,
-    {
-        let event = event(self);
         self.exec_with_resources(move |world, resources| handler.handle(resources, world, &event));
         self
     }
@@ -163,12 +139,9 @@ impl TestRun {
         self
     }
 
-    /// Creates a dummy player with the given name. Future calls
-    /// which require players will allow use of this named player.
-    pub fn with_player(&mut self, name: impl Into<Cow<'static, str>>) -> &mut Self {
+    /// Creates a dummy player with the given name.
+    pub fn player(&mut self, name: impl Into<Cow<'static, str>>, position: Position) -> Entity {
         let mut name = name.into();
-        use feather_core::position;
-        let pos = position!(0.0, 64.0, 0.0);
 
         let (server_tx, worker_rx) = flume::unbounded();
         let (worker_tx, server_rx) = flume::unbounded();
@@ -181,11 +154,11 @@ impl TestRun {
             profile: vec![],
             uuid: Uuid::new_v4(),
             data: PlayerData {
-                entity: BaseEntityData::new(pos, vec3(0.0, 0.0, 0.0)),
+                entity: BaseEntityData::new(position, vec3(0.0, 0.0, 0.0)),
                 gamemode: 1,
                 inventory: vec![],
             },
-            position: pos,
+            position,
             sender: server_tx,
             receiver: server_rx,
             entity,
@@ -193,35 +166,31 @@ impl TestRun {
         feather_server_player::create(&mut self.game, &mut self.world, info);
 
         self.players.insert(
-            name.clone(),
+            entity,
             TrackedPlayer {
                 worker_rx: Mutex::new(worker_rx),
                 _worker_tx: worker_tx,
-                entity,
                 buffered_sent_packets: vec![],
                 disconnected: false,
             },
         );
-        self.entities.insert(name, entity);
-        self.update_structures(entity, None, pos);
-        self
+        self.update_structures(entity, None, position);
+        entity
     }
 
-    /// Returns the given player's `Entity`. Panics
-    /// if the player with the name does not exist.
-    pub fn player(&self, name: impl Into<Cow<'static, str>>) -> Entity {
-        self.players[&name.into()].entity
+    /// Adds an entity with the given name and components.
+    pub fn entity(&mut self, builder: EntityBuilder) -> Entity {
+        let entity = builder.build().spawn_in(&mut self.world);
+
+        if let Some(pos) = self.world.try_get::<Position>(entity).map(|r| *r) {
+            self.update_structures(entity, None, pos);
+        }
+
+        entity
     }
 
-    /// Sets the position of a player or entity. Panics
-    /// if the player or entity with the name does not exist.
-    pub fn with_position(
-        &mut self,
-        name: impl Into<Cow<'static, str>>,
-        pos: Position,
-    ) -> &mut Self {
-        let entity = self.entity(name);
-
+    /// Sets the position of an entity.
+    pub fn position(&mut self, entity: Entity, pos: Position) -> &mut Self {
         let old = *self.world.get::<Position>(entity);
         *self.world.get_mut::<Position>(entity) = pos;
 
@@ -230,79 +199,29 @@ impl TestRun {
         self
     }
 
-    /// Adds an entity with the given name and components.
-    ///
-    /// _Does not trigger events_.
-    pub fn with_entity(
-        &mut self,
-        name: impl Into<Cow<'static, str>>,
-        builder: EntityBuilder,
-    ) -> &mut Self {
-        let entity = builder.build().spawn_in(&mut self.world);
-
-        self.entities.insert(name.into(), entity);
-        self
+    /// Returns the network ID of an entity.
+    pub fn id(&self, entity: Entity) -> i32 {
+        self.world.get::<EntityId>(entity).0
     }
 
-    /// Retrieves an entity with the given name. Panics
-    /// if the entity does not exist.
-    pub fn entity(&self, name: impl Into<Cow<'static, str>>) -> Entity {
-        self.entities[&name.into()]
+    /// Returns the UUID of an entity.
+    pub fn uuid(&self, entity: Entity) -> Uuid {
+        *self.world.get::<Uuid>(entity)
     }
 
-    /// Verifies that the player with the given name received the given
-    /// packet.
-    ///
-    /// # Panics
-    /// Panics if the player does not exist or the packet was not received.
-    pub fn assert_packet_sent<P, N>(&mut self, player: N) -> &mut Self
+    /// Returns the packet of type `P` sent to `player`.
+    pub fn sent<P>(&mut self, player: Entity) -> Option<P>
     where
         P: Packet,
-        N: Into<Cow<'static, str>>,
     {
-        let name = player.into();
-        let player = self.tracked_player(&name);
+        let tracked = self.tracked_player(player);
 
-        Self::update_player(player);
+        Self::update_player(tracked);
 
-        if !Self::remove_player_buffered_packet::<P>(player) {
-            panic!(
-                "packet {} not received for player `{}`",
-                type_name::<P>(),
-                name
-            );
-        }
-
-        self
+        Self::remove_player_buffered_packet(tracked)
     }
 
-    /// Verifies that the player with the given name did not receive the given
-    /// packet.
-    ///
-    /// # Panics
-    /// Panics if the player does not exist or the packet was received.
-    pub fn assert_not_packet_sent<P, N>(&mut self, player: N) -> &mut Self
-    where
-        P: Packet,
-        N: Into<Cow<'static, str>>,
-    {
-        let name = player.into();
-        let player = self.tracked_player(&name);
-
-        Self::update_player(player);
-
-        if Self::remove_player_buffered_packet::<P>(player) {
-            panic!(
-                "did not expect packet {} received for player `{}`",
-                type_name::<P>(),
-                name
-            );
-        }
-
-        self
-    }
-
-    fn remove_player_buffered_packet<P>(player: &mut TrackedPlayer) -> bool
+    fn remove_player_buffered_packet<P>(player: &mut TrackedPlayer) -> Option<P>
     where
         P: Packet,
     {
@@ -311,28 +230,26 @@ impl TestRun {
             .iter()
             .position(|p| Box::deref(p).as_any().downcast_ref::<P>().is_some());
 
-        if let Some(index) = index {
-            player.buffered_sent_packets.remove(index);
-            true
-        } else {
-            false
-        }
+        index.map(|index| cast_packet(player.buffered_sent_packets.remove(index)))
     }
 
     /// Verifies that the player with the given name was disconnected.
-    pub fn assert_disconnected(&mut self, player: impl Into<Cow<'static, str>>) -> &mut Self {
-        let name = player.into();
-        let player = self.tracked_player(&name);
-        Self::update_player(player);
+    pub fn assert_disconnected(&mut self, player: Entity) -> &mut Self {
+        let tracked = self.tracked_player(player);
+        Self::update_player(tracked);
 
-        assert!(player.disconnected, "player `{}` not disconnected", name);
+        assert!(
+            tracked.disconnected,
+            "player `{}` not disconnected",
+            self.world.get::<Name>(player).0
+        );
 
         self
     }
 
-    fn tracked_player(&mut self, player: &str) -> &mut TrackedPlayer {
+    fn tracked_player(&mut self, player: Entity) -> &mut TrackedPlayer {
         self.players
-            .get_mut(player)
+            .get_mut(&player)
             .unwrap_or_else(|| panic!("player `{}` does not exist", player))
     }
 

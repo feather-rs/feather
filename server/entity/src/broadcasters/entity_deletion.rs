@@ -28,3 +28,29 @@ pub fn on_entity_despawn_broadcast_despawn(
         game.broadcast_global(world, packet, None);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::item;
+    use feather_core::items::ItemStack;
+    use feather_core::util::Position;
+    use feather_test_framework::Test;
+
+    #[test]
+    fn broadcast_despawn() {
+        let mut test = Test::new();
+
+        let player = test.player("", Position::default());
+        let item =
+            test.entity(item::create(ItemStack::default(), 0).with(position!(10.0, 64.0, 0.0)));
+
+        test.handle(
+            EntityDespawnEvent { entity: item },
+            on_entity_despawn_broadcast_despawn,
+        );
+
+        let packet = test.sent::<DestroyEntities>(player).unwrap();
+        assert_eq!(packet.entity_ids, vec![test.id(item)]);
+    }
+}

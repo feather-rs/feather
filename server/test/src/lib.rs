@@ -5,4 +5,4 @@
 
 mod unit;
 
-pub use unit::TestRun;
+pub use unit::Test;
