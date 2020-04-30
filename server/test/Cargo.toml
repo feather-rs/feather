@@ -1,6 +1,6 @@
 [package]
-name = "feather-server-entity"
-version = "0.5.0"
+name = "feather-test-framework"
+version = "0.1.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
@@ -8,17 +8,10 @@ edition = "2018"
 feather-core = { path = "../../core" }
 feather-server-types = { path = "../types" }
 feather-server-util = { path = "../util" }
+feather-server-chunk = { path = "../chunk" }
+feather-server-player = { path = "../player" }
+feather-server-network = { path = "../network" }
 
 fecs = { git = "https://github.com/feather-rs/fecs", rev = "1dae7a1870209a8af0326e3b6e18dff9e1a2f67e" }
-nalgebra-glm = "0.6"
-inventory = "0.1"
-parking_lot = "0.10"
-rand = "0.7"
-anyhow = "1.0"
-num-traits = "0.2"
-num-derive = "0.3"
-log = "0.4"
-smallvec = "1.4"
-
-[dev-dependencies]
-feather-test-framework = { path = "../test" }
+crossbeam = "0.7"
+flume = "0.7"

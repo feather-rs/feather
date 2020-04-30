@@ -27,6 +27,7 @@ members = [
     "server/packet_buffer",
     "server/physics",
     "server/player",
+    "server/test",
     "server/types",
     "server/util",
     "server/weather",

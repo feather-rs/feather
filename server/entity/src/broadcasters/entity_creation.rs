@@ -77,3 +77,54 @@ pub fn on_player_join_send_existing_entities(event: &PlayerJoinEvent, world: &mu
         network.send_boxed(packet);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::item;
+    use feather_core::items::{Item, ItemStack};
+    use feather_core::network::packets::{PlayerInfo, SpawnObject};
+    use feather_core::position;
+    use feather_test_framework::TestRun;
+
+    #[test]
+    fn send_on_spawn() {
+        let stack = ItemStack::new(Item::Sand, 47);
+        TestRun::new()
+            .with_entity(
+                "item1",
+                item::create(stack, Default::default()).with(position!(0.0, 100.0, 0.0)),
+            )
+            .with_player("player1")
+            .with_player("player2_too_far_away")
+            .with_position("player2_too_far_away", position!(234_234.0, 342.0, 23.0))
+            .handle_with(
+                |run| EntitySpawnEvent {
+                    entity: run.entity("item1"),
+                },
+                on_entity_spawn_send_to_clients,
+            )
+            .assert_packet_sent::<SpawnObject, _>("player1")
+            .assert_not_packet_sent::<SpawnObject, _>("player2_too_far_away");
+    }
+
+    #[test]
+    fn send_existing_entities() {
+        TestRun::new()
+            .with_player("player1")
+            .with_position("player1", position!(1000.0, -5.0, 0.0))
+            .with_player("player2")
+            .with_position("player2", position!(2000.0, 2_138_901.0, 0.0))
+            .with_player("player3")
+            .with_position("player3", position!(950.0, 255.0, 0.0))
+            .handle_with(
+                |run| PlayerJoinEvent {
+                    player: run.entity("player3"),
+                },
+                on_player_join_send_existing_entities,
+            )
+            .assert_packet_sent::<PlayerInfo, _>("player3")
+            .assert_packet_sent::<PlayerInfo, _>("player3")
+            .assert_packet_sent::<PlayerInfo, _>("player3");
+    }
+}
