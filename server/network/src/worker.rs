@@ -99,12 +99,18 @@ pub async fn run_worker(
     };
 
     let _ = worker
-        .listener_tx
-        .send(ListenerToServerMessage::DeleteEntity(worker.entity));
-
-    let _ = worker
         .tx
         .send(WorkerToServerMessage::NotifyDisconnected { reason: msg });
+
+    // If server is not aware of connection (and thus
+    // will not receive the above message), instruct it
+    // to delete the entity. Otherwise, it will delete it
+    // through the message above.
+    if worker.server_rx.is_some() {
+        let _ = worker
+            .listener_tx
+            .send(ListenerToServerMessage::DeleteEntity(worker.entity));
+    }
 }
 
 async fn request_entity(
