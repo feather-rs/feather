@@ -21,7 +21,7 @@ impl Network {
         // (e.g. if the player disconnected and its worker task
         // shut down, and the disconnect was not yet registered
         // by the server)
-        let _ = self.tx.send(ServerToWorkerMessage::SendPacket(packet));
+        let _ = self.tx.try_send(ServerToWorkerMessage::SendPacket(packet));
     }
 }
 

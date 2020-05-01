@@ -65,8 +65,8 @@ pub async fn run_worker(
     server_icon: Arc<Option<String>>,
     packet_buffers: Arc<PacketBuffers>,
 ) {
-    let (server_tx, rx) = flume::bounded(16);
-    let (tx, server_rx) = flume::bounded(16);
+    let (server_tx, rx) = flume::unbounded();
+    let (tx, server_rx) = flume::unbounded();
 
     let initial_handler = Some(InitialHandler::new(
         Arc::clone(&config),
