@@ -211,13 +211,14 @@ use feather_core::anvil::entity::{EntityData, EntityDataKind};
 use feather_core::blocks::BlockId;
 use feather_core::items::ItemStack;
 use feather_core::network::Packet;
-pub use feather_server_config::{Config, ProxyMode};
-pub use feather_server_packet_buffer::{PacketBuffer, PacketBuffers};
 use fecs::{Entity, EntityBuilder, EntityRef};
 use smallvec::SmallVec;
 
-pub use game::*;
 mod game;
+pub use feather_server_config::{Config, ProxyMode};
+pub use feather_server_packet_buffer::{PacketBuffer, PacketBuffers};
+pub use game::*;
+pub use task::*;
 
 // EVENTS
 

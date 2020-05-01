@@ -45,5 +45,6 @@ pub async fn run_listener(
             Arc::clone(&server_icon),
             Arc::clone(&packet_buffers),
         ));
+        tokio::task::yield_now().await;
     }
 }

@@ -11,7 +11,7 @@ feather-server-util = { path = "../util" }
 feather-server-network = { path = "../network" }
 entity = { path = "../entity", package = "feather-server-entity" }
 
-fecs = { git = "https://github.com/feather-rs/fecs", rev = "1dae7a1870209a8af0326e3b6e18dff9e1a2f67e" }
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "fed8bcb516941b12cb980e354e77b699be075a89" }
 log = "0.4"
 mojang-api = "0.6"
 nalgebra-glm = "0.6"

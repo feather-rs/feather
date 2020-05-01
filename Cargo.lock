@@ -1140,7 +1140,7 @@ version = "0.1.0"
 [[package]]
 name = "fecs"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=1dae7a1870209a8af0326e3b6e18dff9e1a2f67e#1dae7a1870209a8af0326e3b6e18dff9e1a2f67e"
+source = "git+https://github.com/feather-rs/fecs?rev=fed8bcb516941b12cb980e354e77b699be075a89#fed8bcb516941b12cb980e354e77b699be075a89"
 dependencies = [
  "arrayvec",
  "erasable",
@@ -1148,13 +1148,14 @@ dependencies = [
  "fxhash",
  "legion",
  "smallvec 1.4.0",
+ "static_assertions",
  "thiserror",
 ]
 
 [[package]]
 name = "fecs-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=1dae7a1870209a8af0326e3b6e18dff9e1a2f67e#1dae7a1870209a8af0326e3b6e18dff9e1a2f67e"
+source = "git+https://github.com/feather-rs/fecs?rev=fed8bcb516941b12cb980e354e77b699be075a89#fed8bcb516941b12cb980e354e77b699be075a89"
 dependencies = [
  "proc-macro2 1.0.10",
  "quote 1.0.1",

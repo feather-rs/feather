@@ -7,16 +7,27 @@ use feather_server_lighting::LightingWorkerHandle;
 use feather_server_types::{Game, TPS};
 use fecs::{Executor, OwnedResources, ResourcesProvider, World};
 use spin_sleep::LoopHelper;
+use std::ops::Deref;
+use std::panic::AssertUnwindSafe;
 use std::process::exit;
+use std::sync::Arc;
+use tokio::runtime;
 
 mod event_handlers;
 mod init;
 mod shutdown;
 mod systems;
 
-pub async fn main() {
+struct FullState {
+    resources: Arc<OwnedResources>,
+    world: World,
+    executor: Executor,
+    shutdown_rx: crossbeam::Receiver<()>,
+}
+
+pub async fn main(runtime: runtime::Handle) {
     log::info!("Starting Feather; please wait");
-    let (executor, resources, mut world) = match init::init().await {
+    let (executor, resources, world) = match init::init(runtime).await {
         Ok(res) => res,
         Err(e) => {
             // Logging might not have been initialized yet - init it and ignore errors
@@ -32,11 +43,18 @@ pub async fn main() {
     let (shutdown_tx, shutdown_rx) = crossbeam::bounded(1);
     shutdown::init(shutdown_tx);
 
+    let state = FullState {
+        resources,
+        executor,
+        world,
+        shutdown_rx,
+    };
+
     log::info!("Server started");
-    run_loop(&mut world, &resources, &executor, shutdown_rx);
+    let mut state = run_ticking_thread(state).await;
 
     log::info!("Shutting down");
-    if let Err(e) = shut_down(&resources, &mut world).await {
+    if let Err(e) = shut_down(&state.resources, &mut state.world).await {
         log::error!("An error occurred while shutting down: {}", e);
         log::error!("Exiting.");
         exit(1);
@@ -46,16 +64,41 @@ pub async fn main() {
     exit(0);
 }
 
+/// Starts the ticking thread. The returned future will complete
+/// once the thread has terminated (i.e. the shutdown signal
+/// has been received.)
+async fn run_ticking_thread(mut state: FullState) -> FullState {
+    use std::thread;
+    use tokio::sync::oneshot;
+    let (tx, rx) = oneshot::channel();
+
+    thread::Builder::new()
+        .name(String::from("feather"))
+        .spawn(move || {
+            match std::panic::catch_unwind(AssertUnwindSafe(|| {
+                run_loop(&mut state);
+            })) {
+                Ok(_) => (),
+                Err(_) => {
+                    log::error!("The server crashed. This is a bug.");
+                    log::error!(
+                        "Please report this at https://github.com/feather-rs/feather/issues"
+                    );
+                }
+            }
+
+            tx.send(state).ok().expect("failed to exit server thread");
+        })
+        .expect("failed to spawn ticking thread");
+
+    rx.await.unwrap()
+}
+
 /// Runs the main game loop.
-fn run_loop(
-    world: &mut World,
-    resources: &OwnedResources,
-    executor: &Executor,
-    shutdown_rx: crossbeam::Receiver<()>,
-) {
+fn run_loop(state: &mut FullState) {
     let mut loop_helper = LoopHelper::builder().build_with_target_rate(TPS as f64);
     loop {
-        if shutdown_rx.try_recv().is_ok() {
+        if state.shutdown_rx.try_recv().is_ok() {
             // Shut down
             return;
         }
@@ -63,9 +106,11 @@ fn run_loop(
         loop_helper.loop_start();
 
         // Execute all systems
-        executor.execute(resources, world);
+        state
+            .executor
+            .execute(state.resources.deref(), &mut state.world);
         // Clean up world
-        world.defrag(Some(256)); // should this be done at an interval rate?
+        state.world.defrag(Some(256)); // should this be done at an interval rate?
 
         loop_helper.loop_sleep();
     }

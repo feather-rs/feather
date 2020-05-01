@@ -148,6 +148,8 @@ async fn run_worker_impl(worker: &mut Worker) -> anyhow::Result<()> {
                 handle_packet(worker, packet).await?;
             }
         }
+
+        tokio::task::yield_now().await;
     }
 }
 

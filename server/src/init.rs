@@ -8,7 +8,7 @@ use feather_server_chunk::{chunk_worker, ChunkWorkerHandle};
 use feather_server_config::DEFAULT_CONFIG_STR;
 use feather_server_network::NetworkIoManager;
 use feather_server_packet_buffer::PacketBuffers;
-use feather_server_types::{Config, Game};
+use feather_server_types::{Config, Game, RunningTasks};
 use feather_server_worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
@@ -19,12 +19,14 @@ use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use tokio::fs::File;
-use tokio::io;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
+use tokio::{io, runtime};
 
 /// Intializes the server.
-pub async fn init() -> anyhow::Result<(Executor, Arc<OwnedResources>, World)> {
+pub async fn init(
+    runtime: runtime::Handle,
+) -> anyhow::Result<(Executor, Arc<OwnedResources>, World)> {
     let mut executor = systems::build_executor();
     let mut event_handlers = event_handlers::build_event_handlers();
 
@@ -54,7 +56,7 @@ pub async fn init() -> anyhow::Result<(Executor, Arc<OwnedResources>, World)> {
         level,
         chunk_entities: Default::default(),
         time: Default::default(),
-        running_tasks: Default::default(),
+        running_tasks: RunningTasks::new(runtime),
         event_handlers: Arc::new(event_handlers),
         resources: Arc::new(Default::default()), // we override this momentarily
         rng: Default::default(),
