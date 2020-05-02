@@ -19,3 +19,6 @@ num-traits = "0.2"
 num-derive = "0.3"
 log = "0.4"
 smallvec = "1.4"
+
+[dev-dependencies]
+feather-test-framework = { path = "../test" }

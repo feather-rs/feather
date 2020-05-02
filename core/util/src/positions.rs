@@ -27,7 +27,7 @@ macro_rules! position {
     };
 }
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Position {
     pub x: f64,
     pub y: f64,
@@ -35,6 +35,12 @@ pub struct Position {
     pub pitch: f32,
     pub yaw: f32,
     pub on_ground: bool,
+}
+
+impl Default for Position {
+    fn default() -> Self {
+        position!(0.0, 64.0, 0.0)
+    }
 }
 
 impl Position {

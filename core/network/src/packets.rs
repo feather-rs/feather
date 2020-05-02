@@ -2040,7 +2040,7 @@ impl Packet for PlayerInfo {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PlayerInfoAction {
     AddPlayer(
         String,

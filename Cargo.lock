@@ -921,6 +921,7 @@ dependencies = [
  "feather-core",
  "feather-server-types",
  "feather-server-util",
+ "feather-test-framework",
  "fecs",
  "inventory",
  "log",
@@ -1107,6 +1108,21 @@ dependencies = [
  "simdnoise",
  "smallvec 1.4.0",
  "strum 0.18.0",
+]
+
+[[package]]
+name = "feather-test-framework"
+version = "0.1.0"
+dependencies = [
+ "crossbeam",
+ "feather-core",
+ "feather-server-chunk",
+ "feather-server-network",
+ "feather-server-player",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
+ "flume",
 ]
 
 [[package]]

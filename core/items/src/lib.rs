@@ -39,6 +39,12 @@ pub struct ItemStack {
     // TODO enchantments, more
 }
 
+impl Default for ItemStack {
+    fn default() -> Self {
+        ItemStack::new(Item::Stone, 1)
+    }
+}
+
 impl ItemStack {
     pub const fn new(ty: Item, amount: u8) -> Self {
         Self { ty, amount }

@@ -77,3 +77,60 @@ pub fn on_player_join_send_existing_entities(event: &PlayerJoinEvent, world: &mu
         network.send_boxed(packet);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::item;
+    use feather_core::items::{Item, ItemStack};
+    use feather_core::network::packets::{PlayerInfo, SpawnObject};
+    use feather_core::position;
+    use feather_test_framework::Test;
+    use std::collections::HashSet;
+
+    #[test]
+    fn send_on_spawn() {
+        let stack = ItemStack::new(Item::Sand, 47);
+        let mut test = Test::new();
+
+        let item1 =
+            test.entity(item::create(stack, Default::default()).with(position!(0.0, 100.0, 0.0)));
+        let player1 = test.player("player1", Position::default());
+        let player2 = test.player("player2", position!(234_234.0, 342.0, 23.0));
+
+        test.handle(
+            EntitySpawnEvent { entity: item1 },
+            on_entity_spawn_send_to_clients,
+        );
+
+        let sent = test.sent::<SpawnObject>(player1).unwrap();
+        assert_eq!(sent.entity_id, test.id(item1));
+
+        assert!(test.sent::<SpawnObject>(player2).is_none());
+    }
+
+    #[test]
+    fn send_existing_entities() {
+        let mut test = Test::new();
+
+        let player1 = test.player("player1", position!(1000.0, -5.0, 0.0));
+        let player2 = test.player("player2", position!(2000.0, 2_138_901.0, 0.0));
+        let player3 = test.player("player3", position!(950.0, 255.0, 0.0));
+
+        test.handle(
+            PlayerJoinEvent { player: player3 },
+            on_player_join_send_existing_entities,
+        );
+
+        let mut players_sent = HashSet::new();
+        for _ in 0..3 {
+            let packet = test.sent::<PlayerInfo>(player3).unwrap();
+
+            players_sent.insert(packet.uuid);
+        }
+
+        for expected in &[player1, player2, player3] {
+            assert!(players_sent.contains(&test.uuid(*expected)));
+        }
+    }
+}
