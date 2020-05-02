@@ -32,7 +32,7 @@ pub async fn main(runtime: runtime::Handle) {
         Err(e) => {
             // Logging might not have been initialized yet - init it and ignore errors
             let _ = simple_logger::init();
-            log::error!("Failed to start server: {}", e);
+            log::error!("Failed to start server: {:?}", e);
             log::error!("Exiting");
             exit(1);
         }
@@ -55,7 +55,7 @@ pub async fn main(runtime: runtime::Handle) {
 
     log::info!("Shutting down");
     if let Err(e) = shut_down(&state.resources, &mut state.world).await {
-        log::error!("An error occurred while shutting down: {}", e);
+        log::error!("An error occurred while shutting down: {:?}", e);
         log::error!("Exiting.");
         exit(1);
     }
