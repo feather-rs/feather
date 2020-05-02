@@ -10,9 +10,13 @@ use feather_core::inventory::{Inventory, SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFF
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerDigging, PlayerDiggingStatus};
 use feather_core::util::{Gamemode, Position};
-use feather_server_types::{EntitySpawnEvent, Game, HeldItem, PacketBuffers, PLAYER_EYE_HEIGHT};
+use feather_server_types::{
+    EntitySpawnEvent, Game, HeldItem, InventoryUpdateEvent, ItemDropEvent, PacketBuffers,
+    PLAYER_EYE_HEIGHT,
+};
 use feather_server_util::{charge_from_ticks_held, compute_projectile_velocity};
 use fecs::{Entity, World};
+use smallvec::smallvec;
 use std::sync::Arc;
 
 /// System responsible for polling for PlayerDigging
@@ -27,22 +31,13 @@ pub fn handle_player_digging(
 
     packet_buffers
         .received::<PlayerDigging>()
-        .for_each_valid(world, |world, (player, packet)| {
-            match packet.status {
-                StartedDigging | FinishedDigging | CancelledDigging => {
-                    handle_digging(game, world, player, packet)
-                }
-                /*DropItem | DropItemStack => handle_drop_item_stack(
-                    packet,
-                    player,
-                    inventory_updates,
-                    item_drops,
-                    &mut inventory,
-                ),*/
-                ConsumeItem => handle_consume_item(game, world, player, packet),
-
-                status => log::warn!("Unhandled Player Digging status {:?}", status),
+        .for_each_valid(world, |world, (player, packet)| match packet.status {
+            StartedDigging | FinishedDigging | CancelledDigging => {
+                handle_digging(game, world, player, packet)
             }
+            DropItem | DropItemStack => handle_drop_item_stack(game, world, player, packet),
+            ConsumeItem => handle_consume_item(game, world, player, packet),
+            status => log::warn!("Unhandled Player Digging status {:?}", status),
         });
 }
 
@@ -84,20 +79,21 @@ fn handle_digging(game: &mut Game, world: &mut World, player: Entity, packet: Pl
     }
 }
 
-/*
 fn handle_drop_item_stack(
+    game: &mut Game,
+    world: &mut World,
+    player: Entity,
     packet: PlayerDigging,
-    entity: Entity,
-    inventory_updates: &mut Trigger<InventoryUpdateEvent>,
-    item_drops: &mut Trigger<ItemDropEvent>,
-    inventory: &mut EntityInventory,
 ) {
     assert!(
         packet.status == PlayerDiggingStatus::DropItem
             || packet.status == PlayerDiggingStatus::DropItemStack
     );
 
-    let slot = inventory.held_item + SLOT_HOTBAR_OFFSET;
+    let held_item = world.get::<HeldItem>(player).0;
+    let mut inventory = world.get_mut::<Inventory>(player);
+
+    let slot = held_item + SLOT_HOTBAR_OFFSET;
 
     let stack = {
         if let Some(item) = inventory.item_at(slot) {
@@ -128,22 +124,23 @@ fn handle_drop_item_stack(
         _ => unreachable!(), // Assertion above
     };
 
+    drop(inventory);
+
     let inv_update = InventoryUpdateEvent {
         slots: smallvec![slot],
-        player: entity,
+        player,
     };
-    inventory_updates.trigger(inv_update);
+    game.handle(world, inv_update);
 
     if amnt != 0 {
         let item_drop = ItemDropEvent {
             slot: Some(slot),
             stack: ItemStack::new(stack.ty, amnt),
-            player: entity,
+            player,
         };
-        item_drops.trigger(item_drop);
+        game.handle(world, item_drop);
     }
 }
-*/
 
 /// Handles food consumption and shooting arrows.
 fn handle_consume_item(game: &mut Game, world: &mut World, player: Entity, packet: PlayerDigging) {
