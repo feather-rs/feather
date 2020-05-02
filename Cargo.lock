@@ -1123,6 +1123,7 @@ dependencies = [
  "feather-server-util",
  "fecs",
  "flume",
+ "tokio",
 ]
 
 [[package]]
