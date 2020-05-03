@@ -161,11 +161,14 @@ impl<B: Buf + Read> McTypeRead for B {
             if len > 32767 {
                 return Err(TryGetError::ValueTooLarge);
             }
-            let mut result = String::with_capacity(len as usize);
-            for _ in 0..len {
-                let res = self.try_get_i8()? as u8;
-                result.push(res as char);
+            if self.remaining() < len as usize {
+                return Err(TryGetError::NotEnoughBytes);
             }
+
+            let mut result = String::with_capacity(len as usize);
+            self.take(len as u64)
+                .read_to_string(&mut result)
+                .map_err(|_| TryGetError::NotEnoughBytes)?;
 
             return Ok(result);
         }
