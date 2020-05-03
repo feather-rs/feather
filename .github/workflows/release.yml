@@ -24,6 +24,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - uses: actions/checkout@v2
+
       - name: Build (release mode)
         run: cargo build --release
 
