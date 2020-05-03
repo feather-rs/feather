@@ -1,3 +1,4 @@
+use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::process::Command;
@@ -35,7 +36,7 @@ fn main() {
 
             println!(
                 "cargo:rerun-if-changed={}",
-                concat!(env!("CARGO_MANIFEST_DIR"), "/../../data/minecraft")
+                concat!(env!("CARGO_MANIFEST_DIR"), "/../../data")
             );
         }
         Err(e) => {
