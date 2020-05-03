@@ -1,0 +1,44 @@
+name: release
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  create-release:
+    name: Publish to GitHub Releases
+    strategy:
+      matrix:
+        os: [ ubuntu-18.04, windows-2019, macos-10.15 ]
+        include:
+          - os: ubuntu-18.04
+            os-name: linux
+            executable-name: feather-server
+          - os: windows-2019
+            os-name: windows
+            executable-name: feather-server.exe
+          - os: macos-10.15
+            os-name: macOS
+            executable-name: feather-server
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Build (release mode)
+        run: cargo build --release
+
+      - name: Get tag name
+        uses: olegtarasov/get-tag@v2
+        id: tagName
+
+      - name: Compress executable
+        uses: papeloto/action-zip@v1
+        with:
+          files: target/release/${{ matrix.executable-name }}
+          dest: target/release/feather-${{ steps.tagName.outputs.tag }}-${{ matrix.os-name }}.zip
+
+      - name: Publish release
+        uses: ncipollo/release-action@v1.6.1
+        with:
+          artifact: target/release/feather-${{ steps.tagName.outputs.tag }}-${{ matrix.os-name }}.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
