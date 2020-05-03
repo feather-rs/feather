@@ -1,12 +1,19 @@
+use anyhow::Context;
 use std::env;
-use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::io::copy;
 use std::path::Path;
 use std::process::Command;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
+    match run() {
+        Ok(_) => (),
+        Err(e) => panic!("{:?}", e),
+    }
+}
+
+fn run() -> anyhow::Result<()> {
     let path = format!("{}/minecraft", env::var("OUT_DIR").unwrap());
     let path = Path::new(&path);
     let path_server = path.join("server.jar");
@@ -17,48 +24,57 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let _ = fs::remove_dir_all(&path);
-    fs::create_dir_all(&path)?;
+    fs::create_dir_all(&path).context("failed to create target directory for downloaded data")?;
 
-    donwload(&path_server)?;
-    generate(&path)?;
-    extract(&path)?;
+    download(&path_server).context("failed to download vanilla server JAR")?;
+    generate(&path).context(
+        "failed to generate vanilla server reports. (is Java installed and in your PATH?)",
+    )?;
+    extract(&path).context("failed to extract vanilla assets. (are the Java developer tools (`jar`) installed and in your PATH?)")?;
 
     println!("cargo:rerun-if-changed={}", &path.display());
     Ok(())
 }
 
-fn data_exists(path: &Path) -> Result<bool, Box<dyn Error>> {
+fn data_exists(path: &Path) -> anyhow::Result<bool> {
     Ok(File::open(path.join("server.jar")).is_ok()
         && File::open(path.join("assets")).is_ok()
         && File::open(path.join("data")).is_ok()
         && File::open(path.join("generated")).is_ok())
 }
 
-fn donwload<P: AsRef<Path>>(server: P) -> Result<(), Box<dyn Error>> {
+fn download<P: AsRef<Path>>(server: P) -> anyhow::Result<()> {
     let mut response = reqwest::blocking::get("https://launcher.mojang.com/v1/objects/3737db93722a9e39eeada7c27e7aca28b144ffa7/server.jar")?;
-    let mut dest = File::create(server)?;
+    let mut dest = File::create(server)
+        .context("failed to create destination file for server JAR download")?;
     copy(&mut response, &mut dest)?;
     Ok(())
 }
 
-fn generate<P: AsRef<Path>>(working: P) -> Result<(), Box<dyn Error>> {
+fn generate<P: AsRef<Path>>(working: P) -> anyhow::Result<()> {
     let status = Command::new("java")
         .current_dir(working)
         .args(&["-cp", "server.jar", "net.minecraft.data.Main", "--reports"])
         .status()?;
     if !status.success() {
-        panic!("Failed to generate data from server jar.")
+        anyhow::bail!(
+            "process to generate server reports was not successful (exit status {})",
+            status
+        )
     }
     Ok(())
 }
 
-fn extract<P: AsRef<Path>>(working: P) -> Result<(), Box<dyn Error>> {
+fn extract<P: AsRef<Path>>(working: P) -> anyhow::Result<()> {
     let status = Command::new("jar")
         .current_dir(working)
         .args(&["xf", "server.jar", "assets/", "data/"])
         .status()?;
     if !status.success() {
-        panic!("Failed to generate data from server jar.")
+        anyhow::bail!(
+            "JAR extraction process was not successful (exit status {})",
+            status
+        )
     }
     Ok(())
 }

@@ -12,3 +12,4 @@ feather-data-macro = { path = "macro" }
 
 [build-dependencies]
 reqwest = { version = "0.10", features = ["blocking"] }
+anyhow = "1.0"
