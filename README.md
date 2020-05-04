@@ -5,13 +5,15 @@
 An experimental Minecraft server implementation written in Rust.
 
 ### Features
-Many basic features are already implemented:
+This is a list of the current features implemented in Feather.
 - [x] Highly scalable architecture
 - [x] Anvil world loading and saving
 - [x] Physics
 - [x] Basic world generation
 - [x] Chunk streaming
 - [x] Day/night cycle
+- [x] Weather
+- [x] Block lighting
 - [x] Arrow shooting
 - [x] Falling blocks
 - [x] Block placement and breaking

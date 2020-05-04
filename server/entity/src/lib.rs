@@ -11,6 +11,7 @@ mod inventory;
 mod mob;
 mod object;
 
+pub use self::inventory::InventoryExt;
 pub use broadcasters::*;
 pub use mob::*;
 pub use object::*;

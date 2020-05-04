@@ -5,13 +5,14 @@
 //! swapping items out to the offhand, and dropping items.
 
 use crate::{ItemTimedUse, IteratorExt};
+use entity::InventoryExt;
 use feather_core::blocks::BlockId;
 use feather_core::inventory::{Inventory, SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerDigging, PlayerDiggingStatus};
 use feather_core::util::{Gamemode, Position};
 use feather_server_types::{
-    EntitySpawnEvent, Game, HeldItem, InventoryUpdateEvent, ItemDropEvent, PacketBuffers,
+    EntitySpawnEvent, Game, HeldItem, InventoryUpdateEvent, ItemDropEvent, PacketBuffers, Velocity,
     PLAYER_EYE_HEIGHT,
 };
 use feather_server_util::{charge_from_ticks_held, compute_projectile_velocity};
@@ -56,8 +57,7 @@ fn handle_digging(game: &mut Game, world: &mut World, player: Entity, packet: Pl
 
     let item_in_main_hand = world
         .get::<Inventory>(player)
-        .item_at(world.get::<HeldItem>(player).0)
-        .copied();
+        .item_in_main_hand(player, world);
 
     // Don't break block if player is holding a sword in creative mode.
     if gamemode == Gamemode::Creative {
@@ -148,7 +148,7 @@ fn handle_consume_item(game: &mut Game, world: &mut World, player: Entity, packe
 
     // TODO: Fallback to off-hand if main-hand is not a consumable
     let inventory = world.get::<Inventory>(player);
-    let used_item = inventory.item_at(world.get::<HeldItem>(player).0);
+    let used_item = inventory.item_in_main_hand(player, world);
 
     if let Some(item) = used_item {
         if item.ty == Item::Bow {
@@ -234,7 +234,7 @@ fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
     log::trace!("Spawning arrow entity.");
     let entity = entity::arrow::create()
         .with(init_position)
-        .with(arrow_velocity)
+        .with(Velocity(arrow_velocity))
         .build()
         .spawn_in(world);
     game.handle(world, EntitySpawnEvent { entity });

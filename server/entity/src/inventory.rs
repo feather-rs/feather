@@ -2,7 +2,22 @@ use feather_core::inventory::{
     SlotIndex, SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET, SLOT_ARMOR_HEAD, SLOT_ARMOR_LEGS,
     SLOT_HOTBAR_OFFSET, SLOT_OFFHAND,
 };
+use feather_core::items::ItemStack;
+use feather_server_types::{HeldItem, Inventory};
+use fecs::{Entity, World};
 use num_derive::{FromPrimitive, ToPrimitive};
+
+pub trait InventoryExt {
+    /// Returns the item in the main hand of this entity.
+    fn item_in_main_hand(&self, entity: Entity, world: &World) -> Option<ItemStack>;
+}
+
+impl InventoryExt for Inventory {
+    fn item_in_main_hand(&self, entity: Entity, world: &World) -> Option<ItemStack> {
+        let held_item = world.get::<HeldItem>(entity).0;
+        self.item_at(SLOT_HOTBAR_OFFSET + held_item).copied()
+    }
+}
 
 /// An equipment slot, with variants
 /// listed in the order of the Entity Equipment

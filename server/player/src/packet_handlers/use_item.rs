@@ -1,9 +1,10 @@
 use crate::{ItemTimedUse, IteratorExt};
+use entity::InventoryExt;
 use feather_core::inventory::Inventory;
 use feather_core::items::Item;
 use feather_core::network::packets::UseItem;
 use feather_core::util::Hand;
-use feather_server_types::{Game, HeldItem, Name, PacketBuffers};
+use feather_server_types::{Game, Name, PacketBuffers};
 use fecs::{Entity, World};
 use std::sync::Arc;
 
@@ -32,8 +33,7 @@ fn handle_use_item(game: &mut Game, world: &mut World, player: Entity, packet: U
 
     let item_in_main_hand = world
         .get::<Inventory>(player)
-        .item_at(world.get::<HeldItem>(player).0)
-        .copied();
+        .item_in_main_hand(player, world);
 
     if let Some(item_in_main_hand) = item_in_main_hand {
         if item_in_main_hand.ty != Item::Bow {
