@@ -1,0 +1,12 @@
+[package]
+name = "fapi-common"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+semver = { version = "0.9", features = ["serde"] }
+bstr = "0.2"
+log = "0.4"

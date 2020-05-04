@@ -1,6 +1,9 @@
 [workspace]
 members = [
     "api",
+    "api/common",
+    "api/macros",
+    "api/test-plugins/hello-world",
 
     "core",
     "core/anvil",

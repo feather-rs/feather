@@ -302,7 +302,7 @@ dependencies = [
  "ansi_term",
  "atty",
  "bitflags",
- "strsim",
+ "strsim 0.8.0",
  "textwrap",
  "unicode-width",
  "vec_map",
@@ -523,6 +523,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "darling"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d706e75d87e35569db781a9b5e2416cff1236a47ed380831f959382ccd5f858"
+dependencies = [
+ "darling_core",
+ "darling_macro",
+]
+
+[[package]]
+name = "darling_core"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0c960ae2da4de88a91b2d920c2a7233b400bc33cb28453a2987822d8392519b"
+dependencies = [
+ "fnv",
+ "ident_case",
+ "proc-macro2 1.0.10",
+ "quote 1.0.1",
+ "strsim 0.9.3",
+ "syn 1.0.18",
+]
+
+[[package]]
+name = "darling_macro"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9b5a2f4ac4969822c62224815d069952656cadc7084fdca9751e6d959189b72"
+dependencies = [
+ "darling_core",
+ "quote 1.0.1",
+ "syn 1.0.18",
+]
+
+[[package]]
 name = "dashmap"
 version = "3.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -623,6 +658,47 @@ dependencies = [
  "quote 1.0.1",
  "syn 1.0.18",
  "synstructure",
+]
+
+[[package]]
+name = "fapi"
+version = "0.1.0"
+dependencies = [
+ "bstr",
+ "fapi-common",
+ "fapi-macros",
+ "log",
+ "serde_json",
+]
+
+[[package]]
+name = "fapi-common"
+version = "0.1.0"
+dependencies = [
+ "bstr",
+ "log",
+ "semver",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "fapi-macros"
+version = "0.1.0"
+dependencies = [
+ "darling",
+ "proc-macro-error",
+ "proc-macro2 1.0.10",
+ "quote 1.0.1",
+ "syn 1.0.18",
+]
+
+[[package]]
+name = "fapi-test-hello-world"
+version = "0.1.0"
+dependencies = [
+ "fapi",
+ "log",
 ]
 
 [[package]]
@@ -1154,10 +1230,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "feather_api"
-version = "0.1.0"
-
-[[package]]
 name = "fecs"
 version = "0.1.0"
 source = "git+https://github.com/feather-rs/fecs?rev=fed8bcb516941b12cb980e354e77b699be075a89#fed8bcb516941b12cb980e354e77b699be075a89"
@@ -1579,6 +1651,12 @@ dependencies = [
  "tokio",
  "tokio-tls",
 ]
+
+[[package]]
+name = "ident_case"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
 
 [[package]]
 name = "idna"
@@ -2320,6 +2398,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74490b50b9fbe561ac330df47c08f3f33073d2d00c150f719147d7c54522fa1b"
 
 [[package]]
+name = "proc-macro-error"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "98e9e4b82e0ef281812565ea4751049f1bdcdfccda7d3f459f2e138a40c08678"
+dependencies = [
+ "proc-macro-error-attr",
+ "proc-macro2 1.0.10",
+ "quote 1.0.1",
+ "syn 1.0.18",
+ "version_check",
+]
+
+[[package]]
+name = "proc-macro-error-attr"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f5444ead4e9935abd7f27dc51f7e852a0569ac888096d5ec2499470794e2e53"
+dependencies = [
+ "proc-macro2 1.0.10",
+ "quote 1.0.1",
+ "syn 1.0.18",
+ "syn-mid",
+ "version_check",
+]
+
+[[package]]
 name = "proc-macro-hack"
 version = "0.5.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2667,6 +2771,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d7eb9ef2c18661902cc47e535f9bc51b78acd254da71d375c2f6720d9a40403"
 dependencies = [
  "semver-parser",
+ "serde",
 ]
 
 [[package]]
@@ -2881,6 +2986,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
+name = "strsim"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6446ced80d6c486436db5c078dde11a9f73d42b57fb273121e160b84f63d894c"
+
+[[package]]
 name = "strum"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2953,6 +3064,17 @@ dependencies = [
  "proc-macro2 1.0.10",
  "quote 1.0.1",
  "unicode-xid 0.2.0",
+]
+
+[[package]]
+name = "syn-mid"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7be3539f6c128a931cf19dcee741c1af532c7fd387baa739c03dd2e96479338a"
+dependencies = [
+ "proc-macro2 1.0.10",
+ "quote 1.0.1",
+ "syn 1.0.18",
 ]
 
 [[package]]
