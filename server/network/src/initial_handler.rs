@@ -30,9 +30,10 @@ use feather_core::network::packets::{
     DisconnectLogin, EncryptionRequest, EncryptionResponse, Handshake, HandshakeState, LoginStart,
     LoginSuccess, Ping, Pong, Request, Response, SetCompression,
 };
-use feather_server_types::{Config, ProxyMode, Uuid};
+use feather_server_types::{Config, ProxyMode};
 use mojang_api::ProfileProperty;
 use once_cell::sync::Lazy;
+use uuid::Uuid;
 
 /// The key used for symmetric encryption.
 pub type Key = [u8; 16];
@@ -70,9 +71,30 @@ pub struct JoinResult {
 }
 
 impl JoinResult {
+    /// Creates a `JoinResult` for an offline mode player with the given username.
+    ///
+    /// The UUID will be computed using Minecraft's method for computing offline mode
+    /// UUIDs as a function of the username.
     fn with_username(username: String) -> Self {
         let mut join_result = JoinResult::default();
+
+        // Compute offline mode UUID
+        // https://gist.github.com/games647/2b6a00a8fc21fd3b88375f03c9e2e603
+        let mut context = md5::Context::new();
+        context.consume(format!("OfflinePlayer:{}", username).as_bytes());
+        let computed = context.compute();
+        let bytes = computed.into();
+
+        let mut builder = uuid::Builder::from_bytes(bytes);
+
+        builder
+            .set_variant(uuid::Variant::RFC4122)
+            .set_version(uuid::Version::Md5);
+
+        join_result.uuid = builder.build();
+
         join_result.username = Some(username);
+
         join_result
     }
 }

@@ -10,7 +10,7 @@ feather-server-config = { path = "../config" }
 feather-server-packet-buffer = { path = "../packet_buffer" }
 
 fecs = { git = "https://github.com/feather-rs/fecs", rev = "fed8bcb516941b12cb980e354e77b699be075a89" }
-uuid = { version = "0.8", features = ["v4"] }
+uuid = { version = "0.8", features = ["v4", "v3"] }
 nalgebra-glm = "0.6"
 ncollide3d = "0.22"
 ahash = "0.3"
