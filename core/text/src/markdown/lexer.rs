@@ -14,8 +14,8 @@ pub enum LexToken {
     ControlWordStarter,
     LBrace,
     RBrace,
-    Text(String),
-    ColorCode(String),
+    Space(String),
+    Word(String),
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -138,15 +138,15 @@ pub fn lex_control_word(input: &str) -> IResult<&str, LexToken> {
 }
 
 pub fn lex_spaces(input: &str) -> IResult<&str, LexToken> {
-    map(space1, |s: &str| LexToken::Text(s.to_string()))(input)
+    map(space1, |s: &str| LexToken::Space(s.to_string()))(input)
 }
 
 pub fn lex_word(input: &str) -> IResult<&str, LexToken> {
-    map(alphanumeric1, |s: &str| LexToken::Text(s.to_string()))(input)
+    map(alphanumeric1, |s: &str| LexToken::Word(s.to_string()))(input)
 }
 
 pub fn lex_color_code(input: &str) -> IResult<&str, LexToken> {
-    map(preceded(tag("#"), take(6usize)), |code| LexToken::ColorCode(format!("#{}", code)))(input)
+    map(preceded(tag("#"), take(6usize)), |code| LexToken::Word(format!("#{}", code)))(input)
 }
 
 pub fn lex_brace(input: &str) -> IResult<&str, LexToken> {
@@ -176,37 +176,37 @@ mod tests {
 
         let expected = vec![
             LexToken::ControlWordStarter,
-            LexToken::Text("red".to_string()),
-            LexToken::Text(" ".to_string()),
-            LexToken::Text("red".to_string()),
-            LexToken::Text(" ".to_string()),
-            LexToken::Text("text".to_string()),
-            LexToken::Text(" ".to_string()),
+            LexToken::Word("red".to_string()),
+            LexToken::Space(" ".to_string()),
+            LexToken::Word("red".to_string()),
+            LexToken::Space(" ".to_string()),
+            LexToken::Word("text".to_string()),
+            LexToken::Space(" ".to_string()),
             LexToken::ControlWordStarter,
-            LexToken::Text("bold".to_string()),
-            LexToken::Text(" ".to_string()),
+            LexToken::Word("bold".to_string()),
+            LexToken::Space(" ".to_string()),
             LexToken::LBrace,
-            LexToken::Text("Some".to_string()),
-            LexToken::Text(" ".to_string()),
-            LexToken::Text("bold".to_string()),
-            LexToken::Text(" ".to_string()),
-            LexToken::Text("text".to_string()),
-            LexToken::Text(" ".to_string()),
-            LexToken::Text("too".to_string()),
+            LexToken::Word("Some".to_string()),
+            LexToken::Space(" ".to_string()),
+            LexToken::Word("bold".to_string()),
+            LexToken::Space(" ".to_string()),
+            LexToken::Word("text".to_string()),
+            LexToken::Space(" ".to_string()),
+            LexToken::Word("too".to_string()),
             LexToken::RBrace,
-            LexToken::Text(" ".to_string()),
-            LexToken::Text("more".to_string()),
-            LexToken::Text(" ".to_string()),
-            LexToken::Text("text".to_string()),
-            LexToken::Text(" ".to_string()),
+            LexToken::Space(" ".to_string()),
+            LexToken::Word("more".to_string()),
+            LexToken::Space(" ".to_string()),
+            LexToken::Word("text".to_string()),
+            LexToken::Space(" ".to_string()),
             LexToken::ControlWordStarter,
-            LexToken::Text("color".to_string()),
-            LexToken::Text(" ".to_string()),
-            LexToken::ColorCode("#00FF00".to_string()),
-            LexToken::Text(" ".to_string()),
-            LexToken::Text("green".to_string()),
-            LexToken::Text(" ".to_string()),
-            LexToken::Text("text".to_string())
+            LexToken::Word("color".to_string()),
+            LexToken::Space(" ".to_string()),
+            LexToken::Word("#00FF00".to_string()),
+            LexToken::Space(" ".to_string()),
+            LexToken::Word("green".to_string()),
+            LexToken::Space(" ".to_string()),
+            LexToken::Word("text".to_string())
         ];
 
         let res = lex_input(input).unwrap();
