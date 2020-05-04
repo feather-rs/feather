@@ -65,7 +65,10 @@ pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World)
     for equipment in equipments.iter() {
         let item = {
             let slot = equipment.slot_index(held_item.0);
-            inventory.item_at(slot).cloned()
+            match inventory.item_at(slot).copied() {
+                Some(item) => item,
+                None => continue, // don't send equipment if it doesn't exist
+            }
         };
 
         let equipment_slot = equipment.to_i32().unwrap();
@@ -73,7 +76,7 @@ pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World)
         let packet = EntityEquipment {
             entity_id: world.get::<EntityId>(entity).0,
             slot: equipment_slot,
-            item,
+            item: Some(item),
         };
         network.send(packet);
     }
