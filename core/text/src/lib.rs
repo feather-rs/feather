@@ -2,6 +2,8 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
 use uuid::Uuid;
 
+pub mod markdown;
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Color {

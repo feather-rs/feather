@@ -12,3 +12,4 @@ serde_json = "1.0"
 serde_with = "1.4"
 hematite-nbt = "0.4"
 uuid = { version = "0.8", features = ["serde"] }
+nom = "5.1.1"

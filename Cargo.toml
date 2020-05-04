@@ -15,6 +15,7 @@ members = [
     "core/inventory",
     "core/network",
     "core/util",
+    "core/text",
 
     "server",
     "server/template",
