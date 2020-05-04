@@ -2,7 +2,7 @@
 [![build](https://github.com/feather-rs/feather/workflows/build/badge.svg)](https://github.com/feather-rs/feather/actions)
 [![Discord](https://img.shields.io/discord/619316022800809995)](https://discordapp.com/invite/4eYmK69)
 
-An experimental Minecraft server implementation written in Rust.
+A Minecraft server implementation written in Rust.
 
 ### Features
 This is a list of the current features implemented in Feather.
@@ -23,7 +23,7 @@ This is a list of the current features implemented in Feather.
 - [x] Movement broadcasting
 
 ### Running
-We offer precompiled binaries for Windows and Linux at [GitHub Releases](https://github.com/caelunshun/feather/releases).
+We offer precompiled binaries for Windows, Linux, and macOS at [GitHub Releases](https://github.com/feather-rs/feather/releases).
 
 To run Feather:
 * Extract the downloaded archive.
