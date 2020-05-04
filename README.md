@@ -5,7 +5,6 @@
 A Minecraft server implementation written in Rust.
 
 ### Features
-This is a list of the current features implemented in Feather.
 - [x] Highly scalable architecture
 - [x] Anvil world loading and saving
 - [x] Physics
@@ -52,7 +51,7 @@ cargo build --release
 
 The server executable will be located in `target/release`.
 
-# FAQ
+### FAQ
 
 * Is Feather production ready?
 
