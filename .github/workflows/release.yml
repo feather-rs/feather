@@ -78,6 +78,7 @@ jobs:
         id: create_release
         with:
           tag_name: ${{ steps.tagName.outputs.tag }}
+          release_name: Release ${{ steps.tagName.outputs.tag }}
           draft: true
 
       - name: Download Linux build
