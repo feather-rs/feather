@@ -627,7 +627,7 @@ dependencies = [
 
 [[package]]
 name = "feather-anvil"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "arrayvec",
@@ -648,7 +648,7 @@ dependencies = [
 
 [[package]]
 name = "feather-biomes"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "num-derive",
  "num-traits",
@@ -658,7 +658,7 @@ dependencies = [
 
 [[package]]
 name = "feather-blocks"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "bincode",
@@ -692,7 +692,7 @@ dependencies = [
 
 [[package]]
 name = "feather-chunk"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "ahash",
  "bitflags",
@@ -704,7 +704,7 @@ dependencies = [
 
 [[package]]
 name = "feather-chunk-map"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "feather-blocks",
  "feather-chunk",
@@ -715,7 +715,7 @@ dependencies = [
 
 [[package]]
 name = "feather-codegen"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "heck",
  "lazy_static",
@@ -728,7 +728,7 @@ dependencies = [
 
 [[package]]
 name = "feather-core"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "feather-anvil",
  "feather-biomes",
@@ -746,7 +746,7 @@ dependencies = [
 
 [[package]]
 name = "feather-data"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "feather-data-macro",
@@ -755,7 +755,7 @@ dependencies = [
 
 [[package]]
 name = "feather-data-macro"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "proc-macro2 1.0.10",
  "quote 1.0.1",
@@ -764,7 +764,7 @@ dependencies = [
 
 [[package]]
 name = "feather-entity-metadata"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "bitflags",
  "feather-inventory",
@@ -775,7 +775,7 @@ dependencies = [
 
 [[package]]
 name = "feather-generator"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "byteorder",
  "clap",
@@ -794,7 +794,7 @@ dependencies = [
 
 [[package]]
 name = "feather-inventory"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "feather-items",
  "once_cell",
@@ -803,7 +803,7 @@ dependencies = [
 
 [[package]]
 name = "feather-item-block"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "feather-blocks",
  "feather-items",
@@ -811,7 +811,7 @@ dependencies = [
 
 [[package]]
 name = "feather-items"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "num-derive",
  "num-traits",
@@ -819,7 +819,7 @@ dependencies = [
 
 [[package]]
 name = "feather-network"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "aes",
  "ahash",
@@ -851,7 +851,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "base64 0.12.0",
@@ -882,11 +882,11 @@ dependencies = [
 
 [[package]]
 name = "feather-server-chat"
-version = "0.5.0"
+version = "0.6.0"
 
 [[package]]
 name = "feather-server-chunk"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "ahash",
  "anyhow",
@@ -904,7 +904,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server-config"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "feather-util",
@@ -916,7 +916,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server-entity"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "feather-core",
@@ -936,7 +936,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server-lighting"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "ahash",
  "arrayvec",
@@ -954,7 +954,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server-network"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "derivative 2.1.1",
@@ -981,7 +981,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server-packet-buffer"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "ahash",
  "crossbeam",
@@ -997,7 +997,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server-physics"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "bitflags",
  "feather-core",
@@ -1013,7 +1013,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server-player"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "ahash",
  "feather-core",
@@ -1032,7 +1032,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server-template"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "feather-core",
  "feather-server-types",
@@ -1042,7 +1042,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server-types"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "ahash",
  "anyhow",
@@ -1069,7 +1069,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server-util"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "ahash",
  "anyhow",
@@ -1087,7 +1087,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server-weather"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "feather-core",
  "feather-server-types",
@@ -1098,7 +1098,7 @@ dependencies = [
 
 [[package]]
 name = "feather-server-worldgen"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "approx",
  "bitvec",
@@ -1115,7 +1115,7 @@ dependencies = [
 
 [[package]]
 name = "feather-test-framework"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "crossbeam",
  "feather-core",
@@ -1131,7 +1131,7 @@ dependencies = [
 
 [[package]]
 name = "feather-text"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
@@ -1142,7 +1142,7 @@ dependencies = [
 
 [[package]]
 name = "feather-util"
-version = "0.1.0"
+version = "0.6.0"
 dependencies = [
  "hash32",
  "hash32-derive",
