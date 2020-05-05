@@ -237,5 +237,48 @@ mod tests {
                 Token::Text("Normal text".to_string())
             ]
         );
+
+
+        let text = "@red Some red text @bold { Some red bold text } more red text";
+        let (_, lexed) = lex_input(text).unwrap();
+        let (_, parsed) = parse_tokens(false)(Tokens::new(&lexed)).unwrap();
+
+        assert_eq!(
+            parsed,
+            vec![
+                Token::Color(ColorToken {
+                    color: Color::Red,
+                    rest: vec![
+                        Token::Text("Some red text".to_string()),
+                        Token::Style(StyleToken {
+                            style: Style::Bold,
+                            rest: vec![Token::Text("Some red bold text".to_string())]
+                        }),
+                        Token::Text("more red text".to_string())
+                    ]
+                }),
+            ]
+        );
+
+
+        let text = "@red Some red text @bold Some red bold text and more red bold text";
+        let (_, lexed) = lex_input(text).unwrap();
+        let (_, parsed) = parse_tokens(false)(Tokens::new(&lexed)).unwrap();
+
+        assert_eq!(
+            parsed,
+            vec![
+                Token::Color(ColorToken {
+                    color: Color::Red,
+                    rest: vec![
+                        Token::Text("Some red text".to_string()),
+                        Token::Style(StyleToken {
+                            style: Style::Bold,
+                            rest: vec![Token::Text("Some red bold text and more red bold text".to_string())]
+                        }),
+                    ]
+                }),
+            ]
+        );
     }
 }
