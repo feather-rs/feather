@@ -26,6 +26,7 @@ pub struct Tokens<'a> {
 }
 
 impl<'a> Tokens<'a> {
+    #[allow(clippy::ptr_arg)]
     pub fn new(vec: &'a Vec<LexToken>) -> Tokens<'a> {
         Tokens {
             tok: &vec[..],
