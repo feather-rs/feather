@@ -103,7 +103,7 @@ impl Default for PreviousVelocity {
 
 /// Network ID of an entity.
 #[derive(Copy, Clone, Debug)]
-pub struct EntityId(pub i32);
+pub struct NetworkId(pub i32);
 
 pub trait PacketCreatorFn: Fn(&EntityRef) -> Box<dyn Packet> + Send + Sync + 'static {}
 impl<F> PacketCreatorFn for F where F: Fn(&EntityRef) -> Box<dyn Packet> + Send + Sync + 'static {}

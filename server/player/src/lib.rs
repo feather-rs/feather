@@ -16,9 +16,9 @@ use feather_core::text::Text;
 use feather_core::util::{Gamemode, Position};
 use feather_server_network::NewClientInfo;
 use feather_server_types::{
-    ChunkHolder, CreationPacketCreator, EntityId, EntitySpawnEvent, Game, HeldItem,
-    InventoryUpdateEvent, LastKnownPositions, Name, Network, Player, PlayerJoinEvent,
-    PreviousPosition, ProfileProperties, SpawnPacketCreator, Uuid,
+    ChunkHolder, CreationPacketCreator, EntitySpawnEvent, Game, HeldItem, InventoryUpdateEvent,
+    LastKnownPositions, Name, Network, NetworkId, Player, PlayerJoinEvent, PreviousPosition,
+    ProfileProperties, SpawnPacketCreator, Uuid,
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
@@ -43,7 +43,7 @@ pub struct ItemTimedUse {
 pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity {
     // TODO: blocked on https://github.com/TomGillen/legion/issues/36
     let entity = info.entity;
-    world.add(entity, EntityId(entity::new_id())).unwrap();
+    world.add(entity, NetworkId(entity::new_id())).unwrap();
     world.add(entity, info.position).unwrap();
     world.add(entity, PreviousPosition(info.position)).unwrap();
     world.add(entity, info.uuid).unwrap();
@@ -106,7 +106,7 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
 
 /// Function to create a `SpawnPlayer` packet to spawn the player.
 fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
-    let entity_id = accessor.get::<EntityId>().0;
+    let entity_id = accessor.get::<NetworkId>().0;
     let player_uuid = *accessor.get::<Uuid>();
     let pos = *accessor.get::<Position>();
 

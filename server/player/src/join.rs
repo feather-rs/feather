@@ -4,7 +4,7 @@ use feather_core::network::packets::{JoinGame, PlayerPositionAndLookClientbound,
 use feather_core::util::{BlockPosition, Difficulty, Dimension, Gamemode, Position};
 use feather_server_network::{ListenerToServerMessage, NetworkIoManager, ServerToListenerMessage};
 use feather_server_types::{
-    BumpVec, ChunkSendEvent, EntityId, Game, Network, PlayerJoinEvent, WorkerToServerMessage,
+    BumpVec, ChunkSendEvent, Game, Network, NetworkId, PlayerJoinEvent, WorkerToServerMessage,
 };
 use fecs::{IntoQuery, Read, World};
 use std::iter;
@@ -106,7 +106,7 @@ pub fn on_chunk_send_join_player(event: &ChunkSendEvent, game: &Game, world: &mu
 #[fecs::event_handler]
 pub fn on_player_join_send_join_game(event: &PlayerJoinEvent, game: &Game, world: &mut World) {
     let network = world.get::<Network>(event.player);
-    let id = world.get::<EntityId>(event.player);
+    let id = world.get::<NetworkId>(event.player);
 
     // TODO
     let packet = JoinGame {

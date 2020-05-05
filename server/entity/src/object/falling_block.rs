@@ -6,8 +6,8 @@ use feather_core::network::packets::SpawnObject;
 use feather_core::network::Packet;
 use feather_core::util::{BlockPosition, Position};
 use feather_server_types::{
-    BumpVec, EntityId, EntityLandEvent, EntitySpawnEvent, Game, PhysicsBuilder, SpawnPacketCreator,
-    Uuid, Velocity,
+    BumpVec, EntityLandEvent, EntitySpawnEvent, Game, NetworkId, PhysicsBuilder,
+    SpawnPacketCreator, Uuid, Velocity,
 };
 use feather_server_util::{
     degrees_to_stops, protocol_velocity, BlockNotifyBlock, BlockNotifyFallingBlock,
@@ -107,7 +107,7 @@ pub fn create(ty: BlockId, spawn_pos: BlockPosition) -> EntityBuilder {
 fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
     let data = i32::from(accessor.get::<FallingBlockType>().0.vanilla_id());
     let position = accessor.get::<Position>();
-    let entity_id = accessor.get::<EntityId>().0;
+    let entity_id = accessor.get::<NetworkId>().0;
 
     let velocity = accessor.get::<Velocity>().0;
 

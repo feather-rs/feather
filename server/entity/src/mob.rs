@@ -12,7 +12,7 @@ use feather_core::entitymeta::EntityMetadata;
 use feather_core::network::packets::SpawnMob;
 use feather_core::network::Packet;
 use feather_core::util::Position;
-use feather_server_types::{EntityId, SpawnPacketCreator, Uuid, Velocity};
+use feather_server_types::{NetworkId, SpawnPacketCreator, Uuid, Velocity};
 use feather_server_util::{degrees_to_stops, protocol_velocity};
 use fecs::{EntityBuilder, EntityRef};
 pub use hostile::*;
@@ -97,7 +97,7 @@ pub fn base(kind: MobKind) -> EntityBuilder {
 /// Returns a `SpawnPacketCreator` for a mob with the given kind.
 pub fn spawn_packet_creator(kind: MobKind) -> SpawnPacketCreator {
     let f = Box::new(move |accessor: &EntityRef| {
-        let entity_id = accessor.get::<EntityId>().0;
+        let entity_id = accessor.get::<NetworkId>().0;
         let uuid = accessor
             .try_get::<Uuid>()
             .map(|r| *r)

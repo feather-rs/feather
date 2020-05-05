@@ -3,7 +3,7 @@ use feather_core::network::packets::SpawnObject;
 use feather_core::network::Packet;
 use feather_core::util::{Position, Vec3d};
 use feather_server_types::{
-    ComponentSerializer, EntityId, Game, PhysicsBuilder, SpawnPacketCreator, Uuid, Velocity,
+    ComponentSerializer, Game, NetworkId, PhysicsBuilder, SpawnPacketCreator, Uuid, Velocity,
 };
 use feather_server_util::{degrees_to_stops, protocol_velocity};
 use fecs::{EntityBuilder, EntityRef};
@@ -25,7 +25,7 @@ pub fn create() -> EntityBuilder {
 fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
     let position = *accessor.get::<Position>();
     let velocity = *accessor.get::<Velocity>();
-    let entity_id = accessor.get::<EntityId>().0;
+    let entity_id = accessor.get::<NetworkId>().0;
 
     let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocity.0);
 

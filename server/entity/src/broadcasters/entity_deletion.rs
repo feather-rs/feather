@@ -1,5 +1,5 @@
 use feather_core::network::packets::{DestroyEntities, PlayerInfo, PlayerInfoAction};
-use feather_server_types::{EntityDespawnEvent, EntityId, Game, Player, Uuid};
+use feather_server_types::{EntityDespawnEvent, Game, NetworkId, Player, Uuid};
 use fecs::World;
 
 /// Broadcasts when an entity is deleted.
@@ -9,7 +9,7 @@ pub fn on_entity_despawn_broadcast_despawn(
     game: &mut Game,
     world: &mut World,
 ) {
-    let id = world.get::<EntityId>(event.entity).0;
+    let id = world.get::<NetworkId>(event.entity).0;
     let packet = DestroyEntities {
         entity_ids: vec![id],
     };

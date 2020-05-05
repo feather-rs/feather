@@ -23,8 +23,8 @@ use feather_core::chunk::Chunk;
 use feather_core::network::packets::{ChunkData, DestroyEntities, UnloadChunk};
 use feather_core::util::{ChunkPosition, Position};
 use feather_server_types::{
-    BumpVec, ChunkCrossEvent, ChunkLoadEvent, ChunkSendEvent, EntityClientRemoveEvent, EntityId,
-    EntitySendEvent, Game, HoldChunkRequest, LoadChunkRequest, Network, PlayerJoinEvent,
+    BumpVec, ChunkCrossEvent, ChunkLoadEvent, ChunkSendEvent, EntityClientRemoveEvent,
+    EntitySendEvent, Game, HoldChunkRequest, LoadChunkRequest, Network, NetworkId, PlayerJoinEvent,
     PreviousPosition, ReleaseChunkRequest, SpawnPacketCreator,
 };
 use fecs::{Entity, IntoQuery, Read, World};
@@ -162,7 +162,7 @@ pub fn on_chunk_cross_update_entities(event: &ChunkCrossEvent, game: &mut Game, 
         .filter_map(|entity| world.try_get::<Network>(*entity).map(|net| (*entity, net)))
         .for_each(|(other, network)| {
             let packet = DestroyEntities {
-                entity_ids: vec![world.get::<EntityId>(event.entity).0],
+                entity_ids: vec![world.get::<NetworkId>(event.entity).0],
             };
             network.send(packet);
             to_client_remove_trigger.push((event.entity, other));
@@ -170,7 +170,7 @@ pub fn on_chunk_cross_update_entities(event: &ChunkCrossEvent, game: &mut Game, 
 
     let to_destroy = to_client_remove_trigger
         .iter()
-        .filter_map(|(other, _)| world.try_get::<EntityId>(*other).map(|id| id.0))
+        .filter_map(|(other, _)| world.try_get::<NetworkId>(*other).map(|id| id.0))
         .collect::<Vec<_>>();
 
     if !to_destroy.is_empty() {

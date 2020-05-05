@@ -6,7 +6,7 @@ use feather_core::network::packets::{
 use feather_core::network::Packet;
 use feather_core::util::Position;
 use feather_server_types::{
-    EntityClientRemoveEvent, EntityId, EntitySendEvent, Game, LastKnownPositions, Network,
+    EntityClientRemoveEvent, EntitySendEvent, Game, LastKnownPositions, Network, NetworkId,
     PreviousPosition, PreviousVelocity, Velocity,
 };
 use feather_server_util::{calculate_relative_move, degrees_to_stops, protocol_velocity};
@@ -17,7 +17,7 @@ use std::ops::Deref;
 /// System to broadcast when an entity moves.
 #[fecs::system]
 pub fn broadcast_movement(game: &mut Game, world: &mut World) {
-    <(Read<Position>, Read<PreviousPosition>, Read<EntityId>)>::query().par_entities_for_each(
+    <(Read<Position>, Read<PreviousPosition>, Read<NetworkId>)>::query().par_entities_for_each(
         world.inner(),
         |(entity, (pos, prev_pos, id))| {
             let pos: Position = *pos;
@@ -91,7 +91,7 @@ pub fn on_entity_client_remove_update_last_known_positions(
 /// Broadcasts an entity's velocity.
 #[fecs::system]
 pub fn broadcast_velocity(world: &mut World, game: &mut Game) {
-    <(Read<Velocity>, Read<PreviousVelocity>, Read<EntityId>)>::query().par_entities_for_each(
+    <(Read<Velocity>, Read<PreviousVelocity>, Read<NetworkId>)>::query().par_entities_for_each(
         world.inner(),
         |(entity, (vel, prev_vel, entity_id))| {
             let entity_id = entity_id.0;

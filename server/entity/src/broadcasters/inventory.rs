@@ -4,7 +4,7 @@ use crate::inventory::Equipment;
 use feather_core::inventory::{Inventory, SlotIndex, SLOT_HOTBAR_OFFSET};
 use feather_core::network::packets::{EntityEquipment, SetSlot};
 use feather_server_types::{
-    EntityId, EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, Network,
+    EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, Network, NetworkId,
 };
 use fecs::World;
 use num_traits::ToPrimitive;
@@ -26,7 +26,7 @@ pub fn on_inventory_update_broadcast_equipment_update(
             let item = inv.item_at(slot).cloned();
 
             let packet = EntityEquipment {
-                entity_id: world.get::<EntityId>(event.player).0,
+                entity_id: world.get::<NetworkId>(event.player).0,
                 slot: equipment.to_i32().unwrap(),
                 item,
             };
@@ -74,7 +74,7 @@ pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World)
         let equipment_slot = equipment.to_i32().unwrap();
 
         let packet = EntityEquipment {
-            entity_id: world.get::<EntityId>(entity).0,
+            entity_id: world.get::<NetworkId>(entity).0,
             slot: equipment_slot,
             item: Some(item),
         };

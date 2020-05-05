@@ -2,7 +2,7 @@ use feather_core::entitymeta::EntityMetadata;
 use feather_core::network::packets::PacketEntityMetadata;
 use feather_core::util::Position;
 use feather_server_types::{
-    CreationPacketCreator, EntityId, EntitySendEvent, EntitySpawnEvent, Game, Network,
+    CreationPacketCreator, EntitySendEvent, EntitySpawnEvent, Game, Network, NetworkId,
     PlayerJoinEvent, SpawnPacketCreator,
 };
 use fecs::{IntoQuery, Read, World};
@@ -29,7 +29,7 @@ pub fn on_entity_spawn_send_to_clients(
         // the entity immediately after sending.
         if let Some(meta) = world.try_get::<EntityMetadata>(event.entity) {
             let packet = PacketEntityMetadata {
-                entity_id: world.get::<EntityId>(event.entity).0,
+                entity_id: world.get::<NetworkId>(event.entity).0,
                 metadata: (&*meta).clone(),
             };
             game.broadcast_entity_update(world, packet, event.entity, Some(event.entity));

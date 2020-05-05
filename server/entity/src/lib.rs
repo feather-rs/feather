@@ -22,7 +22,7 @@ pub use object::item::{item_collect, on_item_drop_spawn_item_entity};
 extern crate nalgebra_glm as glm;
 
 use feather_core::util::Position;
-use feather_server_types::{EntityId, PreviousPosition, PreviousVelocity, Velocity};
+use feather_server_types::{NetworkId, PreviousPosition, PreviousVelocity, Velocity};
 use fecs::{EntityBuilder, IntoQuery, Read, World, Write};
 use std::sync::atomic::{AtomicI32, Ordering};
 
@@ -53,7 +53,7 @@ pub fn previous_position_velocity_reset(world: &mut World) {
 pub fn base() -> EntityBuilder {
     let id = new_id();
     EntityBuilder::new()
-        .with(EntityId(id))
+        .with(NetworkId(id))
         .with(Velocity::default())
         .with(PreviousVelocity::default())
         .with(PreviousPosition(position!(0.0, 0.0, 0.0)))
