@@ -15,14 +15,14 @@ pub enum Token {
 
 #[derive(Debug, PartialEq)]
 pub struct ColorToken {
-    color: Color,
-    rest: Vec<Token>,
+    pub color: Color,
+    pub rest: Vec<Token>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct StyleToken {
-    style: Style,
-    rest: Vec<Token>,
+    pub style: Style,
+    pub rest: Vec<Token>,
 }
 
 fn token(t: LexToken) -> impl Fn(Tokens) -> IResult<Tokens, LexToken> {
@@ -123,9 +123,9 @@ pub fn parse_control_word(i: Tokens) -> IResult<Tokens, Token> {
                 }
             }
             "color" => {
-                let (i, next) = take(1usize)(i)?;
+                let (_i, next) = take(1usize)(i)?;
                 match &next.tok[0] {
-                    LexToken::Word(cc) => todo!("ColorCode into Color"),
+                    LexToken::Word(_cc) => todo!("ColorCode into Color"),
                     _ => panic!("Error branch"),
                 }
             }
