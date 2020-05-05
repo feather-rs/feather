@@ -31,7 +31,6 @@ pub fn apply_tokens(tokens: Vec<Token>) -> TextComponent {
 mod tests {
     use super::translate_text;
     use crate::*;
-    use serde_json;
 
     #[test]
     fn test_translate_simple() {
