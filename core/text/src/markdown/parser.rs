@@ -1,32 +1,32 @@
-use crate::{Color, Style};
 use super::*;
-use nom::IResult;
-use nom::combinator::*;
-use nom::multi::*;
+use crate::{Color, Style};
 use nom::branch::alt;
 use nom::bytes::complete::*;
+use nom::combinator::*;
+use nom::multi::*;
+use nom::IResult;
 
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Color(ColorToken),
     Style(StyleToken),
-    Text(String)
+    Text(String),
 }
 
 #[derive(Debug, PartialEq)]
 pub struct ColorToken {
     color: Color,
-    rest: Vec<Token>
+    rest: Vec<Token>,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct StyleToken {
     style: Style,
-    rest: Vec<Token>
+    rest: Vec<Token>,
 }
 
 fn token(t: LexToken) -> impl Fn(Tokens) -> IResult<Tokens, LexToken> {
-    move |input: Tokens| { 
+    move |input: Tokens| {
         let (rest, tok) = take(1usize)(input)?;
         if tok.tok[0] == t {
             Ok((rest, tok.tok[0].clone()))
@@ -39,9 +39,8 @@ fn token(t: LexToken) -> impl Fn(Tokens) -> IResult<Tokens, LexToken> {
 fn word_or_space(input: Tokens) -> IResult<Tokens, LexToken> {
     let (rest, tok) = take(1usize)(input)?;
     match tok.tok[0] {
-        LexToken::Word(_) | LexToken::Space(_) => 
-            Ok((rest, tok.tok[0].clone())),
-        _ => Err(nom::Err::Error((rest, nom::error::ErrorKind::Tag)))
+        LexToken::Word(_) | LexToken::Space(_) => Ok((rest, tok.tok[0].clone())),
+        _ => Err(nom::Err::Error((rest, nom::error::ErrorKind::Tag))),
     }
 }
 
@@ -50,35 +49,23 @@ pub fn tokens_to_text(tokens: Vec<LexToken>) -> Token {
 
     for tok in tokens {
         match tok {
-            LexToken::Word(word) => {
-                s.push_str(&word)
-            }
-            LexToken::Space(space) => {
-                s.push_str(&space)
-            }
-            _ => unreachable!()
+            LexToken::Word(word) => s.push_str(&word),
+            LexToken::Space(space) => s.push_str(&space),
+            _ => unreachable!(),
         }
     }
 
-    Token::Text(s)
+    Token::Text(s.trim().to_string())
 }
 
-pub fn has_rbrace(input: Tokens) -> bool {
-    for tok in input.tok {
-        if let LexToken::Space(_) = tok {
-            return true
+pub fn has_lbrace(input: Tokens) -> isize {
+    for (i, tok) in input.tok.iter().enumerate() {
+        if let LexToken::LBrace = tok {
+            return i as isize;
         }
     }
 
-    false
-}
-
-pub fn parse_text(input: Tokens) -> IResult<Tokens, Token> {
-//    if brace_delimited {
-//        map(many_till(word_or_space, token(LexToken::RBrace)), |(toks, _)| tokens_to_text(toks))(input)
-//    } else {
-        map(many1(word_or_space), tokens_to_text)(input)
-//    }
+    -1isize
 }
 
 pub fn parse_control_word(i: Tokens) -> IResult<Tokens, Token> {
@@ -88,31 +75,99 @@ pub fn parse_control_word(i: Tokens) -> IResult<Tokens, Token> {
     match &next.tok[0] {
         LexToken::Word(s) => match s.as_str() {
             "red" => {
-                // RBR|SPC,RBR (valid locations for RBrace)
-                let (i, rest) = parse_tokens(i)?;
-                Ok((i, Token::Color(ColorToken { color: Color::Red, rest })))
+                let (_, peeked) = peek(take(2usize))(i)?;
+                let idx = has_lbrace(peeked);
+                if idx != -1 {
+                    let (i, _) = take(idx as usize + 1)(i)?;
+                    let (i, rest) = parse_tokens(true)(i)?;
+                    Ok((
+                        i,
+                        Token::Color(ColorToken {
+                            color: Color::Red,
+                            rest,
+                        }),
+                    ))
+                } else {
+                    let (i, rest) = parse_tokens(false)(i)?;
+                    Ok((
+                        i,
+                        Token::Color(ColorToken {
+                            color: Color::Red,
+                            rest,
+                        }),
+                    ))
+                }
             }
-            "bold" => Ok((i, Token::Style(StyleToken { style: Style::Bold, rest: Vec::new() }))),
+            "bold" => {
+                let (_, peeked) = peek(take(2usize))(i)?;
+                let idx = has_lbrace(peeked);
+                if idx != -1 {
+                    let (i, _) = take(idx as usize + 1)(i)?;
+                    let (i, rest) = parse_tokens(true)(i)?;
+                    Ok((
+                        i,
+                        Token::Style(StyleToken {
+                            style: Style::Bold,
+                            rest,
+                        }),
+                    ))
+                } else {
+                    let (i, rest) = parse_tokens(false)(i)?;
+                    Ok((
+                        i,
+                        Token::Style(StyleToken {
+                            style: Style::Bold,
+                            rest,
+                        }),
+                    ))
+                }
+            }
             "color" => {
                 let (i, next) = take(1usize)(i)?;
                 match &next.tok[0] {
-                    LexToken::Word(cc) => {
-                        todo!("ColorCode into Color")
-                    }
-                    _ => panic!("Error branch")
+                    LexToken::Word(cc) => todo!("ColorCode into Color"),
+                    _ => panic!("Error branch"),
                 }
             }
-            _ => panic!("Error branch")
-        }
-        _ => panic!("Error branch")
+            _ => panic!("Error branch"),
+        },
+        _ => panic!("Error branch"),
     }
 }
 
-pub fn parse_tokens(input: Tokens) -> IResult<Tokens, Vec<Token>> {
-    many1(alt((
-        parse_control_word,
-        parse_text,
-    )))(input)
+pub fn parse_text(brace_delimited: bool) -> impl Fn(Tokens) -> IResult<Tokens, Token> {
+    move |input: Tokens| {
+        if brace_delimited {
+            map(
+                many_till(
+                    word_or_space,
+                    alt((
+                        peek(token(LexToken::RBrace)),
+                        peek(token(LexToken::ControlWordStarter)),
+                    )),
+                ),
+                |(toks, _)| tokens_to_text(toks),
+            )(input)
+        } else {
+            map(many1(word_or_space), tokens_to_text)(input)
+        }
+    }
+}
+
+pub fn parse_tokens(brace_delimited: bool) -> impl Fn(Tokens) -> IResult<Tokens, Vec<Token>> {
+    move |input: Tokens| {
+        if brace_delimited {
+            map(
+                many_till(
+                    alt((parse_control_word, parse_text(brace_delimited))),
+                    token(LexToken::RBrace),
+                ),
+                |(toks, _)| toks,
+            )(input)
+        } else {
+            many1(alt((parse_control_word, parse_text(brace_delimited))))(input)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -124,14 +179,63 @@ mod tests {
     fn test_basic() {
         let text = "@red some red text";
         let (_, lexed) = lex_input(text).unwrap();
-        let (_, parsed) = parse_tokens(Tokens::new(&lexed)).unwrap();
+        let (_, parsed) = parse_tokens(false)(Tokens::new(&lexed)).unwrap();
 
-        assert_eq!(parsed, vec![Token::Color(ColorToken { color: Color::Red, rest: vec![Token::Text(" some red text".to_string())] })]);
+        assert_eq!(
+            parsed,
+            vec![Token::Color(ColorToken {
+                color: Color::Red,
+                rest: vec![Token::Text("some red text".to_string())]
+            })]
+        );
 
         let text = "some red text";
         let (_, lexed) = lex_input(text).unwrap();
-        let (_, parsed) = parse_tokens(Tokens::new(&lexed)).unwrap();
+        let (_, parsed) = parse_tokens(false)(Tokens::new(&lexed)).unwrap();
 
         assert_eq!(parsed, vec![Token::Text("some red text".to_string())]);
+    }
+
+    #[test]
+    fn test_parse_delimited() {
+        let text = "@red { Delimited red text } Not red text";
+        let (_, lexed) = lex_input(text).unwrap();
+        let (_, parsed) = parse_tokens(false)(Tokens::new(&lexed)).unwrap();
+
+        assert_eq!(
+            parsed,
+            vec![
+                Token::Color(ColorToken {
+                    color: Color::Red,
+                    rest: vec![Token::Text("Delimited red text".to_string())]
+                }),
+                Token::Text("Not red text".to_string())
+            ]
+        );
+    }
+
+    #[test]
+    fn test_parse_nested() {
+        let text = "@red { Some red text @bold { Some red bold text } more red text } Normal text";
+        let (_, lexed) = lex_input(text).unwrap();
+        let (_, parsed) = parse_tokens(false)(Tokens::new(&lexed)).unwrap();
+
+        assert_eq!(
+            parsed,
+            vec![
+                Token::Color(ColorToken {
+                    color: Color::Red,
+                    rest: vec![
+                        Token::Text("Some red text".to_string()),
+                        Token::Style(StyleToken {
+                            style: Style::Bold,
+                            rest: vec![Token::Text("Some red bold text".to_string())]
+                        }),
+                        Token::Text("more red text".to_string())
+                    ]
+                }),
+                Token::Text("Normal text".to_string())
+            ]
+        );
     }
 }

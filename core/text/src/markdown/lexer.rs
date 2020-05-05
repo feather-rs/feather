@@ -1,13 +1,13 @@
-use nom::{IResult, InputLength, InputTake, InputIter, Slice};
-use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
-use std::slice::Iter;
-use std::iter::Enumerate;
-use nom::multi::*;
 use nom::branch::*;
-use nom::combinator::*;
 use nom::bytes::complete::*;
 use nom::character::complete::*;
+use nom::combinator::*;
+use nom::multi::*;
 use nom::sequence::*;
+use nom::{IResult, InputIter, InputLength, InputTake, Slice};
+use std::iter::Enumerate;
+use std::ops::{Range, RangeFrom, RangeFull, RangeTo};
+use std::slice::Iter;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum LexToken {
@@ -118,8 +118,10 @@ impl<'a> InputIter for Tokens<'a> {
         self.tok.iter()
     }
 
-    fn position<P>(&self, predicate: P) -> Option<usize> where
-        P: Fn(Self::Item) -> bool {
+    fn position<P>(&self, predicate: P) -> Option<usize>
+    where
+        P: Fn(Self::Item) -> bool,
+    {
         self.tok.iter().position(|b| predicate(b))
     }
 
@@ -131,7 +133,6 @@ impl<'a> InputIter for Tokens<'a> {
         }
     }
 }
-
 
 pub fn lex_control_word(input: &str) -> IResult<&str, LexToken> {
     map(tag("@"), |_| LexToken::ControlWordStarter)(input)
@@ -146,16 +147,17 @@ pub fn lex_word(input: &str) -> IResult<&str, LexToken> {
 }
 
 pub fn lex_color_code(input: &str) -> IResult<&str, LexToken> {
-    map(preceded(tag("#"), take(6usize)), |code| LexToken::Word(format!("#{}", code)))(input)
+    map(preceded(tag("#"), take(6usize)), |code| {
+        LexToken::Word(format!("#{}", code))
+    })(input)
 }
 
 pub fn lex_brace(input: &str) -> IResult<&str, LexToken> {
     alt((
         map(tag("{"), |_| LexToken::LBrace),
-        map(tag("}"), |_| LexToken::RBrace)
+        map(tag("}"), |_| LexToken::RBrace),
     ))(input)
 }
-
 
 pub fn lex_input(input: &str) -> IResult<&str, Vec<LexToken>> {
     many1(alt((
@@ -206,7 +208,7 @@ mod tests {
             LexToken::Space(" ".to_string()),
             LexToken::Word("green".to_string()),
             LexToken::Space(" ".to_string()),
-            LexToken::Word("text".to_string())
+            LexToken::Word("text".to_string()),
         ];
 
         let res = lex_input(input).unwrap();
