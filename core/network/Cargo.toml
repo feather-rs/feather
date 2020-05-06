@@ -12,6 +12,7 @@ feather-codegen = { path = "../../codegen" }
 feather-util = { path = "../util" }
 feather-blocks = { path = "../blocks" }
 feather-chunk = { path = "../chunk" }
+feather-misc = { path = "../misc" }
 
 uuid = "0.8"
 serde = { version = "1.0", features = ["derive"] }

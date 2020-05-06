@@ -506,6 +506,11 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
     );
 
     m.insert(
+        PacketId(0x08, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::BlockBreakAnimation,
+    );
+
+    m.insert(
         PacketId(0x0B, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::BlockChange,
     );
@@ -518,6 +523,16 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
     m.insert(
         PacketId(0x22, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::ChunkData,
+    );
+
+    m.insert(
+        PacketId(0x23, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::Effect,
+    );
+
+    m.insert(
+        PacketId(0x24, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::Particle,
     );
 
     m.insert(
@@ -614,7 +629,7 @@ impl PacketType {
     }
 
     pub fn get_id(self) -> PacketId {
-        *PACKET_TYPE_MAPPINGS.get(&self).unwrap()
+        *PACKET_TYPE_MAPPINGS.get(&self).unwrap_or_else(|| panic!("failed to find packet ID for packet type {:?} (try inserting it into the ID map in core/network/packet.rs)", self))
     }
 
     pub fn get_implementation(self) -> Box<dyn Packet> {

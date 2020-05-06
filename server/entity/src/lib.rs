@@ -10,6 +10,7 @@ mod broadcasters;
 mod inventory;
 mod mob;
 mod object;
+pub mod particle;
 
 pub use self::inventory::InventoryExt;
 pub use broadcasters::*;

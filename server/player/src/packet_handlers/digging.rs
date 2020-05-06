@@ -12,8 +12,8 @@ use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerDigging, PlayerDiggingStatus};
 use feather_core::util::{Gamemode, Position};
 use feather_server_types::{
-    EntitySpawnEvent, Game, HeldItem, InventoryUpdateEvent, ItemDropEvent, PacketBuffers, Velocity,
-    PLAYER_EYE_HEIGHT,
+    BlockUpdateCause, EntitySpawnEvent, Game, HeldItem, InventoryUpdateEvent, ItemDropEvent,
+    PacketBuffers, Velocity, PLAYER_EYE_HEIGHT,
 };
 use feather_server_util::{charge_from_ticks_held, compute_projectile_velocity};
 use fecs::{Entity, World};
@@ -73,7 +73,12 @@ fn handle_digging(game: &mut Game, world: &mut World, player: Entity, packet: Pl
         }
     }
 
-    if !game.set_block_at(world, packet.location, BlockId::air()) {
+    if !game.set_block_at(
+        world,
+        packet.location,
+        BlockId::air(),
+        BlockUpdateCause::Entity(player),
+    ) {
         game.disconnect(player, world, "attempted to break block in unloaded chunk");
         return;
     }

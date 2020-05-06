@@ -8,6 +8,7 @@ use feather_chunk::Chunk;
 use feather_codegen::{AsAny, Packet};
 use feather_entity_metadata::EntityMetadata;
 use feather_items::ItemStack;
+use feather_misc::ParticleData;
 use feather_util::{BlockPosition, ClientboundAnimation, Gamemode, Hand};
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -1797,18 +1798,73 @@ pub struct Effect {
     pub disable_relative_volume: bool,
 }
 
-#[derive(Default, AsAny, Packet, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct Particle {
-    pub particle_id: i32,
     pub long_distance: bool,
     pub x: f32,
     pub y: f32,
     pub z: f32,
     pub offset_x: f32,
+    pub offset_y: f32,
     pub offset_z: f32,
     pub particle_data: f32,
     pub particle_count: i32,
-    // TODO data
+    pub data: ParticleData,
+}
+
+impl Packet for Particle {
+    fn read_from(&mut self, _buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_i32(self.data.ordinal() as i32);
+        buf.push_bool(self.long_distance);
+        buf.push_f32(self.x);
+        buf.push_f32(self.y);
+        buf.push_f32(self.z);
+        buf.push_f32(self.offset_x);
+        buf.push_f32(self.offset_y);
+        buf.push_f32(self.offset_z);
+        buf.push_f32(self.particle_data);
+        buf.push_i32(self.particle_count);
+        match self.data {
+            ParticleData::Block(id) => {
+                buf.push_var_int(id.vanilla_id() as i32);
+            }
+            ParticleData::Dust {
+                red,
+                green,
+                blue,
+                scale,
+            } => {
+                buf.push_f32(red);
+                buf.push_f32(green);
+                buf.push_f32(blue);
+                buf.push_f32(scale);
+            }
+            ParticleData::FallingDust(id) => {
+                buf.push_var_int(id.vanilla_id() as i32);
+            }
+            ParticleData::Item(stack) => buf.push_slot(stack),
+            _ => (),
+        }
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::Particle
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::Particle
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self)
+    }
 }
 
 #[derive(Default, AsAny, Packet, Clone, Debug)]

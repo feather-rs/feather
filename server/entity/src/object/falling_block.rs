@@ -6,7 +6,7 @@ use feather_core::network::packets::SpawnObject;
 use feather_core::network::Packet;
 use feather_core::util::{BlockPosition, Position};
 use feather_server_types::{
-    BumpVec, EntityLandEvent, EntitySpawnEvent, Game, NetworkId, PhysicsBuilder,
+    BlockUpdateCause, BumpVec, EntityLandEvent, EntitySpawnEvent, Game, NetworkId, PhysicsBuilder,
     SpawnPacketCreator, Uuid, Velocity,
 };
 use feather_server_util::{
@@ -61,7 +61,12 @@ pub fn spawn_falling_blocks(game: &mut Game, world: &mut World) {
                 },
             );
 
-            game.set_block_at(world, block_to_clear, BlockId::air());
+            game.set_block_at(
+                world,
+                block_to_clear,
+                BlockId::air(),
+                BlockUpdateCause::Unknown,
+            );
         }
     }
 }
@@ -79,7 +84,7 @@ pub fn on_entity_land_remove_falling_block(
         .map(|block| block.0)
     {
         let pos = event.pos.block();
-        game.set_block_at(world, pos, block);
+        game.set_block_at(world, pos, block, BlockUpdateCause::Unknown);
 
         game.despawn(event.entity, world);
     }

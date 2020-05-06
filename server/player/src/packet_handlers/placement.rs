@@ -7,7 +7,7 @@ use feather_core::item_block::ItemToBlock;
 use feather_core::items::ItemStack;
 use feather_core::network::packets::PlayerBlockPlacement;
 use feather_core::util::Gamemode;
-use feather_server_types::{Game, HeldItem, InventoryUpdateEvent, PacketBuffers};
+use feather_server_types::{BlockUpdateCause, Game, HeldItem, InventoryUpdateEvent, PacketBuffers};
 use fecs::World;
 use std::sync::Arc;
 
@@ -54,7 +54,7 @@ pub fn handle_player_block_placement(
                 _ => packet.location + packet.face.placement_offset(),
             };
 
-            game.set_block_at(world, pos, block);
+            game.set_block_at(world, pos, block, BlockUpdateCause::Entity(player));
 
             let held_item = world.get::<HeldItem>(player).0;
             let mut inventory = world.get_mut::<Inventory>(player);

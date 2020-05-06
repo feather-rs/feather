@@ -203,6 +203,10 @@ pub struct ProfileProperties(pub Vec<mojang_api::ProfileProperty>);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Player;
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[repr(transparent)]
+pub struct ParticleCount(pub u32);
+
 // RESOURCES
 
 use ahash::AHashSet;
@@ -230,6 +234,17 @@ pub struct BlockUpdateEvent {
     pub old: BlockId,
     /// New block
     pub new: BlockId,
+    /// Cause of the block update.
+    pub cause: BlockUpdateCause,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum BlockUpdateCause {
+    /// The update was caused by an entity performing
+    /// a block break/placement. Usually a player.
+    Entity(Entity),
+    /// Unknown cause.
+    Unknown,
 }
 
 /// Triggered directly _before_ an entity is removed from the world.
