@@ -143,8 +143,18 @@ pub fn lex_spaces(input: &str) -> IResult<&str, LexToken> {
     map(space1, |s: &str| LexToken::Space(s.to_string()))(input)
 }
 
+pub fn valid_word(input: &str) -> IResult<&str, &str> {
+    use nom::{AsChar, InputTakeAtPosition};
+    input.split_at_position1_complete(
+        |item| !item.is_alphanum() && item.as_char() != '_',
+        nom::error::ErrorKind::AlphaNumeric,
+    )
+}
+
 pub fn lex_word(input: &str) -> IResult<&str, LexToken> {
-    map(alphanumeric1, |s: &str| LexToken::Word(s.to_string()))(input)
+    map(valid_word, |s: &str| LexToken::Word(s.to_string()))(input)
+
+    // map(alphanumeric1, |s: &str| LexToken::Word(s.to_string()))(input)
 }
 
 pub fn lex_color_code(input: &str) -> IResult<&str, LexToken> {
