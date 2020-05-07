@@ -13,12 +13,14 @@ fn main() {
             let kind = format!("{}/kind.rs", base);
             let block_fns = format!("{}/block_fns.rs", base);
             let table = format!("{}/table.rs", base);
+            let metadata = format!("{}/metadata.rs", base);
 
             write_to_file(&kind, &code.kind);
             write_to_file(&block_fns, &code.block_fns);
             write_to_file(&table, &code.block_table);
+            write_to_file(&metadata, &code.metadata);
 
-            [kind, block_fns, table].iter().for_each(|path| {
+            [kind, block_fns, table, metadata].iter().for_each(|path| {
                 Command::new("rustfmt").arg(path).output().unwrap();
             });
 

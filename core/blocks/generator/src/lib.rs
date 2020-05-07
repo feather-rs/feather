@@ -11,6 +11,7 @@ use std::str::FromStr;
 use syn::export::ToTokens;
 
 mod load;
+mod metadata;
 
 #[derive(Debug)]
 struct Blocks {
@@ -237,6 +238,7 @@ pub struct Output {
     pub kind: String,
     pub block_fns: String,
     pub block_table: String,
+    pub metadata: String,
     pub block_table_serialized: Vec<u8>,
     pub vanilla_ids_serialized: Vec<u8>,
 }
@@ -255,6 +257,7 @@ pub fn generate() -> anyhow::Result<Output> {
 
     output.block_table_serialized = serialize_block_table(&blocks);
     output.vanilla_ids_serialized = serialized_vanilla_ids(&blocks);
+    output.metadata = metadata::generate()?;
 
     Ok(output)
 }
