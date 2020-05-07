@@ -16,9 +16,9 @@ use feather_core::text::Text;
 use feather_core::util::{Gamemode, Position};
 use feather_server_network::NewClientInfo;
 use feather_server_types::{
-    ChunkHolder, CreationPacketCreator, EntitySpawnEvent, Game, HeldItem, InventoryUpdateEvent,
-    LastKnownPositions, Name, Network, NetworkId, Player, PlayerJoinEvent, PreviousPosition,
-    ProfileProperties, SpawnPacketCreator, Uuid,
+    CanBreak, CanInstaBreak, CanTakeDamage, ChunkHolder, CreationPacketCreator, EntitySpawnEvent,
+    Game, HeldItem, InventoryUpdateEvent, LastKnownPositions, Name, Network, NetworkId, Player,
+    PlayerJoinEvent, PreviousPosition, ProfileProperties, SpawnPacketCreator, Uuid,
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
@@ -67,9 +67,9 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     world
         .add(entity, CreationPacketCreator(&create_initialization_packet))
         .unwrap();
-    world
-        .add(entity, Gamemode::from_id(info.data.gamemode as u8))
-        .unwrap();
+
+    let gamemode = Gamemode::from_id(info.data.gamemode as u8);
+    add_gamemode_comps(world, gamemode, entity);
 
     let items = info.data.inventory.iter().map(|slot| {
         (
@@ -102,6 +102,19 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     );
 
     entity
+}
+
+fn add_gamemode_comps(world: &mut World, gamemode: Gamemode, entity: Entity) {
+    world.add(entity, gamemode).unwrap();
+    match gamemode {
+        Gamemode::Survival | Gamemode::Adventure => world.add(entity, CanTakeDamage).unwrap(),
+        Gamemode::Creative => world.add(entity, CanInstaBreak).unwrap(),
+        _ => (),
+    }
+
+    if gamemode == Gamemode::Survival || gamemode == Gamemode::Creative {
+        world.add(entity, CanBreak).unwrap();
+    }
 }
 
 /// Function to create a `SpawnPlayer` packet to spawn the player.

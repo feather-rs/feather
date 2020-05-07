@@ -10,15 +10,26 @@ use feather_core::blocks::BlockId;
 use feather_core::inventory::{Inventory, SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerDigging, PlayerDiggingStatus};
-use feather_core::util::{Gamemode, Position};
+use feather_core::util::{BlockPosition, Position};
 use feather_server_types::{
-    BlockUpdateCause, EntitySpawnEvent, Game, HeldItem, InventoryUpdateEvent, ItemDropEvent,
-    PacketBuffers, Velocity, PLAYER_EYE_HEIGHT,
+    BlockUpdateCause, CanBreak, CanInstaBreak, EntitySpawnEvent, Game, HeldItem,
+    InventoryUpdateEvent, ItemDropEvent, PacketBuffers, Velocity, PLAYER_EYE_HEIGHT,
 };
 use feather_server_util::{charge_from_ticks_held, compute_projectile_velocity};
 use fecs::{Entity, World};
 use smallvec::smallvec;
 use std::sync::Arc;
+
+/// Stores the "digging status" of a player.
+///
+/// If this component exists for an entity,
+/// then it is currently digging a block. The
+/// corresponding animation must be displayed.
+#[derive(Copy, Clone, Debug)]
+pub struct Digging {
+    /// The position of the block being dug
+    pos: BlockPosition,
+}
 
 /// System responsible for polling for PlayerDigging
 /// packets and writing the corresponding events.
@@ -43,44 +54,110 @@ pub fn handle_player_digging(
 }
 
 fn handle_digging(game: &mut Game, world: &mut World, player: Entity, packet: PlayerDigging) {
-    let gamemode = *world.get::<Gamemode>(player);
-    // Return early if needed
+    if !world.has::<CanBreak>(player) {
+        log::trace!(
+            "Player cannot break blocks but sent player digging status {:?}",
+            packet.status
+        );
+        return;
+    }
+
     match packet.status {
-        PlayerDiggingStatus::StartedDigging => {
-            if gamemode != Gamemode::Creative {
+        PlayerDiggingStatus::StartedDigging => handle_started_digging(game, world, player, packet),
+        PlayerDiggingStatus::CancelledDigging => handle_cancelled_digging(world, player),
+        PlayerDiggingStatus::FinishedDigging => {
+            handle_finished_digging(game, world, player, packet)
+        }
+        _ => unreachable!(),
+    }
+}
+
+const MAX_DIG_RADIUS_SQUARED: f64 = 36.0;
+
+fn handle_started_digging(
+    game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    packet: PlayerDigging,
+) {
+    // Delete old `Digging`, if it exists
+    let _ = world.remove::<Digging>(player);
+
+    // Check the distance isn't too far.
+    if packet
+        .location
+        .position()
+        .distance_squared_to(*world.get::<Position>(player))
+        > MAX_DIG_RADIUS_SQUARED
+    {
+        // Ignore the packet.
+        log::trace!("player {:?} tried to dig too far", player);
+        return;
+    }
+
+    // If the player can insta-break, then they can already break the block.
+    if world.has::<CanInstaBreak>(player) {
+        dig(game, world, player, packet.location);
+    } else {
+        // Insert new `Digging`.
+        world
+            .add(
+                player,
+                Digging {
+                    pos: packet.location,
+                },
+            )
+            .unwrap();
+    }
+}
+
+fn handle_cancelled_digging(world: &mut World, player: Entity) {
+    let _ = world.remove::<Digging>(player);
+}
+
+fn handle_finished_digging(
+    game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    packet: PlayerDigging,
+) {
+    let digging = match world.try_get::<Digging>(player) {
+        Some(digging) => *digging,
+        None => {
+            if world.has::<CanInstaBreak>(player) {
+                // Can insta-break - no `StartedDigging` needed
+                Digging {
+                    pos: packet.location,
+                }
+            } else {
+                // Player can't insta-break and has
+                // not sent StartedDigging.
+                // They cannot finish.
                 return;
             }
         }
-        PlayerDiggingStatus::CancelledDigging => return,
-        _ => (),
-    }
+    };
 
-    let item_in_main_hand = world
-        .get::<Inventory>(player)
-        .item_in_main_hand(player, world);
+    let _ = world.remove::<Digging>(player);
 
-    // Don't break block if player is holding a sword in creative mode.
-    if gamemode == Gamemode::Creative {
-        if let Some(item_in_main_hand) = item_in_main_hand {
-            match item_in_main_hand.ty {
-                Item::WoodenSword
-                | Item::StoneSword
-                | Item::GoldenSword
-                | Item::IronSword
-                | Item::DiamondSword => return, // creative mode: don't break block with swords
-                _ => (),
-            }
-        }
-    }
-
-    if !game.set_block_at(
-        world,
-        packet.location,
-        BlockId::air(),
-        BlockUpdateCause::Entity(player),
-    ) {
-        game.disconnect(player, world, "attempted to break block in unloaded chunk");
+    if digging.pos != packet.location {
         return;
+    }
+
+    // Attempt to break the block
+    dig(game, world, player, digging.pos);
+}
+
+fn dig(game: &mut Game, world: &mut World, player: Entity, pos: BlockPosition) {
+    if !game.set_block_at(world, pos, BlockId::air(), BlockUpdateCause::Entity(player)) {
+        game.disconnect(
+            player,
+            world,
+            format!(
+                "Attempted to break block in unloaded chunk (position: {:?})",
+                pos
+            ),
+        );
     }
 }
 
