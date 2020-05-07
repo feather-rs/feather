@@ -346,7 +346,6 @@ mod tests {
 
     #[test]
     fn test_parse_event() {
-        use super::events::*;
         let text = "Some text @on_hover @show_text @green Some green hover text";
 
         let (_, lexed) = lex_input(text).unwrap();
