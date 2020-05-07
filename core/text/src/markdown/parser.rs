@@ -1,5 +1,4 @@
 use super::*;
-use crate::{Color, Style};
 use nom::branch::alt;
 use nom::bytes::complete::*;
 use nom::combinator::*;
@@ -104,7 +103,7 @@ pub fn parse_arg(i: Tokens) -> IResult<Tokens, String> {
                 Ok((i, s.clone()))
             } else {
                 // Argument is a colour code
-                if s.starts_with("#") {
+                if s.starts_with('#') {
                     Ok((i, s.clone()))
                 } else {
                     Err(nom::Err::Error((i, nom::error::ErrorKind::Tag)))
@@ -128,7 +127,7 @@ pub fn parse_control_word(i: Tokens) -> IResult<Tokens, Token> {
                 Token::Call(CallToken {
                     ident: s.clone(),
                     args: arg.clone().map(|arg| vec![arg]),
-                    body
+                    body,
                 })
             })(i)
         }

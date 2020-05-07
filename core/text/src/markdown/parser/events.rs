@@ -1,10 +1,3 @@
-use super::token;
-use crate::markdown::{LexToken, Tokens};
-use nom::bytes::complete::take;
-use nom::combinator::map;
-use nom::sequence::preceded;
-use nom::IResult;
-
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum EventType {
     OnHover,
