@@ -1,6 +1,6 @@
-use crate::network::{Network, ServerToWorkerMessage};
 use crate::task::RunningTasks;
 use crate::{BlockUpdateCause, BlockUpdateEvent, EntityDespawnEvent, Name, PlayerLeaveEvent};
+use crate::{Network, ServerToWorkerMessage};
 use ahash::AHashMap;
 use bumpalo::Bump;
 use feather_core::anvil::level::LevelData;
