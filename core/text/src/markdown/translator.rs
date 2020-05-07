@@ -1,16 +1,47 @@
 use super::{events::*, lex_input, parse_tokens, Token, Tokens};
 use crate::{Color, Style, Text, TextComponent, TextComponentBuilder};
+use nom::error::{convert_error, ErrorKind, VerboseError};
+use nom::Err;
 use std::convert::TryFrom;
+use thiserror::Error;
 
-//TODO: Convert to returning a nice Result type that isn't IResult
-pub fn translate_text(text: &str) -> TextComponent {
-    let (_, lexed) = lex_input(text).unwrap();
-    let (_, parsed) = parse_tokens(false)(Tokens::new(&lexed)).unwrap();
-
-    apply_tokens(parsed)
+#[derive(Error, Debug)]
+pub enum TextMarkupError<'a> {
+    #[error("Incomplete input.")]
+    Incomplete,
+    #[error("Error while lexing data: {}", convert_error(.0, .1.clone()))]
+    LexError(&'a str, VerboseError<&'a str>),
+    #[error("Error while parsing data: {0:?}")]
+    ParseError(ErrorKind),
+    #[error("Error while evaluating data: {0}")]
+    EvalError(&'a str),
 }
 
-pub fn apply_tokens(tokens: Vec<Token>) -> TextComponent {
+impl<'a> From<(&'a str, Err<VerboseError<&'a str>>)> for TextMarkupError<'a> {
+    fn from((i, e): (&'a str, Err<VerboseError<&'a str>>)) -> Self {
+        match e {
+            Err::Incomplete(_) => TextMarkupError::Incomplete,
+            Err::Error(e) => TextMarkupError::LexError(i, e),
+            Err::Failure(e) => TextMarkupError::LexError(i, e),
+        }
+    }
+}
+
+//TODO: Convert to returning a nice Result type that isn't IResult
+pub fn translate_text(text: &str) -> Result<TextComponent, TextMarkupError> {
+    let (_, lexed) = lex_input(text).map_err(|e| (text, e))?;
+
+    match parse_tokens(false)(Tokens::new(&lexed)) {
+        Ok((_, parsed)) => apply_tokens(parsed),
+        Err(e) => match e {
+            Err::Incomplete(_) => Err(TextMarkupError::Incomplete),
+            Err::Error((_, e)) => Err(TextMarkupError::ParseError(e)),
+            Err::Failure((_, e)) => Err(TextMarkupError::ParseError(e)),
+        },
+    }
+}
+
+pub fn apply_tokens(tokens: Vec<Token>) -> Result<TextComponent, TextMarkupError<'static>> {
     let mut component = TextComponent::default();
 
     for token in tokens {
@@ -22,18 +53,22 @@ pub fn apply_tokens(tokens: Vec<Token>) -> TextComponent {
                 call.ident.as_str(),
             ) {
                 (Ok(color), _, _) => {
-                    component = component.push_extra(apply_tokens(call.body.clone()).color(color))
+                    component = component.push_extra(apply_tokens(call.body.clone())?.color(color))
                 }
                 (_, Ok(style), _) => {
-                    component = component.push_extra(apply_tokens(call.body.clone()).style(style))
+                    component = component.push_extra(apply_tokens(call.body.clone())?.style(style))
                 }
                 (_, _, "color") => match call.args {
                     Some(v) => {
                         component = component.push_extra(
-                            apply_tokens(call.body.clone()).color(Color::Custom(v[0].clone())),
+                            apply_tokens(call.body.clone())?.color(Color::Custom(v[0].clone())),
                         )
                     }
-                    None => todo!("Invalid token stream. Return Err eventually"),
+                    None => {
+                        return Err(TextMarkupError::EvalError(
+                            "@color call not provided with any arguments.",
+                        ))
+                    }
                 },
                 (_, _, event_name) => {
                     let ty = parse_event_type_word(&event_name);
@@ -44,39 +79,25 @@ pub fn apply_tokens(tokens: Vec<Token>) -> TextComponent {
                                 EventType::OnHover => match action {
                                     EventAction::ShowText => {
                                         component = component
-                                            .on_hover_show_text(apply_tokens(call.body.clone()))
+                                            .on_hover_show_text(apply_tokens(call.body.clone())?)
                                     }
-                                    _ => todo!("Invalid event action for type OnHover"),
+                                    _ => return Err(TextMarkupError::EvalError("The only supported action type for @on_hover is @show_text."))
                                 },
-                                EventType::OnClick => todo!("OnClick unimplemented"),
+                                EventType::OnClick => return Err(TextMarkupError::EvalError("@on_click is unimplemented"))
                             }
                         }
-                        None => todo!("Invalid token stream. Return Err eventually"),
+                        None => {
+                            return Err(TextMarkupError::EvalError(
+                                "Text event not provided a target action.",
+                            ))
+                        }
                     }
                 }
             },
         }
-        //        match token {
-        //            Token::Text(s) => component = component.push_extra(Text::of(s)),
-        //            Token::Color(c) => {
-        //                component = component.push_extra(apply_tokens(c.rest).color(c.color));
-        //            }
-        //            Token::Style(s) => {
-        //                component = component.push_extra(apply_tokens(s.rest).style(s.style));
-        //            }
-        //            Token::Event(e) => match e.event_type {
-        //                EventType::OnHover => match e.event_action {
-        //                    EventAction::ShowText => {
-        //                        component = component.on_hover_show_text(apply_tokens(e.body))
-        //                    }
-        //                    _ => todo!("Invalid branch for Hover."),
-        //                },
-        //                EventType::OnClick => todo!(),
-        //            },
-        //        }
     }
 
-    component
+    Ok(component)
 }
 
 #[cfg(test)]
@@ -88,7 +109,7 @@ mod tests {
     fn test_translate_simple() {
         let text = "@red Some red text";
 
-        let component = translate_text(text);
+        let component = translate_text(text).unwrap();
         let s = serde_json::to_string_pretty(&component).unwrap();
         println!("{}", s);
         assert_eq!(
@@ -105,7 +126,7 @@ mod tests {
     fn test_component_with_event() {
         let text = "Some text @on_hover @show_text @green Some green hover text";
 
-        let component = translate_text(text);
+        let component = translate_text(text).unwrap();
         let s = serde_json::to_string_pretty(&component).unwrap();
         println!("{}", s);
         assert_eq!(

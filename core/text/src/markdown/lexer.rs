@@ -2,6 +2,7 @@ use nom::branch::*;
 use nom::bytes::complete::*;
 use nom::character::complete::*;
 use nom::combinator::*;
+use nom::error::VerboseError;
 use nom::multi::*;
 use nom::sequence::*;
 use nom::{IResult, InputIter, InputLength, InputTake, Slice};
@@ -135,15 +136,15 @@ impl<'a> InputIter for Tokens<'a> {
     }
 }
 
-pub fn lex_control_word(input: &str) -> IResult<&str, LexToken> {
+pub fn lex_control_word(input: &str) -> IResult<&str, LexToken, VerboseError<&str>> {
     map(tag("@"), |_| LexToken::ControlWordStarter)(input)
 }
 
-pub fn lex_spaces(input: &str) -> IResult<&str, LexToken> {
+pub fn lex_spaces(input: &str) -> IResult<&str, LexToken, VerboseError<&str>> {
     map(space1, |s: &str| LexToken::Space(s.to_string()))(input)
 }
 
-pub fn valid_word(input: &str) -> IResult<&str, &str> {
+pub fn valid_word(input: &str) -> IResult<&str, &str, VerboseError<&str>> {
     use nom::{AsChar, InputTakeAtPosition};
     input.split_at_position1_complete(
         |item| !item.is_alphanum() && item.as_char() != '_',
@@ -151,24 +152,24 @@ pub fn valid_word(input: &str) -> IResult<&str, &str> {
     )
 }
 
-pub fn lex_word(input: &str) -> IResult<&str, LexToken> {
+pub fn lex_word(input: &str) -> IResult<&str, LexToken, VerboseError<&str>> {
     map(valid_word, |s: &str| LexToken::Word(s.to_string()))(input)
 }
 
-pub fn lex_color_code(input: &str) -> IResult<&str, LexToken> {
+pub fn lex_color_code(input: &str) -> IResult<&str, LexToken, VerboseError<&str>> {
     map(preceded(peek(tag("#")), take(7usize)), |code: &str| {
         LexToken::Word(code.to_string())
     })(input)
 }
 
-pub fn lex_brace(input: &str) -> IResult<&str, LexToken> {
+pub fn lex_brace(input: &str) -> IResult<&str, LexToken, VerboseError<&str>> {
     alt((
         map(tag("{"), |_| LexToken::LBrace),
         map(tag("}"), |_| LexToken::RBrace),
     ))(input)
 }
 
-pub fn lex_input(input: &str) -> IResult<&str, Vec<LexToken>> {
+pub fn lex_input(input: &str) -> IResult<&str, Vec<LexToken>, VerboseError<&str>> {
     many1(alt((
         lex_control_word,
         lex_brace,
