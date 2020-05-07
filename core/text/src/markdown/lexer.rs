@@ -159,7 +159,7 @@ pub fn lex_control_word(input: Span) -> IResult<Span, LexToken, VerboseError<Spa
 
 pub fn lex_spaces(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
     map(space1, |s: Span| {
-        LexToken::new(s, LexTokenType::Space(s.fragment().to_string()))
+        LexToken::new(s, LexTokenType::Space((*s.fragment()).to_string()))
     })(input)
 }
 
@@ -173,7 +173,7 @@ pub fn valid_word(input: Span) -> IResult<Span, Span, VerboseError<Span>> {
 
 pub fn lex_word(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
     map(valid_word, |s: Span| {
-        LexToken::new(s, LexTokenType::Word(s.fragment().to_string()))
+        LexToken::new(s, LexTokenType::Word((*s.fragment()).to_string()))
     })(input)
 }
 
