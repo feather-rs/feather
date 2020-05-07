@@ -29,20 +29,14 @@ pub fn parse_event_type_word(i: &str) -> EventType {
     }
 }
 
-pub fn parse_event_action_word(i: Tokens) -> IResult<Tokens, EventAction> {
-    preceded(
-        token(LexToken::ControlWordStarter),
-        map(take(1usize), |tok: Tokens| match &tok.tok[0] {
-            LexToken::Word(s) => match s.as_str() {
-                "show_text" => EventAction::ShowText,
-                "open_url" => EventAction::OpenUrl,
-                "open_file" => EventAction::OpenFile,
-                "run_command" => EventAction::RunCommand,
-                "suggest_command" => EventAction::SuggestCommand,
-                "copy_to_clipboard" => EventAction::CopyToClipboard,
-                _ => todo!("Error branch"),
-            },
-            _ => todo!("Error branch"),
-        }),
-    )(i)
+pub fn parse_event_action_word(i: &str) -> EventAction {
+    match i {
+        "show_text" => EventAction::ShowText,
+        "open_url" => EventAction::OpenUrl,
+        "open_file" => EventAction::OpenFile,
+        "run_command" => EventAction::RunCommand,
+        "suggest_command" => EventAction::SuggestCommand,
+        "copy_to_clipboard" => EventAction::CopyToClipboard,
+        _ => todo!("Error branch"),
+    }
 }

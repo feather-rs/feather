@@ -1,5 +1,6 @@
 use super::{events::*, lex_input, parse_tokens, Token, Tokens};
-use crate::{Text, TextComponent, TextComponentBuilder};
+use crate::{Text, TextComponent, TextComponentBuilder, Color, Style};
+use std::convert::TryFrom;
 
 //TODO: Convert to returning a nice Result type that isn't IResult
 pub fn translate_text(text: &str) -> TextComponent {
@@ -15,22 +16,49 @@ pub fn apply_tokens(tokens: Vec<Token>) -> TextComponent {
     for token in tokens {
         match token {
             Token::Text(s) => component = component.push_extra(Text::of(s)),
-            Token::Color(c) => {
-                component = component.push_extra(apply_tokens(c.rest).color(c.color));
-            }
-            Token::Style(s) => {
-                component = component.push_extra(apply_tokens(s.rest).style(s.style));
-            }
-            Token::Event(e) => match e.event_type {
-                EventType::OnHover => match e.event_action {
-                    EventAction::ShowText => {
-                        component = component.on_hover_show_text(apply_tokens(e.body))
+            Token::Call(call) => match (Color::try_from(call.ident.clone()), Style::try_from(call.ident.clone()), call.ident.as_str()) {
+                (Ok(color), _, _) => component = component.push_extra(apply_tokens(call.body.clone()).color(color)),
+                (_, Ok(style), _) => component = component.push_extra(apply_tokens(call.body.clone()).style(style)),
+                (_, _, "color") => match call.args {
+                    Some(v) => component = component.push_extra(apply_tokens(call.body.clone()).color(Color::Custom(v[0].clone()))),
+                    None => todo!("Invalid token stream. Return Err eventually")
+                }
+                (_, _, event_name) => {
+                    let ty = parse_event_type_word(&event_name);
+                    match call.args {
+                        Some(v) => {
+                            let action = parse_event_action_word(&v[0]);
+                            match ty {
+                                EventType::OnHover => match action {
+                                    EventAction::ShowText => component = component.on_hover_show_text(apply_tokens(call.body.clone())),
+                                    _ => todo!("Invalid event action for type OnHover")
+                                },
+                                EventType::OnClick => todo!("OnClick unimplemented"),
+                            }
+                        }
+                        None => todo!("Invalid token stream. Return Err eventually")
                     }
-                    _ => todo!("Invalid branch for Hover."),
-                },
-                EventType::OnClick => todo!(),
-            },
+                }
+            }
         }
+        //        match token {
+        //            Token::Text(s) => component = component.push_extra(Text::of(s)),
+        //            Token::Color(c) => {
+        //                component = component.push_extra(apply_tokens(c.rest).color(c.color));
+        //            }
+        //            Token::Style(s) => {
+        //                component = component.push_extra(apply_tokens(s.rest).style(s.style));
+        //            }
+        //            Token::Event(e) => match e.event_type {
+        //                EventType::OnHover => match e.event_action {
+        //                    EventAction::ShowText => {
+        //                        component = component.on_hover_show_text(apply_tokens(e.body))
+        //                    }
+        //                    _ => todo!("Invalid branch for Hover."),
+        //                },
+        //                EventType::OnClick => todo!(),
+        //            },
+        //        }
     }
 
     component

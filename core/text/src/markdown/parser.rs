@@ -6,30 +6,22 @@ use nom::combinator::*;
 use nom::multi::*;
 use nom::sequence::*;
 use nom::IResult;
-use std::convert::TryFrom;
 
 pub mod events;
 
 use events::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Token {
-    Color(ColorToken),
-    Style(StyleToken),
+    Call(CallToken),
     Text(String),
-    Event(EventToken),
 }
 
-#[derive(Debug, PartialEq)]
-pub struct ColorToken {
-    pub color: Color,
-    pub rest: Vec<Token>,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct StyleToken {
-    pub style: Style,
-    pub rest: Vec<Token>,
+#[derive(Debug, PartialEq, Clone)]
+pub struct CallToken {
+    pub ident: String,
+    pub args: Option<Vec<String>>,
+    pub body: Vec<Token>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -102,53 +94,44 @@ fn consume_scope(lbrace_idx: Option<usize>) -> impl Fn(Tokens) -> IResult<Tokens
     }
 }
 
+pub fn parse_arg(i: Tokens) -> IResult<Tokens, String> {
+    let (i, tok) = opt(token(LexToken::ControlWordStarter))(i)?;
+    let (i, next) = take(1usize)(i)?;
+
+    match &next.tok[0] {
+        LexToken::Word(s) => {
+            if tok.is_some() {
+                Ok((i, s.clone()))
+            } else {
+                // Argument is a colour code
+                if s.starts_with("#") {
+                    Ok((i, s.clone()))
+                } else {
+                    Err(nom::Err::Error((i, nom::error::ErrorKind::Tag)))
+                }
+            }
+        }
+        _ => Err(nom::Err::Error((i, nom::error::ErrorKind::Tag))),
+    }
+}
+
 pub fn parse_control_word(i: Tokens) -> IResult<Tokens, Token> {
     let (i, _) = token(LexToken::ControlWordStarter)(i)?;
     let (i, next) = take(1usize)(i)?;
-    let (_, peeked) = peek(take(2usize))(i)?;
 
     match &next.tok[0] {
-        LexToken::Word(s) => match (
-            Color::try_from(s.clone()),
-            Style::try_from(s.clone()),
-            s.as_str(),
-        ) {
-            (Ok(color), _, _) => map(consume_scope(has_lbrace(peeked)), move |rest| {
-                Token::Color(ColorToken {
-                    color: color.clone(),
-                    rest,
+        LexToken::Word(s) => {
+            let (i, arg) = opt(preceded(many0(space), parse_arg))(i)?;
+            let (_, peeked) = peek(take(2usize))(i)?;
+
+            map(consume_scope(has_lbrace(peeked)), move |body| {
+                Token::Call(CallToken {
+                    ident: s.clone(),
+                    args: arg.clone().map(|arg| vec![arg]),
+                    body
                 })
-            })(i),
-            (_, Ok(style), _) => map(consume_scope(has_lbrace(peeked)), move |rest| {
-                Token::Style(StyleToken { style, rest })
-            })(i),
-            (_, _, "color") => {
-                // let (i, next) = take(2usize)(i)?;
-                let (i, next) = preceded(many0(space), take(1usize))(i)?;
-                let (_, peeked) = peek(take(2usize))(i)?;
-                match &next.tok[0] {
-                    LexToken::Word(cc) => map(consume_scope(has_lbrace(peeked)), move |rest| {
-                        Token::Color(ColorToken {
-                            color: Color::Custom(cc.clone()),
-                            rest,
-                        })
-                    })(i),
-                    _ => panic!("Error branch"),
-                }
-            }
-            _ => {
-                let event_type = parse_event_type_word(&s);
-                let (i, event_action) = preceded(many0(space), parse_event_action_word)(i)?;
-                let (_, peeked) = peek(take(2usize))(i)?;
-                map(consume_scope(has_lbrace(peeked)), move |body| {
-                    Token::Event(EventToken {
-                        event_type,
-                        event_action,
-                        body,
-                    })
-                })(i)
-            }
-        },
+            })(i)
+        }
         _ => panic!("Error branch"),
     }
 }
@@ -213,9 +196,10 @@ mod tests {
 
         assert_eq!(
             parsed,
-            vec![Token::Color(ColorToken {
-                color: Color::Red,
-                rest: vec![Token::Text("some red text".to_string())]
+            vec![Token::Call(CallToken {
+                ident: "red".to_string(),
+                args: None,
+                body: vec![Token::Text("some red text".to_string())]
             })]
         );
 
@@ -235,9 +219,10 @@ mod tests {
         assert_eq!(
             parsed,
             vec![
-                Token::Color(ColorToken {
-                    color: Color::Red,
-                    rest: vec![Token::Text("Delimited red text".to_string())]
+                Token::Call(CallToken {
+                    ident: "red".to_string(),
+                    args: None,
+                    body: vec![Token::Text("Delimited red text".to_string())]
                 }),
                 Token::Text("Not red text".to_string())
             ]
@@ -252,13 +237,15 @@ mod tests {
 
         assert_eq!(
             parsed,
-            vec![Token::Color(ColorToken {
-                color: Color::Custom("#00FF00".to_string()),
-                rest: vec![
+            vec![Token::Call(CallToken {
+                ident: "color".to_string(),
+                args: Some(vec!["#00FF00".to_string()]),
+                body: vec![
                     Token::Text("Some green text".to_string()),
-                    Token::Style(StyleToken {
-                        style: Style::Bold,
-                        rest: vec![Token::Text("Green bold text".to_string())]
+                    Token::Call(CallToken {
+                        ident: "bold".to_string(),
+                        args: None,
+                        body: vec![Token::Text("Green bold text".to_string())]
                     })
                 ]
             })]
@@ -274,13 +261,15 @@ mod tests {
         assert_eq!(
             parsed,
             vec![
-                Token::Color(ColorToken {
-                    color: Color::Red,
-                    rest: vec![
+                Token::Call(CallToken {
+                    ident: "red".to_string(),
+                    args: None,
+                    body: vec![
                         Token::Text("Some red text".to_string()),
-                        Token::Style(StyleToken {
-                            style: Style::Bold,
-                            rest: vec![Token::Text("Some red bold text".to_string())]
+                        Token::Call(CallToken {
+                            ident: "bold".to_string(),
+                            args: None,
+                            body: vec![Token::Text("Some red bold text".to_string())]
                         }),
                         Token::Text("more red text".to_string())
                     ]
@@ -295,13 +284,15 @@ mod tests {
 
         assert_eq!(
             parsed,
-            vec![Token::Color(ColorToken {
-                color: Color::Red,
-                rest: vec![
+            vec![Token::Call(CallToken {
+                ident: "red".to_string(),
+                args: None,
+                body: vec![
                     Token::Text("Some red text".to_string()),
-                    Token::Style(StyleToken {
-                        style: Style::Bold,
-                        rest: vec![Token::Text("Some red bold text".to_string())]
+                    Token::Call(CallToken {
+                        ident: "bold".to_string(),
+                        args: None,
+                        body: vec![Token::Text("Some red bold text".to_string())]
                     }),
                     Token::Text("more red text".to_string())
                 ]
@@ -315,13 +306,15 @@ mod tests {
         assert_eq!(
             parsed,
             vec![
-                Token::Color(ColorToken {
-                    color: Color::Red,
-                    rest: vec![
+                Token::Call(CallToken {
+                    ident: "red".to_string(),
+                    args: None,
+                    body: vec![
                         Token::Text("Some red text".to_string()),
-                        Token::Style(StyleToken {
-                            style: Style::Bold,
-                            rest: vec![Token::Text("Some red bold text".to_string())]
+                        Token::Call(CallToken {
+                            ident: "bold".to_string(),
+                            args: None,
+                            body: vec![Token::Text("Some red bold text".to_string())]
                         }),
                     ]
                 }),
@@ -335,13 +328,15 @@ mod tests {
 
         assert_eq!(
             parsed,
-            vec![Token::Color(ColorToken {
-                color: Color::Red,
-                rest: vec![
+            vec![Token::Call(CallToken {
+                ident: "red".to_string(),
+                args: None,
+                body: vec![
                     Token::Text("Some red text".to_string()),
-                    Token::Style(StyleToken {
-                        style: Style::Bold,
-                        rest: vec![Token::Text(
+                    Token::Call(CallToken {
+                        ident: "bold".to_string(),
+                        args: None,
+                        body: vec![Token::Text(
                             "Some red bold text and more red bold text".to_string()
                         )]
                     }),
@@ -362,12 +357,13 @@ mod tests {
             parsed,
             vec![
                 Token::Text("Some text".to_string()),
-                Token::Event(EventToken {
-                    event_type: EventType::OnHover,
-                    event_action: EventAction::ShowText,
-                    body: vec![Token::Color(ColorToken {
-                        color: Color::Green,
-                        rest: vec![Token::Text("Some green hover text".to_string())]
+                Token::Call(CallToken {
+                    ident: "on_hover".to_string(),
+                    args: Some(vec!["show_text".to_string()]),
+                    body: vec![Token::Call(CallToken {
+                        ident: "green".to_string(),
+                        args: None,
+                        body: vec![Token::Text("Some green hover text".to_string())]
                     })]
                 })
             ]

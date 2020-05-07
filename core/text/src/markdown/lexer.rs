@@ -153,13 +153,11 @@ pub fn valid_word(input: &str) -> IResult<&str, &str> {
 
 pub fn lex_word(input: &str) -> IResult<&str, LexToken> {
     map(valid_word, |s: &str| LexToken::Word(s.to_string()))(input)
-
-    // map(alphanumeric1, |s: &str| LexToken::Word(s.to_string()))(input)
 }
 
 pub fn lex_color_code(input: &str) -> IResult<&str, LexToken> {
-    map(preceded(tag("#"), take(6usize)), |code| {
-        LexToken::Word(format!("#{}", code))
+    map(preceded(peek(tag("#")), take(7usize)), |code: &str| {
+        LexToken::Word(code.to_string())
     })(input)
 }
 
