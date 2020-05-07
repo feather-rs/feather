@@ -17,6 +17,9 @@ members = [
     "core/network",
     "core/util",
 
+    "definitions",
+    "definitions/generator",
+
     "server",
     "server/template",
     "server/chat",

@@ -48,6 +48,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "aho-corasick"
+version = "0.7.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8716408b8bc624ed7f65d223ddb9ac2d044c0547b6fa4b0d554f3a9540496ada"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "alga"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -761,6 +770,34 @@ dependencies = [
  "proc-macro2 1.0.10",
  "quote 1.0.1",
  "syn 1.0.18",
+]
+
+[[package]]
+name = "feather-definitions"
+version = "0.1.0"
+dependencies = [
+ "feather-definitions-generator",
+ "num-derive",
+ "num-traits",
+]
+
+[[package]]
+name = "feather-definitions-generator"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "feather-data",
+ "heck",
+ "itertools 0.9.0",
+ "once_cell",
+ "proc-macro2 1.0.10",
+ "quote 1.0.1",
+ "regex",
+ "ron",
+ "serde",
+ "serde_json",
+ "syn 1.0.18",
+ "walkdir",
 ]
 
 [[package]]
@@ -2551,7 +2588,10 @@ version = "1.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6020f034922e3194c711b82a627453881bc4682166cabb07134a10c26ba7692"
 dependencies = [
+ "aho-corasick",
+ "memchr",
  "regex-syntax",
+ "thread_local",
 ]
 
 [[package]]
@@ -2611,6 +2651,16 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "winreg",
+]
+
+[[package]]
+name = "ron"
+version = "0.5.2"
+source = "git+https://github.com/ron-rs/ron?rev=0a7d83da66a4009f169967c5d2ac382a446bb76e#0a7d83da66a4009f169967c5d2ac382a446bb76e"
+dependencies = [
+ "base64 0.12.0",
+ "bitflags",
+ "serde",
 ]
 
 [[package]]
