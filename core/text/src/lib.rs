@@ -1,6 +1,6 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
-use std::convert::TryFrom;
+use std::str::FromStr;
 use uuid::Uuid;
 
 pub mod markdown;
@@ -32,11 +32,11 @@ pub enum Color {
     Custom(String),
 }
 
-impl TryFrom<String> for Color {
-    type Error = TextConversionError;
+impl FromStr for Color {
+    type Err = TextConversionError;
 
-    fn try_from(s: String) -> Result<Self, TextConversionError> {
-        match s.as_str() {
+    fn from_str(s: &str) -> Result<Self, TextConversionError> {
+        match s {
             "dark_red" => Ok(Color::DarkRed),
             "red" => Ok(Color::Red),
             "gold" => Ok(Color::Gold),
@@ -53,7 +53,7 @@ impl TryFrom<String> for Color {
             "gray" => Ok(Color::Gray),
             "dark_gray" => Ok(Color::DarkGray),
             "black" => Ok(Color::Black),
-            _ => Err(TextConversionError::InvalidColor(s)),
+            _ => Err(TextConversionError::InvalidColor(s.to_string())),
         }
     }
 }
@@ -74,17 +74,17 @@ pub enum Style {
     Obfuscated,
 }
 
-impl TryFrom<String> for Style {
-    type Error = TextConversionError;
+impl FromStr for Style {
+    type Err = TextConversionError;
 
-    fn try_from(s: String) -> Result<Self, TextConversionError> {
-        match s.as_str() {
+    fn from_str(s: &str) -> Result<Self, TextConversionError> {
+        match s {
             "bold" => Ok(Style::Bold),
             "italic" => Ok(Style::Italic),
             "underline" => Ok(Style::Underlined),
             "strikethrough" => Ok(Style::Strikethrough),
             "magic" => Ok(Style::Obfuscated),
-            _ => Err(TextConversionError::InvalidStyle(s)),
+            _ => Err(TextConversionError::InvalidStyle(s.to_string())),
         }
     }
 }

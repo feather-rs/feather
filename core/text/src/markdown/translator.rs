@@ -2,7 +2,6 @@ use super::{events::*, lex_input, parse_tokens, Span, Token, TokenType, Tokens};
 use crate::{Color, Style, Text, TextComponent, TextComponentBuilder};
 use nom::error::{convert_error, ErrorKind, VerboseError};
 use nom::Err;
-use std::convert::TryFrom;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -67,8 +66,8 @@ pub fn apply_tokens(tokens: Vec<Token>) -> Result<TextComponent, TextMarkupError
         match token.tok {
             TokenType::Text(s) => component = component.push_extra(Text::of(s)),
             TokenType::Call(call) => match (
-                Color::try_from(call.ident.clone()),
-                Style::try_from(call.ident.clone()),
+                call.ident.parse::<Color>(),
+                call.ident.parse::<Style>(),
                 call.ident.as_str(),
             ) {
                 (Ok(color), _, _) => {
