@@ -6,12 +6,27 @@ use nom::error::VerboseError;
 use nom::multi::*;
 use nom::sequence::*;
 use nom::{IResult, InputIter, InputLength, InputTake, Slice};
+use nom_locate::*;
 use std::iter::Enumerate;
 use std::ops::{Range, RangeFrom, RangeFull, RangeTo};
 use std::slice::Iter;
 
+pub type Span<'a> = LocatedSpan<&'a str>;
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct LexToken<'a> {
+    pub tok: LexTokenType,
+    pub span: Span<'a>,
+}
+
+impl<'a> LexToken<'a> {
+    pub fn new(span: Span<'a>, tok: LexTokenType) -> LexToken<'a> {
+        LexToken { tok, span }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub enum LexToken {
+pub enum LexTokenType {
     ControlWordStarter,
     LBrace,
     RBrace,
@@ -21,14 +36,14 @@ pub enum LexToken {
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Tokens<'a> {
-    pub tok: &'a [LexToken],
+    pub tok: &'a [LexToken<'a>],
     start: usize,
     end: usize,
 }
 
 impl<'a> Tokens<'a> {
     #[allow(clippy::ptr_arg)]
-    pub fn new(vec: &'a Vec<LexToken>) -> Tokens<'a> {
+    pub fn new(vec: &'a Vec<LexToken<'a>>) -> Tokens<'a> {
         Tokens {
             tok: &vec[..],
             start: 0,
@@ -69,7 +84,7 @@ impl<'a> InputTake for Tokens<'a> {
     }
 }
 
-impl<'a> InputLength for LexToken {
+impl<'a> InputLength for LexToken<'a> {
     fn input_len(&self) -> usize {
         1
     }
@@ -108,9 +123,9 @@ impl<'a> Slice<RangeFull> for Tokens<'a> {
 }
 
 impl<'a> InputIter for Tokens<'a> {
-    type Item = &'a LexToken;
-    type Iter = Enumerate<Iter<'a, LexToken>>;
-    type IterElem = Iter<'a, LexToken>;
+    type Item = &'a LexToken<'a>;
+    type Iter = Enumerate<Iter<'a, LexToken<'a>>>;
+    type IterElem = Iter<'a, LexToken<'a>>;
 
     fn iter_indices(&self) -> Self::Iter {
         self.tok.iter().enumerate()
@@ -136,15 +151,19 @@ impl<'a> InputIter for Tokens<'a> {
     }
 }
 
-pub fn lex_control_word(input: &str) -> IResult<&str, LexToken, VerboseError<&str>> {
-    map(tag("@"), |_| LexToken::ControlWordStarter)(input)
+pub fn lex_control_word(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
+    map(tag("@"), |pos| {
+        LexToken::new(pos, LexTokenType::ControlWordStarter)
+    })(input)
 }
 
-pub fn lex_spaces(input: &str) -> IResult<&str, LexToken, VerboseError<&str>> {
-    map(space1, |s: &str| LexToken::Space(s.to_string()))(input)
+pub fn lex_spaces(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
+    map(space1, |s: Span| {
+        LexToken::new(s, LexTokenType::Space(s.fragment().to_string()))
+    })(input)
 }
 
-pub fn valid_word(input: &str) -> IResult<&str, &str, VerboseError<&str>> {
+pub fn valid_word(input: Span) -> IResult<Span, Span, VerboseError<Span>> {
     use nom::{AsChar, InputTakeAtPosition};
     input.split_at_position1_complete(
         |item| !item.is_alphanum() && item.as_char() != '_',
@@ -152,24 +171,26 @@ pub fn valid_word(input: &str) -> IResult<&str, &str, VerboseError<&str>> {
     )
 }
 
-pub fn lex_word(input: &str) -> IResult<&str, LexToken, VerboseError<&str>> {
-    map(valid_word, |s: &str| LexToken::Word(s.to_string()))(input)
-}
-
-pub fn lex_color_code(input: &str) -> IResult<&str, LexToken, VerboseError<&str>> {
-    map(preceded(peek(tag("#")), take(7usize)), |code: &str| {
-        LexToken::Word(code.to_string())
+pub fn lex_word(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
+    map(valid_word, |s: Span| {
+        LexToken::new(s, LexTokenType::Word(s.fragment().to_string()))
     })(input)
 }
 
-pub fn lex_brace(input: &str) -> IResult<&str, LexToken, VerboseError<&str>> {
+pub fn lex_color_code(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
+    map(preceded(peek(tag("#")), take(7usize)), |code: Span| {
+        LexToken::new(code, LexTokenType::Word(code.to_string()))
+    })(input)
+}
+
+pub fn lex_brace(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
     alt((
-        map(tag("{"), |_| LexToken::LBrace),
-        map(tag("}"), |_| LexToken::RBrace),
+        map(tag("{"), |pos| LexToken::new(pos, LexTokenType::LBrace)),
+        map(tag("}"), |pos| LexToken::new(pos, LexTokenType::RBrace)),
     ))(input)
 }
 
-pub fn lex_input(input: &str) -> IResult<&str, Vec<LexToken>, VerboseError<&str>> {
+pub fn lex_input(input: Span) -> IResult<Span, Vec<LexToken>, VerboseError<Span>> {
     many1(alt((
         lex_control_word,
         lex_brace,
@@ -184,44 +205,51 @@ mod tests {
     use super::*;
     #[test]
     fn test_input() {
-        let input = "@red red text @bold {Some bold text too} more text @color #00FF00 green text";
+        let input = Span::new(
+            "@red red text @bold {Some bold text too} more text @color #00FF00 green text",
+        );
 
         let expected = vec![
-            LexToken::ControlWordStarter,
-            LexToken::Word("red".to_string()),
-            LexToken::Space(" ".to_string()),
-            LexToken::Word("red".to_string()),
-            LexToken::Space(" ".to_string()),
-            LexToken::Word("text".to_string()),
-            LexToken::Space(" ".to_string()),
-            LexToken::ControlWordStarter,
-            LexToken::Word("bold".to_string()),
-            LexToken::Space(" ".to_string()),
-            LexToken::LBrace,
-            LexToken::Word("Some".to_string()),
-            LexToken::Space(" ".to_string()),
-            LexToken::Word("bold".to_string()),
-            LexToken::Space(" ".to_string()),
-            LexToken::Word("text".to_string()),
-            LexToken::Space(" ".to_string()),
-            LexToken::Word("too".to_string()),
-            LexToken::RBrace,
-            LexToken::Space(" ".to_string()),
-            LexToken::Word("more".to_string()),
-            LexToken::Space(" ".to_string()),
-            LexToken::Word("text".to_string()),
-            LexToken::Space(" ".to_string()),
-            LexToken::ControlWordStarter,
-            LexToken::Word("color".to_string()),
-            LexToken::Space(" ".to_string()),
-            LexToken::Word("#00FF00".to_string()),
-            LexToken::Space(" ".to_string()),
-            LexToken::Word("green".to_string()),
-            LexToken::Space(" ".to_string()),
-            LexToken::Word("text".to_string()),
+            LexTokenType::ControlWordStarter,
+            LexTokenType::Word("red".to_string()),
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Word("red".to_string()),
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Word("text".to_string()),
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::ControlWordStarter,
+            LexTokenType::Word("bold".to_string()),
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::LBrace,
+            LexTokenType::Word("Some".to_string()),
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Word("bold".to_string()),
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Word("text".to_string()),
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Word("too".to_string()),
+            LexTokenType::RBrace,
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Word("more".to_string()),
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Word("text".to_string()),
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::ControlWordStarter,
+            LexTokenType::Word("color".to_string()),
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Word("#00FF00".to_string()),
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Word("green".to_string()),
+            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Word("text".to_string()),
         ];
 
-        let res = lex_input(input).unwrap();
-        assert_eq!(res, ("", expected));
+        let (_, res) = lex_input(input).unwrap();
+        assert_eq!(
+            res.into_iter()
+                .map(|tok| tok.tok)
+                .collect::<Vec<LexTokenType>>(),
+            expected
+        );
     }
 }

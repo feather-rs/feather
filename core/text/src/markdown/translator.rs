@@ -1,11 +1,11 @@
-use super::{events::*, lex_input, parse_tokens, Token, Tokens};
+use super::{events::*, lex_input, parse_tokens, Span, Token, TokenType, Tokens};
 use crate::{Color, Style, Text, TextComponent, TextComponentBuilder};
 use nom::error::{convert_error, ErrorKind, VerboseError};
 use nom::Err;
 use std::convert::TryFrom;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum TextMarkupError<'a> {
     #[error("Incomplete input.")]
     Incomplete,
@@ -13,23 +13,42 @@ pub enum TextMarkupError<'a> {
     LexError(&'a str, VerboseError<&'a str>),
     #[error("Error while parsing data: {0:?}")]
     ParseError(ErrorKind),
-    #[error("Error while evaluating data: {0}")]
-    EvalError(&'a str),
+    #[error("Error while evaluating data: \n{0}")]
+    EvalError(String),
 }
 
-impl<'a> From<(&'a str, Err<VerboseError<&'a str>>)> for TextMarkupError<'a> {
-    fn from((i, e): (&'a str, Err<VerboseError<&'a str>>)) -> Self {
+impl<'a> From<(&'a str, Err<VerboseError<Span<'a>>>)> for TextMarkupError<'a> {
+    fn from((i, e): (&'a str, Err<VerboseError<Span<'a>>>)) -> Self {
         match e {
             Err::Incomplete(_) => TextMarkupError::Incomplete,
-            Err::Error(e) => TextMarkupError::LexError(i, e),
-            Err::Failure(e) => TextMarkupError::LexError(i, e),
+            Err::Error(e) => TextMarkupError::LexError(
+                i,
+                VerboseError {
+                    errors: e
+                        .errors
+                        .iter()
+                        .map(|(i, ek)| (*i.fragment(), ek.clone()))
+                        .collect(),
+                },
+            ),
+            Err::Failure(e) => TextMarkupError::LexError(
+                i,
+                VerboseError {
+                    errors: e
+                        .errors
+                        .iter()
+                        .map(|(i, ek)| (*i.fragment(), ek.clone()))
+                        .collect(),
+                },
+            ),
         }
     }
 }
 
 //TODO: Convert to returning a nice Result type that isn't IResult
 pub fn translate_text(text: &str) -> Result<TextComponent, TextMarkupError> {
-    let (_, lexed) = lex_input(text).map_err(|e| (text, e))?;
+    let input = Span::new(text);
+    let (_, lexed) = lex_input(input).map_err(|e| (text, e))?;
 
     match parse_tokens(false)(Tokens::new(&lexed)) {
         Ok((_, parsed)) => apply_tokens(parsed),
@@ -45,9 +64,9 @@ pub fn apply_tokens(tokens: Vec<Token>) -> Result<TextComponent, TextMarkupError
     let mut component = TextComponent::default();
 
     for token in tokens {
-        match token {
-            Token::Text(s) => component = component.push_extra(Text::of(s)),
-            Token::Call(call) => match (
+        match token.tok {
+            TokenType::Text(s) => component = component.push_extra(Text::of(s)),
+            TokenType::Call(call) => match (
                 Color::try_from(call.ident.clone()),
                 Style::try_from(call.ident.clone()),
                 call.ident.as_str(),
@@ -58,21 +77,22 @@ pub fn apply_tokens(tokens: Vec<Token>) -> Result<TextComponent, TextMarkupError
                 (_, Ok(style), _) => {
                     component = component.push_extra(apply_tokens(call.body.clone())?.style(style))
                 }
-                (_, _, "color") => match call.args {
+                (_, _, "color") => match &call.args {
                     Some(v) => {
                         component = component.push_extra(
                             apply_tokens(call.body.clone())?.color(Color::Custom(v[0].clone())),
                         )
                     }
                     None => {
-                        return Err(TextMarkupError::EvalError(
-                            "@color call not provided with any arguments.",
-                        ))
+                        return Err(TextMarkupError::EvalError(format!(
+                            "Error at {}:{}. @color call not provided with any arguments.",
+                            token.span.line, token.span.col
+                        )))
                     }
                 },
                 (_, _, event_name) => {
                     let ty = parse_event_type_word(&event_name);
-                    match call.args {
+                    match &call.args {
                         Some(v) => {
                             let action = parse_event_action_word(&v[0]);
                             match ty {
@@ -81,15 +101,16 @@ pub fn apply_tokens(tokens: Vec<Token>) -> Result<TextComponent, TextMarkupError
                                         component = component
                                             .on_hover_show_text(apply_tokens(call.body.clone())?)
                                     }
-                                    _ => return Err(TextMarkupError::EvalError("The only supported action type for @on_hover is @show_text."))
+                                    _ => return Err(TextMarkupError::EvalError(format!("Error at {}:{}. The only supported action type for @on_hover is @show_text.", token.span.line, token.span.col)))
                                 },
-                                EventType::OnClick => return Err(TextMarkupError::EvalError("@on_click is unimplemented"))
+                                EventType::OnClick => return Err(TextMarkupError::EvalError(format!("Error at {}:{}. @on_click is unimplemented", token.span.line, token.span.col)))
                             }
                         }
                         None => {
-                            return Err(TextMarkupError::EvalError(
-                                "Text event not provided a target action.",
-                            ))
+                            return Err(TextMarkupError::EvalError(format!(
+                                "Error at {}:{}. Text event not provided a target action.",
+                                token.span.line, token.span.col
+                            )))
                         }
                     }
                 }
@@ -102,7 +123,7 @@ pub fn apply_tokens(tokens: Vec<Token>) -> Result<TextComponent, TextMarkupError
 
 #[cfg(test)]
 mod tests {
-    use super::translate_text;
+    use super::*;
     use crate::*;
 
     #[test]
@@ -119,6 +140,18 @@ mod tests {
                     .color(Color::Red)
                     .push_extra(Text::of("Some red text"))
             )
+        );
+    }
+
+    #[test]
+    fn test_error() {
+        let text = "@color { Some red text }";
+
+        assert_eq!(
+            translate_text(text),
+            Err(TextMarkupError::EvalError(
+                "Error at 1:1. @color call not provided with any arguments.".to_string()
+            ))
         );
     }
 
