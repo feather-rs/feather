@@ -95,14 +95,16 @@ pub fn apply_tokens(tokens: Vec<Token>) -> Result<TextComponent, TextMarkupError
                         Some(v) => {
                             let action = parse_event_action_word(&v[0]);
                             match ty {
-                                EventType::OnHover => match action {
-                                    EventAction::ShowText => {
+                                Ok(EventType::OnHover) => match action {
+                                    Ok(EventAction::ShowText) => {
                                         component = component
                                             .on_hover_show_text(apply_tokens(call.body.clone())?)
                                     }
-                                    _ => return Err(TextMarkupError::EvalError(format!("Error at {}:{}. The only supported action type for @on_hover is @show_text.", token.span.line, token.span.col)))
+                                    Ok(_) => return Err(TextMarkupError::EvalError(format!("Error at {}:{}. The only supported action type for @on_hover is @show_text.", token.span.line, token.span.col))),
+                                    Err(e) => return Err(TextMarkupError::EvalError(format!("Error at {}:{}. Invalid event action specified. {:?}", token.span.line, token.span.col, e))),
                                 },
-                                EventType::OnClick => return Err(TextMarkupError::EvalError(format!("Error at {}:{}. @on_click is unimplemented", token.span.line, token.span.col)))
+                                Ok(EventType::OnClick) => return Err(TextMarkupError::EvalError(format!("Error at {}:{}. @on_click is unimplemented", token.span.line, token.span.col))),
+                                Err(e) => return Err(TextMarkupError::EvalError(format!("Error at {}:{} when parsing event: {:?}", token.span.line, token.span.col, e))),
                             }
                         }
                         None => {
