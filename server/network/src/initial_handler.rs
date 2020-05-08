@@ -190,7 +190,9 @@ impl InitialHandler {
             // Disconnect
             disconnect_login(self, &format!("{}", e));
 
-            let username = self.info.as_ref()
+            let username = self
+                .info
+                .as_ref()
                 .and_then(|info| info.username.as_deref())
                 .unwrap_or("unkown");
             log::info!("Player {} disconnected: {}", username, e);
@@ -469,7 +471,7 @@ async fn handle_encryption_response(
             };
             ih.info = Some(info);
         }
-        Err(e) => Err(Error::AuthenticationFailed(e))?,
+        Err(e) => return Err(Error::AuthenticationFailed(e)),
     }
 
     finish(ih);
