@@ -90,6 +90,15 @@ checksum = "b585a98a234c46fc563103e9278c9391fde1f4e6850334da895d27edb9580f62"
 
 [[package]]
 name = "arrayvec"
+version = "0.4.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd9fd44efafa8690358b7408d253adf110036b88f55672a933f01d616ad9b1b9"
+dependencies = [
+ "nodrop",
+]
+
+[[package]]
+name = "arrayvec"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cff77d8686867eceff3105329d4698d96c2391c176d5d03adc90c7389162b5b8"
@@ -232,6 +241,12 @@ name = "bumpalo"
 version = "3.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "12ae9db68ad7fac5fe51304d20f016c911539251075a214f8e663babefa35187"
+
+[[package]]
+name = "bytecount"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b0017894339f586ccb943b01b9555de56770c11cda818e7e3d8bd93f4ed7f46e"
 
 [[package]]
 name = "byteorder"
@@ -630,7 +645,7 @@ name = "feather-anvil"
 version = "0.6.0"
 dependencies = [
  "anyhow",
- "arrayvec",
+ "arrayvec 0.5.1",
  "bitvec",
  "byteorder",
  "feather-biomes",
@@ -950,7 +965,7 @@ name = "feather-server-lighting"
 version = "0.6.0"
 dependencies = [
  "ahash",
- "arrayvec",
+ "arrayvec 0.5.1",
  "crossbeam",
  "feather-core",
  "feather-server-physics",
@@ -1084,7 +1099,7 @@ version = "0.6.0"
 dependencies = [
  "ahash",
  "anyhow",
- "arrayvec",
+ "arrayvec 0.5.1",
  "feather-core",
  "feather-server-types",
  "fecs",
@@ -1145,9 +1160,12 @@ name = "feather-text"
 version = "0.6.0"
 dependencies = [
  "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nom",
+ "nom_locate",
  "serde",
  "serde_json",
  "serde_with",
+ "thiserror",
  "uuid",
 ]
 
@@ -1173,13 +1191,13 @@ name = "fecs"
 version = "0.1.0"
 source = "git+https://github.com/feather-rs/fecs?rev=fed8bcb516941b12cb980e354e77b699be075a89#fed8bcb516941b12cb980e354e77b699be075a89"
 dependencies = [
- "arrayvec",
+ "arrayvec 0.5.1",
  "erasable",
  "fecs-macros",
  "fxhash",
  "legion",
  "smallvec 1.4.0",
- "static_assertions",
+ "static_assertions 1.1.0",
  "thiserror",
 ]
 
@@ -1740,6 +1758,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "lexical-core"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7043aa5c05dd34fb73b47acb8c3708eac428de4545ea3682ed2f11293ebd890"
+dependencies = [
+ "arrayvec 0.4.12",
+ "cfg-if",
+ "rustc_version",
+ "ryu",
+ "static_assertions 0.3.4",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2027,6 +2058,34 @@ dependencies = [
  "cfg-if",
  "libc",
  "void",
+]
+
+[[package]]
+name = "nodrop"
+version = "0.1.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72ef4a56884ca558e5ddb05a1d1e7e1bfd9a68d9ed024c21704cc98872dae1bb"
+
+[[package]]
+name = "nom"
+version = "5.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b471253da97532da4b61552249c521e01e736071f71c1a4f7ebbfbf0a06aad6"
+dependencies = [
+ "lexical-core",
+ "memchr",
+ "version_check",
+]
+
+[[package]]
+name = "nom_locate"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e4726500a3d0297dd38edc169d919ad997a9931b4645b59ce0231e88536e213"
+dependencies = [
+ "bytecount",
+ "memchr",
+ "nom",
 ]
 
 [[package]]
@@ -2910,6 +2969,12 @@ checksum = "dba1a27d3efae4351c8051072d619e3ade2820635c3958d826bfea39d59b54c8"
 
 [[package]]
 name = "static_assertions"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f3eb36b47e512f8f1c9e3d10c2c1965bc992bd9cdb024fa581e2194501c83d3"
+
+[[package]]
+name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
@@ -3311,7 +3376,7 @@ dependencies = [
  "num-traits",
  "rustc_version",
  "serde",
- "static_assertions",
+ "static_assertions 1.1.0",
 ]
 
 [[package]]

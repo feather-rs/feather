@@ -1,8 +1,16 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
+use std::str::FromStr;
 use uuid::Uuid;
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub mod markdown;
+
+pub enum TextConversionError {
+    InvalidColor(String),
+    InvalidStyle(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Color {
     DarkRed,
@@ -21,6 +29,33 @@ pub enum Color {
     Gray,
     DarkGray,
     Black,
+    Custom(String),
+}
+
+impl FromStr for Color {
+    type Err = TextConversionError;
+
+    fn from_str(s: &str) -> Result<Self, TextConversionError> {
+        match s {
+            "dark_red" => Ok(Color::DarkRed),
+            "red" => Ok(Color::Red),
+            "gold" => Ok(Color::Gold),
+            "yellow" => Ok(Color::Yellow),
+            "dark_green" => Ok(Color::DarkGreen),
+            "green" => Ok(Color::Green),
+            "aqua" => Ok(Color::Aqua),
+            "dark_aqua" => Ok(Color::DarkAqua),
+            "dark_blue" => Ok(Color::DarkBlue),
+            "blue" => Ok(Color::Blue),
+            "light_purple" => Ok(Color::LightPurple),
+            "dark_purple" => Ok(Color::DarkPurple),
+            "white" => Ok(Color::White),
+            "gray" => Ok(Color::Gray),
+            "dark_gray" => Ok(Color::DarkGray),
+            "black" => Ok(Color::Black),
+            _ => Err(TextConversionError::InvalidColor(s.to_string())),
+        }
+    }
 }
 
 impl From<Color> for Text {
@@ -29,7 +64,7 @@ impl From<Color> for Text {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Style {
     Bold,
@@ -37,6 +72,21 @@ pub enum Style {
     Underlined,
     Strikethrough,
     Obfuscated,
+}
+
+impl FromStr for Style {
+    type Err = TextConversionError;
+
+    fn from_str(s: &str) -> Result<Self, TextConversionError> {
+        match s {
+            "bold" => Ok(Style::Bold),
+            "italic" => Ok(Style::Italic),
+            "underline" => Ok(Style::Underlined),
+            "strikethrough" => Ok(Style::Strikethrough),
+            "magic" => Ok(Style::Obfuscated),
+            _ => Err(TextConversionError::InvalidStyle(s.to_string())),
+        }
+    }
 }
 
 impl From<Style> for Text {
