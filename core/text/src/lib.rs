@@ -1018,7 +1018,8 @@ where
         match text.into() {
             s @ Text::String(_) => TextRoot(s.into_component().into()),
             c @ Text::Component(_) => TextRoot(c),
-            a @ Text::Array(_) => TextRoot(a),
+            Text::Array(arr) if arr.is_empty() => TextRoot(Text::empty()),
+            arr @ Text::Array(_) => TextRoot(arr),
         }
     }
 }
