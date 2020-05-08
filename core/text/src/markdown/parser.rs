@@ -140,11 +140,11 @@ pub fn parse_arg(i: Tokens) -> IResult<Tokens, String> {
     match &next.tok[0].tok {
         LexTokenType::Word(s) => {
             if tok.is_some() {
-                Ok((i, s.to_string()))
+                Ok((i, (*s).to_string()))
             } else {
                 // Argument is a colour code
                 if s.starts_with('#') {
-                    Ok((i, s.to_string()))
+                    Ok((i, (*s).to_string()))
                 } else {
                     Err(nom::Err::Error((i, nom::error::ErrorKind::Tag)))
                 }
@@ -175,7 +175,7 @@ pub fn parse_control_word(i: Tokens) -> IResult<Tokens, Token> {
                 Token::new(
                     span.clone(),
                     TokenType::Call(CallToken {
-                        ident: s.to_string(),
+                        ident: (*s).to_string(),
                         args: arg.clone().map(|arg| vec![arg]),
                         body,
                     }),
