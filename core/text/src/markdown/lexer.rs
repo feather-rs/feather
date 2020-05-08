@@ -15,23 +15,23 @@ pub type Span<'a> = LocatedSpan<&'a str>;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct LexToken<'a> {
-    pub tok: LexTokenType,
+    pub tok: LexTokenType<'a>,
     pub span: Span<'a>,
 }
 
 impl<'a> LexToken<'a> {
-    pub fn new(span: Span<'a>, tok: LexTokenType) -> LexToken<'a> {
+    pub fn new(span: Span<'a>, tok: LexTokenType<'a>) -> LexToken<'a> {
         LexToken { tok, span }
     }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub enum LexTokenType {
+pub enum LexTokenType<'a> {
     ControlWordStarter,
     LBrace,
     RBrace,
-    Space(String),
-    Word(String),
+    Space(&'a str),
+    Word(&'a str),
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -159,7 +159,7 @@ pub fn lex_control_word(input: Span) -> IResult<Span, LexToken, VerboseError<Spa
 
 pub fn lex_spaces(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
     map(space1, |s: Span| {
-        LexToken::new(s, LexTokenType::Space((*s.fragment()).to_string()))
+        LexToken::new(s, LexTokenType::Space(*s.fragment()))
     })(input)
 }
 
@@ -173,13 +173,13 @@ pub fn valid_word(input: Span) -> IResult<Span, Span, VerboseError<Span>> {
 
 pub fn lex_word(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
     map(valid_word, |s: Span| {
-        LexToken::new(s, LexTokenType::Word((*s.fragment()).to_string()))
+        LexToken::new(s, LexTokenType::Word(*s.fragment()))
     })(input)
 }
 
 pub fn lex_color_code(input: Span) -> IResult<Span, LexToken, VerboseError<Span>> {
     map(preceded(peek(tag("#")), take(7usize)), |code: Span| {
-        LexToken::new(code, LexTokenType::Word(code.to_string()))
+        LexToken::new(code, LexTokenType::Word(*code.fragment()))
     })(input)
 }
 
@@ -211,37 +211,37 @@ mod tests {
 
         let expected = vec![
             LexTokenType::ControlWordStarter,
-            LexTokenType::Word("red".to_string()),
-            LexTokenType::Space(" ".to_string()),
-            LexTokenType::Word("red".to_string()),
-            LexTokenType::Space(" ".to_string()),
-            LexTokenType::Word("text".to_string()),
-            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Word("red"),
+            LexTokenType::Space(" "),
+            LexTokenType::Word("red"),
+            LexTokenType::Space(" "),
+            LexTokenType::Word("text"),
+            LexTokenType::Space(" "),
             LexTokenType::ControlWordStarter,
-            LexTokenType::Word("bold".to_string()),
-            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Word("bold"),
+            LexTokenType::Space(" "),
             LexTokenType::LBrace,
-            LexTokenType::Word("Some".to_string()),
-            LexTokenType::Space(" ".to_string()),
-            LexTokenType::Word("bold".to_string()),
-            LexTokenType::Space(" ".to_string()),
-            LexTokenType::Word("text".to_string()),
-            LexTokenType::Space(" ".to_string()),
-            LexTokenType::Word("too".to_string()),
+            LexTokenType::Word("Some"),
+            LexTokenType::Space(" "),
+            LexTokenType::Word("bold"),
+            LexTokenType::Space(" "),
+            LexTokenType::Word("text"),
+            LexTokenType::Space(" "),
+            LexTokenType::Word("too"),
             LexTokenType::RBrace,
-            LexTokenType::Space(" ".to_string()),
-            LexTokenType::Word("more".to_string()),
-            LexTokenType::Space(" ".to_string()),
-            LexTokenType::Word("text".to_string()),
-            LexTokenType::Space(" ".to_string()),
+            LexTokenType::Space(" "),
+            LexTokenType::Word("more"),
+            LexTokenType::Space(" "),
+            LexTokenType::Word("text"),
+            LexTokenType::Space(" "),
             LexTokenType::ControlWordStarter,
-            LexTokenType::Word("color".to_string()),
-            LexTokenType::Space(" ".to_string()),
-            LexTokenType::Word("#00FF00".to_string()),
-            LexTokenType::Space(" ".to_string()),
-            LexTokenType::Word("green".to_string()),
-            LexTokenType::Space(" ".to_string()),
-            LexTokenType::Word("text".to_string()),
+            LexTokenType::Word("color"),
+            LexTokenType::Space(" "),
+            LexTokenType::Word("#00FF00"),
+            LexTokenType::Space(" "),
+            LexTokenType::Word("green"),
+            LexTokenType::Space(" "),
+            LexTokenType::Word("text"),
         ];
 
         let (_, res) = lex_input(input).unwrap();
