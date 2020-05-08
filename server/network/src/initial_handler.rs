@@ -190,15 +190,10 @@ impl InitialHandler {
             // Disconnect
             disconnect_login(self, &format!("{}", e));
 
-            if let Some(info) = &self.info {
-                log::info!(
-                    "Player {} disconnected: {}",
-                    info.username.as_ref().unwrap_or(&"unknown".to_string()),
-                    e
-                );
-            } else {
-                log::info!("Player unknown disconnected: {}", e);
-            }
+            let username = self.info.as_ref()
+                .and_then(|info| info.username.as_deref())
+                .unwrap_or("unkown");
+            log::info!("Player {} disconnected: {}", username, e);
         }
     }
 
@@ -474,7 +469,7 @@ async fn handle_encryption_response(
             };
             ih.info = Some(info);
         }
-        Err(e) => return Err(Error::AuthenticationFailed(e)),
+        Err(e) => Err(Error::AuthenticationFailed(e))?,
     }
 
     finish(ih);
@@ -570,7 +565,11 @@ enum Error {
     VerifyTokenMismatch,
     #[error("shared secret length is not correct")]
     BadSecretLength,
+    #[cfg(debug_assertions)]
     #[error("authentication failure: {0:?}")]
+    AuthenticationFailed(mojang_api::Error),
+    #[cfg(not(debug_assertions))]
+    #[error("Failed to verify username!")]
     AuthenticationFailed(mojang_api::Error),
     #[error("received BungeeCord data does not match the specification: {0}")]
     BungeeSpecMismatch(String),
