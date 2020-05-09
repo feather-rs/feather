@@ -11,6 +11,7 @@ use regex::Regex;
 use std::borrow::Cow;
 use std::collections::{BTreeMap, HashMap};
 use std::ops::Range;
+use std::rc::Rc;
 
 pub struct DataFile {
     pub contents: String,
@@ -46,6 +47,21 @@ impl<'a> Context<'a> {
             })
             .map(|(file_name, model)| (*file_name, model))
     }
+
+    /// Finds a property model matching the given name.
+    pub fn find_property_model(&self, name: &str, on: &str) -> Option<&'a Model<'a>> {
+        self.models
+            .iter()
+            .find(|(_, model)| match model {
+                Model::Property {
+                    name: _name,
+                    on: _on,
+                    ..
+                } => *_name == name && *_on == on,
+                _ => false,
+            })
+            .map(|(_, model)| model)
+    }
 }
 
 trait Query<'a> {
@@ -77,9 +93,11 @@ impl<'a, 'b> Query<'a> for CompileEnum<'b> {
         let mut actual_variants = vec![];
         for variant in variants {
             actual_variants.extend(
-                expand_expressions(cx, &[*variant], |_, _| true)
+                expand_expressions(cx, &[*variant], |_, _, _| true)
                     .with_context(|| format!("failed to expand expression `{}`", variant))?
-                    .remove(0),
+                    .remove(0)
+                    .into_iter()
+                    .map(|(_, new)| new),
             );
         }
 
@@ -93,6 +111,102 @@ impl<'a, 'b> Query<'a> for CompileEnum<'b> {
         Ok(e)
     }
 }
+
+/// A query which compiles a property.
+struct CompileProperty<'a> {
+    /// Name of the property to compile
+    name: &'a str,
+    /// Which enum this property is defined
+    /// for (used to avoid issues with
+    /// duplicate property names)
+    on: &'a str,
+}
+
+impl<'a, 'b> Query<'b> for CompileProperty<'a> {
+    type Output = Property<'b>;
+
+    fn execute(&self, cx: &Context<'b>) -> anyhow::Result<Self::Output> {
+        let model = cx
+            .find_property_model(self.name, self.on)
+            .with_context(|| format!("no property matched the name `{}`", self.name))?;
+
+        let (on, mapping, name, typ) = match model {
+            Model::Property {
+                on,
+                mapping,
+                name,
+                typ,
+            } => (on, mapping, name, typ),
+            _ => unreachable!(),
+        };
+
+        let mapping = mapping
+            .iter()
+            .flat_map(|(keys, value)| {
+                keys.iter().copied().zip(std::iter::repeat_with(move || {
+                    Value::from_ron(value.clone(), typ.clone()).unwrap()
+                }))
+            })
+            .collect::<BTreeMap<_, _>>();
+
+        let on_enum =
+            Rc::new(cx.query(CompileEnum { name: *on }).with_context(|| {
+                format!("failed to compile `on: {}` for property {}", on, name)
+            })?);
+
+        // Expand expressions
+        let mut actual_mapping = BTreeMap::new();
+        for (key, value) in &mapping {
+            let expressions = if let Value::Custom(x) = value {
+                vec![*key, x.as_str()]
+            } else {
+                vec![*key]
+            };
+
+            let filter: Box<dyn Fn(&str) -> bool> = if let Type::Custom(enum_name) = typ {
+                let e = cx.query(CompileEnum { name: enum_name })?;
+                Box::new(move |variant| e.variants.contains(&Cow::Borrowed(variant)))
+            } else {
+                Box::new(|_| true)
+            };
+
+            let on_enum = Rc::clone(&on_enum);
+            let filter2 = move |variant: &str| on_enum.variants.contains(&Cow::Borrowed(variant));
+
+            let expanded = expand_expressions(cx, &expressions, |_, i, variant| {
+                if i == 0 {
+                    filter2(variant)
+                } else {
+                    filter(variant)
+                }
+            })?;
+
+            let new_pairs = expanded.into_iter().map(|mut vec| {
+                let (original_expression, key) = vec.remove(0);
+                let value = if let Type::Custom(_) = typ {
+                    Value::Custom(vec.remove(0).1.to_mut().clone())
+                } else {
+                    mapping[original_expression].clone()
+                };
+                (key, value)
+            });
+
+            actual_mapping.extend(new_pairs);
+        }
+
+        Ok(Property {
+            on,
+            name,
+            typ: typ.clone(),
+            mapping: actual_mapping
+                .into_iter()
+                .map(|(mut key, value)| (Cow::from(key.to_mut().clone()), value))
+                .collect(),
+        })
+    }
+}
+
+type ExpandResult<'a> = Vec<(&'a str, Cow<'a, str>)>;
 
 /// Expands one or more associated expressions in a data file.
 ///
@@ -126,8 +240,8 @@ impl<'a, 'b> Query<'a> for CompileEnum<'b> {
 fn expand_expressions<'a>(
     cx: &Context<'a>,
     expressions: &[&'a str],
-    mut filter: impl FnMut(&Context<'a>, &str) -> bool,
-) -> anyhow::Result<Vec<Vec<Cow<'a, str>>>> {
+    mut filter: impl FnMut(&Context<'a>, usize, &str) -> bool,
+) -> anyhow::Result<Vec<ExpandResult<'a>>> {
     // Determine the locations of expansion clauses in the expressions.
     // This is currently handled using regexes, which is unlikely to be optimal.
     static EXPR_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new("\\$\\{[^}]+}").unwrap());
@@ -148,7 +262,10 @@ fn expand_expressions<'a>(
         while let Some(m) = EXPR_REGEX.find(&expression[offset..]) {
             let location = MatchLocation {
                 expr: i,
-                range: m.range(),
+                range: Range {
+                    start: m.start() + offset,
+                    end: m.end() + offset,
+                },
             };
             matches.push(location);
             offset += m.end();
@@ -164,10 +281,11 @@ fn expand_expressions<'a>(
     }
 
     // Perform expansion.
-    let mut results: Vec<Vec<Cow<'a, str>>> = expressions
+    let mut results: Vec<Vec<(&'a str, Cow<'a, str>)>> = vec![expressions
         .iter()
-        .map(|expr| vec![(*expr).into()])
-        .collect();
+        .copied()
+        .zip(expressions.iter().copied().map(Cow::from))
+        .collect()];
 
     for (variable, _) in variables {
         // Determine the variants of the enum being expanded.
@@ -178,24 +296,36 @@ fn expand_expressions<'a>(
 
         // Expand the pattern in `results`
         // to include each variant.
-        let replace_pattern = format!("${{{}}}", variable);
-        for variant in variants {
-            results = results
-                .into_iter()
-                .map(|result| {
+        let replace_pattern = Rc::new(format!("${{{}}}", variable));
+        results = results
+            .into_iter()
+            .flat_map(|mut result| {
+                let replace_pattern = Rc::clone(&replace_pattern);
+                variants.iter().map(move |variant| {
                     result
-                        .into_iter()
-                        .map(|mut result| result.to_mut().replace(&replace_pattern, variant))
-                        .map(Cow::from)
+                        .iter_mut()
+                        .map(|(original, result)| {
+                            (
+                                *original,
+                                result
+                                    .to_mut()
+                                    .clone()
+                                    .replace(replace_pattern.as_str(), variant)
+                                    .into(),
+                            )
+                        })
                         .collect()
                 })
-                .collect();
-        }
+            })
+            .collect();
     }
 
-    for results in &mut results {
-        results.retain(|result| filter(cx, &result));
-    }
+    results.retain(|result_set| {
+        result_set
+            .iter()
+            .enumerate()
+            .all(|(i, (_, res))| filter(cx, i, res))
+    });
 
     Ok(results)
 }
@@ -236,6 +366,26 @@ pub fn from_slice(files: &[DataFile]) -> anyhow::Result<Data> {
                 })
                 .enums
                 .insert(e.name, e);
+        } else if let Model::Property { name, on, .. } = model {
+            let p = cx
+                .query(CompileProperty {
+                    name: *name,
+                    on: *on,
+                })
+                .with_context(|| {
+                    format!(
+                        "failed to compile property `{}` defined in `{}`",
+                        name, file_name
+                    )
+                })?;
+            data.files
+                .entry(*file_name)
+                .or_insert_with(|| FileData {
+                    file_name: *file_name,
+                    ..Default::default()
+                })
+                .properties
+                .push(p);
         }
     }
 
@@ -272,9 +422,7 @@ pub struct FileData<'a> {
     /// Mapping from enum names => enum
     pub enums: BTreeMap<&'a str, Enum<'a>>,
     /// The properties defined in this file
-    ///
-    /// Mapping from property names => property
-    pub properties: BTreeMap<&'a str, Property<'a>>,
+    pub properties: Vec<Property<'a>>,
 }
 
 #[derive(Debug, Default)]
@@ -292,7 +440,7 @@ pub struct Property<'a> {
     pub name: &'a str,
     pub typ: Type<'a>,
     /// Mapping from variant names => values
-    pub mapping: BTreeMap<&'a str, Value>,
+    pub mapping: BTreeMap<Cow<'a, str>, Value>,
 }
 
 #[derive(Clone, Debug)]
@@ -313,7 +461,7 @@ impl Value {
         Ok(match r {
             Ron::Number(n) => match typ {
                 Type::U32 => Value::U32(n.as_i64().unwrap() as u32),
-                Type::F64 => Value::F64(n.as_f64().unwrap()),
+                Type::F64 => Value::F64(n.as_f64().unwrap_or_else(|| n.as_i64().unwrap() as f64)),
                 t => anyhow::bail!("value {:?} is not a valid instance of type {:?}", t, r),
             },
             Ron::String(s) if typ == Type::String => Value::String(s),

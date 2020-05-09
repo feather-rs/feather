@@ -11,7 +11,6 @@ use std::str::FromStr;
 use syn::export::ToTokens;
 
 mod load;
-mod metadata;
 
 #[derive(Debug)]
 struct Blocks {
@@ -235,10 +234,8 @@ enum PropertyKind {
 
 #[derive(Debug, Default)]
 pub struct Output {
-    pub kind: String,
     pub block_fns: String,
     pub block_table: String,
-    pub metadata: String,
     pub block_table_serialized: Vec<u8>,
     pub vanilla_ids_serialized: Vec<u8>,
 }
@@ -249,7 +246,6 @@ pub fn generate() -> anyhow::Result<Output> {
 
     let mut output = Output::default();
 
-    output.kind.push_str(&generate_kind(&blocks).to_string());
     let table_src = generate_table(&blocks);
     output.block_table.push_str(&table_src.to_string());
     let block_fns_src = generate_block_fns(&blocks);
@@ -257,27 +253,8 @@ pub fn generate() -> anyhow::Result<Output> {
 
     output.block_table_serialized = serialize_block_table(&blocks);
     output.vanilla_ids_serialized = serialized_vanilla_ids(&blocks);
-    output.metadata = metadata::generate()?;
 
     Ok(output)
-}
-
-/// Generates the `BlockKind` enum.
-fn generate_kind(blocks: &Blocks) -> TokenStream {
-    let mut variants = vec![];
-
-    for block in &blocks.blocks {
-        let name = &block.name_camel_case;
-        variants.push(quote! { #name });
-    }
-
-    quote! {
-        #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ToPrimitive, FromPrimitive)]
-        #[repr(u16)]
-        pub enum BlockKind {
-            #(#variants,)*
-        }
-    }
 }
 
 /// Generates the `BlockTable` struct and its implementation.

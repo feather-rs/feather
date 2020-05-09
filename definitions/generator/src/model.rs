@@ -1,3 +1,4 @@
+use itertools::Either;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -32,6 +33,15 @@ pub enum Model<'a> {
 pub enum VecOrOne<T> {
     Vec(Vec<T>),
     One(T),
+}
+
+impl<T> VecOrOne<T> {
+    pub fn iter<'a>(&'a self) -> impl Iterator<Item = &T> + 'a {
+        match self {
+            VecOrOne::Vec(v) => Either::Left(v.iter()),
+            VecOrOne::One(v) => Either::Right(std::iter::once(v)),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

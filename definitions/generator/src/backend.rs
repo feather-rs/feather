@@ -1,4 +1,4 @@
-use crate::frontend::{Data, Enum, Value};
+use crate::frontend::{Data, Enum, Property, Value};
 use crate::model::Type;
 use anyhow::Context;
 use heck::CamelCase;
@@ -20,7 +20,7 @@ pub fn generate(target_dir: &str, data: &Data) -> anyhow::Result<()> {
 
     let mut module_names = HashSet::new();
 
-    for (file_name, data) in &data.files {
+    for (file_name, fdata) in &data.files {
         let path = format!("{}/{}.rs", target_dir, file_name);
         module_names.insert(file_name);
 
@@ -36,9 +36,15 @@ pub fn generate(target_dir: &str, data: &Data) -> anyhow::Result<()> {
             }
         };
 
-        let tokens = data.enums.values().map(generate_enum).collect::<Vec<_>>();
+        let tokens = fdata.enums.values().map(generate_enum).collect::<Vec<_>>();
+        let tokens2 = fdata
+            .properties
+            .iter()
+            .map(|prop| generate_property(data, prop))
+            .collect::<anyhow::Result<Vec<_>>>()
+            .with_context(|| format!("failed to generate properties in file `{}`", file_name))?;
 
-        let tokens = quote! { #(#tokens)* };
+        let tokens = quote! { #(#tokens)* #(#tokens2)* };
 
         file.write_all(tokens.to_string().as_bytes())
             .with_context(|| format!("failed to write bytes to `{}`", path))?;
@@ -66,11 +72,9 @@ pub fn generate(target_dir: &str, data: &Data) -> anyhow::Result<()> {
 
 fn generate_enum(e: &Enum) -> TokenStream {
     let def = generate_enum_body(e);
-    // let imp = generate_enum_functions(e);
 
     quote! {
         #def
-        // #imp
     }
 }
 
@@ -137,64 +141,64 @@ impl Value {
     }
 }
 
-/*
-fn generate_enum_functions(e: &Enum) -> TokenStream {
-    let name = ident(&e.name_camel_case);
+fn generate_property(data: &Data, property: &Property) -> anyhow::Result<TokenStream> {
+    let name = ident(property.on.to_camel_case());
 
-    let mut fns = vec![];
+    let property_name = ident(&property.name);
+    let property_type = &property.typ;
 
-    for property in e.properties.values() {
-        let property_name = ident(&property.name);
-        let property_type = &property.typ;
+    let e = data
+        .files
+        .values()
+        .filter_map(|models| models.enums.get(&property.on))
+        .next()
+        .ok_or_else(|| anyhow::anyhow!("no enum matched the name `{}`", property.on))?;
 
-        let exhaustive = property.mapping.len() == e.variants.len();
+    let exhaustive = property.mapping.len() == e.variants.len();
 
-        let mut match_arms = vec![];
-        for (variant, value) in &property.mapping {
-            let variant = ident(variant.to_camel_case());
-            let value_tokens = value.tokens(&property.typ);
+    let mut match_arms = vec![];
+    for (variant, value) in &property.mapping {
+        let variant = ident(variant.to_camel_case());
+        let value_tokens = value.tokens(&property.typ);
 
-            let value = if exhaustive {
-                quote! { #value_tokens }
-            } else {
-                quote! { Some(#value_tokens) }
-            };
-
-            match_arms.push(quote! {
-                #name::#variant => #value,
-            });
-        }
-
-        if !exhaustive {
-            match_arms.push(quote! {
-                _ => None,
-            });
-        }
-
-        let ret = if exhaustive {
-            quote! { #property_type }
+        let value = if exhaustive {
+            quote! { #value_tokens }
         } else {
-            quote! { Option<#property_type> }
+            quote! { Some(#value_tokens) }
         };
 
-        let f = quote! {
-            pub fn #property_name(self) -> #ret {
-                match self {
-                    #(#match_arms)*
-                }
-            }
-        };
-        fns.push(f);
+        match_arms.push(quote! {
+            crate::#name::#variant => #value,
+        });
     }
 
-    let tokens = quote! {
-        impl #name {
-            #(#fns)*
+    if !exhaustive {
+        match_arms.push(quote! {
+            _ => None,
+        });
+    }
+
+    let ret = if exhaustive {
+        quote! { #property_type }
+    } else {
+        quote! { Option<#property_type> }
+    };
+
+    let f = quote! {
+        pub fn #property_name(self) -> #ret {
+            match self {
+                #(#match_arms)*
+            }
         }
     };
-    tokens
+
+    let tokens = quote! {
+        impl crate::#name {
+            #f
+        }
+    };
+    Ok(tokens)
 }
-*/
 
 fn ident(s: impl AsRef<str>) -> Ident {
     Ident::new(s.as_ref(), Span::call_site())
