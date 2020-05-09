@@ -107,6 +107,15 @@ impl<'a> ToTokens for Type<'a> {
     }
 }
 
+impl<'a> Type<'a> {
+    pub fn to_tokens_no_static_lifetime(&self) -> TokenStream {
+        match self {
+            Type::String => quote! { &str },
+            typ => quote! { #typ },
+        }
+    }
+}
+
 impl Value {
     fn tokens(&self, typ: &Type) -> TokenStream {
         match self {
@@ -184,7 +193,7 @@ fn generate_property(data: &Data, property: &Property) -> anyhow::Result<TokenSt
         quote! { Option<#property_type> }
     };
 
-    let f = quote! {
+    let to_prop = quote! {
         pub fn #property_name(self) -> #ret {
             match self {
                 #(#match_arms)*
@@ -192,9 +201,38 @@ fn generate_property(data: &Data, property: &Property) -> anyhow::Result<TokenSt
         }
     };
 
+    let from_prop = if property.reverse {
+        // generate from_prop as well
+        let function_name = ident(format!("from_{}", property.name));
+        let property_type = property_type.to_tokens_no_static_lifetime();
+
+        let mut match_arms = vec![];
+
+        for (variant, value) in &property.mapping {
+            let variant = ident(variant.to_camel_case());
+            let value_tokens = value.tokens(&property.typ);
+
+            match_arms.push(quote! {
+                #value_tokens => Some(crate::#name::#variant)
+            });
+        }
+        match_arms.push(quote! { _ => None });
+
+        quote! {
+            pub fn #function_name(prop: #property_type) -> Option<#name> {
+                match prop {
+                    #(#match_arms,)*
+                }
+            }
+        }
+    } else {
+        quote! {}
+    };
+
     let tokens = quote! {
         impl crate::#name {
-            #f
+            #to_prop
+            #from_prop
         }
     };
     Ok(tokens)

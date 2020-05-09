@@ -73,24 +73,28 @@ fn generate_block<'a>(model: &'a BlockModel) -> anyhow::Result<ModelFile<'a>> {
 
     let display_name = block_property(
         "display_name",
+        true,
         model,
         |block| ron::Value::String(block.display_name.to_owned()),
         Type::String,
     );
     let diggable = block_property(
         "diggable",
+        false,
         model,
         |block| ron::Value::Bool(block.diggable),
         Type::Bool,
     );
     let hardness = block_property(
         "hardness",
+        false,
         model,
         |block| ron::Value::Number(Number::new(block.hardness.unwrap_or_default())),
         Type::F64,
     );
     let opaque = block_property(
         "opaque",
+        false,
         model,
         |block| ron::Value::Bool(!block.transparent),
         Type::Bool,
@@ -113,6 +117,7 @@ fn generate_block<'a>(model: &'a BlockModel) -> anyhow::Result<ModelFile<'a>> {
 
 fn block_property<'a>(
     name: &'a str,
+    reverse: bool,
     model: &BlockModel<'a>,
     mut accessor: impl FnMut(&Block) -> ron::Value,
     typ: Type<'a>,
@@ -121,6 +126,7 @@ fn block_property<'a>(
         on: "block_kind",
         name,
         typ,
+        reverse,
         mapping: model
             .0
             .iter()
@@ -149,12 +155,14 @@ fn generate_item<'a>(model: &'a ItemModel) -> anyhow::Result<ModelFile<'a>> {
 
     let display_name = item_property(
         "display_name",
+        false,
         &model,
         |item| ron::Value::String(item.display_name.to_string()),
         Type::String,
     );
     let stack_size = item_property(
         "stack_size",
+        false,
         &model,
         |item| ron::Value::Number(ron::value::Number::new(item.stack_size as f64)),
         Type::U32,
@@ -162,9 +170,18 @@ fn generate_item<'a>(model: &'a ItemModel) -> anyhow::Result<ModelFile<'a>> {
 
     let vanilla_id = item_property(
         "vanilla_id",
+        true,
         &model,
         |item| ron::Value::Number(ron::value::Number::new(item.id as f64)),
         Type::U32,
+    );
+
+    let identifier = item_property(
+        "identifier",
+        true,
+        &model,
+        |item| ron::Value::String(format!("minecraft:{}", item.name)),
+        Type::String,
     );
 
     Ok(ModelFile::Multiple(vec![
@@ -172,11 +189,13 @@ fn generate_item<'a>(model: &'a ItemModel) -> anyhow::Result<ModelFile<'a>> {
         display_name,
         stack_size,
         vanilla_id,
+        identifier,
     ]))
 }
 
 fn item_property<'a>(
     name: &'a str,
+    reverse: bool,
     model: &'a ItemModel,
     mut accessor: impl FnMut(&Item) -> ron::Value,
     typ: Type<'a>,
@@ -185,6 +204,7 @@ fn item_property<'a>(
         on: "item",
         name,
         typ,
+        reverse,
         mapping: model
             .0
             .iter()

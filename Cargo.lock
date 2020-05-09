@@ -788,6 +788,7 @@ dependencies = [
  "anyhow",
  "feather-data",
  "heck",
+ "indexmap",
  "itertools 0.9.0",
  "once_cell",
  "proc-macro2 1.0.10",
@@ -851,8 +852,7 @@ dependencies = [
 name = "feather-items"
 version = "0.6.0"
 dependencies = [
- "num-derive",
- "num-traits",
+ "feather-definitions",
 ]
 
 [[package]]

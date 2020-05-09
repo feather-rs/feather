@@ -1,6 +1,6 @@
+use indexmap::map::IndexMap;
 use itertools::Either;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 
 /// Loads a model file.
 pub fn from_str(s: &str) -> anyhow::Result<ModelFile> {
@@ -22,13 +22,15 @@ pub enum Model<'a> {
     Property {
         on: &'a str,
         name: &'a str,
+        #[serde(default)]
+        reverse: bool,
         #[serde(rename = "type")]
         typ: Type<'a>,
-        mapping: BTreeMap<VecOrOne<&'a str>, ron::Value>,
+        mapping: IndexMap<VecOrOne<&'a str>, ron::Value>,
     },
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Hash, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum VecOrOne<T> {
     Vec(Vec<T>),

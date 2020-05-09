@@ -130,13 +130,14 @@ impl<'a, 'b> Query<'b> for CompileProperty<'a> {
             .find_property_model(self.name, self.on)
             .with_context(|| format!("no property matched the name `{}`", self.name))?;
 
-        let (on, mapping, name, typ) = match model {
+        let (on, mapping, name, typ, reverse) = match model {
             Model::Property {
                 on,
                 mapping,
                 name,
                 typ,
-            } => (on, mapping, name, typ),
+                reverse,
+            } => (on, mapping, name, typ, *reverse),
             _ => unreachable!(),
         };
 
@@ -197,6 +198,7 @@ impl<'a, 'b> Query<'b> for CompileProperty<'a> {
         Ok(Property {
             on,
             name,
+            reverse,
             typ: typ.clone(),
             mapping: actual_mapping
                 .into_iter()
@@ -439,6 +441,7 @@ pub struct Property<'a> {
     pub on: &'a str,
     pub name: &'a str,
     pub typ: Type<'a>,
+    pub reverse: bool,
     /// Mapping from variant names => values
     pub mapping: BTreeMap<Cow<'a, str>, Value>,
 }

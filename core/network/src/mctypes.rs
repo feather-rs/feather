@@ -118,7 +118,7 @@ impl McTypeWrite for BytesMut {
         self.push_bool(slot.is_some());
 
         if let Some(slot) = slot.as_ref() {
-            self.push_var_int(slot.ty.native_protocol_id());
+            self.push_var_int(slot.ty.vanilla_id() as i32);
             self.push_i8(slot.amount as i8);
             self.push_i8(0x00); // TAG_End - TODO item NBT support
         }
@@ -212,7 +212,7 @@ impl<B: Buf + Read> McTypeRead for B {
         }
 
         let id = self.try_get_var_int()?;
-        let ty = Item::from_native_protocol_id(id).ok_or(TryGetError::InvalidValue(id))?;
+        let ty = Item::from_vanilla_id(id as u32).ok_or(TryGetError::InvalidValue(id))?;
         let amount = self.try_get_i8()? as u8;
 
         // TODO NBT support
