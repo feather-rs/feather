@@ -22,6 +22,8 @@ pub fn build_executor() -> Executor {
         .with(player::handle_player_block_placement)
         .with(player::handle_player_use_item)
         .with(player::handle_player_digging)
+        .with(player::advance_dig_progress)
+        .with(player::broadcast_block_break_animation)
         .with(player::handle_chat)
         .with(weather::update_weather)
         .with(entity::item::item_collect)

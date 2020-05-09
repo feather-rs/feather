@@ -50,4 +50,47 @@ Multiple([
             "golden": 12,
         }
     ),
+    Enum(
+        name: "harvest_tool",
+        variants: [
+            "${tool_material}_${tool}"
+        ]
+    ),
+    Property(
+        name: "item",
+        reverse: true,
+        on: "harvest_tool",
+        type: Custom("item"),
+        mapping: {
+            "${tool_material}_${tool}": "${tool_material}_${tool}",
+        }
+    ),
+    Property(
+        name: "tool",
+        on: "harvest_tool",
+        type: Custom("tool"),
+        mapping: {
+            "${tool_material}_${tool}": "${tool}",
+        }
+    ),
+    Property(
+        name: "material",
+        on: "harvest_tool",
+        type: Custom("tool_material"),
+        mapping: {
+            "${tool_material}_${tool}": "${tool_material}",
+        }
+    ),
+    Property(
+        name: "harvest_tool",
+        on: "block_kind",
+        type: Custom("harvest_tool"),
+        mapping: {
+            [
+                "stone",
+                "cobblestone",
+            ]: "wooden_pickaxe",
+            ["dirt", "grass_block", "sand"]: "wooden_shovel",
+        }
+    )
 ])

@@ -13,10 +13,10 @@ use feather_core::network::packets::{PlayerDigging, PlayerDiggingStatus};
 use feather_core::util::{BlockPosition, Position};
 use feather_server_types::{
     BlockUpdateCause, CanBreak, CanInstaBreak, EntitySpawnEvent, Game, HeldItem,
-    InventoryUpdateEvent, ItemDropEvent, PacketBuffers, Velocity, PLAYER_EYE_HEIGHT,
+    InventoryUpdateEvent, ItemDropEvent, PacketBuffers, Velocity, PLAYER_EYE_HEIGHT, TPS,
 };
 use feather_server_util::{charge_from_ticks_held, compute_projectile_velocity};
-use fecs::{Entity, World};
+use fecs::{Entity, IntoQuery, Read, World, Write};
 use smallvec::smallvec;
 use std::sync::Arc;
 
@@ -28,7 +28,12 @@ use std::sync::Arc;
 #[derive(Copy, Clone, Debug)]
 pub struct Digging {
     /// The position of the block being dug
-    pos: BlockPosition,
+    pub pos: BlockPosition,
+    /// The total time (in seconds) of digging needed
+    pub time: f64,
+    /// Progress made, in seconds (better tools increase this
+    /// value faster)
+    pub progress: f64,
 }
 
 /// System responsible for polling for PlayerDigging
@@ -95,20 +100,48 @@ fn handle_started_digging(
         return;
     }
 
-    // If the player can insta-break, then they can already break the block.
-    if world.has::<CanInstaBreak>(player) {
+    // If the player can insta-break, or the block has hardness 0, then they can already break the block.
+    if world.has::<CanInstaBreak>(player)
+        || game
+            .block_at(packet.location)
+            .unwrap_or_default()
+            .kind()
+            .hardness()
+            < 0.01
+    {
         dig(game, world, player, packet.location);
     } else {
         // Insert new `Digging`.
+        let block = game.block_at(packet.location).unwrap_or_default();
+        let hardness = block.kind().hardness();
+
+        // Compute the total time needed to dig.
+        let multiplier = 1.5; // todo
+        let time = hardness * multiplier;
+
         world
             .add(
                 player,
                 Digging {
                     pos: packet.location,
+                    time,
+                    progress: 0.0,
                 },
             )
             .unwrap();
     }
+}
+
+/// System to advance the digging progress.
+#[fecs::system]
+pub fn advance_dig_progress(world: &mut World) {
+    <(Write<Digging>, Read<Inventory>)>::query().par_for_each_mut(
+        world.inner_mut(),
+        |(mut digging, _inventory)| {
+            // TODO: correctly handle tools
+            digging.progress += 1.0 / TPS as f64;
+        },
+    );
 }
 
 fn handle_cancelled_digging(world: &mut World, player: Entity) {
@@ -128,6 +161,8 @@ fn handle_finished_digging(
                 // Can insta-break - no `StartedDigging` needed
                 Digging {
                     pos: packet.location,
+                    time: 0.0,
+                    progress: 0.0,
                 }
             } else {
                 // Player can't insta-break and has

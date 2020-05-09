@@ -1,8 +1,9 @@
 //! Broadcasting of block updates, i.e. when a block is changed to another.
 
+use crate::packet_handlers::Digging;
 use feather_core::network::packets::{BlockBreakAnimation, BlockChange, Effect};
 use feather_server_types::{BlockUpdateCause, BlockUpdateEvent, Game, NetworkId};
-use fecs::World;
+use fecs::{IntoQuery, Read, World};
 
 /// System for broadcasting block update
 /// events to all clients.
@@ -35,21 +36,19 @@ pub fn on_block_break_broadcast_effect(
     }
 }
 
-/// Sends `BlockBreakAnimation` when a block is broking.
-#[fecs::event_handler]
-pub fn on_block_break_broadcast_animation(
-    event: &BlockUpdateEvent,
-    game: &mut Game,
-    world: &mut World,
-) {
-    if event.new.is_air() && !event.old.is_air() {
-        if let BlockUpdateCause::Entity(entity) = event.cause {
+/// Sends `BlockBreakAnimation` while a block is being dug.
+#[fecs::system]
+pub fn broadcast_block_break_animation(game: &mut Game, world: &mut World) {
+    <(Read<Digging>, Read<NetworkId>)>::query().par_entities_for_each(
+        world.inner(),
+        |(entity, (digging, entity_id))| {
+            let destroy_stage = ((digging.progress / digging.time) * 9.0).round().min(9.0) as i8;
             let packet = BlockBreakAnimation {
-                entity_id: world.get::<NetworkId>(entity).0,
-                location: event.pos,
-                destroy_stage: 10, // removes the block
+                entity_id: entity_id.0,
+                location: digging.pos,
+                destroy_stage,
             };
-            game.broadcast_chunk_update(world, packet, event.pos.chunk(), None);
-        }
-    }
+            game.broadcast_entity_update(world, packet, entity, None);
+        },
+    );
 }

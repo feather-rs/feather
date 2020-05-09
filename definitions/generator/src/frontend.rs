@@ -95,17 +95,16 @@ impl<'a, 'b> Query<'a> for CompileEnum<'b> {
             actual_variants.extend(
                 expand_expressions(cx, &[*variant], |_, _, _| true)
                     .with_context(|| format!("failed to expand expression `{}`", variant))?
-                    .remove(0)
                     .into_iter()
-                    .map(|(_, new)| new),
+                    .map(|mut vec| vec.remove(0).1),
             );
         }
 
         let e = Enum {
             name,
             name_camel_case: self.name.to_camel_case(),
+            variants_camel_case: actual_variants.iter().map(|s| s.to_camel_case()).collect(),
             variants: actual_variants,
-            variants_camel_case: variants.iter().map(|s| s.to_camel_case()).collect(),
         };
 
         Ok(e)

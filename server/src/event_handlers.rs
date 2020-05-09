@@ -20,7 +20,6 @@ macro_rules! event_handlers {
 pub fn build_event_handlers() -> EventHandlers {
     event_handlers! {
         on_block_update_notify_adjacent,
-        on_block_break_broadcast_animation,
         on_block_break_broadcast_effect,
         on_block_update_broadcast,
         on_block_update_notify_lighting_worker,

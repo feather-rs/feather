@@ -10,7 +10,7 @@ mod use_item;
 
 pub use animation::handle_animation;
 pub use chat::handle_chat;
-pub use digging::handle_player_digging;
+pub use digging::*;
 use fecs::{Entity, World};
 pub use inventory::{handle_creative_inventory_action, handle_held_item_change};
 pub use movement::handle_movement_packets;
