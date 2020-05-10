@@ -78,5 +78,9 @@ pub fn build_event_handlers() -> EventHandlers {
         release_chunk_request,
 
         hold_chunk_request,
+
+        on_finish_digging_remove_animation,
+
+        on_start_digging_init_stage,
     }
 }

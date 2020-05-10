@@ -50,47 +50,28 @@ Multiple([
             "golden": 12,
         }
     ),
-    Enum(
-        name: "harvest_tool",
-        variants: [
-            "${tool_material}_${tool}"
-        ]
-    ),
+    // Defines the "best tool" to mine a block.
     Property(
-        name: "item",
-        reverse: true,
-        on: "harvest_tool",
-        type: Custom("item"),
-        mapping: {
-            "${tool_material}_${tool}": "${tool_material}_${tool}",
-        }
-    ),
-    Property(
-        name: "tool",
-        on: "harvest_tool",
+        on: "block_kind",
+        name: "best_tool",
         type: Custom("tool"),
         mapping: {
-            "${tool_material}_${tool}": "${tool}",
+            // TODO
+            ["dirt", "grass_block", "sand", "red_sand"]: "shovel",
+            ["stone", "cobblestone", "sandstone"]: "pickaxe",
         }
     ),
+    // Defines whether the best tool is required
+    // for the block to be harvested. If this is 
+    // true, and a player is not holding
+    // the needed tool, then progress is slowed
+    // and the block yields no drops.
     Property(
-        name: "material",
-        on: "harvest_tool",
-        type: Custom("tool_material"),
-        mapping: {
-            "${tool_material}_${tool}": "${tool_material}",
-        }
-    ),
-    Property(
-        name: "harvest_tool",
         on: "block_kind",
-        type: Custom("harvest_tool"),
+        name: "best_tool_required",
+        type: bool,
         mapping: {
-            [
-                "stone",
-                "cobblestone",
-            ]: "wooden_pickaxe",
-            ["dirt", "grass_block", "sand"]: "wooden_shovel",
+            ["cobblestone", "stone", "sandstone"]: true,
         }
-    )
+    ),
 ])

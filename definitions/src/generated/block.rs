@@ -2413,6 +2413,7 @@ impl crate::BlockKind {
             crate::BlockKind::YellowWool => true,
             crate::BlockKind::ZombieHead => true,
             crate::BlockKind::ZombieWallHead => true,
+            _ => false,
         }
     }
 }
@@ -3621,6 +3622,7 @@ impl crate::BlockKind {
             crate::BlockKind::YellowWool => true,
             crate::BlockKind::ZombieHead => false,
             crate::BlockKind::ZombieWallHead => false,
+            _ => false,
         }
     }
 }

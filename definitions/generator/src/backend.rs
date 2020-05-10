@@ -163,7 +163,11 @@ fn generate_property(data: &Data, property: &Property) -> anyhow::Result<TokenSt
         .next()
         .ok_or_else(|| anyhow::anyhow!("no enum matched the name `{}`", property.on))?;
 
-    let exhaustive = property.mapping.len() == e.variants.len();
+    let mut exhaustive = property.mapping.len() == e.variants.len();
+
+    if let Type::Bool = property.typ {
+        exhaustive = true;
+    }
 
     let mut match_arms = vec![];
     for (variant, value) in &property.mapping {
@@ -185,6 +189,10 @@ fn generate_property(data: &Data, property: &Property) -> anyhow::Result<TokenSt
         match_arms.push(quote! {
             _ => None,
         });
+    }
+
+    if let Type::Bool = property.typ {
+        match_arms.push(quote! { _ => false, });
     }
 
     let ret = if exhaustive {

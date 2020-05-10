@@ -69,7 +69,7 @@ fn handle_digging(game: &mut Game, world: &mut World, player: Entity, packet: Pl
 
     match packet.status {
         PlayerDiggingStatus::StartedDigging => handle_started_digging(game, world, player, packet),
-        PlayerDiggingStatus::CancelledDigging => handle_cancelled_digging(world, player),
+        PlayerDiggingStatus::CancelledDigging => handle_cancelled_digging(game, world, player),
         PlayerDiggingStatus::FinishedDigging => {
             handle_finished_digging(game, world, player, packet)
         }
@@ -78,6 +78,24 @@ fn handle_digging(game: &mut Game, world: &mut World, player: Entity, packet: Pl
 }
 
 const MAX_DIG_RADIUS_SQUARED: f64 = 36.0;
+
+/// Event triggered when the `Digging` component is added to a player.
+///
+/// Not triggered in the case of insta-breaks.
+#[derive(Copy, Clone, Debug)]
+pub struct StartDiggingEvent {
+    pub player: Entity,
+}
+
+/// Event triggered when a player finished digging (the `Digging` component
+/// is removed). This event is triggered event if digging was canceled.
+#[derive(Copy, Clone, Debug)]
+pub struct FinishDiggingEvent {
+    /// The player who finished digging
+    pub player: Entity,
+    /// The `Digging` component which was removed
+    pub digging: Digging,
+}
 
 fn handle_started_digging(
     game: &mut Game,
@@ -115,37 +133,76 @@ fn handle_started_digging(
         let block = game.block_at(packet.location).unwrap_or_default();
         let hardness = block.kind().hardness();
 
-        // Compute the total time needed to dig.
-        let multiplier = 1.5; // todo
-        let time = hardness * multiplier;
-
         world
             .add(
                 player,
                 Digging {
                     pos: packet.location,
-                    time,
+                    time: hardness,
                     progress: 0.0,
                 },
             )
             .unwrap();
+        game.handle(world, StartDiggingEvent { player });
     }
 }
 
 /// System to advance the digging progress.
 #[fecs::system]
-pub fn advance_dig_progress(world: &mut World) {
-    <(Write<Digging>, Read<Inventory>)>::query().par_for_each_mut(
+pub fn advance_dig_progress(game: &mut Game, world: &mut World) {
+    <(Write<Digging>, Read<Inventory>, Read<HeldItem>)>::query().par_for_each_mut(
         world.inner_mut(),
-        |(mut digging, _inventory)| {
-            // TODO: correctly handle tools
-            digging.progress += 1.0 / TPS as f64;
+        |(mut digging, inventory, held_item)| {
+            // Advance progress depends on tool and the
+            // block kind: https://minecraft.gamepedia.com/Breaking#Speed
+            // * If the block requires some tool to harvest (i.e. it requires a tool to get the item after it breaks),
+            // then if that tool is not held, progress is hindered by a factor of 5. Otherwise, the hindrance
+            // is only a factor of 1.5.
+            // * If the player's tool helps dig the block (e.g. shovel => dirt, pickaxe => cobblestone),
+            // then a constant mutliplier is applied to the dig speed depending on the tool's material.
+            // This is retrieved through the `dig_multiplier` property on `ToolMaterial`.
+            let block = game.block_at(digging.pos).unwrap_or_default();
+            let best_tool = block.kind().best_tool();
+            let best_tool_required = block.kind().best_tool_required();
+
+            let item_in_main_hand: Option<ItemStack> =
+                inventory.item_at(SLOT_HOTBAR_OFFSET + held_item.0).copied();
+            let held_tool = item_in_main_hand.map(|item| item.ty.tool()).flatten();
+
+            let multiplier = if best_tool == held_tool && best_tool.is_some() {
+                let dig_multiplier = item_in_main_hand
+                    .unwrap()
+                    .ty
+                    .tool_material()
+                    .map(|mat| mat.dig_multiplier())
+                    .unwrap_or_else(|| {
+                        // Missing data in feather-definitions;
+                        // panic. (TODO: maybe this should just be a log message)
+                        panic!(
+                            "no tool material for item {:?}, even though it has a tool",
+                            item_in_main_hand
+                        )
+                    });
+
+                (1.0 / 1.5) * dig_multiplier
+            } else if best_tool_required {
+                1.0 / 5.0
+            } else {
+                1.0 / 1.5
+            };
+
+            digging.progress += (1.0 / TPS as f64) * multiplier;
         },
     );
 }
 
-fn handle_cancelled_digging(world: &mut World, player: Entity) {
+fn handle_cancelled_digging(game: &mut Game, world: &mut World, player: Entity) {
+    let digging = world.try_get::<Digging>(player).map(|d| *d);
     let _ = world.remove::<Digging>(player);
+
+    if let Some(digging) = digging {
+        game.handle(world, FinishDiggingEvent { player, digging });
+    }
 }
 
 fn handle_finished_digging(
@@ -181,6 +238,9 @@ fn handle_finished_digging(
 
     // Attempt to break the block
     dig(game, world, player, digging.pos);
+
+    // Finished
+    game.handle(world, FinishDiggingEvent { player, digging });
 }
 
 fn dig(game: &mut Game, world: &mut World, player: Entity, pos: BlockPosition) {
