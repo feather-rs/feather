@@ -1064,6 +1064,7 @@ name = "feather-server-player"
 version = "0.6.0"
 dependencies = [
  "ahash",
+ "anyhow",
  "feather-core",
  "feather-server-entity",
  "feather-server-network",
@@ -1076,6 +1077,7 @@ dependencies = [
  "nalgebra-glm",
  "parking_lot 0.10.2",
  "smallvec 1.4.0",
+ "thiserror",
 ]
 
 [[package]]

@@ -23,7 +23,7 @@ pub fn on_inventory_update_broadcast_equipment_update(
         // Skip this slot if it is not an equipment update.
         if let Ok(equipment) = is_equipment_update(held_item.0, *slot) {
             let slot = equipment.slot_index(held_item.0);
-            let item = inv.item_at(slot).cloned();
+            let item = inv.item_at(slot).expect("slot index out of bounds");
 
             let packet = EntityEquipment {
                 entity_id: world.get::<NetworkId>(event.player).0,
@@ -65,7 +65,7 @@ pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World)
     for equipment in equipments.iter() {
         let item = {
             let slot = equipment.slot_index(held_item.0);
-            match inventory.item_at(slot).copied() {
+            match inventory.item_at(slot).unwrap() {
                 Some(item) => item,
                 None => continue, // don't send equipment if it doesn't exist
             }
@@ -93,7 +93,7 @@ pub fn on_inventory_update_send_set_slot(event: &InventoryUpdateEvent, world: &m
         let packet = SetSlot {
             window_id: 0,
             slot: *slot as i16,
-            slot_data: inv.item_at(*slot as usize).cloned(),
+            slot_data: inv.item_at(*slot as usize).unwrap(),
         };
 
         network.send(packet);

@@ -243,7 +243,7 @@ pub struct Inventory {
     /// The vector always contains an entry
     /// for each slot in the inventory, indexed
     /// by the slot IDs. When an entry is set to
-    /// `None`, there is no item in the slot.
+    /// `None`, there is no item in the slot. s
     items: Vec<Option<ItemStack>>,
     /// The type of this inventory.
     pub ty: InventoryType,
@@ -261,10 +261,11 @@ impl Inventory {
 
     /// Retrieves a reference to the item at the given slot index.
     ///
-    /// # Panics
-    /// Panics if the index is out of bounds.
-    pub fn item_at(&self, index: SlotIndex) -> Option<&ItemStack> {
-        self.items[index].as_ref()
+    /// This function returns a "double option": the first layer
+    /// is `None` if the index is out of bounds, and the second
+    /// is `None` if there is no item in the slot.
+    pub fn item_at(&self, index: SlotIndex) -> Option<Option<ItemStack>> {
+        self.items.get(index).copied()
     }
 
     pub fn item_at_mut(&mut self, index: SlotIndex) -> Option<&mut ItemStack> {
@@ -273,17 +274,26 @@ impl Inventory {
 
     /// Sets the item at the given slot index.
     pub fn set_item_at(&mut self, index: SlotIndex, item: ItemStack) {
+        self.try_set_item_at(index, item)
+            .expect("slot index out of bounds")
+    }
+
+    /// Tries to set the item at the given
+    /// index. Returns `None` if the slot
+    /// index is out of bouds.
+    pub fn try_set_item_at(&mut self, index: SlotIndex, item: ItemStack) -> Option<()> {
         if item.amount == 0 {
-            self.items[index] = None;
+            *self.items.get_mut(index)? = None;
         } else {
-            self.items[index] = Some(item);
+            *self.items.get_mut(index)? = Some(item);
         }
+        Some(())
     }
 
     /// Clears the item at the given slot index, returning
     /// the old item.
     pub fn clear_item_at(&mut self, index: SlotIndex) -> Option<ItemStack> {
-        self.items[index].take()
+        self.items.get_mut(index).map(|item| item.take()).flatten()
     }
 
     /// Attempts to insert the given item into a player
@@ -296,7 +306,7 @@ impl Inventory {
 
         // First, look for slots already having the type.
         for slot in COLLECT_SEARCH_ORDER.iter() {
-            if let Some(slot_item) = self.item_at(*slot).cloned() {
+            if let Some(slot_item) = self.item_at(*slot).expect("index out of bounds") {
                 if slot_item.ty == item.ty {
                     self.add_to_stack(&mut item, slot_item, *slot, &mut affected_slots);
 
@@ -308,7 +318,7 @@ impl Inventory {
         }
 
         for slot in COLLECT_SEARCH_ORDER.iter() {
-            let slot_item = self.item_at(*slot).cloned();
+            let slot_item = self.item_at(*slot).unwrap();
             if slot_item.is_none() {
                 let fake = ItemStack::new(item.ty, 0);
                 self.add_to_stack(&mut item, fake, *slot, &mut affected_slots);
@@ -368,13 +378,13 @@ mod tests {
 
         inv.set_item_at(0, ItemStack::new(Item::Air, 1));
 
-        let item = inv.item_at(0).unwrap();
+        let item = inv.item_at(0).unwrap().unwrap();
         assert_eq!(item.ty, Item::Air);
         assert_eq!(item.amount, 1);
 
         let item = inv.item_at_mut(0).unwrap();
         item.ty = Item::Sponge;
-        assert_eq!(inv.item_at(0).unwrap().ty, Item::Sponge);
+        assert_eq!(inv.item_at(0).unwrap().unwrap().ty, Item::Sponge);
 
         inv.clear_item_at(0);
         assert!(inv.item_at(0).is_none());
@@ -385,7 +395,7 @@ mod tests {
         let mut inv = Inventory::new(InventoryType::Player, 46);
         let item = ItemStack::new(Item::Cobblestone, 32);
         inv.collect_item(item.clone());
-        assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET).unwrap(), &item);
+        assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET).unwrap().unwrap(), item);
     }
 
     #[test]
@@ -399,7 +409,7 @@ mod tests {
 
         inv.collect_item(ItemStack::new(Item::Cobblestone, 16));
         for i in 0..46 {
-            assert_eq!(inv.item_at(i).unwrap(), &item);
+            assert_eq!(inv.item_at(i).unwrap().unwrap(), item);
         }
     }
 
@@ -410,10 +420,13 @@ mod tests {
         inv.set_item_at(31, item.clone());
 
         inv.collect_item(item.clone());
-        assert_eq!(inv.item_at(31).unwrap(), &ItemStack::new(item.ty, 64));
         assert_eq!(
-            inv.item_at(SLOT_HOTBAR_OFFSET).unwrap(),
-            &ItemStack::new(item.ty, 2)
+            inv.item_at(31).unwrap().unwrap(),
+            ItemStack::new(item.ty, 64)
+        );
+        assert_eq!(
+            inv.item_at(SLOT_HOTBAR_OFFSET).unwrap().unwrap(),
+            ItemStack::new(item.ty, 2)
         );
     }
 
@@ -424,7 +437,7 @@ mod tests {
         inv.set_item_at(SLOT_HOTBAR_OFFSET, item.clone());
 
         inv.collect_item(item.clone());
-        assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET).unwrap(), &item);
-        assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET + 1).unwrap(), &item);
+        assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET).unwrap().unwrap(), item);
+        assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET + 1).unwrap().unwrap(), item);
     }
 }

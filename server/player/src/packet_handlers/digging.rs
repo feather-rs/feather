@@ -166,7 +166,7 @@ pub fn advance_dig_progress(game: &mut Game, world: &mut World) {
             let best_tool_required = block.kind().best_tool_required();
 
             let item_in_main_hand: Option<ItemStack> =
-                inventory.item_at(SLOT_HOTBAR_OFFSET + held_item.0).copied();
+                inventory.item_at(SLOT_HOTBAR_OFFSET + held_item.0).unwrap();
             let held_tool = item_in_main_hand.map(|item| item.ty.tool()).flatten();
 
             let multiplier = if best_tool == held_tool && best_tool.is_some() {
@@ -273,8 +273,8 @@ fn handle_drop_item_stack(
     let slot = held_item + SLOT_HOTBAR_OFFSET;
 
     let stack = {
-        if let Some(item) = inventory.item_at(slot) {
-            *item
+        if let Some(item) = inventory.item_at(slot).unwrap() {
+            item
         } else {
             // Silently fail - no item stack to drop
             return;
@@ -420,24 +420,24 @@ fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
 fn find_arrow(inventory: &Inventory) -> Option<(SlotIndex, ItemStack)> {
     // Order of priority is: off-hand, hotbar (0 to 8), rest of inventory
 
-    if let Some(offhand) = inventory.item_at(SLOT_OFFHAND) {
+    if let Some(offhand) = inventory.item_at(SLOT_OFFHAND).unwrap() {
         if is_arrow_item(offhand.ty) {
-            return Some((SLOT_OFFHAND, *offhand));
+            return Some((SLOT_OFFHAND, offhand));
         }
     }
 
     for hotbar_slot in 0..9 {
-        if let Some(hotbar_stack) = inventory.item_at(SLOT_HOTBAR_OFFSET + hotbar_slot) {
+        if let Some(hotbar_stack) = inventory.item_at(SLOT_HOTBAR_OFFSET + hotbar_slot).unwrap() {
             if is_arrow_item(hotbar_stack.ty) {
-                return Some((SLOT_HOTBAR_OFFSET + hotbar_slot, *hotbar_stack));
+                return Some((SLOT_HOTBAR_OFFSET + hotbar_slot, hotbar_stack));
             }
         }
     }
 
     for inv_slot in 9..=35 {
-        if let Some(inv_stack) = inventory.item_at(inv_slot) {
+        if let Some(inv_stack) = inventory.item_at(inv_slot).unwrap() {
             if is_arrow_item(inv_stack.ty) {
-                return Some((inv_slot, *inv_stack));
+                return Some((inv_slot, inv_stack));
             }
         }
     }

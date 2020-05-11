@@ -17,6 +17,7 @@ pub fn build_executor() -> Executor {
         .with(physics::entity_physics)
         .with(player::handle_movement_packets)
         .with(player::handle_creative_inventory_action)
+        .with(player::handle_click_windows)
         .with(player::handle_held_item_change)
         .with(player::handle_animation)
         .with(player::handle_player_block_placement)

@@ -15,7 +15,7 @@ pub trait InventoryExt {
 impl InventoryExt for Inventory {
     fn item_in_main_hand(&self, entity: Entity, world: &World) -> Option<ItemStack> {
         let held_item = world.get::<HeldItem>(entity).0;
-        self.item_at(SLOT_HOTBAR_OFFSET + held_item).copied()
+        self.item_at(SLOT_HOTBAR_OFFSET + held_item).unwrap()
     }
 }
 
