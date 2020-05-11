@@ -4,7 +4,8 @@ use anyhow::Context;
 use heck::CamelCase;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
-use std::collections::{HashMap, HashSet};
+use std::collections::BTreeSet;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 use std::process::Command;
@@ -18,7 +19,7 @@ pub fn generate(target_dir: &str, data: &Data) -> anyhow::Result<()> {
 
     let mut open_files = HashMap::new();
 
-    let mut module_names = HashSet::new();
+    let mut module_names = BTreeSet::new();
 
     for (file_name, fdata) in &data.files {
         let path = format!("{}/{}.rs", target_dir, file_name);
