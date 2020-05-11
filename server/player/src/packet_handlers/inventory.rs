@@ -375,11 +375,24 @@ fn handle_single_click(
         }
     } else {
         // Pick up the item in the slot
-        let mut inv = world.get_mut::<Inventory>(player);
-        let _ = inv.clear_item_at(packet.slot as SlotIndex);
-        if let Some(item) = inv.item_at(packet.slot as SlotIndex).flatten() {
-            drop(inv);
-            world.add(player, PickedItem(item)).unwrap();
+        let picked_up = world
+            .get::<Inventory>(player)
+            .item_at(packet.slot as SlotIndex)
+            .flatten();
+        let mut count = picked_up.map(|item| item.amount).unwrap_or(0);
+        if button == MouseButton::Right {
+            count = (count + 1) / 2;
+        }
+        if let Some(item) = picked_up {
+            world
+                .add(player, PickedItem(ItemStack::new(item.ty, count)))
+                .unwrap();
+
+            let mut inv = world.get_mut::<Inventory>(player);
+            inv.set_item_at(
+                packet.slot as SlotIndex,
+                ItemStack::new(item.ty, item.amount - count),
+            )
         }
     }
 
