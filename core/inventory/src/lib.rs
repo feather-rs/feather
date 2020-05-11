@@ -4,8 +4,13 @@ use feather_items::{Item, ItemStack};
 use once_cell::sync::Lazy;
 use smallvec::{Array, SmallVec};
 use std::cmp::min;
+use thiserror::Error;
 
 pub type SlotIndex = usize;
+
+#[derive(Debug, Error)]
+#[error("slot index out of bounds")]
+pub struct IndexOutOfBounds;
 
 // Constants representing various standard inventory slot indices
 
@@ -264,8 +269,8 @@ impl Inventory {
     /// This function returns a "double option": the first layer
     /// is `None` if the index is out of bounds, and the second
     /// is `None` if there is no item in the slot.
-    pub fn item_at(&self, index: SlotIndex) -> Option<Option<ItemStack>> {
-        self.items.get(index).copied()
+    pub fn item_at(&self, index: SlotIndex) -> Result<Option<ItemStack>, IndexOutOfBounds> {
+        self.items.get(index).copied().ok_or(IndexOutOfBounds)
     }
 
     pub fn item_at_mut(&mut self, index: SlotIndex) -> Option<&mut ItemStack> {

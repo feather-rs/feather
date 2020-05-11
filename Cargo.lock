@@ -838,6 +838,7 @@ dependencies = [
  "feather-items",
  "once_cell",
  "smallvec 1.4.0",
+ "thiserror",
 ]
 
 [[package]]

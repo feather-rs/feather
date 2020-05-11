@@ -59,10 +59,10 @@ Multiple([
             // TODO
             ["dirt", "grass_block", "sand", "red_sand"]: "shovel",
             ["stone", "cobblestone", "sandstone"]: "pickaxe",
-        }
+        },
     ),
     // Defines whether the best tool is required
-    // for the block to be harvested. If this is 
+    // for the block to be harvested. If this is
     // true, and a player is not holding
     // the needed tool, then progress is slowed
     // and the block yields no drops.
@@ -72,6 +72,6 @@ Multiple([
         type: bool,
         mapping: {
             ["cobblestone", "stone", "sandstone"]: true,
-        }
+        },
     ),
 ])

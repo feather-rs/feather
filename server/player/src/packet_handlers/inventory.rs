@@ -308,12 +308,6 @@ fn handle_click_window(
     }
 }
 
-#[derive(Debug, Error)]
-enum HandleError {
-    #[error("slot index out of bounds")]
-    InvalidSlot,
-}
-
 /// Stores an item currently picked by
 /// a player's cursor.
 #[derive(Copy, Clone, Debug)]
@@ -336,9 +330,7 @@ fn handle_single_click(
         // the item in the slot are swapped.
 
         let inv = world.get::<Inventory>(player);
-        let current_item = inv
-            .item_at(packet.slot as SlotIndex)
-            .ok_or(HandleError::InvalidSlot)?;
+        let current_item = inv.item_at(packet.slot as SlotIndex)?;
 
         drop(inv);
         if let Some(current_item) = current_item.and_then(|item| {
@@ -377,8 +369,7 @@ fn handle_single_click(
         // Pick up the item in the slot
         let picked_up = world
             .get::<Inventory>(player)
-            .item_at(packet.slot as SlotIndex)
-            .flatten();
+            .item_at(packet.slot as SlotIndex)?;
         let mut count = picked_up.map(|item| item.amount).unwrap_or(0);
         if button == MouseButton::Right {
             count = (count + 1) / 2;
