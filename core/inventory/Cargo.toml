@@ -8,3 +8,4 @@ edition = "2018"
 feather-items = { path = "../items" }
 smallvec = "1.3"
 once_cell = "1.3"
+thiserror = "1.0"

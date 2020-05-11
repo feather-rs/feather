@@ -1,0 +1,9 @@
+[package]
+name = "feather-definitions"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+num-traits = "0.2"
+num-derive = "0.3"

@@ -107,11 +107,12 @@ pub fn on_chunk_send_join_player(event: &ChunkSendEvent, game: &Game, world: &mu
 pub fn on_player_join_send_join_game(event: &PlayerJoinEvent, game: &Game, world: &mut World) {
     let network = world.get::<Network>(event.player);
     let id = world.get::<NetworkId>(event.player);
+    let gamemode = *world.get::<Gamemode>(event.player);
 
     // TODO
     let packet = JoinGame {
         entity_id: id.0,
-        gamemode: Gamemode::Creative.id(),
+        gamemode: gamemode.id(),
         dimension: Dimension::Overwold.id(),
         difficulty: Difficulty::Medium.id(),
         max_players: game.config.server.max_players as u8,

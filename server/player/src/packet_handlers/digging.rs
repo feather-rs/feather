@@ -10,15 +10,31 @@ use feather_core::blocks::BlockId;
 use feather_core::inventory::{Inventory, SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerDigging, PlayerDiggingStatus};
-use feather_core::util::{Gamemode, Position};
+use feather_core::util::{BlockPosition, Position};
 use feather_server_types::{
-    BlockUpdateCause, EntitySpawnEvent, Game, HeldItem, InventoryUpdateEvent, ItemDropEvent,
-    PacketBuffers, Velocity, PLAYER_EYE_HEIGHT,
+    BlockUpdateCause, CanBreak, CanInstaBreak, EntitySpawnEvent, Game, HeldItem,
+    InventoryUpdateEvent, ItemDropEvent, PacketBuffers, Velocity, PLAYER_EYE_HEIGHT, TPS,
 };
 use feather_server_util::{charge_from_ticks_held, compute_projectile_velocity};
-use fecs::{Entity, World};
+use fecs::{Entity, IntoQuery, Read, World, Write};
 use smallvec::smallvec;
 use std::sync::Arc;
+
+/// Stores the "digging status" of a player.
+///
+/// If this component exists for an entity,
+/// then it is currently digging a block. The
+/// corresponding animation must be displayed.
+#[derive(Copy, Clone, Debug)]
+pub struct Digging {
+    /// The position of the block being dug
+    pub pos: BlockPosition,
+    /// The total time (in seconds) of digging needed
+    pub time: f64,
+    /// Progress made, in seconds (better tools increase this
+    /// value faster)
+    pub progress: f64,
+}
 
 /// System responsible for polling for PlayerDigging
 /// packets and writing the corresponding events.
@@ -43,44 +59,200 @@ pub fn handle_player_digging(
 }
 
 fn handle_digging(game: &mut Game, world: &mut World, player: Entity, packet: PlayerDigging) {
-    let gamemode = *world.get::<Gamemode>(player);
-    // Return early if needed
+    if !world.has::<CanBreak>(player) {
+        log::trace!(
+            "Player cannot break blocks but sent player digging status {:?}",
+            packet.status
+        );
+        return;
+    }
+
     match packet.status {
-        PlayerDiggingStatus::StartedDigging => {
-            if gamemode != Gamemode::Creative {
+        PlayerDiggingStatus::StartedDigging => handle_started_digging(game, world, player, packet),
+        PlayerDiggingStatus::CancelledDigging => handle_cancelled_digging(game, world, player),
+        PlayerDiggingStatus::FinishedDigging => {
+            handle_finished_digging(game, world, player, packet)
+        }
+        _ => unreachable!(),
+    }
+}
+
+const MAX_DIG_RADIUS_SQUARED: f64 = 36.0;
+
+/// Event triggered when the `Digging` component is added to a player.
+///
+/// Not triggered in the case of insta-breaks.
+#[derive(Copy, Clone, Debug)]
+pub struct StartDiggingEvent {
+    pub player: Entity,
+}
+
+/// Event triggered when a player finished digging (the `Digging` component
+/// is removed). This event is triggered event if digging was canceled.
+#[derive(Copy, Clone, Debug)]
+pub struct FinishDiggingEvent {
+    /// The player who finished digging
+    pub player: Entity,
+    /// The `Digging` component which was removed
+    pub digging: Digging,
+}
+
+fn handle_started_digging(
+    game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    packet: PlayerDigging,
+) {
+    // Delete old `Digging`, if it exists
+    let _ = world.remove::<Digging>(player);
+
+    // Check the distance isn't too far.
+    if packet
+        .location
+        .position()
+        .distance_squared_to(*world.get::<Position>(player))
+        > MAX_DIG_RADIUS_SQUARED
+    {
+        // Ignore the packet.
+        log::trace!("player {:?} tried to dig too far", player);
+        return;
+    }
+
+    // If the player can insta-break, or the block has hardness 0, then they can already break the block.
+    if world.has::<CanInstaBreak>(player)
+        || game
+            .block_at(packet.location)
+            .unwrap_or_default()
+            .kind()
+            .hardness()
+            < 0.01
+    {
+        dig(game, world, player, packet.location);
+    } else {
+        // Insert new `Digging`.
+        let block = game.block_at(packet.location).unwrap_or_default();
+        let hardness = block.kind().hardness();
+
+        world
+            .add(
+                player,
+                Digging {
+                    pos: packet.location,
+                    time: hardness,
+                    progress: 0.0,
+                },
+            )
+            .unwrap();
+        game.handle(world, StartDiggingEvent { player });
+    }
+}
+
+/// System to advance the digging progress.
+#[fecs::system]
+pub fn advance_dig_progress(game: &mut Game, world: &mut World) {
+    <(Write<Digging>, Read<Inventory>, Read<HeldItem>)>::query().par_for_each_mut(
+        world.inner_mut(),
+        |(mut digging, inventory, held_item)| {
+            // Advance progress depends on tool and the
+            // block kind: https://minecraft.gamepedia.com/Breaking#Speed
+            // * If the block requires some tool to harvest (i.e. it requires a tool to get the item after it breaks),
+            // then if that tool is not held, progress is hindered by a factor of 5. Otherwise, the hindrance
+            // is only a factor of 1.5.
+            // * If the player's tool helps dig the block (e.g. shovel => dirt, pickaxe => cobblestone),
+            // then a constant mutliplier is applied to the dig speed depending on the tool's material.
+            // This is retrieved through the `dig_multiplier` property on `ToolMaterial`.
+            let block = game.block_at(digging.pos).unwrap_or_default();
+            let best_tool = block.kind().best_tool();
+            let best_tool_required = block.kind().best_tool_required();
+
+            let item_in_main_hand: Option<ItemStack> =
+                inventory.item_at(SLOT_HOTBAR_OFFSET + held_item.0).unwrap();
+            let held_tool = item_in_main_hand.map(|item| item.ty.tool()).flatten();
+
+            let multiplier = if best_tool == held_tool && best_tool.is_some() {
+                let dig_multiplier = item_in_main_hand
+                    .unwrap()
+                    .ty
+                    .tool_material()
+                    .map(|mat| mat.dig_multiplier())
+                    .unwrap_or_else(|| {
+                        // Missing data in feather-definitions;
+                        // panic. (TODO: maybe this should just be a log message)
+                        panic!(
+                            "no tool material for item {:?}, even though it has a tool",
+                            item_in_main_hand
+                        )
+                    });
+
+                (1.0 / 1.5) * dig_multiplier
+            } else if best_tool_required {
+                1.0 / 5.0
+            } else {
+                1.0 / 1.5
+            };
+
+            digging.progress += (1.0 / TPS as f64) * multiplier;
+        },
+    );
+}
+
+fn handle_cancelled_digging(game: &mut Game, world: &mut World, player: Entity) {
+    let digging = world.try_get::<Digging>(player).map(|d| *d);
+    let _ = world.remove::<Digging>(player);
+
+    if let Some(digging) = digging {
+        game.handle(world, FinishDiggingEvent { player, digging });
+    }
+}
+
+fn handle_finished_digging(
+    game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    packet: PlayerDigging,
+) {
+    let digging = match world.try_get::<Digging>(player) {
+        Some(digging) => *digging,
+        None => {
+            if world.has::<CanInstaBreak>(player) {
+                // Can insta-break - no `StartedDigging` needed
+                Digging {
+                    pos: packet.location,
+                    time: 0.0,
+                    progress: 0.0,
+                }
+            } else {
+                // Player can't insta-break and has
+                // not sent StartedDigging.
+                // They cannot finish.
                 return;
             }
         }
-        PlayerDiggingStatus::CancelledDigging => return,
-        _ => (),
-    }
+    };
 
-    let item_in_main_hand = world
-        .get::<Inventory>(player)
-        .item_in_main_hand(player, world);
+    let _ = world.remove::<Digging>(player);
 
-    // Don't break block if player is holding a sword in creative mode.
-    if gamemode == Gamemode::Creative {
-        if let Some(item_in_main_hand) = item_in_main_hand {
-            match item_in_main_hand.ty {
-                Item::WoodenSword
-                | Item::StoneSword
-                | Item::GoldenSword
-                | Item::IronSword
-                | Item::DiamondSword => return, // creative mode: don't break block with swords
-                _ => (),
-            }
-        }
-    }
-
-    if !game.set_block_at(
-        world,
-        packet.location,
-        BlockId::air(),
-        BlockUpdateCause::Entity(player),
-    ) {
-        game.disconnect(player, world, "attempted to break block in unloaded chunk");
+    if digging.pos != packet.location {
         return;
+    }
+
+    // Attempt to break the block
+    dig(game, world, player, digging.pos);
+
+    // Finished
+    game.handle(world, FinishDiggingEvent { player, digging });
+}
+
+fn dig(game: &mut Game, world: &mut World, player: Entity, pos: BlockPosition) {
+    if !game.set_block_at(world, pos, BlockId::air(), BlockUpdateCause::Entity(player)) {
+        game.disconnect(
+            player,
+            world,
+            format!(
+                "Attempted to break block in unloaded chunk (position: {:?})",
+                pos
+            ),
+        );
     }
 }
 
@@ -101,8 +273,8 @@ fn handle_drop_item_stack(
     let slot = held_item + SLOT_HOTBAR_OFFSET;
 
     let stack = {
-        if let Some(item) = inventory.item_at(slot) {
-            *item
+        if let Some(item) = inventory.item_at(slot).unwrap() {
+            item
         } else {
             // Silently fail - no item stack to drop
             return;
@@ -248,24 +420,24 @@ fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
 fn find_arrow(inventory: &Inventory) -> Option<(SlotIndex, ItemStack)> {
     // Order of priority is: off-hand, hotbar (0 to 8), rest of inventory
 
-    if let Some(offhand) = inventory.item_at(SLOT_OFFHAND) {
+    if let Some(offhand) = inventory.item_at(SLOT_OFFHAND).unwrap() {
         if is_arrow_item(offhand.ty) {
-            return Some((SLOT_OFFHAND, *offhand));
+            return Some((SLOT_OFFHAND, offhand));
         }
     }
 
     for hotbar_slot in 0..9 {
-        if let Some(hotbar_stack) = inventory.item_at(SLOT_HOTBAR_OFFSET + hotbar_slot) {
+        if let Some(hotbar_stack) = inventory.item_at(SLOT_HOTBAR_OFFSET + hotbar_slot).unwrap() {
             if is_arrow_item(hotbar_stack.ty) {
-                return Some((SLOT_HOTBAR_OFFSET + hotbar_slot, *hotbar_stack));
+                return Some((SLOT_HOTBAR_OFFSET + hotbar_slot, hotbar_stack));
             }
         }
     }
 
     for inv_slot in 9..=35 {
-        if let Some(inv_stack) = inventory.item_at(inv_slot) {
+        if let Some(inv_stack) = inventory.item_at(inv_slot).unwrap() {
             if is_arrow_item(inv_stack.ty) {
-                return Some((inv_slot, *inv_stack));
+                return Some((inv_slot, inv_stack));
             }
         }
     }

@@ -1,6 +1,7 @@
 //! Handling of player block placement packets.
 
 use crate::IteratorExt;
+use entity::InventoryExt;
 use feather_core::blocks::BlockKind;
 use feather_core::inventory::{Inventory, SLOT_HOTBAR_OFFSET};
 use feather_core::item_block::ItemToBlock;
@@ -26,8 +27,8 @@ pub fn handle_player_block_placement(
             let gamemode = *world.get::<Gamemode>(player);
             let inventory = world.get::<Inventory>(player);
 
-            let item = match inventory.item_at(world.get::<HeldItem>(player).0) {
-                Some(item) => *item,
+            let item = match inventory.item_in_main_hand(player, world) {
+                Some(item) => item,
                 None => return, // No block to place
             };
 

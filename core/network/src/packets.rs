@@ -525,7 +525,7 @@ pub struct EnchantItem {
 #[derive(Default, AsAny, Packet, Clone)]
 pub struct ClickWindow {
     pub window_id: u8,
-    pub slot: u16,
+    pub slot: i16,
     pub button: u8,
     pub action_number: i16,
     pub mode: VarInt,
