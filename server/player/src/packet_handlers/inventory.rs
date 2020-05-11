@@ -73,7 +73,7 @@ pub fn handle_creative_inventory_action(
 
             match packet.clicked_item.as_ref() {
                 Some(item) => {
-                    inventory.set_item_at(packet.slot as usize, item.clone());
+                    inventory.set_item_at(packet.slot as usize, *item);
                 }
                 None => {
                     inventory.clear_item_at(packet.slot as usize);
@@ -408,49 +408,54 @@ fn handle_single_click(
 }
 
 fn handle_double_click(
-    game: &mut Game,
-    world: &mut World,
-    player: Entity,
-    packet: ClickWindow,
+    _game: &mut Game,
+    _world: &mut World,
+    _player: Entity,
+    _packet: ClickWindow,
 ) -> anyhow::Result<()> {
+    // not sure what to do here?
     Ok(())
 }
 
 fn handle_shift_click(
-    game: &mut Game,
-    world: &mut World,
-    player: Entity,
-    packet: ClickWindow,
+    _game: &mut Game,
+    _world: &mut World,
+    _player: Entity,
+    _packet: ClickWindow,
 ) -> anyhow::Result<()> {
+    // TODO
     Ok(())
 }
 
 fn handle_number_key(
-    game: &mut Game,
-    world: &mut World,
-    player: Entity,
-    packet: ClickWindow,
-    key: u8,
+    _game: &mut Game,
+    _world: &mut World,
+    _player: Entity,
+    _packet: ClickWindow,
+    _key: u8,
 ) -> anyhow::Result<()> {
+    // TODO
     Ok(())
 }
 
 fn handle_item_drop(
-    game: &mut Game,
-    world: &mut World,
-    player: Entity,
-    packet: ClickWindow,
-    full_stack: bool,
+    _game: &mut Game,
+    _world: &mut World,
+    _player: Entity,
+    _packet: ClickWindow,
+    _full_stack: bool,
 ) -> anyhow::Result<()> {
+    // TODO
     Ok(())
 }
 
 fn handle_paint(
-    game: &mut Game,
-    world: &mut World,
-    player: Entity,
-    packet: ClickWindow,
-    action: PaintAction,
+    _game: &mut Game,
+    _world: &mut World,
+    _player: Entity,
+    _packet: ClickWindow,
+    _action: PaintAction,
 ) -> anyhow::Result<()> {
+    // TODO
     Ok(())
 }

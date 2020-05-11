@@ -387,14 +387,14 @@ mod tests {
         assert_eq!(inv.item_at(0).unwrap().unwrap().ty, Item::Sponge);
 
         inv.clear_item_at(0);
-        assert!(inv.item_at(0).is_none());
+        assert!(inv.item_at(0).unwrap().is_none());
     }
 
     #[test]
     fn test_collect_item_basic() {
         let mut inv = Inventory::new(InventoryType::Player, 46);
         let item = ItemStack::new(Item::Cobblestone, 32);
-        inv.collect_item(item.clone());
+        inv.collect_item(item);
         assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET).unwrap().unwrap(), item);
     }
 
@@ -404,7 +404,7 @@ mod tests {
         let item = ItemStack::new(Item::DriedKelpBlock, 64);
 
         for i in 0..46 {
-            inv.set_item_at(i, item.clone());
+            inv.set_item_at(i, item);
         }
 
         inv.collect_item(ItemStack::new(Item::Cobblestone, 16));
@@ -417,9 +417,9 @@ mod tests {
     fn test_collect_item_type_already_in() {
         let mut inv = Inventory::new(InventoryType::Player, 46);
         let item = ItemStack::new(Item::Cobblestone, 33);
-        inv.set_item_at(31, item.clone());
+        inv.set_item_at(31, item);
 
-        inv.collect_item(item.clone());
+        inv.collect_item(item);
         assert_eq!(
             inv.item_at(31).unwrap().unwrap(),
             ItemStack::new(item.ty, 64)
@@ -434,9 +434,9 @@ mod tests {
     fn test_collect_item_overstack() {
         let mut inv = Inventory::new(InventoryType::Player, 46);
         let item = ItemStack::new(Item::DiamondSword, 1);
-        inv.set_item_at(SLOT_HOTBAR_OFFSET, item.clone());
+        inv.set_item_at(SLOT_HOTBAR_OFFSET, item);
 
-        inv.collect_item(item.clone());
+        inv.collect_item(item);
         assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET).unwrap().unwrap(), item);
         assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET + 1).unwrap().unwrap(), item);
     }

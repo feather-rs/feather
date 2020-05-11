@@ -41,7 +41,7 @@ pub fn save_chunks(
     // Wait for chunk worker to shut down
     let _ = cworker_handle.sender.send(Request::ShutDown);
 
-    while let Ok(_) = cworker_handle.receiver.recv() {}
+    while cworker_handle.receiver.recv().is_ok() {}
 
     Ok(())
 }
