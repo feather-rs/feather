@@ -9,6 +9,21 @@ mod frontend;
 mod generated;
 mod model;
 
+use std::path::PathBuf;
+
+fn main() {
+    let mut data_path = PathBuf::new();
+    data_path.push(env!("CARGO_MANIFEST_DIR"));
+    let mut target_path = data_path.clone();
+
+    data_path.push("../data");
+    target_path.push("../src/generated");
+
+    if let Err(e) = load_directory(&data_path, target_path.as_os_str().to_str().unwrap()) {
+        panic!("{:?}", e);
+    }
+}
+
 pub fn load_directory(dir: impl AsRef<Path>, target_dir: &str) -> anyhow::Result<()> {
     let dir = dir.as_ref();
 

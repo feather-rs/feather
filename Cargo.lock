@@ -776,7 +776,6 @@ dependencies = [
 name = "feather-definitions"
 version = "0.1.0"
 dependencies = [
- "feather-definitions-generator",
  "num-derive",
  "num-traits",
 ]
