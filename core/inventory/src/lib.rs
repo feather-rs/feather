@@ -1,448 +1,199 @@
-//! Module for creating and modifying inventories of any type.
+//! An implementation of inventory handling.
+//!
+//! # Key types
+//! * `Area`: an area in an inventory, e.g. hotbar, storage, crafting
+//! * `Inventory`: stores the items inside an inventory, associated
+//! with their respective areas
+//! * `Window`: handles mapping from protocol inventory indices
+//! to internal indices used for `Inventory`.
 
-use feather_items::{Item, ItemStack};
-use once_cell::sync::Lazy;
-use smallvec::{Array, SmallVec};
-use std::cmp::min;
+use feather_items::ItemStack;
+use maplit::btreemap;
+use parking_lot::{RwLock, RwLockWriteGuard};
+use std::collections::BTreeMap;
+use std::iter::repeat_with;
 use thiserror::Error;
 
-pub type SlotIndex = usize;
+mod window;
 
-#[derive(Debug, Error)]
-#[error("slot index out of bounds")]
-pub struct IndexOutOfBounds;
+pub use window::{Error as WindowError, Window, WindowAccessor};
 
-// Constants representing various standard inventory slot indices
+/// An area inside an inventory, used to differentiate between
+/// different parts.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum Area {
+    /// A player's hotbar (9 slots total)
+    Hotbar,
+    /// The crafting output slot inside either a player's
+    /// inventory or a crafting table. (1 slot total)
+    CraftingOutput,
+    /// Crafting input slots. (Total depends on window:
+    /// 4 slots for `Player` and 9 slots for `Crafting`)
+    CraftingInput,
 
-pub const SLOT_CRAFTING_OUTPUT: SlotIndex = 0;
-pub const SLOT_CRAFTING_INPUT_X0_Y0: SlotIndex = 1;
-pub const SLOT_CRAFTING_INPUT_X1_Y0: SlotIndex = 2;
-pub const SLOT_CRAFTING_INPUT_X0_Y1: SlotIndex = 3;
-pub const SLOT_CRAFTING_INPUT_X1_Y1: SlotIndex = 4;
+    // armor
+    Head,
+    /// A player's chestplate
+    Torso,
+    Legs,
+    Feet,
+    Offhand,
 
-pub const SLOT_ARMOR_MIN: SlotIndex = 5;
-pub const SLOT_ARMOR_MAX: SlotIndex = 8;
+    /// Main part of a player's inventory (27 slots total)
+    Main,
 
-pub const SLOT_ARMOR_HEAD: SlotIndex = 5;
-pub const SLOT_ARMOR_CHEST: SlotIndex = 6;
-pub const SLOT_ARMOR_LEGS: SlotIndex = 7;
-pub const SLOT_ARMOR_FEET: SlotIndex = 8;
+    /// Chest storage (27 or 54 slots total, depending on whether
+    /// chest is single or large)
+    ///
+    /// Note that this is not the chestplate slot; use `Torso` instead.
+    Chest,
+}
 
-pub const SLOT_OFFHAND: SlotIndex = 45;
-
-pub const SLOT_INVENTORY_OFFSET: SlotIndex = 9;
-pub const SLOT_HOTBAR_OFFSET: SlotIndex = 36;
-
-pub const HOTBAR_SIZE: SlotIndex = 9;
-pub const INVENTORY_SIZE: SlotIndex = 27;
-
-pub const SLOT_ENTITY_EQUIPMENT_MAIN_HAND: SlotIndex = 0;
-pub const SLOT_ENTITY_EQUIPMENT_OFF_HAND: SlotIndex = 1;
-pub const SLOT_ENTITY_EQUIPMENT_BOOTS: SlotIndex = 2;
-pub const SLOT_ENTITY_EQUIPMENT_LEGGINGS: SlotIndex = 3;
-pub const SLOT_ENTITY_EQUIPMENT_CHESTPLATE: SlotIndex = 4;
-pub const SLOT_ENTITY_EQUIPMENT_HELMET: SlotIndex = 5;
-
+/// A slot in an inventory. This is an `Option<ItemStack>`;
+/// if set to `None`, then there is no item in this slot.
 pub type Slot = Option<ItemStack>;
 
-static COLLECT_SEARCH_ORDER: Lazy<Vec<SlotIndex>> = Lazy::new(|| {
-    let mut result = vec![];
-    for x in SLOT_HOTBAR_OFFSET..SLOT_HOTBAR_OFFSET + HOTBAR_SIZE {
-        result.push(x);
-    }
-
-    for x in SLOT_INVENTORY_OFFSET..SLOT_INVENTORY_OFFSET + INVENTORY_SIZE {
-        result.push(x);
-    }
-
-    result
-});
-
-pub fn armor_slot_to_entity_equipment(slot: SlotIndex) -> SlotIndex {
-    assert!(slot >= 5 && slot <= 8);
-    match slot {
-        SLOT_ARMOR_HEAD => SLOT_ENTITY_EQUIPMENT_HELMET,
-        SLOT_ARMOR_CHEST => SLOT_ENTITY_EQUIPMENT_CHESTPLATE,
-        SLOT_ARMOR_LEGS => SLOT_ENTITY_EQUIPMENT_LEGGINGS,
-        SLOT_ARMOR_FEET => SLOT_ENTITY_EQUIPMENT_BOOTS,
-        _ => unreachable!(),
-    }
+/// An error emitted when accessing an item
+/// fails.
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("index {0} for area {1:?} out of bounds")]
+    OutOfBounds(usize, Area),
+    #[error("area {0:?} does not exist in this inventory")]
+    NoSuchArea(Area),
+    #[error("invalid protocol index {0}")]
+    InvalidProtocolIndex(usize),
 }
 
-/// Returns the max size of a stack with the given
-/// type.
-pub fn max_size(item: Item) -> u8 {
-    match item {
-        Item::WoodenSword
-        | Item::GoldenSword
-        | Item::StoneSword
-        | Item::IronSword
-        | Item::DiamondSword
-        | Item::WoodenAxe
-        | Item::GoldenAxe
-        | Item::StoneAxe
-        | Item::IronAxe
-        | Item::DiamondAxe
-        | Item::WoodenHoe
-        | Item::GoldenHoe
-        | Item::StoneHoe
-        | Item::IronHoe
-        | Item::DiamondHoe
-        | Item::WoodenPickaxe
-        | Item::GoldenPickaxe
-        | Item::StonePickaxe
-        | Item::IronPickaxe
-        | Item::DiamondPickaxe
-        | Item::WoodenShovel
-        | Item::GoldenShovel
-        | Item::StoneShovel
-        | Item::IronShovel
-        | Item::DiamondShovel
-        | Item::LeatherChestplate
-        | Item::GoldenChestplate
-        | Item::ChainmailChestplate
-        | Item::IronChestplate
-        | Item::DiamondChestplate
-        | Item::LeatherLeggings
-        | Item::GoldenLeggings
-        | Item::ChainmailLeggings
-        | Item::IronLeggings
-        | Item::DiamondLeggings
-        | Item::LeatherBoots
-        | Item::GoldenBoots
-        | Item::ChainmailBoots
-        | Item::IronBoots
-        | Item::DiamondBoots
-        | Item::LeatherHelmet
-        | Item::GoldenHelmet
-        | Item::ChainmailHelmet
-        | Item::IronHelmet
-        | Item::DiamondHelmet
-        | Item::Bow
-        | Item::WritableBook
-        | Item::FlintAndSteel
-        | Item::WhiteBed
-        | Item::OrangeBed
-        | Item::MagentaBed
-        | Item::LightBlueBed
-        | Item::YellowBed
-        | Item::LimeBed
-        | Item::PinkBed
-        | Item::GrayBed
-        | Item::LightGrayBed
-        | Item::CyanBed
-        | Item::PurpleBed
-        | Item::BlueBed
-        | Item::BrownBed
-        | Item::GreenBed
-        | Item::RedBed
-        | Item::BlackBed
-        | Item::ShulkerBox
-        | Item::TurtleEgg
-        | Item::TurtleHelmet
-        | Item::FishingRod
-        | Item::EnchantedBook
-        | Item::Potion
-        | Item::LingeringPotion
-        | Item::SplashPotion
-        | Item::WaterBucket
-        | Item::LavaBucket
-        | Item::TropicalFishBucket
-        | Item::CodBucket
-        | Item::MilkBucket
-        | Item::PufferfishBucket
-        | Item::SalmonBucket
-        | Item::CarrotOnAStick
-        | Item::Elytra
-        | Item::Shield
-        | Item::Trident
-        | Item::MusicDisc13
-        | Item::MusicDiscCat
-        | Item::MusicDiscBlocks
-        | Item::MusicDiscChirp
-        | Item::MusicDiscFar
-        | Item::MusicDiscMall
-        | Item::MusicDiscMellohi
-        | Item::MusicDiscStal
-        | Item::MusicDiscStrad
-        | Item::MusicDiscWard
-        | Item::MusicDisc11
-        | Item::MusicDiscWait
-        | Item::TotemOfUndying
-        | Item::Shears
-        | Item::AcaciaBoat
-        | Item::DarkOakBoat
-        | Item::OakBoat
-        | Item::SpruceBoat
-        | Item::BirchBoat
-        | Item::JungleBoat
-        | Item::MushroomStew
-        | Item::BeetrootSoup
-        | Item::RabbitStew
-        | Item::Cake
-        | Item::Minecart
-        | Item::ChestMinecart
-        | Item::CommandBlockMinecart
-        | Item::FurnaceMinecart
-        | Item::HopperMinecart
-        | Item::TntMinecart
-        | Item::DiamondHorseArmor
-        | Item::GoldenHorseArmor
-        | Item::Saddle
-        | Item::KnowledgeBook
-        | Item::DebugStick
-        | Item::IronHorseArmor => 1,
-        Item::EnderPearl
-        | Item::Snowball
-        | Item::WhiteBanner
-        | Item::OrangeBanner
-        | Item::MagentaBanner
-        | Item::LightBlueBanner
-        | Item::YellowBanner
-        | Item::LimeBanner
-        | Item::PinkBanner
-        | Item::GrayBanner
-        | Item::LightGrayBanner
-        | Item::CyanBanner
-        | Item::PurpleBanner
-        | Item::BlueBanner
-        | Item::BrownBanner
-        | Item::GreenBanner
-        | Item::RedBanner
-        | Item::BlackBanner
-        | Item::Sign
-        | Item::ArmorStand
-        | Item::Bucket
-        | Item::WrittenBook
-        | Item::Egg => 16,
-        _ => 64,
-    }
-}
-
-/// The various types of inventories ("windows").
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum InventoryType {
-    Player,
-    Container,
-    Chest,
-    CraftingTable,
-    Furnace,
-    Dispenser,
-    EnchantingTable,
-    BrewingStand,
-    Villager,
-    Beacon,
-    Anvil,
-    Hopper,
-    Dropper,
-    ShulkerBox,
-    Horse,
-}
-
-/// An inventory, consisting of a vector
-/// of `Slot`s and a type.
-#[derive(Debug, Clone)]
+/// Stores items in some inventory.
+///
+/// Internally, items are each wrapped in a `RwLock`.
+/// This allows for convenient access and shared
+/// references to an `Inventory` without using
+/// `RefCell`. The overhead from the use of locks
+/// should be minimal.
+///
+/// # Structure
+/// `Inventory` uses a composition-based design. It
+/// stores a vector of items for each `Area` which it contains.
+///
+/// # Initialization
+/// `Inventory` provides assorted functions to initialize inventories
+/// of some kind. For example, `Inventory::large_chest()` creates an
+/// empty inventory for a large chest.
+///
+/// # Indexing conventions
+/// When an area consists of a rectangle
+/// of slots on the client GUI, then indexing
+/// starts at 0 with the top-left corner and proceeds
+/// horizontally, then vertically.
+#[derive(Default, Debug)]
 pub struct Inventory {
-    /// The item vector.
+    /// Associative array from `Area` => items
+    /// contained within the `Area`.
     ///
-    /// The vector always contains an entry
-    /// for each slot in the inventory, indexed
-    /// by the slot IDs. When an entry is set to
-    /// `None`, there is no item in the slot. s
-    items: Vec<Option<ItemStack>>,
-    /// The type of this inventory.
-    pub ty: InventoryType,
+    /// Might switch to another, more efficient map
+    /// type at some point, but we have no profile
+    /// results which indicate inventory handling
+    /// is a bottleneck.
+    slots: BTreeMap<Area, Vec<RwLock<Slot>>>,
 }
 
 impl Inventory {
-    /// Creates a new inventory of the given
-    /// type and number of slots.
-    pub fn new(ty: InventoryType, num_slots: u32) -> Self {
-        Self {
-            items: vec![None; num_slots as usize],
-            ty,
-        }
+    /// Creates an inventory for a player, i.e.
+    /// one with hotbar, main storage, armor, offhand, survival
+    /// crafting slots.
+    pub fn player() -> Self {
+        let slots = btreemap! {
+            Area::Hotbar => empty(9),
+            Area::Main => empty(27),
+
+            Area::Head => empty(1),
+            Area::Torso => empty(1),
+            Area::Legs => empty(1),
+            Area::Feet => empty(1),
+            Area::Offhand => empty(1),
+
+            Area::CraftingInput => empty(4),
+            Area::CraftingOutput => empty(1),
+        };
+
+        Self { slots }
     }
 
-    /// Retrieves a reference to the item at the given slot index.
+    /// Creates an inventory for a crafting table.
+    /// Contains `CraftingInput` and `CraftingOutput`
+    /// areas.
+    pub fn crafting_table() -> Self {
+        let slots = btreemap! {
+            Area::CraftingInput => empty(9),
+            Area::CraftingOutput => empty(9),
+        };
+
+        Self { slots }
+    }
+
+    /// Returns the item at the given
+    /// index inside some area.
+    pub fn item_at(&self, area: Area, index: usize) -> Result<Slot, Error> {
+        self.slot(area, index).map(RwLock::read).map(|guard| *guard)
+    }
+
+    /// Returns a mutable guard for an item
+    /// at the given slot.
+    pub fn item_at_mut(&self, area: Area, index: usize) -> Result<RwLockWriteGuard<Slot>, Error> {
+        self.slot(area, index).map(RwLock::write)
+    }
+
+    /// Sets the item at the given index inside some area.
     ///
-    /// This function returns a "double option": the first layer
-    /// is `None` if the index is out of bounds, and the second
-    /// is `None` if there is no item in the slot.
-    pub fn item_at(&self, index: SlotIndex) -> Result<Option<ItemStack>, IndexOutOfBounds> {
-        self.items.get(index).copied().ok_or(IndexOutOfBounds)
-    }
-
-    pub fn item_at_mut(&mut self, index: SlotIndex) -> Option<&mut ItemStack> {
-        self.items[index].as_mut()
-    }
-
-    /// Sets the item at the given slot index.
-    pub fn set_item_at(&mut self, index: SlotIndex, item: ItemStack) {
-        self.try_set_item_at(index, item)
-            .expect("slot index out of bounds")
-    }
-
-    /// Tries to set the item at the given
-    /// index. Returns `None` if the slot
-    /// index is out of bouds.
-    pub fn try_set_item_at(&mut self, index: SlotIndex, item: ItemStack) -> Option<()> {
-        if item.amount == 0 {
-            *self.items.get_mut(index)? = None;
+    /// Returns the old item in the slot.
+    pub fn set_item_at(&self, area: Area, index: usize, stack: ItemStack) -> Result<Slot, Error> {
+        let mut slot = self.item_at_mut(area, index)?;
+        let old = *slot;
+        *slot = if stack.amount == 0 {
+            Slot::None
         } else {
-            *self.items.get_mut(index)? = Some(item);
-        }
-        Some(())
+            Slot::Some(stack)
+        };
+        Ok(old)
     }
 
-    /// Clears the item at the given slot index, returning
-    /// the old item.
-    pub fn clear_item_at(&mut self, index: SlotIndex) -> Option<ItemStack> {
-        self.items.get_mut(index).map(|item| item.take()).flatten()
+    /// Removes the item at the given position. Returns
+    /// the removed item.
+    pub fn remove_item_at(&self, area: Area, index: usize) -> Result<Slot, Error> {
+        let mut item = self.item_at_mut(area, index)?;
+
+        Ok(item.take())
     }
 
-    /// Attempts to insert the given item into a player
-    /// inventory.
-    ///
-    /// Returns the affected slots and the number of remaining
-    /// items which were not added to the inventory.
-    pub fn collect_item(&mut self, mut item: ItemStack) -> (SmallVec<[SlotIndex; 2]>, u8) {
-        let mut affected_slots = SmallVec::new();
-
-        // First, look for slots already having the type.
-        for slot in COLLECT_SEARCH_ORDER.iter() {
-            if let Some(slot_item) = self.item_at(*slot).expect("index out of bounds") {
-                if slot_item.ty == item.ty {
-                    self.add_to_stack(&mut item, slot_item, *slot, &mut affected_slots);
-
-                    if item.amount == 0 {
-                        return (affected_slots, 0);
-                    }
-                }
-            }
-        }
-
-        for slot in COLLECT_SEARCH_ORDER.iter() {
-            let slot_item = self.item_at(*slot).unwrap();
-            if slot_item.is_none() {
-                let fake = ItemStack::new(item.ty, 0);
-                self.add_to_stack(&mut item, fake, *slot, &mut affected_slots);
-                if item.amount == 0 {
-                    return (affected_slots, 0);
-                }
-            }
-
-            if let Some(slot_item) = slot_item {
-                if slot_item.ty == item.ty {
-                    self.add_to_stack(&mut item, slot_item, *slot, &mut affected_slots);
-
-                    if item.amount == 0 {
-                        return (affected_slots, 0);
-                    }
-                }
-            }
-        }
-
-        (affected_slots, item.amount)
+    /// Returns an iterator over mutable references to all
+    /// items in this inventory.
+    pub fn iter_mut(&self) -> impl Iterator<Item = RwLockWriteGuard<Slot>> {
+        self.slots
+            .values()
+            .flat_map(Vec::as_slice)
+            .map(RwLock::write)
     }
 
-    /// Adds an item to a stack.
-    fn add_to_stack<A: Array<Item = SlotIndex>>(
-        &mut self,
-        item: &mut ItemStack,
-        slot_item: ItemStack,
-        slot: SlotIndex,
-        affected_slots: &mut SmallVec<A>,
-    ) {
-        let added = min(item.amount, max_size(item.ty) - slot_item.amount);
-        item.amount -= added;
-
-        self.set_item_at(slot, ItemStack::new(slot_item.ty, slot_item.amount + added));
-        affected_slots.push(slot);
+    /// Returns an iterator over the areas in this inventory.
+    pub fn areas<'a>(&'a self) -> impl Iterator<Item = Area> + 'a {
+        self.slots.keys().copied()
     }
 
-    /// Returns the number of slots in this inventory.
-    pub fn slot_count(&self) -> u16 {
-        self.items.len() as u16
+    fn slot(&self, area: Area, index: usize) -> Result<&RwLock<Slot>, Error> {
+        let slots = self.slots(area)?;
+        slots.get(index).ok_or(Error::OutOfBounds(index, area))
     }
 
-    /// Returns a reference to this inventory's items.
-    pub fn items(&self) -> &[Option<ItemStack>] {
-        &self.items
+    fn slots(&self, area: Area) -> Result<&[RwLock<Slot>], Error> {
+        self.slots
+            .get(&area)
+            .ok_or(Error::NoSuchArea(area))
+            .map(Vec::as_slice)
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_inventory() {
-        let mut inv = Inventory::new(InventoryType::Chest, 36);
-        assert_eq!(inv.slot_count(), 36);
-
-        inv.set_item_at(0, ItemStack::new(Item::Air, 1));
-
-        let item = inv.item_at(0).unwrap().unwrap();
-        assert_eq!(item.ty, Item::Air);
-        assert_eq!(item.amount, 1);
-
-        let item = inv.item_at_mut(0).unwrap();
-        item.ty = Item::Sponge;
-        assert_eq!(inv.item_at(0).unwrap().unwrap().ty, Item::Sponge);
-
-        inv.clear_item_at(0);
-        assert!(inv.item_at(0).unwrap().is_none());
-    }
-
-    #[test]
-    fn test_collect_item_basic() {
-        let mut inv = Inventory::new(InventoryType::Player, 46);
-        let item = ItemStack::new(Item::Cobblestone, 32);
-        inv.collect_item(item);
-        assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET).unwrap().unwrap(), item);
-    }
-
-    #[test]
-    fn test_collect_item_full() {
-        let mut inv = Inventory::new(InventoryType::Player, 46);
-        let item = ItemStack::new(Item::DriedKelpBlock, 64);
-
-        for i in 0..46 {
-            inv.set_item_at(i, item);
-        }
-
-        inv.collect_item(ItemStack::new(Item::Cobblestone, 16));
-        for i in 0..46 {
-            assert_eq!(inv.item_at(i).unwrap().unwrap(), item);
-        }
-    }
-
-    #[test]
-    fn test_collect_item_type_already_in() {
-        let mut inv = Inventory::new(InventoryType::Player, 46);
-        let item = ItemStack::new(Item::Cobblestone, 33);
-        inv.set_item_at(31, item);
-
-        inv.collect_item(item);
-        assert_eq!(
-            inv.item_at(31).unwrap().unwrap(),
-            ItemStack::new(item.ty, 64)
-        );
-        assert_eq!(
-            inv.item_at(SLOT_HOTBAR_OFFSET).unwrap().unwrap(),
-            ItemStack::new(item.ty, 2)
-        );
-    }
-
-    #[test]
-    fn test_collect_item_overstack() {
-        let mut inv = Inventory::new(InventoryType::Player, 46);
-        let item = ItemStack::new(Item::DiamondSword, 1);
-        inv.set_item_at(SLOT_HOTBAR_OFFSET, item);
-
-        inv.collect_item(item);
-        assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET).unwrap().unwrap(), item);
-        assert_eq!(inv.item_at(SLOT_HOTBAR_OFFSET + 1).unwrap().unwrap(), item);
-    }
+fn empty(n: usize) -> Vec<RwLock<Slot>> {
+    repeat_with(|| RwLock::new(None)).take(n).collect()
 }
