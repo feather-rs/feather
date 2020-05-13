@@ -152,10 +152,9 @@ pub fn on_player_leave_save_data(event: &PlayerLeaveEvent, game: &Game, world: &
 pub fn save_player_data(game: &Game, world: &World, player: Entity) {
     let inventory = world
         .get::<Inventory>(player)
-        .items()
-        .iter()
+        .iter_mut()
         .enumerate()
-        .filter_map(|(i, item)| item.map(|item| (i, item)))
+        .filter_map(|(i, item)| (*item).map(|item| (i, item)))
         .map(|(slot, item)| InventorySlot {
             count: item.amount as i8,
             slot: slot as i8,

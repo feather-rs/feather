@@ -853,6 +853,7 @@ dependencies = [
  "fecs",
  "legion",
  "maplit",
+ "once_cell",
  "parking_lot 0.10.2",
  "smallvec 1.4.0",
  "thiserror",

@@ -16,7 +16,24 @@ use thiserror::Error;
 
 mod window;
 
-pub use window::{Error as WindowError, Window, WindowAccessor};
+use once_cell::sync::Lazy;
+use smallvec::{Array, SmallVec};
+use std::cmp::min;
+pub use window::{constants as player_constants, Error as WindowError, Window, WindowAccessor};
+
+static COLLECT_SEARCH_ORDER: Lazy<Vec<(Area, usize)>> = Lazy::new(|| {
+    let mut result = vec![];
+    // TODO: move to constants
+    for x in 0..9 {
+        result.push((Area::Hotbar, x));
+    }
+
+    for x in 0..27 {
+        result.push((Area::Main, x));
+    }
+
+    result
+});
 
 /// An area inside an inventory, used to differentiate between
 /// different parts.
@@ -47,6 +64,18 @@ pub enum Area {
     ///
     /// Note that this is not the chestplate slot; use `Torso` instead.
     Chest,
+}
+
+/// Index into a slot.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct SlotIndex {
+    pub area: Area,
+    pub slot: usize,
+}
+
+/// Creates a `SlotIndex`.
+pub fn slot(area: Area, slot: usize) -> SlotIndex {
+    SlotIndex { area, slot }
 }
 
 /// A slot in an inventory. This is an `Option<ItemStack>`;
@@ -176,9 +205,107 @@ impl Inventory {
             .map(RwLock::write)
     }
 
+    /// Returns an iterator over items + indices.
+    pub fn enumerate<'a>(&'a self) -> impl Iterator<Item = (SlotIndex, Slot)> + 'a {
+        self.slots
+            .iter()
+            .flat_map(|(area, slots)| std::iter::repeat(*area).zip(slots.iter().enumerate()))
+            .map(|(area, (index, slot))| (SlotIndex { area, slot: index }, *slot.read()))
+    }
+
     /// Returns an iterator over the areas in this inventory.
     pub fn areas<'a>(&'a self) -> impl Iterator<Item = Area> + 'a {
         self.slots.keys().copied()
+    }
+
+    /// Attempts to insert the given item into a player
+    /// inventory.
+    ///
+    /// Returns the affected slots and the number of remaining
+    /// items which were not added to the inventory.
+    ///
+    /// TODO: replace with inventory query API
+    pub fn collect_item(&self, mut item: ItemStack) -> (SmallVec<[SlotIndex; 2]>, u8) {
+        let mut affected_slots = SmallVec::new();
+
+        // First, look for slots already having the type.
+        for (area, slot) in COLLECT_SEARCH_ORDER.iter() {
+            if let Some(slot_item) = self.item_at(*area, *slot).expect("index out of bounds") {
+                if slot_item.ty == item.ty {
+                    self.add_to_stack(
+                        &mut item,
+                        slot_item,
+                        SlotIndex {
+                            area: *area,
+                            slot: *slot,
+                        },
+                        &mut affected_slots,
+                    );
+
+                    if item.amount == 0 {
+                        return (affected_slots, 0);
+                    }
+                }
+            }
+        }
+
+        for (area, slot) in COLLECT_SEARCH_ORDER.iter() {
+            let slot_item = self.item_at(*area, *slot).unwrap();
+            if slot_item.is_none() {
+                let fake = ItemStack::new(item.ty, 0);
+                self.add_to_stack(
+                    &mut item,
+                    fake,
+                    SlotIndex {
+                        area: *area,
+                        slot: *slot,
+                    },
+                    &mut affected_slots,
+                );
+                if item.amount == 0 {
+                    return (affected_slots, 0);
+                }
+            }
+
+            if let Some(slot_item) = slot_item {
+                if slot_item.ty == item.ty {
+                    self.add_to_stack(
+                        &mut item,
+                        slot_item,
+                        SlotIndex {
+                            area: *area,
+                            slot: *slot,
+                        },
+                        &mut affected_slots,
+                    );
+
+                    if item.amount == 0 {
+                        return (affected_slots, 0);
+                    }
+                }
+            }
+        }
+
+        (affected_slots, item.amount)
+    }
+
+    /// Adds an item to a stack.
+    fn add_to_stack<A: Array<Item = SlotIndex>>(
+        &self,
+        item: &mut ItemStack,
+        slot_item: ItemStack,
+        slot: SlotIndex,
+        affected_slots: &mut SmallVec<A>,
+    ) {
+        let added = min(item.amount, item.ty.stack_size() as u8 - slot_item.amount);
+        item.amount -= added;
+
+        self.set_item_at(
+            slot.area,
+            slot.slot,
+            ItemStack::new(slot_item.ty, slot_item.amount + added),
+        );
+        affected_slots.push(slot);
     }
 
     fn slot(&self, area: Area, index: usize) -> Result<&RwLock<Slot>, Error> {

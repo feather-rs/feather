@@ -3,17 +3,52 @@
 //!
 //! See https://wiki.vg/Inventory for more information.
 
-use crate::{Area, Inventory, Slot};
+use crate::{Area, Inventory, Slot, SlotIndex};
 use feather_items::ItemStack;
 use fecs::{Entity, World};
 use legion::borrow::Ref;
 use smallvec::{smallvec, SmallVec};
 use thiserror::Error;
 
+pub mod constants {
+    // Constants representing various standard inventory slot indices
+    // for the `Player` window
+    // Deprecated; mainly for interop with world saves.
+
+    pub const SLOT_CRAFTING_OUTPUT: usize = 0;
+    pub const SLOT_CRAFTING_INPUT_X0_Y0: usize = 1;
+    pub const SLOT_CRAFTING_INPUT_X1_Y0: usize = 2;
+    pub const SLOT_CRAFTING_INPUT_X0_Y1: usize = 3;
+    pub const SLOT_CRAFTING_INPUT_X1_Y1: usize = 4;
+
+    pub const SLOT_ARMOR_MIN: usize = 5;
+    pub const SLOT_ARMOR_MAX: usize = 8;
+
+    pub const SLOT_ARMOR_HEAD: usize = 5;
+    pub const SLOT_ARMOR_CHEST: usize = 6;
+    pub const SLOT_ARMOR_LEGS: usize = 7;
+    pub const SLOT_ARMOR_FEET: usize = 8;
+
+    pub const SLOT_OFFHAND: usize = 45;
+
+    pub const SLOT_INVENTORY_OFFSET: usize = 9;
+    pub const SLOT_HOTBAR_OFFSET: usize = 36;
+
+    pub const HOTBAR_SIZE: usize = 9;
+    pub const INVENTORY_SIZE: usize = 27;
+
+    pub const SLOT_ENTITY_EQUIPMENT_MAIN_HAND: usize = 0;
+    pub const SLOT_ENTITY_EQUIPMENT_OFF_HAND: usize = 1;
+    pub const SLOT_ENTITY_EQUIPMENT_BOOTS: usize = 2;
+    pub const SLOT_ENTITY_EQUIPMENT_LEGGINGS: usize = 3;
+    pub const SLOT_ENTITY_EQUIPMENT_CHESTPLATE: usize = 4;
+    pub const SLOT_ENTITY_EQUIPMENT_HELMET: usize = 5;
+}
+
 /// Converted from of a protocol index, used
 /// to access inventories directly.
-#[derive(Copy, Clone, Debug)]
-struct Index {
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct Index {
     /// The index into `Window.inventories`, used
     /// when the window consists of multiple inventories.
     inventory: usize,
@@ -42,9 +77,10 @@ pub enum Error {
 #[derive(Debug, Clone)]
 pub struct Window {
     /// Mapping from `usize` in the protocol
-    /// to indices into inventory.
-    ///
-    mapping: fn(usize) -> Option<Index>,
+    /// to indices into the inventory.
+    protocol_to_slot: fn(usize) -> Option<Index>,
+    /// Inverse of `protocol_to_slot`.
+    slot_to_protocol: fn(Index) -> usize,
     /// Inventories wrapped over by this `Window`.
     ///
     /// Internally, we store the `Entity` handles.
@@ -61,7 +97,8 @@ impl Window {
     /// https://wiki.vg/Inventory#Player_Inventory
     pub fn player(player: Entity) -> Self {
         Self {
-            mapping: player_mapping,
+            protocol_to_slot: player_to_slot,
+            slot_to_protocol: player_from_slot,
             inventories: smallvec![player],
         }
     }
@@ -83,6 +120,25 @@ impl Window {
             window: self,
             inventories,
         })
+    }
+
+    /// Converts a network index to a `SlotIndex`.
+    pub fn convert_network(&self, network: usize) -> Option<Index> {
+        let protocol_to_slot = self.protocol_to_slot;
+        protocol_to_slot(network)
+    }
+
+    /// Converts a `SlotIndex` and the entity whose
+    /// inventory the `SlotIndex` belongs to to a network index.
+    pub fn convert_slot(&self, slot: SlotIndex, entity: Entity) -> Option<usize> {
+        let slot_to_protocol = self.slot_to_protocol;
+        let inventory = self.inventories.iter().position(|e| *e == entity)?;
+        let index = Index {
+            area: slot.area,
+            inventory,
+            slot: slot.slot,
+        };
+        Some(slot_to_protocol(index))
     }
 
     // TODO: more mappings as the need arises
@@ -125,8 +181,8 @@ impl<'a> WindowAccessor<'a> {
         index: usize,
         f: impl FnOnce(&Inventory, Index) -> Result<T, crate::Error>,
     ) -> Result<T, crate::Error> {
-        let mapping = self.window.mapping;
-        let index = mapping(index).ok_or(crate::Error::InvalidProtocolIndex(index))?;
+        let protocol_to_slot = self.window.protocol_to_slot;
+        let index = protocol_to_slot(index).ok_or(crate::Error::InvalidProtocolIndex(index))?;
         let inventory = &self.inventories[index.inventory];
 
         f(inventory, index)
@@ -134,7 +190,7 @@ impl<'a> WindowAccessor<'a> {
 }
 
 /// https://wiki.vg/Inventory#Player_Inventory
-fn player_mapping(x: usize) -> Option<Index> {
+fn player_to_slot(x: usize) -> Option<Index> {
     Some(match x {
         0 => index(0, Area::CraftingOutput, 0),
         1..=4 => index(0, Area::CraftingInput, x - 1),
@@ -149,10 +205,36 @@ fn player_mapping(x: usize) -> Option<Index> {
     })
 }
 
+fn player_from_slot(slot: Index) -> usize {
+    use Area::*;
+    match slot.area {
+        CraftingOutput => 0,
+        CraftingInput => slot.slot + 1,
+        Head => 5,
+        Torso => 6,
+        Legs => 7,
+        Feet => 8,
+        Main => 9 + slot.slot,
+        Hotbar => 36 + slot.slot,
+        Offhand => 45,
+        x => panic!("unreachable area {:?} for player window", x),
+    }
+}
+
 fn index(inventory: usize, area: Area, slot: usize) -> Index {
     Index {
         inventory,
         area,
         slot,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn player_roundtrip() {
+        (0..=45).for_each(|i| assert_eq!(i, player_from_slot(player_to_slot(i).unwrap())));
     }
 }

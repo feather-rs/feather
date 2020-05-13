@@ -13,13 +13,15 @@ pub use uuid::Uuid;
 
 use ahash::AHashSet;
 use dashmap::DashMap;
-use feather_core::inventory::SlotIndex;
 use feather_core::util::{ChunkPosition, Position};
 use fecs::Entity;
 
 /// The item an entity is currently holding.
+///
+/// This is the index inside the `Hotbar` area
+/// of the inventory.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Default)]
-pub struct HeldItem(pub SlotIndex);
+pub struct HeldItem(pub usize);
 
 /// An entity's name.
 #[derive(Debug, Clone, Default)]

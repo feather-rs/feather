@@ -1,7 +1,7 @@
 //! Broadcasting of inventory-related events.
 
 use crate::inventory::Equipment;
-use feather_core::inventory::{Inventory, SlotIndex, SLOT_HOTBAR_OFFSET};
+use feather_core::inventory::{Area, Inventory, SlotIndex, Window};
 use feather_core::network::packets::{EntityEquipment, SetSlot};
 use feather_server_types::{
     EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, Network, NetworkId,
@@ -23,7 +23,9 @@ pub fn on_inventory_update_broadcast_equipment_update(
         // Skip this slot if it is not an equipment update.
         if let Ok(equipment) = is_equipment_update(held_item.0, *slot) {
             let slot = equipment.slot_index(held_item.0);
-            let item = inv.item_at(slot).expect("slot index out of bounds");
+            let item = inv
+                .item_at(slot.area, slot.slot)
+                .expect("invalid InventoryUpdateEvent");
 
             let packet = EntityEquipment {
                 entity_id: world.get::<NetworkId>(event.player).0,
@@ -65,7 +67,7 @@ pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World)
     for equipment in equipments.iter() {
         let item = {
             let slot = equipment.slot_index(held_item.0);
-            match inventory.item_at(slot).unwrap() {
+            match inventory.item_at(slot.area, slot.slot).unwrap() {
                 Some(item) => item,
                 None => continue, // don't send equipment if it doesn't exist
             }
@@ -88,12 +90,14 @@ pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World)
 pub fn on_inventory_update_send_set_slot(event: &InventoryUpdateEvent, world: &mut World) {
     let inv = world.get::<Inventory>(event.player);
     let network = world.get::<Network>(event.player);
+    let window = world.get::<Window>(event.player);
 
     for slot in &event.slots {
+        let converted = window.convert_slot(*slot, event.player).unwrap_or(0);
         let packet = SetSlot {
             window_id: 0,
-            slot: *slot as i16,
-            slot_data: inv.item_at(*slot as usize).unwrap(),
+            slot: converted as i16,
+            slot_data: inv.item_at(slot.area, slot.slot).unwrap(),
         };
 
         network.send(packet);
@@ -102,10 +106,10 @@ pub fn on_inventory_update_send_set_slot(event: &InventoryUpdateEvent, world: &m
 
 /// Returns whether the given update to an inventory
 /// is an equipment update.
-fn is_equipment_update(held_item: SlotIndex, slot: SlotIndex) -> Result<Equipment, ()> {
-    if slot >= SLOT_HOTBAR_OFFSET && slot - SLOT_HOTBAR_OFFSET == held_item {
+fn is_equipment_update(held_item: usize, slot: SlotIndex) -> Result<Equipment, ()> {
+    if slot.area == Area::Hotbar && slot.slot == held_item {
         Ok(Equipment::MainHand)
-    } else if let Some(equipment) = Equipment::from_slot_index(slot) {
+    } else if let Some(equipment) = Equipment::from_slot_index(slot, held_item) {
         Ok(equipment)
     } else {
         Err(())
@@ -135,7 +139,7 @@ mod tests {
         test.world.get_mut::<HeldItem>(player1).0 = 2;
         test.world
             .get_mut::<Inventory>(player1)
-            .set_item_at(slot, stack);
+            .set_item_at(slot.area, slot.slot, stack);
 
         test.handle(
             InventoryUpdateEvent {
@@ -157,7 +161,7 @@ mod tests {
         test.world.get_mut::<HeldItem>(player3).0 = 2;
         test.world
             .get_mut::<Inventory>(player3)
-            .set_item_at(slot, stack);
+            .set_item_at(slot.area, slot.slot, stack);
 
         test.handle(
             InventoryUpdateEvent {
@@ -182,7 +186,7 @@ mod tests {
             |test, player1, player2| {
                 test.world
                     .get_mut::<Inventory>(player1)
-                    .set_item_at(slot, stack);
+                    .set_item_at(slot.area, slot.slot, stack);
                 EntitySendEvent {
                     entity: player1,
                     client: player2,
@@ -209,7 +213,7 @@ mod tests {
 
         test.world
             .get_mut::<Inventory>(player1)
-            .set_item_at(slot, stack);
+            .set_item_at(slot.area, slot.slot, stack);
 
         test.handle(
             InventoryUpdateEvent {

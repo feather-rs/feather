@@ -1,7 +1,8 @@
 use crate::entity::BaseEntityData;
-use feather_inventory::{
-    SlotIndex, HOTBAR_SIZE, INVENTORY_SIZE, SLOT_ARMOR_MAX, SLOT_ARMOR_MIN, SLOT_HOTBAR_OFFSET,
-    SLOT_INVENTORY_OFFSET, SLOT_OFFHAND,
+use feather_inventory::player_constants::{
+    HOTBAR_SIZE, INVENTORY_SIZE, SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET, SLOT_ARMOR_HEAD,
+    SLOT_ARMOR_LEGS, SLOT_ARMOR_MAX, SLOT_ARMOR_MIN, SLOT_HOTBAR_OFFSET, SLOT_INVENTORY_OFFSET,
+    SLOT_OFFHAND,
 };
 use feather_items::{Item, ItemStack};
 use serde::{Deserialize, Serialize};
@@ -45,7 +46,7 @@ impl InventorySlot {
 
     /// Converts a network protocol index, item, and count
     /// to an `InventorySlot`.
-    pub fn from_network_index(network: SlotIndex, stack: ItemStack) -> Self {
+    pub fn from_network_index(network: usize, stack: ItemStack) -> Self {
         let slot = if SLOT_HOTBAR_OFFSET <= network && network < SLOT_HOTBAR_OFFSET + HOTBAR_SIZE {
             // Hotbar
             (network - SLOT_HOTBAR_OFFSET) as i8
@@ -70,7 +71,7 @@ impl InventorySlot {
 
     /// Converts an NBT inventory index to a network protocol index.
     /// Returns None if the index is invalid.
-    pub fn convert_index(&self) -> Option<SlotIndex> {
+    pub fn convert_index(&self) -> Option<usize> {
         if 0 <= self.slot && self.slot <= 8 {
             // Hotbar
             Some(SLOT_HOTBAR_OFFSET + (self.slot as usize))
@@ -173,15 +174,15 @@ mod tests {
         let mut map: HashMap<i8, usize> = HashMap::new();
 
         // Equipment
-        map.insert(103, feather_inventory::SLOT_ARMOR_HEAD);
-        map.insert(102, feather_inventory::SLOT_ARMOR_CHEST);
-        map.insert(101, feather_inventory::SLOT_ARMOR_LEGS);
-        map.insert(100, feather_inventory::SLOT_ARMOR_FEET);
-        map.insert(-106, feather_inventory::SLOT_OFFHAND);
+        map.insert(103, SLOT_ARMOR_HEAD);
+        map.insert(102, SLOT_ARMOR_CHEST);
+        map.insert(101, SLOT_ARMOR_LEGS);
+        map.insert(100, SLOT_ARMOR_FEET);
+        map.insert(-106, SLOT_OFFHAND);
 
         // Hotbar
         for x in 0..9 {
-            map.insert(x, feather_inventory::SLOT_HOTBAR_OFFSET + (x as usize));
+            map.insert(x, SLOT_HOTBAR_OFFSET + (x as usize));
         }
 
         // Rest of inventory
