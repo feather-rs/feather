@@ -42,6 +42,12 @@ pub struct ChunkSendEvent {
     pub player: Entity,
 }
 
+/// Triggered right before a player joins the server.
+#[derive(Copy, Clone, Debug)]
+pub struct PlayerPreJoinEvent {
+    pub player: Entity,
+}
+
 /// Triggered when a player joins the server.
 #[derive(Copy, Clone, Debug)]
 pub struct PlayerJoinEvent {
