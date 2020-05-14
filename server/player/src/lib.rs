@@ -18,7 +18,8 @@ use feather_server_network::NewClientInfo;
 use feather_server_types::{
     CanBreak, CanInstaBreak, CanTakeDamage, ChunkHolder, CreationPacketCreator, EntitySpawnEvent,
     Game, HeldItem, InventoryUpdateEvent, LastKnownPositions, Name, Network, NetworkId, Player,
-    PlayerPreJoinEvent, PlayerJoinEvent, PreviousPosition, ProfileProperties, SpawnPacketCreator, Uuid,
+    PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition, ProfileProperties, SpawnPacketCreator,
+    Uuid,
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
