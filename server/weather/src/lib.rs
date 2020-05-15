@@ -1,5 +1,5 @@
 use feather_core::network::packets::ChangeGameState;
-use feather_server_types::{Game, Network, PlayerJoinEvent, Weather, WeatherChangeEvent};
+use feather_server_types::{Game, Network, PlayerPreJoinEvent, Weather, WeatherChangeEvent};
 use fecs::{Entity, World};
 use rand::Rng;
 
@@ -97,7 +97,7 @@ pub fn set_weather(game: &mut Game, weather: Weather, duration: i32) -> Weather 
 }
 
 #[fecs::event_handler]
-pub fn on_player_join_send_weather(event: &PlayerJoinEvent, game: &Game, world: &mut World) {
+pub fn on_player_join_send_weather(event: &PlayerPreJoinEvent, game: &Game, world: &mut World) {
     send_weather(world, event.player, get_weather(game));
 }
 
