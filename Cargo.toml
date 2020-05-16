@@ -39,7 +39,6 @@ members = [
     "server/worldgen",
 
     "codegen",
-    "generator",
     "data",
     "data/macro"
 ]
