@@ -8,6 +8,7 @@ use feather_server_lighting::LightingWorkerHandle;
 use feather_server_types::{Game, Network, Player};
 use fecs::{IntoQuery, Read, World};
 use tokio::fs::File;
+use tokio::io::AsyncWriteExt;
 
 pub fn init(tx: crossbeam::Sender<()>) {
     ctrlc::set_handler(move || {
@@ -53,10 +54,13 @@ pub async fn save_level(game: &mut Game) -> anyhow::Result<()> {
 
     let level_path = format!("{}/{}", game.config.world.name, "level.dat");
 
+    let mut file = File::create(&level_path).await?;
     game.level
-        .save_to_file(&mut File::create(&level_path).await?)
+        .save_to_file(&mut file)
         .await
         .context("failed to save level file")?;
+
+    file.flush().await?;
 
     Ok(())
 }
