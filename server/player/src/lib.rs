@@ -8,7 +8,7 @@ mod join;
 mod packet_handlers;
 mod view;
 
-use feather_core::inventory::{Inventory, InventoryType};
+use feather_core::inventory::{Area, Inventory, SlotIndex, Window};
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
 use feather_core::network::Packet;
@@ -29,8 +29,6 @@ pub use join::*;
 pub use packet_handlers::*;
 use std::sync::atomic::Ordering;
 pub use view::*;
-
-pub const PLAYER_INVENTORY_SIZE: u32 = 46;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ItemTimedUse {
@@ -80,12 +78,32 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
             ),
         )
     });
-    let slots = info.data.inventory.iter().map(|slot| slot.slot as usize);
 
-    let mut inventory = Inventory::new(InventoryType::Player, PLAYER_INVENTORY_SIZE);
-    items.for_each(|(index, item)| inventory.set_item_at(index, item));
+    let (window, slots) = {
+        let inventory = Inventory::player();
+        let window = Window::player(entity);
+        world.add(entity, inventory).unwrap();
 
-    world.add(entity, inventory).unwrap();
+        let accessor = window.accessor(world).unwrap();
+        items.for_each(|(index, item)| {
+            let _ = accessor.set_item_at(index, item);
+        });
+
+        let window2 = window.clone();
+        let slots = info.data.inventory.iter().map(move |slot| {
+            window2
+                .convert_network(slot.slot as usize)
+                .map(SlotIndex::from)
+                .unwrap_or(SlotIndex {
+                    area: Area::Hotbar,
+                    slot: 0,
+                })
+        });
+
+        drop(accessor);
+        (window, slots)
+    };
+    world.add(entity, window).unwrap();
     world.add(entity, HeldItem(0)).unwrap(); // todo: load from player data
 
     world.add(entity, Player).unwrap();

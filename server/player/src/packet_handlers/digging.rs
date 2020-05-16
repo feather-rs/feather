@@ -7,7 +7,7 @@
 use crate::{ItemTimedUse, IteratorExt};
 use entity::InventoryExt;
 use feather_core::blocks::BlockId;
-use feather_core::inventory::{Inventory, SlotIndex, SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
+use feather_core::inventory::{slot, Area, Inventory, Slot, SlotIndex};
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerDigging, PlayerDiggingStatus};
 use feather_core::util::{BlockPosition, Position};
@@ -165,8 +165,9 @@ pub fn advance_dig_progress(game: &mut Game, world: &mut World) {
             let best_tool = block.kind().best_tool();
             let best_tool_required = block.kind().best_tool_required();
 
-            let item_in_main_hand: Option<ItemStack> =
-                inventory.item_at(SLOT_HOTBAR_OFFSET + held_item.0).unwrap();
+            let item_in_main_hand: Slot = inventory
+                .item_at(Area::Hotbar, held_item.0)
+                .expect("held item out of bounds");
             let held_tool = item_in_main_hand.map(|item| item.ty.tool()).flatten();
 
             let multiplier = if best_tool == held_tool && best_tool.is_some() {
@@ -268,12 +269,10 @@ fn handle_drop_item_stack(
     );
 
     let held_item = world.get::<HeldItem>(player).0;
-    let mut inventory = world.get_mut::<Inventory>(player);
-
-    let slot = held_item + SLOT_HOTBAR_OFFSET;
+    let inventory = world.get::<Inventory>(player);
 
     let stack = {
-        if let Some(item) = inventory.item_at(slot).unwrap() {
+        if let Some(item) = inventory.item_at(Area::Hotbar, held_item).unwrap() {
             item
         } else {
             // Silently fail - no item stack to drop
@@ -284,18 +283,24 @@ fn handle_drop_item_stack(
     let amnt = match packet.status {
         PlayerDiggingStatus::DropItem => {
             if stack.amount == 0 {
-                inventory.clear_item_at(slot);
+                inventory.remove_item_at(Area::Hotbar, held_item).unwrap();
                 0
             } else if stack.amount == 1 {
-                inventory.clear_item_at(slot);
+                inventory.remove_item_at(Area::Hotbar, held_item).unwrap();
                 1
             } else {
-                inventory.set_item_at(slot, ItemStack::new(stack.ty, stack.amount - 1));
+                inventory
+                    .set_item_at(
+                        Area::Hotbar,
+                        held_item,
+                        ItemStack::new(stack.ty, stack.amount - 1),
+                    )
+                    .unwrap();
                 1
             }
         }
         PlayerDiggingStatus::DropItemStack => {
-            inventory.clear_item_at(slot);
+            inventory.remove_item_at(Area::Hotbar, held_item).unwrap();
             stack.amount
         }
         _ => unreachable!(), // Assertion above
@@ -303,15 +308,19 @@ fn handle_drop_item_stack(
 
     drop(inventory);
 
+    let idx = SlotIndex {
+        area: Area::Hotbar,
+        slot: held_item,
+    };
     let inv_update = InventoryUpdateEvent {
-        slots: smallvec![slot],
+        slots: smallvec![idx],
         player,
     };
     game.handle(world, inv_update);
 
     if amnt != 0 {
         let item_drop = ItemDropEvent {
-            slot: Some(slot),
+            slot: Some(idx),
             stack: ItemStack::new(stack.ty, amnt),
             player,
         };
@@ -420,24 +429,24 @@ fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
 fn find_arrow(inventory: &Inventory) -> Option<(SlotIndex, ItemStack)> {
     // Order of priority is: off-hand, hotbar (0 to 8), rest of inventory
 
-    if let Some(offhand) = inventory.item_at(SLOT_OFFHAND).unwrap() {
+    if let Some(offhand) = inventory.item_at(Area::Hotbar, 0).unwrap() {
         if is_arrow_item(offhand.ty) {
-            return Some((SLOT_OFFHAND, offhand));
+            return Some((slot(Area::Offhand, 0), offhand));
         }
     }
 
     for hotbar_slot in 0..9 {
-        if let Some(hotbar_stack) = inventory.item_at(SLOT_HOTBAR_OFFSET + hotbar_slot).unwrap() {
+        if let Some(hotbar_stack) = inventory.item_at(Area::Hotbar, hotbar_slot).unwrap() {
             if is_arrow_item(hotbar_stack.ty) {
-                return Some((SLOT_HOTBAR_OFFSET + hotbar_slot, hotbar_stack));
+                return Some((slot(Area::Hotbar, hotbar_slot), hotbar_stack));
             }
         }
     }
 
-    for inv_slot in 9..=35 {
-        if let Some(inv_stack) = inventory.item_at(inv_slot).unwrap() {
+    for inv_slot in 0..=27 {
+        if let Some(inv_stack) = inventory.item_at(Area::Main, inv_slot).unwrap() {
             if is_arrow_item(inv_stack.ty) {
-                return Some((inv_slot, inv_stack));
+                return Some((slot(Area::Main, inv_slot), inv_stack));
             }
         }
     }

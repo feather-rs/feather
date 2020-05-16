@@ -51,11 +51,20 @@ pub mod constants {
 pub struct Index {
     /// The index into `Window.inventories`, used
     /// when the window consists of multiple inventories.
-    inventory: usize,
+    pub inventory: usize,
     /// The area inside the inventory.
-    area: Area,
+    pub area: Area,
     /// The index inside the area.
-    slot: usize,
+    pub slot: usize,
+}
+
+impl From<Index> for SlotIndex {
+    fn from(idx: Index) -> Self {
+        SlotIndex {
+            area: idx.area,
+            slot: idx.slot,
+        }
+    }
 }
 
 /// Error returned when a `Window` fails to create

@@ -1,8 +1,7 @@
 use crate::entity::BaseEntityData;
 use feather_inventory::player_constants::{
-    HOTBAR_SIZE, INVENTORY_SIZE, SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET, SLOT_ARMOR_HEAD,
-    SLOT_ARMOR_LEGS, SLOT_ARMOR_MAX, SLOT_ARMOR_MIN, SLOT_HOTBAR_OFFSET, SLOT_INVENTORY_OFFSET,
-    SLOT_OFFHAND,
+    HOTBAR_SIZE, INVENTORY_SIZE, SLOT_ARMOR_MAX, SLOT_ARMOR_MIN, SLOT_HOTBAR_OFFSET,
+    SLOT_INVENTORY_OFFSET, SLOT_OFFHAND,
 };
 use feather_items::{Item, ItemStack};
 use serde::{Deserialize, Serialize};
@@ -132,6 +131,9 @@ fn file_path(world_dir: &Path, uuid: Uuid) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use feather_inventory::player_constants::{
+        SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET, SLOT_ARMOR_HEAD, SLOT_ARMOR_LEGS,
+    };
     use feather_util::Gamemode;
     use std::collections::HashMap;
     use std::io::Cursor;

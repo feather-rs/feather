@@ -304,7 +304,8 @@ impl Inventory {
             slot.area,
             slot.slot,
             ItemStack::new(slot_item.ty, slot_item.amount + added),
-        );
+        )
+        .unwrap();
         affected_slots.push(slot);
     }
 

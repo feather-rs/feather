@@ -3,7 +3,7 @@
 //! Change, and the venerable Click Window.
 
 use crate::IteratorExt;
-use feather_core::inventory::{Inventory, SlotIndex, HOTBAR_SIZE, SLOT_HOTBAR_OFFSET};
+use feather_core::inventory::{Area, Inventory, SlotIndex, Window};
 use feather_core::items::ItemStack;
 use feather_core::network::packets::{
     ClickWindow, ConfirmTransactionClientbound, CreativeInventoryAction, HeldItemChangeServerbound,
@@ -61,31 +61,32 @@ pub fn handle_creative_inventory_action(
             }
 
             let inventory = world.get::<Inventory>(player);
-            let slot_count = inventory.slot_count() as i16;
-            drop(inventory);
+            let window = world.get::<Window>(player);
 
-            if packet.slot >= slot_count || packet.slot < -1 {
-                game.disconnect(player, world, "Slot index out of bounds");
+            let accessor = match window.accessor(world) {
+                Ok(a) => a,
+                Err(_) => return, // silently fail
+            };
+
+            let slot = packet.clicked_item;
+
+            if let Err(e) = accessor.set_item_at(packet.slot as usize, slot.unwrap_or_default()) {
+                drop(inventory);
+                drop(accessor);
+                drop(window);
+                game.disconnect(player, world, format!("Slot index out of bounds: {}", e));
                 return;
             }
 
-            let mut inventory = world.get_mut::<Inventory>(player);
-
-            match packet.clicked_item.as_ref() {
-                Some(item) => {
-                    inventory.set_item_at(packet.slot as usize, *item);
-                }
-                None => {
-                    inventory.clear_item_at(packet.slot as usize);
-                }
-            }
-
             // Trigger inventory update event
+            let index = window.convert_network(packet.slot as usize).unwrap(); // already checked above
             let event = InventoryUpdateEvent {
-                slots: std::iter::once(packet.slot as usize).collect(),
+                slots: smallvec![index.into()],
                 player,
             };
             drop(inventory);
+            drop(accessor);
+            drop(window);
             game.handle(world, event);
         });
 }
@@ -100,7 +101,7 @@ pub fn handle_held_item_change(
     packet_buffers
         .received::<HeldItemChangeServerbound>()
         .for_each_valid(world, |world, (player, packet)| {
-            if packet.slot as usize >= HOTBAR_SIZE {
+            if packet.slot as usize >= 9 {
                 game.disconnect(player, world, "Hotbar index out of bounds");
                 return;
             }
@@ -110,7 +111,10 @@ pub fn handle_held_item_change(
 
             // Trigger event
             let event = InventoryUpdateEvent {
-                slots: std::iter::once(held_item.0 as usize + SLOT_HOTBAR_OFFSET).collect(),
+                slots: smallvec![SlotIndex {
+                    area: Area::Hotbar,
+                    slot: held_item.0
+                }],
                 player,
             };
             drop(held_item);
@@ -329,10 +333,10 @@ fn handle_single_click(
         // type in the slot, then the picked up item and
         // the item in the slot are swapped.
 
-        let inv = world.get::<Inventory>(player);
-        let current_item = inv.item_at(packet.slot as SlotIndex)?;
+        let window = world.get::<Window>(player);
+        let accessor = window.accessor(world)?;
+        let current_item = accessor.item_at(packet.slot as usize)?;
 
-        drop(inv);
         if let Some(current_item) = current_item.and_then(|item| {
             if item.ty == picked.0.ty {
                 None
@@ -341,10 +345,10 @@ fn handle_single_click(
             }
         }) {
             // Different items - swap
+            accessor.set_item_at(packet.slot as usize, picked.0)?;
+            drop(accessor);
+            drop(window);
             world.get_mut::<PickedItem>(player).0 = current_item;
-            world
-                .get_mut::<Inventory>(player)
-                .set_item_at(packet.slot as SlotIndex, picked.0);
         } else {
             // Place item on slot
             let count = match button {
@@ -355,10 +359,11 @@ fn handle_single_click(
             let current_count = current_item.map(|stack| stack.amount).unwrap_or(0);
             let new_count = (count + current_count).min(picked.0.ty.stack_size() as u8);
 
-            world.get_mut::<Inventory>(player).set_item_at(
-                packet.slot as SlotIndex,
-                ItemStack::new(picked.0.ty, new_count),
-            );
+            accessor.set_item_at(packet.slot as usize, ItemStack::new(picked.0.ty, new_count))?;
+
+            drop(accessor);
+            drop(window);
+
             world.get_mut::<PickedItem>(player).0.amount -= new_count - current_count;
 
             if world.get::<PickedItem>(player).0.amount == 0 {
@@ -366,34 +371,36 @@ fn handle_single_click(
             }
         }
     } else {
+        let window = world.get::<Window>(player);
+        let accessor = window.accessor(world)?;
+
         // Pick up the item in the slot
-        let picked_up = world
-            .get::<Inventory>(player)
-            .item_at(packet.slot as SlotIndex)?;
+        let picked_up = accessor.item_at(packet.slot as usize)?;
         let mut count = picked_up.map(|item| item.amount).unwrap_or(0);
         if button == MouseButton::Right {
             count = (count + 1) / 2;
         }
         if let Some(item) = picked_up {
+            accessor.set_item_at(
+                packet.slot as usize,
+                ItemStack::new(item.ty, item.amount - count),
+            )?;
+
+            drop(accessor);
+            drop(window);
             world
                 .add(player, PickedItem(ItemStack::new(item.ty, count)))
                 .unwrap();
-
-            let mut inv = world.get_mut::<Inventory>(player);
-            inv.set_item_at(
-                packet.slot as SlotIndex,
-                ItemStack::new(item.ty, item.amount - count),
-            )
         }
     }
 
-    game.handle(
-        world,
-        InventoryUpdateEvent {
-            player,
-            slots: smallvec![packet.slot as SlotIndex],
-        },
-    );
+    let window = world.get::<Window>(player);
+    let slots = smallvec![window
+        .convert_network(packet.slot as usize)
+        .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?
+        .into()];
+    drop(window);
+    game.handle(world, InventoryUpdateEvent { player, slots });
 
     Ok(())
 }

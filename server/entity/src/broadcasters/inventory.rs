@@ -119,9 +119,6 @@ fn is_equipment_update(held_item: usize, slot: SlotIndex) -> Result<Equipment, (
 #[cfg(test)]
 mod tests {
     use super::*;
-    use feather_core::inventory::{
-        SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET, SLOT_ARMOR_HEAD, SLOT_ARMOR_LEGS, SLOT_INVENTORY_OFFSET,
-    };
     use feather_core::items::{Item, ItemStack};
     use feather_test_framework::Test;
     use smallvec::smallvec;
@@ -134,12 +131,16 @@ mod tests {
         let player2 = test.player("", position!(45.0, 150.0, 45.0));
         let player3 = test.player("", position!(1000.00, 100.0, 0.0));
 
-        let slot = SLOT_HOTBAR_OFFSET + 2;
+        let slot = SlotIndex {
+            area: Area::Hotbar,
+            slot: 2,
+        };
         let stack = ItemStack::new(Item::Stone, 48);
         test.world.get_mut::<HeldItem>(player1).0 = 2;
         test.world
-            .get_mut::<Inventory>(player1)
-            .set_item_at(slot.area, slot.slot, stack);
+            .get::<Inventory>(player1)
+            .set_item_at(slot.area, slot.slot, stack)
+            .unwrap();
 
         test.handle(
             InventoryUpdateEvent {
@@ -160,8 +161,9 @@ mod tests {
         // now do player3
         test.world.get_mut::<HeldItem>(player3).0 = 2;
         test.world
-            .get_mut::<Inventory>(player3)
-            .set_item_at(slot.area, slot.slot, stack);
+            .get::<Inventory>(player3)
+            .set_item_at(slot.area, slot.slot, stack)
+            .unwrap();
 
         test.handle(
             InventoryUpdateEvent {
@@ -181,12 +183,16 @@ mod tests {
         let mut test = Test::new();
 
         let stack = ItemStack::new(Item::EnderPearl, 15);
-        let slot = SLOT_HOTBAR_OFFSET;
+        let slot = SlotIndex {
+            area: Area::Hotbar,
+            slot: 0,
+        };
         let (packet, player) = test.broadcast_routine::<EntityEquipment, _, _, _>(
             |test, player1, player2| {
                 test.world
-                    .get_mut::<Inventory>(player1)
-                    .set_item_at(slot.area, slot.slot, stack);
+                    .get::<Inventory>(player1)
+                    .set_item_at(slot.area, slot.slot, stack)
+                    .unwrap();
                 EntitySendEvent {
                     entity: player1,
                     client: player2,
@@ -206,14 +212,18 @@ mod tests {
         let mut test = Test::new();
 
         let stack = ItemStack::new(Item::RedstoneOre, 4);
-        let slot = SLOT_INVENTORY_OFFSET + 4;
+        let slot = SlotIndex {
+            area: Area::Main,
+            slot: 4,
+        };
 
         let player1 = test.player("", position!(0.0, 74.0, 0.0));
         let player2 = test.player("", position!(0.0, 50.0, 1.5));
 
         test.world
-            .get_mut::<Inventory>(player1)
-            .set_item_at(slot.area, slot.slot, stack);
+            .get::<Inventory>(player1)
+            .set_item_at(slot.area, slot.slot, stack)
+            .unwrap();
 
         test.handle(
             InventoryUpdateEvent {
@@ -224,33 +234,12 @@ mod tests {
         );
 
         let packet = test.sent::<SetSlot>(player1).unwrap();
-        assert_eq!(packet.slot, slot as i16);
+        assert_eq!(
+            packet.slot,
+            Window::player(player1).convert_slot(slot, player1).unwrap() as i16
+        );
         assert_eq!(packet.slot_data, Some(stack));
 
         assert!(test.sent::<SetSlot>(player2).is_none());
-    }
-
-    #[test]
-    fn test_is_equipment_update() {
-        let results = vec![
-            (1, SLOT_HOTBAR_OFFSET + 1, Ok(Equipment::MainHand)),
-            (4, SLOT_HOTBAR_OFFSET + 4, Ok(Equipment::MainHand)),
-            (2, SLOT_INVENTORY_OFFSET, Err(())),
-            (0, SLOT_ARMOR_CHEST, Ok(Equipment::Chestplate)),
-            (0, SLOT_ARMOR_FEET, Ok(Equipment::Boots)),
-            (0, SLOT_ARMOR_LEGS, Ok(Equipment::Leggings)),
-            (0, SLOT_ARMOR_HEAD, Ok(Equipment::Helmet)),
-            (0, 10000, Err(())),
-        ];
-
-        for (held_item, slot, expected) in results {
-            assert_eq!(
-                is_equipment_update(held_item, slot),
-                expected,
-                "failed at {} {}",
-                held_item,
-                slot
-            );
-        }
     }
 }
