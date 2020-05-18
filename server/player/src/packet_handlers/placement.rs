@@ -3,13 +3,14 @@
 use crate::IteratorExt;
 use entity::InventoryExt;
 use feather_core::blocks::BlockKind;
-use feather_core::inventory::{Inventory, SLOT_HOTBAR_OFFSET};
+use feather_core::inventory::{slot, Area, Inventory};
 use feather_core::item_block::ItemToBlock;
 use feather_core::items::ItemStack;
 use feather_core::network::packets::PlayerBlockPlacement;
 use feather_core::util::Gamemode;
 use feather_server_types::{BlockUpdateCause, Game, HeldItem, InventoryUpdateEvent, PacketBuffers};
 use fecs::World;
+use smallvec::smallvec;
 use std::sync::Arc;
 
 /// System for handling Player Block Placement packets
@@ -58,7 +59,7 @@ pub fn handle_player_block_placement(
             game.set_block_at(world, pos, block, BlockUpdateCause::Entity(player));
 
             let held_item = world.get::<HeldItem>(player).0;
-            let mut inventory = world.get_mut::<Inventory>(player);
+            let inventory = world.get::<Inventory>(player);
 
             // Update player's inventory if in survival
             if gamemode == Gamemode::Survival {
@@ -73,10 +74,12 @@ pub fn handle_player_block_placement(
                 }
 
                 let item = ItemStack::new(item.ty, item.amount - 1);
-                inventory.set_item_at(held_item, item);
+                inventory
+                    .set_item_at(Area::Hotbar, held_item, item)
+                    .unwrap();
 
                 let event = InventoryUpdateEvent {
-                    slots: std::iter::once(SLOT_HOTBAR_OFFSET + held_item).collect(),
+                    slots: smallvec![slot(Area::Hotbar, held_item)],
                     player,
                 };
                 drop(inventory);
