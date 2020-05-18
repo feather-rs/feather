@@ -30,7 +30,7 @@ feather-server-util = { path = "util" }
 feather-server-weather = { path = "weather" }
 feather-server-worldgen = { path = "worldgen" }
 
-fecs = { git = "https://github.com/feather-rs/fecs", rev = "fed8bcb516941b12cb980e354e77b699be075a89" }
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "0c4838d65b41ca059012b6e9147eabf0c275a731" }
 tokio = { version = "0.2", features = ["full"] }
 simple_logger = "1.6"
 log = "0.4"

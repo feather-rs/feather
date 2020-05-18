@@ -101,6 +101,9 @@ impl CommandState {
                 tp_2,
                 tp_3,
                 tp_4,
+
+                gamemode_1,
+                gamemode_2,
         }
 
         Self {

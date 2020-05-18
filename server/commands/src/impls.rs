@@ -1,9 +1,12 @@
 //! The implementations of various commands.
 
 use crate::arguments::Coordinates;
-use crate::{arguments::EntitySelector, CommandCtx};
-use feather_core::util::Position;
-use feather_server_types::Teleported;
+use crate::{
+    arguments::{EntitySelector, ParsedGamemode},
+    CommandCtx,
+};
+use feather_core::util::{Gamemode, Position};
+use feather_server_types::{GamemodeUpdateEvent, Teleported};
 use fecs::{Entity, World};
 use lieutenant::command;
 use thiserror::Error;
@@ -83,4 +86,43 @@ fn teleport_entity_to_pos(world: &mut World, entity: Entity, pos: Position) {
         *old_pos = pos;
     }
     let _ = world.add(entity, Teleported);
+}
+
+#[command(usage = "gamemode <gamemode>")]
+pub fn gamemode_1(ctx: &mut CommandCtx, gamemode: ParsedGamemode) -> anyhow::Result<()> {
+    update_gamemode(ctx, gamemode.0, ctx.sender);
+    Ok(())
+}
+
+#[command(usage = "gamemode <gamemode> <target>")]
+pub fn gamemode_2(
+    ctx: &mut CommandCtx,
+    gamemode: ParsedGamemode,
+    target: EntitySelector,
+) -> anyhow::Result<()> {
+    for entity in target.entities {
+        update_gamemode(ctx, gamemode.0, entity)
+    }
+
+    Ok(())
+}
+
+fn update_gamemode(ctx: &mut CommandCtx, gamemode: Gamemode, entity: Entity) {
+    let event = if let Some(mut old) = ctx.world.try_get_mut::<Gamemode>(ctx.sender) {
+        let old_val = *old;
+        *old = gamemode;
+
+        let event = GamemodeUpdateEvent {
+            player: entity,
+            old: old_val,
+            new: gamemode,
+        };
+        Some(event)
+    } else {
+        None
+    };
+
+    if let Some(event) = event {
+        ctx.game.handle(&mut *ctx.world, event);
+    }
 }

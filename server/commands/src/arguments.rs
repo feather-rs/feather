@@ -1,6 +1,6 @@
 use crate::CommandCtx;
 use feather_core::position;
-use feather_core::util::Position;
+use feather_core::util::{Gamemode, Position};
 use feather_server_types::{Game, Name, NetworkId, Player};
 use fecs::{component, Entity, IntoQuery, Read, World};
 use lieutenant::{ArgumentKind, Input};
@@ -238,5 +238,37 @@ impl ArgumentKind<CommandCtx> for Coordinates {
         let z = Coordinate::from_str(z)?;
 
         Ok(Coordinates { x, y, z })
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum GamemodeParseError {
+    #[error("invalid gamemode string {0}")]
+    InvalidGamemode(String),
+}
+
+/// A parsed gamemode string ("survival", "creative", ...)
+#[derive(Copy, Clone, Debug)]
+pub struct ParsedGamemode(pub Gamemode);
+
+impl ArgumentKind<CommandCtx> for ParsedGamemode {
+    type ParseError = GamemodeParseError;
+
+    fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
+        !input.advance_until(" ").is_empty()
+    }
+
+    fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
+        let s = input.advance_until(" ");
+
+        let gamemode = match s {
+            "survival" => Gamemode::Survival,
+            "creative" => Gamemode::Creative,
+            "spectator" => Gamemode::Spectator,
+            "adventure" => Gamemode::Adventure,
+            s => return Err(GamemodeParseError::InvalidGamemode(s.to_owned())),
+        };
+
+        Ok(ParsedGamemode(gamemode))
     }
 }

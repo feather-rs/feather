@@ -1241,7 +1241,7 @@ version = "0.1.0"
 [[package]]
 name = "fecs"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=fed8bcb516941b12cb980e354e77b699be075a89#fed8bcb516941b12cb980e354e77b699be075a89"
+source = "git+https://github.com/feather-rs/fecs?rev=0c4838d65b41ca059012b6e9147eabf0c275a731#0c4838d65b41ca059012b6e9147eabf0c275a731"
 dependencies = [
  "arrayvec 0.5.1",
  "erasable",
@@ -1256,7 +1256,7 @@ dependencies = [
 [[package]]
 name = "fecs-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=fed8bcb516941b12cb980e354e77b699be075a89#fed8bcb516941b12cb980e354e77b699be075a89"
+source = "git+https://github.com/feather-rs/fecs?rev=0c4838d65b41ca059012b6e9147eabf0c275a731#0c4838d65b41ca059012b6e9147eabf0c275a731"
 dependencies = [
  "proc-macro2 1.0.13",
  "quote 1.0.1",
