@@ -82,5 +82,8 @@ pub fn build_event_handlers() -> EventHandlers {
         on_finish_digging_remove_animation,
 
         on_start_digging_init_stage,
+
+        on_gamemode_update_update_capabilities,
+        on_gamemode_update_send,
     }
 }

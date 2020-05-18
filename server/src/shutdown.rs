@@ -5,7 +5,7 @@ use feather_core::text::{Text, TextRoot};
 use feather_server_chunk::chunk_worker::Request;
 use feather_server_chunk::{save_chunk_at, ChunkWorkerHandle};
 use feather_server_lighting::LightingWorkerHandle;
-use feather_server_types::{Game, Network, Player};
+use feather_server_types::{tasks, Game, Network, Player};
 use fecs::{IntoQuery, Read, World};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
@@ -73,8 +73,8 @@ pub fn save_player_data(game: &Game, world: &World) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub async fn wait_for_task_completion(game: &Game) -> anyhow::Result<()> {
-    game.running_tasks.wait().await;
+pub async fn wait_for_task_completion() -> anyhow::Result<()> {
+    tasks().wait().await;
     Ok(())
 }
 

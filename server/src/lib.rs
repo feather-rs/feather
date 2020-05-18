@@ -134,7 +134,7 @@ async fn shut_down(resources: &OwnedResources, world: &mut World) -> anyhow::Res
     log::info!("Saving player data");
     shutdown::save_player_data(&*resources.get::<Game>(), &world)?;
     log::info!("Waiting for tasks to finish");
-    shutdown::wait_for_task_completion(&*resources.get::<Game>()).await?;
+    shutdown::wait_for_task_completion().await?;
 
     Ok(())
 }

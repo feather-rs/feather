@@ -2,7 +2,7 @@ use crate::Weather;
 use feather_core::blocks::BlockId;
 use feather_core::inventory::SlotIndex;
 use feather_core::items::ItemStack;
-use feather_core::util::{BlockPosition, ChunkPosition, ClientboundAnimation, Position};
+use feather_core::util::{BlockPosition, ChunkPosition, ClientboundAnimation, Gamemode, Position};
 use fecs::Entity;
 use smallvec::SmallVec;
 
@@ -214,6 +214,14 @@ pub struct WeatherChangeEvent {
     pub from: Weather,
     pub to: Weather,
     pub duration: i32,
+}
+
+/// Triggered when a player's gamemode is updated.
+#[derive(Copy, Clone, Debug)]
+pub struct GamemodeUpdateEvent {
+    pub player: Entity,
+    pub old: Gamemode,
+    pub new: Gamemode,
 }
 
 /// Requests that a chunk be held for the given client.

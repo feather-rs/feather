@@ -10,7 +10,7 @@ feather-server-types = { path = "../types" }
 feather-server-util = { path = "../util" }
 feather-server-worldgen = { path = "../worldgen" }
 
-fecs = { git = "https://github.com/feather-rs/fecs", rev = "fed8bcb516941b12cb980e354e77b699be075a89" }
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "0c4838d65b41ca059012b6e9147eabf0c275a731" }
 parking_lot = "0.10"
 ahash = "0.3"
 rayon = "1.3"

@@ -8,7 +8,7 @@ edition = "2018"
 feather-core = { path = "../../core" }
 feather-server-types = { path = "../types" }
 
-fecs = { git = "https://github.com/feather-rs/fecs", rev = "fed8bcb516941b12cb980e354e77b699be075a89" }
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "0c4838d65b41ca059012b6e9147eabf0c275a731" }
 tokio = { version = "0.2", features = ["full"] }
 tokio-util = { version = "0.3", features = ["codec"] }
 flume = "0.7"

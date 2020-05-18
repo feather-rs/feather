@@ -13,6 +13,7 @@ pub use uuid::Uuid;
 
 use ahash::AHashSet;
 use dashmap::DashMap;
+use feather_core::text::Text;
 use feather_core::util::{ChunkPosition, Position};
 use fecs::Entity;
 
@@ -83,3 +84,23 @@ pub struct ProfileProperties(pub Vec<mojang_api::ProfileProperty>);
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct ParticleCount(pub u32);
+
+/// Component added to entities to which messages can be sent.
+#[derive(Default, Debug)]
+pub struct MessageReceiver {
+    /// Internal buffer of messages to send
+    buffer: Vec<Text>,
+}
+
+impl MessageReceiver {
+    /// Sends a message to the entity.
+    pub fn send(&mut self, message: impl Into<Text>) {
+        self.buffer.push(message.into());
+    }
+
+    /// Flushes the message buffer, returning an iterator
+    /// over messages.
+    pub fn flush<'a>(&'a mut self) -> impl Iterator<Item = Text> + 'a {
+        self.buffer.drain(..)
+    }
+}

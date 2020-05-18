@@ -309,6 +309,7 @@ pub static IMPL_MAP: Lazy<AHashMap<PacketType, PacketBuilder>> = Lazy::new(|| {
         SpawnPosition,
         TimeUpdate,
         CollectItem,
+        EntityTeleport,
         Response,
         Pong,
     );
@@ -2278,4 +2279,15 @@ pub struct CollectItem {
     pub collected: VarInt,
     pub collector: VarInt,
     pub count: VarInt,
+}
+
+#[derive(Default, AsAny, Packet, Clone)]
+pub struct EntityTeleport {
+    pub entity_id: VarInt,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub yaw: u8,
+    pub pitch: u8,
+    pub on_ground: bool,
 }

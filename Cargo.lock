@@ -533,6 +533,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "darling"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d706e75d87e35569db781a9b5e2416cff1236a47ed380831f959382ccd5f858"
+dependencies = [
+ "darling_core",
+ "darling_macro",
+]
+
+[[package]]
+name = "darling_core"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0c960ae2da4de88a91b2d920c2a7233b400bc33cb28453a2987822d8392519b"
+dependencies = [
+ "fnv",
+ "ident_case",
+ "proc-macro2 1.0.13",
+ "quote 1.0.1",
+ "strsim",
+ "syn 1.0.22",
+]
+
+[[package]]
+name = "darling_macro"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9b5a2f4ac4969822c62224815d069952656cadc7084fdca9751e6d959189b72"
+dependencies = [
+ "darling_core",
+ "quote 1.0.1",
+ "syn 1.0.22",
+]
+
+[[package]]
 name = "dashmap"
 version = "3.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -926,6 +961,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "feather-server-commands"
+version = "0.6.0"
+dependencies = [
+ "anyhow",
+ "feather-core",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
+ "lieutenant",
+ "rand",
+ "smallvec",
+ "thiserror",
+ "vek",
+]
+
+[[package]]
 name = "feather-server-config"
 version = "0.6.0"
 dependencies = [
@@ -1041,6 +1092,7 @@ dependencies = [
  "ahash",
  "anyhow",
  "feather-core",
+ "feather-server-commands",
  "feather-server-entity",
  "feather-server-network",
  "feather-server-types",
@@ -1084,6 +1136,7 @@ dependencies = [
  "mojang-api",
  "nalgebra-glm",
  "ncollide3d",
+ "once_cell",
  "parking_lot",
  "rand",
  "smallvec",
@@ -1188,7 +1241,7 @@ version = "0.1.0"
 [[package]]
 name = "fecs"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=fed8bcb516941b12cb980e354e77b699be075a89#fed8bcb516941b12cb980e354e77b699be075a89"
+source = "git+https://github.com/feather-rs/fecs?rev=0c4838d65b41ca059012b6e9147eabf0c275a731#0c4838d65b41ca059012b6e9147eabf0c275a731"
 dependencies = [
  "arrayvec 0.5.1",
  "erasable",
@@ -1203,7 +1256,7 @@ dependencies = [
 [[package]]
 name = "fecs-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/fecs?rev=fed8bcb516941b12cb980e354e77b699be075a89#fed8bcb516941b12cb980e354e77b699be075a89"
+source = "git+https://github.com/feather-rs/fecs?rev=0c4838d65b41ca059012b6e9147eabf0c275a731#0c4838d65b41ca059012b6e9147eabf0c275a731"
 dependencies = [
  "proc-macro2 1.0.13",
  "quote 1.0.1",
@@ -1619,6 +1672,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ident_case"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
+
+[[package]]
 name = "idna"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1790,6 +1849,29 @@ name = "libm"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c7d73b3f436185384286bd8098d17ec07c9a7d2388a6599f824d8502b529702a"
+
+[[package]]
+name = "lieutenant"
+version = "0.1.0"
+source = "git+https://github.com/feather-rs/lieutenant?branch=cleanup#7049fe8baaa9f32a9e2e38cd7490ade3f07e763d"
+dependencies = [
+ "derivative 2.1.1",
+ "lieutenant-macros",
+ "slab",
+ "smallvec",
+]
+
+[[package]]
+name = "lieutenant-macros"
+version = "0.1.0"
+source = "git+https://github.com/feather-rs/lieutenant?branch=cleanup#7049fe8baaa9f32a9e2e38cd7490ade3f07e763d"
+dependencies = [
+ "darling",
+ "proc-macro-error",
+ "proc-macro2 1.0.13",
+ "quote 1.0.1",
+ "syn 1.0.22",
+]
 
 [[package]]
 name = "lock_api"
@@ -2980,6 +3062,12 @@ checksum = "8131256a5896cabcf5eb04f4d6dacbe1aefda854b0d9896e09cb58829ec5638c"
 dependencies = [
  "generic-array 0.12.3",
 ]
+
+[[package]]
+name = "strsim"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6446ced80d6c486436db5c078dde11a9f73d42b57fb273121e160b84f63d894c"
 
 [[package]]
 name = "strum"

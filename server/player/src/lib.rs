@@ -17,9 +17,9 @@ use feather_core::util::{Gamemode, Position};
 use feather_server_network::NewClientInfo;
 use feather_server_types::{
     CanBreak, CanInstaBreak, CanTakeDamage, ChunkHolder, CreationPacketCreator, EntitySpawnEvent,
-    Game, HeldItem, InventoryUpdateEvent, LastKnownPositions, Name, Network, NetworkId, Player,
-    PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition, ProfileProperties, SpawnPacketCreator,
-    Uuid,
+    Game, GamemodeUpdateEvent, HeldItem, InventoryUpdateEvent, LastKnownPositions, MessageReceiver,
+    Name, Network, NetworkId, Player, PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition,
+    ProfileProperties, SpawnPacketCreator, Uuid,
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
@@ -107,6 +107,8 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     world.add(entity, window).unwrap();
     world.add(entity, HeldItem(0)).unwrap(); // todo: load from player data
 
+    world.add(entity, MessageReceiver::default()).unwrap();
+
     world.add(entity, Player).unwrap();
 
     game.player_count.fetch_add(1, Ordering::SeqCst);
@@ -126,6 +128,12 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
 
 fn add_gamemode_comps(world: &mut World, gamemode: Gamemode, entity: Entity) {
     world.add(entity, gamemode).unwrap();
+
+    // Remove old gamemode comps
+    let _ = world.remove::<CanTakeDamage>(entity);
+    let _ = world.remove::<CanInstaBreak>(entity);
+    let _ = world.remove::<CanBreak>(entity);
+
     match gamemode {
         Gamemode::Survival | Gamemode::Adventure => world.add(entity, CanTakeDamage).unwrap(),
         Gamemode::Creative => world.add(entity, CanInstaBreak).unwrap(),
@@ -134,6 +142,15 @@ fn add_gamemode_comps(world: &mut World, gamemode: Gamemode, entity: Entity) {
 
     if gamemode == Gamemode::Survival || gamemode == Gamemode::Creative {
         world.add(entity, CanBreak).unwrap();
+    }
+}
+
+/// When a player's gamemode is updated, updates their capability
+/// marker components (`CanBreak`, `CanTakeDamage`, etc)
+#[fecs::event_handler]
+pub fn on_gamemode_update_update_capabilities(event: &GamemodeUpdateEvent, world: &mut World) {
+    if world.is_alive(event.player) {
+        add_gamemode_comps(world, event.new, event.player);
     }
 }
 

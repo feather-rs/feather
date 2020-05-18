@@ -1,7 +1,8 @@
 //! Broadcasting of movement updates.
 
 use feather_core::network::packets::{
-    EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityVelocity,
+    EntityHeadLook, EntityLook, EntityLookAndRelativeMove, EntityRelativeMove, EntityTeleport,
+    EntityVelocity,
 };
 use feather_core::network::Packet;
 use feather_core::util::Position;
@@ -137,37 +138,53 @@ fn packets_for_movement_update(
         || old_pos.on_ground != new_pos.on_ground;
 
     if has_moved {
-        let (rx, ry, rz) = calculate_relative_move(old_pos, new_pos);
-
-        if (rx == 0 && ry == 0 && rz == 0) && !has_looked {
-            // Because of floating point errors,
-            // the physics system may trigger an
-            // event when the distance moved is minuscule,
-            // which causes jittering on the client.
-            // Don't send the packet if it has no effect.
-            return SmallVec::new();
-        }
-
-        if has_looked {
-            let packet: Box<dyn Packet> = Box::new(EntityLookAndRelativeMove {
+        let dist = old_pos.distance_squared_to(new_pos);
+        if dist > 64.0 {
+            // Entity Teleport
+            let packet: Box<dyn Packet> = Box::new(EntityTeleport {
                 entity_id,
-                delta_x: rx,
-                delta_y: ry,
-                delta_z: rz,
+                x: new_pos.x,
+                y: new_pos.y,
+                z: new_pos.z,
                 yaw: degrees_to_stops(new_pos.yaw),
                 pitch: degrees_to_stops(new_pos.pitch),
                 on_ground: new_pos.on_ground,
             });
             packets.push(packet);
         } else {
-            let packet: Box<dyn Packet> = Box::new(EntityRelativeMove {
-                entity_id,
-                delta_x: rx,
-                delta_y: ry,
-                delta_z: rz,
-                on_ground: new_pos.on_ground,
-            });
-            packets.push(packet);
+            // Relative movement packets
+            let (rx, ry, rz) = calculate_relative_move(old_pos, new_pos);
+
+            if (rx == 0 && ry == 0 && rz == 0) && !has_looked {
+                // Because of floating point errors,
+                // the physics system may trigger an
+                // event when the distance moved is minuscule,
+                // which causes jittering on the client.
+                // Don't send the packet if it has no effect.
+                return SmallVec::new();
+            }
+
+            if has_looked {
+                let packet: Box<dyn Packet> = Box::new(EntityLookAndRelativeMove {
+                    entity_id,
+                    delta_x: rx,
+                    delta_y: ry,
+                    delta_z: rz,
+                    yaw: degrees_to_stops(new_pos.yaw),
+                    pitch: degrees_to_stops(new_pos.pitch),
+                    on_ground: new_pos.on_ground,
+                });
+                packets.push(packet);
+            } else {
+                let packet: Box<dyn Packet> = Box::new(EntityRelativeMove {
+                    entity_id,
+                    delta_x: rx,
+                    delta_y: ry,
+                    delta_z: rz,
+                    on_ground: new_pos.on_ground,
+                });
+                packets.push(packet);
+            }
         }
     } else {
         let packet: Box<dyn Packet> = Box::new(EntityLook {

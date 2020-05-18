@@ -1,5 +1,3 @@
-#![forbid(unsafe_code)]
-
 //! Defines components and resources so that subcrates can interact
 //! in some ways without depending on each other.
 
@@ -10,7 +8,7 @@ mod events;
 mod game;
 mod misc;
 mod resources;
-mod task;
+pub mod task;
 
 pub use components::*;
 pub use events::*;

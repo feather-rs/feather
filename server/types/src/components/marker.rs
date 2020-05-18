@@ -3,7 +3,6 @@
 //! in queries.
 
 /// Zero-sized marker component used to mark players.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Player;
 
 /// A player is in a gamemode where they may take damage.
@@ -14,3 +13,10 @@ pub struct CanInstaBreak;
 
 /// A player is allowed to break blocks.
 pub struct CanBreak;
+
+/// Marks that a player has teleported and
+/// we should force-update the client's
+/// position.
+///
+/// Only necessary for players.
+pub struct Teleported;
