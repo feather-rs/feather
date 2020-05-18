@@ -154,13 +154,16 @@ pub fn save_player_data(game: &Game, world: &World, player: Entity) {
         .get::<Inventory>(player)
         .enumerate()
         .filter_map(|(index, slot)| slot.map(move |slot| (index, slot)))
-        .map(|(index, slot)| {
+        .filter_map(|(index, slot)| {
             InventorySlot::from_network_index(
                 Window::player(player).convert_slot(index, player).unwrap(),
                 slot,
             )
         })
         .collect();
+
+    dbg!(&inventory);
+    dbg!(&*world.get::<Inventory>(player));
 
     let data = PlayerData {
         entity: BaseEntityData::new(*world.get::<Position>(player), Vec3d::broadcast(0.0)),

@@ -71,7 +71,7 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
 
     let items = info.data.inventory.iter().map(|slot| {
         (
-            slot.slot as usize,
+            slot.convert_index().unwrap_or_default(),
             ItemStack::new(
                 Item::from_identifier(&slot.item).unwrap_or(Item::Air),
                 slot.count as u8,
@@ -92,7 +92,7 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
         let window2 = window.clone();
         let slots = info.data.inventory.iter().map(move |slot| {
             window2
-                .convert_network(slot.slot as usize)
+                .convert_network(slot.convert_index().unwrap_or_default())
                 .map(SlotIndex::from)
                 .unwrap_or(SlotIndex {
                     area: Area::Hotbar,

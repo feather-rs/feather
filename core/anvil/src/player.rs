@@ -45,7 +45,7 @@ impl InventorySlot {
 
     /// Converts a network protocol index, item, and count
     /// to an `InventorySlot`.
-    pub fn from_network_index(network: usize, stack: ItemStack) -> Self {
+    pub fn from_network_index(network: usize, stack: ItemStack) -> Option<Self> {
         let slot = if SLOT_HOTBAR_OFFSET <= network && network < SLOT_HOTBAR_OFFSET + HOTBAR_SIZE {
             // Hotbar
             (network - SLOT_HOTBAR_OFFSET) as i8
@@ -58,14 +58,14 @@ impl InventorySlot {
         {
             network as i8
         } else {
-            panic!("Invalid slot index {} on server", network);
+            return None;
         };
 
-        Self {
+        Some(Self {
             count: stack.amount as i8,
             slot,
             item: stack.ty.identifier().to_string(),
-        }
+        })
     }
 
     /// Converts an NBT inventory index to a network protocol index.
@@ -202,7 +202,7 @@ mod tests {
             assert_eq!(slot.convert_index().unwrap(), expected);
             assert_eq!(
                 InventorySlot::from_network_index(expected, ItemStack::new(Item::Stone, 1)),
-                slot
+                Some(slot),
             );
         }
 
