@@ -100,15 +100,7 @@ impl BlockId {
     }
 
     pub fn is_opaque(self) -> bool {
-        if !self.is_solid() {
-            return false;
-        }
-
-        // TODO
-        match self.kind() {
-            BlockKind::Air | BlockKind::Glass | BlockKind::GlassPane | BlockKind::IronBars => false,
-            _ => true,
-        }
+        self.kind.opaque()
     }
 
     pub fn is_air(self) -> bool {

@@ -12,9 +12,14 @@ members = [
     "core/entity_metadata",
     "core/item_block",
     "core/items",
+    "core/misc",
     "core/inventory",
     "core/network",
+    "core/text",
     "core/util",
+
+    "definitions",
+    "definitions/generator",
 
     "server",
     "server/template",
@@ -35,7 +40,6 @@ members = [
     "server/worldgen",
 
     "codegen",
-    "generator",
     "data",
     "data/macro"
 ]

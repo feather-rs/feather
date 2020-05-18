@@ -1,7 +1,7 @@
 use crate::CommandCtx;
 use feather_core::position;
 use feather_core::util::Position;
-use feather_server_types::{EntityId, Game, Name, Player};
+use feather_server_types::{Game, Name, NetworkId, Player};
 use fecs::{component, Entity, IntoQuery, Read, World};
 use lieutenant::{ArgumentKind, Input};
 use rand::Rng;
@@ -70,7 +70,7 @@ fn find_selected_entities(
         }
         "@e" => {
             // Every entity
-            <Read<EntityId>>::query()
+            <Read<NetworkId>>::query()
                 .iter_entities(ctx.world.inner())
                 .map(|(e, _)| e)
                 .collect()

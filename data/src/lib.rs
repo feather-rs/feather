@@ -19,3 +19,7 @@ pub mod minecraft {
     }
     feather_data_macro::include_data!("minecraft/generated/reports");
 }
+
+pub mod minecraft_data {
+    feather_data_macro::include_data!("minecraft-data/data/pc/1.13.2");
+}

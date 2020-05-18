@@ -1,4 +1,4 @@
-use crate::network::{Network, ServerToWorkerMessage};
+use crate::{BlockUpdateCause, Network, ServerToWorkerMessage};
 use crate::{BlockUpdateEvent, EntityDespawnEvent, Name, PlayerLeaveEvent};
 use ahash::AHashMap;
 use bumpalo::Bump;
@@ -87,7 +87,13 @@ impl Game {
     ///
     /// If the block's chunk's is not loaded, returns `false`;
     /// otherwise, returns `true`.
-    pub fn set_block_at(&mut self, world: &mut World, pos: BlockPosition, block: BlockId) -> bool {
+    pub fn set_block_at(
+        &mut self,
+        world: &mut World,
+        pos: BlockPosition,
+        block: BlockId,
+        cause: BlockUpdateCause,
+    ) -> bool {
         let old = match self.block_at(pos) {
             Some(block) => block,
             None => return false,
@@ -101,6 +107,7 @@ impl Game {
                 pos,
                 old,
                 new: block,
+                cause,
             },
         );
 

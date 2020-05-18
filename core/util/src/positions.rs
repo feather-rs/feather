@@ -321,7 +321,7 @@ impl From<Vec3i> for BlockPosition {
 
 impl From<BlockPosition> for Position {
     fn from(pos: BlockPosition) -> Self {
-        position!(pos.x as f64, pos.y as f64, pos.z as f64)
+        position!(pos.x as f64 + 0.5, pos.y as f64 + 0.5, pos.z as f64 + 0.5)
     }
 }
 

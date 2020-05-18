@@ -10,9 +10,9 @@ use feather_core::network::packets::SpawnObject;
 use feather_core::network::Packet;
 use feather_core::util::{Position, Vec3d};
 use feather_server_types::{
-    ComponentSerializer, EntityId, EntityLoaderRegistration, EntitySpawnEvent, Game,
-    InventoryUpdateEvent, ItemCollectEvent, ItemDropEvent, PhysicsBuilder, Player,
-    SpawnPacketCreator, Uuid, Velocity, PLAYER_EYE_HEIGHT, TPS,
+    ComponentSerializer, EntityLoaderRegistration, EntitySpawnEvent, Game, InventoryUpdateEvent,
+    ItemCollectEvent, ItemDropEvent, NetworkId, PhysicsBuilder, Player, SpawnPacketCreator, Uuid,
+    Velocity, PLAYER_EYE_HEIGHT, TPS,
 };
 use feather_server_util::{degrees_to_stops, nearby_entities, protocol_velocity};
 use fecs::{component, EntityBuilder, EntityRef, IntoQuery, Read, World, Write};
@@ -195,7 +195,7 @@ pub fn create(stack: ItemStack, collectable_at: u64) -> EntityBuilder {
 fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
     let position = *accessor.get::<Position>();
     let velocity = *accessor.get::<Velocity>();
-    let entity_id = accessor.get::<EntityId>().0;
+    let entity_id = accessor.get::<NetworkId>().0;
 
     let (velocity_x, velocity_y, velocity_z) = protocol_velocity(velocity.0);
 

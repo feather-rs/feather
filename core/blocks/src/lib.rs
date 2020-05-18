@@ -2,8 +2,7 @@ use num_traits::FromPrimitive;
 use std::convert::TryFrom;
 use thiserror::Error;
 
-#[macro_use]
-extern crate num_derive;
+pub use feather_definitions::BlockKind;
 
 mod categories;
 #[allow(warnings)]
@@ -55,15 +54,8 @@ pub fn init() {
 use once_cell::sync::Lazy;
 
 pub use crate::generated::table::*;
-pub use crate::generated::BlockKind;
 
 use std::collections::HashSet;
-
-impl Default for BlockKind {
-    fn default() -> Self {
-        BlockKind::Air
-    }
-}
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Default)]
 pub struct BlockId {

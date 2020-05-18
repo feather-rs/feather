@@ -32,7 +32,12 @@ fn run() -> anyhow::Result<()> {
     )?;
     extract(&path).context("failed to extract vanilla assets. (are the Java developer tools (`jar`) installed and in your PATH?)")?;
 
-    println!("cargo:rerun-if-changed={}", &path.display());
+    clone_minecraft_data().context("failed to clone PrismarineJS/minecraft-data")?;
+
+    println!(
+        "cargo:rerun-if-changed={}",
+        concat!(env!("CARGO_MANIFEST_DIR"), "/build.rs")
+    );
     Ok(())
 }
 
@@ -77,4 +82,26 @@ fn extract<P: AsRef<Path>>(working: P) -> anyhow::Result<()> {
         )
     }
     Ok(())
+}
+
+fn clone_minecraft_data() -> anyhow::Result<()> {
+    let path = format!("{}/minecraft-data", env::var("OUT_DIR")?);
+    if Path::new(&path).exists() {
+        // Already cloned - no need to do so again
+        return Ok(());
+    }
+
+    if !Command::new("git")
+        .arg("clone")
+        .arg("https://github.com/PrismarineJS/minecraft-data.git")
+        .arg(&path)
+        .status()?
+        .success()
+    {
+        Err(anyhow::anyhow!(
+            "failed to clone minecraft-data repository: please ensure git is installed"
+        ))
+    } else {
+        Ok(())
+    }
 }

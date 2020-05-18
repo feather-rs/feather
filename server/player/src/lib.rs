@@ -8,7 +8,7 @@ mod join;
 mod packet_handlers;
 mod view;
 
-use feather_core::inventory::{Inventory, InventoryType};
+use feather_core::inventory::{Area, Inventory, SlotIndex, Window};
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
 use feather_core::network::Packet;
@@ -16,9 +16,10 @@ use feather_core::text::Text;
 use feather_core::util::{Gamemode, Position};
 use feather_server_network::NewClientInfo;
 use feather_server_types::{
-    ChunkHolder, CreationPacketCreator, EntityId, EntitySpawnEvent, Game, HeldItem,
-    InventoryUpdateEvent, LastKnownPositions, MessageReceiver, Name, Network, Player,
-    PlayerJoinEvent, PreviousPosition, ProfileProperties, SpawnPacketCreator, Uuid,
+    CanBreak, CanInstaBreak, CanTakeDamage, ChunkHolder, CreationPacketCreator, EntitySpawnEvent,
+    Game, HeldItem, InventoryUpdateEvent, LastKnownPositions, MessageReceiver, Name, Network,
+    NetworkId, Player, PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition, ProfileProperties,
+    SpawnPacketCreator, Uuid,
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
@@ -29,8 +30,6 @@ pub use join::*;
 pub use packet_handlers::*;
 use std::sync::atomic::Ordering;
 pub use view::*;
-
-pub const PLAYER_INVENTORY_SIZE: u32 = 46;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ItemTimedUse {
@@ -43,7 +42,7 @@ pub struct ItemTimedUse {
 pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity {
     // TODO: blocked on https://github.com/TomGillen/legion/issues/36
     let entity = info.entity;
-    world.add(entity, EntityId(entity::new_id())).unwrap();
+    world.add(entity, NetworkId(entity::new_id())).unwrap();
     world.add(entity, info.position).unwrap();
     world.add(entity, PreviousPosition(info.position)).unwrap();
     world.add(entity, info.uuid).unwrap();
@@ -67,25 +66,45 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     world
         .add(entity, CreationPacketCreator(&create_initialization_packet))
         .unwrap();
-    world
-        .add(entity, Gamemode::from_id(info.data.gamemode as u8))
-        .unwrap();
+
+    let gamemode = Gamemode::from_id(info.data.gamemode as u8);
+    add_gamemode_comps(world, gamemode, entity);
 
     let items = info.data.inventory.iter().map(|slot| {
         (
-            slot.slot as usize,
+            slot.convert_index().unwrap_or_default(),
             ItemStack::new(
                 Item::from_identifier(&slot.item).unwrap_or(Item::Air),
                 slot.count as u8,
             ),
         )
     });
-    let slots = info.data.inventory.iter().map(|slot| slot.slot as usize);
 
-    let mut inventory = Inventory::new(InventoryType::Player, PLAYER_INVENTORY_SIZE);
-    items.for_each(|(index, item)| inventory.set_item_at(index, item));
+    let (window, slots) = {
+        let inventory = Inventory::player();
+        let window = Window::player(entity);
+        world.add(entity, inventory).unwrap();
 
-    world.add(entity, inventory).unwrap();
+        let accessor = window.accessor(world).unwrap();
+        items.for_each(|(index, item)| {
+            let _ = accessor.set_item_at(index, item);
+        });
+
+        let window2 = window.clone();
+        let slots = info.data.inventory.iter().map(move |slot| {
+            window2
+                .convert_network(slot.convert_index().unwrap_or_default())
+                .map(SlotIndex::from)
+                .unwrap_or(SlotIndex {
+                    area: Area::Hotbar,
+                    slot: 0,
+                })
+        });
+
+        drop(accessor);
+        (window, slots)
+    };
+    world.add(entity, window).unwrap();
     world.add(entity, HeldItem(0)).unwrap(); // todo: load from player data
 
     world.add(entity, MessageReceiver::default()).unwrap();
@@ -94,6 +113,7 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
 
     game.player_count.fetch_add(1, Ordering::SeqCst);
     game.handle(world, EntitySpawnEvent { entity });
+    game.handle(world, PlayerPreJoinEvent { player: entity });
     game.handle(world, PlayerJoinEvent { player: entity });
     game.handle(
         world,
@@ -106,9 +126,22 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     entity
 }
 
+fn add_gamemode_comps(world: &mut World, gamemode: Gamemode, entity: Entity) {
+    world.add(entity, gamemode).unwrap();
+    match gamemode {
+        Gamemode::Survival | Gamemode::Adventure => world.add(entity, CanTakeDamage).unwrap(),
+        Gamemode::Creative => world.add(entity, CanInstaBreak).unwrap(),
+        _ => (),
+    }
+
+    if gamemode == Gamemode::Survival || gamemode == Gamemode::Creative {
+        world.add(entity, CanBreak).unwrap();
+    }
+}
+
 /// Function to create a `SpawnPlayer` packet to spawn the player.
 fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
-    let entity_id = accessor.get::<EntityId>().0;
+    let entity_id = accessor.get::<NetworkId>().0;
     let player_uuid = *accessor.get::<Uuid>();
     let pos = *accessor.get::<Position>();
 

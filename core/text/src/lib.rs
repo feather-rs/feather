@@ -1,11 +1,17 @@
-use serde::export::Formatter;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
-use std::fmt;
-use std::fmt::Display;
+use std::fmt::{self, Display, Formatter};
+use std::str::FromStr;
 use uuid::Uuid;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub mod markdown;
+
+pub enum TextConversionError {
+    InvalidColor(String),
+    InvalidStyle(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Color {
     DarkRed,
@@ -24,6 +30,33 @@ pub enum Color {
     Gray,
     DarkGray,
     Black,
+    Custom(String),
+}
+
+impl FromStr for Color {
+    type Err = TextConversionError;
+
+    fn from_str(s: &str) -> Result<Self, TextConversionError> {
+        match s {
+            "dark_red" => Ok(Color::DarkRed),
+            "red" => Ok(Color::Red),
+            "gold" => Ok(Color::Gold),
+            "yellow" => Ok(Color::Yellow),
+            "dark_green" => Ok(Color::DarkGreen),
+            "green" => Ok(Color::Green),
+            "aqua" => Ok(Color::Aqua),
+            "dark_aqua" => Ok(Color::DarkAqua),
+            "dark_blue" => Ok(Color::DarkBlue),
+            "blue" => Ok(Color::Blue),
+            "light_purple" => Ok(Color::LightPurple),
+            "dark_purple" => Ok(Color::DarkPurple),
+            "white" => Ok(Color::White),
+            "gray" => Ok(Color::Gray),
+            "dark_gray" => Ok(Color::DarkGray),
+            "black" => Ok(Color::Black),
+            _ => Err(TextConversionError::InvalidColor(s.to_string())),
+        }
+    }
 }
 
 impl From<Color> for Text {
@@ -40,6 +73,21 @@ pub enum Style {
     Underlined,
     Strikethrough,
     Obfuscated,
+}
+
+impl FromStr for Style {
+    type Err = TextConversionError;
+
+    fn from_str(s: &str) -> Result<Self, TextConversionError> {
+        match s {
+            "bold" => Ok(Style::Bold),
+            "italic" => Ok(Style::Italic),
+            "underline" => Ok(Style::Underlined),
+            "strikethrough" => Ok(Style::Strikethrough),
+            "magic" => Ok(Style::Obfuscated),
+            _ => Err(TextConversionError::InvalidStyle(s.to_string())),
+        }
+    }
 }
 
 impl From<Style> for Text {
@@ -912,7 +960,7 @@ impl From<Text> for String {
 }
 
 impl Display for Text {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         f.write_str(&serde_json::to_string(self).unwrap())
     }
 }
@@ -977,7 +1025,8 @@ where
         match text.into() {
             s @ Text::String(_) => TextRoot(s.into_component().into()),
             c @ Text::Component(_) => TextRoot(c),
-            a @ Text::Array(_) => TextRoot(a),
+            Text::Array(arr) if arr.is_empty() => TextRoot(Text::empty()),
+            arr @ Text::Array(_) => TextRoot(arr),
         }
     }
 }

@@ -3,7 +3,7 @@
 use crate::{chunk_manager, ChunkWorkerHandle};
 use feather_core::anvil::entity::BaseEntityData;
 use feather_core::anvil::player::{InventorySlot, PlayerData};
-use feather_core::inventory::Inventory;
+use feather_core::inventory::{Inventory, Window};
 use feather_core::util::{ChunkPosition, Gamemode, Position, Vec3d};
 use feather_server_types::{
     tasks, ChunkLoadEvent, ChunkUnloadEvent, ComponentSerializer, Game, PlayerLeaveEvent, Uuid,
@@ -152,14 +152,13 @@ pub fn on_player_leave_save_data(event: &PlayerLeaveEvent, game: &Game, world: &
 pub fn save_player_data(game: &Game, world: &World, player: Entity) {
     let inventory = world
         .get::<Inventory>(player)
-        .items()
-        .iter()
         .enumerate()
-        .filter_map(|(i, item)| item.map(|item| (i, item)))
-        .map(|(slot, item)| InventorySlot {
-            count: item.amount as i8,
-            slot: slot as i8,
-            item: item.ty.identifier().to_owned(),
+        .filter_map(|(index, slot)| slot.map(move |slot| (index, slot)))
+        .filter_map(|(index, slot)| {
+            InventorySlot::from_network_index(
+                Window::player(player).convert_slot(index, player).unwrap(),
+                slot,
+            )
         })
         .collect();
 

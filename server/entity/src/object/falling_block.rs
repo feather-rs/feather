@@ -6,8 +6,8 @@ use feather_core::network::packets::SpawnObject;
 use feather_core::network::Packet;
 use feather_core::util::{BlockPosition, Position};
 use feather_server_types::{
-    BumpVec, EntityId, EntityLandEvent, EntitySpawnEvent, Game, PhysicsBuilder, SpawnPacketCreator,
-    Uuid, Velocity,
+    BlockUpdateCause, BumpVec, EntityLandEvent, EntitySpawnEvent, Game, NetworkId, PhysicsBuilder,
+    SpawnPacketCreator, Uuid, Velocity,
 };
 use feather_server_util::{
     degrees_to_stops, protocol_velocity, BlockNotifyBlock, BlockNotifyFallingBlock,
@@ -61,7 +61,12 @@ pub fn spawn_falling_blocks(game: &mut Game, world: &mut World) {
                 },
             );
 
-            game.set_block_at(world, block_to_clear, BlockId::air());
+            game.set_block_at(
+                world,
+                block_to_clear,
+                BlockId::air(),
+                BlockUpdateCause::Unknown,
+            );
         }
     }
 }
@@ -79,7 +84,7 @@ pub fn on_entity_land_remove_falling_block(
         .map(|block| block.0)
     {
         let pos = event.pos.block();
-        game.set_block_at(world, pos, block);
+        game.set_block_at(world, pos, block, BlockUpdateCause::Unknown);
 
         game.despawn(event.entity, world);
     }
@@ -107,7 +112,7 @@ pub fn create(ty: BlockId, spawn_pos: BlockPosition) -> EntityBuilder {
 fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
     let data = i32::from(accessor.get::<FallingBlockType>().0.vanilla_id());
     let position = accessor.get::<Position>();
-    let entity_id = accessor.get::<EntityId>().0;
+    let entity_id = accessor.get::<NetworkId>().0;
 
     let velocity = accessor.get::<Velocity>().0;
 

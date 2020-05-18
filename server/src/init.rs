@@ -8,7 +8,7 @@ use feather_server_chunk::{chunk_worker, ChunkWorkerHandle};
 use feather_server_config::DEFAULT_CONFIG_STR;
 use feather_server_network::NetworkIoManager;
 use feather_server_packet_buffer::PacketBuffers;
-use feather_server_types::{game, task, Config, Game};
+use feather_server_types::{task, Config, Game, Shared};
 use feather_server_worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
@@ -49,7 +49,7 @@ pub async fn init(
     let cworker_handle = create_cworker_handle(&config, &level);
 
     let mut game = Game {
-        shared: Arc::new(game::Shared {
+        shared: Arc::new(Shared {
             config: Arc::clone(&config),
             rng: Default::default(),
             player_count: Arc::new(Default::default()),

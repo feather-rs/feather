@@ -24,6 +24,7 @@ use rsa_der as der;
 use thiserror::Error;
 
 use feather_core::network::{cast_packet, Packet, PacketStage, PacketType};
+use feather_core::text::{Text, TextRoot};
 
 use crate::{PROTOCOL_VERSION, SERVER_VERSION};
 use feather_core::network::packets::{
@@ -188,17 +189,14 @@ impl InitialHandler {
 
         if let Err(e) = _handle_packet(self, packet).await {
             // Disconnect
-            disconnect_login(self, &format!("{}", e));
+            disconnect_login(self, Text::from(e.to_string()));
 
-            if let Some(info) = &self.info {
-                log::info!(
-                    "Player {} disconnected: {}",
-                    info.username.as_ref().unwrap_or(&"unknown".to_string()),
-                    e
-                );
-            } else {
-                log::info!("Player unknown disconnected: {}", e);
-            }
+            let username = self
+                .info
+                .as_ref()
+                .and_then(|info| info.username.as_deref())
+                .unwrap_or("unkown");
+            log::info!("Player {} disconnected: {}", username, e);
         }
     }
 
@@ -365,7 +363,7 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
     check_stage(ih, Stage::AwaitLoginStart, packet.ty())?;
 
     if ih.player_count.load(Ordering::Acquire) >= ih.config.server.max_players as u32 {
-        disconnect_login(ih, "Server is full!");
+        disconnect_login(ih, Text::from("Server is full!"));
         return Ok(());
     }
 
@@ -541,13 +539,10 @@ fn check_stage(ih: &InitialHandler, expected: Stage, packet_ty: PacketType) -> R
 
 /// Disconnects the initial handler, sending
 /// a disconnect packet containing the reason.
-fn disconnect_login(ih: &mut InitialHandler, reason: &str) {
-    let json = serde_json::json!({
-        "text": reason,
-    })
-    .to_string();
-
-    let packet = DisconnectLogin { reason: json };
+fn disconnect_login(ih: &mut InitialHandler, reason: Text) {
+    let packet = DisconnectLogin {
+        reason: TextRoot::from(reason).into(),
+    };
     send_packet(ih, packet);
 
     ih.action_queue.push(Action::Disconnect);
@@ -570,7 +565,11 @@ enum Error {
     VerifyTokenMismatch,
     #[error("shared secret length is not correct")]
     BadSecretLength,
+    #[cfg(debug_assertions)]
     #[error("authentication failure: {0:?}")]
+    AuthenticationFailed(mojang_api::Error),
+    #[cfg(not(debug_assertions))]
+    #[error("Failed to verify username!")]
     AuthenticationFailed(mojang_api::Error),
     #[error("received BungeeCord data does not match the specification: {0}")]
     BungeeSpecMismatch(String),

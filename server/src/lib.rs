@@ -61,7 +61,6 @@ pub async fn main(runtime: runtime::Handle) {
     }
 
     log::info!("Goodbye");
-    exit(0);
 }
 
 /// Starts the ticking thread. The returned future will complete

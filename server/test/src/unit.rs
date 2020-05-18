@@ -10,7 +10,7 @@ use feather_server_chunk::{
 use feather_server_network::NewClientInfo;
 use feather_server_player::on_chunk_cross_update_chunks;
 use feather_server_types::{
-    game, ChunkCrossEvent, ChunkHolder, EntityId, Game, Name, ServerToWorkerMessage, Uuid,
+    ChunkCrossEvent, ChunkHolder, Game, Name, NetworkId, ServerToWorkerMessage, Shared, Uuid,
     WorkerToServerMessage,
 };
 use feather_server_util::on_chunk_cross_update_chunk_entities;
@@ -80,7 +80,7 @@ impl Test {
             event_handlers: Arc::new(event_handlers),
             resources: Arc::new(Default::default()),
             bump: Default::default(),
-            shared: Arc::new(game::Shared {
+            shared: Arc::new(Shared {
                 config: Arc::new(Default::default()),
                 rng: Default::default(),
                 player_count: Arc::new(Default::default()),
@@ -235,7 +235,7 @@ impl Test {
 
     /// Returns the network ID of an entity.
     pub fn id(&self, entity: Entity) -> i32 {
-        self.world.get::<EntityId>(entity).0
+        self.world.get::<NetworkId>(entity).0
     }
 
     /// Returns the UUID of an entity.

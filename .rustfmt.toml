@@ -1,0 +1,4 @@
+# We use rustfmt, and formatting is checked in CI.
+# Please run `cargo fmt` before committing
+
+# Empty config: default settings!
