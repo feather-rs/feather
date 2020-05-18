@@ -18,7 +18,8 @@ use feather_server_network::NewClientInfo;
 use feather_server_types::{
     CanBreak, CanInstaBreak, CanTakeDamage, ChunkHolder, CreationPacketCreator, EntitySpawnEvent,
     Game, HeldItem, InventoryUpdateEvent, LastKnownPositions, Name, Network, NetworkId, Player,
-    PlayerJoinEvent, PreviousPosition, ProfileProperties, SpawnPacketCreator, Uuid,
+    PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition, ProfileProperties, SpawnPacketCreator,
+    Uuid,
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
@@ -110,6 +111,7 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
 
     game.player_count.fetch_add(1, Ordering::SeqCst);
     game.handle(world, EntitySpawnEvent { entity });
+    game.handle(world, PlayerPreJoinEvent { player: entity });
     game.handle(world, PlayerJoinEvent { player: entity });
     game.handle(
         world,

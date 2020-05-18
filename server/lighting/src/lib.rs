@@ -511,7 +511,7 @@ fn adjacent_blocks(to: BlockPosition) -> ArrayVec<[BlockPosition; 6]> {
     offsets
         .iter()
         .map(|(x, y, z)| BlockPosition::new(to.x + *x, to.y + *y, to.z + *z))
-        .filter(|pos| pos.y >= 0 && pos.y <= 256)
+        .filter(|pos| pos.y >= 0 && pos.y < 256)
         .collect()
 }
 

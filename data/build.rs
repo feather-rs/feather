@@ -85,10 +85,16 @@ fn extract<P: AsRef<Path>>(working: P) -> anyhow::Result<()> {
 }
 
 fn clone_minecraft_data() -> anyhow::Result<()> {
+    let path = format!("{}/minecraft-data", env::var("OUT_DIR")?);
+    if Path::new(&path).exists() {
+        // Already cloned - no need to do so again
+        return Ok(());
+    }
+
     if !Command::new("git")
         .arg("clone")
         .arg("https://github.com/PrismarineJS/minecraft-data.git")
-        .arg(&format!("{}/minecraft-data", env::var("OUT_DIR").unwrap()))
+        .arg(&path)
         .status()?
         .success()
     {

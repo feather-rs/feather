@@ -1,7 +1,7 @@
 //! Handles world time.
 
 use feather_core::network::packets::TimeUpdate;
-use feather_server_types::{Game, Network, PlayerJoinEvent};
+use feather_server_types::{Game, Network, PlayerPreJoinEvent};
 use fecs::World;
 
 /// System for incrementing time each tick.
@@ -12,7 +12,7 @@ pub fn increment_time(game: &mut Game) {
 
 /// Event handler for sending world time to players.
 #[fecs::event_handler]
-pub fn on_player_join_send_time(event: &PlayerJoinEvent, game: &Game, world: &mut World) {
+pub fn on_player_join_send_time(event: &PlayerPreJoinEvent, game: &Game, world: &mut World) {
     let network = world.get::<Network>(event.player);
 
     // Send time to player.
