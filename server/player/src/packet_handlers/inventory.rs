@@ -70,7 +70,7 @@ pub fn handle_creative_inventory_action(
 
             let slot = packet.clicked_item;
 
-            if let Err(e) = accessor.set_item_at(packet.slot as usize, slot.unwrap_or_default()) {
+            if let Err(e) = accessor.set_slot_at(packet.slot as usize, slot) {
                 drop(inventory);
                 drop(accessor);
                 drop(window);

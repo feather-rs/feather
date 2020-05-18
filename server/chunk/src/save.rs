@@ -162,9 +162,6 @@ pub fn save_player_data(game: &Game, world: &World, player: Entity) {
         })
         .collect();
 
-    dbg!(&inventory);
-    dbg!(&*world.get::<Inventory>(player));
-
     let data = PlayerData {
         entity: BaseEntityData::new(*world.get::<Position>(player), Vec3d::broadcast(0.0)),
         gamemode: world.get::<Gamemode>(player).id() as i32,

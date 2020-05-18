@@ -169,6 +169,20 @@ impl<'a> WindowAccessor<'a> {
         self.with_inv(index, |inv, idx| inv.item_at(idx.area, idx.slot))
     }
 
+    /// Sets the slot (`Option<ItemStack>`) at the given protocol
+    /// index.
+    ///
+    /// Returns the old slot.
+    pub fn set_slot_at(&self, index: usize, slot: Slot) -> Result<Slot, crate::Error> {
+        self.with_inv(index, |inv, idx| {
+            inv.item_at_mut(idx.area, idx.slot).map(|mut guard| {
+                let old = *guard;
+                *guard = slot;
+                old
+            })
+        })
+    }
+
     /// Sets the item at the given protocol index.
     ///
     /// Returns the old item.
@@ -182,8 +196,6 @@ impl<'a> WindowAccessor<'a> {
     pub fn remove_item_at(&self, index: usize) -> Result<Slot, crate::Error> {
         self.with_inv(index, |inv, idx| inv.remove_item_at(idx.area, idx.slot))
     }
-
-    /// Removes the item at the given index
 
     fn with_inv<T>(
         &self,

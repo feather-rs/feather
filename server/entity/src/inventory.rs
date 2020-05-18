@@ -54,7 +54,7 @@ impl Equipment {
         match self {
             Equipment::MainHand => slot(Hotbar, held_item),
             Equipment::OffHand => slot(Offhand, 0),
-            Equipment::Boots => slot(Legs, 0),
+            Equipment::Boots => slot(Feet, 0),
             Equipment::Leggings => slot(Legs, 0),
             Equipment::Chestplate => slot(Torso, 0),
             Equipment::Helmet => slot(Head, 0),
