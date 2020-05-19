@@ -6,6 +6,7 @@ use fecs::{component, Entity, IntoQuery, Read, World};
 use lieutenant::{ArgumentKind, Input};
 use rand::Rng;
 use smallvec::SmallVec;
+use std::convert::Infallible;
 use std::num::ParseFloatError;
 use std::str::FromStr;
 use thiserror::Error;
@@ -281,7 +282,7 @@ pub enum TextParseError {}
 pub struct TextArgument(pub String);
 
 impl ArgumentKind<CommandCtx> for TextArgument {
-    type ParseError = TextParseError;
+    type ParseError = Infallible;
 
     fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
         !input.advance_until("\0").is_empty()
