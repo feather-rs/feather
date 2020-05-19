@@ -137,7 +137,8 @@ pub fn whisper(
     let sender_name = if let Some(sender_name) = ctx.world.try_get::<Name>(ctx.sender) {
         sender_name.0.clone()
     } else {
-        panic!("`Name` component not found for whisper command sender");
+        // Use a default value if the executor has no Name component
+        String::from("Server")
     };
 
     // The message that is returned to the whisperer
