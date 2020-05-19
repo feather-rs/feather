@@ -272,3 +272,26 @@ impl ArgumentKind<CommandCtx> for ParsedGamemode {
         Ok(ParsedGamemode(gamemode))
     }
 }
+
+#[derive(Debug, Error)]
+pub enum TextParseError {}
+
+/// A multi-word argument (parses until the end of the command)
+#[derive(Clone, Debug)]
+pub struct TextArgument(pub String);
+
+impl ArgumentKind<CommandCtx> for TextArgument {
+    type ParseError = TextParseError;
+
+    fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
+        !input.advance_until("\0").is_empty()
+    }
+
+    fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
+        // \0 ensures that this will advance until the end of the command
+        let text = input.advance_until("\0");
+
+        println!("{}", text);
+        Ok(TextArgument(text.to_owned()))
+    }
+}
