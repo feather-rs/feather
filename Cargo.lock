@@ -1853,7 +1853,7 @@ checksum = "c7d73b3f436185384286bd8098d17ec07c9a7d2388a6599f824d8502b529702a"
 [[package]]
 name = "lieutenant"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/lieutenant?branch=cleanup#7049fe8baaa9f32a9e2e38cd7490ade3f07e763d"
+source = "git+https://github.com/feather-rs/lieutenant#52a14a6e30bd3d6335d1883fcdc8d36cc89dbae0"
 dependencies = [
  "derivative 2.1.1",
  "lieutenant-macros",
@@ -1864,7 +1864,7 @@ dependencies = [
 [[package]]
 name = "lieutenant-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/lieutenant?branch=cleanup#7049fe8baaa9f32a9e2e38cd7490ade3f07e763d"
+source = "git+https://github.com/feather-rs/lieutenant#52a14a6e30bd3d6335d1883fcdc8d36cc89dbae0"
 dependencies = [
  "darling",
  "proc-macro-error",
