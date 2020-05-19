@@ -2,11 +2,12 @@
 
 use crate::arguments::Coordinates;
 use crate::{
-    arguments::{EntitySelector, ParsedGamemode},
+    arguments::{EntitySelector, ParsedGamemode, TextArgument},
     CommandCtx,
 };
+use feather_core::text::{Text, TextComponentBuilder};
 use feather_core::util::{Gamemode, Position};
-use feather_server_types::{GamemodeUpdateEvent, Teleported};
+use feather_server_types::{GamemodeUpdateEvent, MessageReceiver, Name, Teleported};
 use fecs::{Entity, World};
 use lieutenant::command;
 use thiserror::Error;
@@ -125,4 +126,62 @@ fn update_gamemode(ctx: &mut CommandCtx, gamemode: Gamemode, entity: Entity) {
     if let Some(event) = event {
         ctx.game.handle(&mut *ctx.world, event);
     }
+}
+
+#[command(usage = "msg|whisper|w <target> <message>")]
+pub fn whisper(
+    ctx: &mut CommandCtx,
+    target: EntitySelector,
+    message: TextArgument,
+) -> anyhow::Result<()> {
+    let sender_name = if let Some(sender_name) = ctx.world.try_get::<Name>(ctx.sender) {
+        sender_name.0.clone()
+    } else {
+        panic!("`Name` component not found for whisper command sender");
+    };
+
+    // The message that is returned to the whisperer
+    // You whisper to [player] (and [player]): [message]
+    let mut response_message = String::from("You whisper to");
+
+    // Tracks if there needs to be "and" before the next player added to the response message
+    let mut needs_and = false;
+
+    for entity in target.entities {
+        if let Some(mut message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender) {
+            message_receiver.send(
+                Text::from(format!(
+                    "{} whispers to you: {}",
+                    sender_name,
+                    message.0.clone()
+                ))
+                .gray()
+                .italic(),
+            );
+        } else {
+            // If the entity doesn't have a message receiver it is not a player and there is no need to continue
+            continue;
+        };
+
+        if let Some(player_name) = ctx.world.try_get::<Name>(entity) {
+            if needs_and {
+                response_message += format!(" and {}", player_name.0).as_str();
+            } else {
+                needs_and = true;
+
+                response_message += format!(" {}", player_name.0).as_str();
+            }
+        }
+    }
+
+    // Send the whisperer a confirmation message
+    if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
+    {
+        response_message += format!(": {}", message.0).as_str();
+        let return_text = Text::from(response_message).gray().italic();
+
+        sender_message_receiver.send(return_text);
+    }
+
+    Ok(())
 }
