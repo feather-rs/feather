@@ -128,7 +128,7 @@ fn update_gamemode(ctx: &mut CommandCtx, gamemode: Gamemode, entity: Entity) {
     }
 }
 
-#[command(usage = "msg|whisper|w <target> <message>")]
+#[command(usage = "tell|msg|w <target> <message>")]
 pub fn whisper(
     ctx: &mut CommandCtx,
     target: EntitySelector,
