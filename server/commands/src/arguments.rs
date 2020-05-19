@@ -9,7 +9,6 @@ use smallvec::SmallVec;
 use std::convert::Infallible;
 use std::num::ParseFloatError;
 use std::str::FromStr;
-use std::convert::Infallible;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
