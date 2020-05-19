@@ -194,7 +194,7 @@ pub fn say(ctx: &mut CommandCtx, message: TextArgument) -> anyhow::Result<()> {
     let name = ctx.world.try_get::<Name>(ctx.sender);
 
     let sender_name = if let Some(name) = &name {
-        &name.0.as_str()
+        &name.0
     } else {
         "Server"
     };
