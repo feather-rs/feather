@@ -291,7 +291,6 @@ impl ArgumentKind<CommandCtx> for TextArgument {
         // \0 ensures that this will advance until the end of the command
         let text = input.advance_until("\0");
 
-        println!("{}", text);
         Ok(TextArgument(text.to_owned()))
     }
 }
