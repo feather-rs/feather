@@ -191,19 +191,22 @@ pub fn whisper(
 
 #[command(usage = "say <message>")]
 pub fn say(ctx: &mut CommandCtx, message: TextArgument) -> anyhow::Result<()> {
-    let sender_name = if let Some(sender_name) = ctx.world.try_get::<Name>(ctx.sender) {
-        sender_name.0.clone()
+    let name = ctx.world.try_get::<Name>(ctx.sender);
+
+    let sender_name = if let Some(name) = &name {
+        &name.0.as_str()
     } else {
-        // Use a default value if the executor has no Name component
-        String::from("Server")
+        "Server"
     };
 
-    let command_output = Text::from(format!("[{}] {}", sender_name, message.0)).into();
+    let command_output = Text::from(format!("[{}] {}", sender_name, message.0));
+
+    drop(name);
 
     ctx.game.handle(
         &mut ctx.world,
         ChatEvent {
-            message: command_output,
+            message: command_output.into(),
             position: ChatPosition::Chat,
         },
     );
