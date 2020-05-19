@@ -104,6 +104,8 @@ impl CommandState {
 
                 gamemode_1,
                 gamemode_2,
+
+                whisper,
         }
 
         Self {

@@ -6,6 +6,7 @@ use fecs::{component, Entity, IntoQuery, Read, World};
 use lieutenant::{ArgumentKind, Input};
 use rand::Rng;
 use smallvec::SmallVec;
+use std::convert::Infallible;
 use std::num::ParseFloatError;
 use std::str::FromStr;
 use thiserror::Error;
@@ -255,7 +256,7 @@ impl ArgumentKind<CommandCtx> for ParsedGamemode {
     type ParseError = GamemodeParseError;
 
     fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
-        !input.advance_until(" ").is_empty()
+        !input.is_empty()
     }
 
     fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
@@ -270,5 +271,27 @@ impl ArgumentKind<CommandCtx> for ParsedGamemode {
         };
 
         Ok(ParsedGamemode(gamemode))
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum TextParseError {}
+
+/// A multi-word argument (parses until the end of the command)
+#[derive(Clone, Debug)]
+pub struct TextArgument(pub String);
+
+impl ArgumentKind<CommandCtx> for TextArgument {
+    type ParseError = Infallible;
+
+    fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
+        !input.advance_until("\0").is_empty()
+    }
+
+    fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
+        // \0 ensures that this will advance until the end of the command
+        let text = input.advance_to_end();
+
+        Ok(TextArgument(text.to_owned()))
     }
 }
