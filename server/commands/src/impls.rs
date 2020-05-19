@@ -7,7 +7,9 @@ use crate::{
 };
 use feather_core::text::{Text, TextComponentBuilder};
 use feather_core::util::{Gamemode, Position};
-use feather_server_types::{GamemodeUpdateEvent, MessageReceiver, Name, Teleported};
+use feather_server_types::{
+    ChatEvent, ChatPosition, GamemodeUpdateEvent, MessageReceiver, Name, Teleported,
+};
 use fecs::{Entity, World};
 use lieutenant::command;
 use thiserror::Error;
@@ -183,6 +185,28 @@ pub fn whisper(
 
         sender_message_receiver.send(return_text);
     }
+
+    Ok(())
+}
+
+#[command(usage = "say <message>")]
+pub fn say(ctx: &mut CommandCtx, message: TextArgument) -> anyhow::Result<()> {
+    let sender_name = if let Some(sender_name) = ctx.world.try_get::<Name>(ctx.sender) {
+        sender_name.0.clone()
+    } else {
+        // Use a default value if the executor has no Name component
+        String::from("Server")
+    };
+
+    let command_output = Text::from(format!("[{}] {}", sender_name, message.0)).into();
+
+    ctx.game.handle(
+        &mut ctx.world,
+        ChatEvent {
+            message: command_output,
+            position: ChatPosition::Chat,
+        },
+    );
 
     Ok(())
 }
