@@ -426,13 +426,54 @@ fn handle_shift_click(
 }
 
 fn handle_number_key(
-    _game: &mut Game,
-    _world: &mut World,
-    _player: Entity,
-    _packet: ClickWindow,
-    _key: u8,
+    game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    packet: ClickWindow,
+    key: u8,
 ) -> anyhow::Result<()> {
-    // TODO
+    let slot = packet.slot;
+    let window = world.get::<Window>(player);
+    let accessor = window.accessor(world)?;
+
+    if let Some(hotbar_slot_stack) = accessor.remove_item_at((35 + key) as usize)? {
+        // Handles the case where there is an item in both target slots
+
+        let stack_under_cursor = accessor.remove_item_at(slot as usize)?;
+
+        accessor.set_item_at(slot as usize, hotbar_slot_stack)?;
+
+        if let Some(stack) = stack_under_cursor {
+            accessor.set_item_at((35 + key) as usize, stack)?;
+        };
+    } else {
+        // Handles the case where there is an item in only the slot below the cursor
+
+        let stack_under_cursor = accessor.remove_item_at(slot as usize)?;
+
+        if let Some(stack) = stack_under_cursor {
+            accessor.set_item_at((35 + key) as usize, stack)?;
+        };
+    };
+
+    drop(accessor);
+
+    // Create a list of slots that were updated with this operation so they can be sent to handlers
+    let slots = smallvec![
+        window
+            .convert_network(slot as usize)
+            .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?
+            .into(),
+        window
+            .convert_network((35 + key) as usize)
+            .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?
+            .into()
+    ];
+
+    drop(window);
+
+    game.handle(world, InventoryUpdateEvent { player, slots });
+
     Ok(())
 }
 
