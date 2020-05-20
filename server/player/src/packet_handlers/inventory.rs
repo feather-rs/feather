@@ -426,13 +426,63 @@ fn handle_shift_click(
 }
 
 fn handle_number_key(
-    _game: &mut Game,
-    _world: &mut World,
-    _player: Entity,
-    _packet: ClickWindow,
-    _key: u8,
+    game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    packet: ClickWindow,
+    key: u8,
 ) -> anyhow::Result<()> {
-    // TODO
+    let slot: usize = packet.slot as usize;
+    let hotbar_slot_index = (key - 1) as usize;
+
+    let window = world.get::<Window>(player);
+    let accessor = window.accessor(world)?;
+
+    let inventory = world.get::<Inventory>(player);
+
+    // The slot index of the target hotbar slot
+    let hotbar_slot = SlotIndex {
+        area: Area::Hotbar,
+        slot: hotbar_slot_index,
+    };
+
+    // Perform the swap
+    if let Some(hotbar_slot_stack) = inventory.remove_item_at(Area::Hotbar, hotbar_slot_index)? {
+        // Handles the case where there is an item in both target slots
+
+        let stack_under_cursor = accessor.remove_item_at(slot)?;
+
+        accessor.set_item_at(slot, hotbar_slot_stack)?;
+
+        if let Some(stack) = stack_under_cursor {
+            inventory.set_item_at(Area::Hotbar, hotbar_slot_index, stack)?;
+        };
+    } else {
+        // Handles the case where there is an item in only the slot below the cursor
+
+        let stack_under_cursor = accessor.remove_item_at(slot)?;
+
+        if let Some(stack) = stack_under_cursor {
+            inventory.set_item_at(Area::Hotbar, hotbar_slot_index, stack)?;
+        };
+    };
+
+    drop(inventory);
+    drop(accessor);
+
+    // Create a list of slots that were updated with this operation so they can be sent to handlers
+    let slots = smallvec![
+        window
+            .convert_network(slot as usize)
+            .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?
+            .into(),
+        hotbar_slot
+    ];
+
+    drop(window);
+
+    game.handle(world, InventoryUpdateEvent { player, slots });
+
     Ok(())
 }
 
