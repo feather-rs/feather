@@ -39,8 +39,6 @@ static COLLECT_SEARCH_ORDER: Lazy<Vec<(Area, usize)>> = Lazy::new(|| {
 /// different parts.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Area {
-    /// A player's hotbar (9 slots total)
-    Hotbar,
     /// The crafting output slot inside either a player's
     /// inventory or a crafting table. (1 slot total)
     CraftingOutput,
@@ -58,6 +56,9 @@ pub enum Area {
 
     /// Main part of a player's inventory (27 slots total)
     Main,
+
+    /// A player's hotbar (9 slots total)
+    Hotbar,
 
     /// Chest storage (27 or 54 slots total, depending on whether
     /// chest is single or large)
