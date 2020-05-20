@@ -256,7 +256,7 @@ impl ArgumentKind<CommandCtx> for ParsedGamemode {
     type ParseError = GamemodeParseError;
 
     fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
-        !input.is_empty()
+        !input.advance_until(" ").is_empty()
     }
 
     fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
@@ -285,11 +285,11 @@ impl ArgumentKind<CommandCtx> for TextArgument {
     type ParseError = Infallible;
 
     fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
+        // Required until #11 is fixed in https://github.com/feather-rs/lieutenant/issues/11
         !input.advance_until("\0").is_empty()
     }
 
     fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
-        // \0 ensures that this will advance until the end of the command
         let text = input.advance_to_end();
 
         Ok(TextArgument(text.to_owned()))
