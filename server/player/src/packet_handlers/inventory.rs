@@ -433,22 +433,21 @@ fn handle_number_key(
     key: u8,
 ) -> anyhow::Result<()> {
     let slot: usize = packet.slot as usize;
+    let hotbar_slot_index = (key - 1) as usize;
+
     let window = world.get::<Window>(player);
     let accessor = window.accessor(world)?;
 
-    // The slot index used to index the hotbar
+    let inventory = world.get::<Inventory>(player);
+
+    // The slot index of the target hotbar slot
     let hotbar_slot = SlotIndex {
         area: Area::Hotbar,
-        slot: (key - 1) as usize,
+        slot: hotbar_slot_index,
     };
 
-    // Convert the slot index into the network slot
-    let hotbar_slot = window
-        .convert_slot(hotbar_slot, player)
-        .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?;
-
     // Perform the swap
-    if let Some(hotbar_slot_stack) = accessor.remove_item_at(hotbar_slot)? {
+    if let Some(hotbar_slot_stack) = inventory.remove_item_at(Area::Hotbar, hotbar_slot_index)? {
         // Handles the case where there is an item in both target slots
 
         let stack_under_cursor = accessor.remove_item_at(slot)?;
@@ -456,7 +455,7 @@ fn handle_number_key(
         accessor.set_item_at(slot, hotbar_slot_stack)?;
 
         if let Some(stack) = stack_under_cursor {
-            accessor.set_item_at(hotbar_slot, stack)?;
+            inventory.set_item_at(Area::Hotbar, hotbar_slot_index, stack)?;
         };
     } else {
         // Handles the case where there is an item in only the slot below the cursor
@@ -464,10 +463,11 @@ fn handle_number_key(
         let stack_under_cursor = accessor.remove_item_at(slot)?;
 
         if let Some(stack) = stack_under_cursor {
-            accessor.set_item_at(hotbar_slot, stack)?;
+            inventory.set_item_at(Area::Hotbar, hotbar_slot_index, stack)?;
         };
     };
 
+    drop(inventory);
     drop(accessor);
 
     // Create a list of slots that were updated with this operation so they can be sent to handlers
@@ -476,10 +476,7 @@ fn handle_number_key(
             .convert_network(slot as usize)
             .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?
             .into(),
-        window
-            .convert_network((35 + key) as usize)
-            .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?
-            .into()
+        hotbar_slot
     ];
 
     drop(window);
