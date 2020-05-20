@@ -432,27 +432,39 @@ fn handle_number_key(
     packet: ClickWindow,
     key: u8,
 ) -> anyhow::Result<()> {
-    let slot = packet.slot;
+    let slot: usize = packet.slot as usize;
     let window = world.get::<Window>(player);
     let accessor = window.accessor(world)?;
 
-    if let Some(hotbar_slot_stack) = accessor.remove_item_at((35 + key) as usize)? {
+    // The slot index used to index the hotbar
+    let hotbar_slot = SlotIndex {
+        area: Area::Hotbar,
+        slot: (key - 1) as usize,
+    };
+
+    // Convert the slot index into the network slot
+    let hotbar_slot = window
+        .convert_slot(hotbar_slot, player)
+        .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?;
+
+    // Perform the swap
+    if let Some(hotbar_slot_stack) = accessor.remove_item_at(hotbar_slot)? {
         // Handles the case where there is an item in both target slots
 
-        let stack_under_cursor = accessor.remove_item_at(slot as usize)?;
+        let stack_under_cursor = accessor.remove_item_at(slot)?;
 
-        accessor.set_item_at(slot as usize, hotbar_slot_stack)?;
+        accessor.set_item_at(slot, hotbar_slot_stack)?;
 
         if let Some(stack) = stack_under_cursor {
-            accessor.set_item_at((35 + key) as usize, stack)?;
+            accessor.set_item_at(hotbar_slot, stack)?;
         };
     } else {
         // Handles the case where there is an item in only the slot below the cursor
 
-        let stack_under_cursor = accessor.remove_item_at(slot as usize)?;
+        let stack_under_cursor = accessor.remove_item_at(slot)?;
 
         if let Some(stack) = stack_under_cursor {
-            accessor.set_item_at((35 + key) as usize, stack)?;
+            accessor.set_item_at(hotbar_slot, stack)?;
         };
     };
 
