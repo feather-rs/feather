@@ -869,9 +869,17 @@ dependencies = [
 name = "feather-loot"
 version = "0.1.0"
 dependencies = [
- "hashbrown",
+ "feather-loot-model",
+]
+
+[[package]]
+name = "feather-loot-model"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "inlinable_string",
  "serde",
- "uuid",
+ "smallvec",
 ]
 
 [[package]]
@@ -1704,6 +1712,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "076f042c5b7b98f31d205f1249267e12a6518c1481e9dae9764af19b707d2292"
 dependencies = [
  "autocfg 1.0.0",
+ "serde",
+]
+
+[[package]]
+name = "inlinable_string"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb6ee2a7da03bfc3b66ca47c92c2e392fcc053ea040a85561749b026f7aad09a"
+dependencies = [
  "serde",
 ]
 
@@ -3016,6 +3033,9 @@ name = "smallvec"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c7cb5678e1615754284ec264d9bb5b4c27d2018577fd90ac0ceb578591ed5ee4"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "socket2"

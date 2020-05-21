@@ -13,6 +13,7 @@ members = [
     "core/item_block",
     "core/items",
     "core/loot",
+    "core/loot/model",
     "core/misc",
     "core/inventory",
     "core/network",
