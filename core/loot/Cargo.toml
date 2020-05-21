@@ -6,3 +6,12 @@ edition = "2018"
 
 [dependencies]
 feather-loot-model = { path = "model" }
+serde_cbor = "0.11"
+once_cell = "1.4"
+
+[build-dependencies]
+feather-loot-model = { path = "model" }
+serde_json = "1.0"
+serde_cbor = "0.11"
+walkdir = "2.3"
+anyhow = "1.0"
