@@ -15,6 +15,21 @@ fn main() {
 
 fn run() -> anyhow::Result<()> {
     let path = format!("{}/minecraft", env!("CARGO_MANIFEST_DIR"));
+    let path_1_15 = format!("{}/minecraft-1.15", env!("CARGO_MANIFEST_DIR"));
+
+    download_version("https://launcher.mojang.com/v1/objects/3737db93722a9e39eeada7c27e7aca28b144ffa7/server.jar", &path).context("failed to download 1.13 data")?;
+    download_version("https://launcher.mojang.com/v1/objects/bb2b6b1aefcd70dfd1892149ac3a215f6c636b07/server.jar", &path_1_15).context("failed to download 1.15. data")?;
+
+    clone_minecraft_data().context("failed to clone PrismarineJS/minecraft-data")?;
+
+    println!(
+        "cargo:rerun-if-changed={}",
+        concat!(env!("CARGO_MANIFEST_DIR"), "/build.rs")
+    );
+    Ok(())
+}
+
+fn download_version(url: &str, path: &str) -> anyhow::Result<()> {
     let path = Path::new(&path);
     let path_server = path.join("server.jar");
 
@@ -27,21 +42,15 @@ fn run() -> anyhow::Result<()> {
         return Ok(());
     }
 
-    let _ = fs::remove_dir_all(&path);
-    fs::create_dir_all(&path).context("failed to create target directory for downloaded data")?;
+    let _ = fs::remove_dir_all(path);
+    fs::create_dir_all(path).context("failed to create target directory for downloaded data")?;
 
-    download(&path_server).context("failed to download vanilla server JAR")?;
-    generate(&path).context(
+    download(url, &path_server).context("failed to download vanilla server JAR")?;
+    generate(path).context(
         "failed to generate vanilla server reports. (is Java installed and in your PATH?)",
     )?;
-    extract(&path).context("failed to extract vanilla assets. (are the Java developer tools (`jar`) installed and in your PATH?)")?;
+    extract(path).context("failed to extract vanilla assets. (are the Java developer tools (`jar`) installed and in your PATH?)")?;
 
-    clone_minecraft_data().context("failed to clone PrismarineJS/minecraft-data")?;
-
-    println!(
-        "cargo:rerun-if-changed={}",
-        concat!(env!("CARGO_MANIFEST_DIR"), "/build.rs")
-    );
     Ok(())
 }
 
@@ -52,8 +61,8 @@ fn data_exists(path: &Path) -> anyhow::Result<bool> {
         && File::open(path.join("generated")).is_ok())
 }
 
-fn download<P: AsRef<Path>>(server: P) -> anyhow::Result<()> {
-    let mut response = reqwest::blocking::get("https://launcher.mojang.com/v1/objects/3737db93722a9e39eeada7c27e7aca28b144ffa7/server.jar")?;
+fn download<P: AsRef<Path>>(url: &str, server: P) -> anyhow::Result<()> {
+    let mut response = reqwest::blocking::get(url)?;
     let mut dest = File::create(server)
         .context("failed to create destination file for server JAR download")?;
     copy(&mut response, &mut dest)?;
