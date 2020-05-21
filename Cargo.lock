@@ -875,6 +875,7 @@ dependencies = [
  "feather-items",
  "feather-loot-model",
  "inlinable_string",
+ "itertools 0.9.0",
  "once_cell",
  "rand",
  "serde_json",

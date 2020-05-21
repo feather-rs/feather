@@ -136,8 +136,34 @@ pub enum LootTableKind {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "condition")]
+#[serde(rename_all = "snake_case")]
 pub enum Condition {
+    /// Tool used to break block must match this item.
+    #[serde(alias = "minecraft:match_tool")]
+    MatchTool { predicate: ItemPredicate },
+
+    #[serde(alias = "minecraft:random_chance")]
+    RandomChance { chance: f64 },
+
     // TODO
+    #[serde(other)]
+    Unknown,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ItemPredicate {
+    /// Enchantments present on the item
+    #[serde(default)]
+    pub enchantments: SmallVec<[Enchantment; 2]>,
+    /// Item identifier of the held item
+    pub item: Option<InlinableString>,
+    // TODO: tag, count, durability, nbt, potion
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "enchantment")]
+pub enum Enchantment {
+    // TODO (blocked on Feather enchantment support)
     #[serde(other)]
     Unknown,
 }

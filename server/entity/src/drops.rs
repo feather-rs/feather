@@ -1,6 +1,6 @@
 use crate::{item, InventoryExt};
 use feather_core::items::ItemStack;
-use feather_core::loot::loot_table;
+use feather_core::loot::{loot_table, Conditions};
 use feather_core::util::Position;
 use feather_server_types::{
     BlockUpdateEvent, CanInstaBreak, EntitySpawnEvent, Game, Inventory, Velocity, TPS,
@@ -16,21 +16,21 @@ pub fn on_block_break_drop_loot(event: &BlockUpdateEvent, game: &mut Game, world
         return;
     }
 
-    match event.cause {
+    let item = match event.cause {
         feather_server_types::BlockUpdateCause::Entity(entity) => {
             // If broken by a player who can insta-break, don't drop loot.
             if world.has::<CanInstaBreak>(entity) {
                 return;
             }
 
+            let item = world
+                .try_get::<Inventory>(entity)
+                .map(|inv| inv.item_in_main_hand(entity, world))
+                .flatten();
+
             // If the block was not broken with the correct tool, don't drop loot.
             if event.old.kind().best_tool_required() {
-                let tool_used = world
-                    .try_get::<Inventory>(entity)
-                    .map(|inv| inv.item_in_main_hand(entity, world))
-                    .flatten()
-                    .map(|item| item.ty.tool())
-                    .flatten();
+                let tool_used = item.map(|item| item.ty.tool()).flatten();
 
                 let best_tool = event.old.kind().best_tool();
 
@@ -38,19 +38,27 @@ pub fn on_block_break_drop_loot(event: &BlockUpdateEvent, game: &mut Game, world
                     return;
                 }
             }
+
+            item
         }
-        _ => (),
-    }
+        _ => None,
+    };
 
     if let Some(loot_table) = loot_table(&format!("blocks/{}", &event.old.identifier()[10..])) {
-        let items = loot_table.sample(&mut *game.rng()).unwrap_or_else(|e| {
-            log::error!(
-                "Error sampling from loot table `{}`: {:?}",
-                event.old.identifier(),
-                e
-            );
-            Default::default()
-        });
+        let conditions = Conditions {
+            item,
+            ..Default::default()
+        };
+        let items = loot_table
+            .sample(&mut *game.rng(), &conditions)
+            .unwrap_or_else(|e| {
+                log::error!(
+                    "Error sampling from loot table `{}`: {:?}",
+                    event.old.identifier(),
+                    e
+                );
+                Default::default()
+            });
 
         for item in items {
             drop_item(game, world, item, event.pos.position());

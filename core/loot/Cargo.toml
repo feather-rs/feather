@@ -15,6 +15,7 @@ smallvec = "1.4"
 thiserror = "1.0"
 ahash = "0.3"
 inlinable_string = "0.1"
+itertools = "0.9"
 
 [build-dependencies]
 feather-loot-model = { path = "model" }
