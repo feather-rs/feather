@@ -773,6 +773,7 @@ dependencies = [
  "feather-inventory",
  "feather-item-block",
  "feather-items",
+ "feather-loot",
  "feather-misc",
  "feather-network",
  "feather-text",
