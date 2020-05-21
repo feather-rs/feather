@@ -6,6 +6,7 @@
 //! may be alleviated in the future.
 
 use inlinable_string::InlinableString;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 use std::collections::HashMap;
@@ -177,6 +178,27 @@ pub enum SetCountValue {
     Random(SetCountRandom),
 }
 
+impl SetCountValue {
+    pub fn sample(&self, rng: &mut impl Rng) -> u32 {
+        match self {
+            SetCountValue::Fixed(n) => *n,
+            SetCountValue::Random(random) => match random {
+                SetCountRandom::Uniform { min, max } => rng.gen_range(*min, *max + 1),
+                SetCountRandom::Binomial { n, p } => {
+                    let p = p.min(1.0).max(0.0);
+                    debug_assert!(p <= 1.0);
+                    debug_assert!(p >= 0.0);
+                    let result = (0..*n)
+                        .take(1000)
+                        .map(|_| if rng.gen_bool(p) { 1 } else { 0 })
+                        .sum();
+                    result
+                }
+            },
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum SetCountRandom {
@@ -199,4 +221,14 @@ pub enum SetCountRandom {
 pub enum FixedOrRandom {
     Fixed(u32),
     Random { min: u32, max: u32 },
+}
+
+impl FixedOrRandom {
+    /// Given an RNG, returns a value for this integer.
+    pub fn sample(&self, rng: &mut impl Rng) -> u32 {
+        match self {
+            FixedOrRandom::Fixed(n) => *n,
+            FixedOrRandom::Random { min, max } => rng.gen_range(*min, *max + 1),
+        }
+    }
 }

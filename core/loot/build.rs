@@ -1,8 +1,8 @@
 use anyhow::Context;
 use feather_loot_model::LootTable;
+use std::io::Read;
 use std::{env, fs::File};
 use walkdir::WalkDir;
-use std::io::Read;
 
 fn main() {
     if let Err(e) = run() {
@@ -33,12 +33,14 @@ fn run() -> anyhow::Result<()> {
         }
 
         // Determine path of file relative to the base directory
-        let relative_path = entry
+        let mut relative_path = entry
             .path()
             .strip_prefix(input)
             .with_context(|| format!("failed to strip prefix for `{}`", entry.path().display()))?
             .to_str()
             .context("path contains invalid UTF-8")?;
+        // strip .json suffix
+        relative_path = &relative_path[..relative_path.len() - 5];
 
         let mut s = String::new();
         let mut file = File::open(entry.path())?;

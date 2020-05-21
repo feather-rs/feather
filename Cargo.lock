@@ -869,11 +869,17 @@ dependencies = [
 name = "feather-loot"
 version = "0.1.0"
 dependencies = [
+ "ahash",
  "anyhow",
+ "feather-items",
  "feather-loot-model",
+ "inlinable_string",
  "once_cell",
+ "rand",
  "serde_cbor",
  "serde_json",
+ "smallvec",
+ "thiserror",
  "walkdir",
 ]
 
@@ -883,6 +889,7 @@ version = "0.1.0"
 dependencies = [
  "ahash",
  "inlinable_string",
+ "rand",
  "serde",
  "smallvec",
 ]

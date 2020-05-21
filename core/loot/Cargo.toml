@@ -6,8 +6,15 @@ edition = "2018"
 
 [dependencies]
 feather-loot-model = { path = "model" }
+feather-items = { path = "../items" }
+
 serde_cbor = "0.11"
 once_cell = "1.4"
+rand = "0.7"
+smallvec = "1.4"
+thiserror = "1.0"
+ahash = "0.3"
+inlinable_string = "0.1"
 
 [build-dependencies]
 feather-loot-model = { path = "model" }
