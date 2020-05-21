@@ -14,12 +14,16 @@ fn main() {
 }
 
 fn run() -> anyhow::Result<()> {
-    let path = format!("{}/minecraft", env::var("OUT_DIR").unwrap());
+    let path = format!("{}/minecraft", env!("CARGO_MANIFEST_DIR"));
     let path = Path::new(&path);
     let path_server = path.join("server.jar");
 
     if data_exists(path).unwrap_or(false) {
         println!("cargo:rerun-if-changed={}", &path.display());
+        println!(
+            "cargo:rerun-if-changed={}",
+            concat!(env!("CARGO_MANIFEST_DIR"), "/build.rs")
+        );
         return Ok(());
     }
 
@@ -85,7 +89,7 @@ fn extract<P: AsRef<Path>>(working: P) -> anyhow::Result<()> {
 }
 
 fn clone_minecraft_data() -> anyhow::Result<()> {
-    let path = format!("{}/minecraft-data", env::var("OUT_DIR")?);
+    let path = format!("{}/minecraft-data", env!("CARGO_MANIFEST_DIR"));
     if Path::new(&path).exists() {
         // Already cloned - no need to do so again
         return Ok(());
