@@ -406,12 +406,83 @@ fn handle_single_click(
 }
 
 fn handle_double_click(
-    _game: &mut Game,
-    _world: &mut World,
-    _player: Entity,
+    game: &mut Game,
+    world: &mut World,
+    player: Entity,
     _packet: ClickWindow,
 ) -> anyhow::Result<()> {
-    // not sure what to do here?
+    // Double click gathers items into the picked stack until it hits the max stack size, or it has picked up all possible items
+
+    // Keep track of what slots are modified so the client can be informed
+    let mut modified_slots: smallvec::SmallVec<[SlotIndex; 2]> = smallvec![];
+
+    let stack_size;
+
+    let new_picked_count = {
+        let mut current_count;
+        let item_type;
+
+        // Get information about the currently picked item
+        if let Some(picked) = world.try_get_mut::<PickedItem>(player) {
+            stack_size = picked.0.ty.stack_size() as u8;
+            current_count = picked.0.amount;
+            item_type = picked.0.ty;
+        } else {
+            // Immediately return if there is no item picked
+            return Ok(());
+        };
+
+        // Get the current inventory
+        let inventory = world.get::<Inventory>(player);
+
+        // Iterate through all inventory slots, picking up items of the same type
+        for (index, slot) in inventory.enumerate() {
+            if let Some(slot) = slot {
+                // Remove items from the inventory until the player's PickedItem has reached its max stack size
+                if slot.ty == item_type && slot.amount != stack_size {
+                    if let Some(mut item_stack) =
+                        inventory.remove_item_at(index.area, index.slot)?
+                    {
+                        // Push the slot that was modified so it will be updated on the client
+                        modified_slots.push(index);
+
+                        current_count += item_stack.amount;
+
+                        if current_count >= stack_size {
+                            // Put the extra items back into the slot that had its items removed and break
+
+                            item_stack.amount = current_count - stack_size;
+                            current_count = stack_size;
+
+                            if item_stack.amount > 0 {
+                                inventory.set_item_at(index.area, index.slot, item_stack)?;
+                            }
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Return how many items the picked stack should now have
+        current_count
+    };
+
+    // Ensure there are no situations where new items are created and the PickedItem stack size is larger than the maximum
+    assert!(new_picked_count <= stack_size);
+
+    // Update the picked item
+    world.get_mut::<PickedItem>(player).0.amount = new_picked_count;
+
+    game.handle(
+        world,
+        InventoryUpdateEvent {
+            player,
+            slots: modified_slots,
+        },
+    );
+
     Ok(())
 }
 
