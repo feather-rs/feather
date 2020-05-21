@@ -159,10 +159,6 @@ pub enum FunctionKind {
     // apply_bonus, copy_name, copy_nbt, copy_state, enchant_randomly, enchant_with_levels, exploration_map,
     // explosion_decay, furnace_smelt, fill_player_head, set_attribute, set_contents, set_damage, set_lore,
     // set_name, set_nbt, set_stew_effect
-    /// Limits the amount of items in the stack.
-    #[serde(alias = "minecraft:limit_count")]
-    LimitCount { count: FixedOrRandom },
-
     /// Sets the stack amount.
     #[serde(alias = "minecraft:set_count")]
     SetCount { count: SetCountValue },
@@ -183,12 +179,14 @@ impl SetCountValue {
         match self {
             SetCountValue::Fixed(n) => *n,
             SetCountValue::Random(random) => match random {
-                SetCountRandom::Uniform { min, max } => rng.gen_range(*min, *max + 1),
+                SetCountRandom::Uniform { min, max } => {
+                    rng.gen_range(min.round() as u32, max.round() as u32 + 1)
+                }
                 SetCountRandom::Binomial { n, p } => {
                     let p = p.min(1.0).max(0.0);
                     debug_assert!(p <= 1.0);
                     debug_assert!(p >= 0.0);
-                    let result = (0..*n)
+                    let result = (0..n.round() as u32)
                         .take(1000)
                         .map(|_| if rng.gen_bool(p) { 1 } else { 0 })
                         .sum();
@@ -203,12 +201,12 @@ impl SetCountValue {
 #[serde(untagged)]
 pub enum SetCountRandom {
     Uniform {
-        min: u32,
-        max: u32,
+        min: f64,
+        max: f64,
     },
     Binomial {
         /// Number of rolls
-        n: u32,
+        n: f64,
         /// Chance of each roll
         p: f64,
     },
@@ -219,16 +217,18 @@ pub enum SetCountRandom {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum FixedOrRandom {
-    Fixed(u32),
-    Random { min: u32, max: u32 },
+    Fixed(f64),
+    Random { min: f64, max: f64 },
 }
 
 impl FixedOrRandom {
     /// Given an RNG, returns a value for this integer.
     pub fn sample(&self, rng: &mut impl Rng) -> u32 {
         match self {
-            FixedOrRandom::Fixed(n) => *n,
-            FixedOrRandom::Random { min, max } => rng.gen_range(*min, *max + 1),
+            FixedOrRandom::Fixed(n) => n.round() as u32,
+            FixedOrRandom::Random { min, max } => {
+                rng.gen_range(min.round() as u32, max.round() as u32 + 1)
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 use anyhow::Context;
 use feather_loot_model::LootTable;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::{env, fs::File};
 use walkdir::WalkDir;
 
@@ -20,7 +20,7 @@ fn run() -> anyhow::Result<()> {
     // for inclusion in `feather-loot`.
     let input = concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../../data/minecraft/data/minecraft/loot_tables"
+        "/../../data/minecraft-1.15/data/minecraft/loot_tables"
     );
 
     let mut map = feather_loot_model::LootTableSet::default();
@@ -55,9 +55,10 @@ fn run() -> anyhow::Result<()> {
     }
 
     // Write the loot table map out to the dump
-    let dump_path = format!("{}/dump.cbor", env::var("OUT_DIR")?);
+    let dump_path = format!("{}/dump.json", env::var("OUT_DIR")?);
     let mut dump = File::create(&dump_path)?;
-    serde_cbor::to_writer(&mut dump, &map)?;
+    let vec = serde_json::to_vec(&map).unwrap();
+    dump.write_all(vec.as_slice())?;
 
     Ok(())
 }
