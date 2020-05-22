@@ -42,6 +42,9 @@ fn run() -> anyhow::Result<()> {
         // strip .json suffix
         relative_path = &relative_path[..relative_path.len() - 5];
 
+        // replace \\ with / for windows
+        let relative_path = relative_path.replace("\\", "/");
+
         let mut s = String::new();
         let mut file = File::open(entry.path())?;
         file.read_to_string(&mut s)?;

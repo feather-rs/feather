@@ -316,7 +316,12 @@ mod tests {
 
     #[test]
     fn grass_block_condition() {
-        let table = loot_table("blocks/grass_block").expect("missing loot table for grass block");
+        let table = loot_table("blocks/grass_block").unwrap_or_else(|| {
+            panic!(
+                "missing loot table for grass block\nnote: loaded keys: {:?}",
+                STORE.keys()
+            );
+        });
 
         let mut rng = StepRng::new(0, 1);
 
