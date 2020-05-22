@@ -1,6 +1,7 @@
 //! Systems which handle packets.
 
 mod animation;
+mod block_interaction;
 mod chat;
 mod digging;
 mod inventory;
