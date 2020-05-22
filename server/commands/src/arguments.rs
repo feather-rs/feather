@@ -295,3 +295,9 @@ impl ArgumentKind<CommandCtx> for TextArgument {
         Ok(TextArgument(text.to_owned()))
     }
 }
+
+impl AsRef<str> for TextArgument {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}

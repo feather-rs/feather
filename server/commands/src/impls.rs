@@ -215,11 +215,11 @@ pub fn say(ctx: &mut CommandCtx, message: TextArgument) -> anyhow::Result<()> {
 }
 
 #[command(usage = "me <action>")]
-pub fn me(ctx: &mut CommandCtx, TextArgument(action): TextArgument) -> anyhow::Result<()> {
+pub fn me(ctx: &mut CommandCtx, action: TextArgument) -> anyhow::Result<()> {
     let command_output = {
         let name = ctx.world.try_get::<Name>(ctx.sender);
-        let sender_name = name.as_ref().map_or("@", |Name(n)| n);
-        Text::from(format!("* {} {}", sender_name, action));
+        let sender_name = name.as_deref().map_or("@", |Name(n)| n);
+        Text::from(format!("* {} {}", sender_name, action.as_ref()))
     };
 
     ctx.game.handle(
