@@ -56,7 +56,13 @@ pub fn handle_player_block_placement(
             // TODO: Maybe player shifting may need to be taken into account (shift click on interactable block)
             if let Some(interaction_handler) = INTERACTION_HANDLERS.get(&target_block.kind()) {
                 // Interact with the block
-                interaction_handler.handle_interaction();
+                interaction_handler.handle_interaction(
+                    game,
+                    world,
+                    player,
+                    target_block.kind(),
+                    packet,
+                );
             } else {
                 // Try to place a block
                 handle_block_placement(game, world, player, target_block.kind(), packet);
