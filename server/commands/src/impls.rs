@@ -213,3 +213,23 @@ pub fn say(ctx: &mut CommandCtx, message: TextArgument) -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[command(usage = "me <action>")]
+pub fn me(ctx: &mut CommandCtx, action: TextArgument) -> anyhow::Result<()> {
+    let name = ctx.world.try_get::<Name>(ctx.sender);
+
+    let sender_name = if let Some(name) = &name { &name.0 } else { "@" };
+    let command_output = Text::from(format!("* {} {}", sender_name, action.0));
+
+    drop(name);
+
+    ctx.game.handle(
+        &mut ctx.world,
+        ChatEvent {
+            message: command_output.into(),
+            position: ChatPosition::Chat,
+        },
+    );
+
+    Ok(())
+}
