@@ -187,8 +187,7 @@ fn sample_entry(
             if let Some(entry) = entry
                 .children
                 .iter()
-                .filter(|entry| satisfies_conditions(entry.conditions.iter(), conditions, rng))
-                .next()
+                .find(|entry| satisfies_conditions(entry.conditions.iter(), conditions, rng))
             {
                 sample_entry(entry, rng, &mut temp, conditions)?;
             }
@@ -321,15 +320,7 @@ mod tests {
 
         let mut rng = StepRng::new(0, 1);
 
-        let items = table
-            .sample(
-                &mut rng,
-                &Conditions {
-                    item: None,
-                    ..Default::default()
-                },
-            )
-            .unwrap();
+        let items = table.sample(&mut rng, &Conditions { item: None }).unwrap();
 
         assert_eq!(items.as_slice(), &[ItemStack::new(Item::Dirt, 1)]);
     }

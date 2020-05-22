@@ -18,14 +18,14 @@ fn main() {
 fn run() -> anyhow::Result<()> {
     // Load in all loot tables, then dump them into ${OUT_DIR}/dump.ron
     // for inclusion in `feather-loot`.
-    let input = concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/../../data/minecraft-1.15/data/minecraft/loot_tables"
+    let input = format!(
+        "{}/minecraft-1.15/data/minecraft/loot_tables",
+        feather_data::minecraft::PATH
     );
 
     let mut map = feather_loot_model::LootTableSet::default();
 
-    for entry in WalkDir::new(input) {
+    for entry in WalkDir::new(&input) {
         let entry = entry.context("entry access failed")?;
 
         if entry.metadata()?.is_dir() {
@@ -35,7 +35,7 @@ fn run() -> anyhow::Result<()> {
         // Determine path of file relative to the base directory
         let mut relative_path = entry
             .path()
-            .strip_prefix(input)
+            .strip_prefix(&input)
             .with_context(|| format!("failed to strip prefix for `{}`", entry.path().display()))?
             .to_str()
             .context("path contains invalid UTF-8")?;

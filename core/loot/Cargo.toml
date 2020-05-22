@@ -18,6 +18,8 @@ inlinable_string = "0.1"
 itertools = "0.9"
 
 [build-dependencies]
+feather-data = { path = "../../data" }
+
 feather-loot-model = { path = "model" }
 serde_json = "1.0"
 walkdir = "2.3"

@@ -2,7 +2,7 @@ use anyhow::Context;
 use std::env;
 use std::fs;
 use std::fs::File;
-use std::io::copy;
+use std::io::{copy, Write};
 use std::path::Path;
 use std::process::Command;
 
@@ -14,11 +14,11 @@ fn main() {
 }
 
 fn run() -> anyhow::Result<()> {
-    let path = format!("{}/minecraft", env!("CARGO_MANIFEST_DIR"));
-    let path_1_15 = format!("{}/minecraft-1.15", env!("CARGO_MANIFEST_DIR"));
+    let path = format!("{}/minecraft", env::var("OUT_DIR")?);
+    let path_1_15 = format!("{}/minecraft-1.15", env::var("OUT_DIR")?);
 
-    download_version("https://launcher.mojang.com/v1/objects/3737db93722a9e39eeada7c27e7aca28b144ffa7/server.jar", &path).context("failed to download 1.13 data")?;
-    download_version("https://launcher.mojang.com/v1/objects/bb2b6b1aefcd70dfd1892149ac3a215f6c636b07/server.jar", &path_1_15).context("failed to download 1.15. data")?;
+    download_version("https://launcher.mojang.com/v1/objects/3737db93722a9e39eeada7c27e7aca28b144ffa7/server.jar", &path, true).context("failed to download 1.13 data")?;
+    download_version("https://launcher.mojang.com/v1/objects/bb2b6b1aefcd70dfd1892149ac3a215f6c636b07/server.jar", &path_1_15, false).context("failed to download 1.15 data")?;
 
     clone_minecraft_data().context("failed to clone PrismarineJS/minecraft-data")?;
 
@@ -29,7 +29,7 @@ fn run() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn download_version(url: &str, path: &str) -> anyhow::Result<()> {
+fn download_version(url: &str, path: &str, do_generate: bool) -> anyhow::Result<()> {
     let path = Path::new(&path);
     let path_server = path.join("server.jar");
 
@@ -46,10 +46,23 @@ fn download_version(url: &str, path: &str) -> anyhow::Result<()> {
     fs::create_dir_all(path).context("failed to create target directory for downloaded data")?;
 
     download(url, &path_server).context("failed to download vanilla server JAR")?;
-    generate(path).context(
-        "failed to generate vanilla server reports. (is Java installed and in your PATH?)",
-    )?;
+
+    println!(
+        "after download: {:?}",
+        std::fs::read_dir(path)?.collect::<Vec<_>>()
+    );
+
+    if do_generate {
+        generate(path).context(
+            "failed to generate vanilla server reports. (is Java installed and in your PATH?)",
+        )?;
+    }
+
     extract(path).context("failed to extract vanilla assets. (are the Java developer tools (`jar`) installed and in your PATH?)")?;
+    println!(
+        "after extract: {:?}",
+        std::fs::read_dir(path)?.collect::<Vec<_>>()
+    );
 
     Ok(())
 }
@@ -66,24 +79,30 @@ fn download<P: AsRef<Path>>(url: &str, server: P) -> anyhow::Result<()> {
     let mut dest = File::create(server)
         .context("failed to create destination file for server JAR download")?;
     copy(&mut response, &mut dest)?;
+    dest.flush()?;
     Ok(())
 }
 
 fn generate<P: AsRef<Path>>(working: P) -> anyhow::Result<()> {
     let status = Command::new("java")
-        .current_dir(working)
+        .current_dir(working.as_ref())
         .args(&["-cp", "server.jar", "net.minecraft.data.Main", "--reports"])
         .status()?;
     if !status.success() {
         anyhow::bail!(
-            "process to generate server reports was not successful (exit status {})",
-            status
+            "process to generate server reports was not successful (exit status {}, JAR path {})",
+            status,
+            working.as_ref().display(),
         )
     }
     Ok(())
 }
 
 fn extract<P: AsRef<Path>>(working: P) -> anyhow::Result<()> {
+    println!(
+        "{:?}",
+        std::fs::read_dir(working.as_ref())?.collect::<Vec<_>>()
+    );
     let status = Command::new("jar")
         .current_dir(working)
         .args(&["xf", "server.jar", "assets/", "data/"])
@@ -98,7 +117,7 @@ fn extract<P: AsRef<Path>>(working: P) -> anyhow::Result<()> {
 }
 
 fn clone_minecraft_data() -> anyhow::Result<()> {
-    let path = format!("{}/minecraft-data", env!("CARGO_MANIFEST_DIR"));
+    let path = format!("{}/minecraft-data", env::var("OUT_DIR")?);
     if Path::new(&path).exists() {
         // Already cloned - no need to do so again
         return Ok(());

@@ -782,7 +782,7 @@ dependencies = [
 
 [[package]]
 name = "feather-data"
-version = "0.6.2"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "feather-data-macro",
@@ -872,6 +872,7 @@ version = "0.1.0"
 dependencies = [
  "ahash",
  "anyhow",
+ "feather-data",
  "feather-items",
  "feather-loot-model",
  "inlinable_string",

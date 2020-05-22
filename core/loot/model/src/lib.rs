@@ -212,11 +212,10 @@ impl SetCountValue {
                     let p = p.min(1.0).max(0.0);
                     debug_assert!(p <= 1.0);
                     debug_assert!(p >= 0.0);
-                    let result = (0..n.round() as u32)
+                    (0..n.round() as u32)
                         .take(1000)
                         .map(|_| if rng.gen_bool(p) { 1 } else { 0 })
-                        .sum();
-                    result
+                        .sum()
                 }
             },
         }

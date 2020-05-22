@@ -45,10 +45,7 @@ pub fn on_block_break_drop_loot(event: &BlockUpdateEvent, game: &mut Game, world
     };
 
     if let Some(loot_table) = loot_table(&format!("blocks/{}", &event.old.identifier()[10..])) {
-        let conditions = Conditions {
-            item,
-            ..Default::default()
-        };
+        let conditions = Conditions { item };
         let items = loot_table
             .sample(&mut *game.rng(), &conditions)
             .unwrap_or_else(|e| {
