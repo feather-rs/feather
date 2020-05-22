@@ -1102,6 +1102,7 @@ dependencies = [
  "log",
  "mojang-api",
  "nalgebra-glm",
+ "once_cell",
  "parking_lot",
  "smallvec",
  "thiserror",
