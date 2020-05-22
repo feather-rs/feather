@@ -14,6 +14,7 @@ feather-entity-metadata = { path = "./entity_metadata" }
 feather-inventory = { path = "./inventory" }
 feather-item-block = { path = "./item_block" }
 feather-items = { path = "./items" }
+feather-loot = { path = "./loot" }
 feather-misc = { path = "./misc" }
 feather-network = { path = "./network" }
 feather-text = { path = "./text" }

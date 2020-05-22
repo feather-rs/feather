@@ -3,6 +3,8 @@
 **/.idea
 .cargo
 /data/minecraft
+/data/minecraft-1.15
+/data/minecraft-data
 
 world/
 feather.toml
