@@ -601,6 +601,11 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
     );
 
     m.insert(
+        PacketId(0x44, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::UpdateHealth,
+    );
+
+    m.insert(
         PacketId(0x49, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::SpawnPosition,
     );

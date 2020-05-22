@@ -16,10 +16,11 @@ use feather_core::text::Text;
 use feather_core::util::{Gamemode, Position};
 use feather_server_network::NewClientInfo;
 use feather_server_types::{
-    CanBreak, CanInstaBreak, CanTakeDamage, ChunkHolder, CreationPacketCreator, EntitySpawnEvent,
-    Game, GamemodeUpdateEvent, HeldItem, InventoryUpdateEvent, LastKnownPositions, MessageReceiver,
-    Name, Network, NetworkId, Player, PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition,
-    ProfileProperties, SpawnPacketCreator, Uuid,
+    CanBreak, CanInstaBreak, CanRespawn, CanTakeDamage, ChunkHolder, CreationPacketCreator,
+    EntitySpawnEvent, Game, GamemodeUpdateEvent, Health, HeldItem, InventoryUpdateEvent,
+    LastKnownPositions, MaxHealth, MessageReceiver, Name, Network, NetworkId, Player,
+    PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition, ProfileProperties, SpawnPacketCreator,
+    Uuid,
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
@@ -110,6 +111,10 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     world.add(entity, MessageReceiver::default()).unwrap();
 
     world.add(entity, Player).unwrap();
+
+    world.add(entity, CanRespawn).unwrap();
+    world.add(entity, MaxHealth(20)).unwrap();
+    world.add(entity, Health(20)).unwrap(); // TODO: load from player data
 
     game.player_count.fetch_add(1, Ordering::SeqCst);
     game.handle(world, EntitySpawnEvent { entity });

@@ -20,3 +20,9 @@ pub struct CanBreak;
 ///
 /// Only necessary for players.
 pub struct Teleported;
+
+/// Whether an entity is able to respawn.
+///
+/// If this component is added, then the entity
+/// will not be removed from the `World` when it dies.
+pub struct CanRespawn;
