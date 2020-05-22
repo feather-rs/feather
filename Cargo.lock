@@ -773,6 +773,7 @@ dependencies = [
  "feather-inventory",
  "feather-item-block",
  "feather-items",
+ "feather-loot",
  "feather-misc",
  "feather-network",
  "feather-text",
@@ -781,7 +782,7 @@ dependencies = [
 
 [[package]]
 name = "feather-data"
-version = "0.6.1"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "feather-data-macro",
@@ -863,6 +864,36 @@ name = "feather-items"
 version = "0.6.0"
 dependencies = [
  "feather-definitions",
+]
+
+[[package]]
+name = "feather-loot"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "feather-data",
+ "feather-items",
+ "feather-loot-model",
+ "inlinable_string",
+ "itertools 0.9.0",
+ "once_cell",
+ "rand",
+ "serde_json",
+ "smallvec",
+ "thiserror",
+ "walkdir",
+]
+
+[[package]]
+name = "feather-loot-model"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "inlinable_string",
+ "rand",
+ "serde",
+ "smallvec",
 ]
 
 [[package]]
@@ -1695,6 +1726,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "076f042c5b7b98f31d205f1249267e12a6518c1481e9dae9764af19b707d2292"
 dependencies = [
  "autocfg 1.0.0",
+ "serde",
+]
+
+[[package]]
+name = "inlinable_string"
+version = "0.1.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb6ee2a7da03bfc3b66ca47c92c2e392fcc053ea040a85561749b026f7aad09a"
+dependencies = [
  "serde",
 ]
 
@@ -3007,6 +3047,9 @@ name = "smallvec"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c7cb5678e1615754284ec264d9bb5b4c27d2018577fd90ac0ceb578591ed5ee4"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "socket2"

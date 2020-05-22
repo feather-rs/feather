@@ -7,6 +7,7 @@
 extern crate feather_core;
 
 mod broadcasters;
+pub mod drops;
 mod inventory;
 mod mob;
 mod object;
@@ -14,11 +15,11 @@ pub mod particle;
 
 pub use self::inventory::InventoryExt;
 pub use broadcasters::*;
+pub use drops::on_block_break_drop_loot;
 pub use mob::*;
-pub use object::*;
-
 pub use object::falling_block::{on_entity_land_remove_falling_block, spawn_falling_blocks};
 pub use object::item::{item_collect, on_item_drop_spawn_item_entity};
+pub use object::*;
 
 extern crate nalgebra_glm as glm;
 

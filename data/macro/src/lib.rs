@@ -10,12 +10,19 @@ pub fn include_data(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input: LitStr = parse_macro_input!(input as LitStr);
     let build_dir = env::var("OUT_DIR").unwrap();
 
-    let path = PathBuf::from(build_dir).join(input.value());
+    let path = PathBuf::from(&build_dir).join(input.value());
     if !path.exists() {
         panic!("Path \"{}\" does not exist.", path.display());
     }
     let (dirs_files, _) = include_dirs_files(path);
-    dirs_files.into()
+
+    let tokens = quote! {
+        #[doc = "The path of downloaded feather-data files."]
+        pub const PATH: &str = #build_dir;
+        #dirs_files
+    };
+
+    tokens.into()
 }
 
 fn include_dirs_files<P: AsRef<Path>>(path: P) -> (TokenStream, Vec<syn::Path>) {

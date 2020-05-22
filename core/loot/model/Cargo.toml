@@ -1,0 +1,12 @@
+[package]
+name = "feather-loot-model"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+smallvec = { version = "1.4", features = ["serde"] }
+inlinable_string = { version = "0.1", features = ["serde"] }
+ahash = "0.3"
+rand = "0.7"
