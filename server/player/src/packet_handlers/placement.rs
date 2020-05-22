@@ -1,5 +1,6 @@
 //! Handling of player block placement packets.
 
+use super::block_interaction::*;
 use crate::IteratorExt;
 use entity::InventoryExt;
 use feather_core::blocks::BlockKind;
@@ -10,11 +11,26 @@ use feather_core::network::packets::PlayerBlockPlacement;
 use feather_core::util::Gamemode;
 use feather_server_types::{BlockUpdateCause, Game, HeldItem, InventoryUpdateEvent, PacketBuffers};
 use fecs::{Entity, World};
+use once_cell::sync::Lazy;
 use smallvec::smallvec;
+use std::boxed::Box;
+use std::collections::HashMap;
 use std::sync::Arc;
+
+#[allow(dead_code)]
+static INTERACTION_HANDLERS: Lazy<HashMap<BlockKind, Box<dyn InteractionHandler>>> =
+    Lazy::new(|| {
+        let mut handlers_hashmap: HashMap<BlockKind, Box<dyn InteractionHandler>> = HashMap::new();
+
+        handlers_hashmap.insert(BlockKind::CraftingTable, Box::new(CraftingTableInteraction));
+
+        handlers_hashmap
+    });
 
 /// System for handling Player Block Placement packets
 /// and updating the world accordingly.
+///
+/// Also handles block interactions because they are handled with the same packet.
 #[fecs::system]
 pub fn handle_player_block_placement(
     game: &mut Game,
@@ -38,16 +54,13 @@ pub fn handle_player_block_placement(
 
             // Decide whether the player should place a block or interact with the block they are targeting
             // TODO: Maybe player shifting may need to be taken into account (shift click on interactable block)
-            match target_block.kind() {
-                // Case which handles blocks that can be interacted with
-                BlockKind::Furnace | BlockKind::CraftingTable => {
-                    handle_block_interaction(game, world, player, target_block.kind(), packet);
-                }
-                // Case which handles block placement (ie: target block is not interactable)
-                _ => {
-                    handle_block_placement(game, world, player, target_block.kind(), packet);
-                }
-            };
+            if let Some(interaction_handler) = INTERACTION_HANDLERS.get(&target_block.kind()) {
+                // Interact with the block
+                interaction_handler.handle_interaction();
+            } else {
+                // Try to place a block
+                handle_block_placement(game, world, player, target_block.kind(), packet);
+            }
         });
 }
 
