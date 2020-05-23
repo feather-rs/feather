@@ -11,6 +11,7 @@ feather-blocks = { path = "./blocks" }
 feather-chunk = { path = "./chunk" }
 feather-chunk-map = { path = "./chunk_map" }
 feather-entity-metadata = { path = "./entity_metadata" }
+feather-gamerule = { path = "./gamerule" }
 feather-inventory = { path = "./inventory" }
 feather-item-block = { path = "./item_block" }
 feather-items = { path = "./items" }
