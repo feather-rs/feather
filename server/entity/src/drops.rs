@@ -41,7 +41,7 @@ pub fn on_block_break_drop_loot(event: &BlockUpdateEvent, game: &mut Game, world
 
             item
         }
-        _ => None,
+        _ => return,
     };
 
     if let Some(loot_table) = loot_table(&format!("blocks/{}", &event.old.identifier()[10..])) {

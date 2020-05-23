@@ -39,7 +39,7 @@ pub fn spawn_falling_blocks(game: &mut Game, world: &mut World) {
                 {
                     Some(
                         create(block.0, position.0)
-                            .with(position.0.position() + position!(0.5, 0.0, 0.5)),
+                            .with(position.0.position() + position!(0.0, -0.5, 0.0)),
                     )
                 } else {
                     None
