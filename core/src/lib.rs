@@ -12,5 +12,6 @@ pub extern crate feather_misc as misc;
 pub extern crate feather_network as network;
 pub extern crate feather_text as text;
 pub extern crate feather_util as util;
+pub extern crate feather_game_rules as game_rules;
 
 pub use util::position;

@@ -7,6 +7,7 @@ use feather_core::blocks::BlockId;
 use feather_core::chunk_map::ChunkMap;
 use feather_core::network::Packet;
 use feather_core::util::{BlockPosition, ChunkPosition, Position};
+use feather_core::game_rules::GameRules;
 use feather_server_config::Config;
 use fecs::{Entity, Event, EventHandlers, IntoQuery, OwnedResources, Read, RefResources, World};
 use rand::rngs::SmallRng;
@@ -56,6 +57,8 @@ pub struct Game {
     pub bump: CachedThreadLocal<Bump>,
     /// Values which can be shared between threads.
     pub shared: Arc<Shared>,
+    /// Gamrules
+    pub game_rules: GameRules,
 }
 
 impl Deref for Game {

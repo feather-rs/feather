@@ -1,9 +1,10 @@
 macro_rules! gamerules {
     [$($name:ident($value:ty) = $default:literal),*$(,)*] => {
+        #[allow(non_snake_case)]
         #[derive(Default)]
         pub struct GameRules {
             $(
-                $name: $name
+                pub $name: $name
             ),*
         }
 

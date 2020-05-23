@@ -1,5 +1,5 @@
 [package]
-name = "feather-gamerule"
+name = "feather-game-rules"
 version = "0.6.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"

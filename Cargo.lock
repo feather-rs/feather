@@ -770,7 +770,7 @@ dependencies = [
  "feather-chunk",
  "feather-chunk-map",
  "feather-entity-metadata",
- "feather-gamerule",
+ "feather-game-rules",
  "feather-inventory",
  "feather-item-block",
  "feather-items",
@@ -839,7 +839,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "feather-gamerule"
+name = "feather-game-rules"
 version = "0.6.0"
 
 [[package]]
