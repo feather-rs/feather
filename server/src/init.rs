@@ -63,6 +63,7 @@ pub async fn init(
         event_handlers: Arc::new(event_handlers),
         resources: Arc::new(Default::default()), // we override this momentarily
         bump: Default::default(),
+        game_rules: Default::default(),
     };
     task::init(runtime);
     let packet_buffers = Arc::new(PacketBuffers::new());

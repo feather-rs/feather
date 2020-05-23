@@ -85,6 +85,7 @@ impl Test {
                 rng: Default::default(),
                 player_count: Arc::new(Default::default()),
             }),
+            game_rules: Default::default(),
         };
         resources.insert(cworker_handle);
 
