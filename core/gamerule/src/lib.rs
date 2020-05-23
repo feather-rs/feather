@@ -1,35 +1,15 @@
 macro_rules! gamerules {
     [$($name:ident($value:ty) = $default:literal),*$(,)*] => {
-        enum _GameRule {
+        #[derive(Default)]
+        pub struct GameRules {
             $(
-                $name
-            ),*,
-            __Count
-        }
-
-        pub struct GameRules(Box<[GameRule; _GameRule::__Count as usize]>);
-
-        impl Default for GameRules {
-            fn default() -> Self {
-                let rules = [$(GameRule::$name($name::default())),*];
-                GameRules(Box::new(rules))
-            }
-        }
-
-        enum GameRule {
-            $(
-                $name($name)
+                $name: $name
             ),*
         }
-        
-        $(
-            pub struct $name($value);
 
-            impl From<$name> for GameRule {
-                fn from(rule: $name) -> Self {
-                    Self::$name(rule)
-                }
-            }
+        $(
+            #[derive(Debug, PartialEq, Eq)]
+            pub struct $name($value);
 
             impl Default for $name {
                 fn default() -> Self {
@@ -86,3 +66,14 @@ gamerules![
     SpawnRadius(u32) = 10,
     SpectatorsGenerateChunks(bool) = true,
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn basic() {
+        let rules = GameRules::default();
+        assert_eq!(rules.AnnounceAdvancements, AnnounceAdvancements::default());
+    }
+}
