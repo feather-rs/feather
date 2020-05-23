@@ -2264,7 +2264,7 @@ pub struct EntityEquipment {
 #[derive(Default, AsAny, Packet, Clone)]
 pub struct UpdateHealth {
     pub health: f32,
-    pub food: i32,
+    pub food: VarInt,
     pub saturation: f32,
 }
 

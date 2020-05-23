@@ -37,6 +37,7 @@ pub fn build_executor() -> Executor {
         .with(player::check_crossed_chunks)
         .with(player::broadcast_keepalive)
         .with(entity::broadcast_movement)
+        .with(entity::update_blocks_fallen)
         .with(entity::broadcast_velocity)
         .with(entity::falling_block::spawn_falling_blocks)
         .with(chunk_logic::chunk_save)

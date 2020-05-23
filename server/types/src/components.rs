@@ -113,3 +113,8 @@ pub struct Health(pub u32);
 /// such as absorption.)
 #[derive(Copy, Clone, Debug)]
 pub struct MaxHealth(pub u32);
+
+/// Stores the number of blocks fallen by an entity
+/// since the last time they were on_ground.
+#[derive(Default, Copy, Clone, Debug)]
+pub struct BlocksFallen(pub f64);
