@@ -1,5 +1,6 @@
 macro_rules! gamerules {
     {$($name:ident: $value:ty = $default:literal),*$(,)*} => {
+        #[derive(Debug)]
         pub struct GameRules {
             $(
                 pub $name: $value
