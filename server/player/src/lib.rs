@@ -4,6 +4,7 @@ extern crate nalgebra_glm as glm;
 
 mod broadcasters;
 mod chat;
+mod death;
 mod join;
 mod packet_handlers;
 mod view;
@@ -27,6 +28,7 @@ use fecs::{Entity, EntityRef, World};
 
 pub use broadcasters::*;
 pub use chat::*;
+pub use death::on_player_death_scatter_inventory;
 pub use join::*;
 pub use packet_handlers::*;
 use std::sync::atomic::Ordering;
