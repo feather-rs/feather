@@ -1,5 +1,5 @@
 macro_rules! gamerules {
-    [$($name:ident: $value:ty = $default:literal),*$(,)*] => {
+    {$($name:ident: $value:ty = $default:literal),*$(,)*} => {
         pub struct GameRules {
             $(
                 pub $name: $value
@@ -18,7 +18,7 @@ macro_rules! gamerules {
     };
 }
 
-gamerules![
+gamerules! {
     announce_advancements: bool = true,
     command_block_output: bool = true,
     disable_elytra_movement_check: bool = false,
@@ -50,4 +50,4 @@ gamerules![
     show_death_messages: bool = true,
     spawn_radius: u32 = 10,
     spectators_generate_chunks: bool = true,
-];
+}
