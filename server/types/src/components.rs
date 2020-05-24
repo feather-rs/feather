@@ -104,3 +104,16 @@ impl MessageReceiver {
         self.buffer.drain(..)
     }
 }
+
+/// Component which stores a number which used for OpenWindow packets, incremented on every access
+#[derive(Default, Debug)]
+pub struct OpenWindowCount {
+    count: u8,
+}
+
+impl OpenWindowCount {
+    pub fn get_increment(&mut self) -> u8 {
+        self.count += 1;
+        self.count - 1
+    }
+}
