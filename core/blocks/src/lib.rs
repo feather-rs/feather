@@ -5,6 +5,7 @@ use thiserror::Error;
 pub use feather_definitions::BlockKind;
 
 mod categories;
+mod directions;
 #[allow(warnings)]
 #[allow(clippy::all)]
 mod generated;

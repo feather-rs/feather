@@ -250,7 +250,9 @@ pub fn generate() -> anyhow::Result<Output> {
     let table_src = generate_table(&blocks);
     output.block_table.push_str(&table_src.to_string());
     let properties_src = generate_properties(&blocks);
-    output.block_properties.push_str(&properties_src.to_string());
+    output
+        .block_properties
+        .push_str(&properties_src.to_string());
     let block_fns_src = generate_block_fns(&blocks);
     output.block_fns.push_str(&block_fns_src.to_string());
 
@@ -712,7 +714,9 @@ fn generate_properties(blocks: &Blocks) -> TokenStream {
             name
         );
 
-        let kinds = blocks.blocks.iter()
+        let kinds = blocks
+            .blocks
+            .iter()
             .filter(|block| block.default_state.iter().any(|(prop, _)| name == prop))
             .map(|block| {
                 let name_camel_case = &block.name_camel_case;
