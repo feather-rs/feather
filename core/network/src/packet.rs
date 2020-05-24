@@ -479,7 +479,10 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
         PacketId(0x12, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::ConfirmTransactionClientbound,
     );
-
+    m.insert(
+        PacketId(0x14, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::OpenWindow,
+    );
     m.insert(
         PacketId(0x0E, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::ChatMessageClientbound,

@@ -107,6 +107,10 @@ pub static IMPL_MAP: Lazy<AHashMap<PacketType, PacketBuilder>> = Lazy::new(|| {
         PacketBuilder::with(|| Box::new(ClickWindow::default())),
     );
     m.insert(
+        PacketType::OpenWindow,
+        PacketBuilder::with(|| Box::new(OpenWindow::default())),
+    );
+    m.insert(
         PacketType::CloseWindowServerbound,
         PacketBuilder::with(|| Box::new(CloseWindowServerbound::default())),
     );
@@ -1484,13 +1488,56 @@ pub struct ConfirmTransactionClientbound {
     pub accepted: bool,
 }
 
-#[derive(Default, AsAny, Packet, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct OpenWindow {
     pub window_id: u8,
     pub window_type: String,
     pub window_title: String, // Chat
     pub number_of_slots: u8,
-    pub entity_id: i32,
+    pub entity_id: Option<i32>,
+}
+
+impl Packet for OpenWindow {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
+        self.window_id = buf.try_get_u8()?;
+        self.window_type = buf.try_get_string()?;
+        self.window_title = buf.try_get_string()?;
+        self.number_of_slots = buf.try_get_u8()?;
+        
+        if self.window_type == String::from("EntityHorse") {
+            self.entity_id = Some(buf.try_get_i32()?);
+        } else {
+            self.entity_id = None;
+        }
+
+        Ok(())
+    }
+
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_u8(self.window_id);
+        buf.push_string(&self.window_type);
+        buf.push_string(&self.window_title);
+        buf.push_u8(self.number_of_slots);
+
+        if self.window_type == String::from("EntityHorse") {
+            buf.push_i32(self.entity_id.unwrap());
+        }
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::OpenWindow
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::OpenWindow
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
+    }
 }
 
 #[derive(Default, AsAny, Clone)]
