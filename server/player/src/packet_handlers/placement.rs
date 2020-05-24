@@ -9,7 +9,9 @@ use feather_core::item_block::ItemToBlock;
 use feather_core::items::ItemStack;
 use feather_core::network::packets::PlayerBlockPlacement;
 use feather_core::util::Gamemode;
-use feather_server_types::{BlockUpdateCause, Game, HeldItem, InventoryUpdateEvent, PacketBuffers};
+use feather_server_types::{
+    BlockUpdateCause, Game, HeldItem, InventoryUpdateEvent, OpenWindowCount, PacketBuffers,
+};
 use fecs::{Entity, World};
 use once_cell::sync::Lazy;
 use smallvec::smallvec;
@@ -55,14 +57,16 @@ pub fn handle_player_block_placement(
             // Decide whether the player should place a block or interact with the block they are targeting
             // TODO: Maybe player shifting may need to be taken into account (shift click on interactable block)
             if let Some(interaction_handler) = INTERACTION_HANDLERS.get(&target_block.kind()) {
+                let window_id = {
+                    if let Some(mut window_count) = world.try_get_mut::<OpenWindowCount>(player) {
+                        window_count.get_increment()
+                    } else {
+                        panic!("Unable to get OpenWindowCount for player {}", player);
+                    }
+                };
+
                 // Interact with the block
-                interaction_handler.handle_interaction(
-                    game,
-                    world,
-                    player,
-                    target_block.kind(),
-                    packet,
-                );
+                interaction_handler.handle_interaction(game, world, player, window_id);
             } else {
                 // Try to place a block
                 handle_block_placement(game, world, player, target_block.kind(), packet);
@@ -140,15 +144,4 @@ pub fn handle_block_placement(
         // Only send the event to decrement the held stack if the player's gamemode is survival
         game.handle(world, event);
     }
-}
-
-/// Handles interaction with blocks that have an inventory
-pub fn handle_block_interaction(
-    game: &mut Game,
-    world: &mut World,
-    player: Entity,
-    target_block_kind: BlockKind,
-    packet: PlayerBlockPlacement,
-) {
-    let gamemode = *world.get::<Gamemode>(player);
 }
