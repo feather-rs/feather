@@ -1519,7 +1519,7 @@ impl Packet for OpenWindow {
         buf.push_string(&self.window_title);
         buf.push_u8(self.number_of_slots);
 
-        if self.window_type == String::from("EntityHorse") {
+        if self.window_type == "EntityHorse" {
             buf.push_i32(self.entity_id.unwrap());
         }
     }

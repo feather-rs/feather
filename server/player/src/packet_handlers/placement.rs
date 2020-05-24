@@ -109,8 +109,6 @@ pub fn handle_block_placement(
 
     // Update player's inventory if in survival
     let event = {
-        let event;
-
         if gamemode != Gamemode::Creative {
             if item.amount == 0 {
                 game.disconnect(
@@ -129,15 +127,13 @@ pub fn handle_block_placement(
                 .set_item_at(Area::Hotbar, held_item, item)
                 .unwrap();
 
-            event = Some(InventoryUpdateEvent {
+            Some(InventoryUpdateEvent {
                 slots: smallvec![slot(Area::Hotbar, held_item)],
                 player,
-            });
+            })
         } else {
-            event = None;
+            None
         }
-
-        event
     };
 
     if let Some(event) = event {
