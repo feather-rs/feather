@@ -4,6 +4,7 @@ use crate::packet::{AsAny, PacketBuilder};
 use crate::{Packet, PacketType};
 use ahash::AHashMap;
 use bytes::{Buf, BufMut, BytesMut};
+use feather_blocks::{FacingCardinal, FacingCardinalAndDown, FacingCubic};
 use feather_chunk::Chunk;
 use feather_codegen::{AsAny, Packet};
 use feather_entity_metadata::EntityMetadata;
@@ -20,6 +21,8 @@ use std::io::Read;
 use std::sync::Arc;
 use thiserror::Error;
 use uuid::Uuid;
+
+type BlockFace = feather_blocks::Face;
 
 type VarInt = i32;
 type Slot = Option<ItemStack>;
@@ -1005,7 +1008,7 @@ pub struct Spectate {
     pub target_player: Uuid,
 }
 
-#[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive, PartialEq)]
 pub enum Face {
     Bottom,
     Top,
@@ -1024,6 +1027,52 @@ impl Face {
             Face::South => BlockPosition::new(0, 0, 1),
             Face::West => BlockPosition::new(-1, 0, 0),
             Face::East => BlockPosition::new(1, 0, 0),
+        }
+    }
+}
+
+impl Face {
+    pub fn face(self) -> BlockFace {
+        match self {
+            Face::Bottom => BlockFace::Ceiling,
+            Face::Top => BlockFace::Floor,
+            Face::North => BlockFace::Wall,
+            Face::South => BlockFace::Wall,
+            Face::West => BlockFace::Wall,
+            Face::East => BlockFace::Wall,
+        }
+    }
+
+    pub fn facing_cardinal(self) -> FacingCardinal {
+        match self {
+            Face::North => FacingCardinal::North,
+            Face::South => FacingCardinal::South,
+            Face::West => FacingCardinal::West,
+            Face::East => FacingCardinal::East,
+            Face::Top => panic!("Face::Top cannot be converted to FacingCardinal"),
+            Face::Bottom => panic!("Face::Bottom cannot be converted to FacingCardinal"),
+        }
+    }
+
+    pub fn facing_cardinal_and_down(self) -> FacingCardinalAndDown {
+        match self {
+            Face::North => FacingCardinalAndDown::North,
+            Face::South => FacingCardinalAndDown::South,
+            Face::West => FacingCardinalAndDown::West,
+            Face::East => FacingCardinalAndDown::East,
+            Face::Bottom => FacingCardinalAndDown::Down,
+            Face::Top => panic!("Face::Top cannot be converted to FacingCardinalAndDown"),
+        }
+    }
+
+    pub fn facing_cubic(self) -> FacingCubic {
+        match self {
+            Face::North => FacingCubic::North,
+            Face::South => FacingCubic::South,
+            Face::West => FacingCubic::West,
+            Face::East => FacingCubic::East,
+            Face::Top => FacingCubic::Up,
+            Face::Bottom => FacingCubic::Down,
         }
     }
 }

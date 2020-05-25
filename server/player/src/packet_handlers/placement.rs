@@ -3,12 +3,15 @@
 use super::block_interaction::*;
 use crate::IteratorExt;
 use entity::InventoryExt;
-use feather_core::blocks::BlockKind;
+use feather_core::blocks::{
+    BlockId, BlockKind, Face, FacingCardinal, FacingCardinalAndDown, FacingCubic, HalfTopBottom,
+    SlabKind, StairsShape,
+};
 use feather_core::inventory::{slot, Area, Inventory};
 use feather_core::item_block::ItemToBlock;
 use feather_core::items::ItemStack;
 use feather_core::network::packets::PlayerBlockPlacement;
-use feather_core::util::Gamemode;
+use feather_core::util::{BlockPosition, Gamemode, Position, Vec3d};
 use feather_server_types::{
     BlockUpdateCause, Game, HeldItem, InventoryUpdateEvent, OpenWindowCount, PacketBuffers,
 };
@@ -18,6 +21,8 @@ use smallvec::smallvec;
 use std::boxed::Box;
 use std::collections::HashMap;
 use std::sync::Arc;
+
+type PacketFace = feather_core::network::packets::Face;
 
 #[allow(dead_code)]
 static INTERACTION_HANDLERS: Lazy<HashMap<BlockKind, Box<dyn InteractionHandler>>> =
@@ -69,7 +74,7 @@ pub fn handle_player_block_placement(
                 interaction_handler.handle_interaction(game, world, player, window_id);
             } else {
                 // Try to place a block
-                handle_block_placement(game, world, player, target_block.kind(), packet);
+                handle_block_placement(game, world, player, target_block, packet);
             }
         });
 }
@@ -78,7 +83,7 @@ pub fn handle_block_placement(
     game: &mut Game,
     world: &mut World,
     player: Entity,
-    target_block_kind: BlockKind,
+    target_block: BlockId,
     packet: PlayerBlockPlacement,
 ) {
     let gamemode = *world.get::<Gamemode>(player);
@@ -97,15 +102,28 @@ pub fn handle_block_placement(
         None => return, // Item is not a block
     };
 
-    // TODO: waterlogged blocks, more
-    let pos = match target_block_kind {
-        BlockKind::Grass | BlockKind::TallGrass | BlockKind::Water | BlockKind::Lava => {
+    if !handle_slab_placement(game, world, block, packet.location, packet.face) {
+        // TODO: waterlogged blocks, more
+        let pos = if target_block.is_replaceable() {
             packet.location
-        }
-        _ => packet.location + packet.face.placement_offset(),
-    };
+        } else {
+            packet.location + packet.face.placement_offset()
+        };
 
-    game.set_block_at(world, pos, block, BlockUpdateCause::Entity(player));
+        if !game.block_at(pos).unwrap().is_replaceable() {
+            return;
+        }
+
+        let block = update_block_state_for_placement(
+            game,
+            block,
+            pos,
+            *world.get::<Position>(player),
+            &packet,
+        );
+
+        game.set_block_at(world, pos, block, BlockUpdateCause::Entity(player));
+    }
 
     // Update player's inventory if in survival
     let event = {
@@ -140,4 +158,277 @@ pub fn handle_block_placement(
         // Only send the event to decrement the held stack if the player's gamemode is survival
         game.handle(world, event);
     }
+}
+
+// returns true if placement handling should stop
+fn handle_slab_placement(
+    game: &mut Game,
+    world: &mut World,
+    block_to_place: BlockId,
+    mut target_block_pos: BlockPosition,
+    placement_face: PacketFace,
+) -> bool {
+    if !block_to_place.is_slab() {
+        return false;
+    }
+
+    let mut target_block = game.block_at(target_block_pos).unwrap();
+    if target_block.is_slab()
+        && target_block.slab_kind().unwrap() != SlabKind::Double
+        && matches!(placement_face, PacketFace::Bottom | PacketFace::Top)
+    {
+        let target_block_slab_kind = target_block.slab_kind().unwrap();
+        if (target_block_slab_kind == SlabKind::Bottom && placement_face == PacketFace::Bottom)
+            || (target_block_slab_kind == SlabKind::Top && placement_face == PacketFace::Top)
+        {
+            return false;
+        }
+    } else {
+        target_block_pos = target_block_pos + placement_face.placement_offset();
+        if let Some(block) = game.block_at(target_block_pos) {
+            target_block = block;
+        } else {
+            return false;
+        }
+
+        if !target_block.is_slab() {
+            return false;
+        }
+    }
+
+    if target_block.kind() != block_to_place.kind() {
+        return false;
+    }
+
+    target_block.set_slab_kind(SlabKind::Double);
+
+    game.set_block_at(
+        world,
+        target_block_pos,
+        target_block,
+        BlockUpdateCause::Unknown,
+    );
+
+    true
+}
+
+fn update_block_state_for_placement(
+    game: &Game,
+    mut block: BlockId,
+    block_pos: BlockPosition,
+    player_pos: Position,
+    packet: &PlayerBlockPlacement,
+) -> BlockId {
+    let face = packet.face.face();
+    if face == Face::Wall {
+        if let Some(wall_block) = block.to_wall_block() {
+            block = wall_block
+        }
+    }
+
+    if block.has_face() {
+        block.set_face(face);
+    }
+
+    if block.has_facing_cardinal() {
+        block.set_facing_cardinal(match block.kind() {
+            BlockKind::WallTorch | BlockKind::RedstoneWallTorch => packet.face.facing_cardinal(),
+            kind => {
+                if face == Face::Wall && (matches!(kind, BlockKind::Lever) || block.is_button()) {
+                    packet.face.facing_cardinal()
+                } else {
+                    let direction = facing_directions(player_pos.direction())
+                        .iter()
+                        .find(|dir| dir.is_horizontal())
+                        .unwrap()
+                        .to_facing_cardinal()
+                        .unwrap();
+
+                    if matches!(kind, BlockKind::Lever)
+                        || block.is_bed()
+                        || block.is_button()
+                        || block.is_stairs()
+                        || block.is_door()
+                        || block.is_fence_gate()
+                    {
+                        direction
+                    } else if matches!(
+                        kind,
+                        BlockKind::Anvil | BlockKind::ChippedAnvil | BlockKind::DamagedAnvil
+                    ) {
+                        direction.right()
+                    } else {
+                        direction.opposite()
+                    }
+                }
+            }
+        });
+    }
+
+    if block.has_facing_cardinal_and_down() {
+        block.set_facing_cardinal_and_down(match face {
+            Face::Wall => packet.face.facing_cardinal_and_down().opposite().unwrap(),
+            _ => FacingCardinalAndDown::Down,
+        });
+    }
+
+    if block.has_facing_cubic() {
+        block.set_facing_cubic(
+            if matches!(block.kind(), BlockKind::EndRod) || block.is_shulker_box() {
+                packet.face.facing_cubic()
+            } else {
+                let direction = facing_directions(player_pos.direction())[0];
+                match block.kind() {
+                    BlockKind::Observer => direction,
+                    _ => direction.opposite(),
+                }
+            },
+        );
+    }
+
+    if block.has_slab_kind() {
+        block.set_slab_kind(if is_placed_top(face, packet.cursor_position_y) {
+            SlabKind::Top
+        } else {
+            SlabKind::Bottom
+        });
+    }
+
+    if block.has_half_top_bottom() {
+        block.set_half_top_bottom(if is_placed_top(face, packet.cursor_position_y) {
+            HalfTopBottom::Top
+        } else {
+            HalfTopBottom::Bottom
+        });
+    }
+
+    if block.has_stairs_shape() {
+        block.set_stairs_shape(get_stairs_shape(
+            game,
+            block_pos,
+            block.facing_cardinal().unwrap(),
+            block.half_top_bottom().unwrap(),
+        ));
+    }
+
+    block
+}
+
+fn is_placed_top(face: Face, cursor_position_y: f32) -> bool {
+    face == Face::Ceiling || (face == Face::Wall && cursor_position_y > 0.5)
+}
+
+fn get_stairs_shape(
+    game: &Game,
+    block_pos: BlockPosition,
+    block_facing_cardinal: FacingCardinal,
+    block_half_top_bottom: HalfTopBottom,
+) -> StairsShape {
+    if let Some(adjacent_block) = game.block_at(block_pos + block_facing_cardinal.offset()) {
+        if adjacent_block.is_stairs()
+            && adjacent_block.half_top_bottom().unwrap() == block_half_top_bottom
+        {
+            let adjacent_block_facing_cardinal = adjacent_block.facing_cardinal().unwrap();
+            if adjacent_block_facing_cardinal.axis() != block_facing_cardinal.axis()
+                && is_different_stairs(
+                    block_facing_cardinal,
+                    block_half_top_bottom,
+                    game.block_at(block_pos + adjacent_block_facing_cardinal.opposite().offset()),
+                )
+            {
+                if adjacent_block_facing_cardinal == block_facing_cardinal.left() {
+                    return StairsShape::OuterLeft;
+                }
+
+                return StairsShape::OuterRight;
+            }
+        }
+    }
+
+    if let Some(adjacent_block) = game.block_at(block_pos + block_facing_cardinal.offset()) {
+        if adjacent_block.is_stairs()
+            && adjacent_block.half_top_bottom().unwrap() == block_half_top_bottom
+        {
+            let adjacent_block_facing_cardinal = adjacent_block.facing_cardinal().unwrap();
+            if adjacent_block_facing_cardinal.axis() != block_facing_cardinal.axis()
+                && is_different_stairs(
+                    block_facing_cardinal,
+                    block_half_top_bottom,
+                    game.block_at(block_pos + adjacent_block_facing_cardinal.offset()),
+                )
+            {
+                if adjacent_block_facing_cardinal == block_facing_cardinal.left() {
+                    return StairsShape::InnerLeft;
+                }
+
+                return StairsShape::InnerRight;
+            }
+        }
+    }
+
+    StairsShape::Straight
+}
+
+fn is_different_stairs(
+    block_facing_cardinal: FacingCardinal,
+    block_half_top_bottom: HalfTopBottom,
+    test_block: Option<BlockId>,
+) -> bool {
+    match test_block {
+        Some(test_block) => {
+            !test_block.is_stairs()
+                || block_facing_cardinal != test_block.facing_cardinal().unwrap()
+                || block_half_top_bottom != test_block.half_top_bottom().unwrap()
+        }
+        None => true,
+    }
+}
+
+fn facing_directions(d: Vec3d) -> [FacingCubic; 6] {
+    let x_dir = if d.x > 0.0 {
+        FacingCubic::East
+    } else {
+        FacingCubic::West
+    };
+
+    let y_dir = if d.y > 0.0 {
+        FacingCubic::Up
+    } else {
+        FacingCubic::Down
+    };
+
+    let z_dir = if d.z > 0.0 {
+        FacingCubic::South
+    } else {
+        FacingCubic::North
+    };
+
+    let x = d.x.abs();
+    let y = d.y.abs();
+    let z = d.z.abs();
+
+    let dirs = if x > z {
+        if y > x {
+            [y_dir, x_dir, z_dir]
+        } else if z > y {
+            [x_dir, z_dir, y_dir]
+        } else {
+            [x_dir, y_dir, z_dir]
+        }
+    } else if y > z {
+        [y_dir, z_dir, x_dir]
+    } else if x > y {
+        [z_dir, x_dir, y_dir]
+    } else {
+        [z_dir, y_dir, x_dir]
+    };
+
+    [
+        dirs[0],
+        dirs[1],
+        dirs[2],
+        dirs[2].opposite(),
+        dirs[1].opposite(),
+        dirs[0].opposite(),
+    ]
 }

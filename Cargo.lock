@@ -700,6 +700,7 @@ dependencies = [
  "criterion",
  "feather-blocks-generator",
  "feather-definitions",
+ "feather-util",
  "num-traits",
  "once_cell",
  "serde",
