@@ -235,6 +235,7 @@ enum PropertyKind {
 #[derive(Debug, Default)]
 pub struct Output {
     pub block_fns: String,
+    pub block_properties: String,
     pub block_table: String,
     pub block_table_serialized: Vec<u8>,
     pub vanilla_ids_serialized: Vec<u8>,
@@ -248,6 +249,10 @@ pub fn generate() -> anyhow::Result<Output> {
 
     let table_src = generate_table(&blocks);
     output.block_table.push_str(&table_src.to_string());
+    let properties_src = generate_properties(&blocks);
+    output
+        .block_properties
+        .push_str(&properties_src.to_string());
     let block_fns_src = generate_block_fns(&blocks);
     output.block_fns.push_str(&block_fns_src.to_string());
 
@@ -695,5 +700,47 @@ fn property_value_as_u16(value: &str, index: usize, kind: &PropertyKind) -> u16 
         x as u16
     } else {
         index as u16
+    }
+}
+
+fn generate_properties(blocks: &Blocks) -> TokenStream {
+    let mut fns = vec![];
+
+    for property in blocks.property_types.values() {
+        let name = &property.name;
+
+        let doc = format!(
+            "Determines whether or not a block has the `{}` property.",
+            name
+        );
+
+        let kinds = blocks
+            .blocks
+            .iter()
+            .filter(|block| block.default_state.iter().any(|(prop, _)| name == prop))
+            .map(|block| {
+                let name_camel_case = &block.name_camel_case;
+
+                quote! { BlockKind::#name_camel_case }
+            });
+
+        let fn_name = ident(format!("has_{}", name));
+        fns.push(quote! {
+            #[doc = #doc]
+            pub fn #fn_name(self) -> bool {
+                match self.kind() {
+                    #(#kinds)|* => true,
+                    _ => false
+                }
+            }
+        });
+    }
+
+    quote! {
+        use crate::{BlockId, BlockKind};
+
+        impl BlockId {
+            #(#fns)*
+        }
     }
 }
