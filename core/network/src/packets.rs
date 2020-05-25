@@ -1553,11 +1553,11 @@ impl Packet for OpenWindow {
         self.window_title = buf.try_get_string()?;
         self.number_of_slots = buf.try_get_u8()?;
 
-        if self.window_type == "EntityHorse" {
-            self.entity_id = Some(buf.try_get_i32()?);
+        self.entity_id = if self.window_type == "EntityHorse" {
+            Some(buf.try_get_i32()?)
         } else {
-            self.entity_id = None;
-        }
+            None
+        };
 
         Ok(())
     }
