@@ -131,6 +131,8 @@ pub struct BaseEntityData {
     pub rotation: ArrayVec<[f32; 2]>,
     #[serde(rename = "Motion")]
     pub velocity: ArrayVec<[f64; 3]>,
+    #[serde(rename = "Health")]
+    pub health: f32,
 }
 
 impl BaseEntityData {
@@ -157,12 +159,13 @@ pub enum EntityLoadError {
 }
 
 impl BaseEntityData {
-    /// Creates a `BaseEntityData` from a position and velocity.
-    pub fn new(pos: Position, velocity: Vec3d) -> Self {
+    /// Creates a `BaseEntityData` from its parameters.
+    pub fn new(pos: Position, velocity: Vec3d, health: f32) -> Self {
         Self {
             position: [pos.x, pos.y, pos.z].into(),
             rotation: [pos.yaw, pos.pitch].into(),
             velocity: [velocity.x, velocity.y, velocity.z].into(),
+            health,
         }
     }
 
@@ -198,6 +201,7 @@ impl Default for BaseEntityData {
             position: [0.0, 0.0, 0.0].into(),
             rotation: [0.0, 0.0].into(),
             velocity: [0.0, 0.0, 0.0].into(),
+            health: 20.0,
         }
     }
 }
@@ -305,6 +309,7 @@ mod tests {
             position: [1.0, 2.0, 3.0].into(),
             rotation: [4.0, 5.0].into(),
             velocity: [6.0, 7.0, 8.0].into(),
+            health: 20.0,
         };
         let pos = data.read_position().unwrap();
 
@@ -322,6 +327,7 @@ mod tests {
             position: [1.0, 2.0, 3.0].into(),
             rotation: [4.0, 5.0].into(),
             velocity: [6.0, 7.0, 8.0].into(),
+            health: 20.0,
         };
         let vel = data.read_velocity().unwrap();
 
@@ -335,7 +341,7 @@ mod tests {
         let pos = position!(1.0, 10.0, 3.0, 115.0, -3.0);
         let vel = vec3(0.0, 1.0, 2.0);
 
-        let data = BaseEntityData::new(pos, vel);
+        let data = BaseEntityData::new(pos, vel, 20.0);
         assert_eq!(data.read_position(), Ok(pos));
         assert_eq!(data.read_velocity(), Ok(vel));
     }

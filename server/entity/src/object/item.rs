@@ -222,7 +222,11 @@ fn serialize(game: &Game, accessor: &EntityRef) -> EntityData {
     let vel = accessor.get::<Velocity>().0;
     let item = accessor.get::<ItemStack>();
     EntityData::Item(ItemEntityData {
-        entity: BaseEntityData::new(*accessor.get::<Position>(), Vec3d::new(vel.x, vel.y, vel.z)),
+        entity: BaseEntityData::new(
+            *accessor.get::<Position>(),
+            Vec3d::new(vel.x, vel.y, vel.z),
+            1.0,
+        ),
         age: 0, // todo
         pickup_delay: (accessor.get::<CollectableAt>().0 as i64 - game.tick_count as i64).max(0)
             as u8,

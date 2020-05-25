@@ -235,7 +235,7 @@ async fn load_player_data(config: &Config, uuid: Uuid) -> Result<PlayerData, any
             );
 
             let data = PlayerData {
-                entity: BaseEntityData::new(DEFAULT_POSITION, Vec3d::broadcast(0.0)),
+                entity: BaseEntityData::new(DEFAULT_POSITION, Vec3d::broadcast(0.0), 20.0),
                 gamemode: config.server.default_gamemode.id() as i32,
                 inventory: vec![],
             };

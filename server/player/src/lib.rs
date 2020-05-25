@@ -18,9 +18,9 @@ use feather_core::util::{Gamemode, Position};
 use feather_server_network::NewClientInfo;
 use feather_server_types::{
     BlocksFallen, CanBreak, CanInstaBreak, CanRespawn, CanTakeDamage, ChunkHolder,
-    CreationPacketCreator, EntitySpawnEvent, Game, GamemodeUpdateEvent, Health, HeldItem,
-    InventoryUpdateEvent, LastKnownPositions, MaxHealth, MessageReceiver, Name, Network, NetworkId,
-    Player, PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition, ProfileProperties,
+    CreationPacketCreator, EntitySpawnEvent, Game, GamemodeUpdateEvent, Health, HealthUpdateEvent,
+    HeldItem, InventoryUpdateEvent, LastKnownPositions, MaxHealth, MessageReceiver, Name, Network,
+    NetworkId, Player, PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition, ProfileProperties,
     SpawnPacketCreator, Uuid,
 };
 use feather_server_util::degrees_to_stops;
@@ -116,7 +116,9 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
 
     world.add(entity, CanRespawn).unwrap();
     world.add(entity, MaxHealth(20)).unwrap();
-    world.add(entity, Health(20)).unwrap(); // TODO: load from player data
+    world
+        .add(entity, Health(info.data.entity.health as u32))
+        .unwrap();
     world.add(entity, BlocksFallen::default()).unwrap();
 
     game.player_count.fetch_add(1, Ordering::SeqCst);
@@ -128,6 +130,14 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
         InventoryUpdateEvent {
             slots: slots.collect(),
             player: entity,
+        },
+    );
+    game.handle(
+        world,
+        HealthUpdateEvent {
+            old: 0,
+            new: info.data.entity.health as u32,
+            entity,
         },
     );
 

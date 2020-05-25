@@ -188,7 +188,7 @@ impl Test {
             profile: vec![],
             uuid: Uuid::new_v4(),
             data: PlayerData {
-                entity: BaseEntityData::new(position, vec3(0.0, 0.0, 0.0)),
+                entity: BaseEntityData::new(position, vec3(0.0, 0.0, 0.0), 20.0),
                 gamemode: 1,
                 inventory: vec![],
             },
