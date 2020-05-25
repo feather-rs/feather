@@ -120,8 +120,6 @@ impl OpenWindowCount {
 
 impl Default for OpenWindowCount {
     fn default() -> Self {
-        OpenWindowCount {
-            count: 1
-        }
+        OpenWindowCount { count: 1 }
     }
 }
