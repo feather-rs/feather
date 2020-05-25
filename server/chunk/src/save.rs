@@ -6,8 +6,8 @@ use feather_core::anvil::player::{InventorySlot, PlayerData};
 use feather_core::inventory::{Inventory, Window};
 use feather_core::util::{ChunkPosition, Gamemode, Position, Vec3d};
 use feather_server_types::{
-    tasks, ChunkLoadEvent, ChunkUnloadEvent, ComponentSerializer, Game, PlayerLeaveEvent, Uuid,
-    TICK_LENGTH, TPS,
+    tasks, ChunkLoadEvent, ChunkUnloadEvent, ComponentSerializer, Game, Health, PlayerLeaveEvent,
+    Uuid, TICK_LENGTH, TPS,
 };
 use fecs::{Entity, World};
 use std::collections::VecDeque;
@@ -162,8 +162,16 @@ pub fn save_player_data(game: &Game, world: &World, player: Entity) {
         })
         .collect();
 
+    let health = world
+        .try_get::<Health>(player)
+        .map(|health| health.0 as f32)
+        .unwrap_or(1.0);
     let data = PlayerData {
-        entity: BaseEntityData::new(*world.get::<Position>(player), Vec3d::broadcast(0.0)),
+        entity: BaseEntityData::new(
+            *world.get::<Position>(player),
+            Vec3d::broadcast(0.0),
+            health,
+        ),
         gamemode: world.get::<Gamemode>(player).id() as i32,
         inventory,
     };

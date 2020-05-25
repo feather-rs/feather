@@ -10,9 +10,9 @@ use feather_core::network::packets::SpawnObject;
 use feather_core::network::Packet;
 use feather_core::util::{Position, Vec3d};
 use feather_server_types::{
-    ComponentSerializer, EntityLoaderRegistration, EntitySpawnEvent, Game, InventoryUpdateEvent,
-    ItemCollectEvent, ItemDropEvent, NetworkId, PhysicsBuilder, Player, SpawnPacketCreator, Uuid,
-    Velocity, PLAYER_EYE_HEIGHT, TPS,
+    ComponentSerializer, Dead, EntityLoaderRegistration, EntitySpawnEvent, Game,
+    InventoryUpdateEvent, ItemCollectEvent, ItemDropEvent, NetworkId, PhysicsBuilder, Player,
+    SpawnPacketCreator, Uuid, Velocity, PLAYER_EYE_HEIGHT, TPS,
 };
 use feather_server_util::{degrees_to_stops, nearby_entities, protocol_velocity};
 use fecs::{component, EntityBuilder, EntityRef, IntoQuery, Read, World, Write};
@@ -97,6 +97,7 @@ pub fn item_collect(game: &mut Game, world: &mut World) {
     unsafe {
         <(Read<Position>, Write<Inventory>)>::query()
             .filter(component::<Player>())
+            .filter(!component::<Dead>())
             .par_entities_for_each_unchecked(world.inner(), |(player, (pos, mut inventory))| {
                 let inventory: &mut Inventory = &mut *inventory;
 
@@ -221,7 +222,11 @@ fn serialize(game: &Game, accessor: &EntityRef) -> EntityData {
     let vel = accessor.get::<Velocity>().0;
     let item = accessor.get::<ItemStack>();
     EntityData::Item(ItemEntityData {
-        entity: BaseEntityData::new(*accessor.get::<Position>(), Vec3d::new(vel.x, vel.y, vel.z)),
+        entity: BaseEntityData::new(
+            *accessor.get::<Position>(),
+            Vec3d::new(vel.x, vel.y, vel.z),
+            1.0,
+        ),
         age: 0, // todo
         pickup_delay: (accessor.get::<CollectableAt>().0 as i64 - game.tick_count as i64).max(0)
             as u8,

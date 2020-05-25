@@ -86,5 +86,10 @@ pub fn build_event_handlers() -> EventHandlers {
 
         on_gamemode_update_update_capabilities,
         on_gamemode_update_send,
+
+        on_health_update_send,
+
+        on_player_death_scatter_inventory,
+        on_player_death_mark_dead,
     }
 }

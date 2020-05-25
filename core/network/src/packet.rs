@@ -584,6 +584,11 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
     );
 
     m.insert(
+        PacketId(0x38, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::Respawn,
+    );
+
+    m.insert(
         PacketId(0x39, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::EntityHeadLook,
     );
@@ -601,6 +606,11 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
     m.insert(
         PacketId(0x42, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::EntityEquipment,
+    );
+
+    m.insert(
+        PacketId(0x44, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::UpdateHealth,
     );
 
     m.insert(

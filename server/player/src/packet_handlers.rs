@@ -3,6 +3,7 @@
 mod animation;
 mod block_interaction;
 mod chat;
+mod client_status;
 mod digging;
 mod inventory;
 mod movement;
@@ -11,6 +12,7 @@ mod use_item;
 
 pub use animation::handle_animation;
 pub use chat::handle_chat;
+pub use client_status::handle_client_status;
 pub use digging::*;
 use fecs::{Entity, World};
 pub use inventory::*;

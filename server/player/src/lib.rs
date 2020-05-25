@@ -4,6 +4,7 @@ extern crate nalgebra_glm as glm;
 
 mod broadcasters;
 mod chat;
+mod death;
 mod join;
 mod packet_handlers;
 mod view;
@@ -16,16 +17,18 @@ use feather_core::text::Text;
 use feather_core::util::{Gamemode, Position};
 use feather_server_network::NewClientInfo;
 use feather_server_types::{
-    CanBreak, CanInstaBreak, CanTakeDamage, ChunkHolder, CreationPacketCreator, EntitySpawnEvent,
-    Game, GamemodeUpdateEvent, HeldItem, InventoryUpdateEvent, LastKnownPositions, MessageReceiver,
-    Name, Network, NetworkId, OpenWindowCount, Player, PlayerJoinEvent, PlayerPreJoinEvent,
-    PreviousPosition, ProfileProperties, SpawnPacketCreator, Uuid,
+    BlocksFallen, CanBreak, CanInstaBreak, CanRespawn, CanTakeDamage, ChunkHolder,
+    CreationPacketCreator, EntitySpawnEvent, Game, GamemodeUpdateEvent, Health, HealthUpdateEvent,
+    HeldItem, InventoryUpdateEvent, LastKnownPositions, MaxHealth, MessageReceiver, Name, Network,
+    NetworkId, OpenWindowCount, Player, PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition,
+    ProfileProperties, SpawnPacketCreator, Uuid,
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
 
 pub use broadcasters::*;
 pub use chat::*;
+pub use death::*;
 pub use join::*;
 pub use packet_handlers::*;
 use std::sync::atomic::Ordering;
@@ -112,6 +115,13 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
 
     world.add(entity, Player).unwrap();
 
+    world.add(entity, CanRespawn).unwrap();
+    world.add(entity, MaxHealth(20)).unwrap();
+    world
+        .add(entity, Health(info.data.entity.health as u32))
+        .unwrap();
+    world.add(entity, BlocksFallen::default()).unwrap();
+
     game.player_count.fetch_add(1, Ordering::SeqCst);
     game.handle(world, EntitySpawnEvent { entity });
     game.handle(world, PlayerPreJoinEvent { player: entity });
@@ -121,6 +131,14 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
         InventoryUpdateEvent {
             slots: slots.collect(),
             player: entity,
+        },
+    );
+    game.handle(
+        world,
+        HealthUpdateEvent {
+            old: 0,
+            new: info.data.entity.health as u32,
+            entity,
         },
     );
 

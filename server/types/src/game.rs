@@ -1,5 +1,8 @@
 use crate::{BlockUpdateCause, Network, ServerToWorkerMessage};
-use crate::{BlockUpdateEvent, EntityDespawnEvent, Name, PlayerLeaveEvent};
+use crate::{
+    BlockUpdateEvent, CanRespawn, Dead, EntityDeathEvent, EntityDespawnEvent, Health,
+    HealthUpdateEvent, Name, PlayerLeaveEvent,
+};
 use ahash::AHashMap;
 use bumpalo::Bump;
 use feather_core::anvil::level::LevelData;
@@ -226,6 +229,63 @@ impl Game {
         // Send the packet to all players who have a hold on the entity's chunk.
         let entity_chunk = world.get::<Position>(entity).chunk();
         self.broadcast_chunk_update_boxed(world, packet, entity_chunk, neq);
+    }
+
+    /// Applies damage to the given entity. Handles all logic,
+    /// including killing the entity if its health drops below 1.
+    pub fn damage(&mut self, entity: Entity, damage: u32, world: &mut World) {
+        if world.has::<Dead>(entity) {
+            return;
+        }
+
+        let (should_kill, old_health, new_health) =
+            if let Some(mut health) = world.try_get_mut::<Health>(entity) {
+                let old_health = health.0;
+                let should_kill = match health.0.checked_sub(damage) {
+                    Some(0) => true,
+                    None => {
+                        // below 0
+                        health.0 = 0;
+                        true
+                    }
+                    Some(new_health) => {
+                        health.0 = new_health;
+                        false
+                    }
+                };
+                let new_health = health.0;
+                (should_kill, Some(old_health), new_health)
+            } else {
+                (false, None, 0)
+            };
+
+        if let Some(old_health) = old_health {
+            self.handle(
+                world,
+                HealthUpdateEvent {
+                    old: old_health,
+                    new: new_health,
+                    entity,
+                },
+            );
+        }
+
+        if should_kill {
+            self.kill(entity, world);
+        }
+    }
+
+    /// Kills an entity.
+    pub fn kill(&mut self, entity: Entity, world: &mut World) {
+        // Don't kill if already on respawn screen
+        if world.has::<Dead>(entity) {
+            return;
+        }
+
+        self.handle(world, EntityDeathEvent { entity });
+        if !world.has::<CanRespawn>(entity) {
+            self.despawn(entity, world);
+        }
     }
 }
 
