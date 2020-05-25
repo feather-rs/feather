@@ -1,7 +1,8 @@
 use crate::packet_handlers::IteratorExt;
 use feather_core::network::packets::ClientStatus;
-use feather_core::util::Position;
-use feather_server_types::{Dead, Health, PacketBuffers, Teleported};
+use feather_core::network::packets::Respawn;
+use feather_core::util::{Gamemode, Position};
+use feather_server_types::{Dead, Health, Network, PacketBuffers, Teleported};
 use fecs::World;
 use std::sync::Arc;
 
@@ -23,6 +24,17 @@ pub fn handle_client_status(world: &mut World, packet_buffers: &Arc<PacketBuffer
                     world.get_mut::<Health>(player).0 = 20;
 
                     world.add(player, Teleported).unwrap();
+
+                    let gamemode = *world.get::<Gamemode>(player);
+
+                    // Send Respawn packet
+                    let packet = Respawn {
+                        dimension: 0,
+                        difficulty: 1,
+                        gamemode: gamemode.id() as u8,
+                        level_type: String::from("default"),
+                    };
+                    world.get::<Network>(player).send(packet);
                 }
                 x => log::debug!("Unimplemented Client Status action ID {}", x),
             }

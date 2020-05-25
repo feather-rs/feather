@@ -7,7 +7,7 @@
 
 use entity::drops::drop_item;
 use feather_core::util::Position;
-use feather_server_types::{Dead, EntityDeathEvent, Game, Inventory, Player};
+use feather_server_types::{Dead, EntityDeathEvent, Game, Inventory, InventoryUpdateEvent, Player};
 use fecs::World;
 
 /// Scatters a player's items when they die.
@@ -25,6 +25,14 @@ pub fn on_player_death_scatter_inventory(
     let pos = *world.get::<Position>(event.entity);
 
     // Remove items and drop on ground
+    let slots_to_update = inventory
+        .enumerate()
+        .filter_map(|(index, slot)| slot.map(|_| index));
+    let event = InventoryUpdateEvent {
+        player: event.entity,
+        slots: slots_to_update.collect(),
+    };
+
     let items_to_spawn = inventory
         .iter_mut()
         .filter_map(|mut item| item.take())
@@ -35,6 +43,8 @@ pub fn on_player_death_scatter_inventory(
     for item in items_to_spawn {
         drop_item(game, world, item, pos);
     }
+
+    game.handle(world, event);
 }
 
 /// Adds the `Dead` component to a player when they die to
