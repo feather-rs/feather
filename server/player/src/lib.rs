@@ -28,7 +28,7 @@ use fecs::{Entity, EntityRef, World};
 
 pub use broadcasters::*;
 pub use chat::*;
-pub use death::on_player_death_scatter_inventory;
+pub use death::*;
 pub use join::*;
 pub use packet_handlers::*;
 use std::sync::atomic::Ordering;

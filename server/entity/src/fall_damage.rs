@@ -1,7 +1,9 @@
 //! Handles fall damage for entities
 
 use feather_core::util::Position;
-use feather_server_types::{BlocksFallen, BumpVec, CanTakeDamage, Game, Health, PreviousPosition};
+use feather_server_types::{
+    BlocksFallen, BumpVec, CanTakeDamage, Dead, Game, Health, PreviousPosition,
+};
 use fecs::{component, Entity, IntoQuery, Read, World, Write};
 use std::cell::RefCell;
 
@@ -18,6 +20,7 @@ pub fn update_blocks_fallen(game: &mut Game, world: &mut World) {
     <(Read<Position>, Read<PreviousPosition>, Write<BlocksFallen>)>::query()
         .filter(component::<Health>())
         .filter(component::<CanTakeDamage>())
+        .filter(!component::<Dead>())
         .for_each_entities_mut(
             world.inner_mut(),
             |(entity, (pos, prev_pos, mut blocks_fallen))| {

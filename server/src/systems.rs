@@ -25,6 +25,7 @@ pub fn build_executor() -> Executor {
         .with(player::handle_player_digging)
         .with(player::advance_dig_progress)
         .with(player::broadcast_block_break_animation)
+        .with(player::handle_client_status)
         .with(player::handle_chat)
         .with(player::flush_player_message_receiver)
         .with(game::task::run_sync_tasks)

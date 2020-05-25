@@ -1,7 +1,7 @@
 use crate::{BlockUpdateCause, Network, ServerToWorkerMessage};
 use crate::{
-    BlockUpdateEvent, CanRespawn, EntityDeathEvent, EntityDespawnEvent, Health, HealthUpdateEvent,
-    Name, PlayerLeaveEvent,
+    BlockUpdateEvent, CanRespawn, Dead, EntityDeathEvent, EntityDespawnEvent, Health,
+    HealthUpdateEvent, Name, PlayerLeaveEvent,
 };
 use ahash::AHashMap;
 use bumpalo::Bump;
@@ -234,6 +234,10 @@ impl Game {
     /// Applies damage to the given entity. Handles all logic,
     /// including killing the entity if its health drops below 1.
     pub fn damage(&mut self, entity: Entity, damage: u32, world: &mut World) {
+        if world.has::<Dead>(entity) {
+            return;
+        }
+
         let (should_kill, old_health, new_health) =
             if let Some(mut health) = world.try_get_mut::<Health>(entity) {
                 let old_health = health.0;
@@ -273,6 +277,11 @@ impl Game {
 
     /// Kills an entity.
     pub fn kill(&mut self, entity: Entity, world: &mut World) {
+        // Don't kill if already on respawn screen
+        if world.has::<Dead>(entity) {
+            return;
+        }
+
         self.handle(world, EntityDeathEvent { entity });
         if !world.has::<CanRespawn>(entity) {
             self.despawn(entity, world);

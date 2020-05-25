@@ -26,3 +26,9 @@ pub struct Teleported;
 /// If this component is added, then the entity
 /// will not be removed from the `World` when it dies.
 pub struct CanRespawn;
+
+/// Component for players who are currently on the respawn screen.
+///
+/// Players with this component _should not be affected by gameplay actions_.
+/// They should not collect items, take damage, etc.
+pub struct Dead;
