@@ -104,3 +104,17 @@ impl MessageReceiver {
         self.buffer.drain(..)
     }
 }
+
+/// Health of an entity. Measured in "half-hearts."
+#[derive(Copy, Clone, Debug)]
+pub struct Health(pub u32);
+
+/// Maximum health of an entity under normal conditions (i.e. excluding potion effects
+/// such as absorption.)
+#[derive(Copy, Clone, Debug)]
+pub struct MaxHealth(pub u32);
+
+/// Stores the number of blocks fallen by an entity
+/// since the last time they were on_ground.
+#[derive(Default, Copy, Clone, Debug)]
+pub struct BlocksFallen(pub f64);

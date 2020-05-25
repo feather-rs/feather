@@ -306,6 +306,7 @@ pub static IMPL_MAP: Lazy<AHashMap<PacketType, PacketBuilder>> = Lazy::new(|| {
         EntityHeadLook,
         EntityVelocity,
         EntityEquipment,
+        UpdateHealth,
         SpawnPosition,
         TimeUpdate,
         CollectItem,
@@ -2258,6 +2259,13 @@ pub struct EntityEquipment {
     pub entity_id: VarInt,
     pub slot: VarInt,
     pub item: Slot,
+}
+
+#[derive(Default, AsAny, Packet, Clone)]
+pub struct UpdateHealth {
+    pub health: f32,
+    pub food: VarInt,
+    pub saturation: f32,
 }
 
 // TODO Select Advancement Tab

@@ -51,7 +51,11 @@ fn serialize(_game: &Game, accessor: &EntityRef) -> EntityData {
     let vel = accessor.get::<Velocity>().0;
 
     EntityData::Arrow(ArrowEntityData {
-        entity: BaseEntityData::new(*accessor.get::<Position>(), Vec3d::new(vel.x, vel.y, vel.z)),
+        entity: BaseEntityData::new(
+            *accessor.get::<Position>(),
+            Vec3d::new(vel.x, vel.y, vel.z),
+            1.0,
+        ),
         critical: 0, // TODO
     })
 }

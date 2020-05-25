@@ -35,6 +35,15 @@ pub struct EntityDespawnEvent {
     pub entity: Entity,
 }
 
+/// Triggered when an entity is killed.
+///
+/// Always triggered _before_ `EntityDespawnEvent`
+/// if the entity is despawned as well.
+#[derive(Copy, Clone, Debug)]
+pub struct EntityDeathEvent {
+    pub entity: Entity,
+}
+
 /// Triggered when a chunk is sent to a player.
 #[derive(Copy, Clone, Debug)]
 pub struct ChunkSendEvent {
@@ -116,6 +125,17 @@ pub struct InventoryUpdateEvent {
 /// Event triggered when an entity is created.
 #[derive(Copy, Clone, Debug)]
 pub struct EntitySpawnEvent {
+    pub entity: Entity,
+}
+
+/// Event triggered when an entity's health is updated.
+#[derive(Copy, Clone, Debug)]
+pub struct HealthUpdateEvent {
+    /// The old health.
+    pub old: u32,
+    /// The new health.
+    pub new: u32,
+    /// The entity whose health was updated.
     pub entity: Entity,
 }
 
