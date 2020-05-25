@@ -49,9 +49,12 @@ fn notify_entity_for_block(block: BlockId, pos: BlockPosition) -> Option<EntityB
         .with(BlockNotifyBlock(block));
 
     match block.kind() {
-        BlockKind::Sand | BlockKind::Gravel | BlockKind::RedSand => {
-            Some(builder.with(BlockNotifyFallingBlock))
-        }
+        BlockKind::Sand
+        | BlockKind::Gravel
+        | BlockKind::RedSand
+        | BlockKind::Anvil
+        | BlockKind::ChippedAnvil
+        | BlockKind::DamagedAnvil => Some(builder.with(BlockNotifyFallingBlock)),
         _ => None,
     }
 }
