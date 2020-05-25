@@ -5,7 +5,7 @@ use crate::IteratorExt;
 use entity::InventoryExt;
 use feather_core::blocks::{
     BlockId, BlockKind, Face, FacingCardinal, FacingCardinalAndDown, FacingCubic, HalfTopBottom,
-    SlabKind, StairsShape,
+    HalfUpperLower, Hinge, SlabKind, StairsShape,
 };
 use feather_core::inventory::{slot, Area, Inventory};
 use feather_core::item_block::ItemToBlock;
@@ -311,11 +311,80 @@ fn update_block_state_for_placement(
         ));
     }
 
+    if block.has_axis_xyz() {
+        block.set_axis_xyz(packet.face.facing_cubic().axis());
+    }
+
+    if block.has_hinge() {
+        block.set_hinge(get_hinge_side(
+            game,
+            block.kind(),
+            block_pos,
+            block.facing_cardinal().unwrap(),
+            packet.cursor_position_x,
+            packet.cursor_position_z,
+        ));
+    }
+
     block
 }
 
 fn is_placed_top(face: Face, cursor_position_y: f32) -> bool {
     face == Face::Ceiling || (face == Face::Wall && cursor_position_y > 0.5)
+}
+
+fn get_hinge_side(
+    game: &Game,
+    block_kind: BlockKind,
+    block_pos: BlockPosition,
+    block_facing_cardinal: FacingCardinal,
+    cursor_position_x: f32,
+    cursor_position_z: f32,
+) -> Hinge {
+    let right_pos = block_pos + block_facing_cardinal.right().offset();
+    let left_pos = block_pos + block_facing_cardinal.left().offset();
+
+    let score = (
+        // check right side
+        game.block_at(right_pos).unwrap().is_opaque() as i8
+            + game.block_at(right_pos.up()).unwrap().is_opaque() as i8
+    ) - (
+        // check left side
+        game.block_at(left_pos).unwrap().is_opaque() as i8
+            + game.block_at(left_pos.up()).unwrap().is_opaque() as i8
+    );
+
+    let (door_on_right, door_on_left) = {
+        let is_door = |pos: BlockPosition| {
+            game.block_at(pos).and_then(|block| {
+                if block.kind() == block_kind {
+                    block.half_upper_lower()
+                } else {
+                    None
+                }
+            }) == Some(HalfUpperLower::Lower)
+        };
+
+        (is_door(right_pos), is_door(left_pos))
+    };
+
+    if (door_on_left && !door_on_right) || score > 0 {
+        return Hinge::Right;
+    }
+
+    if (door_on_right && !door_on_left) || score < 0 {
+        return Hinge::Left;
+    }
+
+    if (block_facing_cardinal == FacingCardinal::West && cursor_position_z < 0.5)
+        || (block_facing_cardinal == FacingCardinal::East && cursor_position_z > 0.5)
+        || (block_facing_cardinal == FacingCardinal::South && cursor_position_x > 0.5)
+        || (block_facing_cardinal == FacingCardinal::North && cursor_position_x < 0.5)
+    {
+        return Hinge::Right;
+    }
+
+    Hinge::Left
 }
 
 fn get_stairs_shape(

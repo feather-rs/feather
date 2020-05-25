@@ -263,6 +263,14 @@ impl BlockPosition {
     pub fn chunk(self) -> ChunkPosition {
         self.into()
     }
+
+    pub fn up(self) -> BlockPosition {
+        Self {
+            x: self.x,
+            y: self.y + 1,
+            z: self.z,
+        }
+    }
 }
 
 impl Add<BlockPosition> for BlockPosition {
