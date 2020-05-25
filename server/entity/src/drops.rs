@@ -12,7 +12,7 @@ use rand::Rng;
 /// yields items from the block's loot table.
 #[fecs::event_handler]
 pub fn on_block_break_drop_loot(event: &BlockUpdateEvent, game: &mut Game, world: &mut World) {
-    if event.old.is_air() {
+    if event.old.is_air() || !event.new.is_air() {
         return;
     }
 

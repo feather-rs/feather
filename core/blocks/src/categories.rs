@@ -132,7 +132,10 @@ impl BlockId {
     pub fn is_replaceable(self) -> bool {
         self.is_air()
             || self.is_fluid()
-            || matches!(self.kind(), BlockKind::Grass | BlockKind::TallGrass)
+            || matches!(
+                self.kind(),
+                BlockKind::Grass | BlockKind::TallGrass | BlockKind::Snow
+            )
     }
 
     pub fn is_shulker_box(self) -> bool {
