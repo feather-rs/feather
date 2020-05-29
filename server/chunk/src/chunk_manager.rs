@@ -234,11 +234,16 @@ pub fn chunk_optimize(game: &mut Game) {
     let end_time = current_time_in_millis();
     let elapsed = end_time - start_time;
 
+    let num_sections = count.load(Ordering::Relaxed);
     log::debug!(
-        "Optimized {} chunk sections (took {}ms - {:.2}ms/section)",
-        count.load(Ordering::Relaxed),
+        "Optimized {} chunk sections (took {}ms{})",
+        num_sections,
         elapsed,
-        elapsed as f64 / f64::from(count.load(Ordering::Relaxed))
+        if num_sections == 0 {
+            String::new()
+        } else {
+            format!(" - {:.2}ms/section", elapsed as f64 / num_sections as f64)
+        }
     );
 }
 
