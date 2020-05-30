@@ -163,6 +163,18 @@ impl Inventory {
         Self { slots }
     }
 
+    /// Creates an inventory for a chest.
+    /// Contains a single `Chest` area with either
+    /// 27 or 54 values.
+    pub fn chest(large: bool) -> Self {
+        let size = if large { 27 } else { 54 };
+        let slots = btreemap! {
+            Area::Chest => empty(size),
+        };
+
+        Self { slots }
+    }
+
     /// Returns the item at the given
     /// index inside some area.
     pub fn item_at(&self, area: Area, index: usize) -> Result<Slot, Error> {

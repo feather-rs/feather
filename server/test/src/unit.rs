@@ -76,6 +76,7 @@ impl Test {
             chunk_holders: Default::default(),
             level: Default::default(),
             chunk_entities: Default::default(),
+            block_entities: Default::default(),
             time: Default::default(),
             event_handlers: Arc::new(event_handlers),
             resources: Arc::new(Default::default()),

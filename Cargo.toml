@@ -25,6 +25,7 @@ members = [
 
     "server",
     "server/template",
+    "server/block",
     "server/chat",
     "server/chunk",
     "server/commands",

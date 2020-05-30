@@ -942,6 +942,7 @@ dependencies = [
  "crossbeam",
  "ctrlc",
  "feather-core",
+ "feather-server-block",
  "feather-server-chat",
  "feather-server-chunk",
  "feather-server-config",
@@ -962,6 +963,19 @@ dependencies = [
  "simple_logger",
  "spin_sleep",
  "tokio",
+]
+
+[[package]]
+name = "feather-server-block"
+version = "0.6.0"
+dependencies = [
+ "ahash",
+ "feather-core",
+ "feather-server-entity",
+ "feather-server-types",
+ "feather-server-util",
+ "fecs",
+ "once_cell",
 ]
 
 [[package]]
