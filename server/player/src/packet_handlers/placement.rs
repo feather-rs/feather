@@ -31,6 +31,7 @@ static INTERACTION_HANDLERS: Lazy<HashMap<BlockKind, Box<dyn InteractionHandler>
         let mut handlers_hashmap: HashMap<BlockKind, Box<dyn InteractionHandler>> = HashMap::new();
 
         handlers_hashmap.insert(BlockKind::CraftingTable, Box::new(CraftingTableInteraction));
+        handlers_hashmap.insert(BlockKind::Chest, Box::new(ChestInteraction));
 
         handlers_hashmap
     });
@@ -72,7 +73,13 @@ pub fn handle_player_block_placement(
                 };
 
                 // Interact with the block
-                interaction_handler.handle_interaction(game, world, player, window_id);
+                interaction_handler.handle_interaction(
+                    game,
+                    world,
+                    packet.location,
+                    player,
+                    window_id,
+                );
             } else {
                 // Try to place a block
                 handle_block_placement(game, world, player, target_block, packet);

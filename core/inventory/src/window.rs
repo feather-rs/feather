@@ -112,6 +112,15 @@ impl Window {
         }
     }
 
+    /// Creates a new `Window` for an opened chest.
+    pub fn chest(player: Entity, chest: Entity) -> Self {
+        Self {
+            protocol_to_slot: chest_to_slot,
+            slot_to_protocol: chest_from_slot,
+            inventories: smallvec![player, chest],
+        }
+    }
+
     /// Retrieves a `WindowAccessor` which may be used
     /// to access the underlying inventories.
     ///
@@ -239,6 +248,25 @@ fn player_from_slot(slot: Index) -> usize {
         Hotbar => 36 + slot.slot,
         Offhand => 45,
         x => panic!("unreachable area {:?} for player window", x),
+    }
+}
+
+fn chest_to_slot(x: usize) -> Option<Index> {
+    Some(match x {
+        0..=26 => index(1, Area::Chest, x),
+        27..=53 => index(0, Area::Main, x - 27),
+        54..=62 => index(0, Area::Hotbar, x - 54),
+        _ => return None,
+    })
+}
+
+fn chest_from_slot(slot: Index) -> usize {
+    use Area::*;
+    match slot.area {
+        Chest => slot.slot,
+        Main => slot.slot + 27,
+        Hotbar => slot.slot + 54,
+        x => panic!("unreachable area {:?} for chest window", x),
     }
 }
 

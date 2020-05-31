@@ -2,6 +2,7 @@ use super::InteractionHandler;
 
 use feather_core::network::packets::OpenWindow;
 use feather_core::text::TextRoot;
+use feather_core::util::BlockPosition;
 use feather_server_types::{Game, Network};
 use fecs::{Entity, World};
 
@@ -12,6 +13,7 @@ impl InteractionHandler for CraftingTableInteraction {
         &self,
         _game: &mut Game,
         world: &mut World,
+        _pos: BlockPosition,
         player: Entity,
         window_id: u8,
     ) {
@@ -28,6 +30,4 @@ impl InteractionHandler for CraftingTableInteraction {
 
         network.send(open_window_packet);
     }
-
-    fn handle_button_click(&self) {}
 }
