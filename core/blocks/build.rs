@@ -19,7 +19,7 @@ fn main() {
             write_to_file(&table, &code.block_table);
 
             [block_fns, props, table].iter().for_each(|path| {
-                Command::new("rustfmt").arg(path).output().unwrap();
+                let _ = Command::new("rustfmt").arg(path).output();
             });
 
             let data = format!("{}/table.dat", base);
