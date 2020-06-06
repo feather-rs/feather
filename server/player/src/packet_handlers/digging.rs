@@ -6,7 +6,7 @@
 
 use crate::{ItemTimedUse, IteratorExt};
 use entity::InventoryExt;
-use feather_core::blocks::BlockId;
+use feather_core::blocks::{BlockId, HalfUpperLower, Part};
 use feather_core::inventory::{slot, Area, Inventory, Slot, SlotIndex};
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerDigging, PlayerDiggingStatus};
@@ -245,16 +245,48 @@ fn handle_finished_digging(
 }
 
 fn dig(game: &mut Game, world: &mut World, player: Entity, pos: BlockPosition) {
-    if !game.set_block_at(world, pos, BlockId::air(), BlockUpdateCause::Entity(player)) {
-        game.disconnect(
-            player,
-            world,
-            format!(
-                "Attempted to break block in unloaded chunk (position: {:?})",
-                pos
-            ),
-        );
+    let block = match game.block_at(pos) {
+        Some(block) => block,
+        None => {
+            game.disconnect(
+                player,
+                world,
+                format!(
+                    "Attempted to break block in unloaded chunk (position: {:?})",
+                    pos
+                ),
+            );
+
+            return;
+        }
+    };
+
+    // Handle multi-block destruction (i.e. doors and beds)
+    if let Some(other_pos) = if block.is_bed() {
+        let direction = block.facing_cardinal().unwrap();
+        Some(match block.part().unwrap() {
+            Part::Head => pos - direction.offset(),
+            Part::Foot => pos + direction.offset(),
+        })
+    } else if block.is_door() {
+        Some(match block.half_upper_lower().unwrap() {
+            HalfUpperLower::Upper => pos.down(),
+            HalfUpperLower::Lower => pos.up(),
+        })
+    } else {
+        None
+    } {
+        if game.block_at(other_pos).unwrap().kind() == block.kind() {
+            game.set_block_at(
+                world,
+                other_pos,
+                BlockId::air(),
+                BlockUpdateCause::Entity(player),
+            );
+        };
     }
+
+    game.set_block_at(world, pos, BlockId::air(), BlockUpdateCause::Entity(player));
 }
 
 fn handle_drop_item_stack(

@@ -5,7 +5,7 @@ use crate::IteratorExt;
 use entity::InventoryExt;
 use feather_core::blocks::{
     BlockId, BlockKind, Face, FacingCardinal, FacingCardinalAndDown, FacingCubic, HalfTopBottom,
-    HalfUpperLower, Hinge, SlabKind, StairsShape,
+    HalfUpperLower, Hinge, Part, SlabKind, StairsShape,
 };
 use feather_core::inventory::{slot, Area, Inventory};
 use feather_core::item_block::ItemToBlock;
@@ -121,6 +121,26 @@ pub fn handle_block_placement(
             *world.get::<Position>(player),
             &packet,
         );
+
+        // handle multi-block placements (i.e. doors and beds)
+        if let Some((other_pos, other_block)) = if block.is_bed() {
+            let mut head = block;
+            head.set_part(Part::Head);
+            Some((pos + block.facing_cardinal().unwrap().offset(), head))
+        } else if block.is_door() {
+            let mut upper = block;
+            upper.set_half_upper_lower(HalfUpperLower::Upper);
+            Some((pos.up(), upper))
+        } else {
+            None
+        } {
+            game.set_block_at(
+                world,
+                other_pos,
+                other_block,
+                BlockUpdateCause::Entity(player),
+            );
+        }
 
         game.set_block_at(world, pos, block, BlockUpdateCause::Entity(player));
     }
