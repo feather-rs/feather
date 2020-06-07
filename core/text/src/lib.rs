@@ -384,6 +384,16 @@ impl TextValue {
         TextValue::Text { text: text.into() }
     }
 
+    pub fn translate<A>(translate: A) -> Self
+    where
+        A: Into<Translate>,
+    {
+        TextValue::Translate {
+            translate: translate.into(),
+            with: Default::default(),
+        }
+    }
+
     pub fn translate_with<A, B>(translate: A, with: B) -> Self
     where
         A: Into<Translate>,
