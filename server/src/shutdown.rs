@@ -1,7 +1,7 @@
 //! Shutdown behavior.
 use anyhow::Context;
 use feather_core::network::packets::DisconnectPlay;
-use feather_core::text::{Text, TextRoot};
+use feather_core::text::{TextRoot, TextValue};
 use feather_server_chunk::chunk_worker::Request;
 use feather_server_chunk::{save_chunk_at, ChunkWorkerHandle};
 use feather_server_lighting::LightingWorkerHandle;
@@ -20,7 +20,10 @@ pub fn init(tx: crossbeam::Sender<()>) {
 pub fn disconnect_players(world: &World) -> anyhow::Result<()> {
     <Read<Network>>::query().for_each(world.inner(), |network| {
         let packet = DisconnectPlay {
-            reason: TextRoot::from(Text::from("Server closed")).into(),
+            reason: TextRoot::from(TextValue::translate(
+                "multiplayer.disconnect.server_shutdown",
+            ))
+            .into(),
         };
 
         network.send(packet);
