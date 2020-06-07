@@ -11,10 +11,7 @@ use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 
 pub fn init(tx: crossbeam::Sender<()>) {
-    ctrlc::set_handler(move || {
-        tx.send(()).unwrap();
-    })
-    .unwrap();
+    ctrlc::set_handler(move || tx.try_send(()).unwrap()).unwrap();
 }
 
 pub fn disconnect_players(world: &World) -> anyhow::Result<()> {

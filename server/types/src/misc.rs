@@ -39,3 +39,17 @@ impl EntityLoaderRegistration {
 }
 
 inventory::collect!(EntityLoaderRegistration);
+
+/// Wrapper around the send/receive channels which will be used to
+/// notify server thread of shutdown due to ctrl+C or /stop command.
+pub struct ShutdownChannels {
+    pub tx: crossbeam::channel::Sender<()>,
+    pub rx: crossbeam::channel::Receiver<()>,
+}
+
+impl ShutdownChannels {
+    pub fn new() -> Self {
+        let (tx, rx) = crossbeam::bounded(1);
+        Self { tx, rx }
+    }
+}

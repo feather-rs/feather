@@ -5,12 +5,13 @@ use crate::{
     arguments::{EntitySelector, ParsedGamemode, TextArgument},
     CommandCtx,
 };
-use feather_core::text::{Text, TextComponentBuilder};
+use feather_core::text::{Text, TextComponentBuilder, TextValue};
 use feather_core::util::{Gamemode, Position};
 use feather_server_types::{
-    ChatEvent, ChatPosition, GamemodeUpdateEvent, MessageReceiver, Name, Teleported,
+    ChatEvent, ChatPosition, GamemodeUpdateEvent, MessageReceiver, Name, ShutdownChannels,
+    Teleported,
 };
-use fecs::{Entity, World};
+use fecs::{Entity, ResourcesProvider, World};
 use lieutenant::command;
 use thiserror::Error;
 
@@ -229,6 +230,25 @@ pub fn me(ctx: &mut CommandCtx, action: TextArgument) -> anyhow::Result<()> {
             position: ChatPosition::Chat,
         },
     );
+
+    Ok(())
+}
+
+#[command(usage = "stop")]
+pub fn stop(ctx: &mut CommandCtx) -> anyhow::Result<()> {
+    // Confirmation message
+    // TODO Server ops should also see the message
+    if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
+    {
+        let text = Text::from(TextValue::translate("commands.stop.stopping"));
+        sender_message_receiver.send(text);
+    }
+
+    ctx.game
+        .resources
+        .get::<ShutdownChannels>()
+        .tx
+        .try_send(())?;
 
     Ok(())
 }
