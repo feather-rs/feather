@@ -41,6 +41,7 @@ pub fn on_block_break_drop_loot(event: &BlockUpdateEvent, game: &mut Game, world
 
             item
         }
+        feather_server_types::BlockUpdateCause::Physics => None,
         _ => return,
     };
 

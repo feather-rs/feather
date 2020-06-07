@@ -122,6 +122,18 @@ pub fn handle_block_placement(
             &packet,
         );
 
+        // Abort if block that needs support doesn't have the needed support
+        if let Some(support) = block.needs_support() {
+            let supported = game
+                .block_at(pos + support.direction().offset())
+                .map(|id| support.is_valid_support(id.kind()))
+                .unwrap_or(false);
+
+            if !supported {
+                return;
+            }
+        }
+
         game.set_block_at(world, pos, block, BlockUpdateCause::Entity(player));
     }
 
