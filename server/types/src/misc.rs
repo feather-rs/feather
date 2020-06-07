@@ -53,3 +53,9 @@ impl ShutdownChannels {
         Self { tx, rx }
     }
 }
+
+impl Default for ShutdownChannels {
+    fn default() -> Self {
+        Self::new()
+    }
+}
