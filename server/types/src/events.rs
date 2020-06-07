@@ -25,7 +25,7 @@ pub enum BlockUpdateCause {
     Entity(Entity),
     /// So far only when a block that needs to be
     /// supported loses it's support.
-    Physics,
+    Unsupported,
     /// Unknown cause.
     Unknown,
 }

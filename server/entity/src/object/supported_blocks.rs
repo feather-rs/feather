@@ -1,8 +1,10 @@
 //! Implements blocks that break when not supported by a full block: torches, snow, grass, etc.
 
 use feather_core::blocks::BlockId;
-use feather_server_types::{BlockUpdateCause, Game, BumpVec};
-use feather_server_util::{BlockNotifyPosition, BlockNotifySupportedBlock, BlockNotifyBlock};
+use feather_server_types::{BlockUpdateCause, BumpVec, Game};
+use feather_server_util::{
+    is_block_supported_at, BlockNotifyBlock, BlockNotifyPosition, BlockNotifySupportedBlock,
+};
 use fecs::{component, IntoQuery, Read, World};
 
 /// System to check for supporting block when a block notify
@@ -11,32 +13,27 @@ use fecs::{component, IntoQuery, Read, World};
 pub fn break_unsupported_blocks(game: &mut Game, world: &mut World) {
     let mut actions = BumpVec::new_in(game.bump());
 
-    actions.extend(<(Read<BlockNotifyBlock>, Read<BlockNotifyPosition>)>::query()
-        .filter(component::<BlockNotifySupportedBlock>())
-        .iter_entities(world.inner())
-        .map(|(entity, (block, position))| {
-            let support_type = block.0.needs_support().unwrap();
+    actions.extend(
+        <(Read<BlockNotifyBlock>, Read<BlockNotifyPosition>)>::query()
+            .filter(component::<BlockNotifySupportedBlock>())
+            .iter_entities(world.inner())
+            .map(|(entity, (block, position))| {
+                let pos = if !is_block_supported_at(block.0, game, position.0) {
+                    Some(position.0) // Mark block for destruction
+                } else {
+                    None
+                };
 
-            let pos =
-                if game
-                    .block_at(position.0 + support_type.direction().offset())
-                    .map(|id| support_type.is_valid_support(id.kind()))
-                    != Some(true)
-            {
-                Some(position.0)
-            } else {
-                None
-            };
-
-            (entity, pos)
-        })
+                (entity, pos)
+            }),
     );
 
     for (entity, pos) in actions {
-        world.despawn(entity);
+        world.despawn(entity); // Despawn BlockNotify entity
 
         if let Some(pos) = pos {
-            game.set_block_at(world, pos, BlockId::air(), BlockUpdateCause::Physics);
+            // Destroy block
+            game.set_block_at(world, pos, BlockId::air(), BlockUpdateCause::Unsupported);
         }
     }
 }

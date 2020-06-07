@@ -17,6 +17,7 @@
 //! and perform actions based on their components.
 
 use crate::adjacent_blocks;
+use feather_core::blocks::support::SupportType;
 use feather_core::blocks::BlockId;
 use feather_core::util::BlockPosition;
 use feather_server_types::{BlockUpdateEvent, Game};
@@ -55,7 +56,7 @@ fn notify_entity_for_block(block: BlockId, pos: BlockPosition) -> Option<EntityB
 
     if block.can_fall() {
         Some(builder.with(BlockNotifyFallingBlock))
-    } else if block.needs_support().is_some() {
+    } else if block.needed_support().is_some() {
         Some(builder.with(BlockNotifySupportedBlock))
     } else {
         None
@@ -86,4 +87,52 @@ pub fn on_block_update_notify_adjacent(
         .for_each(|builder| {
             builder.build().spawn_in(world);
         })
+}
+
+/// This checks whether a block of a specific BlockId
+/// can be placed at a specific position in the world.
+/// For example blocks like torches, snow, grass need
+/// supported blocks beneath/beside them.
+/// Related: `BlockId::needed_support`
+pub fn is_block_supported_at(block_id: BlockId, game: &Game, pos: BlockPosition) -> bool {
+    match block_id.needed_support() {
+        Some(&support) => solve_support_type(support, block_id, game, pos),
+        None => true,
+    }
+}
+
+fn solve_support_type(
+    support_type: SupportType,
+    block_id: BlockId,
+    game: &Game,
+    pos: BlockPosition,
+) -> bool {
+    match support_type
+        .offset(block_id)
+        .map(|dir| game.block_at(pos + dir))
+    {
+        // Can resolve directly to value
+        Some(block) => match block.map(|id| id.kind()) {
+            Some(kind) => match support_type {
+                SupportType::Whitelist(.., whitelist) => {
+                    whitelist.iter().any(|&k| k.supports(block_id.kind(), kind))
+                }
+                SupportType::Blacklist(.., blacklist) => {
+                    !blacklist.iter().any(|&k| k.supports(block_id.kind(), kind))
+                }
+                _ => unreachable!(),
+            },
+            None => false, // block_at returned false => chunk of support block not loaded TODO how to handle this?
+        },
+        // Requires recursive solving
+        None => match support_type {
+            SupportType::SatisfiesAll(types) => types
+                .iter()
+                .all(|&s_type| solve_support_type(s_type, block_id, game, pos)),
+            SupportType::SatisfiesAny(types) => types
+                .iter()
+                .any(|&s_type| solve_support_type(s_type, block_id, game, pos)),
+            _ => unreachable!(),
+        },
+    }
 }
