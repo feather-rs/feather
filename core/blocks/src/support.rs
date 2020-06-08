@@ -7,6 +7,7 @@ pub enum SupportType {
     Whitelist(SupportPosition, &'static [SupportBlock]),
     Blacklist(SupportPosition, &'static [SupportBlock]),
     SatisfiesAny(&'static [SupportType]),
+    SatisfiesOne(&'static [SupportType]),
     SatisfiesAll(&'static [SupportType]),
 }
 
@@ -23,6 +24,7 @@ pub enum SupportPosition {
 pub enum SupportBlock {
     Same,
     Full,
+    Air,
     Specific(BlockKind),
 }
 
@@ -81,6 +83,7 @@ impl BlockId {
         use SupportPosition::*;
         use SupportType::*;
         // TODO check list, add more
+        // TODO leaves are technically a full block, but e.g. torches can't be placed on them https://minecraft.gamepedia.com/Opacity/Placement
         match self.kind() {
             BlockKind::Torch
             | BlockKind::RedstoneTorch
@@ -106,6 +109,22 @@ impl BlockId {
             | BlockKind::GreenCarpet
             | BlockKind::RedCarpet
             | BlockKind::BlackCarpet
+            | BlockKind::WhiteBanner
+            | BlockKind::OrangeBanner
+            | BlockKind::MagentaBanner
+            | BlockKind::LightBlueBanner
+            | BlockKind::YellowBanner
+            | BlockKind::LimeBanner
+            | BlockKind::PinkBanner
+            | BlockKind::GrayBanner
+            | BlockKind::LightGrayBanner
+            | BlockKind::CyanBanner
+            | BlockKind::PurpleBanner
+            | BlockKind::BlueBanner
+            | BlockKind::BrownBanner
+            | BlockKind::GreenBanner
+            | BlockKind::RedBanner
+            | BlockKind::BlackBanner
             | BlockKind::Seagrass
             | BlockKind::TallSeagrass
             | BlockKind::Kelp
@@ -118,6 +137,12 @@ impl BlockId {
             | BlockKind::JunglePressurePlate
             | BlockKind::AcaciaPressurePlate
             | BlockKind::DarkOakPressurePlate
+            | BlockKind::OakDoor
+            | BlockKind::SpruceDoor
+            | BlockKind::BirchDoor
+            | BlockKind::JungleDoor
+            | BlockKind::AcaciaDoor
+            | BlockKind::DarkOakDoor
             | BlockKind::ActivatorRail
             | BlockKind::DetectorRail
             | BlockKind::PoweredRail
@@ -162,7 +187,6 @@ impl BlockId {
             | BlockKind::GreenWallBanner
             | BlockKind::RedWallBanner
             | BlockKind::BlackWallBanner
-            | BlockKind::OakButton
             | BlockKind::Ladder
             | BlockKind::WallSign
             | BlockKind::BrainCoralWallFan
@@ -177,13 +201,21 @@ impl BlockId {
             | BlockKind::DeadTubeCoralWallFan => {
                 Some(const_support!(Whitelist(Facing, block_array![Full])))
             }
-            BlockKind::SpruceButton
+            BlockKind::OakButton
+            | BlockKind::SpruceButton
             | BlockKind::BirchButton
             | BlockKind::JungleButton
             | BlockKind::AcaciaButton
             | BlockKind::DarkOakButton
             | BlockKind::StoneButton
             | BlockKind::Lever => Some(const_support!(Whitelist(FaceFacing, block_array![Full]))),
+            BlockKind::TripwireHook => Some(const_support!(SatisfiesAll(support_array![
+                Whitelist(Facing, block_array![Full]),
+                Blacklist(
+                    Facing,
+                    block_array![Specific(BlockKind::RedstoneBlock), Specific(BlockKind::Observer)]
+                )
+            ]))),
             BlockKind::AttachedMelonStem
             | BlockKind::AttachedPumpkinStem
             | BlockKind::MelonStem
@@ -202,6 +234,23 @@ impl BlockId {
                     block_array![Specific(BlockKind::Ice), Specific(BlockKind::PackedIce)]
                 )
             ]))),
+            BlockKind::LilyPad => Some(const_support!(Whitelist(
+                Relative(DOWN),
+                block_array![
+                    Specific(BlockKind::Water),
+                    Specific(BlockKind::Ice),
+                    Specific(BlockKind::FrostedIce)
+                ],
+            ))),
+            BlockKind::Cocoa => Some(const_support!(Whitelist(
+                Facing,
+                block_array![
+                    Specific(BlockKind::JungleLog),
+                    Specific(BlockKind::StrippedJungleLog),
+                    Specific(BlockKind::JungleWood),
+                    Specific(BlockKind::StrippedJungleWood)
+                ]
+            ))),
             BlockKind::Grass
             | BlockKind::Fern
             | BlockKind::Sunflower
@@ -226,6 +275,7 @@ impl BlockId {
             | BlockKind::WhiteTulip
             | BlockKind::PinkTulip
             | BlockKind::OxeyeDaisy
+            // TODO mushrooms need to check the light level
             | BlockKind::BrownMushroom
             | BlockKind::RedMushroom => Some(const_support!(Whitelist(
                 Relative(DOWN),
@@ -336,6 +386,37 @@ impl BlockId {
                 Relative(DOWN),
                 block_array![Specific(BlockKind::SoulSand)],
             ))),
+            BlockKind::ChorusFlower => Some(const_support!(SatisfiesAny(support_array![
+                Whitelist(Relative(DOWN), block_array![Specific(BlockKind::EndStone), Specific(BlockKind::ChorusPlant)]),
+                SatisfiesAll(support_array![
+                    Whitelist(Relative(DOWN), block_array![Air]),
+                    SatisfiesAll(support_array![
+                        Whitelist(
+                            Relative(NORTH),
+                            block_array![Specific(BlockKind::ChorusPlant), Air]
+                        ),
+                        Whitelist(
+                            Relative(EAST),
+                            block_array![Specific(BlockKind::ChorusPlant), Air]
+                        ),
+                        Whitelist(
+                            Relative(SOUTH),
+                            block_array![Specific(BlockKind::ChorusPlant), Air]
+                        ),
+                        Whitelist(
+                            Relative(WEST),
+                            block_array![Specific(BlockKind::ChorusPlant), Air]
+                        )
+                    ]),
+                    SatisfiesOne(support_array![
+                        Whitelist(Relative(NORTH), block_array![Specific(BlockKind::ChorusPlant)]),
+                        Whitelist(Relative(EAST), block_array![Specific(BlockKind::ChorusPlant)]),
+                        Whitelist(Relative(SOUTH), block_array![Specific(BlockKind::ChorusPlant)]),
+                        Whitelist(Relative(WEST), block_array![Specific(BlockKind::ChorusPlant)])
+                    ])
+                ])
+            ]))),
+            // TODO ChorusPlant
             _ => None,
         }
     }
@@ -390,6 +471,10 @@ impl SupportBlock {
         match self {
             SupportBlock::Same => supported_block_kind == supporting_block_kind,
             SupportBlock::Full => supporting_block_kind.full_block(),
+            SupportBlock::Air => matches!(
+                supporting_block_kind,
+                BlockKind::Air | BlockKind::CaveAir | BlockKind::VoidAir
+            ),
             SupportBlock::Specific(kind) => kind == supporting_block_kind,
         }
     }

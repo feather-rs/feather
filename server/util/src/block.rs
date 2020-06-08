@@ -129,6 +129,13 @@ fn solve_support_type(
             SupportType::SatisfiesAll(types) => types
                 .iter()
                 .all(|&s_type| solve_support_type(s_type, block_id, game, pos)),
+            SupportType::SatisfiesOne(types) => {
+                types
+                    .iter()
+                    .filter(|&&s_type| solve_support_type(s_type, block_id, game, pos))
+                    .count()
+                    == 1
+            }
             SupportType::SatisfiesAny(types) => types
                 .iter()
                 .any(|&s_type| solve_support_type(s_type, block_id, game, pos)),
