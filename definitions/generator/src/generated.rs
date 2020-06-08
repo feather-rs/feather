@@ -99,6 +99,13 @@ fn generate_block<'a>(model: &'a BlockModel) -> anyhow::Result<ModelFile<'a>> {
         |block| ron::Value::Bool(!block.transparent),
         Type::Bool,
     );
+    let solid = block_property(
+        "solid",
+        false,
+        model,
+        |block| ron::Value::Bool(block.bounding_box == "block"),
+        Type::Bool,
+    );
 
     let kind = Model::Enum {
         name: "block_kind",
@@ -112,6 +119,7 @@ fn generate_block<'a>(model: &'a BlockModel) -> anyhow::Result<ModelFile<'a>> {
         diggable,
         hardness,
         opaque,
+        solid,
     ]))
 }
 
