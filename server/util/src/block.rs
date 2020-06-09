@@ -484,7 +484,7 @@ fn block_support_check(
                                 && matches!(b_down.kind(), ChorusPlant | EndStone)
                         });
 
-                is_connected && !(has_horizontal && has_vertical)
+                is_connected && !(has_vertical && has_horizontal && !down.is_air())
             })
         }),
         _ => None,
