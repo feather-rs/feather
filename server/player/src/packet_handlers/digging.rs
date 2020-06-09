@@ -475,7 +475,7 @@ fn find_arrow(inventory: &Inventory) -> Option<(SlotIndex, ItemStack)> {
         }
     }
 
-    for inv_slot in 0..=27 {
+    for inv_slot in 0..27 {
         if let Some(inv_stack) = inventory.item_at(Area::Main, inv_slot).unwrap() {
             if is_arrow_item(inv_stack.ty) {
                 return Some((slot(Area::Main, inv_slot), inv_stack));
