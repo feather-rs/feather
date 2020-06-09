@@ -40,7 +40,11 @@ impl BlockId {
             || self.is_fluid()
             || matches!(
                 self.kind(),
-                BlockKind::Grass | BlockKind::TallGrass | BlockKind::Snow
+                BlockKind::Grass
+                    | BlockKind::TallGrass
+                    | BlockKind::Snow
+                    | BlockKind::Vine
+                    | BlockKind::DeadBush
             )
     }
 
@@ -205,5 +209,21 @@ impl BlockId {
             | BlockKind::EndPortalFrame => 1,
             _ => 0,
         }
+    }
+
+    pub fn can_fall(self) -> bool {
+        match self.kind() {
+            BlockKind::Sand
+            | BlockKind::Gravel
+            | BlockKind::RedSand
+            | BlockKind::Anvil
+            | BlockKind::ChippedAnvil
+            | BlockKind::DamagedAnvil => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_full_block(self) -> bool {
+        self.kind().full_block()
     }
 }

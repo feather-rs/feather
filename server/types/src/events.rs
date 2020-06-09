@@ -23,6 +23,9 @@ pub enum BlockUpdateCause {
     /// The update was caused by an entity performing
     /// a block break/placement. Usually a player.
     Entity(Entity),
+    /// So far only when a block that needs to be
+    /// supported loses it's support.
+    Unsupported,
     /// Unknown cause.
     Unknown,
 }

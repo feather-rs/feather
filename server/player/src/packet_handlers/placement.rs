@@ -15,6 +15,7 @@ use feather_core::util::{BlockPosition, Gamemode, Position, Vec3d};
 use feather_server_types::{
     BlockUpdateCause, Game, HeldItem, InventoryUpdateEvent, OpenWindowCount, PacketBuffers,
 };
+use feather_server_util::is_block_supported_at;
 use fecs::{Entity, World};
 use once_cell::sync::Lazy;
 use smallvec::smallvec;
@@ -110,7 +111,18 @@ pub fn handle_block_placement(
             packet.location + packet.face.placement_offset()
         };
 
-        if !game.block_at(pos).unwrap().is_replaceable() {
+        let current_block = game.block_at(pos).unwrap();
+
+        if !current_block.is_replaceable() {
+            return;
+        }
+
+        // Deny replacing grass with grass for example
+        if current_block.is_replaceable()
+            && !current_block.is_air()
+            && !current_block.is_fluid()
+            && block.is_replaceable()
+        {
             return;
         }
 
@@ -121,6 +133,11 @@ pub fn handle_block_placement(
             *world.get::<Position>(player),
             &packet,
         );
+
+        // Abort if block that needs support wouldn't have the needed support blocks
+        if !is_block_supported_at(block, game, pos) {
+            return;
+        }
 
         // handle multi-block placements (i.e. doors and beds)
         if let Some((other_pos, other_block)) = if block.is_bed() {
