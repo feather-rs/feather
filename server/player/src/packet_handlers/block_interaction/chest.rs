@@ -1,9 +1,9 @@
 use super::InteractionHandler;
-use feather_core::inventory::Window;
-use feather_core::network::packets::OpenWindow;
+use feather_core::inventory::{Area, Window};
+use feather_core::network::packets::{OpenWindow, WindowItems};
 use feather_core::text::TextRoot;
 use feather_core::util::BlockPosition;
-use feather_server_types::{Game, Network};
+use feather_server_types::{Game, Inventory, Network};
 use fecs::{Entity, World};
 
 pub struct ChestInteraction;
@@ -27,6 +27,17 @@ impl InteractionHandler for ChestInteraction {
                 entity_id: None,
             };
             world.get::<Network>(player).send(packet);
+
+            {
+                let mut slots = Vec::new();
+                let chest = world.get::<Inventory>(chest_entity);
+                for i in 0..27 {
+                    slots.push(chest.item_at(Area::Chest, i).unwrap());
+                }
+
+                let packet = WindowItems { window_id, slots };
+                world.get::<Network>(player).send(packet);
+            }
 
             world
                 .add(player, Window::chest(player, chest_entity))

@@ -159,6 +159,13 @@ impl Window {
         Some(slot_to_protocol(index))
     }
 
+    /// Returns which entity has the inventory corresponding to the given
+    /// protocol index.
+    pub fn corresponding_entity(&self, network: usize) -> Option<Entity> {
+        self.convert_network(network)
+            .map(|index| self.inventories[index.inventory])
+    }
+
     // TODO: more mappings as the need arises
 }
 

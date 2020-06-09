@@ -399,11 +399,12 @@ fn handle_single_click(
         .convert_network(packet.slot as usize)
         .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?
         .into()];
+    let affected_entity = window.corresponding_entity(packet.slot as usize).unwrap();
     drop(window);
     game.handle(
         world,
         InventoryUpdateEvent {
-            entity: player,
+            entity: affected_entity,
             slots,
         },
     );
@@ -547,24 +548,25 @@ fn handle_number_key(
     drop(inventory);
     drop(accessor);
 
-    // Create a list of slots that were updated with this operation so they can be sent to handlers
-    let slots = smallvec![
-        window
-            .convert_network(slot as usize)
+    // Trigger inventory update events for the two updated slots.
+    // Note that the two slots may belong to different entities, e.g.
+    // if the player moves an item from a chest to their hotbar.
+    let event1 = InventoryUpdateEvent {
+        entity: player,
+        slots: smallvec![hotbar_slot],
+    };
+    let event2 = InventoryUpdateEvent {
+        entity: window.corresponding_entity(slot as usize).unwrap(),
+        slots: smallvec![window
+            .convert_network(slot)
             .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?
-            .into(),
-        hotbar_slot
-    ];
+            .into()],
+    };
 
     drop(window);
 
-    game.handle(
-        world,
-        InventoryUpdateEvent {
-            entity: player,
-            slots,
-        },
-    );
+    game.handle(world, event1);
+    game.handle(world, event2);
 
     Ok(())
 }
