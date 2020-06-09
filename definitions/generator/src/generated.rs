@@ -123,6 +123,13 @@ fn generate_block<'a>(
         |block| ron::Value::Bool(!block.transparent),
         Type::Bool,
     );
+    let solid = block_property(
+        "solid",
+        false,
+        block_model,
+        |block| ron::Value::Bool(block.bounding_box == "block"),
+        Type::Bool,
+    );
     let full_block = Model::Property {
         on: "block_kind",
         name: "full_block",
@@ -155,6 +162,7 @@ fn generate_block<'a>(
         diggable,
         hardness,
         opaque,
+        solid,
         full_block,
     ]))
 }

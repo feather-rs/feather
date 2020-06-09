@@ -271,6 +271,14 @@ impl BlockPosition {
             z: self.z,
         }
     }
+
+    pub fn down(self) -> BlockPosition {
+        Self {
+            x: self.x,
+            y: self.y - 1,
+            z: self.z,
+        }
+    }
 }
 
 impl Add<BlockPosition> for BlockPosition {

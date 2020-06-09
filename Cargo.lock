@@ -1151,6 +1151,7 @@ dependencies = [
  "ahash",
  "anyhow",
  "bumpalo",
+ "crossbeam",
  "dashmap",
  "feather-core",
  "feather-server-config",
