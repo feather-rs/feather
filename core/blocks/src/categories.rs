@@ -316,4 +316,8 @@ impl BlockId {
             _ => false,
         }
     }
+
+    pub fn is_full_block(self) -> bool {
+        self.kind().full_block()
+    }
 }
