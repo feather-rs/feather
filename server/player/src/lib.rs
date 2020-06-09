@@ -130,7 +130,7 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
         world,
         InventoryUpdateEvent {
             slots: slots.collect(),
-            player: entity,
+            entity,
         },
     );
     game.handle(

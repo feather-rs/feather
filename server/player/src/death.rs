@@ -29,7 +29,7 @@ pub fn on_player_death_scatter_inventory(
         .enumerate()
         .filter_map(|(index, slot)| slot.map(|_| index));
     let event = InventoryUpdateEvent {
-        player: event.entity,
+        entity: event.entity,
         slots: slots_to_update.collect(),
     };
 

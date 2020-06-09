@@ -82,7 +82,7 @@ pub fn handle_creative_inventory_action(
             let index = window.convert_network(packet.slot as usize).unwrap(); // already checked above
             let event = InventoryUpdateEvent {
                 slots: smallvec![index.into()],
-                player,
+                entity: player,
             };
             drop(inventory);
             drop(accessor);
@@ -115,7 +115,7 @@ pub fn handle_held_item_change(
                     area: Area::Hotbar,
                     slot: held_item.0
                 }],
-                player,
+                entity: player,
             };
             drop(held_item);
             game.handle(world, event);
@@ -400,7 +400,13 @@ fn handle_single_click(
         .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?
         .into()];
     drop(window);
-    game.handle(world, InventoryUpdateEvent { player, slots });
+    game.handle(
+        world,
+        InventoryUpdateEvent {
+            entity: player,
+            slots,
+        },
+    );
 
     Ok(())
 }
@@ -478,7 +484,7 @@ fn handle_double_click(
     game.handle(
         world,
         InventoryUpdateEvent {
-            player,
+            entity: player,
             slots: modified_slots,
         },
     );
@@ -552,7 +558,13 @@ fn handle_number_key(
 
     drop(window);
 
-    game.handle(world, InventoryUpdateEvent { player, slots });
+    game.handle(
+        world,
+        InventoryUpdateEvent {
+            entity: player,
+            slots,
+        },
+    );
 
     Ok(())
 }

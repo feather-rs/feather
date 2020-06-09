@@ -16,8 +16,8 @@ pub fn on_inventory_update_broadcast_equipment_update(
     game: &mut Game,
     world: &mut World,
 ) {
-    let inv = world.get::<Inventory>(event.player);
-    let held_item = world.get::<HeldItem>(event.player);
+    let inv = world.get::<Inventory>(event.entity);
+    let held_item = world.get::<HeldItem>(event.entity);
 
     for slot in &event.slots {
         // Skip this slot if it is not an equipment update.
@@ -28,12 +28,12 @@ pub fn on_inventory_update_broadcast_equipment_update(
                 .expect("invalid InventoryUpdateEvent");
 
             let packet = EntityEquipment {
-                entity_id: world.get::<NetworkId>(event.player).0,
+                entity_id: world.get::<NetworkId>(event.entity).0,
                 slot: equipment.to_i32().unwrap(),
                 item,
             };
 
-            game.broadcast_entity_update(world, packet, event.player, Some(event.player));
+            game.broadcast_entity_update(world, packet, event.entity, Some(event.entity));
         }
     }
 }
@@ -88,12 +88,12 @@ pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World)
 /// when a player's inventory is updated.
 #[fecs::event_handler]
 pub fn on_inventory_update_send_set_slot(event: &InventoryUpdateEvent, world: &mut World) {
-    let inv = world.get::<Inventory>(event.player);
-    let network = world.get::<Network>(event.player);
-    let window = world.get::<Window>(event.player);
+    let inv = world.get::<Inventory>(event.entity);
+    let network = world.get::<Network>(event.entity);
+    let window = world.get::<Window>(event.entity);
 
     for slot in &event.slots {
-        let converted = window.convert_slot(*slot, event.player).unwrap_or(0);
+        let converted = window.convert_slot(*slot, event.entity).unwrap_or(0);
         let packet = SetSlot {
             window_id: 0,
             slot: converted as i16,
@@ -145,7 +145,7 @@ mod tests {
         test.handle(
             InventoryUpdateEvent {
                 slots: smallvec![slot],
-                player: player1,
+                entity: player1,
             },
             on_inventory_update_broadcast_equipment_update,
         );
@@ -168,7 +168,7 @@ mod tests {
         test.handle(
             InventoryUpdateEvent {
                 slots: smallvec![slot],
-                player: player3,
+                entity: player3,
             },
             on_inventory_update_broadcast_equipment_update,
         );
@@ -228,7 +228,7 @@ mod tests {
         test.handle(
             InventoryUpdateEvent {
                 slots: smallvec![slot],
-                player: player1,
+                entity: player1,
             },
             on_inventory_update_send_set_slot,
         );

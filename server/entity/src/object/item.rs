@@ -131,7 +131,10 @@ pub fn item_collect(game: &mut Game, world: &mut World) {
 
                         let initial_remaining = stack.amount;
 
-                        let event = InventoryUpdateEvent { slots, player };
+                        let event = InventoryUpdateEvent {
+                            slots,
+                            entity: player,
+                        };
                         inventory_update_events.lock().push(event);
 
                         // update stack

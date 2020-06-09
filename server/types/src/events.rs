@@ -109,11 +109,15 @@ pub struct ItemCollectEvent {
     pub amount: u8,
 }
 
-/// Event which is triggered when a player
-/// updates their inventory.
+/// Event which is triggered when an entity's inventory
+/// is updated.
 ///
-/// This event could also be triggered when the player
+/// This event could also be triggered when a player
 /// changes their held item.
+///
+/// Note that the associated entity is not necessarily a player.
+/// For example, a chest block entity has an `Inventory` component,
+/// and `InventoryUpdateEvent`s may be triggered for it.
 #[derive(Debug, Clone)]
 pub struct InventoryUpdateEvent {
     /// The slot(s) affected by the update.
@@ -121,8 +125,8 @@ pub struct InventoryUpdateEvent {
     /// Multiple slots could be affected when, for
     /// example, a player uses the "drag" inventory interaction.
     pub slots: SmallVec<[SlotIndex; 2]>,
-    /// The player owning the updated inventory.
-    pub player: Entity,
+    /// The entity owning the updated inventory.
+    pub entity: Entity,
 }
 
 /// Event triggered when an entity is created.

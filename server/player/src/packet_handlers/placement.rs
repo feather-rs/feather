@@ -191,7 +191,7 @@ pub fn handle_block_placement(
 
             Some(InventoryUpdateEvent {
                 slots: smallvec![slot(Area::Hotbar, held_item)],
-                player,
+                entity: player,
             })
         } else {
             None
