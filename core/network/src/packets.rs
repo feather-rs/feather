@@ -11,6 +11,7 @@ use feather_entity_metadata::EntityMetadata;
 use feather_items::ItemStack;
 use feather_misc::ParticleData;
 use feather_util::{BlockPosition, ClientboundAnimation, Gamemode, Hand};
+use nbt::Blob;
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
 use once_cell::sync::Lazy;
@@ -1378,11 +1379,21 @@ pub struct BlockBreakAnimation {
     pub destroy_stage: i8,
 }
 
-#[derive(Default, AsAny, Packet, Clone)]
+#[derive(AsAny, Packet, Clone)]
 pub struct UpdateBlockEntity {
     pub location: BlockPosition,
     pub action: u8,
-    // TODO pub data: NbtTag
+    pub data: Blob,
+}
+
+impl Default for UpdateBlockEntity {
+    fn default() -> Self {
+        Self {
+            location: BlockPosition::default(),
+            action: 0,
+            data: Blob::new(),
+        }
+    }
 }
 
 #[derive(Default, AsAny, Packet, Clone)]

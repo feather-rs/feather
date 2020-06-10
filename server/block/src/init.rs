@@ -2,7 +2,7 @@ use crate::chest;
 use ahash::AHashMap;
 use feather_core::blocks::BlockKind;
 use feather_core::util::{BlockPosition, Position};
-use feather_server_types::{BlockUpdateEvent, EntitySpawnEvent, Game};
+use feather_server_types::{BlockEntity, BlockUpdateEvent, EntitySpawnEvent, Game};
 use fecs::{EntityBuilder, World};
 use once_cell::sync::Lazy;
 
@@ -36,6 +36,7 @@ pub fn on_block_update_create_block_entity(
         let entity = init(game, event.pos)
             .with(event.pos)
             .with(Position::from(event.pos))
+            .with(BlockEntity)
             .build()
             .spawn_in(world);
 

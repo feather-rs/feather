@@ -1,6 +1,12 @@
-use feather_core::network::packets::{DestroyEntities, PlayerInfo, PlayerInfoAction};
-use feather_server_types::{EntityDespawnEvent, Game, NetworkId, Player, Uuid};
-use fecs::World;
+use feather_core::{
+    network::{
+        packets::{DestroyEntities, PlayerInfo, PlayerInfoAction, UpdateBlockEntity},
+        Packet,
+    },
+    util::BlockPosition,
+};
+use feather_server_types::{BlockEntity, EntityDespawnEvent, Game, NetworkId, Player, Uuid};
+use fecs::{Entity, World};
 
 /// Broadcasts when an entity is deleted.
 #[fecs::event_handler]
@@ -9,12 +15,9 @@ pub fn on_entity_despawn_broadcast_despawn(
     game: &mut Game,
     world: &mut World,
 ) {
-    let id = world.get::<NetworkId>(event.entity).0;
-    let packet = DestroyEntities {
-        entity_ids: vec![id],
-    };
+    let packet = packet_to_despawn(event.entity, world);
 
-    game.broadcast_entity_update(world, packet, event.entity, Some(event.entity));
+    game.broadcast_entity_update_boxed(world, packet, event.entity, Some(event.entity));
 
     // If the entity was a player, send Player Info to
     // remove them from the tablist.
@@ -26,6 +29,24 @@ pub fn on_entity_despawn_broadcast_despawn(
         };
 
         game.broadcast_global(world, packet, None);
+    }
+}
+
+fn packet_to_despawn(entity: Entity, world: &World) -> Box<dyn Packet> {
+    // For normal entities, use Destroy Entities.
+    // For block entities, send Update Block Entity
+    // with a single TAG_END to remove the block entity
+    // at the position.
+
+    if world.has::<BlockEntity>(entity) {
+        Box::new(UpdateBlockEntity {
+            location: *world.get::<BlockPosition>(entity),
+            ..Default::default()
+        })
+    } else {
+        Box::new(DestroyEntities {
+            entity_ids: vec![world.get::<NetworkId>(entity).0],
+        })
     }
 }
 
