@@ -1,15 +1,15 @@
 use crate::chest;
 use ahash::AHashMap;
 use feather_core::blocks::BlockKind;
-use feather_core::util::{BlockPosition, Position};
+use feather_core::util::BlockPosition;
 use feather_server_types::{BlockEntity, BlockUpdateEvent, EntitySpawnEvent, Game};
 use fecs::{EntityBuilder, World};
 use once_cell::sync::Lazy;
 
 /// Global mapping of blocks which require blcok entities.
-static BLOCK_ENTITY_MAP: Lazy<AHashMap<BlockKind, fn(&Game, BlockPosition) -> EntityBuilder>> =
+static BLOCK_ENTITY_MAP: Lazy<AHashMap<BlockKind, fn(BlockPosition) -> EntityBuilder>> =
     Lazy::new(|| {
-        let mut map: AHashMap<_, fn(&Game, BlockPosition) -> EntityBuilder> = AHashMap::new();
+        let mut map: AHashMap<_, fn(BlockPosition) -> EntityBuilder> = AHashMap::new();
 
         map.insert(BlockKind::Chest, chest::create);
 
@@ -33,14 +33,21 @@ pub fn on_block_update_create_block_entity(
 
     if let Some(init) = BLOCK_ENTITY_MAP.get(&event.new.kind()) {
         // Spawn block entity
-        let entity = init(game, event.pos)
-            .with(event.pos)
-            .with(Position::from(event.pos))
-            .with(BlockEntity)
-            .build()
-            .spawn_in(world);
+        let entity = init(event.pos).build().spawn_in(world);
 
-        game.block_entities.insert(event.pos, entity);
         game.handle(world, EntitySpawnEvent { entity });
+    }
+}
+
+#[fecs::event_handler]
+pub fn on_block_entity_create_insert_to_map(
+    event: &EntitySpawnEvent,
+    game: &mut Game,
+    world: &mut World,
+) {
+    if let Some(pos) = world.try_get::<BlockPosition>(event.entity) {
+        if world.has::<BlockEntity>(event.entity) {
+            game.block_entities.insert(*pos, event.entity);
+        }
     }
 }

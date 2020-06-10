@@ -77,7 +77,13 @@ fn level_to_value(level: ChunkLevel) -> Value {
         entities.push(entity.into_nbt_value());
     });
 
+    let mut block_entities = Vec::with_capacity(level.block_entities.len());
+    level.block_entities.into_iter().for_each(|entity| {
+        block_entities.push(entity.into_nbt_value());
+    });
+
     map.insert(String::from("Entities"), Value::List(entities));
+    map.insert(String::from("TileEntities"), Value::List(block_entities));
 
     Value::Compound(map)
 }

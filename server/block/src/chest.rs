@@ -1,15 +1,27 @@
+use anyhow::bail;
 use feather_core::util::BlockPosition;
 use feather_core::{
+    anvil::{
+        block_entity::{BlockEntityData, BlockEntityKind, BlockEntityVariant},
+        player::InventorySlot,
+    },
     blocks::BlockKind,
+    inventory::Area,
+    items::{Item, ItemStack},
     network::{packets::BlockAction, Packet},
 };
 use feather_server_entity::drops::drop_item;
 use feather_server_types::{
-    BlockUpdateEvent, BumpVec, Game, Inventory, SpawnPacketCreator, WindowCloseEvent,
-    WindowOpenEvent,
+    BlockEntityLoaderRegistration, BlockSerializer, BlockUpdateEvent, BumpVec, Game, Inventory,
+    SpawnPacketCreator, WindowCloseEvent, WindowOpenEvent,
 };
 use fecs::{Entity, EntityBuilder, EntityRef, World};
 use num_traits::ToPrimitive;
+
+inventory::submit!(BlockEntityLoaderRegistration {
+    f: &load,
+    kind: BlockEntityVariant::Chest,
+});
 
 /// Marker component for chests.
 pub struct Chest;
@@ -20,12 +32,18 @@ pub struct Chest;
 pub struct ChestViewers(u32);
 
 /// Creates a chest.
-pub fn create(_game: &Game, _pos: BlockPosition) -> EntityBuilder {
-    EntityBuilder::new()
+pub fn create(pos: BlockPosition) -> EntityBuilder {
+    create_with_inventory(pos, Inventory::chest(false))
+}
+
+/// Creates a chest with the given inventory.
+pub fn create_with_inventory(pos: BlockPosition, inventory: Inventory) -> EntityBuilder {
+    crate::base(pos)
         .with(Chest)
         .with(ChestViewers(0))
-        .with(Inventory::chest(false)) // TODO: handle large chests
+        .with(inventory)
         .with(SpawnPacketCreator(&create_spawn_packet))
+        .with(BlockSerializer(&serialize))
 }
 
 /// When a chest is despawned, drops its contents.
@@ -93,4 +111,65 @@ fn viewers_packet(chest: &EntityRef) -> impl Packet {
         action_param: chest.get::<ChestViewers>().0 as u8,
         block_type: BlockKind::Chest.to_i32().unwrap(),
     }
+}
+
+fn serialize(_game: &Game, accessor: &EntityRef) -> BlockEntityData {
+    let base = crate::serialize_base(accessor);
+
+    let items = serialize_items(&*accessor.get::<Inventory>());
+
+    BlockEntityData {
+        base,
+        kind: BlockEntityKind::Chest {
+            items,
+            loot_table: None,
+            loot_table_seed: None,
+        },
+    }
+}
+
+fn serialize_items(inventory: &Inventory) -> Vec<InventorySlot> {
+    let mut slots = Vec::new();
+    for i in 0..27 {
+        let item = inventory.item_at(Area::Chest, i).unwrap();
+
+        if let Some(item) = item {
+            slots.push(InventorySlot {
+                item: item.ty.identifier().to_owned(),
+                count: item.amount as i8,
+                slot: i as i8,
+            });
+        }
+    }
+    slots
+}
+
+fn load(data: BlockEntityData) -> anyhow::Result<EntityBuilder> {
+    let pos = crate::load_base(&data.base);
+    let slots = match data.kind {
+        BlockEntityKind::Chest { items, .. } => items,
+        _ => bail!("not a chest"),
+    };
+
+    let inventory = load_inventory(&slots);
+
+    Ok(create_with_inventory(pos, inventory))
+}
+
+fn load_inventory(slots: &[InventorySlot]) -> Inventory {
+    let inv = Inventory::chest(false);
+
+    for slot in slots {
+        if let Some(item) = Item::from_identifier(&slot.item) {
+            if let Err(e) = inv.set_item_at(
+                Area::Chest,
+                slot.slot as usize,
+                ItemStack::new(item, slot.count as u8),
+            ) {
+                log::warn!("Invalid chest slot: {}", e);
+            }
+        }
+    }
+
+    inv
 }

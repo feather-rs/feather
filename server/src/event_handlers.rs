@@ -32,6 +32,7 @@ pub fn build_event_handlers() -> EventHandlers {
         on_entity_despawn_update_chunk_entities,
         on_entity_despawn_broadcast_despawn,
 
+        on_block_entity_create_insert_to_map,
         on_entity_spawn_update_chunk_entities,
         on_entity_spawn_send_to_clients,
 

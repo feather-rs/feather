@@ -1,5 +1,7 @@
 use crate::player::InventorySlot;
+use nbt::Value;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// A block entity loaded or saved to the Anvil format.
 /// Should be serialized using NBT.
@@ -11,6 +13,35 @@ pub struct BlockEntityData {
     pub base: BlockEntityBase,
     #[serde(flatten)]
     pub kind: BlockEntityKind,
+}
+
+impl BlockEntityData {
+    pub fn into_nbt_value(self) -> Value {
+        let mut compound = HashMap::new();
+
+        compound.insert(String::from("x"), Value::Int(self.base.x));
+        compound.insert(String::from("y"), Value::Int(self.base.y));
+        compound.insert(String::from("z"), Value::Int(self.base.z));
+
+        let id = match self.kind {
+            BlockEntityKind::Chest { items, .. } => {
+                compound.insert(
+                    String::from("Items"),
+                    Value::List(
+                        items
+                            .into_iter()
+                            .map(InventorySlot::into_nbt_value)
+                            .collect(),
+                    ),
+                );
+                "minecraft:chest"
+            }
+            _ => todo!("implement block entity into_nbt_value"),
+        };
+        compound.insert(String::from("id"), Value::String(String::from(id)));
+
+        Value::Compound(compound)
+    }
 }
 
 /// Data common to all block entities.
@@ -52,6 +83,7 @@ pub enum BlockEntityKind {
     },
     #[serde(rename = "minecraft:chest")]
     Chest {
+        #[serde(rename = "Items")]
         items: Vec<InventorySlot>,
         loot_table: Option<String>,
         loot_table_seed: Option<i64>,

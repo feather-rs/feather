@@ -4,8 +4,12 @@ use feather_inventory::player_constants::{
     SLOT_INVENTORY_OFFSET, SLOT_OFFHAND,
 };
 use feather_items::{Item, ItemStack};
+use nbt::Value;
 use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 use tokio::io::AsyncWriteExt;
 use tokio::prelude::{AsyncRead, AsyncWrite};
 use uuid::Uuid;
@@ -87,6 +91,16 @@ impl InventorySlot {
             // Unknown index
             None
         }
+    }
+
+    pub fn into_nbt_value(self) -> Value {
+        let mut compound = HashMap::new();
+
+        compound.insert(String::from("Count"), Value::Byte(self.count));
+        compound.insert(String::from("id"), Value::String(self.item));
+        compound.insert(String::from("Slot"), Value::Byte(self.slot));
+
+        Value::Compound(compound)
     }
 }
 

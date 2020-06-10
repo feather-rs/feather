@@ -970,11 +970,14 @@ name = "feather-server-block"
 version = "0.6.0"
 dependencies = [
  "ahash",
+ "anyhow",
  "feather-core",
  "feather-server-entity",
  "feather-server-types",
  "feather-server-util",
  "fecs",
+ "inventory",
+ "log",
  "num-traits",
  "once_cell",
 ]
