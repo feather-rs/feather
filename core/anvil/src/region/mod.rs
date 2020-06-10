@@ -221,8 +221,8 @@ impl RegionHandle {
     pub fn save_chunk(
         &mut self,
         chunk: &Chunk,
-        entities: Vec<EntityData>,
-        block_entities: Vec<BlockEntityData>,
+        entities: &[EntityData],
+        block_entities: &[BlockEntityData],
     ) -> Result<(), Error> {
         let chunk_pos = chunk.position();
 
@@ -361,8 +361,8 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
 
 fn chunk_to_chunk_root(
     chunk: &Chunk,
-    entities: Vec<EntityData>,
-    block_entities: Vec<BlockEntityData>,
+    entities: &[EntityData],
+    block_entities: &[BlockEntityData],
 ) -> ChunkRoot {
     let heightmaps: Vec<i64> = chunk
         .heightmaps()
@@ -380,7 +380,7 @@ fn chunk_to_chunk_root(
         level: ChunkLevel {
             x_pos: chunk.position().x,
             z_pos: chunk.position().z,
-            block_entities: block_entities,
+            block_entities: block_entities.into(),
             sections: chunk
                 .sections()
                 .iter()
@@ -402,7 +402,7 @@ fn chunk_to_chunk_root(
                 .iter()
                 .map(|biome| biome.protocol_id())
                 .collect(),
-            entities,
+            entities: entities.into(),
             heightmaps,
         },
         data_version: DATA_VERSION,

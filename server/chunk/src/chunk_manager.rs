@@ -7,7 +7,8 @@ use std::sync::atomic::{AtomicU32, Ordering};
 
 use crate::chunk_worker;
 use ahash::AHashSet;
-use feather_core::anvil::entity::EntityData;
+use chunk_worker::ChunkSave;
+use feather_core::anvil::{block_entity::BlockEntityData, entity::EntityData};
 use feather_core::chunk::Chunk;
 use feather_core::util::ChunkPosition;
 use feather_server_types::{
@@ -19,6 +20,7 @@ use feather_server_util::current_time_in_millis;
 use fecs::{Entity, World};
 use parking_lot::RwLock;
 use rayon::prelude::*;
+use smallvec::SmallVec;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
@@ -46,10 +48,10 @@ pub fn chunk_load(
         if let chunk_worker::Reply::LoadedChunk(pos, result) = reply {
             loading_chunks.0.remove(&pos);
             match result {
-                Ok((chunk, entities)) => {
-                    game.chunk_map.insert(chunk);
+                Ok(loaded) => {
+                    game.chunk_map.insert(loaded.chunk);
 
-                    entities.into_iter().for_each(|builder| {
+                    loaded.entities.into_iter().for_each(|builder| {
                         let entity = builder.build().spawn_in(world);
                         game.handle(world, EntitySpawnEvent { entity });
                     });
@@ -297,11 +299,17 @@ pub fn load_chunk(handle: &ChunkWorkerHandle, pos: ChunkPosition) {
 pub fn save_chunk(
     handle: &ChunkWorkerHandle,
     chunk: Arc<RwLock<Chunk>>,
-    entities: Vec<EntityData>,
+    entities: SmallVec<[EntityData; 4]>,
+    block_entities: SmallVec<[BlockEntityData; 4]>,
 ) {
+    let save = ChunkSave {
+        chunk,
+        entities,
+        block_entities,
+    };
     handle
         .sender
-        .send(chunk_worker::Request::SaveChunk(chunk, entities))
+        .send(chunk_worker::Request::SaveChunk(save))
         .unwrap();
 }
 

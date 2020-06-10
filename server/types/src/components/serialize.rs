@@ -2,7 +2,7 @@
 //! be it over the network or onto the disk.
 
 use crate::Game;
-use feather_core::anvil::entity::EntityData;
+use feather_core::anvil::{block_entity::BlockEntityData, entity::EntityData};
 use feather_core::network::Packet;
 use fecs::EntityRef;
 
@@ -57,12 +57,33 @@ impl<F> ComponentSerializerFn for F where
 {
 }
 
+pub trait BlockSerializerFn:
+    Fn(&Game, &EntityRef) -> BlockEntityData + Send + Sync + 'static
+{
+}
+
+impl<F> BlockSerializerFn for F where
+    F: Fn(&Game, &EntityRef) -> BlockEntityData + Send + Sync + 'static
+{
+}
+
 /// Component which stores a function needed to convert an entity's
 /// components to the serializable `EntityData`.
 pub struct ComponentSerializer(pub &'static dyn ComponentSerializerFn);
 
 impl ComponentSerializer {
     pub fn serialize(&self, game: &Game, accessor: &EntityRef) -> EntityData {
+        let f = self.0;
+
+        f(game, accessor)
+    }
+}
+
+/// Similar to `ComponentSerializer`, but for block entities (e.g. chests).
+pub struct BlockSerializer(pub &'static dyn BlockSerializerFn);
+
+impl BlockSerializer {
+    pub fn serialize(&self, game: &Game, accessor: &EntityRef) -> BlockEntityData {
         let f = self.0;
 
         f(game, accessor)

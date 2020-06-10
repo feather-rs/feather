@@ -109,3 +109,51 @@ pub enum BlockEntityKind {
     Jukebox { record_item: InventorySlot },
     // TODO: a few more
 }
+
+impl BlockEntityKind {
+    pub fn variant(&self) -> BlockEntityVariant {
+        match self {
+            BlockEntityKind::Beacon { .. } => BlockEntityVariant::Beacon,
+            BlockEntityKind::Bed { .. } => BlockEntityVariant::Bed,
+            BlockEntityKind::BrewingStand { .. } => BlockEntityVariant::BrewingStand,
+            BlockEntityKind::Cauldron { .. } => BlockEntityVariant::Cauldron,
+            BlockEntityKind::Comparator { .. } => BlockEntityVariant::Comparator,
+            BlockEntityKind::CommandBlock { .. } => BlockEntityVariant::CommandBlock,
+            BlockEntityKind::Chest { .. } => BlockEntityVariant::Chest,
+            BlockEntityKind::DaylightDetector { .. } => BlockEntityVariant::DaylightDetector,
+            BlockEntityKind::Dispenser { .. } => BlockEntityVariant::Dispenser,
+            BlockEntityKind::Dropper { .. } => BlockEntityVariant::Dropper,
+            BlockEntityKind::EnchantingTable { .. } => BlockEntityVariant::EnchantingTable,
+            BlockEntityKind::EnderChest { .. } => BlockEntityVariant::EnderChest,
+            BlockEntityKind::EndGateway { .. } => BlockEntityVariant::EndGateway,
+            BlockEntityKind::EndPortal { .. } => BlockEntityVariant::EndPortal,
+            BlockEntityKind::Furnace { .. } => BlockEntityVariant::Furnace,
+            BlockEntityKind::Hopper { .. } => BlockEntityVariant::Hopper,
+            BlockEntityKind::Jigsaw { .. } => BlockEntityVariant::Jigsaw,
+            BlockEntityKind::Jukebox { .. } => BlockEntityVariant::Jukebox,
+        }
+    }
+}
+
+/// Variant of a `BlockEntityKind`.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum BlockEntityVariant {
+    Beacon,
+    Bed,
+    BrewingStand,
+    Cauldron,
+    Chest,
+    Comparator,
+    CommandBlock,
+    DaylightDetector,
+    Dispenser,
+    Dropper,
+    EnchantingTable,
+    EnderChest,
+    EndGateway,
+    EndPortal,
+    Furnace,
+    Hopper,
+    Jigsaw,
+    Jukebox,
+}

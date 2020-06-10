@@ -149,6 +149,7 @@ impl BaseEntityData {
             String::from("Motion"),
             Value::List(self.velocity.iter().copied().map(Value::Double).collect()),
         );
+        map.insert(String::from("Health"), Value::Float(self.health));
     }
 }
 

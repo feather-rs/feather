@@ -1,3 +1,4 @@
+use feather_core::anvil::block_entity::{BlockEntityData, BlockEntityVariant};
 use feather_core::anvil::entity::{EntityData, EntityDataKind};
 use fecs::EntityBuilder;
 
@@ -10,6 +11,16 @@ pub trait EntityLoaderFn:
 
 impl<F> EntityLoaderFn for F where
     F: Fn(EntityData) -> anyhow::Result<EntityBuilder> + Send + Sync + 'static
+{
+}
+
+pub trait BlockEntityLoaderFn:
+    Fn(BlockEntityData) -> anyhow::Result<EntityBuilder> + Send + Sync + 'static
+{
+}
+
+impl<F> BlockEntityLoaderFn for F where
+    F: Fn(BlockEntityData) -> anyhow::Result<EntityBuilder> + Send + Sync + 'static
 {
 }
 
@@ -39,6 +50,14 @@ impl EntityLoaderRegistration {
 }
 
 inventory::collect!(EntityLoaderRegistration);
+
+/// Same as `EntityLoaderRegistration`, but for block entities.
+pub struct BlockEntityLoaderRegistration {
+    pub f: &'static dyn BlockEntityLoaderFn,
+    pub kind: BlockEntityVariant,
+}
+
+inventory::collect!(BlockEntityLoaderRegistration);
 
 /// Wrapper around the send/receive channels which will be used to
 /// notify server thread of shutdown due to ctrl+C or /stop command.

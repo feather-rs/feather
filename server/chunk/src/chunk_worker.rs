@@ -132,7 +132,7 @@ fn run(mut worker: ChunkWorker) {
         match request {
             Request::ShutDown => break,
             Request::SaveChunk(save) => {
-                save_chunk(&mut worker, &save);
+                save_chunk(&mut worker, save);
             }
             Request::LoadChunk(pos) => {
                 if let Some(reply) = load_chunk(&mut worker, pos) {
@@ -174,6 +174,11 @@ fn load_chunk_from_handle(
             let entities = entities
                 .into_iter()
                 .filter_map(|entity| entity_loader.load(entity))
+                .chain(
+                    block_entities
+                        .into_iter()
+                        .filter_map(|block_entity| entity_loader.load_block(block_entity)),
+                )
                 .collect::<Result<SmallVec<_>, anyhow::Error>>();
 
             Some(Reply::LoadedChunk(
@@ -211,16 +216,25 @@ fn schedule_generate_new_chunk(
 /// Generates a new chunk synchronously,
 /// returning a Reply to send to a Sender.
 fn generate_new_chunk(pos: ChunkPosition, generator: &Arc<dyn WorldGenerator>) -> Reply {
-    Reply::LoadedChunk(pos, Ok((generator.generate_chunk(pos), SmallVec::new())))
+    Reply::LoadedChunk(
+        pos,
+        Ok(ChunkLoad {
+            chunk: generator.generate_chunk(pos),
+            entities: SmallVec::new(),
+        }),
+    )
 }
 
 /// Saves the chunk at the specified position.
-fn save_chunk(worker: &mut ChunkWorker, chunk: &Chunk, entities: Vec<EntityData>) {
+fn save_chunk(worker: &mut ChunkWorker, save: ChunkSave) {
+    let chunk = save.chunk.read();
     let rpos = RegionPosition::from_chunk(chunk.position());
 
     let file = worker_region(&mut worker.open_regions, &worker.dir, rpos);
 
-    file.handle.save_chunk(chunk, entities).unwrap();
+    file.handle
+        .save_chunk(&*chunk, &save.entities, &save.block_entities)
+        .unwrap();
     worker
         .sender
         .send(Reply::SavedChunk(chunk.position()))
