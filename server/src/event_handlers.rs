@@ -94,5 +94,9 @@ pub fn build_event_handlers() -> EventHandlers {
 
         on_player_death_scatter_inventory,
         on_player_death_mark_dead,
+
+        on_chest_open_increment_viewers,
+
+        on_chest_close_decrement_viewers,
     }
 }

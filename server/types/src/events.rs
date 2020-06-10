@@ -129,6 +129,27 @@ pub struct InventoryUpdateEvent {
     pub entity: Entity,
 }
 
+/// Event triggered when a player opens a window. For example,
+/// opening a chest will trigger this event.
+#[derive(Copy, Clone, Debug)]
+pub struct WindowOpenEvent {
+    /// The player who opened the window
+    pub player: Entity,
+    /// The entity whose inventory was opened.
+    /// For example, when a chest is opened,
+    /// this will be the chest's block entity.
+    pub opened: Entity,
+}
+
+/// Event triggered when a player closes a window.
+#[derive(Copy, Clone, Debug)]
+pub struct WindowCloseEvent {
+    /// The player who closed the window
+    pub player: Entity,
+    /// The entity whose inventory was closed
+    pub closed: Entity,
+}
+
 /// Event triggered when an entity is created.
 #[derive(Copy, Clone, Debug)]
 pub struct EntitySpawnEvent {

@@ -56,7 +56,10 @@ pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World)
         Some(inv) => inv,
         None => return, // no equipment to send
     };
-    let held_item = world.get::<HeldItem>(entity);
+    let held_item = match world.try_get::<HeldItem>(entity) {
+        Some(item) => item,
+        None => return,
+    };
 
     let equipments = [
         Equipment::MainHand,

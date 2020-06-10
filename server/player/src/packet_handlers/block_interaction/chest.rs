@@ -3,7 +3,7 @@ use feather_core::inventory::{Area, Window};
 use feather_core::network::packets::{OpenWindow, WindowItems};
 use feather_core::text::TextRoot;
 use feather_core::util::BlockPosition;
-use feather_server_types::{Game, Inventory, Network};
+use feather_server_types::{Game, Inventory, Network, WindowOpenEvent};
 use fecs::{Entity, World};
 
 pub struct ChestInteraction;
@@ -42,6 +42,14 @@ impl InteractionHandler for ChestInteraction {
             world
                 .add(player, Window::chest(player, chest_entity))
                 .unwrap();
+
+            game.handle(
+                world,
+                WindowOpenEvent {
+                    player,
+                    opened: chest_entity,
+                },
+            );
         }
     }
 }

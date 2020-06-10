@@ -975,6 +975,7 @@ dependencies = [
  "feather-server-types",
  "feather-server-util",
  "fecs",
+ "num-traits",
  "once_cell",
 ]
 

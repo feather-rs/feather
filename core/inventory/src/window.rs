@@ -83,7 +83,7 @@ pub enum Error {
 /// if a player is inside a chest, then their context is `Window::chest(player, chest)`.
 /// The `Window` then delegates raw `usize`s from the protocol to either
 /// `player` or `chest` depending on the value of said `usize`.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Window {
     /// Mapping from `usize` in the protocol
     /// to indices into the inventory.
@@ -119,6 +119,15 @@ impl Window {
             slot_to_protocol: chest_from_slot,
             inventories: smallvec![player, chest],
         }
+    }
+
+    /// Returns the entities other than the player
+    /// which this window wraps over. For example,
+    /// for `Window::chest(),` this will return the chest.
+    /// For `Window::player()`, this is the empty slice.
+    pub fn wrapped_entities(&self) -> &[Entity] {
+        // convention: index 0 is the player
+        &self.inventories[1..]
     }
 
     /// Retrieves a `WindowAccessor` which may be used
