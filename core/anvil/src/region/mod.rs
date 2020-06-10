@@ -1,7 +1,7 @@
 //! This module implements the loading and saving
 //! of Anvil region files.
 
-use crate::entity::EntityData;
+use crate::{block_entity::BlockEntityData, entity::EntityData};
 use bitvec::{bitvec, vec::BitVec};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use feather_biomes::Biome;
@@ -57,6 +57,8 @@ pub struct ChunkLevel {
     biomes: Vec<i32>,
     #[serde(rename = "Entities")]
     entities: Vec<EntityData>,
+    #[serde(rename = "TileEntities")]
+    block_entities: Vec<BlockEntityData>,
     #[serde(rename = "Heightmaps")]
     heightmaps: Vec<i64>,
 }
@@ -125,7 +127,7 @@ impl RegionHandle {
     pub fn load_chunk(
         &mut self,
         mut pos: ChunkPosition,
-    ) -> Result<(Chunk, Vec<EntityData>), Error> {
+    ) -> Result<(Chunk, Vec<EntityData>, Vec<BlockEntityData>), Error> {
         // Get a copy of the original position before clipping
         let original_pos = pos;
         // Clip chunk position to region-local coordinates.
@@ -208,7 +210,7 @@ impl RegionHandle {
 
         chunk.recalculate_heightmap();
 
-        Ok((chunk, level.entities.to_vec()))
+        Ok((chunk, level.entities.clone(), level.block_entities.clone()))
     }
 
     /// Saves the given chunk to this region file. The header will be updated
@@ -216,7 +218,12 @@ impl RegionHandle {
     ///
     /// Behavior may be unexpected if this region file does not contain the given
     /// chunk position.
-    pub fn save_chunk(&mut self, chunk: &Chunk, entities: Vec<EntityData>) -> Result<(), Error> {
+    pub fn save_chunk(
+        &mut self,
+        chunk: &Chunk,
+        entities: Vec<EntityData>,
+        block_entities: Vec<BlockEntityData>,
+    ) -> Result<(), Error> {
         let chunk_pos = chunk.position();
 
         let (local_x, local_z) = (chunk_pos.x % 32, chunk_pos.z % 32);
@@ -230,7 +237,7 @@ impl RegionHandle {
         }
 
         // Write chunk to `ChunkRoot` tag.
-        let root = chunk_to_chunk_root(chunk, entities);
+        let root = chunk_to_chunk_root(chunk, entities, block_entities);
 
         let blob = blob::chunk_root_to_blob(root);
 
@@ -352,7 +359,11 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     Ok(())
 }
 
-fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
+fn chunk_to_chunk_root(
+    chunk: &Chunk,
+    entities: Vec<EntityData>,
+    block_entities: Vec<BlockEntityData>,
+) -> ChunkRoot {
     let heightmaps: Vec<i64> = chunk
         .heightmaps()
         .iter()
@@ -369,6 +380,7 @@ fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
         level: ChunkLevel {
             x_pos: chunk.position().x,
             z_pos: chunk.position().z,
+            block_entities: block_entities,
             sections: chunk
                 .sections()
                 .iter()

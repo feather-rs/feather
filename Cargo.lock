@@ -667,7 +667,7 @@ dependencies = [
  "feather-inventory",
  "feather-items",
  "feather-util",
- "hematite-nbt 0.4.1 (git+https://github.com/feather-rs/hematite_nbt)",
+ "hematite-nbt",
  "serde",
  "thiserror",
  "tokio",
@@ -828,7 +828,7 @@ dependencies = [
  "bitflags",
  "feather-inventory",
  "feather-util",
- "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hematite-nbt",
  "uuid",
 ]
 
@@ -919,7 +919,7 @@ dependencies = [
  "feather-misc",
  "feather-util",
  "flate2 1.0.14",
- "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hematite-nbt",
  "log",
  "num-derive",
  "num-traits",
@@ -1254,7 +1254,7 @@ dependencies = [
 name = "feather-text"
 version = "0.6.0"
 dependencies = [
- "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hematite-nbt",
  "nom",
  "nom_locate",
  "serde",
@@ -1600,17 +1600,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20564e78d53d2bb135c343b3f47714a56af2061f1c928fdb541dc7b9fdd94205"
 dependencies = [
  "unicode-segmentation",
-]
-
-[[package]]
-name = "hematite-nbt"
-version = "0.4.1"
-source = "git+https://github.com/feather-rs/hematite_nbt#e15ab917c185e87293fcaf19365924f054a7cdc5"
-dependencies = [
- "byteorder",
- "cesu8",
- "flate2 0.2.20",
- "serde",
 ]
 
 [[package]]

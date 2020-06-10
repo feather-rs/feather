@@ -150,6 +150,7 @@ mod tests {
                 }],
                 biomes: vec![10],
                 entities: vec![],
+                block_entities: vec![],
                 heightmaps: vec![],
             },
         };
