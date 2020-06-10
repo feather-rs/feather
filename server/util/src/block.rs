@@ -218,7 +218,7 @@ fn block_support_check(
         | BlockKind::DeadFireCoralFan
         | BlockKind::DeadHornCoralFan
         | BlockKind::DeadTubeCoralFan => {
-            Some(&|_id, game, pos| Some({ game.block_at(pos + DOWN)?.is_full_block() }))
+            Some(&|_id, game, pos| Some(game.block_at(pos + DOWN)?.is_full_block()))
         }
         BlockKind::WallTorch
         | BlockKind::RedstoneWallTorch
@@ -250,7 +250,7 @@ fn block_support_check(
         | BlockKind::DeadFireCoralWallFan
         | BlockKind::DeadHornCoralWallFan
         | BlockKind::DeadTubeCoralWallFan => {
-            Some(&|id, game, pos| Some({ game.block_at(pos + facing_offset(id))?.is_full_block() }))
+            Some(&|id, game, pos| Some(game.block_at(pos + facing_offset(id))?.is_full_block()))
         }
         BlockKind::OakButton
         | BlockKind::SpruceButton
@@ -260,7 +260,7 @@ fn block_support_check(
         | BlockKind::DarkOakButton
         | BlockKind::StoneButton
         | BlockKind::Lever => Some(&|id, game, pos| {
-            Some({ game.block_at(pos + face_facing_offset(id))?.is_full_block() })
+            Some(game.block_at(pos + face_facing_offset(id))?.is_full_block())
         }),
         BlockKind::TripwireHook => Some(&|id, game, pos| {
             Some({
@@ -277,7 +277,7 @@ fn block_support_check(
         | BlockKind::Potatoes
         | BlockKind::Beetroots
         | BlockKind::Wheat => {
-            Some(&|_id, game, pos| Some({ matches!(game.block_at(pos + DOWN)?.kind(), Farmland) }))
+            Some(&|_id, game, pos| Some(matches!(game.block_at(pos + DOWN)?.kind(), Farmland)))
         }
         BlockKind::Snow => Some(&|_id, game, pos| {
             Some({
@@ -287,7 +287,10 @@ fn block_support_check(
             })
         }),
         BlockKind::LilyPad => Some(&|_id, game, pos| {
-            Some({ matches!(game.block_at(pos + DOWN)?.kind(), Water | Ice | FrostedIce) })
+            Some(matches!(
+                game.block_at(pos + DOWN)?.kind(),
+                Water | Ice | FrostedIce
+            ))
         }),
         BlockKind::Cocoa => Some(&|id, game, pos| {
             Some({
@@ -435,7 +438,7 @@ fn block_support_check(
             })
         }),
         BlockKind::NetherWart => {
-            Some(&|_id, game, pos| Some({ matches!(game.block_at(pos + DOWN)?.kind(), SoulSand) }))
+            Some(&|_id, game, pos| Some(matches!(game.block_at(pos + DOWN)?.kind(), SoulSand)))
         }
         BlockKind::ChorusFlower => Some(&|_id, game, pos| {
             Some({
