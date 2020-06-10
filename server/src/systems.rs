@@ -16,6 +16,7 @@ pub fn build_executor() -> Executor {
         .with(player::poll_new_clients)
         .with(physics::entity_physics)
         .with(player::handle_movement_packets)
+        .with(player::handle_close_window)
         .with(player::handle_creative_inventory_action)
         .with(player::handle_click_windows)
         .with(player::handle_held_item_change)
