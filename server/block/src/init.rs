@@ -6,15 +6,16 @@ use feather_server_types::{BlockEntity, BlockUpdateEvent, EntitySpawnEvent, Game
 use fecs::{EntityBuilder, World};
 use once_cell::sync::Lazy;
 
-/// Global mapping of blocks which require blcok entities.
-static BLOCK_ENTITY_MAP: Lazy<AHashMap<BlockKind, fn(BlockPosition) -> EntityBuilder>> =
-    Lazy::new(|| {
-        let mut map: AHashMap<_, fn(BlockPosition) -> EntityBuilder> = AHashMap::new();
+type BlockEntityCreator = fn(BlockPosition) -> EntityBuilder;
 
-        map.insert(BlockKind::Chest, chest::create);
+/// Global mapping of blocks which require block entities.
+static BLOCK_ENTITY_MAP: Lazy<AHashMap<BlockKind, BlockEntityCreator>> = Lazy::new(|| {
+    let mut map: AHashMap<_, fn(BlockPosition) -> EntityBuilder> = AHashMap::new();
 
-        map
-    });
+    map.insert(BlockKind::Chest, chest::create);
+
+    map
+});
 
 /// When a block is created, and there is a block entity kind
 /// associated with it, creates the block entity. Additionally,
