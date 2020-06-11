@@ -1,6 +1,5 @@
 //! Handling of player block placement packets.
 
-use super::block_interaction::*;
 use crate::IteratorExt;
 use entity::InventoryExt;
 use feather_core::blocks::{
@@ -13,7 +12,8 @@ use feather_core::items::ItemStack;
 use feather_core::network::packets::PlayerBlockPlacement;
 use feather_core::util::{BlockPosition, Gamemode, Position, Vec3d};
 use feather_server_types::{
-    BlockUpdateCause, Game, HeldItem, InventoryUpdateEvent, OpenWindowCount, PacketBuffers,
+    BlockUpdateCause, Game, HeldItem, InteractionHandler, InventoryUpdateEvent, OpenWindowCount,
+    PacketBuffers,
 };
 use feather_server_util::is_block_supported_at;
 use fecs::{Entity, World};
@@ -26,12 +26,15 @@ use std::sync::Arc;
 type PacketFace = feather_core::network::packets::Face;
 
 #[allow(dead_code)]
-static INTERACTION_HANDLERS: Lazy<HashMap<BlockKind, Box<dyn InteractionHandler>>> =
+static INTERACTION_HANDLERS: Lazy<HashMap<BlockKind, &'static dyn InteractionHandler>> =
     Lazy::new(|| {
-        let mut handlers_hashmap: HashMap<BlockKind, Box<dyn InteractionHandler>> = HashMap::new();
+        let mut handlers_hashmap: HashMap<BlockKind, &'static dyn InteractionHandler> =
+            HashMap::new();
 
-        handlers_hashmap.insert(BlockKind::CraftingTable, Box::new(CraftingTableInteraction));
-        handlers_hashmap.insert(BlockKind::Chest, Box::new(ChestInteraction));
+        for handler in inventory::iter::<Box<dyn InteractionHandler>> {
+            let kind = handler.block_kind();
+            handlers_hashmap.insert(kind, &**handler);
+        }
 
         handlers_hashmap
     });

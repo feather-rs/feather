@@ -1,6 +1,11 @@
+use crate::Game;
 use feather_core::anvil::block_entity::{BlockEntityData, BlockEntityVariant};
-use feather_core::anvil::entity::{EntityData, EntityDataKind};
-use fecs::EntityBuilder;
+use feather_core::{
+    anvil::entity::{EntityData, EntityDataKind},
+    blocks::BlockKind,
+    util::BlockPosition,
+};
+use fecs::{Entity, EntityBuilder, World};
 
 pub type BumpVec<'bump, T> = bumpalo::collections::Vec<'bump, T>;
 
@@ -58,6 +63,24 @@ pub struct BlockEntityLoaderRegistration {
 }
 
 inventory::collect!(BlockEntityLoaderRegistration);
+
+/// Handles interactions (Use Item key) with a block.
+pub trait InteractionHandler: Send + Sync {
+    /// Called whenever a player right clicks on the block
+    fn handle_interaction(
+        &self,
+        game: &mut Game,
+        world: &mut World,
+        pos: BlockPosition,
+        player: Entity,
+        window_id: u8,
+    );
+
+    /// Returns the kind of block handled by this handler.
+    fn block_kind(&self) -> BlockKind;
+}
+
+inventory::collect!(Box<dyn InteractionHandler>);
 
 /// Wrapper around the send/receive channels which will be used to
 /// notify server thread of shutdown due to ctrl+C or /stop command.
