@@ -975,6 +975,7 @@ dependencies = [
  "feather-server-entity",
  "feather-server-types",
  "feather-server-util",
+ "feather-test-framework",
  "fecs",
  "inventory",
  "log",

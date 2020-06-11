@@ -3,7 +3,11 @@
 use feather_core::anvil::entity::BaseEntityData;
 use feather_core::anvil::player::PlayerData;
 use feather_core::network::{cast_packet, Packet};
-use feather_core::util::{vec3, Position};
+use feather_core::{
+    chunk::Chunk,
+    chunk_map::ChunkMap,
+    util::{vec3, ChunkPosition, Position},
+};
 use feather_server_chunk::{
     chunk_worker, hold_chunk_request, release_chunk_request, ChunkWorkerHandle,
 };
@@ -70,8 +74,15 @@ impl Test {
             .with(release_chunk_request);
         event_handlers.set_up(&mut resources, world);
 
+        let mut chunk_map = ChunkMap::new();
+        for x in -1..=1 {
+            for z in -1..=1 {
+                chunk_map.insert(Chunk::new(ChunkPosition::new(x, z)));
+            }
+        }
+
         let mut game = Game {
-            chunk_map: Default::default(),
+            chunk_map,
             tick_count: 0,
             chunk_holders: Default::default(),
             level: Default::default(),

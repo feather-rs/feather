@@ -164,12 +164,10 @@ impl Inventory {
     }
 
     /// Creates an inventory for a chest.
-    /// Contains a single `Chest` area with either
-    /// 27 or 54 values.
-    pub fn chest(large: bool) -> Self {
-        let size = if large { 27 } else { 54 };
+    /// Contains a single `Chest` area with 27 slots.
+    pub fn chest() -> Self {
         let slots = btreemap! {
-            Area::Chest => empty(size),
+            Area::Chest => empty(27),
         };
 
         Self { slots }

@@ -5,18 +5,20 @@ use feather_core::{
         block_entity::{BlockEntityData, BlockEntityKind, BlockEntityVariant},
         player::InventorySlot,
     },
-    blocks::BlockKind,
+    blocks::{BlockKind, ChestKind, FacingCardinal},
     inventory::Area,
     items::{Item, ItemStack},
     network::{packets::BlockAction, Packet},
 };
 use feather_server_entity::drops::drop_item;
 use feather_server_types::{
-    BlockEntityLoaderRegistration, BlockSerializer, BlockUpdateEvent, BumpVec, Game, Inventory,
-    SpawnPacketCreator, WindowCloseEvent, WindowOpenEvent,
+    BlockEntityLoaderRegistration, BlockSerializer, BlockUpdateCause, BlockUpdateEvent, BumpVec,
+    Game, Inventory, SpawnPacketCreator, WindowCloseEvent, WindowOpenEvent,
 };
 use fecs::{Entity, EntityBuilder, EntityRef, World};
 use num_traits::ToPrimitive;
+
+pub const SLOTS: usize = 27;
 
 inventory::submit!(BlockEntityLoaderRegistration {
     f: &load,
@@ -33,7 +35,7 @@ pub struct ChestViewers(u32);
 
 /// Creates a chest.
 pub fn create(pos: BlockPosition) -> EntityBuilder {
-    create_with_inventory(pos, Inventory::chest(false))
+    create_with_inventory(pos, Inventory::chest())
 }
 
 /// Creates a chest with the given inventory.
@@ -65,6 +67,19 @@ pub fn on_chest_break_drop_contents(event: &BlockUpdateEvent, game: &mut Game, w
             drop_item(game, world, item, event.pos.position());
         }
     }
+}
+
+#[fecs::event_handler]
+pub fn on_chest_create_try_connect(event: &BlockUpdateEvent, game: &mut Game, world: &mut World) {
+    if event.new.kind() != BlockKind::Chest {
+        return;
+    }
+
+    if event.new.chest_kind() != Some(ChestKind::Single) {
+        return;
+    }
+
+    try_connect_chests(game, world, event.pos);
 }
 
 fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
@@ -157,7 +172,7 @@ fn load(data: BlockEntityData) -> anyhow::Result<EntityBuilder> {
 }
 
 fn load_inventory(slots: &[InventorySlot]) -> Inventory {
-    let inv = Inventory::chest(false);
+    let inv = Inventory::chest();
 
     for slot in slots {
         if let Some(item) = Item::from_identifier(&slot.item) {
@@ -172,4 +187,216 @@ fn load_inventory(slots: &[InventorySlot]) -> Inventory {
     }
 
     inv
+}
+
+/// If the block at the given position is a chest, and it is connected
+/// to another chest to form a large chest, returns the position of the connected
+/// chest.
+pub fn connected_chest(game: &Game, pos: BlockPosition) -> Option<BlockPosition> {
+    let block = game.block_at(pos).unwrap_or_default();
+
+    if block.kind() != BlockKind::Chest {
+        return None;
+    }
+
+    let kind = block
+        .chest_kind()
+        .expect("chest block always has chest_kind property");
+    let facing = block
+        .facing_cardinal()
+        .expect("chest blcok always has facing_cardinal property");
+
+    // facing_offset is offset along (x, z) axes
+    // from the left chest to the right.
+    let facing_offset = connected_offset(facing);
+
+    match kind {
+        ChestKind::Single => None,
+        ChestKind::Left => Some(BlockPosition::new(
+            pos.x - facing_offset[0],
+            pos.y,
+            pos.z - facing_offset[1],
+        )),
+        ChestKind::Right => Some(BlockPosition::new(
+            pos.x + facing_offset[0],
+            pos.y,
+            pos.z + facing_offset[1],
+        )),
+    }
+}
+
+/// Attempts to connect the chest at `pos` to an adjacent chest
+/// facing the same direction.
+/// Returns the position of the adjacent chest, or `None` if
+/// no chest was found.
+pub fn try_connect_chests(
+    game: &mut Game,
+    world: &mut World,
+    pos: BlockPosition,
+) -> Option<BlockPosition> {
+    let block = game.block_at(pos).unwrap_or_default();
+    if block.kind() != BlockKind::Chest {
+        return None;
+    }
+    let facing = block.facing_cardinal().expect("chest has facing_cardinal");
+
+    let offsets = [(0, 1), (0, -1), (1, 0), (-1, 0)];
+    for (x_offset, z_offset) in offsets.iter().copied() {
+        let pos2 = BlockPosition::new(pos.x + x_offset, pos.y, pos.z + z_offset);
+
+        let block2 = game.block_at(pos2).unwrap_or_default();
+        if block2.kind() != BlockKind::Chest {
+            continue;
+        }
+
+        let kind2 = block2.chest_kind().expect("chest has chest_kind");
+        if kind2 != ChestKind::Single {
+            // Other chest is already connected.
+            continue;
+        }
+
+        let facing2 = block2.facing_cardinal().expect("chest has facing_cardinal");
+        if facing == facing2 {
+            // Both chests face same direction. Connect them.
+            let (mut left_pos, mut left_block, mut right_pos, mut right_block) =
+                if x_offset < 0 || z_offset < 0 {
+                    (pos2, block2, pos, block)
+                } else {
+                    (pos, block, pos2, block2)
+                };
+
+            if !matches!(facing, FacingCardinal::South | FacingCardinal::West) {
+                // backwards, so swap
+                std::mem::swap(&mut left_pos, &mut right_pos);
+                std::mem::swap(&mut left_block, &mut right_block);
+            }
+
+            left_block = left_block.with_chest_kind(ChestKind::Right);
+            right_block = right_block.with_chest_kind(ChestKind::Left);
+
+            game.set_block_at(world, left_pos, left_block, BlockUpdateCause::Unknown);
+            game.set_block_at(world, right_pos, right_block, BlockUpdateCause::Unknown);
+
+            return Some(pos2);
+        }
+    }
+    None
+}
+
+/// Giving a chest's facing direction, returns the offset
+/// along (x, z) axes to a potential connected chest to the right.
+fn connected_offset(facing: FacingCardinal) -> [i32; 2] {
+    match facing {
+        FacingCardinal::North => [-1, 0],
+        FacingCardinal::South => [1, 0],
+        FacingCardinal::East => [0, -1],
+        FacingCardinal::West => [0, 1],
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use feather_core::blocks::BlockId;
+    use feather_server_types::BlockUpdateCause;
+    use feather_test_framework::Test;
+
+    #[test]
+    fn test_connected_chest() {
+        let mut test = Test::new();
+
+        let pairs = vec![
+            (
+                BlockPosition::new(0, 0, 0),
+                BlockPosition::new(1, 0, 0),
+                BlockId::chest()
+                    .with_chest_kind(ChestKind::Right)
+                    .with_facing_cardinal(FacingCardinal::South),
+                BlockId::chest()
+                    .with_chest_kind(ChestKind::Left)
+                    .with_facing_cardinal(FacingCardinal::South),
+            ),
+            (
+                BlockPosition::new(0, 0, 0),
+                BlockPosition::new(0, 0, -1),
+                BlockId::chest()
+                    .with_chest_kind(ChestKind::Right)
+                    .with_facing_cardinal(FacingCardinal::East),
+                BlockId::chest()
+                    .with_chest_kind(ChestKind::Left)
+                    .with_facing_cardinal(FacingCardinal::East),
+            ),
+        ];
+
+        for (pos_left, pos_right, block_left, block_right) in pairs {
+            assert!(test.game.set_block_at(
+                &mut test.world,
+                pos_left,
+                block_left,
+                BlockUpdateCause::Unknown,
+            ));
+            assert!(test.game.set_block_at(
+                &mut test.world,
+                pos_right,
+                block_right,
+                BlockUpdateCause::Unknown,
+            ));
+
+            assert_eq!(connected_chest(&test.game, pos_left), Some(pos_right));
+        }
+    }
+
+    #[test]
+    fn test_connected_chest_single() {
+        let mut test = Test::new();
+        test.game.set_block_at(
+            &mut test.world,
+            BlockPosition::new(0, 0, 0),
+            BlockId::chest().with_chest_kind(ChestKind::Single),
+            BlockUpdateCause::Unknown,
+        );
+
+        assert_eq!(
+            connected_chest(&test.game, BlockPosition::new(0, 0, 0)),
+            None
+        );
+    }
+
+    #[test]
+    fn test_try_connect_chests() {
+        let mut test = Test::new();
+        test.game.set_block_at(
+            &mut test.world,
+            BlockPosition::new(0, 0, 0),
+            BlockId::chest()
+                .with_chest_kind(ChestKind::Single)
+                .with_facing_cardinal(FacingCardinal::East),
+            BlockUpdateCause::Unknown,
+        );
+        assert_eq!(
+            try_connect_chests(&mut test.game, &mut test.world, BlockPosition::new(0, 0, 0)),
+            None
+        );
+
+        test.game.set_block_at(
+            &mut test.world,
+            BlockPosition::new(0, 0, 1),
+            BlockId::chest()
+                .with_chest_kind(ChestKind::Single)
+                .with_facing_cardinal(FacingCardinal::East),
+            BlockUpdateCause::Unknown,
+        );
+        assert_eq!(
+            try_connect_chests(&mut test.game, &mut test.world, BlockPosition::new(0, 0, 0)),
+            Some(BlockPosition::new(0, 0, 1))
+        );
+
+        let left = test.game.block_at(BlockPosition::new(0, 0, 0)).unwrap();
+        let right = test.game.block_at(BlockPosition::new(0, 0, 1)).unwrap();
+
+        assert_eq!(left.chest_kind(), Some(ChestKind::Left));
+        assert_eq!(right.chest_kind(), Some(ChestKind::Right));
+        assert_eq!(left.facing_cardinal(), Some(FacingCardinal::East));
+        assert_eq!(right.facing_cardinal(), Some(FacingCardinal::East));
+    }
 }

@@ -121,6 +121,18 @@ impl Window {
         }
     }
 
+    /// Creates a new `Window` for a large opened chest.
+    ///
+    /// `left_chest` is the northern or western chest, while
+    //// `right_chest` is the southern or eastern one.
+    pub fn large_chest(player: Entity, left_chest: Entity, right_chest: Entity) -> Self {
+        Self {
+            protocol_to_slot: large_chest_to_slot,
+            slot_to_protocol: large_chest_from_slot,
+            inventories: smallvec![player, left_chest, right_chest],
+        }
+    }
+
     /// Returns the entities other than the player
     /// which this window wraps over. For example,
     /// for `Window::chest(),` this will return the chest.
@@ -286,6 +298,29 @@ fn chest_from_slot(slot: Index) -> usize {
     }
 }
 
+fn large_chest_to_slot(x: usize) -> Option<Index> {
+    Some(match x {
+        0..=26 => index(1, Area::Chest, x),       // top half of chest
+        27..=53 => index(2, Area::Chest, x - 27), // bottom half of chest
+        54..=80 => index(0, Area::Main, x - 54),
+        81..=89 => index(0, Area::Hotbar, x - 81),
+        _ => return None,
+    })
+}
+
+fn large_chest_from_slot(slot: Index) -> usize {
+    use Area::*;
+    match slot.area {
+        Chest => {
+            let offset = if slot.inventory == 2 { 27 } else { 0 };
+            slot.slot + offset
+        }
+        Main => slot.slot + 54,
+        Hotbar => slot.slot + 81,
+        x => panic!("unreachable area {:?} for chest window", x),
+    }
+}
+
 fn index(inventory: usize, area: Area, slot: usize) -> Index {
     Index {
         inventory,
@@ -301,5 +336,15 @@ mod tests {
     #[test]
     fn player_roundtrip() {
         (0..=45).for_each(|i| assert_eq!(i, player_from_slot(player_to_slot(i).unwrap())));
+    }
+
+    #[test]
+    fn chest_roundtrip() {
+        (0..62).for_each(|i| assert_eq!(i, chest_from_slot(chest_to_slot(i).unwrap())));
+    }
+
+    #[test]
+    fn large_chest_roundtrip() {
+        (0..89).for_each(|i| assert_eq!(i, large_chest_from_slot(large_chest_to_slot(i).unwrap())));
     }
 }
