@@ -324,9 +324,7 @@ fn handle_single_click(
     packet: ClickWindow,
     button: MouseButton,
 ) -> anyhow::Result<()> {
-    log::debug!("----begin handle_single_click for slot {}----", packet.slot);
     if let Some(picked) = world.try_get::<PickedItem>(player).map(|i| *i) {
-        log::debug!("item is held; putting down or swapping");
         // Put down the item on the clicked slot. Based on the mouse button:
         // * left => whole stack
         // * right => single item
@@ -346,7 +344,6 @@ fn handle_single_click(
                 Some(item)
             }
         }) {
-            log::debug!("swapping");
             // Different items - swap
             accessor.set_item_at(packet.slot as usize, picked.0)?;
             drop(accessor);
@@ -354,7 +351,6 @@ fn handle_single_click(
             world.get_mut::<PickedItem>(player).0 = current_item;
         } else {
             // Place item on slot
-            log::debug!("placing item");
             let count = match button {
                 MouseButton::Left => picked.0.amount,
                 MouseButton::Right => 1,
@@ -375,7 +371,6 @@ fn handle_single_click(
             }
         }
     } else {
-        log::debug!("no item is held; picking up");
         let window = world.get::<Window>(player);
         let accessor = window.accessor(world)?;
 
@@ -413,8 +408,6 @@ fn handle_single_click(
             slots,
         },
     );
-
-    log::debug!("----end handle_single_click----");
 
     Ok(())
 }

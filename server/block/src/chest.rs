@@ -98,6 +98,38 @@ pub fn on_chest_create_try_connect(event: &BlockUpdateEvent, game: &mut Game, wo
     try_connect_chests(game, world, event.pos);
 }
 
+/// When a chest is broken and it is connected with another chest,
+/// set the other chest as ChestKind::Single.
+#[fecs::event_handler]
+pub fn on_chest_break_try_disconnect(event: &BlockUpdateEvent, game: &mut Game, world: &mut World) {
+    if event.old.kind() != BlockKind::Chest || event.new.kind() == BlockKind::Chest {
+        return;
+    }
+
+    let kind = event.old.chest_kind().expect("chest has kind");
+
+    if let Some((left, right)) = connected_chest(event.pos, event.old) {
+        // Unintuitively, ChestKind::Left means that the chest it is connected to is
+        // to the left, so it is actually the _right_ hand chest.
+        // This is a Mojang naming issue.
+
+        // Find which chest is not at event.pos.
+        let to_update = match kind {
+            ChestKind::Left => left,
+            ChestKind::Right => right,
+            ChestKind::Single => unreachable!(),
+        };
+        debug_assert!(to_update != event.pos);
+
+        let old_block = game.block_at(to_update);
+        if let Some(old_block) = old_block {
+            let new_block = old_block.with_chest_kind(ChestKind::Single);
+
+            game.set_block_at(world, to_update, new_block, BlockUpdateCause::Unknown);
+        }
+    }
+}
+
 fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
     Box::new(viewers_packet(accessor))
 }
@@ -208,9 +240,10 @@ fn load_inventory(slots: &[InventorySlot]) -> Inventory {
 /// If the block at the given position is a chest, and it is connected
 /// to another chest to form a large chest, returns a tuple (left, right)
 // where `left` is the left chest and `right` is the right chest position.
-pub fn connected_chest(game: &Game, pos: BlockPosition) -> Option<(BlockPosition, BlockPosition)> {
-    let block = game.block_at(pos).unwrap_or_default();
-
+pub fn connected_chest(
+    pos: BlockPosition,
+    block: BlockId,
+) -> Option<(BlockPosition, BlockPosition)> {
     if block.kind() != BlockKind::Chest {
         return None;
     }
@@ -341,7 +374,7 @@ impl InteractionHandler for ChestInteraction {
 }
 
 fn opened_chests(game: &Game, pos: BlockPosition) -> ArrayVec<[Option<Entity>; 2]> {
-    if let Some((left, right)) = connected_chest(game, pos) {
+    if let Some((left, right)) = connected_chest(pos, game.block_at(pos).unwrap_or_default()) {
         ArrayVec::from([
             game.block_entities.get(&left).copied(),
             game.block_entities.get(&right).copied(),
@@ -475,7 +508,7 @@ mod tests {
             ));
 
             assert_eq!(
-                connected_chest(&test.game, pos_left),
+                connected_chest(pos_left, block_left),
                 Some((pos_left, pos_right))
             );
         }
@@ -492,7 +525,10 @@ mod tests {
         );
 
         assert_eq!(
-            connected_chest(&test.game, BlockPosition::new(0, 0, 0)),
+            connected_chest(
+                BlockPosition::new(0, 0, 0),
+                BlockId::chest().with_chest_kind(ChestKind::Single)
+            ),
             None
         );
     }

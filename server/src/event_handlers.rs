@@ -28,6 +28,7 @@ pub fn build_event_handlers() -> EventHandlers {
         on_chest_break_drop_contents,
         on_block_update_create_block_entity,
         on_chest_create_try_connect,
+        on_chest_break_try_disconnect,
 
         on_entity_despawn_remove_chunk_holder,
         on_entity_despawn_update_chunk_entities,
