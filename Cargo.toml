@@ -9,6 +9,7 @@ members = [
     "core/biomes",
     "core/chunk",
     "core/chunk_map",
+    "core/crafting",
     "core/entity_metadata",
     "core/item_block",
     "core/items",

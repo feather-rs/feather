@@ -776,6 +776,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "feather-crafting"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "arrayvec 0.5.1",
+ "feather-items",
+ "serde",
+ "serde_json",
+ "smallvec",
+]
+
+[[package]]
 name = "feather-data"
 version = "0.6.0"
 dependencies = [
