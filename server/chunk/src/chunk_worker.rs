@@ -50,6 +50,7 @@ pub enum Reply {
 }
 
 #[derive(Clone)]
+#[allow(clippy::large_enum_variant)]
 pub enum Request {
     LoadChunk(ChunkPosition),
     SaveChunk(ChunkSave),
