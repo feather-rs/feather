@@ -30,13 +30,12 @@ pub fn on_block_update_create_block_entity(
         // Determine whether we should replace the entity
         // or keep the existing block entity.
         if let Some(should_replace) = world.try_get::<ShouldReplace>(entity).map(|x| x.0) {
-            if should_replace(event.old, event.new) {
-                game.block_entities.remove(&event.pos);
-                game.despawn(entity, world);
-            } else {
+            if !should_replace(event.old, event.new) {
                 return; // should keep existing block entity; block entities remain unchanged
             }
         }
+        game.block_entities.remove(&event.pos);
+        game.despawn(entity, world);
     }
 
     if let Some(init) = BLOCK_ENTITY_MAP.get(&event.new.kind()) {
