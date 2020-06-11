@@ -476,12 +476,26 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
     );
 
     m.insert(
+        PacketId(0x09, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::UpdateBlockEntity,
+    );
+
+    m.insert(
+        PacketId(0x0A, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::BlockAction,
+    );
+
+    m.insert(
         PacketId(0x12, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::ConfirmTransactionClientbound,
     );
     m.insert(
         PacketId(0x14, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::OpenWindow,
+    );
+    m.insert(
+        PacketId(0x15, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::WindowItems,
     );
     m.insert(
         PacketId(0x0E, PacketDirection::Clientbound, PacketStage::Play),

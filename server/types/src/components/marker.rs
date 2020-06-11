@@ -2,6 +2,9 @@
 //! can be used to filter for specific entities
 //! in queries.
 
+/// Marks an entity as a block entity (sometimes called a "tile entity")
+pub struct BlockEntity;
+
 /// Zero-sized marker component used to mark players.
 pub struct Player;
 

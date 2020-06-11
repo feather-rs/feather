@@ -346,7 +346,7 @@ fn handle_drop_item_stack(
     };
     let inv_update = InventoryUpdateEvent {
         slots: smallvec![idx],
-        player,
+        entity: player,
     };
     game.handle(world, inv_update);
 

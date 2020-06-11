@@ -57,6 +57,7 @@ pub async fn init(
         chunk_map: Default::default(),
         tick_count: 0,
         chunk_holders: Default::default(),
+        block_entities: Default::default(),
         level,
         chunk_entities: Default::default(),
         time: Default::default(),

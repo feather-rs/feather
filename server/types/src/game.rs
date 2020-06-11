@@ -44,6 +44,9 @@ pub struct Game {
     /// Stores entities which have a hold on chunks,
     /// preventing the chunk from being unloaded.
     pub chunk_holders: ChunkHolders,
+    /// Block entity map. Each `BlockPosition` may have a block
+    /// entity associated with it.
+    pub block_entities: AHashMap<BlockPosition, Entity>,
     /// The level data.
     pub level: LevelData,
     /// Associates chunks with the entities that reside in them. Used

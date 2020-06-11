@@ -1,4 +1,5 @@
 //! Defines the event handlers.
+use feather_server_block::*;
 use feather_server_chunk::*;
 use feather_server_entity::*;
 use feather_server_lighting::*;
@@ -24,11 +25,16 @@ pub fn build_event_handlers() -> EventHandlers {
         on_block_update_broadcast,
         on_block_update_notify_lighting_worker,
         on_block_break_drop_loot,
+        on_chest_break_drop_contents,
+        on_block_update_create_block_entity,
+        on_chest_create_try_connect,
+        on_chest_break_try_disconnect,
 
         on_entity_despawn_remove_chunk_holder,
         on_entity_despawn_update_chunk_entities,
         on_entity_despawn_broadcast_despawn,
 
+        on_block_entity_create_insert_to_map,
         on_entity_spawn_update_chunk_entities,
         on_entity_spawn_send_to_clients,
 
@@ -91,5 +97,9 @@ pub fn build_event_handlers() -> EventHandlers {
 
         on_player_death_scatter_inventory,
         on_player_death_mark_dead,
+
+        on_chest_open_increment_viewers,
+
+        on_chest_close_decrement_viewers,
     }
 }
