@@ -1,11 +1,13 @@
+use crate::ShouldReplace;
 use anyhow::bail;
-use feather_core::util::BlockPosition;
+use arrayvec::ArrayVec;
+use feather_core::util::{BlockPosition, Position};
 use feather_core::{
     anvil::{
         block_entity::{BlockEntityData, BlockEntityKind, BlockEntityVariant},
         player::InventorySlot,
     },
-    blocks::{BlockKind, ChestKind, FacingCardinal},
+    blocks::{BlockId, BlockKind, ChestKind, FacingCardinal},
     inventory::{Area, Window},
     items::{Item, ItemStack},
     network::{
@@ -17,8 +19,8 @@ use feather_core::{
 use feather_server_entity::drops::drop_item;
 use feather_server_types::{
     BlockEntityLoaderRegistration, BlockSerializer, BlockUpdateCause, BlockUpdateEvent, BumpVec,
-    Game, InteractionHandler, Inventory, Network, SpawnPacketCreator, WindowCloseEvent,
-    WindowOpenEvent,
+    EntityDespawnEvent, Game, InteractionHandler, Inventory, Network, SpawnPacketCreator,
+    WindowCloseEvent, WindowOpenEvent,
 };
 use fecs::{Entity, EntityBuilder, EntityRef, World};
 use num_traits::ToPrimitive;
@@ -51,26 +53,35 @@ pub fn create_with_inventory(pos: BlockPosition, inventory: Inventory) -> Entity
         .with(inventory)
         .with(SpawnPacketCreator(&create_spawn_packet))
         .with(BlockSerializer(&serialize))
+        .with(ShouldReplace(should_replace))
+}
+
+fn should_replace(_old: BlockId, new: BlockId) -> bool {
+    new.kind() != BlockKind::Chest
 }
 
 /// When a chest is despawned, drops its contents.
 #[fecs::event_handler]
-pub fn on_chest_break_drop_contents(event: &BlockUpdateEvent, game: &mut Game, world: &mut World) {
-    if let Some(entity) = game.block_entities.get(&event.pos).copied() {
-        if !world.has::<Chest>(entity) {
-            return;
-        }
+pub fn on_chest_break_drop_contents(
+    event: &EntityDespawnEvent,
+    game: &mut Game,
+    world: &mut World,
+) {
+    let entity = event.entity;
+    if !world.has::<Chest>(entity) {
+        return;
+    }
 
-        let items = BumpVec::from_iter_in(
-            world
-                .get::<Inventory>(entity)
-                .iter_mut()
-                .filter_map(|mut guard| guard.take()),
-            game.bump(),
-        );
-        for item in items {
-            drop_item(game, world, item, event.pos.position());
-        }
+    let items = BumpVec::from_iter_in(
+        world
+            .get::<Inventory>(entity)
+            .iter_mut()
+            .filter_map(|mut guard| guard.take()),
+        game.bump(),
+    );
+    let pos = *world.get::<Position>(entity);
+    for item in items {
+        drop_item(game, world, item, pos);
     }
 }
 
@@ -195,9 +206,9 @@ fn load_inventory(slots: &[InventorySlot]) -> Inventory {
 }
 
 /// If the block at the given position is a chest, and it is connected
-/// to another chest to form a large chest, returns the position of the connected
-/// chest.
-pub fn connected_chest(game: &Game, pos: BlockPosition) -> Option<BlockPosition> {
+/// to another chest to form a large chest, returns a tuple (left, right)
+// where `left` is the left chest and `right` is the right chest position.
+pub fn connected_chest(game: &Game, pos: BlockPosition) -> Option<(BlockPosition, BlockPosition)> {
     let block = game.block_at(pos).unwrap_or_default();
 
     if block.kind() != BlockKind::Chest {
@@ -217,15 +228,13 @@ pub fn connected_chest(game: &Game, pos: BlockPosition) -> Option<BlockPosition>
 
     match kind {
         ChestKind::Single => None,
-        ChestKind::Left => Some(BlockPosition::new(
-            pos.x - facing_offset[0],
-            pos.y,
-            pos.z - facing_offset[1],
+        ChestKind::Left => Some((
+            BlockPosition::new(pos.x - facing_offset[0], pos.y, pos.z - facing_offset[1]),
+            pos,
         )),
-        ChestKind::Right => Some(BlockPosition::new(
-            pos.x + facing_offset[0],
-            pos.y,
-            pos.z + facing_offset[1],
+        ChestKind::Right => Some((
+            pos,
+            BlockPosition::new(pos.x + facing_offset[0], pos.y, pos.z + facing_offset[1]),
         )),
     }
 }
@@ -312,44 +321,108 @@ impl InteractionHandler for ChestInteraction {
         player: Entity,
         window_id: u8,
     ) {
-        // Open chest window and set the player's window
-        if let Some(chest_entity) = game.block_entities.get(&pos).copied() {
-            let packet = OpenWindow {
-                window_id,
-                window_type: String::from("minecraft:chest"),
-                window_title: TextRoot::from("Chest").into(),
-                number_of_slots: 27,
-                entity_id: None,
-            };
-            world.get::<Network>(player).send(packet);
+        // Open chest window and set the player's window.
+        // For large chests, the top row is the left
+        // chest (ChestKind::Right, oddly enough) and the
+        // bottom row is the right chest (ChestKind::Left).
 
-            {
-                let mut slots = Vec::new();
-                let chest = world.get::<Inventory>(chest_entity);
-                for i in 0..27 {
-                    slots.push(chest.item_at(Area::Chest, i).unwrap());
-                }
+        let chests: ArrayVec<[Option<Entity>; 2]> = opened_chests(game, pos);
+        let slots = slots(world, &chests);
 
-                let packet = WindowItems { window_id, slots };
-                world.get::<Network>(player).send(packet);
-            }
+        send_open_window(world, player, slots.len(), window_id);
+        send_window_items(world, player, slots, window_id);
 
-            world
-                .add(player, Window::chest(player, chest_entity))
-                .unwrap();
-
-            game.handle(
-                world,
-                WindowOpenEvent {
-                    player,
-                    opened: chest_entity,
-                },
-            );
-        }
+        set_player_window(game, world, player, &chests);
     }
 
     fn block_kind(&self) -> BlockKind {
         BlockKind::Chest
+    }
+}
+
+fn opened_chests(game: &Game, pos: BlockPosition) -> ArrayVec<[Option<Entity>; 2]> {
+    if let Some((left, right)) = connected_chest(game, pos) {
+        ArrayVec::from([
+            game.block_entities.get(&left).copied(),
+            game.block_entities.get(&right).copied(),
+        ])
+    } else {
+        std::iter::once(game.block_entities.get(&pos).copied()).collect()
+    }
+}
+
+/// Creates slot vector for the Window Items packet.
+fn slots(world: &World, chests: &[Option<Entity>]) -> Vec<Option<ItemStack>> {
+    let num_slots = SLOTS * chests.len();
+    let mut slots = Vec::with_capacity(num_slots);
+
+    for chest in chests.iter().copied().filter_map(|entity| entity) {
+        let inventory = world.get::<Inventory>(chest);
+
+        for i in 0..SLOTS {
+            let stack = inventory
+                .item_at(Area::Chest, i)
+                .expect("chest has at least SLOTS slots");
+            slots.push(stack);
+        }
+    }
+
+    slots
+}
+
+fn send_open_window(world: &World, player: Entity, num_slots: usize, window_id: u8) {
+    const SINGLE: usize = SLOTS;
+    const LARGE: usize = SLOTS * 2;
+    let window_type = match num_slots {
+        SINGLE => "minecraft:generic_9x3",
+        LARGE => "minecraft:generic_9x6",
+        _ => "minecraft:generic_9x1",
+    };
+    let window_title = match num_slots {
+        SINGLE => "Chest",
+        LARGE => "Large Chest",
+        _ => "Chest",
+    };
+    let packet = OpenWindow {
+        window_id,
+        window_type: String::from(window_type),
+        window_title: TextRoot::from(window_title).into(),
+        number_of_slots: num_slots as u8,
+        entity_id: None,
+    };
+    world.get::<Network>(player).send(packet);
+}
+
+fn send_window_items(world: &World, player: Entity, slots: Vec<Option<ItemStack>>, window_id: u8) {
+    let packet = WindowItems { window_id, slots };
+    world.get::<Network>(player).send(packet);
+}
+
+/// Sets a player's `Window` to a chest window.
+fn set_player_window(
+    game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    chests: &[Option<Entity>],
+) {
+    let chests = chests
+        .iter()
+        .copied()
+        .filter_map(|chest| chest)
+        .collect::<ArrayVec<[Entity; 2]>>();
+
+    let window = if chests.len() >= 2 {
+        Window::large_chest(player, chests[0], chests[1])
+    } else if chests.len() == 1 {
+        Window::chest(player, chests[0])
+    } else {
+        Window::player(player)
+    };
+
+    *world.get_mut::<Window>(player) = window;
+
+    for opened in chests {
+        game.handle(world, WindowOpenEvent { player, opened })
     }
 }
 
@@ -401,7 +474,10 @@ mod tests {
                 BlockUpdateCause::Unknown,
             ));
 
-            assert_eq!(connected_chest(&test.game, pos_left), Some(pos_right));
+            assert_eq!(
+                connected_chest(&test.game, pos_left),
+                Some((pos_left, pos_right))
+            );
         }
     }
 

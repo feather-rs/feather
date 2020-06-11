@@ -1,4 +1,4 @@
-use crate::chest;
+use crate::{chest, ShouldReplace};
 use ahash::AHashMap;
 use feather_core::blocks::BlockKind;
 use feather_core::util::BlockPosition;
@@ -26,9 +26,16 @@ pub fn on_block_update_create_block_entity(
     world: &mut World,
 ) {
     if let Some(entity) = game.block_entities.get(&event.pos).copied() {
-        // Remove the old entity
-        game.block_entities.remove(&event.pos);
-        game.despawn(entity, world);
+        // Determine whether we should replace the entity
+        // or keep the existing block entity.
+        if let Some(should_replace) = world.try_get::<ShouldReplace>(entity).map(|x| x.0) {
+            if should_replace(event.old, event.new) {
+                game.block_entities.remove(&event.pos);
+                game.despawn(entity, world);
+            } else {
+                return; // should keep existing block entity; block entities remain unchanged
+            }
+        }
     }
 
     if let Some(init) = BLOCK_ENTITY_MAP.get(&event.new.kind()) {

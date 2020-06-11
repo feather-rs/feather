@@ -9,11 +9,20 @@ pub use chest::{
 };
 use feather_core::{
     anvil::block_entity::BlockEntityBase,
+    blocks::BlockId,
     util::{BlockPosition, Position},
 };
 use feather_server_types::BlockEntity;
 use fecs::{EntityBuilder, EntityRef};
 pub use init::{on_block_entity_create_insert_to_map, on_block_update_create_block_entity};
+
+/// A function which determines whether a given change between
+/// block states should cause a block entity to be destroyed/recreated.
+///
+/// First parameter is the old block; second is the new block. Return value
+/// is `false` if the block entity should remain unchanged and `true`
+/// if it should be replaced with a block entity for the new block.
+pub struct ShouldReplace(pub fn(BlockId, BlockId) -> bool);
 
 /// Returns the base components all block entities have.
 fn base(pos: BlockPosition) -> EntityBuilder {

@@ -971,6 +971,7 @@ version = "0.6.0"
 dependencies = [
  "ahash",
  "anyhow",
+ "arrayvec 0.5.1",
  "feather-core",
  "feather-server-entity",
  "feather-server-types",

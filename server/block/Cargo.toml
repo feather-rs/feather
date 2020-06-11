@@ -17,6 +17,7 @@ num-traits = "0.2"
 inventory = "0.1"
 log = "0.4"
 anyhow = "1.0"
+arrayvec = "0.5"
 
 [dev-dependencies]
 feather-test-framework = { path = "../test" }
