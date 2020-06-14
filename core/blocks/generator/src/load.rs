@@ -36,6 +36,9 @@ static NAME_OVERRIDES: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| 
        "shape_neaaaassnn" => "rail_shape",
        "level_0_3" => "cauldron_level",
        "level_0_15" => "water_level",
+       "type_slr" => "chest_kind",
+       "type_tbd" => "slab_kind",
+       "type_ns" => "piston_kind",
     }
 });
 
@@ -173,8 +176,6 @@ fn fix_property_names(report: &mut BlocksReport) -> PropertyStore {
 
     for block in report.blocks.values() {
         for (property_name, possible_values) in &block.properties {
-            let property_name = fix_keywords(property_name);
-
             store.register(property_name.to_owned(), possible_values.clone());
         }
     }
@@ -186,7 +187,6 @@ fn fix_property_names(report: &mut BlocksReport) -> PropertyStore {
         let block: &mut BlockDefinition = block;
         let mut overrides = vec![];
         for (property_name, possible_values) in &mut block.properties {
-            let name_fixed = fix_keywords(property_name);
             if result.get(property_name).is_none() {
                 let name = if possible_values[0].parse::<i32>().is_ok() {
                     let as_integer = possible_values
@@ -199,9 +199,9 @@ fn fix_property_names(report: &mut BlocksReport) -> PropertyStore {
                     let min = *as_integer.iter().min().unwrap();
                     let max = *as_integer.iter().max().unwrap();
 
-                    format!("{}_{}_{}", name_fixed, min, max)
+                    format!("{}_{}_{}", property_name, min, max)
                 } else {
-                    let mut name = format!("{}_", name_fixed);
+                    let mut name = format!("{}_", property_name);
                     for value in possible_values {
                         name.push(value.chars().next().unwrap().to_ascii_lowercase());
                     }
@@ -333,14 +333,6 @@ fn guess_property_kind(possible_values: &[String], property_struct_name: &str) -
             .map(ident)
             .collect();
         PropertyKind::Enum { name, variants }
-    }
-}
-
-/// Renames Rust keywords to alternative identifiers.
-fn fix_keywords(x: &str) -> &str {
-    match x {
-        "type" => "kind",
-        x => x,
     }
 }
 
