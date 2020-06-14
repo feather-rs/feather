@@ -86,7 +86,7 @@ impl PropertyStore {
                 let possible_values = possible_value_sets.into_iter().next().unwrap();
                 map.insert(
                     name.to_owned(),
-                    Self::prop_from_possible_values_and_name(&name, possible_values),
+                    Self::prop_from_possible_values_and_name(&name, &name, possible_values),
                 );
             } else {
                 // There are multiple variants of this property, each with their own set of values.
@@ -94,7 +94,7 @@ impl PropertyStore {
                 for possible_values in possible_value_sets {
                     // Name is the name of the property followed by the first letter of each possible value.
                     // If it's an integer, it is the range of possible values.
-                    let name = if possible_values[0].parse::<i32>().is_ok() {
+                    let new_name = if possible_values[0].parse::<i32>().is_ok() {
                         let as_integer = possible_values
                             .iter()
                             .map(String::as_str)
@@ -114,11 +114,11 @@ impl PropertyStore {
                         name
                     };
 
-                    let name = Self::update_name(&name);
+                    let new_name = Self::update_name(&new_name);
 
                     map.insert(
-                        name.to_owned(),
-                        Self::prop_from_possible_values_and_name(&name, possible_values),
+                        new_name.to_owned(),
+                        Self::prop_from_possible_values_and_name(&new_name, &name, possible_values),
                     );
                 }
             }
@@ -134,9 +134,14 @@ impl PropertyStore {
         }
     }
 
-    fn prop_from_possible_values_and_name(name: &str, possible_values: Vec<String>) -> Property {
+    fn prop_from_possible_values_and_name(
+        name: &str,
+        real_name: &str,
+        possible_values: Vec<String>,
+    ) -> Property {
         Property {
             name: ident(name),
+            real_name: real_name.to_owned(),
             name_camel_case: ident(name.to_camel_case()),
             kind: guess_property_kind(&possible_values, &name.to_camel_case()),
             possible_values,

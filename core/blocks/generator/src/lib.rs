@@ -38,6 +38,8 @@ pub struct Block {
 struct Property {
     /// Name of this property, with Rust keywords removed. (e.g. "type" => "kind")
     name: Ident,
+    /// Actual name of this property before Feather renaming is applied.
+    real_name: String,
     /// CamelCase name of this property if it were a struct or enum.
     ///
     /// Often prefixed with the name of the block to which this property belongs.
@@ -462,13 +464,16 @@ fn generate_block_serializing_fns(blocks: &Blocks) -> Vec<TokenStream> {
         let mut inserts = vec![];
         for property_name in &block.properties {
             let property = &blocks.property_types[property_name];
+            // Use the vanilla name of the property rather than our custom
+            // mapping, to ensure world saves are compatible with vanilla.
+            let property_real_name = &property.real_name;
 
             let name = &property.name;
             let as_str = property.tokens_for_as_str(quote! { #name });
 
             inserts.push(quote! {
                 let #name = self.#name().unwrap();
-                map.insert(#property_name, { #as_str });
+                map.insert(#property_real_name, { #as_str });
             })
         }
 
@@ -506,13 +511,14 @@ fn generate_block_serializing_fns(blocks: &Blocks) -> Vec<TokenStream> {
         let mut retrievals = vec![];
         for property_name in &block.properties {
             let property = &blocks.property_types[property_name];
+            let property_real_name = &property.real_name;
 
             let name = &property.name;
             let from_str = property.tokens_for_from_str(quote! { #name });
             let set_fn = ident(format!("set_{}", name));
 
             retrievals.push(quote! {
-                let #name = map.get(#property_name)?;
+                let #name = map.get(#property_real_name)?;
                 let #name = #from_str;
                 block.#set_fn(#name);
             });

@@ -8117,7 +8117,7 @@ impl BlockId {
     fn water_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let water_level = self.water_level().unwrap();
-        map.insert("water_level", {
+        map.insert("level", {
             match water_level {
                 0i32 => "0",
                 1i32 => "1",
@@ -8143,7 +8143,7 @@ impl BlockId {
     fn lava_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let water_level = self.water_level().unwrap();
-        map.insert("water_level", {
+        map.insert("level", {
             match water_level {
                 0i32 => "0",
                 1i32 => "1",
@@ -8193,145 +8193,145 @@ impl BlockId {
     fn oak_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn spruce_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn birch_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn jungle_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn acacia_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn dark_oak_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn stripped_spruce_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn stripped_birch_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn stripped_jungle_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn stripped_acacia_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn stripped_dark_oak_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn stripped_oak_log_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn oak_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn spruce_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn birch_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn jungle_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn acacia_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn dark_oak_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn stripped_oak_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn stripped_spruce_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn stripped_birch_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn stripped_jungle_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn stripped_acacia_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn stripped_dark_oak_wood_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn oak_leaves_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -8501,7 +8501,7 @@ impl BlockId {
     fn dispenser_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         let triggered = self.triggered().unwrap();
         map.insert("triggered", {
             match triggered {
@@ -8570,7 +8570,7 @@ impl BlockId {
     fn white_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8585,7 +8585,7 @@ impl BlockId {
     fn orange_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8600,7 +8600,7 @@ impl BlockId {
     fn magenta_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8615,7 +8615,7 @@ impl BlockId {
     fn light_blue_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8630,7 +8630,7 @@ impl BlockId {
     fn yellow_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8645,7 +8645,7 @@ impl BlockId {
     fn lime_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8660,7 +8660,7 @@ impl BlockId {
     fn pink_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8675,7 +8675,7 @@ impl BlockId {
     fn gray_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8690,7 +8690,7 @@ impl BlockId {
     fn light_gray_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8705,7 +8705,7 @@ impl BlockId {
     fn cyan_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8720,7 +8720,7 @@ impl BlockId {
     fn purple_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8735,7 +8735,7 @@ impl BlockId {
     fn blue_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8750,7 +8750,7 @@ impl BlockId {
     fn brown_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8765,7 +8765,7 @@ impl BlockId {
     fn green_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8780,7 +8780,7 @@ impl BlockId {
     fn red_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8795,7 +8795,7 @@ impl BlockId {
     fn black_bed_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let occupied = self.occupied().unwrap();
         map.insert("occupied", {
             match occupied {
@@ -8817,7 +8817,7 @@ impl BlockId {
             }
         });
         let powered_rail_shape = self.powered_rail_shape().unwrap();
-        map.insert("powered_rail_shape", { powered_rail_shape.as_str() });
+        map.insert("shape", { powered_rail_shape.as_str() });
         map
     }
     fn detector_rail_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -8830,7 +8830,7 @@ impl BlockId {
             }
         });
         let powered_rail_shape = self.powered_rail_shape().unwrap();
-        map.insert("powered_rail_shape", { powered_rail_shape.as_str() });
+        map.insert("shape", { powered_rail_shape.as_str() });
         map
     }
     fn sticky_piston_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -8843,7 +8843,7 @@ impl BlockId {
             }
         });
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn cobweb_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -8869,7 +8869,7 @@ impl BlockId {
     fn tall_seagrass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         map
     }
     fn piston_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -8882,15 +8882,15 @@ impl BlockId {
             }
         });
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn piston_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         let piston_kind = self.piston_kind().unwrap();
-        map.insert("piston_kind", { piston_kind.as_str() });
+        map.insert("kind", { piston_kind.as_str() });
         let short = self.short().unwrap();
         map.insert("short", {
             match short {
@@ -8967,9 +8967,9 @@ impl BlockId {
     fn moving_piston_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         let piston_kind = self.piston_kind().unwrap();
-        map.insert("piston_kind", { piston_kind.as_str() });
+        map.insert("kind", { piston_kind.as_str() });
         map
     }
     fn dandelion_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -9062,13 +9062,13 @@ impl BlockId {
     fn wall_torch_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn fire_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_15 = self.age_0_15().unwrap();
-        map.insert("age_0_15", {
+        map.insert("age", {
             match age_0_15 {
                 0i32 => "0",
                 1i32 => "1",
@@ -9090,21 +9090,21 @@ impl BlockId {
             }
         });
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -9118,7 +9118,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -9133,11 +9133,11 @@ impl BlockId {
     fn oak_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -9150,9 +9150,9 @@ impl BlockId {
     fn chest_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let chest_kind = self.chest_kind().unwrap();
-        map.insert("chest_kind", { chest_kind.as_str() });
+        map.insert("kind", { chest_kind.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -9165,9 +9165,9 @@ impl BlockId {
     fn redstone_wire_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_wire = self.east_wire().unwrap();
-        map.insert("east_wire", { east_wire.as_str() });
+        map.insert("east", { east_wire.as_str() });
         let north_wire = self.north_wire().unwrap();
-        map.insert("north_wire", { north_wire.as_str() });
+        map.insert("north", { north_wire.as_str() });
         let power = self.power().unwrap();
         map.insert("power", {
             match power {
@@ -9191,9 +9191,9 @@ impl BlockId {
             }
         });
         let south_wire = self.south_wire().unwrap();
-        map.insert("south_wire", { south_wire.as_str() });
+        map.insert("south", { south_wire.as_str() });
         let west_wire = self.west_wire().unwrap();
-        map.insert("west_wire", { west_wire.as_str() });
+        map.insert("west", { west_wire.as_str() });
         map
     }
     fn diamond_ore_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -9211,7 +9211,7 @@ impl BlockId {
     fn wheat_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_7 = self.age_0_7().unwrap();
-        map.insert("age_0_7", {
+        map.insert("age", {
             match age_0_7 {
                 0i32 => "0",
                 1i32 => "1",
@@ -9247,7 +9247,7 @@ impl BlockId {
     fn furnace_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let lit = self.lit().unwrap();
         map.insert("lit", {
             match lit {
@@ -9293,9 +9293,9 @@ impl BlockId {
     fn oak_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         let hinge = self.hinge().unwrap();
         map.insert("hinge", { hinge.as_str() });
         let open = self.open().unwrap();
@@ -9317,7 +9317,7 @@ impl BlockId {
     fn ladder_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -9330,17 +9330,17 @@ impl BlockId {
     fn rail_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let rail_shape = self.rail_shape().unwrap();
-        map.insert("rail_shape", { rail_shape.as_str() });
+        map.insert("shape", { rail_shape.as_str() });
         map
     }
     fn cobblestone_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -9353,7 +9353,7 @@ impl BlockId {
     fn wall_sign_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -9368,7 +9368,7 @@ impl BlockId {
         let face = self.face().unwrap();
         map.insert("face", { face.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let powered = self.powered().unwrap();
         map.insert("powered", {
             match powered {
@@ -9392,9 +9392,9 @@ impl BlockId {
     fn iron_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         let hinge = self.hinge().unwrap();
         map.insert("hinge", { hinge.as_str() });
         let open = self.open().unwrap();
@@ -9504,7 +9504,7 @@ impl BlockId {
     fn redstone_wall_torch_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let lit = self.lit().unwrap();
         map.insert("lit", {
             match lit {
@@ -9519,7 +9519,7 @@ impl BlockId {
         let face = self.face().unwrap();
         map.insert("face", { face.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let powered = self.powered().unwrap();
         map.insert("powered", {
             match powered {
@@ -9558,7 +9558,7 @@ impl BlockId {
     fn cactus_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_15 = self.age_0_15().unwrap();
-        map.insert("age_0_15", {
+        map.insert("age", {
             match age_0_15 {
                 0i32 => "0",
                 1i32 => "1",
@@ -9588,7 +9588,7 @@ impl BlockId {
     fn sugar_cane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_15 = self.age_0_15().unwrap();
-        map.insert("age_0_15", {
+        map.insert("age", {
             match age_0_15 {
                 0i32 => "0",
                 1i32 => "1",
@@ -9625,21 +9625,21 @@ impl BlockId {
     fn oak_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -9653,7 +9653,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -9680,19 +9680,19 @@ impl BlockId {
     fn nether_portal_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xz = self.axis_xz().unwrap();
-        map.insert("axis_xz", { axis_xz.as_str() });
+        map.insert("axis", { axis_xz.as_str() });
         map
     }
     fn carved_pumpkin_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn jack_o_lantern_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn cake_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -9725,7 +9725,7 @@ impl BlockId {
             }
         });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let locked = self.locked().unwrap();
         map.insert("locked", {
             match locked {
@@ -9809,9 +9809,9 @@ impl BlockId {
     fn oak_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let open = self.open().unwrap();
         map.insert("open", {
             match open {
@@ -9838,9 +9838,9 @@ impl BlockId {
     fn spruce_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let open = self.open().unwrap();
         map.insert("open", {
             match open {
@@ -9867,9 +9867,9 @@ impl BlockId {
     fn birch_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let open = self.open().unwrap();
         map.insert("open", {
             match open {
@@ -9896,9 +9896,9 @@ impl BlockId {
     fn jungle_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let open = self.open().unwrap();
         map.insert("open", {
             match open {
@@ -9925,9 +9925,9 @@ impl BlockId {
     fn acacia_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let open = self.open().unwrap();
         map.insert("open", {
             match open {
@@ -9954,9 +9954,9 @@ impl BlockId {
     fn dark_oak_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let open = self.open().unwrap();
         map.insert("open", {
             match open {
@@ -10034,21 +10034,21 @@ impl BlockId {
             }
         });
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -10062,7 +10062,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -10080,21 +10080,21 @@ impl BlockId {
             }
         });
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -10108,7 +10108,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -10126,21 +10126,21 @@ impl BlockId {
             }
         });
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -10154,7 +10154,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -10165,21 +10165,21 @@ impl BlockId {
     fn iron_bars_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -10193,7 +10193,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -10204,21 +10204,21 @@ impl BlockId {
     fn glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -10232,7 +10232,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -10247,19 +10247,19 @@ impl BlockId {
     fn attached_pumpkin_stem_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn attached_melon_stem_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn pumpkin_stem_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_7 = self.age_0_7().unwrap();
-        map.insert("age_0_7", {
+        map.insert("age", {
             match age_0_7 {
                 0i32 => "0",
                 1i32 => "1",
@@ -10277,7 +10277,7 @@ impl BlockId {
     fn melon_stem_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_7 = self.age_0_7().unwrap();
-        map.insert("age_0_7", {
+        map.insert("age", {
             match age_0_7 {
                 0i32 => "0",
                 1i32 => "1",
@@ -10295,21 +10295,21 @@ impl BlockId {
     fn vine_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -10323,7 +10323,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -10334,7 +10334,7 @@ impl BlockId {
     fn oak_fence_gate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let in_wall = self.in_wall().unwrap();
         map.insert("in_wall", {
             match in_wall {
@@ -10361,11 +10361,11 @@ impl BlockId {
     fn brick_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -10378,11 +10378,11 @@ impl BlockId {
     fn stone_brick_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -10414,21 +10414,21 @@ impl BlockId {
     fn nether_brick_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -10442,7 +10442,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -10453,11 +10453,11 @@ impl BlockId {
     fn nether_brick_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -10470,7 +10470,7 @@ impl BlockId {
     fn nether_wart_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_3 = self.age_0_3().unwrap();
-        map.insert("age_0_3", {
+        map.insert("age", {
             match age_0_3 {
                 0i32 => "0",
                 1i32 => "1",
@@ -10513,7 +10513,7 @@ impl BlockId {
     fn cauldron_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let cauldron_level = self.cauldron_level().unwrap();
-        map.insert("cauldron_level", {
+        map.insert("level", {
             match cauldron_level {
                 0i32 => "0",
                 1i32 => "1",
@@ -10538,7 +10538,7 @@ impl BlockId {
             }
         });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn end_stone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -10563,7 +10563,7 @@ impl BlockId {
     fn cocoa_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_2 = self.age_0_2().unwrap();
-        map.insert("age_0_2", {
+        map.insert("age", {
             match age_0_2 {
                 0i32 => "0",
                 1i32 => "1",
@@ -10572,17 +10572,17 @@ impl BlockId {
             }
         });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn sandstone_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -10599,7 +10599,7 @@ impl BlockId {
     fn ender_chest_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -10619,7 +10619,7 @@ impl BlockId {
             }
         });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let powered = self.powered().unwrap();
         map.insert("powered", {
             match powered {
@@ -10646,14 +10646,14 @@ impl BlockId {
             }
         });
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
@@ -10667,14 +10667,14 @@ impl BlockId {
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -10689,11 +10689,11 @@ impl BlockId {
     fn spruce_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -10706,11 +10706,11 @@ impl BlockId {
     fn birch_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -10723,11 +10723,11 @@ impl BlockId {
     fn jungle_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -10747,7 +10747,7 @@ impl BlockId {
             }
         });
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn beacon_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -10757,21 +10757,21 @@ impl BlockId {
     fn cobblestone_wall_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -10792,7 +10792,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -10803,21 +10803,21 @@ impl BlockId {
     fn mossy_cobblestone_wall_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -10838,7 +10838,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -10937,7 +10937,7 @@ impl BlockId {
     fn carrots_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_7 = self.age_0_7().unwrap();
-        map.insert("age_0_7", {
+        map.insert("age", {
             match age_0_7 {
                 0i32 => "0",
                 1i32 => "1",
@@ -10955,7 +10955,7 @@ impl BlockId {
     fn potatoes_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_7 = self.age_0_7().unwrap();
-        map.insert("age_0_7", {
+        map.insert("age", {
             match age_0_7 {
                 0i32 => "0",
                 1i32 => "1",
@@ -10975,7 +10975,7 @@ impl BlockId {
         let face = self.face().unwrap();
         map.insert("face", { face.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let powered = self.powered().unwrap();
         map.insert("powered", {
             match powered {
@@ -10990,7 +10990,7 @@ impl BlockId {
         let face = self.face().unwrap();
         map.insert("face", { face.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let powered = self.powered().unwrap();
         map.insert("powered", {
             match powered {
@@ -11005,7 +11005,7 @@ impl BlockId {
         let face = self.face().unwrap();
         map.insert("face", { face.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let powered = self.powered().unwrap();
         map.insert("powered", {
             match powered {
@@ -11020,7 +11020,7 @@ impl BlockId {
         let face = self.face().unwrap();
         map.insert("face", { face.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let powered = self.powered().unwrap();
         map.insert("powered", {
             match powered {
@@ -11035,7 +11035,7 @@ impl BlockId {
         let face = self.face().unwrap();
         map.insert("face", { face.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let powered = self.powered().unwrap();
         map.insert("powered", {
             match powered {
@@ -11050,7 +11050,7 @@ impl BlockId {
         let face = self.face().unwrap();
         map.insert("face", { face.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let powered = self.powered().unwrap();
         map.insert("powered", {
             match powered {
@@ -11063,7 +11063,7 @@ impl BlockId {
     fn skeleton_wall_skull_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn skeleton_skull_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -11095,7 +11095,7 @@ impl BlockId {
     fn wither_skeleton_wall_skull_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn wither_skeleton_skull_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -11127,7 +11127,7 @@ impl BlockId {
     fn zombie_wall_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn zombie_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -11159,7 +11159,7 @@ impl BlockId {
     fn player_wall_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn player_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -11191,7 +11191,7 @@ impl BlockId {
     fn creeper_wall_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn creeper_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -11223,7 +11223,7 @@ impl BlockId {
     fn dragon_wall_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn dragon_head_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -11255,27 +11255,27 @@ impl BlockId {
     fn anvil_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn chipped_anvil_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn damaged_anvil_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn trapped_chest_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let chest_kind = self.chest_kind().unwrap();
-        map.insert("chest_kind", { chest_kind.as_str() });
+        map.insert("kind", { chest_kind.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -11344,9 +11344,9 @@ impl BlockId {
     fn comparator_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let comparator_mode = self.comparator_mode().unwrap();
-        map.insert("comparator_mode", { comparator_mode.as_str() });
+        map.insert("mode", { comparator_mode.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let powered = self.powered().unwrap();
         map.insert("powered", {
             match powered {
@@ -11407,9 +11407,7 @@ impl BlockId {
             }
         });
         let facing_cardinal_and_down = self.facing_cardinal_and_down().unwrap();
-        map.insert("facing_cardinal_and_down", {
-            facing_cardinal_and_down.as_str()
-        });
+        map.insert("facing", { facing_cardinal_and_down.as_str() });
         map
     }
     fn quartz_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -11423,17 +11421,17 @@ impl BlockId {
     fn quartz_pillar_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn quartz_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -11453,13 +11451,13 @@ impl BlockId {
             }
         });
         let powered_rail_shape = self.powered_rail_shape().unwrap();
-        map.insert("powered_rail_shape", { powered_rail_shape.as_str() });
+        map.insert("shape", { powered_rail_shape.as_str() });
         map
     }
     fn dropper_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         let triggered = self.triggered().unwrap();
         map.insert("triggered", {
             match triggered {
@@ -11536,21 +11534,21 @@ impl BlockId {
     fn white_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -11564,7 +11562,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -11575,21 +11573,21 @@ impl BlockId {
     fn orange_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -11603,7 +11601,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -11614,21 +11612,21 @@ impl BlockId {
     fn magenta_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -11642,7 +11640,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -11655,21 +11653,21 @@ impl BlockId {
     ) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -11683,7 +11681,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -11694,21 +11692,21 @@ impl BlockId {
     fn yellow_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -11722,7 +11720,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -11733,21 +11731,21 @@ impl BlockId {
     fn lime_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -11761,7 +11759,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -11772,21 +11770,21 @@ impl BlockId {
     fn pink_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -11800,7 +11798,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -11811,21 +11809,21 @@ impl BlockId {
     fn gray_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -11839,7 +11837,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -11852,21 +11850,21 @@ impl BlockId {
     ) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -11880,7 +11878,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -11891,21 +11889,21 @@ impl BlockId {
     fn cyan_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -11919,7 +11917,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -11930,21 +11928,21 @@ impl BlockId {
     fn purple_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -11958,7 +11956,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -11969,21 +11967,21 @@ impl BlockId {
     fn blue_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -11997,7 +11995,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -12008,21 +12006,21 @@ impl BlockId {
     fn brown_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -12036,7 +12034,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -12047,21 +12045,21 @@ impl BlockId {
     fn green_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -12075,7 +12073,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -12086,21 +12084,21 @@ impl BlockId {
     fn red_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -12114,7 +12112,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -12125,21 +12123,21 @@ impl BlockId {
     fn black_stained_glass_pane_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -12153,7 +12151,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -12164,11 +12162,11 @@ impl BlockId {
     fn acacia_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -12181,11 +12179,11 @@ impl BlockId {
     fn dark_oak_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -12206,9 +12204,9 @@ impl BlockId {
     fn iron_trapdoor_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let open = self.open().unwrap();
         map.insert("open", {
             match open {
@@ -12247,11 +12245,11 @@ impl BlockId {
     fn prismarine_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -12264,11 +12262,11 @@ impl BlockId {
     fn prismarine_brick_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -12281,11 +12279,11 @@ impl BlockId {
     fn dark_prismarine_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -12298,7 +12296,7 @@ impl BlockId {
     fn prismarine_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -12311,7 +12309,7 @@ impl BlockId {
     fn prismarine_brick_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -12324,7 +12322,7 @@ impl BlockId {
     fn dark_prismarine_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -12341,7 +12339,7 @@ impl BlockId {
     fn hay_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn white_carpet_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -12423,37 +12421,37 @@ impl BlockId {
     fn sunflower_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         map
     }
     fn lilac_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         map
     }
     fn rose_bush_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         map
     }
     fn peony_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         map
     }
     fn tall_grass_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         map
     }
     fn large_fern_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         map
     }
     fn white_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -12875,97 +12873,97 @@ impl BlockId {
     fn white_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn orange_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn magenta_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn light_blue_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn yellow_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn lime_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn pink_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn gray_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn light_gray_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn cyan_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn purple_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn blue_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn brown_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn green_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn red_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn black_wall_banner_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn red_sandstone_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -12983,11 +12981,11 @@ impl BlockId {
     fn red_sandstone_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13000,7 +12998,7 @@ impl BlockId {
     fn oak_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13013,7 +13011,7 @@ impl BlockId {
     fn spruce_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13026,7 +13024,7 @@ impl BlockId {
     fn birch_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13039,7 +13037,7 @@ impl BlockId {
     fn jungle_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13052,7 +13050,7 @@ impl BlockId {
     fn acacia_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13065,7 +13063,7 @@ impl BlockId {
     fn dark_oak_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13078,7 +13076,7 @@ impl BlockId {
     fn stone_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13091,7 +13089,7 @@ impl BlockId {
     fn sandstone_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13104,7 +13102,7 @@ impl BlockId {
     fn petrified_oak_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13117,7 +13115,7 @@ impl BlockId {
     fn cobblestone_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13130,7 +13128,7 @@ impl BlockId {
     fn brick_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13143,7 +13141,7 @@ impl BlockId {
     fn stone_brick_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13156,7 +13154,7 @@ impl BlockId {
     fn nether_brick_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13169,7 +13167,7 @@ impl BlockId {
     fn quartz_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13182,7 +13180,7 @@ impl BlockId {
     fn red_sandstone_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13195,7 +13193,7 @@ impl BlockId {
     fn purpur_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("slab_kind", { slab_kind.as_str() });
+        map.insert("kind", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13224,7 +13222,7 @@ impl BlockId {
     fn spruce_fence_gate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let in_wall = self.in_wall().unwrap();
         map.insert("in_wall", {
             match in_wall {
@@ -13251,7 +13249,7 @@ impl BlockId {
     fn birch_fence_gate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let in_wall = self.in_wall().unwrap();
         map.insert("in_wall", {
             match in_wall {
@@ -13278,7 +13276,7 @@ impl BlockId {
     fn jungle_fence_gate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let in_wall = self.in_wall().unwrap();
         map.insert("in_wall", {
             match in_wall {
@@ -13305,7 +13303,7 @@ impl BlockId {
     fn acacia_fence_gate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let in_wall = self.in_wall().unwrap();
         map.insert("in_wall", {
             match in_wall {
@@ -13332,7 +13330,7 @@ impl BlockId {
     fn dark_oak_fence_gate_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let in_wall = self.in_wall().unwrap();
         map.insert("in_wall", {
             match in_wall {
@@ -13359,21 +13357,21 @@ impl BlockId {
     fn spruce_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -13387,7 +13385,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -13398,21 +13396,21 @@ impl BlockId {
     fn birch_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -13426,7 +13424,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -13437,21 +13435,21 @@ impl BlockId {
     fn jungle_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -13465,7 +13463,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -13476,21 +13474,21 @@ impl BlockId {
     fn acacia_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -13504,7 +13502,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -13515,21 +13513,21 @@ impl BlockId {
     fn dark_oak_fence_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -13543,7 +13541,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -13554,9 +13552,9 @@ impl BlockId {
     fn spruce_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         let hinge = self.hinge().unwrap();
         map.insert("hinge", { hinge.as_str() });
         let open = self.open().unwrap();
@@ -13578,9 +13576,9 @@ impl BlockId {
     fn birch_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         let hinge = self.hinge().unwrap();
         map.insert("hinge", { hinge.as_str() });
         let open = self.open().unwrap();
@@ -13602,9 +13600,9 @@ impl BlockId {
     fn jungle_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         let hinge = self.hinge().unwrap();
         map.insert("hinge", { hinge.as_str() });
         let open = self.open().unwrap();
@@ -13626,9 +13624,9 @@ impl BlockId {
     fn acacia_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         let hinge = self.hinge().unwrap();
         map.insert("hinge", { hinge.as_str() });
         let open = self.open().unwrap();
@@ -13650,9 +13648,9 @@ impl BlockId {
     fn dark_oak_door_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_upper_lower = self.half_upper_lower().unwrap();
-        map.insert("half_upper_lower", { half_upper_lower.as_str() });
+        map.insert("half", { half_upper_lower.as_str() });
         let hinge = self.hinge().unwrap();
         map.insert("hinge", { hinge.as_str() });
         let open = self.open().unwrap();
@@ -13674,7 +13672,7 @@ impl BlockId {
     fn end_rod_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn chorus_plant_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -13687,21 +13685,21 @@ impl BlockId {
             }
         });
         let east_connected = self.east_connected().unwrap();
-        map.insert("east_connected", {
+        map.insert("east", {
             match east_connected {
                 true => "true",
                 false => "false",
             }
         });
         let north_connected = self.north_connected().unwrap();
-        map.insert("north_connected", {
+        map.insert("north", {
             match north_connected {
                 true => "true",
                 false => "false",
             }
         });
         let south_connected = self.south_connected().unwrap();
-        map.insert("south_connected", {
+        map.insert("south", {
             match south_connected {
                 true => "true",
                 false => "false",
@@ -13715,7 +13713,7 @@ impl BlockId {
             }
         });
         let west_connected = self.west_connected().unwrap();
-        map.insert("west_connected", {
+        map.insert("west", {
             match west_connected {
                 true => "true",
                 false => "false",
@@ -13726,7 +13724,7 @@ impl BlockId {
     fn chorus_flower_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_5 = self.age_0_5().unwrap();
-        map.insert("age_0_5", {
+        map.insert("age", {
             match age_0_5 {
                 0i32 => "0",
                 1i32 => "1",
@@ -13746,17 +13744,17 @@ impl BlockId {
     fn purpur_pillar_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn purpur_stairs_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let half_top_bottom = self.half_top_bottom().unwrap();
-        map.insert("half_top_bottom", { half_top_bottom.as_str() });
+        map.insert("half", { half_top_bottom.as_str() });
         let stairs_shape = self.stairs_shape().unwrap();
-        map.insert("stairs_shape", { stairs_shape.as_str() });
+        map.insert("shape", { stairs_shape.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13773,7 +13771,7 @@ impl BlockId {
     fn beetroots_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_3 = self.age_0_3().unwrap();
-        map.insert("age_0_3", {
+        map.insert("age", {
             match age_0_3 {
                 0i32 => "0",
                 1i32 => "1",
@@ -13802,7 +13800,7 @@ impl BlockId {
             }
         });
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn chain_command_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -13815,13 +13813,13 @@ impl BlockId {
             }
         });
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn frosted_ice_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_3 = self.age_0_3().unwrap();
-        map.insert("age_0_3", {
+        map.insert("age", {
             match age_0_3 {
                 0i32 => "0",
                 1i32 => "1",
@@ -13847,7 +13845,7 @@ impl BlockId {
     fn bone_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let axis_xyz = self.axis_xyz().unwrap();
-        map.insert("axis_xyz", { axis_xyz.as_str() });
+        map.insert("axis", { axis_xyz.as_str() });
         map
     }
     fn structure_void_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -13857,7 +13855,7 @@ impl BlockId {
     fn observer_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         let powered = self.powered().unwrap();
         map.insert("powered", {
             match powered {
@@ -13870,121 +13868,121 @@ impl BlockId {
     fn shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn white_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn orange_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn magenta_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn light_blue_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn yellow_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn lime_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn pink_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn gray_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn light_gray_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn cyan_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn purple_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn blue_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn brown_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn green_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn red_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn black_shulker_box_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cubic = self.facing_cubic().unwrap();
-        map.insert("facing_cubic", { facing_cubic.as_str() });
+        map.insert("facing", { facing_cubic.as_str() });
         map
     }
     fn white_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn orange_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn magenta_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn light_blue_glazed_terracotta_to_properties_map(
@@ -13992,31 +13990,31 @@ impl BlockId {
     ) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn yellow_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn lime_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn pink_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn gray_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn light_gray_glazed_terracotta_to_properties_map(
@@ -14024,49 +14022,49 @@ impl BlockId {
     ) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn cyan_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn purple_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn blue_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn brown_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn green_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn red_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn black_glazed_terracotta_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         map
     }
     fn white_concrete_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -14200,7 +14198,7 @@ impl BlockId {
     fn kelp_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let age_0_25 = self.age_0_25().unwrap();
-        map.insert("age_0_25", {
+        map.insert("age", {
             match age_0_25 {
                 0i32 => "0",
                 1i32 => "1",
@@ -14417,7 +14415,7 @@ impl BlockId {
     fn dead_tube_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -14430,7 +14428,7 @@ impl BlockId {
     fn dead_brain_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -14443,7 +14441,7 @@ impl BlockId {
     fn dead_bubble_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -14456,7 +14454,7 @@ impl BlockId {
     fn dead_fire_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -14469,7 +14467,7 @@ impl BlockId {
     fn dead_horn_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -14482,7 +14480,7 @@ impl BlockId {
     fn tube_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -14495,7 +14493,7 @@ impl BlockId {
     fn brain_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -14508,7 +14506,7 @@ impl BlockId {
     fn bubble_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -14521,7 +14519,7 @@ impl BlockId {
     fn fire_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -14534,7 +14532,7 @@ impl BlockId {
     fn horn_coral_wall_fan_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let facing_cardinal = self.facing_cardinal().unwrap();
-        map.insert("facing_cardinal", { facing_cardinal.as_str() });
+        map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -14712,7 +14710,7 @@ impl BlockId {
     fn structure_block_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let structure_block_mode = self.structure_block_mode().unwrap();
-        map.insert("structure_block_mode", { structure_block_mode.as_str() });
+        map.insert("mode", { structure_block_mode.as_str() });
         map
     }
     #[doc = "Attempts to convert a block kind identifier (e.g. `minecraft::air`) and properties map to a `BlockId`."]
@@ -16288,7 +16286,7 @@ impl BlockId {
     }
     fn water_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::water();
-        let water_level = map.get("water_level")?;
+        let water_level = map.get("level")?;
         let water_level = {
             let x = i32::from_str(water_level).ok()?;
             if !(0i32..=15i32).contains(&x) {
@@ -16301,7 +16299,7 @@ impl BlockId {
     }
     fn lava_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::lava();
-        let water_level = map.get("water_level")?;
+        let water_level = map.get("level")?;
         let water_level = {
             let x = i32::from_str(water_level).ok()?;
             if !(0i32..=15i32).contains(&x) {
@@ -16338,42 +16336,42 @@ impl BlockId {
     }
     fn oak_log_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::oak_log();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
     }
     fn spruce_log_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::spruce_log();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
     }
     fn birch_log_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::birch_log();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
     }
     fn jungle_log_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::jungle_log();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
     }
     fn acacia_log_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::acacia_log();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
     }
     fn dark_oak_log_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::dark_oak_log();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16382,7 +16380,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stripped_spruce_log();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16391,7 +16389,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stripped_birch_log();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16400,7 +16398,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stripped_jungle_log();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16409,7 +16407,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stripped_acacia_log();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16418,7 +16416,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stripped_dark_oak_log();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16427,42 +16425,42 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stripped_oak_log();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
     }
     fn oak_wood_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::oak_wood();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
     }
     fn spruce_wood_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::spruce_wood();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
     }
     fn birch_wood_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::birch_wood();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
     }
     fn jungle_wood_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::jungle_wood();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
     }
     fn acacia_wood_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::acacia_wood();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16471,7 +16469,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dark_oak_wood();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16480,7 +16478,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stripped_oak_wood();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16489,7 +16487,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stripped_spruce_wood();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16498,7 +16496,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stripped_birch_wood();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16507,7 +16505,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stripped_jungle_wood();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16516,7 +16514,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stripped_acacia_wood();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16525,7 +16523,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stripped_dark_oak_wood();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -16656,7 +16654,7 @@ impl BlockId {
     }
     fn dispenser_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::dispenser();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         let triggered = map.get("triggered")?;
@@ -16701,7 +16699,7 @@ impl BlockId {
     }
     fn white_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::white_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16714,7 +16712,7 @@ impl BlockId {
     }
     fn orange_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::orange_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16727,7 +16725,7 @@ impl BlockId {
     }
     fn magenta_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::magenta_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16742,7 +16740,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::light_blue_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16755,7 +16753,7 @@ impl BlockId {
     }
     fn yellow_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::yellow_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16768,7 +16766,7 @@ impl BlockId {
     }
     fn lime_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::lime_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16781,7 +16779,7 @@ impl BlockId {
     }
     fn pink_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::pink_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16794,7 +16792,7 @@ impl BlockId {
     }
     fn gray_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::gray_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16809,7 +16807,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::light_gray_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16822,7 +16820,7 @@ impl BlockId {
     }
     fn cyan_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::cyan_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16835,7 +16833,7 @@ impl BlockId {
     }
     fn purple_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::purple_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16848,7 +16846,7 @@ impl BlockId {
     }
     fn blue_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::blue_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16861,7 +16859,7 @@ impl BlockId {
     }
     fn brown_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::brown_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16874,7 +16872,7 @@ impl BlockId {
     }
     fn green_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::green_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16887,7 +16885,7 @@ impl BlockId {
     }
     fn red_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::red_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16900,7 +16898,7 @@ impl BlockId {
     }
     fn black_bed_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::black_bed();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let occupied = map.get("occupied")?;
@@ -16916,7 +16914,7 @@ impl BlockId {
         let powered = map.get("powered")?;
         let powered = bool::from_str(powered).ok()?;
         block.set_powered(powered);
-        let powered_rail_shape = map.get("powered_rail_shape")?;
+        let powered_rail_shape = map.get("shape")?;
         let powered_rail_shape = PoweredRailShape::from_str(powered_rail_shape).ok()?;
         block.set_powered_rail_shape(powered_rail_shape);
         Some(block)
@@ -16928,7 +16926,7 @@ impl BlockId {
         let powered = map.get("powered")?;
         let powered = bool::from_str(powered).ok()?;
         block.set_powered(powered);
-        let powered_rail_shape = map.get("powered_rail_shape")?;
+        let powered_rail_shape = map.get("shape")?;
         let powered_rail_shape = PoweredRailShape::from_str(powered_rail_shape).ok()?;
         block.set_powered_rail_shape(powered_rail_shape);
         Some(block)
@@ -16940,7 +16938,7 @@ impl BlockId {
         let extended = map.get("extended")?;
         let extended = bool::from_str(extended).ok()?;
         block.set_extended(extended);
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -16969,7 +16967,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::tall_seagrass();
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         Some(block)
@@ -16979,17 +16977,17 @@ impl BlockId {
         let extended = map.get("extended")?;
         let extended = bool::from_str(extended).ok()?;
         block.set_extended(extended);
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
     }
     fn piston_head_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::piston_head();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
-        let piston_kind = map.get("piston_kind")?;
+        let piston_kind = map.get("kind")?;
         let piston_kind = PistonKind::from_str(piston_kind).ok()?;
         block.set_piston_kind(piston_kind);
         let short = map.get("short")?;
@@ -17069,10 +17067,10 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::moving_piston();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
-        let piston_kind = map.get("piston_kind")?;
+        let piston_kind = map.get("kind")?;
         let piston_kind = PistonKind::from_str(piston_kind).ok()?;
         block.set_piston_kind(piston_kind);
         Some(block)
@@ -17166,14 +17164,14 @@ impl BlockId {
     }
     fn wall_torch_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::wall_torch();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
     }
     fn fire_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::fire();
-        let age_0_15 = map.get("age_0_15")?;
+        let age_0_15 = map.get("age")?;
         let age_0_15 = {
             let x = i32::from_str(age_0_15).ok()?;
             if !(0i32..=15i32).contains(&x) {
@@ -17182,19 +17180,19 @@ impl BlockId {
             x
         };
         block.set_age_0_15(age_0_15);
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let up = map.get("up")?;
         let up = bool::from_str(up).ok()?;
         block.set_up(up);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -17205,13 +17203,13 @@ impl BlockId {
     }
     fn oak_stairs_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::oak_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -17221,10 +17219,10 @@ impl BlockId {
     }
     fn chest_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::chest();
-        let chest_kind = map.get("chest_kind")?;
+        let chest_kind = map.get("kind")?;
         let chest_kind = ChestKind::from_str(chest_kind).ok()?;
         block.set_chest_kind(chest_kind);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -17236,10 +17234,10 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::redstone_wire();
-        let east_wire = map.get("east_wire")?;
+        let east_wire = map.get("east")?;
         let east_wire = EastWire::from_str(east_wire).ok()?;
         block.set_east_wire(east_wire);
-        let north_wire = map.get("north_wire")?;
+        let north_wire = map.get("north")?;
         let north_wire = NorthWire::from_str(north_wire).ok()?;
         block.set_north_wire(north_wire);
         let power = map.get("power")?;
@@ -17251,10 +17249,10 @@ impl BlockId {
             x
         };
         block.set_power(power);
-        let south_wire = map.get("south_wire")?;
+        let south_wire = map.get("south")?;
         let south_wire = SouthWire::from_str(south_wire).ok()?;
         block.set_south_wire(south_wire);
-        let west_wire = map.get("west_wire")?;
+        let west_wire = map.get("west")?;
         let west_wire = WestWire::from_str(west_wire).ok()?;
         block.set_west_wire(west_wire);
         Some(block)
@@ -17277,7 +17275,7 @@ impl BlockId {
     }
     fn wheat_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::wheat();
-        let age_0_7 = map.get("age_0_7")?;
+        let age_0_7 = map.get("age")?;
         let age_0_7 = {
             let x = i32::from_str(age_0_7).ok()?;
             if !(0i32..=7i32).contains(&x) {
@@ -17303,7 +17301,7 @@ impl BlockId {
     }
     fn furnace_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::furnace();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let lit = map.get("lit")?;
@@ -17329,10 +17327,10 @@ impl BlockId {
     }
     fn oak_door_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::oak_door();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         let hinge = map.get("hinge")?;
@@ -17348,7 +17346,7 @@ impl BlockId {
     }
     fn ladder_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::ladder();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -17358,7 +17356,7 @@ impl BlockId {
     }
     fn rail_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::rail();
-        let rail_shape = map.get("rail_shape")?;
+        let rail_shape = map.get("shape")?;
         let rail_shape = RailShape::from_str(rail_shape).ok()?;
         block.set_rail_shape(rail_shape);
         Some(block)
@@ -17367,13 +17365,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::cobblestone_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -17383,7 +17381,7 @@ impl BlockId {
     }
     fn wall_sign_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::wall_sign();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -17396,7 +17394,7 @@ impl BlockId {
         let face = map.get("face")?;
         let face = Face::from_str(face).ok()?;
         block.set_face(face);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let powered = map.get("powered")?;
@@ -17415,10 +17413,10 @@ impl BlockId {
     }
     fn iron_door_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::iron_door();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         let hinge = map.get("hinge")?;
@@ -17506,7 +17504,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::redstone_wall_torch();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let lit = map.get("lit")?;
@@ -17519,7 +17517,7 @@ impl BlockId {
         let face = map.get("face")?;
         let face = Face::from_str(face).ok()?;
         block.set_face(face);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let powered = map.get("powered")?;
@@ -17550,7 +17548,7 @@ impl BlockId {
     }
     fn cactus_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::cactus();
-        let age_0_15 = map.get("age_0_15")?;
+        let age_0_15 = map.get("age")?;
         let age_0_15 = {
             let x = i32::from_str(age_0_15).ok()?;
             if !(0i32..=15i32).contains(&x) {
@@ -17567,7 +17565,7 @@ impl BlockId {
     }
     fn sugar_cane_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::sugar_cane();
-        let age_0_15 = map.get("age_0_15")?;
+        let age_0_15 = map.get("age")?;
         let age_0_15 = {
             let x = i32::from_str(age_0_15).ok()?;
             if !(0i32..=15i32).contains(&x) {
@@ -17587,19 +17585,19 @@ impl BlockId {
     }
     fn oak_fence_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::oak_fence();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -17624,7 +17622,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::nether_portal();
-        let axis_xz = map.get("axis_xz")?;
+        let axis_xz = map.get("axis")?;
         let axis_xz = AxisXz::from_str(axis_xz).ok()?;
         block.set_axis_xz(axis_xz);
         Some(block)
@@ -17633,7 +17631,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::carved_pumpkin();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -17642,7 +17640,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::jack_o_lantern();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -17671,7 +17669,7 @@ impl BlockId {
             x
         };
         block.set_delay(delay);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let locked = map.get("locked")?;
@@ -17780,10 +17778,10 @@ impl BlockId {
     }
     fn oak_trapdoor_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::oak_trapdoor();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
         let open = map.get("open")?;
@@ -17801,10 +17799,10 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::spruce_trapdoor();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
         let open = map.get("open")?;
@@ -17822,10 +17820,10 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::birch_trapdoor();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
         let open = map.get("open")?;
@@ -17843,10 +17841,10 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::jungle_trapdoor();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
         let open = map.get("open")?;
@@ -17864,10 +17862,10 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::acacia_trapdoor();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
         let open = map.get("open")?;
@@ -17885,10 +17883,10 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dark_oak_trapdoor();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
         let open = map.get("open")?;
@@ -17967,19 +17965,19 @@ impl BlockId {
         let down = map.get("down")?;
         let down = bool::from_str(down).ok()?;
         block.set_down(down);
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let up = map.get("up")?;
         let up = bool::from_str(up).ok()?;
         block.set_up(up);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -17991,19 +17989,19 @@ impl BlockId {
         let down = map.get("down")?;
         let down = bool::from_str(down).ok()?;
         block.set_down(down);
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let up = map.get("up")?;
         let up = bool::from_str(up).ok()?;
         block.set_up(up);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -18015,57 +18013,57 @@ impl BlockId {
         let down = map.get("down")?;
         let down = bool::from_str(down).ok()?;
         block.set_down(down);
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let up = map.get("up")?;
         let up = bool::from_str(up).ok()?;
         block.set_up(up);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
     }
     fn iron_bars_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::iron_bars();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
     }
     fn glass_pane_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -18078,7 +18076,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::attached_pumpkin_stem();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -18087,14 +18085,14 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::attached_melon_stem();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
     }
     fn pumpkin_stem_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::pumpkin_stem();
-        let age_0_7 = map.get("age_0_7")?;
+        let age_0_7 = map.get("age")?;
         let age_0_7 = {
             let x = i32::from_str(age_0_7).ok()?;
             if !(0i32..=7i32).contains(&x) {
@@ -18107,7 +18105,7 @@ impl BlockId {
     }
     fn melon_stem_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::melon_stem();
-        let age_0_7 = map.get("age_0_7")?;
+        let age_0_7 = map.get("age")?;
         let age_0_7 = {
             let x = i32::from_str(age_0_7).ok()?;
             if !(0i32..=7i32).contains(&x) {
@@ -18120,19 +18118,19 @@ impl BlockId {
     }
     fn vine_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::vine();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let up = map.get("up")?;
         let up = bool::from_str(up).ok()?;
         block.set_up(up);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -18141,7 +18139,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::oak_fence_gate();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let in_wall = map.get("in_wall")?;
@@ -18157,13 +18155,13 @@ impl BlockId {
     }
     fn brick_stairs_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::brick_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -18175,13 +18173,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stone_brick_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -18210,19 +18208,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::nether_brick_fence();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -18231,13 +18229,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::nether_brick_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -18247,7 +18245,7 @@ impl BlockId {
     }
     fn nether_wart_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::nether_wart();
-        let age_0_3 = map.get("age_0_3")?;
+        let age_0_3 = map.get("age")?;
         let age_0_3 = {
             let x = i32::from_str(age_0_3).ok()?;
             if !(0i32..=3i32).contains(&x) {
@@ -18281,7 +18279,7 @@ impl BlockId {
     }
     fn cauldron_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::cauldron();
-        let cauldron_level = map.get("cauldron_level")?;
+        let cauldron_level = map.get("level")?;
         let cauldron_level = {
             let x = i32::from_str(cauldron_level).ok()?;
             if !(0i32..=3i32).contains(&x) {
@@ -18303,7 +18301,7 @@ impl BlockId {
         let eye = map.get("eye")?;
         let eye = bool::from_str(eye).ok()?;
         block.set_eye(eye);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -18327,7 +18325,7 @@ impl BlockId {
     }
     fn cocoa_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::cocoa();
-        let age_0_2 = map.get("age_0_2")?;
+        let age_0_2 = map.get("age")?;
         let age_0_2 = {
             let x = i32::from_str(age_0_2).ok()?;
             if !(0i32..=2i32).contains(&x) {
@@ -18336,7 +18334,7 @@ impl BlockId {
             x
         };
         block.set_age_0_2(age_0_2);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -18345,13 +18343,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::sandstone_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -18365,7 +18363,7 @@ impl BlockId {
     }
     fn ender_chest_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::ender_chest();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -18380,7 +18378,7 @@ impl BlockId {
         let attached = map.get("attached")?;
         let attached = bool::from_str(attached).ok()?;
         block.set_attached(attached);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let powered = map.get("powered")?;
@@ -18396,19 +18394,19 @@ impl BlockId {
         let disarmed = map.get("disarmed")?;
         let disarmed = bool::from_str(disarmed).ok()?;
         block.set_disarmed(disarmed);
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
         let powered = map.get("powered")?;
         let powered = bool::from_str(powered).ok()?;
         block.set_powered(powered);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -18423,13 +18421,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::spruce_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -18439,13 +18437,13 @@ impl BlockId {
     }
     fn birch_stairs_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::birch_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -18457,13 +18455,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::jungle_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -18478,7 +18476,7 @@ impl BlockId {
         let conditional = map.get("conditional")?;
         let conditional = bool::from_str(conditional).ok()?;
         block.set_conditional(conditional);
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -18491,13 +18489,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::cobblestone_wall();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let up = map.get("up")?;
@@ -18506,7 +18504,7 @@ impl BlockId {
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -18515,13 +18513,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::mossy_cobblestone_wall();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let up = map.get("up")?;
@@ -18530,7 +18528,7 @@ impl BlockId {
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -18663,7 +18661,7 @@ impl BlockId {
     }
     fn carrots_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::carrots();
-        let age_0_7 = map.get("age_0_7")?;
+        let age_0_7 = map.get("age")?;
         let age_0_7 = {
             let x = i32::from_str(age_0_7).ok()?;
             if !(0i32..=7i32).contains(&x) {
@@ -18676,7 +18674,7 @@ impl BlockId {
     }
     fn potatoes_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::potatoes();
-        let age_0_7 = map.get("age_0_7")?;
+        let age_0_7 = map.get("age")?;
         let age_0_7 = {
             let x = i32::from_str(age_0_7).ok()?;
             if !(0i32..=7i32).contains(&x) {
@@ -18692,7 +18690,7 @@ impl BlockId {
         let face = map.get("face")?;
         let face = Face::from_str(face).ok()?;
         block.set_face(face);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let powered = map.get("powered")?;
@@ -18707,7 +18705,7 @@ impl BlockId {
         let face = map.get("face")?;
         let face = Face::from_str(face).ok()?;
         block.set_face(face);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let powered = map.get("powered")?;
@@ -18720,7 +18718,7 @@ impl BlockId {
         let face = map.get("face")?;
         let face = Face::from_str(face).ok()?;
         block.set_face(face);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let powered = map.get("powered")?;
@@ -18735,7 +18733,7 @@ impl BlockId {
         let face = map.get("face")?;
         let face = Face::from_str(face).ok()?;
         block.set_face(face);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let powered = map.get("powered")?;
@@ -18750,7 +18748,7 @@ impl BlockId {
         let face = map.get("face")?;
         let face = Face::from_str(face).ok()?;
         block.set_face(face);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let powered = map.get("powered")?;
@@ -18765,7 +18763,7 @@ impl BlockId {
         let face = map.get("face")?;
         let face = Face::from_str(face).ok()?;
         block.set_face(face);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let powered = map.get("powered")?;
@@ -18777,7 +18775,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::skeleton_wall_skull();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -18801,7 +18799,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::wither_skeleton_wall_skull();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -18825,7 +18823,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::zombie_wall_head();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -18847,7 +18845,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::player_wall_head();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -18869,7 +18867,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::creeper_wall_head();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -18891,7 +18889,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dragon_wall_head();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -18911,7 +18909,7 @@ impl BlockId {
     }
     fn anvil_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::anvil();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -18920,7 +18918,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::chipped_anvil();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -18929,7 +18927,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::damaged_anvil();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -18938,10 +18936,10 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::trapped_chest();
-        let chest_kind = map.get("chest_kind")?;
+        let chest_kind = map.get("kind")?;
         let chest_kind = ChestKind::from_str(chest_kind).ok()?;
         block.set_chest_kind(chest_kind);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -18981,10 +18979,10 @@ impl BlockId {
     }
     fn comparator_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::comparator();
-        let comparator_mode = map.get("comparator_mode")?;
+        let comparator_mode = map.get("mode")?;
         let comparator_mode = ComparatorMode::from_str(comparator_mode).ok()?;
         block.set_comparator_mode(comparator_mode);
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let powered = map.get("powered")?;
@@ -19027,7 +19025,7 @@ impl BlockId {
         let enabled = map.get("enabled")?;
         let enabled = bool::from_str(enabled).ok()?;
         block.set_enabled(enabled);
-        let facing_cardinal_and_down = map.get("facing_cardinal_and_down")?;
+        let facing_cardinal_and_down = map.get("facing")?;
         let facing_cardinal_and_down =
             FacingCardinalAndDown::from_str(facing_cardinal_and_down).ok()?;
         block.set_facing_cardinal_and_down(facing_cardinal_and_down);
@@ -19047,7 +19045,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::quartz_pillar();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -19056,13 +19054,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::quartz_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -19077,14 +19075,14 @@ impl BlockId {
         let powered = map.get("powered")?;
         let powered = bool::from_str(powered).ok()?;
         block.set_powered(powered);
-        let powered_rail_shape = map.get("powered_rail_shape")?;
+        let powered_rail_shape = map.get("shape")?;
         let powered_rail_shape = PoweredRailShape::from_str(powered_rail_shape).ok()?;
         block.set_powered_rail_shape(powered_rail_shape);
         Some(block)
     }
     fn dropper_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::dropper();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         let triggered = map.get("triggered")?;
@@ -19192,19 +19190,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::white_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19213,19 +19211,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::orange_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19234,19 +19232,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::magenta_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19255,19 +19253,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::light_blue_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19276,19 +19274,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::yellow_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19297,19 +19295,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::lime_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19318,19 +19316,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::pink_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19339,19 +19337,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::gray_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19360,19 +19358,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::light_gray_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19381,19 +19379,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::cyan_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19402,19 +19400,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::purple_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19423,19 +19421,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::blue_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19444,19 +19442,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::brown_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19465,19 +19463,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::green_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19486,19 +19484,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::red_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19507,19 +19505,19 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::black_stained_glass_pane();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -19528,13 +19526,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::acacia_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -19546,13 +19544,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dark_oak_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -19572,10 +19570,10 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::iron_trapdoor();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
         let open = map.get("open")?;
@@ -19609,13 +19607,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::prismarine_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -19627,13 +19625,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::prismarine_brick_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -19645,13 +19643,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dark_prismarine_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -19663,7 +19661,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::prismarine_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -19675,7 +19673,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::prismarine_brick_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -19687,7 +19685,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dark_prismarine_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -19701,7 +19699,7 @@ impl BlockId {
     }
     fn hay_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::hay_block();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -19796,42 +19794,42 @@ impl BlockId {
     }
     fn sunflower_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::sunflower();
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         Some(block)
     }
     fn lilac_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::lilac();
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         Some(block)
     }
     fn rose_bush_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::rose_bush();
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         Some(block)
     }
     fn peony_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::peony();
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         Some(block)
     }
     fn tall_grass_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::tall_grass();
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         Some(block)
     }
     fn large_fern_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::large_fern();
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         Some(block)
@@ -20060,7 +20058,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::white_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20069,7 +20067,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::orange_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20078,7 +20076,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::magenta_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20087,7 +20085,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::light_blue_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20096,7 +20094,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::yellow_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20105,7 +20103,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::lime_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20114,7 +20112,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::pink_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20123,7 +20121,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::gray_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20132,7 +20130,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::light_gray_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20141,7 +20139,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::cyan_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20150,7 +20148,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::purple_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20159,7 +20157,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::blue_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20168,7 +20166,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::brown_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20177,7 +20175,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::green_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20186,7 +20184,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::red_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20195,7 +20193,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::black_wall_banner();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -20222,13 +20220,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::red_sandstone_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -20238,7 +20236,7 @@ impl BlockId {
     }
     fn oak_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::oak_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20248,7 +20246,7 @@ impl BlockId {
     }
     fn spruce_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::spruce_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20258,7 +20256,7 @@ impl BlockId {
     }
     fn birch_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::birch_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20268,7 +20266,7 @@ impl BlockId {
     }
     fn jungle_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::jungle_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20278,7 +20276,7 @@ impl BlockId {
     }
     fn acacia_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::acacia_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20290,7 +20288,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dark_oak_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20300,7 +20298,7 @@ impl BlockId {
     }
     fn stone_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::stone_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20312,7 +20310,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::sandstone_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20324,7 +20322,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::petrified_oak_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20336,7 +20334,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::cobblestone_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20346,7 +20344,7 @@ impl BlockId {
     }
     fn brick_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::brick_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20358,7 +20356,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stone_brick_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20370,7 +20368,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::nether_brick_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20380,7 +20378,7 @@ impl BlockId {
     }
     fn quartz_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::quartz_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20392,7 +20390,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::red_sandstone_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20402,7 +20400,7 @@ impl BlockId {
     }
     fn purpur_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::purpur_slab();
-        let slab_kind = map.get("slab_kind")?;
+        let slab_kind = map.get("kind")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20436,7 +20434,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::spruce_fence_gate();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let in_wall = map.get("in_wall")?;
@@ -20454,7 +20452,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::birch_fence_gate();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let in_wall = map.get("in_wall")?;
@@ -20472,7 +20470,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::jungle_fence_gate();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let in_wall = map.get("in_wall")?;
@@ -20490,7 +20488,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::acacia_fence_gate();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let in_wall = map.get("in_wall")?;
@@ -20508,7 +20506,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dark_oak_fence_gate();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let in_wall = map.get("in_wall")?;
@@ -20524,76 +20522,76 @@ impl BlockId {
     }
     fn spruce_fence_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::spruce_fence();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
     }
     fn birch_fence_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::birch_fence();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
     }
     fn jungle_fence_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::jungle_fence();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
     }
     fn acacia_fence_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::acacia_fence();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -20602,29 +20600,29 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dark_oak_fence();
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let waterlogged = map.get("waterlogged")?;
         let waterlogged = bool::from_str(waterlogged).ok()?;
         block.set_waterlogged(waterlogged);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
     }
     fn spruce_door_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::spruce_door();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         let hinge = map.get("hinge")?;
@@ -20640,10 +20638,10 @@ impl BlockId {
     }
     fn birch_door_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::birch_door();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         let hinge = map.get("hinge")?;
@@ -20659,10 +20657,10 @@ impl BlockId {
     }
     fn jungle_door_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::jungle_door();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         let hinge = map.get("hinge")?;
@@ -20678,10 +20676,10 @@ impl BlockId {
     }
     fn acacia_door_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::acacia_door();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         let hinge = map.get("hinge")?;
@@ -20699,10 +20697,10 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dark_oak_door();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_upper_lower = map.get("half_upper_lower")?;
+        let half_upper_lower = map.get("half")?;
         let half_upper_lower = HalfUpperLower::from_str(half_upper_lower).ok()?;
         block.set_half_upper_lower(half_upper_lower);
         let hinge = map.get("hinge")?;
@@ -20718,7 +20716,7 @@ impl BlockId {
     }
     fn end_rod_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::end_rod();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20728,19 +20726,19 @@ impl BlockId {
         let down = map.get("down")?;
         let down = bool::from_str(down).ok()?;
         block.set_down(down);
-        let east_connected = map.get("east_connected")?;
+        let east_connected = map.get("east")?;
         let east_connected = bool::from_str(east_connected).ok()?;
         block.set_east_connected(east_connected);
-        let north_connected = map.get("north_connected")?;
+        let north_connected = map.get("north")?;
         let north_connected = bool::from_str(north_connected).ok()?;
         block.set_north_connected(north_connected);
-        let south_connected = map.get("south_connected")?;
+        let south_connected = map.get("south")?;
         let south_connected = bool::from_str(south_connected).ok()?;
         block.set_south_connected(south_connected);
         let up = map.get("up")?;
         let up = bool::from_str(up).ok()?;
         block.set_up(up);
-        let west_connected = map.get("west_connected")?;
+        let west_connected = map.get("west")?;
         let west_connected = bool::from_str(west_connected).ok()?;
         block.set_west_connected(west_connected);
         Some(block)
@@ -20749,7 +20747,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::chorus_flower();
-        let age_0_5 = map.get("age_0_5")?;
+        let age_0_5 = map.get("age")?;
         let age_0_5 = {
             let x = i32::from_str(age_0_5).ok()?;
             if !(0i32..=5i32).contains(&x) {
@@ -20768,7 +20766,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::purpur_pillar();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -20777,13 +20775,13 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::purpur_stairs();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
-        let half_top_bottom = map.get("half_top_bottom")?;
+        let half_top_bottom = map.get("half")?;
         let half_top_bottom = HalfTopBottom::from_str(half_top_bottom).ok()?;
         block.set_half_top_bottom(half_top_bottom);
-        let stairs_shape = map.get("stairs_shape")?;
+        let stairs_shape = map.get("shape")?;
         let stairs_shape = StairsShape::from_str(stairs_shape).ok()?;
         block.set_stairs_shape(stairs_shape);
         let waterlogged = map.get("waterlogged")?;
@@ -20799,7 +20797,7 @@ impl BlockId {
     }
     fn beetroots_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::beetroots();
-        let age_0_3 = map.get("age_0_3")?;
+        let age_0_3 = map.get("age")?;
         let age_0_3 = {
             let x = i32::from_str(age_0_3).ok()?;
             if !(0i32..=3i32).contains(&x) {
@@ -20825,7 +20823,7 @@ impl BlockId {
         let conditional = map.get("conditional")?;
         let conditional = bool::from_str(conditional).ok()?;
         block.set_conditional(conditional);
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20837,14 +20835,14 @@ impl BlockId {
         let conditional = map.get("conditional")?;
         let conditional = bool::from_str(conditional).ok()?;
         block.set_conditional(conditional);
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
     }
     fn frosted_ice_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::frosted_ice();
-        let age_0_3 = map.get("age_0_3")?;
+        let age_0_3 = map.get("age")?;
         let age_0_3 = {
             let x = i32::from_str(age_0_3).ok()?;
             if !(0i32..=3i32).contains(&x) {
@@ -20873,7 +20871,7 @@ impl BlockId {
     }
     fn bone_block_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::bone_block();
-        let axis_xyz = map.get("axis_xyz")?;
+        let axis_xyz = map.get("axis")?;
         let axis_xyz = AxisXyz::from_str(axis_xyz).ok()?;
         block.set_axis_xyz(axis_xyz);
         Some(block)
@@ -20886,7 +20884,7 @@ impl BlockId {
     }
     fn observer_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::observer();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         let powered = map.get("powered")?;
@@ -20896,7 +20894,7 @@ impl BlockId {
     }
     fn shulker_box_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20905,7 +20903,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::white_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20914,7 +20912,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::orange_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20923,7 +20921,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::magenta_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20932,7 +20930,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::light_blue_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20941,7 +20939,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::yellow_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20950,7 +20948,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::lime_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20959,7 +20957,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::pink_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20968,7 +20966,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::gray_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20977,7 +20975,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::light_gray_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20986,7 +20984,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::cyan_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -20995,7 +20993,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::purple_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -21004,7 +21002,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::blue_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -21013,7 +21011,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::brown_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -21022,7 +21020,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::green_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -21031,7 +21029,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::red_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -21040,7 +21038,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::black_shulker_box();
-        let facing_cubic = map.get("facing_cubic")?;
+        let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
         Some(block)
@@ -21049,7 +21047,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::white_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21058,7 +21056,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::orange_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21067,7 +21065,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::magenta_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21076,7 +21074,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::light_blue_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21085,7 +21083,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::yellow_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21094,7 +21092,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::lime_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21103,7 +21101,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::pink_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21112,7 +21110,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::gray_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21121,7 +21119,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::light_gray_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21130,7 +21128,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::cyan_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21139,7 +21137,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::purple_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21148,7 +21146,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::blue_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21157,7 +21155,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::brown_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21166,7 +21164,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::green_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21175,7 +21173,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::red_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21184,7 +21182,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::black_glazed_terracotta();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         Some(block)
@@ -21381,7 +21379,7 @@ impl BlockId {
     }
     fn kelp_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::kelp();
-        let age_0_25 = map.get("age_0_25")?;
+        let age_0_25 = map.get("age")?;
         let age_0_25 = {
             let x = i32::from_str(age_0_25).ok()?;
             if !(0i32..=25i32).contains(&x) {
@@ -21568,7 +21566,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dead_tube_coral_wall_fan();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -21580,7 +21578,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dead_brain_coral_wall_fan();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -21592,7 +21590,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dead_bubble_coral_wall_fan();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -21604,7 +21602,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dead_fire_coral_wall_fan();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -21616,7 +21614,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dead_horn_coral_wall_fan();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -21628,7 +21626,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::tube_coral_wall_fan();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -21640,7 +21638,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::brain_coral_wall_fan();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -21652,7 +21650,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::bubble_coral_wall_fan();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -21664,7 +21662,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::fire_coral_wall_fan();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -21676,7 +21674,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::horn_coral_wall_fan();
-        let facing_cardinal = map.get("facing_cardinal")?;
+        let facing_cardinal = map.get("facing")?;
         let facing_cardinal = FacingCardinal::from_str(facing_cardinal).ok()?;
         block.set_facing_cardinal(facing_cardinal);
         let waterlogged = map.get("waterlogged")?;
@@ -21822,7 +21820,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::structure_block();
-        let structure_block_mode = map.get("structure_block_mode")?;
+        let structure_block_mode = map.get("mode")?;
         let structure_block_mode = StructureBlockMode::from_str(structure_block_mode).ok()?;
         block.set_structure_block_mode(structure_block_mode);
         Some(block)
