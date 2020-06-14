@@ -131,8 +131,6 @@ pub struct BaseEntityData {
     pub rotation: ArrayVec<[f32; 2]>,
     #[serde(rename = "Motion")]
     pub velocity: ArrayVec<[f64; 3]>,
-    #[serde(rename = "Health")]
-    pub health: f32,
 }
 
 impl BaseEntityData {
@@ -149,7 +147,6 @@ impl BaseEntityData {
             String::from("Motion"),
             Value::List(self.velocity.iter().copied().map(Value::Double).collect()),
         );
-        map.insert(String::from("Health"), Value::Float(self.health));
     }
 }
 
@@ -161,12 +158,11 @@ pub enum EntityLoadError {
 
 impl BaseEntityData {
     /// Creates a `BaseEntityData` from its parameters.
-    pub fn new(pos: Position, velocity: Vec3d, health: f32) -> Self {
+    pub fn new(pos: Position, velocity: Vec3d) -> Self {
         Self {
             position: [pos.x, pos.y, pos.z].into(),
             rotation: [pos.yaw, pos.pitch].into(),
             velocity: [velocity.x, velocity.y, velocity.z].into(),
-            health,
         }
     }
 
@@ -202,7 +198,6 @@ impl Default for BaseEntityData {
             position: [0.0, 0.0, 0.0].into(),
             rotation: [0.0, 0.0].into(),
             velocity: [0.0, 0.0, 0.0].into(),
-            health: 20.0,
         }
     }
 }
@@ -211,11 +206,33 @@ impl Default for BaseEntityData {
 pub struct AnimalData {
     #[serde(flatten)]
     pub base: BaseEntityData,
+    #[serde(rename = "Health")]
+    pub health: f32,
 }
 
 impl AnimalData {
     fn write_to_map(self, map: &mut HashMap<String, Value>) {
         self.base.write_to_map(map);
+        map.insert(String::from("Health"), Value::Float(self.health));
+    }
+}
+
+impl AnimalData {
+    /// Creates a `BaseEntityData` from its parameters.
+    pub fn new(base: BaseEntityData, health: f32) -> Self {
+        Self {
+            base,
+            health
+        }
+    }
+}
+
+impl Default for AnimalData {
+    fn default() -> Self {
+        AnimalData {
+            base: Default::default(),
+            health: 20.0,
+        }
     }
 }
 
@@ -223,14 +240,14 @@ impl AnimalData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ItemData {
     #[serde(rename = "Count")]
-    pub count: u8,
+    pub count: i8,
     #[serde(rename = "id")]
     pub item: String,
 }
 
 impl ItemData {
     fn write_to_map(self, map: &mut HashMap<String, Value>) {
-        map.insert(String::from("Count"), Value::Byte(self.count as i8));
+        map.insert(String::from("Count"), Value::Byte(self.count));
         map.insert(String::from("id"), Value::String(self.item));
     }
 }
@@ -255,9 +272,11 @@ pub struct ItemEntityData {
     #[serde(rename = "Age")]
     pub age: i16,
     #[serde(rename = "PickupDelay")]
-    pub pickup_delay: u8,
+    pub pickup_delay: i16,
     #[serde(rename = "Item")]
     pub item: ItemData,
+    #[serde(rename = "Health")]
+    pub health: i16,
 }
 
 impl ItemEntityData {
@@ -271,8 +290,9 @@ impl ItemEntityData {
         map.insert(String::from("Age"), Value::Short(self.age));
         map.insert(
             String::from("PickupDelay"),
-            Value::Byte(self.pickup_delay as i8),
+            Value::Short(self.pickup_delay),
         );
+        map.insert(String::from("Health"), Value::Short(self.health));
     }
 }
 
@@ -288,14 +308,14 @@ pub struct ArrowEntityData {
     // TODO: Change this field to `bool` when issue with hematite_nbt is resolved.
     // See: https://github.com/PistonDevelopers/hematite_nbt/issues/43
     #[serde(rename = "crit")]
-    pub critical: u8,
+    pub critical: i8,
 }
 
 impl ArrowEntityData {
     fn write_to_map(self, map: &mut HashMap<String, Value>) {
         self.entity.write_to_map(map);
 
-        map.insert(String::from("crit"), Value::Byte(self.critical as i8));
+        map.insert(String::from("crit"), Value::Byte(self.critical));
     }
 }
 
@@ -310,7 +330,6 @@ mod tests {
             position: [1.0, 2.0, 3.0].into(),
             rotation: [4.0, 5.0].into(),
             velocity: [6.0, 7.0, 8.0].into(),
-            health: 20.0,
         };
         let pos = data.read_position().unwrap();
 
@@ -328,7 +347,6 @@ mod tests {
             position: [1.0, 2.0, 3.0].into(),
             rotation: [4.0, 5.0].into(),
             velocity: [6.0, 7.0, 8.0].into(),
-            health: 20.0,
         };
         let vel = data.read_velocity().unwrap();
 
@@ -342,7 +360,7 @@ mod tests {
         let pos = position!(1.0, 10.0, 3.0, 115.0, -3.0);
         let vel = vec3(0.0, 1.0, 2.0);
 
-        let data = BaseEntityData::new(pos, vel, 20.0);
+        let data = BaseEntityData::new(pos, vel);
         assert_eq!(data.read_position(), Ok(pos));
         assert_eq!(data.read_velocity(), Ok(vel));
     }

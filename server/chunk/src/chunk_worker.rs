@@ -233,6 +233,7 @@ fn save_chunk(worker: &mut ChunkWorker, save: ChunkSave) {
 
     let file = worker_region(&mut worker.open_regions, &worker.dir, rpos);
 
+    // TODO don't crash the server when a chunk fails to save
     file.handle
         .save_chunk(&*chunk, &save.entities, &save.block_entities)
         .unwrap();

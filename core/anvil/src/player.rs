@@ -1,4 +1,4 @@
-use crate::entity::BaseEntityData;
+use crate::entity::AnimalData;
 use feather_inventory::player_constants::{
     HOTBAR_SIZE, INVENTORY_SIZE, SLOT_ARMOR_MAX, SLOT_ARMOR_MIN, SLOT_HOTBAR_OFFSET,
     SLOT_INVENTORY_OFFSET, SLOT_OFFHAND,
@@ -19,7 +19,7 @@ use uuid::Uuid;
 pub struct PlayerData {
     // Inherit base entity data
     #[serde(flatten)]
-    pub entity: BaseEntityData,
+    pub animal: AnimalData,
 
     #[serde(rename = "playerGameType")]
     pub gamemode: i32,

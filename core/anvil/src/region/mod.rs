@@ -31,62 +31,228 @@ const DATA_VERSION: i32 = 1631;
 /// Length, in bytes, of a sector.
 const SECTOR_BYTES: usize = 4096;
 
-/// The offset for each heightmap value
-const HEIGHTMAP_OFFSET: i64 = 9;
-
 /// Represents the data for a chunk after the "Chunk [x, y]" tag.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct ChunkRoot {
-    #[serde(rename = "Level")]
     level: ChunkLevel,
-    #[serde(rename = "DataVersion")]
     data_version: i32,
 }
 
 /// Represents the level data for a chunk.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct ChunkLevel {
     // TODO heightmaps, etc.
     #[serde(rename = "xPos")]
     x_pos: i32,
     #[serde(rename = "zPos")]
     z_pos: i32,
-    #[serde(rename = "Sections")]
     sections: Vec<LevelSection>,
-    #[serde(rename = "Biomes")]
     biomes: Vec<i32>,
-    #[serde(rename = "Entities")]
     entities: Vec<EntityData>,
     #[serde(rename = "TileEntities")]
     block_entities: Vec<BlockEntityData>,
-    #[serde(rename = "Heightmaps")]
-    heightmaps: Vec<i64>,
+    heightmaps: Heightmaps,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub struct Heightmaps {
+    #[serde(with = "packed_u9")]
+    light_blocking: Vec<u16>,
+    #[serde(with = "packed_u9")]
+    motion_blocking: Vec<u16>,
+    #[serde(with = "packed_u9")]
+    motion_blocking_no_leaves: Vec<u16>,
+    #[serde(with = "packed_u9")]
+    ocean_floor: Vec<u16>,
+    #[serde(with = "packed_u9")]
+    world_surface: Vec<u16>,
+}
+
+impl Heightmaps {
+    // TODO remove this and use hermatite-nbt serde for serialization
+    pub(crate) fn packed_i64_vec(unpacked_array: Vec<u16>) -> Vec<i64> {
+        let mut vec = Vec::with_capacity(256);
+
+        let mut unpacked_index = 0;
+        let mut bits_left = 0;
+
+        for _packed_index in 0..36 {
+            let mut packed = 0i64;
+            bits_left += 64;
+
+            while bits_left > 0 {
+                let unpacked = unpacked_array[unpacked_index] as i64;
+
+                if unpacked > 0x1FF {
+                    // Invalid heightmap value
+                    panic!("Invalid heightmap value {}", unpacked);
+                }
+
+                let shift_amount = bits_left - 9;
+                bits_left -= 9;
+
+                let packed_u9 = if shift_amount >= 0 {
+                    unpacked << shift_amount
+                } else {
+                    unpacked >> -shift_amount
+                };
+
+                packed |= packed_u9 as i64;
+
+                if bits_left >= 0 {
+                    unpacked_index += 1;
+                }
+            }
+
+            vec.push(packed);
+        }
+
+        vec
+    }
+}
+
+mod packed_u9 {
+    // TODO IMPORTANT remove any panics on de/serialization, find out how to return Error instead
+
+    // TODO write test
+    use serde::de::{SeqAccess, Visitor};
+    use serde::export::Formatter;
+    use serde::ser::SerializeSeq;
+    use serde::{Deserializer, Serializer};
+    use std::marker::PhantomData;
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Vec<u16>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct PackedVisitor(PhantomData<fn() -> u16>);
+
+        impl<'de> Visitor<'de> for PackedVisitor {
+            type Value = Vec<u16>;
+
+            fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
+                formatter.write_str("a sequence of type long with length 36")
+            }
+
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: SeqAccess<'de>,
+            {
+                let len = seq.size_hint().unwrap(); // nbt always knows sequence size
+                if len != 36 {
+                    // Invalid sequence length
+                    panic!("Sequence length not equal to 36");
+                }
+
+                let mut unpacked_array = Vec::with_capacity(256);
+
+                let mut unpacked_element = 0;
+                let mut bits_left = 0;
+
+                for _packed_index in 0..36 {
+                    let packed: i64 = seq.next_element()?.unwrap(); // we already checked the length
+                    bits_left += 64;
+
+                    while bits_left > 0 {
+                        let shift_amount = bits_left - 9;
+                        bits_left -= 9;
+
+                        let unpacked = if shift_amount >= 0 {
+                            let mask = 0x1FFi64 << shift_amount;
+                            (packed & mask) >> shift_amount
+                        } else {
+                            let mask = 0x1FFi64 >> -shift_amount;
+                            (packed & mask) << -shift_amount
+                        };
+
+                        unpacked_element |= unpacked as u16;
+
+                        if bits_left >= 0 {
+                            unpacked_array.push(unpacked_element);
+                            unpacked_element = 0;
+                        }
+                    }
+                }
+
+                Ok(unpacked_array)
+            }
+        }
+
+        deserializer.deserialize_seq(PackedVisitor(PhantomData))
+    }
+
+    pub fn serialize<S>(unpacked_array: &Vec<u16>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if unpacked_array.len() != 256 {
+            // Invalid array length
+            panic!("Array length not equal to 256");
+        }
+
+        let mut seq = serializer.serialize_seq(Some(36))?;
+
+        let mut unpacked_index = 0;
+        let mut bits_left = 0;
+
+        for _packed_index in 0..36 {
+            let mut packed = 0i64;
+            bits_left += 64;
+
+            while bits_left > 0 {
+                let unpacked = unpacked_array[unpacked_index] as i64;
+
+                if unpacked > 0x1FF {
+                    // Invalid heightmap value
+                    panic!("Invalid heightmap value {}", unpacked);
+                }
+
+                let shift_amount = bits_left - 9;
+                bits_left -= 9;
+
+                let packed_u9 = if shift_amount >= 0 {
+                    unpacked << shift_amount
+                } else {
+                    unpacked >> -shift_amount
+                };
+
+                packed |= packed_u9 as i64;
+
+                if bits_left >= 0 {
+                    unpacked_index += 1;
+                }
+            }
+
+            seq.serialize_element(&packed)?;
+        }
+
+        seq.end()
+    }
 }
 
 /// Represents a chunk section in a region file.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct LevelSection {
-    #[serde(rename = "Y")]
     y: i8,
     #[serde(rename = "BlockStates")]
     states: Vec<i64>,
-    #[serde(rename = "Palette")]
     palette: Vec<LevelPaletteEntry>,
-    #[serde(rename = "BlockLight")]
     block_light: Vec<i8>,
-    #[serde(rename = "SkyLight")]
     sky_light: Vec<i8>,
 }
 
 /// Represents a palette entry in a region file.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct LevelPaletteEntry {
     /// The identifier of the type of this block
-    #[serde(rename = "Name")]
     name: Cow<'static, str>,
     /// Optional properties for this block
-    #[serde(rename = "Properties")]
-    props: Option<LevelProperties>,
+    properties: Option<LevelProperties>,
 }
 
 /// Represents the proprties for a palette entry.
@@ -208,7 +374,7 @@ impl RegionHandle {
         // Chunk was not modified, but it thinks it was: disable this
         chunk.check_modified();
 
-        chunk.recalculate_heightmap();
+        chunk.recalculate_heightmap(); // TODO is there a reason we need to recalculate chunk heightmap after loading?
 
         Ok((chunk, level.entities.clone(), level.block_entities.clone()))
     }
@@ -294,7 +460,7 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     for entry in &section.palette {
         // Construct properties map
         let mut props = BTreeMap::new();
-        if let Some(entry_props) = entry.props.as_ref() {
+        if let Some(entry_props) = entry.properties.as_ref() {
             props.extend(
                 entry_props
                     .props
@@ -364,18 +530,6 @@ fn chunk_to_chunk_root(
     entities: &[EntityData],
     block_entities: &[BlockEntityData],
 ) -> ChunkRoot {
-    let heightmaps: Vec<i64> = chunk
-        .heightmaps()
-        .iter()
-        .map(|map| {
-            (map.motion_blocking() as i64)
-                + ((map.motion_blocking_no_leaves() as i64) << HEIGHTMAP_OFFSET)
-                + ((map.ocean_floor() as i64) << (HEIGHTMAP_OFFSET * 2))
-                + ((map.ocean_floor_wg() as i64) << (HEIGHTMAP_OFFSET * 3))
-                + ((map.world_surface() as i64) << (HEIGHTMAP_OFFSET * 4))
-                + ((map.world_surface_wg() as i64) << (HEIGHTMAP_OFFSET * 5))
-        })
-        .collect();
     ChunkRoot {
         level: ChunkLevel {
             x_pos: chunk.position().x,
@@ -403,7 +557,29 @@ fn chunk_to_chunk_root(
                 .map(|biome| biome.protocol_id())
                 .collect(),
             entities: entities.into(),
-            heightmaps,
+            heightmaps: Heightmaps {
+                light_blocking: chunk
+                    .heightmaps()
+                    .iter()
+                    .map(|h| h.light_blocking())
+                    .collect(),
+                motion_blocking: chunk
+                    .heightmaps()
+                    .iter()
+                    .map(|h| h.motion_blocking())
+                    .collect(),
+                motion_blocking_no_leaves: chunk
+                    .heightmaps()
+                    .iter()
+                    .map(|h| h.motion_blocking_no_leaves())
+                    .collect(),
+                ocean_floor: chunk.heightmaps().iter().map(|h| h.ocean_floor()).collect(),
+                world_surface: chunk
+                    .heightmaps()
+                    .iter()
+                    .map(|h| h.world_surface())
+                    .collect(),
+            },
         },
         data_version: DATA_VERSION,
     }
@@ -423,7 +599,7 @@ fn raw_palette_to_palette_entries(palette: &[BlockId]) -> Vec<LevelPaletteEntry>
 
             LevelPaletteEntry {
                 name: identifier.into(),
-                props: Some(LevelProperties {
+                properties: Some(LevelProperties {
                     props: props
                         .into_iter()
                         .map(|(k, v)| (Cow::from(k), Cow::from(v)))
