@@ -8890,7 +8890,7 @@ impl BlockId {
         let facing_cubic = self.facing_cubic().unwrap();
         map.insert("facing", { facing_cubic.as_str() });
         let piston_kind = self.piston_kind().unwrap();
-        map.insert("kind", { piston_kind.as_str() });
+        map.insert("type", { piston_kind.as_str() });
         let short = self.short().unwrap();
         map.insert("short", {
             match short {
@@ -8969,7 +8969,7 @@ impl BlockId {
         let facing_cubic = self.facing_cubic().unwrap();
         map.insert("facing", { facing_cubic.as_str() });
         let piston_kind = self.piston_kind().unwrap();
-        map.insert("kind", { piston_kind.as_str() });
+        map.insert("type", { piston_kind.as_str() });
         map
     }
     fn dandelion_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
@@ -9150,7 +9150,7 @@ impl BlockId {
     fn chest_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let chest_kind = self.chest_kind().unwrap();
-        map.insert("kind", { chest_kind.as_str() });
+        map.insert("type", { chest_kind.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
         map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
@@ -11273,7 +11273,7 @@ impl BlockId {
     fn trapped_chest_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let chest_kind = self.chest_kind().unwrap();
-        map.insert("kind", { chest_kind.as_str() });
+        map.insert("type", { chest_kind.as_str() });
         let facing_cardinal = self.facing_cardinal().unwrap();
         map.insert("facing", { facing_cardinal.as_str() });
         let waterlogged = self.waterlogged().unwrap();
@@ -12296,7 +12296,7 @@ impl BlockId {
     fn prismarine_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -12309,7 +12309,7 @@ impl BlockId {
     fn prismarine_brick_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -12322,7 +12322,7 @@ impl BlockId {
     fn dark_prismarine_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -12998,7 +12998,7 @@ impl BlockId {
     fn oak_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13011,7 +13011,7 @@ impl BlockId {
     fn spruce_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13024,7 +13024,7 @@ impl BlockId {
     fn birch_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13037,7 +13037,7 @@ impl BlockId {
     fn jungle_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13050,7 +13050,7 @@ impl BlockId {
     fn acacia_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13063,7 +13063,7 @@ impl BlockId {
     fn dark_oak_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13076,7 +13076,7 @@ impl BlockId {
     fn stone_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13089,7 +13089,7 @@ impl BlockId {
     fn sandstone_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13102,7 +13102,7 @@ impl BlockId {
     fn petrified_oak_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13115,7 +13115,7 @@ impl BlockId {
     fn cobblestone_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13128,7 +13128,7 @@ impl BlockId {
     fn brick_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13141,7 +13141,7 @@ impl BlockId {
     fn stone_brick_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13154,7 +13154,7 @@ impl BlockId {
     fn nether_brick_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13167,7 +13167,7 @@ impl BlockId {
     fn quartz_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13180,7 +13180,7 @@ impl BlockId {
     fn red_sandstone_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -13193,7 +13193,7 @@ impl BlockId {
     fn purpur_slab_to_properties_map(self) -> BTreeMap<&'static str, &'static str> {
         let mut map = BTreeMap::new();
         let slab_kind = self.slab_kind().unwrap();
-        map.insert("kind", { slab_kind.as_str() });
+        map.insert("type", { slab_kind.as_str() });
         let waterlogged = self.waterlogged().unwrap();
         map.insert("waterlogged", {
             match waterlogged {
@@ -16987,7 +16987,7 @@ impl BlockId {
         let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
-        let piston_kind = map.get("kind")?;
+        let piston_kind = map.get("type")?;
         let piston_kind = PistonKind::from_str(piston_kind).ok()?;
         block.set_piston_kind(piston_kind);
         let short = map.get("short")?;
@@ -17070,7 +17070,7 @@ impl BlockId {
         let facing_cubic = map.get("facing")?;
         let facing_cubic = FacingCubic::from_str(facing_cubic).ok()?;
         block.set_facing_cubic(facing_cubic);
-        let piston_kind = map.get("kind")?;
+        let piston_kind = map.get("type")?;
         let piston_kind = PistonKind::from_str(piston_kind).ok()?;
         block.set_piston_kind(piston_kind);
         Some(block)
@@ -17219,7 +17219,7 @@ impl BlockId {
     }
     fn chest_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::chest();
-        let chest_kind = map.get("kind")?;
+        let chest_kind = map.get("type")?;
         let chest_kind = ChestKind::from_str(chest_kind).ok()?;
         block.set_chest_kind(chest_kind);
         let facing_cardinal = map.get("facing")?;
@@ -18936,7 +18936,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::trapped_chest();
-        let chest_kind = map.get("kind")?;
+        let chest_kind = map.get("type")?;
         let chest_kind = ChestKind::from_str(chest_kind).ok()?;
         block.set_chest_kind(chest_kind);
         let facing_cardinal = map.get("facing")?;
@@ -19661,7 +19661,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::prismarine_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -19673,7 +19673,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::prismarine_brick_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -19685,7 +19685,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dark_prismarine_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20236,7 +20236,7 @@ impl BlockId {
     }
     fn oak_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::oak_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20246,7 +20246,7 @@ impl BlockId {
     }
     fn spruce_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::spruce_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20256,7 +20256,7 @@ impl BlockId {
     }
     fn birch_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::birch_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20266,7 +20266,7 @@ impl BlockId {
     }
     fn jungle_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::jungle_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20276,7 +20276,7 @@ impl BlockId {
     }
     fn acacia_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::acacia_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20288,7 +20288,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::dark_oak_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20298,7 +20298,7 @@ impl BlockId {
     }
     fn stone_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::stone_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20310,7 +20310,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::sandstone_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20322,7 +20322,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::petrified_oak_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20334,7 +20334,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::cobblestone_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20344,7 +20344,7 @@ impl BlockId {
     }
     fn brick_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::brick_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20356,7 +20356,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::stone_brick_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20368,7 +20368,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::nether_brick_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20378,7 +20378,7 @@ impl BlockId {
     }
     fn quartz_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::quartz_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20390,7 +20390,7 @@ impl BlockId {
         map: &BTreeMap<String, String>,
     ) -> Option<Self> {
         let mut block = BlockId::red_sandstone_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
@@ -20400,7 +20400,7 @@ impl BlockId {
     }
     fn purpur_slab_from_identifier_and_properties(map: &BTreeMap<String, String>) -> Option<Self> {
         let mut block = BlockId::purpur_slab();
-        let slab_kind = map.get("kind")?;
+        let slab_kind = map.get("type")?;
         let slab_kind = SlabKind::from_str(slab_kind).ok()?;
         block.set_slab_kind(slab_kind);
         let waterlogged = map.get("waterlogged")?;
