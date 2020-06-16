@@ -59,15 +59,16 @@ pub struct ChunkLevel {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub struct Heightmaps {
-    #[serde(with = "packed_u9")]
+    // sometimes a few of those are missing, but we regenerate them anyways
+    #[serde(with = "packed_u9", default)]
     light_blocking: Vec<u16>,
-    #[serde(with = "packed_u9")]
+    #[serde(with = "packed_u9", default)]
     motion_blocking: Vec<u16>,
-    #[serde(with = "packed_u9")]
+    #[serde(with = "packed_u9", default)]
     motion_blocking_no_leaves: Vec<u16>,
-    #[serde(with = "packed_u9")]
+    #[serde(with = "packed_u9", default)]
     ocean_floor: Vec<u16>,
-    #[serde(with = "packed_u9")]
+    #[serde(with = "packed_u9", default)]
     world_surface: Vec<u16>,
 }
 
@@ -144,7 +145,8 @@ mod packed_u9 {
                 let len = seq.size_hint().unwrap(); // nbt always knows sequence size
                 if len != 36 {
                     // Invalid sequence length
-                    panic!("Sequence length not equal to 36");
+                    //return Err(Error::custom("sequence length not equal to 36"));
+                    panic!("sequence length not equal to 36");
                 }
 
                 let mut unpacked_array = Vec::with_capacity(256);
@@ -188,9 +190,12 @@ mod packed_u9 {
     where
         S: Serializer,
     {
+        // TODO use NBT LongArray type once implemented in hematite_nbt ( https://github.com/PistonDevelopers/hematite_nbt/pull/51)
+
         if unpacked_array.len() != 256 {
             // Invalid array length
-            panic!("Array length not equal to 256");
+            //return Err(Error::custom("array length not equal to 256"));
+            panic!("array length not equal to 256");
         }
 
         let mut seq = serializer.serialize_seq(Some(36))?;
@@ -207,7 +212,8 @@ mod packed_u9 {
 
                 if unpacked > 0x1FF {
                     // Invalid heightmap value
-                    panic!("Invalid heightmap value {}", unpacked);
+                    //return Err(Error::custom(format!("Invalid heightmap value {}", unpacked)));
+                    panic!("Invalid heightmap value {}", unpacked)
                 }
 
                 let shift_amount = bits_left - 9;
@@ -374,7 +380,7 @@ impl RegionHandle {
         // Chunk was not modified, but it thinks it was: disable this
         chunk.check_modified();
 
-        chunk.recalculate_heightmap(); // TODO is there a reason we need to recalculate chunk heightmap after loading?
+        chunk.recalculate_heightmap();
 
         Ok((chunk, level.entities.clone(), level.block_entities.clone()))
     }
@@ -1045,5 +1051,18 @@ mod tests {
                 count: 2
             }
         );
+    }
+
+    #[test]
+    fn test_packed_u9_de_serializer() {
+        // TODO fill with data
+        let unpacked = vec![0u16; 256];
+        let packed = vec![0i64; 36];
+
+        // Test serializer
+        // TODO use packed_u9::deserialize
+        assert_eq!(Heightmaps::packed_i64_vec(unpacked), packed);
+        // Test deserializer
+        // TODO
     }
 }

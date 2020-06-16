@@ -188,11 +188,11 @@ mod tests {
                 entities: vec![],
                 block_entities: vec![],
                 heightmaps: Heightmaps {
-                    light_blocking: Box::new([0; 256]),
-                    motion_blocking: Box::new([0; 256]),
-                    motion_blocking_no_leaves: Box::new([0; 256]),
-                    ocean_floor: Box::new([0; 256]),
-                    world_surface: Box::new([0; 256]),
+                    light_blocking: vec![0; 256],
+                    motion_blocking: vec![0; 256],
+                    motion_blocking_no_leaves: vec![0; 256],
+                    ocean_floor: vec![0; 256],
+                    world_surface: vec![0; 256],
                 },
             },
         };

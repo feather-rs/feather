@@ -59,11 +59,6 @@ pub struct BlockEntityBase {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "id")]
 pub enum BlockEntityKind {
-    #[serde(rename = "minecraft:banner")]
-    #[serde(rename_all = "PascalCase")]
-    Banner {
-        // TODO
-    },
     #[serde(rename = "minecraft:beacon")]
     #[serde(rename_all = "PascalCase")]
     Beacon {
@@ -161,18 +156,16 @@ pub enum BlockEntityKind {
     #[serde(rename = "minecraft:jukebox")]
     #[serde(rename_all = "PascalCase")]
     Jukebox { record_item: InventorySlot },
-    #[serde(rename = "minecraft:mob_spawner")]
-    #[serde(rename_all = "PascalCase")]
-    MobSpawner {
-        // TODO
-    },
     // TODO: a few more
+
+    /// Fallback type for unknown block entities
+    #[serde(other)]
+    Unknown,
 }
 
 impl BlockEntityKind {
     pub fn variant(&self) -> BlockEntityVariant {
         match self {
-            BlockEntityKind::Banner { .. } => BlockEntityVariant::Banner,
             BlockEntityKind::Beacon { .. } => BlockEntityVariant::Beacon,
             BlockEntityKind::Bed { .. } => BlockEntityVariant::Bed,
             BlockEntityKind::BrewingStand { .. } => BlockEntityVariant::BrewingStand,
@@ -191,7 +184,7 @@ impl BlockEntityKind {
             BlockEntityKind::Hopper { .. } => BlockEntityVariant::Hopper,
             BlockEntityKind::Jigsaw { .. } => BlockEntityVariant::Jigsaw,
             BlockEntityKind::Jukebox { .. } => BlockEntityVariant::Jukebox,
-            BlockEntityKind::MobSpawner { .. } => BlockEntityVariant::MobSpawner,
+            BlockEntityKind::Unknown { .. } => BlockEntityVariant::Unknown,
         }
     }
 }
@@ -199,7 +192,6 @@ impl BlockEntityKind {
 /// Variant of a `BlockEntityKind`.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum BlockEntityVariant {
-    Banner,
     Beacon,
     Bed,
     BrewingStand,
@@ -218,5 +210,5 @@ pub enum BlockEntityVariant {
     Hopper,
     Jigsaw,
     Jukebox,
-    MobSpawner,
+    Unknown,
 }

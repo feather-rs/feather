@@ -14,7 +14,7 @@ feather-util = { path = "../util" }
 
 thiserror = "1.0"
 tokio = { version = "0.2", features = ["full"] }
-serde = "1.0"
+serde = "1.0.112" # >= 1.0.112 needed for a fix in #[serde(flatten)]
 uuid = "0.8"
 hematite-nbt = "0.4"
 byteorder = "1.3"
