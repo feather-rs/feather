@@ -73,54 +73,53 @@ pub struct Heightmaps {
 }
 
 impl Heightmaps {
-    // TODO remove this and use hermatite-nbt serde for serialization
-    pub(crate) fn packed_i64_vec(unpacked_array: Vec<u16>) -> Vec<i64> {
-        let mut vec = Vec::with_capacity(256);
+    // TODO remove this and use hematite-nbt serde for serialization
+    pub(crate) fn pack_u9(u9_array: Vec<u16>) -> Vec<i64> {
+        let mut packed = Vec::with_capacity(36);
+        let mut iter = u9_array.iter();
 
-        let mut unpacked_index = 0;
-        let mut bits_left = 0;
+        let mut container = 0u64;
+        let mut shift = 0;
+        for _elem in 0..256 {
+            // For every element (u9)
+            let element = *iter.next().unwrap() as u64;
 
-        for _packed_index in 0..36 {
-            let mut packed = 0i64;
-            bits_left += 64;
-
-            while bits_left > 0 {
-                let unpacked = unpacked_array[unpacked_index] as i64;
-
-                if unpacked > 0x1FF {
-                    // Invalid heightmap value
-                    panic!("Invalid heightmap value {}", unpacked);
-                }
-
-                let shift_amount = bits_left - 9;
-                bits_left -= 9;
-
-                let packed_u9 = if shift_amount >= 0 {
-                    unpacked << shift_amount
-                } else {
-                    unpacked >> -shift_amount
-                };
-
-                packed |= packed_u9 as i64;
-
-                if bits_left >= 0 {
-                    unpacked_index += 1;
-                }
+            if element > 0x1FF {
+                // Invalid heightmap value
+                panic!("Invalid heightmap value {}", element);
             }
 
-            vec.push(packed);
+            container |= element << shift;
+            shift += 9;
+
+            if shift >= 64 {
+                // Take next container
+                packed.push(container as i64);
+
+                container = if shift > 64 {
+                    // We have some bits left to store in the new container
+                    element >> -(shift - 64 - 9)
+                } else {
+                    0
+                };
+
+                shift -= 64;
+            }
         }
 
-        vec
+        debug_assert_eq!(iter.next(), None);
+        debug_assert_eq!(shift, 0);
+        debug_assert_eq!(container, 0);
+
+        packed
     }
 }
 
 mod packed_u9 {
-    // TODO IMPORTANT remove any panics on de/serialization, find out how to return Error instead
-
-    // TODO write test
+    use serde::de::Error as DeError;
     use serde::de::{SeqAccess, Visitor};
     use serde::export::Formatter;
+    use serde::ser::Error as SerError;
     use serde::ser::SerializeSeq;
     use serde::{Deserializer, Serializer};
     use std::marker::PhantomData;
@@ -145,95 +144,94 @@ mod packed_u9 {
                 let len = seq.size_hint().unwrap(); // nbt always knows sequence size
                 if len != 36 {
                     // Invalid sequence length
-                    //return Err(Error::custom("sequence length not equal to 36"));
-                    panic!("sequence length not equal to 36");
+                    return Err(A::Error::custom("sequence length not equal to 36"));
                 }
 
-                let mut unpacked_array = Vec::with_capacity(256);
+                let mut u9_array: Vec<u16> = Vec::with_capacity(256);
 
-                let mut unpacked_element = 0;
-                let mut bits_left = 0;
+                let mut container: Option<u64> = seq.next_element()?.map(|x: i64| x as u64); // We checked the length
+                let mut shift = 0;
+                for _elem in 0..256 {
+                    // For every element (u9)
+                    let mut element: u16 = ((container.unwrap() >> shift) & 0x1FF) as u16;
+                    shift += 9;
 
-                for _packed_index in 0..36 {
-                    let packed: i64 = seq.next_element()?.unwrap(); // we already checked the length
-                    bits_left += 64;
+                    if shift >= 64 {
+                        // Take next container
+                        container = seq.next_element()?.map(|x: i64| x as u64);
 
-                    while bits_left > 0 {
-                        let shift_amount = bits_left - 9;
-                        bits_left -= 9;
-
-                        let unpacked = if shift_amount >= 0 {
-                            let mask = 0x1FFi64 << shift_amount;
-                            (packed & mask) >> shift_amount
+                        element |= if shift > 64 {
+                            // We have some bits left to get from the next container
+                            (container.unwrap() << -(shift - 64 - 9)) & 0x1FF
                         } else {
-                            let mask = 0x1FFi64 >> -shift_amount;
-                            (packed & mask) << -shift_amount
-                        };
+                            0
+                        } as u16;
 
-                        unpacked_element |= unpacked as u16;
-
-                        if bits_left >= 0 {
-                            unpacked_array.push(unpacked_element);
-                            unpacked_element = 0;
-                        }
+                        shift -= 64;
                     }
+
+                    u9_array.push(element);
                 }
 
-                Ok(unpacked_array)
+                debug_assert_eq!(container, None);
+                debug_assert_eq!(shift, 0);
+
+                Ok(u9_array)
             }
         }
 
         deserializer.deserialize_seq(PackedVisitor(PhantomData))
     }
 
-    pub fn serialize<S>(unpacked_array: &Vec<u16>, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(u9_array: &[u16], serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         // TODO use NBT LongArray type once implemented in hematite_nbt ( https://github.com/PistonDevelopers/hematite_nbt/pull/51)
 
-        if unpacked_array.len() != 256 {
+        if u9_array.len() != 256 {
             // Invalid array length
-            //return Err(Error::custom("array length not equal to 256"));
-            panic!("array length not equal to 256");
+            return Err(S::Error::custom("array length not equal to 256"));
         }
 
         let mut seq = serializer.serialize_seq(Some(36))?;
+        let mut iter = u9_array.iter();
 
-        let mut unpacked_index = 0;
-        let mut bits_left = 0;
+        let mut container = 0u64;
+        let mut shift = 0;
+        for _elem in 0..256 {
+            // For every element (u9)
+            let element = *iter.next().unwrap() as u64;
 
-        for _packed_index in 0..36 {
-            let mut packed = 0i64;
-            bits_left += 64;
-
-            while bits_left > 0 {
-                let unpacked = unpacked_array[unpacked_index] as i64;
-
-                if unpacked > 0x1FF {
-                    // Invalid heightmap value
-                    //return Err(Error::custom(format!("Invalid heightmap value {}", unpacked)));
-                    panic!("Invalid heightmap value {}", unpacked)
-                }
-
-                let shift_amount = bits_left - 9;
-                bits_left -= 9;
-
-                let packed_u9 = if shift_amount >= 0 {
-                    unpacked << shift_amount
-                } else {
-                    unpacked >> -shift_amount
-                };
-
-                packed |= packed_u9 as i64;
-
-                if bits_left >= 0 {
-                    unpacked_index += 1;
-                }
+            if element > 0x1FF {
+                // Invalid heightmap value
+                return Err(S::Error::custom(format!(
+                    "invalid heightmap value {}",
+                    element
+                )));
             }
 
-            seq.serialize_element(&packed)?;
+            container |= element << shift;
+            shift += 9;
+
+            if shift >= 64 {
+                // Take next container
+                seq.serialize_element(&(container as i64))?;
+
+                container = if shift > 64 {
+                    // We have some bits left to store in the new container
+                    element >> -(shift - 64 - 9)
+                } else {
+                    0
+                };
+
+                shift -= 64;
+            }
         }
+
+        debug_assert_eq!(iter.next(), None);
+        debug_assert_eq!(shift, 0);
+        debug_assert_eq!(container, 0);
 
         seq.end()
     }
@@ -1000,6 +998,7 @@ impl RegionPosition {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_test::Token;
 
     #[test]
     fn test_sector_allocator() {
@@ -1053,16 +1052,98 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_packed_u9_de_serializer() {
-        // TODO fill with data
-        let unpacked = vec![0u16; 256];
-        let packed = vec![0i64; 36];
+    #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
+    struct TestPackedU9 {
+        #[serde(with = "packed_u9")]
+        list: Vec<u16>,
+    }
 
-        // Test serializer
-        // TODO use packed_u9::deserialize
-        assert_eq!(Heightmaps::packed_i64_vec(unpacked), packed);
-        // Test deserializer
-        // TODO
+    #[test]
+    fn test_packed_u9_pattern() {
+        let data_u64 = iter::repeat(0xAAAA_AAAA_AAAA_AAAAu64 as i64); // 64-bit 0b1010...
+        let data_u9 = [0b010101010u16, 0b101010101u16].iter().cloned().cycle(); // corresponding 9-bit pattern
+
+        let unpacked: Vec<u16> = data_u9.take(256).collect();
+        let packed: Vec<i64> = data_u64.take(36).collect();
+
+        // Test blob serializer
+        let converted = Heightmaps::pack_u9(unpacked.clone());
+        assert_eq!(
+            converted, packed,
+            "is:        {:016X?}\nshould be: {:016X?}",
+            converted, packed
+        );
+
+        // Test serde serialization
+        let mut tokenized_vec = packed.iter().map(|&x| Token::I64(x)).collect();
+
+        let mut tokenized_sequence = Vec::new();
+        tokenized_sequence.push(Token::Struct {
+            name: "TestPackedU9",
+            len: 1,
+        });
+        tokenized_sequence.push(Token::Str("list"));
+        tokenized_sequence.push(Token::Seq { len: Some(36) });
+        tokenized_sequence.append(&mut tokenized_vec);
+        tokenized_sequence.push(Token::SeqEnd);
+        tokenized_sequence.push(Token::StructEnd);
+
+        let test_object = TestPackedU9 {
+            list: unpacked.clone(),
+        };
+
+        serde_test::assert_tokens(&test_object, tokenized_sequence.as_slice())
+    }
+
+    #[test]
+    fn test_packed_u9_order() {
+        let data_u64 = [
+            // this repeats every 9 u64...
+            0b0_001000000_000100000_000010000_000001000_000000100_000000010_000000001u64,
+            0b00_000100000_000010000_000001000_000000100_000000010_000000001_01000000u64,
+            0b000_000010000_000001000_000000100_000000010_000000001_010000000_0010000u64,
+            0b0000_000001000_000000100_000000010_000000001_010000000_001000000_000100u64,
+            0b01000_000000100_000000010_000000001_010000000_001000000_000100000_00001u64,
+            0b000100_000000010_000000001_010000000_001000000_000100000_000010000_0000u64,
+            0b0000010_000000001_010000000_001000000_000100000_000010000_000001000_000u64,
+            0b00000001_010000000_001000000_000100000_000010000_000001000_000000100_00u64,
+            0b010000000_001000000_000100000_000010000_000001000_000000100_000000010_0u64,
+        ]
+        .iter()
+        .cloned()
+        .map(|x| x as i64)
+        .cycle();
+        let data_u9 = (0..8).map(|x| 1 << x).cycle(); // corresponding 9-bit pattern
+
+        let unpacked: Vec<u16> = data_u9.take(256).collect();
+        let packed: Vec<i64> = data_u64.take(36).collect();
+
+        // Test blob serializer
+        let converted = Heightmaps::pack_u9(unpacked.clone());
+        assert_eq!(
+            converted, packed,
+            "is:        {:016X?}\nshould be: {:016X?}",
+            converted, packed
+        );
+
+        // Test serde serialization
+        let mut tokenized_vec = packed.iter().map(|&x| Token::I64(x)).collect();
+
+        let mut tokenized_sequence = Vec::new();
+        tokenized_sequence.push(Token::Struct {
+            name: "TestPackedU9",
+            len: 1,
+        });
+        tokenized_sequence.push(Token::Str("list"));
+        tokenized_sequence.push(Token::Seq { len: Some(36) });
+        tokenized_sequence.append(&mut tokenized_vec);
+        tokenized_sequence.push(Token::SeqEnd);
+        tokenized_sequence.push(Token::StructEnd);
+
+        let test_object = TestPackedU9 {
+            list: unpacked.clone(),
+        };
+
+        serde_test::assert_tokens(&test_object, tokenized_sequence.as_slice())
     }
 }

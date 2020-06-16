@@ -1,6 +1,6 @@
 //! Unit testing framework.
 
-use feather_core::anvil::entity::{BaseEntityData, AnimalData};
+use feather_core::anvil::entity::{AnimalData, BaseEntityData};
 use feather_core::anvil::player::PlayerData;
 use feather_core::network::{cast_packet, Packet};
 use feather_core::{
@@ -200,10 +200,7 @@ impl Test {
             profile: vec![],
             uuid: Uuid::new_v4(),
             data: PlayerData {
-                animal: AnimalData::new(
-                    BaseEntityData::new(position, vec3(0.0, 0.0, 0.0)),
-                    20.0
-                ),
+                animal: AnimalData::new(BaseEntityData::new(position, vec3(0.0, 0.0, 0.0)), 20.0),
                 gamemode: 1,
                 inventory: vec![],
             },

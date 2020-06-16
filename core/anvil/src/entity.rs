@@ -220,10 +220,7 @@ impl AnimalData {
 impl AnimalData {
     /// Creates a `BaseEntityData` from its parameters.
     pub fn new(base: BaseEntityData, health: f32) -> Self {
-        Self {
-            base,
-            health
-        }
+        Self { base, health }
     }
 }
 
@@ -288,10 +285,7 @@ impl ItemEntityData {
         map.insert(String::from("Item"), Value::Compound(item));
 
         map.insert(String::from("Age"), Value::Short(self.age));
-        map.insert(
-            String::from("PickupDelay"),
-            Value::Short(self.pickup_delay),
-        );
+        map.insert(String::from("PickupDelay"), Value::Short(self.pickup_delay));
         map.insert(String::from("Health"), Value::Short(self.health));
     }
 }

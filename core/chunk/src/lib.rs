@@ -268,42 +268,44 @@ impl Chunk {
         let mut mask: HeightMapMask = HeightMapMask::empty();
         let y = y as u16;
 
-        let checks: Vec<(
-            &dyn Fn(BlockId) -> bool,
+        struct HeightMapCheckContext(
+            &'static dyn Fn(BlockId) -> bool,
             HeightMapMask,
-            &dyn Fn(&HeightMap) -> u16,
-            &dyn Fn(&mut HeightMap, u16) -> (),
-        )> = vec![
+            &'static dyn Fn(&HeightMap) -> u16,
+            &'static dyn Fn(&mut HeightMap, u16) -> (),
+        );
+
+        let checks: Vec<HeightMapCheckContext> = vec![
             // Light blocking
-            (
+            HeightMapCheckContext(
                 &|block| block.is_opaque(),
                 HeightMapMask::LIGHT_BLOCKING,
                 &|map| map.light_blocking(),
                 &|map, value| map.set_light_blocking(value),
             ),
             // Motion blocking
-            (
+            HeightMapCheckContext(
                 &|block| block.is_solid() || block.is_fluid(),
                 HeightMapMask::MOTION_BLOCKING,
                 &|map| map.motion_blocking(),
                 &|map, value| map.set_motion_blocking(value),
             ),
             // Motion blocking no leaves
-            (
+            HeightMapCheckContext(
                 &|block| (block.is_solid() || block.is_fluid()) && !block.is_leaves(),
                 HeightMapMask::MOTION_BLOCKING_NO_LEAVES,
                 &|map| map.motion_blocking_no_leaves(),
                 &|map, value| map.set_motion_blocking_no_leaves(value),
             ),
             // Ocean floor
-            (
+            HeightMapCheckContext(
                 &|block| block.is_solid(),
                 HeightMapMask::OCEAN_FLOOR,
                 &|map| map.ocean_floor(),
                 &|map, value| map.set_ocean_floor(value),
             ),
             // World surface
-            (
+            HeightMapCheckContext(
                 &|block| !block.is_air(),
                 HeightMapMask::WORLD_SURFACE,
                 &|map| map.world_surface(),
@@ -311,7 +313,7 @@ impl Chunk {
             ),
         ];
 
-        for (valid_block, check_mask, map_getter, map_setter) in checks {
+        for HeightMapCheckContext(valid_block, check_mask, map_getter, map_setter) in checks {
             // Check heightmap type
             if valid_block(old_block) && map_getter(self.heightmap_mut(x, z)) == y {
                 // This was the highest block

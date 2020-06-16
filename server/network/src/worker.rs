@@ -8,7 +8,7 @@
 
 use crate::initial_handler::{Action, InitialHandler};
 use crate::{ListenerToServerMessage, NewClientInfo, ServerToListenerMessage};
-use feather_core::anvil::entity::{BaseEntityData, AnimalData};
+use feather_core::anvil::entity::{AnimalData, BaseEntityData};
 use feather_core::anvil::player::PlayerData;
 use feather_core::network::{MinecraftCodec, Packet, PacketDirection};
 use feather_core::util::{Position, Vec3d};
@@ -237,7 +237,7 @@ async fn load_player_data(config: &Config, uuid: Uuid) -> Result<PlayerData, any
             let data = PlayerData {
                 animal: AnimalData::new(
                     BaseEntityData::new(DEFAULT_POSITION, Vec3d::broadcast(0.0)),
-                    20.0
+                    20.0,
                 ),
                 gamemode: config.server.default_gamemode.id() as i32,
                 inventory: vec![],

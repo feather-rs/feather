@@ -1,7 +1,7 @@
 //! Handles saving of chunks and entities
 
 use crate::{chunk_manager, ChunkWorkerHandle};
-use feather_core::anvil::entity::{BaseEntityData, EntityData, AnimalData};
+use feather_core::anvil::entity::{AnimalData, BaseEntityData, EntityData};
 use feather_core::anvil::{
     block_entity::BlockEntityData,
     player::{InventorySlot, PlayerData},
@@ -198,10 +198,7 @@ pub fn save_player_data(game: &Game, world: &World, player: Entity) {
         .unwrap_or(1.0);
     let data = PlayerData {
         animal: AnimalData::new(
-            BaseEntityData::new(
-                *world.get::<Position>(player),
-                Vec3d::broadcast(0.0),
-            ),
+            BaseEntityData::new(*world.get::<Position>(player), Vec3d::broadcast(0.0)),
             health,
         ),
         gamemode: world.get::<Gamemode>(player).id() as i32,
