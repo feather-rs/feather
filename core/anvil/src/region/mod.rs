@@ -1088,9 +1088,7 @@ mod tests {
         tokenized_sequence.push(Token::SeqEnd);
         tokenized_sequence.push(Token::StructEnd);
 
-        let test_object = TestPackedU9 {
-            list: unpacked,
-        };
+        let test_object = TestPackedU9 { list: unpacked };
 
         serde_test::assert_tokens(&test_object, tokenized_sequence.as_slice())
     }
@@ -1141,9 +1139,7 @@ mod tests {
         tokenized_sequence.push(Token::SeqEnd);
         tokenized_sequence.push(Token::StructEnd);
 
-        let test_object = TestPackedU9 {
-            list: unpacked,
-        };
+        let test_object = TestPackedU9 { list: unpacked };
 
         serde_test::assert_tokens(&test_object, tokenized_sequence.as_slice())
     }

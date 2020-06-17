@@ -157,7 +157,6 @@ pub enum BlockEntityKind {
     #[serde(rename_all = "PascalCase")]
     Jukebox { record_item: InventorySlot },
     // TODO: a few more
-
     /// Fallback type for unknown block entities
     #[serde(other)]
     Unknown,
