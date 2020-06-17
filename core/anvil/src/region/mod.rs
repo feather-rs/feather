@@ -1096,6 +1096,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::inconsistent-digit-grouping)] // Sorry clippy but grouping by 9 bits makes sense here
     fn test_packed_u9_order() {
         let data_u64 = [
             // this repeats every 9 u64...
