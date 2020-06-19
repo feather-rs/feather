@@ -4,6 +4,7 @@ use feather_core::{
 };
 use feather_server_types::{BlockUpdateCause, BlockUpdateEvent, Game};
 use fecs::World;
+use std::cmp::Ordering;
 use std::collections::{HashSet, VecDeque};
 
 /// Checks if the block update invalidates the current redstone state
@@ -56,11 +57,10 @@ pub fn on_block_update_redstone(event: &BlockUpdateEvent, game: &mut Game, world
                     game.set_block_at(world, block_pos, block, BlockUpdateCause::Redstone);
                 }
 
-                if correct_state.power > current_state.power {
-                    rising_blocks.push_back(block_pos);
-                } else if correct_state.power < current_state.power {
-                    // For more efficiency, store the original powerlevel too
-                    falling_blocks.push((current_state.power, block_pos));
+                match correct_state.power.cmp(&current_state.power) {
+                    Ordering::Greater => rising_blocks.push_back(block_pos),
+                    Ordering::Less => falling_blocks.push((current_state.power, block_pos)),
+                    Ordering::Equal => {}
                 }
             }
         }
@@ -141,6 +141,7 @@ fn update_falling_blocks(
             block.set_power(0);
             // Note: This step could be removed to avoid unnecessary packets
             // Then a internal or virtual state would be needed which stores the blocks power levels
+            // Maybe set the block at the game without sending packets or causing BlockUpdates
             game.set_block_at(world, block_pos, block, BlockUpdateCause::Redstone);
         }
 
@@ -150,8 +151,7 @@ fn update_falling_blocks(
                 if updated_blocks.contains(&pos)
                     || falling_blocks
                         .iter()
-                        .filter(|(_, other_pos)| pos == *other_pos)
-                        .next()
+                        .find(|(_, other_pos)| pos == *other_pos)
                         .is_some()
                 {
                     continue;
@@ -305,7 +305,7 @@ pub fn get_redstone_connections(
 
     for (position, direction) in directions {
         if let Some(block) = game.block_at(position) {
-            if let Some(_) = block.weak_redstone_power(direction.opposite()) {
+            if block.weak_redstone_power(direction.opposite()).is_some() {
                 connected_redstone_components.push((
                     block,
                     position,
@@ -355,7 +355,7 @@ pub fn get_redstone_connections(
     // last, check for the block directly above/below
 
     if let Some(block_up) = block_above {
-        if let Some(_) = block_up.weak_redstone_power(FacingCubic::Down) {
+        if block_up.weak_redstone_power(FacingCubic::Down).is_some() {
             connected_redstone_components.push((
                 block_up,
                 block_pos_up,
@@ -366,7 +366,7 @@ pub fn get_redstone_connections(
     }
 
     if let Some(block_down) = block_below {
-        if let Some(_) = block_down.weak_redstone_power(FacingCubic::Up) {
+        if block_down.weak_redstone_power(FacingCubic::Up).is_some() {
             connected_redstone_components.push((
                 block_down,
                 block_pos_up,
