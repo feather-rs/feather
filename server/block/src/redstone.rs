@@ -14,7 +14,6 @@ pub fn on_block_update_redstone(event: &BlockUpdateEvent, game: &mut Game, world
     if event.cause == BlockUpdateCause::Redstone {
         return;
     }
-
     let check_positions = vec![
         event.pos,
         // One up and one down
@@ -378,4 +377,167 @@ pub fn get_redstone_connections(
     }
 
     connected_redstone_components
+}
+
+#[cfg(test)]
+mod tets {
+    use super::*;
+    use feather_test_framework::Test;
+
+    fn init_blocks(test: &mut Test, blocks: Vec<&str>) {
+        for (z, block_row) in blocks.into_iter().enumerate() {
+            for (x, block) in block_row.chars().enumerate() {
+                let block_id = match block {
+                    'r' => BlockId::redstone_wire(),
+                    'b' => BlockId::redstone_block(),
+                    ' ' => continue,
+                    _ => panic!("Invalid block specifier: {}!", block),
+                };
+                test.game.set_block_at(
+                    &mut test.world,
+                    BlockPosition::new(x as i32, 0, z as i32),
+                    BlockId::stone(),
+                    BlockUpdateCause::Unknown,
+                );
+                let pos = BlockPosition::new(x as i32, 1, z as i32);
+                test.game
+                    .set_block_at(&mut test.world, pos, block_id, BlockUpdateCause::Unknown);
+            }
+        }
+    }
+
+    fn assert_power(x: i32, z: i32, game: &Game, power: i32) {
+        assert_eq!(
+            game.block_at(BlockPosition::new(x, 1, z))
+                .unwrap()
+                .power()
+                .unwrap(),
+            power
+        );
+    }
+
+    #[test]
+    fn test_power_redstone() {
+        let mut test = Test::new();
+
+        init_blocks(&mut test, vec!["rb"]);
+        assert_power(0, 0, &test.game, 15);
+    }
+
+    #[test]
+    fn test_power_redstone_range() {
+        let mut test = Test::new();
+
+        init_blocks(&mut test, vec!["rrrrrrrrrrrrrrrrb"]);
+        assert_power(0, 0, &test.game, 0);
+        assert_power(1, 0, &test.game, 1);
+    }
+
+    #[test]
+    fn test_power_falling() {
+        let mut test = Test::new();
+
+        init_blocks(&mut test, vec!["r ", "rb"]);
+        assert_power(0, 0, &test.game, 14);
+
+        test.game.set_block_at(
+            &mut test.world,
+            BlockPosition::new(1, 1, 1),
+            BlockId::air(),
+            BlockUpdateCause::Unknown,
+        );
+
+        assert_power(0, 0, &test.game, 0);
+    }
+
+    #[test]
+    fn test_multiple_power_sources() {
+        let mut test = Test::new();
+
+        init_blocks(&mut test, vec!["brrrb"]);
+
+        assert_power(1, 0, &test.game, 15);
+        assert_power(2, 0, &test.game, 14);
+        assert_power(3, 0, &test.game, 15);
+
+        test.game.set_block_at(
+            &mut test.world,
+            BlockPosition::new(0, 1, 0),
+            BlockId::redstone_wire(),
+            BlockUpdateCause::Unknown,
+        );
+
+        assert_power(0, 0, &test.game, 12);
+        assert_power(1, 0, &test.game, 13);
+        assert_power(2, 0, &test.game, 14);
+        assert_power(3, 0, &test.game, 15);
+    }
+
+    #[test]
+    fn test_redstone_square() {
+        let mut test = Test::new();
+
+        init_blocks(
+            &mut test,
+            vec![
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrb",
+            ],
+        );
+
+        assert_power(0, 0, &test.game, 0);
+        assert_power(1, 0, &test.game, 1);
+        assert_power(0, 1, &test.game, 1);
+
+        test.game.set_block_at(
+            &mut test.world,
+            BlockPosition::new(8, 1, 8),
+            BlockId::air(),
+            BlockUpdateCause::Unknown,
+        );
+
+        assert_power(0, 0, &test.game, 0);
+        assert_power(1, 0, &test.game, 0);
+        assert_power(0, 1, &test.game, 0);
+    }
+
+    #[test]
+    fn test_redstone_square_multiple_sources() {
+        let mut test = Test::new();
+
+        init_blocks(
+            &mut test,
+            vec![
+                "brrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrr",
+                "rrrrrrrrb",
+            ],
+        );
+
+        assert_power(4, 4, &test.game, 8);
+        assert_power(3, 3, &test.game, 10);
+
+        test.game.set_block_at(
+            &mut test.world,
+            BlockPosition::new(0, 1, 0),
+            BlockId::air(),
+            BlockUpdateCause::Unknown,
+        );
+
+        assert_power(4, 4, &test.game, 8);
+        assert_power(3, 3, &test.game, 6);
+    }
 }

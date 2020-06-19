@@ -1247,6 +1247,7 @@ version = "0.6.0"
 dependencies = [
  "crossbeam",
  "feather-core",
+ "feather-server-block",
  "feather-server-chunk",
  "feather-server-network",
  "feather-server-player",

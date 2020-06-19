@@ -8,6 +8,7 @@ use feather_core::{
     chunk_map::ChunkMap,
     util::{vec3, ChunkPosition, Position},
 };
+use feather_server_block::on_block_update_redstone;
 use feather_server_chunk::{
     chunk_worker, hold_chunk_request, release_chunk_request, ChunkWorkerHandle,
 };
@@ -71,7 +72,8 @@ impl Test {
 
         let mut event_handlers = EventHandlers::new()
             .with(hold_chunk_request)
-            .with(release_chunk_request);
+            .with(release_chunk_request)
+            .with(on_block_update_redstone);
         event_handlers.set_up(&mut resources, world);
 
         let mut chunk_map = ChunkMap::new();

@@ -11,12 +11,12 @@ use feather_core::item_block::ItemToBlock;
 use feather_core::items::ItemStack;
 use feather_core::network::packets::PlayerBlockPlacement;
 use feather_core::util::{BlockPosition, Gamemode, Position, Vec3d};
+use feather_server_block::RedstoneState;
 use feather_server_types::{
     BlockUpdateCause, Game, HeldItem, InteractionHandler, InventoryUpdateEvent, OpenWindowCount,
     PacketBuffers,
 };
 use feather_server_util::is_block_supported_at;
-use feather_server_block::RedstoneState;
 use fecs::{Entity, World};
 use once_cell::sync::Lazy;
 use smallvec::smallvec;
