@@ -151,8 +151,7 @@ fn update_falling_blocks(
                 if updated_blocks.contains(&pos)
                     || falling_blocks
                         .iter()
-                        .find(|(_, other_pos)| pos == *other_pos)
-                        .is_some()
+                        .any(|(_, other_pos)| pos == *other_pos)
                 {
                     continue;
                 }
