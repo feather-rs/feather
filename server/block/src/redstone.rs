@@ -216,6 +216,8 @@ impl RedstoneState {
                 }
             }
 
+            // If a redstone wire exist one block above and one block below for a direction,
+            // The Wire::Side state is preferred (because of the order of get_redstone_connections)
             match direction {
                 FacingCubic::North => {
                     north = match vertical_offset {
@@ -331,6 +333,7 @@ pub fn get_redstone_connections(
                         ));
                     }
                 }
+
                 if let Some(block) = game.block_at(down) {
                     if block.kind() == BlockKind::RedstoneWire
                         && !game
