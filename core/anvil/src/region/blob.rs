@@ -94,23 +94,23 @@ fn heightmaps_to_value(heightmaps: Heightmaps) -> Value {
 
     map.insert(
         String::from("LIGHT_BLOCKING"),
-        Value::LongArray(Heightmaps::pack_u9(heightmaps.light_blocking)),
+        Value::LongArray(Heightmaps::pack_u9(&heightmaps.light_blocking)),
     );
     map.insert(
         String::from("MOTION_BLOCKING"),
-        Value::LongArray(Heightmaps::pack_u9(heightmaps.motion_blocking)),
+        Value::LongArray(Heightmaps::pack_u9(&heightmaps.motion_blocking)),
     );
     map.insert(
         String::from("MOTION_BLOCKING_NO_LEAVES"),
-        Value::LongArray(Heightmaps::pack_u9(heightmaps.motion_blocking_no_leaves)),
+        Value::LongArray(Heightmaps::pack_u9(&heightmaps.motion_blocking_no_leaves)),
     );
     map.insert(
         String::from("OCEAN_FLOOR"),
-        Value::LongArray(Heightmaps::pack_u9(heightmaps.ocean_floor)),
+        Value::LongArray(Heightmaps::pack_u9(&heightmaps.ocean_floor)),
     );
     map.insert(
         String::from("WORLD_SURFACE"),
-        Value::LongArray(Heightmaps::pack_u9(heightmaps.world_surface)),
+        Value::LongArray(Heightmaps::pack_u9(&heightmaps.world_surface)),
     );
 
     Value::Compound(map)

@@ -74,13 +74,17 @@ pub struct Heightmaps {
 
 impl Heightmaps {
     // TODO remove this and use hematite-nbt serde for serialization
-    pub(crate) fn pack_u9(u9_array: Vec<u16>) -> Vec<i64> {
-        let mut packed = Vec::with_capacity(36);
+    pub(crate) fn pack_u9(u9_array: &[u16]) -> Vec<i64> {
+        if u9_array.len() % 64 != 0 {
+            panic!("array length must be a multiple of 64");
+        }
+
+        let mut packed = Vec::with_capacity(u9_array.len() / 64 * 9);
         let mut iter = u9_array.iter();
 
         let mut container = 0u64;
         let mut shift = 0;
-        for _elem in 0..256 {
+        for _elem in 0..u9_array.len() {
             // For every element (u9)
             let element = *iter.next().unwrap() as u64;
 
@@ -142,17 +146,21 @@ mod packed_u9 {
                 A: SeqAccess<'de>,
             {
                 let len = seq.size_hint().unwrap(); // nbt always knows sequence size
-                if len != 36 {
+                if len % 9 != 0 {
                     // Invalid sequence length
-                    return Err(A::Error::custom("sequence length not equal to 36"));
+                    return Err(A::Error::custom("sequence length must be a multiple of 9"));
                 }
+                let unpacked_len = len * 64 / 9;
 
-                let mut u9_array: Vec<u16> = Vec::with_capacity(256);
+                let mut u9_array: Vec<u16> = Vec::with_capacity(unpacked_len);
 
                 let mut container: Option<u64> = seq.next_element()?.map(|x: i64| x as u64); // We checked the length
                 let mut shift = 0;
-                for _elem in 0..256 {
+                for _elem in 0..unpacked_len {
                     // For every element (u9)
+
+                    // unwrapping here is safe, as this can only fail if there is an implementation error in this algorithm
+                    // or in the SeqAccess because we checked the sequence length
                     let mut element: u16 = ((container.unwrap() >> shift) & 0x1FF) as u16;
                     shift += 9;
 
@@ -160,12 +168,12 @@ mod packed_u9 {
                         // Take next container
                         container = seq.next_element()?.map(|x: i64| x as u64);
 
-                        element |= if shift > 64 {
+                        if shift > 64 {
                             // We have some bits left to get from the next container
-                            (container.unwrap() << -(shift - 64 - 9)) & 0x1FF
-                        } else {
-                            0
-                        } as u16;
+
+                            // same here with the unwrapping
+                            element |= ((container.unwrap() << -(shift - 64 - 9)) & 0x1FF) as u16;
+                        }
 
                         shift -= 64;
                     }
@@ -189,9 +197,9 @@ mod packed_u9 {
     {
         // TODO use NBT LongArray type once implemented in hematite_nbt ( https://github.com/PistonDevelopers/hematite_nbt/pull/51)
 
-        if u9_array.len() != 256 {
+        if u9_array.len() % 64 != 0 {
             // Invalid array length
-            return Err(S::Error::custom("array length not equal to 256"));
+            return Err(S::Error::custom("array length must be a multiple of 64"));
         }
 
         let mut seq = serializer.serialize_seq(Some(36))?;
@@ -199,7 +207,7 @@ mod packed_u9 {
 
         let mut container = 0u64;
         let mut shift = 0;
-        for _elem in 0..256 {
+        for _elem in 0..u9_array.len() {
             // For every element (u9)
             let element = *iter.next().unwrap() as u64;
 
@@ -1067,7 +1075,7 @@ mod tests {
         let packed: Vec<i64> = data_u64.take(36).collect();
 
         // Test blob serializer
-        let converted = Heightmaps::pack_u9(unpacked.clone());
+        let converted = Heightmaps::pack_u9(&unpacked);
         assert_eq!(
             converted, packed,
             "is:        {:016X?}\nshould be: {:016X?}",
@@ -1118,7 +1126,7 @@ mod tests {
         let packed: Vec<i64> = data_u64.take(36).collect();
 
         // Test blob serializer
-        let converted = Heightmaps::pack_u9(unpacked.clone());
+        let converted = Heightmaps::pack_u9(&unpacked);
         assert_eq!(
             converted, packed,
             "is:        {:016X?}\nshould be: {:016X?}",

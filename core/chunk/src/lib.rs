@@ -275,7 +275,7 @@ impl Chunk {
             &'static dyn Fn(&mut HeightMap, u16) -> (),
         );
 
-        let checks: Vec<HeightMapCheckContext> = vec![
+        let checks: [HeightMapCheckContext; 5] = [
             // Light blocking
             HeightMapCheckContext(
                 &|block| block.is_opaque(),
@@ -313,7 +313,8 @@ impl Chunk {
             ),
         ];
 
-        for HeightMapCheckContext(valid_block, check_mask, map_getter, map_setter) in checks {
+        for HeightMapCheckContext(valid_block, check_mask, map_getter, map_setter) in checks.iter()
+        {
             // Check heightmap type
             if valid_block(old_block) && map_getter(self.heightmap_mut(x, z)) == y {
                 // This was the highest block
@@ -327,12 +328,12 @@ impl Chunk {
                         break;
                     }
                 }
-                mask |= check_mask;
+                mask |= *check_mask;
             }
             if valid_block(new_block) && map_getter(self.heightmap_mut(x, z)) < y {
                 // This is the new highest block
                 map_setter(self.heightmap_mut(x, z), y);
-                mask |= check_mask;
+                mask |= *check_mask;
             }
         }
 

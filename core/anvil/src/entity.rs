@@ -218,7 +218,7 @@ impl AnimalData {
 }
 
 impl AnimalData {
-    /// Creates a `BaseEntityData` from its parameters.
+    /// Creates an `AnimalData` from its parameters.
     pub fn new(base: BaseEntityData, health: f32) -> Self {
         Self { base, health }
     }
