@@ -140,6 +140,8 @@ fn update_falling_blocks(
         // set the power level of this block to zero
         if let Some(mut block) = game.block_at(block_pos) {
             block.set_power(0);
+            // Note: This step could be removed to avoid unnecessary packets
+            // Then a internal or virtual state would be needed which stores the blocks power levels
             game.set_block_at(world, block_pos, block, BlockUpdateCause::Redstone);
         }
 
@@ -156,8 +158,8 @@ fn update_falling_blocks(
                     continue;
                 }
 
-                if let Some(powaaaa) = block.power() {
-                    if powaaaa < original_power {
+                if let Some(power) = block.power() {
+                    if power < original_power {
                         falling_blocks.push((original_power - 1, pos));
                     } else {
                         // mark this block as rising so that in the next step the zeroed values can get calculated
@@ -179,7 +181,6 @@ pub struct RedstoneState {
     south: SouthWire,
     west: WestWire,
     power: i32,
-    power_position: Option<BlockPosition>,
 }
 
 impl PartialEq for RedstoneState {
@@ -206,14 +207,12 @@ impl RedstoneState {
 
         // always choose the maximum available power level
         let mut power = 0;
-        let mut power_position = None;
 
-        for (block, pos, direction, vertical_offset) in get_redstone_connections(pos, game) {
+        for (block, _, direction, vertical_offset) in get_redstone_connections(pos, game) {
             let block_weak_power = block.weak_redstone_power(direction.opposite());
             if let Some(block_weak_power) = block_weak_power {
                 if block_weak_power > power {
                     power = block_weak_power;
-                    power_position = Some(pos);
                 }
             }
 
@@ -252,7 +251,6 @@ impl RedstoneState {
             south,
             west,
             power,
-            power_position,
         }
     }
 
@@ -267,7 +265,6 @@ impl RedstoneState {
             south: block.south_wire().unwrap(),
             west: block.west_wire().unwrap(),
             power: block.power().unwrap(),
-            power_position: None,
         })
     }
 
@@ -300,6 +297,11 @@ pub fn get_redstone_connections(
 
     let mut connected_redstone_components = Vec::with_capacity(8);
 
+    let block_pos_up = pos + BlockPosition::new(0, 1, 0);
+    let block_pos_down = pos + BlockPosition::new(0, -1, 0);
+    let block_above = game.block_at(block_pos_up);
+    let block_below = game.block_at(block_pos_down);
+
     for (position, direction) in directions {
         if let Some(block) = game.block_at(position) {
             if let Some(_) = block.weak_redstone_power(direction.opposite()) {
@@ -316,7 +318,11 @@ pub fn get_redstone_connections(
                 let down = position + BlockPosition::new(0, -1, 0);
 
                 if let Some(block) = game.block_at(up) {
-                    if block.kind() == BlockKind::RedstoneWire {
+                    if block.kind() == BlockKind::RedstoneWire
+                        && !block_above
+                            .map(|block| block.is_full_block())
+                            .unwrap_or(false)
+                    {
                         connected_redstone_components.push((
                             block,
                             up,
@@ -326,7 +332,12 @@ pub fn get_redstone_connections(
                     }
                 }
                 if let Some(block) = game.block_at(down) {
-                    if block.kind() == BlockKind::RedstoneWire {
+                    if block.kind() == BlockKind::RedstoneWire
+                        && !game
+                            .block_at(down + BlockPosition::new(0, 1, 0))
+                            .map(|block| block.is_full_block())
+                            .unwrap_or(false)
+                    {
                         connected_redstone_components.push((
                             block,
                             down,
@@ -340,10 +351,8 @@ pub fn get_redstone_connections(
     }
 
     // last, check for the block directly above/below
-    let block_pos_up = pos + BlockPosition::new(0, 1, 0);
-    let block_pos_down = pos + BlockPosition::new(0, -1, 0);
 
-    if let Some(block_up) = game.block_at(block_pos_up) {
+    if let Some(block_up) = block_above {
         if let Some(_) = block_up.weak_redstone_power(FacingCubic::Down) {
             connected_redstone_components.push((
                 block_up,
@@ -354,7 +363,7 @@ pub fn get_redstone_connections(
         }
     }
 
-    if let Some(block_down) = game.block_at(block_pos_down) {
+    if let Some(block_down) = block_below {
         if let Some(_) = block_down.weak_redstone_power(FacingCubic::Up) {
             connected_redstone_components.push((
                 block_down,
