@@ -26,6 +26,8 @@ pub enum BlockUpdateCause {
     /// So far only when a block that needs to be
     /// supported loses it's support.
     Unsupported,
+    /// When a block update occurs because of a redstone state change
+    Redstone,
     /// Unknown cause.
     Unknown,
 }

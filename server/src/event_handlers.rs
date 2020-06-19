@@ -27,6 +27,7 @@ pub fn build_event_handlers() -> EventHandlers {
         on_block_break_drop_loot,
         on_chest_break_drop_contents,
         on_block_update_create_block_entity,
+        on_block_update_redstone,
         on_chest_create_try_connect,
         on_chest_break_try_disconnect,
 

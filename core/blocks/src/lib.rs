@@ -10,6 +10,7 @@ mod directions;
 #[allow(clippy::all)]
 mod generated;
 mod wall_blocks;
+mod redstone_blocks;
 
 static BLOCK_TABLE: Lazy<BlockTable> = Lazy::new(|| {
     let bytes = include_bytes!("generated/table.dat");

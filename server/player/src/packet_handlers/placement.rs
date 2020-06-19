@@ -16,6 +16,7 @@ use feather_server_types::{
     PacketBuffers,
 };
 use feather_server_util::is_block_supported_at;
+use feather_server_block::RedstoneState;
 use fecs::{Entity, World};
 use once_cell::sync::Lazy;
 use smallvec::smallvec;
@@ -371,6 +372,11 @@ fn update_block_state_for_placement(
             packet.cursor_position_x,
             packet.cursor_position_z,
         ));
+    }
+
+    if block.kind() == BlockKind::RedstoneWire {
+        let state = RedstoneState::calculate(block_pos, &game);
+        state.apply_to(&mut block);
     }
 
     block

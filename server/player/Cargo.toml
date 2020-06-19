@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 feather-core = { path = "../../core" }
+feather-server-block = { path = "../block" }
 feather-server-types = { path = "../types" }
 feather-server-util = { path = "../util" }
 feather-server-network = { path = "../network" }
