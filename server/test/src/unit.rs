@@ -15,8 +15,8 @@ use feather_server_chunk::{
 use feather_server_network::NewClientInfo;
 use feather_server_player::on_chunk_cross_update_chunks;
 use feather_server_types::{
-    ChunkCrossEvent, ChunkHolder, Game, Name, NetworkId, ServerToWorkerMessage, Shared, Uuid,
-    WorkerToServerMessage,
+    ChunkCrossEvent, ChunkHolder, EventScheduler, Game, Name, NetworkId, ServerToWorkerMessage,
+    Shared, Uuid, WorkerToServerMessage,
 };
 use feather_server_util::on_chunk_cross_update_chunk_entities;
 use fecs::{
@@ -92,6 +92,7 @@ impl Test {
             block_entities: Default::default(),
             time: Default::default(),
             event_handlers: Arc::new(event_handlers),
+            event_scheduler: EventScheduler::default(),
             resources: Arc::new(Default::default()),
             bump: Default::default(),
             shared: Arc::new(Shared {
