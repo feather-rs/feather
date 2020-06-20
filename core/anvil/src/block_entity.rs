@@ -1,7 +1,6 @@
 use crate::player::InventorySlot;
-use nbt::Value;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use serde::ser::Error;
+use serde::{Deserialize, Serialize, Serializer};
 
 /// A block entity loaded or saved to the Anvil format.
 /// Should be serialized using NBT.
@@ -13,35 +12,6 @@ pub struct BlockEntityData {
     pub base: BlockEntityBase,
     #[serde(flatten)]
     pub kind: BlockEntityKind,
-}
-
-impl BlockEntityData {
-    pub fn into_nbt_value(self) -> Value {
-        let mut compound = HashMap::new();
-
-        compound.insert(String::from("x"), Value::Int(self.base.x));
-        compound.insert(String::from("y"), Value::Int(self.base.y));
-        compound.insert(String::from("z"), Value::Int(self.base.z));
-
-        let id = match self.kind {
-            BlockEntityKind::Chest { items, .. } => {
-                compound.insert(
-                    String::from("Items"),
-                    Value::List(
-                        items
-                            .into_iter()
-                            .map(InventorySlot::into_nbt_value)
-                            .collect(),
-                    ),
-                );
-                "minecraft:chest"
-            }
-            _ => todo!("implement block entity into_nbt_value"),
-        };
-        compound.insert(String::from("id"), Value::String(String::from(id)));
-
-        Value::Compound(compound)
-    }
 }
 
 /// Data common to all block entities.
@@ -158,11 +128,15 @@ pub enum BlockEntityKind {
     Jukebox { record_item: InventorySlot },
     // TODO: a few more
     /// Fallback type for unknown block entities
-    #[serde(other)]
+    #[serde(other, serialize_with = "BlockEntityKind::serialize_unknown")]
     Unknown,
 }
 
 impl BlockEntityKind {
+    pub(crate) fn serialize_unknown<S: Serializer>(_serializer: S) -> Result<S::Ok, S::Error> {
+        Err(S::Error::custom("cannot serialize unknown block entities"))
+    }
+
     pub fn variant(&self) -> BlockEntityVariant {
         match self {
             BlockEntityKind::Beacon { .. } => BlockEntityVariant::Beacon,

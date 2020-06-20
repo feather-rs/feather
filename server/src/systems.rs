@@ -33,7 +33,7 @@ pub fn build_executor() -> Executor {
         .with(player::send_teleported)
         .with(weather::update_weather)
         .with(entity::item::item_collect)
-        .with(chunk_logic::chunk_load)
+        .with(chunk_logic::handle_chunk_worker_replies)
         .with(chunk_logic::chunk_unload)
         .with(chunk_logic::chunk_optimize)
         .with(player::check_crossed_chunks)
