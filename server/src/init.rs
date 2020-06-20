@@ -8,7 +8,7 @@ use feather_server_chunk::{chunk_worker, ChunkWorkerHandle};
 use feather_server_config::DEFAULT_CONFIG_STR;
 use feather_server_network::NetworkIoManager;
 use feather_server_packet_buffer::PacketBuffers;
-use feather_server_types::{task, Config, Game, Shared, ShutdownChannels, EventScheduler};
+use feather_server_types::{task, Config, EventScheduler, Game, Shared, ShutdownChannels};
 use feather_server_worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };

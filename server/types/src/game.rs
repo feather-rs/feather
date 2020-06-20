@@ -1,4 +1,4 @@
-use crate::{BlockUpdateCause, Network, ServerToWorkerMessage, EventScheduler};
+use crate::{BlockUpdateCause, EventScheduler, Network, ServerToWorkerMessage};
 use crate::{
     BlockUpdateEvent, CanRespawn, Dead, EntityDeathEvent, EntityDespawnEvent, Health,
     HealthUpdateEvent, Name, PlayerLeaveEvent,

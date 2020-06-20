@@ -2,9 +2,7 @@ use feather_core::{
     blocks::{BlockId, BlockKind, EastWire, FacingCubic, NorthWire, SouthWire, WestWire},
     util::BlockPosition,
 };
-use feather_server_types::{
-    BlockUpdateCause, BlockUpdateEvent, Game, ScheduledBlockUpdateCause, ScheduledBlockUpdateEvent,
-};
+use feather_server_types::{BlockUpdateCause, BlockUpdateEvent, Game};
 use fecs::World;
 use std::cmp::Ordering;
 use std::collections::{HashSet, VecDeque};

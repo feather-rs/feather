@@ -4,16 +4,16 @@
 extern crate nalgebra_glm as glm;
 
 mod components;
-mod events;
 mod event_scheduler;
+mod events;
 mod game;
 mod misc;
 mod resources;
 pub mod task;
 
 pub use components::*;
-pub use events::*;
 pub use event_scheduler::EventScheduler;
+pub use events::*;
 pub use misc::*;
 pub use resources::*;
 
