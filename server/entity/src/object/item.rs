@@ -225,18 +225,15 @@ fn serialize(game: &Game, accessor: &EntityRef) -> EntityData {
     let vel = accessor.get::<Velocity>().0;
     let item = accessor.get::<ItemStack>();
     EntityData::Item(ItemEntityData {
-        entity: BaseEntityData::new(
-            *accessor.get::<Position>(),
-            Vec3d::new(vel.x, vel.y, vel.z),
-            1.0,
-        ),
+        entity: BaseEntityData::new(*accessor.get::<Position>(), Vec3d::new(vel.x, vel.y, vel.z)),
         age: 0, // todo
         pickup_delay: (accessor.get::<CollectableAt>().0 as i64 - game.tick_count as i64).max(0)
-            as u8,
+            as i16,
         item: ItemData {
-            count: item.amount,
+            count: item.amount as i8,
             item: item.ty.identifier().to_owned(),
         },
+        health: 5, // todo
     })
 }
 
@@ -249,7 +246,7 @@ fn load(data: EntityData) -> anyhow::Result<EntityBuilder> {
             let stack = ItemStack::new(
                 Item::from_identifier(&data.item.item)
                     .ok_or_else(|| anyhow::anyhow!("invalid item {}", data.item.item))?,
-                data.item.count,
+                data.item.count as u8,
             );
 
             let collectable_at = data.pickup_delay;

@@ -31,62 +31,240 @@ const DATA_VERSION: i32 = 1631;
 /// Length, in bytes, of a sector.
 const SECTOR_BYTES: usize = 4096;
 
-/// The offset for each heightmap value
-const HEIGHTMAP_OFFSET: i64 = 9;
-
 /// Represents the data for a chunk after the "Chunk [x, y]" tag.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct ChunkRoot {
-    #[serde(rename = "Level")]
     level: ChunkLevel,
-    #[serde(rename = "DataVersion")]
     data_version: i32,
 }
 
 /// Represents the level data for a chunk.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct ChunkLevel {
     // TODO heightmaps, etc.
     #[serde(rename = "xPos")]
     x_pos: i32,
     #[serde(rename = "zPos")]
     z_pos: i32,
-    #[serde(rename = "Sections")]
     sections: Vec<LevelSection>,
-    #[serde(rename = "Biomes")]
     biomes: Vec<i32>,
-    #[serde(rename = "Entities")]
     entities: Vec<EntityData>,
     #[serde(rename = "TileEntities")]
     block_entities: Vec<BlockEntityData>,
-    #[serde(rename = "Heightmaps")]
-    heightmaps: Vec<i64>,
+    heightmaps: Heightmaps,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub struct Heightmaps {
+    // sometimes a few of those are missing, but we regenerate them anyways
+    #[serde(with = "packed_u9", default)]
+    light_blocking: Vec<u16>,
+    #[serde(with = "packed_u9", default)]
+    motion_blocking: Vec<u16>,
+    #[serde(with = "packed_u9", default)]
+    motion_blocking_no_leaves: Vec<u16>,
+    #[serde(with = "packed_u9", default)]
+    ocean_floor: Vec<u16>,
+    #[serde(with = "packed_u9", default)]
+    world_surface: Vec<u16>,
+}
+
+impl Heightmaps {
+    // TODO remove this and use hematite-nbt serde for serialization
+    pub(crate) fn pack_u9(u9_array: &[u16]) -> Vec<i64> {
+        if u9_array.len() % 64 != 0 {
+            panic!("array length must be a multiple of 64");
+        }
+
+        let mut packed = Vec::with_capacity(u9_array.len() / 64 * 9);
+        let mut iter = u9_array.iter();
+
+        let mut container = 0u64;
+        let mut shift = 0;
+        for _elem in 0..u9_array.len() {
+            // For every element (u9)
+            let element = *iter.next().unwrap() as u64;
+
+            if element > 0x1FF {
+                // Invalid heightmap value
+                panic!("Invalid heightmap value {}", element);
+            }
+
+            container |= element << shift;
+            shift += 9;
+
+            if shift >= 64 {
+                // Take next container
+                packed.push(container as i64);
+
+                container = if shift > 64 {
+                    // We have some bits left to store in the new container
+                    element >> -(shift - 64 - 9)
+                } else {
+                    0
+                };
+
+                shift -= 64;
+            }
+        }
+
+        debug_assert_eq!(iter.next(), None);
+        debug_assert_eq!(shift, 0);
+        debug_assert_eq!(container, 0);
+
+        packed
+    }
+}
+
+mod packed_u9 {
+    use serde::de::Error as DeError;
+    use serde::de::{SeqAccess, Visitor};
+    use serde::export::Formatter;
+    use serde::ser::Error as SerError;
+    use serde::ser::SerializeSeq;
+    use serde::{Deserializer, Serializer};
+    use std::marker::PhantomData;
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Vec<u16>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct PackedVisitor(PhantomData<fn() -> u16>);
+
+        impl<'de> Visitor<'de> for PackedVisitor {
+            type Value = Vec<u16>;
+
+            fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
+                formatter.write_str("a sequence of type long with length 36")
+            }
+
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: SeqAccess<'de>,
+            {
+                let len = seq.size_hint().unwrap(); // nbt always knows sequence size
+                if len % 9 != 0 {
+                    // Invalid sequence length
+                    return Err(A::Error::custom("sequence length must be a multiple of 9"));
+                }
+                let unpacked_len = len * 64 / 9;
+
+                let mut u9_array: Vec<u16> = Vec::with_capacity(unpacked_len);
+
+                let mut container: Option<u64> = seq.next_element()?.map(|x: i64| x as u64); // We checked the length
+                let mut shift = 0;
+                for _elem in 0..unpacked_len {
+                    // For every element (u9)
+
+                    // unwrapping here is safe, as this can only fail if there is an implementation error in this algorithm
+                    // or in the SeqAccess because we checked the sequence length
+                    let mut element: u16 = ((container.unwrap() >> shift) & 0x1FF) as u16;
+                    shift += 9;
+
+                    if shift >= 64 {
+                        // Take next container
+                        container = seq.next_element()?.map(|x: i64| x as u64);
+
+                        if shift > 64 {
+                            // We have some bits left to get from the next container
+
+                            // same here with the unwrapping
+                            element |= ((container.unwrap() << -(shift - 64 - 9)) & 0x1FF) as u16;
+                        }
+
+                        shift -= 64;
+                    }
+
+                    u9_array.push(element);
+                }
+
+                debug_assert_eq!(container, None);
+                debug_assert_eq!(shift, 0);
+
+                Ok(u9_array)
+            }
+        }
+
+        deserializer.deserialize_seq(PackedVisitor(PhantomData))
+    }
+
+    pub fn serialize<S>(u9_array: &[u16], serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        // TODO use NBT LongArray type once implemented in hematite_nbt ( https://github.com/PistonDevelopers/hematite_nbt/pull/51)
+
+        if u9_array.len() % 64 != 0 {
+            // Invalid array length
+            return Err(S::Error::custom("array length must be a multiple of 64"));
+        }
+
+        let mut seq = serializer.serialize_seq(Some(36))?;
+        let mut iter = u9_array.iter();
+
+        let mut container = 0u64;
+        let mut shift = 0;
+        for _elem in 0..u9_array.len() {
+            // For every element (u9)
+            let element = *iter.next().unwrap() as u64;
+
+            if element > 0x1FF {
+                // Invalid heightmap value
+                return Err(S::Error::custom(format!(
+                    "invalid heightmap value {}",
+                    element
+                )));
+            }
+
+            container |= element << shift;
+            shift += 9;
+
+            if shift >= 64 {
+                // Take next container
+                seq.serialize_element(&(container as i64))?;
+
+                container = if shift > 64 {
+                    // We have some bits left to store in the new container
+                    element >> -(shift - 64 - 9)
+                } else {
+                    0
+                };
+
+                shift -= 64;
+            }
+        }
+
+        debug_assert_eq!(iter.next(), None);
+        debug_assert_eq!(shift, 0);
+        debug_assert_eq!(container, 0);
+
+        seq.end()
+    }
 }
 
 /// Represents a chunk section in a region file.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct LevelSection {
-    #[serde(rename = "Y")]
     y: i8,
     #[serde(rename = "BlockStates")]
     states: Vec<i64>,
-    #[serde(rename = "Palette")]
     palette: Vec<LevelPaletteEntry>,
-    #[serde(rename = "BlockLight")]
     block_light: Vec<i8>,
-    #[serde(rename = "SkyLight")]
     sky_light: Vec<i8>,
 }
 
 /// Represents a palette entry in a region file.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct LevelPaletteEntry {
     /// The identifier of the type of this block
-    #[serde(rename = "Name")]
     name: Cow<'static, str>,
     /// Optional properties for this block
-    #[serde(rename = "Properties")]
-    props: Option<LevelProperties>,
+    properties: Option<LevelProperties>,
 }
 
 /// Represents the proprties for a palette entry.
@@ -294,7 +472,7 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     for entry in &section.palette {
         // Construct properties map
         let mut props = BTreeMap::new();
-        if let Some(entry_props) = entry.props.as_ref() {
+        if let Some(entry_props) = entry.properties.as_ref() {
             props.extend(
                 entry_props
                     .props
@@ -364,18 +542,6 @@ fn chunk_to_chunk_root(
     entities: &[EntityData],
     block_entities: &[BlockEntityData],
 ) -> ChunkRoot {
-    let heightmaps: Vec<i64> = chunk
-        .heightmaps()
-        .iter()
-        .map(|map| {
-            (map.motion_blocking() as i64)
-                + ((map.motion_blocking_no_leaves() as i64) << HEIGHTMAP_OFFSET)
-                + ((map.ocean_floor() as i64) << (HEIGHTMAP_OFFSET * 2))
-                + ((map.ocean_floor_wg() as i64) << (HEIGHTMAP_OFFSET * 3))
-                + ((map.world_surface() as i64) << (HEIGHTMAP_OFFSET * 4))
-                + ((map.world_surface_wg() as i64) << (HEIGHTMAP_OFFSET * 5))
-        })
-        .collect();
     ChunkRoot {
         level: ChunkLevel {
             x_pos: chunk.position().x,
@@ -403,7 +569,29 @@ fn chunk_to_chunk_root(
                 .map(|biome| biome.protocol_id())
                 .collect(),
             entities: entities.into(),
-            heightmaps,
+            heightmaps: Heightmaps {
+                light_blocking: chunk
+                    .heightmaps()
+                    .iter()
+                    .map(|h| h.light_blocking())
+                    .collect(),
+                motion_blocking: chunk
+                    .heightmaps()
+                    .iter()
+                    .map(|h| h.motion_blocking())
+                    .collect(),
+                motion_blocking_no_leaves: chunk
+                    .heightmaps()
+                    .iter()
+                    .map(|h| h.motion_blocking_no_leaves())
+                    .collect(),
+                ocean_floor: chunk.heightmaps().iter().map(|h| h.ocean_floor()).collect(),
+                world_surface: chunk
+                    .heightmaps()
+                    .iter()
+                    .map(|h| h.world_surface())
+                    .collect(),
+            },
         },
         data_version: DATA_VERSION,
     }
@@ -423,7 +611,7 @@ fn raw_palette_to_palette_entries(palette: &[BlockId]) -> Vec<LevelPaletteEntry>
 
             LevelPaletteEntry {
                 name: identifier.into(),
-                props: Some(LevelProperties {
+                properties: Some(LevelProperties {
                     props: props
                         .into_iter()
                         .map(|(k, v)| (Cow::from(k), Cow::from(v)))
@@ -818,6 +1006,7 @@ impl RegionPosition {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_test::Token;
 
     #[test]
     fn test_sector_allocator() {
@@ -869,5 +1058,97 @@ mod tests {
                 count: 2
             }
         );
+    }
+
+    #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
+    struct TestPackedU9 {
+        #[serde(with = "packed_u9")]
+        list: Vec<u16>,
+    }
+
+    #[test]
+    fn test_packed_u9_pattern() {
+        let data_u64 = iter::repeat(0xAAAA_AAAA_AAAA_AAAAu64 as i64); // 64-bit 0b1010...
+        let data_u9 = [0b010101010u16, 0b101010101u16].iter().cloned().cycle(); // corresponding 9-bit pattern
+
+        let unpacked: Vec<u16> = data_u9.take(256).collect();
+        let packed: Vec<i64> = data_u64.take(36).collect();
+
+        // Test blob serializer
+        let converted = Heightmaps::pack_u9(&unpacked);
+        assert_eq!(
+            converted, packed,
+            "is:        {:016X?}\nshould be: {:016X?}",
+            converted, packed
+        );
+
+        // Test serde serialization
+        let mut tokenized_vec = packed.iter().map(|&x| Token::I64(x)).collect();
+
+        let mut tokenized_sequence = Vec::new();
+        tokenized_sequence.push(Token::Struct {
+            name: "TestPackedU9",
+            len: 1,
+        });
+        tokenized_sequence.push(Token::Str("list"));
+        tokenized_sequence.push(Token::Seq { len: Some(36) });
+        tokenized_sequence.append(&mut tokenized_vec);
+        tokenized_sequence.push(Token::SeqEnd);
+        tokenized_sequence.push(Token::StructEnd);
+
+        let test_object = TestPackedU9 { list: unpacked };
+
+        serde_test::assert_tokens(&test_object, tokenized_sequence.as_slice())
+    }
+
+    #[test]
+    #[allow(clippy::inconsistent_digit_grouping)] // Sorry clippy but grouping by 9 bits makes sense here
+    fn test_packed_u9_order() {
+        let data_u64 = [
+            // this repeats every 9 u64...
+            0b0_001000000_000100000_000010000_000001000_000000100_000000010_000000001u64,
+            0b00_000100000_000010000_000001000_000000100_000000010_000000001_01000000u64,
+            0b000_000010000_000001000_000000100_000000010_000000001_010000000_0010000u64,
+            0b0000_000001000_000000100_000000010_000000001_010000000_001000000_000100u64,
+            0b01000_000000100_000000010_000000001_010000000_001000000_000100000_00001u64,
+            0b000100_000000010_000000001_010000000_001000000_000100000_000010000_0000u64,
+            0b0000010_000000001_010000000_001000000_000100000_000010000_000001000_000u64,
+            0b00000001_010000000_001000000_000100000_000010000_000001000_000000100_00u64,
+            0b010000000_001000000_000100000_000010000_000001000_000000100_000000010_0u64,
+        ]
+        .iter()
+        .cloned()
+        .map(|x| x as i64)
+        .cycle();
+        let data_u9 = (0..8).map(|x| 1 << x).cycle(); // corresponding 9-bit pattern
+
+        let unpacked: Vec<u16> = data_u9.take(256).collect();
+        let packed: Vec<i64> = data_u64.take(36).collect();
+
+        // Test blob serializer
+        let converted = Heightmaps::pack_u9(&unpacked);
+        assert_eq!(
+            converted, packed,
+            "is:        {:016X?}\nshould be: {:016X?}",
+            converted, packed
+        );
+
+        // Test serde serialization
+        let mut tokenized_vec = packed.iter().map(|&x| Token::I64(x)).collect();
+
+        let mut tokenized_sequence = Vec::new();
+        tokenized_sequence.push(Token::Struct {
+            name: "TestPackedU9",
+            len: 1,
+        });
+        tokenized_sequence.push(Token::Str("list"));
+        tokenized_sequence.push(Token::Seq { len: Some(36) });
+        tokenized_sequence.append(&mut tokenized_vec);
+        tokenized_sequence.push(Token::SeqEnd);
+        tokenized_sequence.push(Token::StructEnd);
+
+        let test_object = TestPackedU9 { list: unpacked };
+
+        serde_test::assert_tokens(&test_object, tokenized_sequence.as_slice())
     }
 }

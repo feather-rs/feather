@@ -58,23 +58,26 @@ pub struct BlockEntityBase {
 /// Kind of a block entity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "id")]
-#[serde(rename_all = "PascalCase")]
 pub enum BlockEntityKind {
     #[serde(rename = "minecraft:beacon")]
+    #[serde(rename_all = "PascalCase")]
     Beacon {
         levels: i32,
         primary: i32,
         secondary: i32,
     },
     #[serde(rename = "minecraft:bed")]
+    #[serde(rename_all = "PascalCase")]
     Bed, // empty in JE
     #[serde(rename = "minecraft:brewing_stand")]
+    #[serde(rename_all = "PascalCase")]
     BrewingStand {
         items: Vec<InventorySlot>,
         brew_time: i16,
         fuel: i8,
     },
     #[serde(rename = "minecraft:cauldron")]
+    #[serde(rename_all = "PascalCase")]
     Cauldron {
         items: Vec<InventorySlot>,
         potion_id: i16,
@@ -82,15 +85,18 @@ pub enum BlockEntityKind {
         is_movable: bool,
     },
     #[serde(rename = "minecraft:chest")]
+    #[serde(rename_all = "PascalCase")]
     Chest {
-        #[serde(rename = "Items")]
+        #[serde(default)]
         items: Vec<InventorySlot>,
         loot_table: Option<String>,
         loot_table_seed: Option<i64>,
     },
     #[serde(rename = "minecraft:comparator")]
+    #[serde(rename_all = "PascalCase")]
     Comparator { output_signal: i32 },
     #[serde(rename = "minecraft:command_block")]
+    #[serde(rename_all = "PascalCase")]
     CommandBlock {
         custom_name: Option<String>,
         command: String,
@@ -104,20 +110,28 @@ pub enum BlockEntityKind {
         last_execution: i64,
     },
     #[serde(rename = "minecraft:daylight_detector")]
+    #[serde(rename_all = "PascalCase")]
     DaylightDetector, // empty
     #[serde(rename = "minecraft:dispenser")]
+    #[serde(rename_all = "PascalCase")]
     Dispenser { items: Vec<InventorySlot> },
     #[serde(rename = "minecraft:dropper")]
+    #[serde(rename_all = "PascalCase")]
     Dropper { items: Vec<InventorySlot> },
     #[serde(rename = "minecraft:enchanting_table")]
+    #[serde(rename_all = "PascalCase")]
     EnchantingTable,
     #[serde(rename = "minecraft:ender_chest")]
+    #[serde(rename_all = "PascalCase")]
     EnderChest,
     #[serde(rename = "minecraft:end_gateway")]
+    #[serde(rename_all = "PascalCase")]
     EndGateway { age: i64, exact_teleport: bool },
     #[serde(rename = "minecraft:end_portal")]
+    #[serde(rename_all = "PascalCase")]
     EndPortal,
     #[serde(rename = "minecraft:furnace")]
+    #[serde(rename_all = "PascalCase")]
     Furnace {
         items: Vec<InventorySlot>,
         burn_time: i16,
@@ -125,11 +139,13 @@ pub enum BlockEntityKind {
         cook_time_total: i16,
     },
     #[serde(rename = "minecraft:hopper")]
+    #[serde(rename_all = "PascalCase")]
     Hopper {
         items: Vec<InventorySlot>,
         transfer_cooldown: i32,
     },
     #[serde(rename = "minecraft:jigsaw")]
+    #[serde(rename_all = "PascalCase")]
     Jigsaw {
         target_pool: String,
         final_state: String,
@@ -138,8 +154,12 @@ pub enum BlockEntityKind {
         attachment_type: String,
     },
     #[serde(rename = "minecraft:jukebox")]
+    #[serde(rename_all = "PascalCase")]
     Jukebox { record_item: InventorySlot },
     // TODO: a few more
+    /// Fallback type for unknown block entities
+    #[serde(other)]
+    Unknown,
 }
 
 impl BlockEntityKind {
@@ -163,6 +183,7 @@ impl BlockEntityKind {
             BlockEntityKind::Hopper { .. } => BlockEntityVariant::Hopper,
             BlockEntityKind::Jigsaw { .. } => BlockEntityVariant::Jigsaw,
             BlockEntityKind::Jukebox { .. } => BlockEntityVariant::Jukebox,
+            BlockEntityKind::Unknown { .. } => BlockEntityVariant::Unknown,
         }
     }
 }
@@ -188,4 +209,5 @@ pub enum BlockEntityVariant {
     Hopper,
     Jigsaw,
     Jukebox,
+    Unknown,
 }

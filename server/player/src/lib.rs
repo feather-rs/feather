@@ -118,7 +118,7 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     world.add(entity, CanRespawn).unwrap();
     world.add(entity, MaxHealth(20)).unwrap();
     world
-        .add(entity, Health(info.data.entity.health as u32))
+        .add(entity, Health(info.data.animal.health as u32))
         .unwrap();
     world.add(entity, BlocksFallen::default()).unwrap();
 
@@ -137,7 +137,7 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
         world,
         HealthUpdateEvent {
             old: 0,
-            new: info.data.entity.health as u32,
+            new: info.data.animal.health as u32,
             entity,
         },
     );

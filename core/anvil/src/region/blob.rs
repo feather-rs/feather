@@ -3,6 +3,7 @@
 
 use super::ChunkLevel;
 use super::{ChunkRoot, LevelSection};
+use crate::region::Heightmaps;
 use nbt::{Blob, Value};
 use std::collections::HashMap;
 
@@ -26,7 +27,7 @@ fn level_to_value(level: ChunkLevel) -> Value {
 
     map.insert(
         String::from("Heightmaps"),
-        Value::LongArray(level.heightmaps),
+        heightmaps_to_value(level.heightmaps),
     );
 
     let sections = level.sections.into_iter().map(section_to_value).collect();
@@ -88,6 +89,33 @@ fn level_to_value(level: ChunkLevel) -> Value {
     Value::Compound(map)
 }
 
+fn heightmaps_to_value(heightmaps: Heightmaps) -> Value {
+    let mut map = HashMap::new();
+
+    map.insert(
+        String::from("LIGHT_BLOCKING"),
+        Value::LongArray(Heightmaps::pack_u9(&heightmaps.light_blocking)),
+    );
+    map.insert(
+        String::from("MOTION_BLOCKING"),
+        Value::LongArray(Heightmaps::pack_u9(&heightmaps.motion_blocking)),
+    );
+    map.insert(
+        String::from("MOTION_BLOCKING_NO_LEAVES"),
+        Value::LongArray(Heightmaps::pack_u9(&heightmaps.motion_blocking_no_leaves)),
+    );
+    map.insert(
+        String::from("OCEAN_FLOOR"),
+        Value::LongArray(Heightmaps::pack_u9(&heightmaps.ocean_floor)),
+    );
+    map.insert(
+        String::from("WORLD_SURFACE"),
+        Value::LongArray(Heightmaps::pack_u9(&heightmaps.world_surface)),
+    );
+
+    Value::Compound(map)
+}
+
 fn section_to_value(section: LevelSection) -> Value {
     let mut map = HashMap::new();
 
@@ -110,7 +138,7 @@ fn section_to_value(section: LevelSection) -> Value {
         let mut map = HashMap::new();
         map.insert(String::from("Name"), Value::String(entry.name.into_owned()));
 
-        if let Some(props) = entry.props {
+        if let Some(props) = entry.properties {
             let mut props_map = HashMap::new();
             props.props.into_iter().for_each(|(name, value)| {
                 props_map.insert(name, Value::String(value.into_owned()));
@@ -137,7 +165,7 @@ fn section_to_value(section: LevelSection) -> Value {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::region::DATA_VERSION;
+    use crate::region::{Heightmaps, DATA_VERSION};
     use std::io::Cursor;
 
     #[test]
@@ -157,7 +185,13 @@ mod tests {
                 biomes: vec![10],
                 entities: vec![],
                 block_entities: vec![],
-                heightmaps: vec![],
+                heightmaps: Heightmaps {
+                    light_blocking: vec![0; 256],
+                    motion_blocking: vec![0; 256],
+                    motion_blocking_no_leaves: vec![0; 256],
+                    ocean_floor: vec![0; 256],
+                    world_surface: vec![0; 256],
+                },
             },
         };
 
