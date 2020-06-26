@@ -890,7 +890,6 @@ impl RegionPosition {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_test::Token;
 
     #[test]
     fn test_sector_allocator() {

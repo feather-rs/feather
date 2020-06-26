@@ -123,9 +123,13 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::inconsistent_digit_grouping)]
     fn test_packed_u9_pattern() {
         let data_u64 = iter::repeat(0xAAAA_AAAA_AAAA_AAAAu64 as i64); // 64-bit 0b1010...
-        let data_u9 = [0b010101010u16, 0b101010101u16].iter().cloned().cycle(); // corresponding 9-bit pattern
+        let data_u9 = [0b01_01_01_01_0u16, 0b1_01_01_01_01u16]
+            .iter()
+            .cloned()
+            .cycle(); // corresponding 9-bit pattern
 
         let unpacked: Vec<u16> = data_u9.take(256).collect();
         let packed: Vec<i64> = data_u64.take(36).collect();
