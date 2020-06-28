@@ -46,7 +46,7 @@ pub struct ChunkLoad {
 #[allow(clippy::large_enum_variant)]
 pub enum Reply {
     LoadedChunk(ChunkPosition, anyhow::Result<ChunkLoad>),
-    SavedChunk(ChunkPosition),
+    SavedChunk(ChunkPosition, anyhow::Result<()>),
 }
 
 #[derive(Clone)]
@@ -233,13 +233,16 @@ fn save_chunk(worker: &mut ChunkWorker, save: ChunkSave) {
 
     let file = worker_region(&mut worker.open_regions, &worker.dir, rpos);
 
-    // TODO don't crash the server when a chunk fails to save
-    file.handle
-        .save_chunk(&*chunk, &save.entities, &save.block_entities)
-        .unwrap();
+    let result = file
+        .handle
+        .save_chunk(&*chunk, &save.entities, &save.block_entities);
+
     worker
         .sender
-        .send(Reply::SavedChunk(chunk.position()))
+        .send(Reply::SavedChunk(
+            chunk.position(),
+            result.map_err(|err| err.into()),
+        ))
         .unwrap();
 }
 

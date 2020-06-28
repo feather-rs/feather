@@ -1,9 +1,8 @@
 use arrayvec::ArrayVec;
 use feather_items::Item;
 use feather_util::{vec3, Position, Vec3d};
-use nbt::Value;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use serde::ser::Error;
+use serde::{Deserialize, Serialize, Serializer};
 use thiserror::Error;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -72,53 +71,13 @@ pub enum EntityData {
     Donkey(AnimalData),
 
     /// Fallback type for unknown entities
-    #[serde(other)]
+    #[serde(other, serialize_with = "EntityData::serialize_unknown")]
     Unknown,
 }
 
 impl EntityData {
-    pub fn into_nbt_value(self) -> Value {
-        let mut map = HashMap::new();
-
-        map.insert(
-            String::from("id"),
-            Value::String(
-                match self {
-                    EntityData::Item(_) => "minecraft:item",
-                    EntityData::Arrow(_) => "minecraft:arrow",
-                    EntityData::Cow(_) => "minecraft:cow",
-                    EntityData::Pig(_) => "minecraft:pig",
-                    EntityData::Chicken(_) => "minecraft:chicken",
-                    EntityData::Sheep(_) => "minecraft:sheep",
-                    EntityData::Horse(_) => "minecraft:horse",
-                    EntityData::Llama(_) => "minecraft:llama",
-                    EntityData::Mooshroom(_) => "minecraft:mooshroom",
-                    EntityData::Rabbit(_) => "minecraft:rabbit",
-                    EntityData::Squid(_) => "minecraft:squid",
-                    EntityData::Donkey(_) => "minecraft:donkey",
-                    EntityData::Unknown => panic!("Cannot write unknown entities"),
-                }
-                .to_string(),
-            ),
-        );
-
-        match self {
-            EntityData::Item(data) => data.write_to_map(&mut map),
-            EntityData::Arrow(data) => data.write_to_map(&mut map),
-            EntityData::Cow(data) => data.write_to_map(&mut map),
-            EntityData::Pig(data) => data.write_to_map(&mut map),
-            EntityData::Chicken(data) => data.write_to_map(&mut map),
-            EntityData::Sheep(data) => data.write_to_map(&mut map),
-            EntityData::Horse(data) => data.write_to_map(&mut map),
-            EntityData::Llama(data) => data.write_to_map(&mut map),
-            EntityData::Mooshroom(data) => data.write_to_map(&mut map),
-            EntityData::Rabbit(data) => data.write_to_map(&mut map),
-            EntityData::Squid(data) => data.write_to_map(&mut map),
-            EntityData::Donkey(data) => data.write_to_map(&mut map),
-            EntityData::Unknown => unreachable!(),
-        }
-
-        Value::Compound(map)
+    pub(crate) fn serialize_unknown<S: Serializer>(_serializer: S) -> Result<S::Ok, S::Error> {
+        Err(S::Error::custom("cannot serialize unknown entities"))
     }
 }
 
@@ -131,23 +90,6 @@ pub struct BaseEntityData {
     pub rotation: ArrayVec<[f32; 2]>,
     #[serde(rename = "Motion")]
     pub velocity: ArrayVec<[f64; 3]>,
-}
-
-impl BaseEntityData {
-    fn write_to_map(self, map: &mut HashMap<String, Value>) {
-        map.insert(
-            String::from("Pos"),
-            Value::List(self.position.iter().copied().map(Value::Double).collect()),
-        );
-        map.insert(
-            String::from("Rotation"),
-            Value::List(self.rotation.iter().copied().map(Value::Float).collect()),
-        );
-        map.insert(
-            String::from("Motion"),
-            Value::List(self.velocity.iter().copied().map(Value::Double).collect()),
-        );
-    }
 }
 
 #[derive(Error, Debug, PartialEq, Eq)]
@@ -211,13 +153,6 @@ pub struct AnimalData {
 }
 
 impl AnimalData {
-    fn write_to_map(self, map: &mut HashMap<String, Value>) {
-        self.base.write_to_map(map);
-        map.insert(String::from("Health"), Value::Float(self.health));
-    }
-}
-
-impl AnimalData {
     /// Creates an `AnimalData` from its parameters.
     pub fn new(base: BaseEntityData, health: f32) -> Self {
         Self { base, health }
@@ -240,13 +175,6 @@ pub struct ItemData {
     pub count: i8,
     #[serde(rename = "id")]
     pub item: String,
-}
-
-impl ItemData {
-    fn write_to_map(self, map: &mut HashMap<String, Value>) {
-        map.insert(String::from("Count"), Value::Byte(self.count));
-        map.insert(String::from("id"), Value::String(self.item));
-    }
 }
 
 impl Default for ItemData {
@@ -276,20 +204,6 @@ pub struct ItemEntityData {
     pub health: i16,
 }
 
-impl ItemEntityData {
-    fn write_to_map(self, map: &mut HashMap<String, Value>) {
-        self.entity.write_to_map(map);
-
-        let mut item = HashMap::new();
-        self.item.write_to_map(&mut item);
-        map.insert(String::from("Item"), Value::Compound(item));
-
-        map.insert(String::from("Age"), Value::Short(self.age));
-        map.insert(String::from("PickupDelay"), Value::Short(self.pickup_delay));
-        map.insert(String::from("Health"), Value::Short(self.health));
-    }
-}
-
 /// Data for an Arrow entity (`minecraft:arrow`).
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ArrowEntityData {
@@ -303,14 +217,6 @@ pub struct ArrowEntityData {
     // See: https://github.com/PistonDevelopers/hematite_nbt/issues/43
     #[serde(rename = "crit")]
     pub critical: i8,
-}
-
-impl ArrowEntityData {
-    fn write_to_map(self, map: &mut HashMap<String, Value>) {
-        self.entity.write_to_map(map);
-
-        map.insert(String::from("crit"), Value::Byte(self.critical));
-    }
 }
 
 #[cfg(test)]

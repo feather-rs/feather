@@ -36,35 +36,41 @@ pub struct ChunkWorkerHandle {
     pub receiver: Receiver<chunk_worker::Reply>,
 }
 
-/// System for receiving loaded chunks from the chunk worker thread.
+/// System for handling replies from the chunk worker thread.
 #[fecs::system]
-pub fn chunk_load(
+pub fn handle_chunk_worker_replies(
     game: &mut Game,
     world: &mut World,
     chunk_worker_handle: &ChunkWorkerHandle,
     #[default] loading_chunks: &mut LoadingChunks,
 ) {
     while let Ok(reply) = chunk_worker_handle.receiver.try_recv() {
-        if let chunk_worker::Reply::LoadedChunk(pos, result) = reply {
-            loading_chunks.0.remove(&pos);
-            match result {
-                Ok(loaded) => {
-                    game.chunk_map.insert(loaded.chunk);
+        match reply {
+            chunk_worker::Reply::LoadedChunk(pos, result) => {
+                loading_chunks.0.remove(&pos);
+                match result {
+                    Ok(loaded) => {
+                        game.chunk_map.insert(loaded.chunk);
 
-                    loaded.entities.into_iter().for_each(|builder| {
-                        let entity = builder.build().spawn_in(world);
-                        game.handle(world, EntitySpawnEvent { entity });
-                    });
+                        loaded.entities.into_iter().for_each(|builder| {
+                            let entity = builder.build().spawn_in(world);
+                            game.handle(world, EntitySpawnEvent { entity });
+                        });
 
-                    game.handle(world, ChunkLoadEvent { chunk: pos });
+                        game.handle(world, ChunkLoadEvent { chunk: pos });
 
-                    log::trace!("Loaded chunk at {:?}", pos);
-                }
-                Err(error) => {
-                    log::warn!("Failed to load chunk at {:?}: {}", pos, error);
-                    game.handle(world, ChunkLoadFailEvent { pos, error });
+                        log::trace!("Loaded chunk at {:?}", pos);
+                    }
+                    Err(error) => {
+                        log::warn!("Failed to load chunk at {:?}: {}", pos, error);
+                        game.handle(world, ChunkLoadFailEvent { pos, error });
+                    }
                 }
             }
+            chunk_worker::Reply::SavedChunk(pos, result) => match result {
+                Ok(()) => log::trace!("Saved chunk at {:?}", pos),
+                Err(error) => log::warn!("Failed to save chunk at {:?}: {}", pos, error),
+            },
         }
     }
 }
