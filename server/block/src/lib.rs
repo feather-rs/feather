@@ -16,8 +16,7 @@ use feather_core::{
 use feather_server_types::BlockEntity;
 use fecs::{EntityBuilder, EntityRef};
 pub use init::{on_block_entity_create_insert_to_map, on_block_update_create_block_entity};
-pub use redstone::on_block_update_redstone;
-pub use redstone::RedstoneState;
+pub use redstone::{on_block_update_redstone, RedstoneState, RedstoneCache};
 
 /// A function which determines whether a given change between
 /// block states should cause a block entity to be destroyed/recreated.

@@ -5,7 +5,10 @@ use feather_core::{
 use feather_server_types::{BlockUpdateCause, BlockUpdateEvent, Game};
 use fecs::World;
 use std::cmp::Ordering;
-use std::collections::{HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::convert::{From, Into};
+use std::iter::IntoIterator;
+use std::rc::Rc;
 
 /// Checks if the block update invalidates the current redstone state
 /// If the case, recalculates the redstone behavior
@@ -38,47 +41,49 @@ pub fn on_block_update_redstone(event: &BlockUpdateEvent, game: &mut Game, world
     ]
     .into_iter();
 
+    let mut cache = RedstoneCache::new();
+
     // Keep track of the redstone blocks whoose power has been increased and decreased
     let mut rising_blocks = VecDeque::with_capacity(8);
     let mut falling_blocks = Vec::with_capacity(8);
 
     // check for the state of the redstone and correct it if neccessary
     check_positions.for_each(|block_pos| {
-        if let Some(mut block) = game.block_at(block_pos) {
-            if block.kind() == BlockKind::RedstoneWire {
-                // Looks at the surrounding blocks and calculates what the state should be
-                let correct_state = RedstoneState::calculate(block_pos, game);
-                // returns what the current blockstate is
-                let current_state = RedstoneState::from_block(block).unwrap();
+        let block = cache.block_at(block_pos, game);
+        if let RedstoneBlock::RedstoneWire(current_state) = &block.redstone_kind {
+            // Looks at the surrounding blocks and calculates what the state should be
+            let correct_state = RedstoneState::calculate(block_pos, &mut cache, game);
 
-                if correct_state != current_state {
-                    correct_state.apply_to(&mut block);
+            match correct_state.power.cmp(&current_state.power) {
+                Ordering::Greater => rising_blocks.push_back(block_pos),
+                Ordering::Less => falling_blocks.push((current_state.power, block_pos)),
+                Ordering::Equal => {}
+            }
 
-                    game.set_block_at(world, block_pos, block, BlockUpdateCause::Redstone);
-                }
-
-                match correct_state.power.cmp(&current_state.power) {
-                    Ordering::Greater => rising_blocks.push_back(block_pos),
-                    Ordering::Less => falling_blocks.push((current_state.power, block_pos)),
-                    Ordering::Equal => {}
-                }
+            if correct_state != *current_state {
+                cache.update_block(block_pos, &correct_state, block.block_id);
             }
         }
     });
 
-    // // First handle blocks that loose power because of the update
-    let new_rising_blocks = update_falling_blocks(falling_blocks, game, world);
+    // First handle blocks that loose power because of the update
+    let new_rising_blocks = update_falling_blocks(falling_blocks, &mut cache, game);
 
     // Then handle rising blocks
-    update_rising_blocks(rising_blocks, game, world);
+    update_rising_blocks(rising_blocks, &mut cache, game);
 
     // Last, update those blocks that `update_falling_blocks` returned as rising blocks
     if !new_rising_blocks.is_empty() {
         for block in new_rising_blocks {
             let mut arg = VecDeque::new();
             arg.push_back(block);
-            update_rising_blocks(arg, game, world);
+            update_rising_blocks(arg, &mut cache, game);
         }
+    }
+
+    // And set all changed blocks from the cache in the actual world
+    for (pos, block) in cache {
+        game.set_block_at(world, pos, block.block_id, BlockUpdateCause::Redstone);
     }
 }
 
@@ -87,8 +92,8 @@ pub fn on_block_update_redstone(event: &BlockUpdateEvent, game: &mut Game, world
 /// is more complicated than calculating the rising power levels
 fn update_rising_blocks(
     mut rising_blocks: VecDeque<BlockPosition>,
+    cache: &mut RedstoneCache,
     game: &mut Game,
-    world: &mut World,
 ) {
     let mut updated_blocks = HashSet::new();
 
@@ -96,22 +101,18 @@ fn update_rising_blocks(
     while let Some(block_pos) = rising_blocks.pop_front() {
         updated_blocks.insert(block_pos);
 
-        for (mut block, pos, _, _) in get_redstone_connections(block_pos, game) {
-            if block.kind() == BlockKind::RedstoneWire {
+        for (block, pos, _, _) in cache.get_redstone_connections(block_pos, game) {
+            if let RedstoneBlock::RedstoneWire(old_block_state) = &block.redstone_kind {
                 if updated_blocks.contains(&pos) {
                     continue;
                 }
-                let block_state = RedstoneState::calculate(pos, game);
-                let old_block_state = RedstoneState::from_block(block).unwrap();
+                let block_state = RedstoneState::calculate(pos, cache, game);
 
-                // println!("Block pos: {:?}", block_pos);
-                // println!("old state: {:?}", old_block_state);
+                // println!("Block pos: {:?}", pos);
                 // println!("new state: {:?}", block_state);
 
                 if block_state.power > old_block_state.power {
-                    block.set_power(block_state.power);
-
-                    game.set_block_at(world, pos, block, BlockUpdateCause::Redstone);
+                    cache.update_block(pos, &block_state, block.block_id);
 
                     rising_blocks.push_back(pos);
                 }
@@ -124,8 +125,8 @@ fn update_rising_blocks(
 /// if the surrounding wire has a lower power than the original power, set it to 0 and add the block to the falling blocks
 fn update_falling_blocks(
     mut falling_blocks: Vec<(i32, BlockPosition)>,
+    cache: &mut RedstoneCache,
     game: &mut Game,
-    world: &mut World,
 ) -> VecDeque<BlockPosition> {
     // Keeps the blocks that were already updated
     let mut updated_blocks = HashSet::new();
@@ -137,16 +138,19 @@ fn update_falling_blocks(
     while let Some((original_power, block_pos)) = falling_blocks.pop() {
         updated_blocks.insert(block_pos);
         // set the power level of this block to zero
-        if let Some(mut block) = game.block_at(block_pos) {
-            block.set_power(0);
-            // Note: This step could be removed to avoid unnecessary packets
-            // Then a internal or virtual state would be needed which stores the blocks power levels
-            // Maybe set the block at the game without sending packets or causing BlockUpdates
-            game.set_block_at(world, block_pos, block, BlockUpdateCause::Redstone);
+        let block = cache.block_at(block_pos, game);
+        if let RedstoneBlock::RedstoneWire(mut state) = block.redstone_kind.clone() {
+            state.power = 0;
+            cache.update_block(block_pos, &state, block.block_id);
+        } else {
+            panic!(
+                "Unexpected block: Expected redstone wire but got, {:?}",
+                block.redstone_kind
+            );
         }
 
-        for (block, pos, _, _) in get_redstone_connections(block_pos, game) {
-            if block.kind() == BlockKind::RedstoneWire {
+        for (block, pos, _, _) in cache.get_redstone_connections(block_pos, game) {
+            if let RedstoneBlock::RedstoneWire(state) = &block.redstone_kind {
                 // if the wire block is already detected, ignore it
                 if updated_blocks.contains(&pos)
                     || falling_blocks
@@ -156,14 +160,12 @@ fn update_falling_blocks(
                     continue;
                 }
 
-                if let Some(power) = block.power() {
-                    if power < original_power {
-                        falling_blocks.push((original_power - 1, pos));
-                    } else {
-                        // mark this block as rising so that in the next step the zeroed values can get calculated
-                        if !new_rising_blocks.contains(&pos) {
-                            new_rising_blocks.push_back(pos);
-                        }
+                if state.power < original_power {
+                    falling_blocks.push((original_power - 1, pos));
+                } else {
+                    // mark this block as rising so that in the next step the zeroed values can get calculated
+                    if !new_rising_blocks.contains(&pos) {
+                        new_rising_blocks.push_back(pos);
                     }
                 }
             }
@@ -172,7 +174,7 @@ fn update_falling_blocks(
     new_rising_blocks
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct RedstoneState {
     north: NorthWire,
     east: EastWire,
@@ -181,23 +183,13 @@ pub struct RedstoneState {
     power: i32,
 }
 
-impl PartialEq for RedstoneState {
-    fn eq(&self, other: &Self) -> bool {
-        other.power == self.power
-            && other.north == self.north
-            && other.east == self.east
-            && other.south == self.south
-            && other.west == self.west
-    }
-}
-
-impl Eq for RedstoneState {}
-
 impl RedstoneState {
     /// calculates the state of the redstone wire that would be at this position
     /// Has to check in all four directions one block down and one block up
     /// redstone at same y: side, redstone at y-1: side, redstone at y+1: up
-    pub fn calculate(pos: BlockPosition, game: &Game) -> Self {
+    pub fn calculate(pos: BlockPosition, cache: &mut RedstoneCache, game: &Game) -> Self {
+        // println!("Calculating for block at {:?}", pos);
+        // println!("{:?}", get_redstone_connections(pos, game));
         let mut north = NorthWire::None;
         let mut east = EastWire::None;
         let mut south = SouthWire::None;
@@ -206,13 +198,18 @@ impl RedstoneState {
         // always choose the maximum available power level
         let mut power = 0;
 
-        for (block, _, direction, vertical_offset) in get_redstone_connections(pos, game) {
-            let block_weak_power = block.weak_redstone_power(direction.opposite());
+        for (block, _, direction, vertical_offset) in cache.get_redstone_connections(pos, game) {
+            let block_weak_power = block.block_id.weak_redstone_power(direction.opposite());
             if let Some(block_weak_power) = block_weak_power {
                 if block_weak_power > power {
                     power = block_weak_power;
                 }
             }
+
+            // println!(
+            //     "Block: {:?} - power: {:?} - position: {:?}",
+            //     block, block_weak_power, block_pos
+            // );
 
             // If a redstone wire exist one block above and one block below for a direction,
             // The Wire::Side state is preferred (because of the order of get_redstone_connections)
@@ -244,7 +241,7 @@ impl RedstoneState {
                 _ => (),
             }
         }
-
+        // println!("Actual values: power - {:?}", power);
         Self {
             north,
             east,
@@ -278,33 +275,118 @@ impl RedstoneState {
     }
 }
 
+#[derive(Debug)]
 pub enum VerticalOffset {
     None,
     Below,
     Above,
 }
 
-pub fn get_redstone_connections(
-    pos: BlockPosition,
-    game: &Game,
-) -> Vec<(BlockId, BlockPosition, FacingCubic, VerticalOffset)> {
-    let directions = vec![
-        (pos + BlockPosition::new(0, 0, -1), FacingCubic::North),
-        (pos + BlockPosition::new(1, 0, 0), FacingCubic::East),
-        (pos + BlockPosition::new(0, 0, 1), FacingCubic::South),
-        (pos + BlockPosition::new(-1, 0, 0), FacingCubic::West),
-    ];
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub enum RedstoneBlock {
+    RedstoneWire(RedstoneState),
+    FullBlock,
+    None,
+}
 
-    let mut connected_redstone_components = Vec::with_capacity(8);
+impl RedstoneBlock {
+    fn is_full_block(&self) -> bool {
+        matches!(self, RedstoneBlock::FullBlock)
+    }
 
-    let block_pos_up = pos + BlockPosition::new(0, 1, 0);
-    let block_pos_down = pos + BlockPosition::new(0, -1, 0);
-    let block_above = game.block_at(block_pos_up);
-    let block_below = game.block_at(block_pos_down);
+    // fn is_none(&self) -> bool {
+    //     matches!(self, RedstoneBlock::None)
+    // }
+}
 
-    for (position, direction) in directions {
-        if let Some(block) = game.block_at(position) {
-            if block.weak_redstone_power(direction.opposite()).is_some() {
+impl From<BlockId> for RedstoneBlock {
+    fn from(block: BlockId) -> Self {
+        match block.kind() {
+            BlockKind::RedstoneWire => RedstoneBlock::RedstoneWire(
+                RedstoneState::from_block(block).expect("This block is a redstone wire"),
+            ),
+
+            _ if block.is_full_block() => RedstoneBlock::FullBlock,
+            _ => RedstoneBlock::None,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct CachedRedstoneBlock {
+    block_id: BlockId,
+    redstone_kind: RedstoneBlock,
+}
+
+#[derive(Debug, Default)]
+pub struct RedstoneCache {
+    cache: HashMap<BlockPosition, Rc<CachedRedstoneBlock>>,
+}
+
+impl RedstoneCache {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn block_at(&mut self, pos: BlockPosition, game: &Game) -> Rc<CachedRedstoneBlock> {
+        if !self.cache.contains_key(&pos) {
+            if let Some(block) = game.block_at(pos) {
+                self.cache.insert(
+                    pos,
+                    Rc::new(CachedRedstoneBlock {
+                        block_id: block,
+                        redstone_kind: block.into(),
+                    }),
+                );
+            }
+        }
+
+        self.cache.get(&pos).map(|block| block.clone()).unwrap()
+    }
+
+    pub fn update_block(&mut self, pos: BlockPosition, state: &RedstoneState, mut block: BlockId) {
+        state.apply_to(&mut block);
+
+        self.cache.insert(
+            pos,
+            Rc::new(CachedRedstoneBlock {
+                block_id: block,
+                redstone_kind: block.into(),
+            }),
+        );
+    }
+
+    /// Finds all neighbouring blocks that directly power this block
+    pub fn get_redstone_connections(
+        &mut self,
+        pos: BlockPosition,
+        game: &Game,
+    ) -> Vec<(
+        Rc<CachedRedstoneBlock>,
+        BlockPosition,
+        FacingCubic,
+        VerticalOffset,
+    )> {
+        let directions = vec![
+            (pos + BlockPosition::new(0, 0, -1), FacingCubic::North),
+            (pos + BlockPosition::new(1, 0, 0), FacingCubic::East),
+            (pos + BlockPosition::new(0, 0, 1), FacingCubic::South),
+            (pos + BlockPosition::new(-1, 0, 0), FacingCubic::West),
+        ];
+
+        // println!("Checking redstone connections!");
+        let mut connected_redstone_components = Vec::with_capacity(8);
+
+        let block_pos_up = pos + BlockPosition::new(0, 1, 0);
+        let block_pos_down = pos + BlockPosition::new(0, -1, 0);
+
+        for (position, direction) in directions {
+            let block = self.block_at(position, game);
+            if block
+                .block_id
+                .weak_redstone_power(direction.opposite())
+                .is_some()
+            {
                 connected_redstone_components.push((
                     block,
                     position,
@@ -317,44 +399,44 @@ pub fn get_redstone_connections(
                 let up = position + BlockPosition::new(0, 1, 0);
                 let down = position + BlockPosition::new(0, -1, 0);
 
-                if let Some(block) = game.block_at(up) {
-                    if block.kind() == BlockKind::RedstoneWire
-                        && !block_above
-                            .map(|block| block.is_full_block())
-                            .unwrap_or(false)
-                    {
-                        connected_redstone_components.push((
-                            block,
-                            up,
-                            direction,
-                            VerticalOffset::Above,
-                        ));
-                    }
+                // Condition: Connect to an up block if no soid block obstructs the center
+                let up_block = self.block_at(up, game);
+                if up_block.block_id.kind() == BlockKind::RedstoneWire
+                    && !self
+                        .block_at(block_pos_up, game)
+                        .redstone_kind
+                        .is_full_block()
+                {
+                    connected_redstone_components.push((
+                        up_block,
+                        up,
+                        direction,
+                        VerticalOffset::Above,
+                    ));
                 }
 
-                if let Some(block) = game.block_at(down) {
-                    if block.kind() == BlockKind::RedstoneWire
-                        && !game
-                            .block_at(down + BlockPosition::new(0, 1, 0))
-                            .map(|block| block.is_full_block())
-                            .unwrap_or(false)
-                    {
-                        connected_redstone_components.push((
-                            block,
-                            down,
-                            direction,
-                            VerticalOffset::Below,
-                        ));
-                    }
+                let down_block = self.block_at(down, game);
+                // Condition: Connect to a down block if not solid block is above that down block
+                if down_block.block_id.kind() == BlockKind::RedstoneWire
+                    && !block.redstone_kind.is_full_block()
+                {
+                    connected_redstone_components.push((
+                        down_block,
+                        down,
+                        direction,
+                        VerticalOffset::Below,
+                    ));
                 }
             }
         }
-    }
 
-    // last, check for the block directly above/below
-
-    if let Some(block_up) = block_above {
-        if block_up.weak_redstone_power(FacingCubic::Down).is_some() {
+        // last, check for the block directly above/below
+        let block_up = self.block_at(block_pos_up, game);
+        if block_up
+            .block_id
+            .weak_redstone_power(FacingCubic::Down)
+            .is_some()
+        {
             connected_redstone_components.push((
                 block_up,
                 block_pos_up,
@@ -362,10 +444,13 @@ pub fn get_redstone_connections(
                 VerticalOffset::Above,
             ));
         }
-    }
 
-    if let Some(block_down) = block_below {
-        if block_down.weak_redstone_power(FacingCubic::Up).is_some() {
+        let block_down = self.block_at(block_pos_down, game);
+        if block_down
+            .block_id
+            .weak_redstone_power(FacingCubic::Up)
+            .is_some()
+        {
             connected_redstone_components.push((
                 block_down,
                 block_pos_up,
@@ -373,9 +458,18 @@ pub fn get_redstone_connections(
                 VerticalOffset::Below,
             ));
         }
-    }
 
-    connected_redstone_components
+        connected_redstone_components
+    }
+}
+
+impl IntoIterator for RedstoneCache {
+    type Item = (BlockPosition, Rc<CachedRedstoneBlock>);
+    type IntoIter = std::collections::hash_map::IntoIter<BlockPosition, Rc<CachedRedstoneBlock>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.cache.into_iter()
+    }
 }
 
 #[cfg(test)]
