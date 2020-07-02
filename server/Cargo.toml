@@ -26,6 +26,7 @@ feather-server-network = { path = "network" }
 feather-server-packet-buffer = { path = "packet_buffer" }
 feather-server-physics = { path = "physics" }
 feather-server-player = { path = "player" }
+feather-server-redstone = { path = "redstone" }
 feather-server-types = { path = "types" }
 feather-server-util = { path = "util" }
 feather-server-weather = { path = "weather" }

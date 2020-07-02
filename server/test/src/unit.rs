@@ -8,12 +8,12 @@ use feather_core::{
     chunk_map::ChunkMap,
     util::{vec3, ChunkPosition, Position},
 };
-use feather_server_block::on_block_update_redstone;
 use feather_server_chunk::{
     chunk_worker, hold_chunk_request, release_chunk_request, ChunkWorkerHandle,
 };
 use feather_server_network::NewClientInfo;
 use feather_server_player::on_chunk_cross_update_chunks;
+use feather_server_redstone::on_block_update_redstone;
 use feather_server_types::{
     ChunkCrossEvent, ChunkHolder, EventScheduler, Game, Name, NetworkId, ServerToWorkerMessage,
     Shared, Uuid, WorkerToServerMessage,
