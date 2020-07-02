@@ -11,7 +11,7 @@ use feather_core::item_block::ItemToBlock;
 use feather_core::items::ItemStack;
 use feather_core::network::packets::PlayerBlockPlacement;
 use feather_core::util::{BlockPosition, Gamemode, Position, Vec3d};
-use feather_server_redstone::blocks::RedstoneState;
+use feather_server_redstone::blocks::RedstoneWireState;
 use feather_server_redstone::RedstoneCache;
 use feather_server_types::{
     BlockUpdateCause, Game, HeldItem, InteractionHandler, InventoryUpdateEvent, OpenWindowCount,
@@ -376,7 +376,7 @@ fn update_block_state_for_placement(
     }
 
     if block.kind() == BlockKind::RedstoneWire {
-        let state = RedstoneState::calculate(block_pos, &mut RedstoneCache::default(), &game);
+        let state = RedstoneWireState::calculate(block_pos, &mut RedstoneCache::default(), &game);
         state.apply_to(&mut block);
     }
 

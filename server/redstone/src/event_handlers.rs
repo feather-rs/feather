@@ -1,4 +1,4 @@
-use crate::blocks::RedstoneState;
+use crate::blocks::RedstoneWireState;
 use crate::{RedstoneBlock, RedstoneCache};
 use feather_core::util::BlockPosition;
 use feather_server_types::{BlockUpdateCause, BlockUpdateEvent, Game};
@@ -49,7 +49,7 @@ pub fn on_block_update_redstone(event: &BlockUpdateEvent, game: &mut Game, world
         if let Some(block) = cache.block_at(block_pos, game) {
             if let RedstoneBlock::RedstoneWire(current_state) = &block.redstone_kind {
                 // Looks at the surrounding blocks and calculates what the state should be
-                let correct_state = RedstoneState::calculate(block_pos, &mut cache, game);
+                let correct_state = RedstoneWireState::calculate(block_pos, &mut cache, game);
 
                 match correct_state.power.cmp(&current_state.power) {
                     Ordering::Greater => rising_blocks.push_back(block_pos),
@@ -59,6 +59,12 @@ pub fn on_block_update_redstone(event: &BlockUpdateEvent, game: &mut Game, world
 
                 if correct_state != *current_state {
                     cache.update_block(block_pos, &correct_state, block.block_id);
+                }
+            } else if let Some(redstone_component) =
+                block.redstone_kind.calculate(block_pos, &mut cache, &game)
+            {
+                if redstone_component != block.redstone_kind {
+                    println!("Invalid state!");
                 }
             }
         }
@@ -104,7 +110,7 @@ fn update_rising_blocks(
                 if updated_blocks.contains(&pos) {
                     continue;
                 }
-                let block_state = RedstoneState::calculate(pos, cache, game);
+                let block_state = RedstoneWireState::calculate(pos, cache, game);
 
                 // println!("Block pos: {:?}", pos);
                 // println!("new state: {:?}", block_state);
@@ -141,10 +147,7 @@ fn update_falling_blocks(
                 state.power = 0;
                 cache.update_block(block_pos, &state, block.block_id);
             } else {
-                panic!(
-                    "Unexpected block: Expected redstone wire but got, {:?}",
-                    block.redstone_kind
-                );
+                panic!("Unexpected block: Expected redstone wire but got other block!")
             }
         }
 

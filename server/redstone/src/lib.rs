@@ -10,13 +10,15 @@ use std::iter::IntoIterator;
 use std::rc::Rc;
 
 pub mod blocks;
+use blocks::*;
 
 mod event_handlers;
 pub use event_handlers::on_block_update_redstone;
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum RedstoneBlock {
-    RedstoneWire(blocks::RedstoneState),
+    RedstoneWire(RedstoneWireState),
+    RedstoneTorch(RedstoneTorchState),
     FullBlock,
     None,
 }
@@ -29,15 +31,36 @@ impl RedstoneBlock {
     // fn is_none(&self) -> bool {
     //     matches!(self, RedstoneBlock::None)
     // }
+
+    pub fn calculate(
+        &self,
+        pos: BlockPosition,
+        cache: &mut RedstoneCache,
+        game: &Game,
+    ) -> Option<Self> {
+        use RedstoneBlock::*;
+
+        match self {
+            RedstoneWire(_) => Some(RedstoneWire(RedstoneWireState::calculate(pos, cache, game))),
+            RedstoneTorch(_) => Some(RedstoneTorch(RedstoneTorchState::calculate(
+                pos, self, cache, game,
+            ))),
+            FullBlock | None => std::option::Option::None,
+        }
+    }
 }
 
 impl From<BlockId> for RedstoneBlock {
     fn from(block: BlockId) -> Self {
         match block.kind() {
             BlockKind::RedstoneWire => RedstoneBlock::RedstoneWire(
-                blocks::RedstoneState::from_block(block).expect("This block is a redstone wire"),
+                RedstoneWireState::from_block(block).expect("This block is a redstone wire"),
             ),
-
+            BlockKind::RedstoneTorch | BlockKind::RedstoneWallTorch => {
+                RedstoneBlock::RedstoneTorch(
+                    RedstoneTorchState::from_block(block).expect("This block is a redstone torch"),
+                )
+            }
             _ if block.is_full_block() => RedstoneBlock::FullBlock,
             _ => RedstoneBlock::None,
         }
@@ -87,7 +110,7 @@ impl RedstoneCache {
     pub fn update_block(
         &mut self,
         pos: BlockPosition,
-        state: &blocks::RedstoneState,
+        state: &blocks::RedstoneWireState,
         mut block: BlockId,
     ) {
         state.apply_to(&mut block);

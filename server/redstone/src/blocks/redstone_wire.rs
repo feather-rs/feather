@@ -5,8 +5,8 @@ use feather_core::{
 };
 use feather_server_types::Game;
 
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct RedstoneState {
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+pub struct RedstoneWireState {
     pub north: NorthWire,
     pub east: EastWire,
     pub south: SouthWire,
@@ -14,7 +14,7 @@ pub struct RedstoneState {
     pub power: i32,
 }
 
-impl RedstoneState {
+impl RedstoneWireState {
     /// calculates the state of the redstone wire that would be at this position
     /// Has to check in all four directions one block down and one block up
     /// redstone at same y: side, redstone at y-1: side, redstone at y+1: up
