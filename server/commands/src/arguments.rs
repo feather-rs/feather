@@ -285,8 +285,7 @@ impl ArgumentKind<CommandCtx> for TextArgument {
     type ParseError = Infallible;
 
     fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
-        // Required until #11 is fixed in https://github.com/feather-rs/lieutenant/issues/11
-        !input.advance_until("\0").is_empty()
+        !input.advance_to_end().is_empty()
     }
 
     fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {

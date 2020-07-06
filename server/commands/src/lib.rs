@@ -107,6 +107,7 @@ impl CommandState {
 
                 whisper,
                 say,
+                me,
 
                 stop,
         }
