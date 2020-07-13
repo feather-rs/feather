@@ -7,3 +7,4 @@
 feather.toml
 massif.out*
 .cargo
+.vscode
