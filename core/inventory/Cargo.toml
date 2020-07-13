@@ -1,0 +1,16 @@
+[package]
+name = "feather-inventory"
+version = "0.6.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-items = { path = "../items" }
+
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "0c4838d65b41ca059012b6e9147eabf0c275a731" }
+legion = { git = "https://github.com/TomGillen/legion", rev = "bd441f4811e7a9e877a0f479a674bbdbf4e4cda3" }
+thiserror = "1.0"
+parking_lot = "0.10"
+maplit = "1.0"
+smallvec = "1.4"
+once_cell = "1.3"

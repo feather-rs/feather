@@ -1,0 +1,23 @@
+[package]
+name = "feather-definitions-generator"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-data = { path = "../../data" }
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+ron = { git = "https://github.com/ron-rs/ron", rev = "0a7d83da66a4009f169967c5d2ac382a446bb76e" }
+anyhow = "1.0"
+walkdir = "2.3"
+heck = "0.3"
+itertools = "0.9"
+regex = "1.3"
+once_cell = "1.3"
+indexmap = { version = "1.3", features = ["serde-1"] }
+
+syn = "1.0"
+proc-macro2 = "1.0"
+quote = "1.0"

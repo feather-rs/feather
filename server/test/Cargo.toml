@@ -1,0 +1,18 @@
+[package]
+name = "feather-test-framework"
+version = "0.6.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-core = { path = "../../core" }
+feather-server-types = { path = "../types" }
+feather-server-util = { path = "../util" }
+feather-server-chunk = { path = "../chunk" }
+feather-server-player = { path = "../player" }
+feather-server-network = { path = "../network" }
+
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "0c4838d65b41ca059012b6e9147eabf0c275a731" }
+crossbeam = "0.7"
+flume = "0.7"
+tokio = { version = "0.2", features = ["full"] }

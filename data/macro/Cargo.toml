@@ -1,0 +1,14 @@
+[package]
+name = "feather-data-macro"
+version = "0.6.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+publish = false
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "= 1.0.1"
+syn = "1.0"
+proc-macro2 = "1.0"

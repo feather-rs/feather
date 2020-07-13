@@ -1,0 +1,21 @@
+[package]
+name = "feather-server-worldgen"
+version = "0.6.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-core = { path = "../../core" }
+
+bitvec = "0.17"
+smallvec = "1.4"
+rand = "0.7"
+rand_xorshift = "0.2"
+num-traits = "0.2"
+simdnoise = "3.1"
+log = "0.4"
+once_cell = "1.3"
+strum = "0.18"
+
+[dev-dependencies]
+approx = "0.3"

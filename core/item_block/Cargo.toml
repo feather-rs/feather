@@ -1,0 +1,9 @@
+[package]
+name = "feather-item-block"
+version = "0.6.0"
+authors = ["caelunshun <caelum12321@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-blocks = { path = "../blocks" }
+feather-items = { path = "../items" }

@@ -1,0 +1,31 @@
+[package]
+name = "feather-server-types"
+version = "0.6.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-core = { path = "../../core" }
+feather-server-config = { path = "../config" }
+feather-server-packet-buffer = { path = "../packet_buffer" }
+
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "0c4838d65b41ca059012b6e9147eabf0c275a731" }
+uuid = { version = "0.8", features = ["v4", "v3"] }
+nalgebra-glm = "0.6"
+ncollide3d = "0.22"
+ahash = "0.3"
+smallvec = "1.4"
+rand = { version = "0.7", features = ["small_rng"] }
+thread_local = "1.0"
+bumpalo = { version = "3.2", features = ["collections"] }
+log = "0.4"
+flume = "0.7"
+parking_lot = "0.10"
+anyhow = "1.0"
+inventory = "0.1"
+dashmap = "3.11"
+futures = "0.3"
+tokio = { version = "0.2", features = ["full"] }
+mojang-api = "0.6"
+once_cell = "1.3"
+crossbeam = "0.7"

@@ -1,10 +1,11 @@
-/target
-/blocks/target
-/server/target
-/core/target
+**/target
 **/*.rs.bk
 **/.idea
-feather.toml
-massif.out*
 .cargo
 .vscode
+/data/minecraft
+/data/minecraft-1.15
+/data/minecraft-data
+
+world/
+feather.toml

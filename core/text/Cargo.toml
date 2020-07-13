@@ -1,0 +1,15 @@
+[package]
+name = "feather-text"
+version = "0.6.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_with = "1.4"
+hematite-nbt = "0.4"
+uuid = { version = "0.8", features = ["serde"] }
+nom = "5.1"
+nom_locate = "2.0"
+thiserror = "1.0"

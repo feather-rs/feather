@@ -1,52 +1,21 @@
 [package]
 name = "feather-core"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
-publish = false
 
 [dependencies]
-# Feather crates
-feather-codegen = { path = "../codegen" }
-feather-blocks = { path = "../blocks" }
-feather-items = { path = "../items" }
-
-# Networking
-tokio = { version = "0.2", features = ["full"] }
-tokio-util = { version = "0.2", features = ["codec"] }
-cfb8 = "0.3"
-aes = "0.3"
-flate2 = "1.0"
-bytes = "0.5"
-byteorder = "1.3"
-
-# Misc.
-vek = "0.9"
-nalgebra-glm = "0.6"
-lazy_static = "1.4"
-uuid = "0.8"
-log = "0.4"
-num-traits = "0.2"
-num-derive = "0.3"
-strum = "0.18"
-strum_macros = "0.18"
-
-# Data structures
-hashbrown = { version = "0.7", features = ["serde", "rayon"] }
-smallvec = "1.2"
-multimap = "0.8"
-bitvec = "0.17"
-hash32 = "0.1"
-hash32-derive = "0.1"
-
-# Serialization
-serde = { version = "1.0", features = ["derive"] }
-hematite-nbt = "0.4"
-
-# Concurrency
-parking_lot = "0.10"
-rayon = "1.3"
-
-# Error handling
-thiserror = "1.0"
-anyhow = "1.0"
+feather-anvil = { path = "./anvil" }
+feather-biomes = { path = "./biomes" }
+feather-blocks = { path = "./blocks" }
+feather-chunk = { path = "./chunk" }
+feather-chunk-map = { path = "./chunk_map" }
+feather-entity-metadata = { path = "./entity_metadata" }
+feather-inventory = { path = "./inventory" }
+feather-item-block = { path = "./item_block" }
+feather-items = { path = "./items" }
+feather-loot = { path = "./loot" }
+feather-misc = { path = "./misc" }
+feather-network = { path = "./network" }
+feather-text = { path = "./text" }
+feather-util = { path = "./util" }
