@@ -114,14 +114,15 @@ pub fn save_chunk_at(
     pos: ChunkPosition,
     chunk_worker_handle: &ChunkWorkerHandle,
 ) {
-    let chunk = game
+    // TODO fix this shortcut to save chunk with no entities in chunk when there were some previously
+    /*let chunk = game
         .chunk_map
         .chunk_handle_at(pos)
         .expect("chunk does not exist");
 
     if !chunk.write().check_modified() && game.chunk_entities.entities_in_chunk(pos).is_empty() {
         return;
-    }
+    }*/
 
     // Serialize the entities in the chunk.
     let (entities, block_entities) = serialize_entities(game, world, pos);

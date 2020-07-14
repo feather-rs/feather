@@ -22,39 +22,40 @@ pub fn broadcast_movement(game: &mut Game, world: &mut World) {
         world.inner(),
         |(entity, (pos, prev_pos, id))| {
             let pos: Position = *pos;
-            let prev_pos: Position = prev_pos.0;
 
-            if pos == prev_pos {
-                return;
-            }
+            if let Some(prev_pos) = prev_pos.0 {
+                if pos == prev_pos {
+                    return;
+                }
 
-            let entity_id = id.0;
+                let entity_id = id.0;
 
-            let chunk = pos.chunk();
-            let players = game.chunk_holders.holders_for(chunk);
+                let chunk = pos.chunk();
+                let players = game.chunk_holders.holders_for(chunk);
 
-            for player in players.iter().filter(|player| **player != entity) {
-                if let Some(network) = world.try_get::<Network>(*player) {
-                    let last_known_positions = world.get::<LastKnownPositions>(*player);
-                    let last_known_positions = last_known_positions.deref();
+                for player in players.iter().filter(|player| **player != entity) {
+                    if let Some(network) = world.try_get::<Network>(*player) {
+                        let last_known_positions = world.get::<LastKnownPositions>(*player);
+                        let last_known_positions = last_known_positions.deref();
 
-                    if let Some(mut last_known_pos) = last_known_positions.0.get_mut(&entity) {
-                        for packet in
-                            packets_for_movement_update(entity_id, *last_known_pos.value(), pos)
-                        {
-                            network.send_boxed(packet);
-                        }
+                        if let Some(mut last_known_pos) = last_known_positions.0.get_mut(&entity) {
+                            for packet in
+                                packets_for_movement_update(entity_id, *last_known_pos.value(), pos)
+                            {
+                                network.send_boxed(packet);
+                            }
 
-                        log::trace!("Updated position of {:?} on client {:?}", entity, player);
+                            log::trace!("Updated position of {:?} on client {:?}", entity, player);
 
-                        *last_known_pos.value_mut() = pos;
-                    } else {
-                        log::trace!(
-                            "Missing last position entry for {:?} on client {:?}",
-                            entity,
-                            player
-                        );
-                    };
+                            *last_known_pos.value_mut() = pos;
+                        } else {
+                            log::trace!(
+                                "Missing last position entry for {:?} on client {:?}",
+                                entity,
+                                player
+                            );
+                        };
+                    }
                 }
             }
         },
@@ -97,23 +98,25 @@ pub fn broadcast_velocity(world: &mut World, game: &mut Game) {
         |(entity, (vel, prev_vel, entity_id))| {
             let entity_id = entity_id.0;
 
-            if vel.0 == prev_vel.0 {
-                return;
+            if let Some(prev_vel) = prev_vel.0 {
+                if vel.0 == prev_vel {
+                    return;
+                }
+
+                let (velocity_x, velocity_y, velocity_z) = protocol_velocity(vel.0);
+
+                if velocity_x == 0 && velocity_y == 0 && velocity_z == 0 {
+                    return;
+                }
+
+                let packet = EntityVelocity {
+                    entity_id,
+                    velocity_x,
+                    velocity_y,
+                    velocity_z,
+                };
+                game.broadcast_entity_update(world, packet, entity, None);
             }
-
-            let (velocity_x, velocity_y, velocity_z) = protocol_velocity(vel.0);
-
-            if velocity_x == 0 && velocity_y == 0 && velocity_z == 0 {
-                return;
-            }
-
-            let packet = EntityVelocity {
-                entity_id,
-                velocity_x,
-                velocity_y,
-                velocity_z,
-            };
-            game.broadcast_entity_update(world, packet, entity, None);
         },
     );
 }

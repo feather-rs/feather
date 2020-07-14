@@ -29,8 +29,8 @@ pub struct HeldItem(pub usize);
 pub struct Name(pub String);
 
 /// Position of an entity on the previous tick.
-#[derive(Copy, Clone, Debug)]
-pub struct PreviousPosition(pub Position);
+#[derive(Copy, Clone, Debug, Default)]
+pub struct PreviousPosition(pub Option<Position>);
 
 /// An entity's velocity.
 #[derive(Copy, Clone, Debug)]
@@ -43,14 +43,8 @@ impl Default for Velocity {
 }
 
 /// Velocity of an entity on the previous tick.
-#[derive(Copy, Clone, Debug)]
-pub struct PreviousVelocity(pub glm::DVec3);
-
-impl Default for PreviousVelocity {
-    fn default() -> Self {
-        PreviousVelocity(Velocity::default().0)
-    }
-}
+#[derive(Copy, Clone, Debug, Default)]
+pub struct PreviousVelocity(pub Option<glm::DVec3>);
 
 /// Network ID of an entity.
 #[derive(Copy, Clone, Debug)]

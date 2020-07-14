@@ -38,13 +38,13 @@ pub fn previous_position_velocity_reset(world: &mut World) {
     <(Read<Position>, Write<PreviousPosition>)>::query().par_for_each_mut(
         world.inner_mut(),
         |(pos, mut previous_pos)| {
-            previous_pos.0 = *pos;
+            previous_pos.0.replace(*pos);
         },
     );
     <(Read<Velocity>, Write<PreviousVelocity>)>::query().par_for_each_mut(
         world.inner_mut(),
         |(vel, mut previous_vel)| {
-            previous_vel.0 = vel.0;
+            previous_vel.0.replace(vel.0);
         },
     );
 }
@@ -60,7 +60,7 @@ pub fn base() -> EntityBuilder {
         .with(NetworkId(id))
         .with(Velocity::default())
         .with(PreviousVelocity::default())
-        .with(PreviousPosition(position!(0.0, 0.0, 0.0)))
+        .with(PreviousPosition::default())
 }
 
 /// Returns a new entity ID.

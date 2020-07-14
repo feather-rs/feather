@@ -24,16 +24,16 @@ pub fn update_blocks_fallen(game: &mut Game, world: &mut World) {
         .for_each_entities_mut(
             world.inner_mut(),
             |(entity, (pos, prev_pos, mut blocks_fallen))| {
-                match (prev_pos.0.on_ground, pos.on_ground) {
-                    (false, false) => {
+                match (prev_pos.0.map(|pos| pos.on_ground), pos.on_ground) {
+                    (Some(false), false) => {
                         // In air: update blocks_fallen
-                        blocks_fallen.0 += (prev_pos.0.y - pos.y).max(0.0);
+                        blocks_fallen.0 += (prev_pos.0.unwrap().y - pos.y).max(0.0);
                     }
-                    (true, false) => {
+                    (Some(true), false) => {
                         // reset blocks_fallen
                         blocks_fallen.0 = 0.0;
                     }
-                    (false, true) => {
+                    (Some(false), true) => {
                         // landed
                         landed.borrow_mut().push(entity);
                     }
