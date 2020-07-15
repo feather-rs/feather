@@ -6,7 +6,7 @@
 
 use crate::{ItemTimedUse, IteratorExt};
 use entity::InventoryExt;
-use feather_core::blocks::{BlockId, HalfUpperLower, Part};
+use feather_core::blocks::{BlockId, HalfUpperLower, Part, SimplifiedBlockKind};
 use feather_core::inventory::{slot, Area, Inventory, Slot, SlotIndex};
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerDigging, PlayerDiggingStatus};
@@ -262,19 +262,21 @@ fn dig(game: &mut Game, world: &mut World, player: Entity, pos: BlockPosition) {
     };
 
     // Handle multi-block destruction (i.e. doors and beds)
-    if let Some(other_pos) = if block.is_bed() {
-        let direction = block.facing_cardinal().unwrap();
-        Some(match block.part().unwrap() {
-            Part::Head => pos - direction.offset(),
-            Part::Foot => pos + direction.offset(),
-        })
-    } else if block.is_door() {
-        Some(match block.half_upper_lower().unwrap() {
-            HalfUpperLower::Upper => pos.down(),
-            HalfUpperLower::Lower => pos.up(),
-        })
-    } else {
-        None
+    if let Some(other_pos) = match block.simplified_kind() {
+        SimplifiedBlockKind::Bed => {
+            let direction = block.facing_cardinal().unwrap();
+            Some(match block.part().unwrap() {
+                Part::Head => pos - direction.offset(),
+                Part::Foot => pos + direction.offset(),
+            })
+        }
+        SimplifiedBlockKind::WoodenDoor | SimplifiedBlockKind::IronDoor => {
+            Some(match block.half_upper_lower().unwrap() {
+                HalfUpperLower::Upper => pos.down(),
+                HalfUpperLower::Lower => pos.up(),
+            })
+        }
+        _ => None,
     } {
         if game.block_at(other_pos).unwrap().kind() == block.kind() {
             game.set_block_at(

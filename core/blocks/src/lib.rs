@@ -3,8 +3,9 @@ use std::convert::TryFrom;
 use thiserror::Error;
 
 pub use feather_definitions::BlockKind;
+pub use feather_definitions::SimplifiedBlockKind;
 
-mod categories;
+pub mod categories;
 mod directions;
 #[allow(warnings)]
 #[allow(clippy::all)]
@@ -69,6 +70,15 @@ impl BlockId {
     /// Returns the kind of this block.
     pub fn kind(self) -> BlockKind {
         self.kind
+    }
+
+    /// Returns the simplified kind of this block.
+    /// This is an arbitrary manual mapping that aims to condense the different
+    /// vanilla block kinds which have only minor differences (e.g. different colored beds)
+    /// and is mainly intended to make `match`ing on the block type easier.
+    /// This mapping in no way stable right now.
+    pub fn simplified_kind(self) -> SimplifiedBlockKind {
+        self.kind.to_simplified_kind()
     }
 
     /// Returns the vanilla state ID for this block.
