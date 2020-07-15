@@ -44,7 +44,7 @@ pub fn build_event_handlers() -> EventHandlers {
 
         on_entity_client_remove_update_last_known_positions,
 
-        on_player_join_send_join_game,
+        on_player_join_send_join_packets,
         on_player_join_send_existing_entities,
         on_player_join_send_time,
         on_player_join_trigger_chunk_cross,

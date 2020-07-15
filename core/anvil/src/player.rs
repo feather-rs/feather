@@ -25,6 +25,8 @@ pub struct PlayerData {
     pub gamemode: i32,
     #[serde(rename = "Inventory")]
     pub inventory: Vec<InventorySlot>,
+    #[serde(rename = "SelectedItemSlot")]
+    pub held_item: i32,
 }
 
 /// Represents a single inventory slot (including position index).
