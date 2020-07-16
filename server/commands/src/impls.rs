@@ -490,10 +490,10 @@ fn clear_items(
             }
         }
     }
-    println!("Changed items is {}", changed_items.len());
+
     drop(inventory);
+    
     if !changed_items.is_empty() {
-        println!("Sending update event");
         ctx.game.handle(
             &mut *ctx.world,
             InventoryUpdateEvent {
