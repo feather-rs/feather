@@ -492,7 +492,7 @@ fn clear_items(
     }
 
     drop(inventory);
-    
+
     if !changed_items.is_empty() {
         ctx.game.handle(
             &mut *ctx.world,
