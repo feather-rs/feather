@@ -6,6 +6,9 @@
 /data/minecraft
 /data/minecraft-1.15
 /data/minecraft-data
+.azure-pipelines.yml
+.codecov.yml
 
 world/
 feather.toml
+
