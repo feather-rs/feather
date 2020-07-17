@@ -35,8 +35,8 @@ pub fn tp_1(ctx: &mut CommandCtx, destination: EntitySelector) -> anyhow::Result
 
         Ok(Some(format!(
             "Teleported {0} to {1}",
-            ctx.world.try_get::<Name>(ctx.sender).unwrap().0.to_string(),
-            ctx.world.try_get::<Name>(*first).unwrap().0.to_string()
+            ctx.world.get::<Name>(ctx.sender).0.to_string(),
+            ctx.world.get::<Name>(*first).0.to_string()
         )))
     } else {
         Err(TpError::NoMatchingEntities.into())
@@ -47,10 +47,10 @@ pub fn tp_1(ctx: &mut CommandCtx, destination: EntitySelector) -> anyhow::Result
 pub fn tp_2(ctx: &mut CommandCtx, location: Coordinates) -> anyhow::Result<()> {
     teleport_entity(&mut ctx.world, ctx.sender, location);
 
-    let position = ctx.world.try_get::<Position>(ctx.sender).unwrap();
+    let position = ctx.world.get::<Position>(ctx.sender);
     Ok(Some(format!(
         "Teleported {0} to {1}, {2}, {3}",
-        ctx.world.try_get::<Name>(ctx.sender).unwrap().0,
+        ctx.world.get::<Name>(ctx.sender).0,
         position.x,
         position.y,
         position.z
@@ -72,8 +72,7 @@ pub fn tp_3(
 
         let position = ctx
             .world
-            .try_get::<Position>(*targets.entities.first().unwrap())
-            .unwrap();
+            .get::<Position>(*targets.entities.first().unwrap());
         Ok(Some(format!(
             "Teleported {0} to {1}, {2}, {3}",
             targets.entities_to_string(ctx, false),
@@ -331,14 +330,14 @@ pub fn clear_1(ctx: &mut CommandCtx) -> anyhow::Result<()> {
         // If count is zero, the player's inventory was empty and the command fails
         // "No items were found on player {0}."
         if count == 0 {
-            let name = ctx.world.try_get::<Name>(ctx.sender).unwrap();
+            let name = ctx.world.get::<Name>(ctx.sender);
             return Err(ClearError::NoItems(name.0.clone()).into());
         }
         // If the count is not zero, we return the count of items we deleted. Command succeeds.
         // "Removed {1} items from player {0}"
         Ok(Some(format!(
             "Removed {1} items from player {0}",
-            ctx.world.try_get::<Name>(ctx.sender).unwrap().0,
+            ctx.world.get::<Name>(ctx.sender).0,
             count
         )))
     } else {
@@ -464,7 +463,7 @@ fn clear_items(
     maxcount: i32,
     count: &mut i32,
 ) {
-    let inventory = ctx.world.try_get_mut::<Inventory>(player).unwrap();
+    let inventory = ctx.world.get_mut::<Inventory>(player);
     let mut changed_items: SmallVec<[SlotIndex; 2]> = SmallVec::new();
     for (index, slot) in inventory.enumerate() {
         if let Some(mut stack) = slot {
