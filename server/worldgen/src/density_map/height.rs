@@ -6,7 +6,7 @@ use bitvec::order::Local;
 use bitvec::vec::BitVec;
 use feather_core::biomes::Biome;
 use feather_core::util::ChunkPosition;
-use simdnoise::NoiseBuilder;
+use fastnoise_simd::{FastNoiseSIMD, GeneralProperties, NoiseType};
 use std::cmp::min;
 
 /// Density map generator which simply uses a height map
@@ -25,13 +25,40 @@ impl DensityMapGenerator for HeightMapGenerator {
         let y_offset = (chunk.z * 16) as f32;
 
         let dim = 16;
-        let (elevation, _, _) = NoiseBuilder::gradient_2d_offset(x_offset, dim, y_offset, dim)
-            .with_seed(seed as i32)
-            .with_freq(0.01)
-            .generate();
-        let (detail, _, _) = NoiseBuilder::gradient_2d_offset(x_offset, dim, y_offset, dim)
-            .with_seed(seed as i32 + 1)
-            .generate();
+        //let (elevation, _, _) = NoiseBuilder::gradient_2d_offset(x_offset, dim, y_offset, dim)
+        //    .with_seed(seed as i32)
+        //    .with_freq(0.01)
+        //    .generate();
+        let elevation = {
+            let mut ch = FastNoiseSIMD::new(seed as i32);
+            //ch.set_fractal_properties(FractalProperties {octaves: 2, ..Default::default()});
+            ch.set_general_properties(GeneralProperties {
+            noise_type: NoiseType::Perlin,
+            seed: seed as i32,
+            frequency: 0.01,
+            ..Default::default()});
+
+            ch.get_noise_set(x_offset as i32, 0, y_offset as i32,
+                             dim as i32,      0,   dim as i32, 1.0)
+              .as_vec()
+        };
+
+       // let (detail, _, _) = NoiseBuilder::gradient_2d_offset(x_offset, dim, y_offset, dim)
+       //     .with_seed(seed as i32 + 1)
+       //     .generate();
+        let detail = {
+            let mut ch = FastNoiseSIMD::new(seed as i32 + 1);
+            //ch.set_fractal_properties(FractalProperties {octaves: 2, ..Default::default()});
+            ch.set_general_properties(GeneralProperties {
+            noise_type: NoiseType::Simplex,
+            seed: seed as i32,
+            frequency: 0.01,
+            ..Default::default()});
+
+            ch.get_noise_set(x_offset as i32, 0, y_offset as i32,
+                             dim as i32,      0,   dim as i32, 1.0)
+              .as_vec()
+        };
 
         let mut density_map = BitVec::from_vec(vec![0u8; 16 * 256 * 16 / 8]);
         for x in 0..16 {

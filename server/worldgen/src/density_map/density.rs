@@ -9,7 +9,7 @@ use bitvec::vec::BitVec;
 use feather_core::biomes::Biome;
 use feather_core::util::ChunkPosition;
 use once_cell::sync::Lazy;
-use simdnoise::NoiseBuilder;
+use fastnoise_simd::{FastNoiseSIMD, FractalProperties, GeneralProperties, NoiseType};
 
 /// A density map generator using 3D Perlin noise.
 ///
@@ -74,43 +74,98 @@ const DENSITY_HEIGHT: usize = 33;
 fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> Vec<f32> {
     // TODO: generate based on biome
 
-    let x_offset = (chunk.x * (DENSITY_WIDTH as i32 - 1)) as f32;
-    let y_offset = 0.0;
-    let z_offset = (chunk.z * (DENSITY_WIDTH as i32 - 1)) as f32;
-    let len = DENSITY_WIDTH;
-    let height = DENSITY_HEIGHT;
+    let x_offset = chunk.x * (DENSITY_WIDTH as i32 - 1);
+    let y_offset = 0;
+    let z_offset = chunk.z * (DENSITY_WIDTH as i32 - 1);
+    let len = DENSITY_WIDTH as i32;
+    let height = DENSITY_HEIGHT as i32;
 
     let noise_seed = seed as i32;
 
     // Generate various noises.
-    let choice_noise = NoiseBuilder::fbm_3d_offset(x_offset, len, y_offset, height, z_offset, len)
-        .with_seed(noise_seed)
-        .with_octaves(2)
-        .with_freq(0.001)
-        .generate()
-        .0;
-    let density_noise_1 =
-        NoiseBuilder::fbm_3d_offset(x_offset, len, y_offset, height, z_offset, len)
-            .with_seed(noise_seed + 1)
-            .with_octaves(2)
-            .with_freq(0.2)
-            .generate()
-            .0;
-    let density_noise_2 =
-        NoiseBuilder::fbm_3d_offset(x_offset, len, y_offset, height, z_offset, len)
-            .with_seed(noise_seed + 2)
-            .with_octaves(2)
-            .with_freq(0.2)
-            .generate()
-            .0;
-    // Additional 2D height noise for extra detail.
-    let height_noise = NoiseBuilder::fbm_2d_offset(x_offset, len, z_offset, len)
-        .with_seed(noise_seed + 3)
-        .with_octaves(2)
-        .with_freq(0.001)
-        .generate()
-        .0;
+    //let choice_noise = NoiseBuilder::fbm_3d_offset(x_offset, len, y_offset, height, z_offset, len)
+    //    .with_seed(noise_seed)
+    //    .with_octaves(2)
+    //    .with_freq(0.001)
+    //    .generate()
+    //    .0;
+    
+    let choice_noise = {
+        let mut ch = FastNoiseSIMD::new(noise_seed);
+        ch.set_fractal_properties(FractalProperties {octaves: 2, ..Default::default()});
+        ch.set_general_properties(GeneralProperties {
+        noise_type: NoiseType::Perlin,
+        seed: noise_seed,
+        frequency: 0.001,
+        ..Default::default()});
 
+        ch.get_noise_set(x_offset, y_offset, z_offset,
+                         len,      height,   len, 1.0)
+          .as_vec()
+    };
+    
+
+   // let density_noise_1 =
+   //     NoiseBuilder::fbm_3d_offset(x_offset, len, y_offset, height, z_offset, len)
+   //         .with_seed(noise_seed + 1)
+   //         .with_octaves(2)
+   //         .with_freq(0.2)
+   //         .generate()
+   //         .0;
+    let density_noise_1 = {
+        let mut ch = FastNoiseSIMD::new(noise_seed + 1);
+        ch.set_fractal_properties(FractalProperties {octaves: 2, ..Default::default()});
+        ch.set_general_properties(GeneralProperties {
+        noise_type: NoiseType::Perlin,
+        seed: noise_seed + 1,
+        frequency: 0.2,
+        ..Default::default()});
+
+        ch.get_noise_set(x_offset, y_offset, z_offset,
+                         len,      height,   len, 1.0)
+          .as_vec()
+    };
+    //let density_noise_2 =
+    //    NoiseBuilder::fbm_3d_offset(x_offset, len, y_offset, height, z_offset, len)
+    //        .with_seed(noise_seed + 2)
+    //        .with_octaves(2)
+    //        .with_freq(0.2)
+    //        .generate()
+    //        .0;
+    let density_noise_2 = {
+        let mut ch = FastNoiseSIMD::new(noise_seed + 2);
+        ch.set_fractal_properties(FractalProperties {octaves: 2, ..Default::default()});
+        ch.set_general_properties(GeneralProperties {
+        noise_type: NoiseType::Perlin,
+        seed: noise_seed + 2,
+        frequency: 0.2,
+        ..Default::default()});
+
+        ch.get_noise_set(x_offset, y_offset, z_offset,
+                         len,      height,   len, 1.0)
+          .as_vec()
+    };
+
+    // Additional 2D height noise for extra detail.
+   // let height_noise = NoiseBuilder::fbm_2d_offset(x_offset, len, z_offset, len)
+   //     .with_seed(noise_seed + 3)
+   //     .with_octaves(2)
+   //     .with_freq(0.001)
+   //     .generate()
+   //     .0;
+    let height_noise = {
+        let mut ch = FastNoiseSIMD::new(noise_seed + 3);
+        ch.set_fractal_properties(FractalProperties {octaves: 2, ..Default::default()});
+        ch.set_general_properties(GeneralProperties {
+        noise_type: NoiseType::Perlin,
+        seed: noise_seed + 3,
+        frequency: 0.001,
+        ..Default::default()});
+
+        ch.get_noise_set(x_offset, 0, z_offset,
+                         len,      0,   len, 1.0)
+          .as_vec()
+    };
     let mut result = vec![0.0; DENSITY_WIDTH * DENSITY_HEIGHT * DENSITY_WIDTH];
 
     // Loop through subchunks and generate density for each.
@@ -119,7 +174,7 @@ fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> V
             // TODO: average nearby biome parameters
             let (amplitude, midpoint) = column_parameters(&biomes, subx, subz);
 
-            let height = height_noise[(subz * len) + subx] * 25.0;
+            let height = height_noise[(subz * (len as usize)) + subx] * 25.0;
 
             // Loop through Y axis of this subchunk column.
             for suby in 0..DENSITY_HEIGHT {
