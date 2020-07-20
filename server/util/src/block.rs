@@ -17,7 +17,7 @@
 //! and perform actions based on their components.
 
 use crate::adjacent_blocks;
-use feather_core::blocks::{BlockId, BlockKind, Face};
+use feather_core::blocks::{BlockId, BlockKind, Face, SlabKind};
 use feather_core::chunk_map::chunk_relative_pos;
 use feather_core::util::BlockPosition;
 use feather_server_types::{BlockUpdateEvent, Game};
@@ -217,9 +217,14 @@ fn block_support_check(
         | BlockKind::DeadBubbleCoralFan
         | BlockKind::DeadFireCoralFan
         | BlockKind::DeadHornCoralFan
-        | BlockKind::DeadTubeCoralFan => {
-            Some(&|_id, game, pos| Some(game.block_at(pos + DOWN)?.is_full_block()))
-        }
+        | BlockKind::DeadTubeCoralFan => Some(&|_id, game, pos| {
+            Some({
+                let block = game.block_at(pos + DOWN)?;
+                // top slabs can support those blocks too
+                block.is_full_block()
+                    || (block.has_slab_kind() && block.slab_kind().unwrap() == SlabKind::Top)
+            })
+        }),
         BlockKind::WallTorch
         | BlockKind::RedstoneWallTorch
         | BlockKind::WhiteWallBanner

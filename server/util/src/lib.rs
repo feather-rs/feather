@@ -14,6 +14,8 @@ mod time;
 pub use time::*;
 mod load;
 pub use load::*;
+mod scheduled_events;
+pub use scheduled_events::*;
 
 use feather_server_types::Game;
 use fecs::{Entity, World};

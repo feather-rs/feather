@@ -8,7 +8,7 @@ use feather_server_chunk::{chunk_worker, ChunkWorkerHandle};
 use feather_server_config::DEFAULT_CONFIG_STR;
 use feather_server_network::NetworkIoManager;
 use feather_server_packet_buffer::PacketBuffers;
-use feather_server_types::{task, Config, Game, Shared, ShutdownChannels};
+use feather_server_types::{task, Config, EventScheduler, Game, Shared, ShutdownChannels};
 use feather_server_worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
@@ -62,6 +62,7 @@ pub async fn init(
         chunk_entities: Default::default(),
         time: Default::default(),
         event_handlers: Arc::new(event_handlers),
+        event_scheduler: EventScheduler::default(),
         resources: Arc::new(Default::default()), // we override this momentarily
         bump: Default::default(),
     };

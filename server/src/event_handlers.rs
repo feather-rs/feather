@@ -4,6 +4,7 @@ use feather_server_chunk::*;
 use feather_server_entity::*;
 use feather_server_lighting::*;
 use feather_server_player::*;
+use feather_server_redstone::*;
 use feather_server_util::*;
 use feather_server_weather::*;
 use fecs::EventHandlers;
@@ -27,6 +28,7 @@ pub fn build_event_handlers() -> EventHandlers {
         on_block_break_drop_loot,
         on_chest_break_drop_contents,
         on_block_update_create_block_entity,
+        on_block_update_redstone,
         on_chest_create_try_connect,
         on_chest_break_try_disconnect,
 

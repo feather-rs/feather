@@ -1,4 +1,4 @@
-use crate::{BlockUpdateCause, Network, ServerToWorkerMessage};
+use crate::{BlockUpdateCause, EventScheduler, Network, ServerToWorkerMessage};
 use crate::{
     BlockUpdateEvent, CanRespawn, Dead, EntityDeathEvent, EntityDespawnEvent, Health,
     HealthUpdateEvent, Name, PlayerLeaveEvent,
@@ -11,6 +11,7 @@ use feather_core::chunk_map::ChunkMap;
 use feather_core::network::Packet;
 use feather_core::util::{BlockPosition, ChunkPosition, Position};
 use feather_server_config::Config;
+
 use fecs::{Entity, Event, EventHandlers, IntoQuery, OwnedResources, Read, RefResources, World};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
@@ -56,6 +57,10 @@ pub struct Game {
     pub time: Time,
     /// The event handler map.
     pub event_handlers: Arc<EventHandlers>,
+    // The event scheduler
+    // ToDo: If this struct is accessible from multiple threads,
+    // shouldn't this use a Mutex?
+    pub event_scheduler: EventScheduler,
     /// Resources other than `Game`, used to run event handlers.
     pub resources: Arc<OwnedResources>,
     /// Shared bump allocator, reset each tick.

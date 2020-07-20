@@ -6,10 +6,12 @@ edition = "2018"
 
 [dependencies]
 feather-core = { path = "../../core" }
+feather-server-block = { path = "../block" }
 feather-server-types = { path = "../types" }
 feather-server-util = { path = "../util" }
 feather-server-network = { path = "../network" }
 feather-server-commands = { path = "../commands" }
+feather-server-redstone = { path = "../redstone" }
 entity = { path = "../entity", package = "feather-server-entity" }
 
 fecs = { git = "https://github.com/feather-rs/fecs", rev = "0c4838d65b41ca059012b6e9147eabf0c275a731" }

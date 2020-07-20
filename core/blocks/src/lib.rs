@@ -9,6 +9,7 @@ mod directions;
 #[allow(warnings)]
 #[allow(clippy::all)]
 mod generated;
+mod redstone_blocks;
 mod wall_blocks;
 
 static BLOCK_TABLE: Lazy<BlockTable> = Lazy::new(|| {

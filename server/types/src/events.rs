@@ -26,8 +26,24 @@ pub enum BlockUpdateCause {
     /// So far only when a block that needs to be
     /// supported loses it's support.
     Unsupported,
+    /// When a block update occurs because of a redstone state change
+    Redstone,
     /// Unknown cause.
     Unknown,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct ScheduledBlockUpdateEvent {
+    // The position at which the event happens
+    pub pos: BlockPosition,
+    // The reason why this update happens
+    pub cause: ScheduledBlockUpdateCause,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum ScheduledBlockUpdateCause {
+    // When a redstone delay is required
+    RedstoneUpdate,
 }
 
 /// Triggered directly _before_ an entity is removed from the world.

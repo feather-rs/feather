@@ -15,6 +15,7 @@ pub fn build_executor() -> Executor {
         .with(player::poll_player_disconnect)
         .with(player::poll_new_clients)
         .with(physics::entity_physics)
+        .with(util::handle_scheduled_events)
         .with(player::handle_movement_packets)
         .with(player::handle_close_window)
         .with(player::handle_creative_inventory_action)

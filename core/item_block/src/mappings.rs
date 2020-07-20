@@ -169,6 +169,7 @@ pub fn item_to_block(item: Item) -> Option<BlockId> {
         Item::AcaciaPressurePlate => Some(BlockId::acacia_pressure_plate()),
         Item::DarkOakPressurePlate => Some(BlockId::dark_oak_pressure_plate()),
         Item::RedstoneOre => Some(BlockId::redstone_ore()),
+        Item::Redstone => Some(BlockId::redstone_wire()),
         Item::RedstoneTorch => Some(BlockId::redstone_torch()),
         Item::StoneButton => Some(BlockId::stone_button()),
         Item::Snow => Some(BlockId::snow()),

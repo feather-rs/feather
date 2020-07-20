@@ -953,6 +953,7 @@ dependencies = [
  "feather-server-packet-buffer",
  "feather-server-physics",
  "feather-server-player",
+ "feather-server-redstone",
  "feather-server-types",
  "feather-server-util",
  "feather-server-weather",
@@ -1140,9 +1141,11 @@ dependencies = [
  "ahash",
  "anyhow",
  "feather-core",
+ "feather-server-block",
  "feather-server-commands",
  "feather-server-entity",
  "feather-server-network",
+ "feather-server-redstone",
  "feather-server-types",
  "feather-server-util",
  "fecs",
@@ -1155,6 +1158,17 @@ dependencies = [
  "parking_lot",
  "smallvec",
  "thiserror",
+]
+
+[[package]]
+name = "feather-server-redstone"
+version = "0.6.0"
+dependencies = [
+ "feather-core",
+ "feather-server-types",
+ "feather-server-util",
+ "feather-test-framework",
+ "fecs",
 ]
 
 [[package]]
@@ -1248,9 +1262,11 @@ version = "0.6.0"
 dependencies = [
  "crossbeam",
  "feather-core",
+ "feather-server-block",
  "feather-server-chunk",
  "feather-server-network",
  "feather-server-player",
+ "feather-server-redstone",
  "feather-server-types",
  "feather-server-util",
  "fecs",
