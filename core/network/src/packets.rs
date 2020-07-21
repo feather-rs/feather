@@ -2423,29 +2423,8 @@ pub struct Tags {
 }
 
 impl Packet for Tags {
-    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
-        for field in [
-            &mut self.block_tags,
-            &mut self.item_tags,
-            &mut self.fluid_tags,
-        ]
-        .iter_mut()
-        {
-            let length = buf.try_get_var_int()?;
-            for _tag in 0..length {
-                let identifier = buf.try_get_string()?;
-                let inner_length = buf.try_get_var_int()?;
-
-                let mut entries = Vec::with_capacity(inner_length as usize);
-                for _entry in 0..inner_length {
-                    entries.push(buf.try_get_var_int()?);
-                }
-
-                field.push((identifier, entries));
-            }
-        }
-
-        Ok(())
+    fn read_from(&mut self, _buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
+        unimplemented!()
     }
 
     fn write_to(&self, buf: &mut BytesMut) {
