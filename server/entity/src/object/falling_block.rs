@@ -88,7 +88,7 @@ pub fn on_entity_land_remove_falling_block(
 
         game.despawn(event.entity, world);
 
-        if matches!(block.simplified_kind(), SimplifiedBlockKind::Anvil) {
+        if block.simplified_kind() == SimplifiedBlockKind::Anvil {
             game.broadcast_chunk_update(
                 world,
                 Effect {

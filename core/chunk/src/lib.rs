@@ -272,7 +272,7 @@ impl Chunk {
             &'static dyn Fn(BlockId) -> bool,
             HeightMapMask,
             &'static dyn Fn(&HeightMap) -> u16,
-            &'static dyn Fn(&mut HeightMap, u16) -> (),
+            &'static dyn Fn(&mut HeightMap, u16),
         );
 
         let checks: [HeightMapCheckContext; 5] = [
@@ -294,7 +294,7 @@ impl Chunk {
             HeightMapCheckContext(
                 &|block| {
                     (block.is_solid() || block.is_fluid())
-                        && !matches!(block.simplified_kind(), SimplifiedBlockKind::Leaves)
+                        && block.simplified_kind() != SimplifiedBlockKind::Leaves
                 },
                 HeightMapMask::MOTION_BLOCKING_NO_LEAVES,
                 &|map| map.motion_blocking_no_leaves(),

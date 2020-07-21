@@ -1,12 +1,14 @@
 use crate::{BlockId, BlockKind};
 use feather_definitions::SimplifiedBlockKind;
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum PlacementType {
     TargetedFace,
     PlayerDirection,
     PlayerDirectionRightAngle,
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum SupportType {
     OnSolid,
     OnDesertBlocks,
@@ -31,22 +33,22 @@ pub enum SupportType {
 }
 
 impl BlockId {
-    #[inline(always)]
+    #[inline]
     pub fn is_solid(self) -> bool {
         self.kind().solid()
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn is_opaque(self) -> bool {
         self.kind().opaque()
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn is_air(self) -> bool {
-        matches!(self.simplified_kind(), SimplifiedBlockKind::Air)
+        self.simplified_kind() == SimplifiedBlockKind::Air
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn is_fluid(self) -> bool {
         matches!(
             self.simplified_kind(),
@@ -54,7 +56,7 @@ impl BlockId {
         )
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn is_replaceable(self) -> bool {
         matches!(
             self.simplified_kind(),
@@ -69,7 +71,7 @@ impl BlockId {
         )
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn light_emission(self) -> u8 {
         match self.kind() {
             BlockKind::Beacon
@@ -102,7 +104,7 @@ impl BlockId {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn can_fall(self) -> bool {
         matches!(
             self.simplified_kind(),
@@ -113,7 +115,7 @@ impl BlockId {
         )
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn support_type(self) -> Option<SupportType> {
         Some(match self.simplified_kind() {
             SimplifiedBlockKind::Torch
@@ -183,7 +185,7 @@ impl BlockId {
         })
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn placement_type(self) -> Option<PlacementType> {
         match self.simplified_kind() {
             SimplifiedBlockKind::WallTorch
@@ -204,7 +206,7 @@ impl BlockId {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn is_full_block(self) -> bool {
         self.kind().full_block()
     }

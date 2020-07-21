@@ -137,8 +137,8 @@ fn check_block_support_at(id: BlockId, game: &Game, pos: BlockPosition) -> Optio
                 block_down?.simplified_kind(),
                 Sand | RedSand | Dirt | CoarseDirt | Podzol | Terracotta
             )),
-            SupportType::OnFarmland => Some(matches!(block_down?.simplified_kind(), Farmland)),
-            SupportType::OnSoulSand => Some(matches!(block_down?.simplified_kind(), SoulSand)),
+            SupportType::OnFarmland => Some(block_down?.simplified_kind() == Farmland),
+            SupportType::OnSoulSand => Some(block_down?.simplified_kind() == SoulSand),
             SupportType::OnWater => Some(matches!(
                 block_down?.simplified_kind(),
                 Water | Ice | FrostedIce
@@ -192,13 +192,13 @@ fn block_support_cactus_like(game: &Game, pos: BlockPosition) -> Option<bool> {
     let is_supported = matches!(
         game.block_at(pos + DOWN)?.simplified_kind(),
         Cactus | Sand | RedSand
-    ) && !matches!(north.simplified_kind(), Cactus)
+    ) && north.simplified_kind() != Cactus
         && !north.is_full_block()
-        && !matches!(east.simplified_kind(), Cactus)
+        && east.simplified_kind() != Cactus
         && !east.is_full_block()
-        && !matches!(south.simplified_kind(), Cactus)
+        && south.simplified_kind() != Cactus
         && !south.is_full_block()
-        && !matches!(west.simplified_kind(), Cactus)
+        && west.simplified_kind() != Cactus
         && !west.is_full_block();
 
     Some(is_supported)
@@ -298,7 +298,7 @@ fn block_support_vine_like(game: &Game, pos: BlockPosition) -> Option<bool> {
     let up = game.block_at(pos + UP)?;
 
     let is_supported = up.is_full_block()
-        || matches!(up.simplified_kind(), Vine)
+        || up.simplified_kind() == Vine
         || game.block_at(pos + NORTH)?.is_full_block()
         || game.block_at(pos + EAST)?.is_full_block()
         || game.block_at(pos + SOUTH)?.is_full_block()

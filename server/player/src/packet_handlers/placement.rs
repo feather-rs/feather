@@ -218,12 +218,12 @@ fn handle_slab_placement(
     mut target_block_pos: BlockPosition,
     placement_face: PacketFace,
 ) -> bool {
-    if !matches!(block_to_place.simplified_kind(), SimplifiedBlockKind::Slab) {
+    if block_to_place.simplified_kind() != SimplifiedBlockKind::Slab {
         return false;
     }
 
     let mut target_block = game.block_at(target_block_pos).unwrap();
-    if matches!(target_block.simplified_kind(), SimplifiedBlockKind::Slab)
+    if target_block.simplified_kind() == SimplifiedBlockKind::Slab
         && target_block.slab_kind().unwrap() != SlabKind::Double
         && matches!(placement_face, PacketFace::Bottom | PacketFace::Top)
     {
@@ -241,7 +241,7 @@ fn handle_slab_placement(
             return false;
         }
 
-        if !matches!(target_block.simplified_kind(), SimplifiedBlockKind::Slab) {
+        if target_block.simplified_kind() != SimplifiedBlockKind::Slab {
             return false;
         }
     }
@@ -428,10 +428,8 @@ fn get_stairs_shape(
     block_half_top_bottom: HalfTopBottom,
 ) -> StairsShape {
     if let Some(adjacent_block) = game.block_at(block_pos + block_facing_cardinal.offset()) {
-        if matches!(
-            adjacent_block.simplified_kind(),
-            SimplifiedBlockKind::Stairs
-        ) && adjacent_block.half_top_bottom().unwrap() == block_half_top_bottom
+        if adjacent_block.simplified_kind() == SimplifiedBlockKind::Stairs
+            && adjacent_block.half_top_bottom().unwrap() == block_half_top_bottom
         {
             let adjacent_block_facing_cardinal = adjacent_block.facing_cardinal().unwrap();
             if adjacent_block_facing_cardinal.axis() != block_facing_cardinal.axis()
@@ -451,10 +449,8 @@ fn get_stairs_shape(
     }
 
     if let Some(adjacent_block) = game.block_at(block_pos + block_facing_cardinal.offset()) {
-        if matches!(
-            adjacent_block.simplified_kind(),
-            SimplifiedBlockKind::Stairs
-        ) && adjacent_block.half_top_bottom().unwrap() == block_half_top_bottom
+        if adjacent_block.simplified_kind() == SimplifiedBlockKind::Stairs
+            && adjacent_block.half_top_bottom().unwrap() == block_half_top_bottom
         {
             let adjacent_block_facing_cardinal = adjacent_block.facing_cardinal().unwrap();
             if adjacent_block_facing_cardinal.axis() != block_facing_cardinal.axis()
@@ -483,7 +479,7 @@ fn is_different_stairs(
 ) -> bool {
     match test_block {
         Some(test_block) => {
-            !matches!(test_block.simplified_kind(), SimplifiedBlockKind::Stairs)
+            test_block.simplified_kind() != SimplifiedBlockKind::Stairs
                 || block_facing_cardinal != test_block.facing_cardinal().unwrap()
                 || block_half_top_bottom != test_block.half_top_bottom().unwrap()
         }
