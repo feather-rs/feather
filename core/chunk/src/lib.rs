@@ -272,7 +272,7 @@ impl Chunk {
             &'static dyn Fn(BlockId) -> bool,
             HeightMapMask,
             &'static dyn Fn(&HeightMap) -> u16,
-            &'static dyn Fn(&mut HeightMap, u16) -> (),
+            &'static dyn Fn(&mut HeightMap, u16),
         );
 
         let checks: [HeightMapCheckContext; 5] = [

@@ -1913,7 +1913,7 @@ checksum = "c7d73b3f436185384286bd8098d17ec07c9a7d2388a6599f824d8502b529702a"
 [[package]]
 name = "lieutenant"
 version = "0.2.0"
-source = "git+https://github.com/feather-rs/lieutenant?branch=master#c8f7a3fb02fe852dcd91de5d711e993610dda29a"
+source = "git+https://github.com/feather-rs/lieutenant#c8f7a3fb02fe852dcd91de5d711e993610dda29a"
 dependencies = [
  "derivative 2.1.1",
  "lieutenant-macros",
@@ -1924,7 +1924,7 @@ dependencies = [
 [[package]]
 name = "lieutenant-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/lieutenant?branch=master#c8f7a3fb02fe852dcd91de5d711e993610dda29a"
+source = "git+https://github.com/feather-rs/lieutenant#c8f7a3fb02fe852dcd91de5d711e993610dda29a"
 dependencies = [
  "darling",
  "proc-macro-error",
