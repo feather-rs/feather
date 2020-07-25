@@ -2,9 +2,10 @@
 
 use crate::IteratorExt;
 use entity::InventoryExt;
+use feather_core::blocks::categories::PlacementType;
 use feather_core::blocks::{
     BlockId, BlockKind, Face, FacingCardinal, FacingCardinalAndDown, FacingCubic, HalfTopBottom,
-    HalfUpperLower, Hinge, Part, SlabKind, StairsShape,
+    HalfUpperLower, Hinge, Part, SimplifiedBlockKind, SlabKind, StairsShape,
 };
 use feather_core::inventory::{slot, Area, Inventory};
 use feather_core::item_block::ItemToBlock;
@@ -150,16 +151,18 @@ pub fn handle_block_placement(
         }
 
         // handle multi-block placements (i.e. doors and beds)
-        if let Some((other_pos, other_block)) = if block.is_bed() {
-            let mut head = block;
-            head.set_part(Part::Head);
-            Some((pos + block.facing_cardinal().unwrap().offset(), head))
-        } else if block.is_door() {
-            let mut upper = block;
-            upper.set_half_upper_lower(HalfUpperLower::Upper);
-            Some((pos.up(), upper))
-        } else {
-            None
+        if let Some((other_pos, other_block)) = match block.simplified_kind() {
+            SimplifiedBlockKind::Bed => {
+                let mut head = block;
+                head.set_part(Part::Head);
+                Some((pos + block.facing_cardinal().unwrap().offset(), head))
+            }
+            SimplifiedBlockKind::IronDoor | SimplifiedBlockKind::WoodenDoor => {
+                let mut upper = block;
+                upper.set_half_upper_lower(HalfUpperLower::Upper);
+                Some((pos.up(), upper))
+            }
+            _ => None,
         } {
             game.set_block_at(
                 world,
@@ -215,12 +218,12 @@ fn handle_slab_placement(
     mut target_block_pos: BlockPosition,
     placement_face: PacketFace,
 ) -> bool {
-    if !block_to_place.is_slab() {
+    if block_to_place.simplified_kind() != SimplifiedBlockKind::Slab {
         return false;
     }
 
     let mut target_block = game.block_at(target_block_pos).unwrap();
-    if target_block.is_slab()
+    if target_block.simplified_kind() == SimplifiedBlockKind::Slab
         && target_block.slab_kind().unwrap() != SlabKind::Double
         && matches!(placement_face, PacketFace::Bottom | PacketFace::Top)
     {
@@ -238,7 +241,7 @@ fn handle_slab_placement(
             return false;
         }
 
-        if !target_block.is_slab() {
+        if target_block.simplified_kind() != SimplifiedBlockKind::Slab {
             return false;
         }
     }
@@ -278,37 +281,24 @@ fn update_block_state_for_placement(
     }
 
     if block.has_facing_cardinal() {
-        block.set_facing_cardinal(match block.kind() {
-            BlockKind::WallTorch | BlockKind::RedstoneWallTorch => packet.face.facing_cardinal(),
-            kind => {
-                if face == Face::Wall && (matches!(kind, BlockKind::Lever) || block.is_button()) {
+        let player_direction = facing_directions(player_pos.direction())
+            .iter()
+            .find(|dir| dir.is_horizontal())
+            .unwrap()
+            .to_facing_cardinal()
+            .unwrap();
+
+        block.set_facing_cardinal(match block.placement_type() {
+            Some(PlacementType::TargetedFace) => {
+                if face == Face::Wall {
                     packet.face.facing_cardinal()
                 } else {
-                    let direction = facing_directions(player_pos.direction())
-                        .iter()
-                        .find(|dir| dir.is_horizontal())
-                        .unwrap()
-                        .to_facing_cardinal()
-                        .unwrap();
-
-                    if matches!(kind, BlockKind::Lever)
-                        || block.is_bed()
-                        || block.is_button()
-                        || block.is_stairs()
-                        || block.is_door()
-                        || block.is_fence_gate()
-                    {
-                        direction
-                    } else if matches!(
-                        kind,
-                        BlockKind::Anvil | BlockKind::ChippedAnvil | BlockKind::DamagedAnvil
-                    ) {
-                        direction.right()
-                    } else {
-                        direction.opposite()
-                    }
+                    FacingCardinal::North
                 }
             }
+            Some(PlacementType::PlayerDirection) => player_direction,
+            Some(PlacementType::PlayerDirectionRightAngle) => player_direction.right(),
+            None => player_direction.opposite(),
         });
     }
 
@@ -320,17 +310,14 @@ fn update_block_state_for_placement(
     }
 
     if block.has_facing_cubic() {
-        block.set_facing_cubic(
-            if matches!(block.kind(), BlockKind::EndRod) || block.is_shulker_box() {
-                packet.face.facing_cubic()
-            } else {
-                let direction = facing_directions(player_pos.direction())[0];
-                match block.kind() {
-                    BlockKind::Observer => direction,
-                    _ => direction.opposite(),
-                }
-            },
-        );
+        let player_direction = facing_directions(player_pos.direction())[0];
+
+        block.set_facing_cubic(match block.placement_type() {
+            Some(PlacementType::TargetedFace) => packet.face.facing_cubic(),
+            Some(PlacementType::PlayerDirection) => player_direction,
+            None => player_direction.opposite(),
+            _ => unreachable!(),
+        });
     }
 
     if block.has_slab_kind() {
@@ -441,7 +428,7 @@ fn get_stairs_shape(
     block_half_top_bottom: HalfTopBottom,
 ) -> StairsShape {
     if let Some(adjacent_block) = game.block_at(block_pos + block_facing_cardinal.offset()) {
-        if adjacent_block.is_stairs()
+        if adjacent_block.simplified_kind() == SimplifiedBlockKind::Stairs
             && adjacent_block.half_top_bottom().unwrap() == block_half_top_bottom
         {
             let adjacent_block_facing_cardinal = adjacent_block.facing_cardinal().unwrap();
@@ -462,7 +449,7 @@ fn get_stairs_shape(
     }
 
     if let Some(adjacent_block) = game.block_at(block_pos + block_facing_cardinal.offset()) {
-        if adjacent_block.is_stairs()
+        if adjacent_block.simplified_kind() == SimplifiedBlockKind::Stairs
             && adjacent_block.half_top_bottom().unwrap() == block_half_top_bottom
         {
             let adjacent_block_facing_cardinal = adjacent_block.facing_cardinal().unwrap();
@@ -492,7 +479,7 @@ fn is_different_stairs(
 ) -> bool {
     match test_block {
         Some(test_block) => {
-            !test_block.is_stairs()
+            test_block.simplified_kind() != SimplifiedBlockKind::Stairs
                 || block_facing_cardinal != test_block.facing_cardinal().unwrap()
                 || block_half_top_bottom != test_block.half_top_bottom().unwrap()
         }

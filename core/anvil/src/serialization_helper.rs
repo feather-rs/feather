@@ -16,7 +16,7 @@ pub mod packed_u9 {
             type Value = Vec<u16>;
 
             fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
-                formatter.write_str("a sequence of type long with length 36")
+                formatter.write_str("a sequence of type long with length a multiple of 9")
             }
 
             fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>

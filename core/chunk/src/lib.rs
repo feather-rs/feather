@@ -1,7 +1,7 @@
 use ahash::AHashMap;
 use bitflags::bitflags;
 use feather_biomes::Biome;
-use feather_blocks::BlockId;
+use feather_blocks::{BlockId, SimplifiedBlockKind};
 use feather_util::ChunkPosition;
 use smallvec::SmallVec;
 
@@ -272,7 +272,7 @@ impl Chunk {
             &'static dyn Fn(BlockId) -> bool,
             HeightMapMask,
             &'static dyn Fn(&HeightMap) -> u16,
-            &'static dyn Fn(&mut HeightMap, u16) -> (),
+            &'static dyn Fn(&mut HeightMap, u16),
         );
 
         let checks: [HeightMapCheckContext; 5] = [
@@ -292,7 +292,10 @@ impl Chunk {
             ),
             // Motion blocking no leaves
             HeightMapCheckContext(
-                &|block| (block.is_solid() || block.is_fluid()) && !block.is_leaves(),
+                &|block| {
+                    (block.is_solid() || block.is_fluid())
+                        && block.simplified_kind() != SimplifiedBlockKind::Leaves
+                },
                 HeightMapMask::MOTION_BLOCKING_NO_LEAVES,
                 &|map| map.motion_blocking_no_leaves(),
                 &|map, value| map.set_motion_blocking_no_leaves(value),

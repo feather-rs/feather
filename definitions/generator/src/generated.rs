@@ -6,6 +6,9 @@ use std::fs::File;
 use std::io::Write;
 
 use indexmap::map::IndexMap;
+use itertools::Itertools;
+use once_cell::sync::Lazy;
+use regex::Regex;
 use ron::value::Number;
 use serde::de::IgnoredAny;
 use serde::{Deserialize, Serialize};
@@ -80,6 +83,83 @@ fn load_collision_shape_model() -> anyhow::Result<CollisionShapeModel<'static>> 
         .map_err(anyhow::Error::from)
 }
 
+static SIMPLIFIED_REGEX: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
+    let mut vec = Vec::new();
+
+    vec.push((Regex::new(r"^.*air$").unwrap(), "air"));
+    vec.push((Regex::new(r"^.+_planks$").unwrap(), "planks"));
+    vec.push((Regex::new(r"^(\w+|dark_oak)_sapling$").unwrap(), "sapling"));
+    vec.push((Regex::new(r"^.+_(log|wood)$").unwrap(), "log"));
+    vec.push((Regex::new(r"^.+_leaves$").unwrap(), "leaves"));
+    vec.push((Regex::new(r"^.+_bed$").unwrap(), "bed"));
+    vec.push((Regex::new(r"^.+_wool$").unwrap(), "wool"));
+    vec.push((
+        Regex::new(r"^(allium|poppy|dandelion|\w+_(orchid|bluet|tulip|daisy))$").unwrap(),
+        "flower",
+    ));
+    vec.push((
+        Regex::new(r"^(oak|spruce|birch|jungle|acacia|dark_oak)_pressure_plate$").unwrap(),
+        "wooden_pressure_plate",
+    ));
+    vec.push((Regex::new(r"^.+_stained_glass$").unwrap(), "stained_glass"));
+    vec.push((
+        Regex::new(r"^(oak|spruce|birch|jungle|acacia|dark_oak)_trapdoor$").unwrap(),
+        "wooden_trapdoor",
+    ));
+    vec.push((Regex::new(r"^potted_.+$").unwrap(), "potted_plant"));
+    vec.push((
+        Regex::new(r"^(oak|spruce|birch|jungle|acacia|dark_oak)_button$").unwrap(),
+        "wooden_button",
+    ));
+    vec.push((Regex::new(r"^(\w+_)?anvil$").unwrap(), "anvil"));
+    vec.push((
+        Regex::new(r"^.+_glazed_terracotta$").unwrap(),
+        "glazed_terracotta",
+    )); // this will be matched first
+    vec.push((Regex::new(r"^.*terracotta$").unwrap(), "terracotta"));
+    vec.push((
+        Regex::new(r"^.+_stained_glass_pane$").unwrap(),
+        "stained_glass_pane",
+    ));
+    vec.push((Regex::new(r"^.+_carpet$").unwrap(), "carpet"));
+    vec.push((Regex::new(r"^.+_wall_banner$").unwrap(), "wall_banner")); // this will be matched first
+    vec.push((Regex::new(r"^.+_banner$").unwrap(), "banner"));
+    vec.push((Regex::new(r"^.+_slab$").unwrap(), "slab"));
+    vec.push((Regex::new(r"^.+_stairs$").unwrap(), "stairs"));
+    vec.push((Regex::new(r"^.+_fence_gate$").unwrap(), "fence_gate"));
+    vec.push((Regex::new(r"^.+_fence$").unwrap(), "fence"));
+    vec.push((
+        Regex::new(r"^(oak|spruce|birch|jungle|acacia|dark_oak)_door$").unwrap(),
+        "wooden_door",
+    ));
+    vec.push((Regex::new(r"^.*shulker_box$").unwrap(), "shulker_box"));
+    vec.push((Regex::new(r"^.+_concrete$").unwrap(), "concrete"));
+    vec.push((
+        Regex::new(r"^.+_concrete_powder$").unwrap(),
+        "concrete_powder",
+    ));
+    vec.push((Regex::new(r"^.+_coral$").unwrap(), "coral"));
+    vec.push((Regex::new(r"^.+_coral_block$").unwrap(), "coral_block"));
+    vec.push((Regex::new(r"^.+_coral_fan$").unwrap(), "coral_fan"));
+    vec.push((
+        Regex::new(r"^.+_coral_wall_fan$").unwrap(),
+        "coral_wall_fan",
+    ));
+    vec.push((Regex::new(r"^\w+_mushroom$").unwrap(), "mushroom"));
+
+    vec
+});
+
+fn to_simplified_name(block_name: &str) -> Option<&'static str> {
+    for (regex, replacement) in SIMPLIFIED_REGEX.iter() {
+        if regex.is_match(block_name) {
+            return Some(replacement);
+        }
+    }
+
+    None
+}
+
 fn generate_block<'a>(
     block_model: &'a BlockModel,
     collision_shape_model: &'a CollisionShapeModel,
@@ -149,10 +229,38 @@ fn generate_block<'a>(
             })
             .collect(),
     };
+    let to_simplified_kind = Model::Property {
+        on: "block_kind",
+        name: "to_simplified_kind",
+        reverse: false,
+        typ: Type::Custom("simplified_block_kind"),
+        mapping: block_model
+            .0
+            .iter()
+            .map(|block| block.name)
+            .map(|name| {
+                (
+                    VecOrOne::One(name),
+                    ron::Value::String(to_simplified_name(name).unwrap_or(name).to_string()),
+                )
+            })
+            .collect(),
+    };
 
     let kind = Model::Enum {
         name: "block_kind",
         variants: block_model.0.iter().map(|block| block.name).collect(),
+    };
+
+    let simplified_kind = Model::Enum {
+        name: "simplified_block_kind",
+        variants: block_model
+            .0
+            .iter()
+            .map(|block| block.name)
+            .map(|name| to_simplified_name(name).unwrap_or(name))
+            .unique()
+            .collect(),
     };
 
     Ok(ModelFile::Multiple(vec![
@@ -164,6 +272,8 @@ fn generate_block<'a>(
         opaque,
         solid,
         full_block,
+        simplified_kind,
+        to_simplified_kind,
     ]))
 }
 
