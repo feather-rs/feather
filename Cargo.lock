@@ -3017,9 +3017,9 @@ dependencies = [
 
 [[package]]
 name = "simdeez"
-version = "1.0.2"
+version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0cc1807d0c7d2e869716572655b1abd32649b5600c047023f10c605bea8310f"
+checksum = "1893a4b8db694e23889b63229b6e1deb33846ee0552588bb6e45e53eff59667d"
 dependencies = [
  "cfg-if",
  "paste",
@@ -3027,9 +3027,8 @@ dependencies = [
 
 [[package]]
 name = "simdnoise"
-version = "3.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a31457560eda25097f625438e6583e853580ad201f4cf87c5a57e8aba118ca8"
+version = "3.1.6"
+source = "git+https://github.com/jackmott/rust-simd-noise?rev=6349670#6349670ebf3ea2bf7bca6695d33388bad2e197d9"
 dependencies = [
  "simdeez",
 ]
