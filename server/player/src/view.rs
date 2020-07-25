@@ -43,8 +43,10 @@ pub fn check_crossed_chunks(world: &mut World, game: &mut Game) {
     for (entity, (pos, prev_pos)) in
         <(Read<Position>, Read<PreviousPosition>)>::query().iter_entities(world.inner())
     {
-        if pos.chunk() != prev_pos.0.chunk() {
-            crossed.push((entity, pos.chunk(), prev_pos.0.chunk()));
+        if let Some(prev_pos) = prev_pos.0 {
+            if pos.chunk() != prev_pos.chunk() {
+                crossed.push((entity, pos.chunk(), prev_pos.chunk()));
+            }
         }
     }
 

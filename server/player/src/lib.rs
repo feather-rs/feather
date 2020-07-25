@@ -21,7 +21,7 @@ use feather_server_types::{
     CreationPacketCreator, EntitySpawnEvent, Game, GamemodeUpdateEvent, Health, HealthUpdateEvent,
     HeldItem, InventoryUpdateEvent, LastKnownPositions, MaxHealth, MessageReceiver, Name, Network,
     NetworkId, OpenWindowCount, Player, PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition,
-    ProfileProperties, SpawnPacketCreator, Uuid,
+    PreviousVelocity, ProfileProperties, SpawnPacketCreator, Uuid, Velocity,
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
@@ -47,7 +47,9 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     let entity = info.entity;
     world.add(entity, NetworkId(entity::new_id())).unwrap();
     world.add(entity, info.position).unwrap();
-    world.add(entity, PreviousPosition(info.position)).unwrap();
+    world.add(entity, PreviousPosition::default()).unwrap();
+    world.add(entity, Velocity::default()).unwrap();
+    world.add(entity, PreviousVelocity::default()).unwrap();
     world.add(entity, info.uuid).unwrap();
     world
         .add(

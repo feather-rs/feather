@@ -59,6 +59,7 @@ pub fn build_event_handlers() -> EventHandlers {
 
         on_chunk_holder_release_unload_chunk,
 
+        on_chunk_cross_mark_modified,
         on_chunk_cross_update_chunks,
         on_chunk_cross_update_chunk_entities,
         on_chunk_cross_update_entities,

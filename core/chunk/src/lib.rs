@@ -526,6 +526,12 @@ impl Chunk {
         res
     }
 
+    /// Marks this chunk as modified.
+    /// See `check_modified`.
+    pub fn set_modified(&mut self) {
+        self.modified = true;
+    }
+
     fn biome_index(x: usize, z: usize) -> usize {
         assert!(x < 16);
         assert!(z < 16);
