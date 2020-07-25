@@ -111,7 +111,9 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
         (window, slots)
     };
     world.add(entity, window).unwrap();
-    world.add(entity, HeldItem(0)).unwrap(); // todo: load from player data
+    world
+        .add(entity, HeldItem(info.data.held_item as usize))
+        .unwrap();
 
     world.add(entity, MessageReceiver::default()).unwrap();
 

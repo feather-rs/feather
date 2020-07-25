@@ -203,6 +203,7 @@ impl Test {
                 animal: AnimalData::new(BaseEntityData::new(position, vec3(0.0, 0.0, 0.0)), 20.0),
                 gamemode: 1,
                 inventory: vec![],
+                held_item: 0,
             },
             position,
             sender: server_tx,

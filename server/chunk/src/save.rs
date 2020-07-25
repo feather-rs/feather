@@ -10,7 +10,7 @@ use feather_core::inventory::{Inventory, Window};
 use feather_core::util::{ChunkPosition, Gamemode, Position, Vec3d};
 use feather_server_types::{
     tasks, BlockSerializer, ChunkLoadEvent, ChunkUnloadEvent, ComponentSerializer, Game, Health,
-    PlayerLeaveEvent, Uuid, TICK_LENGTH, TPS,
+    HeldItem, PlayerLeaveEvent, Uuid, TICK_LENGTH, TPS,
 };
 use fecs::{Entity, World};
 use std::collections::VecDeque;
@@ -203,6 +203,7 @@ pub fn save_player_data(game: &Game, world: &World, player: Entity) {
         ),
         gamemode: world.get::<Gamemode>(player).id() as i32,
         inventory,
+        held_item: world.get::<HeldItem>(player).0 as i32,
     };
 
     let uuid = *world.get::<Uuid>(player);

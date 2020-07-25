@@ -86,6 +86,24 @@ impl BlockId {
         VANILLA_ID_TABLE[self.kind as u16 as usize][self.state as usize]
     }
 
+    /// Returns the vanilla fluid ID for this block in case it is a fluid.
+    /// The fluid ID is used in the Tags packet.
+    pub fn vanilla_fluid_id(self) -> Option<u16> {
+        if self.is_fluid() {
+            match (self.kind(), self.water_level().unwrap()) {
+                // could be swapped?
+                (BlockKind::Water, 0) => Some(2), // stationary water
+                (BlockKind::Water, _) => Some(1), // flowing water
+                // tested those
+                (BlockKind::Lava, 0) => Some(4), // stationary lava
+                (BlockKind::Lava, _) => Some(3), // flowing lava
+                _ => unreachable!(),
+            }
+        } else {
+            None
+        }
+    }
+
     /// Returns the block corresponding to the given vanilla ID.
     ///
     /// (Invalid IDs currently return `BlockId::air()`).

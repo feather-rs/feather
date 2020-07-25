@@ -17,6 +17,7 @@ use num_traits::{FromPrimitive, ToPrimitive};
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
 use std::any::Any;
+use std::convert::TryInto;
 use std::io::Cursor;
 use std::io::Read;
 use std::sync::Arc;
@@ -314,11 +315,13 @@ pub static IMPL_MAP: Lazy<AHashMap<PacketType, PacketBuilder>> = Lazy::new(|| {
         EntityHeadLook,
         EntityVelocity,
         EntityEquipment,
+        HeldItemChangeClientbound,
         UpdateHealth,
         SpawnPosition,
         TimeUpdate,
         CollectItem,
         EntityTeleport,
+        Tags,
         Response,
         Pong,
     );
@@ -2369,6 +2372,11 @@ pub struct EntityEquipment {
 }
 
 #[derive(Default, AsAny, Packet, Clone)]
+pub struct HeldItemChangeClientbound {
+    pub slot: i8,
+}
+
+#[derive(Default, AsAny, Packet, Clone)]
 pub struct UpdateHealth {
     pub health: f32,
     pub food: VarInt,
@@ -2405,4 +2413,45 @@ pub struct EntityTeleport {
     pub yaw: u8,
     pub pitch: u8,
     pub on_ground: bool,
+}
+
+#[derive(Default, AsAny, Clone)]
+pub struct Tags {
+    pub block_tags: Vec<(String, Vec<VarInt>)>,
+    pub item_tags: Vec<(String, Vec<VarInt>)>,
+    pub fluid_tags: Vec<(String, Vec<VarInt>)>,
+}
+
+impl Packet for Tags {
+    fn read_from(&mut self, _buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut BytesMut) {
+        for field in [&self.block_tags, &self.item_tags, &self.fluid_tags].iter_mut() {
+            buf.push_var_int(field.len() as i32);
+            for (identifier, entries) in field.iter() {
+                buf.push_string(identifier.as_str());
+                buf.push_var_int(entries.len().try_into().unwrap());
+                for entry in entries {
+                    buf.push_var_int(*entry);
+                }
+            }
+        }
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::Tags
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::Tags
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
+    }
 }

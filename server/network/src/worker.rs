@@ -241,6 +241,7 @@ async fn load_player_data(config: &Config, uuid: Uuid) -> Result<PlayerData, any
                 ),
                 gamemode: config.server.default_gamemode.id() as i32,
                 inventory: vec![],
+                held_item: 0,
             };
 
             feather_core::anvil::player::save_player_data(
