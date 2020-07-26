@@ -221,7 +221,11 @@ mod tests {
     fn send_set_slot() {
         let mut test = Test::new();
 
-        let stack = ItemStack::new(Item::RedstoneOre, 4);
+        let stack = ItemStack {
+            ty: Item::StoneShovel,
+            amount: 1,
+            damage: Some(10),
+        };
         let slot = SlotIndex {
             area: Area::Main,
             slot: 4,

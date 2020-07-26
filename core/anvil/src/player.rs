@@ -193,6 +193,8 @@ mod tests {
 
         let player = load_from_file(cursor).await.unwrap();
         assert_eq!(player.gamemode, i32::from(Gamemode::Creative.id()));
+        assert_eq!(player.inventory[0].item, "minecraft:diamond_shovel");
+        assert_eq!(player.inventory[0].tags, Some(ItemTags { damage: Some(3) }));
     }
 
     #[test]
@@ -209,7 +211,20 @@ mod tests {
         assert_eq!(item_stack.amount, 1);
     }
 
-    //todo test_convert_item_tags
+    #[test]
+    fn test_convert_item_tags() {
+        let slot = InventorySlot {
+            count: 1,
+            slot: 2,
+            item: String::from(Item::DiamondAxe.identifier()),
+            tags: Some(ItemTags { damage: Some(42) }),
+        };
+
+        let item_stack = slot.to_stack();
+        assert_eq!(item_stack.ty, Item::DiamondAxe);
+        assert_eq!(item_stack.amount, 1);
+        assert_eq!(item_stack.damage, Some(42));
+    }
 
     #[test]
     fn test_convert_item_unknown_type() {
