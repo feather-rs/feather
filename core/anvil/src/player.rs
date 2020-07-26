@@ -38,6 +38,24 @@ pub struct InventorySlot {
     pub slot: i8,
     #[serde(rename = "id")]
     pub item: String,
+    #[serde(rename = "tag")]
+    pub tags: Option<ItemTags>,
+}
+
+/// Represents NBT tags on an item.
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ItemTags {
+    #[serde(rename = "Damage")]
+    pub damage: Option<i16>,
+    // TODO enchantments, display name, ...
+}
+
+impl From<ItemStack> for ItemTags {
+    fn from(stack: ItemStack) -> Self {
+        Self {
+            damage: stack.damage,
+        }
+    }
 }
 
 impl InventorySlot {
@@ -46,6 +64,7 @@ impl InventorySlot {
         ItemStack {
             ty: Item::from_identifier(self.item.as_str()).unwrap_or(Item::Air),
             amount: self.count as u8,
+            damage: self.tags.as_ref().map(|t| t.damage).flatten(),
         }
     }
 
@@ -67,10 +86,17 @@ impl InventorySlot {
             return None;
         };
 
+        let tags = stack.into();
+        let tags = if tags == Default::default() {
+            None
+        } else {
+            Some(tags)
+        };
         Some(Self {
             count: stack.amount as i8,
             slot,
             item: stack.ty.identifier().to_string(),
+            tags,
         })
     }
 
@@ -102,6 +128,13 @@ impl InventorySlot {
         compound.insert(String::from("id"), Value::String(self.item));
         compound.insert(String::from("Slot"), Value::Byte(self.slot));
 
+        let mut tags_compound = HashMap::new();
+        if let Some(tags) = self.tags {
+            if let Some(damage) = tags.damage {
+                tags_compound.insert(String::from("Damage"), Value::Short(damage));
+            }
+        }
+        compound.insert(String::from("tag"), Value::Compound(tags_compound));
         Value::Compound(compound)
     }
 }
@@ -168,6 +201,7 @@ mod tests {
             count: 1,
             slot: 2,
             item: String::from(Item::Feather.identifier()),
+            tags: None,
         };
 
         let item_stack = slot.to_stack();
@@ -175,12 +209,15 @@ mod tests {
         assert_eq!(item_stack.amount, 1);
     }
 
+    //todo test_convert_item_tags
+
     #[test]
     fn test_convert_item_unknown_type() {
         let slot = InventorySlot {
             count: 1,
             slot: 2,
             item: String::from("invalid:identifier"),
+            tags: None,
         };
 
         let item_stack = slot.to_stack();
@@ -214,6 +251,7 @@ mod tests {
                 slot: src,
                 count: 1,
                 item: String::from(Item::Stone.identifier()),
+                tags: None,
             };
             assert_eq!(slot.convert_index().unwrap(), expected);
             assert_eq!(
@@ -228,6 +266,7 @@ mod tests {
                 slot: *invalid_slot as i8,
                 count: 1,
                 item: String::from("invalid:identifier"),
+                tags: None,
             };
             assert!(slot.convert_index().is_none());
         }

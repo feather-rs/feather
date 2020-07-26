@@ -911,6 +911,7 @@ dependencies = [
  "byteorder",
  "bytes",
  "cfb8",
+ "feather-anvil",
  "feather-blocks",
  "feather-chunk",
  "feather-codegen",

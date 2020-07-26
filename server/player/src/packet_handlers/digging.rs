@@ -261,6 +261,8 @@ fn dig(game: &mut Game, world: &mut World, player: Entity, pos: BlockPosition) {
         }
     };
 
+    damage_tool(player, block, game, world);
+
     // Handle multi-block destruction (i.e. doors and beds)
     if let Some(other_pos) = match block.simplified_kind() {
         SimplifiedBlockKind::Bed => {
@@ -289,6 +291,34 @@ fn dig(game: &mut Game, world: &mut World, player: Entity, pos: BlockPosition) {
     }
 
     game.set_block_at(world, pos, BlockId::air(), BlockUpdateCause::Entity(player));
+}
+
+fn damage_tool(player: Entity, _block: BlockId, game: &mut Game, world: &mut World) {
+    let held_item = world.get::<HeldItem>(player).0;
+    let inventory = world.get_mut::<Inventory>(player);
+    // let best_tool = block.kind().best_tool();
+    //TODO more damage for using wrong tool
+    //TODO instant break should not damage tool
+
+    let item_in_main_hand: Slot = inventory
+        .item_at(Area::Hotbar, held_item)
+        .expect("held item out of bounds");
+    // let held_tool = item_in_main_hand.map(|item| item.ty.tool()).flatten();
+
+    if let Some(mut item) = item_in_main_hand {
+        item.damage = Some(item.damage.unwrap_or_default() + 1);
+        //TODO item max damage breaks it
+        inventory
+            .set_item_at(Area::Hotbar, held_item, item)
+            .unwrap();
+        drop(inventory);
+
+        let inv_update = InventoryUpdateEvent {
+            slots: smallvec![slot(Area::Hotbar, held_item)],
+            entity: player,
+        };
+        game.handle(world, inv_update);
+    }
 }
 
 fn handle_drop_item_stack(

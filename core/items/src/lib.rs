@@ -11,6 +11,8 @@ pub struct ItemStack {
     pub ty: Item,
     /// The number of items in this stack.
     pub amount: u8,
+    /// Amount of damage taken on tools/equipment (how much durability expended).
+    pub damage: Option<i16>,
     // TODO enchantments, more
 }
 
@@ -22,7 +24,11 @@ impl Default for ItemStack {
 
 impl ItemStack {
     pub const fn new(ty: Item, amount: u8) -> Self {
-        Self { ty, amount }
+        Self {
+            ty,
+            amount,
+            damage: None,
+        }
     }
 }
 

@@ -201,6 +201,7 @@ fn serialize_items(inventory: &Inventory) -> Vec<InventorySlot> {
                 item: item.ty.identifier().to_owned(),
                 count: item.amount as i8,
                 slot: i as i8,
+                ..Default::default()
             });
         }
     }
