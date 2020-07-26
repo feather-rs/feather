@@ -197,12 +197,7 @@ fn serialize_items(inventory: &Inventory) -> Vec<InventorySlot> {
         let item = inventory.item_at(Area::Chest, i).unwrap();
 
         if let Some(item) = item {
-            slots.push(InventorySlot {
-                item: item.ty.identifier().to_owned(),
-                count: item.amount as i8,
-                slot: i as i8,
-                ..Default::default()
-            });
+            slots.push(InventorySlot::from_inventory_index(i as i8, item));
         }
     }
     slots
