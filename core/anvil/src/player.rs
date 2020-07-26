@@ -52,6 +52,12 @@ pub struct ItemTags {
 
 impl From<ItemStack> for ItemTags {
     fn from(stack: ItemStack) -> Self {
+        ItemTags::from(&stack)
+    }
+}
+
+impl From<&ItemStack> for ItemTags {
+    fn from(stack: &ItemStack) -> Self {
         Self {
             damage: stack.damage,
         }
@@ -59,15 +65,6 @@ impl From<ItemStack> for ItemTags {
 }
 
 impl InventorySlot {
-    /// Converts a slot to an ItemStack.
-    pub fn to_stack(&self) -> ItemStack {
-        ItemStack {
-            ty: Item::from_identifier(self.item.as_str()).unwrap_or(Item::Air),
-            amount: self.count as u8,
-            damage: self.tags.as_ref().map(|t| t.damage).flatten(),
-        }
-    }
-
     /// Converts a network protocol index, item, and count
     /// to an `InventorySlot`.
     pub fn from_network_index(network: usize, stack: ItemStack) -> Option<Self> {
@@ -139,6 +136,22 @@ impl InventorySlot {
     }
 }
 
+impl From<InventorySlot> for ItemStack {
+    fn from(slot: InventorySlot) -> Self {
+        ItemStack::from(&slot)
+    }
+}
+
+impl From<&InventorySlot> for ItemStack {
+    fn from(slot: &InventorySlot) -> Self {
+        Self {
+            ty: Item::from_identifier(slot.item.as_str()).unwrap_or(Item::Air),
+            amount: slot.count as u8,
+            damage: slot.tags.as_ref().map(|t| t.damage).flatten(),
+        }
+    }
+}
+
 async fn load_from_file<R: AsyncRead + Unpin>(mut reader: R) -> Result<PlayerData, nbt::Error> {
     let mut buf = vec![];
     tokio::io::copy(&mut reader, &mut buf).await?;
@@ -206,7 +219,7 @@ mod tests {
             tags: None,
         };
 
-        let item_stack = slot.to_stack();
+        let item_stack: ItemStack = slot.into();
         assert_eq!(item_stack.ty, Item::Feather);
         assert_eq!(item_stack.amount, 1);
     }
@@ -220,7 +233,7 @@ mod tests {
             tags: Some(ItemTags { damage: Some(42) }),
         };
 
-        let item_stack = slot.to_stack();
+        let item_stack: ItemStack = slot.into();
         assert_eq!(item_stack.ty, Item::DiamondAxe);
         assert_eq!(item_stack.amount, 1);
         assert_eq!(item_stack.damage, Some(42));
@@ -235,7 +248,7 @@ mod tests {
             tags: None,
         };
 
-        let item_stack = slot.to_stack();
+        let item_stack: ItemStack = slot.into();
         assert_eq!(item_stack.ty, Item::Air);
     }
 

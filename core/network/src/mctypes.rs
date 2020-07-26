@@ -121,7 +121,7 @@ impl McTypeWrite for BytesMut {
         if let Some(slot) = slot.as_ref() {
             self.push_var_int(slot.ty.vanilla_id() as i32);
             self.push_i8(slot.amount as i8);
-            let tags: ItemTags = (*slot).into();
+            let tags: ItemTags = slot.into();
 
             if tags != Default::default() {
                 self.push_nbt(&tags);

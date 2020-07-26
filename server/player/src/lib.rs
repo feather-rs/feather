@@ -10,7 +10,6 @@ mod packet_handlers;
 mod view;
 
 use feather_core::inventory::{Area, Inventory, SlotIndex, Window};
-use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
 use feather_core::network::Packet;
 use feather_core::text::Text;
@@ -76,15 +75,11 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     let gamemode = Gamemode::from_id(info.data.gamemode as u8);
     add_gamemode_comps(world, gamemode, entity);
 
-    let items = info.data.inventory.iter().map(|slot| {
-        (
-            slot.convert_index().unwrap_or_default(),
-            ItemStack::new(
-                Item::from_identifier(&slot.item).unwrap_or(Item::Air),
-                slot.count as u8,
-            ),
-        )
-    });
+    let items = info
+        .data
+        .inventory
+        .iter()
+        .map(|slot| (slot.convert_index().unwrap_or_default(), slot.into()));
 
     let (window, slots) = {
         let inventory = Inventory::player();
