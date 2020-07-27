@@ -1,6 +1,6 @@
 use crate::bytes_ext::{BytesExt, BytesMutExt, TryGetError};
 use bytes::{Buf, BytesMut};
-use feather_anvil::player::ItemTags;
+use feather_anvil::entity::ItemNbt;
 use feather_entity_metadata::{EntityMetadata, MetaEntry};
 use feather_items::{Item, ItemStack};
 use feather_util::BlockPosition;
@@ -121,7 +121,7 @@ impl McTypeWrite for BytesMut {
         if let Some(slot) = slot.as_ref() {
             self.push_var_int(slot.ty.vanilla_id() as i32);
             self.push_i8(slot.amount as i8);
-            let tags: ItemTags = slot.into();
+            let tags: ItemNbt = slot.into();
 
             if tags != Default::default() {
                 self.push_nbt(&tags);
@@ -221,7 +221,7 @@ impl<B: Buf + Read> McTypeRead for B {
         let id = self.try_get_var_int()?;
         let ty = Item::from_vanilla_id(id as u32).ok_or(TryGetError::InvalidValue(id))?;
         let amount = self.try_get_i8()? as u8;
-        let nbt: Option<ItemTags> = self.try_get_nbt().ok();
+        let nbt: Option<ItemNbt> = self.try_get_nbt().ok();
 
         Ok(Some(ItemStack {
             ty,

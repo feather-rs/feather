@@ -1,5 +1,5 @@
 use arrayvec::ArrayVec;
-use feather_items::Item;
+use feather_items::{Item, ItemStack};
 use feather_util::{vec3, Position, Vec3d};
 use serde::ser::Error;
 use serde::{Deserialize, Serialize, Serializer};
@@ -175,6 +175,8 @@ pub struct ItemData {
     pub count: i8,
     #[serde(rename = "id")]
     pub item: String,
+    #[serde(rename = "tag")]
+    pub nbt: Option<ItemNbt>,
 }
 
 impl Default for ItemData {
@@ -182,6 +184,75 @@ impl Default for ItemData {
         Self {
             count: 0,
             item: Item::Air.identifier().to_string(),
+            nbt: None,
+        }
+    }
+}
+
+impl From<ItemData> for ItemStack {
+    fn from(item: ItemData) -> Self {
+        ItemStack::from(&item)
+    }
+}
+
+// Can't do proper Borrow trait impl because of orphan rule
+impl From<&ItemData> for ItemStack {
+    fn from(item: &ItemData) -> Self {
+        ItemNbt::item_stack(
+            &item.nbt,
+            Item::from_identifier(item.item.as_str()).unwrap_or(Item::Air),
+            item.count as u8,
+        )
+    }
+}
+
+impl<S> From<S> for ItemData
+where
+    S: std::borrow::Borrow<ItemStack>,
+{
+    fn from(s: S) -> Self {
+        let stack = s.borrow();
+        let nbt = stack.into();
+        let nbt = if nbt == Default::default() {
+            None
+        } else {
+            Some(nbt)
+        };
+        Self {
+            count: stack.amount as i8,
+            item: stack.ty.identifier().to_string(),
+            nbt,
+        }
+    }
+}
+
+/// Represents NBT tags on an item.
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ItemNbt {
+    #[serde(rename = "Damage")]
+    pub damage: Option<i16>,
+    // TODO enchantments, display name, ...
+}
+
+impl ItemNbt {
+    /// Create an `ItemStack` of the specified item and amount, setting any nbt present.
+    pub fn item_stack(nbt: &Option<Self>, item: Item, amount: u8) -> ItemStack {
+        ItemStack {
+            ty: item,
+            amount,
+            damage: nbt.as_ref().map(|n| n.damage).flatten(),
+        }
+    }
+}
+
+impl<S> From<S> for ItemNbt
+where
+    S: std::borrow::Borrow<ItemStack>,
+{
+    fn from(s: S) -> Self {
+        let stack = s.borrow();
+        Self {
+            damage: stack.damage,
         }
     }
 }

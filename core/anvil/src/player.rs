@@ -1,4 +1,4 @@
-use crate::entity::AnimalData;
+use crate::entity::{AnimalData, ItemNbt};
 use feather_inventory::player_constants::{
     HOTBAR_SIZE, INVENTORY_SIZE, SLOT_ARMOR_MAX, SLOT_ARMOR_MIN, SLOT_HOTBAR_OFFSET,
     SLOT_INVENTORY_OFFSET, SLOT_OFFHAND,
@@ -39,29 +39,7 @@ pub struct InventorySlot {
     #[serde(rename = "id")]
     pub item: String,
     #[serde(rename = "tag")]
-    pub tags: Option<ItemTags>,
-}
-
-/// Represents NBT tags on an item.
-#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct ItemTags {
-    #[serde(rename = "Damage")]
-    pub damage: Option<i16>,
-    // TODO enchantments, display name, ...
-}
-
-impl From<ItemStack> for ItemTags {
-    fn from(stack: ItemStack) -> Self {
-        ItemTags::from(&stack)
-    }
-}
-
-impl From<&ItemStack> for ItemTags {
-    fn from(stack: &ItemStack) -> Self {
-        Self {
-            damage: stack.damage,
-        }
-    }
+    pub nbt: Option<ItemNbt>,
 }
 
 impl InventorySlot {
@@ -87,17 +65,17 @@ impl InventorySlot {
 
     /// Converts an `ItemStack` and inventory position index into an `InventorySlot`.
     pub fn from_inventory_index(slot: i8, stack: ItemStack) -> Self {
-        let tags = stack.into();
-        let tags = if tags == Default::default() {
+        let nbt = stack.into();
+        let nbt = if nbt == Default::default() {
             None
         } else {
-            Some(tags)
+            Some(nbt)
         };
         Self {
             count: stack.amount as i8,
             slot,
             item: stack.ty.identifier().to_string(),
-            tags,
+            nbt,
         }
     }
 
@@ -130,8 +108,8 @@ impl InventorySlot {
         compound.insert(String::from("Slot"), Value::Byte(self.slot));
 
         let mut tags_compound = HashMap::new();
-        if let Some(tags) = self.tags {
-            if let Some(damage) = tags.damage {
+        if let Some(nbt) = self.nbt {
+            if let Some(damage) = nbt.damage {
                 tags_compound.insert(String::from("Damage"), Value::Short(damage));
             }
         }
@@ -146,13 +124,14 @@ impl From<InventorySlot> for ItemStack {
     }
 }
 
+// Can't do proper Borrow trait impl because of orphan rule
 impl From<&InventorySlot> for ItemStack {
     fn from(slot: &InventorySlot) -> Self {
-        Self {
-            ty: Item::from_identifier(slot.item.as_str()).unwrap_or(Item::Air),
-            amount: slot.count as u8,
-            damage: slot.tags.as_ref().map(|t| t.damage).flatten(),
-        }
+        ItemNbt::item_stack(
+            &slot.nbt,
+            Item::from_identifier(slot.item.as_str()).unwrap_or(Item::Air),
+            slot.count as u8,
+        )
     }
 }
 
@@ -211,7 +190,7 @@ mod tests {
         let player = load_from_file(cursor).await.unwrap();
         assert_eq!(player.gamemode, i32::from(Gamemode::Creative.id()));
         assert_eq!(player.inventory[0].item, "minecraft:diamond_shovel");
-        assert_eq!(player.inventory[0].tags, Some(ItemTags { damage: Some(3) }));
+        assert_eq!(player.inventory[0].nbt, Some(ItemNbt { damage: Some(3) }));
     }
 
     #[test]
@@ -220,7 +199,7 @@ mod tests {
             count: 1,
             slot: 2,
             item: String::from(Item::Feather.identifier()),
-            tags: None,
+            nbt: None,
         };
 
         let item_stack: ItemStack = slot.into();
@@ -234,7 +213,7 @@ mod tests {
             count: 1,
             slot: 2,
             item: String::from(Item::DiamondAxe.identifier()),
-            tags: Some(ItemTags { damage: Some(42) }),
+            nbt: Some(ItemNbt { damage: Some(42) }),
         };
 
         let item_stack: ItemStack = slot.into();
@@ -249,7 +228,7 @@ mod tests {
             count: 1,
             slot: 2,
             item: String::from("invalid:identifier"),
-            tags: None,
+            nbt: None,
         };
 
         let item_stack: ItemStack = slot.into();
@@ -283,7 +262,7 @@ mod tests {
                 slot: src,
                 count: 1,
                 item: String::from(Item::Stone.identifier()),
-                tags: None,
+                nbt: None,
             };
             assert_eq!(slot.convert_index().unwrap(), expected);
             assert_eq!(
@@ -298,7 +277,7 @@ mod tests {
                 slot: *invalid_slot as i8,
                 count: 1,
                 item: String::from("invalid:identifier"),
-                tags: None,
+                nbt: None,
             };
             assert!(slot.convert_index().is_none());
         }
