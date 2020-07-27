@@ -338,7 +338,7 @@ fn handle_single_click(
         let current_item = accessor.item_at(packet.slot as usize)?;
 
         if let Some(current_item) = current_item.and_then(|item| {
-            if item.ty == picked.0.ty {
+            if item.eq_ignore_amount(&picked.0) {
                 None
             } else {
                 Some(item)
@@ -424,17 +424,16 @@ fn handle_double_click(
 
     let new_picked_count = {
         let mut current_count;
-        let item_type;
 
         // Get information about the currently picked item
-        if let Some(picked) = world.try_get_mut::<PickedItem>(player) {
-            stack_size = picked.0.ty.stack_size() as u8;
-            current_count = picked.0.amount;
-            item_type = picked.0.ty;
-        } else {
+        let picked = world.try_get_mut::<PickedItem>(player);
+        if picked.is_none() {
             // Immediately return if there is no item picked
             return Ok(());
         };
+        let picked = picked.unwrap().0;
+        stack_size = picked.ty.stack_size() as u8;
+        current_count = picked.amount;
 
         // Get the current inventory
         let inventory = world.get::<Inventory>(player);
@@ -443,7 +442,7 @@ fn handle_double_click(
         for (index, slot) in inventory.enumerate() {
             if let Some(slot) = slot {
                 // Remove items from the inventory until the player's PickedItem has reached its max stack size
-                if slot.ty == item_type && slot.amount != stack_size {
+                if picked.eq_ignore_amount(&slot) && slot.amount != stack_size {
                     if let Some(mut item_stack) =
                         inventory.remove_item_at(index.area, index.slot)?
                     {

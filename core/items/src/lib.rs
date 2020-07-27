@@ -37,6 +37,10 @@ impl ItemStack {
         s.amount = amount;
         s
     }
+
+    pub fn eq_ignore_amount(&self, other: &Self) -> bool {
+        self.of_amount(0) == other.of_amount(0)
+    }
 }
 
 #[cfg(test)]
