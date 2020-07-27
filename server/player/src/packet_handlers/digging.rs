@@ -354,11 +354,7 @@ fn handle_drop_item_stack(
                 1
             } else {
                 inventory
-                    .set_item_at(
-                        Area::Hotbar,
-                        held_item,
-                        ItemStack::new(stack.ty, stack.amount - 1),
-                    )
+                    .set_item_at(Area::Hotbar, held_item, stack.of_amount(stack.amount - 1))
                     .unwrap();
                 1
             }
@@ -385,7 +381,7 @@ fn handle_drop_item_stack(
     if amnt != 0 {
         let item_drop = ItemDropEvent {
             slot: Some(idx),
-            stack: ItemStack::new(stack.ty, amnt),
+            stack: stack.of_amount(amnt),
             player,
         };
         game.handle(world, item_drop);

@@ -30,6 +30,13 @@ impl ItemStack {
             damage: None,
         }
     }
+
+    /// Create a copy of the `ItemStack` which has the specified amount of items.
+    pub fn of_amount(&self, amount: u8) -> Self {
+        let mut s = self.clone();
+        s.amount = amount;
+        s
+    }
 }
 
 #[cfg(test)]

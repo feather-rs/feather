@@ -263,7 +263,7 @@ impl Inventory {
         for (area, slot) in COLLECT_SEARCH_ORDER.iter() {
             let slot_item = self.item_at(*area, *slot).unwrap();
             if slot_item.is_none() {
-                let fake = ItemStack::new(item.ty, 0);
+                let fake = item.of_amount(0);
                 self.add_to_stack(
                     &mut item,
                     fake,
@@ -314,7 +314,7 @@ impl Inventory {
         self.set_item_at(
             slot.area,
             slot.slot,
-            ItemStack::new(slot_item.ty, slot_item.amount + added),
+            slot_item.of_amount(slot_item.amount + added),
         )
         .unwrap();
         affected_slots.push(slot);

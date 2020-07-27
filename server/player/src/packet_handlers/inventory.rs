@@ -359,7 +359,7 @@ fn handle_single_click(
             let current_count = current_item.map(|stack| stack.amount).unwrap_or(0);
             let new_count = (count + current_count).min(picked.0.ty.stack_size() as u8);
 
-            accessor.set_item_at(packet.slot as usize, ItemStack::new(picked.0.ty, new_count))?;
+            accessor.set_item_at(packet.slot as usize, picked.0.of_amount(new_count))?;
 
             drop(accessor);
             drop(window);
@@ -381,15 +381,12 @@ fn handle_single_click(
             count = (count + 1) / 2;
         }
         if let Some(item) = picked_up {
-            accessor.set_item_at(
-                packet.slot as usize,
-                ItemStack::new(item.ty, item.amount - count),
-            )?;
+            accessor.set_item_at(packet.slot as usize, item.of_amount(item.amount - count))?;
 
             drop(accessor);
             drop(window);
             world
-                .add(player, PickedItem(ItemStack::new(item.ty, count)))
+                .add(player, PickedItem(item.of_amount(count)))
                 .unwrap();
         }
     }
