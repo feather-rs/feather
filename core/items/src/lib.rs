@@ -32,13 +32,13 @@ impl ItemStack {
     }
 
     /// Create a copy of the `ItemStack` which has the specified amount of items.
-    pub fn of_amount(&self, amount: u8) -> Self {
-        let mut s = self.clone();
+    pub fn of_amount(self, amount: u8) -> Self {
+        let mut s = self;
         s.amount = amount;
         s
     }
 
-    pub fn eq_ignore_amount(&self, other: &Self) -> bool {
+    pub fn eq_ignore_amount(self, other: Self) -> bool {
         self.of_amount(0) == other.of_amount(0)
     }
 }

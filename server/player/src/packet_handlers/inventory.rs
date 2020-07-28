@@ -338,7 +338,7 @@ fn handle_single_click(
         let current_item = accessor.item_at(packet.slot as usize)?;
 
         if let Some(current_item) = current_item.and_then(|item| {
-            if item.eq_ignore_amount(&picked.0) {
+            if item.eq_ignore_amount(picked.0) {
                 None
             } else {
                 Some(item)
@@ -442,7 +442,7 @@ fn handle_double_click(
         for (index, slot) in inventory.enumerate() {
             if let Some(slot) = slot {
                 // Remove items from the inventory until the player's PickedItem has reached its max stack size
-                if picked.eq_ignore_amount(&slot) && slot.amount != stack_size {
+                if picked.eq_ignore_amount(slot) && slot.amount != stack_size {
                     if let Some(mut item_stack) =
                         inventory.remove_item_at(index.area, index.slot)?
                     {

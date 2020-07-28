@@ -242,7 +242,7 @@ impl Inventory {
         // First, look for slots already having the type.
         for (area, slot) in COLLECT_SEARCH_ORDER.iter() {
             if let Some(slot_item) = self.item_at(*area, *slot).expect("index out of bounds") {
-                if slot_item.eq_ignore_amount(&item) {
+                if slot_item.eq_ignore_amount(item) {
                     self.add_to_stack(
                         &mut item,
                         slot_item,
@@ -279,7 +279,7 @@ impl Inventory {
             }
 
             if let Some(slot_item) = slot_item {
-                if slot_item.eq_ignore_amount(&item) {
+                if slot_item.eq_ignore_amount(item) {
                     self.add_to_stack(
                         &mut item,
                         slot_item,
