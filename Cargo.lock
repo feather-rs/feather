@@ -1141,6 +1141,7 @@ dependencies = [
  "ahash",
  "anyhow",
  "feather-core",
+ "feather-definitions",
  "feather-server-commands",
  "feather-server-entity",
  "feather-server-network",

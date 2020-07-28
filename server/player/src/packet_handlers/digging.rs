@@ -11,6 +11,7 @@ use feather_core::inventory::{slot, Area, Inventory, Slot, SlotIndex};
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerDigging, PlayerDiggingStatus};
 use feather_core::util::{BlockPosition, Position};
+use feather_definitions::Tool;
 use feather_server_types::{
     BlockUpdateCause, CanBreak, CanInstaBreak, EntitySpawnEvent, Game, HeldItem,
     InventoryUpdateEvent, ItemDropEvent, PacketBuffers, Velocity, PLAYER_EYE_HEIGHT, TPS,
@@ -293,20 +294,32 @@ fn dig(game: &mut Game, world: &mut World, player: Entity, pos: BlockPosition) {
     game.set_block_at(world, pos, BlockId::air(), BlockUpdateCause::Entity(player));
 }
 
-fn damage_tool(player: Entity, _block: BlockId, game: &mut Game, world: &mut World) {
+fn damage_tool(player: Entity, block: BlockId, game: &mut Game, world: &mut World) {
+    if block.kind().hardness() == 0.0 || world.has::<CanInstaBreak>(player) {
+        return; // Instant break should not cause damage
+    }
+
     let held_item = world.get::<HeldItem>(player).0;
     let inventory = world.get_mut::<Inventory>(player);
-    // let best_tool = block.kind().best_tool();
-    //TODO more damage for using wrong tool
-    //TODO instant break should not damage tool
 
     let item_in_main_hand: Slot = inventory
         .item_at(Area::Hotbar, held_item)
         .expect("held item out of bounds");
-    // let held_tool = item_in_main_hand.map(|item| item.ty.tool()).flatten();
 
     if let Some(mut item) = item_in_main_hand {
-        item.damage = Some(item.damage.unwrap_or_default() + 1);
+        let damage_taken = if item.ty == Item::Trident {
+            2
+        } else {
+            match item.ty.tool() {
+                // Note: it looks like hoes do not take damage when breaking blocks in 1.13.2
+                // but in some later version this was changed so that they take 1 damage.
+                None | Some(Tool::Hoe) => return,
+                Some(Tool::Sword) => 2,
+                Some(_) => 1,
+            }
+        };
+
+        item.damage = Some(item.damage.unwrap_or_default() + damage_taken);
         //TODO item max damage breaks it
         inventory
             .set_item_at(Area::Hotbar, held_item, item)
