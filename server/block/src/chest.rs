@@ -219,7 +219,7 @@ fn load_inventory(slots: &[InventorySlot]) -> Inventory {
     let inv = Inventory::chest();
 
     for slot in slots {
-        if let Some(_item_identifier) = Item::from_identifier(&slot.item) {
+        if Item::from_identifier(&slot.item).is_some() {
             if let Err(e) = inv.set_item_at(Area::Chest, slot.slot as usize, slot.into()) {
                 log::warn!("Invalid chest slot: {}", e);
             }

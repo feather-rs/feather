@@ -425,13 +425,11 @@ fn handle_double_click(
     let new_picked_count = {
         let mut current_count;
 
-        // Get information about the currently picked item
-        let picked = world.try_get_mut::<PickedItem>(player);
-        if picked.is_none() {
-            // Immediately return if there is no item picked
-            return Ok(());
+        // Get information about the currently picked item (if nothing is picked, return)
+        let picked = match world.try_get_mut::<PickedItem>(player) {
+            Some(picked) => picked.0,
+            None => return Ok(()),
         };
-        let picked = picked.unwrap().0;
         stack_size = picked.ty.stack_size() as u8;
         current_count = picked.amount;
 
