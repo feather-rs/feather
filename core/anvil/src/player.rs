@@ -1,4 +1,4 @@
-use crate::entity::AnimalData;
+use crate::entity::{AnimalData, ItemNbt};
 use feather_inventory::player_constants::{
     HOTBAR_SIZE, INVENTORY_SIZE, SLOT_ARMOR_MAX, SLOT_ARMOR_MIN, SLOT_HOTBAR_OFFSET,
     SLOT_INVENTORY_OFFSET, SLOT_OFFHAND,
@@ -38,19 +38,12 @@ pub struct InventorySlot {
     pub slot: i8,
     #[serde(rename = "id")]
     pub item: String,
+    #[serde(rename = "tag")]
+    pub nbt: Option<ItemNbt>,
 }
 
 impl InventorySlot {
-    /// Converts a slot to an ItemStack.
-    pub fn to_stack(&self) -> ItemStack {
-        ItemStack {
-            ty: Item::from_identifier(self.item.as_str()).unwrap_or(Item::Air),
-            amount: self.count as u8,
-        }
-    }
-
-    /// Converts a network protocol index, item, and count
-    /// to an `InventorySlot`.
+    /// Converts an `ItemStack` and network protocol index into an `InventorySlot`.
     pub fn from_network_index(network: usize, stack: ItemStack) -> Option<Self> {
         let slot = if SLOT_HOTBAR_OFFSET <= network && network < SLOT_HOTBAR_OFFSET + HOTBAR_SIZE {
             // Hotbar
@@ -67,11 +60,23 @@ impl InventorySlot {
             return None;
         };
 
-        Some(Self {
+        Some(Self::from_inventory_index(slot, stack))
+    }
+
+    /// Converts an `ItemStack` and inventory position index into an `InventorySlot`.
+    pub fn from_inventory_index(slot: i8, stack: ItemStack) -> Self {
+        let nbt = stack.into();
+        let nbt = if nbt == Default::default() {
+            None
+        } else {
+            Some(nbt)
+        };
+        Self {
             count: stack.amount as i8,
             slot,
             item: stack.ty.identifier().to_string(),
-        })
+            nbt,
+        }
     }
 
     /// Converts an NBT inventory index to a network protocol index.
@@ -102,7 +107,31 @@ impl InventorySlot {
         compound.insert(String::from("id"), Value::String(self.item));
         compound.insert(String::from("Slot"), Value::Byte(self.slot));
 
+        let mut tags_compound = HashMap::new();
+        if let Some(nbt) = self.nbt {
+            if let Some(damage) = nbt.damage {
+                tags_compound.insert(String::from("Damage"), Value::Short(damage));
+            }
+        }
+        compound.insert(String::from("tag"), Value::Compound(tags_compound));
         Value::Compound(compound)
+    }
+}
+
+impl From<InventorySlot> for ItemStack {
+    fn from(slot: InventorySlot) -> Self {
+        ItemStack::from(&slot)
+    }
+}
+
+// Can't do proper Borrow trait impl because of orphan rule
+impl From<&InventorySlot> for ItemStack {
+    fn from(slot: &InventorySlot) -> Self {
+        ItemNbt::item_stack(
+            &slot.nbt,
+            Item::from_identifier(slot.item.as_str()).unwrap_or(Item::Air),
+            slot.count as u8,
+        )
     }
 }
 
@@ -160,6 +189,8 @@ mod tests {
 
         let player = load_from_file(cursor).await.unwrap();
         assert_eq!(player.gamemode, i32::from(Gamemode::Creative.id()));
+        assert_eq!(player.inventory[0].item, "minecraft:diamond_shovel");
+        assert_eq!(player.inventory[0].nbt, Some(ItemNbt { damage: Some(3) }));
     }
 
     #[test]
@@ -168,11 +199,27 @@ mod tests {
             count: 1,
             slot: 2,
             item: String::from(Item::Feather.identifier()),
+            nbt: None,
         };
 
-        let item_stack = slot.to_stack();
+        let item_stack: ItemStack = slot.into();
         assert_eq!(item_stack.ty, Item::Feather);
         assert_eq!(item_stack.amount, 1);
+    }
+
+    #[test]
+    fn test_convert_item_tags() {
+        let slot = InventorySlot {
+            count: 1,
+            slot: 2,
+            item: String::from(Item::DiamondAxe.identifier()),
+            nbt: Some(ItemNbt { damage: Some(42) }),
+        };
+
+        let item_stack: ItemStack = slot.into();
+        assert_eq!(item_stack.ty, Item::DiamondAxe);
+        assert_eq!(item_stack.amount, 1);
+        assert_eq!(item_stack.damage, Some(42));
     }
 
     #[test]
@@ -181,9 +228,10 @@ mod tests {
             count: 1,
             slot: 2,
             item: String::from("invalid:identifier"),
+            nbt: None,
         };
 
-        let item_stack = slot.to_stack();
+        let item_stack: ItemStack = slot.into();
         assert_eq!(item_stack.ty, Item::Air);
     }
 
@@ -214,6 +262,7 @@ mod tests {
                 slot: src,
                 count: 1,
                 item: String::from(Item::Stone.identifier()),
+                nbt: None,
             };
             assert_eq!(slot.convert_index().unwrap(), expected);
             assert_eq!(
@@ -228,6 +277,7 @@ mod tests {
                 slot: *invalid_slot as i8,
                 count: 1,
                 item: String::from("invalid:identifier"),
+                nbt: None,
             };
             assert!(slot.convert_index().is_none());
         }

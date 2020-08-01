@@ -1,7 +1,7 @@
 //! Handling of item entities.
 
 use feather_core::anvil::entity::{
-    BaseEntityData, EntityData, EntityDataKind, ItemData, ItemEntityData,
+    BaseEntityData, EntityData, EntityDataKind, ItemData, ItemEntityData, ItemNbt,
 };
 use feather_core::entitymeta::{EntityMetadata, META_INDEX_ITEM_SLOT};
 use feather_core::inventory::Inventory;
@@ -224,6 +224,12 @@ fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
 fn serialize(game: &Game, accessor: &EntityRef) -> EntityData {
     let vel = accessor.get::<Velocity>().0;
     let item = accessor.get::<ItemStack>();
+    let nbt = ItemNbt::from(*item);
+    let nbt = if nbt == Default::default() {
+        None
+    } else {
+        Some(nbt)
+    };
     EntityData::Item(ItemEntityData {
         entity: BaseEntityData::new(*accessor.get::<Position>(), Vec3d::new(vel.x, vel.y, vel.z)),
         age: 0, // todo
@@ -232,6 +238,7 @@ fn serialize(game: &Game, accessor: &EntityRef) -> EntityData {
         item: ItemData {
             count: item.amount as i8,
             item: item.ty.identifier().to_owned(),
+            nbt,
         },
         health: 5, // todo
     })
@@ -243,12 +250,9 @@ fn load(data: EntityData) -> anyhow::Result<EntityBuilder> {
             let pos = data.entity.read_position()?;
             let vel = data.entity.read_velocity()?;
 
-            let stack = ItemStack::new(
-                Item::from_identifier(&data.item.item)
-                    .ok_or_else(|| anyhow::anyhow!("invalid item {}", data.item.item))?,
-                data.item.count as u8,
-            );
-
+            Item::from_identifier(&data.item.item)
+                .ok_or_else(|| anyhow::anyhow!("invalid item {}", data.item.item))?;
+            let stack = data.item.into();
             let collectable_at = data.pickup_delay;
 
             Ok(create(stack, collectable_at as u64)

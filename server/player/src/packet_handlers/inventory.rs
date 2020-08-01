@@ -338,7 +338,7 @@ fn handle_single_click(
         let current_item = accessor.item_at(packet.slot as usize)?;
 
         if let Some(current_item) = current_item.and_then(|item| {
-            if item.ty == picked.0.ty {
+            if item.eq_ignore_amount(picked.0) {
                 None
             } else {
                 Some(item)
@@ -359,7 +359,7 @@ fn handle_single_click(
             let current_count = current_item.map(|stack| stack.amount).unwrap_or(0);
             let new_count = (count + current_count).min(picked.0.ty.stack_size() as u8);
 
-            accessor.set_item_at(packet.slot as usize, ItemStack::new(picked.0.ty, new_count))?;
+            accessor.set_item_at(packet.slot as usize, picked.0.of_amount(new_count))?;
 
             drop(accessor);
             drop(window);
@@ -381,15 +381,12 @@ fn handle_single_click(
             count = (count + 1) / 2;
         }
         if let Some(item) = picked_up {
-            accessor.set_item_at(
-                packet.slot as usize,
-                ItemStack::new(item.ty, item.amount - count),
-            )?;
+            accessor.set_item_at(packet.slot as usize, item.of_amount(item.amount - count))?;
 
             drop(accessor);
             drop(window);
             world
-                .add(player, PickedItem(ItemStack::new(item.ty, count)))
+                .add(player, PickedItem(item.of_amount(count)))
                 .unwrap();
         }
     }
@@ -427,17 +424,14 @@ fn handle_double_click(
 
     let new_picked_count = {
         let mut current_count;
-        let item_type;
 
-        // Get information about the currently picked item
-        if let Some(picked) = world.try_get_mut::<PickedItem>(player) {
-            stack_size = picked.0.ty.stack_size() as u8;
-            current_count = picked.0.amount;
-            item_type = picked.0.ty;
-        } else {
-            // Immediately return if there is no item picked
-            return Ok(());
+        // Get information about the currently picked item (if nothing is picked, return)
+        let picked = match world.try_get_mut::<PickedItem>(player) {
+            Some(picked) => picked.0,
+            None => return Ok(()),
         };
+        stack_size = picked.ty.stack_size() as u8;
+        current_count = picked.amount;
 
         // Get the current inventory
         let inventory = world.get::<Inventory>(player);
@@ -446,7 +440,7 @@ fn handle_double_click(
         for (index, slot) in inventory.enumerate() {
             if let Some(slot) = slot {
                 // Remove items from the inventory until the player's PickedItem has reached its max stack size
-                if slot.ty == item_type && slot.amount != stack_size {
+                if picked.eq_ignore_amount(slot) && slot.amount != stack_size {
                     if let Some(mut item_stack) =
                         inventory.remove_item_at(index.area, index.slot)?
                     {

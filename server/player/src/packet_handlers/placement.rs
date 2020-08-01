@@ -9,7 +9,6 @@ use feather_core::blocks::{
 };
 use feather_core::inventory::{slot, Area, Inventory};
 use feather_core::item_block::ItemToBlock;
-use feather_core::items::ItemStack;
 use feather_core::network::packets::PlayerBlockPlacement;
 use feather_core::util::{BlockPosition, Gamemode, Position, Vec3d};
 use feather_server_types::{
@@ -190,7 +189,7 @@ pub fn handle_block_placement(
             let held_item = world.get::<HeldItem>(player).0;
             let inventory = world.get::<Inventory>(player);
 
-            let item = ItemStack::new(item.ty, item.amount - 1);
+            let item = item.of_amount(item.amount - 1);
             inventory
                 .set_item_at(Area::Hotbar, held_item, item)
                 .unwrap();

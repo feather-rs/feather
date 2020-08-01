@@ -197,11 +197,7 @@ fn serialize_items(inventory: &Inventory) -> Vec<InventorySlot> {
         let item = inventory.item_at(Area::Chest, i).unwrap();
 
         if let Some(item) = item {
-            slots.push(InventorySlot {
-                item: item.ty.identifier().to_owned(),
-                count: item.amount as i8,
-                slot: i as i8,
-            });
+            slots.push(InventorySlot::from_inventory_index(i as i8, item));
         }
     }
     slots
@@ -223,12 +219,8 @@ fn load_inventory(slots: &[InventorySlot]) -> Inventory {
     let inv = Inventory::chest();
 
     for slot in slots {
-        if let Some(item) = Item::from_identifier(&slot.item) {
-            if let Err(e) = inv.set_item_at(
-                Area::Chest,
-                slot.slot as usize,
-                ItemStack::new(item, slot.count as u8),
-            ) {
+        if Item::from_identifier(&slot.item).is_some() {
+            if let Err(e) = inv.set_item_at(Area::Chest, slot.slot as usize, slot.into()) {
                 log::warn!("Invalid chest slot: {}", e);
             }
         }
