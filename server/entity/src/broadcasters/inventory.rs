@@ -1,13 +1,15 @@
 //! Broadcasting of inventory-related events.
 
 use crate::inventory::Equipment;
-use feather_core::inventory::{Area, Inventory, SlotIndex, Window};
-use feather_core::network::packets::{EntityEquipment, SetSlot};
+use feather_core::inventory::{slot, Area, Inventory, SlotIndex, Window};
+use feather_core::network::packets::{EntityEquipment, EntityStatus, NamedSoundEffect, SetSlot};
 use feather_server_types::{
-    EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, Network, NetworkId, Player,
+    EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, ItemDamageEvent, Network, NetworkId,
+    Player,
 };
 use fecs::World;
 use num_traits::ToPrimitive;
+use smallvec::smallvec;
 
 /// System for broadcasting equipment updates.
 #[fecs::event_handler]
@@ -124,6 +126,42 @@ fn is_equipment_update(held_item: usize, slot: SlotIndex) -> Result<Equipment, (
     } else {
         Err(())
     }
+}
+
+/// System for damaging inventory items which should take damage.
+#[fecs::event_handler]
+pub fn on_damage_item(event: &ItemDamageEvent, game: &mut Game, world: &mut World) {
+    let inventory = world.get_mut::<Inventory>(event.player);
+
+    let mut item = match inventory.item_at_mut(event.slot.area, event.slot.slot) {
+        Ok(guard) => guard.unwrap(),
+        Err(_) => return,
+    };
+
+    item.damage = Some(item.damage.unwrap_or_default() + event.damage_taken as i32);
+    if let Some(durability) = item.ty.durability() {
+        if item.damage.unwrap() >= durability as i32 {
+            // todo item break effect
+
+            inventory
+                .remove_item_at(event.slot.area, event.slot.slot)
+                .unwrap();
+        } else {
+            inventory
+                .set_item_at(event.slot.area, event.slot.slot, item)
+                .unwrap();
+        }
+    } else {
+        return; // Items with no durability shouldn't take damage
+    }
+
+    drop(inventory);
+
+    let inv_update = InventoryUpdateEvent {
+        slots: smallvec![slot(event.slot.area, event.slot.slot)],
+        entity: event.player,
+    };
+    game.handle(world, inv_update);
 }
 
 #[cfg(test)]
