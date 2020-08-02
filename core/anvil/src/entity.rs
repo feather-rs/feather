@@ -230,7 +230,7 @@ where
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ItemNbt {
     #[serde(rename = "Damage")]
-    pub damage: Option<i16>,
+    pub damage: Option<i32>,
     // TODO enchantments, display name, ...
 }
 

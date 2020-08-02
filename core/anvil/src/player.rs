@@ -110,7 +110,7 @@ impl InventorySlot {
         let mut tags_compound = HashMap::new();
         if let Some(nbt) = self.nbt {
             if let Some(damage) = nbt.damage {
-                tags_compound.insert(String::from("Damage"), Value::Short(damage));
+                tags_compound.insert(String::from("Damage"), Value::Int(damage));
             }
         }
         compound.insert(String::from("tag"), Value::Compound(tags_compound));
