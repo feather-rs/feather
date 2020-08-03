@@ -9,6 +9,7 @@ feather-core = { path = "../../core" }
 feather-server-types = { path = "../types" }
 feather-server-util = { path = "../util" }
 feather-definitions = { path = "../../definitions" }
+feather-server-entity = {path = "../entity"}
 
 fecs = { git = "https://github.com/feather-rs/fecs", rev = "0c4838d65b41ca059012b6e9147eabf0c275a731" }
 lieutenant = { git = "https://github.com/feather-rs/lieutenant", branch = "master" }
