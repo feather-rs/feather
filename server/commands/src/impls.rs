@@ -505,16 +505,19 @@ fn clear_items(
 use crate::arguments::EntityType;
 use feather_server_types::EntitySpawnEvent;
 #[command(usage = "summon <entity> <pos>")]
-pub fn summon(
-    ctx: &mut CommandCtx,
-    entity: EntityType,
-    pos: Coordinates,
-
-) -> anyhow::Result<()> {
+pub fn summon(ctx: &mut CommandCtx, entity: EntityType, pos: Coordinates) -> anyhow::Result<()> {
     let player_position = *ctx.world.get::<Position>(ctx.sender);
     let spawn_position = pos.into_position(player_position);
-    let spawned_entity = entity.0().with(spawn_position).build().spawn_in(&mut *ctx.world);
-    ctx.game.handle(&mut *ctx.world, EntitySpawnEvent{entity:spawned_entity});
-    
+    let spawned_entity = entity.0()
+        .with(spawn_position)
+        .build()
+        .spawn_in(&mut *ctx.world);
+    ctx.game.handle(
+        &mut *ctx.world,
+        EntitySpawnEvent {
+            entity: spawned_entity,
+        },
+    );
+
     Ok(Some("".to_string()))
 }

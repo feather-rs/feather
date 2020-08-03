@@ -2,8 +2,8 @@ use crate::CommandCtx;
 use feather_core::position;
 use feather_core::util::{Gamemode, Position};
 use feather_definitions::Item;
-use feather_server_types::{Game, Name, NetworkId, Player};
 use feather_server_entity::*;
+use feather_server_types::{Game, Name, NetworkId, Player};
 use fecs::{component, Entity, IntoQuery, Read, World};
 use lieutenant::{ArgumentKind, Input};
 use rand::Rng;
@@ -430,24 +430,23 @@ impl ArgumentKind<CommandCtx> for PositiveI32Argument {
 ///Argument used in spawn. It maps from the entity string to the spawn
 /// function
 #[derive(Clone, Debug)]
-pub struct EntityType(pub fn()->fecs::EntityBuilder);
+pub struct EntityType(pub fn() -> fecs::EntityBuilder);
 #[derive(Debug, Error)]
-pub enum EntityTypeParseError{
+pub enum EntityTypeParseError {
     #[error("Unknown Entity: {0}")]
     Unknown(String),
 }
-impl ArgumentKind<CommandCtx> for EntityType{
+impl ArgumentKind<CommandCtx> for EntityType {
     type ParseError = EntityTypeParseError;
     fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
         !input.advance_until(" ").is_empty()
     }
     fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
         let identifier = input.advance_until(" ");
-        if let Some(entity) = from_string(identifier){
+        if let Some(entity) = from_string(identifier) {
             Ok(EntityType(entity))
-        }else{
+        } else {
             Err(EntityTypeParseError::Unknown(identifier.to_string()))
         }
     }
 }
-
