@@ -2,13 +2,17 @@
 
 use crate::inventory::Equipment;
 use feather_core::inventory::{slot, Area, Inventory, SlotIndex, Window};
-use feather_core::network::packets::{EntityEquipment, EntityStatus, NamedSoundEffect, SetSlot};
+use feather_core::network::packets::{
+    EntityEquipment, EntityStatus, NamedSoundEffect, SetSlot, SoundCategory,
+};
+use feather_core::util::Position;
 use feather_server_types::{
     EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, ItemDamageEvent, Network, NetworkId,
     Player,
 };
 use fecs::World;
 use num_traits::ToPrimitive;
+use rand::Rng;
 use smallvec::smallvec;
 
 /// System for broadcasting equipment updates.
@@ -139,23 +143,54 @@ pub fn on_damage_item(event: &ItemDamageEvent, game: &mut Game, world: &mut Worl
     };
 
     item.damage = Some(item.damage.unwrap_or_default() + event.damage_taken as i32);
-    if let Some(durability) = item.ty.durability() {
+    let item_broken = if let Some(durability) = item.ty.durability() {
         if item.damage.unwrap() >= durability as i32 {
-            // todo item break effect
-
             inventory
                 .remove_item_at(event.slot.area, event.slot.slot)
                 .unwrap();
+            true
         } else {
             inventory
                 .set_item_at(event.slot.area, event.slot.slot, item)
                 .unwrap();
+            false
         }
     } else {
         return; // Items with no durability shouldn't take damage
-    }
-
+    };
     drop(inventory);
+
+    if item_broken {
+        // let particles_packet = EntityStatus {
+        //     entity_id: world.get::<NetworkId>(event.player).0,
+        //     entity_status: 47,
+        // };
+
+        let (effect_pos_x, effect_pos_y, effect_pos_z) = {
+            let pos = world.get::<Position>(event.player);
+            (
+                // https://wiki.vg/Data_types#Fixed-point_numbers
+                (pos.x * 8.0) as i32,
+                (pos.y * 8.0) as i32,
+                (pos.z * 8.0) as i32,
+            )
+        };
+        let mut rng = game.rng();
+        let sound_packet = NamedSoundEffect {
+            sound_name: "entity.item.break".into(),
+            sound_category: SoundCategory::Players as i32,
+            effect_pos_x,
+            effect_pos_y,
+            effect_pos_z,
+            volume: 1.0,
+            pitch: rng.gen_range(0.8, 1.2),
+        };
+
+        let network = world.get::<Network>(event.player);
+        // log::warn!("sending packet");
+        network.send(sound_packet);
+        // network.send(particles_packet);
+    }
 
     let inv_update = InventoryUpdateEvent {
         slots: smallvec![slot(event.slot.area, event.slot.slot)],
