@@ -223,7 +223,7 @@ pub fn from_string(identifier: &str) -> Option<fn() -> fecs::EntityBuilder> {
         "minecraft:zombie" => Some(hostile::zombie::create),
         "minecraft:zombie_horse" => None,
         "minecraft:zombie_pigman" => Some(neutral::zombie_pigman::create),
-        "minecraft:zombie_villigar" => Some(hostile::zombie_villager::create),
+        "minecraft:zombie_villagar" => Some(hostile::zombie_villager::create),
         _ => None,
     }
 }
