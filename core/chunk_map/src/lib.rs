@@ -45,7 +45,8 @@ impl ChunkMap {
 
     /// Retrieves the block at the specified
     /// location. If the chunk in which the block
-    /// exists is not laoded, `None` is returned.
+    /// exists is not loaded or the coordinates
+    /// are out of bounds, `None` is returned.
     pub fn block_at(&self, pos: BlockPosition) -> Option<BlockId> {
         check_coords(pos)?;
         let (x, y, z) = chunk_relative_pos(pos);
@@ -56,7 +57,8 @@ impl ChunkMap {
     /// Sets the block at the given position.
     ///
     /// Returns `true` if the block was set, or `false`
-    /// if its chunk was not loaded and thus no operation
+    /// if its chunk was not loaded or the coordinates
+    /// are out of bounds and thus no operation
     /// was performed.
     pub fn set_block_at(&self, pos: BlockPosition, block: BlockId) -> bool {
         if check_coords(pos).is_none() {

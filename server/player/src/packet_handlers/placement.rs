@@ -121,7 +121,10 @@ pub fn handle_block_placement(
             packet.location + packet.face.placement_offset()
         };
 
-        let current_block = game.block_at(pos).unwrap();
+        let current_block = match game.block_at(pos) {
+            Some(block) => block,
+            None => return,
+        };
 
         if !current_block.is_replaceable() {
             return;
