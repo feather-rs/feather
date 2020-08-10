@@ -2,7 +2,7 @@ use crate::CommandCtx;
 
 use feather_core::position;
 //use feather_core::util::{Gamemode, Position};
-use feather_core::util::{Position};
+use feather_core::util::Position;
 //use feather_definitions::Item;
 //use feather_server_types::{Game, Name, NetworkId, Player};
 //use fecs::{component, Entity, IntoQuery, Read, World};
@@ -1792,6 +1792,10 @@ pub enum MessageParseError {}
 
 #[derive(Clone, Debug)]
 pub struct Message(pub String);
+/*
+A message is given in minecrafts raw-json format, that encodes rich text features. 
+
+*/
 
 impl ArgumentKind<CommandCtx> for Message {
     type ParseError = MessageParseError;
