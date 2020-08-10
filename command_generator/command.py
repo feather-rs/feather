@@ -124,7 +124,7 @@ class Command:
             if node.type == "literal":
                 return None
             elif node.type == "argument":
-                return f"{node.name}:{parser_mapping[node.parser + str(node.parser_modifier)]}"
+                return f"_{node.name}:{parser_mapping[node.parser + str(node.parser_modifier)]}"
             else:
                 assert False #We should only have these two types of nodes
         

@@ -94,7 +94,7 @@ impl CommandState {
     /// Initializes the command state.
     pub fn new() -> Self {
         let mut dispatcher = CommandDispatcher::<CommandCtx>::new();
-
+        
         commands! {
             dispatcher:
                 advancement_grant_targets_everything,
