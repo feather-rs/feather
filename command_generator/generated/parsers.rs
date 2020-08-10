@@ -414,13 +414,13 @@ impl ArgumentKind<CommandCtx> for StringArgumentWord {
 
 
 #[derive(Debug, Error)]
-pub enum BlockPosParseError {}
+pub enum CoordinatesParseError {}
 
 #[derive(Clone, Debug)]
-pub struct BlockPos(pub String);
+pub struct Coordinates(pub String);
 
-impl ArgumentKind<CommandCtx> for BlockPos {
-    type ParseError = BlockPosParseError;
+impl ArgumentKind<CommandCtx> for Coordinates {
+    type ParseError = CoordinatesParseError;
 
     fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
         input.advance_until(" ");
@@ -431,7 +431,7 @@ impl ArgumentKind<CommandCtx> for BlockPos {
     fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
         let text = input.advance_until(" ");
         //TODO
-        Ok(BlockPos(text.to_owned()))
+        Ok(Coordinates(text.to_owned()))
     }
 }
 

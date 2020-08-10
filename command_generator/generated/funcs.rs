@@ -2,7 +2,7 @@
 #[command(usage="advancement grant <targets> everything")]
 pub fn advancement_grant_targets_everything(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -15,8 +15,8 @@ pub fn advancement_grant_targets_everything(
 #[command(usage="advancement grant <targets> from <advancement>")]
 pub fn advancement_grant_targets_from_advancement(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    advancement:ResourceLocation
+    _targets:MultiplePlayers,
+    _advancement:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -29,8 +29,8 @@ pub fn advancement_grant_targets_from_advancement(
 #[command(usage="advancement grant <targets> only <advancement>")]
 pub fn advancement_grant_targets_only_advancement(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    advancement:ResourceLocation
+    _targets:MultiplePlayers,
+    _advancement:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -43,9 +43,9 @@ pub fn advancement_grant_targets_only_advancement(
 #[command(usage="advancement grant <targets> only <advancement> <criterion>")]
 pub fn advancement_grant_targets_only_advancement_criterion(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    advancement:ResourceLocation,
-    criterion:StringArgumentGreedy
+    _targets:MultiplePlayers,
+    _advancement:ResourceLocation,
+    _criterion:StringArgumentGreedy
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -58,8 +58,8 @@ pub fn advancement_grant_targets_only_advancement_criterion(
 #[command(usage="advancement grant <targets> through <advancement>")]
 pub fn advancement_grant_targets_through_advancement(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    advancement:ResourceLocation
+    _targets:MultiplePlayers,
+    _advancement:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -72,8 +72,8 @@ pub fn advancement_grant_targets_through_advancement(
 #[command(usage="advancement grant <targets> until <advancement>")]
 pub fn advancement_grant_targets_until_advancement(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    advancement:ResourceLocation
+    _targets:MultiplePlayers,
+    _advancement:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -86,7 +86,7 @@ pub fn advancement_grant_targets_until_advancement(
 #[command(usage="advancement revoke <targets> everything")]
 pub fn advancement_revoke_targets_everything(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -99,8 +99,8 @@ pub fn advancement_revoke_targets_everything(
 #[command(usage="advancement revoke <targets> from <advancement>")]
 pub fn advancement_revoke_targets_from_advancement(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    advancement:ResourceLocation
+    _targets:MultiplePlayers,
+    _advancement:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -113,8 +113,8 @@ pub fn advancement_revoke_targets_from_advancement(
 #[command(usage="advancement revoke <targets> only <advancement>")]
 pub fn advancement_revoke_targets_only_advancement(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    advancement:ResourceLocation
+    _targets:MultiplePlayers,
+    _advancement:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -127,9 +127,9 @@ pub fn advancement_revoke_targets_only_advancement(
 #[command(usage="advancement revoke <targets> only <advancement> <criterion>")]
 pub fn advancement_revoke_targets_only_advancement_criterion(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    advancement:ResourceLocation,
-    criterion:StringArgumentGreedy
+    _targets:MultiplePlayers,
+    _advancement:ResourceLocation,
+    _criterion:StringArgumentGreedy
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -142,8 +142,8 @@ pub fn advancement_revoke_targets_only_advancement_criterion(
 #[command(usage="advancement revoke <targets> through <advancement>")]
 pub fn advancement_revoke_targets_through_advancement(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    advancement:ResourceLocation
+    _targets:MultiplePlayers,
+    _advancement:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -156,8 +156,8 @@ pub fn advancement_revoke_targets_through_advancement(
 #[command(usage="advancement revoke <targets> until <advancement>")]
 pub fn advancement_revoke_targets_until_advancement(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    advancement:ResourceLocation
+    _targets:MultiplePlayers,
+    _advancement:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -170,8 +170,8 @@ pub fn advancement_revoke_targets_until_advancement(
 #[command(usage="attribute <target> <attribute> base get")]
 pub fn attribute_target_attribute_base_get(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    attribute:ResourceLocation
+    _target:SingleEntities,
+    _attribute:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -184,9 +184,9 @@ pub fn attribute_target_attribute_base_get(
 #[command(usage="attribute <target> <attribute> base get <scale>")]
 pub fn attribute_target_attribute_base_get_scale(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    attribute:ResourceLocation,
-    scale:DoubleArgument
+    _target:SingleEntities,
+    _attribute:ResourceLocation,
+    _scale:DoubleArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -199,9 +199,9 @@ pub fn attribute_target_attribute_base_get_scale(
 #[command(usage="attribute <target> <attribute> base set <value>")]
 pub fn attribute_target_attribute_base_set_value(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    attribute:ResourceLocation,
-    value:DoubleArgument
+    _target:SingleEntities,
+    _attribute:ResourceLocation,
+    _value:DoubleArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -214,8 +214,8 @@ pub fn attribute_target_attribute_base_set_value(
 #[command(usage="attribute <target> <attribute> get")]
 pub fn attribute_target_attribute_get(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    attribute:ResourceLocation
+    _target:SingleEntities,
+    _attribute:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -228,9 +228,9 @@ pub fn attribute_target_attribute_get(
 #[command(usage="attribute <target> <attribute> get <scale>")]
 pub fn attribute_target_attribute_get_scale(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    attribute:ResourceLocation,
-    scale:DoubleArgument
+    _target:SingleEntities,
+    _attribute:ResourceLocation,
+    _scale:DoubleArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -243,11 +243,11 @@ pub fn attribute_target_attribute_get_scale(
 #[command(usage="attribute <target> <attribute> modifier add <uuid> <name> <value> add")]
 pub fn attribute_target_attribute_modifier_add_uuid_name_value_add(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    attribute:ResourceLocation,
-    uuid:Uuid,
-    name:StringArgumentPhrase,
-    value:DoubleArgument
+    _target:SingleEntities,
+    _attribute:ResourceLocation,
+    _uuid:Uuid,
+    _name:StringArgumentPhrase,
+    _value:DoubleArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -260,11 +260,11 @@ pub fn attribute_target_attribute_modifier_add_uuid_name_value_add(
 #[command(usage="attribute <target> <attribute> modifier add <uuid> <name> <value> multiply")]
 pub fn attribute_target_attribute_modifier_add_uuid_name_value_multiply(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    attribute:ResourceLocation,
-    uuid:Uuid,
-    name:StringArgumentPhrase,
-    value:DoubleArgument
+    _target:SingleEntities,
+    _attribute:ResourceLocation,
+    _uuid:Uuid,
+    _name:StringArgumentPhrase,
+    _value:DoubleArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -277,11 +277,11 @@ pub fn attribute_target_attribute_modifier_add_uuid_name_value_multiply(
 #[command(usage="attribute <target> <attribute> modifier add <uuid> <name> <value> multiply_base")]
 pub fn attribute_target_attribute_modifier_add_uuid_name_value_multiply_base(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    attribute:ResourceLocation,
-    uuid:Uuid,
-    name:StringArgumentPhrase,
-    value:DoubleArgument
+    _target:SingleEntities,
+    _attribute:ResourceLocation,
+    _uuid:Uuid,
+    _name:StringArgumentPhrase,
+    _value:DoubleArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -294,9 +294,9 @@ pub fn attribute_target_attribute_modifier_add_uuid_name_value_multiply_base(
 #[command(usage="attribute <target> <attribute> modifier remove <uuid>")]
 pub fn attribute_target_attribute_modifier_remove_uuid(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    attribute:ResourceLocation,
-    uuid:Uuid
+    _target:SingleEntities,
+    _attribute:ResourceLocation,
+    _uuid:Uuid
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -309,9 +309,9 @@ pub fn attribute_target_attribute_modifier_remove_uuid(
 #[command(usage="attribute <target> <attribute> modifier value get <uuid>")]
 pub fn attribute_target_attribute_modifier_value_get_uuid(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    attribute:ResourceLocation,
-    uuid:Uuid
+    _target:SingleEntities,
+    _attribute:ResourceLocation,
+    _uuid:Uuid
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -324,10 +324,10 @@ pub fn attribute_target_attribute_modifier_value_get_uuid(
 #[command(usage="attribute <target> <attribute> modifier value get <uuid> <scale>")]
 pub fn attribute_target_attribute_modifier_value_get_uuid_scale(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    attribute:ResourceLocation,
-    uuid:Uuid,
-    scale:DoubleArgument
+    _target:SingleEntities,
+    _attribute:ResourceLocation,
+    _uuid:Uuid,
+    _scale:DoubleArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -340,7 +340,7 @@ pub fn attribute_target_attribute_modifier_value_get_uuid_scale(
 #[command(usage="ban <targets>")]
 pub fn ban_targets(
     ctx: &mut CommandCtx,
-    targets:GameProfile
+    _targets:GameProfile
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -353,8 +353,8 @@ pub fn ban_targets(
 #[command(usage="ban <targets> <reason>")]
 pub fn ban_targets_reason(
     ctx: &mut CommandCtx,
-    targets:GameProfile,
-    reason:Message
+    _targets:GameProfile,
+    _reason:Message
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -367,7 +367,7 @@ pub fn ban_targets_reason(
 #[command(usage="ban-ip <target>")]
 pub fn ban_ip_target(
     ctx: &mut CommandCtx,
-    target:StringArgumentWord
+    _target:StringArgumentWord
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -380,8 +380,8 @@ pub fn ban_ip_target(
 #[command(usage="ban-ip <target> <reason>")]
 pub fn ban_ip_target_reason(
     ctx: &mut CommandCtx,
-    target:StringArgumentWord,
-    reason:Message
+    _target:StringArgumentWord,
+    _reason:Message
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -433,8 +433,8 @@ pub fn banlist_players(
 #[command(usage="bossbar add <id> <name>")]
 pub fn bossbar_add_id_name(
     ctx: &mut CommandCtx,
-    id:ResourceLocation,
-    name:Component
+    _id:ResourceLocation,
+    _name:Component
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -447,7 +447,7 @@ pub fn bossbar_add_id_name(
 #[command(usage="bossbar get <id> max")]
 pub fn bossbar_get_id_max(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -460,7 +460,7 @@ pub fn bossbar_get_id_max(
 #[command(usage="bossbar get <id> players")]
 pub fn bossbar_get_id_players(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -473,7 +473,7 @@ pub fn bossbar_get_id_players(
 #[command(usage="bossbar get <id> value")]
 pub fn bossbar_get_id_value(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -486,7 +486,7 @@ pub fn bossbar_get_id_value(
 #[command(usage="bossbar get <id> visible")]
 pub fn bossbar_get_id_visible(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -512,7 +512,7 @@ pub fn bossbar_list(
 #[command(usage="bossbar remove <id>")]
 pub fn bossbar_remove_id(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -525,7 +525,7 @@ pub fn bossbar_remove_id(
 #[command(usage="bossbar set <id> color blue")]
 pub fn bossbar_set_id_color_blue(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -538,7 +538,7 @@ pub fn bossbar_set_id_color_blue(
 #[command(usage="bossbar set <id> color green")]
 pub fn bossbar_set_id_color_green(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -551,7 +551,7 @@ pub fn bossbar_set_id_color_green(
 #[command(usage="bossbar set <id> color pink")]
 pub fn bossbar_set_id_color_pink(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -564,7 +564,7 @@ pub fn bossbar_set_id_color_pink(
 #[command(usage="bossbar set <id> color purple")]
 pub fn bossbar_set_id_color_purple(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -577,7 +577,7 @@ pub fn bossbar_set_id_color_purple(
 #[command(usage="bossbar set <id> color red")]
 pub fn bossbar_set_id_color_red(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -590,7 +590,7 @@ pub fn bossbar_set_id_color_red(
 #[command(usage="bossbar set <id> color white")]
 pub fn bossbar_set_id_color_white(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -603,7 +603,7 @@ pub fn bossbar_set_id_color_white(
 #[command(usage="bossbar set <id> color yellow")]
 pub fn bossbar_set_id_color_yellow(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -616,8 +616,8 @@ pub fn bossbar_set_id_color_yellow(
 #[command(usage="bossbar set <id> max <max>")]
 pub fn bossbar_set_id_max_max(
     ctx: &mut CommandCtx,
-    id:ResourceLocation,
-    max:IntegerArgumentGreaterThen1
+    _id:ResourceLocation,
+    _max:IntegerArgumentGreaterThen1
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -630,8 +630,8 @@ pub fn bossbar_set_id_max_max(
 #[command(usage="bossbar set <id> name <name>")]
 pub fn bossbar_set_id_name_name(
     ctx: &mut CommandCtx,
-    id:ResourceLocation,
-    name:Component
+    _id:ResourceLocation,
+    _name:Component
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -644,7 +644,7 @@ pub fn bossbar_set_id_name_name(
 #[command(usage="bossbar set <id> players")]
 pub fn bossbar_set_id_players(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -657,8 +657,8 @@ pub fn bossbar_set_id_players(
 #[command(usage="bossbar set <id> players <targets>")]
 pub fn bossbar_set_id_players_targets(
     ctx: &mut CommandCtx,
-    id:ResourceLocation,
-    targets:MultiplePlayers
+    _id:ResourceLocation,
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -671,7 +671,7 @@ pub fn bossbar_set_id_players_targets(
 #[command(usage="bossbar set <id> style notched_10")]
 pub fn bossbar_set_id_style_notched_10(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -684,7 +684,7 @@ pub fn bossbar_set_id_style_notched_10(
 #[command(usage="bossbar set <id> style notched_12")]
 pub fn bossbar_set_id_style_notched_12(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -697,7 +697,7 @@ pub fn bossbar_set_id_style_notched_12(
 #[command(usage="bossbar set <id> style notched_20")]
 pub fn bossbar_set_id_style_notched_20(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -710,7 +710,7 @@ pub fn bossbar_set_id_style_notched_20(
 #[command(usage="bossbar set <id> style notched_6")]
 pub fn bossbar_set_id_style_notched_6(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -723,7 +723,7 @@ pub fn bossbar_set_id_style_notched_6(
 #[command(usage="bossbar set <id> style progress")]
 pub fn bossbar_set_id_style_progress(
     ctx: &mut CommandCtx,
-    id:ResourceLocation
+    _id:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -736,8 +736,8 @@ pub fn bossbar_set_id_style_progress(
 #[command(usage="bossbar set <id> value <value>")]
 pub fn bossbar_set_id_value_value(
     ctx: &mut CommandCtx,
-    id:ResourceLocation,
-    value:IntegerArgumentPositive
+    _id:ResourceLocation,
+    _value:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -750,8 +750,8 @@ pub fn bossbar_set_id_value_value(
 #[command(usage="bossbar set <id> visible <visible>")]
 pub fn bossbar_set_id_visible_visible(
     ctx: &mut CommandCtx,
-    id:ResourceLocation,
-    visible:BoolArgument
+    _id:ResourceLocation,
+    _visible:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -777,7 +777,7 @@ pub fn clear(
 #[command(usage="clear <targets>")]
 pub fn clear_targets(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -790,8 +790,8 @@ pub fn clear_targets(
 #[command(usage="clear <targets> <item>")]
 pub fn clear_targets_item(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    item:Predicate
+    _targets:MultiplePlayers,
+    _item:Predicate
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -804,9 +804,9 @@ pub fn clear_targets_item(
 #[command(usage="clear <targets> <item> <maxCount>")]
 pub fn clear_targets_item_maxCount(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    item:Predicate,
-    maxCount:IntegerArgumentPositive
+    _targets:MultiplePlayers,
+    _item:Predicate,
+    _maxCount:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -819,9 +819,9 @@ pub fn clear_targets_item_maxCount(
 #[command(usage="clone <begin> <end> <destination>")]
 pub fn clone_begin_end_destination(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -834,10 +834,10 @@ pub fn clone_begin_end_destination(
 #[command(usage="clone <begin> <end> <destination> filtered <filter>")]
 pub fn clone_begin_end_destination_filtered_filter(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos,
-    filter:BlockPredicate
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates,
+    _filter:BlockPredicate
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -850,10 +850,10 @@ pub fn clone_begin_end_destination_filtered_filter(
 #[command(usage="clone <begin> <end> <destination> filtered <filter> force")]
 pub fn clone_begin_end_destination_filtered_filter_force(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos,
-    filter:BlockPredicate
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates,
+    _filter:BlockPredicate
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -866,10 +866,10 @@ pub fn clone_begin_end_destination_filtered_filter_force(
 #[command(usage="clone <begin> <end> <destination> filtered <filter> move")]
 pub fn clone_begin_end_destination_filtered_filter_move(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos,
-    filter:BlockPredicate
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates,
+    _filter:BlockPredicate
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -882,10 +882,10 @@ pub fn clone_begin_end_destination_filtered_filter_move(
 #[command(usage="clone <begin> <end> <destination> filtered <filter> normal")]
 pub fn clone_begin_end_destination_filtered_filter_normal(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos,
-    filter:BlockPredicate
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates,
+    _filter:BlockPredicate
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -898,9 +898,9 @@ pub fn clone_begin_end_destination_filtered_filter_normal(
 #[command(usage="clone <begin> <end> <destination> masked")]
 pub fn clone_begin_end_destination_masked(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -913,9 +913,9 @@ pub fn clone_begin_end_destination_masked(
 #[command(usage="clone <begin> <end> <destination> masked force")]
 pub fn clone_begin_end_destination_masked_force(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -928,9 +928,9 @@ pub fn clone_begin_end_destination_masked_force(
 #[command(usage="clone <begin> <end> <destination> masked move")]
 pub fn clone_begin_end_destination_masked_move(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -943,9 +943,9 @@ pub fn clone_begin_end_destination_masked_move(
 #[command(usage="clone <begin> <end> <destination> masked normal")]
 pub fn clone_begin_end_destination_masked_normal(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -958,9 +958,9 @@ pub fn clone_begin_end_destination_masked_normal(
 #[command(usage="clone <begin> <end> <destination> replace")]
 pub fn clone_begin_end_destination_replace(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -973,9 +973,9 @@ pub fn clone_begin_end_destination_replace(
 #[command(usage="clone <begin> <end> <destination> replace force")]
 pub fn clone_begin_end_destination_replace_force(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -988,9 +988,9 @@ pub fn clone_begin_end_destination_replace_force(
 #[command(usage="clone <begin> <end> <destination> replace move")]
 pub fn clone_begin_end_destination_replace_move(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1003,9 +1003,9 @@ pub fn clone_begin_end_destination_replace_move(
 #[command(usage="clone <begin> <end> <destination> replace normal")]
 pub fn clone_begin_end_destination_replace_normal(
     ctx: &mut CommandCtx,
-    begin:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _begin:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1018,7 +1018,7 @@ pub fn clone_begin_end_destination_replace_normal(
 #[command(usage="data get block <targetPos>")]
 pub fn data_get_block_targetPos(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos
+    _targetPos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1031,8 +1031,8 @@ pub fn data_get_block_targetPos(
 #[command(usage="data get block <targetPos> <path>")]
 pub fn data_get_block_targetPos_path(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    path:NbtPath
+    _targetPos:Coordinates,
+    _path:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1045,9 +1045,9 @@ pub fn data_get_block_targetPos_path(
 #[command(usage="data get block <targetPos> <path> <scale>")]
 pub fn data_get_block_targetPos_path_scale(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    path:NbtPath,
-    scale:DoubleArgument
+    _targetPos:Coordinates,
+    _path:NbtPath,
+    _scale:DoubleArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1060,7 +1060,7 @@ pub fn data_get_block_targetPos_path_scale(
 #[command(usage="data get entity <target>")]
 pub fn data_get_entity_target(
     ctx: &mut CommandCtx,
-    target:SingleEntities
+    _target:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1073,8 +1073,8 @@ pub fn data_get_entity_target(
 #[command(usage="data get entity <target> <path>")]
 pub fn data_get_entity_target_path(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    path:NbtPath
+    _target:SingleEntities,
+    _path:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1087,9 +1087,9 @@ pub fn data_get_entity_target_path(
 #[command(usage="data get entity <target> <path> <scale>")]
 pub fn data_get_entity_target_path_scale(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    path:NbtPath,
-    scale:DoubleArgument
+    _target:SingleEntities,
+    _path:NbtPath,
+    _scale:DoubleArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1102,7 +1102,7 @@ pub fn data_get_entity_target_path_scale(
 #[command(usage="data get storage <target>")]
 pub fn data_get_storage_target(
     ctx: &mut CommandCtx,
-    target:ResourceLocation
+    _target:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1115,8 +1115,8 @@ pub fn data_get_storage_target(
 #[command(usage="data get storage <target> <path>")]
 pub fn data_get_storage_target_path(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    path:NbtPath
+    _target:ResourceLocation,
+    _path:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1129,9 +1129,9 @@ pub fn data_get_storage_target_path(
 #[command(usage="data get storage <target> <path> <scale>")]
 pub fn data_get_storage_target_path_scale(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    path:NbtPath,
-    scale:DoubleArgument
+    _target:ResourceLocation,
+    _path:NbtPath,
+    _scale:DoubleArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1144,8 +1144,8 @@ pub fn data_get_storage_target_path_scale(
 #[command(usage="data merge block <targetPos> <nbt>")]
 pub fn data_merge_block_targetPos_nbt(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    nbt:NbtCommandTag
+    _targetPos:Coordinates,
+    _nbt:NbtCommandTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1158,8 +1158,8 @@ pub fn data_merge_block_targetPos_nbt(
 #[command(usage="data merge entity <target> <nbt>")]
 pub fn data_merge_entity_target_nbt(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    nbt:NbtCommandTag
+    _target:SingleEntities,
+    _nbt:NbtCommandTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1172,8 +1172,8 @@ pub fn data_merge_entity_target_nbt(
 #[command(usage="data merge storage <target> <nbt>")]
 pub fn data_merge_storage_target_nbt(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    nbt:NbtCommandTag
+    _target:ResourceLocation,
+    _nbt:NbtCommandTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1186,9 +1186,9 @@ pub fn data_merge_storage_target_nbt(
 #[command(usage="data modify block <targetPos> <targetPath> append from block <sourcePos>")]
 pub fn data_modify_block_targetPos_targetPath_append_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    sourcePos:BlockPos
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1201,10 +1201,10 @@ pub fn data_modify_block_targetPos_targetPath_append_from_block_sourcePos(
 #[command(usage="data modify block <targetPos> <targetPath> append from block <sourcePos> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_append_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1217,9 +1217,9 @@ pub fn data_modify_block_targetPos_targetPath_append_from_block_sourcePos_source
 #[command(usage="data modify block <targetPos> <targetPath> append from entity <source>")]
 pub fn data_modify_block_targetPos_targetPath_append_from_entity_source(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:SingleEntities
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1232,10 +1232,10 @@ pub fn data_modify_block_targetPos_targetPath_append_from_entity_source(
 #[command(usage="data modify block <targetPos> <targetPath> append from entity <source> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_append_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1248,9 +1248,9 @@ pub fn data_modify_block_targetPos_targetPath_append_from_entity_source_sourcePa
 #[command(usage="data modify block <targetPos> <targetPath> append from storage <source>")]
 pub fn data_modify_block_targetPos_targetPath_append_from_storage_source(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:ResourceLocation
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1263,10 +1263,10 @@ pub fn data_modify_block_targetPos_targetPath_append_from_storage_source(
 #[command(usage="data modify block <targetPos> <targetPath> append from storage <source> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_append_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1279,9 +1279,9 @@ pub fn data_modify_block_targetPos_targetPath_append_from_storage_source_sourceP
 #[command(usage="data modify block <targetPos> <targetPath> append value <value>")]
 pub fn data_modify_block_targetPos_targetPath_append_value_value(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    value:NbtTag
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1294,10 +1294,10 @@ pub fn data_modify_block_targetPos_targetPath_append_value_value(
 #[command(usage="data modify block <targetPos> <targetPath> insert <index> from block <sourcePos>")]
 pub fn data_modify_block_targetPos_targetPath_insert_index_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    sourcePos:BlockPos
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1310,11 +1310,11 @@ pub fn data_modify_block_targetPos_targetPath_insert_index_from_block_sourcePos(
 #[command(usage="data modify block <targetPos> <targetPath> insert <index> from block <sourcePos> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_insert_index_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1327,10 +1327,10 @@ pub fn data_modify_block_targetPos_targetPath_insert_index_from_block_sourcePos_
 #[command(usage="data modify block <targetPos> <targetPath> insert <index> from entity <source>")]
 pub fn data_modify_block_targetPos_targetPath_insert_index_from_entity_source(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    source:SingleEntities
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1343,11 +1343,11 @@ pub fn data_modify_block_targetPos_targetPath_insert_index_from_entity_source(
 #[command(usage="data modify block <targetPos> <targetPath> insert <index> from entity <source> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_insert_index_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1360,10 +1360,10 @@ pub fn data_modify_block_targetPos_targetPath_insert_index_from_entity_source_so
 #[command(usage="data modify block <targetPos> <targetPath> insert <index> from storage <source>")]
 pub fn data_modify_block_targetPos_targetPath_insert_index_from_storage_source(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    source:ResourceLocation
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1376,11 +1376,11 @@ pub fn data_modify_block_targetPos_targetPath_insert_index_from_storage_source(
 #[command(usage="data modify block <targetPos> <targetPath> insert <index> from storage <source> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_insert_index_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1393,10 +1393,10 @@ pub fn data_modify_block_targetPos_targetPath_insert_index_from_storage_source_s
 #[command(usage="data modify block <targetPos> <targetPath> insert <index> value <value>")]
 pub fn data_modify_block_targetPos_targetPath_insert_index_value_value(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    value:NbtTag
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1409,9 +1409,9 @@ pub fn data_modify_block_targetPos_targetPath_insert_index_value_value(
 #[command(usage="data modify block <targetPos> <targetPath> merge from block <sourcePos>")]
 pub fn data_modify_block_targetPos_targetPath_merge_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    sourcePos:BlockPos
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1424,10 +1424,10 @@ pub fn data_modify_block_targetPos_targetPath_merge_from_block_sourcePos(
 #[command(usage="data modify block <targetPos> <targetPath> merge from block <sourcePos> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_merge_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1440,9 +1440,9 @@ pub fn data_modify_block_targetPos_targetPath_merge_from_block_sourcePos_sourceP
 #[command(usage="data modify block <targetPos> <targetPath> merge from entity <source>")]
 pub fn data_modify_block_targetPos_targetPath_merge_from_entity_source(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:SingleEntities
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1455,10 +1455,10 @@ pub fn data_modify_block_targetPos_targetPath_merge_from_entity_source(
 #[command(usage="data modify block <targetPos> <targetPath> merge from entity <source> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_merge_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1471,9 +1471,9 @@ pub fn data_modify_block_targetPos_targetPath_merge_from_entity_source_sourcePat
 #[command(usage="data modify block <targetPos> <targetPath> merge from storage <source>")]
 pub fn data_modify_block_targetPos_targetPath_merge_from_storage_source(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:ResourceLocation
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1486,10 +1486,10 @@ pub fn data_modify_block_targetPos_targetPath_merge_from_storage_source(
 #[command(usage="data modify block <targetPos> <targetPath> merge from storage <source> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_merge_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1502,9 +1502,9 @@ pub fn data_modify_block_targetPos_targetPath_merge_from_storage_source_sourcePa
 #[command(usage="data modify block <targetPos> <targetPath> merge value <value>")]
 pub fn data_modify_block_targetPos_targetPath_merge_value_value(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    value:NbtTag
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1517,9 +1517,9 @@ pub fn data_modify_block_targetPos_targetPath_merge_value_value(
 #[command(usage="data modify block <targetPos> <targetPath> prepend from block <sourcePos>")]
 pub fn data_modify_block_targetPos_targetPath_prepend_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    sourcePos:BlockPos
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1532,10 +1532,10 @@ pub fn data_modify_block_targetPos_targetPath_prepend_from_block_sourcePos(
 #[command(usage="data modify block <targetPos> <targetPath> prepend from block <sourcePos> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_prepend_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1548,9 +1548,9 @@ pub fn data_modify_block_targetPos_targetPath_prepend_from_block_sourcePos_sourc
 #[command(usage="data modify block <targetPos> <targetPath> prepend from entity <source>")]
 pub fn data_modify_block_targetPos_targetPath_prepend_from_entity_source(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:SingleEntities
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1563,10 +1563,10 @@ pub fn data_modify_block_targetPos_targetPath_prepend_from_entity_source(
 #[command(usage="data modify block <targetPos> <targetPath> prepend from entity <source> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_prepend_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1579,9 +1579,9 @@ pub fn data_modify_block_targetPos_targetPath_prepend_from_entity_source_sourceP
 #[command(usage="data modify block <targetPos> <targetPath> prepend from storage <source>")]
 pub fn data_modify_block_targetPos_targetPath_prepend_from_storage_source(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:ResourceLocation
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1594,10 +1594,10 @@ pub fn data_modify_block_targetPos_targetPath_prepend_from_storage_source(
 #[command(usage="data modify block <targetPos> <targetPath> prepend from storage <source> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_prepend_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1610,9 +1610,9 @@ pub fn data_modify_block_targetPos_targetPath_prepend_from_storage_source_source
 #[command(usage="data modify block <targetPos> <targetPath> prepend value <value>")]
 pub fn data_modify_block_targetPos_targetPath_prepend_value_value(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    value:NbtTag
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1625,9 +1625,9 @@ pub fn data_modify_block_targetPos_targetPath_prepend_value_value(
 #[command(usage="data modify block <targetPos> <targetPath> set from block <sourcePos>")]
 pub fn data_modify_block_targetPos_targetPath_set_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    sourcePos:BlockPos
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1640,10 +1640,10 @@ pub fn data_modify_block_targetPos_targetPath_set_from_block_sourcePos(
 #[command(usage="data modify block <targetPos> <targetPath> set from block <sourcePos> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_set_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1656,9 +1656,9 @@ pub fn data_modify_block_targetPos_targetPath_set_from_block_sourcePos_sourcePat
 #[command(usage="data modify block <targetPos> <targetPath> set from entity <source>")]
 pub fn data_modify_block_targetPos_targetPath_set_from_entity_source(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:SingleEntities
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1671,10 +1671,10 @@ pub fn data_modify_block_targetPos_targetPath_set_from_entity_source(
 #[command(usage="data modify block <targetPos> <targetPath> set from entity <source> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_set_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1687,9 +1687,9 @@ pub fn data_modify_block_targetPos_targetPath_set_from_entity_source_sourcePath(
 #[command(usage="data modify block <targetPos> <targetPath> set from storage <source>")]
 pub fn data_modify_block_targetPos_targetPath_set_from_storage_source(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:ResourceLocation
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1702,10 +1702,10 @@ pub fn data_modify_block_targetPos_targetPath_set_from_storage_source(
 #[command(usage="data modify block <targetPos> <targetPath> set from storage <source> <sourcePath>")]
 pub fn data_modify_block_targetPos_targetPath_set_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1718,9 +1718,9 @@ pub fn data_modify_block_targetPos_targetPath_set_from_storage_source_sourcePath
 #[command(usage="data modify block <targetPos> <targetPath> set value <value>")]
 pub fn data_modify_block_targetPos_targetPath_set_value_value(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    targetPath:NbtPath,
-    value:NbtTag
+    _targetPos:Coordinates,
+    _targetPath:NbtPath,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1733,9 +1733,9 @@ pub fn data_modify_block_targetPos_targetPath_set_value_value(
 #[command(usage="data modify entity <target> <targetPath> append from block <sourcePos>")]
 pub fn data_modify_entity_target_targetPath_append_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    sourcePos:BlockPos
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1748,10 +1748,10 @@ pub fn data_modify_entity_target_targetPath_append_from_block_sourcePos(
 #[command(usage="data modify entity <target> <targetPath> append from block <sourcePos> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_append_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1764,9 +1764,9 @@ pub fn data_modify_entity_target_targetPath_append_from_block_sourcePos_sourcePa
 #[command(usage="data modify entity <target> <targetPath> append from entity <source>")]
 pub fn data_modify_entity_target_targetPath_append_from_entity_source(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:SingleEntities
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1779,10 +1779,10 @@ pub fn data_modify_entity_target_targetPath_append_from_entity_source(
 #[command(usage="data modify entity <target> <targetPath> append from entity <source> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_append_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1795,9 +1795,9 @@ pub fn data_modify_entity_target_targetPath_append_from_entity_source_sourcePath
 #[command(usage="data modify entity <target> <targetPath> append from storage <source>")]
 pub fn data_modify_entity_target_targetPath_append_from_storage_source(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:ResourceLocation
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1810,10 +1810,10 @@ pub fn data_modify_entity_target_targetPath_append_from_storage_source(
 #[command(usage="data modify entity <target> <targetPath> append from storage <source> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_append_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1826,9 +1826,9 @@ pub fn data_modify_entity_target_targetPath_append_from_storage_source_sourcePat
 #[command(usage="data modify entity <target> <targetPath> append value <value>")]
 pub fn data_modify_entity_target_targetPath_append_value_value(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    value:NbtTag
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1841,10 +1841,10 @@ pub fn data_modify_entity_target_targetPath_append_value_value(
 #[command(usage="data modify entity <target> <targetPath> insert <index> from block <sourcePos>")]
 pub fn data_modify_entity_target_targetPath_insert_index_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    sourcePos:BlockPos
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1857,11 +1857,11 @@ pub fn data_modify_entity_target_targetPath_insert_index_from_block_sourcePos(
 #[command(usage="data modify entity <target> <targetPath> insert <index> from block <sourcePos> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_insert_index_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1874,10 +1874,10 @@ pub fn data_modify_entity_target_targetPath_insert_index_from_block_sourcePos_so
 #[command(usage="data modify entity <target> <targetPath> insert <index> from entity <source>")]
 pub fn data_modify_entity_target_targetPath_insert_index_from_entity_source(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    source:SingleEntities
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1890,11 +1890,11 @@ pub fn data_modify_entity_target_targetPath_insert_index_from_entity_source(
 #[command(usage="data modify entity <target> <targetPath> insert <index> from entity <source> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_insert_index_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1907,10 +1907,10 @@ pub fn data_modify_entity_target_targetPath_insert_index_from_entity_source_sour
 #[command(usage="data modify entity <target> <targetPath> insert <index> from storage <source>")]
 pub fn data_modify_entity_target_targetPath_insert_index_from_storage_source(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    source:ResourceLocation
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1923,11 +1923,11 @@ pub fn data_modify_entity_target_targetPath_insert_index_from_storage_source(
 #[command(usage="data modify entity <target> <targetPath> insert <index> from storage <source> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_insert_index_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1940,10 +1940,10 @@ pub fn data_modify_entity_target_targetPath_insert_index_from_storage_source_sou
 #[command(usage="data modify entity <target> <targetPath> insert <index> value <value>")]
 pub fn data_modify_entity_target_targetPath_insert_index_value_value(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    value:NbtTag
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1956,9 +1956,9 @@ pub fn data_modify_entity_target_targetPath_insert_index_value_value(
 #[command(usage="data modify entity <target> <targetPath> merge from block <sourcePos>")]
 pub fn data_modify_entity_target_targetPath_merge_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    sourcePos:BlockPos
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1971,10 +1971,10 @@ pub fn data_modify_entity_target_targetPath_merge_from_block_sourcePos(
 #[command(usage="data modify entity <target> <targetPath> merge from block <sourcePos> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_merge_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -1987,9 +1987,9 @@ pub fn data_modify_entity_target_targetPath_merge_from_block_sourcePos_sourcePat
 #[command(usage="data modify entity <target> <targetPath> merge from entity <source>")]
 pub fn data_modify_entity_target_targetPath_merge_from_entity_source(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:SingleEntities
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2002,10 +2002,10 @@ pub fn data_modify_entity_target_targetPath_merge_from_entity_source(
 #[command(usage="data modify entity <target> <targetPath> merge from entity <source> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_merge_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2018,9 +2018,9 @@ pub fn data_modify_entity_target_targetPath_merge_from_entity_source_sourcePath(
 #[command(usage="data modify entity <target> <targetPath> merge from storage <source>")]
 pub fn data_modify_entity_target_targetPath_merge_from_storage_source(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:ResourceLocation
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2033,10 +2033,10 @@ pub fn data_modify_entity_target_targetPath_merge_from_storage_source(
 #[command(usage="data modify entity <target> <targetPath> merge from storage <source> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_merge_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2049,9 +2049,9 @@ pub fn data_modify_entity_target_targetPath_merge_from_storage_source_sourcePath
 #[command(usage="data modify entity <target> <targetPath> merge value <value>")]
 pub fn data_modify_entity_target_targetPath_merge_value_value(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    value:NbtTag
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2064,9 +2064,9 @@ pub fn data_modify_entity_target_targetPath_merge_value_value(
 #[command(usage="data modify entity <target> <targetPath> prepend from block <sourcePos>")]
 pub fn data_modify_entity_target_targetPath_prepend_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    sourcePos:BlockPos
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2079,10 +2079,10 @@ pub fn data_modify_entity_target_targetPath_prepend_from_block_sourcePos(
 #[command(usage="data modify entity <target> <targetPath> prepend from block <sourcePos> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_prepend_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2095,9 +2095,9 @@ pub fn data_modify_entity_target_targetPath_prepend_from_block_sourcePos_sourceP
 #[command(usage="data modify entity <target> <targetPath> prepend from entity <source>")]
 pub fn data_modify_entity_target_targetPath_prepend_from_entity_source(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:SingleEntities
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2110,10 +2110,10 @@ pub fn data_modify_entity_target_targetPath_prepend_from_entity_source(
 #[command(usage="data modify entity <target> <targetPath> prepend from entity <source> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_prepend_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2126,9 +2126,9 @@ pub fn data_modify_entity_target_targetPath_prepend_from_entity_source_sourcePat
 #[command(usage="data modify entity <target> <targetPath> prepend from storage <source>")]
 pub fn data_modify_entity_target_targetPath_prepend_from_storage_source(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:ResourceLocation
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2141,10 +2141,10 @@ pub fn data_modify_entity_target_targetPath_prepend_from_storage_source(
 #[command(usage="data modify entity <target> <targetPath> prepend from storage <source> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_prepend_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2157,9 +2157,9 @@ pub fn data_modify_entity_target_targetPath_prepend_from_storage_source_sourcePa
 #[command(usage="data modify entity <target> <targetPath> prepend value <value>")]
 pub fn data_modify_entity_target_targetPath_prepend_value_value(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    value:NbtTag
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2172,9 +2172,9 @@ pub fn data_modify_entity_target_targetPath_prepend_value_value(
 #[command(usage="data modify entity <target> <targetPath> set from block <sourcePos>")]
 pub fn data_modify_entity_target_targetPath_set_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    sourcePos:BlockPos
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2187,10 +2187,10 @@ pub fn data_modify_entity_target_targetPath_set_from_block_sourcePos(
 #[command(usage="data modify entity <target> <targetPath> set from block <sourcePos> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_set_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2203,9 +2203,9 @@ pub fn data_modify_entity_target_targetPath_set_from_block_sourcePos_sourcePath(
 #[command(usage="data modify entity <target> <targetPath> set from entity <source>")]
 pub fn data_modify_entity_target_targetPath_set_from_entity_source(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:SingleEntities
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2218,10 +2218,10 @@ pub fn data_modify_entity_target_targetPath_set_from_entity_source(
 #[command(usage="data modify entity <target> <targetPath> set from entity <source> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_set_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2234,9 +2234,9 @@ pub fn data_modify_entity_target_targetPath_set_from_entity_source_sourcePath(
 #[command(usage="data modify entity <target> <targetPath> set from storage <source>")]
 pub fn data_modify_entity_target_targetPath_set_from_storage_source(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:ResourceLocation
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2249,10 +2249,10 @@ pub fn data_modify_entity_target_targetPath_set_from_storage_source(
 #[command(usage="data modify entity <target> <targetPath> set from storage <source> <sourcePath>")]
 pub fn data_modify_entity_target_targetPath_set_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2265,9 +2265,9 @@ pub fn data_modify_entity_target_targetPath_set_from_storage_source_sourcePath(
 #[command(usage="data modify entity <target> <targetPath> set value <value>")]
 pub fn data_modify_entity_target_targetPath_set_value_value(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    targetPath:NbtPath,
-    value:NbtTag
+    _target:SingleEntities,
+    _targetPath:NbtPath,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2280,9 +2280,9 @@ pub fn data_modify_entity_target_targetPath_set_value_value(
 #[command(usage="data modify storage <target> <targetPath> append from block <sourcePos>")]
 pub fn data_modify_storage_target_targetPath_append_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    sourcePos:BlockPos
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2295,10 +2295,10 @@ pub fn data_modify_storage_target_targetPath_append_from_block_sourcePos(
 #[command(usage="data modify storage <target> <targetPath> append from block <sourcePos> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_append_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2311,9 +2311,9 @@ pub fn data_modify_storage_target_targetPath_append_from_block_sourcePos_sourceP
 #[command(usage="data modify storage <target> <targetPath> append from entity <source>")]
 pub fn data_modify_storage_target_targetPath_append_from_entity_source(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:SingleEntities
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2326,10 +2326,10 @@ pub fn data_modify_storage_target_targetPath_append_from_entity_source(
 #[command(usage="data modify storage <target> <targetPath> append from entity <source> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_append_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2342,9 +2342,9 @@ pub fn data_modify_storage_target_targetPath_append_from_entity_source_sourcePat
 #[command(usage="data modify storage <target> <targetPath> append from storage <source>")]
 pub fn data_modify_storage_target_targetPath_append_from_storage_source(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:ResourceLocation
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2357,10 +2357,10 @@ pub fn data_modify_storage_target_targetPath_append_from_storage_source(
 #[command(usage="data modify storage <target> <targetPath> append from storage <source> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_append_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2373,9 +2373,9 @@ pub fn data_modify_storage_target_targetPath_append_from_storage_source_sourcePa
 #[command(usage="data modify storage <target> <targetPath> append value <value>")]
 pub fn data_modify_storage_target_targetPath_append_value_value(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    value:NbtTag
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2388,10 +2388,10 @@ pub fn data_modify_storage_target_targetPath_append_value_value(
 #[command(usage="data modify storage <target> <targetPath> insert <index> from block <sourcePos>")]
 pub fn data_modify_storage_target_targetPath_insert_index_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    sourcePos:BlockPos
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2404,11 +2404,11 @@ pub fn data_modify_storage_target_targetPath_insert_index_from_block_sourcePos(
 #[command(usage="data modify storage <target> <targetPath> insert <index> from block <sourcePos> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_insert_index_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2421,10 +2421,10 @@ pub fn data_modify_storage_target_targetPath_insert_index_from_block_sourcePos_s
 #[command(usage="data modify storage <target> <targetPath> insert <index> from entity <source>")]
 pub fn data_modify_storage_target_targetPath_insert_index_from_entity_source(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    source:SingleEntities
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2437,11 +2437,11 @@ pub fn data_modify_storage_target_targetPath_insert_index_from_entity_source(
 #[command(usage="data modify storage <target> <targetPath> insert <index> from entity <source> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_insert_index_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2454,10 +2454,10 @@ pub fn data_modify_storage_target_targetPath_insert_index_from_entity_source_sou
 #[command(usage="data modify storage <target> <targetPath> insert <index> from storage <source>")]
 pub fn data_modify_storage_target_targetPath_insert_index_from_storage_source(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    source:ResourceLocation
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2470,11 +2470,11 @@ pub fn data_modify_storage_target_targetPath_insert_index_from_storage_source(
 #[command(usage="data modify storage <target> <targetPath> insert <index> from storage <source> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_insert_index_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2487,10 +2487,10 @@ pub fn data_modify_storage_target_targetPath_insert_index_from_storage_source_so
 #[command(usage="data modify storage <target> <targetPath> insert <index> value <value>")]
 pub fn data_modify_storage_target_targetPath_insert_index_value_value(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    index:IntegerArgument,
-    value:NbtTag
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _index:IntegerArgument,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2503,9 +2503,9 @@ pub fn data_modify_storage_target_targetPath_insert_index_value_value(
 #[command(usage="data modify storage <target> <targetPath> merge from block <sourcePos>")]
 pub fn data_modify_storage_target_targetPath_merge_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    sourcePos:BlockPos
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2518,10 +2518,10 @@ pub fn data_modify_storage_target_targetPath_merge_from_block_sourcePos(
 #[command(usage="data modify storage <target> <targetPath> merge from block <sourcePos> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_merge_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2534,9 +2534,9 @@ pub fn data_modify_storage_target_targetPath_merge_from_block_sourcePos_sourcePa
 #[command(usage="data modify storage <target> <targetPath> merge from entity <source>")]
 pub fn data_modify_storage_target_targetPath_merge_from_entity_source(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:SingleEntities
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2549,10 +2549,10 @@ pub fn data_modify_storage_target_targetPath_merge_from_entity_source(
 #[command(usage="data modify storage <target> <targetPath> merge from entity <source> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_merge_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2565,9 +2565,9 @@ pub fn data_modify_storage_target_targetPath_merge_from_entity_source_sourcePath
 #[command(usage="data modify storage <target> <targetPath> merge from storage <source>")]
 pub fn data_modify_storage_target_targetPath_merge_from_storage_source(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:ResourceLocation
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2580,10 +2580,10 @@ pub fn data_modify_storage_target_targetPath_merge_from_storage_source(
 #[command(usage="data modify storage <target> <targetPath> merge from storage <source> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_merge_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2596,9 +2596,9 @@ pub fn data_modify_storage_target_targetPath_merge_from_storage_source_sourcePat
 #[command(usage="data modify storage <target> <targetPath> merge value <value>")]
 pub fn data_modify_storage_target_targetPath_merge_value_value(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    value:NbtTag
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2611,9 +2611,9 @@ pub fn data_modify_storage_target_targetPath_merge_value_value(
 #[command(usage="data modify storage <target> <targetPath> prepend from block <sourcePos>")]
 pub fn data_modify_storage_target_targetPath_prepend_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    sourcePos:BlockPos
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2626,10 +2626,10 @@ pub fn data_modify_storage_target_targetPath_prepend_from_block_sourcePos(
 #[command(usage="data modify storage <target> <targetPath> prepend from block <sourcePos> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_prepend_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2642,9 +2642,9 @@ pub fn data_modify_storage_target_targetPath_prepend_from_block_sourcePos_source
 #[command(usage="data modify storage <target> <targetPath> prepend from entity <source>")]
 pub fn data_modify_storage_target_targetPath_prepend_from_entity_source(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:SingleEntities
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2657,10 +2657,10 @@ pub fn data_modify_storage_target_targetPath_prepend_from_entity_source(
 #[command(usage="data modify storage <target> <targetPath> prepend from entity <source> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_prepend_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2673,9 +2673,9 @@ pub fn data_modify_storage_target_targetPath_prepend_from_entity_source_sourcePa
 #[command(usage="data modify storage <target> <targetPath> prepend from storage <source>")]
 pub fn data_modify_storage_target_targetPath_prepend_from_storage_source(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:ResourceLocation
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2688,10 +2688,10 @@ pub fn data_modify_storage_target_targetPath_prepend_from_storage_source(
 #[command(usage="data modify storage <target> <targetPath> prepend from storage <source> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_prepend_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2704,9 +2704,9 @@ pub fn data_modify_storage_target_targetPath_prepend_from_storage_source_sourceP
 #[command(usage="data modify storage <target> <targetPath> prepend value <value>")]
 pub fn data_modify_storage_target_targetPath_prepend_value_value(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    value:NbtTag
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2719,9 +2719,9 @@ pub fn data_modify_storage_target_targetPath_prepend_value_value(
 #[command(usage="data modify storage <target> <targetPath> set from block <sourcePos>")]
 pub fn data_modify_storage_target_targetPath_set_from_block_sourcePos(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    sourcePos:BlockPos
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2734,10 +2734,10 @@ pub fn data_modify_storage_target_targetPath_set_from_block_sourcePos(
 #[command(usage="data modify storage <target> <targetPath> set from block <sourcePos> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_set_from_block_sourcePos_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    sourcePos:BlockPos,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _sourcePos:Coordinates,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2750,9 +2750,9 @@ pub fn data_modify_storage_target_targetPath_set_from_block_sourcePos_sourcePath
 #[command(usage="data modify storage <target> <targetPath> set from entity <source>")]
 pub fn data_modify_storage_target_targetPath_set_from_entity_source(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:SingleEntities
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2765,10 +2765,10 @@ pub fn data_modify_storage_target_targetPath_set_from_entity_source(
 #[command(usage="data modify storage <target> <targetPath> set from entity <source> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_set_from_entity_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:SingleEntities,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:SingleEntities,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2781,9 +2781,9 @@ pub fn data_modify_storage_target_targetPath_set_from_entity_source_sourcePath(
 #[command(usage="data modify storage <target> <targetPath> set from storage <source>")]
 pub fn data_modify_storage_target_targetPath_set_from_storage_source(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:ResourceLocation
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2796,10 +2796,10 @@ pub fn data_modify_storage_target_targetPath_set_from_storage_source(
 #[command(usage="data modify storage <target> <targetPath> set from storage <source> <sourcePath>")]
 pub fn data_modify_storage_target_targetPath_set_from_storage_source_sourcePath(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    source:ResourceLocation,
-    sourcePath:NbtPath
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _source:ResourceLocation,
+    _sourcePath:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2812,9 +2812,9 @@ pub fn data_modify_storage_target_targetPath_set_from_storage_source_sourcePath(
 #[command(usage="data modify storage <target> <targetPath> set value <value>")]
 pub fn data_modify_storage_target_targetPath_set_value_value(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    targetPath:NbtPath,
-    value:NbtTag
+    _target:ResourceLocation,
+    _targetPath:NbtPath,
+    _value:NbtTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2827,8 +2827,8 @@ pub fn data_modify_storage_target_targetPath_set_value_value(
 #[command(usage="data remove block <targetPos> <path>")]
 pub fn data_remove_block_targetPos_path(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    path:NbtPath
+    _targetPos:Coordinates,
+    _path:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2841,8 +2841,8 @@ pub fn data_remove_block_targetPos_path(
 #[command(usage="data remove entity <target> <path>")]
 pub fn data_remove_entity_target_path(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    path:NbtPath
+    _target:SingleEntities,
+    _path:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2855,8 +2855,8 @@ pub fn data_remove_entity_target_path(
 #[command(usage="data remove storage <target> <path>")]
 pub fn data_remove_storage_target_path(
     ctx: &mut CommandCtx,
-    target:ResourceLocation,
-    path:NbtPath
+    _target:ResourceLocation,
+    _path:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2869,7 +2869,7 @@ pub fn data_remove_storage_target_path(
 #[command(usage="datapack disable <name>")]
 pub fn datapack_disable_name(
     ctx: &mut CommandCtx,
-    name:StringArgumentPhrase
+    _name:StringArgumentPhrase
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2882,7 +2882,7 @@ pub fn datapack_disable_name(
 #[command(usage="datapack enable <name>")]
 pub fn datapack_enable_name(
     ctx: &mut CommandCtx,
-    name:StringArgumentPhrase
+    _name:StringArgumentPhrase
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2895,8 +2895,8 @@ pub fn datapack_enable_name(
 #[command(usage="datapack enable <name> after <existing>")]
 pub fn datapack_enable_name_after_existing(
     ctx: &mut CommandCtx,
-    name:StringArgumentPhrase,
-    existing:StringArgumentPhrase
+    _name:StringArgumentPhrase,
+    _existing:StringArgumentPhrase
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2909,8 +2909,8 @@ pub fn datapack_enable_name_after_existing(
 #[command(usage="datapack enable <name> before <existing>")]
 pub fn datapack_enable_name_before_existing(
     ctx: &mut CommandCtx,
-    name:StringArgumentPhrase,
-    existing:StringArgumentPhrase
+    _name:StringArgumentPhrase,
+    _existing:StringArgumentPhrase
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2923,7 +2923,7 @@ pub fn datapack_enable_name_before_existing(
 #[command(usage="datapack enable <name> first")]
 pub fn datapack_enable_name_first(
     ctx: &mut CommandCtx,
-    name:StringArgumentPhrase
+    _name:StringArgumentPhrase
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -2936,7 +2936,7 @@ pub fn datapack_enable_name_first(
 #[command(usage="datapack enable <name> last")]
 pub fn datapack_enable_name_last(
     ctx: &mut CommandCtx,
-    name:StringArgumentPhrase
+    _name:StringArgumentPhrase
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3079,7 +3079,7 @@ pub fn defaultgamemode_survival(
 #[command(usage="deop <targets>")]
 pub fn deop_targets(
     ctx: &mut CommandCtx,
-    targets:GameProfile
+    _targets:GameProfile
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3170,7 +3170,7 @@ pub fn effect_clear(
 #[command(usage="effect clear <targets>")]
 pub fn effect_clear_targets(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities
+    _targets:MultipleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3183,8 +3183,8 @@ pub fn effect_clear_targets(
 #[command(usage="effect clear <targets> <effect>")]
 pub fn effect_clear_targets_effect(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    effect:MobEffect
+    _targets:MultipleEntities,
+    _effect:MobEffect
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3197,8 +3197,8 @@ pub fn effect_clear_targets_effect(
 #[command(usage="effect give <targets> <effect>")]
 pub fn effect_give_targets_effect(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    effect:MobEffect
+    _targets:MultipleEntities,
+    _effect:MobEffect
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3211,9 +3211,9 @@ pub fn effect_give_targets_effect(
 #[command(usage="effect give <targets> <effect> <seconds>")]
 pub fn effect_give_targets_effect_seconds(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    effect:MobEffect,
-    seconds:IntegerArgumentBetween1And1000000
+    _targets:MultipleEntities,
+    _effect:MobEffect,
+    _seconds:IntegerArgumentBetween1And1000000
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3226,10 +3226,10 @@ pub fn effect_give_targets_effect_seconds(
 #[command(usage="effect give <targets> <effect> <seconds> <amplifier>")]
 pub fn effect_give_targets_effect_seconds_amplifier(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    effect:MobEffect,
-    seconds:IntegerArgumentBetween1And1000000,
-    amplifier:IntegerArgumentBetween0And255
+    _targets:MultipleEntities,
+    _effect:MobEffect,
+    _seconds:IntegerArgumentBetween1And1000000,
+    _amplifier:IntegerArgumentBetween0And255
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3242,11 +3242,11 @@ pub fn effect_give_targets_effect_seconds_amplifier(
 #[command(usage="effect give <targets> <effect> <seconds> <amplifier> <hideParticles>")]
 pub fn effect_give_targets_effect_seconds_amplifier_hideParticles(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    effect:MobEffect,
-    seconds:IntegerArgumentBetween1And1000000,
-    amplifier:IntegerArgumentBetween0And255,
-    hideParticles:BoolArgument
+    _targets:MultipleEntities,
+    _effect:MobEffect,
+    _seconds:IntegerArgumentBetween1And1000000,
+    _amplifier:IntegerArgumentBetween0And255,
+    _hideParticles:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3259,8 +3259,8 @@ pub fn effect_give_targets_effect_seconds_amplifier_hideParticles(
 #[command(usage="enchant <targets> <enchantment>")]
 pub fn enchant_targets_enchantment(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    enchantment:Enchantment
+    _targets:MultipleEntities,
+    _enchantment:Enchantment
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3273,9 +3273,9 @@ pub fn enchant_targets_enchantment(
 #[command(usage="enchant <targets> <enchantment> <level>")]
 pub fn enchant_targets_enchantment_level(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    enchantment:Enchantment,
-    level:IntegerArgumentPositive
+    _targets:MultipleEntities,
+    _enchantment:Enchantment,
+    _level:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3288,8 +3288,8 @@ pub fn enchant_targets_enchantment_level(
 #[command(usage="execute if block <pos> <block>")]
 pub fn execute_if_block_pos_block(
     ctx: &mut CommandCtx,
-    pos:BlockPos,
-    block:BlockPredicate
+    _pos:Coordinates,
+    _block:BlockPredicate
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3302,9 +3302,9 @@ pub fn execute_if_block_pos_block(
 #[command(usage="execute if blocks <start> <end> <destination> all")]
 pub fn execute_if_blocks_start_end_destination_all(
     ctx: &mut CommandCtx,
-    start:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _start:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3317,9 +3317,9 @@ pub fn execute_if_blocks_start_end_destination_all(
 #[command(usage="execute if blocks <start> <end> <destination> masked")]
 pub fn execute_if_blocks_start_end_destination_masked(
     ctx: &mut CommandCtx,
-    start:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _start:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3332,8 +3332,8 @@ pub fn execute_if_blocks_start_end_destination_masked(
 #[command(usage="execute if data block <sourcePos> <path>")]
 pub fn execute_if_data_block_sourcePos_path(
     ctx: &mut CommandCtx,
-    sourcePos:BlockPos,
-    path:NbtPath
+    _sourcePos:Coordinates,
+    _path:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3346,8 +3346,8 @@ pub fn execute_if_data_block_sourcePos_path(
 #[command(usage="execute if data entity <source> <path>")]
 pub fn execute_if_data_entity_source_path(
     ctx: &mut CommandCtx,
-    source:SingleEntities,
-    path:NbtPath
+    _source:SingleEntities,
+    _path:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3360,8 +3360,8 @@ pub fn execute_if_data_entity_source_path(
 #[command(usage="execute if data storage <source> <path>")]
 pub fn execute_if_data_storage_source_path(
     ctx: &mut CommandCtx,
-    source:ResourceLocation,
-    path:NbtPath
+    _source:ResourceLocation,
+    _path:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3374,7 +3374,7 @@ pub fn execute_if_data_storage_source_path(
 #[command(usage="execute if entity <entities>")]
 pub fn execute_if_entity_entities(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities
+    _entities:MultipleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3387,7 +3387,7 @@ pub fn execute_if_entity_entities(
 #[command(usage="execute if predicate <predicate>")]
 pub fn execute_if_predicate_predicate(
     ctx: &mut CommandCtx,
-    predicate:ResourceLocation
+    _predicate:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3400,10 +3400,10 @@ pub fn execute_if_predicate_predicate(
 #[command(usage="execute if score <target> <targetObjective> < <source> <sourceObjective>")]
 pub fn execute_if_score_target_targetObjective_lt_source_sourceObjective(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    targetObjective:Objective,
-    source:SingleScoreHolder,
-    sourceObjective:Objective
+    _target:SingleScoreHolder,
+    _targetObjective:Objective,
+    _source:SingleScoreHolder,
+    _sourceObjective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3416,10 +3416,10 @@ pub fn execute_if_score_target_targetObjective_lt_source_sourceObjective(
 #[command(usage="execute if score <target> <targetObjective> <= <source> <sourceObjective>")]
 pub fn execute_if_score_target_targetObjective_lteq_source_sourceObjective(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    targetObjective:Objective,
-    source:SingleScoreHolder,
-    sourceObjective:Objective
+    _target:SingleScoreHolder,
+    _targetObjective:Objective,
+    _source:SingleScoreHolder,
+    _sourceObjective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3432,10 +3432,10 @@ pub fn execute_if_score_target_targetObjective_lteq_source_sourceObjective(
 #[command(usage="execute if score <target> <targetObjective> = <source> <sourceObjective>")]
 pub fn execute_if_score_target_targetObjective_eq_source_sourceObjective(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    targetObjective:Objective,
-    source:SingleScoreHolder,
-    sourceObjective:Objective
+    _target:SingleScoreHolder,
+    _targetObjective:Objective,
+    _source:SingleScoreHolder,
+    _sourceObjective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3448,10 +3448,10 @@ pub fn execute_if_score_target_targetObjective_eq_source_sourceObjective(
 #[command(usage="execute if score <target> <targetObjective> > <source> <sourceObjective>")]
 pub fn execute_if_score_target_targetObjective_gt_source_sourceObjective(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    targetObjective:Objective,
-    source:SingleScoreHolder,
-    sourceObjective:Objective
+    _target:SingleScoreHolder,
+    _targetObjective:Objective,
+    _source:SingleScoreHolder,
+    _sourceObjective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3464,10 +3464,10 @@ pub fn execute_if_score_target_targetObjective_gt_source_sourceObjective(
 #[command(usage="execute if score <target> <targetObjective> >= <source> <sourceObjective>")]
 pub fn execute_if_score_target_targetObjective_gteq_source_sourceObjective(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    targetObjective:Objective,
-    source:SingleScoreHolder,
-    sourceObjective:Objective
+    _target:SingleScoreHolder,
+    _targetObjective:Objective,
+    _source:SingleScoreHolder,
+    _sourceObjective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3480,9 +3480,9 @@ pub fn execute_if_score_target_targetObjective_gteq_source_sourceObjective(
 #[command(usage="execute if score <target> <targetObjective> matches <range>")]
 pub fn execute_if_score_target_targetObjective_matches_range(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    targetObjective:Objective,
-    range:IntRage
+    _target:SingleScoreHolder,
+    _targetObjective:Objective,
+    _range:IntRage
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3495,8 +3495,8 @@ pub fn execute_if_score_target_targetObjective_matches_range(
 #[command(usage="execute unless block <pos> <block>")]
 pub fn execute_unless_block_pos_block(
     ctx: &mut CommandCtx,
-    pos:BlockPos,
-    block:BlockPredicate
+    _pos:Coordinates,
+    _block:BlockPredicate
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3509,9 +3509,9 @@ pub fn execute_unless_block_pos_block(
 #[command(usage="execute unless blocks <start> <end> <destination> all")]
 pub fn execute_unless_blocks_start_end_destination_all(
     ctx: &mut CommandCtx,
-    start:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _start:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3524,9 +3524,9 @@ pub fn execute_unless_blocks_start_end_destination_all(
 #[command(usage="execute unless blocks <start> <end> <destination> masked")]
 pub fn execute_unless_blocks_start_end_destination_masked(
     ctx: &mut CommandCtx,
-    start:BlockPos,
-    end:BlockPos,
-    destination:BlockPos
+    _start:Coordinates,
+    _end:Coordinates,
+    _destination:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3539,8 +3539,8 @@ pub fn execute_unless_blocks_start_end_destination_masked(
 #[command(usage="execute unless data block <sourcePos> <path>")]
 pub fn execute_unless_data_block_sourcePos_path(
     ctx: &mut CommandCtx,
-    sourcePos:BlockPos,
-    path:NbtPath
+    _sourcePos:Coordinates,
+    _path:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3553,8 +3553,8 @@ pub fn execute_unless_data_block_sourcePos_path(
 #[command(usage="execute unless data entity <source> <path>")]
 pub fn execute_unless_data_entity_source_path(
     ctx: &mut CommandCtx,
-    source:SingleEntities,
-    path:NbtPath
+    _source:SingleEntities,
+    _path:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3567,8 +3567,8 @@ pub fn execute_unless_data_entity_source_path(
 #[command(usage="execute unless data storage <source> <path>")]
 pub fn execute_unless_data_storage_source_path(
     ctx: &mut CommandCtx,
-    source:ResourceLocation,
-    path:NbtPath
+    _source:ResourceLocation,
+    _path:NbtPath
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3581,7 +3581,7 @@ pub fn execute_unless_data_storage_source_path(
 #[command(usage="execute unless entity <entities>")]
 pub fn execute_unless_entity_entities(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities
+    _entities:MultipleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3594,7 +3594,7 @@ pub fn execute_unless_entity_entities(
 #[command(usage="execute unless predicate <predicate>")]
 pub fn execute_unless_predicate_predicate(
     ctx: &mut CommandCtx,
-    predicate:ResourceLocation
+    _predicate:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3607,10 +3607,10 @@ pub fn execute_unless_predicate_predicate(
 #[command(usage="execute unless score <target> <targetObjective> < <source> <sourceObjective>")]
 pub fn execute_unless_score_target_targetObjective_lt_source_sourceObjective(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    targetObjective:Objective,
-    source:SingleScoreHolder,
-    sourceObjective:Objective
+    _target:SingleScoreHolder,
+    _targetObjective:Objective,
+    _source:SingleScoreHolder,
+    _sourceObjective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3623,10 +3623,10 @@ pub fn execute_unless_score_target_targetObjective_lt_source_sourceObjective(
 #[command(usage="execute unless score <target> <targetObjective> <= <source> <sourceObjective>")]
 pub fn execute_unless_score_target_targetObjective_lteq_source_sourceObjective(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    targetObjective:Objective,
-    source:SingleScoreHolder,
-    sourceObjective:Objective
+    _target:SingleScoreHolder,
+    _targetObjective:Objective,
+    _source:SingleScoreHolder,
+    _sourceObjective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3639,10 +3639,10 @@ pub fn execute_unless_score_target_targetObjective_lteq_source_sourceObjective(
 #[command(usage="execute unless score <target> <targetObjective> = <source> <sourceObjective>")]
 pub fn execute_unless_score_target_targetObjective_eq_source_sourceObjective(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    targetObjective:Objective,
-    source:SingleScoreHolder,
-    sourceObjective:Objective
+    _target:SingleScoreHolder,
+    _targetObjective:Objective,
+    _source:SingleScoreHolder,
+    _sourceObjective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3655,10 +3655,10 @@ pub fn execute_unless_score_target_targetObjective_eq_source_sourceObjective(
 #[command(usage="execute unless score <target> <targetObjective> > <source> <sourceObjective>")]
 pub fn execute_unless_score_target_targetObjective_gt_source_sourceObjective(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    targetObjective:Objective,
-    source:SingleScoreHolder,
-    sourceObjective:Objective
+    _target:SingleScoreHolder,
+    _targetObjective:Objective,
+    _source:SingleScoreHolder,
+    _sourceObjective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3671,10 +3671,10 @@ pub fn execute_unless_score_target_targetObjective_gt_source_sourceObjective(
 #[command(usage="execute unless score <target> <targetObjective> >= <source> <sourceObjective>")]
 pub fn execute_unless_score_target_targetObjective_gteq_source_sourceObjective(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    targetObjective:Objective,
-    source:SingleScoreHolder,
-    sourceObjective:Objective
+    _target:SingleScoreHolder,
+    _targetObjective:Objective,
+    _source:SingleScoreHolder,
+    _sourceObjective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3687,9 +3687,9 @@ pub fn execute_unless_score_target_targetObjective_gteq_source_sourceObjective(
 #[command(usage="execute unless score <target> <targetObjective> matches <range>")]
 pub fn execute_unless_score_target_targetObjective_matches_range(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    targetObjective:Objective,
-    range:IntRage
+    _target:SingleScoreHolder,
+    _targetObjective:Objective,
+    _range:IntRage
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3702,8 +3702,8 @@ pub fn execute_unless_score_target_targetObjective_matches_range(
 #[command(usage="experience add <targets> <amount>")]
 pub fn experience_add_targets_amount(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    amount:IntegerArgument
+    _targets:MultiplePlayers,
+    _amount:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3716,8 +3716,8 @@ pub fn experience_add_targets_amount(
 #[command(usage="experience add <targets> <amount> levels")]
 pub fn experience_add_targets_amount_levels(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    amount:IntegerArgument
+    _targets:MultiplePlayers,
+    _amount:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3730,8 +3730,8 @@ pub fn experience_add_targets_amount_levels(
 #[command(usage="experience add <targets> <amount> points")]
 pub fn experience_add_targets_amount_points(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    amount:IntegerArgument
+    _targets:MultiplePlayers,
+    _amount:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3744,7 +3744,7 @@ pub fn experience_add_targets_amount_points(
 #[command(usage="experience query <targets> levels")]
 pub fn experience_query_targets_levels(
     ctx: &mut CommandCtx,
-    targets:SinglePlayer
+    _targets:SinglePlayer
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3757,7 +3757,7 @@ pub fn experience_query_targets_levels(
 #[command(usage="experience query <targets> points")]
 pub fn experience_query_targets_points(
     ctx: &mut CommandCtx,
-    targets:SinglePlayer
+    _targets:SinglePlayer
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3770,8 +3770,8 @@ pub fn experience_query_targets_points(
 #[command(usage="experience set <targets> <amount>")]
 pub fn experience_set_targets_amount(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    amount:IntegerArgumentPositive
+    _targets:MultiplePlayers,
+    _amount:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3784,8 +3784,8 @@ pub fn experience_set_targets_amount(
 #[command(usage="experience set <targets> <amount> levels")]
 pub fn experience_set_targets_amount_levels(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    amount:IntegerArgumentPositive
+    _targets:MultiplePlayers,
+    _amount:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3798,8 +3798,8 @@ pub fn experience_set_targets_amount_levels(
 #[command(usage="experience set <targets> <amount> points")]
 pub fn experience_set_targets_amount_points(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    amount:IntegerArgumentPositive
+    _targets:MultiplePlayers,
+    _amount:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3812,9 +3812,9 @@ pub fn experience_set_targets_amount_points(
 #[command(usage="fill <from> <to> <block>")]
 pub fn fill_from_to_block(
     ctx: &mut CommandCtx,
-    from:BlockPos,
-    to:BlockPos,
-    block:BlockState
+    _from:Coordinates,
+    _to:Coordinates,
+    _block:BlockState
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3827,9 +3827,9 @@ pub fn fill_from_to_block(
 #[command(usage="fill <from> <to> <block> destroy")]
 pub fn fill_from_to_block_destroy(
     ctx: &mut CommandCtx,
-    from:BlockPos,
-    to:BlockPos,
-    block:BlockState
+    _from:Coordinates,
+    _to:Coordinates,
+    _block:BlockState
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3842,9 +3842,9 @@ pub fn fill_from_to_block_destroy(
 #[command(usage="fill <from> <to> <block> hollow")]
 pub fn fill_from_to_block_hollow(
     ctx: &mut CommandCtx,
-    from:BlockPos,
-    to:BlockPos,
-    block:BlockState
+    _from:Coordinates,
+    _to:Coordinates,
+    _block:BlockState
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3857,9 +3857,9 @@ pub fn fill_from_to_block_hollow(
 #[command(usage="fill <from> <to> <block> keep")]
 pub fn fill_from_to_block_keep(
     ctx: &mut CommandCtx,
-    from:BlockPos,
-    to:BlockPos,
-    block:BlockState
+    _from:Coordinates,
+    _to:Coordinates,
+    _block:BlockState
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3872,9 +3872,9 @@ pub fn fill_from_to_block_keep(
 #[command(usage="fill <from> <to> <block> outline")]
 pub fn fill_from_to_block_outline(
     ctx: &mut CommandCtx,
-    from:BlockPos,
-    to:BlockPos,
-    block:BlockState
+    _from:Coordinates,
+    _to:Coordinates,
+    _block:BlockState
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3887,9 +3887,9 @@ pub fn fill_from_to_block_outline(
 #[command(usage="fill <from> <to> <block> replace")]
 pub fn fill_from_to_block_replace(
     ctx: &mut CommandCtx,
-    from:BlockPos,
-    to:BlockPos,
-    block:BlockState
+    _from:Coordinates,
+    _to:Coordinates,
+    _block:BlockState
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3902,10 +3902,10 @@ pub fn fill_from_to_block_replace(
 #[command(usage="fill <from> <to> <block> replace <filter>")]
 pub fn fill_from_to_block_replace_filter(
     ctx: &mut CommandCtx,
-    from:BlockPos,
-    to:BlockPos,
-    block:BlockState,
-    filter:BlockPredicate
+    _from:Coordinates,
+    _to:Coordinates,
+    _block:BlockState,
+    _filter:BlockPredicate
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3918,7 +3918,7 @@ pub fn fill_from_to_block_replace_filter(
 #[command(usage="forceload add <from>")]
 pub fn forceload_add_from(
     ctx: &mut CommandCtx,
-    from:ColumnPos
+    _from:ColumnPos
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3931,8 +3931,8 @@ pub fn forceload_add_from(
 #[command(usage="forceload add <from> <to>")]
 pub fn forceload_add_from_to(
     ctx: &mut CommandCtx,
-    from:ColumnPos,
-    to:ColumnPos
+    _from:ColumnPos,
+    _to:ColumnPos
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3958,7 +3958,7 @@ pub fn forceload_query(
 #[command(usage="forceload query <pos>")]
 pub fn forceload_query_pos(
     ctx: &mut CommandCtx,
-    pos:ColumnPos
+    _pos:ColumnPos
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3984,7 +3984,7 @@ pub fn forceload_remove_all(
 #[command(usage="forceload remove <from>")]
 pub fn forceload_remove_from(
     ctx: &mut CommandCtx,
-    from:ColumnPos
+    _from:ColumnPos
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -3997,8 +3997,8 @@ pub fn forceload_remove_from(
 #[command(usage="forceload remove <from> <to>")]
 pub fn forceload_remove_from_to(
     ctx: &mut CommandCtx,
-    from:ColumnPos,
-    to:ColumnPos
+    _from:ColumnPos,
+    _to:ColumnPos
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4011,7 +4011,7 @@ pub fn forceload_remove_from_to(
 #[command(usage="function <name>")]
 pub fn function_name(
     ctx: &mut CommandCtx,
-    name:MinecraftFunction
+    _name:MinecraftFunction
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4037,7 +4037,7 @@ pub fn gamemode_adventure(
 #[command(usage="gamemode adventure <target>")]
 pub fn gamemode_adventure_target(
     ctx: &mut CommandCtx,
-    target:MultiplePlayers
+    _target:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4063,7 +4063,7 @@ pub fn gamemode_creative(
 #[command(usage="gamemode creative <target>")]
 pub fn gamemode_creative_target(
     ctx: &mut CommandCtx,
-    target:MultiplePlayers
+    _target:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4089,7 +4089,7 @@ pub fn gamemode_spectator(
 #[command(usage="gamemode spectator <target>")]
 pub fn gamemode_spectator_target(
     ctx: &mut CommandCtx,
-    target:MultiplePlayers
+    _target:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4115,7 +4115,7 @@ pub fn gamemode_survival(
 #[command(usage="gamemode survival <target>")]
 pub fn gamemode_survival_target(
     ctx: &mut CommandCtx,
-    target:MultiplePlayers
+    _target:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4141,7 +4141,7 @@ pub fn gamerule_announceAdvancements(
 #[command(usage="gamerule announceAdvancements <value>")]
 pub fn gamerule_announceAdvancements_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4167,7 +4167,7 @@ pub fn gamerule_commandBlockOutput(
 #[command(usage="gamerule commandBlockOutput <value>")]
 pub fn gamerule_commandBlockOutput_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4193,7 +4193,7 @@ pub fn gamerule_disableElytraMovementCheck(
 #[command(usage="gamerule disableElytraMovementCheck <value>")]
 pub fn gamerule_disableElytraMovementCheck_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4219,7 +4219,7 @@ pub fn gamerule_disableRaids(
 #[command(usage="gamerule disableRaids <value>")]
 pub fn gamerule_disableRaids_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4245,7 +4245,7 @@ pub fn gamerule_doDaylightCycle(
 #[command(usage="gamerule doDaylightCycle <value>")]
 pub fn gamerule_doDaylightCycle_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4271,7 +4271,7 @@ pub fn gamerule_doEntityDrops(
 #[command(usage="gamerule doEntityDrops <value>")]
 pub fn gamerule_doEntityDrops_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4297,7 +4297,7 @@ pub fn gamerule_doFireTick(
 #[command(usage="gamerule doFireTick <value>")]
 pub fn gamerule_doFireTick_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4323,7 +4323,7 @@ pub fn gamerule_doImmediateRespawn(
 #[command(usage="gamerule doImmediateRespawn <value>")]
 pub fn gamerule_doImmediateRespawn_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4349,7 +4349,7 @@ pub fn gamerule_doInsomnia(
 #[command(usage="gamerule doInsomnia <value>")]
 pub fn gamerule_doInsomnia_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4375,7 +4375,7 @@ pub fn gamerule_doLimitedCrafting(
 #[command(usage="gamerule doLimitedCrafting <value>")]
 pub fn gamerule_doLimitedCrafting_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4401,7 +4401,7 @@ pub fn gamerule_doMobLoot(
 #[command(usage="gamerule doMobLoot <value>")]
 pub fn gamerule_doMobLoot_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4427,7 +4427,7 @@ pub fn gamerule_doMobSpawning(
 #[command(usage="gamerule doMobSpawning <value>")]
 pub fn gamerule_doMobSpawning_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4453,7 +4453,7 @@ pub fn gamerule_doPatrolSpawning(
 #[command(usage="gamerule doPatrolSpawning <value>")]
 pub fn gamerule_doPatrolSpawning_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4479,7 +4479,7 @@ pub fn gamerule_doTileDrops(
 #[command(usage="gamerule doTileDrops <value>")]
 pub fn gamerule_doTileDrops_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4505,7 +4505,7 @@ pub fn gamerule_doTraderSpawning(
 #[command(usage="gamerule doTraderSpawning <value>")]
 pub fn gamerule_doTraderSpawning_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4531,7 +4531,7 @@ pub fn gamerule_doWeatherCycle(
 #[command(usage="gamerule doWeatherCycle <value>")]
 pub fn gamerule_doWeatherCycle_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4557,7 +4557,7 @@ pub fn gamerule_drowningDamage(
 #[command(usage="gamerule drowningDamage <value>")]
 pub fn gamerule_drowningDamage_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4583,7 +4583,7 @@ pub fn gamerule_fallDamage(
 #[command(usage="gamerule fallDamage <value>")]
 pub fn gamerule_fallDamage_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4609,7 +4609,7 @@ pub fn gamerule_fireDamage(
 #[command(usage="gamerule fireDamage <value>")]
 pub fn gamerule_fireDamage_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4635,7 +4635,7 @@ pub fn gamerule_forgiveDeadPlayers(
 #[command(usage="gamerule forgiveDeadPlayers <value>")]
 pub fn gamerule_forgiveDeadPlayers_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4661,7 +4661,7 @@ pub fn gamerule_keepInventory(
 #[command(usage="gamerule keepInventory <value>")]
 pub fn gamerule_keepInventory_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4687,7 +4687,7 @@ pub fn gamerule_logAdminCommands(
 #[command(usage="gamerule logAdminCommands <value>")]
 pub fn gamerule_logAdminCommands_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4713,7 +4713,7 @@ pub fn gamerule_maxCommandChainLength(
 #[command(usage="gamerule maxCommandChainLength <value>")]
 pub fn gamerule_maxCommandChainLength_value(
     ctx: &mut CommandCtx,
-    value:IntegerArgument
+    _value:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4739,7 +4739,7 @@ pub fn gamerule_maxEntityCramming(
 #[command(usage="gamerule maxEntityCramming <value>")]
 pub fn gamerule_maxEntityCramming_value(
     ctx: &mut CommandCtx,
-    value:IntegerArgument
+    _value:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4765,7 +4765,7 @@ pub fn gamerule_mobGriefing(
 #[command(usage="gamerule mobGriefing <value>")]
 pub fn gamerule_mobGriefing_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4791,7 +4791,7 @@ pub fn gamerule_naturalRegeneration(
 #[command(usage="gamerule naturalRegeneration <value>")]
 pub fn gamerule_naturalRegeneration_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4817,7 +4817,7 @@ pub fn gamerule_randomTickSpeed(
 #[command(usage="gamerule randomTickSpeed <value>")]
 pub fn gamerule_randomTickSpeed_value(
     ctx: &mut CommandCtx,
-    value:IntegerArgument
+    _value:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4843,7 +4843,7 @@ pub fn gamerule_reducedDebugInfo(
 #[command(usage="gamerule reducedDebugInfo <value>")]
 pub fn gamerule_reducedDebugInfo_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4869,7 +4869,7 @@ pub fn gamerule_sendCommandFeedback(
 #[command(usage="gamerule sendCommandFeedback <value>")]
 pub fn gamerule_sendCommandFeedback_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4895,7 +4895,7 @@ pub fn gamerule_showDeathMessages(
 #[command(usage="gamerule showDeathMessages <value>")]
 pub fn gamerule_showDeathMessages_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4921,7 +4921,7 @@ pub fn gamerule_spawnRadius(
 #[command(usage="gamerule spawnRadius <value>")]
 pub fn gamerule_spawnRadius_value(
     ctx: &mut CommandCtx,
-    value:IntegerArgument
+    _value:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4947,7 +4947,7 @@ pub fn gamerule_spectatorsGenerateChunks(
 #[command(usage="gamerule spectatorsGenerateChunks <value>")]
 pub fn gamerule_spectatorsGenerateChunks_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4973,7 +4973,7 @@ pub fn gamerule_universalAnger(
 #[command(usage="gamerule universalAnger <value>")]
 pub fn gamerule_universalAnger_value(
     ctx: &mut CommandCtx,
-    value:BoolArgument
+    _value:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -4986,8 +4986,8 @@ pub fn gamerule_universalAnger_value(
 #[command(usage="give <targets> <item>")]
 pub fn give_targets_item(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    item:ItemStack
+    _targets:MultiplePlayers,
+    _item:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5000,9 +5000,9 @@ pub fn give_targets_item(
 #[command(usage="give <targets> <item> <count>")]
 pub fn give_targets_item_count(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    item:ItemStack,
-    count:IntegerArgumentGreaterThen1
+    _targets:MultiplePlayers,
+    _item:ItemStack,
+    _count:IntegerArgumentGreaterThen1
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5028,7 +5028,7 @@ pub fn help(
 #[command(usage="help <command>")]
 pub fn help_command(
     ctx: &mut CommandCtx,
-    command:StringArgumentGreedy
+    _command:StringArgumentGreedy
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5041,7 +5041,7 @@ pub fn help_command(
 #[command(usage="kick <targets>")]
 pub fn kick_targets(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5054,8 +5054,8 @@ pub fn kick_targets(
 #[command(usage="kick <targets> <reason>")]
 pub fn kick_targets_reason(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    reason:Message
+    _targets:MultiplePlayers,
+    _reason:Message
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5081,7 +5081,7 @@ pub fn kill(
 #[command(usage="kill <targets>")]
 pub fn kill_targets(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities
+    _targets:MultipleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5354,7 +5354,7 @@ pub fn locate_village(
 #[command(usage="locatebiome <biome>")]
 pub fn locatebiome_biome(
     ctx: &mut CommandCtx,
-    biome:ResourceLocation
+    _biome:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5367,9 +5367,9 @@ pub fn locatebiome_biome(
 #[command(usage="loot give <players> fish <loot_table> <pos>")]
 pub fn loot_give_players_fish_loot_table_pos(
     ctx: &mut CommandCtx,
-    players:MultiplePlayers,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _players:MultiplePlayers,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5382,9 +5382,9 @@ pub fn loot_give_players_fish_loot_table_pos(
 #[command(usage="loot give <players> fish <loot_table> <pos> mainhand")]
 pub fn loot_give_players_fish_loot_table_pos_mainhand(
     ctx: &mut CommandCtx,
-    players:MultiplePlayers,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _players:MultiplePlayers,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5397,9 +5397,9 @@ pub fn loot_give_players_fish_loot_table_pos_mainhand(
 #[command(usage="loot give <players> fish <loot_table> <pos> offhand")]
 pub fn loot_give_players_fish_loot_table_pos_offhand(
     ctx: &mut CommandCtx,
-    players:MultiplePlayers,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _players:MultiplePlayers,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5412,10 +5412,10 @@ pub fn loot_give_players_fish_loot_table_pos_offhand(
 #[command(usage="loot give <players> fish <loot_table> <pos> <tool>")]
 pub fn loot_give_players_fish_loot_table_pos_tool(
     ctx: &mut CommandCtx,
-    players:MultiplePlayers,
-    loot_table:ResourceLocation,
-    pos:BlockPos,
-    tool:ItemStack
+    _players:MultiplePlayers,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5428,8 +5428,8 @@ pub fn loot_give_players_fish_loot_table_pos_tool(
 #[command(usage="loot give <players> kill <target>")]
 pub fn loot_give_players_kill_target(
     ctx: &mut CommandCtx,
-    players:MultiplePlayers,
-    target:SingleEntities
+    _players:MultiplePlayers,
+    _target:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5442,8 +5442,8 @@ pub fn loot_give_players_kill_target(
 #[command(usage="loot give <players> loot <loot_table>")]
 pub fn loot_give_players_loot_loot_table(
     ctx: &mut CommandCtx,
-    players:MultiplePlayers,
-    loot_table:ResourceLocation
+    _players:MultiplePlayers,
+    _loot_table:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5456,8 +5456,8 @@ pub fn loot_give_players_loot_loot_table(
 #[command(usage="loot give <players> mine <pos>")]
 pub fn loot_give_players_mine_pos(
     ctx: &mut CommandCtx,
-    players:MultiplePlayers,
-    pos:BlockPos
+    _players:MultiplePlayers,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5470,8 +5470,8 @@ pub fn loot_give_players_mine_pos(
 #[command(usage="loot give <players> mine <pos> mainhand")]
 pub fn loot_give_players_mine_pos_mainhand(
     ctx: &mut CommandCtx,
-    players:MultiplePlayers,
-    pos:BlockPos
+    _players:MultiplePlayers,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5484,8 +5484,8 @@ pub fn loot_give_players_mine_pos_mainhand(
 #[command(usage="loot give <players> mine <pos> offhand")]
 pub fn loot_give_players_mine_pos_offhand(
     ctx: &mut CommandCtx,
-    players:MultiplePlayers,
-    pos:BlockPos
+    _players:MultiplePlayers,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5498,9 +5498,9 @@ pub fn loot_give_players_mine_pos_offhand(
 #[command(usage="loot give <players> mine <pos> <tool>")]
 pub fn loot_give_players_mine_pos_tool(
     ctx: &mut CommandCtx,
-    players:MultiplePlayers,
-    pos:BlockPos,
-    tool:ItemStack
+    _players:MultiplePlayers,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5513,9 +5513,9 @@ pub fn loot_give_players_mine_pos_tool(
 #[command(usage="loot insert <targetPos> fish <loot_table> <pos>")]
 pub fn loot_insert_targetPos_fish_loot_table_pos(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5528,9 +5528,9 @@ pub fn loot_insert_targetPos_fish_loot_table_pos(
 #[command(usage="loot insert <targetPos> fish <loot_table> <pos> mainhand")]
 pub fn loot_insert_targetPos_fish_loot_table_pos_mainhand(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5543,9 +5543,9 @@ pub fn loot_insert_targetPos_fish_loot_table_pos_mainhand(
 #[command(usage="loot insert <targetPos> fish <loot_table> <pos> offhand")]
 pub fn loot_insert_targetPos_fish_loot_table_pos_offhand(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5558,10 +5558,10 @@ pub fn loot_insert_targetPos_fish_loot_table_pos_offhand(
 #[command(usage="loot insert <targetPos> fish <loot_table> <pos> <tool>")]
 pub fn loot_insert_targetPos_fish_loot_table_pos_tool(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    loot_table:ResourceLocation,
-    pos:BlockPos,
-    tool:ItemStack
+    _targetPos:Coordinates,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5574,8 +5574,8 @@ pub fn loot_insert_targetPos_fish_loot_table_pos_tool(
 #[command(usage="loot insert <targetPos> kill <target>")]
 pub fn loot_insert_targetPos_kill_target(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    target:SingleEntities
+    _targetPos:Coordinates,
+    _target:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5588,8 +5588,8 @@ pub fn loot_insert_targetPos_kill_target(
 #[command(usage="loot insert <targetPos> loot <loot_table>")]
 pub fn loot_insert_targetPos_loot_loot_table(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    loot_table:ResourceLocation
+    _targetPos:Coordinates,
+    _loot_table:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5602,8 +5602,8 @@ pub fn loot_insert_targetPos_loot_loot_table(
 #[command(usage="loot insert <targetPos> mine <pos>")]
 pub fn loot_insert_targetPos_mine_pos(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5616,8 +5616,8 @@ pub fn loot_insert_targetPos_mine_pos(
 #[command(usage="loot insert <targetPos> mine <pos> mainhand")]
 pub fn loot_insert_targetPos_mine_pos_mainhand(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5630,8 +5630,8 @@ pub fn loot_insert_targetPos_mine_pos_mainhand(
 #[command(usage="loot insert <targetPos> mine <pos> offhand")]
 pub fn loot_insert_targetPos_mine_pos_offhand(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5644,9 +5644,9 @@ pub fn loot_insert_targetPos_mine_pos_offhand(
 #[command(usage="loot insert <targetPos> mine <pos> <tool>")]
 pub fn loot_insert_targetPos_mine_pos_tool(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    pos:BlockPos,
-    tool:ItemStack
+    _targetPos:Coordinates,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5659,10 +5659,10 @@ pub fn loot_insert_targetPos_mine_pos_tool(
 #[command(usage="loot replace block <targetPos> <slot> fish <loot_table> <pos>")]
 pub fn loot_replace_block_targetPos_slot_fish_loot_table_pos(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5675,10 +5675,10 @@ pub fn loot_replace_block_targetPos_slot_fish_loot_table_pos(
 #[command(usage="loot replace block <targetPos> <slot> fish <loot_table> <pos> mainhand")]
 pub fn loot_replace_block_targetPos_slot_fish_loot_table_pos_mainhand(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5691,10 +5691,10 @@ pub fn loot_replace_block_targetPos_slot_fish_loot_table_pos_mainhand(
 #[command(usage="loot replace block <targetPos> <slot> fish <loot_table> <pos> offhand")]
 pub fn loot_replace_block_targetPos_slot_fish_loot_table_pos_offhand(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5707,11 +5707,11 @@ pub fn loot_replace_block_targetPos_slot_fish_loot_table_pos_offhand(
 #[command(usage="loot replace block <targetPos> <slot> fish <loot_table> <pos> <tool>")]
 pub fn loot_replace_block_targetPos_slot_fish_loot_table_pos_tool(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    loot_table:ResourceLocation,
-    pos:BlockPos,
-    tool:ItemStack
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5724,9 +5724,9 @@ pub fn loot_replace_block_targetPos_slot_fish_loot_table_pos_tool(
 #[command(usage="loot replace block <targetPos> <slot> kill <target>")]
 pub fn loot_replace_block_targetPos_slot_kill_target(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    target:SingleEntities
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _target:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5739,9 +5739,9 @@ pub fn loot_replace_block_targetPos_slot_kill_target(
 #[command(usage="loot replace block <targetPos> <slot> loot <loot_table>")]
 pub fn loot_replace_block_targetPos_slot_loot_loot_table(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    loot_table:ResourceLocation
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _loot_table:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5754,9 +5754,9 @@ pub fn loot_replace_block_targetPos_slot_loot_loot_table(
 #[command(usage="loot replace block <targetPos> <slot> mine <pos>")]
 pub fn loot_replace_block_targetPos_slot_mine_pos(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5769,9 +5769,9 @@ pub fn loot_replace_block_targetPos_slot_mine_pos(
 #[command(usage="loot replace block <targetPos> <slot> mine <pos> mainhand")]
 pub fn loot_replace_block_targetPos_slot_mine_pos_mainhand(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5784,9 +5784,9 @@ pub fn loot_replace_block_targetPos_slot_mine_pos_mainhand(
 #[command(usage="loot replace block <targetPos> <slot> mine <pos> offhand")]
 pub fn loot_replace_block_targetPos_slot_mine_pos_offhand(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5799,10 +5799,10 @@ pub fn loot_replace_block_targetPos_slot_mine_pos_offhand(
 #[command(usage="loot replace block <targetPos> <slot> mine <pos> <tool>")]
 pub fn loot_replace_block_targetPos_slot_mine_pos_tool(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    pos:BlockPos,
-    tool:ItemStack
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5815,11 +5815,11 @@ pub fn loot_replace_block_targetPos_slot_mine_pos_tool(
 #[command(usage="loot replace block <targetPos> <slot> <count> fish <loot_table> <pos>")]
 pub fn loot_replace_block_targetPos_slot_count_fish_loot_table_pos(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5832,11 +5832,11 @@ pub fn loot_replace_block_targetPos_slot_count_fish_loot_table_pos(
 #[command(usage="loot replace block <targetPos> <slot> <count> fish <loot_table> <pos> mainhand")]
 pub fn loot_replace_block_targetPos_slot_count_fish_loot_table_pos_mainhand(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5849,11 +5849,11 @@ pub fn loot_replace_block_targetPos_slot_count_fish_loot_table_pos_mainhand(
 #[command(usage="loot replace block <targetPos> <slot> <count> fish <loot_table> <pos> offhand")]
 pub fn loot_replace_block_targetPos_slot_count_fish_loot_table_pos_offhand(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5866,12 +5866,12 @@ pub fn loot_replace_block_targetPos_slot_count_fish_loot_table_pos_offhand(
 #[command(usage="loot replace block <targetPos> <slot> <count> fish <loot_table> <pos> <tool>")]
 pub fn loot_replace_block_targetPos_slot_count_fish_loot_table_pos_tool(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    loot_table:ResourceLocation,
-    pos:BlockPos,
-    tool:ItemStack
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5884,10 +5884,10 @@ pub fn loot_replace_block_targetPos_slot_count_fish_loot_table_pos_tool(
 #[command(usage="loot replace block <targetPos> <slot> <count> kill <target>")]
 pub fn loot_replace_block_targetPos_slot_count_kill_target(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    target:SingleEntities
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _target:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5900,10 +5900,10 @@ pub fn loot_replace_block_targetPos_slot_count_kill_target(
 #[command(usage="loot replace block <targetPos> <slot> <count> loot <loot_table>")]
 pub fn loot_replace_block_targetPos_slot_count_loot_loot_table(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    loot_table:ResourceLocation
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _loot_table:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5916,10 +5916,10 @@ pub fn loot_replace_block_targetPos_slot_count_loot_loot_table(
 #[command(usage="loot replace block <targetPos> <slot> <count> mine <pos>")]
 pub fn loot_replace_block_targetPos_slot_count_mine_pos(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5932,10 +5932,10 @@ pub fn loot_replace_block_targetPos_slot_count_mine_pos(
 #[command(usage="loot replace block <targetPos> <slot> <count> mine <pos> mainhand")]
 pub fn loot_replace_block_targetPos_slot_count_mine_pos_mainhand(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5948,10 +5948,10 @@ pub fn loot_replace_block_targetPos_slot_count_mine_pos_mainhand(
 #[command(usage="loot replace block <targetPos> <slot> <count> mine <pos> offhand")]
 pub fn loot_replace_block_targetPos_slot_count_mine_pos_offhand(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    pos:BlockPos
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5964,11 +5964,11 @@ pub fn loot_replace_block_targetPos_slot_count_mine_pos_offhand(
 #[command(usage="loot replace block <targetPos> <slot> <count> mine <pos> <tool>")]
 pub fn loot_replace_block_targetPos_slot_count_mine_pos_tool(
     ctx: &mut CommandCtx,
-    targetPos:BlockPos,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    pos:BlockPos,
-    tool:ItemStack
+    _targetPos:Coordinates,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5981,10 +5981,10 @@ pub fn loot_replace_block_targetPos_slot_count_mine_pos_tool(
 #[command(usage="loot replace entity <entities> <slot> fish <loot_table> <pos>")]
 pub fn loot_replace_entity_entities_slot_fish_loot_table_pos(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -5997,10 +5997,10 @@ pub fn loot_replace_entity_entities_slot_fish_loot_table_pos(
 #[command(usage="loot replace entity <entities> <slot> fish <loot_table> <pos> mainhand")]
 pub fn loot_replace_entity_entities_slot_fish_loot_table_pos_mainhand(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6013,10 +6013,10 @@ pub fn loot_replace_entity_entities_slot_fish_loot_table_pos_mainhand(
 #[command(usage="loot replace entity <entities> <slot> fish <loot_table> <pos> offhand")]
 pub fn loot_replace_entity_entities_slot_fish_loot_table_pos_offhand(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6029,11 +6029,11 @@ pub fn loot_replace_entity_entities_slot_fish_loot_table_pos_offhand(
 #[command(usage="loot replace entity <entities> <slot> fish <loot_table> <pos> <tool>")]
 pub fn loot_replace_entity_entities_slot_fish_loot_table_pos_tool(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    loot_table:ResourceLocation,
-    pos:BlockPos,
-    tool:ItemStack
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6046,9 +6046,9 @@ pub fn loot_replace_entity_entities_slot_fish_loot_table_pos_tool(
 #[command(usage="loot replace entity <entities> <slot> kill <target>")]
 pub fn loot_replace_entity_entities_slot_kill_target(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    target:SingleEntities
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _target:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6061,9 +6061,9 @@ pub fn loot_replace_entity_entities_slot_kill_target(
 #[command(usage="loot replace entity <entities> <slot> loot <loot_table>")]
 pub fn loot_replace_entity_entities_slot_loot_loot_table(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    loot_table:ResourceLocation
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _loot_table:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6076,9 +6076,9 @@ pub fn loot_replace_entity_entities_slot_loot_loot_table(
 #[command(usage="loot replace entity <entities> <slot> mine <pos>")]
 pub fn loot_replace_entity_entities_slot_mine_pos(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    pos:BlockPos
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6091,9 +6091,9 @@ pub fn loot_replace_entity_entities_slot_mine_pos(
 #[command(usage="loot replace entity <entities> <slot> mine <pos> mainhand")]
 pub fn loot_replace_entity_entities_slot_mine_pos_mainhand(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    pos:BlockPos
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6106,9 +6106,9 @@ pub fn loot_replace_entity_entities_slot_mine_pos_mainhand(
 #[command(usage="loot replace entity <entities> <slot> mine <pos> offhand")]
 pub fn loot_replace_entity_entities_slot_mine_pos_offhand(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    pos:BlockPos
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6121,10 +6121,10 @@ pub fn loot_replace_entity_entities_slot_mine_pos_offhand(
 #[command(usage="loot replace entity <entities> <slot> mine <pos> <tool>")]
 pub fn loot_replace_entity_entities_slot_mine_pos_tool(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    pos:BlockPos,
-    tool:ItemStack
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6137,11 +6137,11 @@ pub fn loot_replace_entity_entities_slot_mine_pos_tool(
 #[command(usage="loot replace entity <entities> <slot> <count> fish <loot_table> <pos>")]
 pub fn loot_replace_entity_entities_slot_count_fish_loot_table_pos(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6154,11 +6154,11 @@ pub fn loot_replace_entity_entities_slot_count_fish_loot_table_pos(
 #[command(usage="loot replace entity <entities> <slot> <count> fish <loot_table> <pos> mainhand")]
 pub fn loot_replace_entity_entities_slot_count_fish_loot_table_pos_mainhand(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6171,11 +6171,11 @@ pub fn loot_replace_entity_entities_slot_count_fish_loot_table_pos_mainhand(
 #[command(usage="loot replace entity <entities> <slot> <count> fish <loot_table> <pos> offhand")]
 pub fn loot_replace_entity_entities_slot_count_fish_loot_table_pos_offhand(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6188,12 +6188,12 @@ pub fn loot_replace_entity_entities_slot_count_fish_loot_table_pos_offhand(
 #[command(usage="loot replace entity <entities> <slot> <count> fish <loot_table> <pos> <tool>")]
 pub fn loot_replace_entity_entities_slot_count_fish_loot_table_pos_tool(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    loot_table:ResourceLocation,
-    pos:BlockPos,
-    tool:ItemStack
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6206,10 +6206,10 @@ pub fn loot_replace_entity_entities_slot_count_fish_loot_table_pos_tool(
 #[command(usage="loot replace entity <entities> <slot> <count> kill <target>")]
 pub fn loot_replace_entity_entities_slot_count_kill_target(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    target:SingleEntities
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _target:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6222,10 +6222,10 @@ pub fn loot_replace_entity_entities_slot_count_kill_target(
 #[command(usage="loot replace entity <entities> <slot> <count> loot <loot_table>")]
 pub fn loot_replace_entity_entities_slot_count_loot_loot_table(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    loot_table:ResourceLocation
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _loot_table:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6238,10 +6238,10 @@ pub fn loot_replace_entity_entities_slot_count_loot_loot_table(
 #[command(usage="loot replace entity <entities> <slot> <count> mine <pos>")]
 pub fn loot_replace_entity_entities_slot_count_mine_pos(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    pos:BlockPos
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6254,10 +6254,10 @@ pub fn loot_replace_entity_entities_slot_count_mine_pos(
 #[command(usage="loot replace entity <entities> <slot> <count> mine <pos> mainhand")]
 pub fn loot_replace_entity_entities_slot_count_mine_pos_mainhand(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    pos:BlockPos
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6270,10 +6270,10 @@ pub fn loot_replace_entity_entities_slot_count_mine_pos_mainhand(
 #[command(usage="loot replace entity <entities> <slot> <count> mine <pos> offhand")]
 pub fn loot_replace_entity_entities_slot_count_mine_pos_offhand(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    pos:BlockPos
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6286,11 +6286,11 @@ pub fn loot_replace_entity_entities_slot_count_mine_pos_offhand(
 #[command(usage="loot replace entity <entities> <slot> <count> mine <pos> <tool>")]
 pub fn loot_replace_entity_entities_slot_count_mine_pos_tool(
     ctx: &mut CommandCtx,
-    entities:MultipleEntities,
-    slot:ItemSlot,
-    count:IntegerArgumentPositive,
-    pos:BlockPos,
-    tool:ItemStack
+    _entities:MultipleEntities,
+    _slot:ItemSlot,
+    _count:IntegerArgumentPositive,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6303,9 +6303,9 @@ pub fn loot_replace_entity_entities_slot_count_mine_pos_tool(
 #[command(usage="loot spawn <targetPos> fish <loot_table> <pos>")]
 pub fn loot_spawn_targetPos_fish_loot_table_pos(
     ctx: &mut CommandCtx,
-    targetPos:Vec3,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _targetPos:Vec3,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6318,9 +6318,9 @@ pub fn loot_spawn_targetPos_fish_loot_table_pos(
 #[command(usage="loot spawn <targetPos> fish <loot_table> <pos> mainhand")]
 pub fn loot_spawn_targetPos_fish_loot_table_pos_mainhand(
     ctx: &mut CommandCtx,
-    targetPos:Vec3,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _targetPos:Vec3,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6333,9 +6333,9 @@ pub fn loot_spawn_targetPos_fish_loot_table_pos_mainhand(
 #[command(usage="loot spawn <targetPos> fish <loot_table> <pos> offhand")]
 pub fn loot_spawn_targetPos_fish_loot_table_pos_offhand(
     ctx: &mut CommandCtx,
-    targetPos:Vec3,
-    loot_table:ResourceLocation,
-    pos:BlockPos
+    _targetPos:Vec3,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6348,10 +6348,10 @@ pub fn loot_spawn_targetPos_fish_loot_table_pos_offhand(
 #[command(usage="loot spawn <targetPos> fish <loot_table> <pos> <tool>")]
 pub fn loot_spawn_targetPos_fish_loot_table_pos_tool(
     ctx: &mut CommandCtx,
-    targetPos:Vec3,
-    loot_table:ResourceLocation,
-    pos:BlockPos,
-    tool:ItemStack
+    _targetPos:Vec3,
+    _loot_table:ResourceLocation,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6364,8 +6364,8 @@ pub fn loot_spawn_targetPos_fish_loot_table_pos_tool(
 #[command(usage="loot spawn <targetPos> kill <target>")]
 pub fn loot_spawn_targetPos_kill_target(
     ctx: &mut CommandCtx,
-    targetPos:Vec3,
-    target:SingleEntities
+    _targetPos:Vec3,
+    _target:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6378,8 +6378,8 @@ pub fn loot_spawn_targetPos_kill_target(
 #[command(usage="loot spawn <targetPos> loot <loot_table>")]
 pub fn loot_spawn_targetPos_loot_loot_table(
     ctx: &mut CommandCtx,
-    targetPos:Vec3,
-    loot_table:ResourceLocation
+    _targetPos:Vec3,
+    _loot_table:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6392,8 +6392,8 @@ pub fn loot_spawn_targetPos_loot_loot_table(
 #[command(usage="loot spawn <targetPos> mine <pos>")]
 pub fn loot_spawn_targetPos_mine_pos(
     ctx: &mut CommandCtx,
-    targetPos:Vec3,
-    pos:BlockPos
+    _targetPos:Vec3,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6406,8 +6406,8 @@ pub fn loot_spawn_targetPos_mine_pos(
 #[command(usage="loot spawn <targetPos> mine <pos> mainhand")]
 pub fn loot_spawn_targetPos_mine_pos_mainhand(
     ctx: &mut CommandCtx,
-    targetPos:Vec3,
-    pos:BlockPos
+    _targetPos:Vec3,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6420,8 +6420,8 @@ pub fn loot_spawn_targetPos_mine_pos_mainhand(
 #[command(usage="loot spawn <targetPos> mine <pos> offhand")]
 pub fn loot_spawn_targetPos_mine_pos_offhand(
     ctx: &mut CommandCtx,
-    targetPos:Vec3,
-    pos:BlockPos
+    _targetPos:Vec3,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6434,9 +6434,9 @@ pub fn loot_spawn_targetPos_mine_pos_offhand(
 #[command(usage="loot spawn <targetPos> mine <pos> <tool>")]
 pub fn loot_spawn_targetPos_mine_pos_tool(
     ctx: &mut CommandCtx,
-    targetPos:Vec3,
-    pos:BlockPos,
-    tool:ItemStack
+    _targetPos:Vec3,
+    _pos:Coordinates,
+    _tool:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6449,7 +6449,7 @@ pub fn loot_spawn_targetPos_mine_pos_tool(
 #[command(usage="me <action>")]
 pub fn me_action(
     ctx: &mut CommandCtx,
-    action:StringArgumentGreedy
+    _action:StringArgumentGreedy
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6462,8 +6462,8 @@ pub fn me_action(
 #[command(usage="msg <targets> <message>")]
 pub fn msg_targets_message(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    message:Message
+    _targets:MultiplePlayers,
+    _message:Message
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6476,7 +6476,7 @@ pub fn msg_targets_message(
 #[command(usage="op <targets>")]
 pub fn op_targets(
     ctx: &mut CommandCtx,
-    targets:GameProfile
+    _targets:GameProfile
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6489,7 +6489,7 @@ pub fn op_targets(
 #[command(usage="pardon <targets>")]
 pub fn pardon_targets(
     ctx: &mut CommandCtx,
-    targets:GameProfile
+    _targets:GameProfile
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6502,7 +6502,7 @@ pub fn pardon_targets(
 #[command(usage="pardon-ip <target>")]
 pub fn pardon_ip_target(
     ctx: &mut CommandCtx,
-    target:StringArgumentWord
+    _target:StringArgumentWord
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6515,7 +6515,7 @@ pub fn pardon_ip_target(
 #[command(usage="particle <name>")]
 pub fn particle_name(
     ctx: &mut CommandCtx,
-    name:Particle
+    _name:Particle
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6528,8 +6528,8 @@ pub fn particle_name(
 #[command(usage="particle <name> <pos>")]
 pub fn particle_name_pos(
     ctx: &mut CommandCtx,
-    name:Particle,
-    pos:Vec3
+    _name:Particle,
+    _pos:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6542,11 +6542,11 @@ pub fn particle_name_pos(
 #[command(usage="particle <name> <pos> <delta> <speed> <count>")]
 pub fn particle_name_pos_delta_speed_count(
     ctx: &mut CommandCtx,
-    name:Particle,
-    pos:Vec3,
-    delta:Vec3,
-    speed:FloatArgumentPositive,
-    count:IntegerArgumentPositive
+    _name:Particle,
+    _pos:Vec3,
+    _delta:Vec3,
+    _speed:FloatArgumentPositive,
+    _count:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6559,11 +6559,11 @@ pub fn particle_name_pos_delta_speed_count(
 #[command(usage="particle <name> <pos> <delta> <speed> <count> force")]
 pub fn particle_name_pos_delta_speed_count_force(
     ctx: &mut CommandCtx,
-    name:Particle,
-    pos:Vec3,
-    delta:Vec3,
-    speed:FloatArgumentPositive,
-    count:IntegerArgumentPositive
+    _name:Particle,
+    _pos:Vec3,
+    _delta:Vec3,
+    _speed:FloatArgumentPositive,
+    _count:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6576,12 +6576,12 @@ pub fn particle_name_pos_delta_speed_count_force(
 #[command(usage="particle <name> <pos> <delta> <speed> <count> force <viewers>")]
 pub fn particle_name_pos_delta_speed_count_force_viewers(
     ctx: &mut CommandCtx,
-    name:Particle,
-    pos:Vec3,
-    delta:Vec3,
-    speed:FloatArgumentPositive,
-    count:IntegerArgumentPositive,
-    viewers:MultiplePlayers
+    _name:Particle,
+    _pos:Vec3,
+    _delta:Vec3,
+    _speed:FloatArgumentPositive,
+    _count:IntegerArgumentPositive,
+    _viewers:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6594,11 +6594,11 @@ pub fn particle_name_pos_delta_speed_count_force_viewers(
 #[command(usage="particle <name> <pos> <delta> <speed> <count> normal")]
 pub fn particle_name_pos_delta_speed_count_normal(
     ctx: &mut CommandCtx,
-    name:Particle,
-    pos:Vec3,
-    delta:Vec3,
-    speed:FloatArgumentPositive,
-    count:IntegerArgumentPositive
+    _name:Particle,
+    _pos:Vec3,
+    _delta:Vec3,
+    _speed:FloatArgumentPositive,
+    _count:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6611,12 +6611,12 @@ pub fn particle_name_pos_delta_speed_count_normal(
 #[command(usage="particle <name> <pos> <delta> <speed> <count> normal <viewers>")]
 pub fn particle_name_pos_delta_speed_count_normal_viewers(
     ctx: &mut CommandCtx,
-    name:Particle,
-    pos:Vec3,
-    delta:Vec3,
-    speed:FloatArgumentPositive,
-    count:IntegerArgumentPositive,
-    viewers:MultiplePlayers
+    _name:Particle,
+    _pos:Vec3,
+    _delta:Vec3,
+    _speed:FloatArgumentPositive,
+    _count:IntegerArgumentPositive,
+    _viewers:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6629,8 +6629,8 @@ pub fn particle_name_pos_delta_speed_count_normal_viewers(
 #[command(usage="playsound <sound> ambient <targets>")]
 pub fn playsound_sound_ambient_targets(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6643,9 +6643,9 @@ pub fn playsound_sound_ambient_targets(
 #[command(usage="playsound <sound> ambient <targets> <pos>")]
 pub fn playsound_sound_ambient_targets_pos(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6658,10 +6658,10 @@ pub fn playsound_sound_ambient_targets_pos(
 #[command(usage="playsound <sound> ambient <targets> <pos> <volume>")]
 pub fn playsound_sound_ambient_targets_pos_volume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6674,11 +6674,11 @@ pub fn playsound_sound_ambient_targets_pos_volume(
 #[command(usage="playsound <sound> ambient <targets> <pos> <volume> <pitch>")]
 pub fn playsound_sound_ambient_targets_pos_volume_pitch(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6691,12 +6691,12 @@ pub fn playsound_sound_ambient_targets_pos_volume_pitch(
 #[command(usage="playsound <sound> ambient <targets> <pos> <volume> <pitch> <minVolume>")]
 pub fn playsound_sound_ambient_targets_pos_volume_pitch_minVolume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2,
-    minVolume:FloatArgumentBetween0And1
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2,
+    _minVolume:FloatArgumentBetween0And1
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6709,8 +6709,8 @@ pub fn playsound_sound_ambient_targets_pos_volume_pitch_minVolume(
 #[command(usage="playsound <sound> block <targets>")]
 pub fn playsound_sound_block_targets(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6723,9 +6723,9 @@ pub fn playsound_sound_block_targets(
 #[command(usage="playsound <sound> block <targets> <pos>")]
 pub fn playsound_sound_block_targets_pos(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6738,10 +6738,10 @@ pub fn playsound_sound_block_targets_pos(
 #[command(usage="playsound <sound> block <targets> <pos> <volume>")]
 pub fn playsound_sound_block_targets_pos_volume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6754,11 +6754,11 @@ pub fn playsound_sound_block_targets_pos_volume(
 #[command(usage="playsound <sound> block <targets> <pos> <volume> <pitch>")]
 pub fn playsound_sound_block_targets_pos_volume_pitch(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6771,12 +6771,12 @@ pub fn playsound_sound_block_targets_pos_volume_pitch(
 #[command(usage="playsound <sound> block <targets> <pos> <volume> <pitch> <minVolume>")]
 pub fn playsound_sound_block_targets_pos_volume_pitch_minVolume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2,
-    minVolume:FloatArgumentBetween0And1
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2,
+    _minVolume:FloatArgumentBetween0And1
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6789,8 +6789,8 @@ pub fn playsound_sound_block_targets_pos_volume_pitch_minVolume(
 #[command(usage="playsound <sound> hostile <targets>")]
 pub fn playsound_sound_hostile_targets(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6803,9 +6803,9 @@ pub fn playsound_sound_hostile_targets(
 #[command(usage="playsound <sound> hostile <targets> <pos>")]
 pub fn playsound_sound_hostile_targets_pos(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6818,10 +6818,10 @@ pub fn playsound_sound_hostile_targets_pos(
 #[command(usage="playsound <sound> hostile <targets> <pos> <volume>")]
 pub fn playsound_sound_hostile_targets_pos_volume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6834,11 +6834,11 @@ pub fn playsound_sound_hostile_targets_pos_volume(
 #[command(usage="playsound <sound> hostile <targets> <pos> <volume> <pitch>")]
 pub fn playsound_sound_hostile_targets_pos_volume_pitch(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6851,12 +6851,12 @@ pub fn playsound_sound_hostile_targets_pos_volume_pitch(
 #[command(usage="playsound <sound> hostile <targets> <pos> <volume> <pitch> <minVolume>")]
 pub fn playsound_sound_hostile_targets_pos_volume_pitch_minVolume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2,
-    minVolume:FloatArgumentBetween0And1
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2,
+    _minVolume:FloatArgumentBetween0And1
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6869,8 +6869,8 @@ pub fn playsound_sound_hostile_targets_pos_volume_pitch_minVolume(
 #[command(usage="playsound <sound> master <targets>")]
 pub fn playsound_sound_master_targets(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6883,9 +6883,9 @@ pub fn playsound_sound_master_targets(
 #[command(usage="playsound <sound> master <targets> <pos>")]
 pub fn playsound_sound_master_targets_pos(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6898,10 +6898,10 @@ pub fn playsound_sound_master_targets_pos(
 #[command(usage="playsound <sound> master <targets> <pos> <volume>")]
 pub fn playsound_sound_master_targets_pos_volume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6914,11 +6914,11 @@ pub fn playsound_sound_master_targets_pos_volume(
 #[command(usage="playsound <sound> master <targets> <pos> <volume> <pitch>")]
 pub fn playsound_sound_master_targets_pos_volume_pitch(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6931,12 +6931,12 @@ pub fn playsound_sound_master_targets_pos_volume_pitch(
 #[command(usage="playsound <sound> master <targets> <pos> <volume> <pitch> <minVolume>")]
 pub fn playsound_sound_master_targets_pos_volume_pitch_minVolume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2,
-    minVolume:FloatArgumentBetween0And1
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2,
+    _minVolume:FloatArgumentBetween0And1
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6949,8 +6949,8 @@ pub fn playsound_sound_master_targets_pos_volume_pitch_minVolume(
 #[command(usage="playsound <sound> music <targets>")]
 pub fn playsound_sound_music_targets(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6963,9 +6963,9 @@ pub fn playsound_sound_music_targets(
 #[command(usage="playsound <sound> music <targets> <pos>")]
 pub fn playsound_sound_music_targets_pos(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6978,10 +6978,10 @@ pub fn playsound_sound_music_targets_pos(
 #[command(usage="playsound <sound> music <targets> <pos> <volume>")]
 pub fn playsound_sound_music_targets_pos_volume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -6994,11 +6994,11 @@ pub fn playsound_sound_music_targets_pos_volume(
 #[command(usage="playsound <sound> music <targets> <pos> <volume> <pitch>")]
 pub fn playsound_sound_music_targets_pos_volume_pitch(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7011,12 +7011,12 @@ pub fn playsound_sound_music_targets_pos_volume_pitch(
 #[command(usage="playsound <sound> music <targets> <pos> <volume> <pitch> <minVolume>")]
 pub fn playsound_sound_music_targets_pos_volume_pitch_minVolume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2,
-    minVolume:FloatArgumentBetween0And1
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2,
+    _minVolume:FloatArgumentBetween0And1
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7029,8 +7029,8 @@ pub fn playsound_sound_music_targets_pos_volume_pitch_minVolume(
 #[command(usage="playsound <sound> neutral <targets>")]
 pub fn playsound_sound_neutral_targets(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7043,9 +7043,9 @@ pub fn playsound_sound_neutral_targets(
 #[command(usage="playsound <sound> neutral <targets> <pos>")]
 pub fn playsound_sound_neutral_targets_pos(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7058,10 +7058,10 @@ pub fn playsound_sound_neutral_targets_pos(
 #[command(usage="playsound <sound> neutral <targets> <pos> <volume>")]
 pub fn playsound_sound_neutral_targets_pos_volume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7074,11 +7074,11 @@ pub fn playsound_sound_neutral_targets_pos_volume(
 #[command(usage="playsound <sound> neutral <targets> <pos> <volume> <pitch>")]
 pub fn playsound_sound_neutral_targets_pos_volume_pitch(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7091,12 +7091,12 @@ pub fn playsound_sound_neutral_targets_pos_volume_pitch(
 #[command(usage="playsound <sound> neutral <targets> <pos> <volume> <pitch> <minVolume>")]
 pub fn playsound_sound_neutral_targets_pos_volume_pitch_minVolume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2,
-    minVolume:FloatArgumentBetween0And1
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2,
+    _minVolume:FloatArgumentBetween0And1
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7109,8 +7109,8 @@ pub fn playsound_sound_neutral_targets_pos_volume_pitch_minVolume(
 #[command(usage="playsound <sound> player <targets>")]
 pub fn playsound_sound_player_targets(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7123,9 +7123,9 @@ pub fn playsound_sound_player_targets(
 #[command(usage="playsound <sound> player <targets> <pos>")]
 pub fn playsound_sound_player_targets_pos(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7138,10 +7138,10 @@ pub fn playsound_sound_player_targets_pos(
 #[command(usage="playsound <sound> player <targets> <pos> <volume>")]
 pub fn playsound_sound_player_targets_pos_volume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7154,11 +7154,11 @@ pub fn playsound_sound_player_targets_pos_volume(
 #[command(usage="playsound <sound> player <targets> <pos> <volume> <pitch>")]
 pub fn playsound_sound_player_targets_pos_volume_pitch(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7171,12 +7171,12 @@ pub fn playsound_sound_player_targets_pos_volume_pitch(
 #[command(usage="playsound <sound> player <targets> <pos> <volume> <pitch> <minVolume>")]
 pub fn playsound_sound_player_targets_pos_volume_pitch_minVolume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2,
-    minVolume:FloatArgumentBetween0And1
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2,
+    _minVolume:FloatArgumentBetween0And1
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7189,8 +7189,8 @@ pub fn playsound_sound_player_targets_pos_volume_pitch_minVolume(
 #[command(usage="playsound <sound> record <targets>")]
 pub fn playsound_sound_record_targets(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7203,9 +7203,9 @@ pub fn playsound_sound_record_targets(
 #[command(usage="playsound <sound> record <targets> <pos>")]
 pub fn playsound_sound_record_targets_pos(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7218,10 +7218,10 @@ pub fn playsound_sound_record_targets_pos(
 #[command(usage="playsound <sound> record <targets> <pos> <volume>")]
 pub fn playsound_sound_record_targets_pos_volume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7234,11 +7234,11 @@ pub fn playsound_sound_record_targets_pos_volume(
 #[command(usage="playsound <sound> record <targets> <pos> <volume> <pitch>")]
 pub fn playsound_sound_record_targets_pos_volume_pitch(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7251,12 +7251,12 @@ pub fn playsound_sound_record_targets_pos_volume_pitch(
 #[command(usage="playsound <sound> record <targets> <pos> <volume> <pitch> <minVolume>")]
 pub fn playsound_sound_record_targets_pos_volume_pitch_minVolume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2,
-    minVolume:FloatArgumentBetween0And1
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2,
+    _minVolume:FloatArgumentBetween0And1
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7269,8 +7269,8 @@ pub fn playsound_sound_record_targets_pos_volume_pitch_minVolume(
 #[command(usage="playsound <sound> voice <targets>")]
 pub fn playsound_sound_voice_targets(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7283,9 +7283,9 @@ pub fn playsound_sound_voice_targets(
 #[command(usage="playsound <sound> voice <targets> <pos>")]
 pub fn playsound_sound_voice_targets_pos(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7298,10 +7298,10 @@ pub fn playsound_sound_voice_targets_pos(
 #[command(usage="playsound <sound> voice <targets> <pos> <volume>")]
 pub fn playsound_sound_voice_targets_pos_volume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7314,11 +7314,11 @@ pub fn playsound_sound_voice_targets_pos_volume(
 #[command(usage="playsound <sound> voice <targets> <pos> <volume> <pitch>")]
 pub fn playsound_sound_voice_targets_pos_volume_pitch(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7331,12 +7331,12 @@ pub fn playsound_sound_voice_targets_pos_volume_pitch(
 #[command(usage="playsound <sound> voice <targets> <pos> <volume> <pitch> <minVolume>")]
 pub fn playsound_sound_voice_targets_pos_volume_pitch_minVolume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2,
-    minVolume:FloatArgumentBetween0And1
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2,
+    _minVolume:FloatArgumentBetween0And1
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7349,8 +7349,8 @@ pub fn playsound_sound_voice_targets_pos_volume_pitch_minVolume(
 #[command(usage="playsound <sound> weather <targets>")]
 pub fn playsound_sound_weather_targets(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7363,9 +7363,9 @@ pub fn playsound_sound_weather_targets(
 #[command(usage="playsound <sound> weather <targets> <pos>")]
 pub fn playsound_sound_weather_targets_pos(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7378,10 +7378,10 @@ pub fn playsound_sound_weather_targets_pos(
 #[command(usage="playsound <sound> weather <targets> <pos> <volume>")]
 pub fn playsound_sound_weather_targets_pos_volume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7394,11 +7394,11 @@ pub fn playsound_sound_weather_targets_pos_volume(
 #[command(usage="playsound <sound> weather <targets> <pos> <volume> <pitch>")]
 pub fn playsound_sound_weather_targets_pos_volume_pitch(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7411,12 +7411,12 @@ pub fn playsound_sound_weather_targets_pos_volume_pitch(
 #[command(usage="playsound <sound> weather <targets> <pos> <volume> <pitch> <minVolume>")]
 pub fn playsound_sound_weather_targets_pos_volume_pitch_minVolume(
     ctx: &mut CommandCtx,
-    sound:ResourceLocation,
-    targets:MultiplePlayers,
-    pos:Vec3,
-    volume:FloatArgumentPositive,
-    pitch:FloatArgumentBetween0And2,
-    minVolume:FloatArgumentBetween0And1
+    _sound:ResourceLocation,
+    _targets:MultiplePlayers,
+    _pos:Vec3,
+    _volume:FloatArgumentPositive,
+    _pitch:FloatArgumentBetween0And2,
+    _minVolume:FloatArgumentBetween0And1
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7442,7 +7442,7 @@ pub fn publish(
 #[command(usage="publish <port>")]
 pub fn publish_port(
     ctx: &mut CommandCtx,
-    port:IntegerArgumentBetween0And65535
+    _port:IntegerArgumentBetween0And65535
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7455,7 +7455,7 @@ pub fn publish_port(
 #[command(usage="recipe give <targets> *")]
 pub fn recipe_give_targets_star(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7468,8 +7468,8 @@ pub fn recipe_give_targets_star(
 #[command(usage="recipe give <targets> <recipe>")]
 pub fn recipe_give_targets_recipe(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    recipe:ResourceLocation
+    _targets:MultiplePlayers,
+    _recipe:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7482,7 +7482,7 @@ pub fn recipe_give_targets_recipe(
 #[command(usage="recipe take <targets> *")]
 pub fn recipe_take_targets_star(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7495,8 +7495,8 @@ pub fn recipe_take_targets_star(
 #[command(usage="recipe take <targets> <recipe>")]
 pub fn recipe_take_targets_recipe(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    recipe:ResourceLocation
+    _targets:MultiplePlayers,
+    _recipe:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7522,9 +7522,9 @@ pub fn reload(
 #[command(usage="replaceitem block <pos> <slot> <item>")]
 pub fn replaceitem_block_pos_slot_item(
     ctx: &mut CommandCtx,
-    pos:BlockPos,
-    slot:ItemSlot,
-    item:ItemStack
+    _pos:Coordinates,
+    _slot:ItemSlot,
+    _item:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7537,10 +7537,10 @@ pub fn replaceitem_block_pos_slot_item(
 #[command(usage="replaceitem block <pos> <slot> <item> <count>")]
 pub fn replaceitem_block_pos_slot_item_count(
     ctx: &mut CommandCtx,
-    pos:BlockPos,
-    slot:ItemSlot,
-    item:ItemStack,
-    count:IntegerArgumentBetween1And64
+    _pos:Coordinates,
+    _slot:ItemSlot,
+    _item:ItemStack,
+    _count:IntegerArgumentBetween1And64
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7553,9 +7553,9 @@ pub fn replaceitem_block_pos_slot_item_count(
 #[command(usage="replaceitem entity <targets> <slot> <item>")]
 pub fn replaceitem_entity_targets_slot_item(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    slot:ItemSlot,
-    item:ItemStack
+    _targets:MultipleEntities,
+    _slot:ItemSlot,
+    _item:ItemStack
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7568,10 +7568,10 @@ pub fn replaceitem_entity_targets_slot_item(
 #[command(usage="replaceitem entity <targets> <slot> <item> <count>")]
 pub fn replaceitem_entity_targets_slot_item_count(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    slot:ItemSlot,
-    item:ItemStack,
-    count:IntegerArgumentBetween1And64
+    _targets:MultipleEntities,
+    _slot:ItemSlot,
+    _item:ItemStack,
+    _count:IntegerArgumentBetween1And64
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7636,7 +7636,7 @@ pub fn save_on(
 #[command(usage="say <message>")]
 pub fn say_message(
     ctx: &mut CommandCtx,
-    message:Message
+    _message:Message
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7649,7 +7649,7 @@ pub fn say_message(
 #[command(usage="schedule clear <function>")]
 pub fn schedule_clear_function(
     ctx: &mut CommandCtx,
-    function:StringArgumentGreedy
+    _function:StringArgumentGreedy
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7662,8 +7662,8 @@ pub fn schedule_clear_function(
 #[command(usage="schedule function <function> <time>")]
 pub fn schedule_function_function_time(
     ctx: &mut CommandCtx,
-    function:MinecraftFunction,
-    time:Time
+    _function:MinecraftFunction,
+    _time:Time
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7676,8 +7676,8 @@ pub fn schedule_function_function_time(
 #[command(usage="schedule function <function> <time> append")]
 pub fn schedule_function_function_time_append(
     ctx: &mut CommandCtx,
-    function:MinecraftFunction,
-    time:Time
+    _function:MinecraftFunction,
+    _time:Time
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7690,8 +7690,8 @@ pub fn schedule_function_function_time_append(
 #[command(usage="schedule function <function> <time> replace")]
 pub fn schedule_function_function_time_replace(
     ctx: &mut CommandCtx,
-    function:MinecraftFunction,
-    time:Time
+    _function:MinecraftFunction,
+    _time:Time
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7704,8 +7704,8 @@ pub fn schedule_function_function_time_replace(
 #[command(usage="scoreboard objectives add <objective> <criteria>")]
 pub fn scoreboard_objectives_add_objective_criteria(
     ctx: &mut CommandCtx,
-    objective:StringArgumentWord,
-    criteria:ObjectiveCriteria
+    _objective:StringArgumentWord,
+    _criteria:ObjectiveCriteria
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7718,9 +7718,9 @@ pub fn scoreboard_objectives_add_objective_criteria(
 #[command(usage="scoreboard objectives add <objective> <criteria> <displayName>")]
 pub fn scoreboard_objectives_add_objective_criteria_displayName(
     ctx: &mut CommandCtx,
-    objective:StringArgumentWord,
-    criteria:ObjectiveCriteria,
-    displayName:Component
+    _objective:StringArgumentWord,
+    _criteria:ObjectiveCriteria,
+    _displayName:Component
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7746,8 +7746,8 @@ pub fn scoreboard_objectives_list(
 #[command(usage="scoreboard objectives modify <objective> displayname <displayName>")]
 pub fn scoreboard_objectives_modify_objective_displayname_displayName(
     ctx: &mut CommandCtx,
-    objective:Objective,
-    displayName:Component
+    _objective:Objective,
+    _displayName:Component
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7760,7 +7760,7 @@ pub fn scoreboard_objectives_modify_objective_displayname_displayName(
 #[command(usage="scoreboard objectives modify <objective> rendertype hearts")]
 pub fn scoreboard_objectives_modify_objective_rendertype_hearts(
     ctx: &mut CommandCtx,
-    objective:Objective
+    _objective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7773,7 +7773,7 @@ pub fn scoreboard_objectives_modify_objective_rendertype_hearts(
 #[command(usage="scoreboard objectives modify <objective> rendertype integer")]
 pub fn scoreboard_objectives_modify_objective_rendertype_integer(
     ctx: &mut CommandCtx,
-    objective:Objective
+    _objective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7786,7 +7786,7 @@ pub fn scoreboard_objectives_modify_objective_rendertype_integer(
 #[command(usage="scoreboard objectives remove <objective>")]
 pub fn scoreboard_objectives_remove_objective(
     ctx: &mut CommandCtx,
-    objective:Objective
+    _objective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7799,7 +7799,7 @@ pub fn scoreboard_objectives_remove_objective(
 #[command(usage="scoreboard objectives setdisplay <slot>")]
 pub fn scoreboard_objectives_setdisplay_slot(
     ctx: &mut CommandCtx,
-    slot:ScoreboardSlot
+    _slot:ScoreboardSlot
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7812,8 +7812,8 @@ pub fn scoreboard_objectives_setdisplay_slot(
 #[command(usage="scoreboard objectives setdisplay <slot> <objective>")]
 pub fn scoreboard_objectives_setdisplay_slot_objective(
     ctx: &mut CommandCtx,
-    slot:ScoreboardSlot,
-    objective:Objective
+    _slot:ScoreboardSlot,
+    _objective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7826,9 +7826,9 @@ pub fn scoreboard_objectives_setdisplay_slot_objective(
 #[command(usage="scoreboard players add <targets> <objective> <score>")]
 pub fn scoreboard_players_add_targets_objective_score(
     ctx: &mut CommandCtx,
-    targets:MultipleScoreHolders,
-    objective:Objective,
-    score:IntegerArgumentPositive
+    _targets:MultipleScoreHolders,
+    _objective:Objective,
+    _score:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7841,8 +7841,8 @@ pub fn scoreboard_players_add_targets_objective_score(
 #[command(usage="scoreboard players enable <targets> <objective>")]
 pub fn scoreboard_players_enable_targets_objective(
     ctx: &mut CommandCtx,
-    targets:MultipleScoreHolders,
-    objective:Objective
+    _targets:MultipleScoreHolders,
+    _objective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7855,8 +7855,8 @@ pub fn scoreboard_players_enable_targets_objective(
 #[command(usage="scoreboard players get <target> <objective>")]
 pub fn scoreboard_players_get_target_objective(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder,
-    objective:Objective
+    _target:SingleScoreHolder,
+    _objective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7882,7 +7882,7 @@ pub fn scoreboard_players_list(
 #[command(usage="scoreboard players list <target>")]
 pub fn scoreboard_players_list_target(
     ctx: &mut CommandCtx,
-    target:SingleScoreHolder
+    _target:SingleScoreHolder
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7895,11 +7895,11 @@ pub fn scoreboard_players_list_target(
 #[command(usage="scoreboard players operation <targets> <targetObjective> <operation> <source> <sourceObjective>")]
 pub fn scoreboard_players_operation_targets_targetObjective_operation_source_sourceObjective(
     ctx: &mut CommandCtx,
-    targets:MultipleScoreHolders,
-    targetObjective:Objective,
-    operation:Operation,
-    source:MultipleScoreHolders,
-    sourceObjective:Objective
+    _targets:MultipleScoreHolders,
+    _targetObjective:Objective,
+    _operation:Operation,
+    _source:MultipleScoreHolders,
+    _sourceObjective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7912,9 +7912,9 @@ pub fn scoreboard_players_operation_targets_targetObjective_operation_source_sou
 #[command(usage="scoreboard players remove <targets> <objective> <score>")]
 pub fn scoreboard_players_remove_targets_objective_score(
     ctx: &mut CommandCtx,
-    targets:MultipleScoreHolders,
-    objective:Objective,
-    score:IntegerArgumentPositive
+    _targets:MultipleScoreHolders,
+    _objective:Objective,
+    _score:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7927,7 +7927,7 @@ pub fn scoreboard_players_remove_targets_objective_score(
 #[command(usage="scoreboard players reset <targets>")]
 pub fn scoreboard_players_reset_targets(
     ctx: &mut CommandCtx,
-    targets:MultipleScoreHolders
+    _targets:MultipleScoreHolders
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7940,8 +7940,8 @@ pub fn scoreboard_players_reset_targets(
 #[command(usage="scoreboard players reset <targets> <objective>")]
 pub fn scoreboard_players_reset_targets_objective(
     ctx: &mut CommandCtx,
-    targets:MultipleScoreHolders,
-    objective:Objective
+    _targets:MultipleScoreHolders,
+    _objective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7954,9 +7954,9 @@ pub fn scoreboard_players_reset_targets_objective(
 #[command(usage="scoreboard players set <targets> <objective> <score>")]
 pub fn scoreboard_players_set_targets_objective_score(
     ctx: &mut CommandCtx,
-    targets:MultipleScoreHolders,
-    objective:Objective,
-    score:IntegerArgument
+    _targets:MultipleScoreHolders,
+    _objective:Objective,
+    _score:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7982,8 +7982,8 @@ pub fn seed(
 #[command(usage="setblock <pos> <block>")]
 pub fn setblock_pos_block(
     ctx: &mut CommandCtx,
-    pos:BlockPos,
-    block:BlockState
+    _pos:Coordinates,
+    _block:BlockState
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -7996,8 +7996,8 @@ pub fn setblock_pos_block(
 #[command(usage="setblock <pos> <block> destroy")]
 pub fn setblock_pos_block_destroy(
     ctx: &mut CommandCtx,
-    pos:BlockPos,
-    block:BlockState
+    _pos:Coordinates,
+    _block:BlockState
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8010,8 +8010,8 @@ pub fn setblock_pos_block_destroy(
 #[command(usage="setblock <pos> <block> keep")]
 pub fn setblock_pos_block_keep(
     ctx: &mut CommandCtx,
-    pos:BlockPos,
-    block:BlockState
+    _pos:Coordinates,
+    _block:BlockState
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8024,8 +8024,8 @@ pub fn setblock_pos_block_keep(
 #[command(usage="setblock <pos> <block> replace")]
 pub fn setblock_pos_block_replace(
     ctx: &mut CommandCtx,
-    pos:BlockPos,
-    block:BlockState
+    _pos:Coordinates,
+    _block:BlockState
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8038,7 +8038,7 @@ pub fn setblock_pos_block_replace(
 #[command(usage="setidletimeout <minutes>")]
 pub fn setidletimeout_minutes(
     ctx: &mut CommandCtx,
-    minutes:IntegerArgumentPositive
+    _minutes:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8064,7 +8064,7 @@ pub fn setworldspawn(
 #[command(usage="setworldspawn <pos>")]
 pub fn setworldspawn_pos(
     ctx: &mut CommandCtx,
-    pos:BlockPos
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8090,7 +8090,7 @@ pub fn spawnpoint(
 #[command(usage="spawnpoint <targets>")]
 pub fn spawnpoint_targets(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8103,8 +8103,8 @@ pub fn spawnpoint_targets(
 #[command(usage="spawnpoint <targets> <pos>")]
 pub fn spawnpoint_targets_pos(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    pos:BlockPos
+    _targets:MultiplePlayers,
+    _pos:Coordinates
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8130,7 +8130,7 @@ pub fn spectate(
 #[command(usage="spectate <target>")]
 pub fn spectate_target(
     ctx: &mut CommandCtx,
-    target:SingleEntities
+    _target:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8143,8 +8143,8 @@ pub fn spectate_target(
 #[command(usage="spectate <target> <player>")]
 pub fn spectate_target_player(
     ctx: &mut CommandCtx,
-    target:SingleEntities,
-    player:SinglePlayer
+    _target:SingleEntities,
+    _player:SinglePlayer
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8157,12 +8157,12 @@ pub fn spectate_target_player(
 #[command(usage="spreadplayers <center> <spreadDistance> <maxRange> under <maxHeight> <respectTeams> <targets>")]
 pub fn spreadplayers_center_spreadDistance_maxRange_under_maxHeight_respectTeams_targets(
     ctx: &mut CommandCtx,
-    center:Vec2,
-    spreadDistance:FloatArgumentPositive,
-    maxRange:FloatArgumentGreaterThen1,
-    maxHeight:IntegerArgumentPositive,
-    respectTeams:BoolArgument,
-    targets:MultipleEntities
+    _center:Vec2,
+    _spreadDistance:FloatArgumentPositive,
+    _maxRange:FloatArgumentGreaterThen1,
+    _maxHeight:IntegerArgumentPositive,
+    _respectTeams:BoolArgument,
+    _targets:MultipleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8175,11 +8175,11 @@ pub fn spreadplayers_center_spreadDistance_maxRange_under_maxHeight_respectTeams
 #[command(usage="spreadplayers <center> <spreadDistance> <maxRange> <respectTeams> <targets>")]
 pub fn spreadplayers_center_spreadDistance_maxRange_respectTeams_targets(
     ctx: &mut CommandCtx,
-    center:Vec2,
-    spreadDistance:FloatArgumentPositive,
-    maxRange:FloatArgumentGreaterThen1,
-    respectTeams:BoolArgument,
-    targets:MultipleEntities
+    _center:Vec2,
+    _spreadDistance:FloatArgumentPositive,
+    _maxRange:FloatArgumentGreaterThen1,
+    _respectTeams:BoolArgument,
+    _targets:MultipleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8205,7 +8205,7 @@ pub fn stop(
 #[command(usage="stopsound <targets>")]
 pub fn stopsound_targets(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8218,8 +8218,8 @@ pub fn stopsound_targets(
 #[command(usage="stopsound <targets> * <sound>")]
 pub fn stopsound_targets_star_sound(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    sound:ResourceLocation
+    _targets:MultiplePlayers,
+    _sound:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8232,7 +8232,7 @@ pub fn stopsound_targets_star_sound(
 #[command(usage="stopsound <targets> ambient")]
 pub fn stopsound_targets_ambient(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8245,8 +8245,8 @@ pub fn stopsound_targets_ambient(
 #[command(usage="stopsound <targets> ambient <sound>")]
 pub fn stopsound_targets_ambient_sound(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    sound:ResourceLocation
+    _targets:MultiplePlayers,
+    _sound:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8259,7 +8259,7 @@ pub fn stopsound_targets_ambient_sound(
 #[command(usage="stopsound <targets> block")]
 pub fn stopsound_targets_block(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8272,8 +8272,8 @@ pub fn stopsound_targets_block(
 #[command(usage="stopsound <targets> block <sound>")]
 pub fn stopsound_targets_block_sound(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    sound:ResourceLocation
+    _targets:MultiplePlayers,
+    _sound:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8286,7 +8286,7 @@ pub fn stopsound_targets_block_sound(
 #[command(usage="stopsound <targets> hostile")]
 pub fn stopsound_targets_hostile(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8299,8 +8299,8 @@ pub fn stopsound_targets_hostile(
 #[command(usage="stopsound <targets> hostile <sound>")]
 pub fn stopsound_targets_hostile_sound(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    sound:ResourceLocation
+    _targets:MultiplePlayers,
+    _sound:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8313,7 +8313,7 @@ pub fn stopsound_targets_hostile_sound(
 #[command(usage="stopsound <targets> master")]
 pub fn stopsound_targets_master(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8326,8 +8326,8 @@ pub fn stopsound_targets_master(
 #[command(usage="stopsound <targets> master <sound>")]
 pub fn stopsound_targets_master_sound(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    sound:ResourceLocation
+    _targets:MultiplePlayers,
+    _sound:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8340,7 +8340,7 @@ pub fn stopsound_targets_master_sound(
 #[command(usage="stopsound <targets> music")]
 pub fn stopsound_targets_music(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8353,8 +8353,8 @@ pub fn stopsound_targets_music(
 #[command(usage="stopsound <targets> music <sound>")]
 pub fn stopsound_targets_music_sound(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    sound:ResourceLocation
+    _targets:MultiplePlayers,
+    _sound:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8367,7 +8367,7 @@ pub fn stopsound_targets_music_sound(
 #[command(usage="stopsound <targets> neutral")]
 pub fn stopsound_targets_neutral(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8380,8 +8380,8 @@ pub fn stopsound_targets_neutral(
 #[command(usage="stopsound <targets> neutral <sound>")]
 pub fn stopsound_targets_neutral_sound(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    sound:ResourceLocation
+    _targets:MultiplePlayers,
+    _sound:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8394,7 +8394,7 @@ pub fn stopsound_targets_neutral_sound(
 #[command(usage="stopsound <targets> player")]
 pub fn stopsound_targets_player(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8407,8 +8407,8 @@ pub fn stopsound_targets_player(
 #[command(usage="stopsound <targets> player <sound>")]
 pub fn stopsound_targets_player_sound(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    sound:ResourceLocation
+    _targets:MultiplePlayers,
+    _sound:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8421,7 +8421,7 @@ pub fn stopsound_targets_player_sound(
 #[command(usage="stopsound <targets> record")]
 pub fn stopsound_targets_record(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8434,8 +8434,8 @@ pub fn stopsound_targets_record(
 #[command(usage="stopsound <targets> record <sound>")]
 pub fn stopsound_targets_record_sound(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    sound:ResourceLocation
+    _targets:MultiplePlayers,
+    _sound:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8448,7 +8448,7 @@ pub fn stopsound_targets_record_sound(
 #[command(usage="stopsound <targets> voice")]
 pub fn stopsound_targets_voice(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8461,8 +8461,8 @@ pub fn stopsound_targets_voice(
 #[command(usage="stopsound <targets> voice <sound>")]
 pub fn stopsound_targets_voice_sound(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    sound:ResourceLocation
+    _targets:MultiplePlayers,
+    _sound:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8475,7 +8475,7 @@ pub fn stopsound_targets_voice_sound(
 #[command(usage="stopsound <targets> weather")]
 pub fn stopsound_targets_weather(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8488,8 +8488,8 @@ pub fn stopsound_targets_weather(
 #[command(usage="stopsound <targets> weather <sound>")]
 pub fn stopsound_targets_weather_sound(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    sound:ResourceLocation
+    _targets:MultiplePlayers,
+    _sound:ResourceLocation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8502,7 +8502,7 @@ pub fn stopsound_targets_weather_sound(
 #[command(usage="summon <entity>")]
 pub fn summon_entity(
     ctx: &mut CommandCtx,
-    entity:EntitySummon
+    _entity:EntitySummon
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8515,8 +8515,8 @@ pub fn summon_entity(
 #[command(usage="summon <entity> <pos>")]
 pub fn summon_entity_pos(
     ctx: &mut CommandCtx,
-    entity:EntitySummon,
-    pos:Vec3
+    _entity:EntitySummon,
+    _pos:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8529,9 +8529,9 @@ pub fn summon_entity_pos(
 #[command(usage="summon <entity> <pos> <nbt>")]
 pub fn summon_entity_pos_nbt(
     ctx: &mut CommandCtx,
-    entity:EntitySummon,
-    pos:Vec3,
-    nbt:NbtCommandTag
+    _entity:EntitySummon,
+    _pos:Vec3,
+    _nbt:NbtCommandTag
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8544,8 +8544,8 @@ pub fn summon_entity_pos_nbt(
 #[command(usage="tag <targets> add <name>")]
 pub fn tag_targets_add_name(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    name:StringArgumentWord
+    _targets:MultipleEntities,
+    _name:StringArgumentWord
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8558,7 +8558,7 @@ pub fn tag_targets_add_name(
 #[command(usage="tag <targets> list")]
 pub fn tag_targets_list(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities
+    _targets:MultipleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8571,8 +8571,8 @@ pub fn tag_targets_list(
 #[command(usage="tag <targets> remove <name>")]
 pub fn tag_targets_remove_name(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    name:StringArgumentWord
+    _targets:MultipleEntities,
+    _name:StringArgumentWord
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8585,7 +8585,7 @@ pub fn tag_targets_remove_name(
 #[command(usage="team add <team>")]
 pub fn team_add_team(
     ctx: &mut CommandCtx,
-    team:StringArgumentWord
+    _team:StringArgumentWord
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8598,8 +8598,8 @@ pub fn team_add_team(
 #[command(usage="team add <team> <displayName>")]
 pub fn team_add_team_displayName(
     ctx: &mut CommandCtx,
-    team:StringArgumentWord,
-    displayName:Component
+    _team:StringArgumentWord,
+    _displayName:Component
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8612,7 +8612,7 @@ pub fn team_add_team_displayName(
 #[command(usage="team empty <team>")]
 pub fn team_empty_team(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8625,7 +8625,7 @@ pub fn team_empty_team(
 #[command(usage="team join <team>")]
 pub fn team_join_team(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8638,8 +8638,8 @@ pub fn team_join_team(
 #[command(usage="team join <team> <members>")]
 pub fn team_join_team_members(
     ctx: &mut CommandCtx,
-    team:Team,
-    members:MultipleScoreHolders
+    _team:Team,
+    _members:MultipleScoreHolders
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8652,7 +8652,7 @@ pub fn team_join_team_members(
 #[command(usage="team leave <members>")]
 pub fn team_leave_members(
     ctx: &mut CommandCtx,
-    members:MultipleScoreHolders
+    _members:MultipleScoreHolders
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8678,7 +8678,7 @@ pub fn team_list(
 #[command(usage="team list <team>")]
 pub fn team_list_team(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8691,7 +8691,7 @@ pub fn team_list_team(
 #[command(usage="team modify <team> collisionRule always")]
 pub fn team_modify_team_collisionRule_always(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8704,7 +8704,7 @@ pub fn team_modify_team_collisionRule_always(
 #[command(usage="team modify <team> collisionRule never")]
 pub fn team_modify_team_collisionRule_never(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8717,7 +8717,7 @@ pub fn team_modify_team_collisionRule_never(
 #[command(usage="team modify <team> collisionRule pushOtherTeams")]
 pub fn team_modify_team_collisionRule_pushOtherTeams(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8730,7 +8730,7 @@ pub fn team_modify_team_collisionRule_pushOtherTeams(
 #[command(usage="team modify <team> collisionRule pushOwnTeam")]
 pub fn team_modify_team_collisionRule_pushOwnTeam(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8743,8 +8743,8 @@ pub fn team_modify_team_collisionRule_pushOwnTeam(
 #[command(usage="team modify <team> color <value>")]
 pub fn team_modify_team_color_value(
     ctx: &mut CommandCtx,
-    team:Team,
-    value:Color
+    _team:Team,
+    _value:Color
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8757,7 +8757,7 @@ pub fn team_modify_team_color_value(
 #[command(usage="team modify <team> deathMessageVisibility always")]
 pub fn team_modify_team_deathMessageVisibility_always(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8770,7 +8770,7 @@ pub fn team_modify_team_deathMessageVisibility_always(
 #[command(usage="team modify <team> deathMessageVisibility hideForOtherTeams")]
 pub fn team_modify_team_deathMessageVisibility_hideForOtherTeams(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8783,7 +8783,7 @@ pub fn team_modify_team_deathMessageVisibility_hideForOtherTeams(
 #[command(usage="team modify <team> deathMessageVisibility hideForOwnTeam")]
 pub fn team_modify_team_deathMessageVisibility_hideForOwnTeam(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8796,7 +8796,7 @@ pub fn team_modify_team_deathMessageVisibility_hideForOwnTeam(
 #[command(usage="team modify <team> deathMessageVisibility never")]
 pub fn team_modify_team_deathMessageVisibility_never(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8809,8 +8809,8 @@ pub fn team_modify_team_deathMessageVisibility_never(
 #[command(usage="team modify <team> displayName <displayName>")]
 pub fn team_modify_team_displayName_displayName(
     ctx: &mut CommandCtx,
-    team:Team,
-    displayName:Component
+    _team:Team,
+    _displayName:Component
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8823,8 +8823,8 @@ pub fn team_modify_team_displayName_displayName(
 #[command(usage="team modify <team> friendlyFire <allowed>")]
 pub fn team_modify_team_friendlyFire_allowed(
     ctx: &mut CommandCtx,
-    team:Team,
-    allowed:BoolArgument
+    _team:Team,
+    _allowed:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8837,7 +8837,7 @@ pub fn team_modify_team_friendlyFire_allowed(
 #[command(usage="team modify <team> nametagVisibility always")]
 pub fn team_modify_team_nametagVisibility_always(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8850,7 +8850,7 @@ pub fn team_modify_team_nametagVisibility_always(
 #[command(usage="team modify <team> nametagVisibility hideForOtherTeams")]
 pub fn team_modify_team_nametagVisibility_hideForOtherTeams(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8863,7 +8863,7 @@ pub fn team_modify_team_nametagVisibility_hideForOtherTeams(
 #[command(usage="team modify <team> nametagVisibility hideForOwnTeam")]
 pub fn team_modify_team_nametagVisibility_hideForOwnTeam(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8876,7 +8876,7 @@ pub fn team_modify_team_nametagVisibility_hideForOwnTeam(
 #[command(usage="team modify <team> nametagVisibility never")]
 pub fn team_modify_team_nametagVisibility_never(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8889,8 +8889,8 @@ pub fn team_modify_team_nametagVisibility_never(
 #[command(usage="team modify <team> prefix <prefix>")]
 pub fn team_modify_team_prefix_prefix(
     ctx: &mut CommandCtx,
-    team:Team,
-    prefix:Component
+    _team:Team,
+    _prefix:Component
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8903,8 +8903,8 @@ pub fn team_modify_team_prefix_prefix(
 #[command(usage="team modify <team> seeFriendlyInvisibles <allowed>")]
 pub fn team_modify_team_seeFriendlyInvisibles_allowed(
     ctx: &mut CommandCtx,
-    team:Team,
-    allowed:BoolArgument
+    _team:Team,
+    _allowed:BoolArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8917,8 +8917,8 @@ pub fn team_modify_team_seeFriendlyInvisibles_allowed(
 #[command(usage="team modify <team> suffix <suffix>")]
 pub fn team_modify_team_suffix_suffix(
     ctx: &mut CommandCtx,
-    team:Team,
-    suffix:Component
+    _team:Team,
+    _suffix:Component
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8931,7 +8931,7 @@ pub fn team_modify_team_suffix_suffix(
 #[command(usage="team remove <team>")]
 pub fn team_remove_team(
     ctx: &mut CommandCtx,
-    team:Team
+    _team:Team
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8944,7 +8944,7 @@ pub fn team_remove_team(
 #[command(usage="teammsg <message>")]
 pub fn teammsg_message(
     ctx: &mut CommandCtx,
-    message:Message
+    _message:Message
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8957,7 +8957,7 @@ pub fn teammsg_message(
 #[command(usage="teleport <destination>")]
 pub fn teleport_destination(
     ctx: &mut CommandCtx,
-    destination:SingleEntities
+    _destination:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8970,7 +8970,7 @@ pub fn teleport_destination(
 #[command(usage="teleport <location>")]
 pub fn teleport_location(
     ctx: &mut CommandCtx,
-    location:Vec3
+    _location:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8983,8 +8983,8 @@ pub fn teleport_location(
 #[command(usage="teleport <targets> <destination>")]
 pub fn teleport_targets_destination(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    destination:SingleEntities
+    _targets:MultipleEntities,
+    _destination:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -8997,8 +8997,8 @@ pub fn teleport_targets_destination(
 #[command(usage="teleport <targets> <location>")]
 pub fn teleport_targets_location(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    location:Vec3
+    _targets:MultipleEntities,
+    _location:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9011,9 +9011,9 @@ pub fn teleport_targets_location(
 #[command(usage="teleport <targets> <location> facing entity <facingEntity>")]
 pub fn teleport_targets_location_facing_entity_facingEntity(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    location:Vec3,
-    facingEntity:SingleEntities
+    _targets:MultipleEntities,
+    _location:Vec3,
+    _facingEntity:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9026,10 +9026,10 @@ pub fn teleport_targets_location_facing_entity_facingEntity(
 #[command(usage="teleport <targets> <location> facing entity <facingEntity> <facingAnchor>")]
 pub fn teleport_targets_location_facing_entity_facingEntity_facingAnchor(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    location:Vec3,
-    facingEntity:SingleEntities,
-    facingAnchor:EntityAnchor
+    _targets:MultipleEntities,
+    _location:Vec3,
+    _facingEntity:SingleEntities,
+    _facingAnchor:EntityAnchor
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9042,9 +9042,9 @@ pub fn teleport_targets_location_facing_entity_facingEntity_facingAnchor(
 #[command(usage="teleport <targets> <location> facing <facingLocation>")]
 pub fn teleport_targets_location_facing_facingLocation(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    location:Vec3,
-    facingLocation:Vec3
+    _targets:MultipleEntities,
+    _location:Vec3,
+    _facingLocation:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9057,9 +9057,9 @@ pub fn teleport_targets_location_facing_facingLocation(
 #[command(usage="teleport <targets> <location> <rotation>")]
 pub fn teleport_targets_location_rotation(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    location:Vec3,
-    rotation:Rotation
+    _targets:MultipleEntities,
+    _location:Vec3,
+    _rotation:Rotation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9072,8 +9072,8 @@ pub fn teleport_targets_location_rotation(
 #[command(usage="tell <targets> <message>")]
 pub fn tell_targets_message(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    message:Message
+    _targets:MultiplePlayers,
+    _message:Message
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9086,8 +9086,8 @@ pub fn tell_targets_message(
 #[command(usage="tellraw <targets> <message>")]
 pub fn tellraw_targets_message(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    message:Component
+    _targets:MultiplePlayers,
+    _message:Component
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9100,7 +9100,7 @@ pub fn tellraw_targets_message(
 #[command(usage="time add <time>")]
 pub fn time_add_time(
     ctx: &mut CommandCtx,
-    time:Time
+    _time:Time
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9204,7 +9204,7 @@ pub fn time_set_noon(
 #[command(usage="time set <time>")]
 pub fn time_set_time(
     ctx: &mut CommandCtx,
-    time:Time
+    _time:Time
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9217,8 +9217,8 @@ pub fn time_set_time(
 #[command(usage="title <targets> actionbar <title>")]
 pub fn title_targets_actionbar_title(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    title:Component
+    _targets:MultiplePlayers,
+    _title:Component
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9231,7 +9231,7 @@ pub fn title_targets_actionbar_title(
 #[command(usage="title <targets> clear")]
 pub fn title_targets_clear(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9244,7 +9244,7 @@ pub fn title_targets_clear(
 #[command(usage="title <targets> reset")]
 pub fn title_targets_reset(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers
+    _targets:MultiplePlayers
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9257,8 +9257,8 @@ pub fn title_targets_reset(
 #[command(usage="title <targets> subtitle <title>")]
 pub fn title_targets_subtitle_title(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    title:Component
+    _targets:MultiplePlayers,
+    _title:Component
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9271,10 +9271,10 @@ pub fn title_targets_subtitle_title(
 #[command(usage="title <targets> times <fadeIn> <stay> <fadeOut>")]
 pub fn title_targets_times_fadeIn_stay_fadeOut(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    fadeIn:IntegerArgumentPositive,
-    stay:IntegerArgumentPositive,
-    fadeOut:IntegerArgumentPositive
+    _targets:MultiplePlayers,
+    _fadeIn:IntegerArgumentPositive,
+    _stay:IntegerArgumentPositive,
+    _fadeOut:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9287,8 +9287,8 @@ pub fn title_targets_times_fadeIn_stay_fadeOut(
 #[command(usage="title <targets> title <title>")]
 pub fn title_targets_title_title(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    title:Component
+    _targets:MultiplePlayers,
+    _title:Component
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9301,7 +9301,7 @@ pub fn title_targets_title_title(
 #[command(usage="tm <message>")]
 pub fn tm_message(
     ctx: &mut CommandCtx,
-    message:Message
+    _message:Message
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9314,7 +9314,7 @@ pub fn tm_message(
 #[command(usage="tp <destination>")]
 pub fn tp_destination(
     ctx: &mut CommandCtx,
-    destination:SingleEntities
+    _destination:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9327,7 +9327,7 @@ pub fn tp_destination(
 #[command(usage="tp <location>")]
 pub fn tp_location(
     ctx: &mut CommandCtx,
-    location:Vec3
+    _location:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9340,8 +9340,8 @@ pub fn tp_location(
 #[command(usage="tp <targets> <destination>")]
 pub fn tp_targets_destination(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    destination:SingleEntities
+    _targets:MultipleEntities,
+    _destination:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9354,8 +9354,8 @@ pub fn tp_targets_destination(
 #[command(usage="tp <targets> <location>")]
 pub fn tp_targets_location(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    location:Vec3
+    _targets:MultipleEntities,
+    _location:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9368,9 +9368,9 @@ pub fn tp_targets_location(
 #[command(usage="tp <targets> <location> facing entity <facingEntity>")]
 pub fn tp_targets_location_facing_entity_facingEntity(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    location:Vec3,
-    facingEntity:SingleEntities
+    _targets:MultipleEntities,
+    _location:Vec3,
+    _facingEntity:SingleEntities
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9383,10 +9383,10 @@ pub fn tp_targets_location_facing_entity_facingEntity(
 #[command(usage="tp <targets> <location> facing entity <facingEntity> <facingAnchor>")]
 pub fn tp_targets_location_facing_entity_facingEntity_facingAnchor(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    location:Vec3,
-    facingEntity:SingleEntities,
-    facingAnchor:EntityAnchor
+    _targets:MultipleEntities,
+    _location:Vec3,
+    _facingEntity:SingleEntities,
+    _facingAnchor:EntityAnchor
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9399,9 +9399,9 @@ pub fn tp_targets_location_facing_entity_facingEntity_facingAnchor(
 #[command(usage="tp <targets> <location> facing <facingLocation>")]
 pub fn tp_targets_location_facing_facingLocation(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    location:Vec3,
-    facingLocation:Vec3
+    _targets:MultipleEntities,
+    _location:Vec3,
+    _facingLocation:Vec3
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9414,9 +9414,9 @@ pub fn tp_targets_location_facing_facingLocation(
 #[command(usage="tp <targets> <location> <rotation>")]
 pub fn tp_targets_location_rotation(
     ctx: &mut CommandCtx,
-    targets:MultipleEntities,
-    location:Vec3,
-    rotation:Rotation
+    _targets:MultipleEntities,
+    _location:Vec3,
+    _rotation:Rotation
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9429,7 +9429,7 @@ pub fn tp_targets_location_rotation(
 #[command(usage="trigger <objective>")]
 pub fn trigger_objective(
     ctx: &mut CommandCtx,
-    objective:Objective
+    _objective:Objective
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9442,8 +9442,8 @@ pub fn trigger_objective(
 #[command(usage="trigger <objective> add <value>")]
 pub fn trigger_objective_add_value(
     ctx: &mut CommandCtx,
-    objective:Objective,
-    value:IntegerArgument
+    _objective:Objective,
+    _value:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9456,8 +9456,8 @@ pub fn trigger_objective_add_value(
 #[command(usage="trigger <objective> set <value>")]
 pub fn trigger_objective_set_value(
     ctx: &mut CommandCtx,
-    objective:Objective,
-    value:IntegerArgument
+    _objective:Objective,
+    _value:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9470,8 +9470,8 @@ pub fn trigger_objective_set_value(
 #[command(usage="w <targets> <message>")]
 pub fn w_targets_message(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    message:Message
+    _targets:MultiplePlayers,
+    _message:Message
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9497,7 +9497,7 @@ pub fn weather_clear(
 #[command(usage="weather clear <duration>")]
 pub fn weather_clear_duration(
     ctx: &mut CommandCtx,
-    duration:IntegerArgumentBetween0And1000000
+    _duration:IntegerArgumentBetween0And1000000
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9523,7 +9523,7 @@ pub fn weather_rain(
 #[command(usage="weather rain <duration>")]
 pub fn weather_rain_duration(
     ctx: &mut CommandCtx,
-    duration:IntegerArgumentBetween0And1000000
+    _duration:IntegerArgumentBetween0And1000000
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9549,7 +9549,7 @@ pub fn weather_thunder(
 #[command(usage="weather thunder <duration>")]
 pub fn weather_thunder_duration(
     ctx: &mut CommandCtx,
-    duration:IntegerArgumentBetween0And1000000
+    _duration:IntegerArgumentBetween0And1000000
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9562,7 +9562,7 @@ pub fn weather_thunder_duration(
 #[command(usage="whitelist add <targets>")]
 pub fn whitelist_add_targets(
     ctx: &mut CommandCtx,
-    targets:GameProfile
+    _targets:GameProfile
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9627,7 +9627,7 @@ pub fn whitelist_reload(
 #[command(usage="whitelist remove <targets>")]
 pub fn whitelist_remove_targets(
     ctx: &mut CommandCtx,
-    targets:GameProfile
+    _targets:GameProfile
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9640,7 +9640,7 @@ pub fn whitelist_remove_targets(
 #[command(usage="worldborder add <distance>")]
 pub fn worldborder_add_distance(
     ctx: &mut CommandCtx,
-    distance:FloatArgument
+    _distance:FloatArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9653,8 +9653,8 @@ pub fn worldborder_add_distance(
 #[command(usage="worldborder add <distance> <time>")]
 pub fn worldborder_add_distance_time(
     ctx: &mut CommandCtx,
-    distance:FloatArgument,
-    time:IntegerArgumentPositive
+    _distance:FloatArgument,
+    _time:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9667,7 +9667,7 @@ pub fn worldborder_add_distance_time(
 #[command(usage="worldborder center <pos>")]
 pub fn worldborder_center_pos(
     ctx: &mut CommandCtx,
-    pos:Vec2
+    _pos:Vec2
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9680,7 +9680,7 @@ pub fn worldborder_center_pos(
 #[command(usage="worldborder damage amount <damagePerBlock>")]
 pub fn worldborder_damage_amount_damagePerBlock(
     ctx: &mut CommandCtx,
-    damagePerBlock:FloatArgumentPositive
+    _damagePerBlock:FloatArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9693,7 +9693,7 @@ pub fn worldborder_damage_amount_damagePerBlock(
 #[command(usage="worldborder damage buffer <distance>")]
 pub fn worldborder_damage_buffer_distance(
     ctx: &mut CommandCtx,
-    distance:FloatArgumentPositive
+    _distance:FloatArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9719,7 +9719,7 @@ pub fn worldborder_get(
 #[command(usage="worldborder set <distance>")]
 pub fn worldborder_set_distance(
     ctx: &mut CommandCtx,
-    distance:FloatArgument
+    _distance:FloatArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9732,8 +9732,8 @@ pub fn worldborder_set_distance(
 #[command(usage="worldborder set <distance> <time>")]
 pub fn worldborder_set_distance_time(
     ctx: &mut CommandCtx,
-    distance:FloatArgument,
-    time:IntegerArgumentPositive
+    _distance:FloatArgument,
+    _time:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9746,7 +9746,7 @@ pub fn worldborder_set_distance_time(
 #[command(usage="worldborder warning distance <distance>")]
 pub fn worldborder_warning_distance_distance(
     ctx: &mut CommandCtx,
-    distance:IntegerArgumentPositive
+    _distance:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9759,7 +9759,7 @@ pub fn worldborder_warning_distance_distance(
 #[command(usage="worldborder warning time <time>")]
 pub fn worldborder_warning_time_time(
     ctx: &mut CommandCtx,
-    time:IntegerArgumentPositive
+    _time:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9772,8 +9772,8 @@ pub fn worldborder_warning_time_time(
 #[command(usage="xp add <targets> <amount>")]
 pub fn xp_add_targets_amount(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    amount:IntegerArgument
+    _targets:MultiplePlayers,
+    _amount:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9786,8 +9786,8 @@ pub fn xp_add_targets_amount(
 #[command(usage="xp add <targets> <amount> levels")]
 pub fn xp_add_targets_amount_levels(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    amount:IntegerArgument
+    _targets:MultiplePlayers,
+    _amount:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9800,8 +9800,8 @@ pub fn xp_add_targets_amount_levels(
 #[command(usage="xp add <targets> <amount> points")]
 pub fn xp_add_targets_amount_points(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    amount:IntegerArgument
+    _targets:MultiplePlayers,
+    _amount:IntegerArgument
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9814,7 +9814,7 @@ pub fn xp_add_targets_amount_points(
 #[command(usage="xp query <targets> levels")]
 pub fn xp_query_targets_levels(
     ctx: &mut CommandCtx,
-    targets:SinglePlayer
+    _targets:SinglePlayer
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9827,7 +9827,7 @@ pub fn xp_query_targets_levels(
 #[command(usage="xp query <targets> points")]
 pub fn xp_query_targets_points(
     ctx: &mut CommandCtx,
-    targets:SinglePlayer
+    _targets:SinglePlayer
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9840,8 +9840,8 @@ pub fn xp_query_targets_points(
 #[command(usage="xp set <targets> <amount>")]
 pub fn xp_set_targets_amount(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    amount:IntegerArgumentPositive
+    _targets:MultiplePlayers,
+    _amount:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9854,8 +9854,8 @@ pub fn xp_set_targets_amount(
 #[command(usage="xp set <targets> <amount> levels")]
 pub fn xp_set_targets_amount_levels(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    amount:IntegerArgumentPositive
+    _targets:MultiplePlayers,
+    _amount:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
@@ -9868,8 +9868,8 @@ pub fn xp_set_targets_amount_levels(
 #[command(usage="xp set <targets> <amount> points")]
 pub fn xp_set_targets_amount_points(
     ctx: &mut CommandCtx,
-    targets:MultiplePlayers,
-    amount:IntegerArgumentPositive
+    _targets:MultiplePlayers,
+    _amount:IntegerArgumentPositive
 ) -> anyhow::Result<()> {
     if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
     {
