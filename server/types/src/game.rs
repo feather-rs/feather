@@ -83,15 +83,17 @@ impl Game {
         event_handlers.trigger(&resources, world, event);
     }
 
-    /// Retrieves the block at the given position,
-    /// or `None` if the block's chunk is not loaded.
+    /// Retrieves the block at the given position.
+    /// Returns `None` if the block's chunk is not loaded
+    /// or the coordinates are out of bounds.
     pub fn block_at(&self, pos: BlockPosition) -> Option<BlockId> {
         self.chunk_map.block_at(pos)
     }
 
     /// Sets the block at the given position.
     ///
-    /// If the block's chunk's is not loaded, returns `false`;
+    /// Returns `false` if the block's chunk is not loaded
+    /// or the coordinates are out of bounds;
     /// otherwise, returns `true`.
     pub fn set_block_at(
         &mut self,
