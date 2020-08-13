@@ -94,7 +94,7 @@ impl CommandState {
     /// Initializes the command state.
     pub fn new() -> Self {
         let mut dispatcher = CommandDispatcher::<CommandCtx>::new();
-        
+
         commands! {
             dispatcher:
                 advancement_grant_targets_everything,
@@ -786,8 +786,8 @@ impl CommandState {
                 //execute_unless_score_target_targetObjective_gt_source_sourceObjective,
                 //execute_if_score_target_targetObjective_gt_source_sourceObjective,
                 //execute_if_score_target_targetObjective_eq_source_sourceObjective,
-            
-            
+
+
         }
 
         Self {
