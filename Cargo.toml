@@ -15,6 +15,7 @@ members = [
     "core/loot",
     "core/loot/model",
     "core/misc",
+    "core/protocol",
     "core/inventory",
     "core/text",
     "core/util",
