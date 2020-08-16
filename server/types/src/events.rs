@@ -129,7 +129,8 @@ pub struct InventoryUpdateEvent {
     pub entity: Entity,
 }
 
-/// Event triggered when an item has been used, a tool breaks a block,
+/// Event triggered to reduce an items durability. For example,
+/// when an item has been used, a tool breaks a block,
 /// or armor has been hit.
 #[derive(Debug, Clone)]
 pub struct ItemDamageEvent {
