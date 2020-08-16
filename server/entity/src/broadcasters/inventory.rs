@@ -2,9 +2,7 @@
 
 use crate::inventory::Equipment;
 use feather_core::inventory::{slot, Area, Inventory, SlotIndex, Window};
-use feather_core::network::packets::{
-    EntityEquipment, EntityStatus, NamedSoundEffect, SetSlot, SoundCategory,
-};
+use feather_core::network::packets::{EntityEquipment, NamedSoundEffect, SetSlot, SoundCategory};
 use feather_core::util::Position;
 use feather_server_types::{
     EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, ItemDamageEvent, Network, NetworkId,
@@ -161,11 +159,6 @@ pub fn on_damage_item(event: &ItemDamageEvent, game: &mut Game, world: &mut Worl
     drop(inventory);
 
     if item_broken {
-        // let particles_packet = EntityStatus {
-        //     entity_id: world.get::<NetworkId>(event.player).0,
-        //     entity_status: 47,
-        // };
-
         let (effect_pos_x, effect_pos_y, effect_pos_z) = {
             let pos = world.get::<Position>(event.player);
             (
@@ -187,9 +180,7 @@ pub fn on_damage_item(event: &ItemDamageEvent, game: &mut Game, world: &mut Worl
         };
 
         let network = world.get::<Network>(event.player);
-        // log::warn!("sending packet");
         network.send(sound_packet);
-        // network.send(particles_packet);
     }
 
     let inv_update = InventoryUpdateEvent {
