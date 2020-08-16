@@ -6,12 +6,13 @@ use crate::{
     CommandCtx,
 };
 use feather_core::inventory::{Inventory, SlotIndex};
+use feather_core::network::packets::DisconnectPlay;
 use feather_core::text::{Text, TextComponentBuilder, TextValue};
 use feather_core::util::{Gamemode, Position};
 use feather_definitions::Item;
 use feather_server_types::{
     ChatEvent, ChatPosition, GamemodeUpdateEvent, InventoryUpdateEvent, MessageReceiver, Name,
-    Player, ShutdownChannels, Teleported,
+    Network, Player, ServerToWorkerMessage, ShutdownChannels, Teleported,
 };
 use fecs::{Entity, ResourcesProvider, World};
 use lieutenant::command;
@@ -284,6 +285,68 @@ pub fn me(ctx: &mut CommandCtx, action: TextArgument) -> anyhow::Result<()> {
         },
     );
 
+    Ok(None)
+}
+
+#[derive(Debug, Error)]
+pub enum KickError {
+    #[error(
+        "Only players may be affected by this command, but the provided selector includes entities"
+    )]
+    NoEntities,
+}
+
+#[command(usage = "kick <targets>")]
+pub fn kick(ctx: &mut CommandCtx, targets: EntitySelector) -> anyhow::Result<()> {
+    kick_players(
+        ctx,
+        &targets,
+        TextValue::translate("multiplayer.disconnect.kicked").into(),
+    )
+}
+
+#[command(usage = "kick <targets> <reason>")]
+pub fn kick_1(
+    ctx: &mut CommandCtx,
+    targets: EntitySelector,
+    reason: TextArgument,
+) -> anyhow::Result<()> {
+    kick_players(ctx, &targets, reason.0.into())
+}
+
+fn kick_players(
+    ctx: &mut CommandCtx,
+    targets: &EntitySelector,
+    reason: Text,
+) -> anyhow::Result<Option<String>> {
+    for entity in &targets.entities {
+        if ctx.world.try_get::<Player>(*entity).is_none() {
+            return Err(KickError::NoEntities.into());
+        }
+    }
+    for entity in &targets.entities {
+        // Send kick packet and disconnect
+        let network = ctx.world.get::<Network>(*entity);
+        let kick_packet = DisconnectPlay {
+            reason: reason.clone().into(),
+        };
+        network.send(kick_packet);
+        let _ = network.tx.send(ServerToWorkerMessage::Disconnect);
+        drop(network);
+
+        // Send confirmation message
+        // TODO Server ops should also see the message
+        let name = ctx.world.get::<Name>(*entity).0.clone();
+        if let Some(mut sender_message_receiver) =
+            ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
+        {
+            let kick_confirm = Text::from(TextValue::translate_with(
+                "commands.kick.success",
+                vec![Text::from(name), reason.clone()],
+            ));
+            sender_message_receiver.send(kick_confirm);
+        }
+    }
     Ok(None)
 }
 
