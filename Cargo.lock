@@ -10,44 +10,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "adler32"
-version = "1.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d2e7343e7fc9de883d1b0341e0b13970f764c14101234857d2ddafa1cb1cac2"
-
-[[package]]
-name = "aes"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54eb1d8fe354e5fc611daf4f2ea97dd45a765f4f1e4512306ec183ae2e8f20c9"
-dependencies = [
- "aes-soft",
- "aesni",
- "block-cipher-trait",
-]
-
-[[package]]
-name = "aes-soft"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfd7e7ae3f9a1fb5c03b389fc6bb9a51400d0c13053f0dca698c832bfd893a0d"
-dependencies = [
- "block-cipher-trait",
- "byteorder",
- "opaque-debug",
-]
-
-[[package]]
-name = "aesni"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f70a6b5f971e473091ab7cfb5ffac6cde81666c4556751d8d5620ead8abf100"
-dependencies = [
- "block-cipher-trait",
- "opaque-debug",
-]
-
-[[package]]
 name = "ahash"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -210,15 +172,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "block-cipher-trait"
-version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c924d49bd09e7c06003acda26cd9742e796e34282ec6c1189404dee0c1f4774"
-dependencies = [
- "generic-array 0.12.3",
-]
-
-[[package]]
 name = "bstr"
 version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -274,16 +227,6 @@ name = "cesu8"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6d43a04d8753f35258c91f8ec639f792891f748a1edbd759cf1dcea3382ad83c"
-
-[[package]]
-name = "cfb8"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b310afa67a25a8d5189eacaf5b14418c8dc3d8bcc5755619d89cab87871260d"
-dependencies = [
- "block-cipher-trait",
- "stream-cipher",
-]
 
 [[package]]
 name = "cfg-if"
@@ -368,15 +311,6 @@ name = "core-foundation-sys"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b3a71ab494c0b5b860bdc8407ae08978052417070c2ced38573a9157ad75b8ac"
-
-[[package]]
-name = "crc32fast"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba125de2af0df55319f41944744ad91c71113bf74a4646efff39afe1f6842db1"
-dependencies = [
- "cfg-if",
-]
 
 [[package]]
 name = "criterion"
@@ -771,7 +705,6 @@ dependencies = [
  "feather-items",
  "feather-loot",
  "feather-misc",
- "feather-network",
  "feather-text",
  "feather-util",
 ]
@@ -899,40 +832,6 @@ dependencies = [
  "feather-blocks",
  "feather-items",
  "ordinalizer",
-]
-
-[[package]]
-name = "feather-network"
-version = "0.6.0"
-dependencies = [
- "aes",
- "ahash",
- "anyhow",
- "byteorder",
- "bytes",
- "cfb8",
- "feather-anvil",
- "feather-blocks",
- "feather-chunk",
- "feather-codegen",
- "feather-entity-metadata",
- "feather-inventory",
- "feather-items",
- "feather-misc",
- "feather-util",
- "flate2 1.0.14",
- "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "log",
- "num-derive",
- "num-traits",
- "once_cell",
- "parking_lot",
- "serde",
- "strum 0.18.0",
- "strum_macros 0.18.0",
- "thiserror",
- "tokio-util",
- "uuid",
 ]
 
 [[package]]
@@ -1333,18 +1232,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "flate2"
-version = "1.0.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cfff41391129e0a856d6d822600b8d71179d46879e310417eb9c762eb178b42"
-dependencies = [
- "cfg-if",
- "crc32fast",
- "libc",
- "miniz_oxide",
-]
-
-[[package]]
 name = "flume"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1619,7 +1506,7 @@ source = "git+https://github.com/PistonDevelopers/hematite_nbt?rev=41124ff#41124
 dependencies = [
  "byteorder",
  "cesu8",
- "flate2 0.2.20",
+ "flate2",
  "serde",
 ]
 
@@ -1631,7 +1518,7 @@ checksum = "98b407a33bb1715a4cf0276edfe8df52352c55b2a3703c5079adedf398b92932"
 dependencies = [
  "byteorder",
  "cesu8",
- "flate2 0.2.20",
+ "flate2",
  "serde",
 ]
 
@@ -2034,15 +1921,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "miniz_oxide"
-version = "0.3.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa679ff6578b1cddee93d7e82e263b94a575e0bfced07284eb0c037c1d2416a5"
-dependencies = [
- "adler32",
-]
-
-[[package]]
 name = "mio"
 version = "0.6.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2364,12 +2242,6 @@ name = "oorandom"
 version = "11.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94af325bc33c7f60191be4e2c984d48aaa21e2854f473b85398344b60c9b6358"
-
-[[package]]
-name = "opaque-debug"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2839e79665f131bdb5782e51f2c6c9599c133c6098982a54c794358bf432529c"
 
 [[package]]
 name = "openssl"
@@ -3125,15 +2997,6 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
-
-[[package]]
-name = "stream-cipher"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8131256a5896cabcf5eb04f4d6dacbe1aefda854b0d9896e09cb58829ec5638c"
-dependencies = [
- "generic-array 0.12.3",
-]
 
 [[package]]
 name = "strsim"
