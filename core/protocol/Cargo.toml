@@ -5,10 +5,22 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+feather-entity-metadata = { path = "../entity_metadata" }
+feather-items = { path = "../items" }
+feather-blocks = { path = "../blocks" }
+feather-chunk = { path = "../chunk" }
+feather-anvil = { path = "../anvil" }
+feather-util = { path = "../util" }
+
+serde = "1"
+hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt", rev = "41124ff" }
+uuid = "0.8"
+
 anyhow = "1"
 thiserror = "1"
 
 byteorder = "1"
+num-traits = "0.2"
 
 aes = { version = "0.5", optional = true }
 cfb8 = { version = "0.4", optional = true }

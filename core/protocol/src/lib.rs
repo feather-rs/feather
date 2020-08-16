@@ -1,7 +1,11 @@
+use feather_items::ItemStack;
+
 mod io;
 pub mod packets;
 
 pub use io::{Readable, Writeable};
+
+pub type Slot = Option<ItemStack>;
 
 /// A protocol version.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]

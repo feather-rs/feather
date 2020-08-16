@@ -1,16 +1,24 @@
 //! Traits for reading/writing Minecraft-encoded values.
 
-use crate::ProtocolVersion;
-use anyhow::{bail, Context};
+use crate::{ProtocolVersion, Slot};
+use anyhow::{anyhow, bail, Context};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use feather_anvil::entity::ItemNbt;
+use feather_entity_metadata::{EntityMetadata, MetaEntry};
+use feather_items::{Item, ItemStack};
+use feather_util::{BlockPosition, Direction};
+use num_traits::FromPrimitive;
+use serde::{de::DeserializeOwned, Serialize};
 use std::{
     borrow::Cow,
+    collections::BTreeMap,
     convert::{TryFrom, TryInto},
     io::{Cursor, Read},
     iter,
     num::TryFromIntError,
 };
 use thiserror::Error;
+use uuid::Uuid;
 
 /// Trait implemented for types which can be read
 /// from a buffer.
@@ -78,6 +86,21 @@ impl Readable for u8 {
 impl Writeable for u8 {
     fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
         buffer.write_u8(*self).unwrap();
+    }
+}
+
+impl Readable for i8 {
+    fn read(buffer: &mut Cursor<&[u8]>, _version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        buffer.read_i8().map_err(anyhow::Error::from)
+    }
+}
+
+impl Writeable for i8 {
+    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
+        buffer.write_i8(*self).unwrap()
     }
 }
 
@@ -224,39 +247,6 @@ impl Writeable for bool {
     }
 }
 
-impl<T> Readable for Option<T>
-where
-    T: Readable,
-{
-    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
-    where
-        Self: Sized,
-    {
-        // Assume boolean prefix.
-        let present = bool::read(buffer, version)?;
-
-        if present {
-            Ok(Some(T::read(buffer, version)?))
-        } else {
-            Ok(None)
-        }
-    }
-}
-
-impl<T> Writeable for Option<T>
-where
-    T: Writeable,
-{
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
-        let present = self.is_some();
-        present.write(buffer, version);
-
-        if let Some(value) = self {
-            value.write(buffer, version);
-        }
-    }
-}
-
 pub const MAX_LENGTH: usize = 1024 * 1024; // 2^20 elements
 
 /// Reads and writes an array of inner `Writeable`s.
@@ -351,5 +341,287 @@ impl<'a> From<&'a [u8]> for LengthInferredVecU8<'a> {
 impl<'a> From<LengthInferredVecU8<'a>> for Vec<u8> {
     fn from(x: LengthInferredVecU8<'a>) -> Self {
         x.0.into_owned()
+    }
+}
+
+/// Wrapper over an arbitrary type that implements `Deserialize` and `Serialize`.
+///
+/// The value will be written to a packet as NBT data.
+pub struct Nbt<T>(pub T);
+
+impl<T> Readable for Nbt<T>
+where
+    T: DeserializeOwned,
+{
+    fn read(buffer: &mut Cursor<&[u8]>, _version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        nbt::from_reader(buffer)
+            .map_err(anyhow::Error::from)
+            .map(Nbt)
+    }
+}
+
+impl<T> Writeable for Nbt<T>
+where
+    T: Serialize,
+{
+    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
+        nbt::to_writer(buffer, &self.0, None).unwrap_or_else(|e| {
+            panic!(
+                "could not serialize struct of type '{}' to NBT: {}",
+                std::any::type_name::<T>(),
+                e
+            )
+        });
+    }
+}
+
+impl Readable for Slot {
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let present = bool::read(buffer, version)?;
+
+        if present {
+            let item_id = VarInt::read(buffer, version)?.0;
+            let amount = u8::read(buffer, version)?;
+            let tags: Option<ItemNbt> = Nbt::read(buffer, version).ok().map(|nbt| nbt.0);
+
+            let ty = Item::from_vanilla_id(item_id.try_into()?)
+                .ok_or_else(|| anyhow!("unknown item ID {}", item_id))?;
+
+            Ok(Some(ItemStack {
+                ty,
+                amount,
+                damage: tags.map(|t| t.damage).flatten(),
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl Writeable for Slot {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+        self.is_some().write(buffer, version);
+
+        if let Some(stack) = self {
+            VarInt(stack.ty.vanilla_id() as i32).write(buffer, version);
+            stack.amount.write(buffer, version);
+
+            let tags: ItemNbt = stack.into();
+            if tags != ItemNbt::default() {
+                Nbt(tags).write(buffer, version);
+            } else {
+                0u8.write(buffer, version); // TAG_End
+            }
+        }
+    }
+}
+
+impl Readable for EntityMetadata {
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let mut values = BTreeMap::new();
+
+        while buffer.position() < buffer.get_ref().len() as u64 {
+            let index = u8::read(buffer, version)?;
+
+            if index == 0xFF {
+                break;
+            }
+
+            let entry = read_meta_entry(buffer, version)?;
+            values.insert(index, entry);
+        }
+
+        Ok(EntityMetadata { values })
+    }
+}
+
+fn read_meta_entry(
+    buffer: &mut Cursor<&[u8]>,
+    version: ProtocolVersion,
+) -> anyhow::Result<MetaEntry> {
+    let id = VarInt::read(buffer, version)?.0;
+
+    Ok(match id {
+        0 => MetaEntry::Byte(i8::read(buffer, version)?),
+        1 => MetaEntry::VarInt(VarInt::read(buffer, version)?.0),
+        2 => MetaEntry::Float(f32::read(buffer, version)?),
+        3 => MetaEntry::String(String::read(buffer, version)?),
+        4 => MetaEntry::Chat(String::read(buffer, version)?),
+        5 => MetaEntry::OptChat(if bool::read(buffer, version)? {
+            Some(String::read(buffer, version)?)
+        } else {
+            None
+        }),
+        6 => MetaEntry::Slot(Slot::read(buffer, version)?),
+        7 => MetaEntry::Boolean(bool::read(buffer, version)?),
+        8 => MetaEntry::Rotation(
+            f32::read(buffer, version)?,
+            f32::read(buffer, version)?,
+            f32::read(buffer, version)?,
+        ),
+        9 => MetaEntry::Position(BlockPosition::read(buffer, version)?),
+        10 => MetaEntry::OptPosition(if bool::read(buffer, version)? {
+            Some(BlockPosition::read(buffer, version)?)
+        } else {
+            None
+        }),
+        11 => MetaEntry::Direction(
+            Direction::from_i32(VarInt::read(buffer, version)?.0)
+                .ok_or_else(|| anyhow!("invalid direction ID"))?,
+        ),
+        12 => MetaEntry::OptUuid(if bool::read(buffer, version)? {
+            Some(Uuid::read(buffer, version)?)
+        } else {
+            None
+        }),
+        13 => MetaEntry::OptBlockId(if bool::read(buffer, version)? {
+            Some(VarInt::read(buffer, version)?.0)
+        } else {
+            None
+        }),
+        14 => MetaEntry::Nbt(Nbt::read(buffer, version)?.0),
+        x => bail!("invalid entity metadata entry ID {}", x),
+    })
+}
+
+impl Writeable for EntityMetadata {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+        for (index, entry) in self.iter() {
+            index.write(buffer, version);
+            VarInt(entry.id()).write(buffer, version);
+            write_meta_entry(entry, buffer, version);
+        }
+
+        // End of metadata
+        buffer.push(0xFF);
+    }
+}
+
+fn write_meta_entry(entry: &MetaEntry, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+    match entry {
+        MetaEntry::Byte(x) => x.write(buffer, version),
+        MetaEntry::VarInt(x) => {
+            VarInt(*x).write(buffer, version);
+        }
+        MetaEntry::Float(x) => x.write(buffer, version),
+        MetaEntry::String(x) => x.write(buffer, version),
+        MetaEntry::Chat(x) => x.write(buffer, version),
+        MetaEntry::OptChat(ox) => {
+            if let Some(x) = ox {
+                true.write(buffer, version);
+                x.write(buffer, version);
+            } else {
+                false.write(buffer, version);
+            }
+        }
+        MetaEntry::Slot(slot) => slot.write(buffer, version),
+        MetaEntry::Boolean(x) => x.write(buffer, version),
+        MetaEntry::Rotation(x, y, z) => {
+            x.write(buffer, version);
+            y.write(buffer, version);
+            z.write(buffer, version);
+        }
+        MetaEntry::Position(x) => x.write(buffer, version),
+        MetaEntry::OptPosition(ox) => {
+            if let Some(x) = ox {
+                true.write(buffer, version);
+                x.write(buffer, version);
+            } else {
+                false.write(buffer, version);
+            }
+        }
+        MetaEntry::Direction(x) => VarInt(x.id()).write(buffer, version),
+        MetaEntry::OptUuid(ox) => {
+            if let Some(x) = ox {
+                true.write(buffer, version);
+                x.write(buffer, version);
+            } else {
+                false.write(buffer, version);
+            }
+        }
+        MetaEntry::OptBlockId(ox) => {
+            if let Some(x) = ox {
+                VarInt(*x).write(buffer, version);
+            } else {
+                VarInt(0).write(buffer, version); // No value implies air
+            }
+        }
+        MetaEntry::Nbt(val) => Nbt(val).write(buffer, version),
+        MetaEntry::Particle => unimplemented!("entity metadata with particles"),
+    }
+}
+
+impl Readable for Uuid {
+    fn read(buffer: &mut Cursor<&[u8]>, _version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let mut bytes = uuid::Bytes::default();
+        buffer.read_exact(&mut bytes)?;
+
+        Ok(Uuid::from_bytes(bytes))
+    }
+}
+
+impl Writeable for Uuid {
+    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
+        buffer.extend_from_slice(self.as_bytes());
+    }
+}
+
+impl Readable for BlockPosition {
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let val = u64::read(buffer, version)?;
+
+        let x = (val >> 38) as i32;
+        let y = (val & 0xFFF) as i32;
+        let z = (val << 26 >> 38) as i32;
+
+        Ok(BlockPosition { x, y, z })
+    }
+}
+
+impl Writeable for BlockPosition {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+        let val = ((self.x as u64 & 0x3FFFFFF) << 38)
+            | ((self.z as u64 & 0x3FFFFFF) << 12)
+            | (self.y as u64 & 0xFFF);
+        val.write(buffer, version);
+    }
+}
+
+/// An angle written in stops, where each stop
+/// is 1/256th of a full turn.
+///
+/// This type converts degrees to stops.
+#[derive(Copy, Clone, Debug)]
+pub struct Angle(pub f32);
+
+impl Readable for Angle {
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let val = u8::read(buffer, version)?;
+        Ok(Angle((val as f32 / 256.0) * 360.0))
+    }
+}
+
+impl Writeable for Angle {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+        let val = (self.0 / 360.0 * 256.0).round() as u8;
+        val.write(buffer, version);
     }
 }
