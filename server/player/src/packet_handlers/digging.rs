@@ -10,7 +10,7 @@ use feather_core::blocks::{BlockId, HalfUpperLower, Part, SimplifiedBlockKind};
 use feather_core::inventory::{slot, Area, Inventory, Slot, SlotIndex};
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerDigging, PlayerDiggingStatus};
-use feather_core::util::{BlockPosition, Position};
+use feather_core::util::{BlockPosition, Gamemode, Position};
 use feather_definitions::Tool;
 use feather_server_types::{
     BlockUpdateCause, CanBreak, CanInstaBreak, EntitySpawnEvent, Game, HeldItem,
@@ -419,37 +419,42 @@ fn handle_consume_item(game: &mut Game, world: &mut World, player: Entity, packe
 }
 
 fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
-    let inventory = world.get::<Inventory>(player);
-    let arrow_to_consume: Option<(SlotIndex, ItemStack)> = find_arrow(&inventory);
-    // Unnecessary until more gamemodes are supported
-    /*
-    if player.gamemode == Gamemode::Survival || player.gamemode == Gamemode::Adventure {
-        // If no arrow was found, don't shoot
-        let arrow_to_consume = arrow_to_consume.clone();
-        if arrow_to_consume.is_none() {
-            debug!("Tried to shoot bow with no arrows.");
-            return;
+    let gamemode = *world.get::<Gamemode>(player);
+
+    {
+        let inventory = world.get::<Inventory>(player);
+        let arrow_to_consume: Option<(SlotIndex, ItemStack)> = find_arrow(&inventory);
+
+        if gamemode == Gamemode::Survival || gamemode == Gamemode::Adventure {
+            // If no arrow was found, don't shoot
+            let arrow_to_consume = arrow_to_consume.clone();
+            if arrow_to_consume.is_none() {
+                return;
+            }
+
+            // Consume arrow
+            let (arrow_slot, arrow_stack) = arrow_to_consume.unwrap();
+            let mut arrow_stack: ItemStack = arrow_stack;
+            arrow_stack.amount -= 1;
+
+            inventory
+                .set_item_at(arrow_slot.area, arrow_slot.slot, arrow_stack)
+                .unwrap();
+            drop(inventory);
+            game.handle(
+                world,
+                InventoryUpdateEvent {
+                    slots: smallvec![arrow_slot],
+                    entity: player,
+                },
+            );
         }
 
-        // Consume arrow
-        let (arrow_slot, arrow_stack) = arrow_to_consume.unwrap();
-        let mut arrow_stack: ItemStack = arrow_stack;
-        arrow_stack.amount -= 1;
-
-        inventory.set_item_at(arrow_slot, arrow_stack);
-        inventory_updates.single_write(InventoryUpdateEvent {
-            slots: smallvec![arrow_slot],
-            player: entity,
-        });
+        let _arrow_type: Item = match arrow_to_consume {
+            None => Item::Arrow, // Default to generic arrow in creative mode with none in inventory
+            Some((_, arrow_stack)) => arrow_stack.ty,
+        };
     }
-    */
-
-    drop(inventory); // Inventory no longer used.
-
-    let _arrow_type: Item = match arrow_to_consume {
-        None => Item::Arrow, // Default to generic arrow in creative mode with none in inventory
-        Some((_, arrow_stack)) => arrow_stack.ty,
-    };
 
     let timed_use = world.try_get::<ItemTimedUse>(player);
 
