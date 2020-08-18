@@ -46,7 +46,7 @@ jobs:
     - name: Run tests
       run: cargo test
       env:
-        RUSTFLAGS: "-C opt-level=0 debuginfo=0"
+        RUSTFLAGS: "-C opt-level=0 -C debuginfo=0"
 
     - name: Install Clippy
       run: rustup component add clippy
@@ -54,7 +54,7 @@ jobs:
     - name: Run Clippy
       run: cargo clippy --all-targets -- -D warnings
       env:
-        RUSTFLAGS: "-C opt-level=0 debuginfo=0"
+        RUSTFLAGS: "-C opt-level=0 -C debuginfo=0"
     
     - name: Check formatting
       run: cargo fmt -- --check
