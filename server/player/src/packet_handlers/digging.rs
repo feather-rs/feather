@@ -427,7 +427,6 @@ fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
 
         if gamemode == Gamemode::Survival || gamemode == Gamemode::Adventure {
             // If no arrow was found, don't shoot
-            let arrow_to_consume = arrow_to_consume.clone();
             if arrow_to_consume.is_none() {
                 return;
             }
