@@ -129,6 +129,19 @@ pub struct InventoryUpdateEvent {
     pub entity: Entity,
 }
 
+/// Event triggered to reduce an items durability. For example,
+/// when an item has been used, a tool breaks a block,
+/// or armor has been hit.
+#[derive(Debug, Clone)]
+pub struct ItemDamageEvent {
+    /// The player whose item is being damaged
+    pub player: Entity,
+    /// Which inventory slot is being damaged
+    pub slot: SlotIndex,
+    /// How many points of damage the item is taking
+    pub damage_taken: u32,
+}
+
 /// Event triggered when a player opens a window. For example,
 /// opening a chest will trigger this event.
 #[derive(Copy, Clone, Debug)]
