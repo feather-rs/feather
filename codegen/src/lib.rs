@@ -82,7 +82,6 @@ lazy_static! {
 
         m
     };
-
     static ref FUNCTION_MAPPINGS: HashMap<PacketParameterType, &'static str> = {
         let mut m = HashMap::new();
 
