@@ -8,7 +8,7 @@ use feather_server_types::{
     EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, ItemDamageEvent, Network, NetworkId,
     Player,
 };
-use fecs::World;
+use fecs::{Entity, World};
 use num_traits::ToPrimitive;
 use rand::Rng;
 use smallvec::smallvec;
@@ -159,28 +159,7 @@ pub fn on_damage_item(event: &ItemDamageEvent, game: &mut Game, world: &mut Worl
     drop(inventory);
 
     if item_broken {
-        let (effect_pos_x, effect_pos_y, effect_pos_z) = {
-            let pos = world.get::<Position>(event.player);
-            (
-                // https://wiki.vg/Data_types#Fixed-point_numbers
-                (pos.x * 8.0) as i32,
-                (pos.y * 8.0) as i32,
-                (pos.z * 8.0) as i32,
-            )
-        };
-        let mut rng = game.rng();
-        let sound_packet = NamedSoundEffect {
-            sound_name: "entity.item.break".into(),
-            sound_category: SoundCategory::Players as i32,
-            effect_pos_x,
-            effect_pos_y,
-            effect_pos_z,
-            volume: 1.0,
-            pitch: rng.gen_range(0.8, 1.2),
-        };
-
-        let network = world.get::<Network>(event.player);
-        network.send(sound_packet);
+        send_item_broken_sound_effect(event.player, game, world);
     }
 
     let inv_update = InventoryUpdateEvent {
@@ -188,6 +167,31 @@ pub fn on_damage_item(event: &ItemDamageEvent, game: &mut Game, world: &mut Worl
         entity: event.player,
     };
     game.handle(world, inv_update);
+}
+
+fn send_item_broken_sound_effect(player: Entity, game: &mut Game, world: &mut World) {
+    let (effect_pos_x, effect_pos_y, effect_pos_z) = {
+        let pos = world.get::<Position>(player);
+        (
+            // https://wiki.vg/Data_types#Fixed-point_numbers
+            (pos.x * 8.0) as i32,
+            (pos.y * 8.0) as i32,
+            (pos.z * 8.0) as i32,
+        )
+    };
+    let mut rng = game.rng();
+    let sound_packet = NamedSoundEffect {
+        sound_name: "entity.item.break".into(),
+        sound_category: SoundCategory::Players as i32,
+        effect_pos_x,
+        effect_pos_y,
+        effect_pos_z,
+        volume: 1.0,
+        pitch: rng.gen_range(0.8, 1.2),
+    };
+
+    let network = world.get::<Network>(player);
+    network.send(sound_packet);
 }
 
 #[cfg(test)]
