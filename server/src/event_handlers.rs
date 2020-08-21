@@ -66,6 +66,8 @@ pub fn build_event_handlers() -> EventHandlers {
 
         on_chunk_send_join_player,
 
+        on_damage_item,
+
         on_inventory_update_send_set_slot,
         on_inventory_update_broadcast_equipment_update,
 

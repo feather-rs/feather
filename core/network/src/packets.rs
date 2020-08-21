@@ -1714,6 +1714,20 @@ pub struct NamedSoundEffect {
     pub pitch: f32,
 }
 
+#[derive(Clone, Copy)]
+pub enum SoundCategory {
+    Master = 0,
+    Music = 1,
+    Records = 2,
+    Weather = 3,
+    Blocks = 4,
+    Hostile = 5,
+    Neutral = 6,
+    Players = 7,
+    Ambient = 8,
+    Voice = 9,
+}
+
 #[derive(Default, AsAny, Packet, Clone)]
 pub struct DisconnectPlay {
     pub reason: String, // Chat

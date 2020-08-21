@@ -92,6 +92,66 @@ impl crate::ToolMaterial {
         }
     }
 }
+impl crate::Item {
+    pub fn durability(self) -> Option<u32> {
+        match self {
+            crate::Item::Bow => Some(384u32),
+            crate::Item::CarrotOnAStick => Some(25u32),
+            crate::Item::ChainmailBoots => Some(195u32),
+            crate::Item::ChainmailChestplate => Some(240u32),
+            crate::Item::ChainmailHelmet => Some(165u32),
+            crate::Item::ChainmailLeggings => Some(225u32),
+            crate::Item::DiamondAxe => Some(1561u32),
+            crate::Item::DiamondBoots => Some(429u32),
+            crate::Item::DiamondChestplate => Some(528u32),
+            crate::Item::DiamondHelmet => Some(363u32),
+            crate::Item::DiamondHoe => Some(1561u32),
+            crate::Item::DiamondLeggings => Some(495u32),
+            crate::Item::DiamondPickaxe => Some(1561u32),
+            crate::Item::DiamondShovel => Some(1561u32),
+            crate::Item::DiamondSword => Some(1561u32),
+            crate::Item::Elytra => Some(432u32),
+            crate::Item::FishingRod => Some(64u32),
+            crate::Item::FlintAndSteel => Some(64u32),
+            crate::Item::GoldenAxe => Some(32u32),
+            crate::Item::GoldenBoots => Some(91u32),
+            crate::Item::GoldenChestplate => Some(112u32),
+            crate::Item::GoldenHelmet => Some(77u32),
+            crate::Item::GoldenHoe => Some(32u32),
+            crate::Item::GoldenLeggings => Some(105u32),
+            crate::Item::GoldenPickaxe => Some(32u32),
+            crate::Item::GoldenShovel => Some(32u32),
+            crate::Item::GoldenSword => Some(32u32),
+            crate::Item::IronAxe => Some(250u32),
+            crate::Item::IronBoots => Some(195u32),
+            crate::Item::IronChestplate => Some(240u32),
+            crate::Item::IronHelmet => Some(165u32),
+            crate::Item::IronHoe => Some(250u32),
+            crate::Item::IronLeggings => Some(225u32),
+            crate::Item::IronPickaxe => Some(250u32),
+            crate::Item::IronShovel => Some(250u32),
+            crate::Item::IronSword => Some(250u32),
+            crate::Item::LeatherBoots => Some(65u32),
+            crate::Item::LeatherChestplate => Some(80u32),
+            crate::Item::LeatherHelmet => Some(55u32),
+            crate::Item::LeatherLeggings => Some(75u32),
+            crate::Item::Shears => Some(238u32),
+            crate::Item::Shield => Some(336u32),
+            crate::Item::StoneAxe => Some(131u32),
+            crate::Item::StoneHoe => Some(131u32),
+            crate::Item::StonePickaxe => Some(131u32),
+            crate::Item::StoneShovel => Some(131u32),
+            crate::Item::StoneSword => Some(131u32),
+            crate::Item::Trident => Some(250u32),
+            crate::Item::WoodenAxe => Some(59u32),
+            crate::Item::WoodenHoe => Some(59u32),
+            crate::Item::WoodenPickaxe => Some(59u32),
+            crate::Item::WoodenShovel => Some(59u32),
+            crate::Item::WoodenSword => Some(59u32),
+            _ => None,
+        }
+    }
+}
 impl crate::BlockKind {
     pub fn best_tool(self) -> Option<crate::Tool> {
         match self {

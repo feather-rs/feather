@@ -508,8 +508,18 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
     );
 
     m.insert(
+        PacketId(0x1A, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::NamedSoundEffect,
+    );
+
+    m.insert(
         PacketId(0x1B, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::DisconnectPlay,
+    );
+
+    m.insert(
+        PacketId(0x1C, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::EntityStatus,
     );
 
     m.insert(

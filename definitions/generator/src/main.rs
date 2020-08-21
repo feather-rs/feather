@@ -34,6 +34,10 @@ pub fn load_directory(dir: impl AsRef<Path>, target_dir: &str) -> anyhow::Result
     for entry in WalkDir::new(dir) {
         let entry = entry.context("failed to open DirEntry")?;
 
+        if entry.file_type().is_dir() {
+            continue;
+        }
+
         let mut name = entry
             .path()
             .file_stem()
@@ -44,10 +48,6 @@ pub fn load_directory(dir: impl AsRef<Path>, target_dir: &str) -> anyhow::Result
         let mut contents = String::new();
         let mut file = File::open(entry.path())
             .with_context(|| format!("failed to open file `{}`", entry.path().to_string_lossy()))?;
-
-        if file.metadata()?.is_dir() {
-            continue;
-        }
 
         file.read_to_string(&mut contents)
             .with_context(|| format!("failed to read file `{}`", entry.path().to_string_lossy()))?;

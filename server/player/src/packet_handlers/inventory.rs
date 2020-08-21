@@ -182,6 +182,15 @@ impl<'a> TryFrom<&'a ClickWindow> for Mode {
             0 => {
                 let button = parse_button(value.button)?;
 
+                // Slot -999 means that the user clicked outside the window,
+                // dropping the item.
+                if value.slot == -999 {
+                    match button {
+                        MouseButton::Left => return Ok(Mode::ItemDrop { full_stack: true }),
+                        MouseButton::Right => return Ok(Mode::ItemDrop { full_stack: false }),
+                    }
+                }
+
                 Ok(Mode::SingleClick(button))
             }
             1 => {
