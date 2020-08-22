@@ -1,7 +1,17 @@
 [workspace]
 members = [
-    "api",
+    # Listed in the order they appear in the dependency tree (from bottom to top)
+    "crates/generated",
+    "crates/blocks",
+    "crates/base",
+    "crates/ecs",
+    "crates/common",
+    "crates/protocol",
+    "crates/server",
+]
 
+# Temp until we finish porting everything to new 1.16 design
+exclude = [
     "core",
     "core/anvil",
     "core/blocks",
@@ -42,7 +52,6 @@ members = [
     "server/weather",
     "server/worldgen",
 
-    "codegen",
     "data",
     "data/macro"
 ]

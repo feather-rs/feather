@@ -1,0 +1,11 @@
+[package]
+name = "feather-server"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+common = { path = "../common", package = "feather-common" }
+base = { path = "../base", package = "feather-base" }
+ecs = { path = "../ecs", package = "feather-ecs" }
+protocol = { path = "../protocol", package = "feather-protocol" }
