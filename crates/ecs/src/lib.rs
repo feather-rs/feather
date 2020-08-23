@@ -15,11 +15,10 @@ pub use hecs::Added;
 /// Use as a type in a query to filter by entities whose component
 /// of type `T` has been changed since the last tick.
 pub use hecs::Changed;
-
 pub use hecs::World as Ecs;
-
 pub use hecs::{
     BuiltEntity, ComponentError, Entity, EntityBuilder, EntityRef, MissingComponent, NoSuchEntity,
 };
 
 mod system;
+pub use system::{Stage, SysResult, SystemExecutor, SystemFn};

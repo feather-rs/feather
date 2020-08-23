@@ -6,3 +6,5 @@ edition = "2018"
 
 [dependencies]
 hecs = { version = "0.1", package = "bevy_hecs" } # Watch https://github.com/Ralith/hecs/issues/71
+anyhow = "1"
+log = "0.4"

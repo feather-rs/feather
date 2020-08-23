@@ -1,4 +1,4 @@
-use feather_ecs::{Ecs, EntityBuilder, ComponentError};
+use feather_ecs::{ComponentError, Ecs, EntityBuilder};
 
 #[test]
 fn add_simple_entity() {
