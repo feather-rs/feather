@@ -71,7 +71,7 @@ impl<Input> SystemExecutor<Input> {
     }
 
     /// Invokes all systems in order.
-    pub fn tick(&mut self, input: &mut Input) {
+    pub fn tick(&self, input: &mut Input) {
         for (&stage, systems) in &self.stages {
             for (index, system) in systems.iter().copied().enumerate() {
                 if let Err(e) = system(input) {

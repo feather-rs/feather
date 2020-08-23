@@ -10,3 +10,6 @@ crate-type = ["dylib"]
 [dependencies]
 blocks = { path = "../blocks", package = "feather-blocks" }
 generated = { path = "../generated", package = "feather-generated" }
+ecs = { path = "../ecs", package = "feather-ecs" }
+
+resources = { version = "1", default-features = false }
