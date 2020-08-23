@@ -5,3 +5,10 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+thiserror = "1"
+bumpalo = "3"
+
+[dependencies.legion]
+# Switch to crates.io version once Legion releases 0.3
+git = "https://github.com/TomGillen/legion"
+default-features = false

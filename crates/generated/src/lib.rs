@@ -4,6 +4,7 @@ use std::sync::Arc;
 mod biome;
 mod block;
 mod entity;
+#[allow(clippy::all)]
 mod inventory;
 mod item;
 mod particle;
