@@ -1,6 +1,7 @@
 // This file is @generated. Please do not edit.
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(
+    num_derive::FromPrimitive, num_derive::ToPrimitive, Copy, Clone, Debug, PartialEq, Eq, Hash,
+)]
 pub enum BlockKind {
     Air,
     Stone,

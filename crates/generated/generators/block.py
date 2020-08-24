@@ -76,7 +76,7 @@ for block in data:
         Some(TOOLS)
         """
 
-output = common.generate_enum("BlockKind", blocks)
+output = "#[derive(num_derive::FromPrimitive, num_derive::ToPrimitive)]" + common.generate_enum("BlockKind", blocks)
 output += common.generate_enum_property("BlockKind", "id", "u32", ids, True)
 output += common.generate_enum_property("BlockKind", "name", "&str", names, True, "&'static str")
 output += common.generate_enum_property("BlockKind", "display_name", "&str", display_names, True, "&'static str")

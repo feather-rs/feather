@@ -1,5 +1,12 @@
 use crate::{BlockId, BlockKind};
 impl BlockId {
+    #[doc = "Determines whether or not a block has the `age_0_1` property."]
+    pub fn has_age_0_1(self) -> bool {
+        match self.kind() {
+            BlockKind::Bamboo => true,
+            _ => false,
+        }
+    }
     #[doc = "Determines whether or not a block has the `age_0_15` property."]
     pub fn has_age_0_15(self) -> bool {
         match self.kind() {
@@ -17,14 +24,17 @@ impl BlockId {
     #[doc = "Determines whether or not a block has the `age_0_25` property."]
     pub fn has_age_0_25(self) -> bool {
         match self.kind() {
-            BlockKind::Kelp => true,
+            BlockKind::Kelp | BlockKind::WeepingVines | BlockKind::TwistingVines => true,
             _ => false,
         }
     }
     #[doc = "Determines whether or not a block has the `age_0_3` property."]
     pub fn has_age_0_3(self) -> bool {
         match self.kind() {
-            BlockKind::NetherWart | BlockKind::Beetroots | BlockKind::FrostedIce => true,
+            BlockKind::NetherWart
+            | BlockKind::Beetroots
+            | BlockKind::FrostedIce
+            | BlockKind::SweetBerryBush => true,
             _ => false,
         }
     }
@@ -50,6 +60,13 @@ impl BlockId {
     pub fn has_attached(self) -> bool {
         match self.kind() {
             BlockKind::TripwireHook | BlockKind::Tripwire => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `attachment` property."]
+    pub fn has_attachment(self) -> bool {
+        match self.kind() {
+            BlockKind::Bell => true,
             _ => false,
         }
     }
@@ -80,10 +97,21 @@ impl BlockId {
             | BlockKind::StrippedJungleWood
             | BlockKind::StrippedAcaciaWood
             | BlockKind::StrippedDarkOakWood
+            | BlockKind::Basalt
+            | BlockKind::PolishedBasalt
+            | BlockKind::Chain
             | BlockKind::QuartzPillar
             | BlockKind::HayBlock
             | BlockKind::PurpurPillar
-            | BlockKind::BoneBlock => true,
+            | BlockKind::BoneBlock
+            | BlockKind::WarpedStem
+            | BlockKind::StrippedWarpedStem
+            | BlockKind::WarpedHyphae
+            | BlockKind::StrippedWarpedHyphae
+            | BlockKind::CrimsonStem
+            | BlockKind::StrippedCrimsonStem
+            | BlockKind::CrimsonHyphae
+            | BlockKind::StrippedCrimsonHyphae => true,
             _ => false,
         }
     }
@@ -101,10 +129,24 @@ impl BlockId {
             _ => false,
         }
     }
+    #[doc = "Determines whether or not a block has the `bottom` property."]
+    pub fn has_bottom(self) -> bool {
+        match self.kind() {
+            BlockKind::Scaffolding => true,
+            _ => false,
+        }
+    }
     #[doc = "Determines whether or not a block has the `cauldron_level` property."]
     pub fn has_cauldron_level(self) -> bool {
         match self.kind() {
             BlockKind::Cauldron => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `charges` property."]
+    pub fn has_charges(self) -> bool {
+        match self.kind() {
+            BlockKind::RespawnAnchor => true,
             _ => false,
         }
     }
@@ -145,8 +187,15 @@ impl BlockId {
             _ => false,
         }
     }
-    #[doc = "Determines whether or not a block has the `distance` property."]
-    pub fn has_distance(self) -> bool {
+    #[doc = "Determines whether or not a block has the `distance_0_7` property."]
+    pub fn has_distance_0_7(self) -> bool {
+        match self.kind() {
+            BlockKind::Scaffolding => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `distance_1_7` property."]
+    pub fn has_distance_1_7(self) -> bool {
         match self.kind() {
             BlockKind::OakLeaves
             | BlockKind::SpruceLeaves
@@ -187,8 +236,6 @@ impl BlockId {
             | BlockKind::Vine
             | BlockKind::NetherBrickFence
             | BlockKind::Tripwire
-            | BlockKind::CobblestoneWall
-            | BlockKind::MossyCobblestoneWall
             | BlockKind::WhiteStainedGlassPane
             | BlockKind::OrangeStainedGlassPane
             | BlockKind::MagentaStainedGlassPane
@@ -210,7 +257,32 @@ impl BlockId {
             | BlockKind::JungleFence
             | BlockKind::AcaciaFence
             | BlockKind::DarkOakFence
-            | BlockKind::ChorusPlant => true,
+            | BlockKind::ChorusPlant
+            | BlockKind::CrimsonFence
+            | BlockKind::WarpedFence => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `east_nlt` property."]
+    pub fn has_east_nlt(self) -> bool {
+        match self.kind() {
+            BlockKind::CobblestoneWall
+            | BlockKind::MossyCobblestoneWall
+            | BlockKind::BrickWall
+            | BlockKind::PrismarineWall
+            | BlockKind::RedSandstoneWall
+            | BlockKind::MossyStoneBrickWall
+            | BlockKind::GraniteWall
+            | BlockKind::StoneBrickWall
+            | BlockKind::NetherBrickWall
+            | BlockKind::AndesiteWall
+            | BlockKind::RedNetherBrickWall
+            | BlockKind::SandstoneWall
+            | BlockKind::EndStoneBrickWall
+            | BlockKind::DioriteWall
+            | BlockKind::BlackstoneWall
+            | BlockKind::PolishedBlackstoneBrickWall
+            | BlockKind::PolishedBlackstoneWall => true,
             _ => false,
         }
     }
@@ -259,7 +331,11 @@ impl BlockId {
             | BlockKind::BirchButton
             | BlockKind::JungleButton
             | BlockKind::AcaciaButton
-            | BlockKind::DarkOakButton => true,
+            | BlockKind::DarkOakButton
+            | BlockKind::Grindstone
+            | BlockKind::CrimsonButton
+            | BlockKind::WarpedButton
+            | BlockKind::PolishedBlackstoneButton => true,
             _ => false,
         }
     }
@@ -289,11 +365,17 @@ impl BlockId {
             | BlockKind::OakDoor
             | BlockKind::Ladder
             | BlockKind::CobblestoneStairs
-            | BlockKind::WallSign
+            | BlockKind::OakWallSign
+            | BlockKind::SpruceWallSign
+            | BlockKind::BirchWallSign
+            | BlockKind::AcaciaWallSign
+            | BlockKind::JungleWallSign
+            | BlockKind::DarkOakWallSign
             | BlockKind::Lever
             | BlockKind::IronDoor
             | BlockKind::RedstoneWallTorch
             | BlockKind::StoneButton
+            | BlockKind::SoulWallTorch
             | BlockKind::CarvedPumpkin
             | BlockKind::JackOLantern
             | BlockKind::Repeater
@@ -394,7 +476,48 @@ impl BlockId {
             | BlockKind::BrainCoralWallFan
             | BlockKind::BubbleCoralWallFan
             | BlockKind::FireCoralWallFan
-            | BlockKind::HornCoralWallFan => true,
+            | BlockKind::HornCoralWallFan
+            | BlockKind::PolishedGraniteStairs
+            | BlockKind::SmoothRedSandstoneStairs
+            | BlockKind::MossyStoneBrickStairs
+            | BlockKind::PolishedDioriteStairs
+            | BlockKind::MossyCobblestoneStairs
+            | BlockKind::EndStoneBrickStairs
+            | BlockKind::StoneStairs
+            | BlockKind::SmoothSandstoneStairs
+            | BlockKind::SmoothQuartzStairs
+            | BlockKind::GraniteStairs
+            | BlockKind::AndesiteStairs
+            | BlockKind::RedNetherBrickStairs
+            | BlockKind::PolishedAndesiteStairs
+            | BlockKind::DioriteStairs
+            | BlockKind::Loom
+            | BlockKind::Smoker
+            | BlockKind::BlastFurnace
+            | BlockKind::Grindstone
+            | BlockKind::Lectern
+            | BlockKind::Stonecutter
+            | BlockKind::Bell
+            | BlockKind::Campfire
+            | BlockKind::SoulCampfire
+            | BlockKind::CrimsonTrapdoor
+            | BlockKind::WarpedTrapdoor
+            | BlockKind::CrimsonFenceGate
+            | BlockKind::WarpedFenceGate
+            | BlockKind::CrimsonStairs
+            | BlockKind::WarpedStairs
+            | BlockKind::CrimsonButton
+            | BlockKind::WarpedButton
+            | BlockKind::CrimsonDoor
+            | BlockKind::WarpedDoor
+            | BlockKind::CrimsonWallSign
+            | BlockKind::WarpedWallSign
+            | BlockKind::BeeNest
+            | BlockKind::Beehive
+            | BlockKind::BlackstoneStairs
+            | BlockKind::PolishedBlackstoneBrickStairs
+            | BlockKind::PolishedBlackstoneStairs
+            | BlockKind::PolishedBlackstoneButton => true,
             _ => false,
         }
     }
@@ -435,7 +558,8 @@ impl BlockId {
             | BlockKind::BrownShulkerBox
             | BlockKind::GreenShulkerBox
             | BlockKind::RedShulkerBox
-            | BlockKind::BlackShulkerBox => true,
+            | BlockKind::BlackShulkerBox
+            | BlockKind::Barrel => true,
             _ => false,
         }
     }
@@ -465,7 +589,28 @@ impl BlockId {
             | BlockKind::PrismarineBrickStairs
             | BlockKind::DarkPrismarineStairs
             | BlockKind::RedSandstoneStairs
-            | BlockKind::PurpurStairs => true,
+            | BlockKind::PurpurStairs
+            | BlockKind::PolishedGraniteStairs
+            | BlockKind::SmoothRedSandstoneStairs
+            | BlockKind::MossyStoneBrickStairs
+            | BlockKind::PolishedDioriteStairs
+            | BlockKind::MossyCobblestoneStairs
+            | BlockKind::EndStoneBrickStairs
+            | BlockKind::StoneStairs
+            | BlockKind::SmoothSandstoneStairs
+            | BlockKind::SmoothQuartzStairs
+            | BlockKind::GraniteStairs
+            | BlockKind::AndesiteStairs
+            | BlockKind::RedNetherBrickStairs
+            | BlockKind::PolishedAndesiteStairs
+            | BlockKind::DioriteStairs
+            | BlockKind::CrimsonTrapdoor
+            | BlockKind::WarpedTrapdoor
+            | BlockKind::CrimsonStairs
+            | BlockKind::WarpedStairs
+            | BlockKind::BlackstoneStairs
+            | BlockKind::PolishedBlackstoneBrickStairs
+            | BlockKind::PolishedBlackstoneStairs => true,
             _ => false,
         }
     }
@@ -485,7 +630,23 @@ impl BlockId {
             | BlockKind::BirchDoor
             | BlockKind::JungleDoor
             | BlockKind::AcaciaDoor
-            | BlockKind::DarkOakDoor => true,
+            | BlockKind::DarkOakDoor
+            | BlockKind::CrimsonDoor
+            | BlockKind::WarpedDoor => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `hanging` property."]
+    pub fn has_hanging(self) -> bool {
+        match self.kind() {
+            BlockKind::Lantern | BlockKind::SoulLantern => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `has_book` property."]
+    pub fn has_has_book(self) -> bool {
+        match self.kind() {
+            BlockKind::Lectern => true,
             _ => false,
         }
     }
@@ -533,7 +694,16 @@ impl BlockId {
             | BlockKind::BirchDoor
             | BlockKind::JungleDoor
             | BlockKind::AcaciaDoor
-            | BlockKind::DarkOakDoor => true,
+            | BlockKind::DarkOakDoor
+            | BlockKind::CrimsonDoor
+            | BlockKind::WarpedDoor => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `honey_level` property."]
+    pub fn has_honey_level(self) -> bool {
+        match self.kind() {
+            BlockKind::BeeNest | BlockKind::Beehive => true,
             _ => false,
         }
     }
@@ -545,7 +715,9 @@ impl BlockId {
             | BlockKind::BirchFenceGate
             | BlockKind::JungleFenceGate
             | BlockKind::AcaciaFenceGate
-            | BlockKind::DarkOakFenceGate => true,
+            | BlockKind::DarkOakFenceGate
+            | BlockKind::CrimsonFenceGate
+            | BlockKind::WarpedFenceGate => true,
             _ => false,
         }
     }
@@ -570,6 +742,20 @@ impl BlockId {
             _ => false,
         }
     }
+    #[doc = "Determines whether or not a block has the `leaves` property."]
+    pub fn has_leaves(self) -> bool {
+        match self.kind() {
+            BlockKind::Bamboo => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `level_0_8` property."]
+    pub fn has_level_0_8(self) -> bool {
+        match self.kind() {
+            BlockKind::Composter => true,
+            _ => false,
+        }
+    }
     #[doc = "Determines whether or not a block has the `lit` property."]
     pub fn has_lit(self) -> bool {
         match self.kind() {
@@ -577,7 +763,11 @@ impl BlockId {
             | BlockKind::RedstoneOre
             | BlockKind::RedstoneTorch
             | BlockKind::RedstoneWallTorch
-            | BlockKind::RedstoneLamp => true,
+            | BlockKind::RedstoneLamp
+            | BlockKind::Smoker
+            | BlockKind::BlastFurnace
+            | BlockKind::Campfire
+            | BlockKind::SoulCampfire => true,
             _ => false,
         }
     }
@@ -608,8 +798,6 @@ impl BlockId {
             | BlockKind::Vine
             | BlockKind::NetherBrickFence
             | BlockKind::Tripwire
-            | BlockKind::CobblestoneWall
-            | BlockKind::MossyCobblestoneWall
             | BlockKind::WhiteStainedGlassPane
             | BlockKind::OrangeStainedGlassPane
             | BlockKind::MagentaStainedGlassPane
@@ -631,7 +819,32 @@ impl BlockId {
             | BlockKind::JungleFence
             | BlockKind::AcaciaFence
             | BlockKind::DarkOakFence
-            | BlockKind::ChorusPlant => true,
+            | BlockKind::ChorusPlant
+            | BlockKind::CrimsonFence
+            | BlockKind::WarpedFence => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `north_nlt` property."]
+    pub fn has_north_nlt(self) -> bool {
+        match self.kind() {
+            BlockKind::CobblestoneWall
+            | BlockKind::MossyCobblestoneWall
+            | BlockKind::BrickWall
+            | BlockKind::PrismarineWall
+            | BlockKind::RedSandstoneWall
+            | BlockKind::MossyStoneBrickWall
+            | BlockKind::GraniteWall
+            | BlockKind::StoneBrickWall
+            | BlockKind::NetherBrickWall
+            | BlockKind::AndesiteWall
+            | BlockKind::RedNetherBrickWall
+            | BlockKind::SandstoneWall
+            | BlockKind::EndStoneBrickWall
+            | BlockKind::DioriteWall
+            | BlockKind::BlackstoneWall
+            | BlockKind::PolishedBlackstoneBrickWall
+            | BlockKind::PolishedBlackstoneWall => true,
             _ => false,
         }
     }
@@ -693,7 +906,21 @@ impl BlockId {
             | BlockKind::BirchDoor
             | BlockKind::JungleDoor
             | BlockKind::AcaciaDoor
-            | BlockKind::DarkOakDoor => true,
+            | BlockKind::DarkOakDoor
+            | BlockKind::Barrel
+            | BlockKind::CrimsonTrapdoor
+            | BlockKind::WarpedTrapdoor
+            | BlockKind::CrimsonFenceGate
+            | BlockKind::WarpedFenceGate
+            | BlockKind::CrimsonDoor
+            | BlockKind::WarpedDoor => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `orientation` property."]
+    pub fn has_orientation(self) -> bool {
+        match self.kind() {
+            BlockKind::Jigsaw => true,
             _ => false,
         }
     }
@@ -751,7 +978,8 @@ impl BlockId {
             BlockKind::RedstoneWire
             | BlockKind::LightWeightedPressurePlate
             | BlockKind::HeavyWeightedPressurePlate
-            | BlockKind::DaylightDetector => true,
+            | BlockKind::DaylightDetector
+            | BlockKind::Target => true,
             _ => false,
         }
     }
@@ -801,7 +1029,21 @@ impl BlockId {
             | BlockKind::JungleDoor
             | BlockKind::AcaciaDoor
             | BlockKind::DarkOakDoor
-            | BlockKind::Observer => true,
+            | BlockKind::Observer
+            | BlockKind::Lectern
+            | BlockKind::Bell
+            | BlockKind::CrimsonPressurePlate
+            | BlockKind::WarpedPressurePlate
+            | BlockKind::CrimsonTrapdoor
+            | BlockKind::WarpedTrapdoor
+            | BlockKind::CrimsonFenceGate
+            | BlockKind::WarpedFenceGate
+            | BlockKind::CrimsonButton
+            | BlockKind::WarpedButton
+            | BlockKind::CrimsonDoor
+            | BlockKind::WarpedDoor
+            | BlockKind::PolishedBlackstonePressurePlate
+            | BlockKind::PolishedBlackstoneButton => true,
             _ => false,
         }
     }
@@ -822,7 +1064,12 @@ impl BlockId {
     #[doc = "Determines whether or not a block has the `rotation` property."]
     pub fn has_rotation(self) -> bool {
         match self.kind() {
-            BlockKind::Sign
+            BlockKind::OakSign
+            | BlockKind::SpruceSign
+            | BlockKind::BirchSign
+            | BlockKind::AcaciaSign
+            | BlockKind::JungleSign
+            | BlockKind::DarkOakSign
             | BlockKind::SkeletonSkull
             | BlockKind::WitherSkeletonSkull
             | BlockKind::ZombieHead
@@ -844,7 +1091,9 @@ impl BlockId {
             | BlockKind::BrownBanner
             | BlockKind::GreenBanner
             | BlockKind::RedBanner
-            | BlockKind::BlackBanner => true,
+            | BlockKind::BlackBanner
+            | BlockKind::CrimsonSign
+            | BlockKind::WarpedSign => true,
             _ => false,
         }
     }
@@ -852,6 +1101,13 @@ impl BlockId {
     pub fn has_short(self) -> bool {
         match self.kind() {
             BlockKind::PistonHead => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `signal_fire` property."]
+    pub fn has_signal_fire(self) -> bool {
+        match self.kind() {
+            BlockKind::Campfire | BlockKind::SoulCampfire => true,
             _ => false,
         }
     }
@@ -868,7 +1124,9 @@ impl BlockId {
             | BlockKind::AcaciaSlab
             | BlockKind::DarkOakSlab
             | BlockKind::StoneSlab
+            | BlockKind::SmoothStoneSlab
             | BlockKind::SandstoneSlab
+            | BlockKind::CutSandstoneSlab
             | BlockKind::PetrifiedOakSlab
             | BlockKind::CobblestoneSlab
             | BlockKind::BrickSlab
@@ -876,7 +1134,26 @@ impl BlockId {
             | BlockKind::NetherBrickSlab
             | BlockKind::QuartzSlab
             | BlockKind::RedSandstoneSlab
-            | BlockKind::PurpurSlab => true,
+            | BlockKind::CutRedSandstoneSlab
+            | BlockKind::PurpurSlab
+            | BlockKind::PolishedGraniteSlab
+            | BlockKind::SmoothRedSandstoneSlab
+            | BlockKind::MossyStoneBrickSlab
+            | BlockKind::PolishedDioriteSlab
+            | BlockKind::MossyCobblestoneSlab
+            | BlockKind::EndStoneBrickSlab
+            | BlockKind::SmoothSandstoneSlab
+            | BlockKind::SmoothQuartzSlab
+            | BlockKind::GraniteSlab
+            | BlockKind::AndesiteSlab
+            | BlockKind::RedNetherBrickSlab
+            | BlockKind::PolishedAndesiteSlab
+            | BlockKind::DioriteSlab
+            | BlockKind::CrimsonSlab
+            | BlockKind::WarpedSlab
+            | BlockKind::BlackstoneSlab
+            | BlockKind::PolishedBlackstoneBrickSlab
+            | BlockKind::PolishedBlackstoneSlab => true,
             _ => false,
         }
     }
@@ -900,8 +1177,6 @@ impl BlockId {
             | BlockKind::Vine
             | BlockKind::NetherBrickFence
             | BlockKind::Tripwire
-            | BlockKind::CobblestoneWall
-            | BlockKind::MossyCobblestoneWall
             | BlockKind::WhiteStainedGlassPane
             | BlockKind::OrangeStainedGlassPane
             | BlockKind::MagentaStainedGlassPane
@@ -923,7 +1198,32 @@ impl BlockId {
             | BlockKind::JungleFence
             | BlockKind::AcaciaFence
             | BlockKind::DarkOakFence
-            | BlockKind::ChorusPlant => true,
+            | BlockKind::ChorusPlant
+            | BlockKind::CrimsonFence
+            | BlockKind::WarpedFence => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `south_nlt` property."]
+    pub fn has_south_nlt(self) -> bool {
+        match self.kind() {
+            BlockKind::CobblestoneWall
+            | BlockKind::MossyCobblestoneWall
+            | BlockKind::BrickWall
+            | BlockKind::PrismarineWall
+            | BlockKind::RedSandstoneWall
+            | BlockKind::MossyStoneBrickWall
+            | BlockKind::GraniteWall
+            | BlockKind::StoneBrickWall
+            | BlockKind::NetherBrickWall
+            | BlockKind::AndesiteWall
+            | BlockKind::RedNetherBrickWall
+            | BlockKind::SandstoneWall
+            | BlockKind::EndStoneBrickWall
+            | BlockKind::DioriteWall
+            | BlockKind::BlackstoneWall
+            | BlockKind::PolishedBlackstoneBrickWall
+            | BlockKind::PolishedBlackstoneWall => true,
             _ => false,
         }
     }
@@ -942,7 +1242,8 @@ impl BlockId {
             | BlockKind::BirchSapling
             | BlockKind::JungleSapling
             | BlockKind::AcaciaSapling
-            | BlockKind::DarkOakSapling => true,
+            | BlockKind::DarkOakSapling
+            | BlockKind::Bamboo => true,
             _ => false,
         }
     }
@@ -965,7 +1266,26 @@ impl BlockId {
             | BlockKind::PrismarineBrickStairs
             | BlockKind::DarkPrismarineStairs
             | BlockKind::RedSandstoneStairs
-            | BlockKind::PurpurStairs => true,
+            | BlockKind::PurpurStairs
+            | BlockKind::PolishedGraniteStairs
+            | BlockKind::SmoothRedSandstoneStairs
+            | BlockKind::MossyStoneBrickStairs
+            | BlockKind::PolishedDioriteStairs
+            | BlockKind::MossyCobblestoneStairs
+            | BlockKind::EndStoneBrickStairs
+            | BlockKind::StoneStairs
+            | BlockKind::SmoothSandstoneStairs
+            | BlockKind::SmoothQuartzStairs
+            | BlockKind::GraniteStairs
+            | BlockKind::AndesiteStairs
+            | BlockKind::RedNetherBrickStairs
+            | BlockKind::PolishedAndesiteStairs
+            | BlockKind::DioriteStairs
+            | BlockKind::CrimsonStairs
+            | BlockKind::WarpedStairs
+            | BlockKind::BlackstoneStairs
+            | BlockKind::PolishedBlackstoneBrickStairs
+            | BlockKind::PolishedBlackstoneStairs => true,
             _ => false,
         }
     }
@@ -1000,7 +1320,22 @@ impl BlockId {
             | BlockKind::Vine
             | BlockKind::CobblestoneWall
             | BlockKind::MossyCobblestoneWall
-            | BlockKind::ChorusPlant => true,
+            | BlockKind::ChorusPlant
+            | BlockKind::BrickWall
+            | BlockKind::PrismarineWall
+            | BlockKind::RedSandstoneWall
+            | BlockKind::MossyStoneBrickWall
+            | BlockKind::GraniteWall
+            | BlockKind::StoneBrickWall
+            | BlockKind::NetherBrickWall
+            | BlockKind::AndesiteWall
+            | BlockKind::RedNetherBrickWall
+            | BlockKind::SandstoneWall
+            | BlockKind::EndStoneBrickWall
+            | BlockKind::DioriteWall
+            | BlockKind::BlackstoneWall
+            | BlockKind::PolishedBlackstoneBrickWall
+            | BlockKind::PolishedBlackstoneWall => true,
             _ => false,
         }
     }
@@ -1016,10 +1351,20 @@ impl BlockId {
         match self.kind() {
             BlockKind::OakStairs
             | BlockKind::Chest
-            | BlockKind::Sign
+            | BlockKind::OakSign
+            | BlockKind::SpruceSign
+            | BlockKind::BirchSign
+            | BlockKind::AcaciaSign
+            | BlockKind::JungleSign
+            | BlockKind::DarkOakSign
             | BlockKind::Ladder
             | BlockKind::CobblestoneStairs
-            | BlockKind::WallSign
+            | BlockKind::OakWallSign
+            | BlockKind::SpruceWallSign
+            | BlockKind::BirchWallSign
+            | BlockKind::AcaciaWallSign
+            | BlockKind::JungleWallSign
+            | BlockKind::DarkOakWallSign
             | BlockKind::OakFence
             | BlockKind::OakTrapdoor
             | BlockKind::SpruceTrapdoor
@@ -1028,6 +1373,7 @@ impl BlockId {
             | BlockKind::AcaciaTrapdoor
             | BlockKind::DarkOakTrapdoor
             | BlockKind::IronBars
+            | BlockKind::Chain
             | BlockKind::GlassPane
             | BlockKind::BrickStairs
             | BlockKind::StoneBrickStairs
@@ -1075,7 +1421,9 @@ impl BlockId {
             | BlockKind::AcaciaSlab
             | BlockKind::DarkOakSlab
             | BlockKind::StoneSlab
+            | BlockKind::SmoothStoneSlab
             | BlockKind::SandstoneSlab
+            | BlockKind::CutSandstoneSlab
             | BlockKind::PetrifiedOakSlab
             | BlockKind::CobblestoneSlab
             | BlockKind::BrickSlab
@@ -1083,6 +1431,7 @@ impl BlockId {
             | BlockKind::NetherBrickSlab
             | BlockKind::QuartzSlab
             | BlockKind::RedSandstoneSlab
+            | BlockKind::CutRedSandstoneSlab
             | BlockKind::PurpurSlab
             | BlockKind::SpruceFence
             | BlockKind::BirchFence
@@ -1100,16 +1449,6 @@ impl BlockId {
             | BlockKind::BubbleCoral
             | BlockKind::FireCoral
             | BlockKind::HornCoral
-            | BlockKind::DeadTubeCoralWallFan
-            | BlockKind::DeadBrainCoralWallFan
-            | BlockKind::DeadBubbleCoralWallFan
-            | BlockKind::DeadFireCoralWallFan
-            | BlockKind::DeadHornCoralWallFan
-            | BlockKind::TubeCoralWallFan
-            | BlockKind::BrainCoralWallFan
-            | BlockKind::BubbleCoralWallFan
-            | BlockKind::FireCoralWallFan
-            | BlockKind::HornCoralWallFan
             | BlockKind::DeadTubeCoralFan
             | BlockKind::DeadBrainCoralFan
             | BlockKind::DeadBubbleCoralFan
@@ -1120,8 +1459,83 @@ impl BlockId {
             | BlockKind::BubbleCoralFan
             | BlockKind::FireCoralFan
             | BlockKind::HornCoralFan
+            | BlockKind::DeadTubeCoralWallFan
+            | BlockKind::DeadBrainCoralWallFan
+            | BlockKind::DeadBubbleCoralWallFan
+            | BlockKind::DeadFireCoralWallFan
+            | BlockKind::DeadHornCoralWallFan
+            | BlockKind::TubeCoralWallFan
+            | BlockKind::BrainCoralWallFan
+            | BlockKind::BubbleCoralWallFan
+            | BlockKind::FireCoralWallFan
+            | BlockKind::HornCoralWallFan
             | BlockKind::SeaPickle
-            | BlockKind::Conduit => true,
+            | BlockKind::Conduit
+            | BlockKind::PolishedGraniteStairs
+            | BlockKind::SmoothRedSandstoneStairs
+            | BlockKind::MossyStoneBrickStairs
+            | BlockKind::PolishedDioriteStairs
+            | BlockKind::MossyCobblestoneStairs
+            | BlockKind::EndStoneBrickStairs
+            | BlockKind::StoneStairs
+            | BlockKind::SmoothSandstoneStairs
+            | BlockKind::SmoothQuartzStairs
+            | BlockKind::GraniteStairs
+            | BlockKind::AndesiteStairs
+            | BlockKind::RedNetherBrickStairs
+            | BlockKind::PolishedAndesiteStairs
+            | BlockKind::DioriteStairs
+            | BlockKind::PolishedGraniteSlab
+            | BlockKind::SmoothRedSandstoneSlab
+            | BlockKind::MossyStoneBrickSlab
+            | BlockKind::PolishedDioriteSlab
+            | BlockKind::MossyCobblestoneSlab
+            | BlockKind::EndStoneBrickSlab
+            | BlockKind::SmoothSandstoneSlab
+            | BlockKind::SmoothQuartzSlab
+            | BlockKind::GraniteSlab
+            | BlockKind::AndesiteSlab
+            | BlockKind::RedNetherBrickSlab
+            | BlockKind::PolishedAndesiteSlab
+            | BlockKind::DioriteSlab
+            | BlockKind::BrickWall
+            | BlockKind::PrismarineWall
+            | BlockKind::RedSandstoneWall
+            | BlockKind::MossyStoneBrickWall
+            | BlockKind::GraniteWall
+            | BlockKind::StoneBrickWall
+            | BlockKind::NetherBrickWall
+            | BlockKind::AndesiteWall
+            | BlockKind::RedNetherBrickWall
+            | BlockKind::SandstoneWall
+            | BlockKind::EndStoneBrickWall
+            | BlockKind::DioriteWall
+            | BlockKind::Scaffolding
+            | BlockKind::Lantern
+            | BlockKind::SoulLantern
+            | BlockKind::Campfire
+            | BlockKind::SoulCampfire
+            | BlockKind::CrimsonSlab
+            | BlockKind::WarpedSlab
+            | BlockKind::CrimsonFence
+            | BlockKind::WarpedFence
+            | BlockKind::CrimsonTrapdoor
+            | BlockKind::WarpedTrapdoor
+            | BlockKind::CrimsonStairs
+            | BlockKind::WarpedStairs
+            | BlockKind::CrimsonSign
+            | BlockKind::WarpedSign
+            | BlockKind::CrimsonWallSign
+            | BlockKind::WarpedWallSign
+            | BlockKind::BlackstoneStairs
+            | BlockKind::BlackstoneWall
+            | BlockKind::BlackstoneSlab
+            | BlockKind::PolishedBlackstoneBrickSlab
+            | BlockKind::PolishedBlackstoneBrickStairs
+            | BlockKind::PolishedBlackstoneBrickWall
+            | BlockKind::PolishedBlackstoneStairs
+            | BlockKind::PolishedBlackstoneSlab
+            | BlockKind::PolishedBlackstoneWall => true,
             _ => false,
         }
     }
@@ -1138,8 +1552,6 @@ impl BlockId {
             | BlockKind::Vine
             | BlockKind::NetherBrickFence
             | BlockKind::Tripwire
-            | BlockKind::CobblestoneWall
-            | BlockKind::MossyCobblestoneWall
             | BlockKind::WhiteStainedGlassPane
             | BlockKind::OrangeStainedGlassPane
             | BlockKind::MagentaStainedGlassPane
@@ -1161,7 +1573,32 @@ impl BlockId {
             | BlockKind::JungleFence
             | BlockKind::AcaciaFence
             | BlockKind::DarkOakFence
-            | BlockKind::ChorusPlant => true,
+            | BlockKind::ChorusPlant
+            | BlockKind::CrimsonFence
+            | BlockKind::WarpedFence => true,
+            _ => false,
+        }
+    }
+    #[doc = "Determines whether or not a block has the `west_nlt` property."]
+    pub fn has_west_nlt(self) -> bool {
+        match self.kind() {
+            BlockKind::CobblestoneWall
+            | BlockKind::MossyCobblestoneWall
+            | BlockKind::BrickWall
+            | BlockKind::PrismarineWall
+            | BlockKind::RedSandstoneWall
+            | BlockKind::MossyStoneBrickWall
+            | BlockKind::GraniteWall
+            | BlockKind::StoneBrickWall
+            | BlockKind::NetherBrickWall
+            | BlockKind::AndesiteWall
+            | BlockKind::RedNetherBrickWall
+            | BlockKind::SandstoneWall
+            | BlockKind::EndStoneBrickWall
+            | BlockKind::DioriteWall
+            | BlockKind::BlackstoneWall
+            | BlockKind::PolishedBlackstoneBrickWall
+            | BlockKind::PolishedBlackstoneWall => true,
             _ => false,
         }
     }

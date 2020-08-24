@@ -4,6 +4,11 @@ version = "0.1.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+feather-generated = { path = "../generated" }
+once_cell = { version = "1" }
+anyhow = "1"
+thiserror = "1"
+num-traits = "0.2"
+serde = { version = "1", features = ["derive"] }
+bincode = "1"

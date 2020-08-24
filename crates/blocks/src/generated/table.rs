@@ -4,6 +4,7 @@ use std::convert::TryFrom;
 use std::str::FromStr;
 #[derive(Debug, Deserialize)]
 pub struct BlockTable {
+    age_0_1: Vec<(u16, u16)>,
     age_0_15: Vec<(u16, u16)>,
     age_0_2: Vec<(u16, u16)>,
     age_0_25: Vec<(u16, u16)>,
@@ -11,19 +12,24 @@ pub struct BlockTable {
     age_0_5: Vec<(u16, u16)>,
     age_0_7: Vec<(u16, u16)>,
     attached: Vec<(u16, u16)>,
+    attachment: Vec<(u16, u16)>,
     axis_xyz: Vec<(u16, u16)>,
     axis_xz: Vec<(u16, u16)>,
     bites: Vec<(u16, u16)>,
+    bottom: Vec<(u16, u16)>,
     cauldron_level: Vec<(u16, u16)>,
+    charges: Vec<(u16, u16)>,
     chest_kind: Vec<(u16, u16)>,
     comparator_mode: Vec<(u16, u16)>,
     conditional: Vec<(u16, u16)>,
     delay: Vec<(u16, u16)>,
     disarmed: Vec<(u16, u16)>,
-    distance: Vec<(u16, u16)>,
+    distance_0_7: Vec<(u16, u16)>,
+    distance_1_7: Vec<(u16, u16)>,
     down: Vec<(u16, u16)>,
     drag: Vec<(u16, u16)>,
     east_connected: Vec<(u16, u16)>,
+    east_nlt: Vec<(u16, u16)>,
     east_wire: Vec<(u16, u16)>,
     eggs: Vec<(u16, u16)>,
     enabled: Vec<(u16, u16)>,
@@ -35,24 +41,31 @@ pub struct BlockTable {
     facing_cubic: Vec<(u16, u16)>,
     half_top_bottom: Vec<(u16, u16)>,
     half_upper_lower: Vec<(u16, u16)>,
+    hanging: Vec<(u16, u16)>,
+    has_book: Vec<(u16, u16)>,
     has_bottle_0: Vec<(u16, u16)>,
     has_bottle_1: Vec<(u16, u16)>,
     has_bottle_2: Vec<(u16, u16)>,
     has_record: Vec<(u16, u16)>,
     hatch: Vec<(u16, u16)>,
     hinge: Vec<(u16, u16)>,
+    honey_level: Vec<(u16, u16)>,
     in_wall: Vec<(u16, u16)>,
     instrument: Vec<(u16, u16)>,
     inverted: Vec<(u16, u16)>,
     layers: Vec<(u16, u16)>,
+    leaves: Vec<(u16, u16)>,
+    level_0_8: Vec<(u16, u16)>,
     lit: Vec<(u16, u16)>,
     locked: Vec<(u16, u16)>,
     moisture: Vec<(u16, u16)>,
     north_connected: Vec<(u16, u16)>,
+    north_nlt: Vec<(u16, u16)>,
     north_wire: Vec<(u16, u16)>,
     note: Vec<(u16, u16)>,
     occupied: Vec<(u16, u16)>,
     open: Vec<(u16, u16)>,
+    orientation: Vec<(u16, u16)>,
     part: Vec<(u16, u16)>,
     persistent: Vec<(u16, u16)>,
     pickles: Vec<(u16, u16)>,
@@ -63,9 +76,11 @@ pub struct BlockTable {
     rail_shape: Vec<(u16, u16)>,
     rotation: Vec<(u16, u16)>,
     short: Vec<(u16, u16)>,
+    signal_fire: Vec<(u16, u16)>,
     slab_kind: Vec<(u16, u16)>,
     snowy: Vec<(u16, u16)>,
     south_connected: Vec<(u16, u16)>,
+    south_nlt: Vec<(u16, u16)>,
     south_wire: Vec<(u16, u16)>,
     stage: Vec<(u16, u16)>,
     stairs_shape: Vec<(u16, u16)>,
@@ -76,9 +91,29 @@ pub struct BlockTable {
     water_level: Vec<(u16, u16)>,
     waterlogged: Vec<(u16, u16)>,
     west_connected: Vec<(u16, u16)>,
+    west_nlt: Vec<(u16, u16)>,
     west_wire: Vec<(u16, u16)>,
 }
 impl BlockTable {
+    #[doc = "Retrieves the `age_0_1` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn age_0_1(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.age_0_1[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some({ x as i32 + 0i32 })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `age_0_1` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_age_0_1(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.age_0_1[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
     #[doc = "Retrieves the `age_0_15` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn age_0_15(&self, kind: BlockKind, state: u16) -> Option<i32> {
         let (offset_coefficient, stride) = self.age_0_15[kind as u16 as usize];
@@ -212,6 +247,25 @@ impl BlockTable {
         let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
         Some(new as u16)
     }
+    #[doc = "Retrieves the `attachment` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn attachment(&self, kind: BlockKind, state: u16) -> Option<Attachment> {
+        let (offset_coefficient, stride) = self.attachment[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some(Attachment::try_from(x).expect("invalid block state"))
+    }
+    #[doc = "Updates the state value for the given block kind such that its `attachment` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_attachment(&self, kind: BlockKind, state: u16, value: Attachment) -> Option<u16> {
+        let (offset_coefficient, stride) = self.attachment[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
     #[doc = "Retrieves the `axis_xyz` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn axis_xyz(&self, kind: BlockKind, state: u16) -> Option<AxisXyz> {
         let (offset_coefficient, stride) = self.axis_xyz[kind as u16 as usize];
@@ -269,6 +323,25 @@ impl BlockTable {
         let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
         Some(new as u16)
     }
+    #[doc = "Retrieves the `bottom` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn bottom(&self, kind: BlockKind, state: u16) -> Option<bool> {
+        let (offset_coefficient, stride) = self.bottom[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some(if x == 0 { false } else { true })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `bottom` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_bottom(&self, kind: BlockKind, state: u16, value: bool) -> Option<u16> {
+        let (offset_coefficient, stride) = self.bottom[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
     #[doc = "Retrieves the `cauldron_level` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn cauldron_level(&self, kind: BlockKind, state: u16) -> Option<i32> {
         let (offset_coefficient, stride) = self.cauldron_level[kind as u16 as usize];
@@ -281,6 +354,25 @@ impl BlockTable {
     #[doc = "Updates the state value for the given block kind such that its `cauldron_level` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_cauldron_level(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
         let (offset_coefficient, stride) = self.cauldron_level[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `charges` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn charges(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.charges[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some({ x as i32 + 0i32 })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `charges` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_charges(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.charges[kind as u16 as usize];
         if offset_coefficient == 0 {
             return None;
         }
@@ -388,18 +480,37 @@ impl BlockTable {
         let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
         Some(new as u16)
     }
-    #[doc = "Retrieves the `distance` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
-    pub fn distance(&self, kind: BlockKind, state: u16) -> Option<i32> {
-        let (offset_coefficient, stride) = self.distance[kind as u16 as usize];
+    #[doc = "Retrieves the `distance_0_7` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn distance_0_7(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.distance_0_7[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some({ x as i32 + 0i32 })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `distance_0_7` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_distance_0_7(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.distance_0_7[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `distance_1_7` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn distance_1_7(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.distance_1_7[kind as u16 as usize];
         if offset_coefficient == 0 {
             return None;
         }
         let x = crate::n_dimensional_index(state, offset_coefficient, stride);
         Some({ x as i32 + 1i32 })
     }
-    #[doc = "Updates the state value for the given block kind such that its `distance` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
-    pub fn set_distance(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
-        let (offset_coefficient, stride) = self.distance[kind as u16 as usize];
+    #[doc = "Updates the state value for the given block kind such that its `distance_1_7` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_distance_1_7(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.distance_1_7[kind as u16 as usize];
         if offset_coefficient == 0 {
             return None;
         }
@@ -457,6 +568,25 @@ impl BlockTable {
     #[doc = "Updates the state value for the given block kind such that its `east_connected` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_east_connected(&self, kind: BlockKind, state: u16, value: bool) -> Option<u16> {
         let (offset_coefficient, stride) = self.east_connected[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `east_nlt` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn east_nlt(&self, kind: BlockKind, state: u16) -> Option<EastNlt> {
+        let (offset_coefficient, stride) = self.east_nlt[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some(EastNlt::try_from(x).expect("invalid block state"))
+    }
+    #[doc = "Updates the state value for the given block kind such that its `east_nlt` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_east_nlt(&self, kind: BlockKind, state: u16, value: EastNlt) -> Option<u16> {
+        let (offset_coefficient, stride) = self.east_nlt[kind as u16 as usize];
         if offset_coefficient == 0 {
             return None;
         }
@@ -697,6 +827,44 @@ impl BlockTable {
         let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
         Some(new as u16)
     }
+    #[doc = "Retrieves the `hanging` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn hanging(&self, kind: BlockKind, state: u16) -> Option<bool> {
+        let (offset_coefficient, stride) = self.hanging[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some(if x == 0 { false } else { true })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `hanging` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_hanging(&self, kind: BlockKind, state: u16, value: bool) -> Option<u16> {
+        let (offset_coefficient, stride) = self.hanging[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `has_book` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn has_book(&self, kind: BlockKind, state: u16) -> Option<bool> {
+        let (offset_coefficient, stride) = self.has_book[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some(if x == 0 { false } else { true })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `has_book` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_has_book(&self, kind: BlockKind, state: u16, value: bool) -> Option<u16> {
+        let (offset_coefficient, stride) = self.has_book[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
     #[doc = "Retrieves the `has_bottle_0` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn has_bottle_0(&self, kind: BlockKind, state: u16) -> Option<bool> {
         let (offset_coefficient, stride) = self.has_bottle_0[kind as u16 as usize];
@@ -811,6 +979,25 @@ impl BlockTable {
         let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
         Some(new as u16)
     }
+    #[doc = "Retrieves the `honey_level` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn honey_level(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.honey_level[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some({ x as i32 + 0i32 })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `honey_level` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_honey_level(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.honey_level[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
     #[doc = "Retrieves the `in_wall` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn in_wall(&self, kind: BlockKind, state: u16) -> Option<bool> {
         let (offset_coefficient, stride) = self.in_wall[kind as u16 as usize];
@@ -885,6 +1072,44 @@ impl BlockTable {
         }
         let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
         let new = ({ value as u16 - 1u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `leaves` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn leaves(&self, kind: BlockKind, state: u16) -> Option<Leaves> {
+        let (offset_coefficient, stride) = self.leaves[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some(Leaves::try_from(x).expect("invalid block state"))
+    }
+    #[doc = "Updates the state value for the given block kind such that its `leaves` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_leaves(&self, kind: BlockKind, state: u16, value: Leaves) -> Option<u16> {
+        let (offset_coefficient, stride) = self.leaves[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `level_0_8` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn level_0_8(&self, kind: BlockKind, state: u16) -> Option<i32> {
+        let (offset_coefficient, stride) = self.level_0_8[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some({ x as i32 + 0i32 })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `level_0_8` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_level_0_8(&self, kind: BlockKind, state: u16, value: i32) -> Option<u16> {
+        let (offset_coefficient, stride) = self.level_0_8[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 - 0u16 } as i32 - old) * stride as i32 + state as i32;
         Some(new as u16)
     }
     #[doc = "Retrieves the `lit` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
@@ -963,6 +1188,25 @@ impl BlockTable {
         let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
         Some(new as u16)
     }
+    #[doc = "Retrieves the `north_nlt` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn north_nlt(&self, kind: BlockKind, state: u16) -> Option<NorthNlt> {
+        let (offset_coefficient, stride) = self.north_nlt[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some(NorthNlt::try_from(x).expect("invalid block state"))
+    }
+    #[doc = "Updates the state value for the given block kind such that its `north_nlt` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_north_nlt(&self, kind: BlockKind, state: u16, value: NorthNlt) -> Option<u16> {
+        let (offset_coefficient, stride) = self.north_nlt[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
     #[doc = "Retrieves the `north_wire` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn north_wire(&self, kind: BlockKind, state: u16) -> Option<NorthWire> {
         let (offset_coefficient, stride) = self.north_wire[kind as u16 as usize];
@@ -1032,6 +1276,25 @@ impl BlockTable {
     #[doc = "Updates the state value for the given block kind such that its `open` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_open(&self, kind: BlockKind, state: u16, value: bool) -> Option<u16> {
         let (offset_coefficient, stride) = self.open[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `orientation` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn orientation(&self, kind: BlockKind, state: u16) -> Option<Orientation> {
+        let (offset_coefficient, stride) = self.orientation[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some(Orientation::try_from(x).expect("invalid block state"))
+    }
+    #[doc = "Updates the state value for the given block kind such that its `orientation` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_orientation(&self, kind: BlockKind, state: u16, value: Orientation) -> Option<u16> {
+        let (offset_coefficient, stride) = self.orientation[kind as u16 as usize];
         if offset_coefficient == 0 {
             return None;
         }
@@ -1234,6 +1497,25 @@ impl BlockTable {
         let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
         Some(new as u16)
     }
+    #[doc = "Retrieves the `signal_fire` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn signal_fire(&self, kind: BlockKind, state: u16) -> Option<bool> {
+        let (offset_coefficient, stride) = self.signal_fire[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some(if x == 0 { false } else { true })
+    }
+    #[doc = "Updates the state value for the given block kind such that its `signal_fire` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_signal_fire(&self, kind: BlockKind, state: u16, value: bool) -> Option<u16> {
+        let (offset_coefficient, stride) = self.signal_fire[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
     #[doc = "Retrieves the `slab_kind` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn slab_kind(&self, kind: BlockKind, state: u16) -> Option<SlabKind> {
         let (offset_coefficient, stride) = self.slab_kind[kind as u16 as usize];
@@ -1284,6 +1566,25 @@ impl BlockTable {
     #[doc = "Updates the state value for the given block kind such that its `south_connected` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
     pub fn set_south_connected(&self, kind: BlockKind, state: u16, value: bool) -> Option<u16> {
         let (offset_coefficient, stride) = self.south_connected[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
+    #[doc = "Retrieves the `south_nlt` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn south_nlt(&self, kind: BlockKind, state: u16) -> Option<SouthNlt> {
+        let (offset_coefficient, stride) = self.south_nlt[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some(SouthNlt::try_from(x).expect("invalid block state"))
+    }
+    #[doc = "Updates the state value for the given block kind such that its `south_nlt` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_south_nlt(&self, kind: BlockKind, state: u16, value: SouthNlt) -> Option<u16> {
+        let (offset_coefficient, stride) = self.south_nlt[kind as u16 as usize];
         if offset_coefficient == 0 {
             return None;
         }
@@ -1486,6 +1787,25 @@ impl BlockTable {
         let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
         Some(new as u16)
     }
+    #[doc = "Retrieves the `west_nlt` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
+    pub fn west_nlt(&self, kind: BlockKind, state: u16) -> Option<WestNlt> {
+        let (offset_coefficient, stride) = self.west_nlt[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let x = crate::n_dimensional_index(state, offset_coefficient, stride);
+        Some(WestNlt::try_from(x).expect("invalid block state"))
+    }
+    #[doc = "Updates the state value for the given block kind such that its `west_nlt` value is updated. Returns the new state,\n        or `None` if the block does not have this property."]
+    pub fn set_west_nlt(&self, kind: BlockKind, state: u16, value: WestNlt) -> Option<u16> {
+        let (offset_coefficient, stride) = self.west_nlt[kind as u16 as usize];
+        if offset_coefficient == 0 {
+            return None;
+        }
+        let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
+        let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
+        Some(new as u16)
+    }
     #[doc = "Retrieves the `west_wire` value for the given block kind with the given state value.\n        Returns the value of the property, or `None` if it does not exist."]
     pub fn west_wire(&self, kind: BlockKind, state: u16) -> Option<WestWire> {
         let (offset_coefficient, stride) = self.west_wire[kind as u16 as usize];
@@ -1504,6 +1824,51 @@ impl BlockTable {
         let old = crate::n_dimensional_index(state, offset_coefficient, stride) as i32;
         let new = ({ value as u16 } as i32 - old) * stride as i32 + state as i32;
         Some(new as u16)
+    }
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum Attachment {
+    Floor,
+    Ceiling,
+    SingleWall,
+    DoubleWall,
+}
+impl TryFrom<u16> for Attachment {
+    type Error = anyhow::Error;
+    fn try_from(value: u16) -> anyhow::Result<Self> {
+        match value {
+            0u16 => Ok(Attachment::Floor),
+            1u16 => Ok(Attachment::Ceiling),
+            2u16 => Ok(Attachment::SingleWall),
+            3u16 => Ok(Attachment::DoubleWall),
+            x => Err(anyhow::anyhow!("invalid value {} for Attachment", x)),
+        }
+    }
+}
+impl FromStr for Attachment {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "floor" => Ok(Attachment::Floor),
+            "ceiling" => Ok(Attachment::Ceiling),
+            "single_wall" => Ok(Attachment::SingleWall),
+            "double_wall" => Ok(Attachment::DoubleWall),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(Attachment)
+            )),
+        }
+    }
+}
+impl Attachment {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Attachment::Floor => "floor",
+            Attachment::Ceiling => "ceiling",
+            Attachment::SingleWall => "single_wall",
+            Attachment::DoubleWall => "double_wall",
+        }
     }
 }
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -1653,6 +2018,44 @@ impl ComparatorMode {
         match self {
             ComparatorMode::Compare => "compare",
             ComparatorMode::Subtract => "subtract",
+        }
+    }
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum EastNlt {
+    None,
+    Low,
+    Tall,
+}
+impl TryFrom<u16> for EastNlt {
+    type Error = anyhow::Error;
+    fn try_from(value: u16) -> anyhow::Result<Self> {
+        match value {
+            0u16 => Ok(EastNlt::None),
+            1u16 => Ok(EastNlt::Low),
+            2u16 => Ok(EastNlt::Tall),
+            x => Err(anyhow::anyhow!("invalid value {} for EastNlt", x)),
+        }
+    }
+}
+impl FromStr for EastNlt {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "none" => Ok(EastNlt::None),
+            "low" => Ok(EastNlt::Low),
+            "tall" => Ok(EastNlt::Tall),
+            _ => Err(anyhow::anyhow!("invalid value for {}", stringify!(EastNlt))),
+        }
+    }
+}
+impl EastNlt {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            EastNlt::None => "none",
+            EastNlt::Low => "low",
+            EastNlt::Tall => "tall",
         }
     }
 }
@@ -2006,6 +2409,12 @@ pub enum Instrument {
     Guitar,
     Chime,
     Xylophone,
+    IronXylophone,
+    CowBell,
+    Didgeridoo,
+    Bit,
+    Banjo,
+    Pling,
 }
 impl TryFrom<u16> for Instrument {
     type Error = anyhow::Error;
@@ -2021,6 +2430,12 @@ impl TryFrom<u16> for Instrument {
             7u16 => Ok(Instrument::Guitar),
             8u16 => Ok(Instrument::Chime),
             9u16 => Ok(Instrument::Xylophone),
+            10u16 => Ok(Instrument::IronXylophone),
+            11u16 => Ok(Instrument::CowBell),
+            12u16 => Ok(Instrument::Didgeridoo),
+            13u16 => Ok(Instrument::Bit),
+            14u16 => Ok(Instrument::Banjo),
+            15u16 => Ok(Instrument::Pling),
             x => Err(anyhow::anyhow!("invalid value {} for Instrument", x)),
         }
     }
@@ -2039,6 +2454,12 @@ impl FromStr for Instrument {
             "guitar" => Ok(Instrument::Guitar),
             "chime" => Ok(Instrument::Chime),
             "xylophone" => Ok(Instrument::Xylophone),
+            "iron_xylophone" => Ok(Instrument::IronXylophone),
+            "cow_bell" => Ok(Instrument::CowBell),
+            "didgeridoo" => Ok(Instrument::Didgeridoo),
+            "bit" => Ok(Instrument::Bit),
+            "banjo" => Ok(Instrument::Banjo),
+            "pling" => Ok(Instrument::Pling),
             _ => Err(anyhow::anyhow!(
                 "invalid value for {}",
                 stringify!(Instrument)
@@ -2059,6 +2480,91 @@ impl Instrument {
             Instrument::Guitar => "guitar",
             Instrument::Chime => "chime",
             Instrument::Xylophone => "xylophone",
+            Instrument::IronXylophone => "iron_xylophone",
+            Instrument::CowBell => "cow_bell",
+            Instrument::Didgeridoo => "didgeridoo",
+            Instrument::Bit => "bit",
+            Instrument::Banjo => "banjo",
+            Instrument::Pling => "pling",
+        }
+    }
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum Leaves {
+    None,
+    Small,
+    Large,
+}
+impl TryFrom<u16> for Leaves {
+    type Error = anyhow::Error;
+    fn try_from(value: u16) -> anyhow::Result<Self> {
+        match value {
+            0u16 => Ok(Leaves::None),
+            1u16 => Ok(Leaves::Small),
+            2u16 => Ok(Leaves::Large),
+            x => Err(anyhow::anyhow!("invalid value {} for Leaves", x)),
+        }
+    }
+}
+impl FromStr for Leaves {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "none" => Ok(Leaves::None),
+            "small" => Ok(Leaves::Small),
+            "large" => Ok(Leaves::Large),
+            _ => Err(anyhow::anyhow!("invalid value for {}", stringify!(Leaves))),
+        }
+    }
+}
+impl Leaves {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Leaves::None => "none",
+            Leaves::Small => "small",
+            Leaves::Large => "large",
+        }
+    }
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum NorthNlt {
+    None,
+    Low,
+    Tall,
+}
+impl TryFrom<u16> for NorthNlt {
+    type Error = anyhow::Error;
+    fn try_from(value: u16) -> anyhow::Result<Self> {
+        match value {
+            0u16 => Ok(NorthNlt::None),
+            1u16 => Ok(NorthNlt::Low),
+            2u16 => Ok(NorthNlt::Tall),
+            x => Err(anyhow::anyhow!("invalid value {} for NorthNlt", x)),
+        }
+    }
+}
+impl FromStr for NorthNlt {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "none" => Ok(NorthNlt::None),
+            "low" => Ok(NorthNlt::Low),
+            "tall" => Ok(NorthNlt::Tall),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(NorthNlt)
+            )),
+        }
+    }
+}
+impl NorthNlt {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            NorthNlt::None => "none",
+            NorthNlt::Low => "low",
+            NorthNlt::Tall => "tall",
         }
     }
 }
@@ -2100,6 +2606,83 @@ impl NorthWire {
             NorthWire::Up => "up",
             NorthWire::Side => "side",
             NorthWire::None => "none",
+        }
+    }
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum Orientation {
+    DownEast,
+    DownNorth,
+    DownSouth,
+    DownWest,
+    UpEast,
+    UpNorth,
+    UpSouth,
+    UpWest,
+    WestUp,
+    EastUp,
+    NorthUp,
+    SouthUp,
+}
+impl TryFrom<u16> for Orientation {
+    type Error = anyhow::Error;
+    fn try_from(value: u16) -> anyhow::Result<Self> {
+        match value {
+            0u16 => Ok(Orientation::DownEast),
+            1u16 => Ok(Orientation::DownNorth),
+            2u16 => Ok(Orientation::DownSouth),
+            3u16 => Ok(Orientation::DownWest),
+            4u16 => Ok(Orientation::UpEast),
+            5u16 => Ok(Orientation::UpNorth),
+            6u16 => Ok(Orientation::UpSouth),
+            7u16 => Ok(Orientation::UpWest),
+            8u16 => Ok(Orientation::WestUp),
+            9u16 => Ok(Orientation::EastUp),
+            10u16 => Ok(Orientation::NorthUp),
+            11u16 => Ok(Orientation::SouthUp),
+            x => Err(anyhow::anyhow!("invalid value {} for Orientation", x)),
+        }
+    }
+}
+impl FromStr for Orientation {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "down_east" => Ok(Orientation::DownEast),
+            "down_north" => Ok(Orientation::DownNorth),
+            "down_south" => Ok(Orientation::DownSouth),
+            "down_west" => Ok(Orientation::DownWest),
+            "up_east" => Ok(Orientation::UpEast),
+            "up_north" => Ok(Orientation::UpNorth),
+            "up_south" => Ok(Orientation::UpSouth),
+            "up_west" => Ok(Orientation::UpWest),
+            "west_up" => Ok(Orientation::WestUp),
+            "east_up" => Ok(Orientation::EastUp),
+            "north_up" => Ok(Orientation::NorthUp),
+            "south_up" => Ok(Orientation::SouthUp),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(Orientation)
+            )),
+        }
+    }
+}
+impl Orientation {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Orientation::DownEast => "down_east",
+            Orientation::DownNorth => "down_north",
+            Orientation::DownSouth => "down_south",
+            Orientation::DownWest => "down_west",
+            Orientation::UpEast => "up_east",
+            Orientation::UpNorth => "up_north",
+            Orientation::UpSouth => "up_south",
+            Orientation::UpWest => "up_west",
+            Orientation::WestUp => "west_up",
+            Orientation::EastUp => "east_up",
+            Orientation::NorthUp => "north_up",
+            Orientation::SouthUp => "south_up",
         }
     }
 }
@@ -2339,6 +2922,47 @@ impl SlabKind {
 }
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(u16)]
+pub enum SouthNlt {
+    None,
+    Low,
+    Tall,
+}
+impl TryFrom<u16> for SouthNlt {
+    type Error = anyhow::Error;
+    fn try_from(value: u16) -> anyhow::Result<Self> {
+        match value {
+            0u16 => Ok(SouthNlt::None),
+            1u16 => Ok(SouthNlt::Low),
+            2u16 => Ok(SouthNlt::Tall),
+            x => Err(anyhow::anyhow!("invalid value {} for SouthNlt", x)),
+        }
+    }
+}
+impl FromStr for SouthNlt {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "none" => Ok(SouthNlt::None),
+            "low" => Ok(SouthNlt::Low),
+            "tall" => Ok(SouthNlt::Tall),
+            _ => Err(anyhow::anyhow!(
+                "invalid value for {}",
+                stringify!(SouthNlt)
+            )),
+        }
+    }
+}
+impl SouthNlt {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            SouthNlt::None => "none",
+            SouthNlt::Low => "low",
+            SouthNlt::Tall => "tall",
+        }
+    }
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(u16)]
 pub enum SouthWire {
     Up,
     Side,
@@ -2472,6 +3096,44 @@ impl StructureBlockMode {
             StructureBlockMode::Load => "load",
             StructureBlockMode::Corner => "corner",
             StructureBlockMode::Data => "data",
+        }
+    }
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(u16)]
+pub enum WestNlt {
+    None,
+    Low,
+    Tall,
+}
+impl TryFrom<u16> for WestNlt {
+    type Error = anyhow::Error;
+    fn try_from(value: u16) -> anyhow::Result<Self> {
+        match value {
+            0u16 => Ok(WestNlt::None),
+            1u16 => Ok(WestNlt::Low),
+            2u16 => Ok(WestNlt::Tall),
+            x => Err(anyhow::anyhow!("invalid value {} for WestNlt", x)),
+        }
+    }
+}
+impl FromStr for WestNlt {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match s {
+            "none" => Ok(WestNlt::None),
+            "low" => Ok(WestNlt::Low),
+            "tall" => Ok(WestNlt::Tall),
+            _ => Err(anyhow::anyhow!("invalid value for {}", stringify!(WestNlt))),
+        }
+    }
+}
+impl WestNlt {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            WestNlt::None => "none",
+            WestNlt::Low => "low",
+            WestNlt::Tall => "tall",
         }
     }
 }

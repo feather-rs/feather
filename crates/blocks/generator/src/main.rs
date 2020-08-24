@@ -6,7 +6,7 @@ use std::process::Command;
 fn main() {
     match feather_blocks_generator::generate() {
         Ok(code) => {
-            let base = concat!(env!("CARGO_MANIFEST_DIR"), "/src/generated");
+            let base = concat!(env!("CARGO_MANIFEST_DIR"), "/../src/generated");
 
             let _ = std::fs::create_dir_all(base);
 
@@ -33,11 +33,6 @@ fn main() {
                 .unwrap()
                 .write_all(&code.vanilla_ids_serialized)
                 .unwrap();
-
-            println!(
-                "cargo:rerun-if-changed={}",
-                concat!(env!("CARGO_MANIFEST_DIR"), "/../../data")
-            );
         }
         Err(e) => {
             eprintln!("An error occurred: {}", e);

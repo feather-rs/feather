@@ -2,6 +2,7 @@
 //! converts this report into a `Blocks`.
 
 use crate::{Block, Blocks, Property, PropertyKind};
+use anyhow::Context;
 use heck::CamelCase;
 use indexmap::map::IndexMap;
 use once_cell::sync::Lazy;
@@ -352,7 +353,8 @@ pub fn ident(x: impl AsRef<str>) -> Ident {
 }
 
 fn parse_report() -> anyhow::Result<BlocksReport> {
-    let report = serde_json::from_slice(feather_data::minecraft::BLOCKS)?;
+    let report = std::fs::read_to_string("blocks.json")
+    .context("failed to load blocks report. Please run the vanilla data generator and copy blocks.json to the current directory")?;
 
-    Ok(report)
+    Ok(serde_json::from_str(&report)?)
 }

@@ -3,6 +3,7 @@ members = [
     # Listed in the order they appear in the dependency tree (from bottom to top)
     "crates/generated",
     "crates/blocks",
+    "crates/blocks/generator",
     "crates/base",
     "crates/ecs",
     "crates/common",
