@@ -5,6 +5,7 @@ generators=(
   "inventory"
   "item"
   "particle"
+  "simplified_block"
 )
 
 for generator in ${generators[@]}; do

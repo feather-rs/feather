@@ -8,6 +8,7 @@ mod entity;
 mod inventory;
 mod item;
 mod particle;
+mod simplified_block;
 
 pub use biome::Biome;
 pub use block::BlockKind;
@@ -15,6 +16,7 @@ pub use entity::EntityKind;
 pub use inventory::{Area, InventoryBacking, Window};
 pub use item::Item;
 pub use particle::Particle;
+pub use simplified_block::SimplifiedBlockKind;
 
 #[derive(Debug, Default, Clone)]
 pub struct ItemStack; // TEMP
