@@ -6,13 +6,12 @@ use crate::{
     CommandCtx,
 };
 use feather_core::inventory::{Inventory, SlotIndex};
-use feather_core::network::packets::DisconnectPlay;
 use feather_core::text::{Text, TextComponentBuilder, TextValue};
 use feather_core::util::{Gamemode, Position};
 use feather_definitions::Item;
 use feather_server_types::{
     ChatEvent, ChatPosition, GamemodeUpdateEvent, InventoryUpdateEvent, MessageReceiver, Name,
-    Network, Player, ServerToWorkerMessage, ShutdownChannels, Teleported,
+    Player, ShutdownChannels, Teleported,
 };
 use fecs::{Entity, ResourcesProvider, World};
 use lieutenant::command;
@@ -297,7 +296,7 @@ pub enum KickError {
 }
 
 #[command(usage = "kick <targets>")]
-pub fn kick(ctx: &mut CommandCtx, targets: EntitySelector) -> anyhow::Result<()> {
+pub fn kick_1(ctx: &mut CommandCtx, targets: EntitySelector) -> anyhow::Result<()> {
     kick_players(
         ctx,
         &targets,
@@ -306,7 +305,7 @@ pub fn kick(ctx: &mut CommandCtx, targets: EntitySelector) -> anyhow::Result<()>
 }
 
 #[command(usage = "kick <targets> <reason>")]
-pub fn kick_1(
+pub fn kick_2(
     ctx: &mut CommandCtx,
     targets: EntitySelector,
     reason: TextArgument,
@@ -324,19 +323,14 @@ fn kick_players(
             return Err(KickError::NoEntities.into());
         }
     }
+
     for entity in &targets.entities {
-        // Send kick packet and disconnect
-        let network = ctx.world.get::<Network>(*entity);
-        let kick_packet = DisconnectPlay {
-            reason: reason.clone().into(),
-        };
-        network.send(kick_packet);
-        let _ = network.tx.send(ServerToWorkerMessage::Disconnect);
-        drop(network);
+        let name = ctx.world.get::<Name>(*entity).0.clone();
+        ctx.game
+            .disconnect_and_log(*entity, &mut ctx.world, &reason, "player kicked");
 
         // Send confirmation message
         // TODO Server ops should also see the message
-        let name = ctx.world.get::<Name>(*entity).0.clone();
         if let Some(mut sender_message_receiver) =
             ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
         {
