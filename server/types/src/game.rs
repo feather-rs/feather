@@ -8,7 +8,8 @@ use bumpalo::Bump;
 use feather_core::anvil::level::LevelData;
 use feather_core::blocks::BlockId;
 use feather_core::chunk_map::ChunkMap;
-use feather_core::network::Packet;
+use feather_core::network::{packets::DisconnectPlay, Packet};
+use feather_core::text::Text;
 use feather_core::util::{BlockPosition, ChunkPosition, Position};
 use feather_server_config::Config;
 use fecs::{Entity, Event, EventHandlers, IntoQuery, OwnedResources, Read, RefResources, World};
@@ -143,18 +144,42 @@ impl Game {
 
     /// Disconnects a player.
     pub fn disconnect(&mut self, player: Entity, world: &mut World, reason: impl Display) {
+        self.disconnect_player(player, world, &reason, &reason);
+    }
+
+    /// Disconnects a player.
+    /// Sends disconnect packet with `reason_client` and logs `reason_console` to the server console.
+    pub fn disconnect_and_log(
+        &mut self,
+        player: Entity,
+        world: &mut World,
+        reason_client: &Text,
+        reason_console: impl Display,
+    ) {
+        self.disconnect_player(player, world, reason_client, reason_console);
+    }
+
+    fn disconnect_player(
+        &mut self,
+        player: Entity,
+        world: &mut World,
+        reason_client: impl Display,
+        reason_console: impl Display,
+    ) {
+        let name = world.get::<Name>(player);
         let network = world.get::<Network>(player);
 
-        let name = world.get::<Name>(player);
-        log::info!("{} disconnected: {}", name.0, reason);
-
+        network.send(DisconnectPlay {
+            reason: reason_client.to_string(),
+        });
         let _ = network.tx.send(ServerToWorkerMessage::Disconnect);
+
+        log::info!("{} disconnected: {}", name.0, reason_console);
 
         drop(name);
         drop(network);
 
         self.player_count.fetch_sub(1, Ordering::AcqRel);
-
         self.handle(world, PlayerLeaveEvent { player });
         self.despawn(player, world);
     }

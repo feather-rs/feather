@@ -109,6 +109,9 @@ impl CommandState {
                 say,
                 me,
 
+                kick_1,
+                kick_2,
+
                 stop,
 
                 clear_1,
