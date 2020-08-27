@@ -1015,6 +1015,7 @@ dependencies = [
  "anyhow",
  "feather-core",
  "feather-definitions",
+ "feather-server-entity",
  "feather-server-types",
  "feather-server-util",
  "fecs",
