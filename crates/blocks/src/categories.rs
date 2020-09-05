@@ -1,5 +1,5 @@
 use crate::{BlockId, BlockKind};
-use feather_definitions::SimplifiedBlockKind;
+use feather_generated::SimplifiedBlockKind;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum PlacementType {
@@ -40,7 +40,7 @@ impl BlockId {
 
     #[inline]
     pub fn is_opaque(self) -> bool {
-        self.kind().opaque()
+        !self.kind().transparent()
     }
 
     #[inline]
@@ -208,6 +208,6 @@ impl BlockId {
 
     #[inline]
     pub fn is_full_block(self) -> bool {
-        self.kind().full_block()
+        self.kind().solid()
     }
 }

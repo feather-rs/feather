@@ -101,6 +101,7 @@ dependencies = [
  "once_cell",
  "serde",
  "thiserror",
+ "vek",
 ]
 
 [[package]]

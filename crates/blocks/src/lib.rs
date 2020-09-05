@@ -4,12 +4,12 @@ use thiserror::Error;
 
 pub use feather_generated::{BlockKind, SimplifiedBlockKind};
 
-// pub mod categories;
-// mod directions;
+pub mod categories;
+mod directions;
 #[allow(warnings)]
 #[allow(clippy::all)]
 mod generated;
-// mod wall_blocks;
+mod wall_blocks;
 
 static BLOCK_TABLE: Lazy<BlockTable> = Lazy::new(|| {
     let bytes = include_bytes!("generated/table.dat");

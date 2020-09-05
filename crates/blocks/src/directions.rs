@@ -1,5 +1,5 @@
 use crate::{AxisXyz, FacingCardinal, FacingCardinalAndDown, FacingCubic};
-use feather_util::BlockPosition;
+use vek::Vec3;
 
 impl FacingCardinal {
     pub fn opposite(self) -> FacingCardinal {
@@ -55,7 +55,7 @@ impl FacingCardinal {
         self.to_facing_cubic().axis()
     }
 
-    pub fn offset(self) -> BlockPosition {
+    pub fn offset(self) -> Vec3<i32> {
         self.to_facing_cubic().offset()
     }
 }
@@ -99,7 +99,7 @@ impl FacingCardinalAndDown {
         self.to_facing_cubic().axis()
     }
 
-    pub fn offset(self) -> BlockPosition {
+    pub fn offset(self) -> Vec3<i32> {
         self.to_facing_cubic().offset()
     }
 }
@@ -152,14 +152,14 @@ impl FacingCubic {
         }
     }
 
-    pub fn offset(self) -> BlockPosition {
+    pub fn offset(self) -> Vec3<i32> {
         match self {
-            FacingCubic::North => BlockPosition { x: 0, y: 0, z: -1 },
-            FacingCubic::East => BlockPosition { x: 1, y: 0, z: 0 },
-            FacingCubic::South => BlockPosition { x: 0, y: 0, z: 1 },
-            FacingCubic::West => BlockPosition { x: -1, y: 0, z: 0 },
-            FacingCubic::Up => BlockPosition { x: 0, y: 1, z: 0 },
-            FacingCubic::Down => BlockPosition { x: 0, y: -1, z: 0 },
+            FacingCubic::North => Vec3 { x: 0, y: 0, z: -1 },
+            FacingCubic::East => Vec3 { x: 1, y: 0, z: 0 },
+            FacingCubic::South => Vec3 { x: 0, y: 0, z: 1 },
+            FacingCubic::West => Vec3 { x: -1, y: 0, z: 0 },
+            FacingCubic::Up => Vec3 { x: 0, y: 1, z: 0 },
+            FacingCubic::Down => Vec3 { x: 0, y: -1, z: 0 },
         }
     }
 }
