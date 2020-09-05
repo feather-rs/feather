@@ -39,6 +39,7 @@ transparents = {}
 light_emissions = {}
 light_filters = {}
 dig_multipliers = {}
+solids = {}
 
 for block in data:
     variant = common.camel_case(block['name'])
@@ -53,6 +54,8 @@ for block in data:
     transparents[variant] = block['transparent']
     light_emissions[variant] = block['emitLight']
     light_filters[variant] = block['filterLight']
+
+    solids[variant] = block['boundingBox'] == 'block'
 
     # Dig multipliers
     material = block.get('material')
@@ -85,6 +88,7 @@ output += common.generate_enum_property("BlockKind", "diggable", "bool", diggabl
 output += common.generate_enum_property("BlockKind", "transparent", "bool", transparents)
 output += common.generate_enum_property("BlockKind", "light_emission", "u8", light_emissions)
 output += common.generate_enum_property("BlockKind", "light_filter", "u8", light_filters)
+output += common.generate_enum_property("BlockKind", "solid", "bool", solids)
 output += material_constants
 output += common.generate_enum_property("BlockKind", "dig_multipliers", "&'static [(crate::Item, f32)]", dig_multipliers)
 output += common.generate_enum_property("BlockKind", "harvest_tools", "Option<&'static [crate::Item]>", harvest_tools)
