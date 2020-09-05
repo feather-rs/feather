@@ -11,6 +11,10 @@
 use ecs::{Ecs, Stage, SysResult, SystemExecutor};
 use resources::{CantGetResource, Resource, Resources};
 
+mod positions;
+
+pub use positions::*;
+
 /// Struct passed to all systems as their sole argument.
 ///
 /// This type encapsulates all state needed during execution:

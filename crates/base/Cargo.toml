@@ -13,3 +13,4 @@ generated = { path = "../generated", package = "feather-generated" }
 ecs = { path = "../ecs", package = "feather-ecs" }
 
 resources = { version = "1", default-features = false }
+vek = "0.12"
