@@ -118,6 +118,7 @@ dependencies = [
  "feather-blocks",
  "feather-ecs",
  "feather-generated",
+ "parking_lot",
  "resources",
  "smallvec",
  "vek",

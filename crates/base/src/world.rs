@@ -1,13 +1,15 @@
-use feather_blocks::BlockId;
-use feather_chunk::{Chunk, CHUNK_HEIGHT};
-use feather_util::{BlockPosition, ChunkPosition};
-use hashbrown::HashMap;
+use crate::{BlockPosition, Chunk, ChunkPosition, CHUNK_HEIGHT};
+use ahash::AHashMap;
+use blocks::BlockId;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::sync::Arc;
 
-pub type ChunkMapInner = HashMap<ChunkPosition, Arc<RwLock<Chunk>>>;
+pub type WorldInner = AHashMap<ChunkPosition, Arc<RwLock<Chunk>>>;
 
-/// The chunk map.
+/// Stores all blocks and chunks in a world.
+///
+/// NB: _not_ what most Rust ECSs call "world."
+/// This does not store entities; it only contains blocks.
 ///
 /// This struct stores all the chunks on the server,
 /// so it allows access to blocks and lighting data.
@@ -18,10 +20,10 @@ pub type ChunkMapInner = HashMap<ChunkPosition, Arc<RwLock<Chunk>>>;
 /// type is only required for inserting and removing
 /// chunks.
 #[derive(Default)]
-pub struct ChunkMap(pub ChunkMapInner);
+pub struct World(pub WorldInner);
 
-impl ChunkMap {
-    /// Creates a new chunk map with no chunks.
+impl World {
+    /// Creates a new, empty world.
     pub fn new() -> Self {
         Self::default()
     }
@@ -109,8 +111,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn chunk_map_out_of_bounds() {
-        let mut map = ChunkMap::new();
+    fn world_out_of_bounds() {
+        let mut map = World::new();
         map.insert(Chunk::new(ChunkPosition::new(0, 0)));
 
         assert!(map.block_at(BlockPosition::new(0, -1, 0)).is_none());

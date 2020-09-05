@@ -13,11 +13,13 @@ use resources::{CantGetResource, Resource, Resources};
 
 mod chunk;
 mod positions;
+mod world;
 
 pub use blocks::*;
 pub use chunk::{Chunk, ChunkSection, CHUNK_HEIGHT, CHUNK_WIDTH};
 pub use generated::{Biome, EntityKind, Item, ItemStack, Particle};
 pub use positions::*;
+pub use world::World;
 
 /// Struct passed to all systems as their sole argument.
 ///
