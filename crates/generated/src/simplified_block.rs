@@ -1,6 +1,6 @@
 // This file is @generated. Please do not edit.
 use crate::BlockKind;
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum SimplifiedBlockKind {
     Air,
     Planks,

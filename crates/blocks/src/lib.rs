@@ -59,7 +59,7 @@ pub use crate::generated::table::*;
 
 use std::collections::HashSet;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct BlockId {
     kind: BlockKind,
     state: u16,

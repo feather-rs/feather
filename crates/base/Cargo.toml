@@ -14,3 +14,6 @@ ecs = { path = "../ecs", package = "feather-ecs" }
 
 resources = { version = "1", default-features = false }
 vek = "0.12"
+ahash = "0.4"
+smallvec = "1"
+bitflags = "1"

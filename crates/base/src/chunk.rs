@@ -1,8 +1,6 @@
+use crate::{Biome, BlockId, ChunkPosition, SimplifiedBlockKind};
 use ahash::AHashMap;
 use bitflags::bitflags;
-use feather_biomes::Biome;
-use feather_blocks::{BlockId, SimplifiedBlockKind};
-use feather_util::ChunkPosition;
 use smallvec::SmallVec;
 
 /// The number of bits used for each block

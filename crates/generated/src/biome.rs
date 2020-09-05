@@ -1,6 +1,6 @@
 // This file is @generated. Please do not edit.
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Biome {
     Ocean,
     Plains,

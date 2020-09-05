@@ -1,6 +1,15 @@
 // This file is @generated. Please do not edit.
 #[derive(
-    num_derive::FromPrimitive, num_derive::ToPrimitive, Copy, Clone, Debug, PartialEq, Eq, Hash,
+    num_derive::FromPrimitive,
+    num_derive::ToPrimitive,
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
 )]
 pub enum BlockKind {
     Air,

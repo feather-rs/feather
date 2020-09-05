@@ -11,8 +11,12 @@
 use ecs::{Ecs, Stage, SysResult, SystemExecutor};
 use resources::{CantGetResource, Resource, Resources};
 
+mod chunk;
 mod positions;
 
+pub use blocks::*;
+pub use chunk::{Chunk, ChunkSection, CHUNK_HEIGHT, CHUNK_WIDTH};
+pub use generated::{Biome, EntityKind, Item, ItemStack, Particle};
 pub use positions::*;
 
 /// Struct passed to all systems as their sole argument.

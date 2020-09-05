@@ -113,7 +113,7 @@ def generate_enum(name, variants):
         body += f"{variant},"
 
     return f"""
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
     pub enum {name} {{
         {body}
     }}
