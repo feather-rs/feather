@@ -6,6 +6,7 @@ members = [
     "crates/blocks/generator",
     "crates/base",
     "crates/ecs",
+    "crates/datapacks",
     "crates/common",
     "crates/protocol",
     "crates/server",
