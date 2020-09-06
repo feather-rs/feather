@@ -1,15 +1,15 @@
-//! This module implements handling of the entity
+//! This module implements the entity
 //! metadata format. See https://wiki.vg/Entity_metadata
 //! for the specification.
 
+use crate::{BlockPosition, Direction};
 use bitflags::bitflags;
-use feather_inventory::Slot;
-use feather_util::{BlockPosition, Direction};
+use generated::ItemStack;
 use std::collections::BTreeMap;
 use uuid::Uuid;
 
-type OptUuid = Option<Uuid>;
-type OptChat = Option<String>;
+pub type OptUuid = Option<Uuid>;
+pub type OptChat = Option<String>;
 
 // Meta index constants.
 pub const META_INDEX_ENTITY_BITMASK: u8 = 0;
@@ -43,7 +43,7 @@ pub enum MetaEntry {
     String(String),
     Chat(String),
     OptChat(Option<String>),
-    Slot(Slot),
+    Slot(Option<ItemStack>),
     Boolean(bool),
     Rotation(f32, f32, f32),
     Position(BlockPosition),
@@ -106,9 +106,9 @@ impl ToMetaEntry for bool {
     }
 }
 
-impl ToMetaEntry for Slot {
+impl ToMetaEntry for Option<ItemStack> {
     fn to_meta_entry(&self) -> MetaEntry {
-        MetaEntry::Slot(*self)
+        MetaEntry::Slot(self.clone())
     }
 }
 

@@ -18,7 +18,7 @@ pub use item::Item;
 pub use particle::Particle;
 pub use simplified_block::SimplifiedBlockKind;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct ItemStack; // TEMP
 
 type Slot = Mutex<Option<ItemStack>>;

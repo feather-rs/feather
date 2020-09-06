@@ -12,12 +12,15 @@ use ecs::{Ecs, Stage, SysResult, SystemExecutor};
 use resources::{CantGetResource, Resource, Resources};
 
 mod chunk;
+pub mod metadata;
 mod positions;
 mod world;
 
 pub use blocks::*;
 pub use chunk::{Chunk, ChunkSection, CHUNK_HEIGHT, CHUNK_WIDTH};
-pub use generated::{Biome, EntityKind, Item, ItemStack, Particle};
+pub use generated::{Area, Biome, EntityKind, Item, ItemStack, Particle, Window};
+#[doc(inline)]
+pub use metadata::EntityMetadata;
 pub use positions::*;
 pub use world::World;
 
@@ -115,4 +118,12 @@ impl Setup {
             self.executor,
         )
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum Direction {
+    North,
+    South,
+    East,
+    West,
 }
