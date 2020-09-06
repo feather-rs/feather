@@ -4,6 +4,11 @@ mod io;
 pub mod packets;
 
 pub use io::{Readable, Writeable};
+#[doc(inline)]
+pub use packets::{
+    client::{ClientLoginPacket, ClientStatusPacket},
+    server::{ServerLoginPacket, ServerStatusPacket},
+};
 
 pub type Slot = Option<ItemStack>;
 

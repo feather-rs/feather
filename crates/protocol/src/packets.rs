@@ -172,6 +172,49 @@ macro_rules! def_enum {
     };
 }
 
+macro_rules! packet_enum {
+    (
+        $ident:ident {
+            $($id:literal = $packet:ident),* $(,)?
+        }
+    ) => {
+        #[derive(Debug, Clone)]
+        pub enum $ident {
+            $(
+                $packet($packet),
+            )*
+        }
+
+        impl crate::Readable for $ident {
+            fn read(buffer: &mut ::std::io::Cursor<&[u8]>, version: crate::ProtocolVersion) -> anyhow::Result<Self>
+            where
+                Self: Sized
+            {
+                let packet_id = VarInt::read(buffer, version)?.0;
+                match packet_id {
+                    $(
+                        id if id == $id => Ok($ident::$packet($packet::read(buffer, version)?)),
+                    )*
+                    _ => Err(anyhow::anyhow!("unknown packet ID {}", packet_id)),
+                }
+            }
+        }
+
+        impl crate::Writeable for $ident {
+            fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
+                match self {
+                    $(
+                        $ident::$packet(packet) => {
+                            VarInt($id).write(buffer, version);
+                            packet.write(buffer, version);
+                        }
+                    )*
+                }
+            }
+        }
+    }
+}
+
 use crate::io::{Angle, LengthInferredVecU8, LengthPrefixedVec, Nbt, VarInt};
 use crate::Slot;
 use base::{BlockId, BlockPosition};

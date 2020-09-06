@@ -1,7 +1,7 @@
 use super::*;
 
 packets! {
-    Disconnect {
+    DisconnectLogin {
         reason String;
     }
 
