@@ -2,12 +2,9 @@
 
 use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
+use base::{metadata::MetaEntry, BlockPosition, Direction, EntityMetadata, Item, ItemStack};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use feather_anvil::entity::ItemNbt;
-use feather_entity_metadata::{EntityMetadata, MetaEntry};
-use feather_items::{Item, ItemStack};
-use feather_util::{BlockPosition, Direction};
-use num_traits::FromPrimitive;
+use num_traits::{FromPrimitive, ToPrimitive};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     borrow::Cow,
@@ -387,16 +384,17 @@ impl Readable for Slot {
 
         if present {
             let item_id = VarInt::read(buffer, version)?.0;
-            let amount = u8::read(buffer, version)?;
-            let tags: Option<ItemNbt> = Nbt::read(buffer, version).ok().map(|nbt| nbt.0);
+            let count = u8::read(buffer, version)? as u32;
+            // let tags: Option<ItemNbt> = Nbt::read(buffer, version).ok().map(|nbt| nbt.0);
 
-            let ty = Item::from_vanilla_id(item_id.try_into()?)
+            let item = Item::from_id(item_id.try_into()?)
                 .ok_or_else(|| anyhow!("unknown item ID {}", item_id))?;
 
             Ok(Some(ItemStack {
-                ty,
-                amount,
-                damage: tags.map(|t| t.damage).flatten(),
+                item,
+                count,
+                // damage: tags.map(|t| t.damage).flatten(),
+                damage: None,
             }))
         } else {
             Ok(None)
@@ -409,15 +407,15 @@ impl Writeable for Slot {
         self.is_some().write(buffer, version);
 
         if let Some(stack) = self {
-            VarInt(stack.ty.vanilla_id() as i32).write(buffer, version);
-            stack.amount.write(buffer, version);
+            VarInt(stack.item.id() as i32).write(buffer, version);
+            stack.count.write(buffer, version);
 
-            let tags: ItemNbt = stack.into();
-            if tags != ItemNbt::default() {
-                Nbt(tags).write(buffer, version);
-            } else {
-                0u8.write(buffer, version); // TAG_End
-            }
+            // let tags: ItemNbt = stack.into();
+            // if tags != ItemNbt::default() {
+            //    Nbt(tags).write(buffer, version);
+            // } else {
+            0u8.write(buffer, version); // TAG_End
+                                        // }
         }
     }
 }
@@ -539,7 +537,7 @@ fn write_meta_entry(entry: &MetaEntry, buffer: &mut Vec<u8>, version: ProtocolVe
                 false.write(buffer, version);
             }
         }
-        MetaEntry::Direction(x) => VarInt(x.id()).write(buffer, version),
+        MetaEntry::Direction(x) => VarInt(x.to_i32().unwrap()).write(buffer, version),
         MetaEntry::OptUuid(ox) => {
             if let Some(x) = ox {
                 true.write(buffer, version);

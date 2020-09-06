@@ -18,8 +18,77 @@ pub use item::Item;
 pub use particle::Particle;
 pub use simplified_block::SimplifiedBlockKind;
 
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub struct ItemStack; // TEMP
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ItemStack {
+    pub item: Item,
+    pub count: u32,
+
+    /// Damage to the item, if it's damageable.
+    pub damage: Option<u32>,
+}
+
+impl ItemStack {
+    /// Creates a new `ItemStack`.
+    pub fn new(item: Item, count: u32) -> Self {
+        Self {
+            item,
+            count,
+            damage: None,
+        }
+    }
+
+    /// Returns the item type for this `ItemStack`.
+    pub fn item(&self) -> Item {
+        self.item
+    }
+
+    /// Returns the number of items in this `ItemStack`.
+    pub fn count(&self) -> u32 {
+        self.count
+    }
+
+    /// Adds more items to this ItemStack. Returns the new count.
+    pub fn add(&mut self, count: u32) -> u32 {
+        self.count += count;
+        self.count
+    }
+
+    /// Removes some items from this ItemStack. Returns whether there
+    /// were enough items to be removed.
+    pub fn remove(&mut self, count: u32) -> bool {
+        self.count = match self.count.checked_sub(count) {
+            Some(count) => count,
+            None => return false,
+        };
+        true
+    }
+
+    /// Sets the item for this `ItemStack`.
+    pub fn set_item(&mut self, item: Item) {
+        self.item = item;
+    }
+
+    /// Sets the count for this `ItemStack`.
+    pub fn set_count(&mut self, count: u32) {
+        self.count = count;
+    }
+
+    /// Damages the item by the specified amount.
+    /// If this returns `true`, then the item is broken.
+    pub fn damage(&mut self, amount: u32) -> bool {
+        match &mut self.damage {
+            Some(damage) => {
+                *damage += amount;
+                if let Some(durability) = self.item.durability() {
+                    *damage >= durability
+                } else {
+                    false
+                }
+            }
+            None => false,
+        }
+    }
+}
 
 type Slot = Mutex<Option<ItemStack>>;
 

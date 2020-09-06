@@ -9,6 +9,7 @@
 //! used throughout the rest of the codebase.
 
 use ecs::{Ecs, Stage, SysResult, SystemExecutor};
+use num_derive::{FromPrimitive, ToPrimitive};
 use resources::{CantGetResource, Resource, Resources};
 
 mod chunk;
@@ -121,7 +122,7 @@ impl Setup {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, FromPrimitive, ToPrimitive)]
 pub enum Direction {
     North,
     South,

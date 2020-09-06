@@ -19,6 +19,8 @@ smallvec = "1"
 bitflags = "1"
 parking_lot = "0.11"
 uuid = { version = "0.8", features = ["serde"] }
+num-traits = "0.2"
+num-derive = "0.3"
 
 # Text markdown parsing
 nom = "5"

@@ -8,3 +8,17 @@ edition = "2018"
 crate-type = ["dylib"]
 
 [dependencies]
+base = { path = "../base", package = "feather-base" }
+
+anyhow = "1"
+thiserror = "1"
+
+flate2 = "1"
+cfb8 = "0.4"
+aes = "0.4"
+
+serde = "1"
+byteorder = "1"
+uuid = "0.8"
+hematite-nbt = "0.4"
+num-traits = "0.2"
