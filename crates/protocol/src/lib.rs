@@ -1,13 +1,16 @@
 use base::ItemStack;
 
+pub mod codec;
 mod io;
 pub mod packets;
 
+#[doc(inline)]
+pub use codec::MinecraftCodec;
 pub use io::{Readable, Writeable};
 #[doc(inline)]
 pub use packets::{
-    client::{ClientLoginPacket, ClientStatusPacket},
-    server::{ServerLoginPacket, ServerStatusPacket},
+    client::{ClientLoginPacket, ClientPlayPacket, ClientStatusPacket},
+    server::{ServerLoginPacket, ServerPlayPacket, ServerStatusPacket},
 };
 
 pub type Slot = Option<ItemStack>;
@@ -15,7 +18,7 @@ pub type Slot = Option<ItemStack>;
 /// A protocol version.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ProtocolVersion {
-    V1_16_1,
+    V1_16_2,
 }
 
 /// Denotes a type which may be treated as a packet.

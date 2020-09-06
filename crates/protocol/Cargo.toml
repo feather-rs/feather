@@ -14,8 +14,9 @@ anyhow = "1"
 thiserror = "1"
 
 flate2 = "1"
-cfb8 = "0.4"
-aes = "0.4"
+cfb8 = "0.5"
+aes = "0.5"
+bytes = "0.5"
 
 serde = "1"
 byteorder = "1"

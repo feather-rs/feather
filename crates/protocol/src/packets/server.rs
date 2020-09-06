@@ -22,3 +22,7 @@ packet_enum!(ServerLoginPacket {
     0x03 = SetCompression,
     0x04 = LoginPluginRequest,
 });
+
+packet_enum!(ServerPlayPacket {
+    0x00 = SpawnEntity,
+});

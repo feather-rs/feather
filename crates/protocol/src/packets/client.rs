@@ -23,6 +23,6 @@ packet_enum!(ClientLoginPacket {
     0x02 = LoginPluginResponse,
 });
 
-/*packet_enum!(ClientPlayPacket {
-
-});*/
+packet_enum!(ClientPlayPacket {
+    0x00 = Request,
+});
