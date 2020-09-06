@@ -134,3 +134,29 @@ impl Inventory {
         self.clone()
     }
 }
+
+#[derive(Debug, thiserror::Error)]
+pub enum WindowError {
+    #[error("slot index {0} is out of bounds")]
+    OutOfBounds(usize),
+}
+
+impl Window {
+    /// Gets the item at the provided protocol index.
+    /// Returns an error if index is invalid.
+    pub fn item(&self, index: usize) -> Result<MutexGuard<Option<ItemStack>>, WindowError> {
+        let (inventory, area, slot) = self
+            .index_to_slot(index)
+            .ok_or_else(|| WindowError::OutOfBounds(index))?;
+        inventory
+            .item(area, slot)
+            .ok_or_else(|| WindowError::OutOfBounds(index))
+    }
+
+    /// Sets the item at the provided protocol index.
+    /// Returns an error if the index is invalid.
+    pub fn set_item(&self, index: usize, item: Option<ItemStack>) -> Result<(), WindowError> {
+        *self.item(index)? = item;
+        Ok(())
+    }
+}
