@@ -2,7 +2,9 @@
 
 use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
-use base::{metadata::MetaEntry, BlockPosition, Direction, EntityMetadata, Item, ItemStack};
+use base::{
+    metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata, Item, ItemStack,
+};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 use serde::{de::DeserializeOwned, Serialize};
@@ -98,6 +100,39 @@ impl Readable for i8 {
 impl Writeable for i8 {
     fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
         buffer.write_i8(*self).unwrap()
+    }
+}
+
+impl<T> Readable for Option<T>
+where
+    T: Readable,
+{
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        // Assume boolean prefix.
+        let present = bool::read(buffer, version)?;
+
+        if present {
+            Ok(Some(T::read(buffer, version)?))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+impl<T> Writeable for Option<T>
+where
+    T: Writeable,
+{
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+        let present = self.is_some();
+        present.write(buffer, version);
+
+        if let Some(value) = self {
+            value.write(buffer, version);
+        }
     }
 }
 
@@ -344,6 +379,7 @@ impl<'a> From<LengthInferredVecU8<'a>> for Vec<u8> {
 /// Wrapper over an arbitrary type that implements `Deserialize` and `Serialize`.
 ///
 /// The value will be written to a packet as NBT data.
+#[derive(Debug, Clone)]
 pub struct Nbt<T>(pub T);
 
 impl<T> Readable for Nbt<T>
@@ -621,5 +657,23 @@ impl Writeable for Angle {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
         let val = (self.0 / 360.0 * 256.0).round() as u8;
         val.write(buffer, version);
+    }
+}
+
+impl Readable for BlockId {
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let id = VarInt::read(buffer, version)?.0;
+
+        let block = BlockId::from_vanilla_id(id.try_into()?);
+        Ok(block)
+    }
+}
+
+impl Writeable for BlockId {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+        VarInt(self.vanilla_id().into()).write(buffer, version);
     }
 }

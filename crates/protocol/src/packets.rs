@@ -15,7 +15,7 @@ macro_rules! user_type {
 
 macro_rules! user_type_convert_to_writeable {
     (VarInt, $e:expr) => {
-        VarInt($e as i32)
+        VarInt(*$e as i32)
     };
     (LengthPrefixedVec <$inner:ident>, $e:expr) => {
         LengthPrefixedVec::from($e.as_slice())
@@ -71,7 +71,7 @@ macro_rules! packets {
             impl crate::Writeable for $packet {
                 fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
                     $(
-                        user_type_convert_to_writeable!($typ $(<$generics>)?, self.$field).write(buffer, version);
+                        user_type_convert_to_writeable!($typ $(<$generics>)?, &self.$field).write(buffer, version);
                     )*
                 }
             }
@@ -87,8 +87,8 @@ macro_rules! def_enum {
                 $(
                     {
                         $(
-                            $field:ident: $typ:ident $(<$generics:ident>)?
-                        ),* $(,)?
+                            $field:ident $typ:ident $(<$generics:ident>)?
+                        );* $(;)?
                     }
                 )?
             ),* $(,)?
@@ -124,7 +124,8 @@ macro_rules! def_enum {
                                 $(
                                     let $field = <$typ $(<$generics>)?>::read(buffer, version)
                                         .context(concat!("failed to read field `", stringify!($field),
-                                            "` of enum `", stringify!($ident), "::", stringify!($variant), "`"))?;
+                                            "` of enum `", stringify!($ident), "::", stringify!($variant), "`"))?
+                                            .into();
                                 )*
                             )?
 
@@ -160,7 +161,7 @@ macro_rules! def_enum {
 
                             $(
                                 $(
-                                    $field.write(buffer, version);
+                                    user_type_convert_to_writeable!($typ, $field).write(buffer, version);
                                 )*
                             )?
                         }
@@ -171,7 +172,11 @@ macro_rules! def_enum {
     };
 }
 
-use crate::io::{LengthInferredVecU8, LengthPrefixedVec, VarInt};
+use crate::io::{Angle, LengthInferredVecU8, LengthPrefixedVec, Nbt, VarInt};
+use crate::Slot;
+use base::{BlockId, BlockPosition};
+use nbt::Blob;
+use uuid::Uuid;
 
 pub mod client;
 pub mod server;

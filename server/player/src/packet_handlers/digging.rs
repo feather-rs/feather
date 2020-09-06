@@ -421,13 +421,11 @@ fn handle_consume_item(game: &mut Game, world: &mut World, player: Entity, packe
 fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
     let inventory = world.get::<Inventory>(player);
     let arrow_to_consume: Option<(SlotIndex, ItemStack)> = find_arrow(&inventory);
-    // Unnecessary until more gamemodes are supported
-    /*
+
     if player.gamemode == Gamemode::Survival || player.gamemode == Gamemode::Adventure {
         // If no arrow was found, don't shoot
         let arrow_to_consume = arrow_to_consume.clone();
         if arrow_to_consume.is_none() {
-            debug!("Tried to shoot bow with no arrows.");
             return;
         }
 
@@ -437,12 +435,14 @@ fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
         arrow_stack.amount -= 1;
 
         inventory.set_item_at(arrow_slot, arrow_stack);
-        inventory_updates.single_write(InventoryUpdateEvent {
-            slots: smallvec![arrow_slot],
-            player: entity,
-        });
+        game.handle(
+            world,
+            InventoryUpdateEvent {
+                slots: smallvec![arrow_slot],
+                entity: player,
+            },
+        );
     }
-    */
 
     drop(inventory); // Inventory no longer used.
 
