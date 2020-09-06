@@ -1,3 +1,5 @@
+//! Implementation of the Minecraft chat component format.
+
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
 use std::fmt::{self, Display, Formatter};
@@ -6,8 +8,11 @@ use uuid::Uuid;
 
 pub mod markdown;
 
+#[derive(Debug, thiserror::Error)]
 pub enum TextConversionError {
+    #[error("'{0}' is not a recognized color")]
     InvalidColor(String),
+    #[error("'{0}' is not a recognized style type")]
     InvalidStyle(String),
 }
 

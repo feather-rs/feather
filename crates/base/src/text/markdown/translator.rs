@@ -1,5 +1,5 @@
 use super::{events::*, lex_input, parse_tokens, Span, Token, TokenType, Tokens};
-use crate::{Color, Style, Text, TextComponent, TextComponentBuilder};
+use crate::text::{Color, Style, Text, TextComponent, TextComponentBuilder};
 use nom::error::{convert_error, ErrorKind, VerboseError};
 use nom::Err;
 use thiserror::Error;
@@ -125,7 +125,6 @@ pub fn apply_tokens(tokens: Vec<Token>) -> Result<TextComponent, TextMarkupError
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::*;
 
     #[test]
     fn test_translate_simple() {

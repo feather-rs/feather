@@ -14,6 +14,7 @@ use resources::{CantGetResource, Resource, Resources};
 mod chunk;
 pub mod metadata;
 mod positions;
+pub mod text;
 mod world;
 
 pub use blocks::*;

@@ -236,7 +236,7 @@ pub fn parse_tokens(brace_delimited: bool) -> impl Fn(Tokens) -> IResult<Tokens,
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::markdown::{lex_input, Tokens};
+    use crate::text::markdown::{lex_input, Tokens};
 
     #[test]
     fn test_basic() {
