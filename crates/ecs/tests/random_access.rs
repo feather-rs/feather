@@ -3,7 +3,7 @@ use feather_ecs::{ComponentError, Ecs, EntityBuilder};
 #[test]
 fn add_simple_entity() {
     let mut ecs = Ecs::new();
-    let entity = ecs.spawn(
+    let entity = ecs.inner_mut().spawn(
         EntityBuilder::new()
             .add(10i32)
             .add(15u32)
@@ -22,24 +22,30 @@ fn add_simple_entity() {
 #[test]
 fn add_remove_entities() {
     let mut ecs = Ecs::new();
-    let entity = ecs.spawn(EntityBuilder::new().add("test").build());
+    let entity = ecs
+        .inner_mut()
+        .spawn(EntityBuilder::new().add("test").build());
 
     assert_eq!(*ecs.get::<&'static str>(entity).unwrap(), "test");
 
-    ecs.despawn(entity).unwrap();
+    ecs.inner_mut().despawn(entity).unwrap();
 
     assert!(matches!(
         ecs.get::<&'static str>(entity).err(),
         Some(ComponentError::NoSuchEntity)
     ));
-    assert!(ecs.despawn(entity).is_err());
+    assert!(ecs.inner_mut().despawn(entity).is_err());
 }
 
 #[test]
 fn fine_grained_borrow_checking() {
     let mut ecs = Ecs::new();
-    let entity1 = ecs.spawn(EntityBuilder::new().add(()).add(16i32).build());
-    let entity2 = ecs.spawn(EntityBuilder::new().add(14i32).build());
+    let entity1 = ecs
+        .inner_mut()
+        .spawn(EntityBuilder::new().add(()).add(16i32).build());
+    let entity2 = ecs
+        .inner_mut()
+        .spawn(EntityBuilder::new().add(14i32).build());
 
     let mut e1 = ecs.get_mut::<i32>(entity1).unwrap();
     let e2 = ecs.get_mut::<i32>(entity2).unwrap();

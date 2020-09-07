@@ -8,6 +8,9 @@ macro_rules! user_type {
     (LengthInferredVecU8) => {
         Vec<u8>
     };
+    (Angle) => {
+        f32
+    };
     ($typ:ty) => {
         $typ
     };
@@ -22,6 +25,9 @@ macro_rules! user_type_convert_to_writeable {
     };
     (LengthInferredVecU8, $e:expr) => {
         LengthInferredVecU8::from($e.as_slice())
+    };
+    (Angle, $e:expr) => {
+        Angle(*$e)
     };
     ($typ:ty, $e:expr) => {
         $e

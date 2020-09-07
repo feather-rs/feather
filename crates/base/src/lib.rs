@@ -8,7 +8,8 @@
 //! This crate also exposes the `Setup` and `State` types which are
 //! used throughout the rest of the codebase.
 
-use ecs::{Ecs, Stage, SysResult, SystemExecutor};
+use anyhow::anyhow;
+use ecs::{Ecs, Entity, Stage, SysResult, SystemExecutor};
 use num_derive::{FromPrimitive, ToPrimitive};
 use resources::{CantGetResource, Resource, Resources};
 use serde::{Deserialize, Serialize};
@@ -27,6 +28,9 @@ pub use metadata::EntityMetadata;
 pub use positions::*;
 pub use text::{deserialize_text, Text};
 pub use world::World;
+
+/// A function that is called before an entity is despawned.
+pub type DespawnCallback = fn(&mut State, Entity) -> SysResult;
 
 /// Struct passed to all systems as their sole argument.
 ///
@@ -47,6 +51,9 @@ pub struct State {
     pub world: World,
 
     resources: Resources,
+
+    /// Functions to invoke before an entity is despawned.
+    despawn_callbacks: Option<Vec<DespawnCallback>>,
 }
 
 impl State {
@@ -66,6 +73,24 @@ impl State {
     pub fn resource_mut<T: Resource>(&self) -> Result<resources::RefMut<T>, CantGetResource> {
         self.resources.get_mut()
     }
+
+    /// Despawns an entity.
+    ///
+    /// Use this function instead of calling `ecs.spawn()`.
+    /// This function will invoke all _despawn callbacks_,
+    /// which ensures that events are properly handled.
+    pub fn despawn(&mut self, entity: Entity) -> SysResult {
+        let despawn_callbacks = self
+            .despawn_callbacks
+            .take()
+            .ok_or_else(|| anyhow!("despawn callbacks cannot recursively despawn entities"))?;
+        for &callback in &despawn_callbacks {
+            callback(self, entity)?;
+        }
+        self.despawn_callbacks.replace(despawn_callbacks);
+
+        self.ecs.inner_mut().despawn(entity).map_err(From::from)
+    }
 }
 
 /// Struct passed into functions which set up the server
@@ -79,6 +104,7 @@ impl State {
 pub struct Setup {
     executor: SystemExecutor<State>,
     resources: Resources,
+    despawn_callbacks: Vec<DespawnCallback>,
 }
 
 impl Setup {
@@ -114,6 +140,13 @@ impl Setup {
         self
     }
 
+    /// Registers a despawn callback which is invoked before an entity
+    /// is despawned.
+    pub fn despawn_callback(&mut self, callback: DespawnCallback) -> &mut Self {
+        self.despawn_callbacks.push(callback);
+        self
+    }
+
     /// Completes setup, returning a `Tick` and a `SystemExecutor`.
     pub fn build(self) -> (State, SystemExecutor<State>) {
         (
@@ -121,6 +154,7 @@ impl Setup {
                 resources: self.resources,
                 ecs: Ecs::new(),
                 world: World::new(),
+                despawn_callbacks: Some(self.despawn_callbacks),
             },
             self.executor,
         )

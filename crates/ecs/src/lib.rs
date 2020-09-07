@@ -11,7 +11,7 @@
 
 /// Use as a type in a query to filter by entities whose component
 /// of type `T` was newly added in the last tick.
-use hecs::{Component, Query, QueryBorrow, Ref, RefMut, World};
+use hecs::{Component, DynamicBundle, Query, QueryBorrow, Ref, RefMut, World};
 
 pub use hecs::Added;
 /// Use as a type in a query to filter by entities whose component
@@ -41,6 +41,11 @@ impl Ecs {
 
     pub fn inner_mut(&mut self) -> &mut World {
         &mut self.0
+    }
+
+    /// Spawns an entity with the provided components.
+    pub fn spawn(&mut self, components: impl DynamicBundle) -> Entity {
+        self.0.spawn(components)
     }
 
     /// Returns an `EntityRef` for an entity.

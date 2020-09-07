@@ -643,6 +643,12 @@ impl Writeable for BlockPosition {
 #[derive(Copy, Clone, Debug)]
 pub struct Angle(pub f32);
 
+impl From<Angle> for f32 {
+    fn from(angle: Angle) -> Self {
+        angle.0
+    }
+}
+
 impl Readable for Angle {
     fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where

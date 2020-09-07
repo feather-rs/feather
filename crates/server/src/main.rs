@@ -7,6 +7,7 @@ use std::{
 use tokio::runtime;
 
 mod config;
+mod entity;
 mod network;
 
 /// Shared server state. Stored as a resource.

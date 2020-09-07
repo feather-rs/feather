@@ -25,4 +25,9 @@ packet_enum!(ServerLoginPacket {
 
 packet_enum!(ServerPlayPacket {
     0x00 = SpawnEntity,
+    0x01 = SpawnExperienceOrb,
+    0x02 = SpawnWeatherEntity,
+    0x03 = SpawnLivingEntity,
+    0x04 = SpawnPainting,
+    0x05 = SpawnPlayer,
 });
