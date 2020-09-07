@@ -9,7 +9,7 @@ compression_threshold = 256
 
 [server]
 online_mode = true
-motd = "A Feather server"
+motd = "@aqua A Feather server"
 max_players = 16
 default_gamemode = "creative"
 difficulty = "none" # Unimplemented

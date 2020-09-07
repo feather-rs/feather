@@ -1,6 +1,7 @@
 //! Initial handling of a connection.
 
 use super::{worker::Worker, NewPlayer};
+use base::Text;
 use protocol::{
     packets::{
         client::{HandshakeState, LoginStart, Ping, Request},
@@ -8,8 +9,10 @@ use protocol::{
     },
     ClientHandshakePacket, ServerStatusPacket,
 };
+use serde::Serialize;
 use std::sync::atomic::Ordering;
 
+const SERVER_NAME: &str = "Feather 1.16.2";
 const PROTOCOL_VERSION: i32 = 751;
 
 /// Result of initial handling.
@@ -35,23 +38,40 @@ pub async fn handle(provider: &mut Worker) -> anyhow::Result<InitialHandling> {
     }
 }
 
+#[derive(Debug, Serialize)]
+struct StatusResponse<'a> {
+    version: Version,
+    players: Players,
+    description: &'a Text,
+}
+
+#[derive(Debug, Serialize)]
+struct Version {
+    name: &'static str,
+    protocol: i32,
+}
+
+#[derive(Debug, Serialize)]
+struct Players {
+    max: i32,
+    online: usize,
+}
+
 async fn handle_status(provider: &mut Worker) -> anyhow::Result<InitialHandling> {
     let _request = provider.read::<Request>().await?;
 
     // TODO: correctly fill in this information.
-    let payload = serde_json::json!({
-        "version": {
-            "name": "Feather 1.16.2",
-            "protocol": PROTOCOL_VERSION,
+    let payload = StatusResponse {
+        version: Version {
+            name: SERVER_NAME,
+            protocol: PROTOCOL_VERSION,
         },
-        "players": {
-            "max": provider.server().config.server.max_players,
-            "online": provider.server().player_count.load(Ordering::SeqCst),
+        players: Players {
+            max: provider.server().config.server.max_players,
+            online: provider.server().player_count.load(Ordering::SeqCst),
         },
-        "description": {
-            "text": provider.server().config.server.motd,
-        }
-    });
+        description: &provider.server().config.server.motd,
+    };
     let response = Response {
         response: serde_json::to_string(&payload)?,
     };

@@ -25,6 +25,7 @@ pub use generated::{Area, Biome, EntityKind, Item, ItemStack, Particle, Window};
 #[doc(inline)]
 pub use metadata::EntityMetadata;
 pub use positions::*;
+pub use text::{deserialize_text, Text};
 pub use world::World;
 
 /// Struct passed to all systems as their sole argument.

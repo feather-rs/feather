@@ -1,6 +1,6 @@
 //! Implementation of the Minecraft chat component format.
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use std::borrow::Cow;
 use std::fmt::{self, Display, Formatter};
 use std::str::FromStr;
@@ -1020,6 +1020,18 @@ impl std::ops::Add<Text> for Text {
             }
         }
     }
+}
+
+/// A `Deserialize` impl for `Text` which uses the text markdown format.
+pub fn deserialize_text<'de, D>(deserializer: D) -> Result<Text, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let string = String::deserialize(deserializer)?;
+
+    let component = markdown::translator::translate_text(&string)
+        .map_err(|e| de::Error::custom(e.to_string()))?;
+    Ok(Text::Component(Box::new(component)))
 }
 
 /// Ensures Text is either an Array or Object.

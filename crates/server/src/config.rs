@@ -1,4 +1,4 @@
-use base::Gamemode;
+use base::{Gamemode, Text};
 use serde::{Deserialize, Serialize};
 use std::{
     fs::File,
@@ -64,7 +64,8 @@ pub struct Proxy {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Server {
     pub online_mode: bool,
-    pub motd: String,
+    #[serde(deserialize_with = "base::deserialize_text")]
+    pub motd: Text,
     pub max_players: i32,
     pub view_distance: u8,
     pub address: String,
