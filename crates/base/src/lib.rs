@@ -5,7 +5,7 @@
 //! * The chunk data structure
 //! * The chunk map (`World`)
 //!
-//! This crate also exposes the `Setup` and `Tick` types which are
+//! This crate also exposes the `Setup` and `State` types which are
 //! used throughout the rest of the codebase.
 
 use ecs::{Ecs, Stage, SysResult, SystemExecutor};
@@ -40,14 +40,16 @@ pub use world::World;
 /// throughout the codebase.
 ///
 /// This struct can be created through `Setup::build()`.
-pub struct Tick {
+pub struct State {
     /// Stores all entities in the current game.
     pub ecs: Ecs,
+    /// Stores blocks and chunks in the world.
+    pub world: World,
 
     resources: Resources,
 }
 
-impl Tick {
+impl State {
     /// Gets a reference to the resource with the given type.
     ///
     /// Returns an error if the resource does not exist
@@ -72,10 +74,10 @@ impl Tick {
 /// Currently, this struct is used to:
 /// * Register systems with the system executor.
 /// * Insert _resources_, data that can be accessed
-/// through the method `Tick::resource()`.
+/// through the method `State::resource()`.
 #[derive(Default)]
 pub struct Setup {
-    executor: SystemExecutor<Tick>,
+    executor: SystemExecutor<State>,
     resources: Resources,
 }
 
@@ -87,7 +89,7 @@ impl Setup {
     /// Registers a system in the default `Tick` stage.
     ///
     /// The system will be invoked each tick.
-    pub fn system(&mut self, system: fn(&mut Tick) -> SysResult) -> &mut Self {
+    pub fn system(&mut self, system: fn(&mut State) -> SysResult) -> &mut Self {
         self.system_in_stage(system, Stage::Tick)
     }
 
@@ -96,7 +98,7 @@ impl Setup {
     /// The system will be invoked each tick.
     pub fn system_in_stage(
         &mut self,
-        system: fn(&mut Tick) -> SysResult,
+        system: fn(&mut State) -> SysResult,
         stage: Stage,
     ) -> &mut Self {
         self.executor.add_system(stage, system);
@@ -104,7 +106,7 @@ impl Setup {
     }
 
     /// Inserts a resource. Systems can then access
-    /// this resource by calling `Tick::resource()`.
+    /// this resource by calling `State::resource()`.
     ///
     /// Resources can be any type that is `Send + Sync + 'static`.
     pub fn resource(&mut self, resource: impl Resource) -> &mut Self {
@@ -113,11 +115,12 @@ impl Setup {
     }
 
     /// Completes setup, returning a `Tick` and a `SystemExecutor`.
-    pub fn build(self) -> (Tick, SystemExecutor<Tick>) {
+    pub fn build(self) -> (State, SystemExecutor<State>) {
         (
-            Tick {
+            State {
                 resources: self.resources,
                 ecs: Ecs::new(),
+                world: World::new(),
             },
             self.executor,
         )

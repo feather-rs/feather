@@ -31,5 +31,5 @@ pub struct PackMeta {
 /// Stores all loaded data packs and their assets.
 pub struct Datapacks {
     /// The metadata of loaded packs. Keyed by the datapack name.
-    meta: AHashMap<SmartString<LazyCompact>, PackMeta>,
+    _meta: AHashMap<SmartString<LazyCompact>, PackMeta>,
 }
