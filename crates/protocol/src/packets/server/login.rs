@@ -12,7 +12,7 @@ packets! {
     }
 
     LoginSuccess {
-        uuid String;
+        uuid Uuid;
         username String;
     }
 

@@ -89,6 +89,10 @@ impl MinecraftCodec {
         let packet = if let Ok(length) = VarInt::read(&mut cursor, ProtocolVersion::V1_16_2) {
             if self.received_buf.len() - cursor.position() as usize >= length.0 as usize {
                 let packet = T::read(&mut cursor, ProtocolVersion::V1_16_2)?;
+
+                let bytes_read = cursor.position() as usize;
+                self.received_buf = self.received_buf.split_off(bytes_read);
+
                 Some(packet)
             } else {
                 None
@@ -96,8 +100,6 @@ impl MinecraftCodec {
         } else {
             None
         };
-        let bytes_read = cursor.position() as usize;
-        self.received_buf = self.received_buf.split_off(bytes_read);
 
         Ok(packet)
     }

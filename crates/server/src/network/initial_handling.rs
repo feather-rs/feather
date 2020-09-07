@@ -1,16 +1,24 @@
 //! Initial handling of a connection.
 
 use super::{worker::Worker, NewPlayer};
-use base::Text;
+use anyhow::bail;
+use base::{ProfileProperty, Text};
+use num_bigint::BigInt;
+use once_cell::sync::Lazy;
 use protocol::{
+    codec::CryptKey,
     packets::{
         client::{HandshakeState, LoginStart, Ping, Request},
-        server::{Pong, Response},
+        server::{EncryptionRequest, LoginSuccess, Pong, Response},
     },
-    ClientHandshakePacket, ServerStatusPacket,
+    ClientHandshakePacket, ClientLoginPacket, ServerLoginPacket, ServerStatusPacket,
 };
-use serde::Serialize;
-use std::sync::atomic::Ordering;
+use rand::rngs::OsRng;
+use rsa::{PaddingScheme, PublicKeyParts, RSAPrivateKey};
+use serde::{Deserialize, Serialize};
+use sha1::Sha1;
+use std::{convert::TryInto, sync::atomic::Ordering};
+use uuid::Uuid;
 
 const SERVER_NAME: &str = "Feather 1.16.2";
 const PROTOCOL_VERSION: i32 = 751;
@@ -26,15 +34,15 @@ pub enum InitialHandling {
 
 /// Handles a connection until the protocol state is switched to Play;
 /// that is, until we send Login Success. Returns the client's information.
-pub async fn handle(provider: &mut Worker) -> anyhow::Result<InitialHandling> {
+pub async fn handle(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
     // Get the handshake packet.
-    let handshake = provider.read::<ClientHandshakePacket>().await?;
+    let handshake = worker.read::<ClientHandshakePacket>().await?;
 
     let ClientHandshakePacket::Handshake(handshake) = handshake;
 
     match handshake.next_state {
-        HandshakeState::Status => handle_status(provider).await,
-        HandshakeState::Login => handle_login(provider).await,
+        HandshakeState::Status => handle_status(worker).await,
+        HandshakeState::Login => handle_login(worker).await,
     }
 }
 
@@ -57,8 +65,8 @@ struct Players {
     online: usize,
 }
 
-async fn handle_status(provider: &mut Worker) -> anyhow::Result<InitialHandling> {
-    let _request = provider.read::<Request>().await?;
+async fn handle_status(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
+    let _request = worker.read::<Request>().await?;
 
     // TODO: correctly fill in this information.
     let payload = StatusResponse {
@@ -67,30 +75,158 @@ async fn handle_status(provider: &mut Worker) -> anyhow::Result<InitialHandling>
             protocol: PROTOCOL_VERSION,
         },
         players: Players {
-            max: provider.server().config.server.max_players,
-            online: provider.server().player_count.load(Ordering::SeqCst),
+            max: worker.server().config.server.max_players,
+            online: worker.server().player_count.load(Ordering::SeqCst),
         },
-        description: &provider.server().config.server.motd,
+        description: &worker.server().config.server.motd,
     };
     let response = Response {
         response: serde_json::to_string(&payload)?,
     };
-    provider
+    worker
         .write(&ServerStatusPacket::Response(response))
         .await?;
 
-    if let Ok(ping) = provider.read::<Ping>().await {
+    if let Ok(ping) = worker.read::<Ping>().await {
         let pong = Pong {
             payload: ping.payload,
         };
-        provider.write(&ServerStatusPacket::Pong(pong)).await?;
+        worker.write(&ServerStatusPacket::Pong(pong)).await?;
     }
 
     Ok(InitialHandling::Disconnect)
 }
 
-async fn handle_login(provider: &mut Worker) -> anyhow::Result<InitialHandling> {
-    let _login_start = provider.read::<LoginStart>().await?;
+async fn handle_login(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
+    let login_start = match worker.read::<ClientLoginPacket>().await? {
+        ClientLoginPacket::LoginStart(l) => l,
+        _ => bail!("expected login start"),
+    };
+    log::debug!("{} is logging in", login_start.name);
 
-    Ok(InitialHandling::Disconnect)
+    let config = &worker.server().config;
+    if config.server.online_mode {
+        enable_encryption(worker, login_start.name).await
+    } else {
+        let profile = compute_offline_mode_profile(login_start.name);
+        finish_login(worker, profile).await
+    }
+}
+
+fn compute_offline_mode_profile(username: String) -> AuthResponse {
+    // TODO: correct offline mode handling
+    AuthResponse {
+        name: username,
+        id: Uuid::new_v4(),
+        properties: Vec::new(),
+    }
+}
+
+const RSA_BITS: usize = 1024;
+
+/// Cached RSA key used by this server instance.
+static RSA_KEY: Lazy<RSAPrivateKey> =
+    Lazy::new(|| RSAPrivateKey::new(&mut OsRng, RSA_BITS).expect("failed to create RSA key"));
+static RSA_KEY_ENCODED: Lazy<Vec<u8>> = Lazy::new(|| {
+    rsa_der::public_key_to_der(&RSA_KEY.n().to_bytes_be(), &RSA_KEY.e().to_bytes_be())
+});
+
+async fn enable_encryption(
+    worker: &mut Worker,
+    username: String,
+) -> anyhow::Result<InitialHandling> {
+    log::debug!("Authenticating {}", username);
+    let shared_secret = do_encryption_handshake(worker).await?;
+    worker.codec().enable_encryption(shared_secret);
+
+    let response = authenticate(shared_secret, username).await?;
+
+    finish_login(worker, response).await
+}
+
+async fn do_encryption_handshake(worker: &mut Worker) -> anyhow::Result<CryptKey> {
+    let verify_token: [u8; 16] = rand::random();
+    let request = EncryptionRequest {
+        server_id: String::new(), // always empty
+        public_key: RSA_KEY_ENCODED.clone(),
+        verify_token: verify_token.to_vec(),
+    };
+    worker
+        .write(&ServerLoginPacket::EncryptionRequest(request))
+        .await?;
+
+    let response = match worker.read::<ClientLoginPacket>().await? {
+        ClientLoginPacket::EncryptionResponse(r) => r,
+        _ => bail!("expected encryption response"),
+    };
+
+    // Decrypt shared secret and verify token.
+    let shared_secret = RSA_KEY.decrypt(PaddingScheme::PKCS1v15Encrypt, &response.shared_secret)?;
+    let received_verify_token =
+        RSA_KEY.decrypt(PaddingScheme::PKCS1v15Encrypt, &response.verify_token)?;
+
+    if received_verify_token != verify_token {
+        bail!("verify tokens do not match");
+    }
+
+    Ok((&shared_secret[..]).try_into()?)
+}
+
+#[derive(Debug, Deserialize)]
+struct AuthResponse {
+    id: Uuid,
+    name: String,
+    properties: Vec<ProfileProperty>,
+}
+
+async fn authenticate(shared_secret: CryptKey, username: String) -> anyhow::Result<AuthResponse> {
+    let server_hash = compute_server_hash(shared_secret);
+
+    let response: AuthResponse = tokio::task::spawn_blocking(move || {
+        let url = format!(
+            "https://sessionserver.mojang.com/session/minecraft/hasJoined?username={}&serverId={}",
+            username, server_hash
+        );
+        let response = ureq::get(&url).call();
+
+        serde_json::from_reader(response.into_reader())
+    })
+    .await??;
+
+    Ok(response)
+}
+
+fn compute_server_hash(shared_secret: CryptKey) -> String {
+    let mut hasher = Sha1::new();
+    hasher.update(b""); // server ID - always empty
+    hasher.update(&shared_secret);
+    hasher.update(&RSA_KEY_ENCODED);
+    hexdigest(&hasher.digest().bytes())
+}
+
+// Non-standard hex digest used by Minecraft.
+fn hexdigest(bytes: &[u8]) -> String {
+    let bigint = BigInt::from_signed_bytes_be(bytes);
+    format!("{:x}", bigint)
+}
+
+async fn finish_login(
+    worker: &mut Worker,
+    response: AuthResponse,
+) -> anyhow::Result<InitialHandling> {
+    let success = LoginSuccess {
+        uuid: response.id,
+        username: response.name.clone(),
+    };
+    worker
+        .write(&ServerLoginPacket::LoginSuccess(success))
+        .await?;
+
+    let new_player = NewPlayer {
+        addr: worker.addr(),
+        username: response.name.into(),
+        uuid: response.id,
+        worker: worker.handle(),
+    };
+    Ok(InitialHandling::Join(new_player))
 }

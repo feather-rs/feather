@@ -43,8 +43,16 @@ impl Worker {
         }
     }
 
+    pub fn addr(&self) -> SocketAddr {
+        self.addr
+    }
+
     pub fn server(&self) -> &Server {
         &self.server
+    }
+
+    pub fn codec(&mut self) -> &mut MinecraftCodec {
+        &mut self.codec
     }
 
     /// Writes a packet to the stream.

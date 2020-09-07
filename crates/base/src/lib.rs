@@ -190,3 +190,13 @@ pub enum Gamemode {
     Adventure,
     Spectator,
 }
+
+/// A profile property, which stores metadata
+/// for some player's account. This is usually
+/// used to store skin data.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ProfileProperty {
+    pub name: String,
+    pub value: String,
+    pub signature: String,
+}
