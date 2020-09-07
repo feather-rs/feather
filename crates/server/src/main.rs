@@ -45,4 +45,5 @@ fn main() -> anyhow::Result<()> {
 
 pub fn setup(setup: &mut Setup) {
     entity::setup(setup);
+    network::setup(setup);
 }

@@ -7,3 +7,5 @@ edition = "2018"
 [dependencies]
 base = { path = "../base", package = "feather-base" }
 ecs = { path = "../ecs", package = "feather-ecs" }
+
+smartstring = "0.2"

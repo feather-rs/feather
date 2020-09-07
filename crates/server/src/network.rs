@@ -10,6 +10,8 @@
 //! is notified that a new player has joined. At this point, the worker task
 //! simply proxies packets between the server thread and the TCP stream.
 
+use base::{Setup, State};
+use ecs::{EntityBuilder, Stage, SysResult};
 use flume::{Receiver, Sender};
 use protocol::{ClientPlayPacket, ServerPlayPacket};
 use smartstring::{LazyCompact, SmartString};
@@ -21,6 +23,8 @@ mod listener;
 mod worker;
 
 pub use listener::Listener;
+
+use crate::entity::build_player;
 
 /// A handle to send packets to a player.
 pub struct Network {
@@ -113,4 +117,22 @@ impl WorkerHandle {
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = FromWorker> + 'a {
         self.receiver.try_iter()
     }
+}
+
+pub fn setup(setup: &mut Setup) {
+    setup.system_in_stage(poll_new_connections, Stage::Pre);
+}
+
+/// System to poll for new connections and create new players.
+fn poll_new_connections(s: &mut State) -> SysResult {
+    let listener = s.resources.get::<ListenerHandle>()?;
+
+    for player in listener.new_players() {
+        log::info!("{} has joined", player.username);
+        let mut builder = EntityBuilder::new();
+        build_player(s, &mut builder, player)?;
+        s.ecs.spawn(builder.build());
+    }
+
+    Ok(())
 }

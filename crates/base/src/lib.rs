@@ -8,6 +8,8 @@
 //! This crate also exposes the `Setup` and `State` types which are
 //! used throughout the rest of the codebase.
 
+use std::mem::take;
+
 use anyhow::anyhow;
 use ecs::{Ecs, Entity, Stage, SysResult, SystemExecutor};
 use num_derive::{FromPrimitive, ToPrimitive};
@@ -49,13 +51,14 @@ pub type DespawnCallback = fn(&mut State, Entity) -> SysResult;
 /// throughout the codebase.
 ///
 /// This struct can be created through `Setup::build()`.
+#[derive(Default)]
 pub struct State {
     /// Stores all entities in the current game.
     pub ecs: Ecs,
     /// Stores blocks and chunks in the world.
     pub world: World,
-
-    resources: Resources,
+    /// Resources stored in this state.
+    pub resources: Resources,
 
     /// Functions to invoke before an entity is despawned.
     despawn_callbacks: Option<Vec<DespawnCallback>>,
@@ -67,6 +70,9 @@ impl State {
     /// Returns an error if the resource does not exist
     /// (was not inserted with `Setup::resource()`),
     /// or if there is already a mutable borrow to that resource.
+    ///
+    /// You may encounter borrow checker errors when using this function.
+    /// If needed, you can use the `resources` field of this struct instead.
     pub fn resource<T: Resource>(&self) -> Result<resources::Ref<T>, CantGetResource> {
         self.resources.get()
     }
@@ -153,15 +159,14 @@ impl Setup {
     }
 
     /// Completes setup, returning a `Tick` and a `SystemExecutor`.
-    pub fn build(self) -> (State, SystemExecutor<State>) {
+    pub fn build(&mut self) -> (State, SystemExecutor<State>) {
         (
             State {
-                resources: self.resources,
-                ecs: Ecs::new(),
-                world: World::new(),
-                despawn_callbacks: Some(self.despawn_callbacks),
+                resources: take(&mut self.resources),
+                despawn_callbacks: Some(take(&mut self.despawn_callbacks)),
+                ..Default::default()
             },
-            self.executor,
+            take(&mut self.executor),
         )
     }
 }
