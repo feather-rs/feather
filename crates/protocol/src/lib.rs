@@ -9,7 +9,7 @@ pub use codec::MinecraftCodec;
 pub use io::{Readable, Writeable};
 #[doc(inline)]
 pub use packets::{
-    client::{ClientLoginPacket, ClientPlayPacket, ClientStatusPacket},
+    client::{ClientHandshakePacket, ClientLoginPacket, ClientPlayPacket, ClientStatusPacket},
     server::{ServerLoginPacket, ServerPlayPacket, ServerStatusPacket},
 };
 

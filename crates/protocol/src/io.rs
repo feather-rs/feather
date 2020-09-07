@@ -238,7 +238,7 @@ impl Readable for String {
         }
 
         // Read string into buffer.
-        let mut temp = Vec::with_capacity(length);
+        let mut temp = vec![0u8; length];
         buffer
             .read_exact(&mut temp)
             .map_err(|_| Error::UnexpectedEof("String"))?;

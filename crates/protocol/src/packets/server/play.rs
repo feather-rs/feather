@@ -538,8 +538,8 @@ impl Readable for PlayerInfo {
     where
         Self: Sized,
     {
-        let action = VarInt::read(buffer, version)?.0;
-        let player_count = VarInt::read(buffer, version)?.0;
+        let _action = VarInt::read(buffer, version)?.0;
+        let _player_count = VarInt::read(buffer, version)?.0;
 
         todo!()
     }

@@ -11,6 +11,7 @@
 use ecs::{Ecs, Stage, SysResult, SystemExecutor};
 use num_derive::{FromPrimitive, ToPrimitive};
 use resources::{CantGetResource, Resource, Resources};
+use serde::{Deserialize, Serialize};
 
 mod chunk;
 pub mod metadata;
@@ -128,4 +129,26 @@ pub enum Direction {
     South,
     East,
     West,
+}
+
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    FromPrimitive,
+    ToPrimitive,
+    Serialize,
+    Deserialize,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum Gamemode {
+    Survival,
+    Creative,
+    Adventure,
+    Spectator,
 }

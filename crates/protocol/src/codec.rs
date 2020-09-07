@@ -59,7 +59,7 @@ impl MinecraftCodec {
         self.staging_buf.clear();
     }
 
-    fn encode_compressed(&mut self, output: &mut Vec<u8>, threshold: CompressionThreshold) {
+    fn encode_compressed(&mut self, _output: &mut Vec<u8>, _threshold: CompressionThreshold) {
         todo!()
     }
 
@@ -71,13 +71,8 @@ impl MinecraftCodec {
         output.extend_from_slice(&self.staging_buf);
     }
 
-    /// Receives some bytes. Calls `received_packet` each time
-    /// a packet is decoded.
-    pub fn decode<T>(
-        &mut self,
-        bytes: &[u8],
-        mut received_packet: impl FnMut(T),
-    ) -> anyhow::Result<()>
+    /// Receives some bytes. Returns a packet that was received, if any.
+    pub fn decode<T>(&mut self, bytes: &[u8]) -> anyhow::Result<Option<T>>
     where
         T: Readable,
     {
@@ -91,16 +86,19 @@ impl MinecraftCodec {
         }
 
         let mut cursor = Cursor::new(&self.received_buf[..]);
-        while let Ok(length) = VarInt::read(&mut cursor, ProtocolVersion::V1_16_2) {
+        let packet = if let Ok(length) = VarInt::read(&mut cursor, ProtocolVersion::V1_16_2) {
             if self.received_buf.len() - cursor.position() as usize >= length.0 as usize {
                 let packet = T::read(&mut cursor, ProtocolVersion::V1_16_2)?;
-                received_packet(packet);
+                Some(packet)
             } else {
-                break;
+                None
             }
-        }
-        self.received_buf = self.received_buf.split_off(cursor.position() as usize);
+        } else {
+            None
+        };
+        let bytes_read = cursor.position() as usize;
+        self.received_buf = self.received_buf.split_off(bytes_read);
 
-        Ok(())
+        Ok(packet)
     }
 }

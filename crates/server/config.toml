@@ -1,7 +1,6 @@
 # Configuration for the Feather server.
 
-# Many of the options here are unimplemented and have no effect.
-# Those that are unimplemented have been labeled so.
+# Some options are unimplemented and have been labeled so.
 
 [io]
 # Packets with a size more than or equal to this value will be sent compressed.
@@ -28,8 +27,7 @@ pvp_style = "classic" # Unimplemented
 
 [log]
 # If you prefer less verbose logs, switch this to "info."
-# If you want to hurt your eyes while looking at the
-# server console, set it to "trace."
+# For development, it might be useful to set this to "trace."
 level = "debug"
 
 [resource_pack]
@@ -50,13 +48,11 @@ generator = "default"
 # If this value is not a valid integer (i64), the string
 # will be converted using a hash function.
 seed = ""
-# Interval at which to save modified chunks.
-save_interval = "1min"
 
 [proxy]
 # Select the IP forwarding mode that is used by proxies like BungeeCord or Velocity.
 # Valid values are
-# - "None" - for usage without a proxy
-# - "BungeeCord" - for BungeeCord/Waterfall/Travertine
-# - "Velocity" - for Velocity style proxies (unimplemented)
-proxy_mode = "None"
+# - "none" - for usage without a proxy
+# - "bungee" - for BungeeCord/Waterfall/Travertine
+# - "velocity" - for Velocity style proxies (unimplemented)
+proxy_mode = "none"
