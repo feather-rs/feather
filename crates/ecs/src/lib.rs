@@ -11,14 +11,74 @@
 
 /// Use as a type in a query to filter by entities whose component
 /// of type `T` was newly added in the last tick.
+use hecs::{Component, Query, QueryBorrow, Ref, RefMut, World};
+
 pub use hecs::Added;
 /// Use as a type in a query to filter by entities whose component
 /// of type `T` has been changed since the last tick.
 pub use hecs::Changed;
-pub use hecs::World as Ecs;
 pub use hecs::{
-    BuiltEntity, ComponentError, Entity, EntityBuilder, EntityRef, MissingComponent, NoSuchEntity,
+    BuiltEntity, ComponentError, Entity, EntityBuilder, MissingComponent, NoSuchEntity,
 };
 
 mod system;
 pub use system::{Stage, SysResult, SystemExecutor, SystemFn};
+
+/// Stores entities and their components. This is a wrapper
+/// around `hecs::World` with a slightly changed interface.
+#[derive(Default)]
+pub struct Ecs(World);
+
+impl Ecs {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Returns the inner `hecs::World`. Should be used with caution.
+    pub fn inner(&self) -> &World {
+        &self.0
+    }
+
+    pub fn inner_mut(&mut self) -> &mut World {
+        &mut self.0
+    }
+
+    /// Returns an `EntityRef` for an entity.
+    pub fn entity(&self, entity: Entity) -> Result<EntityRef, NoSuchEntity> {
+        self.0.entity(entity).map(EntityRef)
+    }
+
+    /// Gets a component of an entity.
+    pub fn get<T: Component>(&self, entity: Entity) -> Result<Ref<T>, ComponentError> {
+        self.0.get(entity)
+    }
+
+    /// Mutably gets a component of an entity.
+    pub fn get_mut<T: Component>(&self, entity: Entity) -> Result<RefMut<T>, ComponentError> {
+        self.0.get_mut(entity)
+    }
+
+    /// Returns an iterator over all entities that match a query parameter.
+    pub fn query<Q: Query>(&self) -> QueryBorrow<Q> {
+        self.0.query()
+    }
+}
+
+/// Allows access to all components of a single entity.
+pub struct EntityRef<'a>(hecs::EntityRef<'a>);
+
+impl<'a> EntityRef<'a> {
+    /// Borrows the component of type `T` from this entity.
+    pub fn get<T: Component>(&self) -> Result<Ref<'a, T>, ComponentError> {
+        self.0
+            .get()
+            .ok_or_else(|| ComponentError::MissingComponent(MissingComponent::new::<T>()))
+    }
+
+    /// Uniquely borrows the component of type `T` from this entity.
+    pub fn get_mut<T: Component>(&self) -> Result<RefMut<'a, T>, ComponentError> {
+        self.0
+            .get_mut()
+            .ok_or_else(|| ComponentError::MissingComponent(MissingComponent::new::<T>()))
+    }
+}
