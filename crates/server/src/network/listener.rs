@@ -2,6 +2,8 @@ use super::{worker::Worker, ListenerHandle, NewPlayer};
 use crate::Server;
 use anyhow::Context;
 use flume::{Receiver, Sender};
+use future::Either;
+use futures_util::future;
 use std::{net::SocketAddr, sync::Arc};
 use tokio::{
     net::{TcpListener, TcpStream},
@@ -54,15 +56,29 @@ impl Listener {
     /// Runs the listener. Returns after the shutdown channel was notified.
     pub async fn run(mut self) {
         loop {
-            if let Ok((stream, addr)) = self.listener.accept().await {
-                log::debug!("Accepting connection from {}", addr);
+            let res = {
+                let accept = self.listener.accept();
+                let shutdown = self.shutdown.1.recv_async();
+                futures_util::pin_mut!(accept);
+                futures_util::pin_mut!(shutdown);
+
+                match future::select(accept, shutdown).await {
+                    Either::Left((res, _)) => res,
+                    Either::Right(_) => {
+                        log::info!("Closing listener");
+                        return;
+                    }
+                }
+            };
+
+            if let Ok((stream, addr)) = res {
                 self.spawn_worker(stream, addr);
             }
         }
     }
 
     fn spawn_worker(&self, stream: TcpStream, addr: SocketAddr) {
-        let worker = Worker::new(stream, addr, &self.server);
+        let worker = Worker::new(stream, addr, &self.server, self.new_players.0.clone());
         self.runtime.spawn(async move {
             if let Err(e) = worker.run().await {
                 log::warn!("Connection handling failed: {:?}", e);

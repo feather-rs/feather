@@ -11,7 +11,8 @@ base = { path = "../base", package = "feather-base" }
 ecs = { path = "../ecs", package = "feather-ecs" }
 protocol = { path = "../protocol", package = "feather-protocol" }
 
-tokio = { version = "0.2", features = ["rt-threaded", "tcp", "io-util", "blocking"] }
+tokio = { version = "0.2", features = ["rt-threaded", "tcp", "io-util", "blocking", "time"] }
+futures-util = "0.3"
 flume = "0.8"
 smartstring = "0.2"
 uuid = { version = "0.8", features = ["v4"] }

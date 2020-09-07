@@ -8,7 +8,7 @@ use once_cell::sync::Lazy;
 use protocol::{
     codec::CryptKey,
     packets::{
-        client::{HandshakeState, LoginStart, Ping, Request},
+        client::{HandshakeState, Ping, Request},
         server::{EncryptionRequest, LoginSuccess, Pong, Response},
     },
     ClientHandshakePacket, ClientLoginPacket, ServerLoginPacket, ServerStatusPacket,

@@ -27,6 +27,7 @@ fn main() -> anyhow::Result<()> {
     let runtime = runtime::Builder::new()
         .threaded_scheduler()
         .enable_io()
+        .enable_time()
         .build()?;
 
     let config = Config::load_from_file(&mut File::open("config.toml")?)?;
