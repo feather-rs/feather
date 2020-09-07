@@ -425,7 +425,7 @@ dependencies = [
  "bytes",
  "cfb8",
  "feather-base",
- "flate2 1.0.17",
+ "flate2",
  "hematite-nbt",
  "num-traits",
  "serde",
@@ -459,16 +459,6 @@ dependencies = [
  "toml",
  "ureq",
  "uuid",
-]
-
-[[package]]
-name = "flate2"
-version = "0.2.20"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6234dd4468ae5d1e2dbb06fe2b058696fdc50a339c68a393aefbf00bc81e423"
-dependencies = [
- "libc",
- "miniz-sys",
 ]
 
 [[package]]
@@ -647,13 +637,13 @@ dependencies = [
 
 [[package]]
 name = "hematite-nbt"
-version = "0.4.1"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98b407a33bb1715a4cf0276edfe8df52352c55b2a3703c5079adedf398b92932"
+checksum = "58c9d30c87127e12c8c228a6ba77b4ae070e23a9a8cec6972229e92dd7eb33d9"
 dependencies = [
  "byteorder",
  "cesu8",
- "flate2 0.2.20",
+ "flate2",
  "serde",
 ]
 
@@ -799,16 +789,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3728d817d99e5ac407411fa471ff9800a778d88a24685968b36824eaf4bee400"
 
 [[package]]
-name = "miniz-sys"
-version = "0.1.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e9e3ae51cea1576ceba0dde3d484d30e6e5b86dee0b2d412fe3a16a15c98202"
-dependencies = [
- "cc",
- "libc",
-]
-
-[[package]]
 name = "miniz_oxide"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -850,9 +830,9 @@ dependencies = [
 
 [[package]]
 name = "net2"
-version = "0.2.34"
+version = "0.2.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ba7c918ac76704fb42afcbbb43891e72731f3dcca3bef2a19786297baf14af7"
+checksum = "3ebc3ec692ed7c9a255596c67808dee269f64655d8baf7b4f0638e51ba1d6853"
 dependencies = [
  "cfg-if",
  "libc",
@@ -1813,7 +1793,7 @@ checksum = "58287c28d78507f5f91f2a4cf1e8310e2c76fd4c6932f93ac60fd1ceb402db7d"
 dependencies = [
  "bzip2",
  "crc32fast",
- "flate2 1.0.17",
+ "flate2",
  "podio",
  "time",
 ]
