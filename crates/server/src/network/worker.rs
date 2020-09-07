@@ -1,7 +1,8 @@
 use super::{initial_handling, FromWorker, ToWorker, WorkerHandle};
+use crate::Server;
 use flume::{Receiver, Sender};
 use protocol::{MinecraftCodec, Readable, Writeable};
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 
@@ -14,10 +15,12 @@ pub struct Worker {
 
     to_worker: (Sender<ToWorker>, Receiver<ToWorker>),
     from_worker: (Sender<FromWorker>, Receiver<FromWorker>),
+
+    server: Server,
 }
 
 impl Worker {
-    pub fn new(stream: TcpStream, addr: SocketAddr) -> Self {
+    pub fn new(stream: TcpStream, addr: SocketAddr, server: &Server) -> Self {
         let to_worker = flume::bounded(64);
         let from_worker = flume::bounded(64);
         let codec = MinecraftCodec::new();
@@ -28,6 +31,7 @@ impl Worker {
             write_buffer: Vec::new(),
             to_worker,
             from_worker,
+            server: Arc::clone(server),
         }
     }
 
@@ -37,6 +41,10 @@ impl Worker {
             sender: self.to_worker.0.clone(),
             receiver: self.from_worker.1.clone(),
         }
+    }
+
+    pub fn server(&self) -> &Server {
+        &self.server
     }
 
     /// Writes a packet to the stream.

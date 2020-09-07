@@ -8,6 +8,9 @@ use protocol::{
     },
     ClientHandshakePacket, ServerStatusPacket,
 };
+use std::sync::atomic::Ordering;
+
+const PROTOCOL_VERSION: i32 = 751;
 
 /// Result of initial handling.
 pub enum InitialHandling {
@@ -39,14 +42,14 @@ async fn handle_status(provider: &mut Worker) -> anyhow::Result<InitialHandling>
     let payload = serde_json::json!({
         "version": {
             "name": "Feather 1.16.2",
-            "protocol": 751,
+            "protocol": PROTOCOL_VERSION,
         },
         "players": {
-            "max": 100,
-            "online": 0
+            "max": provider.server().config.server.max_players,
+            "online": provider.server().player_count.load(Ordering::SeqCst),
         },
         "description": {
-            "text": "Working on it..."
+            "text": provider.server().config.server.motd,
         }
     });
     let response = Response {

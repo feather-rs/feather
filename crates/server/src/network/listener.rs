@@ -1,7 +1,8 @@
 use super::{worker::Worker, ListenerHandle, NewPlayer};
+use crate::Server;
 use anyhow::Context;
 use flume::{Receiver, Sender};
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 use tokio::{
     net::{TcpListener, TcpStream},
     runtime,
@@ -14,11 +15,17 @@ pub struct Listener {
 
     listener: TcpListener,
     runtime: runtime::Handle,
+
+    server: Server,
 }
 
 impl Listener {
     /// Creates a new `Listener` which will listen on the provided address.
-    pub fn new(addr: SocketAddr, runtime: &runtime::Handle) -> anyhow::Result<Self> {
+    pub fn new(
+        addr: SocketAddr,
+        runtime: &runtime::Handle,
+        server: &Server,
+    ) -> anyhow::Result<Self> {
         let listener = std::net::TcpListener::bind(addr).with_context(|| {
             format!("failed to bind to {}. Is the server already running?", addr)
         })?;
@@ -32,6 +39,7 @@ impl Listener {
             shutdown,
             listener,
             runtime: runtime.clone(),
+            server: Arc::clone(server),
         })
     }
 
@@ -54,7 +62,7 @@ impl Listener {
     }
 
     fn spawn_worker(&self, stream: TcpStream, addr: SocketAddr) {
-        let worker = Worker::new(stream, addr);
+        let worker = Worker::new(stream, addr, &self.server);
         self.runtime.spawn(async move {
             if let Err(e) = worker.run().await {
                 log::warn!("Connection handling failed: {:?}", e);
