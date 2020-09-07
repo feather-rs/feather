@@ -438,6 +438,7 @@ name = "feather-server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64",
  "feather-base",
  "feather-common",
  "feather-ecs",

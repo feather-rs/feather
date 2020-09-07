@@ -51,6 +51,7 @@ struct StatusResponse<'a> {
     version: Version,
     players: Players,
     description: &'a Text,
+    favicon: Option<&'a str>,
 }
 
 #[derive(Debug, Serialize)]
@@ -79,6 +80,7 @@ async fn handle_status(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
             online: worker.server().player_count.load(Ordering::SeqCst),
         },
         description: &worker.server().config.server.motd,
+        favicon: worker.server().icon.as_ref().map(String::as_str),
     };
     let response = Response {
         response: serde_json::to_string(&payload)?,

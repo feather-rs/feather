@@ -28,7 +28,7 @@ pvp_style = "classic" # Unimplemented
 [log]
 # If you prefer less verbose logs, switch this to "info."
 # For development, it might be useful to set this to "trace."
-level = "debug"
+level = "trace"
 
 [resource_pack]
 # Server resource pack which is sent to players

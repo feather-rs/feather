@@ -29,6 +29,11 @@ pub use positions::*;
 pub use text::{deserialize_text, Text};
 pub use world::World;
 
+/// Number of updates (ticks) to do per second.
+pub const TPS: u32 = 20;
+/// The number of milliseconds per tick.
+pub const TICK_MILLIS: u32 = 1000 / TPS;
+
 /// A function that is called before an entity is despawned.
 pub type DespawnCallback = fn(&mut State, Entity) -> SysResult;
 

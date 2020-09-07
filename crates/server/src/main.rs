@@ -1,13 +1,16 @@
+use anyhow::Context;
+use base::{Setup, TICK_MILLIS};
 use config::Config;
-use simple_logger::SimpleLogger;
 use std::{
-    fs::File,
     sync::{atomic::AtomicUsize, Arc},
+    thread::sleep,
+    time::Duration,
+    time::Instant,
 };
-use tokio::runtime;
 
 mod config;
 mod entity;
+mod init;
 mod network;
 
 /// Shared server state. Stored as a resource.
@@ -23,31 +26,23 @@ pub struct ServerInner {
 }
 
 fn main() -> anyhow::Result<()> {
-    SimpleLogger::new().init().unwrap();
-    let runtime = runtime::Builder::new()
-        .threaded_scheduler()
-        .enable_io()
-        .enable_time()
-        .build()?;
+    let (mut state, executor) = init::init().context("failed to start server")?;
 
-    let config = Config::load_from_file(&mut File::open("config.toml")?)?;
-    let server = Arc::new(ServerInner {
-        player_count: AtomicUsize::new(0),
-        config,
-        icon: None,
-    });
+    loop {
+        let start = Instant::now();
+        executor.tick(&mut state);
+        let elapsed = start.elapsed();
 
-    runtime.enter(|| {
-        let listener = network::Listener::new(
-            "127.0.0.1:25565".parse().unwrap(),
-            runtime.handle(),
-            &server,
-        )?;
-        runtime.handle().block_on(async move {
-            listener.run().await;
-        });
-        Result::<(), anyhow::Error>::Ok(())
-    })?;
+        match Duration::from_millis(TICK_MILLIS as u64).checked_sub(elapsed) {
+            Some(remaining_time) => sleep(remaining_time),
+            None => {
+                log::debug!("Running behind! Tick took {:?}", elapsed);
+                continue;
+            }
+        }
+    }
+}
 
-    Ok(())
+pub fn setup(setup: &mut Setup) {
+    entity::setup(setup);
 }
