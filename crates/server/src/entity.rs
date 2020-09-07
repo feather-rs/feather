@@ -41,7 +41,7 @@ impl NetworkIdAllocator {
 
 pub fn setup(setup: &mut Setup) {
     setup
-        .resource(NetworkIdAllocator::default())
+        .resource(NetworkIdAllocator::new())
         .despawn_callback(free_network_id);
 }
 

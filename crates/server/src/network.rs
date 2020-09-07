@@ -11,11 +11,12 @@
 //! simply proxies packets between the server thread and the TCP stream.
 
 use base::{Setup, State};
-use ecs::{EntityBuilder, Stage, SysResult};
+use common::Name;
+use ecs::{Entity, EntityBuilder, Stage, SysResult};
 use flume::{Receiver, Sender};
 use protocol::{ClientPlayPacket, ServerPlayPacket};
 use smartstring::{LazyCompact, SmartString};
-use std::net::SocketAddr;
+use std::{mem::take, net::SocketAddr};
 use uuid::Uuid;
 
 mod initial_handling;
@@ -24,7 +25,7 @@ mod worker;
 
 pub use listener::Listener;
 
-use crate::entity::build_player;
+use crate::{entity::build_player, packet_handler::PACKET_HANDLERS};
 
 /// A handle to send packets to a player.
 pub struct Network {
@@ -120,7 +121,10 @@ impl WorkerHandle {
 }
 
 pub fn setup(setup: &mut Setup) {
-    setup.system_in_stage(poll_new_connections, Stage::Pre);
+    setup
+        .system_in_stage(poll_new_connections, Stage::Pre)
+        .system_in_stage(poll_clients, Stage::Pre)
+        .resource(EventBuffer::default());
 }
 
 /// System to poll for new connections and create new players.
@@ -134,5 +138,51 @@ fn poll_new_connections(s: &mut State) -> SysResult {
         s.ecs.spawn(builder.build());
     }
 
+    Ok(())
+}
+
+#[derive(Default)]
+struct EventBuffer(Vec<(Entity, FromWorker)>);
+
+/// System to poll for packets and disconnect events received from clients.
+fn poll_clients(s: &mut State) -> SysResult {
+    let mut buffer_borrow = s.resource_mut::<EventBuffer>()?;
+
+    for (player, network) in s.ecs.query::<(Entity, &Network)>().iter() {
+        for event in network.handle.iter() {
+            buffer_borrow.0.push((player, event));
+        }
+    }
+
+    let mut buffer = take(&mut *buffer_borrow);
+    drop(buffer_borrow);
+    for (player, event) in buffer.0.drain(..) {
+        match event {
+            FromWorker::PacketReceived(packet) => handle_packet(s, player, packet)?,
+            FromWorker::Failed { message } => {
+                log::info!("{} disconnected: {}", s.ecs.get::<Name>(player)?.0, message);
+                s.despawn(player)?;
+            }
+        }
+    }
+
+    *s.resource_mut::<EventBuffer>()? = buffer;
+
+    Ok(())
+}
+
+fn handle_packet(s: &mut State, player: Entity, packet: ClientPlayPacket) -> SysResult {
+    log::trace!(
+        "Handling packet from {}: {:?}",
+        s.ecs.get::<Name>(player)?.0,
+        packet
+    );
+    if let Err(e) = PACKET_HANDLERS.handle(s, player, packet) {
+        log::debug!(
+            "Failed to handle packet received from '{}': {:?}",
+            s.ecs.get::<Name>(player)?.0,
+            e
+        );
+    }
     Ok(())
 }

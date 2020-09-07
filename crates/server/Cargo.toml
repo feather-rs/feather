@@ -15,6 +15,7 @@ tokio = { version = "0.2", features = ["rt-threaded", "tcp", "io-util", "blockin
 futures-util = "0.3"
 flume = "0.8"
 smartstring = "0.2"
+ahash = "0.4"
 uuid = { version = "0.8", features = ["v4"] }
 anyhow = "1"
 simple_logger = "1"

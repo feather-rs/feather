@@ -12,6 +12,7 @@ mod config;
 mod entity;
 mod init;
 mod network;
+mod packet_handler;
 
 /// Shared server state. Stored as a resource.
 pub type Server = Arc<ServerInner>;

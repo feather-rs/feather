@@ -191,6 +191,17 @@ macro_rules! packet_enum {
             )*
         }
 
+        impl $ident {
+            /// Returns the packet ID of this packet.
+            pub fn id(&self) -> u32 {
+                match self {
+                    $(
+                        $ident::$packet(_) => $id,
+                    )*
+                }
+            }
+        }
+
         impl crate::Readable for $ident {
             fn read(buffer: &mut ::std::io::Cursor<&[u8]>, version: crate::ProtocolVersion) -> anyhow::Result<Self>
             where
@@ -208,17 +219,45 @@ macro_rules! packet_enum {
 
         impl crate::Writeable for $ident {
             fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
+                VarInt(self.id() as i32).write(buffer, version);
                 match self {
                     $(
                         $ident::$packet(packet) => {
-                            VarInt($id).write(buffer, version);
                             packet.write(buffer, version);
                         }
                     )*
                 }
             }
         }
+
+        $(
+            impl VariantOf<$ident> for $packet {
+                fn discriminant_id() -> u32 { $id }
+
+                #[allow(unreachable_patterns)]
+                fn destructure(e: $ident) -> Option<Self> {
+                    match e {
+                        $ident::$packet(p) => Some(p),
+                        _ => None,
+                    }
+                }
+            }
+        )*
     }
+}
+
+/// Trait implemented for packets which can be converted from a packet
+/// enum. For example, `SpawnEntity` implements `VariantOf<ServerPlayPacket>`.
+pub trait VariantOf<Enum> {
+    /// Returns the unique ID used to determine whether
+    /// an enum variant matches this variant.
+    fn discriminant_id() -> u32;
+
+    /// Attempts to destructure the `Enum` into this type.
+    /// Returns `None` if `enum` is not the correct variant.
+    fn destructure(e: Enum) -> Option<Self>
+    where
+        Self: Sized;
 }
 
 use crate::io::{Angle, LengthInferredVecU8, LengthPrefixedVec, Nbt, VarInt};

@@ -11,6 +11,7 @@ pub use io::{Readable, Writeable};
 pub use packets::{
     client::{ClientHandshakePacket, ClientLoginPacket, ClientPlayPacket, ClientStatusPacket},
     server::{ServerLoginPacket, ServerPlayPacket, ServerStatusPacket},
+    VariantOf,
 };
 
 pub type Slot = Option<ItemStack>;
