@@ -1,9 +1,10 @@
 use arrayvec::ArrayVec;
-use feather_items::{Item, ItemStack};
-use feather_util::{vec3, Position, Vec3d};
+use generated::{Item, ItemStack};
 use serde::ser::Error;
 use serde::{Deserialize, Serialize, Serializer};
 use thiserror::Error;
+
+use crate::{vec3, Position, Vec3d};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum EntityDataKind {
@@ -183,7 +184,7 @@ impl Default for ItemData {
     fn default() -> Self {
         Self {
             count: 0,
-            item: Item::Air.identifier().to_string(),
+            item: Item::Air.name().to_owned(),
             nbt: None,
         }
     }
@@ -200,7 +201,7 @@ impl From<&ItemData> for ItemStack {
     fn from(item: &ItemData) -> Self {
         ItemNbt::item_stack(
             &item.nbt,
-            Item::from_identifier(item.item.as_str()).unwrap_or(Item::Air),
+            Item::from_name(item.item.as_str()).unwrap_or(Item::Air),
             item.count as u8,
         )
     }
@@ -219,8 +220,8 @@ where
             Some(nbt)
         };
         Self {
-            count: stack.amount as i8,
-            item: stack.ty.identifier().to_string(),
+            count: stack.count as i8,
+            item: stack.item.name().to_owned(),
             nbt,
         }
     }
@@ -236,11 +237,11 @@ pub struct ItemNbt {
 
 impl ItemNbt {
     /// Create an `ItemStack` of the specified item and amount, setting any nbt present.
-    pub fn item_stack(nbt: &Option<Self>, item: Item, amount: u8) -> ItemStack {
+    pub fn item_stack(nbt: &Option<Self>, item: Item, count: u8) -> ItemStack {
         ItemStack {
-            ty: item,
-            amount,
-            damage: nbt.as_ref().map(|n| n.damage).flatten(),
+            count: count as u32,
+            item,
+            damage: nbt.as_ref().map(|n| n.damage).flatten().map(|x| x as u32),
         }
     }
 }
@@ -252,7 +253,7 @@ where
     fn from(s: S) -> Self {
         let stack = s.borrow();
         Self {
-            damage: stack.damage,
+            damage: stack.damage.map(|d| d as i16),
         }
     }
 }
@@ -293,7 +294,7 @@ pub struct ArrowEntityData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use feather_util::position;
+    use crate::position;
 
     #[test]
     fn test_read_position() {

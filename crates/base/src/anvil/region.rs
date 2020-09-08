@@ -1,14 +1,13 @@
 //! This module implements the loading and saving
 //! of Anvil region files.
 
-use super::serialization_helper::packed_u9;
-use crate::{block_entity::BlockEntityData, entity::EntityData};
+use crate::{chunk::BitArray, Chunk, ChunkPosition, ChunkSection};
+
+use super::{block_entity::BlockEntityData, entity::EntityData, serialization_helper::packed_u9};
 use bitvec::{bitvec, vec::BitVec};
+use blocks::BlockId;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use feather_biomes::Biome;
-use feather_blocks::BlockId;
-use feather_chunk::{BitArray, Chunk, ChunkSection};
-use feather_util::ChunkPosition;
+use generated::Biome;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
@@ -259,7 +258,7 @@ impl RegionHandle {
         for index in 0..256 {
             let id = level.biomes[index];
             chunk.biomes_mut()[index] =
-                Biome::from_protocol_id(id).ok_or_else(|| Error::InvalidBiomeId(id))?;
+                Biome::from_id(id as u32).ok_or_else(|| Error::InvalidBiomeId(id))?;
         }
 
         // Chunk was not modified, but it thinks it was: disable this
@@ -444,7 +443,7 @@ fn chunk_to_chunk_root(
             biomes: chunk
                 .biomes()
                 .iter()
-                .map(|biome| biome.protocol_id())
+                .map(|biome| biome.id() as i32)
                 .collect(),
             entities: entities.into(),
             heightmaps: Heightmaps {

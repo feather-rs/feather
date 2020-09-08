@@ -1,6 +1,7 @@
-use crate::player::InventorySlot;
 use serde::ser::Error;
 use serde::{Deserialize, Serialize, Serializer};
+
+use super::player::InventorySlot;
 
 /// A block entity loaded or saved to the Anvil format.
 /// Should be serialized using NBT.

@@ -1,4 +1,4 @@
-//! Module containing functions for loading and saving to
+//! Loading and saving to/from
 //! world saves. Currently includes region file loading,
 //! player data loading, and level data loading.
 

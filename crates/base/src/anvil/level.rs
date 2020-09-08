@@ -1,12 +1,9 @@
 //! Implements level.dat file loading.
 
-use feather_biomes::Biome;
-use feather_items::Item;
+use generated::{Biome, Item};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::io::Cursor;
-use tokio::fs::File;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use std::io::{Cursor, Read, Write};
+use std::{collections::HashMap, fs::File};
 
 /// Root level tag
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -80,20 +77,20 @@ pub struct LevelData {
 }
 
 impl LevelData {
-    pub async fn load_from_file(file: &mut File) -> anyhow::Result<Self> {
+    pub fn load_from_file(file: &mut File) -> anyhow::Result<Self> {
         let mut buf = vec![];
-        file.read_to_end(&mut buf).await?;
+        file.read_to_end(&mut buf)?;
 
         nbt::from_gzip_reader::<_, Root>(Cursor::new(&buf))
             .map_err(Into::into)
             .map(|root| root.data)
     }
 
-    pub async fn save_to_file(&self, file: &mut File) -> anyhow::Result<()> {
+    pub fn save_to_file(&self, file: &mut File) -> anyhow::Result<()> {
         let mut buf = vec![];
         nbt::to_gzip_writer(&mut buf, &Root { data: self.clone() }, None)?;
 
-        file.write_all(&buf).await?;
+        file.write_all(&buf)?;
         Ok(())
     }
 }
@@ -127,19 +124,19 @@ impl Default for SuperflatGeneratorOptions {
             structures: default_structures,
             layers: vec![
                 SuperflatLayer {
-                    block: Item::Bedrock.identifier().to_string(),
+                    block: Item::Bedrock.name().to_string(),
                     height: 1,
                 },
                 SuperflatLayer {
-                    block: Item::Dirt.identifier().to_string(),
+                    block: Item::Dirt.name().to_string(),
                     height: 2,
                 },
                 SuperflatLayer {
-                    block: Item::GrassBlock.identifier().to_string(),
+                    block: Item::GrassBlock.name().to_string(),
                     height: 1,
                 },
             ],
-            biome: Biome::Plains.identifier().to_string(),
+            biome: Biome::Plains.name().to_string(),
         }
     }
 }

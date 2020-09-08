@@ -1,18 +1,17 @@
-use crate::entity::{AnimalData, ItemNbt};
-use feather_inventory::player_constants::{
-    HOTBAR_SIZE, INVENTORY_SIZE, SLOT_ARMOR_MAX, SLOT_ARMOR_MIN, SLOT_HOTBAR_OFFSET,
-    SLOT_INVENTORY_OFFSET, SLOT_OFFHAND,
-};
-use feather_items::{Item, ItemStack};
+use generated::{Item, ItemStack};
 use nbt::Value;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
+    fs,
+    fs::File,
     path::{Path, PathBuf},
 };
-use tokio::io::AsyncWriteExt;
-use tokio::prelude::{AsyncRead, AsyncWrite};
 use uuid::Uuid;
+
+use crate::inventory::*;
+
+use super::entity::{AnimalData, ItemNbt};
 
 /// Represents the contents of a player data file.
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -65,16 +64,16 @@ impl InventorySlot {
 
     /// Converts an `ItemStack` and inventory position index into an `InventorySlot`.
     pub fn from_inventory_index(slot: i8, stack: ItemStack) -> Self {
-        let nbt = stack.into();
+        let nbt = stack.clone().into();
         let nbt = if nbt == Default::default() {
             None
         } else {
             Some(nbt)
         };
         Self {
-            count: stack.amount as i8,
+            count: stack.count as i8,
             slot,
-            item: stack.ty.identifier().to_string(),
+            item: stack.item.name().to_owned(),
             nbt,
         }
     }
@@ -129,44 +128,28 @@ impl From<&InventorySlot> for ItemStack {
     fn from(slot: &InventorySlot) -> Self {
         ItemNbt::item_stack(
             &slot.nbt,
-            Item::from_identifier(slot.item.as_str()).unwrap_or(Item::Air),
+            Item::from_name(slot.item.as_str()).unwrap_or(Item::Air),
             slot.count as u8,
         )
     }
 }
 
-async fn load_from_file<R: AsyncRead + Unpin>(mut reader: R) -> Result<PlayerData, nbt::Error> {
-    let mut buf = vec![];
-    tokio::io::copy(&mut reader, &mut buf).await?;
-    nbt::from_gzip_reader(buf.as_slice())
-}
-
-pub async fn load_player_data(world_dir: &Path, uuid: Uuid) -> Result<PlayerData, nbt::Error> {
+pub fn load_player_data(world_dir: &Path, uuid: Uuid) -> Result<PlayerData, nbt::Error> {
     let file_path = file_path(world_dir, uuid);
-    let file = tokio::fs::File::open(file_path).await?;
-    let data = load_from_file(file).await?;
+    let mut file = File::open(file_path)?;
+    let data = nbt::from_gzip_reader(&mut file)?;
     Ok(data)
 }
 
-async fn save_to_file<W: AsyncWrite + Unpin>(
-    mut writer: W,
-    data: &PlayerData,
-) -> Result<(), anyhow::Error> {
-    let mut buf = vec![];
-    nbt::to_gzip_writer(&mut buf, data, None)?;
-    writer.write_all(&buf).await?;
-    Ok(())
-}
-
-pub async fn save_player_data(
+pub fn save_player_data(
     world_dir: &Path,
     uuid: Uuid,
     data: &PlayerData,
 ) -> Result<(), anyhow::Error> {
-    tokio::fs::create_dir_all(world_dir.join("playerdata")).await?;
+    fs::create_dir_all(world_dir.join("playerdata"))?;
     let file_path = file_path(world_dir, uuid);
-    let file = tokio::fs::File::create(file_path).await?;
-    save_to_file(file, data).await
+    let mut file = File::create(file_path)?;
+    nbt::to_gzip_writer(&mut file, data, None).map_err(anyhow::Error::from)
 }
 
 fn file_path(world_dir: &Path, uuid: Uuid) -> PathBuf {
@@ -176,19 +159,23 @@ fn file_path(world_dir: &Path, uuid: Uuid) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use feather_inventory::player_constants::{
-        SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET, SLOT_ARMOR_HEAD, SLOT_ARMOR_LEGS,
+    use crate::{
+        inventory::{SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET, SLOT_ARMOR_HEAD, SLOT_ARMOR_LEGS},
+        Gamemode,
     };
-    use feather_util::Gamemode;
+    use num_traits::ToPrimitive;
     use std::collections::HashMap;
     use std::io::Cursor;
 
-    #[tokio::test]
-    async fn test_deserialize_player() {
-        let cursor = Cursor::new(include_bytes!("player.dat").to_vec());
+    #[test]
+    fn test_deserialize_player() {
+        let mut cursor = Cursor::new(include_bytes!("player.dat").to_vec());
 
-        let player = load_from_file(cursor).await.unwrap();
-        assert_eq!(player.gamemode, i32::from(Gamemode::Creative.id()));
+        let player: PlayerData = nbt::from_gzip_reader(&mut cursor).unwrap();
+        assert_eq!(
+            player.gamemode,
+            i32::from(Gamemode::Creative.to_i32().unwrap())
+        );
         assert_eq!(player.inventory[0].item, "minecraft:diamond_shovel");
         assert_eq!(player.inventory[0].nbt, Some(ItemNbt { damage: Some(3) }));
     }
@@ -198,13 +185,13 @@ mod tests {
         let slot = InventorySlot {
             count: 1,
             slot: 2,
-            item: String::from(Item::Feather.identifier()),
+            item: String::from(Item::Feather.name()),
             nbt: None,
         };
 
         let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.ty, Item::Feather);
-        assert_eq!(item_stack.amount, 1);
+        assert_eq!(item_stack.item, Item::Feather);
+        assert_eq!(item_stack.count, 1);
     }
 
     #[test]
@@ -212,13 +199,13 @@ mod tests {
         let slot = InventorySlot {
             count: 1,
             slot: 2,
-            item: String::from(Item::DiamondAxe.identifier()),
+            item: String::from(Item::DiamondAxe.name()),
             nbt: Some(ItemNbt { damage: Some(42) }),
         };
 
         let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.ty, Item::DiamondAxe);
-        assert_eq!(item_stack.amount, 1);
+        assert_eq!(item_stack.item, Item::DiamondAxe);
+        assert_eq!(item_stack.count, 1);
         assert_eq!(item_stack.damage, Some(42));
     }
 
@@ -232,7 +219,7 @@ mod tests {
         };
 
         let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.ty, Item::Air);
+        assert_eq!(item_stack.item, Item::Air);
     }
 
     #[test]
@@ -261,7 +248,7 @@ mod tests {
             let slot = InventorySlot {
                 slot: src,
                 count: 1,
-                item: String::from(Item::Stone.identifier()),
+                item: String::from(Item::Stone.name()),
                 nbt: None,
             };
             assert_eq!(slot.convert_index().unwrap(), expected);

@@ -16,7 +16,9 @@ use num_derive::{FromPrimitive, ToPrimitive};
 use resources::{CantGetResource, Resource, Resources};
 use serde::{Deserialize, Serialize};
 
+pub mod anvil;
 mod chunk;
+pub mod inventory;
 pub mod metadata;
 mod positions;
 pub mod text;
