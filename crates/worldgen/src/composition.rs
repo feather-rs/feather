@@ -2,12 +2,9 @@
 //! based on the density and biome values.
 
 use crate::{block_index, util, ChunkBiomes, CompositionGenerator, SEA_LEVEL};
-use bitvec::order::Local;
+use base::{Biome, BlockId, Chunk, ChunkPosition};
+use bitvec::order::LocalBits;
 use bitvec::slice::BitSlice;
-use feather_core::biomes::Biome;
-use feather_core::blocks::BlockId;
-use feather_core::chunk::Chunk;
-use feather_core::util::ChunkPosition;
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
 use std::cmp::min;
@@ -23,7 +20,7 @@ impl CompositionGenerator for BasicCompositionGenerator {
         chunk: &mut Chunk,
         _pos: ChunkPosition,
         biomes: &ChunkBiomes,
-        density: &BitSlice<Local, u8>,
+        density: &BitSlice<LocalBits, u8>,
         seed: u64,
     ) {
         // For each column in the chunk, go from top to
@@ -42,7 +39,7 @@ fn basic_composition_for_column(
     x: usize,
     z: usize,
     chunk: &mut Chunk,
-    density: &BitSlice<Local, u8>,
+    density: &BitSlice<LocalBits, u8>,
     seed: u64,
     biome: Biome,
 ) {
@@ -53,7 +50,7 @@ fn basic_composition_for_solid_biome(
     x: usize,
     z: usize,
     chunk: &mut Chunk,
-    density: &BitSlice<Local, u8>,
+    density: &BitSlice<LocalBits, u8>,
     seed: u64,
     biome: Biome,
 ) {

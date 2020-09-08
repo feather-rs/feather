@@ -14,16 +14,12 @@ mod superflat;
 mod util;
 pub mod voronoi;
 
+use base::{Biome, BlockId, Chunk, ChunkPosition};
 pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
-use bitvec::order::Local;
-use bitvec::slice::BitSlice;
 use bitvec::vec::BitVec;
+use bitvec::{order::LocalBits, slice::BitSlice};
 pub use composition::BasicCompositionGenerator;
 pub use density_map::{DensityMapGeneratorImpl, HeightMapGenerator};
-use feather_core::biomes::Biome;
-use feather_core::blocks::BlockId;
-use feather_core::chunk::Chunk;
-use feather_core::util::ChunkPosition;
 use finishers::{ClumpedFoliageFinisher, SingleFoliageFinisher, SnowFinisher};
 pub use noise::NoiseLerper;
 use num_traits::ToPrimitive;
@@ -223,7 +219,7 @@ pub trait DensityMapGenerator: Send + Sync {
         chunk: ChunkPosition,
         biomes: &NearbyBiomes,
         seed: u64,
-    ) -> BitVec<Local, u8>;
+    ) -> BitVec<LocalBits, u8>;
 }
 
 /// A generator which populates the given chunk using blocks
@@ -236,7 +232,7 @@ pub trait CompositionGenerator: Send + Sync {
         chunk: &mut Chunk,
         pos: ChunkPosition,
         biomes: &ChunkBiomes,
-        density: &BitSlice<Local, u8>,
+        density: &BitSlice<LocalBits, u8>,
         seed: u64,
     );
 }

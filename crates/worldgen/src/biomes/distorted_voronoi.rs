@@ -1,11 +1,8 @@
 use crate::voronoi::VoronoiGrid;
 use crate::{BiomeGenerator, ChunkBiomes};
-use feather_core::biomes::Biome;
-use feather_core::util::ChunkPosition;
-use num_traits::FromPrimitive;
+use base::{Biome, ChunkPosition};
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
-use strum::EnumCount;
 
 /// Biome grid generator based on a distorted Voronoi
 /// noise.
@@ -51,9 +48,9 @@ impl BiomeGenerator for DistortedVoronoiBiomeGenerator {
                 let mut rng = XorShiftRng::seed_from_u64(combined as u64);
 
                 loop {
-                    let shifted: u64 = rng.gen();
+                    let shifted: u32 = rng.gen();
 
-                    let biome = Biome::from_u64(shifted % Biome::count() as u64).unwrap();
+                    let biome = Biome::from_id(shifted % 60).unwrap();
                     if is_biome_allowed(biome) {
                         biomes.set_biome_at(x, z, biome);
                         break;
@@ -71,7 +68,10 @@ fn is_biome_allowed(biome: Biome) -> bool {
     match biome {
         Biome::TheEnd
         | Biome::TheVoid
-        | Biome::Nether
+        | Biome::NetherWastes
+        | Biome::CrimsonForest
+        | Biome::WarpedForest
+        | Biome::BasaltDeltas
         | Biome::SmallEndIslands
         | Biome::EndBarrens
         | Biome::EndHighlands

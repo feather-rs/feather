@@ -1,7 +1,5 @@
 use crate::{ChunkBiomes, FinishingGenerator, TopBlocks};
-use feather_core::biomes::Biome;
-use feather_core::blocks::BlockId;
-use feather_core::chunk::Chunk;
+use base::{Biome, BlockId, Chunk};
 
 /// Finisher for generating snow on top of snow biomes.
 #[derive(Default)]

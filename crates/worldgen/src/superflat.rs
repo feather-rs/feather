@@ -1,9 +1,6 @@
+use base::{anvil::level::SuperflatGeneratorOptions, Biome, BlockId, Chunk, ChunkPosition};
+
 use crate::WorldGenerator;
-use feather_core::anvil::level::SuperflatGeneratorOptions;
-use feather_core::biomes::Biome;
-use feather_core::blocks::BlockId;
-use feather_core::chunk::Chunk;
-use feather_core::util::ChunkPosition;
 
 pub struct SuperflatWorldGenerator {
     pub options: SuperflatGeneratorOptions,
@@ -11,7 +8,7 @@ pub struct SuperflatWorldGenerator {
 
 impl WorldGenerator for SuperflatWorldGenerator {
     fn generate_chunk(&self, position: ChunkPosition) -> Chunk {
-        let biome = Biome::from_identifier(self.options.biome.as_str()).unwrap_or(Biome::Plains);
+        let biome = Biome::from_name(self.options.biome.as_str()).unwrap_or(Biome::Plains);
         let mut chunk = Chunk::new_with_default_biome(position, biome);
 
         let mut y_counter = 0;
@@ -49,8 +46,7 @@ mod tests {
     #[test]
     pub fn test_worldgen_flat() {
         let mut options = SuperflatGeneratorOptions::default();
-        dbg!(&options);
-        options.biome = Biome::Mountains.identifier().to_string();
+        options.biome = Biome::Mountains.name().to_owned();
 
         let chunk_pos = ChunkPosition { x: 1, z: 2 };
         let generator = SuperflatWorldGenerator { options };

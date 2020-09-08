@@ -1,7 +1,6 @@
 use crate::voronoi::VoronoiGrid;
 use crate::{voronoi, BiomeGenerator, ChunkBiomes};
-use feather_core::biomes::Biome;
-use feather_core::util::ChunkPosition;
+use base::{Biome, ChunkPosition};
 use once_cell::sync::Lazy;
 
 /// Array of biome groups, each containing biomes

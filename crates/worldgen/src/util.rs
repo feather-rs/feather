@@ -1,6 +1,6 @@
 //! Utilities for world generation.
 
-use feather_core::util::ChunkPosition;
+use base::ChunkPosition;
 
 /// Deterministically a seed for the given chunk. This allows
 /// different seeds to be used for different chunk.

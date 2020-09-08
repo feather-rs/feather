@@ -1,8 +1,6 @@
 use crate::util::shuffle_seed_for_chunk;
 use crate::{ChunkBiomes, FinishingGenerator, TopBlocks};
-use feather_core::biomes::Biome;
-use feather_core::blocks::BlockId;
-use feather_core::chunk::Chunk;
+use base::{Biome, BlockId, Chunk};
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
 

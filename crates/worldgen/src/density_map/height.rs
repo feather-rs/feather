@@ -2,10 +2,9 @@
 //! A superior generator would use 3D noise to allow for overhangs.
 
 use crate::{block_index, DensityMapGenerator, NearbyBiomes, OCEAN_DEPTH, SKY_LIMIT};
-use bitvec::order::Local;
+use base::{Biome, ChunkPosition};
+use bitvec::order::LocalBits;
 use bitvec::vec::BitVec;
-use feather_core::biomes::Biome;
-use feather_core::util::ChunkPosition;
 use simdnoise::NoiseBuilder;
 use std::cmp::min;
 
@@ -20,7 +19,7 @@ impl DensityMapGenerator for HeightMapGenerator {
         chunk: ChunkPosition,
         biomes: &NearbyBiomes,
         seed: u64,
-    ) -> BitVec<Local, u8> {
+    ) -> BitVec<LocalBits, u8> {
         let x_offset = (chunk.x * 16) as f32;
         let y_offset = (chunk.z * 16) as f32;
 
