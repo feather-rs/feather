@@ -1,6 +1,7 @@
 [workspace]
 members = [
     # Listed in the order they appear in the dependency tree (from bottom to top)
+    "crates/utils",
     "crates/generated",
     "crates/blocks",
     "crates/blocks/generator",
