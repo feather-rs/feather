@@ -10,10 +10,14 @@ common = { path = "../common", package = "feather-common" }
 base = { path = "../base", package = "feather-base" }
 ecs = { path = "../ecs", package = "feather-ecs" }
 protocol = { path = "../protocol", package = "feather-protocol" }
+utils = { path = "../utils", package = "feather-utils" }
 
-tokio = { version = "0.2", features = ["rt-threaded", "tcp", "io-util", "blocking", "time"] }
-futures-util = "0.3"
+async-executor = "1"
+async-io = "1"
+futures-lite = "1"
+either = "1"
 flume = "0.8"
+
 smartstring = "0.2"
 ahash = "0.4"
 uuid = { version = "0.8", features = ["v4"] }

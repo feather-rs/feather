@@ -1,21 +1,17 @@
 use super::{initial_handling, FromWorker, NewPlayer, ToWorker, WorkerHandle};
 use crate::Server;
 use anyhow::bail;
+use async_io::{Async, Timer};
+use either::Either;
 use flume::{Receiver, Sender};
-use future::Either;
-use futures_util::future;
+use futures_lite::{AsyncReadExt, AsyncWriteExt, FutureExt};
 use initial_handling::InitialHandling;
 use protocol::{ClientPlayPacket, MinecraftCodec, Readable, Writeable};
-use std::{net::SocketAddr, sync::Arc, time::Duration};
-use tokio::net::TcpStream;
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    time::timeout,
-};
+use std::{net::SocketAddr, net::TcpStream, sync::Arc, time::Duration};
 
 /// The worker task which handles connections.
 pub struct Worker {
-    stream: TcpStream,
+    stream: Async<TcpStream>,
     addr: SocketAddr,
     write_buffer: Vec<u8>,
     codec: MinecraftCodec,
@@ -29,7 +25,7 @@ pub struct Worker {
 
 impl Worker {
     pub fn new(
-        stream: TcpStream,
+        stream: Async<TcpStream>,
         addr: SocketAddr,
         server: &Server,
         new_players: Sender<NewPlayer>,
@@ -108,26 +104,39 @@ impl Worker {
         Ok(())
     }
 
+    const TIMEOUT: Duration = Duration::from_secs(20);
+
     async fn run_internal(&mut self) -> anyhow::Result<()> {
         loop {
             // Either send a packet or receive one.
+            // (This is ugly futures code. But it works.)
             let action = {
-                let message = self.to_worker.1.recv_async();
-                let recv_packet = timeout(
-                    Duration::from_secs(10),
-                    read::<ClientPlayPacket>(&mut self.stream, &mut self.codec),
-                );
-                futures_util::pin_mut!(message);
-                futures_util::pin_mut!(recv_packet);
+                let to_worker = &self.to_worker;
+                let message = async {
+                    to_worker
+                        .1
+                        .recv_async()
+                        .await
+                        .map(Either::Left)
+                        .map_err(anyhow::Error::from)
+                };
+                let stream = &mut self.stream;
+                let codec = &mut self.codec;
+                let recv_packet = async {
+                    read::<ClientPlayPacket>(stream, codec)
+                        .or(async {
+                            Timer::after(Self::TIMEOUT).await;
+                            Err(anyhow::anyhow!("timed out"))
+                        })
+                        .await
+                        .map(Either::Right)
+                };
 
-                match future::select(message, recv_packet).await {
-                    Either::Left((message, _)) => Either::Left(message),
-                    Either::Right((recv_packet, _)) => Either::Right(recv_packet),
-                }
+                message.or(recv_packet).await?
             };
 
             match action {
-                Either::Left(message) => match message? {
+                Either::Left(message) => match message {
                     ToWorker::SendPacket(packet) => self.write(&packet).await?,
                     ToWorker::Disconnect => return Ok(()),
                 },
@@ -135,7 +144,7 @@ impl Worker {
                     dbg!(&packet);
                     self.from_worker
                         .0
-                        .send_async(FromWorker::PacketReceived(packet??))
+                        .send_async(FromWorker::PacketReceived(packet))
                         .await?;
                 }
             }
@@ -143,7 +152,7 @@ impl Worker {
     }
 }
 
-async fn read<T>(stream: &mut TcpStream, codec: &mut MinecraftCodec) -> anyhow::Result<T>
+async fn read<T>(stream: &mut Async<TcpStream>, codec: &mut MinecraftCodec) -> anyhow::Result<T>
 where
     T: Readable,
 {

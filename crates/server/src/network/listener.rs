@@ -1,22 +1,20 @@
 use super::{worker::Worker, ListenerHandle, NewPlayer};
 use crate::Server;
 use anyhow::Context;
+use async_executor::Executor;
+use async_io::Async;
+use either::Either;
 use flume::{Receiver, Sender};
-use future::Either;
-use futures_util::future;
-use std::{net::SocketAddr, sync::Arc};
-use tokio::{
-    net::{TcpListener, TcpStream},
-    runtime,
-};
+use futures_lite::future;
+use std::{net::SocketAddr, net::TcpListener, net::TcpStream, sync::Arc};
 
 /// The listener task.
 pub struct Listener {
     new_players: (Sender<NewPlayer>, Receiver<NewPlayer>),
     shutdown: (Sender<()>, Receiver<()>),
 
-    listener: TcpListener,
-    runtime: runtime::Handle,
+    listener: Async<TcpListener>,
+    executor: Arc<Executor>,
 
     server: Server,
 }
@@ -25,13 +23,13 @@ impl Listener {
     /// Creates a new `Listener` which will listen on the provided address.
     pub fn new(
         addr: SocketAddr,
-        runtime: &runtime::Handle,
+        executor: &Arc<Executor>,
         server: &Server,
     ) -> anyhow::Result<Self> {
         let listener = std::net::TcpListener::bind(addr).with_context(|| {
             format!("failed to bind to {}. Is the server already running?", addr)
         })?;
-        let listener = tokio::net::TcpListener::from_std(listener)?;
+        let listener = Async::new(listener)?;
 
         let new_players = flume::unbounded();
         let shutdown = flume::unbounded();
@@ -40,7 +38,7 @@ impl Listener {
             new_players,
             shutdown,
             listener,
-            runtime: runtime.clone(),
+            executor: Arc::clone(executor),
             server: Arc::clone(server),
         })
     }
@@ -54,20 +52,19 @@ impl Listener {
     }
 
     /// Runs the listener. Returns after the shutdown channel was notified.
-    pub async fn run(mut self) {
+    pub async fn run(self) {
         loop {
             let res = {
                 let accept = self.listener.accept();
                 let shutdown = self.shutdown.1.recv_async();
-                futures_util::pin_mut!(accept);
-                futures_util::pin_mut!(shutdown);
 
-                match future::select(accept, shutdown).await {
-                    Either::Left((res, _)) => res,
-                    Either::Right(_) => {
-                        log::info!("Closing listener");
-                        return;
-                    }
+                match future::race(async move { Either::Left(accept.await) }, async move {
+                    Either::Right(shutdown.await)
+                })
+                .await
+                {
+                    Either::Left(accept) => accept,
+                    Either::Right(_) => break,
                 }
             };
 
@@ -77,12 +74,14 @@ impl Listener {
         }
     }
 
-    fn spawn_worker(&self, stream: TcpStream, addr: SocketAddr) {
+    fn spawn_worker(&self, stream: Async<TcpStream>, addr: SocketAddr) {
         let worker = Worker::new(stream, addr, &self.server, self.new_players.0.clone());
-        self.runtime.spawn(async move {
-            if let Err(e) = worker.run().await {
-                log::warn!("Connection handling failed: {:?}", e);
-            }
-        });
+        self.executor
+            .spawn(async move {
+                if let Err(e) = worker.run().await {
+                    log::warn!("Connection handling failed: {:?}", e);
+                }
+            })
+            .detach();
     }
 }

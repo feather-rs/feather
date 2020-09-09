@@ -141,7 +141,7 @@ async fn enable_encryption(
     let shared_secret = do_encryption_handshake(worker).await?;
     worker.codec().enable_encryption(shared_secret);
 
-    let response = authenticate(shared_secret, username).await?;
+    let response = authenticate(worker, shared_secret, username).await?;
 
     finish_login(worker, response).await
 }
@@ -181,19 +181,26 @@ struct AuthResponse {
     properties: Vec<ProfileProperty>,
 }
 
-async fn authenticate(shared_secret: CryptKey, username: String) -> anyhow::Result<AuthResponse> {
+async fn authenticate(
+    worker: &Worker,
+    shared_secret: CryptKey,
+    username: String,
+) -> anyhow::Result<AuthResponse> {
     let server_hash = compute_server_hash(shared_secret);
 
-    let response: AuthResponse = tokio::task::spawn_blocking(move || {
-        let url = format!(
+    let response: AuthResponse = worker
+        .server()
+        .blocking_pool
+        .spawn(async move {
+            let url = format!(
             "https://sessionserver.mojang.com/session/minecraft/hasJoined?username={}&serverId={}",
             username, server_hash
         );
-        let response = ureq::get(&url).call();
+            let response = ureq::get(&url).call();
 
-        serde_json::from_reader(response.into_reader())
-    })
-    .await??;
+            serde_json::from_reader(response.into_reader())
+        })
+        .await?;
 
     Ok(response)
 }

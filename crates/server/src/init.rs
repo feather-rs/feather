@@ -1,12 +1,16 @@
-use std::{fs, fs::File, net::SocketAddr, path::Path, sync::atomic::AtomicUsize, sync::Arc};
+use std::{
+    fs, fs::File, net::SocketAddr, path::Path, sync::atomic::AtomicUsize, sync::Arc, thread,
+};
 
 use anyhow::Context;
+use async_executor::Executor;
 use base::{Setup, State};
 use ecs::SystemExecutor;
+use future::block_on;
+use futures_lite::future;
 use log::LevelFilter;
-use runtime::Runtime;
 use simple_logger::SimpleLogger;
-use tokio::runtime;
+use utils::{BlockingPool, ComputePool};
 
 use crate::{config::Config, network::Listener, network::ListenerHandle, Server, ServerInner};
 
@@ -17,13 +21,18 @@ pub fn init() -> anyhow::Result<(State, SystemExecutor<State>)> {
     log::info!("Starting up");
 
     let icon = load_icon()?;
+    let compute_pool = ComputePool::new(8);
+    let blocking_pool = BlockingPool::new();
     let server = Arc::new(ServerInner {
         player_count: AtomicUsize::new(0),
         config,
         icon,
+        compute_pool,
+        blocking_pool,
     });
 
-    let (listener, runtime) = init_listener(&server)?;
+    let executor = init_executor();
+    let listener = init_listener(&server, &executor)?;
     log::info!(
         "Listening on {}:{}",
         server.config.server.address,
@@ -31,7 +40,7 @@ pub fn init() -> anyhow::Result<(State, SystemExecutor<State>)> {
     );
 
     let mut setup = Setup::new();
-    setup.resource(server).resource(listener).resource(runtime);
+    setup.resource(server).resource(listener).resource(executor);
 
     common::setup(&mut setup);
     crate::setup(&mut setup);
@@ -79,23 +88,35 @@ fn load_icon() -> anyhow::Result<Option<String>> {
     }
 }
 
-fn init_listener(server: &Server) -> anyhow::Result<(ListenerHandle, Runtime)> {
-    let runtime = runtime::Builder::new()
-        .threaded_scheduler()
-        .enable_io()
-        .enable_time()
-        .build()?;
+fn init_listener(server: &Server, executor: &Arc<Executor>) -> anyhow::Result<ListenerHandle> {
     let addr = SocketAddr::new(
         server.config.server.address.parse()?,
         server.config.server.port,
     );
 
-    let listener = runtime
-        .enter(|| Listener::new(addr, runtime.handle(), server))
+    let listener = Listener::new(addr, &executor, server)
         .with_context(|| format!("failed to bind to {}. Is a server already running?", addr))?;
     let handle = listener.handle();
-    runtime.spawn(async move {
-        listener.run().await;
-    });
-    Ok((handle, runtime))
+    executor
+        .spawn(async move {
+            listener.run().await;
+        })
+        .detach();
+    Ok(handle)
+}
+
+fn init_executor() -> Arc<Executor> {
+    let executor = Arc::new(Executor::new());
+
+    for i in 0..8 {
+        let executor = Arc::clone(&executor);
+        thread::Builder::new()
+            .name(format!("async thread #{}", i))
+            .spawn(move || {
+                block_on(executor.run(future::pending::<()>()));
+            })
+            .expect("failed to create thread");
+    }
+
+    executor
 }

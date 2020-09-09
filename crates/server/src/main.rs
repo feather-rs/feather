@@ -7,6 +7,7 @@ use std::{
     time::Duration,
     time::Instant,
 };
+use utils::{BlockingPool, ComputePool};
 
 mod config;
 mod entity;
@@ -24,6 +25,11 @@ pub struct ServerInner {
     pub config: Config,
     /// The server icon, base64-encoded.
     pub icon: Option<String>,
+
+    /// The compute thread pool used by the server.
+    pub compute_pool: ComputePool,
+    /// The blocking thread pool used by the server.
+    pub blocking_pool: BlockingPool,
 }
 
 fn main() -> anyhow::Result<()> {
