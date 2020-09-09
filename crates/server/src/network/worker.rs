@@ -87,7 +87,11 @@ impl Worker {
 
     /// Runs the worker. Returns once the connection is lost.
     pub async fn run(mut self) -> anyhow::Result<()> {
-        match initial_handling::handle(&mut self).await? {
+        let initial_handling = initial_handling::handle(&mut self).or(async {
+            Timer::after(Self::TIMEOUT).await;
+            Err(anyhow::anyhow!("timed out"))
+        });
+        match initial_handling.await? {
             InitialHandling::Disconnect => return Ok(()),
             InitialHandling::Join(player) => self.new_players.send_async(player).await?,
         }
@@ -157,15 +161,19 @@ where
     T: Readable,
 {
     let mut buf = [0u8; 256];
+    let mut bytes_read = 0;
     loop {
-        let bytes_read = stream.read(&mut buf).await?;
-        if bytes_read == 0 {
-            bail!("end of stream");
-        }
-
+        // We need to do this first before calling read()
+        // in case enough bytes have already been received
+        // to decode a full packet.
         if let Some(packet) = codec.decode(&buf[..bytes_read])? {
             log::trace!("Read packet of type {}", std::any::type_name::<T>());
             return Ok(packet);
+        }
+        
+        bytes_read = stream.read(&mut buf).await?;
+        if bytes_read == 0 {
+            bail!("end of stream");
         }
     }
 }

@@ -11,7 +11,8 @@ use protocol::{
         client::{HandshakeState, Ping, Request},
         server::{EncryptionRequest, LoginSuccess, Pong, Response},
     },
-    ClientHandshakePacket, ClientLoginPacket, ServerLoginPacket, ServerStatusPacket,
+    ClientHandshakePacket, ClientLoginPacket, ClientStatusPacket, ServerLoginPacket,
+    ServerStatusPacket,
 };
 use rand::rngs::OsRng;
 use rsa::{PaddingScheme, PublicKeyParts, RSAPrivateKey};
@@ -51,6 +52,7 @@ struct StatusResponse<'a> {
     version: Version,
     players: Players,
     description: &'a Text,
+    #[serde(skip_serializing_if = "Option::is_none")]
     favicon: Option<&'a str>,
 }
 
@@ -67,7 +69,7 @@ struct Players {
 }
 
 async fn handle_status(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
-    let _request = worker.read::<Request>().await?;
+    let _request = worker.read::<ClientStatusPacket>().await?;
 
     // TODO: correctly fill in this information.
     let payload = StatusResponse {
@@ -89,11 +91,16 @@ async fn handle_status(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
         .write(&ServerStatusPacket::Response(response))
         .await?;
 
-    if let Ok(ping) = worker.read::<Ping>().await {
-        let pong = Pong {
-            payload: ping.payload,
-        };
-        worker.write(&ServerStatusPacket::Pong(pong)).await?;
+    match worker.read::<Ping>().await {
+        Ok(ping) => {
+            let pong = Pong {
+                payload: ping.payload,
+            };
+            worker.write(&ServerStatusPacket::Pong(pong)).await?;
+        }
+        Err(e) => {
+            log::debug!("Didn't receive ping packet from status call: {}", e);
+        }
     }
 
     Ok(InitialHandling::Disconnect)
