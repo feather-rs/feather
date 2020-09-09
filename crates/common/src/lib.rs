@@ -8,6 +8,7 @@ use smartstring::{LazyCompact, SmartString};
 use std::ops::Deref;
 
 pub mod entity;
+pub mod save;
 
 /// Component storing an entity's username. (Usually
 /// only players have this component.)

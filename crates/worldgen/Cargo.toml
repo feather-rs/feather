@@ -1,5 +1,5 @@
 [package]
-name = "feather-server-worldgen"
+name = "feather-worldgen"
 version = "0.6.0"
 authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"

@@ -7,5 +7,13 @@ edition = "2018"
 [dependencies]
 base = { path = "../base", package = "feather-base" }
 ecs = { path = "../ecs", package = "feather-ecs" }
+worldgen = { path = "../worldgen", package = "feather-worldgen" }
+utils = { path = "../utils", package = "feather-utils" }
 
 smartstring = "0.2"
+smallvec = "1"
+flume = "0.8"
+parking_lot = "0.11"
+ahash = "0.4"
+log = "0.4"
+anyhow = "1"
