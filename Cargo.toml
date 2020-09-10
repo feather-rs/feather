@@ -59,7 +59,3 @@ exclude = [
     "data",
     "data/macro"
 ]
-
-# To make sure the server isn't dirt slow in debug mode.
-[profile.dev]
-opt-level = 1

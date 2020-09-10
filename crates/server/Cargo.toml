@@ -33,8 +33,9 @@ serde_json = "1"
 base64 = "0.12"
 
 # Authentication
-rsa = "0.3"
+rsa = { version = "0.3", default-features = false }
 rsa-der = "0.2"
 ureq = { version = "1", default-features = false, features = ["tls"] }
 num-bigint = "0.3"
 sha1 = "0.6"
+

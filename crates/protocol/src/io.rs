@@ -343,6 +343,15 @@ where
     }
 }
 
+impl<'a, T> From<Vec<T>> for LengthPrefixedVec<'a, T>
+where
+    [T]: ToOwned<Owned = Vec<T>>,
+{
+    fn from(vec: Vec<T>) -> Self {
+        LengthPrefixedVec(Cow::Owned(vec))
+    }
+}
+
 /// A vector of bytes which consumes all remaining bytes in this packet.
 /// This is used by the plugin messaging packets, for one.
 pub struct LengthInferredVecU8<'a>(pub Cow<'a, [u8]>);

@@ -170,7 +170,7 @@ where
             log::trace!("Read packet of type {}", std::any::type_name::<T>());
             return Ok(packet);
         }
-        
+
         bytes_read = stream.read(&mut buf).await?;
         if bytes_read == 0 {
             bail!("end of stream");

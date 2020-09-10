@@ -206,7 +206,7 @@ pub enum Gamemode {
 /// A profile property, which stores metadata
 /// for some player's account. This is usually
 /// used to store skin data.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProfileProperty {
     pub name: String,
     pub value: String,

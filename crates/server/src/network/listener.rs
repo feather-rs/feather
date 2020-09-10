@@ -79,7 +79,7 @@ impl Listener {
         self.executor
             .spawn(async move {
                 if let Err(e) = worker.run().await {
-                    log::warn!("Connection handling failed: {:?}", e);
+                    log::debug!("Connection handling failed: {:?}", e);
                 }
             })
             .detach();

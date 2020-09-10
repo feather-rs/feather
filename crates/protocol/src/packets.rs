@@ -167,7 +167,7 @@ macro_rules! def_enum {
 
                             $(
                                 $(
-                                    user_type_convert_to_writeable!($typ, $field).write(buffer, version);
+                                    user_type_convert_to_writeable!($typ $(<$generics>)?, $field).write(buffer, version);
                                 )*
                             )?
                         }
