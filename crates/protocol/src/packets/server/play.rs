@@ -27,15 +27,6 @@ packets! {
         count u16;
     }
 
-    SpawnWeatherEntity {
-        entity_id VarInt;
-        // (always 1=thunderbolt)
-        kind u8;
-        x f64;
-        y f64;
-        z f64;
-    }
-
     SpawnLivingEntity {
         entity_id VarInt;
         entity_uuid Uuid;
@@ -203,6 +194,7 @@ packets! {
     ChatMessage {
         message String;
         position ChatPosition;
+        sender Uuid;
     }
 }
 
@@ -216,15 +208,9 @@ def_enum! {
 
 packets! {
     MultiBlockChange {
-        chunk_x i32;
-        chunk_z i32;
-        records LengthPrefixedVec<BlockChangeRecord>;
-    }
-
-    BlockChangeRecord {
-        horizontal_position u8;
-        y_coordinate u8;
-        block BlockId;
+        chunk_section_coordinate u64;
+        dont_trust_edges bool;
+        records LengthPrefixedVec<u64>;
     }
 
     TabComplete {
@@ -378,13 +364,21 @@ packets! {
     JoinGame {
         entity_id i32;
         gamemode Gamemode;
-        dimension i32;
+        previous_gamemode Gamemode;
+        world_names LengthPrefixedVec<String>;
+
+        dimension_codec Nbt<Blob>;
+        dimension Nbt<Blob>;
+
+        world_name String;
         hashed_seed u64;
-        max_players u8;
-        level_type String;
+        max_players VarInt;
         view_distance VarInt;
         reduced_debug_info bool;
         enable_respawn_screen bool;
+
+        is_debug bool;
+        is_flat bool;
     }
 }
 
@@ -731,10 +725,14 @@ packets! {
     }
 
     Respawn {
-        dimension i32;
+        dimension Nbt<Blob>;
+        world_name String;
         hashed_seed u64;
         gamemode Gamemode;
-        level_type String;
+        previous_gamemode Gamemode;
+        is_debug bool;
+        is_flat bool;
+        copy_metadata bool;
     }
 
     EntityHeadLook {
@@ -820,11 +818,7 @@ packets! {
         velocity_z i16;
     }
 
-    EntityEquipment {
-        entity_id VarInt;
-        slot VarInt;
-        item Slot;
-    }
+    // TODO: Entity Equipment as changed in 1.16
 
     SetExperience {
         experience_bar f32;
@@ -992,8 +986,8 @@ packets! {
     }
 
     Recipe {
-        kind String;
         recipe_id String;
+        kind String;
         // TODO: there's some data field?
     }
 

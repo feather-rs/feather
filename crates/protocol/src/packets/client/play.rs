@@ -94,6 +94,7 @@ packets! {
     InteractEntity {
         entity_id VarInt;
         kind InteractEntityKind;
+        sneaking bool;
     }
 }
 
@@ -111,6 +112,12 @@ def_enum! {
 }
 
 packets! {
+    GenerateStructure {
+        position BlockPosition;
+        levels VarInt;
+        keep_jigsaws bool;
+    }
+
     KeepAlive {
         id u64;
     }
@@ -170,8 +177,16 @@ packets! {
 
     PlayerAbilities {
         flags u8;
-        flying_speed f32;
-        walking_speed f32;
+    }
+
+    SetDisplayedRecipe {
+        recipe_id String;
+    }
+
+    SetRecipeBookState {
+        book_id VarInt;
+        book_open bool;
+        filter_active bool;
     }
 
     PlayerDigging {
@@ -223,24 +238,6 @@ packets! {
     }
 }
 
-def_enum! {
-    RecipeBookData (VarInt) {
-        0 = DisplayedRecipe {
-            recipe_id String;
-        },
-        1 = RecipeBookStates {
-            crafting_open bool;
-            crafting_filter bool;
-            smelting_open bool;
-            smelting_filter bool;
-            blasting_open bool;
-            blasting_filter bool;
-            smoking_open bool;
-            smoking_filter bool;
-        }
-    }
-}
-
 packets! {
     NameItem {
         name String;
@@ -287,9 +284,11 @@ packets! {
 
     UpdateJigsawBlock {
         position BlockPosition;
-        attchment_type String;
-        target_pool String;
+        name String;
+        target String;
+        pool String;
         final_state String;
+        joint_type String;
     }
 
     UpdateStructureBlock {

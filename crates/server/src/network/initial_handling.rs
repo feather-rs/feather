@@ -8,7 +8,7 @@ use once_cell::sync::Lazy;
 use protocol::{
     codec::CryptKey,
     packets::{
-        client::{HandshakeState, Ping, Request},
+        client::{HandshakeState, Ping},
         server::{EncryptionRequest, LoginSuccess, Pong, Response},
     },
     ClientHandshakePacket, ClientLoginPacket, ClientStatusPacket, ServerLoginPacket,
@@ -21,8 +21,8 @@ use sha1::Sha1;
 use std::{convert::TryInto, sync::atomic::Ordering};
 use uuid::Uuid;
 
-const SERVER_NAME: &str = "Feather 1.16.2";
-const PROTOCOL_VERSION: i32 = 751;
+const SERVER_NAME: &str = "Feather 1.16.3";
+const PROTOCOL_VERSION: i32 = 753;
 
 /// Result of initial handling.
 pub enum InitialHandling {
