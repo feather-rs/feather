@@ -44,6 +44,7 @@ impl Network {
 }
 
 /// A handle to the listener task.
+#[derive(Debug, Clone)]
 pub struct ListenerHandle {
     /// Used to inform the listener that it should shut down.
     shutdown: Sender<()>,
@@ -97,7 +98,7 @@ pub enum FromWorker {
 }
 
 /// A handle to the worker task for a player's connection.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct WorkerHandle {
     sender: Sender<ToWorker>,
     receiver: Receiver<FromWorker>,

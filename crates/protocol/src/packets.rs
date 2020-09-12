@@ -242,6 +242,12 @@ macro_rules! packet_enum {
                     }
                 }
             }
+
+            impl From<$packet> for $ident {
+                fn from(packet: $packet) -> Self {
+                    $ident::$packet(packet)
+                }
+            }
         )*
     }
 }

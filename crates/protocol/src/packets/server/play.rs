@@ -1,7 +1,10 @@
-use base::{EntityMetadata, ProfileProperty};
+use base::{EntityMetadata, Gamemode, ProfileProperty};
 
 use super::*;
 use crate::{Readable, Writeable};
+use serde::{Deserialize, Serialize};
+
+// mod chunk_data;
 
 packets! {
     SpawnEntity {
@@ -360,14 +363,58 @@ packets! {
     }
 
     // TODO: UpdateLight
+}
 
+/// The dimension codec used for the Join Game packet.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DimensionCodec {
+    pub name: String,
+    pub piglin_safe: bool,
+    pub natural: bool,
+    pub ambient_light: f32,
+    pub fixed_time: Option<u64>,
+    pub infiniburn: String,
+    pub respawn_anchor_works: bool,
+    pub has_skylight: bool,
+    pub bed_works: bool,
+    pub effects: String,
+    pub has_raids: bool,
+    pub logical_height: i32,
+    pub coordinate_scale: f32,
+    pub ultrawarm: bool,
+    pub has_ceiling: bool,
+}
+
+impl DimensionCodec {
+    pub fn overworld() -> Self {
+        DimensionCodec {
+            name: String::from("minecraft:overworld"),
+            piglin_safe: false,
+            natural: true,
+            ambient_light: 1.0, // ?
+            fixed_time: None,
+            infiniburn: String::new(),
+            respawn_anchor_works: false,
+            has_skylight: true,
+            bed_works: true,
+            effects: String::from("minecraft:overworld"),
+            has_raids: true,
+            logical_height: 256,
+            coordinate_scale: 1.0,
+            ultrawarm: false,
+            has_ceiling: false,
+        }
+    }
+}
+
+packets! {
     JoinGame {
         entity_id i32;
         gamemode Gamemode;
         previous_gamemode Gamemode;
         world_names LengthPrefixedVec<String>;
 
-        dimension_codec Nbt<Blob>;
+        dimension_codec Nbt<DimensionCodec>;
         dimension Nbt<Blob>;
 
         world_name String;
@@ -379,15 +426,6 @@ packets! {
 
         is_debug bool;
         is_flat bool;
-    }
-}
-
-def_enum! {
-    Gamemode (u8) {
-        0 = Survival,
-        1 = Creative,
-        2 = Adventure,
-        3 = Specator,
     }
 }
 

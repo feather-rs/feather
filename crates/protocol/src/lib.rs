@@ -6,6 +6,7 @@ pub mod packets;
 
 #[doc(inline)]
 pub use codec::MinecraftCodec;
+pub use io::Nbt;
 pub use io::{Readable, Writeable};
 #[doc(inline)]
 pub use packets::{

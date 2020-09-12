@@ -3,7 +3,8 @@
 use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
 use base::{
-    metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata, Item, ItemStack,
+    metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata, Gamemode, Item,
+    ItemStack,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -420,6 +421,12 @@ where
     }
 }
 
+impl<T> From<T> for Nbt<T> {
+    fn from(t: T) -> Self {
+        Nbt(t)
+    }
+}
+
 impl Readable for Slot {
     fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where
@@ -690,5 +697,33 @@ impl Readable for BlockId {
 impl Writeable for BlockId {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
         VarInt(self.vanilla_id().into()).write(buffer, version);
+    }
+}
+
+impl Readable for Gamemode {
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let id = u8::read(buffer, version)?;
+        Ok(match id {
+            0 => Gamemode::Survival,
+            1 => Gamemode::Creative,
+            2 => Gamemode::Adventure,
+            3 => Gamemode::Spectator,
+            id => bail!("invalid gamemode ID {}", id),
+        })
+    }
+}
+
+impl Writeable for Gamemode {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+        let id = match self {
+            Gamemode::Survival => 0,
+            Gamemode::Creative => 1,
+            Gamemode::Adventure => 2,
+            Gamemode::Spectator => 3,
+        };
+        (id as u8).write(buffer, version);
     }
 }
