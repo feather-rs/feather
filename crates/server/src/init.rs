@@ -4,7 +4,7 @@ use std::{
 
 use anyhow::Context;
 use async_executor::Executor;
-use base::{Setup, State};
+use base::{anvil::level::LevelData, Setup, State};
 use ecs::SystemExecutor;
 use future::block_on;
 use futures_lite::future;
@@ -40,7 +40,11 @@ pub fn init() -> anyhow::Result<(State, SystemExecutor<State>)> {
     );
 
     let mut setup = Setup::new();
-    setup.resource(server).resource(listener).resource(executor);
+    setup
+        .resource(server)
+        .resource(listener)
+        .resource(executor)
+        .resource(LevelData::default());
 
     common::setup(&mut setup);
     crate::setup(&mut setup);

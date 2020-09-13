@@ -1,12 +1,12 @@
 //! Network interface for working with entities.
 
-use base::{Position, Setup, State};
+use base::{Gamemode, Position, Setup, State};
 use common::{entity::player, Name};
 use ecs::{Entity, EntityBuilder, EntityRef, SysResult};
 use protocol::{packets::server::SpawnPlayer, ServerPlayPacket};
 use uuid::Uuid;
 
-use crate::network::{Network, NewPlayer};
+use crate::{network::NewPlayer, session::Session};
 
 /// The network ID of an entity. This is the "entity_id" field
 /// for many packets.
@@ -91,9 +91,11 @@ pub fn build_player(s: &State, builder: &mut EntityBuilder, player: NewPlayer) -
     builder
         .add(SpawnPacket::new(player_spawn_packet)) // TODO
         .add(player.uuid)
-        .add(Network::new(player.worker))
+        .add(player.worker.clone())
+        .add(Session::new_vanilla(player.worker))
         .add(player.addr)
-        .add(Name(player.username));
+        .add(Name(player.username))
+        .add(Gamemode::Creative);
     Ok(())
 }
 

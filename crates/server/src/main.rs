@@ -13,8 +13,10 @@ mod config;
 mod entity;
 mod init;
 mod network;
-mod packet_handler;
 mod session;
+mod spawn;
+
+pub(crate) use session::Session;
 
 /// Shared server state. Stored as a resource.
 pub type Server = Arc<ServerInner>;
@@ -48,10 +50,13 @@ fn main() -> anyhow::Result<()> {
                 continue;
             }
         }
+
+        state.ecs.inner_mut().clear_trackers();
     }
 }
 
 pub fn setup(setup: &mut Setup) {
     entity::setup(setup);
     network::setup(setup);
+    spawn::setup(setup);
 }

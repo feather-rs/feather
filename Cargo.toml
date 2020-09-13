@@ -12,6 +12,8 @@ members = [
     "crates/common",
     "crates/protocol",
     "crates/server",
+
+    "tools/proxy",
 ]
 
 # Temp until we finish porting everything to new 1.16 design

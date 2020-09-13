@@ -1,7 +1,7 @@
-use std::convert::TryInto;
+use std::{convert::TryInto, fmt::Debug};
 
 use crate::{entity::NetworkId, network::WorkerHandle};
-use base::{anvil::level::LevelData, anvil::level::LevelGeneratorType, Gamemode};
+use base::{anvil::level::LevelGeneratorType, Gamemode};
 use protocol::{packets::server::DimensionCodec, packets::server::JoinGame, Nbt, ServerPlayPacket};
 use sha2::{Digest, Sha256};
 
@@ -24,12 +24,44 @@ pub enum Message {}
 /// This layer exists mostly in case we add support for new
 /// protocols in the future. For example, this abstraction
 /// could allow for supporting multiple protocol versions in the future.
+#[derive(Debug)]
 pub struct Session {
     inner: Box<dyn SessionImpl>,
     worker: WorkerHandle,
 }
 
-trait SessionImpl {
+impl Session {
+    /// Creates a new `Session` for a vanilla 1.16.3 player.
+    pub fn new_vanilla(worker: WorkerHandle) -> Self {
+        Self {
+            inner: Box::new(VanillaSession),
+            worker,
+        }
+    }
+
+    /// Sends the packet used to join the client after they log in.
+    pub fn join(
+        &self,
+        network_id: &NetworkId,
+        gamemode: Gamemode,
+        seed: u64,
+        max_players: u32,
+        view_distance: u8,
+        level_type: LevelGeneratorType,
+    ) {
+        let packet = self.inner.join(
+            network_id,
+            gamemode,
+            seed,
+            max_players,
+            view_distance,
+            level_type,
+        );
+        self.worker.send(packet);
+    }
+}
+
+trait SessionImpl: Debug + Send + Sync {
     /// Returns the packet used to join the client.
     fn join(
         &self,
@@ -43,6 +75,7 @@ trait SessionImpl {
 }
 
 /// SessionImpl for vanilla 1.16.3.
+#[derive(Debug)]
 struct VanillaSession;
 
 impl SessionImpl for VanillaSession {
@@ -57,8 +90,9 @@ impl SessionImpl for VanillaSession {
     ) -> ServerPlayPacket {
         JoinGame {
             entity_id: network_id.0,
+            is_hardcore: false,
             gamemode,
-            previous_gamemode: gamemode, // TODO: what should this be?
+            previous_gamemode: 255, // special value for "not set"
             world_names: vec![String::from("world")], // no multiworld support yet
             dimension_codec: Nbt(DimensionCodec::overworld()),
             dimension: Nbt(nbt::Blob::new()), // TODO: what should this be?
@@ -111,7 +145,7 @@ mod tests {
         let packet = JoinGame::destructure(packet).unwrap();
         assert_eq!(packet.entity_id, 10);
         assert_eq!(packet.gamemode, Gamemode::Survival);
-        assert_eq!(packet.previous_gamemode, Gamemode::Survival);
+        assert_eq!(packet.previous_gamemode, 255);
         assert_eq!(packet.view_distance, 10);
         assert_ne!(packet.hashed_seed, 66); // make sure hashed seed doesn't match seed
         assert_eq!(packet.max_players, 16);

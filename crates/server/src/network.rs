@@ -25,23 +25,7 @@ mod worker;
 
 pub use listener::Listener;
 
-use crate::{entity::build_player, packet_handler::PACKET_HANDLERS};
-
-/// A handle to send packets to a player.
-pub struct Network {
-    handle: WorkerHandle,
-}
-
-impl Network {
-    pub fn new(handle: WorkerHandle) -> Self {
-        Self { handle }
-    }
-
-    /// Sends a packet to this player.
-    pub fn send(&self, packet: impl Into<ServerPlayPacket>) {
-        self.handle.send(packet.into());
-    }
-}
+use crate::entity::build_player;
 
 /// A handle to the listener task.
 #[derive(Debug, Clone)]
@@ -149,8 +133,8 @@ struct EventBuffer(Vec<(Entity, FromWorker)>);
 fn poll_clients(s: &mut State) -> SysResult {
     let mut buffer_borrow = s.resource_mut::<EventBuffer>()?;
 
-    for (player, network) in s.ecs.query::<(Entity, &Network)>().iter() {
-        for event in network.handle.iter() {
+    for (player, worker_handle) in s.ecs.query::<(Entity, &WorkerHandle)>().iter() {
+        for event in worker_handle.iter() {
             buffer_borrow.0.push((player, event));
         }
     }
@@ -178,12 +162,12 @@ fn handle_packet(s: &mut State, player: Entity, packet: ClientPlayPacket) -> Sys
         s.ecs.get::<Name>(player)?.0,
         packet
     );
-    if let Err(e) = PACKET_HANDLERS.handle(s, player, packet) {
+    /* if let Err(e) = PACKET_HANDLERS.handle(s, player, packet) {
         log::debug!(
             "Failed to handle packet received from '{}': {:?}",
             s.ecs.get::<Name>(player)?.0,
             e
         );
-    }
+    } */
     Ok(())
 }

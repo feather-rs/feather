@@ -410,11 +410,12 @@ impl DimensionCodec {
 packets! {
     JoinGame {
         entity_id i32;
+        is_hardcore bool;
         gamemode Gamemode;
-        previous_gamemode Gamemode;
+        previous_gamemode u8; // can be 255 if "not set," otherwise corresponds to a gamemode ID
         world_names LengthPrefixedVec<String>;
 
-        dimension_codec Nbt<DimensionCodec>;
+        dimension_codec Nbt<Blob>;
         dimension Nbt<Blob>;
 
         world_name String;

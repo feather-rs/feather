@@ -46,6 +46,7 @@ impl MinecraftCodec {
     /// Writes a packet into the provided writer.
     pub fn encode(&mut self, packet: &impl Writeable, output: &mut Vec<u8>) {
         packet.write(&mut self.staging_buf, ProtocolVersion::V1_16_2);
+
         if let Some(threshold) = self.compression {
             self.encode_compressed(output, threshold);
         } else {
@@ -87,10 +88,16 @@ impl MinecraftCodec {
 
         let mut cursor = Cursor::new(&self.received_buf[..]);
         let packet = if let Ok(length) = VarInt::read(&mut cursor, ProtocolVersion::V1_16_2) {
-            if self.received_buf.len() - cursor.position() as usize >= length.0 as usize {
+            let length_field_length = cursor.position() as usize;
+
+            if self.received_buf.len() - length_field_length >= length.0 as usize {
+                cursor = Cursor::new(
+                    &self.received_buf
+                        [length_field_length..length_field_length + length.0 as usize],
+                );
                 let packet = T::read(&mut cursor, ProtocolVersion::V1_16_2)?;
 
-                let bytes_read = cursor.position() as usize;
+                let bytes_read = cursor.position() as usize + length_field_length;
                 self.received_buf = self.received_buf.split_off(bytes_read);
 
                 Some(packet)
