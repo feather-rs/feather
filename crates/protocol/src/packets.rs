@@ -85,9 +85,18 @@ macro_rules! packets {
     };
 }
 
+macro_rules! discriminant_to_literal {
+    (String, $discriminant:expr) => {
+        &*$discriminant
+    };
+    ($discriminant_type:ident, $discriminant:expr) => {
+        $discriminant.into()
+    };
+}
+
 macro_rules! def_enum {
     (
-        $ident:ident ($discriminant_type:ty) {
+        $ident:ident ($discriminant_type:ident) {
             $(
                 $discriminant:literal = $variant:ident
                 $(
@@ -123,7 +132,7 @@ macro_rules! def_enum {
                 let discriminant = <$discriminant_type>::read(buffer, version)
                     .context(concat!("failed to read discriminant for enum type ", stringify!($ident)))?;
 
-                match discriminant.into() {
+                match discriminant_to_literal!($discriminant_type, discriminant) {
                     $(
                         $discriminant => {
                             $(

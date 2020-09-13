@@ -3,8 +3,8 @@
 use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
 use base::{
-    metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata, Gamemode, Item,
-    ItemStack,
+    anvil::entity::ItemNbt, metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata,
+    Gamemode, Item, ItemStack,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -437,7 +437,13 @@ impl Readable for Slot {
         if present {
             let item_id = VarInt::read(buffer, version)?.0;
             let count = u8::read(buffer, version)? as u32;
-            // let tags: Option<ItemNbt> = Nbt::read(buffer, version).ok().map(|nbt| nbt.0);
+
+            // Read NBT, but make sure to reset the buffer position if it's missing.
+            let position = buffer.position();
+            let tags: Option<ItemNbt> = Nbt::read(buffer, version).ok().map(|nbt| nbt.0);
+            if tags.is_none() {
+                buffer.set_position(position + 1); // account for TAG_End, which is 1 byte
+            }
 
             let item = Item::from_id(item_id.try_into()?)
                 .ok_or_else(|| anyhow!("unknown item ID {}", item_id))?;
@@ -445,8 +451,7 @@ impl Readable for Slot {
             Ok(Some(ItemStack {
                 item,
                 count,
-                // damage: tags.map(|t| t.damage).flatten(),
-                damage: None,
+                damage: tags.map(|t| t.damage).flatten().map(|d| d as u32),
             }))
         } else {
             Ok(None)
@@ -462,12 +467,12 @@ impl Writeable for Slot {
             VarInt(stack.item.id() as i32).write(buffer, version);
             stack.count.write(buffer, version);
 
-            // let tags: ItemNbt = stack.into();
-            // if tags != ItemNbt::default() {
-            //    Nbt(tags).write(buffer, version);
-            // } else {
-            0u8.write(buffer, version); // TAG_End
-                                        // }
+            let tags: ItemNbt = stack.into();
+            if tags != ItemNbt::default() {
+                Nbt(tags).write(buffer, version);
+            } else {
+                0u8.write(buffer, version); // TAG_End
+            }
         }
     }
 }
@@ -479,7 +484,7 @@ impl Readable for EntityMetadata {
     {
         let mut values = BTreeMap::new();
 
-        while buffer.position() < buffer.get_ref().len() as u64 {
+        loop {
             let index = u8::read(buffer, version)?;
 
             if index == 0xFF {

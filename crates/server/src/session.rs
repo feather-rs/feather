@@ -1,8 +1,8 @@
-use std::{convert::TryInto, fmt::Debug};
+use std::{convert::TryInto, fmt::Debug, io::Cursor};
 
 use crate::{entity::NetworkId, network::WorkerHandle};
 use base::{anvil::level::LevelGeneratorType, Gamemode};
-use protocol::{packets::server::DimensionCodec, packets::server::JoinGame, Nbt, ServerPlayPacket};
+use protocol::{packets::server::JoinGame, Nbt, ServerPlayPacket};
 use sha2::{Digest, Sha256};
 
 pub mod messages {
@@ -88,14 +88,24 @@ impl SessionImpl for VanillaSession {
         view_distance: u8,
         level_type: LevelGeneratorType,
     ) -> ServerPlayPacket {
+        // Use the dimension codec sent by the default vanilla server. (Data acquired via tools/proxy)
+        let dimension_codec = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
+            "../../../assets/dimension_codec.nbt"
+        )))
+        .expect("dimension codec asset is malformed");
+        let dimension = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
+            "../../../assets/dimension.nbt"
+        )))
+        .expect("dimension asset is malformed");
+
         JoinGame {
             entity_id: network_id.0,
             is_hardcore: false,
             gamemode,
             previous_gamemode: 255, // special value for "not set"
             world_names: vec![String::from("world")], // no multiworld support yet
-            dimension_codec: Nbt(DimensionCodec::overworld()),
-            dimension: Nbt(nbt::Blob::new()), // TODO: what should this be?
+            dimension_codec: Nbt(dimension_codec),
+            dimension: Nbt(dimension),
             world_name: String::from("world"),
             hashed_seed: hash_seed(seed),
             max_players: max_players as i32,

@@ -1,3 +1,4 @@
+use anyhow::bail;
 use base::{EntityMetadata, Gamemode, ProfileProperty};
 
 use super::*;
@@ -230,8 +231,10 @@ packets! {
     }
 
     DeclareCommands {
-        nodes LengthPrefixedVec<CommandNode>;
-        root_index VarInt;
+        // (not implemented)
+        __todo__ LengthInferredVecU8;
+        /* nodes LengthPrefixedVec<CommandNode>;
+        root_index VarInt; */
     }
 
     CommandNode {
@@ -338,7 +341,9 @@ packets! {
         id i64;
     }
 
-    // TODO: ChunkData
+    ChunkData {
+        __todo__ LengthInferredVecU8;
+    }
 
     Effect {
         effect_id i32;
@@ -362,48 +367,8 @@ packets! {
         __todo__ LengthInferredVecU8;
     }
 
-    // TODO: UpdateLight
-}
-
-/// The dimension codec used for the Join Game packet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DimensionCodec {
-    pub name: String,
-    pub piglin_safe: bool,
-    pub natural: bool,
-    pub ambient_light: f32,
-    pub fixed_time: Option<u64>,
-    pub infiniburn: String,
-    pub respawn_anchor_works: bool,
-    pub has_skylight: bool,
-    pub bed_works: bool,
-    pub effects: String,
-    pub has_raids: bool,
-    pub logical_height: i32,
-    pub coordinate_scale: f32,
-    pub ultrawarm: bool,
-    pub has_ceiling: bool,
-}
-
-impl DimensionCodec {
-    pub fn overworld() -> Self {
-        DimensionCodec {
-            name: String::from("minecraft:overworld"),
-            piglin_safe: false,
-            natural: true,
-            ambient_light: 1.0, // ?
-            fixed_time: None,
-            infiniburn: String::new(),
-            respawn_anchor_works: false,
-            has_skylight: true,
-            bed_works: true,
-            effects: String::from("minecraft:overworld"),
-            has_raids: true,
-            logical_height: 256,
-            coordinate_scale: 1.0,
-            ultrawarm: false,
-            has_ceiling: false,
-        }
+    UpdateLight {
+        __todo__ LengthInferredVecU8;
     }
 }
 
@@ -449,7 +414,9 @@ packets! {
         display_name Option<String>;
     }
 
-    // TODO: TradeList
+    TradeList {
+        __todo__ LengthInferredVecU8;
+    }
 
     EntityPosition {
         entity_id VarInt;
@@ -747,7 +714,9 @@ packets! {
         teleport_id VarInt;
     }
 
-    // TODO: Unlock Recipes
+    UnlockRecipes {
+        __todo__ LengthInferredVecU8;
+    }
 
     DestroyEntities {
         entity_ids LengthPrefixedVec<VarInt>;
@@ -856,9 +825,92 @@ packets! {
         velocity_y i16;
         velocity_z i16;
     }
+}
 
-    // TODO: Entity Equipment as changed in 1.16
+#[derive(Debug, Clone)]
+pub struct EntityEquipment {
+    pub entity_id: i32,
+    pub entries: Vec<EquipmentEntry>,
+}
 
+impl Readable for EntityEquipment {
+    fn read(
+        buffer: &mut std::io::Cursor<&[u8]>,
+        version: crate::ProtocolVersion,
+    ) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let entity_id = VarInt::read(buffer, version)?.0;
+
+        // entries are terminated when the equipment slot top bit
+        // is no longer set
+        let mut entries = Vec::new();
+        loop {
+            let slot_byte = u8::read(buffer, version)?;
+            let slot = match slot_byte & 0b0111_1111 {
+                0 => EquipmentSlot::MainHand,
+                1 => EquipmentSlot::OffHand,
+                2 => EquipmentSlot::Boots,
+                3 => EquipmentSlot::Leggings,
+                4 => EquipmentSlot::Chestplate,
+                5 => EquipmentSlot::Helmet,
+                slot => bail!("invalid equipment slot Id {}", slot),
+            };
+
+            let item = Slot::read(buffer, version)?;
+
+            entries.push(EquipmentEntry { slot, item });
+
+            if slot_byte & 0b1000_0000 == 0 {
+                break;
+            }
+        }
+
+        Ok(EntityEquipment { entity_id, entries })
+    }
+}
+
+impl Writeable for EntityEquipment {
+    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
+        VarInt(self.entity_id).write(buffer, version);
+
+        for (i, entry) in self.entries.iter().enumerate() {
+            let mut slot_byte = match entry.slot {
+                EquipmentSlot::MainHand => 0u8,
+                EquipmentSlot::OffHand => 1,
+                EquipmentSlot::Boots => 2,
+                EquipmentSlot::Leggings => 3,
+                EquipmentSlot::Chestplate => 4,
+                EquipmentSlot::Helmet => 5,
+            };
+            if i != self.entries.len() - 1 {
+                slot_byte |= 0b1000_0000;
+            }
+            slot_byte.write(buffer, version);
+            entry.item.write(buffer, version);
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct EquipmentEntry {
+    pub slot: EquipmentSlot,
+    pub item: Slot,
+}
+
+def_enum! {
+    EquipmentSlot (VarInt) {
+        0 = MainHand,
+        1 = OffHand,
+        2 = Boots,
+        3 = Leggings,
+        4 = Chestplate,
+        5 = Helmet,
+    }
+}
+
+packets! {
     SetExperience {
         experience_bar f32;
         level VarInt;
@@ -1010,7 +1062,13 @@ packets! {
         on_ground bool;
     }
 
-    // TODO: Advancements, Entity Properties
+    Advancements {
+        __todo__ LengthInferredVecU8;
+    }
+
+    EntityProperties {
+        __todo__ LengthInferredVecU8;
+    }
 
     EntityEffect {
         entity_id VarInt;
@@ -1021,24 +1079,97 @@ packets! {
     }
 
     DeclareRecipes {
-        recipes LengthPrefixedVec<Recipe>;
+        // This packet isn't currently working. Fortunately, we don't really need it.
+        __todo__ LengthInferredVecU8;
     }
+}
 
-    Recipe {
-        recipe_id String;
-        kind String;
-        // TODO: there's some data field?
+def_enum! {
+    Recipe (String) {
+        "minecraft:crafting_shapeless" = Shapeless {
+            id String;
+            group String;
+            ingredient VarInt;
+            ingredients LengthPrefixedVec<Ingredient>;
+            result Slot;
+        },
+        "minecraft:crafting_shaped" = Shaped {
+            id String;
+            width VarInt;
+            height VarInt;
+            group String;
+            ingredients LengthPrefixedVec<Ingredient>;
+            result Slot;
+        },
+        "minecraft:crafting_special_armordye" = ArmorDye { id String; },
+        "minecraft:crafting_special_bookcloning" = BookCloning { id String; },
+        "minecraft:crafting_special_mapcloning" = MapCloning { id String; },
+        "minecraft:crafting_special_mapextending" = MapExtending { id String; },
+        "minecraft:crafting_special_firework_rocket" = FireworkRocket { id String; },
+        "minecraft:crafting_special_firework_star" = FireworkStar { id String; },
+        "minecraft:crafting_special_firework_star_fade" = FireworkStarFade { id String; },
+        "minecraft:crafting_special_repairitem" = RepairItem { id String; },
+        "minecraft:crafting_special_tippedarrow" = TippedArrow { id String; },
+        "minecraft:crafting_special_bannderduplicate" = BannerDuplicate { id String; },
+        "minecraft:crafting_special_banneraddpattern" = BannerAddPattern { id String; },
+        "minecraft:crafting_special_shielddecoration" = ShieldDecoration { id String; },
+        "minecraft:crafting_special_shulkerboxcoloring" = ShulkerBoxColoring { id String; },
+        "minecraft:crafting_special_suspiciousstew" = SuspiciousStew { id String; },
+        "minecraft:smelting" = Smelting {
+            id String;
+            group String;
+            ingredient Ingredient;
+            result Slot;
+            experience f32;
+            cooking_time VarInt;
+        },
+        "minecraft:blasting" = Blasting {
+            id String;
+            group String;
+            ingredient Ingredient;
+            result Slot;
+            experience f32;
+            cooking_time VarInt;
+        },
+        "minecraft:smoking" = Smoking {
+            id String;
+            group String;
+            ingredient Ingredient;
+            result Slot;
+            experience f32;
+            cooking_time VarInt;
+        },
+        "minecraft:campfire_cooking" = CampfireCooking {
+            id String;
+            group String;
+            ingredient Ingredient;
+            result Slot;
+            experience f32;
+            cooking_time VarInt;
+        },
+        "minecraft:stonecutting" = Stonecutting {
+            id String;
+            group String;
+            ingredient Ingredient;
+            result Slot;
+        }
+    }
+}
+
+packets! {
+    Ingredient {
+        allowed_items LengthPrefixedVec<Slot>;
     }
 
     AllTags {
-        block_tags Tags;
-        item_tags Tags;
-        fluid_tags Tags;
-        entity_tags Tags;
+        block_tags LengthPrefixedVec<Tag>;
+        item_tags LengthPrefixedVec<Tag>;
+        fluid_tags LengthPrefixedVec<Tag>;
+        entity_tags LengthPrefixedVec<Tag>;
     }
 
-    Tags {
-        tag_name String;
+    Tag {
+        name String;
         entries LengthPrefixedVec<VarInt>;
     }
 }

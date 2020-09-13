@@ -93,6 +93,8 @@ impl Connection {
     }
 }
 
+const MAX_PACKET_DISPLAY: usize = 4000;
+
 async fn handle_connection(client: Async<TcpStream>, server_port: u16) -> anyhow::Result<()> {
     let server =
         Async::<TcpStream>::connect(format!("127.0.0.1:{}", server_port).parse::<SocketAddr>()?)
@@ -131,10 +133,15 @@ async fn handle_connection(client: Async<TcpStream>, server_port: u16) -> anyhow
 
                 while let Some(packet) = connection
                     .client_codec
-                    .decode(&connection.client_buffer[..bytes_read])?
+                    .decode(&connection.client_buffer[..bytes_read])
+                    .context("failed to decode client packet")?
                 {
                     bytes_read = 0;
-                    log::info!("client @ {}: {:?}", connection.username, packet);
+                    let mut packet_str = format!("{:?}", packet);
+                    if packet_str.len() > MAX_PACKET_DISPLAY {
+                        packet_str = format!("{} <snip>", &packet_str[..MAX_PACKET_DISPLAY]);
+                    }
+                    log::info!("client @ {}: {}", connection.username, packet_str);
 
                     // Attempt to detect state switches.
                     if let ClientPacket::Handshake(packet) = &packet {
@@ -161,10 +168,15 @@ async fn handle_connection(client: Async<TcpStream>, server_port: u16) -> anyhow
 
                 while let Some(packet) = connection
                     .server_codec
-                    .decode(&connection.server_buffer[..bytes_read])?
+                    .decode(&connection.server_buffer[..bytes_read])
+                    .context("failed to decode server packet")?
                 {
                     bytes_read = 0;
-                    log::info!("server @ {}: {:?}", connection.username, packet);
+                    let mut packet_str = format!("{:?}", packet);
+                    if packet_str.len() > MAX_PACKET_DISPLAY {
+                        packet_str = format!("{} <snip>", &packet_str[..MAX_PACKET_DISPLAY]);
+                    }
+                    log::info!("server @ {}: {}", connection.username, packet_str);
 
                     // Attempt to detect state switches.
                     if let ServerPacket::Login(ServerLoginPacket::LoginSuccess(packet)) = &packet {
