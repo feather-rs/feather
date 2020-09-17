@@ -3,6 +3,7 @@
 import subprocess
 import json
 from re import split
+from pathlib import Path
 
 
 # Runs rustfmt on a file.
@@ -10,8 +11,8 @@ def rustfmt(file_path):
     subprocess.run(["rustfmt", file_path])
 
 
-PRISMARINEJS_BASE_PATH = "minecraft-data/data/pc"
-FEATHER_BASE_PATH = "feather"
+PRISMARINEJS_BASE_PATH = Path(__file__).parent / "../minecraft-data/data/pc"
+FEATHER_BASE_PATH = Path(__file__).parent / "../feather"
 
 
 # Loads in a JSON file from the minecraft-data file with the given name.
