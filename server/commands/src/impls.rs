@@ -559,3 +559,11 @@ fn clear_items(
         );
     }
 }
+
+#[command(usage = "seed")]
+pub fn seed(ctx: &mut CommandCtx) -> anyhow::Result<()> {
+    Ok(Some(format!(
+        "Seed: [{}]",
+        ctx.game.level.seed.to_string()
+    )))
+}
