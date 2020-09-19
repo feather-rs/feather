@@ -118,6 +118,7 @@ impl CommandState {
                 clear_2,
                 clear_3,
                 clear_4,
+                
                 seed,
         }
 
