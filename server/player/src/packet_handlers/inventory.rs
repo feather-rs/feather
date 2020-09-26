@@ -139,8 +139,7 @@ enum Mode {
     ShiftClick,
     /// Number key on interval `[1, 9]`
     NumberKey(u8),
-    // TODO: middle click for "non-player inventories"
-    // (probably blocked on impl of block entities?)
+    MiddleClick,
     ItemDrop {
         /// Whether the full stack should be dropped
         /// (this is the case for CTRL+Q)
@@ -206,7 +205,7 @@ impl<'a> TryFrom<&'a ClickWindow> for Mode {
 
                 Ok(Mode::NumberKey(value.button + 1))
             }
-            3 => Err(ModeParseError::Unhandled),
+            3 => Ok(Mode::MiddleClick),
             4 => {
                 if value.slot == -999 {
                     return Err(ModeParseError::Unhandled);
@@ -316,6 +315,7 @@ fn handle_click_window(
         Mode::DoubleClick => handle_double_click(game, world, player, packet),
         Mode::ShiftClick => handle_shift_click(game, world, player, packet),
         Mode::NumberKey(key) => handle_number_key(game, world, player, packet, key),
+        Mode::MiddleClick => handle_middle_click(game, world, player, packet),
         Mode::ItemDrop { full_stack } => handle_item_drop(game, world, player, packet, full_stack),
         Mode::Paint(action) => handle_paint(game, world, player, packet, action),
     }
@@ -570,6 +570,36 @@ fn handle_number_key(
 
     game.handle(world, event1);
     game.handle(world, event2);
+
+    Ok(())
+}
+
+fn handle_middle_click(
+    _game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    packet: ClickWindow
+) -> anyhow::Result<()> {
+    let gamemode = *world.get::<Gamemode>(player);
+    if Gamemode::Creative == gamemode {
+        if let Some(_) = world.try_get::<PickedItem>(player) {
+            // Player already has something in its hand.
+            return Ok(());
+        }
+        let window = world.get::<Window>(player);
+        let accessor = window.accessor(world)?;
+
+        // Pick the item in the slot
+        let picked = accessor.item_at(packet.slot as usize)?;
+        let count = picked.map(|item| item.ty.stack_size()).unwrap_or(0);
+        if let Some(item) = picked {
+            drop(accessor);
+            drop(window);
+            world
+                .add(player, PickedItem(item.of_amount(count as u8)))
+                .unwrap();
+        }
+    }
 
     Ok(())
 }
