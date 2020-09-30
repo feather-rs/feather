@@ -583,7 +583,7 @@ fn handle_middle_click(
     _game: &mut Game,
     world: &mut World,
     player: Entity,
-    packet: ClickWindow
+    packet: ClickWindow,
 ) -> anyhow::Result<()> {
     let gamemode = *world.get::<Gamemode>(player);
     if Gamemode::Creative == gamemode {
