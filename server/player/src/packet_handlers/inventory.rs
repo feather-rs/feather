@@ -205,7 +205,12 @@ impl<'a> TryFrom<&'a ClickWindow> for Mode {
 
                 Ok(Mode::NumberKey(value.button + 1))
             }
-            3 => Ok(Mode::MiddleClick),
+            3 => {
+                if value.button != 2 {
+                    return Err(ModeParseError::InvalidNumberKeyId(value.button));
+                }
+                Ok(Mode::MiddleClick)
+            }
             4 => {
                 if value.slot == -999 {
                     return Err(ModeParseError::Unhandled);
@@ -591,7 +596,13 @@ fn handle_middle_click(
 
         // Pick the item in the slot
         let picked = accessor.item_at(packet.slot as usize)?;
-        let count = picked.map(|item| item.ty.stack_size()).unwrap_or(0);
+        let count = picked.map(|item| item.ty.stack_size());
+        if !count.is_some() {
+            drop(accessor);
+            drop(window);
+            return Ok(());
+        }
+        let count = count.unwrap();
         if let Some(item) = picked {
             drop(accessor);
             drop(window);
