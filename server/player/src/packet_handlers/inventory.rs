@@ -596,14 +596,8 @@ fn handle_middle_click(
 
         // Pick the item in the slot
         let picked = accessor.item_at(packet.slot as usize)?;
-        let count = picked.map(|item| item.ty.stack_size());
-        if count.is_none() {
-            drop(accessor);
-            drop(window);
-            return Ok(());
-        }
-        let count = count.unwrap();
         if let Some(item) = picked {
+            let count = item.ty.stack_size();
             drop(accessor);
             drop(window);
             world
