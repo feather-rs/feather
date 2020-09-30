@@ -582,7 +582,7 @@ fn handle_middle_click(
 ) -> anyhow::Result<()> {
     let gamemode = *world.get::<Gamemode>(player);
     if Gamemode::Creative == gamemode {
-        if let Some(_) = world.try_get::<PickedItem>(player) {
+        if world.try_get::<PickedItem>(player).is_some() {
             // Player already has something in its hand.
             return Ok(());
         }
