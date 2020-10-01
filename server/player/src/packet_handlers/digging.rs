@@ -463,6 +463,12 @@ fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
 
     let mut time_held = game.tick_count - timed_use.tick_start;
 
+    // if bow not held for at least 4 ticks, don't shoot at all
+    // to avoid extreme bowspamming
+    if time_held < 4 {
+        return;
+    }
+
     if time_held > 20 {
         time_held = 20;
     }
