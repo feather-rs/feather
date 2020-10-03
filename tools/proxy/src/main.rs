@@ -48,7 +48,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 async fn accept_connections(
-    executor: &Executor,
+    executor: &Executor<'static>,
     listener: &mut Async<TcpListener>,
     server_port: u16,
 ) {

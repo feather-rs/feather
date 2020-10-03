@@ -14,7 +14,7 @@ pub struct Listener {
     shutdown: (Sender<()>, Receiver<()>),
 
     listener: Async<TcpListener>,
-    executor: Arc<Executor>,
+    executor: Arc<Executor<'static>>,
 
     server: Server,
 }
@@ -23,7 +23,7 @@ impl Listener {
     /// Creates a new `Listener` which will listen on the provided address.
     pub fn new(
         addr: SocketAddr,
-        executor: &Arc<Executor>,
+        executor: &Arc<Executor<'static>>,
         server: &Server,
     ) -> anyhow::Result<Self> {
         let listener = std::net::TcpListener::bind(addr).with_context(|| {

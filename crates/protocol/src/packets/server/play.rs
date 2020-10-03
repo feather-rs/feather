@@ -811,7 +811,7 @@ packets! {
 
     SendEntityMetadata {
         entity_id VarInt;
-        metadata EntityMetadata;
+        __todo__ LengthInferredVecU8;
     }
 
     AttachEntity {

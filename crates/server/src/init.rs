@@ -92,7 +92,10 @@ fn load_icon() -> anyhow::Result<Option<String>> {
     }
 }
 
-fn init_listener(server: &Server, executor: &Arc<Executor>) -> anyhow::Result<ListenerHandle> {
+fn init_listener(
+    server: &Server,
+    executor: &Arc<Executor<'static>>,
+) -> anyhow::Result<ListenerHandle> {
     let addr = SocketAddr::new(
         server.config.server.address.parse()?,
         server.config.server.port,
@@ -109,7 +112,7 @@ fn init_listener(server: &Server, executor: &Arc<Executor>) -> anyhow::Result<Li
     Ok(handle)
 }
 
-fn init_executor() -> Arc<Executor> {
+fn init_executor() -> Arc<Executor<'static>> {
     let executor = Arc::new(Executor::new());
 
     for i in 0..8 {

@@ -143,7 +143,7 @@ impl BlockingPool {
 #[derive(Default)]
 struct AbstractPool {
     /// Executor which runs tasks.
-    executor: Executor,
+    executor: Executor<'static>,
     /// The number of threads currently active.
     num_threads: AtomicUsize,
     /// The number of tasks currently running.
