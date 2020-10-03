@@ -11,7 +11,7 @@ use feather_core::util::{Gamemode, Position};
 use feather_definitions::Item;
 use feather_server_types::{
     ChatEvent, ChatPosition, GamemodeUpdateEvent, InventoryUpdateEvent, MessageReceiver, Name,
-    Player, ShutdownChannels, Teleported,
+    Network, Player, ShutdownChannels, Teleported,
 };
 use fecs::{Entity, ResourcesProvider, World};
 use lieutenant::command;
@@ -558,4 +558,18 @@ fn clear_items(
             },
         );
     }
+}
+
+#[command(usage = "seed")]
+pub fn seed(ctx: &mut CommandCtx) -> anyhow::Result<()> {
+    if let Some(mut message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender) {
+        message_receiver.send(
+            Text::from("Seed: [")
+                + Text::from(ctx.game.level.seed.to_string())
+                    .green()
+                    .insertion(ctx.game.level.seed.to_string())
+                + Text::from("]"),
+        );
+    }
+    Ok(None)
 }
