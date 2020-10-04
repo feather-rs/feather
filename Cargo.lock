@@ -255,6 +255,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "130aac562c0dd69c56b3b1cc8ffd2e17be31d0b6c25b61c96b76231aa23e39e1"
 
 [[package]]
+name = "bzip2"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42b7c3cbf0fa9c1b82308d57191728ca0256cb821220f4e2fd410a72ade26e3b"
+dependencies = [
+ "bzip2-sys",
+ "libc",
+]
+
+[[package]]
+name = "bzip2-sys"
+version = "0.1.9+1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ad3b39a260062fca31f7b0b12f207e8f2590a67d32ec7d59c20484b07ea7285e"
+dependencies = [
+ "cc",
+ "libc",
+ "pkg-config",
+]
+
+[[package]]
 name = "cast"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -783,6 +804,7 @@ dependencies = [
  "anyhow",
  "feather-data-macro",
  "reqwest",
+ "zip",
 ]
 
 [[package]]
@@ -3719,4 +3741,18 @@ dependencies = [
  "quote 1.0.1",
  "syn 1.0.29",
  "synstructure",
+]
+
+[[package]]
+name = "zip"
+version = "0.5.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "543adf038106b64cfca4711c82c917d785e3540e04f7996554488f988ec43124"
+dependencies = [
+ "byteorder",
+ "bzip2",
+ "crc32fast",
+ "flate2 1.0.14",
+ "thiserror",
+ "time",
 ]
