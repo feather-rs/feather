@@ -1,11 +1,11 @@
 use anyhow::Context;
-use zip::ZipArchive;
-use std::{env, io::Read};
 use std::fs;
 use std::fs::File;
 use std::io::{copy, Write};
 use std::path::Path;
 use std::process::Command;
+use std::{env, io::Read};
+use zip::ZipArchive;
 
 fn main() {
     match run() {
@@ -54,9 +54,7 @@ fn download_version(url: &str, path: &str, do_generate: bool) -> anyhow::Result<
     );
 
     if do_generate {
-        generate(path).context(
-            "failed to generate vanilla server reports.",
-        )?;
+        generate(path).context("failed to generate vanilla server reports.")?;
     }
 
     extract(path).context("failed to extract vanilla assets.")?;
@@ -116,16 +114,10 @@ fn extract<P: AsRef<Path>>(working: P) -> anyhow::Result<()> {
         let outpath = working.as_ref().join(outpath_name);
 
         if file.is_dir() {
-            println!(
-                "Directory \"{}\" was created",
-                outpath.display()
-            );
+            println!("Directory \"{}\" was created", outpath.display());
             fs::create_dir_all(&outpath).unwrap();
         } else {
-            println!(
-                "Writing to \"{}\"",
-                outpath.display(),
-            );
+            println!("Writing to \"{}\"", outpath.display(),);
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
                     fs::create_dir_all(&p).unwrap();
@@ -135,7 +127,7 @@ fn extract<P: AsRef<Path>>(working: P) -> anyhow::Result<()> {
             std::io::copy(&mut file, &mut outfile).unwrap();
         }
     }
-    
+
     Ok(())
 }
 
