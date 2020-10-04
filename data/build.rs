@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::{copy, Write};
 use std::path::Path;
 use std::process::Command;
-use std::{env, io::Read};
+use std::env;
 use zip::ZipArchive;
 
 fn main() {
