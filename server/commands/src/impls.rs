@@ -11,7 +11,7 @@ use feather_core::util::{Gamemode, Position};
 use feather_definitions::Item;
 use feather_server_types::{
     ChatEvent, ChatPosition, GamemodeUpdateEvent, InventoryUpdateEvent, MessageReceiver, Name,
-     Player, ShutdownChannels, Teleported,
+    Player, ShutdownChannels, Teleported,
 };
 use fecs::{Entity, ResourcesProvider, World};
 use lieutenant::command;

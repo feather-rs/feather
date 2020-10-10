@@ -1,10 +1,10 @@
 use anyhow::Context;
+use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::{copy, Write};
 use std::path::Path;
 use std::process::Command;
-use std::env;
 use zip::ZipArchive;
 
 fn main() {
