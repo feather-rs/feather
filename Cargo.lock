@@ -787,6 +787,7 @@ dependencies = [
  "feather-chunk",
  "feather-chunk-map",
  "feather-entity-metadata",
+ "feather-game-rules",
  "feather-inventory",
  "feather-item-block",
  "feather-items",
@@ -854,6 +855,10 @@ dependencies = [
  "hematite-nbt 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid",
 ]
+
+[[package]]
+name = "feather-game-rules"
+version = "0.6.0"
 
 [[package]]
 name = "feather-inventory"

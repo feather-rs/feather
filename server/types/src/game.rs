@@ -8,6 +8,7 @@ use bumpalo::Bump;
 use feather_core::anvil::level::LevelData;
 use feather_core::blocks::BlockId;
 use feather_core::chunk_map::ChunkMap;
+use feather_core::game_rules::GameRules;
 use feather_core::network::{packets::DisconnectPlay, Packet};
 use feather_core::text::Text;
 use feather_core::util::{BlockPosition, ChunkPosition, Position};
@@ -63,6 +64,8 @@ pub struct Game {
     pub bump: CachedThreadLocal<Bump>,
     /// Values which can be shared between threads.
     pub shared: Arc<Shared>,
+    /// Gamrules
+    pub game_rules: GameRules,
 }
 
 impl Deref for Game {
