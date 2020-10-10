@@ -59,7 +59,7 @@ cd feather
 cargo build --release
 ```
 
-Compiling from source requires Java JDK 8 and `rustfmt`.
+Compiling from source requires `rustfmt`.
 
 The server executable will be located in `target/release`.
 
