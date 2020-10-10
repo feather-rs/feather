@@ -1,13 +1,17 @@
 //! Broadcasting of inventory-related events.
 
 use crate::inventory::Equipment;
-use feather_core::inventory::{Area, Inventory, SlotIndex, Window};
-use feather_core::network::packets::{EntityEquipment, SetSlot};
+use feather_core::inventory::{slot, Area, Inventory, SlotIndex, Window};
+use feather_core::network::packets::{EntityEquipment, NamedSoundEffect, SetSlot, SoundCategory};
+use feather_core::util::Position;
 use feather_server_types::{
-    EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, Network, NetworkId,
+    EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, ItemDamageEvent, Network, NetworkId,
+    Player,
 };
-use fecs::World;
+use fecs::{Entity, World};
 use num_traits::ToPrimitive;
+use rand::Rng;
+use smallvec::smallvec;
 
 /// System for broadcasting equipment updates.
 #[fecs::event_handler]
@@ -16,8 +20,11 @@ pub fn on_inventory_update_broadcast_equipment_update(
     game: &mut Game,
     world: &mut World,
 ) {
-    let inv = world.get::<Inventory>(event.player);
-    let held_item = world.get::<HeldItem>(event.player);
+    let inv = world.get::<Inventory>(event.entity);
+    let held_item = match world.try_get::<HeldItem>(event.entity) {
+        Some(item) => item,
+        None => return, // entity has no equipment (e.g. chest)
+    };
 
     for slot in &event.slots {
         // Skip this slot if it is not an equipment update.
@@ -28,12 +35,12 @@ pub fn on_inventory_update_broadcast_equipment_update(
                 .expect("invalid InventoryUpdateEvent");
 
             let packet = EntityEquipment {
-                entity_id: world.get::<NetworkId>(event.player).0,
+                entity_id: world.get::<NetworkId>(event.entity).0,
                 slot: equipment.to_i32().unwrap(),
                 item,
             };
 
-            game.broadcast_entity_update(world, packet, event.player, Some(event.player));
+            game.broadcast_entity_update(world, packet, event.entity, Some(event.entity));
         }
     }
 }
@@ -53,7 +60,10 @@ pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World)
         Some(inv) => inv,
         None => return, // no equipment to send
     };
-    let held_item = world.get::<HeldItem>(entity);
+    let held_item = match world.try_get::<HeldItem>(entity) {
+        Some(item) => item,
+        None => return,
+    };
 
     let equipments = [
         Equipment::MainHand,
@@ -88,12 +98,16 @@ pub fn on_entity_send_send_equipment(event: &EntitySendEvent, world: &mut World)
 /// when a player's inventory is updated.
 #[fecs::event_handler]
 pub fn on_inventory_update_send_set_slot(event: &InventoryUpdateEvent, world: &mut World) {
-    let inv = world.get::<Inventory>(event.player);
-    let network = world.get::<Network>(event.player);
-    let window = world.get::<Window>(event.player);
+    if !world.has::<Player>(event.entity) {
+        return;
+    }
+
+    let inv = world.get::<Inventory>(event.entity);
+    let network = world.get::<Network>(event.entity);
+    let window = world.get::<Window>(event.entity);
 
     for slot in &event.slots {
-        let converted = window.convert_slot(*slot, event.player).unwrap_or(0);
+        let converted = window.convert_slot(*slot, event.entity).unwrap_or(0);
         let packet = SetSlot {
             window_id: 0,
             slot: converted as i16,
@@ -114,6 +128,70 @@ fn is_equipment_update(held_item: usize, slot: SlotIndex) -> Result<Equipment, (
     } else {
         Err(())
     }
+}
+
+/// System for damaging inventory items which should take damage.
+#[fecs::event_handler]
+pub fn on_damage_item(event: &ItemDamageEvent, game: &mut Game, world: &mut World) {
+    let inventory = world.get_mut::<Inventory>(event.player);
+
+    let mut item = match inventory.item_at_mut(event.slot.area, event.slot.slot) {
+        Ok(guard) => guard.unwrap(),
+        Err(_) => return,
+    };
+
+    item.damage = Some(item.damage.unwrap_or_default() + event.damage_taken as i32);
+    let item_broken = if let Some(durability) = item.ty.durability() {
+        if item.damage.unwrap() >= durability as i32 {
+            inventory
+                .remove_item_at(event.slot.area, event.slot.slot)
+                .unwrap();
+            true
+        } else {
+            inventory
+                .set_item_at(event.slot.area, event.slot.slot, item)
+                .unwrap();
+            false
+        }
+    } else {
+        return; // Items with no durability shouldn't take damage
+    };
+    drop(inventory);
+
+    if item_broken {
+        send_item_broken_sound_effect(event.player, game, world);
+    }
+
+    let inv_update = InventoryUpdateEvent {
+        slots: smallvec![slot(event.slot.area, event.slot.slot)],
+        entity: event.player,
+    };
+    game.handle(world, inv_update);
+}
+
+fn send_item_broken_sound_effect(player: Entity, game: &mut Game, world: &mut World) {
+    let (effect_pos_x, effect_pos_y, effect_pos_z) = {
+        let pos = world.get::<Position>(player);
+        (
+            // https://wiki.vg/Data_types#Fixed-point_numbers
+            (pos.x * 8.0) as i32,
+            (pos.y * 8.0) as i32,
+            (pos.z * 8.0) as i32,
+        )
+    };
+    let mut rng = game.rng();
+    let sound_packet = NamedSoundEffect {
+        sound_name: "entity.item.break".into(),
+        sound_category: SoundCategory::Players as i32,
+        effect_pos_x,
+        effect_pos_y,
+        effect_pos_z,
+        volume: 1.0,
+        pitch: rng.gen_range(0.8, 1.2),
+    };
+
+    let network = world.get::<Network>(player);
+    network.send(sound_packet);
 }
 
 #[cfg(test)]
@@ -145,7 +223,7 @@ mod tests {
         test.handle(
             InventoryUpdateEvent {
                 slots: smallvec![slot],
-                player: player1,
+                entity: player1,
             },
             on_inventory_update_broadcast_equipment_update,
         );
@@ -168,7 +246,7 @@ mod tests {
         test.handle(
             InventoryUpdateEvent {
                 slots: smallvec![slot],
-                player: player3,
+                entity: player3,
             },
             on_inventory_update_broadcast_equipment_update,
         );
@@ -211,7 +289,11 @@ mod tests {
     fn send_set_slot() {
         let mut test = Test::new();
 
-        let stack = ItemStack::new(Item::RedstoneOre, 4);
+        let stack = ItemStack {
+            ty: Item::StoneShovel,
+            amount: 1,
+            damage: Some(10),
+        };
         let slot = SlotIndex {
             area: Area::Main,
             slot: 4,
@@ -228,7 +310,7 @@ mod tests {
         test.handle(
             InventoryUpdateEvent {
                 slots: smallvec![slot],
-                player: player1,
+                entity: player1,
             },
             on_inventory_update_send_set_slot,
         );

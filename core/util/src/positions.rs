@@ -177,8 +177,8 @@ impl From<glm::DVec3> for Position {
 impl From<Position> for ChunkPosition {
     fn from(pos: Position) -> Self {
         Self {
-            x: pos.x.floor() as i32 / 16,
-            z: pos.z.floor() as i32 / 16,
+            x: (pos.x / 16.0).floor() as i32,
+            z: (pos.z / 16.0).floor() as i32,
         }
     }
 }
@@ -262,6 +262,22 @@ impl BlockPosition {
     /// Converts into a `ChunkPosition`.
     pub fn chunk(self) -> ChunkPosition {
         self.into()
+    }
+
+    pub fn up(self) -> BlockPosition {
+        Self {
+            x: self.x,
+            y: self.y + 1,
+            z: self.z,
+        }
+    }
+
+    pub fn down(self) -> BlockPosition {
+        Self {
+            x: self.x,
+            y: self.y - 1,
+            z: self.z,
+        }
     }
 }
 

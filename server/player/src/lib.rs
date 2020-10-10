@@ -4,28 +4,30 @@ extern crate nalgebra_glm as glm;
 
 mod broadcasters;
 mod chat;
+mod death;
 mod join;
 mod packet_handlers;
 mod view;
 
 use feather_core::inventory::{Area, Inventory, SlotIndex, Window};
-use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerInfo, PlayerInfoAction, SpawnPlayer};
 use feather_core::network::Packet;
 use feather_core::text::Text;
 use feather_core::util::{Gamemode, Position};
 use feather_server_network::NewClientInfo;
 use feather_server_types::{
-    CanBreak, CanInstaBreak, CanTakeDamage, ChunkHolder, CreationPacketCreator, EntitySpawnEvent,
-    Game, GamemodeUpdateEvent, HeldItem, InventoryUpdateEvent, LastKnownPositions, MessageReceiver,
-    Name, Network, NetworkId, Player, PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition,
-    ProfileProperties, SpawnPacketCreator, Uuid,
+    BlocksFallen, CanBreak, CanInstaBreak, CanRespawn, CanTakeDamage, ChunkHolder,
+    CreationPacketCreator, EntitySpawnEvent, Game, GamemodeUpdateEvent, Health, HealthUpdateEvent,
+    HeldItem, InventoryUpdateEvent, LastKnownPositions, MaxHealth, MessageReceiver, Name, Network,
+    NetworkId, OpenWindowCount, Player, PlayerJoinEvent, PlayerPreJoinEvent, PreviousPosition,
+    PreviousVelocity, ProfileProperties, SpawnPacketCreator, Uuid, Velocity,
 };
 use feather_server_util::degrees_to_stops;
 use fecs::{Entity, EntityRef, World};
 
 pub use broadcasters::*;
 pub use chat::*;
+pub use death::*;
 pub use join::*;
 pub use packet_handlers::*;
 use std::sync::atomic::Ordering;
@@ -44,7 +46,9 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     let entity = info.entity;
     world.add(entity, NetworkId(entity::new_id())).unwrap();
     world.add(entity, info.position).unwrap();
-    world.add(entity, PreviousPosition(info.position)).unwrap();
+    world.add(entity, PreviousPosition::default()).unwrap();
+    world.add(entity, Velocity::default()).unwrap();
+    world.add(entity, PreviousVelocity::default()).unwrap();
     world.add(entity, info.uuid).unwrap();
     world
         .add(
@@ -58,6 +62,7 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     world.add(entity, info.ip).unwrap();
     world.add(entity, ProfileProperties(info.profile)).unwrap();
     world.add(entity, Name(info.username)).unwrap();
+    world.add(entity, OpenWindowCount::default()).unwrap();
     world.add(entity, ChunkHolder::default()).unwrap();
     world.add(entity, LastKnownPositions::default()).unwrap();
     world
@@ -70,15 +75,11 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
     let gamemode = Gamemode::from_id(info.data.gamemode as u8);
     add_gamemode_comps(world, gamemode, entity);
 
-    let items = info.data.inventory.iter().map(|slot| {
-        (
-            slot.convert_index().unwrap_or_default(),
-            ItemStack::new(
-                Item::from_identifier(&slot.item).unwrap_or(Item::Air),
-                slot.count as u8,
-            ),
-        )
-    });
+    let items = info
+        .data
+        .inventory
+        .iter()
+        .map(|slot| (slot.convert_index().unwrap_or_default(), slot.into()));
 
     let (window, slots) = {
         let inventory = Inventory::player();
@@ -105,11 +106,20 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
         (window, slots)
     };
     world.add(entity, window).unwrap();
-    world.add(entity, HeldItem(0)).unwrap(); // todo: load from player data
+    world
+        .add(entity, HeldItem(info.data.held_item as usize))
+        .unwrap();
 
     world.add(entity, MessageReceiver::default()).unwrap();
 
     world.add(entity, Player).unwrap();
+
+    world.add(entity, CanRespawn).unwrap();
+    world.add(entity, MaxHealth(20)).unwrap();
+    world
+        .add(entity, Health(info.data.animal.health as u32))
+        .unwrap();
+    world.add(entity, BlocksFallen::default()).unwrap();
 
     game.player_count.fetch_add(1, Ordering::SeqCst);
     game.handle(world, EntitySpawnEvent { entity });
@@ -119,7 +129,15 @@ pub fn create(game: &mut Game, world: &mut World, info: NewClientInfo) -> Entity
         world,
         InventoryUpdateEvent {
             slots: slots.collect(),
-            player: entity,
+            entity,
+        },
+    );
+    game.handle(
+        world,
+        HealthUpdateEvent {
+            old: 0,
+            new: info.data.animal.health as u32,
+            entity,
         },
     );
 

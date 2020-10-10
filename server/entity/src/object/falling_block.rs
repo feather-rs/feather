@@ -1,8 +1,8 @@
 //! Implements falling block entities: sand, gravel, etc.
 
-use feather_core::blocks::BlockId;
+use feather_core::blocks::{BlockId, SimplifiedBlockKind};
 use feather_core::entitymeta::{EntityMetadata, META_INDEX_FALLING_BLOCK_SPAWN_POSITION};
-use feather_core::network::packets::SpawnObject;
+use feather_core::network::packets::{Effect, SpawnObject};
 use feather_core::network::Packet;
 use feather_core::util::{BlockPosition, Position};
 use feather_server_types::{
@@ -87,6 +87,20 @@ pub fn on_entity_land_remove_falling_block(
         game.set_block_at(world, pos, block, BlockUpdateCause::Unknown);
 
         game.despawn(event.entity, world);
+
+        if block.simplified_kind() == SimplifiedBlockKind::Anvil {
+            game.broadcast_chunk_update(
+                world,
+                Effect {
+                    effect_id: 1031, // TODO remove hardcoded magic number
+                    location: pos,
+                    data: 0,
+                    disable_relative_volume: false,
+                },
+                event.pos.chunk(),
+                None,
+            );
+        }
     }
 }
 

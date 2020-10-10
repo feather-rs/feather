@@ -1,10 +1,14 @@
 //! Join logic for players.
 
-use feather_core::network::packets::{JoinGame, PlayerPositionAndLookClientbound, SpawnPosition};
+use feather_core::blocks::BlockId;
+use feather_core::network::packets::{
+    HeldItemChangeClientbound, JoinGame, PlayerPositionAndLookClientbound, SpawnPosition, Tags,
+};
 use feather_core::util::{BlockPosition, Difficulty, Dimension, Gamemode, Position};
 use feather_server_network::{ListenerToServerMessage, NetworkIoManager, ServerToListenerMessage};
 use feather_server_types::{
-    BumpVec, ChunkSendEvent, Game, Network, NetworkId, PlayerJoinEvent, WorkerToServerMessage,
+    BumpVec, ChunkSendEvent, Game, HeldItem, Network, NetworkId, PlayerJoinEvent,
+    WorkerToServerMessage,
 };
 use fecs::{IntoQuery, Read, World};
 use std::iter;
@@ -104,13 +108,14 @@ pub fn on_chunk_send_join_player(event: &ChunkSendEvent, game: &Game, world: &mu
 }
 
 #[fecs::event_handler]
-pub fn on_player_join_send_join_game(event: &PlayerJoinEvent, game: &Game, world: &mut World) {
+pub fn on_player_join_send_join_packets(event: &PlayerJoinEvent, game: &Game, world: &mut World) {
     let network = world.get::<Network>(event.player);
     let id = world.get::<NetworkId>(event.player);
     let gamemode = *world.get::<Gamemode>(event.player);
+    let held_item_slot = world.get::<HeldItem>(event.player);
 
     // TODO
-    let packet = JoinGame {
+    let join_packet = JoinGame {
         entity_id: id.0,
         gamemode: gamemode.id(),
         dimension: Dimension::Overwold.id(),
@@ -119,5 +124,44 @@ pub fn on_player_join_send_join_game(event: &PlayerJoinEvent, game: &Game, world
         level_type: game.level.generator_name.clone(),
         reduced_debug_info: false,
     };
-    network.send(packet);
+    network.send(join_packet);
+
+    let held_item_packet = HeldItemChangeClientbound {
+        slot: held_item_slot.0 as i8,
+    };
+    network.send(held_item_packet);
+
+    // TODO declare recipes
+
+    let tags_packet = Tags {
+        block_tags: vec![],
+        item_tags: vec![],
+        fluid_tags: vec![
+            (
+                "minecraft:water".into(),
+                vec![
+                    BlockId::water().vanilla_fluid_id().unwrap() as i32,
+                    BlockId::water()
+                        .with_water_level(1)
+                        .vanilla_fluid_id()
+                        .unwrap() as i32,
+                ],
+            ),
+            (
+                "minecraft:lava".into(),
+                vec![
+                    BlockId::lava().vanilla_fluid_id().unwrap() as i32,
+                    BlockId::lava()
+                        .with_water_level(1)
+                        .vanilla_fluid_id()
+                        .unwrap() as i32,
+                ],
+            ),
+        ],
+    };
+    network.send(tags_packet);
+
+    // TODO declare commands
+
+    // TODO unlock recipes
 }

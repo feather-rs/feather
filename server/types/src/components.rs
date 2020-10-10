@@ -29,8 +29,8 @@ pub struct HeldItem(pub usize);
 pub struct Name(pub String);
 
 /// Position of an entity on the previous tick.
-#[derive(Copy, Clone, Debug)]
-pub struct PreviousPosition(pub Position);
+#[derive(Copy, Clone, Debug, Default)]
+pub struct PreviousPosition(pub Option<Position>);
 
 /// An entity's velocity.
 #[derive(Copy, Clone, Debug)]
@@ -43,14 +43,8 @@ impl Default for Velocity {
 }
 
 /// Velocity of an entity on the previous tick.
-#[derive(Copy, Clone, Debug)]
-pub struct PreviousVelocity(pub glm::DVec3);
-
-impl Default for PreviousVelocity {
-    fn default() -> Self {
-        PreviousVelocity(Velocity::default().0)
-    }
-}
+#[derive(Copy, Clone, Debug, Default)]
+pub struct PreviousVelocity(pub Option<glm::DVec3>);
 
 /// Network ID of an entity.
 #[derive(Copy, Clone, Debug)]
@@ -104,3 +98,35 @@ impl MessageReceiver {
         self.buffer.drain(..)
     }
 }
+
+/// Component which stores a number which used for OpenWindow packets, incremented on every access
+#[derive(Debug)]
+pub struct OpenWindowCount {
+    count: u8,
+}
+
+impl OpenWindowCount {
+    pub fn get_increment(&mut self) -> u8 {
+        self.count += 1;
+        self.count - 1
+    }
+}
+
+impl Default for OpenWindowCount {
+    fn default() -> Self {
+        OpenWindowCount { count: 1 }
+    }
+}
+/// Health of an entity. Measured in "half-hearts."
+#[derive(Copy, Clone, Debug)]
+pub struct Health(pub u32);
+
+/// Maximum health of an entity under normal conditions (i.e. excluding potion effects
+/// such as absorption.)
+#[derive(Copy, Clone, Debug)]
+pub struct MaxHealth(pub u32);
+
+/// Stores the number of blocks fallen by an entity
+/// since the last time they were on_ground.
+#[derive(Default, Copy, Clone, Debug)]
+pub struct BlocksFallen(pub f64);

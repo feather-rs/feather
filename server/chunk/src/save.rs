@@ -1,13 +1,16 @@
 //! Handles saving of chunks and entities
 
 use crate::{chunk_manager, ChunkWorkerHandle};
-use feather_core::anvil::entity::BaseEntityData;
-use feather_core::anvil::player::{InventorySlot, PlayerData};
+use feather_core::anvil::entity::{AnimalData, BaseEntityData, EntityData};
+use feather_core::anvil::{
+    block_entity::BlockEntityData,
+    player::{InventorySlot, PlayerData},
+};
 use feather_core::inventory::{Inventory, Window};
 use feather_core::util::{ChunkPosition, Gamemode, Position, Vec3d};
 use feather_server_types::{
-    tasks, ChunkLoadEvent, ChunkUnloadEvent, ComponentSerializer, Game, PlayerLeaveEvent, Uuid,
-    TICK_LENGTH, TPS,
+    tasks, BlockSerializer, ChunkLoadEvent, ChunkUnloadEvent, ComponentSerializer, Game, Health,
+    HeldItem, PlayerLeaveEvent, Uuid, TICK_LENGTH, TPS,
 };
 use fecs::{Entity, World};
 use std::collections::VecDeque;
@@ -121,11 +124,30 @@ pub fn save_chunk_at(
     }
 
     // Serialize the entities in the chunk.
+    let (entities, block_entities) = serialize_entities(game, world, pos);
+
+    log::trace!("Queuing chunk at {} for saving", pos);
+    chunk_manager::save_chunk(
+        chunk_worker_handle,
+        game.chunk_map.chunk_handle_at(pos).unwrap(),
+        entities.collect(),
+        block_entities.collect(),
+    );
+}
+
+fn serialize_entities<'a>(
+    game: &'a Game,
+    world: &'a World,
+    pos: ChunkPosition,
+) -> (
+    impl Iterator<Item = EntityData> + 'a,
+    impl Iterator<Item = BlockEntityData> + 'a,
+) {
     let entities = game
         .chunk_entities
         .entities_in_chunk(pos)
         .iter()
-        .filter_map(|entity| {
+        .filter_map(move |entity| {
             if let Some(serializer) = world.try_get::<ComponentSerializer>(*entity) {
                 let accessor = world.entity(*entity).expect("entity does not exist");
 
@@ -133,15 +155,23 @@ pub fn save_chunk_at(
             } else {
                 None
             }
-        })
-        .collect();
+        });
 
-    log::trace!("Queuing chunk at {} for saving", pos);
-    chunk_manager::save_chunk(
-        chunk_worker_handle,
-        game.chunk_map.chunk_handle_at(pos).unwrap(),
-        entities,
-    );
+    let block_entities = game
+        .chunk_entities
+        .entities_in_chunk(pos)
+        .iter()
+        .filter_map(move |entity| {
+            if let Some(serializer) = world.try_get::<BlockSerializer>(*entity) {
+                let accessor = world.entity(*entity).expect("entity does not exist");
+
+                Some(serializer.serialize(game, &accessor))
+            } else {
+                None
+            }
+        });
+
+    (entities, block_entities)
 }
 
 #[fecs::event_handler]
@@ -162,10 +192,18 @@ pub fn save_player_data(game: &Game, world: &World, player: Entity) {
         })
         .collect();
 
+    let health = world
+        .try_get::<Health>(player)
+        .map(|health| health.0 as f32)
+        .unwrap_or(1.0);
     let data = PlayerData {
-        entity: BaseEntityData::new(*world.get::<Position>(player), Vec3d::broadcast(0.0)),
+        animal: AnimalData::new(
+            BaseEntityData::new(*world.get::<Position>(player), Vec3d::broadcast(0.0)),
+            health,
+        ),
         gamemode: world.get::<Gamemode>(player).id() as i32,
         inventory,
+        held_item: world.get::<HeldItem>(player).0 as i32,
     };
 
     let uuid = *world.get::<Uuid>(player);

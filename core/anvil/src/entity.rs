@@ -1,9 +1,8 @@
 use arrayvec::ArrayVec;
-use feather_items::Item;
+use feather_items::{Item, ItemStack};
 use feather_util::{vec3, Position, Vec3d};
-use nbt::Value;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use serde::ser::Error;
+use serde::{Deserialize, Serialize, Serializer};
 use thiserror::Error;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -72,53 +71,13 @@ pub enum EntityData {
     Donkey(AnimalData),
 
     /// Fallback type for unknown entities
-    #[serde(other)]
+    #[serde(other, serialize_with = "EntityData::serialize_unknown")]
     Unknown,
 }
 
 impl EntityData {
-    pub fn into_nbt_value(self) -> Value {
-        let mut map = HashMap::new();
-
-        map.insert(
-            String::from("id"),
-            Value::String(
-                match self {
-                    EntityData::Item(_) => "minecraft:item",
-                    EntityData::Arrow(_) => "minecraft:arrow",
-                    EntityData::Cow(_) => "minecraft:cow",
-                    EntityData::Pig(_) => "minecraft:pig",
-                    EntityData::Chicken(_) => "minecraft:chicken",
-                    EntityData::Sheep(_) => "minecraft:sheep",
-                    EntityData::Horse(_) => "minecraft:horse",
-                    EntityData::Llama(_) => "minecraft:llama",
-                    EntityData::Mooshroom(_) => "minecraft:mooshroom",
-                    EntityData::Rabbit(_) => "minecraft:rabbit",
-                    EntityData::Squid(_) => "minecraft:squid",
-                    EntityData::Donkey(_) => "minecraft:donkey",
-                    EntityData::Unknown => panic!("Cannot write unknown entities"),
-                }
-                .to_string(),
-            ),
-        );
-
-        match self {
-            EntityData::Item(data) => data.write_to_map(&mut map),
-            EntityData::Arrow(data) => data.write_to_map(&mut map),
-            EntityData::Cow(data) => data.write_to_map(&mut map),
-            EntityData::Pig(data) => data.write_to_map(&mut map),
-            EntityData::Chicken(data) => data.write_to_map(&mut map),
-            EntityData::Sheep(data) => data.write_to_map(&mut map),
-            EntityData::Horse(data) => data.write_to_map(&mut map),
-            EntityData::Llama(data) => data.write_to_map(&mut map),
-            EntityData::Mooshroom(data) => data.write_to_map(&mut map),
-            EntityData::Rabbit(data) => data.write_to_map(&mut map),
-            EntityData::Squid(data) => data.write_to_map(&mut map),
-            EntityData::Donkey(data) => data.write_to_map(&mut map),
-            EntityData::Unknown => unreachable!(),
-        }
-
-        Value::Compound(map)
+    pub(crate) fn serialize_unknown<S: Serializer>(_serializer: S) -> Result<S::Ok, S::Error> {
+        Err(S::Error::custom("cannot serialize unknown entities"))
     }
 }
 
@@ -133,23 +92,6 @@ pub struct BaseEntityData {
     pub velocity: ArrayVec<[f64; 3]>,
 }
 
-impl BaseEntityData {
-    fn write_to_map(self, map: &mut HashMap<String, Value>) {
-        map.insert(
-            String::from("Pos"),
-            Value::List(self.position.iter().copied().map(Value::Double).collect()),
-        );
-        map.insert(
-            String::from("Rotation"),
-            Value::List(self.rotation.iter().copied().map(Value::Float).collect()),
-        );
-        map.insert(
-            String::from("Motion"),
-            Value::List(self.velocity.iter().copied().map(Value::Double).collect()),
-        );
-    }
-}
-
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum EntityLoadError {
     #[error("missing position/rotation/velocity data")]
@@ -157,7 +99,7 @@ pub enum EntityLoadError {
 }
 
 impl BaseEntityData {
-    /// Creates a `BaseEntityData` from a position and velocity.
+    /// Creates a `BaseEntityData` from its parameters.
     pub fn new(pos: Position, velocity: Vec3d) -> Self {
         Self {
             position: [pos.x, pos.y, pos.z].into(),
@@ -206,11 +148,23 @@ impl Default for BaseEntityData {
 pub struct AnimalData {
     #[serde(flatten)]
     pub base: BaseEntityData,
+    #[serde(rename = "Health")]
+    pub health: f32,
 }
 
 impl AnimalData {
-    fn write_to_map(self, map: &mut HashMap<String, Value>) {
-        self.base.write_to_map(map);
+    /// Creates an `AnimalData` from its parameters.
+    pub fn new(base: BaseEntityData, health: f32) -> Self {
+        Self { base, health }
+    }
+}
+
+impl Default for AnimalData {
+    fn default() -> Self {
+        AnimalData {
+            base: Default::default(),
+            health: 20.0,
+        }
     }
 }
 
@@ -218,16 +172,11 @@ impl AnimalData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ItemData {
     #[serde(rename = "Count")]
-    pub count: u8,
+    pub count: i8,
     #[serde(rename = "id")]
     pub item: String,
-}
-
-impl ItemData {
-    fn write_to_map(self, map: &mut HashMap<String, Value>) {
-        map.insert(String::from("Count"), Value::Byte(self.count as i8));
-        map.insert(String::from("id"), Value::String(self.item));
-    }
+    #[serde(rename = "tag")]
+    pub nbt: Option<ItemNbt>,
 }
 
 impl Default for ItemData {
@@ -235,6 +184,75 @@ impl Default for ItemData {
         Self {
             count: 0,
             item: Item::Air.identifier().to_string(),
+            nbt: None,
+        }
+    }
+}
+
+impl From<ItemData> for ItemStack {
+    fn from(item: ItemData) -> Self {
+        ItemStack::from(&item)
+    }
+}
+
+// Can't do proper Borrow trait impl because of orphan rule
+impl From<&ItemData> for ItemStack {
+    fn from(item: &ItemData) -> Self {
+        ItemNbt::item_stack(
+            &item.nbt,
+            Item::from_identifier(item.item.as_str()).unwrap_or(Item::Air),
+            item.count as u8,
+        )
+    }
+}
+
+impl<S> From<S> for ItemData
+where
+    S: std::borrow::Borrow<ItemStack>,
+{
+    fn from(s: S) -> Self {
+        let stack = s.borrow();
+        let nbt = stack.into();
+        let nbt = if nbt == Default::default() {
+            None
+        } else {
+            Some(nbt)
+        };
+        Self {
+            count: stack.amount as i8,
+            item: stack.ty.identifier().to_string(),
+            nbt,
+        }
+    }
+}
+
+/// Represents NBT tags on an item.
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ItemNbt {
+    #[serde(rename = "Damage")]
+    pub damage: Option<i32>,
+    // TODO enchantments, display name, ...
+}
+
+impl ItemNbt {
+    /// Create an `ItemStack` of the specified item and amount, setting any nbt present.
+    pub fn item_stack(nbt: &Option<Self>, item: Item, amount: u8) -> ItemStack {
+        ItemStack {
+            ty: item,
+            amount,
+            damage: nbt.as_ref().map(|n| n.damage).flatten(),
+        }
+    }
+}
+
+impl<S> From<S> for ItemNbt
+where
+    S: std::borrow::Borrow<ItemStack>,
+{
+    fn from(s: S) -> Self {
+        let stack = s.borrow();
+        Self {
+            damage: stack.damage,
         }
     }
 }
@@ -250,25 +268,11 @@ pub struct ItemEntityData {
     #[serde(rename = "Age")]
     pub age: i16,
     #[serde(rename = "PickupDelay")]
-    pub pickup_delay: u8,
+    pub pickup_delay: i16,
     #[serde(rename = "Item")]
     pub item: ItemData,
-}
-
-impl ItemEntityData {
-    fn write_to_map(self, map: &mut HashMap<String, Value>) {
-        self.entity.write_to_map(map);
-
-        let mut item = HashMap::new();
-        self.item.write_to_map(&mut item);
-        map.insert(String::from("Item"), Value::Compound(item));
-
-        map.insert(String::from("Age"), Value::Short(self.age));
-        map.insert(
-            String::from("PickupDelay"),
-            Value::Byte(self.pickup_delay as i8),
-        );
-    }
+    #[serde(rename = "Health")]
+    pub health: i16,
 }
 
 /// Data for an Arrow entity (`minecraft:arrow`).
@@ -283,15 +287,7 @@ pub struct ArrowEntityData {
     // TODO: Change this field to `bool` when issue with hematite_nbt is resolved.
     // See: https://github.com/PistonDevelopers/hematite_nbt/issues/43
     #[serde(rename = "crit")]
-    pub critical: u8,
-}
-
-impl ArrowEntityData {
-    fn write_to_map(self, map: &mut HashMap<String, Value>) {
-        self.entity.write_to_map(map);
-
-        map.insert(String::from("crit"), Value::Byte(self.critical as i8));
-    }
+    pub critical: i8,
 }
 
 #[cfg(test)]

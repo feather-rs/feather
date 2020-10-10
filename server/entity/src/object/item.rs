@@ -1,7 +1,7 @@
 //! Handling of item entities.
 
 use feather_core::anvil::entity::{
-    BaseEntityData, EntityData, EntityDataKind, ItemData, ItemEntityData,
+    BaseEntityData, EntityData, EntityDataKind, ItemData, ItemEntityData, ItemNbt,
 };
 use feather_core::entitymeta::{EntityMetadata, META_INDEX_ITEM_SLOT};
 use feather_core::inventory::Inventory;
@@ -10,9 +10,9 @@ use feather_core::network::packets::SpawnObject;
 use feather_core::network::Packet;
 use feather_core::util::{Position, Vec3d};
 use feather_server_types::{
-    ComponentSerializer, EntityLoaderRegistration, EntitySpawnEvent, Game, InventoryUpdateEvent,
-    ItemCollectEvent, ItemDropEvent, NetworkId, PhysicsBuilder, Player, SpawnPacketCreator, Uuid,
-    Velocity, PLAYER_EYE_HEIGHT, TPS,
+    ComponentSerializer, Dead, EntityLoaderRegistration, EntitySpawnEvent, Game,
+    InventoryUpdateEvent, ItemCollectEvent, ItemDropEvent, NetworkId, PhysicsBuilder, Player,
+    SpawnPacketCreator, Uuid, Velocity, PLAYER_EYE_HEIGHT, TPS,
 };
 use feather_server_util::{degrees_to_stops, nearby_entities, protocol_velocity};
 use fecs::{component, EntityBuilder, EntityRef, IntoQuery, Read, World, Write};
@@ -97,6 +97,7 @@ pub fn item_collect(game: &mut Game, world: &mut World) {
     unsafe {
         <(Read<Position>, Write<Inventory>)>::query()
             .filter(component::<Player>())
+            .filter(!component::<Dead>())
             .par_entities_for_each_unchecked(world.inner(), |(player, (pos, mut inventory))| {
                 let inventory: &mut Inventory = &mut *inventory;
 
@@ -130,7 +131,10 @@ pub fn item_collect(game: &mut Game, world: &mut World) {
 
                         let initial_remaining = stack.amount;
 
-                        let event = InventoryUpdateEvent { slots, player };
+                        let event = InventoryUpdateEvent {
+                            slots,
+                            entity: player,
+                        };
                         inventory_update_events.lock().push(event);
 
                         // update stack
@@ -220,15 +224,23 @@ fn create_spawn_packet(accessor: &EntityRef) -> Box<dyn Packet> {
 fn serialize(game: &Game, accessor: &EntityRef) -> EntityData {
     let vel = accessor.get::<Velocity>().0;
     let item = accessor.get::<ItemStack>();
+    let nbt = ItemNbt::from(*item);
+    let nbt = if nbt == Default::default() {
+        None
+    } else {
+        Some(nbt)
+    };
     EntityData::Item(ItemEntityData {
         entity: BaseEntityData::new(*accessor.get::<Position>(), Vec3d::new(vel.x, vel.y, vel.z)),
         age: 0, // todo
         pickup_delay: (accessor.get::<CollectableAt>().0 as i64 - game.tick_count as i64).max(0)
-            as u8,
+            as i16,
         item: ItemData {
-            count: item.amount,
+            count: item.amount as i8,
             item: item.ty.identifier().to_owned(),
+            nbt,
         },
+        health: 5, // todo
     })
 }
 
@@ -238,12 +250,9 @@ fn load(data: EntityData) -> anyhow::Result<EntityBuilder> {
             let pos = data.entity.read_position()?;
             let vel = data.entity.read_velocity()?;
 
-            let stack = ItemStack::new(
-                Item::from_identifier(&data.item.item)
-                    .ok_or_else(|| anyhow::anyhow!("invalid item {}", data.item.item))?,
-                data.item.count,
-            );
-
+            Item::from_identifier(&data.item.item)
+                .ok_or_else(|| anyhow::anyhow!("invalid item {}", data.item.item))?;
+            let stack = data.item.into();
             let collectable_at = data.pickup_delay;
 
             Ok(create(stack, collectable_at as u64)

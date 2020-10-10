@@ -1,7 +1,7 @@
 use ahash::AHashMap;
 use bitflags::bitflags;
 use feather_biomes::Biome;
-use feather_blocks::BlockId;
+use feather_blocks::{BlockId, SimplifiedBlockKind};
 use feather_util::ChunkPosition;
 use smallvec::SmallVec;
 
@@ -68,70 +68,82 @@ pub struct Chunk {
 
 #[derive(Clone, Copy, Default)]
 pub struct HeightMap {
-    motion_blocking: u8,
-    motion_blocking_no_leaves: u8,
-    ocean_floor: u8,
-    ocean_floor_wg: u8,
-    world_surface: u8,
-    world_surface_wg: u8,
+    light_blocking: u16,
+    motion_blocking: u16,
+    motion_blocking_no_leaves: u16,
+    ocean_floor: u16,
+    world_surface: u16,
 }
 
 impl HeightMap {
-    /// The highest block that is solid or contains a fluid.
-    pub fn motion_blocking(self) -> u8 {
+    /// Y-coordinate + 1 of the highest opaque block.
+    pub fn light_blocking(self) -> u16 {
+        self.light_blocking
+    }
+
+    pub fn set_light_blocking(&mut self, mut light_blocking: u16) {
+        if light_blocking > 256 {
+            light_blocking = 256;
+        }
+        self.light_blocking = light_blocking;
+    }
+
+    /// Y-coordinate + 1 of the highest solid or fluid block.
+    pub fn motion_blocking(self) -> u16 {
         self.motion_blocking
     }
 
-    pub fn set_motion_blocking(&mut self, motion_blocking: u8) {
+    pub fn set_motion_blocking(&mut self, mut motion_blocking: u16) {
+        if motion_blocking > 256 {
+            motion_blocking = 256;
+        }
         self.motion_blocking = motion_blocking;
     }
 
-    /// The highest block that is solid or contains a fluid and is not leaves.
-    pub fn motion_blocking_no_leaves(self) -> u8 {
+    /// Y-coordinate + 1 of the highest solid or fluid block that is not leaves.
+    pub fn motion_blocking_no_leaves(self) -> u16 {
         self.motion_blocking_no_leaves
     }
 
-    pub fn set_motion_blocking_no_leaves(&mut self, motion_blocking_no_leaves: u8) {
+    pub fn set_motion_blocking_no_leaves(&mut self, mut motion_blocking_no_leaves: u16) {
+        if motion_blocking_no_leaves > 256 {
+            motion_blocking_no_leaves = 256;
+        }
         self.motion_blocking_no_leaves = motion_blocking_no_leaves;
     }
 
-    /// The highest block that is solid.
-    pub fn ocean_floor(self) -> u8 {
+    /// Y-coordinate + 1 of the highest solid block.
+    pub fn ocean_floor(self) -> u16 {
         self.ocean_floor
     }
 
-    pub fn set_ocean_floor(&mut self, ocean_floor: u8) {
+    pub fn set_ocean_floor(&mut self, mut ocean_floor: u16) {
+        if ocean_floor > 256 {
+            ocean_floor = 256;
+        }
         self.ocean_floor = ocean_floor;
     }
 
-    /// The highest block that is solid for world generation.
-    pub fn ocean_floor_wg(self) -> u8 {
-        self.ocean_floor_wg
-    }
-
-    /// The highest block that is not air.
-    pub fn world_surface(self) -> u8 {
+    /// Y-coordinate + 1 of the highest non-air block.
+    pub fn world_surface(self) -> u16 {
         self.world_surface
     }
 
-    pub fn set_world_surface(&mut self, world_surface: u8) {
+    pub fn set_world_surface(&mut self, mut world_surface: u16) {
+        if world_surface > 256 {
+            world_surface = 256;
+        }
         self.world_surface = world_surface;
-    }
-
-    /// The highest block is not air for world generation.
-    pub fn world_surface_wg(self) -> u8 {
-        self.world_surface_wg
     }
 }
 
 bitflags! {
     struct HeightMapMask: u8 {
-        const MOTION_BLOCKING = 0b0000_0001;
-        const MOTION_BLOCKING_NO_LEAVES = 0b0000_0010;
-        const OCEAN_FLOOR = 0b0000_0100;
-        const OCEAN_FLOOR_WG = 0b0000_1000;
+        const LIGHT_BLOCKING = 0b0000_0001;
+        const MOTION_BLOCKING = 0b0000_0010;
+        const MOTION_BLOCKING_NO_LEAVES = 0b0000_0100;
+        const OCEAN_FLOOR = 0b0000_1000;
         const WORLD_SURFACE = 0b0001_0000;
-        const WORLD_SURFACE_WG = 0b0010_0000;
     }
 }
 
@@ -225,9 +237,10 @@ impl Chunk {
             section = self.section_mut(y / 16).unwrap();
         }
 
+        let old_block = section.block_at(x, y % 16, z);
         section.set_block_at(x, y % 16, z, block);
 
-        self.update_heightmap(x, y, z, block);
+        self.update_heightmap(x, y, z, old_block, block);
     }
 
     pub fn heightmap(&self, x: usize, z: usize) -> &HeightMap {
@@ -244,31 +257,89 @@ impl Chunk {
         &self.heightmaps
     }
 
-    fn update_heightmap(&mut self, x: usize, y: usize, z: usize, block: BlockId) -> HeightMapMask {
-        let heightmap = self.heightmap_mut(x, z);
+    fn update_heightmap(
+        &mut self,
+        x: usize,
+        y: usize,
+        z: usize,
+        old_block: BlockId,
+        new_block: BlockId,
+    ) -> HeightMapMask {
         let mut mask: HeightMapMask = HeightMapMask::empty();
-        if (block.is_solid() || block.is_fluid()) && heightmap.motion_blocking() < y as u8 {
-            heightmap.set_motion_blocking(y as u8);
-            mask |= HeightMapMask::MOTION_BLOCKING;
-        }
+        let y = y as u16;
 
-        if (block.is_solid() || block.is_fluid())
-            && !block.is_leaves()
-            && heightmap.motion_blocking_no_leaves() < y as u8
+        struct HeightMapCheckContext(
+            &'static dyn Fn(BlockId) -> bool,
+            HeightMapMask,
+            &'static dyn Fn(&HeightMap) -> u16,
+            &'static dyn Fn(&mut HeightMap, u16),
+        );
+
+        let checks: [HeightMapCheckContext; 5] = [
+            // Light blocking
+            HeightMapCheckContext(
+                &|block| block.is_opaque(),
+                HeightMapMask::LIGHT_BLOCKING,
+                &|map| map.light_blocking(),
+                &|map, value| map.set_light_blocking(value),
+            ),
+            // Motion blocking
+            HeightMapCheckContext(
+                &|block| block.is_solid() || block.is_fluid(),
+                HeightMapMask::MOTION_BLOCKING,
+                &|map| map.motion_blocking(),
+                &|map, value| map.set_motion_blocking(value),
+            ),
+            // Motion blocking no leaves
+            HeightMapCheckContext(
+                &|block| {
+                    (block.is_solid() || block.is_fluid())
+                        && block.simplified_kind() != SimplifiedBlockKind::Leaves
+                },
+                HeightMapMask::MOTION_BLOCKING_NO_LEAVES,
+                &|map| map.motion_blocking_no_leaves(),
+                &|map, value| map.set_motion_blocking_no_leaves(value),
+            ),
+            // Ocean floor
+            HeightMapCheckContext(
+                &|block| block.is_solid(),
+                HeightMapMask::OCEAN_FLOOR,
+                &|map| map.ocean_floor(),
+                &|map, value| map.set_ocean_floor(value),
+            ),
+            // World surface
+            HeightMapCheckContext(
+                &|block| !block.is_air(),
+                HeightMapMask::WORLD_SURFACE,
+                &|map| map.world_surface(),
+                &|map, value| map.set_world_surface(value),
+            ),
+        ];
+
+        for HeightMapCheckContext(valid_block, check_mask, map_getter, map_setter) in checks.iter()
         {
-            heightmap.set_motion_blocking_no_leaves(y as u8);
-            mask |= HeightMapMask::MOTION_BLOCKING_NO_LEAVES;
+            // Check heightmap type
+            if valid_block(old_block) && map_getter(self.heightmap_mut(x, z)) == y {
+                // This was the highest block
+                self.heightmap_mut(x, z).set_light_blocking(0);
+
+                for i in (0..y).rev() {
+                    let block = self.block_at(x, i as usize, z);
+
+                    if valid_block(block) {
+                        map_setter(self.heightmap_mut(x, z), i + 1);
+                        break;
+                    }
+                }
+                mask |= *check_mask;
+            }
+            if valid_block(new_block) && map_getter(self.heightmap_mut(x, z)) < y {
+                // This is the new highest block
+                map_setter(self.heightmap_mut(x, z), y);
+                mask |= *check_mask;
+            }
         }
 
-        if block.is_solid() && heightmap.ocean_floor() < y as u8 {
-            heightmap.set_ocean_floor(y as u8);
-            mask |= HeightMapMask::OCEAN_FLOOR;
-        }
-
-        if !block.is_air() && heightmap.world_surface() < y as u8 {
-            heightmap.set_world_surface(y as u8);
-            mask |= HeightMapMask::WORLD_SURFACE;
-        }
         mask
     }
 
@@ -284,7 +355,7 @@ impl Chunk {
                         break;
                     }
                     let block = self.block_at(x, y, z);
-                    mask |= self.update_heightmap(x, y, z, block);
+                    mask |= self.update_heightmap(x, y, z, BlockId::air(), block);
                 }
             }
         }
@@ -456,6 +527,12 @@ impl Chunk {
         let res = self.modified;
         self.modified = false;
         res
+    }
+
+    /// Marks this chunk as modified.
+    /// See `check_modified`.
+    pub fn set_modified(&mut self) {
+        self.modified = true;
     }
 
     fn biome_index(x: usize, z: usize) -> usize {

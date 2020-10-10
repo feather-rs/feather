@@ -68,7 +68,7 @@ pub struct CommandCtx {
 
 impl lieutenant::Context for CommandCtx {
     type Error = anyhow::Error;
-    type Ok = ();
+    type Ok = Option<String>;
 }
 
 macro_rules! commands {
@@ -106,8 +106,20 @@ impl CommandState {
                 gamemode_2,
 
                 whisper,
-
                 say,
+                me,
+
+                kick_1,
+                kick_2,
+
+                stop,
+
+                clear_1,
+                clear_2,
+                clear_3,
+                clear_4,
+
+                seed,
         }
 
         Self {
@@ -123,15 +135,25 @@ impl CommandState {
             sender,
         };
 
-        if let Err(errs) = self.dispatcher.dispatch(&mut ctx, command) {
-            let msg = if let Some(last) = errs.last() {
-                Text::from(last.to_string()).red()
-            } else {
-                Text::from("Unknown command.")
-            };
+        match self.dispatcher.dispatch(&mut ctx, command) {
+            Ok(ok) => {
+                if let Some(msg) = ok {
+                    if let Some(mut receiver) = world.try_get_mut::<MessageReceiver>(sender) {
+                        receiver.send(Text::from(msg));
+                    }
+                }
+            }
 
-            if let Some(mut receiver) = world.try_get_mut::<MessageReceiver>(sender) {
-                receiver.send(msg);
+            Err(errs) => {
+                let msg = if let Some(last) = errs.last() {
+                    Text::from(last.to_string()).red()
+                } else {
+                    Text::from("Unknown command.")
+                };
+
+                if let Some(mut receiver) = world.try_get_mut::<MessageReceiver>(sender) {
+                    receiver.send(msg);
+                }
             }
         }
     }

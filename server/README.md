@@ -17,7 +17,8 @@ explicit here that a crate contains unsafe code.
 * `types`: all components and resources which subcrates would like to make available to other subcrates.
 Acts somewhat like a more elegant C/C++ header file.
 * `util`: small utility functions as well as trivial game logic which doesn't need to be in its own crate (e.g. world time)
-* `entities`: entity implementations  (items, arrows, falling blocks, mobs, ...). UNSAFE: used for item collection in `object::item::item_collect:system`.
+* `entity`: entity implementations  (items, arrows, falling blocks, mobs, ...). UNSAFE: used for item collection in `object::item::item_collect:system`.
+* `block`: block entity implementations (chests, furnaces, command blocks, ...)
 * `player`: logic pertaining directly to players, e.g. chunk sending, chat, the view system. Also contains all packet handlers.
 * `network`: the TCP listener and IO worker implementation for communication with clients
 * `config`: the configuration file and struct, plus loading/saving logic

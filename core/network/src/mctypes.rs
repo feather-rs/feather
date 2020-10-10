@@ -1,5 +1,6 @@
 use crate::bytes_ext::{BytesExt, BytesMutExt, TryGetError};
 use bytes::{Buf, BytesMut};
+use feather_anvil::entity::ItemNbt;
 use feather_entity_metadata::{EntityMetadata, MetaEntry};
 use feather_items::{Item, ItemStack};
 use feather_util::BlockPosition;
@@ -120,7 +121,13 @@ impl McTypeWrite for BytesMut {
         if let Some(slot) = slot.as_ref() {
             self.push_var_int(slot.ty.vanilla_id() as i32);
             self.push_i8(slot.amount as i8);
-            self.push_i8(0x00); // TAG_End - TODO item NBT support
+            let tags: ItemNbt = slot.into();
+
+            if tags != Default::default() {
+                self.push_nbt(&tags);
+            } else {
+                self.push_i8(0x00); // TAG_End
+            }
         }
     }
 }
@@ -214,10 +221,13 @@ impl<B: Buf + Read> McTypeRead for B {
         let id = self.try_get_var_int()?;
         let ty = Item::from_vanilla_id(id as u32).ok_or(TryGetError::InvalidValue(id))?;
         let amount = self.try_get_i8()? as u8;
+        let nbt: Option<ItemNbt> = self.try_get_nbt().ok();
 
-        // TODO NBT support
-
-        Ok(Some(ItemStack::new(ty, amount)))
+        Ok(Some(ItemStack {
+            ty,
+            amount,
+            damage: nbt.map(|t| t.damage).flatten(),
+        }))
     }
 }
 

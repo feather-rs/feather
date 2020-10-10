@@ -1,6 +1,7 @@
 use crate::CommandCtx;
 use feather_core::position;
 use feather_core::util::{Gamemode, Position};
+use feather_definitions::Item;
 use feather_server_types::{Game, Name, NetworkId, Player};
 use fecs::{component, Entity, IntoQuery, Read, World};
 use lieutenant::{ArgumentKind, Input};
@@ -39,6 +40,45 @@ impl ArgumentKind<CommandCtx> for EntitySelector {
         let entities = find_selected_entities(ctx, head)?;
 
         Ok(EntitySelector { entities })
+    }
+}
+
+impl EntitySelector {
+    /// Parses the returned entities for use in reporting success messages
+    /// Either the name of the entity for one entity, or how many were affected for many entities.
+    pub fn entities_to_string(&self, ctx: &CommandCtx, add_player: bool) -> String {
+        if self.entities.is_empty() {
+            "no entities".to_string()
+        } else if self.entities.len() == 1 {
+            if let Some(name) = ctx.world.try_get::<Name>(*self.entities.first().unwrap()) {
+                if add_player {
+                    if ctx
+                        .world
+                        .try_get::<Player>(*self.entities.first().unwrap())
+                        .is_some()
+                    {
+                        format!("player {}", name.0)
+                    } else {
+                        format!("entity {}", name.0)
+                    }
+                } else {
+                    name.0.to_string()
+                }
+            } else {
+                "Server".to_string()
+            }
+        } else {
+            // TODO: confirm this is correct behaviour for success messages involving many players
+            let mut players = true;
+            for entity in &self.entities {
+                players &= ctx.world.try_get::<Player>(*entity).is_some();
+            }
+            if players {
+                format!("{} players", self.entities.len())
+            } else {
+                format!("{} entities", self.entities.len())
+            }
+        }
     }
 }
 
@@ -285,8 +325,7 @@ impl ArgumentKind<CommandCtx> for TextArgument {
     type ParseError = Infallible;
 
     fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
-        // Required until #11 is fixed in https://github.com/feather-rs/lieutenant/issues/11
-        !input.advance_until("\0").is_empty()
+        !input.advance_to_end().is_empty()
     }
 
     fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
@@ -299,5 +338,91 @@ impl ArgumentKind<CommandCtx> for TextArgument {
 impl AsRef<str> for TextArgument {
     fn as_ref(&self) -> &str {
         self.0.as_str()
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum ItemParseError {
+    #[error("Unknown item {0}")]
+    ItemDoesNotExist(String),
+}
+
+#[derive(Clone, Debug)]
+pub struct ItemArgument(pub Item);
+
+impl ArgumentKind<CommandCtx> for ItemArgument {
+    type ParseError = ItemParseError;
+
+    fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
+        !input.advance_until(" ").is_empty()
+    }
+
+    fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
+        let text = input.advance_until(" ");
+        let item = Item::from_identifier(text);
+        match item {
+            Some(s) => Ok(ItemArgument(s)),
+            None => Err(ItemParseError::ItemDoesNotExist(text.to_owned())),
+        }
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum I32ParseError {
+    #[error("Invalid integer {0}")]
+    Invalid(String),
+}
+
+#[derive(Clone, Debug)]
+pub struct I32Argument(pub i32);
+
+impl ArgumentKind<CommandCtx> for I32Argument {
+    type ParseError = I32ParseError;
+
+    fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
+        !input.advance_until(" ").is_empty()
+    }
+
+    fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
+        let text = input.advance_until(" ");
+        let number = text.parse::<i32>();
+        match number {
+            Ok(s) => Ok(I32Argument(s)),
+            Err(_) => Err(I32ParseError::Invalid(text.to_owned())),
+        }
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum PositiveI32ParseError {
+    #[error("Invalid integer {0}")]
+    Invalid(String),
+    #[error("Integer must not be less than 0, found {0}")]
+    Negative(i32),
+}
+
+#[derive(Clone, Debug)]
+pub struct PositiveI32Argument(pub i32);
+
+impl ArgumentKind<CommandCtx> for PositiveI32Argument {
+    type ParseError = PositiveI32ParseError;
+
+    fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
+        !input.advance_until(" ").is_empty()
+    }
+
+    fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
+        let text = input.advance_until(" ");
+        let number = text.parse::<i32>();
+        match number {
+            Ok(integer) => {
+                if integer >= 0 {
+                    Ok(PositiveI32Argument(integer))
+                } else {
+                    Err(PositiveI32ParseError::Negative(integer))
+                }
+            }
+            Err(_) => Err(PositiveI32ParseError::Invalid(text.to_owned())),
+        }
     }
 }

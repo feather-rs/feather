@@ -23,6 +23,9 @@ pub enum BlockUpdateCause {
     /// The update was caused by an entity performing
     /// a block break/placement. Usually a player.
     Entity(Entity),
+    /// So far only when a block that needs to be
+    /// supported loses it's support.
+    Unsupported,
     /// Unknown cause.
     Unknown,
 }
@@ -32,6 +35,15 @@ pub enum BlockUpdateCause {
 /// As such, components can still be accessed.
 #[derive(Copy, Clone, Debug)]
 pub struct EntityDespawnEvent {
+    pub entity: Entity,
+}
+
+/// Triggered when an entity is killed.
+///
+/// Always triggered _before_ `EntityDespawnEvent`
+/// if the entity is despawned as well.
+#[derive(Copy, Clone, Debug)]
+pub struct EntityDeathEvent {
     pub entity: Entity,
 }
 
@@ -97,11 +109,15 @@ pub struct ItemCollectEvent {
     pub amount: u8,
 }
 
-/// Event which is triggered when a player
-/// updates their inventory.
+/// Event which is triggered when an entity's inventory
+/// is updated.
 ///
-/// This event could also be triggered when the player
+/// This event could also be triggered when a player
 /// changes their held item.
+///
+/// Note that the associated entity is not necessarily a player.
+/// For example, a chest block entity has an `Inventory` component,
+/// and `InventoryUpdateEvent`s may be triggered for it.
 #[derive(Debug, Clone)]
 pub struct InventoryUpdateEvent {
     /// The slot(s) affected by the update.
@@ -109,13 +125,58 @@ pub struct InventoryUpdateEvent {
     /// Multiple slots could be affected when, for
     /// example, a player uses the "drag" inventory interaction.
     pub slots: SmallVec<[SlotIndex; 2]>,
-    /// The player owning the updated inventory.
+    /// The entity owning the updated inventory.
+    pub entity: Entity,
+}
+
+/// Event triggered to reduce an items durability. For example,
+/// when an item has been used, a tool breaks a block,
+/// or armor has been hit.
+#[derive(Debug, Clone)]
+pub struct ItemDamageEvent {
+    /// The player whose item is being damaged
     pub player: Entity,
+    /// Which inventory slot is being damaged
+    pub slot: SlotIndex,
+    /// How many points of damage the item is taking
+    pub damage_taken: u32,
+}
+
+/// Event triggered when a player opens a window. For example,
+/// opening a chest will trigger this event.
+#[derive(Copy, Clone, Debug)]
+pub struct WindowOpenEvent {
+    /// The player who opened the window
+    pub player: Entity,
+    /// The entity whose inventory was opened.
+    /// For example, when a chest is opened,
+    /// this will be the chest's block entity.
+    pub opened: Entity,
+}
+
+/// Event triggered when a player closes a window.
+#[derive(Copy, Clone, Debug)]
+pub struct WindowCloseEvent {
+    /// The player who closed the window
+    pub player: Entity,
+    /// The entity whose inventory was closed
+    pub closed: Entity,
 }
 
 /// Event triggered when an entity is created.
 #[derive(Copy, Clone, Debug)]
 pub struct EntitySpawnEvent {
+    pub entity: Entity,
+}
+
+/// Event triggered when an entity's health is updated.
+#[derive(Copy, Clone, Debug)]
+pub struct HealthUpdateEvent {
+    /// The old health.
+    pub old: u32,
+    /// The new health.
+    pub new: u32,
+    /// The entity whose health was updated.
     pub entity: Entity,
 }
 

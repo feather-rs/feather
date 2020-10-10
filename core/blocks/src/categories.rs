@@ -1,134 +1,77 @@
 use crate::{BlockId, BlockKind};
+use feather_definitions::SimplifiedBlockKind;
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum PlacementType {
+    TargetedFace,
+    PlayerDirection,
+    PlayerDirectionRightAngle,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum SupportType {
+    OnSolid,
+    OnDesertBlocks,
+    OnDirtBlocks,
+    OnFarmland,
+    OnSoulSand,
+    OnWater,
+
+    FacingSolid,
+    FacingJungleWood,
+
+    OnOrFacingSolid,
+
+    CactusLike,
+    ChorusFlowerLike,
+    ChorusPlantLike,
+    MushroomLike,
+    SnowLike,
+    SugarCaneLike,
+    TripwireHookLike,
+    VineLike,
+}
 
 impl BlockId {
+    #[inline]
     pub fn is_solid(self) -> bool {
-        // TODO: there are likely a few missing in this list
-        match self.kind() {
-            BlockKind::Air
-            | BlockKind::OakSapling
-            | BlockKind::SpruceSapling
-            | BlockKind::BirchSapling
-            | BlockKind::JungleSapling
-            | BlockKind::AcaciaSapling
-            | BlockKind::DarkOakSapling
-            | BlockKind::Water
-            | BlockKind::Lava
-            | BlockKind::Grass
-            | BlockKind::Fern
-            | BlockKind::DeadBush
-            | BlockKind::Seagrass
-            | BlockKind::TallSeagrass
-            | BlockKind::Dandelion
-            | BlockKind::Poppy
-            | BlockKind::BlueOrchid
-            | BlockKind::Allium
-            | BlockKind::AzureBluet
-            | BlockKind::RedTulip
-            | BlockKind::OrangeTulip
-            | BlockKind::WhiteTulip
-            | BlockKind::PinkTulip
-            | BlockKind::OxeyeDaisy
-            | BlockKind::BrownMushroom
-            | BlockKind::RedMushroom
-            | BlockKind::Torch
-            | BlockKind::WallTorch
-            | BlockKind::Fire
-            | BlockKind::Wheat
-            | BlockKind::Sign
-            | BlockKind::Ladder
-            | BlockKind::Rail
-            | BlockKind::WallSign
-            | BlockKind::Lever
-            | BlockKind::StonePressurePlate
-            | BlockKind::OakPressurePlate
-            | BlockKind::SprucePressurePlate
-            | BlockKind::BirchPressurePlate
-            | BlockKind::JunglePressurePlate
-            | BlockKind::AcaciaPressurePlate
-            | BlockKind::DarkOakPressurePlate
-            | BlockKind::RedstoneTorch
-            | BlockKind::RedstoneWallTorch
-            | BlockKind::StoneButton
-            | BlockKind::Snow
-            | BlockKind::SugarCane
-            | BlockKind::Repeater
-            | BlockKind::AttachedMelonStem
-            | BlockKind::AttachedPumpkinStem
-            | BlockKind::MelonStem
-            | BlockKind::PumpkinStem
-            | BlockKind::Vine
-            | BlockKind::Carrots
-            | BlockKind::Potatoes
-            | BlockKind::OakButton
-            | BlockKind::SpruceButton
-            | BlockKind::BirchButton
-            | BlockKind::JungleButton
-            | BlockKind::AcaciaButton
-            | BlockKind::DarkOakButton
-            | BlockKind::LightWeightedPressurePlate
-            | BlockKind::HeavyWeightedPressurePlate
-            | BlockKind::Comparator
-            | BlockKind::WhiteCarpet
-            | BlockKind::OrangeCarpet
-            | BlockKind::MagentaCarpet
-            | BlockKind::LightBlueCarpet
-            | BlockKind::YellowCarpet
-            | BlockKind::LimeCarpet
-            | BlockKind::PinkCarpet
-            | BlockKind::GrayCarpet
-            | BlockKind::LightGrayCarpet
-            | BlockKind::CyanCarpet
-            | BlockKind::PurpleCarpet
-            | BlockKind::BlueCarpet
-            | BlockKind::BrownCarpet
-            | BlockKind::GreenCarpet
-            | BlockKind::RedCarpet
-            | BlockKind::BlackCarpet
-            | BlockKind::Sunflower
-            | BlockKind::Lilac
-            | BlockKind::RoseBush
-            | BlockKind::Peony
-            | BlockKind::TallGrass
-            | BlockKind::LargeFern
-            | BlockKind::Kelp
-            | BlockKind::KelpPlant
-            | BlockKind::DriedKelpBlock
-            | BlockKind::VoidAir
-            | BlockKind::CaveAir => false,
-            _ => true,
-        }
+        self.kind().solid()
     }
 
+    #[inline]
     pub fn is_opaque(self) -> bool {
-        self.kind.opaque()
+        self.kind().opaque()
     }
 
+    #[inline]
     pub fn is_air(self) -> bool {
-        match self.kind() {
-            BlockKind::Air | BlockKind::CaveAir | BlockKind::VoidAir => true,
-            _ => false,
-        }
+        self.simplified_kind() == SimplifiedBlockKind::Air
     }
 
+    #[inline]
     pub fn is_fluid(self) -> bool {
-        match self.kind() {
-            BlockKind::Water | BlockKind::Lava => true,
-            _ => false,
-        }
+        matches!(
+            self.simplified_kind(),
+            SimplifiedBlockKind::Water | SimplifiedBlockKind::Lava
+        )
     }
 
-    pub fn is_leaves(self) -> bool {
-        match self.kind() {
-            BlockKind::AcaciaLeaves
-            | BlockKind::BirchLeaves
-            | BlockKind::DarkOakLeaves
-            | BlockKind::JungleLeaves
-            | BlockKind::OakLeaves
-            | BlockKind::SpruceLeaves => true,
-            _ => false,
-        }
+    #[inline]
+    pub fn is_replaceable(self) -> bool {
+        matches!(
+            self.simplified_kind(),
+            SimplifiedBlockKind::Air
+                | SimplifiedBlockKind::Water
+                | SimplifiedBlockKind::Lava
+                | SimplifiedBlockKind::Grass
+                | SimplifiedBlockKind::TallGrass
+                | SimplifiedBlockKind::Snow
+                | SimplifiedBlockKind::Vine
+                | SimplifiedBlockKind::DeadBush
+        )
     }
 
+    #[inline]
     pub fn light_emission(self) -> u8 {
         match self.kind() {
             BlockKind::Beacon
@@ -159,5 +102,112 @@ impl BlockId {
             | BlockKind::EndPortalFrame => 1,
             _ => 0,
         }
+    }
+
+    #[inline]
+    pub fn can_fall(self) -> bool {
+        matches!(
+            self.simplified_kind(),
+            SimplifiedBlockKind::Sand
+                | SimplifiedBlockKind::Gravel
+                | SimplifiedBlockKind::RedSand
+                | SimplifiedBlockKind::Anvil
+        )
+    }
+
+    #[inline]
+    pub fn support_type(self) -> Option<SupportType> {
+        Some(match self.simplified_kind() {
+            SimplifiedBlockKind::Torch
+            | SimplifiedBlockKind::RedstoneTorch
+            | SimplifiedBlockKind::RedstoneWire
+            | SimplifiedBlockKind::Repeater
+            | SimplifiedBlockKind::Rail
+            | SimplifiedBlockKind::ActivatorRail
+            | SimplifiedBlockKind::DetectorRail
+            | SimplifiedBlockKind::PoweredRail
+            | SimplifiedBlockKind::Comparator
+            | SimplifiedBlockKind::Seagrass
+            | SimplifiedBlockKind::TallSeagrass
+            | SimplifiedBlockKind::Kelp
+            | SimplifiedBlockKind::KelpPlant
+            | SimplifiedBlockKind::Sign
+            | SimplifiedBlockKind::Coral
+            | SimplifiedBlockKind::CoralFan
+            | SimplifiedBlockKind::Banner
+            | SimplifiedBlockKind::Carpet
+            | SimplifiedBlockKind::WoodenDoor
+            | SimplifiedBlockKind::IronDoor
+            | SimplifiedBlockKind::StonePressurePlate
+            | SimplifiedBlockKind::WoodenPressurePlate
+            | SimplifiedBlockKind::HeavyWeightedPressurePlate
+            | SimplifiedBlockKind::LightWeightedPressurePlate => SupportType::OnSolid,
+            SimplifiedBlockKind::WallTorch
+            | SimplifiedBlockKind::RedstoneWallTorch
+            | SimplifiedBlockKind::Ladder
+            | SimplifiedBlockKind::WallSign
+            | SimplifiedBlockKind::CoralWallFan
+            | SimplifiedBlockKind::WallBanner => SupportType::FacingSolid,
+            SimplifiedBlockKind::Lever
+            | SimplifiedBlockKind::StoneButton
+            | SimplifiedBlockKind::WoodenButton => SupportType::OnOrFacingSolid,
+            SimplifiedBlockKind::TripwireHook => SupportType::TripwireHookLike,
+            SimplifiedBlockKind::AttachedMelonStem
+            | SimplifiedBlockKind::AttachedPumpkinStem
+            | SimplifiedBlockKind::MelonStem
+            | SimplifiedBlockKind::PumpkinStem
+            | SimplifiedBlockKind::Carrots
+            | SimplifiedBlockKind::Potatoes
+            | SimplifiedBlockKind::Beetroots
+            | SimplifiedBlockKind::Wheat => SupportType::OnFarmland,
+            SimplifiedBlockKind::Snow => SupportType::SnowLike,
+            SimplifiedBlockKind::LilyPad => SupportType::OnWater,
+            SimplifiedBlockKind::Cocoa => SupportType::FacingJungleWood,
+            SimplifiedBlockKind::Grass
+            | SimplifiedBlockKind::Fern
+            | SimplifiedBlockKind::Sunflower
+            | SimplifiedBlockKind::Lilac
+            | SimplifiedBlockKind::RoseBush
+            | SimplifiedBlockKind::Peony
+            | SimplifiedBlockKind::TallGrass
+            | SimplifiedBlockKind::LargeFern
+            | SimplifiedBlockKind::Sapling
+            | SimplifiedBlockKind::Flower => SupportType::OnDirtBlocks,
+            SimplifiedBlockKind::Mushroom => SupportType::MushroomLike,
+            SimplifiedBlockKind::DeadBush => SupportType::OnDesertBlocks,
+            SimplifiedBlockKind::SugarCane => SupportType::SugarCaneLike,
+            SimplifiedBlockKind::Vine => SupportType::VineLike,
+            SimplifiedBlockKind::Cactus => SupportType::CactusLike,
+            SimplifiedBlockKind::NetherWart => SupportType::OnSoulSand,
+            SimplifiedBlockKind::ChorusFlower => SupportType::ChorusFlowerLike,
+            SimplifiedBlockKind::ChorusPlant => SupportType::ChorusPlantLike,
+            _ => return None,
+        })
+    }
+
+    #[inline]
+    pub fn placement_type(self) -> Option<PlacementType> {
+        match self.simplified_kind() {
+            SimplifiedBlockKind::WallTorch
+            | SimplifiedBlockKind::RedstoneWallTorch
+            | SimplifiedBlockKind::Lever
+            | SimplifiedBlockKind::EndRod
+            | SimplifiedBlockKind::StoneButton
+            | SimplifiedBlockKind::WoodenButton
+            | SimplifiedBlockKind::ShulkerBox => Some(PlacementType::TargetedFace),
+            SimplifiedBlockKind::Observer
+            | SimplifiedBlockKind::Bed
+            | SimplifiedBlockKind::Fence
+            | SimplifiedBlockKind::FenceGate
+            | SimplifiedBlockKind::IronDoor
+            | SimplifiedBlockKind::WoodenDoor => Some(PlacementType::PlayerDirection),
+            SimplifiedBlockKind::Anvil => Some(PlacementType::PlayerDirectionRightAngle),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn is_full_block(self) -> bool {
+        self.kind().full_block()
     }
 }

@@ -7,7 +7,8 @@ use std::sync::atomic::{AtomicU32, Ordering};
 
 use crate::chunk_worker;
 use ahash::AHashSet;
-use feather_core::anvil::entity::EntityData;
+use chunk_worker::ChunkSave;
+use feather_core::anvil::{block_entity::BlockEntityData, entity::EntityData};
 use feather_core::chunk::Chunk;
 use feather_core::util::ChunkPosition;
 use feather_server_types::{
@@ -19,6 +20,7 @@ use feather_server_util::current_time_in_millis;
 use fecs::{Entity, World};
 use parking_lot::RwLock;
 use rayon::prelude::*;
+use smallvec::SmallVec;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
@@ -34,35 +36,41 @@ pub struct ChunkWorkerHandle {
     pub receiver: Receiver<chunk_worker::Reply>,
 }
 
-/// System for receiving loaded chunks from the chunk worker thread.
+/// System for handling replies from the chunk worker thread.
 #[fecs::system]
-pub fn chunk_load(
+pub fn handle_chunk_worker_replies(
     game: &mut Game,
     world: &mut World,
     chunk_worker_handle: &ChunkWorkerHandle,
     #[default] loading_chunks: &mut LoadingChunks,
 ) {
     while let Ok(reply) = chunk_worker_handle.receiver.try_recv() {
-        if let chunk_worker::Reply::LoadedChunk(pos, result) = reply {
-            loading_chunks.0.remove(&pos);
-            match result {
-                Ok((chunk, entities)) => {
-                    game.chunk_map.insert(chunk);
+        match reply {
+            chunk_worker::Reply::LoadedChunk(pos, result) => {
+                loading_chunks.0.remove(&pos);
+                match result {
+                    Ok(loaded) => {
+                        game.chunk_map.insert(loaded.chunk);
 
-                    entities.into_iter().for_each(|builder| {
-                        let entity = builder.build().spawn_in(world);
-                        game.handle(world, EntitySpawnEvent { entity });
-                    });
+                        loaded.entities.into_iter().for_each(|builder| {
+                            let entity = builder.build().spawn_in(world);
+                            game.handle(world, EntitySpawnEvent { entity });
+                        });
 
-                    game.handle(world, ChunkLoadEvent { chunk: pos });
+                        game.handle(world, ChunkLoadEvent { chunk: pos });
 
-                    log::trace!("Loaded chunk at {:?}", pos);
-                }
-                Err(error) => {
-                    log::warn!("Failed to load chunk at {:?}: {}", pos, error);
-                    game.handle(world, ChunkLoadFailEvent { pos, error });
+                        log::trace!("Loaded chunk at {:?}", pos);
+                    }
+                    Err(error) => {
+                        log::warn!("Failed to load chunk at {:?}: {}", pos, error);
+                        game.handle(world, ChunkLoadFailEvent { pos, error });
+                    }
                 }
             }
+            chunk_worker::Reply::SavedChunk(pos, result) => match result {
+                Ok(()) => log::trace!("Saved chunk at {:?}", pos),
+                Err(error) => log::warn!("Failed to save chunk at {:?}: {}", pos, error),
+            },
         }
     }
 }
@@ -234,11 +242,16 @@ pub fn chunk_optimize(game: &mut Game) {
     let end_time = current_time_in_millis();
     let elapsed = end_time - start_time;
 
+    let num_sections = count.load(Ordering::Relaxed);
     log::debug!(
-        "Optimized {} chunk sections (took {}ms - {:.2}ms/section)",
-        count.load(Ordering::Relaxed),
+        "Optimized {} chunk sections (took {}ms{})",
+        num_sections,
         elapsed,
-        elapsed as f64 / f64::from(count.load(Ordering::Relaxed))
+        if num_sections == 0 {
+            String::new()
+        } else {
+            format!(" - {:.2}ms/section", elapsed as f64 / num_sections as f64)
+        }
     );
 }
 
@@ -292,11 +305,17 @@ pub fn load_chunk(handle: &ChunkWorkerHandle, pos: ChunkPosition) {
 pub fn save_chunk(
     handle: &ChunkWorkerHandle,
     chunk: Arc<RwLock<Chunk>>,
-    entities: Vec<EntityData>,
+    entities: SmallVec<[EntityData; 4]>,
+    block_entities: SmallVec<[BlockEntityData; 4]>,
 ) {
+    let save = ChunkSave {
+        chunk,
+        entities,
+        block_entities,
+    };
     handle
         .sender
-        .send(chunk_worker::Request::SaveChunk(chunk, entities))
+        .send(chunk_worker::Request::SaveChunk(save))
         .unwrap();
 }
 

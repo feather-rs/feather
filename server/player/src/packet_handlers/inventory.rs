@@ -82,7 +82,7 @@ pub fn handle_creative_inventory_action(
             let index = window.convert_network(packet.slot as usize).unwrap(); // already checked above
             let event = InventoryUpdateEvent {
                 slots: smallvec![index.into()],
-                player,
+                entity: player,
             };
             drop(inventory);
             drop(accessor);
@@ -115,7 +115,7 @@ pub fn handle_held_item_change(
                     area: Area::Hotbar,
                     slot: held_item.0
                 }],
-                player,
+                entity: player,
             };
             drop(held_item);
             game.handle(world, event);
@@ -139,8 +139,7 @@ enum Mode {
     ShiftClick,
     /// Number key on interval `[1, 9]`
     NumberKey(u8),
-    // TODO: middle click for "non-player inventories"
-    // (probably blocked on impl of block entities?)
+    MiddleClick,
     ItemDrop {
         /// Whether the full stack should be dropped
         /// (this is the case for CTRL+Q)
@@ -182,6 +181,15 @@ impl<'a> TryFrom<&'a ClickWindow> for Mode {
             0 => {
                 let button = parse_button(value.button)?;
 
+                // Slot -999 means that the user clicked outside the window,
+                // dropping the item.
+                if value.slot == -999 {
+                    match button {
+                        MouseButton::Left => return Ok(Mode::ItemDrop { full_stack: true }),
+                        MouseButton::Right => return Ok(Mode::ItemDrop { full_stack: false }),
+                    }
+                }
+
                 Ok(Mode::SingleClick(button))
             }
             1 => {
@@ -197,7 +205,12 @@ impl<'a> TryFrom<&'a ClickWindow> for Mode {
 
                 Ok(Mode::NumberKey(value.button + 1))
             }
-            3 => Err(ModeParseError::Unhandled),
+            3 => {
+                if value.button != 2 {
+                    return Err(ModeParseError::InvalidNumberKeyId(value.button));
+                }
+                Ok(Mode::MiddleClick)
+            }
             4 => {
                 if value.slot == -999 {
                     return Err(ModeParseError::Unhandled);
@@ -307,6 +320,7 @@ fn handle_click_window(
         Mode::DoubleClick => handle_double_click(game, world, player, packet),
         Mode::ShiftClick => handle_shift_click(game, world, player, packet),
         Mode::NumberKey(key) => handle_number_key(game, world, player, packet, key),
+        Mode::MiddleClick => handle_middle_click(game, world, player, packet),
         Mode::ItemDrop { full_stack } => handle_item_drop(game, world, player, packet, full_stack),
         Mode::Paint(action) => handle_paint(game, world, player, packet, action),
     }
@@ -338,7 +352,7 @@ fn handle_single_click(
         let current_item = accessor.item_at(packet.slot as usize)?;
 
         if let Some(current_item) = current_item.and_then(|item| {
-            if item.ty == picked.0.ty {
+            if item.eq_ignore_amount(picked.0) {
                 None
             } else {
                 Some(item)
@@ -359,7 +373,7 @@ fn handle_single_click(
             let current_count = current_item.map(|stack| stack.amount).unwrap_or(0);
             let new_count = (count + current_count).min(picked.0.ty.stack_size() as u8);
 
-            accessor.set_item_at(packet.slot as usize, ItemStack::new(picked.0.ty, new_count))?;
+            accessor.set_item_at(packet.slot as usize, picked.0.of_amount(new_count))?;
 
             drop(accessor);
             drop(window);
@@ -381,15 +395,12 @@ fn handle_single_click(
             count = (count + 1) / 2;
         }
         if let Some(item) = picked_up {
-            accessor.set_item_at(
-                packet.slot as usize,
-                ItemStack::new(item.ty, item.amount - count),
-            )?;
+            accessor.set_item_at(packet.slot as usize, item.of_amount(item.amount - count))?;
 
             drop(accessor);
             drop(window);
             world
-                .add(player, PickedItem(ItemStack::new(item.ty, count)))
+                .add(player, PickedItem(item.of_amount(count)))
                 .unwrap();
         }
     }
@@ -399,8 +410,15 @@ fn handle_single_click(
         .convert_network(packet.slot as usize)
         .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?
         .into()];
+    let affected_entity = window.corresponding_entity(packet.slot as usize).unwrap();
     drop(window);
-    game.handle(world, InventoryUpdateEvent { player, slots });
+    game.handle(
+        world,
+        InventoryUpdateEvent {
+            entity: affected_entity,
+            slots,
+        },
+    );
 
     Ok(())
 }
@@ -420,17 +438,14 @@ fn handle_double_click(
 
     let new_picked_count = {
         let mut current_count;
-        let item_type;
 
-        // Get information about the currently picked item
-        if let Some(picked) = world.try_get_mut::<PickedItem>(player) {
-            stack_size = picked.0.ty.stack_size() as u8;
-            current_count = picked.0.amount;
-            item_type = picked.0.ty;
-        } else {
-            // Immediately return if there is no item picked
-            return Ok(());
+        // Get information about the currently picked item (if nothing is picked, return)
+        let picked = match world.try_get_mut::<PickedItem>(player) {
+            Some(picked) => picked.0,
+            None => return Ok(()),
         };
+        stack_size = picked.ty.stack_size() as u8;
+        current_count = picked.amount;
 
         // Get the current inventory
         let inventory = world.get::<Inventory>(player);
@@ -439,7 +454,7 @@ fn handle_double_click(
         for (index, slot) in inventory.enumerate() {
             if let Some(slot) = slot {
                 // Remove items from the inventory until the player's PickedItem has reached its max stack size
-                if slot.ty == item_type && slot.amount != stack_size {
+                if picked.eq_ignore_amount(slot) && slot.amount != stack_size {
                     if let Some(mut item_stack) =
                         inventory.remove_item_at(index.area, index.slot)?
                     {
@@ -478,7 +493,7 @@ fn handle_double_click(
     game.handle(
         world,
         InventoryUpdateEvent {
-            player,
+            entity: player,
             slots: modified_slots,
         },
     );
@@ -541,18 +556,55 @@ fn handle_number_key(
     drop(inventory);
     drop(accessor);
 
-    // Create a list of slots that were updated with this operation so they can be sent to handlers
-    let slots = smallvec![
-        window
-            .convert_network(slot as usize)
+    // Trigger inventory update events for the two updated slots.
+    // Note that the two slots may belong to different entities, e.g.
+    // if the player moves an item from a chest to their hotbar.
+    let event1 = InventoryUpdateEvent {
+        entity: player,
+        slots: smallvec![hotbar_slot],
+    };
+    let event2 = InventoryUpdateEvent {
+        entity: window.corresponding_entity(slot as usize).unwrap(),
+        slots: smallvec![window
+            .convert_network(slot)
             .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?
-            .into(),
-        hotbar_slot
-    ];
+            .into()],
+    };
 
     drop(window);
 
-    game.handle(world, InventoryUpdateEvent { player, slots });
+    game.handle(world, event1);
+    game.handle(world, event2);
+
+    Ok(())
+}
+
+fn handle_middle_click(
+    _game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    packet: ClickWindow,
+) -> anyhow::Result<()> {
+    let gamemode = *world.get::<Gamemode>(player);
+    if Gamemode::Creative == gamemode {
+        if world.try_get::<PickedItem>(player).is_some() {
+            // Player already has something in its hand.
+            return Ok(());
+        }
+        let window = world.get::<Window>(player);
+        let accessor = window.accessor(world)?;
+
+        // Pick the item in the slot
+        let picked = accessor.item_at(packet.slot as usize)?;
+        if let Some(item) = picked {
+            let count = item.ty.stack_size();
+            drop(accessor);
+            drop(window);
+            world
+                .add(player, PickedItem(item.of_amount(count as u8)))
+                .unwrap();
+        }
+    }
 
     Ok(())
 }

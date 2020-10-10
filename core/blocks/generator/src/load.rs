@@ -36,6 +36,9 @@ static NAME_OVERRIDES: Lazy<HashMap<&'static str, &'static str>> = Lazy::new(|| 
        "shape_neaaaassnn" => "rail_shape",
        "level_0_3" => "cauldron_level",
        "level_0_15" => "water_level",
+       "type_slr" => "chest_kind",
+       "type_tbd" => "slab_kind",
+       "type_ns" => "piston_kind",
     }
 });
 
@@ -86,7 +89,7 @@ impl PropertyStore {
                 let possible_values = possible_value_sets.into_iter().next().unwrap();
                 map.insert(
                     name.to_owned(),
-                    Self::prop_from_possible_values_and_name(&name, possible_values),
+                    Self::prop_from_possible_values_and_name(&name, &name, possible_values),
                 );
             } else {
                 // There are multiple variants of this property, each with their own set of values.
@@ -94,7 +97,7 @@ impl PropertyStore {
                 for possible_values in possible_value_sets {
                     // Name is the name of the property followed by the first letter of each possible value.
                     // If it's an integer, it is the range of possible values.
-                    let name = if possible_values[0].parse::<i32>().is_ok() {
+                    let new_name = if possible_values[0].parse::<i32>().is_ok() {
                         let as_integer = possible_values
                             .iter()
                             .map(String::as_str)
@@ -114,11 +117,11 @@ impl PropertyStore {
                         name
                     };
 
-                    let name = Self::update_name(&name);
+                    let new_name = Self::update_name(&new_name);
 
                     map.insert(
-                        name.to_owned(),
-                        Self::prop_from_possible_values_and_name(&name, possible_values),
+                        new_name.to_owned(),
+                        Self::prop_from_possible_values_and_name(&new_name, &name, possible_values),
                     );
                 }
             }
@@ -134,9 +137,14 @@ impl PropertyStore {
         }
     }
 
-    fn prop_from_possible_values_and_name(name: &str, possible_values: Vec<String>) -> Property {
+    fn prop_from_possible_values_and_name(
+        name: &str,
+        real_name: &str,
+        possible_values: Vec<String>,
+    ) -> Property {
         Property {
             name: ident(name),
+            real_name: real_name.to_owned(),
             name_camel_case: ident(name.to_camel_case()),
             kind: guess_property_kind(&possible_values, &name.to_camel_case()),
             possible_values,
@@ -168,8 +176,6 @@ fn fix_property_names(report: &mut BlocksReport) -> PropertyStore {
 
     for block in report.blocks.values() {
         for (property_name, possible_values) in &block.properties {
-            let property_name = fix_keywords(property_name);
-
             store.register(property_name.to_owned(), possible_values.clone());
         }
     }
@@ -181,7 +187,6 @@ fn fix_property_names(report: &mut BlocksReport) -> PropertyStore {
         let block: &mut BlockDefinition = block;
         let mut overrides = vec![];
         for (property_name, possible_values) in &mut block.properties {
-            let name_fixed = fix_keywords(property_name);
             if result.get(property_name).is_none() {
                 let name = if possible_values[0].parse::<i32>().is_ok() {
                     let as_integer = possible_values
@@ -194,9 +199,9 @@ fn fix_property_names(report: &mut BlocksReport) -> PropertyStore {
                     let min = *as_integer.iter().min().unwrap();
                     let max = *as_integer.iter().max().unwrap();
 
-                    format!("{}_{}_{}", name_fixed, min, max)
+                    format!("{}_{}_{}", property_name, min, max)
                 } else {
-                    let mut name = format!("{}_", name_fixed);
+                    let mut name = format!("{}_", property_name);
                     for value in possible_values {
                         name.push(value.chars().next().unwrap().to_ascii_lowercase());
                     }
@@ -328,14 +333,6 @@ fn guess_property_kind(possible_values: &[String], property_struct_name: &str) -
             .map(ident)
             .collect();
         PropertyKind::Enum { name, variants }
-    }
-}
-
-/// Renames Rust keywords to alternative identifiers.
-fn fix_keywords(x: &str) -> &str {
-    match x {
-        "type" => "kind",
-        x => x,
     }
 }
 

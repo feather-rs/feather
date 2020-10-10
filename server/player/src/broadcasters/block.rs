@@ -26,14 +26,14 @@ pub fn on_block_break_broadcast_effect(
     game: &mut Game,
     world: &mut World,
 ) {
-    if let BlockUpdateCause::Entity(_) = event.cause {
+    if let BlockUpdateCause::Entity(source) = event.cause {
         let packet = Effect {
             effect_id: 2001, // TODO remove hardcoded magic number
             location: event.pos,
             data: event.old.vanilla_id() as i32,
             disable_relative_volume: false,
         };
-        game.broadcast_chunk_update(world, packet, event.pos.chunk(), None);
+        game.broadcast_chunk_update(world, packet, event.pos.chunk(), Some(source));
     }
 }
 

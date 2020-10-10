@@ -4,7 +4,7 @@
 
 use feather_server_chunk::ChunkWorkerHandle;
 use feather_server_lighting::LightingWorkerHandle;
-use feather_server_types::{Game, TPS};
+use feather_server_types::{Game, ShutdownChannels, TPS};
 use fecs::{Executor, OwnedResources, ResourcesProvider, World};
 use spin_sleep::LoopHelper;
 use std::ops::Deref;
@@ -38,9 +38,11 @@ pub async fn main(runtime: runtime::Handle) {
         }
     };
 
-    // Channels used by the shutdown handler thread
-    // to notify server thread of shutdown
-    let (shutdown_tx, shutdown_rx) = crossbeam::bounded(1);
+    // Shutdown channels from wrapper resource are used to notify server thread of shutdown
+    let (shutdown_tx, shutdown_rx) = {
+        let channels = resources.get::<ShutdownChannels>();
+        (channels.tx.clone(), channels.rx.clone())
+    };
     shutdown::init(shutdown_tx);
 
     let state = FullState {

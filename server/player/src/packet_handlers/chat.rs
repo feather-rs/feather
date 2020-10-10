@@ -18,12 +18,12 @@ pub fn handle_chat(
         .received::<ChatMessageServerbound>()
         .for_each_valid(world, |world, (player, packet)| {
             if packet.message.starts_with('/') {
-                commands.dispatch(game, world, player, &packet.message[1..]);
                 log::info!(
                     "Player `{}` executed command `{}`",
                     world.get::<Name>(player).0,
                     packet.message
                 );
+                commands.dispatch(game, world, player, &packet.message[1..]);
             } else {
                 let player_name = world.get::<Name>(player);
                 let message: String = TextRoot::from(

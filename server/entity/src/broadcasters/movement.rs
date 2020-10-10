@@ -22,7 +22,11 @@ pub fn broadcast_movement(game: &mut Game, world: &mut World) {
         world.inner(),
         |(entity, (pos, prev_pos, id))| {
             let pos: Position = *pos;
-            let prev_pos: Position = prev_pos.0;
+
+            let prev_pos = match prev_pos.0 {
+                Some(prev_pos) => prev_pos,
+                None => return,
+            };
 
             if pos == prev_pos {
                 return;
@@ -97,7 +101,12 @@ pub fn broadcast_velocity(world: &mut World, game: &mut Game) {
         |(entity, (vel, prev_vel, entity_id))| {
             let entity_id = entity_id.0;
 
-            if vel.0 == prev_vel.0 {
+            let prev_vel = match prev_vel.0 {
+                Some(prev_vel) => prev_vel,
+                None => return,
+            };
+
+            if vel.0 == prev_vel {
                 return;
             }
 

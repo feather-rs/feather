@@ -4,22 +4,27 @@ use crate::packet::{AsAny, PacketBuilder};
 use crate::{Packet, PacketType};
 use ahash::AHashMap;
 use bytes::{Buf, BufMut, BytesMut};
+use feather_blocks::{FacingCardinal, FacingCardinalAndDown, FacingCubic};
 use feather_chunk::Chunk;
 use feather_codegen::{AsAny, Packet};
 use feather_entity_metadata::EntityMetadata;
 use feather_items::ItemStack;
 use feather_misc::ParticleData;
 use feather_util::{BlockPosition, ClientboundAnimation, Gamemode, Hand};
+use nbt::Blob;
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
 use std::any::Any;
+use std::convert::TryInto;
 use std::io::Cursor;
 use std::io::Read;
 use std::sync::Arc;
 use thiserror::Error;
 use uuid::Uuid;
+
+type BlockFace = feather_blocks::Face;
 
 type VarInt = i32;
 type Slot = Option<ItemStack>;
@@ -105,6 +110,10 @@ pub static IMPL_MAP: Lazy<AHashMap<PacketType, PacketBuilder>> = Lazy::new(|| {
     m.insert(
         PacketType::ClickWindow,
         PacketBuilder::with(|| Box::new(ClickWindow::default())),
+    );
+    m.insert(
+        PacketType::OpenWindow,
+        PacketBuilder::with(|| Box::new(OpenWindow::default())),
     );
     m.insert(
         PacketType::CloseWindowServerbound,
@@ -306,10 +315,13 @@ pub static IMPL_MAP: Lazy<AHashMap<PacketType, PacketBuilder>> = Lazy::new(|| {
         EntityHeadLook,
         EntityVelocity,
         EntityEquipment,
+        HeldItemChangeClientbound,
+        UpdateHealth,
         SpawnPosition,
         TimeUpdate,
         CollectItem,
         EntityTeleport,
+        Tags,
         Response,
         Pong,
     );
@@ -1001,7 +1013,7 @@ pub struct Spectate {
     pub target_player: Uuid,
 }
 
-#[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Clone, Copy, FromPrimitive, ToPrimitive, PartialEq)]
 pub enum Face {
     Bottom,
     Top,
@@ -1020,6 +1032,52 @@ impl Face {
             Face::South => BlockPosition::new(0, 0, 1),
             Face::West => BlockPosition::new(-1, 0, 0),
             Face::East => BlockPosition::new(1, 0, 0),
+        }
+    }
+}
+
+impl Face {
+    pub fn face(self) -> BlockFace {
+        match self {
+            Face::Bottom => BlockFace::Ceiling,
+            Face::Top => BlockFace::Floor,
+            Face::North => BlockFace::Wall,
+            Face::South => BlockFace::Wall,
+            Face::West => BlockFace::Wall,
+            Face::East => BlockFace::Wall,
+        }
+    }
+
+    pub fn facing_cardinal(self) -> FacingCardinal {
+        match self {
+            Face::North => FacingCardinal::North,
+            Face::South => FacingCardinal::South,
+            Face::West => FacingCardinal::West,
+            Face::East => FacingCardinal::East,
+            Face::Top => panic!("Face::Top cannot be converted to FacingCardinal"),
+            Face::Bottom => panic!("Face::Bottom cannot be converted to FacingCardinal"),
+        }
+    }
+
+    pub fn facing_cardinal_and_down(self) -> FacingCardinalAndDown {
+        match self {
+            Face::North => FacingCardinalAndDown::North,
+            Face::South => FacingCardinalAndDown::South,
+            Face::West => FacingCardinalAndDown::West,
+            Face::East => FacingCardinalAndDown::East,
+            Face::Bottom => FacingCardinalAndDown::Down,
+            Face::Top => panic!("Face::Top cannot be converted to FacingCardinalAndDown"),
+        }
+    }
+
+    pub fn facing_cubic(self) -> FacingCubic {
+        match self {
+            Face::North => FacingCubic::North,
+            Face::South => FacingCubic::South,
+            Face::West => FacingCubic::West,
+            Face::East => FacingCubic::East,
+            Face::Top => FacingCubic::Up,
+            Face::Bottom => FacingCubic::Down,
         }
     }
 }
@@ -1324,11 +1382,21 @@ pub struct BlockBreakAnimation {
     pub destroy_stage: i8,
 }
 
-#[derive(Default, AsAny, Packet, Clone)]
+#[derive(AsAny, Packet, Clone)]
 pub struct UpdateBlockEntity {
     pub location: BlockPosition,
     pub action: u8,
-    // TODO pub data: NbtTag
+    pub data: Blob,
+}
+
+impl Default for UpdateBlockEntity {
+    fn default() -> Self {
+        Self {
+            location: BlockPosition::default(),
+            action: 0,
+            data: Blob::new(),
+        }
+    }
 }
 
 #[derive(Default, AsAny, Packet, Clone)]
@@ -1484,13 +1552,56 @@ pub struct ConfirmTransactionClientbound {
     pub accepted: bool,
 }
 
-#[derive(Default, AsAny, Packet, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct OpenWindow {
     pub window_id: u8,
     pub window_type: String,
     pub window_title: String, // Chat
     pub number_of_slots: u8,
-    pub entity_id: i32,
+    pub entity_id: Option<i32>,
+}
+
+impl Packet for OpenWindow {
+    fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
+        self.window_id = buf.try_get_u8()?;
+        self.window_type = buf.try_get_string()?;
+        self.window_title = buf.try_get_string()?;
+        self.number_of_slots = buf.try_get_u8()?;
+
+        self.entity_id = if self.window_type == "EntityHorse" {
+            Some(buf.try_get_i32()?)
+        } else {
+            None
+        };
+
+        Ok(())
+    }
+
+    fn write_to(&self, buf: &mut BytesMut) {
+        buf.push_u8(self.window_id);
+        buf.push_string(&self.window_type);
+        buf.push_string(&self.window_title);
+        buf.push_u8(self.number_of_slots);
+
+        if self.window_type == "EntityHorse" {
+            buf.push_i32(self.entity_id.unwrap());
+        }
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::OpenWindow
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::OpenWindow
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
+    }
 }
 
 #[derive(Default, AsAny, Clone)]
@@ -1601,6 +1712,20 @@ pub struct NamedSoundEffect {
     pub effect_pos_z: i32,
     pub volume: f32,
     pub pitch: f32,
+}
+
+#[derive(Clone, Copy)]
+pub enum SoundCategory {
+    Master = 0,
+    Music = 1,
+    Records = 2,
+    Weather = 3,
+    Blocks = 4,
+    Hostile = 5,
+    Neutral = 6,
+    Players = 7,
+    Ambient = 8,
+    Voice = 9,
 }
 
 #[derive(Default, AsAny, Packet, Clone)]
@@ -2260,6 +2385,18 @@ pub struct EntityEquipment {
     pub item: Slot,
 }
 
+#[derive(Default, AsAny, Packet, Clone)]
+pub struct HeldItemChangeClientbound {
+    pub slot: i8,
+}
+
+#[derive(Default, AsAny, Packet, Clone)]
+pub struct UpdateHealth {
+    pub health: f32,
+    pub food: VarInt,
+    pub saturation: f32,
+}
+
 // TODO Select Advancement Tab
 // TODO World Border
 
@@ -2290,4 +2427,45 @@ pub struct EntityTeleport {
     pub yaw: u8,
     pub pitch: u8,
     pub on_ground: bool,
+}
+
+#[derive(Default, AsAny, Clone)]
+pub struct Tags {
+    pub block_tags: Vec<(String, Vec<VarInt>)>,
+    pub item_tags: Vec<(String, Vec<VarInt>)>,
+    pub fluid_tags: Vec<(String, Vec<VarInt>)>,
+}
+
+impl Packet for Tags {
+    fn read_from(&mut self, _buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
+        unimplemented!()
+    }
+
+    fn write_to(&self, buf: &mut BytesMut) {
+        for field in [&self.block_tags, &self.item_tags, &self.fluid_tags].iter_mut() {
+            buf.push_var_int(field.len() as i32);
+            for (identifier, entries) in field.iter() {
+                buf.push_string(identifier.as_str());
+                buf.push_var_int(entries.len().try_into().unwrap());
+                for entry in entries {
+                    buf.push_var_int(*entry);
+                }
+            }
+        }
+    }
+
+    fn ty(&self) -> PacketType {
+        PacketType::Tags
+    }
+
+    fn ty_sized() -> PacketType
+    where
+        Self: Sized,
+    {
+        PacketType::Tags
+    }
+
+    fn box_clone(&self) -> Box<dyn Packet> {
+        box_clone_impl!(self);
+    }
 }

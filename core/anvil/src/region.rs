@@ -1,7 +1,8 @@
 //! This module implements the loading and saving
 //! of Anvil region files.
 
-use crate::entity::EntityData;
+use super::serialization_helper::packed_u9;
+use crate::{block_entity::BlockEntityData, entity::EntityData};
 use bitvec::{bitvec, vec::BitVec};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use feather_biomes::Biome;
@@ -19,8 +20,6 @@ use std::ops::Deref;
 use std::path::PathBuf;
 use std::{fs, io, iter};
 
-mod blob;
-
 /// The length and width of a region, in chunks.
 const REGION_SIZE: usize = 32;
 
@@ -31,68 +30,128 @@ const DATA_VERSION: i32 = 1631;
 /// Length, in bytes, of a sector.
 const SECTOR_BYTES: usize = 4096;
 
-/// The offset for each heightmap value
-const HEIGHTMAP_OFFSET: i64 = 9;
-
 /// Represents the data for a chunk after the "Chunk [x, y]" tag.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct ChunkRoot {
-    #[serde(rename = "Level")]
     level: ChunkLevel,
-    #[serde(rename = "DataVersion")]
     data_version: i32,
 }
 
 /// Represents the level data for a chunk.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct ChunkLevel {
     // TODO heightmaps, etc.
     #[serde(rename = "xPos")]
     x_pos: i32,
     #[serde(rename = "zPos")]
     z_pos: i32,
-    #[serde(rename = "Sections")]
+    last_update: i64,
+    inhabited_time: i64,
     sections: Vec<LevelSection>,
-    #[serde(rename = "Biomes")]
+    #[serde(serialize_with = "nbt::i32_array")]
     biomes: Vec<i32>,
-    #[serde(rename = "Entities")]
     entities: Vec<EntityData>,
-    #[serde(rename = "Heightmaps")]
-    heightmaps: Vec<i64>,
+    #[serde(rename = "TileEntities")]
+    block_entities: Vec<BlockEntityData>,
+    heightmaps: Heightmaps,
+    #[serde(rename = "ToBeTicked")]
+    awaiting_block_updates: Vec<Vec<i16>>,
+    #[serde(rename = "LiquidsToBeTicked")]
+    awaiting_liquid_updates: Vec<Vec<i16>>,
+    post_processing: Vec<Vec<i16>>,
+    #[serde(rename = "TileTicks")]
+    scheduled_block_updates: Vec<ScheduledBlockUpdate>,
+    #[serde(rename = "LiquidTicks")]
+    scheduled_liquid_updates: Vec<ScheduledBlockUpdate>,
+    #[serde(rename = "Status")]
+    worldgen_status: Cow<'static, str>,
+}
+
+/// Represents the heightmap data of a chunk.
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub struct Heightmaps {
+    // sometimes a few of those are missing, but we regenerate them anyways
+    /// Deserialization: length of 0 means field was missing,
+    /// length is guaranteed to be a multiple of 64,
+    /// length should be 256 to represent valid data
+    #[serde(with = "packed_u9", default)]
+    light_blocking: Vec<u16>,
+    /// Deserialization: length of 0 means field was missing,
+    /// length is guaranteed to be a multiple of 64,
+    /// length should be 256 to represent valid data
+    #[serde(with = "packed_u9", default)]
+    motion_blocking: Vec<u16>,
+    /// Deserialization: length of 0 means field was missing,
+    /// length is guaranteed to be a multiple of 64,
+    /// length should be 256 to represent valid data
+    #[serde(with = "packed_u9", default)]
+    motion_blocking_no_leaves: Vec<u16>,
+    /// Deserialization: length of 0 means field was missing,
+    /// length is guaranteed to be a multiple of 64,
+    /// length should be 256 to represent valid data
+    #[serde(with = "packed_u9", default)]
+    ocean_floor: Vec<u16>,
+    /// Deserialization: length of 0 means field was missing,
+    /// length is guaranteed to be a multiple of 64,
+    /// length should be 256 to represent valid data
+    #[serde(with = "packed_u9", default)]
+    world_surface: Vec<u16>,
 }
 
 /// Represents a chunk section in a region file.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct LevelSection {
-    #[serde(rename = "Y")]
     y: i8,
-    #[serde(rename = "BlockStates")]
+    #[serde(serialize_with = "nbt::i64_array", rename = "BlockStates")]
     states: Vec<i64>,
-    #[serde(rename = "Palette")]
     palette: Vec<LevelPaletteEntry>,
-    #[serde(rename = "BlockLight")]
+    #[serde(serialize_with = "nbt::i8_array")]
     block_light: Vec<i8>,
-    #[serde(rename = "SkyLight")]
+    #[serde(serialize_with = "nbt::i8_array")]
     sky_light: Vec<i8>,
 }
 
 /// Represents a palette entry in a region file.
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "PascalCase")]
 pub struct LevelPaletteEntry {
     /// The identifier of the type of this block
-    #[serde(rename = "Name")]
     name: Cow<'static, str>,
     /// Optional properties for this block
-    #[serde(rename = "Properties")]
-    props: Option<LevelProperties>,
+    properties: Option<LevelProperties>,
 }
 
-/// Represents the proprties for a palette entry.
+/// Represents the properties for a palette entry.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LevelProperties {
     /// Map containing a list of property names to values.
     #[serde(flatten)]
     props: BTreeMap<Cow<'static, str>, Cow<'static, str>>,
+}
+
+/// Represents a block update scheduled for a specific time.
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ScheduledBlockUpdate {
+    /// The identifier of the type of this block
+    #[serde(rename = "i")]
+    name: Cow<'static, str>,
+    /// When this update should be executed in ticks from current time, can be negative if overdue
+    #[serde(rename = "t")]
+    ticks_from_now: i32,
+    /// Lower priority is handled first when happening on the same tick
+    #[serde(rename = "t")]
+    priority: i32,
+    // TODO are these global or chunk coordinates?
+    /// X coordinate
+    pub x: i32,
+    /// Y coordinate
+    pub y: i32,
+    /// Z coordinate
+    pub z: i32,
 }
 
 /// A block of sectors in a region file.
@@ -125,7 +184,7 @@ impl RegionHandle {
     pub fn load_chunk(
         &mut self,
         mut pos: ChunkPosition,
-    ) -> Result<(Chunk, Vec<EntityData>), Error> {
+    ) -> Result<(Chunk, Vec<EntityData>, Vec<BlockEntityData>), Error> {
         // Get a copy of the original position before clipping
         let original_pos = pos;
         // Clip chunk position to region-local coordinates.
@@ -208,7 +267,7 @@ impl RegionHandle {
 
         chunk.recalculate_heightmap();
 
-        Ok((chunk, level.entities.to_vec()))
+        Ok((chunk, level.entities.clone(), level.block_entities.clone()))
     }
 
     /// Saves the given chunk to this region file. The header will be updated
@@ -216,7 +275,12 @@ impl RegionHandle {
     ///
     /// Behavior may be unexpected if this region file does not contain the given
     /// chunk position.
-    pub fn save_chunk(&mut self, chunk: &Chunk, entities: Vec<EntityData>) -> Result<(), Error> {
+    pub fn save_chunk(
+        &mut self,
+        chunk: &Chunk,
+        entities: &[EntityData],
+        block_entities: &[BlockEntityData],
+    ) -> Result<(), Error> {
         let chunk_pos = chunk.position();
 
         let (local_x, local_z) = (chunk_pos.x % 32, chunk_pos.z % 32);
@@ -230,16 +294,13 @@ impl RegionHandle {
         }
 
         // Write chunk to `ChunkRoot` tag.
-        let root = chunk_to_chunk_root(chunk, entities);
-
-        let blob = blob::chunk_root_to_blob(root);
+        let root = chunk_to_chunk_root(chunk, entities, block_entities);
 
         // Write to intermediate buffer, because we need to know the length.
         let mut buf = Vec::with_capacity(4096);
         buf.write_u8(2).map_err(Error::Io)?; // Compression type: zlib
 
-        blob.to_zlib_writer(&mut buf)
-            .expect("Could not write chunk blob");
+        nbt::to_zlib_writer(&mut buf, &root, None).map_err(Error::Nbt)?;
 
         let total_len = buf.len() + 4; // 4 bytes for length header
 
@@ -287,7 +348,7 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     for entry in &section.palette {
         // Construct properties map
         let mut props = BTreeMap::new();
-        if let Some(entry_props) = entry.props.as_ref() {
+        if let Some(entry_props) = entry.properties.as_ref() {
             props.extend(
                 entry_props
                     .props
@@ -352,23 +413,18 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     Ok(())
 }
 
-fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
-    let heightmaps: Vec<i64> = chunk
-        .heightmaps()
-        .iter()
-        .map(|map| {
-            (map.motion_blocking() as i64)
-                + ((map.motion_blocking_no_leaves() as i64) << HEIGHTMAP_OFFSET)
-                + ((map.ocean_floor() as i64) << (HEIGHTMAP_OFFSET * 2))
-                + ((map.ocean_floor_wg() as i64) << (HEIGHTMAP_OFFSET * 3))
-                + ((map.world_surface() as i64) << (HEIGHTMAP_OFFSET * 4))
-                + ((map.world_surface_wg() as i64) << (HEIGHTMAP_OFFSET * 5))
-        })
-        .collect();
+fn chunk_to_chunk_root(
+    chunk: &Chunk,
+    entities: &[EntityData],
+    block_entities: &[BlockEntityData],
+) -> ChunkRoot {
     ChunkRoot {
         level: ChunkLevel {
             x_pos: chunk.position().x,
             z_pos: chunk.position().z,
+            last_update: 0,    // TODO
+            inhabited_time: 0, // TODO
+            block_entities: block_entities.into(),
             sections: chunk
                 .sections()
                 .iter()
@@ -390,8 +446,36 @@ fn chunk_to_chunk_root(chunk: &Chunk, entities: Vec<EntityData>) -> ChunkRoot {
                 .iter()
                 .map(|biome| biome.protocol_id())
                 .collect(),
-            entities,
-            heightmaps,
+            entities: entities.into(),
+            heightmaps: Heightmaps {
+                light_blocking: chunk
+                    .heightmaps()
+                    .iter()
+                    .map(|h| h.light_blocking())
+                    .collect(),
+                motion_blocking: chunk
+                    .heightmaps()
+                    .iter()
+                    .map(|h| h.motion_blocking())
+                    .collect(),
+                motion_blocking_no_leaves: chunk
+                    .heightmaps()
+                    .iter()
+                    .map(|h| h.motion_blocking_no_leaves())
+                    .collect(),
+                ocean_floor: chunk.heightmaps().iter().map(|h| h.ocean_floor()).collect(),
+                world_surface: chunk
+                    .heightmaps()
+                    .iter()
+                    .map(|h| h.world_surface())
+                    .collect(),
+            },
+            awaiting_block_updates: vec![vec![]; 16], // TODO
+            awaiting_liquid_updates: vec![vec![]; 16], // TODO
+            scheduled_block_updates: vec![],          // TODO
+            scheduled_liquid_updates: vec![],
+            post_processing: vec![vec![]; 16],
+            worldgen_status: "postprocessed".into(),
         },
         data_version: DATA_VERSION,
     }
@@ -411,7 +495,7 @@ fn raw_palette_to_palette_entries(palette: &[BlockId]) -> Vec<LevelPaletteEntry>
 
             LevelPaletteEntry {
                 name: identifier.into(),
-                props: Some(LevelProperties {
+                properties: Some(LevelProperties {
                     props: props
                         .into_iter()
                         .map(|(k, v)| (Cow::from(k), Cow::from(v)))

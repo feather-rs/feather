@@ -8,7 +8,7 @@
 
 use crate::initial_handler::{Action, InitialHandler};
 use crate::{ListenerToServerMessage, NewClientInfo, ServerToListenerMessage};
-use feather_core::anvil::entity::BaseEntityData;
+use feather_core::anvil::entity::{AnimalData, BaseEntityData};
 use feather_core::anvil::player::PlayerData;
 use feather_core::network::{MinecraftCodec, Packet, PacketDirection};
 use feather_core::util::{Position, Vec3d};
@@ -195,7 +195,7 @@ async fn handle_ih_actions(worker: &mut Worker) -> anyhow::Result<()> {
             Action::SetStage(stage) => worker.framed.codec_mut().set_stage(stage),
             Action::JoinGame(info) => {
                 let data = load_player_data(&worker.config, info.uuid).await?;
-                let position = data.entity.read_position()?;
+                let position = data.animal.base.read_position()?;
                 let info = NewClientInfo {
                     ip: worker.ip,
                     username: info.username.unwrap_or_else(|| String::from("undefined")),
@@ -235,9 +235,13 @@ async fn load_player_data(config: &Config, uuid: Uuid) -> Result<PlayerData, any
             );
 
             let data = PlayerData {
-                entity: BaseEntityData::new(DEFAULT_POSITION, Vec3d::broadcast(0.0)),
+                animal: AnimalData::new(
+                    BaseEntityData::new(DEFAULT_POSITION, Vec3d::broadcast(0.0)),
+                    20.0,
+                ),
                 gamemode: config.server.default_gamemode.id() as i32,
                 inventory: vec![],
+                held_item: 0,
             };
 
             feather_core::anvil::player::save_player_data(

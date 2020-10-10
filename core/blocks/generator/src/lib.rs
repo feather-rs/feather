@@ -38,6 +38,8 @@ pub struct Block {
 struct Property {
     /// Name of this property, with Rust keywords removed. (e.g. "type" => "kind")
     name: Ident,
+    /// Actual name of this property before Feather renaming is applied.
+    real_name: String,
     /// CamelCase name of this property if it were a struct or enum.
     ///
     /// Often prefixed with the name of the block to which this property belongs.
@@ -235,6 +237,7 @@ enum PropertyKind {
 #[derive(Debug, Default)]
 pub struct Output {
     pub block_fns: String,
+    pub block_properties: String,
     pub block_table: String,
     pub block_table_serialized: Vec<u8>,
     pub vanilla_ids_serialized: Vec<u8>,
@@ -248,6 +251,10 @@ pub fn generate() -> anyhow::Result<Output> {
 
     let table_src = generate_table(&blocks);
     output.block_table.push_str(&table_src.to_string());
+    let properties_src = generate_properties(&blocks);
+    output
+        .block_properties
+        .push_str(&properties_src.to_string());
     let block_fns_src = generate_block_fns(&blocks);
     output.block_fns.push_str(&block_fns_src.to_string());
 
@@ -457,13 +464,16 @@ fn generate_block_serializing_fns(blocks: &Blocks) -> Vec<TokenStream> {
         let mut inserts = vec![];
         for property_name in &block.properties {
             let property = &blocks.property_types[property_name];
+            // Use the vanilla name of the property rather than our custom
+            // mapping, to ensure world saves are compatible with vanilla.
+            let property_real_name = &property.real_name;
 
             let name = &property.name;
             let as_str = property.tokens_for_as_str(quote! { #name });
 
             inserts.push(quote! {
                 let #name = self.#name().unwrap();
-                map.insert(#property_name, { #as_str });
+                map.insert(#property_real_name, { #as_str });
             })
         }
 
@@ -501,13 +511,14 @@ fn generate_block_serializing_fns(blocks: &Blocks) -> Vec<TokenStream> {
         let mut retrievals = vec![];
         for property_name in &block.properties {
             let property = &blocks.property_types[property_name];
+            let property_real_name = &property.real_name;
 
             let name = &property.name;
             let from_str = property.tokens_for_from_str(quote! { #name });
             let set_fn = ident(format!("set_{}", name));
 
             retrievals.push(quote! {
-                let #name = map.get(#property_name)?;
+                let #name = map.get(#property_real_name)?;
                 let #name = #from_str;
                 block.#set_fn(#name);
             });
@@ -695,5 +706,47 @@ fn property_value_as_u16(value: &str, index: usize, kind: &PropertyKind) -> u16 
         x as u16
     } else {
         index as u16
+    }
+}
+
+fn generate_properties(blocks: &Blocks) -> TokenStream {
+    let mut fns = vec![];
+
+    for property in blocks.property_types.values() {
+        let name = &property.name;
+
+        let doc = format!(
+            "Determines whether or not a block has the `{}` property.",
+            name
+        );
+
+        let kinds = blocks
+            .blocks
+            .iter()
+            .filter(|block| block.default_state.iter().any(|(prop, _)| name == prop))
+            .map(|block| {
+                let name_camel_case = &block.name_camel_case;
+
+                quote! { BlockKind::#name_camel_case }
+            });
+
+        let fn_name = ident(format!("has_{}", name));
+        fns.push(quote! {
+            #[doc = #doc]
+            pub fn #fn_name(self) -> bool {
+                match self.kind() {
+                    #(#kinds)|* => true,
+                    _ => false
+                }
+            }
+        });
+    }
+
+    quote! {
+        use crate::{BlockId, BlockKind};
+
+        impl BlockId {
+            #(#fns)*
+        }
     }
 }

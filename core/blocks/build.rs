@@ -11,13 +11,15 @@ fn main() {
             let _ = std::fs::create_dir_all(base);
 
             let block_fns = format!("{}/block_fns.rs", base);
+            let props = format!("{}/properties.rs", base);
             let table = format!("{}/table.rs", base);
 
             write_to_file(&block_fns, &code.block_fns);
+            write_to_file(&props, &code.block_properties);
             write_to_file(&table, &code.block_table);
 
-            [block_fns, table].iter().for_each(|path| {
-                Command::new("rustfmt").arg(path).output().unwrap();
+            [block_fns, props, table].iter().for_each(|path| {
+                let _ = Command::new("rustfmt").arg(path).output();
             });
 
             let data = format!("{}/table.dat", base);

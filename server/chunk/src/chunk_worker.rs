@@ -8,7 +8,10 @@ use ahash::AHashMap;
 use crossbeam::channel::{Receiver, Sender};
 use feather_core::anvil::entity::EntityData;
 use feather_core::anvil::region;
-use feather_core::anvil::region::{RegionHandle, RegionPosition};
+use feather_core::anvil::{
+    block_entity::BlockEntityData,
+    region::{RegionHandle, RegionPosition},
+};
 use feather_core::chunk::Chunk;
 use feather_core::util::ChunkPosition;
 use feather_server_util::EntityLoader;
@@ -20,19 +23,37 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+/// Stores a chunk and associated data (entities, block entities, tile ticks, ...)
+/// for saving to the world save.
+#[derive(Clone)]
+pub struct ChunkSave {
+    pub chunk: Arc<RwLock<Chunk>>,
+    /// Entities within this chunk.
+    pub entities: SmallVec<[EntityData; 4]>,
+    /// Block entities within this chunk.
+    pub block_entities: SmallVec<[BlockEntityData; 4]>,
+}
+
+/// Stores a chunk and associated data loaded
+/// from the world save.
+pub struct ChunkLoad {
+    pub chunk: Chunk,
+    /// Entities within this chunk, pre-built with their components.
+    /// Includes block entities as well.
+    pub entities: SmallVec<[EntityBuilder; 4]>,
+}
+
 #[allow(clippy::large_enum_variant)]
 pub enum Reply {
-    LoadedChunk(
-        ChunkPosition,
-        anyhow::Result<(Chunk, SmallVec<[EntityBuilder; 4]>)>,
-    ),
-    SavedChunk(ChunkPosition),
+    LoadedChunk(ChunkPosition, anyhow::Result<ChunkLoad>),
+    SavedChunk(ChunkPosition, anyhow::Result<()>),
 }
 
 #[derive(Clone)]
+#[allow(clippy::large_enum_variant)]
 pub enum Request {
     LoadChunk(ChunkPosition),
-    SaveChunk(Arc<RwLock<Chunk>>, Vec<EntityData>),
+    SaveChunk(ChunkSave),
     ShutDown,
 }
 
@@ -111,8 +132,8 @@ fn run(mut worker: ChunkWorker) {
     while let Ok(request) = worker.receiver.recv() {
         match request {
             Request::ShutDown => break,
-            Request::SaveChunk(chunk, entities) => {
-                save_chunk(&mut worker, &*chunk.read(), entities);
+            Request::SaveChunk(save) => {
+                save_chunk(&mut worker, save);
             }
             Request::LoadChunk(pos) => {
                 if let Some(reply) = load_chunk(&mut worker, pos) {
@@ -150,16 +171,21 @@ fn load_chunk_from_handle(
     let result = handle.load_chunk(pos);
 
     match result {
-        Ok((chunk, entities)) => {
+        Ok((chunk, entities, block_entities)) => {
             let entities = entities
                 .into_iter()
                 .filter_map(|entity| entity_loader.load(entity))
+                .chain(
+                    block_entities
+                        .into_iter()
+                        .filter_map(|block_entity| entity_loader.load_block(block_entity)),
+                )
                 .collect::<Result<SmallVec<_>, anyhow::Error>>();
 
             Some(Reply::LoadedChunk(
                 pos,
                 match entities {
-                    Ok(entities) => Ok((chunk, entities)),
+                    Ok(entities) => Ok(ChunkLoad { chunk, entities }),
                     Err(e) => Err(e),
                 },
             ))
@@ -191,19 +217,32 @@ fn schedule_generate_new_chunk(
 /// Generates a new chunk synchronously,
 /// returning a Reply to send to a Sender.
 fn generate_new_chunk(pos: ChunkPosition, generator: &Arc<dyn WorldGenerator>) -> Reply {
-    Reply::LoadedChunk(pos, Ok((generator.generate_chunk(pos), SmallVec::new())))
+    Reply::LoadedChunk(
+        pos,
+        Ok(ChunkLoad {
+            chunk: generator.generate_chunk(pos),
+            entities: SmallVec::new(),
+        }),
+    )
 }
 
 /// Saves the chunk at the specified position.
-fn save_chunk(worker: &mut ChunkWorker, chunk: &Chunk, entities: Vec<EntityData>) {
+fn save_chunk(worker: &mut ChunkWorker, save: ChunkSave) {
+    let chunk = save.chunk.read();
     let rpos = RegionPosition::from_chunk(chunk.position());
 
     let file = worker_region(&mut worker.open_regions, &worker.dir, rpos);
 
-    file.handle.save_chunk(chunk, entities).unwrap();
+    let result = file
+        .handle
+        .save_chunk(&*chunk, &save.entities, &save.block_entities);
+
     worker
         .sender
-        .send(Reply::SavedChunk(chunk.position()))
+        .send(Reply::SavedChunk(
+            chunk.position(),
+            result.map_err(|err| err.into()),
+        ))
         .unwrap();
 }
 

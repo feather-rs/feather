@@ -3,11 +3,14 @@ use std::convert::TryFrom;
 use thiserror::Error;
 
 pub use feather_definitions::BlockKind;
+pub use feather_definitions::SimplifiedBlockKind;
 
-mod categories;
+pub mod categories;
+mod directions;
 #[allow(warnings)]
 #[allow(clippy::all)]
 mod generated;
+mod wall_blocks;
 
 static BLOCK_TABLE: Lazy<BlockTable> = Lazy::new(|| {
     let bytes = include_bytes!("generated/table.dat");
@@ -69,9 +72,36 @@ impl BlockId {
         self.kind
     }
 
+    /// Returns the simplified kind of this block.
+    /// This is an arbitrary manual mapping that aims to condense the different
+    /// vanilla block kinds which have only minor differences (e.g. different colored beds)
+    /// and is mainly intended to make `match`ing on the block type easier.
+    /// This mapping in no way stable right now.
+    pub fn simplified_kind(self) -> SimplifiedBlockKind {
+        self.kind.to_simplified_kind()
+    }
+
     /// Returns the vanilla state ID for this block.
     pub fn vanilla_id(self) -> u16 {
         VANILLA_ID_TABLE[self.kind as u16 as usize][self.state as usize]
+    }
+
+    /// Returns the vanilla fluid ID for this block in case it is a fluid.
+    /// The fluid ID is used in the Tags packet.
+    pub fn vanilla_fluid_id(self) -> Option<u16> {
+        if self.is_fluid() {
+            match (self.kind(), self.water_level().unwrap()) {
+                // could be swapped?
+                (BlockKind::Water, 0) => Some(2), // stationary water
+                (BlockKind::Water, _) => Some(1), // flowing water
+                // tested those
+                (BlockKind::Lava, 0) => Some(4), // stationary lava
+                (BlockKind::Lava, _) => Some(3), // flowing lava
+                _ => unreachable!(),
+            }
+        } else {
+            None
+        }
     }
 
     /// Returns the block corresponding to the given vanilla ID.

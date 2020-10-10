@@ -1,12 +1,16 @@
 use crate::{BlockUpdateCause, Network, ServerToWorkerMessage};
-use crate::{BlockUpdateEvent, EntityDespawnEvent, Name, PlayerLeaveEvent};
+use crate::{
+    BlockUpdateEvent, CanRespawn, Dead, EntityDeathEvent, EntityDespawnEvent, Health,
+    HealthUpdateEvent, Name, PlayerLeaveEvent,
+};
 use ahash::AHashMap;
 use bumpalo::Bump;
 use feather_core::anvil::level::LevelData;
 use feather_core::blocks::BlockId;
 use feather_core::chunk_map::ChunkMap;
 use feather_core::game_rules::GameRules;
-use feather_core::network::Packet;
+use feather_core::network::{packets::DisconnectPlay, Packet};
+use feather_core::text::Text;
 use feather_core::util::{BlockPosition, ChunkPosition, Position};
 use feather_server_config::Config;
 use fecs::{Entity, Event, EventHandlers, IntoQuery, OwnedResources, Read, RefResources, World};
@@ -42,6 +46,9 @@ pub struct Game {
     /// Stores entities which have a hold on chunks,
     /// preventing the chunk from being unloaded.
     pub chunk_holders: ChunkHolders,
+    /// Block entity map. Each `BlockPosition` may have a block
+    /// entity associated with it.
+    pub block_entities: AHashMap<BlockPosition, Entity>,
     /// The level data.
     pub level: LevelData,
     /// Associates chunks with the entities that reside in them. Used
@@ -80,15 +87,17 @@ impl Game {
         event_handlers.trigger(&resources, world, event);
     }
 
-    /// Retrieves the block at the given position,
-    /// or `None` if the block's chunk is not loaded.
+    /// Retrieves the block at the given position.
+    /// Returns `None` if the block's chunk is not loaded
+    /// or the coordinates are out of bounds.
     pub fn block_at(&self, pos: BlockPosition) -> Option<BlockId> {
         self.chunk_map.block_at(pos)
     }
 
     /// Sets the block at the given position.
     ///
-    /// If the block's chunk's is not loaded, returns `false`;
+    /// Returns `false` if the block's chunk is not loaded
+    /// or the coordinates are out of bounds;
     /// otherwise, returns `true`.
     pub fn set_block_at(
         &mut self,
@@ -138,18 +147,42 @@ impl Game {
 
     /// Disconnects a player.
     pub fn disconnect(&mut self, player: Entity, world: &mut World, reason: impl Display) {
+        self.disconnect_player(player, world, &reason, &reason);
+    }
+
+    /// Disconnects a player.
+    /// Sends disconnect packet with `reason_client` and logs `reason_console` to the server console.
+    pub fn disconnect_and_log(
+        &mut self,
+        player: Entity,
+        world: &mut World,
+        reason_client: &Text,
+        reason_console: impl Display,
+    ) {
+        self.disconnect_player(player, world, reason_client, reason_console);
+    }
+
+    fn disconnect_player(
+        &mut self,
+        player: Entity,
+        world: &mut World,
+        reason_client: impl Display,
+        reason_console: impl Display,
+    ) {
+        let name = world.get::<Name>(player);
         let network = world.get::<Network>(player);
 
-        let name = world.get::<Name>(player);
-        log::info!("{} disconnected: {}", name.0, reason);
-
+        network.send(DisconnectPlay {
+            reason: reason_client.to_string(),
+        });
         let _ = network.tx.send(ServerToWorkerMessage::Disconnect);
+
+        log::info!("{} disconnected: {}", name.0, reason_console);
 
         drop(name);
         drop(network);
 
         self.player_count.fetch_sub(1, Ordering::AcqRel);
-
         self.handle(world, PlayerLeaveEvent { player });
         self.despawn(player, world);
     }
@@ -229,6 +262,63 @@ impl Game {
         // Send the packet to all players who have a hold on the entity's chunk.
         let entity_chunk = world.get::<Position>(entity).chunk();
         self.broadcast_chunk_update_boxed(world, packet, entity_chunk, neq);
+    }
+
+    /// Applies damage to the given entity. Handles all logic,
+    /// including killing the entity if its health drops below 1.
+    pub fn damage(&mut self, entity: Entity, damage: u32, world: &mut World) {
+        if world.has::<Dead>(entity) {
+            return;
+        }
+
+        let (should_kill, old_health, new_health) =
+            if let Some(mut health) = world.try_get_mut::<Health>(entity) {
+                let old_health = health.0;
+                let should_kill = match health.0.checked_sub(damage) {
+                    Some(0) => true,
+                    None => {
+                        // below 0
+                        health.0 = 0;
+                        true
+                    }
+                    Some(new_health) => {
+                        health.0 = new_health;
+                        false
+                    }
+                };
+                let new_health = health.0;
+                (should_kill, Some(old_health), new_health)
+            } else {
+                (false, None, 0)
+            };
+
+        if let Some(old_health) = old_health {
+            self.handle(
+                world,
+                HealthUpdateEvent {
+                    old: old_health,
+                    new: new_health,
+                    entity,
+                },
+            );
+        }
+
+        if should_kill {
+            self.kill(entity, world);
+        }
+    }
+
+    /// Kills an entity.
+    pub fn kill(&mut self, entity: Entity, world: &mut World) {
+        // Don't kill if already on respawn screen
+        if world.has::<Dead>(entity) {
+            return;
+        }
+
+        self.handle(world, EntityDeathEvent { entity });
+        if !world.has::<CanRespawn>(entity) {
+            self.despawn(entity, world);
+        }
     }
 }
 

@@ -76,45 +76,36 @@ lazy_static! {
         m.insert("f32", PacketParameterType::F32);
         m.insert("f64", PacketParameterType::F64);
         m.insert("Uuid", PacketParameterType::Uuid);
-        m.insert("NbtTag", PacketParameterType::Nbt);
+        m.insert("Blob", PacketParameterType::Nbt);
         m.insert("Slot", PacketParameterType::Slot);
         m.insert("EntityMetadata", PacketParameterType::EntityMetadata);
 
         m
     };
-
     static ref FUNCTION_MAPPINGS: HashMap<PacketParameterType, &'static str> = {
         let mut m = HashMap::new();
 
-        m.insert("var_int", PacketParameterType::Varint);
-        m.insert("var_long", PacketParameterType::Varlong);
-        m.insert("string", PacketParameterType::String);
-        m.insert("u64", PacketParameterType::U64);
-        m.insert("u32", PacketParameterType::U32);
-        m.insert("u16", PacketParameterType::U16);
-        m.insert("u8", PacketParameterType::U8);
-        m.insert("i64", PacketParameterType::I64);
-        m.insert("i32", PacketParameterType::I32);
-        m.insert("i16", PacketParameterType::I16);
-        m.insert("i8", PacketParameterType::I8);
-        m.insert("position", PacketParameterType::Position);
-        m.insert("bool", PacketParameterType::Boolean);
-        m.insert("f32", PacketParameterType::F32);
-        m.insert("f64", PacketParameterType::F64);
-        m.insert("uuid", PacketParameterType::Uuid);
-        m.insert("nbt", PacketParameterType::Nbt);
-        m.insert("slot", PacketParameterType::Slot);
-        m.insert("metadata", PacketParameterType::EntityMetadata);
+        m.insert(PacketParameterType::Varint, "var_int");
+        m.insert(PacketParameterType::Varlong, "var_long");
+        m.insert(PacketParameterType::String, "string");
+        m.insert(PacketParameterType::U64, "u64");
+        m.insert(PacketParameterType::U32, "u32");
+        m.insert(PacketParameterType::U16, "u16");
+        m.insert(PacketParameterType::U8, "u8");
+        m.insert(PacketParameterType::I64, "i64");
+        m.insert(PacketParameterType::I32, "i32");
+        m.insert(PacketParameterType::I16, "i16");
+        m.insert(PacketParameterType::I8, "i8");
+        m.insert(PacketParameterType::Position, "position");
+        m.insert(PacketParameterType::Boolean, "bool");
+        m.insert(PacketParameterType::F32, "f32");
+        m.insert(PacketParameterType::F64, "f64");
+        m.insert(PacketParameterType::Uuid, "uuid");
+        m.insert(PacketParameterType::Nbt, "nbt");
+        m.insert(PacketParameterType::Slot, "slot");
+        m.insert(PacketParameterType::EntityMetadata, "metadata");
 
-        // I wrote them in the wrong order, so I'm just going to reverse
-        // the map.
-        let mut reversed = HashMap::new();
-
-        for (key, value) in m {
-            reversed.insert(value, key);
-        }
-
-        reversed
+        m
     };
 }
 

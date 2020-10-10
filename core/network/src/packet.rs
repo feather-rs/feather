@@ -476,10 +476,27 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
     );
 
     m.insert(
+        PacketId(0x09, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::UpdateBlockEntity,
+    );
+
+    m.insert(
+        PacketId(0x0A, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::BlockAction,
+    );
+
+    m.insert(
         PacketId(0x12, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::ConfirmTransactionClientbound,
     );
-
+    m.insert(
+        PacketId(0x14, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::OpenWindow,
+    );
+    m.insert(
+        PacketId(0x15, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::WindowItems,
+    );
     m.insert(
         PacketId(0x0E, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::ChatMessageClientbound,
@@ -491,8 +508,18 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
     );
 
     m.insert(
+        PacketId(0x1A, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::NamedSoundEffect,
+    );
+
+    m.insert(
         PacketId(0x1B, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::DisconnectPlay,
+    );
+
+    m.insert(
+        PacketId(0x1C, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::EntityStatus,
     );
 
     m.insert(
@@ -581,8 +608,18 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
     );
 
     m.insert(
+        PacketId(0x38, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::Respawn,
+    );
+
+    m.insert(
         PacketId(0x39, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::EntityHeadLook,
+    );
+
+    m.insert(
+        PacketId(0x3D, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::HeldItemChangeClientbound,
     );
 
     m.insert(
@@ -598,6 +635,11 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
     m.insert(
         PacketId(0x42, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::EntityEquipment,
+    );
+
+    m.insert(
+        PacketId(0x44, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::UpdateHealth,
     );
 
     m.insert(
@@ -618,6 +660,11 @@ static PACKET_ID_MAPPINGS: Lazy<AHashMap<PacketId, PacketType>> = Lazy::new(|| {
     m.insert(
         PacketId(0x50, PacketDirection::Clientbound, PacketStage::Play),
         PacketType::EntityTeleport,
+    );
+
+    m.insert(
+        PacketId(0x55, PacketDirection::Clientbound, PacketStage::Play),
+        PacketType::Tags,
     );
 
     m

@@ -5,6 +5,9 @@
 A Minecraft server implementation written in Rust.
 
 ### Features
+
+Note that Feather is still early in development. Don't expect anything not listed here to work.
+
 - [x] Highly scalable architecture
 - [x] Anvil world loading and saving
 - [x] Physics
@@ -20,6 +23,13 @@ A Minecraft server implementation written in Rust.
 - [x] Chat
 - [x] Inventory handling
 - [x] Movement broadcasting
+
+On the current `develop` branch, some more features are pending release:
+- [x] Commands (/tell, /tp, /gamemode)
+- [x] Survival mode
+- [x] Survival mode block breaking and drops
+- [x] Health + fall damage
+- [x] (soon) block entities, including chests
 
 ### Running
 We offer precompiled binaries for Windows, Linux, and macOS at [GitHub Releases](https://github.com/feather-rs/feather/releases).
@@ -49,7 +59,7 @@ cd feather
 cargo build --release
 ```
 
-Compiling from source requires Java JDK 8.
+Compiling from source requires `rustfmt`.
 
 The server executable will be located in `target/release`.
 

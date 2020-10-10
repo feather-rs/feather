@@ -73,13 +73,17 @@ impl<'a> NoiseLerper<'a> {
         // default to a scalar impl.
         // TODO: support SSE41, other SIMD instruction sets
 
-        if is_x86_feature_detected!("avx2") {
-            self.generate_avx2()
-        } else {
-            self.generate_fallback()
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        {
+            if is_x86_feature_detected!("avx2") {
+                return self.generate_avx2();
+            }
         }
+
+        self.generate_fallback()
     }
 
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     fn generate_avx2(&self) -> Vec<f32> {
         // TODO: implement this. (Premature optimization is bad!)
         self.generate_fallback()

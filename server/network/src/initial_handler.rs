@@ -319,7 +319,7 @@ fn handle_request(ih: &mut InitialHandler, packet: &Request) -> Result<(), Error
     let server_icon = (*ih.server_icon).clone().unwrap_or_default();
 
     // Send response packet
-    let json = serde_json::json!({
+    let mut json = serde_json::json!({
         "version": {
             "name": SERVER_VERSION,
             "protocol": PROTOCOL_VERSION,
@@ -333,6 +333,11 @@ fn handle_request(ih: &mut InitialHandler, packet: &Request) -> Result<(), Error
         },
         "favicon": server_icon,
     });
+
+    // Remove the favicon field if there is no favicon
+    if server_icon.is_empty() {
+        json.as_object_mut().unwrap().remove("favicon");
+    }
 
     let response = Response {
         json_response: json.to_string(),

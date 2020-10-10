@@ -1,5 +1,6 @@
 use num_derive::{FromPrimitive, ToPrimitive};
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 extern crate nalgebra_glm as glm;
 
@@ -47,6 +48,21 @@ impl Gamemode {
             "spectator" => Gamemode::Spectator,
             _ => Gamemode::Survival,
         }
+    }
+}
+
+impl fmt::Display for Gamemode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Gamemode::Survival => "Survival",
+                Gamemode::Creative => "Creative",
+                Gamemode::Adventure => "Adventure",
+                Gamemode::Spectator => "Spectator",
+            }
+        )
     }
 }
 

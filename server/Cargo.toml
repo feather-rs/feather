@@ -16,6 +16,7 @@ path = "src/main.rs"
 [dependencies]
 # Feather crates
 feather-core = { path = "../core" }
+feather-server-block = { path = "block" }
 feather-server-chat = { path = "chat" }
 feather-server-chunk = { path = "chunk" }
 feather-server-config = { path = "config" }
