@@ -15,10 +15,11 @@ pub use time::*;
 mod load;
 pub use load::*;
 
-use feather_server_types::Game;
+use feather_server_types::{Game, Uuid};
 use fecs::{Entity, World};
 use rand::Rng;
 use rand_distr::{Distribution, StandardNormal};
+use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -197,4 +198,44 @@ pub fn compute_projectile_velocity(
     let inaccuracy = vec3(inaccuracy, inaccuracy, inaccuracy).component_mul(&gaussian) * 0.0075;
 
     (direction + inaccuracy) * charge
+}
+
+/// Compute offline mode UUID
+/// https://gist.github.com/games647/2b6a00a8fc21fd3b88375f03c9e2e603
+pub fn name_to_uuid_offline(username: &str) -> Uuid {
+    let mut context = md5::Context::new();
+    context.consume(format!("OfflinePlayer:{}", username).as_bytes());
+    let computed = context.compute();
+    let bytes = computed.into();
+
+    let mut builder = uuid::Builder::from_bytes(bytes);
+
+    builder
+        .set_variant(uuid::Variant::RFC4122)
+        .set_version(uuid::Version::Md5);
+
+    builder.build()
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ProfileResponse {
+    id: Uuid,
+    name: String,
+}
+
+/// Gets the UUID of a username by requesting it from Mojang's API
+pub async fn name_to_uuid_online(username: &str) -> Option<Uuid> {
+    let auth_result = reqwest::get(&format!(
+        "https://api.mojang.com/users/profiles/minecraft/{}",
+        username
+    ))
+    .await;
+
+    match auth_result {
+        Ok(res) => match res.json::<ProfileResponse>().await {
+            Ok(json) => Some(json.id),
+            Err(_) => None,
+        },
+        Err(_) => None,
+    }
 }
