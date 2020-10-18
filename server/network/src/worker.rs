@@ -13,7 +13,7 @@ use feather_core::anvil::player::PlayerData;
 use feather_core::network::{MinecraftCodec, Packet, PacketDirection};
 use feather_core::util::{Position, Vec3d};
 use feather_server_types::{
-    Config, PacketBuffers, ServerToWorkerMessage, Uuid, WorkerToServerMessage,
+    BanInfo, Config, PacketBuffers, ServerToWorkerMessage, Uuid, WorkerToServerMessage,
 };
 use fecs::Entity;
 use futures::future::Either;
@@ -23,6 +23,7 @@ use std::net::SocketAddr;
 use std::path::Path;
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
+use std::sync::RwLock;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use tokio_util::codec::Framed;
@@ -61,6 +62,7 @@ pub async fn run_worker(
     listener_tx: flume::Sender<ListenerToServerMessage>,
     listener_rx: Arc<Mutex<flume::Receiver<ServerToListenerMessage>>>,
     config: Arc<Config>,
+    ban_info: Arc<RwLock<BanInfo>>,
     player_count: Arc<AtomicU32>,
     server_icon: Arc<Option<String>>,
     packet_buffers: Arc<PacketBuffers>,
@@ -70,8 +72,10 @@ pub async fn run_worker(
 
     let initial_handler = Some(InitialHandler::new(
         Arc::clone(&config),
+        Arc::clone(&ban_info),
         Arc::clone(&player_count),
         Arc::clone(&server_icon),
+        ip,
     ));
 
     let codec = MinecraftCodec::new(PacketDirection::Serverbound);

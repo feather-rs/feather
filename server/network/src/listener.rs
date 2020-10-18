@@ -5,7 +5,7 @@
 
 use crate::worker::run_worker;
 use crate::{ListenerToServerMessage, ServerToListenerMessage};
-use feather_server_types::{Config, PacketBuffers};
+use feather_server_types::{Config, PacketBuffers, WrappedBanInfo};
 
 use std::sync::atomic::AtomicU32;
 use std::sync::Arc;
@@ -17,7 +17,7 @@ pub async fn run_listener(
     mut listener: TcpListener,
     tx: flume::Sender<ListenerToServerMessage>,
     rx: flume::Receiver<ServerToListenerMessage>,
-    config: Arc<Config>,
+    config_bans: (Arc<Config>, WrappedBanInfo),
     player_count: Arc<AtomicU32>,
     server_icon: Arc<Option<String>>,
     packet_buffers: Arc<PacketBuffers>,
@@ -40,7 +40,8 @@ pub async fn run_listener(
             ip,
             tx.clone(),
             Arc::clone(&rx),
-            Arc::clone(&config),
+            Arc::clone(&config_bans.0),
+            Arc::clone(&config_bans.1),
             Arc::clone(&player_count),
             Arc::clone(&server_icon),
             Arc::clone(&packet_buffers),

@@ -2,6 +2,10 @@
 
 //! Defines the server configuration file, feather.toml.
 
+use std::collections::HashMap;
+use std::net::IpAddr;
+use std::time::SystemTime;
+
 use feather_util::Gamemode;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -110,6 +114,52 @@ pub enum ProxyMode {
     BungeeCord,
     #[serde(alias = "velocity")]
     Velocity,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct BanInfo {
+    pub ip_bans: HashMap<IpAddr, Ban>,
+    pub uuid_bans: HashMap<String, Ban>,
+}
+
+impl BanInfo {
+    /// An empty list of bans
+    pub fn default() -> BanInfo {
+        BanInfo {
+            ip_bans: HashMap::new(),
+            uuid_bans: HashMap::new(),
+        }
+    }
+
+    /// Loads the bans from the given string.
+    pub fn load(s: &str) -> anyhow::Result<BanInfo> {
+        toml::from_str(s).map_err(Into::into)
+    }
+
+    /// Loads the bans from the given file.
+    pub async fn load_from_file(f: &mut File) -> anyhow::Result<BanInfo> {
+        let mut s = String::new();
+        f.read_to_string(&mut s).await?;
+        Self::load(&s)
+    }
+
+    /// Saves the ban info, writing its contents to the given string.
+    pub fn save(&self) -> String {
+        toml::to_string_pretty(self).expect("failed to serialize config")
+    }
+
+    /// Saves the ban info to the given file.
+    pub async fn save_to_file(&self, f: &mut File) -> anyhow::Result<()> {
+        let string = self.save();
+
+        f.write_all(string.as_bytes()).await.map_err(Into::into)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct Ban {
+    pub expires_after: Option<SystemTime>,
+    pub reason: String,
 }
 
 #[cfg(test)]

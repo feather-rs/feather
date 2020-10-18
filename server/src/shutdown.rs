@@ -5,8 +5,9 @@ use feather_core::text::{TextRoot, TextValue};
 use feather_server_chunk::chunk_worker::Request;
 use feather_server_chunk::{save_chunk_at, ChunkWorkerHandle};
 use feather_server_lighting::LightingWorkerHandle;
-use feather_server_types::{tasks, Game, Network, Player};
+use feather_server_types::{tasks, BanInfo, Game, Network, Player};
 use fecs::{IntoQuery, Read, World};
+use std::sync::{Arc, RwLock};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 
@@ -86,4 +87,13 @@ pub fn shut_down_workers(_game: &Game, light_handle: &LightingWorkerHandle) -> a
     // wait for disconnect
     let _ = light_handle.shutdown_rx.recv();
     Ok(())
+}
+
+pub async fn save_ban_list(ban_info: &Arc<RwLock<BanInfo>>) -> anyhow::Result<()> {
+    const PATH: &str = "bans.toml";
+
+    match File::create(PATH).await {
+        Ok(mut file) => ban_info.read().unwrap().save_to_file(&mut file).await,
+        Err(e) => Err(e.into()),
+    }
 }

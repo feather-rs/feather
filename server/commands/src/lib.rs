@@ -120,6 +120,16 @@ impl CommandState {
                 clear_4,
 
                 seed,
+
+                ban_withreason,
+                ban_noreason,
+                banip_withreason,
+                banip_noreason,
+                banip_withreason_ip,
+                banip_noreason_ip,
+
+                pardon,
+                pardonip,
         }
 
         Self {
