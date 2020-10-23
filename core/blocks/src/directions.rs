@@ -117,10 +117,7 @@ impl FacingCubic {
     }
 
     pub fn is_horizontal(self) -> bool {
-        match self {
-            FacingCubic::Up | FacingCubic::Down => false,
-            _ => true,
-        }
+        !matches!(self, FacingCubic::Up | FacingCubic::Down)
     }
 
     pub fn to_facing_cardinal(self) -> Option<FacingCardinal> {
