@@ -1,6 +1,9 @@
 //! Implements falling block entities: sand, gravel, etc.
 
-use feather_core::blocks::{BlockId, SimplifiedBlockKind};
+use crate::drops::drop_item;
+use feather_core::item_block::BlockToItem;
+use feather_core::items::ItemStack;
+use feather_core::blocks::{BlockId, SimplifiedBlockKind, BlockKind};
 use feather_core::entitymeta::{EntityMetadata, META_INDEX_FALLING_BLOCK_SPAWN_POSITION};
 use feather_core::network::packets::{Effect, SpawnObject};
 use feather_core::network::Packet;
@@ -72,7 +75,9 @@ pub fn spawn_falling_blocks(game: &mut Game, world: &mut World) {
 }
 
 /// When a falling block lands on the ground, deletes
-/// it and creates a solid block where it landed.
+/// it and creates a solid block where it landed or
+/// drops it on the ground if the block in the land position
+/// is not solid.
 #[fecs::event_handler]
 pub fn on_entity_land_remove_falling_block(
     event: &EntityLandEvent,
@@ -84,24 +89,48 @@ pub fn on_entity_land_remove_falling_block(
         .map(|block| block.0)
     {
         let pos = event.pos.block();
-        game.set_block_at(world, pos, block, BlockUpdateCause::Unknown);
+        if !drop_falling_block(pos, &block, game, world) {
+            game.set_block_at(world, pos, block, BlockUpdateCause::Unknown);
+
+            if block.simplified_kind() == SimplifiedBlockKind::Anvil {
+                game.broadcast_chunk_update(
+                    world,
+                    Effect {
+                        effect_id: 1031, // TODO remove hardcoded magic number
+                        location: pos,
+                        data: 0,
+                        disable_relative_volume: false,
+                    },
+                    event.pos.chunk(),
+                    None,
+                );
+            }
+        }
 
         game.despawn(event.entity, world);
+    }
+}
 
-        if block.simplified_kind() == SimplifiedBlockKind::Anvil {
-            game.broadcast_chunk_update(
-                world,
-                Effect {
-                    effect_id: 1031, // TODO remove hardcoded magic number
-                    location: pos,
-                    data: 0,
-                    disable_relative_volume: false,
-                },
-                event.pos.chunk(),
-                None,
-            );
+/// Drops falling block as item when the block on the ground
+/// is not a solid block.
+fn drop_falling_block(pos: BlockPosition,
+                      falling_block: &BlockId,
+                      game: &mut Game,
+                      world: &mut World) -> bool {
+    let item = falling_block.to_item();
+
+    let not_solid_block_kind = game.block_at(pos)
+        .map(|block| block.kind())
+        .filter(|kind| !kind.solid() && kind != &BlockKind::Air);
+
+    if let Some(item) = item {
+        if let Some(_) = not_solid_block_kind {
+            drop_item(game, world, ItemStack::new(item, 1), pos.position());
+            return true;
         }
     }
+
+    return false;
 }
 
 /// Returns an `EntityBuilder` for a falling block of the given type.
