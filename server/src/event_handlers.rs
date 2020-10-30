@@ -104,5 +104,7 @@ pub fn build_event_handlers() -> EventHandlers {
         on_chest_open_increment_viewers,
 
         on_chest_close_decrement_viewers,
+
+        on_time_update,
     }
 }

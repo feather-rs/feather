@@ -1049,6 +1049,8 @@ dependencies = [
  "rand",
  "smallvec",
  "thiserror",
+ "tokio",
+ "uuid",
  "vek",
 ]
 
@@ -1110,6 +1112,7 @@ dependencies = [
  "derivative 2.1.1",
  "feather-core",
  "feather-server-types",
+ "feather-server-util",
  "fecs",
  "flume",
  "futures",
@@ -1237,10 +1240,14 @@ dependencies = [
  "fecs",
  "inventory",
  "itertools 0.9.0",
+ "md5 0.7.0",
  "nalgebra-glm",
  "rand",
  "rand_distr",
+ "reqwest",
+ "serde",
  "smallvec",
+ "uuid",
 ]
 
 [[package]]
@@ -2824,6 +2831,7 @@ dependencies = [
  "percent-encoding",
  "pin-project-lite",
  "serde",
+ "serde_json",
  "serde_urlencoded",
  "tokio",
  "tokio-tls",

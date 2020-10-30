@@ -406,6 +406,12 @@ impl Time {
         self.0 % 24_000
     }
 
+    /// Returns the days passed. This is calculated
+    /// as `time.0 / 24_000`.
+    pub fn days(self) -> u64 {
+        self.0 / 24_000
+    }
+
     /// Returns the age of the world in ticks. Equivalent to `time.0`.
     pub fn world_age(self) -> u64 {
         self.0

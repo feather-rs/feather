@@ -426,3 +426,113 @@ impl ArgumentKind<CommandCtx> for PositiveI32Argument {
         }
     }
 }
+
+#[derive(Debug, Error)]
+pub enum TimeQueryInformationError {
+    #[error("Unknown Argument {0}")]
+    UnknownArgument(String),
+}
+
+#[derive(Clone, Debug)]
+pub enum TimeQueryInformation {
+    DayTime,
+    GameTime,
+    Day,
+}
+
+impl ArgumentKind<CommandCtx> for TimeQueryInformation {
+    type ParseError = TimeQueryInformationError;
+
+    fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input) -> bool {
+        !input.advance_until(" ").is_empty()
+    }
+
+    fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
+        let text = input.advance_until(" ");
+        match text {
+            "daytime" => Ok(TimeQueryInformation::DayTime),
+            "gametime" => Ok(TimeQueryInformation::GameTime),
+            "day" => Ok(TimeQueryInformation::Day),
+            s => Err(TimeQueryInformationError::UnknownArgument(s.to_owned())),
+        }
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum TimeArgumentError {
+    #[error("Invalid integer {0}")]
+    Invalid(String),
+    #[error("Invalid unit, found {0}")]
+    InvalidUnit(char),
+}
+
+#[derive(Clone, Debug)]
+pub struct TimeArgument(pub u64);
+
+impl ArgumentKind<CommandCtx> for TimeArgument {
+    type ParseError = TimeArgumentError;
+
+    fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
+        Self::parse(_ctx, input).is_ok()
+    }
+
+    fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
+        let text = input.advance_until(" ");
+        let (value, unit) = {
+            let it = text.chars();
+            // Get and parse the number part up to the unit character
+            let val = it
+                .clone()
+                .take_while(|&c| char::is_numeric(c))
+                .collect::<String>()
+                .parse::<u64>();
+            // Skips the number part and gets the unit character or default to 't'
+            let unit = it.clone().find(|&c| !char::is_numeric(c)).unwrap_or('t');
+            (val, unit)
+        };
+        match value {
+            Ok(integer) => match unit {
+                'd' => Ok(TimeArgument(integer * 24_000)),
+                's' => Ok(TimeArgument(integer * 20)),
+                't' => Ok(TimeArgument(integer)),
+                _ => Err(TimeArgumentError::InvalidUnit(unit)),
+            },
+            Err(_) => Err(TimeArgumentError::Invalid(text.to_owned())),
+        }
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum TimeSpecParseError {
+    #[error("invalid time string {0}")]
+    InvalidGamemode(String),
+}
+
+/// A parsed gamemode string ("survival", "creative", ...)
+#[derive(Copy, Clone, Debug)]
+pub enum TimeSpec {
+    Day,
+    Night,
+    Noon,
+    Midnight,
+}
+
+impl ArgumentKind<CommandCtx> for TimeSpec {
+    type ParseError = TimeSpecParseError;
+
+    fn satisfies<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> bool {
+        !input.advance_until(" ").is_empty()
+    }
+
+    fn parse<'a>(_ctx: &CommandCtx, input: &mut Input<'a>) -> Result<Self, Self::ParseError> {
+        let s = input.advance_until(" ");
+
+        Ok(match s {
+            "day" => TimeSpec::Day,
+            "night" => TimeSpec::Night,
+            "noon" => TimeSpec::Noon,
+            "midnight" => TimeSpec::Midnight,
+            s => return Err(TimeSpecParseError::InvalidGamemode(s.to_owned())),
+        })
+    }
+}
