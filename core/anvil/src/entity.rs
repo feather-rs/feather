@@ -61,7 +61,7 @@ pub enum EntityData {
     Horse(AnimalData),
     #[serde(rename = "minecraft:llama")]
     Llama(AnimalData),
-    #[serde(rename = "minectaft:mooshroom")]
+    #[serde(rename = "minecraft:mooshroom")]
     Mooshroom(AnimalData),
     #[serde(rename = "minecraft:rabbit}")]
     Rabbit(AnimalData),
