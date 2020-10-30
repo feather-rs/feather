@@ -68,16 +68,16 @@ impl BiomeGenerator for DistortedVoronoiBiomeGenerator {
 
 /// Returns whether the given biome is allowed in the overworld.
 fn is_biome_allowed(biome: Biome) -> bool {
-    match biome {
+    !matches!(
+        biome,
         Biome::TheEnd
-        | Biome::TheVoid
-        | Biome::Nether
-        | Biome::SmallEndIslands
-        | Biome::EndBarrens
-        | Biome::EndHighlands
-        | Biome::EndMidlands => false,
-        _ => true,
-    }
+            | Biome::TheVoid
+            | Biome::Nether
+            | Biome::SmallEndIslands
+            | Biome::EndBarrens
+            | Biome::EndHighlands
+            | Biome::EndMidlands
+    )
 }
 
 #[cfg(test)]
