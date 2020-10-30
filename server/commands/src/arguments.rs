@@ -505,7 +505,7 @@ impl ArgumentKind<CommandCtx> for TimeArgument {
 #[derive(Debug, Error)]
 pub enum TimeSpecParseError {
     #[error("invalid time string {0}")]
-    InvalidGamemode(String),
+    InvalidTimeSpec(String),
 }
 
 /// A parsed gamemode string ("survival", "creative", ...)
@@ -532,7 +532,7 @@ impl ArgumentKind<CommandCtx> for TimeSpec {
             "night" => TimeSpec::Night,
             "noon" => TimeSpec::Noon,
             "midnight" => TimeSpec::Midnight,
-            s => return Err(TimeSpecParseError::InvalidGamemode(s.to_owned())),
+            s => return Err(TimeSpecParseError::InvalidTimeSpec(s.to_owned())),
         })
     }
 }
