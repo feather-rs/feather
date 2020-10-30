@@ -130,7 +130,7 @@ fn drop_falling_block(pos: BlockPosition,
         }
     }
 
-    return false;
+    false
 }
 
 /// Returns an `EntityBuilder` for a falling block of the given type.
