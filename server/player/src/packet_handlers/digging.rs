@@ -533,8 +533,5 @@ fn find_arrow(inventory: &Inventory) -> Option<(SlotIndex, ItemStack)> {
 }
 
 fn is_arrow_item(item: Item) -> bool {
-    match item {
-        Item::Arrow | Item::SpectralArrow | Item::TippedArrow => true,
-        _ => false,
-    }
+    matches!(item, Item::Arrow | Item::SpectralArrow | Item::TippedArrow)
 }
