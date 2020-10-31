@@ -1,10 +1,10 @@
 //! Implements falling block entities: sand, gravel, etc.
 
 use crate::drops::drop_item;
+use feather_core::blocks::{BlockId, BlockKind, SimplifiedBlockKind};
+use feather_core::entitymeta::{EntityMetadata, META_INDEX_FALLING_BLOCK_SPAWN_POSITION};
 use feather_core::item_block::BlockToItem;
 use feather_core::items::ItemStack;
-use feather_core::blocks::{BlockId, SimplifiedBlockKind, BlockKind};
-use feather_core::entitymeta::{EntityMetadata, META_INDEX_FALLING_BLOCK_SPAWN_POSITION};
 use feather_core::network::packets::{Effect, SpawnObject};
 use feather_core::network::Packet;
 use feather_core::util::{BlockPosition, Position};
@@ -113,18 +113,21 @@ pub fn on_entity_land_remove_falling_block(
 
 /// Drops falling block as item when the block on the ground
 /// is not a solid block.
-fn drop_falling_block(pos: BlockPosition,
-                      falling_block: &BlockId,
-                      game: &mut Game,
-                      world: &mut World) -> bool {
+fn drop_falling_block(
+    pos: BlockPosition,
+    falling_block: &BlockId,
+    game: &mut Game,
+    world: &mut World,
+) -> bool {
     let item = falling_block.to_item();
 
-    let not_solid_block_kind = game.block_at(pos)
+    let not_solid_block_kind = game
+        .block_at(pos)
         .map(|block| block.kind())
         .filter(|kind| !kind.solid() && kind != &BlockKind::Air);
 
     if let Some(item) = item {
-        if let Some(_) = not_solid_block_kind {
+        if not_solid_block_kind.is_some() {
             drop_item(game, world, ItemStack::new(item, 1), pos.position());
             return true;
         }
