@@ -63,7 +63,7 @@ impl McTypeWrite for BytesMut {
         let mut bytes_written = 0;
         loop {
             let mut temp = (x & 0b0111_1111) as u8;
-            x >>= 7;
+            x = (x >> 7) & (i32::max_value() >> 6);
             if x != 0 {
                 temp |= 0b1000_0000;
             }
@@ -240,8 +240,8 @@ pub trait EntityMetaRead {
 }
 
 impl<B> EntityMetaWrite for B
-where
-    B: BytesMutExt + McTypeWrite,
+    where
+        B: BytesMutExt + McTypeWrite,
 {
     fn push_metadata(&mut self, meta: &EntityMetadata) {
         for (index, entry) in meta.iter() {
@@ -255,8 +255,8 @@ where
 }
 
 impl<B> EntityMetaRead for B
-where
-    B: Buf + std::io::Read,
+    where
+        B: Buf + std::io::Read,
 {
     fn try_get_metadata(&mut self) -> anyhow::Result<EntityMetadata> {
         let mut values = BTreeMap::new();
@@ -277,8 +277,8 @@ where
 }
 
 fn write_entry_to_buf<B>(entry: &MetaEntry, buf: &mut B)
-where
-    B: BytesMutExt + McTypeWrite,
+    where
+        B: BytesMutExt + McTypeWrite,
 {
     match entry {
         MetaEntry::Byte(x) => buf.push_i8(*x),
@@ -338,8 +338,8 @@ where
 }
 
 fn try_get_entry<B>(buf: &mut B) -> anyhow::Result<MetaEntry>
-where
-    B: Buf + McTypeRead,
+    where
+        B: Buf + McTypeRead,
 {
     let id = buf.try_get_var_int()?;
 
@@ -386,11 +386,33 @@ mod tests {
     use super::*;
     use std::io::Cursor;
 
+    macro_rules! test_var_int_rw {
+        ($([$($byte:literal),* $(,)?] => $result:literal)*) => {
+            $(
+                assert_eq!(
+                    Cursor::new(bytes::Bytes::from(vec![$($byte),*])).try_get_var_int().unwrap(),
+                    $result
+                );
+                let mut bytes = BytesMut::new();
+                bytes.push_var_int($result);
+                assert_eq!(bytes.as_ref(), [$($byte),*]);
+            )*
+        };
+    }
+
     #[test]
-    fn test_read_var_int() {
-        // Examples from wiki.vg
-        let mut buf = BytesMut::new();
-        buf.extend_from_slice(&[0xff, 0x01]);
-        assert_eq!(Cursor::new(&buf).try_get_var_int(), Ok(255));
+    fn test_var_int() {
+        test_var_int_rw! {
+            [0] => 0
+            [1] => 1
+            [2] => 2
+            [127] => 127
+            [128, 1] => 128
+            [255, 1] => 255
+            [255, 255, 127] => 2097151
+            [255, 255, 255, 255, 7] => 2147483647
+            [255, 255, 255, 255, 15] => -1
+            [128, 128, 128, 128, 8] => -2147483648
+        }
     }
 }
