@@ -182,7 +182,7 @@ fn send_item_broken_sound_effect(player: Entity, game: &mut Game, world: &mut Wo
     let mut rng = game.rng();
     let sound_packet = NamedSoundEffect {
         sound_name: "entity.item.break".into(),
-        sound_category: SoundCategory::Players as i32,
+        sound_category: SoundCategory::Players,
         effect_pos_x,
         effect_pos_y,
         effect_pos_z,

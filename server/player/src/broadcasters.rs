@@ -5,6 +5,7 @@ mod gamemode;
 mod health;
 mod keepalive;
 mod teleport;
+mod sound;
 
 pub use animation::on_player_animation_broadcast_animation;
 pub use block::*;
@@ -13,3 +14,4 @@ pub use gamemode::*;
 pub use health::on_health_update_send;
 pub use keepalive::broadcast_keepalive;
 pub use teleport::send_teleported;
+pub use sound::on_sound_broadcast;

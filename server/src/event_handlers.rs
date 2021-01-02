@@ -73,6 +73,8 @@ pub fn build_event_handlers() -> EventHandlers {
 
         on_player_animation_broadcast_animation,
 
+        on_sound_broadcast,
+
         on_item_drop_spawn_item_entity,
 
         on_item_collect_broadcast,
