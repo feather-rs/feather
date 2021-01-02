@@ -5,6 +5,7 @@ use feather_core::items::ItemStack;
 use feather_core::util::{BlockPosition, ChunkPosition, ClientboundAnimation, Gamemode, Position};
 use fecs::Entity;
 use smallvec::SmallVec;
+use feather_core::network::packets::SoundCategory;
 
 #[derive(Copy, Clone, Debug)]
 pub struct BlockUpdateEvent {
@@ -283,6 +284,16 @@ pub struct GamemodeUpdateEvent {
     pub player: Entity,
     pub old: Gamemode,
     pub new: Gamemode,
+}
+
+/// Triggers a sound effect to be played to all players near the coordinates
+#[derive(Clone, Debug)]
+pub struct NamedSoundEffectEvent {
+	pub sound_name: String,
+	pub sound_category: SoundCategory,
+	pub effect_pos: BlockPosition,
+	pub volume: f32,
+	pub pitch: f32,
 }
 
 /// Requests that a chunk be held for the given client.

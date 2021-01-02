@@ -1,4 +1,4 @@
-use crate::{BlockUpdateCause, Network, ServerToWorkerMessage};
+use crate::{BlockUpdateCause, Network, ServerToWorkerMessage, PlayerAnimationEvent, NamedSoundEffectEvent};
 use crate::{
     BlockUpdateEvent, CanRespawn, Dead, EntityDeathEvent, EntityDespawnEvent, Health,
     HealthUpdateEvent, Name, PlayerLeaveEvent,
@@ -11,7 +11,7 @@ use feather_core::chunk_map::ChunkMap;
 use feather_core::game_rules::GameRules;
 use feather_core::network::{packets::DisconnectPlay, Packet};
 use feather_core::text::Text;
-use feather_core::util::{BlockPosition, ChunkPosition, Position};
+use feather_core::util::{BlockPosition, ChunkPosition, Position, ClientboundAnimation};
 use feather_server_config::Config;
 use fecs::{Entity, Event, EventHandlers, IntoQuery, OwnedResources, Read, RefResources, World};
 use rand::rngs::SmallRng;
@@ -23,6 +23,7 @@ use std::ops::{Deref, DerefMut};
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 use thread_local::CachedThreadLocal;
+use feather_core::network::packets::SoundCategory;
 
 /// Resources which can be _shared_ between threads.
 /// These only require immutable access.
@@ -301,6 +302,32 @@ impl Game {
                     entity,
                 },
             );
+
+	        if old_health != new_health && !should_kill {
+		       // client has taken damage, send animation and sound
+		        self.handle(
+			        world,
+			        PlayerAnimationEvent {
+				        player: entity,
+				        animation: ClientboundAnimation::TakeDamage
+			        },
+		        );
+		        let pos = world.try_get::<Position>(entity)
+			        .map(|pos| BlockPosition::from(*pos));
+		        if let Some(pos) = pos {
+			        self.handle(
+				        world,
+				        NamedSoundEffectEvent {
+					        // TODO: different sound effects for different mobs
+					        sound_name: String::from("entity.player.hurt"),
+					        sound_category: SoundCategory::Players,
+					        effect_pos: pos,
+					        volume: 100.0,
+				            pitch: 1.0
+			             },
+			        );
+		        }
+	        }
         }
 
         if should_kill {
@@ -314,6 +341,30 @@ impl Game {
         if world.has::<Dead>(entity) {
             return;
         }
+
+	    // animation and sound effect
+	    self.handle(
+		    world,
+		    PlayerAnimationEvent {
+			    player: entity,
+			    animation: ClientboundAnimation::TakeDamage
+		    },
+	    );
+	    let pos = world.try_get::<Position>(entity)
+		    .map(|pos| BlockPosition::from(*pos));
+	    if let Some(pos) = pos {
+		    self.handle(
+			    world,
+			    NamedSoundEffectEvent {
+				    // TODO: different sound effects for different mobs
+				    sound_name: String::from("entity.player.death"),
+				    sound_category: SoundCategory::Players,
+				    effect_pos: pos,
+				    volume: 1.0,
+				    pitch: 1.0
+			    },
+		    );
+	    }
 
         self.handle(world, EntityDeathEvent { entity });
         if !world.has::<CanRespawn>(entity) {

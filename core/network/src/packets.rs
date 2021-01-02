@@ -351,6 +351,8 @@ pub enum Error {
     InsufficientArrayLength,
     #[error("invalid handshake next state {0}")]
     InvalidHandshakeState(i32),
+	#[error("invalid sound category {0}")]
+	InvalidSoundCategory(i32)
 }
 
 // SERVERBOUND
@@ -1703,10 +1705,10 @@ impl Packet for PluginMessageClientbound {
     }
 }
 
-#[derive(Default, AsAny, Packet, Clone)]
+#[derive(Default, AsAny, Clone)]
 pub struct NamedSoundEffect {
     pub sound_name: String,
-    pub sound_category: VarInt,
+    pub sound_category: SoundCategory,
     pub effect_pos_x: i32,
     pub effect_pos_y: i32,
     pub effect_pos_z: i32,
@@ -1714,7 +1716,60 @@ pub struct NamedSoundEffect {
     pub pitch: f32,
 }
 
-#[derive(Clone, Copy)]
+impl Packet for NamedSoundEffect {
+	fn read_from(&mut self, buf: &mut Cursor<&[u8]>) -> anyhow::Result<()> {
+		self.sound_name = buf.try_get_string()?;
+		self.sound_category = {
+			let id = buf.try_get_var_int()?;
+			match id {
+				0 => SoundCategory::Master,
+				1 => SoundCategory::Music,
+				2 => SoundCategory::Records,
+				3 => SoundCategory::Weather,
+				4 => SoundCategory::Blocks,
+				5 => SoundCategory::Hostile,
+				6 => SoundCategory::Neutral,
+				7 => SoundCategory::Players,
+				8 => SoundCategory::Ambient,
+				9 => SoundCategory::Voice,
+				i => return Err(Error::InvalidSoundCategory(i).into()),
+			}
+		};
+		self.effect_pos_x = buf.try_get_i32()? * 8;
+		self.effect_pos_y = buf.try_get_i32()? * 8;
+		self.effect_pos_z = buf.try_get_i32()? * 8;
+		self.volume = buf.try_get_f32()?;
+		self.pitch = buf.try_get_f32()?;
+		Ok(())
+	}
+
+	fn write_to(&self, buf: &mut BytesMut) {
+		buf.push_string(self.sound_name.as_str());
+		buf.push_var_int(self.sound_category as i32);
+		buf.push_i32(self.effect_pos_x / 8);
+		buf.push_i32(self.effect_pos_y / 8);
+		buf.push_i32(self.effect_pos_z / 8);
+		buf.push_f32(self.volume);
+		buf.push_f32(self.pitch);
+	}
+
+	fn ty(&self) -> PacketType {
+		PacketType::NamedSoundEffect
+	}
+
+	fn ty_sized() -> PacketType
+		where
+			Self: Sized,
+	{
+		PacketType::NamedSoundEffect
+	}
+
+	fn box_clone(&self) -> Box<dyn Packet> {
+		box_clone_impl!(self);
+	}
+}
+
+#[derive(Clone, Copy, Debug)]
 pub enum SoundCategory {
     Master = 0,
     Music = 1,
@@ -1726,6 +1781,12 @@ pub enum SoundCategory {
     Players = 7,
     Ambient = 8,
     Voice = 9,
+}
+
+impl Default for SoundCategory {
+	fn default() -> Self {
+		SoundCategory::Master
+	}
 }
 
 #[derive(Default, AsAny, Packet, Clone)]
