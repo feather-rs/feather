@@ -610,13 +610,70 @@ fn handle_middle_click(
 }
 
 fn handle_item_drop(
-    _game: &mut Game,
-    _world: &mut World,
-    _player: Entity,
-    _packet: ClickWindow,
-    _full_stack: bool,
+    game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    packet: ClickWindow,
+    full_stack: bool,
 ) -> anyhow::Result<()> {
-    // TODO
+    if packet.slot == -999 {
+        // Handle drop event in case user clicks outside of the inventory
+        if let Some(picked) = world.try_get::<PickedItem>(player).map(|i| *i) {
+            let stack = if full_stack {
+                world.get_mut::<PickedItem>(player).0.amount = 0;
+                picked.0
+            } else {
+                world.get_mut::<PickedItem>(player).0.amount = picked.0.amount - 1;
+                picked.0.of_amount(1)
+            };
+
+            let event = ItemDropEvent {
+                slot: None,
+                stack,
+                player,
+            };
+
+            game.handle(world, event);
+        }
+    } else {
+        // Handle drop event in case user presses drop key
+        let slot = packet.slot as usize;
+        let window = world.get::<Window>(player);
+        let accessor = window.accessor(world)?;
+
+        if let Some(item_stack) = accessor.item_at(slot)? {
+            let stack = if full_stack {
+                accessor.remove_item_at(slot)?;
+                item_stack
+            } else {
+                let new_stack = item_stack.of_amount(item_stack.amount - 1);
+                accessor.set_item_at(slot, new_stack)?;
+                item_stack.of_amount(1)
+            };
+
+            drop(accessor);
+
+            let drop_event = ItemDropEvent {
+                slot: None,
+                stack,
+                player,
+            };
+
+            let inv_event = InventoryUpdateEvent {
+                entity: window.corresponding_entity(slot).unwrap(),
+                slots: smallvec![window
+                    .convert_network(slot)
+                    .ok_or_else(|| anyhow::anyhow!("invalid slot index"))?
+                    .into()],
+            };
+
+            drop(window);
+
+            game.handle(world, drop_event);
+            game.handle(world, inv_event);
+        }
+    }
+
     Ok(())
 }
 
