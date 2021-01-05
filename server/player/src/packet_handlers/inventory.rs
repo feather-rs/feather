@@ -338,6 +338,11 @@ fn handle_single_click(
     packet: ClickWindow,
     button: MouseButton,
 ) -> anyhow::Result<()> {
+    // slot is -1 means user clicking in the current window
+    // but no on any slot, which should do nothing.
+    if packet.slot == -1 {
+        return Ok(());
+    }
     if let Some(picked) = world.try_get::<PickedItem>(player).map(|i| *i) {
         // Put down the item on the clicked slot. Based on the mouse button:
         // * left => whole stack
