@@ -128,6 +128,9 @@ impl CommandState {
                 banip_withreason_ip,
                 banip_noreason_ip,
 
+                banlist,
+                banlist_with_type,
+
                 pardon,
                 pardonip,
         }

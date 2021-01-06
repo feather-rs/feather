@@ -17,6 +17,7 @@ use feather_server_util::{name_to_uuid_offline, name_to_uuid_online};
 use fecs::{Entity, IntoQuery, Read, ResourcesProvider, World};
 use lieutenant::command;
 use smallvec::SmallVec;
+use std::collections::HashMap;
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use thiserror::Error;
@@ -638,6 +639,11 @@ pub fn banip_noreason_ip(ctx: &mut CommandCtx, ip: String) -> anyhow::Result<()>
 }
 
 pub fn ban_ip(ctx: &mut CommandCtx, ip: String, reason: String) -> anyhow::Result<Option<String>> {
+    let banned_by = match ctx.world.try_get::<Name>(ctx.sender) {
+        Some(player) => player.0.clone(),
+        None => String::from("Server"),
+    };
+
     let ip = IpAddr::from_str(&ip).map_err(|_| BanIpError::InvalidIp)?;
 
     {
@@ -649,6 +655,7 @@ pub fn ban_ip(ctx: &mut CommandCtx, ip: String, reason: String) -> anyhow::Resul
             Ban {
                 reason: reason.clone(),
                 expires_after: None,
+                banned_by,
             },
         );
     }
@@ -697,6 +704,11 @@ pub fn ban_players(
 
     for entity in &targets.entities {
         {
+            let banned_by = match ctx.world.try_get::<Name>(ctx.sender) {
+                Some(player) => player.0.clone(),
+                None => String::from("Server"),
+            };
+
             let bi_lock = ctx.game.resources.get::<WrappedBanInfo>();
             let mut ban_info = bi_lock.write().unwrap();
 
@@ -708,6 +720,7 @@ pub fn ban_players(
                     Ban {
                         reason: reason.clone(),
                         expires_after: None,
+                        banned_by,
                     },
                 );
             } else {
@@ -718,6 +731,7 @@ pub fn ban_players(
                     Ban {
                         reason: reason.clone(),
                         expires_after: None,
+                        banned_by,
                     },
                 );
             }
@@ -743,6 +757,77 @@ pub fn ban_players(
     }
 
     Ok(None)
+}
+
+#[command(usage = "banlist")]
+pub fn banlist(ctx: &mut CommandCtx) -> anyhow::Result<()> {
+    let ban_info = ctx
+        .game
+        .resources
+        .get::<WrappedBanInfo>()
+        .read()
+        .unwrap()
+        .clone();
+
+    let bans: HashMap<String, Ban> = ban_info
+        .ip_bans
+        .into_iter()
+        .map(|(k, v)| (k.to_string(), v))
+        .chain(ban_info.uuid_bans)
+        .collect();
+
+    banlist_message(ctx, Ok(bans));
+
+    Ok(None)
+}
+
+#[command(usage = "banlist <ban_type>")]
+pub fn banlist_with_type(ctx: &mut CommandCtx, ban_type: TextArgument) -> anyhow::Result<()> {
+    let ban_info = ctx
+        .game
+        .resources
+        .get::<WrappedBanInfo>()
+        .read()
+        .unwrap()
+        .clone();
+    // Convert ips in ip bans to Strings
+    let ip_bans: HashMap<String, Ban> = ban_info
+        .ip_bans
+        .into_iter()
+        .map(|(k, v)| (k.to_string(), v))
+        .collect();
+
+    // Select correct ban map
+    let bans = match ban_type.0.as_ref() {
+        "ips" => Ok(ip_bans),
+        "players" => Ok(ban_info.uuid_bans),
+        _ => Err("Incorrect argument for command"),
+    };
+
+    banlist_message(ctx, bans);
+
+    Ok(None)
+}
+
+fn banlist_message(ctx: &mut CommandCtx, bans: Result<HashMap<String, Ban>, &'static str>) {
+    if let Some(mut receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender) {
+        match bans {
+            Ok(ban_map) => {
+                if ban_map.is_empty() {
+                    receiver.send("There are no bans")
+                } else {
+                    receiver.send(format!("There are {} bans:", ban_map.len()));
+                    for (banned, ban) in ban_map {
+                        receiver.send(format!(
+                            "{} was banned by {}: {}",
+                            banned, ban.banned_by, ban.reason
+                        ));
+                    }
+                }
+            }
+            Err(error_message) => receiver.send(error_message),
+        };
+    }
 }
 
 #[derive(Debug, Error)]
