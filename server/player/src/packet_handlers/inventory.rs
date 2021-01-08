@@ -4,13 +4,12 @@
 
 use crate::IteratorExt;
 use feather_core::inventory::{Area, Inventory, SlotIndex, Window};
-use feather_core::items::ItemStack;
 use feather_core::network::packets::{
     ClickWindow, ConfirmTransactionClientbound, CreativeInventoryAction, HeldItemChangeServerbound,
 };
 use feather_core::util::Gamemode;
 use feather_server_types::{
-    Game, HeldItem, InventoryUpdateEvent, ItemDropEvent, Network, PacketBuffers,
+    Game, HeldItem, InventoryUpdateEvent, ItemDropEvent, Network, PacketBuffers, PickedItem,
 };
 use fecs::{Entity, World};
 use smallvec::smallvec;
@@ -325,11 +324,6 @@ fn handle_click_window(
         Mode::Paint(action) => handle_paint(game, world, player, packet, action),
     }
 }
-
-/// Stores an item currently picked by
-/// a player's cursor.
-#[derive(Copy, Clone, Debug)]
-struct PickedItem(ItemStack);
 
 fn handle_single_click(
     game: &mut Game,

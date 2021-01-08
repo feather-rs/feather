@@ -1,6 +1,6 @@
 use crate::IteratorExt;
 use feather_core::{inventory::Window, network::packets::CloseWindowServerbound};
-use feather_server_types::{Game, PacketBuffers, WindowCloseEvent};
+use feather_server_types::{Game, ItemDropEvent, PacketBuffers, PickedItem, WindowCloseEvent};
 use fecs::{Entity, World};
 use smallvec::SmallVec;
 use std::sync::Arc;
@@ -17,6 +17,21 @@ pub fn handle_close_window(
         .received::<CloseWindowServerbound>()
         .for_each_valid(world, |world, (player, _packet)| {
             // TODO: at some point, there should be a more rigorous window ID/window handling system
+
+            // Drop currently picked item when closing window
+            if let Some(picked) = world.try_get::<PickedItem>(player).map(|i| *i) {
+                let stack = picked.0;
+                if world.remove::<PickedItem>(player).is_ok() {
+                    game.handle(
+                        world,
+                        ItemDropEvent {
+                            slot: None,
+                            stack,
+                            player,
+                        },
+                    );
+                }
+            };
 
             let windows_closed: SmallVec<[Entity; 2]> = {
                 let mut window = world.get_mut::<Window>(player);

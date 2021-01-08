@@ -13,6 +13,7 @@ pub use uuid::Uuid;
 
 use ahash::AHashSet;
 use dashmap::DashMap;
+use feather_core::items::ItemStack;
 use feather_core::text::Text;
 use feather_core::util::{ChunkPosition, Position};
 use fecs::Entity;
@@ -23,6 +24,11 @@ use fecs::Entity;
 /// of the inventory.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct HeldItem(pub usize);
+
+/// Stores an item currently picked by
+/// a player's cursor.
+#[derive(Copy, Clone, Debug)]
+pub struct PickedItem(pub ItemStack);
 
 /// An entity's name.
 #[derive(Debug, Clone, Default)]
