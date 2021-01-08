@@ -620,7 +620,7 @@ fn handle_item_drop(
         // Handle drop event in case user clicks outside of the inventory
         if let Some(picked) = world.try_get::<PickedItem>(player).map(|i| *i) {
             let stack = if full_stack {
-                world.get_mut::<PickedItem>(player).0.amount = 0;
+                world.remove::<PickedItem>(player)?;
                 picked.0
             } else {
                 world.get_mut::<PickedItem>(player).0.amount = picked.0.amount - 1;
