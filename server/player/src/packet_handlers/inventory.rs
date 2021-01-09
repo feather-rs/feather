@@ -618,13 +618,13 @@ fn handle_item_drop(
 ) -> anyhow::Result<()> {
     if packet.slot == -999 {
         // Handle drop event in case user clicks outside of the inventory
-        if let Some(picked) = world.try_get::<PickedItem>(player).map(|i| *i) {
+        if let Some(mut picked) = world.try_get_mut::<PickedItem>(player).map(|i| i.0) {
             let stack = if full_stack {
                 world.remove::<PickedItem>(player)?;
-                picked.0
+                picked
             } else {
-                world.get_mut::<PickedItem>(player).0.amount = picked.0.amount - 1;
-                picked.0.of_amount(1)
+                picked.amount -= 1;
+                picked.of_amount(1)
             };
 
             let event = ItemDropEvent {
@@ -654,7 +654,7 @@ fn handle_item_drop(
             drop(accessor);
 
             let drop_event = ItemDropEvent {
-                slot: None,
+                slot: window.convert_network(slot).map(|i| i.into()),
                 stack,
                 player,
             };
