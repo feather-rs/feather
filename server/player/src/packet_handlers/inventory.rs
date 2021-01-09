@@ -13,7 +13,8 @@ use feather_server_types::{
     Game, HeldItem, InventoryUpdateEvent, ItemDropEvent, Network, PacketBuffers,
 };
 use fecs::{Entity, World};
-use smallvec::smallvec;
+use smallvec::{smallvec, ToSmallVec};
+use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::sync::Arc;
 use thiserror::Error;
@@ -620,13 +621,150 @@ fn handle_item_drop(
     Ok(())
 }
 
+/// Stores data from previous paint
+/// packets sent by the client.
+#[derive(Debug, Clone)]
+struct PaintData {
+    pub slots: Vec<usize>,
+    pub paint_type: PaintType,
+}
+#[derive(Debug, Clone, Copy)]
+enum PaintType {
+    // Right click paint
+    Single,
+    // Left click paint
+    Multi,
+}
+
+#[derive(Debug, Error)]
+enum PaintError {
+    #[error("Server didn't receive paint start packet")]
+    NoStart,
+    #[error("No item stack selected")]
+    NothingSelected,
+    #[error("Invalid paint slots")]
+    InvalidPaint,
+}
+
 fn handle_paint(
-    _game: &mut Game,
-    _world: &mut World,
-    _player: Entity,
-    _packet: ClickWindow,
-    _action: PaintAction,
+    game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    packet: ClickWindow,
+    action: PaintAction,
 ) -> anyhow::Result<()> {
-    // TODO
+    match action {
+        PaintAction::Start(MouseButton::Left) => world.add(
+            player,
+            PaintData {
+                slots: Vec::new(),
+                paint_type: PaintType::Multi,
+            },
+        )?,
+        PaintAction::Start(MouseButton::Right) => world.add(
+            player,
+            PaintData {
+                slots: Vec::new(),
+                paint_type: PaintType::Single,
+            },
+        )?,
+        PaintAction::AddSlot => {
+            if let Some(mut paint_data) = world.try_get_mut::<PaintData>(player) {
+                paint_data.slots.push(packet.slot as usize);
+            }
+        }
+        PaintAction::Finish => {
+            let mut leftovers;
+            let inv_updates = {
+                let window = world.get::<Window>(player);
+                let accessor = window.accessor(world)?;
+
+                let (paint_type, paint_vec, paint_len) = match world.try_get::<PaintData>(player) {
+                    Some(paint_data) => (
+                        paint_data.paint_type,
+                        paint_data.slots.clone(),
+                        paint_data.slots.len() as u8,
+                    ),
+                    None => return Err(PaintError::NoStart.into()),
+                };
+
+                let picked = match world.try_get::<PickedItem>(player) {
+                    Some(picked) => picked.0,
+                    None => return Err(PaintError::NothingSelected.into()),
+                };
+
+                let amount;
+
+                match paint_type {
+                    PaintType::Single => {
+                        leftovers = picked.amount - paint_len;
+                        amount = 1;
+                    }
+                    PaintType::Multi => {
+                        leftovers = picked.amount % paint_len;
+                        amount = picked.amount / paint_len;
+                    }
+                }
+
+                let mut update_data: HashMap<Entity, Vec<SlotIndex>> = HashMap::new();
+
+                for slot in paint_vec {
+                    let new_stack;
+                    if let Some(cur_stack) = accessor.item_at(slot)? {
+                        // If selected stack and stacks in the paint area
+                        // are different types, something has gone wrong.
+                        if !cur_stack.eq_ignore_amount(picked) {
+                            return Err(PaintError::InvalidPaint.into());
+                        }
+
+                        // Calculate new amount for the stack
+                        // and add to leftovers if necessary
+                        let stack_size = cur_stack.ty.stack_size() as u8;
+                        let new_amount = cur_stack.amount + amount;
+                        if new_amount > stack_size {
+                            leftovers += new_amount - stack_size;
+                            new_stack = picked.full();
+                        } else {
+                            new_stack = picked.of_amount(new_amount);
+                        }
+                    } else {
+                        new_stack = picked.of_amount(amount);
+                    }
+
+                    // Update the inventory and save the data needed
+                    // for InventoryUpdateEvent
+                    if accessor.set_item_at(slot, new_stack).is_ok() {
+                        let slot_index: SlotIndex = window.convert_network(slot).unwrap().into();
+                        let entity = window.corresponding_entity(slot).unwrap();
+                        if let Some(slots) = update_data.get_mut(&entity) {
+                            slots.push(slot_index);
+                        } else {
+                            update_data.insert(entity, vec![slot_index]);
+                        }
+                    };
+                }
+
+                update_data
+            };
+
+            // Trigger inventory updates for all entities
+            for (entity, vec) in inv_updates {
+                let event = InventoryUpdateEvent {
+                    entity,
+                    slots: vec.to_smallvec(),
+                };
+                game.handle(world, event);
+            }
+
+            // Adjust the amount of items player has selected
+            if leftovers == 0 {
+                world.remove::<PickedItem>(player)?;
+            } else {
+                world.get_mut::<PickedItem>(player).0.amount = leftovers;
+            }
+
+            world.remove::<PaintData>(player)?;
+        }
+    };
     Ok(())
 }

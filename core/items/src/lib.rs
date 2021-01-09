@@ -38,6 +38,10 @@ impl ItemStack {
         s
     }
 
+    pub fn full(self) -> Self {
+        self.of_amount(self.ty.stack_size() as u8)
+    }
+
     pub fn eq_ignore_amount(self, other: Self) -> bool {
         self.of_amount(0) == other.of_amount(0)
     }
