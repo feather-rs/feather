@@ -19,8 +19,7 @@ pub fn handle_close_window(
             // TODO: at some point, there should be a more rigorous window ID/window handling system
 
             // Drop currently picked item when closing window
-            if let Some(picked) = world.try_get::<PickedItem>(player).map(|i| *i) {
-                let stack = picked.0;
+            if let Some(stack) = world.try_get::<PickedItem>(player).map(|i| i.0) {
                 if world.remove::<PickedItem>(player).is_ok() {
                     game.handle(
                         world,
