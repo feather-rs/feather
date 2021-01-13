@@ -130,6 +130,9 @@ impl CommandState {
 
                 pardon,
                 pardonip,
+
+                setworldspawn_currentpos,
+                setworldspawn_specificpos,
         }
 
         Self {

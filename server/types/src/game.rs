@@ -5,7 +5,7 @@ use crate::{
 };
 use ahash::AHashMap;
 use bumpalo::Bump;
-use feather_core::anvil::level::LevelData;
+pub use feather_core::anvil::level::LevelData;
 use feather_core::blocks::BlockId;
 use feather_core::chunk_map::ChunkMap;
 use feather_core::game_rules::GameRules;
