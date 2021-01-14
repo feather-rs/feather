@@ -10,8 +10,8 @@ use feather_core::text::{Text, TextComponentBuilder, TextValue};
 use feather_core::util::{Gamemode, Position};
 use feather_definitions::Item;
 use feather_server_types::{
-    Ban, ChatEvent, ChatPosition, GamemodeUpdateEvent, InventoryUpdateEvent, MessageReceiver, Name,
-    Player, ShutdownChannels, Teleported, WrappedBanInfo,
+    Ban, ChatEvent, ChatPosition, GamemodeUpdateEvent, InventoryUpdateEvent, LevelData,
+    MessageReceiver, Name, Player, ShutdownChannels, Teleported, WrappedBanInfo,
 };
 use feather_server_util::{name_to_uuid_offline, name_to_uuid_online};
 use fecs::{Entity, IntoQuery, Read, ResourcesProvider, World};
@@ -815,4 +815,35 @@ pub fn pardonip(ctx: &mut CommandCtx, ip: String) -> anyhow::Result<()> {
     }
 
     Ok(None)
+}
+
+#[command(usage = "setworldspawn")]
+pub fn setworldspawn_currentpos(ctx: &mut CommandCtx) -> anyhow::Result<()> {
+    let position = ctx.world.get::<Position>(ctx.sender);
+
+    setworldspawn(&mut ctx.game.level, position.as_ref())
+}
+
+#[command(usage = "setworldspawn <location>")]
+pub fn setworldspawn_specificpos(
+    ctx: &mut CommandCtx,
+    location: Coordinates,
+) -> anyhow::Result<()> {
+    let new_pos = ctx
+        .world
+        .try_get::<Position>(ctx.sender)
+        .map(|r| *r)
+        .map(|relative_to| location.into_position(relative_to))
+        .unwrap();
+    setworldspawn(&mut ctx.game.level, &new_pos)
+}
+
+fn setworldspawn(level: &mut LevelData, position: &Position) -> anyhow::Result<Option<String>> {
+    level.spawn_x = position.x as i32;
+    level.spawn_y = position.y as i32;
+    level.spawn_z = position.z as i32;
+    Ok(Some(format!(
+        "Set world spawn to {0}, {1}, {2}",
+        level.spawn_x, level.spawn_y, level.spawn_z
+    )))
 }
