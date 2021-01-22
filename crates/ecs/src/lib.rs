@@ -9,8 +9,6 @@
 //! This wrapper library exists in case we need additional features in the ECS. If necessary,
 //! we can change the backend crate or fork it as needed, without refactoring the rest of the codebase.
 
-/// Use as a type in a query to filter by entities whose component
-/// of type `T` was newly added in the last tick.
 use hecs::{Component, DynamicBundle, Query, World};
 
 #[doc(inline)]
@@ -20,7 +18,10 @@ pub use hecs::{
 };
 
 mod system;
-pub use system::{GroupBuilder, SysResult, SystemExecutor};
+pub use system::{GroupBuilder, HasResources, SysResult, SystemExecutor};
+
+mod event;
+pub use event::{EventBus, HandlerGroupBuilder};
 
 pub use resources::Resources;
 

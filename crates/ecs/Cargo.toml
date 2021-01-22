@@ -9,3 +9,4 @@ hecs = { git = "https://github.com/Ralith/hecs", rev = "4a19785" }
 anyhow = "1"
 log = "0.4"
 resources = "1"
+ahash = "0.6"
