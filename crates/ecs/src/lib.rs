@@ -11,18 +11,18 @@
 
 /// Use as a type in a query to filter by entities whose component
 /// of type `T` was newly added in the last tick.
-use hecs::{Component, DynamicBundle, Query, QueryBorrow, Ref, RefMut, World};
+use hecs::{Component, DynamicBundle, Query, World};
 
-pub use hecs::Added;
-/// Use as a type in a query to filter by entities whose component
-/// of type `T` has been changed since the last tick.
-pub use hecs::Changed;
+#[doc(inline)]
 pub use hecs::{
     BuiltEntity, ComponentError, Entity, EntityBuilder, MissingComponent, NoSuchEntity,
+    QueryBorrow, Ref, RefMut,
 };
 
 mod system;
-pub use system::{Stage, SysResult, SystemExecutor, SystemFn};
+pub use system::{GroupBuilder, SysResult, SystemExecutor};
+
+pub use resources::Resources;
 
 /// Stores entities and their components. This is a wrapper
 /// around `hecs::World` with a slightly changed interface.

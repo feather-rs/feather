@@ -5,6 +5,7 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-hecs = { version = "0.1", package = "bevy_hecs" } # Watch https://github.com/Ralith/hecs/issues/71
+hecs = { git = "https://github.com/Ralith/hecs", rev = "4a19785" }
 anyhow = "1"
 log = "0.4"
+resources = "1"

@@ -1,9 +1,8 @@
 use anyhow::bail;
-use base::{EntityMetadata, Gamemode, ProfileProperty};
+use base::{Gamemode, ProfileProperty};
 
 use super::*;
 use crate::{Readable, Writeable};
-use serde::{Deserialize, Serialize};
 
 // mod chunk_data;
 

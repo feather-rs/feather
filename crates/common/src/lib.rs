@@ -3,12 +3,10 @@
 //! This crate implements most functionality which is generic between
 //! client and server, i.e., which does not involve interaction with the network.
 
-use base::Setup;
 use smartstring::{LazyCompact, SmartString};
 use std::ops::Deref;
 
 pub mod entity;
-pub mod save;
 
 /// Component storing an entity's username. (Usually
 /// only players have this component.)
@@ -23,4 +21,3 @@ impl Deref for Name {
     }
 }
 
-pub fn setup(_setup: &mut Setup) {}

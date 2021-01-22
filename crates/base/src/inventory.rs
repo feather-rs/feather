@@ -1,6 +1,6 @@
 //! Constants representing various standard inventory slot indices
 //! for the `Player` window
-//! Deprecated; mainly for interop with world saves.
+//! Deprecated; mainly exists for interop with world saves.
 
 pub const SLOT_CRAFTING_OUTPUT: usize = 0;
 pub const SLOT_CRAFTING_INPUT_X0_Y0: usize = 1;

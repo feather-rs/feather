@@ -7,9 +7,7 @@ edition = "2018"
 [dependencies]
 blocks = { path = "../blocks", package = "feather-blocks" }
 generated = { path = "../generated", package = "feather-generated" }
-ecs = { path = "../ecs", package = "feather-ecs" }
 
-resources = { version = "1", default-features = false }
 vek = "0.12"
 ahash = "0.4"
 smallvec = "1"
