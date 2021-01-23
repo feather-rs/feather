@@ -3,12 +3,12 @@ use heck::CamelCase;
 use heck::SnakeCase;
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
+use quote::ToTokens;
 use serde::ser::{SerializeSeq, SerializeStruct};
 use serde::{Serialize, Serializer};
 use std::collections::BTreeMap;
 use std::ops::RangeInclusive;
 use std::str::FromStr;
-use syn::export::ToTokens;
 
 mod load;
 

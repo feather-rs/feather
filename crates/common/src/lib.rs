@@ -1,23 +1,10 @@
-//! Gameplay functionality: entities, components, systems, ...
+//! Gameplay functionality: entities, components, systems, game logic, ...
 //!
-//! This crate implements most functionality which is generic between
+//! This crate implements most functionality that is generic between
 //! client and server, i.e., which does not involve interaction with the network.
 
-use smartstring::{LazyCompact, SmartString};
-use std::ops::Deref;
+mod components;
+pub use components::*;
 
-pub mod entity;
-
-/// Component storing an entity's username. (Usually
-/// only players have this component.)
-#[derive(Debug, PartialEq, Eq)]
-pub struct Name(pub SmartString<LazyCompact>);
-
-impl Deref for Name {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
+mod game;
+pub use game::Game;

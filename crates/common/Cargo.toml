@@ -10,3 +10,4 @@ ecs = { path = "../ecs", package = "feather-ecs" }
 utils = { path = "../utils", package = "feather-utils" }
 
 smartstring = "0.2"
+uuid = "0.8"

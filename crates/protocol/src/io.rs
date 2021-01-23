@@ -36,6 +36,15 @@ pub trait Writeable: Sized {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion);
 }
 
+impl<'a, T> Writeable for &'a T
+where
+    T: Writeable,
+{
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+        T::write(*self, buffer, version);
+    }
+}
+
 /// Error when reading a value.
 #[derive(Debug, Error)]
 pub enum Error {

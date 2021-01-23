@@ -18,6 +18,7 @@ pub type CryptKey = [u8; 16];
 pub struct MinecraftCodec {
     /// If encryption is enabled, then this is the cryptor state.
     cryptor: Option<AesCfb8>,
+    crypt_key: Option<CryptKey>,
     /// If compression is enabled, then this is the compression threshold.
     compression: Option<CompressionThreshold>,
 
@@ -36,11 +37,26 @@ impl MinecraftCodec {
     pub fn enable_encryption(&mut self, key: CryptKey) {
         // yes, Mojang uses the same nonce for each packet. don't ask me why.
         self.cryptor = Some(AesCfb8::new_var(&key, &key).expect("key size is invalid"));
+        self.crypt_key = Some(key);
     }
 
     /// Enables compression with the provided compression threshold.
     pub fn enable_compression(&mut self, threshold: CompressionThreshold) {
         self.compression = Some(threshold);
+    }
+
+    /// Gets another `MinecraftCodec` with the same compression and encryption
+    /// parameters.
+    pub fn clone_with_settings(&self) -> MinecraftCodec {
+        MinecraftCodec {
+            cryptor: self
+                .crypt_key
+                .map(|key| AesCfb8::new_var(&key, &key).expect("key size is invalid")),
+            crypt_key: self.crypt_key,
+            compression: self.compression.clone(),
+            received_buf: BytesMut::new(),
+            staging_buf: Vec::new(),
+        }
     }
 
     /// Writes a packet into the provided writer.
@@ -72,20 +88,23 @@ impl MinecraftCodec {
         output.extend_from_slice(&self.staging_buf);
     }
 
-    /// Receives some bytes. Returns a packet that was received, if any.
-    pub fn decode<T>(&mut self, bytes: &[u8]) -> anyhow::Result<Option<T>>
-    where
-        T: Readable,
-    {
+    /// Accepts newly received bytes.
+    pub fn accept(&mut self, bytes: &[u8]) {
         let start_index = self.received_buf.len();
-        self.received_buf.extend_from_slice(bytes);
+        self.received_buf.extend(bytes);
 
         if let Some(cryptor) = &mut self.cryptor {
             // Decrypt the new data (but not the whole received buffer,
             // since old data was already decrypted)
             cryptor.decrypt(&mut self.received_buf[start_index..]);
         }
+    }
 
+    /// Gets the next packet that was received, if any.
+    pub fn next_packet<T>(&mut self) -> anyhow::Result<Option<T>>
+    where
+        T: Readable,
+    {
         let mut cursor = Cursor::new(&self.received_buf[..]);
         let packet = if let Ok(length) = VarInt::read(&mut cursor, ProtocolVersion::V1_16_2) {
             let length_field_length = cursor.position() as usize;

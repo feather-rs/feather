@@ -58,22 +58,23 @@ impl ClientPacketCodec {
 
     /// Decodes a `ClientPacket` using the provided data.
     pub fn decode(&mut self, data: &[u8]) -> anyhow::Result<Option<ClientPacket>> {
+        self.codec.accept(data);
         match self.state {
             ProtocolState::Handshake => self
                 .codec
-                .decode::<ClientHandshakePacket>(data)
+                .next_packet::<ClientHandshakePacket>()
                 .map(|opt| opt.map(ClientPacket::from)),
             ProtocolState::Status => self
                 .codec
-                .decode::<ClientStatusPacket>(data)
+                .next_packet::<ClientStatusPacket>()
                 .map(|opt| opt.map(ClientPacket::from)),
             ProtocolState::Login => self
                 .codec
-                .decode::<ClientLoginPacket>(data)
+                .next_packet::<ClientLoginPacket>()
                 .map(|opt| opt.map(ClientPacket::from)),
             ProtocolState::Play => self
                 .codec
-                .decode::<ClientPlayPacket>(data)
+                .next_packet::<ClientPlayPacket>()
                 .map(|opt| opt.map(ClientPacket::from)),
         }
     }
@@ -109,19 +110,20 @@ impl ServerPacketCodec {
 
     /// Decodes a `ServerPacket` using the provided data.
     pub fn decode(&mut self, data: &[u8]) -> anyhow::Result<Option<ServerPacket>> {
+        self.codec.accept(data);
         match self.state {
             ProtocolState::Handshake => Err(anyhow!("server sent data during handshake state")),
             ProtocolState::Status => self
                 .codec
-                .decode::<ServerStatusPacket>(data)
+                .next_packet::<ServerStatusPacket>()
                 .map(|opt| opt.map(ServerPacket::from)),
             ProtocolState::Login => self
                 .codec
-                .decode::<ServerLoginPacket>(data)
+                .next_packet::<ServerLoginPacket>()
                 .map(|opt| opt.map(ServerPacket::from)),
             ProtocolState::Play => self
                 .codec
-                .decode::<ServerPlayPacket>(data)
+                .next_packet::<ServerPlayPacket>()
                 .map(|opt| opt.map(ServerPacket::from)),
         }
     }

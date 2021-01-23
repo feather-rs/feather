@@ -30,6 +30,9 @@ pub const TPS: u32 = 20;
 /// The number of milliseconds per tick.
 pub const TICK_MILLIS: u32 = 1000 / TPS;
 
+/// Default port for Minecraft servers.
+pub const DEFAULT_PORT: u16 = 25565;
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, FromPrimitive, ToPrimitive)]
 pub enum Direction {
     North,

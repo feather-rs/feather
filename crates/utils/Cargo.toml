@@ -5,11 +5,6 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-async-executor = "1"
-event-listener = "2"
-futures-lite = "1"
-async-io = "1"
-log = "0.4"
 
 [dev-dependencies]
 simple_logger = "1"
