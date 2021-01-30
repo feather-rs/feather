@@ -839,7 +839,7 @@ pub fn time_query(ctx: &mut CommandCtx, info: TimeQueryInformation) -> anyhow::R
 
 #[command(usage = "time add <time>")]
 pub fn time_add(ctx: &mut CommandCtx, time: TimeArgument) -> anyhow::Result<()> {
-    time_set(ctx, ctx.game.time.0 + time.0)
+    time_set(ctx, ctx.game.time.time_of_day() + time.0)
 }
 
 #[command(usage = "time set <time>")]

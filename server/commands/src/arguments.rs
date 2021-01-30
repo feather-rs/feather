@@ -508,7 +508,7 @@ pub enum TimeSpecParseError {
     InvalidTimeSpec(String),
 }
 
-/// A parsed gamemode string ("survival", "creative", ...)
+/// A parsed TimeSpec
 #[derive(Copy, Clone, Debug)]
 pub enum TimeSpec {
     Day,
