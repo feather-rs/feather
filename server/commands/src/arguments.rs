@@ -483,18 +483,19 @@ impl ArgumentKind<CommandCtx> for TimeArgument {
             // Get and parse the number part up to the unit character
             let val = it
                 .clone()
-                .take_while(|&c| char::is_numeric(c))
+                // allow . to be able to type decimal
+                .take_while(|&c| c == '.' || char::is_numeric(c))
                 .collect::<String>()
-                .parse::<u64>();
+                .parse::<f32>();
             // Skips the number part and gets the unit character or default to 't'
-            let unit = it.clone().find(|&c| !char::is_numeric(c)).unwrap_or('t');
+            let unit = it.clone().find(|&c| c != '.' && !char::is_numeric(c)).unwrap_or('t');
             (val, unit)
         };
         match value {
-            Ok(integer) => match unit {
-                'd' => Ok(TimeArgument(integer * 24_000)),
-                's' => Ok(TimeArgument(integer * 20)),
-                't' => Ok(TimeArgument(integer)),
+            Ok(num) => match unit {
+                'd' => Ok(TimeArgument((num * 24_000.0) as u64)),
+                's' => Ok(TimeArgument((num * 20.0) as u64)),
+                't' => Ok(TimeArgument(num as u64)),
                 _ => Err(TimeArgumentError::InvalidUnit(unit)),
             },
             Err(_) => Err(TimeArgumentError::Invalid(text.to_owned())),
