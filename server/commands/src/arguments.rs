@@ -488,7 +488,10 @@ impl ArgumentKind<CommandCtx> for TimeArgument {
                 .collect::<String>()
                 .parse::<f32>();
             // Skips the number part and gets the unit character or default to 't'
-            let unit = it.clone().find(|&c| c != '.' && !char::is_numeric(c)).unwrap_or('t');
+            let unit = it
+                .clone()
+                .find(|&c| c != '.' && !char::is_numeric(c))
+                .unwrap_or('t');
             (val, unit)
         };
         match value {
