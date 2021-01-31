@@ -4,7 +4,10 @@ use base::{Chunk, ChunkPosition, Gamemode, Position};
 use flume::{Receiver, Sender};
 use parking_lot::RwLock;
 use protocol::{
-    packets::server::{JoinGame, PlayerPositionAndLook, PluginMessage, UnloadChunk},
+    packets::server::{
+        ChunkData, JoinGame, PlayerPositionAndLook, PluginMessage, UnloadChunk, UpdateLight,
+        UpdateViewPosition,
+    },
     ClientPlayPacket, Nbt, ServerPlayPacket,
 };
 use vec_arena::Arena;
@@ -47,6 +50,7 @@ pub struct Client {
     packets_to_send: Sender<ServerPlayPacket>,
     received_packets: Receiver<ClientPlayPacket>,
     options: Arc<Options>,
+    username: String,
 
     teleport_id_counter: Cell<i32>,
 }
@@ -57,11 +61,13 @@ impl Client {
             packets_to_send: player.packets_to_send,
             received_packets: player.received_packets,
             options,
+            username: player.username,
             teleport_id_counter: Cell::new(0),
         }
     }
 
     pub fn send_join_game(&self, entity_id: i32, gamemode: Gamemode) {
+        log::trace!("Sending Join Game to {}", self.username);
         // Use the dimension codec sent by the default vanilla server. (Data acquired via tools/proxy)
         let dimension_codec = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
             "../../../assets/dimension_codec.nbt"
@@ -96,13 +102,20 @@ impl Client {
     }
 
     pub fn send_plugin_message(&self, channel: impl Into<String>, data: impl Into<Vec<u8>>) {
+        let channel = channel.into();
+        log::trace!("Sending plugin message {} to {}", channel, self.username);
         self.send_packet(PluginMessage {
-            channel: channel.into(),
+            channel,
             data: data.into(),
         })
     }
 
     pub fn update_own_position(&self, new_position: Position) {
+        log::trace!(
+            "Updating position of {} to {:?}",
+            self.username,
+            new_position
+        );
         self.send_packet(PlayerPositionAndLook {
             x: new_position.x,
             y: new_position.y,
@@ -116,11 +129,30 @@ impl Client {
             .set(self.teleport_id_counter.get() + 1);
     }
 
+    pub fn uupdate_own_chunk(&self, pos: ChunkPosition) {
+        log::trace!("Updating chunk position of {} to {:?}", self.username, pos);
+        self.send_packet(UpdateViewPosition {
+            chunk_x: pos.x,
+            chunk_z: pos.z,
+        });
+    }
+
     pub fn send_chunk(&self, chunk: &Arc<RwLock<Chunk>>) {
-        todo!();
+        log::trace!(
+            "Sending chunk at {:?} to {}",
+            chunk.read().position(),
+            self.username
+        );
+        /*self.send_packet(UpdateLight {
+            chunk: Arc::clone(chunk),
+        });*/
+        self.send_packet(ChunkData {
+            chunk: Arc::clone(chunk),
+        });
     }
 
     pub fn unload_chunk(&self, pos: ChunkPosition) {
+        log::trace!("Unloading chunk at {:?} on {}", pos, self.username);
         self.send_packet(UnloadChunk {
             chunk_x: pos.x,
             chunk_z: pos.z,

@@ -30,7 +30,7 @@ impl Default for Options {
             bind_address: "0.0.0.0".to_owned(),
             favicon: None,
             motd: "A Feather server".to_owned(),
-            online_mode: true,
+            online_mode: false,
             view_distance: 8,
         }
     }

@@ -70,16 +70,16 @@ impl Worker {
     async fn run(mut self) {
         let result = crate::initial_handler::handle(&mut self).await;
         match result {
-            Ok(result) => self.proceed(result),
+            Ok(result) => self.proceed(result).await,
             Err(e) => log::debug!("Initial handling failed: {:?}", e),
         }
     }
 
-    fn proceed(self, result: InitialHandling) {
+    async fn proceed(self, result: InitialHandling) {
         match result {
             InitialHandling::Disconnect => (),
             InitialHandling::Join(new_player) => {
-                let _ = self.new_players.send_async(new_player);
+                let _ = self.new_players.send_async(new_player).await;
                 self.split();
             }
         }

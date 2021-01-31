@@ -51,7 +51,7 @@ impl Game {
     /// Panics if any resources are currently borrowed.
     pub fn insert_resource<T>(&mut self, resource: T)
     where
-        T: Send + Sync + 'static,
+        T: 'static,
     {
         Arc::get_mut(&mut self.resources)
             .expect("attempted to insert into resources while resources are borrowed")

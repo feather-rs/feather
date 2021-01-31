@@ -2,7 +2,7 @@
 
 use std::{any::type_name, marker::PhantomData, sync::Arc};
 
-use resources::Resources;
+use crate::Resources;
 
 /// The result type returned by a system function.
 ///
@@ -118,7 +118,7 @@ pub struct GroupBuilder<'a, Input, State> {
 impl<'a, Input, State> GroupBuilder<'a, Input, State>
 where
     Input: HasResources + 'static,
-    State: Send + Sync + 'static,
+    State: 'static,
 {
     /// Adds a system to the group.
     pub fn add_system(

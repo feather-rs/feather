@@ -11,7 +11,7 @@ use crate::{io::VarInt, Nbt, ProtocolVersion, Readable, Writeable};
 struct Heightmaps {
     #[serde(rename = "MOTION_BLOCKING")]
     #[serde(serialize_with = "nbt::i64_array")]
-    motion_blocking: [i64; 36],
+    motion_blocking: [i64; 37],
 }
 
 /// Packet to load a chunk on the client.
@@ -71,14 +71,14 @@ impl Writeable for ChunkData {
 }
 
 fn build_heightmaps(chunk: &Chunk) -> Heightmaps {
-    let mut motion_blocking = [0; 36];
+    let mut motion_blocking = [0; 37];
     let chunk_motion_blocking = chunk.heightmaps().motion_blocking.as_u64_slice();
     motion_blocking.copy_from_slice(bytemuck::cast_slice::<_, i64>(chunk_motion_blocking));
     Heightmaps { motion_blocking }
 }
 
 fn encode_section(section: &ChunkSection, buffer: &mut Vec<u8>, version: ProtocolVersion) {
-    (section.air_blocks() as u16).write(buffer, version);
+    (section.non_air_blocks() as u16).write(buffer, version);
     (section.blocks().data().bits_per_value() as u8).write(buffer, version);
 
     if let Some(palette) = section.blocks().palette() {

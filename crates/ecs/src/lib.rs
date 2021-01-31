@@ -23,7 +23,8 @@ pub use system::{GroupBuilder, HasResources, SysResult, SystemExecutor};
 mod event;
 pub use event::{EventBus, HandlerGroupBuilder};
 
-pub use resources::Resources;
+mod resources;
+pub use resources::{ResourceError, Resources};
 
 /// Stores entities and their components. This is a wrapper
 /// around `hecs::World` with a slightly changed interface.

@@ -7,6 +7,9 @@ use crate::{Readable, Writeable};
 mod chunk_data;
 pub use chunk_data::ChunkData;
 
+mod update_light;
+pub use update_light::UpdateLight;
+
 packets! {
     SpawnEntity {
         entity_id VarInt;
@@ -360,10 +363,6 @@ packets! {
         particle_data f32;
         particle_count i32;
         // TODO: remaining data varies depending on the particle
-        __todo__ LengthInferredVecU8;
-    }
-
-    UpdateLight {
         __todo__ LengthInferredVecU8;
     }
 }
