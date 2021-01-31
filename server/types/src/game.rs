@@ -271,26 +271,15 @@ impl Game {
             return;
         }
 
-        let (should_kill, old_health, new_health) =
-            if let Some(mut health) = world.try_get_mut::<Health>(entity) {
-                let old_health = health.0;
-                let should_kill = match health.0.checked_sub(damage) {
-                    Some(0) => true,
-                    None => {
-                        // below 0
-                        health.0 = 0;
-                        true
-                    }
-                    Some(new_health) => {
-                        health.0 = new_health;
-                        false
-                    }
-                };
-                let new_health = health.0;
-                (should_kill, Some(old_health), new_health)
-            } else {
-                (false, None, 0)
-            };
+        let (old_health, new_health) = if let Some(mut health) = world.try_get_mut::<Health>(entity)
+        {
+            let old_health = health.0;
+            let new_health = health.0.saturating_sub(damage);
+            health.0 = new_health;
+            (Some(old_health), new_health)
+        } else {
+            (None, 0)
+        };
 
         if let Some(old_health) = old_health {
             self.handle(
@@ -301,10 +290,10 @@ impl Game {
                     entity,
                 },
             );
-        }
 
-        if should_kill {
-            self.kill(entity, world);
+            if new_health == 0 {
+                self.kill(entity, world);
+            }
         }
     }
 
