@@ -54,6 +54,7 @@ impl World {
         let (x, y, z) = chunk_relative_pos(pos);
         self.chunk_at(pos.into())
             .map(|chunk| chunk.block_at(x, y, z))
+            .flatten()
     }
 
     /// Sets the block at the given position.
@@ -79,13 +80,13 @@ impl World {
     }
 
     /// Inserts a new chunk into the chunk map.
-    pub fn insert(&mut self, chunk: Chunk) {
+    pub fn insert_chunk(&mut self, chunk: Chunk) {
         self.0
             .insert(chunk.position(), Arc::new(RwLock::new(chunk)));
     }
 
     /// Removes the chunk at the given position, returning `true` if it existed.
-    pub fn remove(&mut self, pos: ChunkPosition) -> bool {
+    pub fn remove_chunk(&mut self, pos: ChunkPosition) -> bool {
         self.0.remove(&pos).is_some()
     }
 }
@@ -112,10 +113,10 @@ mod tests {
 
     #[test]
     fn world_out_of_bounds() {
-        let mut map = World::new();
-        map.insert(Chunk::new(ChunkPosition::new(0, 0)));
+        let mut world = World::new();
+        world.insert_chunk(Chunk::new(ChunkPosition::new(0, 0)));
 
-        assert!(map.block_at(BlockPosition::new(0, -1, 0)).is_none());
-        assert!(map.block_at(BlockPosition::new(0, 0, 0)).is_some());
+        assert!(world.block_at(BlockPosition::new(0, -1, 0)).is_none());
+        assert!(world.block_at(BlockPosition::new(0, 0, 0)).is_some());
     }
 }

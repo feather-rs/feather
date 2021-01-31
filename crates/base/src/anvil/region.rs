@@ -1,7 +1,10 @@
 //! This module implements the loading and saving
 //! of Anvil region files.
 
-use crate::{chunk::BitArray, Chunk, ChunkPosition, ChunkSection};
+use crate::{
+    chunk::{BlockStore, LightStore, PackedArray, Palette},
+    Chunk, ChunkPosition, ChunkSection,
+};
 
 use super::{block_entity::BlockEntityData, entity::EntityData, serialization_helper::packed_u9};
 use bitvec::{bitvec, vec::BitVec};
@@ -255,16 +258,13 @@ impl RegionHandle {
         if level.biomes.len() != 256 {
             return Err(Error::IndexOutOfBounds);
         }
-        for index in 0..256 {
+        for index in 0..1024 {
             let id = level.biomes[index];
-            chunk.biomes_mut()[index] =
+            chunk.biomes_mut().as_slice_mut()[index] =
                 Biome::from_id(id as u32).ok_or_else(|| Error::InvalidBiomeId(id))?;
         }
 
-        // Chunk was not modified, but it thinks it was: disable this
-        chunk.check_modified();
-
-        chunk.recalculate_heightmap();
+        // chunk.recalculate_heightmap();
 
         Ok((chunk, level.entities.clone(), level.block_entities.clone()))
     }
@@ -343,7 +343,7 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     let data = &section.states;
 
     // Create palette
-    let mut palette = vec![];
+    let mut palette = Palette::new();
     for entry in &section.palette {
         // Construct properties map
         let mut props = BTreeMap::new();
@@ -359,16 +359,12 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
         // Attempt to get block from the given values
         let block = BlockId::from_identifier_and_properties(&entry.name, &props)
             .ok_or_else(|| Error::InvalidBlock(entry.name.deref().to_owned()))?;
-        palette.push(block);
+        palette.index_or_insert(block);
     }
 
     // Create section
     // TODO don't clone data - need way around this
-    let data = BitArray::from_raw(
-        data.iter().map(|x| *x as u64).collect(),
-        ((data.len() as f32 * 64.0) / 4096.0).ceil() as u8,
-        4096,
-    );
+    let data = PackedArray::from_u64_vec(data.iter().map(|x| *x as u64).collect(), 4096);
 
     // Light
     // convert raw lighting data (4bits / block) into a BitArray
@@ -390,7 +386,7 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
                 u64::from_le_bytes(chunk)
             })
             .collect();
-        BitArray::from_raw(data, 4, 4096)
+        PackedArray::from_u64_vec(data, 4096)
     };
 
     if section.block_light.len() != 2048 || section.sky_light.len() != 2048 {
@@ -400,10 +396,13 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     let block_light = convert_light_data(&section.block_light);
     let sky_light = convert_light_data(&section.sky_light);
 
-    let chunk_section = ChunkSection::new(data, Some(palette), block_light, sky_light);
+    let light = LightStore::from_packed_arrays(block_light, sky_light)
+        .ok_or_else(|| Error::IndexOutOfBounds)?;
+    let blocks = BlockStore::from_raw_parts(Some(palette), data);
+
+    let chunk_section = ChunkSection::new(blocks, light);
 
     if section.y >= 16 {
-        // Haha... nope.
         return Err(Error::IndexOutOfBounds);
     }
 
@@ -428,46 +427,40 @@ fn chunk_to_chunk_root(
                 .sections()
                 .iter()
                 .enumerate()
-                .filter_map(|(y, sec)| sec.map(|sec| (y, sec.clone())))
+                .filter_map(|(y, sec)| sec.as_ref().map(|sec| (y, sec.clone())))
                 .map(|(y, mut section)| {
                     let palette = convert_palette(&mut section);
                     LevelSection {
                         y: y as i8,
-                        states: section.data().inner().iter().map(|x| *x as i64).collect(),
+                        states: section
+                            .blocks()
+                            .data()
+                            .as_u64_slice()
+                            .iter()
+                            .map(|x| *x as i64)
+                            .collect(),
                         palette,
-                        block_light: slice_u64_to_i8(section.block_light().inner()).to_vec(),
-                        sky_light: slice_u64_to_i8(section.sky_light().inner()).to_vec(),
+                        block_light: slice_u64_to_i8(section.light().block_light().as_u64_slice())
+                            .to_vec(),
+                        sky_light: slice_u64_to_i8(section.light().sky_light().as_u64_slice())
+                            .to_vec(),
                     }
                 })
                 .collect(),
             biomes: chunk
                 .biomes()
+                .as_slice()
                 .iter()
                 .map(|biome| biome.id() as i32)
                 .collect(),
             entities: entities.into(),
+            // TODO[1.16]: add back heightmaps
             heightmaps: Heightmaps {
-                light_blocking: chunk
-                    .heightmaps()
-                    .iter()
-                    .map(|h| h.light_blocking())
-                    .collect(),
-                motion_blocking: chunk
-                    .heightmaps()
-                    .iter()
-                    .map(|h| h.motion_blocking())
-                    .collect(),
-                motion_blocking_no_leaves: chunk
-                    .heightmaps()
-                    .iter()
-                    .map(|h| h.motion_blocking_no_leaves())
-                    .collect(),
-                ocean_floor: chunk.heightmaps().iter().map(|h| h.ocean_floor()).collect(),
-                world_surface: chunk
-                    .heightmaps()
-                    .iter()
-                    .map(|h| h.world_surface())
-                    .collect(),
+                light_blocking: vec![0; 256],
+                motion_blocking: vec![0; 256],
+                motion_blocking_no_leaves: vec![0; 256],
+                ocean_floor: vec![0; 256],
+                world_surface: vec![0; 256],
             },
             awaiting_block_updates: vec![vec![]; 16], // TODO
             awaiting_liquid_updates: vec![vec![]; 16], // TODO
@@ -481,8 +474,7 @@ fn chunk_to_chunk_root(
 }
 
 fn convert_palette(section: &mut ChunkSection) -> Vec<LevelPaletteEntry> {
-    section.convert_palette_to_section();
-    raw_palette_to_palette_entries(section.palette().unwrap())
+    raw_palette_to_palette_entries(section.blocks().palette().unwrap().as_slice())
 }
 
 fn raw_palette_to_palette_entries(palette: &[BlockId]) -> Vec<LevelPaletteEntry> {
