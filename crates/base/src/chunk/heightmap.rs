@@ -132,6 +132,10 @@ where
         self.heights.get(index).map(|x| x as usize)
     }
 
+    pub fn as_u64_slice(&self) -> &[u64] {
+        self.heights.as_u64_slice()
+    }
+
     fn index(&self, x: usize, z: usize) -> usize {
         (z << 4) | x
     }

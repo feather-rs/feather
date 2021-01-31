@@ -4,7 +4,8 @@ use base::{Gamemode, ProfileProperty};
 use super::*;
 use crate::{Readable, Writeable};
 
-// mod chunk_data;
+mod chunk_data;
+pub use chunk_data::ChunkData;
 
 packets! {
     SpawnEntity {
@@ -338,10 +339,6 @@ packets! {
 
     KeepAlive {
         id i64;
-    }
-
-    ChunkData {
-        __todo__ LengthInferredVecU8;
     }
 
     Effect {

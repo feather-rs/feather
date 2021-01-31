@@ -43,7 +43,12 @@ impl Listener {
     }
 
     async fn accept(&mut self, stream: TcpStream, addr: SocketAddr) {
-        let worker = Worker::new(stream, addr, Arc::clone(&self.options), self.new_players.clone());
+        let worker = Worker::new(
+            stream,
+            addr,
+            Arc::clone(&self.options),
+            self.new_players.clone(),
+        );
         worker.start();
     }
 }
