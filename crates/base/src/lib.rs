@@ -5,6 +5,8 @@
 //! * The chunk data structure
 //! * The chunk map (`World`)
 
+use std::time::Duration;
+
 use num_derive::{FromPrimitive, ToPrimitive};
 use serde::{Deserialize, Serialize};
 
@@ -29,6 +31,8 @@ pub use world::World;
 pub const TPS: u32 = 20;
 /// The number of milliseconds per tick.
 pub const TICK_MILLIS: u32 = 1000 / TPS;
+/// The duration of a tick.
+pub const TICK_DURATION: Duration = Duration::from_millis(TICK_MILLIS as u64);
 
 /// Default port for Minecraft servers.
 pub const DEFAULT_PORT: u16 = 25565;

@@ -1,23 +1,32 @@
 use std::{net::SocketAddr, sync::Arc};
 
 use anyhow::Context;
+use flume::Sender;
 use tokio::net::{TcpListener, TcpStream};
 
-use crate::{connection_worker::Worker, options::Options};
+use crate::{connection_worker::Worker, initial_handler::NewPlayer, options::Options};
 
 /// Listens for and accepts incoming connections.
 pub struct Listener {
     listener: TcpListener,
     options: Arc<Options>,
+    new_players: Sender<NewPlayer>,
 }
 
 impl Listener {
-    pub async fn start(options: Arc<Options>) -> anyhow::Result<()> {
+    pub async fn start(
+        options: Arc<Options>,
+        new_players: Sender<NewPlayer>,
+    ) -> anyhow::Result<()> {
         let listener = TcpListener::bind(format!("{}:{}", options.bind_address, options.port))
             .await
             .context("failed to bind to port - maybe a server is already running?")?;
 
-        let listener = Listener { listener, options };
+        let listener = Listener {
+            listener,
+            options,
+            new_players,
+        };
         tokio::task::spawn(async move {
             listener.run().await;
         });
@@ -34,7 +43,7 @@ impl Listener {
     }
 
     async fn accept(&mut self, stream: TcpStream, addr: SocketAddr) {
-        let worker = Worker::new(stream, addr, Arc::clone(&self.options));
+        let worker = Worker::new(stream, addr, Arc::clone(&self.options), self.new_players.clone());
         worker.start();
     }
 }

@@ -1,3 +1,4 @@
+use common::{Game, TickLoop};
 use feather_server::{Options, Server};
 use simple_logger::SimpleLogger;
 
@@ -7,8 +8,13 @@ async fn main() -> anyhow::Result<()> {
         .with_level(log::LevelFilter::Debug)
         .init()
         .unwrap();
-    Server::bind(Options::default()).await?;
 
-    std::thread::sleep(std::time::Duration::from_secs(1000));
+    let server = Server::bind(Options::default()).await?;
+    let game = Game::new();
+
+    let tick_loop = TickLoop::new(move || false);
+
+    tick_loop.run();
+
     Ok(())
 }

@@ -17,6 +17,10 @@ pub struct Options {
 
     /// Whether the server should authenticate players.
     pub online_mode: bool,
+
+    /// The maximum view distance, which determines
+    /// how far players can see.
+    pub view_distance: u32,
 }
 
 impl Default for Options {
@@ -27,6 +31,7 @@ impl Default for Options {
             favicon: None,
             motd: "A Feather server".to_owned(),
             online_mode: true,
+            view_distance: 8,
         }
     }
 }

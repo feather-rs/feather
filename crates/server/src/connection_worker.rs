@@ -15,7 +15,10 @@ use tokio::{
     time::timeout,
 };
 
-use crate::{initial_handler::InitialHandling, options::Options};
+use crate::{
+    initial_handler::{InitialHandling, NewPlayer},
+    options::Options,
+};
 
 /// Tokio task which handles a connection and processes
 /// packets.
@@ -31,10 +34,16 @@ pub struct Worker {
     options: Arc<Options>,
     packets_to_send_tx: Sender<ServerPlayPacket>,
     received_packets_rx: Receiver<ClientPlayPacket>,
+    new_players: Sender<NewPlayer>,
 }
 
 impl Worker {
-    pub fn new(stream: TcpStream, _addr: SocketAddr, options: Arc<Options>) -> Self {
+    pub fn new(
+        stream: TcpStream,
+        _addr: SocketAddr,
+        options: Arc<Options>,
+        new_players: Sender<NewPlayer>,
+    ) -> Self {
         let (reader, writer) = stream.into_split();
 
         let (received_packets_tx, received_packets_rx) = flume::bounded(32);
@@ -48,10 +57,11 @@ impl Worker {
             options,
             packets_to_send_tx,
             received_packets_rx,
+            new_players,
         }
     }
 
-    pub fn start(mut self) {
+    pub fn start(self) {
         tokio::task::spawn(async move {
             self.run().await;
         });
@@ -68,7 +78,10 @@ impl Worker {
     fn proceed(self, result: InitialHandling) {
         match result {
             InitialHandling::Disconnect => (),
-            InitialHandling::Join(new_player) => self.split(),
+            InitialHandling::Join(new_player) => {
+                let _ = self.new_players.send_async(new_player);
+                self.split();
+            }
         }
     }
 
@@ -105,6 +118,14 @@ impl Worker {
                 log::error!("Connection lost: {:?}", e);
             }
         });
+    }
+
+    pub fn packets_to_send(&self) -> Sender<ServerPlayPacket> {
+        self.packets_to_send_tx.clone()
+    }
+
+    pub fn received_packets(&self) -> Receiver<ClientPlayPacket> {
+        self.received_packets_rx.clone()
     }
 }
 

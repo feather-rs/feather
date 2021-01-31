@@ -4,6 +4,7 @@ use crate::{connection_worker::Worker, favicon::Favicon};
 use anyhow::bail;
 use base::{ProfileProperty, Text};
 use common::Uuid;
+use flume::{Receiver, Sender};
 use md5::Digest;
 use num_bigint::BigInt;
 use once_cell::sync::Lazy;
@@ -13,8 +14,8 @@ use protocol::{
         client::{HandshakeState, Ping},
         server::{EncryptionRequest, LoginSuccess, Pong, Response},
     },
-    ClientHandshakePacket, ClientLoginPacket, ClientStatusPacket, ServerLoginPacket,
-    ServerStatusPacket,
+    ClientHandshakePacket, ClientLoginPacket, ClientPlayPacket, ClientStatusPacket,
+    ServerLoginPacket, ServerPlayPacket, ServerStatusPacket,
 };
 use rand::rngs::OsRng;
 use rsa::{PaddingScheme, PublicKeyParts, RSAPrivateKey};
@@ -31,6 +32,9 @@ pub struct NewPlayer {
     pub uuid: Uuid,
     pub username: String,
     pub profile: Vec<ProfileProperty>,
+
+    pub received_packets: Receiver<ClientPlayPacket>,
+    pub packets_to_send: Sender<ServerPlayPacket>,
 }
 
 /// Result of initial handling.
@@ -259,6 +263,8 @@ async fn finish_login(
         username: response.name.into(),
         uuid: response.id,
         profile: response.properties,
+        received_packets: worker.received_packets(),
+        packets_to_send: worker.packets_to_send(),
     };
     log::debug!("Completed initial handling for {}", new_player.username);
     Ok(InitialHandling::Join(new_player))

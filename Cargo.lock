@@ -535,6 +535,7 @@ dependencies = [
  "feather-base",
  "feather-ecs",
  "feather-utils",
+ "log",
  "smartstring",
  "uuid",
 ]
@@ -608,10 +609,12 @@ dependencies = [
  "feather-utils",
  "flume",
  "futures-lite",
+ "hematite-nbt",
  "log",
  "md-5",
  "num-bigint 0.3.1",
  "once_cell",
+ "parking_lot",
  "rand",
  "rsa",
  "rsa-der",
@@ -622,6 +625,7 @@ dependencies = [
  "tokio",
  "ureq 2.0.1",
  "uuid",
+ "vec-arena",
 ]
 
 [[package]]

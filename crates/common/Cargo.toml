@@ -11,3 +11,4 @@ utils = { path = "../utils", package = "feather-utils" }
 
 smartstring = "0.2"
 uuid = "0.8"
+log = "0.4"
