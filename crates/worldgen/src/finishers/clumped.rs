@@ -41,7 +41,7 @@ impl FinishingGenerator for ClumpedFoliageFinisher {
                             let pos_x = cmp::max(0, cmp::min(x as i32 + offset_x, 15)) as usize;
                             let pos_z = cmp::max(0, cmp::min(z as i32 + offset_z, 15)) as usize;
 
-                            if chunk.biome_at(pos_x, pos_z) != biome {
+                            if chunk.biomes().get(pos_x, 0, pos_z) != biome {
                                 return; // Don't generate block outside this biome
                             }
 

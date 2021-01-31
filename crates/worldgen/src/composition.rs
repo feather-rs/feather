@@ -179,21 +179,21 @@ mod tests {
         basic_composition_for_column(x, z, &mut chunk, &density[..], 435, Biome::Plains);
 
         for y in 4..=28 {
-            assert_eq!(chunk.block_at(x, y, z), BlockId::stone());
+            assert_eq!(chunk.block_at(x, y, z).unwrap(), BlockId::stone());
         }
 
         for y in 29..=31 {
-            assert_eq!(chunk.block_at(x, y, z), BlockId::dirt());
+            assert_eq!(chunk.block_at(x, y, z).unwrap(), BlockId::dirt());
         }
 
         for y in 33..40 {
-            assert_eq!(chunk.block_at(x, y, z), BlockId::air());
+            assert_eq!(chunk.block_at(x, y, z).unwrap(), BlockId::air());
         }
 
         for y in 40..=60 {
-            assert_eq!(chunk.block_at(x, y, z), BlockId::stone());
+            assert_eq!(chunk.block_at(x, y, z).unwrap(), BlockId::stone());
         }
 
-        assert_eq!(chunk.block_at(x, 64, z), BlockId::grass_block());
+        assert_eq!(chunk.block_at(x, 64, z).unwrap(), BlockId::grass_block());
     }
 }

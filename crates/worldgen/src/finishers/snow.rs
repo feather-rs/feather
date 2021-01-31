@@ -19,7 +19,9 @@ impl FinishingGenerator for SnowFinisher {
                     continue;
                 }
 
-                chunk.set_block_at(x, top_blocks.top_block_at(x, z) + 1, z, BlockId::snow())
+                chunk
+                    .set_block_at(x, top_blocks.top_block_at(x, z) + 1, z, BlockId::snow())
+                    .unwrap();
             }
         }
     }

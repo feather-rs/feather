@@ -143,7 +143,7 @@ impl WorldGenerator for ComposableGenerator {
 
         for x in 0..16 {
             for z in 0..16 {
-                chunk.set_biome_at(x, z, biomes.biome_at(x, z));
+                chunk.biomes_mut().set(x, 0, z, biomes.biome_at(x, z));
             }
         }
 
@@ -161,7 +161,7 @@ impl WorldGenerator for ComposableGenerator {
         for x in 0..16 {
             for z in 0..16 {
                 for y in (0..256).rev() {
-                    if chunk.block_at(x, y, z) != BlockId::air() {
+                    if chunk.block_at(x, y, z).unwrap() != BlockId::air() {
                         top_blocks.set_top_block_at(x, z, y);
                         break;
                     }
@@ -169,7 +169,7 @@ impl WorldGenerator for ComposableGenerator {
             }
         }
 
-        chunk.recalculate_heightmap();
+        chunk.recalculate_heightmaps();
 
         // Finishers.
         for finisher in &self.finishers {
@@ -180,21 +180,6 @@ impl WorldGenerator for ComposableGenerator {
                 seed_shuffler.gen(),
             );
         }
-
-        // TODO: correct lighting.
-        // Fill chunk with 15 light levels.
-        chunk
-            .sections_mut()
-            .into_iter()
-            .filter(|section| section.is_some())
-            .map(|section| section.unwrap())
-            .for_each(|section| {
-                let sky_light = section.sky_light_mut();
-
-                (0..4096).for_each(|index| {
-                    sky_light.set(index, 15);
-                })
-            });
 
         chunk
     }
@@ -427,7 +412,7 @@ mod tests {
     fn test_chunks_eq(a: &Chunk, b: &Chunk) {
         for x in 0..16 {
             for z in 0..16 {
-                assert_eq!(a.biome_at(x, z), b.biome_at(x, z));
+                assert_eq!(a.biomes().get(x,0, z), b.biomes().get(x,0, z));
                 for y in 0..256 {
                     assert_eq!(a.block_at(x, y, z), b.block_at(x, y, z));
                 }

@@ -33,7 +33,7 @@ impl WorldGenerator for SuperflatWorldGenerator {
             y_counter += layer.height;
         }
 
-        chunk.recalculate_heightmap();
+        chunk.recalculate_heightmaps();
 
         chunk
     }
@@ -61,15 +61,15 @@ mod tests {
                     (2usize, BlockId::dirt()),
                     (3usize, BlockId::grass_block()),
                 ] {
-                    assert_eq!(chunk.block_at(x, *y, z), *block);
+                    assert_eq!(chunk.block_at(x, *y, z).unwrap(), *block);
                 }
                 for y in 4..256 {
                     assert_eq!(
-                        chunk.block_at(x as usize, y as usize, z as usize),
+                        chunk.block_at(x as usize, y as usize, z as usize).unwrap(),
                         BlockId::air()
                     );
                 }
-                assert_eq!(chunk.biome_at(x, z), Biome::Mountains);
+                assert_eq!(chunk.biomes().get(x, 0, z), Biome::Mountains);
             }
         }
     }
