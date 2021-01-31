@@ -130,6 +130,11 @@ impl CommandState {
 
                 pardon,
                 pardonip,
+
+                time_query,
+                time_add,
+                time_set_0,
+                time_set_1,
         }
 
         Self {

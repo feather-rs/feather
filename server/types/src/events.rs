@@ -307,3 +307,9 @@ pub struct ReleaseChunkRequest {
 pub struct LoadChunkRequest {
     pub chunk: ChunkPosition,
 }
+
+/// Updates day time changes.
+#[derive(Copy, Clone, Debug)]
+pub struct TimeUpdateEvent {
+    pub new_time: u64,
+}

@@ -1,8 +1,10 @@
 //! The implementations of various commands.
 
-use crate::arguments::Coordinates;
 use crate::{
-    arguments::{EntitySelector, ItemArgument, ParsedGamemode, PositiveI32Argument, TextArgument},
+    arguments::{
+        Coordinates, EntitySelector, ItemArgument, ParsedGamemode, PositiveI32Argument,
+        TextArgument, TimeArgument, TimeQueryInformation, TimeSpec,
+    },
     CommandCtx,
 };
 use feather_core::inventory::{Inventory, SlotIndex};
@@ -11,7 +13,7 @@ use feather_core::util::{Gamemode, Position};
 use feather_definitions::Item;
 use feather_server_types::{
     Ban, ChatEvent, ChatPosition, GamemodeUpdateEvent, InventoryUpdateEvent, MessageReceiver, Name,
-    Player, ShutdownChannels, Teleported, WrappedBanInfo,
+    Player, ShutdownChannels, Teleported, TimeUpdateEvent, WrappedBanInfo,
 };
 use feather_server_util::{name_to_uuid_offline, name_to_uuid_online};
 use fecs::{Entity, IntoQuery, Read, ResourcesProvider, World};
@@ -812,6 +814,65 @@ pub fn pardonip(ctx: &mut CommandCtx, ip: String) -> anyhow::Result<()> {
             vec![Text::from(ip)],
         ));
         sender_message_receiver.send(kick_confirm);
+    }
+
+    Ok(None)
+}
+
+#[command(usage = "time query <info>")]
+pub fn time_query(ctx: &mut CommandCtx, info: TimeQueryInformation) -> anyhow::Result<()> {
+    let time = match info {
+        TimeQueryInformation::DayTime => ctx.game.time.time_of_day(),
+        TimeQueryInformation::GameTime => ctx.game.time.world_age(),
+        TimeQueryInformation::Day => ctx.game.time.days(),
+    };
+
+    if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
+    {
+        let message = Text::from(TextValue::translate_with(
+            "commands.time.query",
+            vec![Text::from(time.to_string())],
+        ));
+        sender_message_receiver.send(message);
+    }
+
+    Ok(None)
+}
+
+#[command(usage = "time add <time>")]
+pub fn time_add(ctx: &mut CommandCtx, time: TimeArgument) -> anyhow::Result<()> {
+    time_set(ctx, ctx.game.time.time_of_day() + time.0)
+}
+
+#[command(usage = "time set <time>")]
+pub fn time_set_0(ctx: &mut CommandCtx, time: TimeArgument) -> anyhow::Result<()> {
+    time_set(ctx, time.0)
+}
+
+#[command(usage = "time set <time_spec>")]
+pub fn time_set_1(ctx: &mut CommandCtx, time_spec: TimeSpec) -> anyhow::Result<()> {
+    time_set(
+        ctx,
+        match time_spec {
+            TimeSpec::Day => 1_000,
+            TimeSpec::Noon => 6_000,
+            TimeSpec::Night => 13_000,
+            TimeSpec::Midnight => 18_000,
+        },
+    )
+}
+
+pub fn time_set(ctx: &mut CommandCtx, time: u64) -> anyhow::Result<Option<String>> {
+    ctx.game
+        .handle(&mut ctx.world, TimeUpdateEvent { new_time: time });
+
+    if let Some(mut sender_message_receiver) = ctx.world.try_get_mut::<MessageReceiver>(ctx.sender)
+    {
+        let message = Text::from(TextValue::translate_with(
+            "commands.time.set",
+            vec![Text::from(ctx.game.time.time_of_day().to_string())],
+        ));
+        sender_message_receiver.send(message);
     }
 
     Ok(None)
