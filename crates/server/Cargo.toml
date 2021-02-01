@@ -19,6 +19,7 @@ ecs = { path = "../ecs", package = "feather-ecs" }
 protocol = { path = "../protocol", package = "feather-protocol" }
 utils = { path = "../utils", package = "feather-utils" }
 
+ahash = "0.7"
 anyhow = "1"
 tokio = { version = "1", features = ["full"] }
 flume = "0.10"

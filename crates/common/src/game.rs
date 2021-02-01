@@ -1,7 +1,9 @@
-use std::{mem, sync::Arc};
+use std::{cell::RefCell, cell::RefMut, mem, rc::Rc, sync::Arc};
 
 use base::World;
 use ecs::{Ecs, Entity, EntityBuilder, EventBus, HasResources, Resources};
+
+use crate::{entity::player::Player, events::PlayerJoinEvent};
 
 /// Stores the entire state of a Minecraft game.
 ///
@@ -26,7 +28,7 @@ pub struct Game {
     pub resources: Arc<Resources>,
 
     /// Event bus for event handling.
-    pub event_bus: EventBus<Game>,
+    event_bus: Rc<RefCell<EventBus<Game>>>,
 
     entity_builder: EntityBuilder,
 }
@@ -38,7 +40,7 @@ impl Game {
             world: World::new(),
             ecs: Ecs::new(),
             resources: Arc::new(Resources::new()),
-            event_bus: EventBus::new(),
+            event_bus: Rc::new(RefCell::new(EventBus::new())),
             entity_builder: EntityBuilder::new(),
         }
     }
@@ -64,10 +66,35 @@ impl Game {
     }
 
     /// Spawns an entity and returns its [`Entity`](ecs::Entity) handle.
+    ///
+    /// Also triggers necessary events, like `EntitySpawnEvent` and `PlayerJoinEvent`.
     pub fn spawn_entity(&mut self, mut builder: EntityBuilder) -> Entity {
         let entity = self.ecs.spawn(builder.build());
         self.entity_builder = builder;
+        self.trigger_entity_spawn_events(entity);
         entity
+    }
+
+    fn trigger_entity_spawn_events(&mut self, entity: Entity) {
+        if self.ecs.get::<Player>(entity).is_ok() {
+            self.trigger_event(PlayerJoinEvent { player: entity });
+        }
+    }
+
+    /// Gets the `EventBus` to register event handlers.
+    pub fn event_bus(&self) -> RefMut<EventBus<Game>> {
+        self.event_bus.borrow_mut()
+    }
+
+    /// Triggers an event, invoking all event handlers for
+    /// this event type.
+    ///
+    /// Event handlers may make arbitrary mutations to the `Game`.
+    /// After calling this method, you should not assume anything
+    /// about the game state, e.g. that an entity still exists.
+    pub fn trigger_event<E: 'static>(&mut self, event: E) {
+        let event_bus = Rc::clone(&self.event_bus);
+        event_bus.borrow().handle(self, &event);
     }
 }
 

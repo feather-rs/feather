@@ -107,6 +107,11 @@ impl Chunk {
         self.position
     }
 
+    /// Sets the position of this chunk.
+    pub fn set_position(&mut self, pos: ChunkPosition) {
+        self.position = pos;
+    }
+
     /// Gets the block at the given position within this chunk.
     ///
     /// Returns `None` if the coordinates are out of bounds.

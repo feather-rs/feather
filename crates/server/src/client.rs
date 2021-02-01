@@ -5,14 +5,13 @@ use flume::{Receiver, Sender};
 use parking_lot::RwLock;
 use protocol::{
     packets::server::{
-        ChunkData, JoinGame, PlayerPositionAndLook, PluginMessage, UnloadChunk, UpdateLight,
-        UpdateViewPosition,
+        ChunkData, JoinGame, PlayerPositionAndLook, PluginMessage, UnloadChunk, UpdateViewPosition,
     },
     ClientPlayPacket, Nbt, ServerPlayPacket,
 };
 use vec_arena::Arena;
 
-use crate::{initial_handler::NewPlayer, Options};
+use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
 
 /// ID of a client. Can be reused.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -53,20 +52,35 @@ pub struct Client {
     username: String,
 
     teleport_id_counter: Cell<i32>,
+
+    network_id: NetworkId,
 }
 
 impl Client {
-    pub fn new(player: NewPlayer, options: Arc<Options>) -> Self {
+    pub fn new(player: NewPlayer, options: Arc<Options>, network_id: NetworkId) -> Self {
         Self {
             packets_to_send: player.packets_to_send,
             received_packets: player.received_packets,
             options,
             username: player.username,
             teleport_id_counter: Cell::new(0),
+            network_id,
         }
     }
 
-    pub fn send_join_game(&self, entity_id: i32, gamemode: Gamemode) {
+    pub fn network_id(&self) -> NetworkId {
+        self.network_id
+    }
+
+    pub fn username(&self) -> &str {
+        &self.username
+    }
+
+    pub fn received_packets<'a>(&'a self) -> impl Iterator<Item = ClientPlayPacket> + 'a {
+        self.received_packets.try_iter()
+    }
+
+    pub fn send_join_game(&self, gamemode: Gamemode) {
         log::trace!("Sending Join Game to {}", self.username);
         // Use the dimension codec sent by the default vanilla server. (Data acquired via tools/proxy)
         let dimension_codec = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
@@ -79,7 +93,7 @@ impl Client {
         .expect("dimension asset is malformed");
 
         self.send_packet(JoinGame {
-            entity_id,
+            entity_id: self.network_id.0,
             is_hardcore: false,
             gamemode,
             previous_gamemode: 0,
@@ -129,7 +143,7 @@ impl Client {
             .set(self.teleport_id_counter.get() + 1);
     }
 
-    pub fn uupdate_own_chunk(&self, pos: ChunkPosition) {
+    pub fn update_own_chunk(&self, pos: ChunkPosition) {
         log::trace!("Updating chunk position of {} to {:?}", self.username, pos);
         self.send_packet(UpdateViewPosition {
             chunk_x: pos.x,

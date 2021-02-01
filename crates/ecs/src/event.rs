@@ -8,12 +8,12 @@ use ahash::AHashMap;
 use crate::{HasResources, SysResult};
 
 struct Handler<Input, E> {
-    function: Box<dyn FnMut(&mut Input, &E) -> SysResult>,
+    function: Box<dyn Fn(&mut Input, &E) -> SysResult>,
     name: String,
 }
 
 impl<Input, E> Handler<Input, E> {
-    fn from_fn<F: FnMut(&mut Input, &E) -> SysResult + 'static>(f: F) -> Self {
+    fn from_fn<F: Fn(&mut Input, &E) -> SysResult + 'static>(f: F) -> Self {
         Self {
             function: Box::new(f),
             name: type_name::<F>().to_owned(),
@@ -22,7 +22,7 @@ impl<Input, E> Handler<Input, E> {
 }
 
 trait DynHandler<Input> {
-    fn as_any_mut(&mut self) -> &mut dyn Any;
+    fn as_any(&self) -> &dyn Any;
 }
 
 impl<Input, E> DynHandler<Input> for Handler<Input, E>
@@ -30,7 +30,7 @@ where
     Input: 'static,
     E: 'static,
 {
-    fn as_any_mut(&mut self) -> &mut dyn Any {
+    fn as_any(&self) -> &dyn Any {
         self
     }
 }
@@ -56,7 +56,7 @@ impl<Input: 'static> EventBus<Input> {
     /// Adds an event handler.
     pub fn add_handler<E: 'static>(
         &mut self,
-        handler: impl FnMut(&mut Input, &E) -> SysResult + 'static,
+        handler: impl Fn(&mut Input, &E) -> SysResult + 'static,
     ) -> &mut Self {
         let handler = Handler::from_fn(handler);
         self.handlers
@@ -78,12 +78,12 @@ impl<Input: 'static> EventBus<Input> {
     }
 
     /// Invokes event handlers for the given event.
-    pub fn handle<E: 'static>(&mut self, input: &mut Input, event: &E) {
-        if let Some(handlers) = self.handlers.get_mut(&TypeId::of::<E>()) {
+    pub fn handle<E: 'static>(&self, input: &mut Input, event: &E) {
+        if let Some(handlers) = self.handlers.get(&TypeId::of::<E>()) {
             for handler in handlers {
                 let handler = handler
-                    .as_any_mut()
-                    .downcast_mut::<Handler<Input, E>>()
+                    .as_any()
+                    .downcast_ref::<Handler<Input, E>>()
                     .expect("invalid handler type");
 
                 let result = (handler.function)(input, event);
@@ -111,12 +111,12 @@ pub struct HandlerGroupBuilder<'a, Input, State> {
 impl<'a, Input, State> HandlerGroupBuilder<'a, Input, State>
 where
     Input: HasResources + 'static,
-    State: Send + Sync + 'static,
+    State: 'static,
 {
     /// Adds a handler to this group.
     pub fn add_handler<E: 'static>(
         &mut self,
-        handler: impl FnMut(&mut Input, &mut State, &E) -> SysResult + 'static,
+        handler: impl Fn(&mut Input, &mut State, &E) -> SysResult + 'static,
     ) -> &mut Self {
         let function = Self::make_function(handler);
         self.bus.add_handler(function);
@@ -124,8 +124,8 @@ where
     }
 
     fn make_function<E: 'static>(
-        mut handler: impl FnMut(&mut Input, &mut State, &E) -> SysResult + 'static,
-    ) -> impl FnMut(&mut Input, &E) -> SysResult + 'static {
+        handler: impl Fn(&mut Input, &mut State, &E) -> SysResult + 'static,
+    ) -> impl Fn(&mut Input, &E) -> SysResult + 'static {
         move |input, event| {
             let resources = input.resources();
             let mut state = resources

@@ -1,20 +1,25 @@
 use std::sync::Arc;
 
-use client::{Client, ClientId, Clients};
 use common::Game;
 use ecs::SystemExecutor;
 use flume::Receiver;
 use initial_handler::NewPlayer;
 use listener::Listener;
 
-mod client;
+pub mod client;
 mod connection_worker;
-mod favicon;
+pub mod favicon;
 mod initial_handler;
 mod listener;
+mod network_id_registry;
 mod options;
+mod packet_handlers;
 mod systems;
 
+use network_id_registry::NetworkIdAllocator;
+
+pub use client::{Client, ClientId, Clients};
+pub use network_id_registry::NetworkId;
 pub use options::Options;
 
 /// A Minecraft server.
@@ -28,6 +33,7 @@ pub struct Server {
     options: Arc<Options>,
     clients: Clients,
     new_players: Receiver<NewPlayer>,
+    network_id_allocator: NetworkIdAllocator,
 }
 
 impl Server {
@@ -44,6 +50,7 @@ impl Server {
             options,
             clients: Clients::new(),
             new_players,
+            network_id_allocator: NetworkIdAllocator::new(),
         })
     }
 
@@ -67,8 +74,15 @@ impl Server {
         clients
     }
 
+    /// Allocates a `NetworkId` for an entity.
+    pub fn create_network_id(&mut self) -> NetworkId {
+        self.network_id_allocator.allocate_id()
+    }
+
     fn create_client(&mut self, player: NewPlayer) -> ClientId {
-        let client = Client::new(player, Arc::clone(&self.options));
+        log::debug!("Creating client for {}", player.username);
+        let network_id = self.create_network_id();
+        let client = Client::new(player, Arc::clone(&self.options), network_id);
         self.clients.insert(client)
     }
 }
