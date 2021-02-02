@@ -206,7 +206,7 @@ impl From<i32> for VarInt {
 
 impl Writeable for VarInt {
     fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
-        let mut x = self.0;
+        let mut x = self.0 as u32;
         loop {
             let mut temp = (x & 0b0111_1111) as u8;
             x >>= 7;

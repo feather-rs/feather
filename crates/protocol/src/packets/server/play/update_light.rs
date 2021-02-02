@@ -36,8 +36,8 @@ impl Writeable for UpdateLight {
         VarInt(mask).write(buffer, version); // sky light mask
         VarInt(mask).write(buffer, version); // block light mask
 
-        VarInt(!mask).write(buffer, version); // empty sky light mask
-        VarInt(!mask).write(buffer, version); // empty block light mask
+        VarInt(0).write(buffer, version); // empty sky light mask
+        VarInt(0).write(buffer, version); // empty block light mask
 
         for section in chunk.sections() {
             if let Some(section) = section {
@@ -55,6 +55,7 @@ impl Writeable for UpdateLight {
 fn encode_light(light: &PackedArray, buffer: &mut Vec<u8>, version: ProtocolVersion) {
     VarInt(2048).write(buffer, version);
     let light_data: &[u8] = bytemuck::cast_slice(light.as_u64_slice());
+    assert_eq!(light_data.len(), 2048);
     buffer.extend_from_slice(light_data);
 }
 

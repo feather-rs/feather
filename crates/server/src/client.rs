@@ -5,7 +5,8 @@ use flume::{Receiver, Sender};
 use parking_lot::RwLock;
 use protocol::{
     packets::server::{
-        ChunkData, JoinGame, PlayerPositionAndLook, PluginMessage, UnloadChunk, UpdateViewPosition,
+        ChunkData, JoinGame, PlayerPositionAndLook, PluginMessage, UnloadChunk, UpdateLight,
+        UpdateViewPosition,
     },
     ClientPlayPacket, Nbt, ServerPlayPacket,
 };
@@ -157,9 +158,9 @@ impl Client {
             chunk.read().position(),
             self.username
         );
-        /*self.send_packet(UpdateLight {
+        self.send_packet(UpdateLight {
             chunk: Arc::clone(chunk),
-        });*/
+        });
         self.send_packet(ChunkData {
             chunk: Arc::clone(chunk),
         });

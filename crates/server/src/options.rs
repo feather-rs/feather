@@ -31,7 +31,7 @@ impl Default for Options {
             favicon: None,
             motd: "A Feather server".to_owned(),
             online_mode: true,
-            view_distance: 8,
+            view_distance: 4,
         }
     }
 }

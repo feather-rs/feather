@@ -1,7 +1,7 @@
-use std::{cell::RefCell, cell::RefMut, mem, rc::Rc, sync::Arc};
+use std::{mem, sync::Arc};
 
 use base::World;
-use ecs::{Ecs, Entity, EntityBuilder, EventBus, HasResources, Resources};
+use ecs::{Ecs, Entity, EntityBuilder, HasEcs, HasResources, Resources};
 
 use crate::{entity::player::Player, events::PlayerJoinEvent};
 
@@ -11,7 +11,6 @@ use crate::{entity::player::Player, events::PlayerJoinEvent};
 /// * A [`World`](base::World) containing chunks and blocks.
 /// * An [`Ecs`](ecs::Ecs) containing entities.
 /// * A [`Resources`](ecs::Resources) containing additional, user-defined data.
-/// * An event bus for event handling.
 ///
 /// `feather-common` provides `Game` methods for actions such
 /// as "drop item" or "kill entity." These high-level methods
@@ -27,9 +26,6 @@ pub struct Game {
     /// Stored in an `Arc` for borrow-checker purposes.
     pub resources: Arc<Resources>,
 
-    /// Event bus for event handling.
-    event_bus: Rc<RefCell<EventBus<Game>>>,
-
     entity_builder: EntityBuilder,
 }
 
@@ -40,7 +36,6 @@ impl Game {
             world: World::new(),
             ecs: Ecs::new(),
             resources: Arc::new(Resources::new()),
-            event_bus: Rc::new(RefCell::new(EventBus::new())),
             entity_builder: EntityBuilder::new(),
         }
     }
@@ -77,29 +72,23 @@ impl Game {
 
     fn trigger_entity_spawn_events(&mut self, entity: Entity) {
         if self.ecs.get::<Player>(entity).is_ok() {
-            self.trigger_event(PlayerJoinEvent { player: entity });
+            self.ecs.insert_event(entity, PlayerJoinEvent).unwrap();
         }
-    }
-
-    /// Gets the `EventBus` to register event handlers.
-    pub fn event_bus(&self) -> RefMut<EventBus<Game>> {
-        self.event_bus.borrow_mut()
-    }
-
-    /// Triggers an event, invoking all event handlers for
-    /// this event type.
-    ///
-    /// Event handlers may make arbitrary mutations to the `Game`.
-    /// After calling this method, you should not assume anything
-    /// about the game state, e.g. that an entity still exists.
-    pub fn trigger_event<E: 'static>(&mut self, event: E) {
-        let event_bus = Rc::clone(&self.event_bus);
-        event_bus.borrow().handle(self, &event);
     }
 }
 
 impl HasResources for Game {
     fn resources(&self) -> Arc<Resources> {
         Arc::clone(&self.resources)
+    }
+}
+
+impl HasEcs for Game {
+    fn ecs(&self) -> &Ecs {
+        &self.ecs
+    }
+
+    fn ecs_mut(&mut self) -> &mut Ecs {
+        &mut self.ecs
     }
 }

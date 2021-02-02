@@ -3,7 +3,7 @@
 mod view;
 
 use anyhow::anyhow;
-use base::{ Gamemode, Position};
+use base::{Gamemode, Position};
 use common::{view::View, Game, Name};
 use ecs::{SysResult, SystemExecutor};
 
@@ -46,7 +46,6 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .add(Name(client.username().into()));
     game.spawn_entity(builder);
 
-    client.update_own_position(Position::default());
     Ok(())
 }
 

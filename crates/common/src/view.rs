@@ -7,10 +7,10 @@ use crate::{
 };
 
 /// Registers systems to update the `View` of a player.
-pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
-    systems.add_system(update_player_views);
-    game.event_bus().add_handler(update_view_on_join);
-    dbg!();
+pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
+    systems
+        .add_system(update_player_views)
+        .add_system(update_view_on_join);
 }
 
 /// Updates players' views when they change chunks.
@@ -22,35 +22,31 @@ fn update_player_views(game: &mut Game) -> SysResult {
         if position.chunk() != view.center() {
             let old_view = *view;
             let new_view = View::new(position.chunk(), old_view.view_distance);
-            events.push(ViewUpdateEvent {
-                player,
-                old_view,
-                new_view,
-            });
+            events.push((player, ViewUpdateEvent { old_view, new_view }));
             log::trace!("View of {} has been updated", name.0);
         }
     }
 
-    for event in events {
-        game.trigger_event(event);
+    for (player, event) in events {
+        game.ecs.insert_event(player, event)?;
     }
     Ok(())
 }
 
 /// Triggers a ViewUpdateEvent when a player joins the game.
-fn update_view_on_join(game: &mut Game, event: &PlayerJoinEvent) -> SysResult {
-    dbg!();
-    let view = *game.ecs.get::<View>(event.player)?;
-    let event = ViewUpdateEvent {
-        old_view: View::empty(),
-        new_view: view,
-        player: event.player,
-    };
-    log::trace!(
-        "View of {} has been updated",
-        game.ecs.get::<Name>(event.player)?.0
-    );
-    game.trigger_event(event);
+fn update_view_on_join(game: &mut Game) -> SysResult {
+    let mut events = Vec::new();
+    for (player, (&view, name, _)) in game.ecs.query::<(&View, &Name, &PlayerJoinEvent)>().iter() {
+        let event = ViewUpdateEvent {
+            old_view: View::empty(),
+            new_view: view,
+        };
+        events.push((player, event));
+        log::trace!("View of {} has been updated", name);
+    }
+    for (player, event) in events {
+        game.ecs.insert_event(player, event)?;
+    }
     Ok(())
 }
 
@@ -77,6 +73,11 @@ impl View {
         Self::new(ChunkPosition::new(0, 0), 0)
     }
 
+    /// Determines whether this is the empty view.
+    pub fn is_empty(&self) -> bool {
+        self.view_distance == 0
+    }
+
     pub fn center(&self) -> ChunkPosition {
         self.center
     }
@@ -95,7 +96,7 @@ impl View {
 
     /// Iterates over chunks visible to the player.
     pub fn iter(self) -> impl Iterator<Item = ChunkPosition> {
-        Self::iter_3d(self.min_x(), self.min_z(), self.max_x(), self.max_z())
+        Self::iter_2d(self.min_x(), self.min_z(), self.max_x(), self.max_z())
     }
 
     /// Determines whether the given chunk is visible.
@@ -106,7 +107,7 @@ impl View {
             && pos.z <= self.max_z()
     }
 
-    fn iter_3d(
+    fn iter_2d(
         min_x: i32,
         min_z: i32,
         max_x: i32,

@@ -4,32 +4,36 @@
 //! determined based on the player's [`View`].
 
 use ahash::AHashSet;
-use base::ChunkPosition;
+use base::{ChunkPosition, Position};
 use common::{events::ViewUpdateEvent, view::View, Game, Name};
-use ecs::{EntityRef, SysResult, SystemExecutor};
+use ecs::{SysResult, SystemExecutor};
 
 use crate::{Client, ClientId, Server};
 
-pub fn register(game: &mut Game, _systems: &mut SystemExecutor<Game>) {
-    game.event_bus()
-        .group::<Server>()
-        .add_handler(update_player_view);
+pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
+    systems.group::<Server>().add_system(update_player_view);
 }
 
-fn update_player_view(game: &mut Game, server: &mut Server, event: &ViewUpdateEvent) -> SysResult {
-    let player = game.ecs.entity(event.player)?;
-    let client = server.clients.get(*player.get::<ClientId>()?).unwrap();
-
-    client.update_own_chunk(event.new_view.center());
-    update_chunks(game, player, client, event.old_view, event.new_view)
+fn update_player_view(game: &mut Game, server: &mut Server) -> SysResult {
+    for (_, (&client_id, event, name, position)) in game
+        .ecs
+        .query::<(&ClientId, &ViewUpdateEvent, &Name, &Position)>()
+        .iter()
+    {
+        let client = server.clients.get(client_id).unwrap();
+        client.update_own_chunk(event.new_view.center());
+        update_chunks(game, client, event.old_view, event.new_view, name, position)?;
+    }
+    Ok(())
 }
 
 fn update_chunks(
     game: &Game,
-    player: EntityRef,
     client: &Client,
     old_view: View,
     new_view: View,
+    name: &Name,
+    position: &Position,
 ) -> SysResult {
     let old_chunks: AHashSet<ChunkPosition> = old_view.iter().collect();
     let new_chunks: AHashSet<ChunkPosition> = new_view.iter().collect();
@@ -50,7 +54,7 @@ fn update_chunks(
             sent += 1;
         }
     }
-    log::debug!("Sent {} chunks to {}", sent, &**player.get::<Name>()?);
+    log::debug!("Sent {} chunks to {}", sent, name);
 
     // Unsend the chunks that are in the old view but not the new view.
     let mut unsent = 0;
@@ -58,11 +62,13 @@ fn update_chunks(
         client.unload_chunk(pos);
         unsent += 1;
     }
-    log::debug!(
-        "Unloaded {} chunks for {}",
-        unsent,
-        &**player.get::<Name>()?
-    );
+    log::debug!("Unloaded {} chunks for {}", unsent, name);
+
+    if old_view.is_empty() {
+        // Player just joined - send them their position now
+        // that chunks have been sent
+        client.update_own_position(*position);
+    }
 
     Ok(())
 }
