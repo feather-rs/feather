@@ -1,137 +1,59 @@
-use std::{
-    any::{type_name, Any, TypeId},
-    marker::PhantomData,
-};
+use hecs::{Component, Entity, World};
 
-use ahash::AHashMap;
+/// Function to remove an event from the ECS.
+type EventRemoveFn = fn(&mut World, Entity);
 
-use crate::{HasResources, SysResult};
-
-struct Handler<Input, E> {
-    function: Box<dyn Fn(&mut Input, &E) -> SysResult>,
-    name: String,
-}
-
-impl<Input, E> Handler<Input, E> {
-    fn from_fn<F: Fn(&mut Input, &E) -> SysResult + 'static>(f: F) -> Self {
-        Self {
-            function: Box::new(f),
-            name: type_name::<F>().to_owned(),
-        }
+fn event_remove_fn<T: Component>() -> EventRemoveFn {
+    |ecs, entity| {
+        let _ = ecs.remove_one::<T>(entity);
     }
 }
 
-trait DynHandler<Input> {
-    fn as_any(&self) -> &dyn Any;
-}
-
-impl<Input, E> DynHandler<Input> for Handler<Input, E>
-where
-    Input: 'static,
-    E: 'static,
-{
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-}
-
-/// An event bus for handling events.
+/// Maintains a set of events that need to be removed
+/// from entities.
 ///
-/// This struct maintains a sequence of event
-/// handlers for each event type. When [`handle`] is
-/// called, the handlers for the corresponding event
-/// are invoked.
-pub struct EventBus<Input> {
-    handlers: AHashMap<TypeId, Vec<Box<dyn DynHandler<Input>>>>,
-}
-
-impl<Input: 'static> EventBus<Input> {
-    /// Creates a new, empty `EventBus`.
-    pub fn new() -> Self {
-        Self {
-            handlers: AHashMap::new(),
-        }
-    }
-
-    /// Adds an event handler.
-    pub fn add_handler<E: 'static>(
-        &mut self,
-        handler: impl Fn(&mut Input, &E) -> SysResult + 'static,
-    ) -> &mut Self {
-        let handler = Handler::from_fn(handler);
-        self.handlers
-            .entry(TypeId::of::<E>())
-            .or_default()
-            .push(Box::new(handler));
-        self
-    }
-
-    /// Starts a new group of event handlers with
-    /// convenient access to the given `State` type.
+/// An event's lifecycle is as follows:
+/// 1. The event is added as a component to its entity
+/// by calling `Ecs::insert_event`. The system that
+/// inserts the event is called the "triggering system."
+/// 2. Each system runs and has exactly one chance to observe
+/// the event through a query.
+/// 3. Immediately before the triggering system runs again,
+/// the event is removed from the entity.
+#[derive(Default)]
+pub struct EventTracker {
+    /// Events to remove from entities.
     ///
-    /// The `State` must be stored in the input's resources.
-    pub fn group<State>(&mut self) -> HandlerGroupBuilder<Input, State> {
-        HandlerGroupBuilder {
-            bus: self,
-            _marker: PhantomData,
-        }
-    }
+    /// Indexed by the index of the triggering system.
+    events: Vec<Vec<(Entity, EventRemoveFn)>>,
 
-    /// Invokes event handlers for the given event.
-    pub fn handle<E: 'static>(&self, input: &mut Input, event: &E) {
-        if let Some(handlers) = self.handlers.get(&TypeId::of::<E>()) {
-            for handler in handlers {
-                let handler = handler
-                    .as_any()
-                    .downcast_ref::<Handler<Input, E>>()
-                    .expect("invalid handler type");
-
-                let result = (handler.function)(input, event);
-
-                if let Err(e) = result {
-                    log::error!(
-                        "Error while handling event of type `{}` caused by handler '{}': {:?}",
-                        type_name::<E>(),
-                        handler.name,
-                        e
-                    );
-                }
-            }
-        }
-    }
+    current_system_index: usize,
 }
 
-/// Builder for a group of event handlers. Created
-/// with [`EventBus::group`].
-pub struct HandlerGroupBuilder<'a, Input, State> {
-    bus: &'a mut EventBus<Input>,
-    _marker: PhantomData<State>,
-}
-
-impl<'a, Input, State> HandlerGroupBuilder<'a, Input, State>
-where
-    Input: HasResources + 'static,
-    State: 'static,
-{
-    /// Adds a handler to this group.
-    pub fn add_handler<E: 'static>(
-        &mut self,
-        handler: impl Fn(&mut Input, &mut State, &E) -> SysResult + 'static,
-    ) -> &mut Self {
-        let function = Self::make_function(handler);
-        self.bus.add_handler(function);
-        self
+impl EventTracker {
+    /// Adds an event to be tracked.
+    pub fn insert_event<T: Component>(&mut self, entity: Entity) {
+        let events_vec = self.current_events_vec();
+        events_vec.push((entity, event_remove_fn::<T>()))
     }
 
-    fn make_function<E: 'static>(
-        handler: impl Fn(&mut Input, &mut State, &E) -> SysResult + 'static,
-    ) -> impl Fn(&mut Input, &E) -> SysResult + 'static {
-        move |input, event| {
-            let resources = input.resources();
-            let mut state = resources
-                .get_mut::<State>()
-                .expect("missing state resource for event handler group");
-            handler(input, &mut *state, event)
+    pub fn set_current_system_index(&mut self, index: usize) {
+        self.current_system_index = index;
+    }
+
+    /// Deletes events that were triggered on the previous tick
+    /// by the current system.
+    pub fn remove_old_events(&mut self, world: &mut World) {
+        let events_vec = self.current_events_vec();
+        for (entity, remove_fn) in events_vec.drain(..) {
+            remove_fn(world, entity);
         }
+    }
+
+    fn current_events_vec(&mut self) -> &mut Vec<(Entity, EventRemoveFn)> {
+        while self.events.len() <= self.current_system_index {
+            self.events.push(Vec::new());
+        }
+        &mut self.events[self.current_system_index]
     }
 }

@@ -1,12 +1,27 @@
-use feather_ecs::{SysResult, SystemExecutor};
+use feather_ecs::{Ecs, HasEcs, SysResult, SystemExecutor};
 
-fn system1(x: &mut i32) -> SysResult {
-    *x += 10;
+struct Input {
+    x: i32,
+    ecs: Ecs,
+}
+
+impl HasEcs for Input {
+    fn ecs(&self) -> &Ecs {
+        &self.ecs
+    }
+
+    fn ecs_mut(&mut self) -> &mut Ecs {
+        &mut self.ecs
+    }
+}
+
+fn system1(input: &mut Input) -> SysResult {
+    input.x += 10;
     Ok(())
 }
 
-fn system2(x: &mut i32) -> SysResult {
-    *x *= 10;
+fn system2(input: &mut Input) -> SysResult {
+    input.x *= 10;
     Ok(())
 }
 
@@ -16,7 +31,10 @@ fn systems_are_executed_in_order() {
     executor.add_system(system1);
     executor.add_system(system2);
 
-    let mut x = 1;
-    executor.run(&mut x);
-    assert_eq!(x, 110);
+    let mut input = Input {
+        x: 1,
+        ecs: Ecs::new(),
+    };
+    executor.run(&mut input);
+    assert_eq!(input.x, 110);
 }

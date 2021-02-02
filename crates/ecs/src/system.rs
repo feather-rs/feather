@@ -2,7 +2,7 @@
 
 use std::{any::type_name, marker::PhantomData, sync::Arc};
 
-use crate::Resources;
+use crate::{Ecs, Resources};
 
 /// The result type returned by a system function.
 ///
@@ -39,6 +39,23 @@ impl<Input> System<Input> {
 /// A type containing a `Resources`.
 pub trait HasResources {
     fn resources(&self) -> Arc<Resources>;
+}
+
+/// A type containing an `Ecs`.
+pub trait HasEcs {
+    fn ecs(&self) -> &Ecs;
+
+    fn ecs_mut(&mut self) -> &mut Ecs;
+}
+
+impl HasEcs for Ecs {
+    fn ecs(&self) -> &Ecs {
+        self
+    }
+
+    fn ecs_mut(&mut self) -> &mut Ecs {
+        self
+    }
 }
 
 /// An executor for systems.
@@ -95,8 +112,14 @@ impl<Input> SystemExecutor<Input> {
     /// Runs all systems in order.
     ///
     /// Errors are logged using the `log` crate.
-    pub fn run(&mut self, input: &mut Input) {
-        for system in &mut self.systems {
+    pub fn run(&mut self, input: &mut Input)
+    where
+        Input: HasEcs,
+    {
+        for (i, system) in self.systems.iter_mut().enumerate() {
+            input.ecs_mut().set_current_system_index(i);
+            input.ecs_mut().remove_old_events();
+
             let result = (system.function)(input);
             if let Err(e) = result {
                 log::error!(
