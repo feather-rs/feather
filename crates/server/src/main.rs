@@ -1,5 +1,5 @@
-use base::{Biome, BlockId, Chunk, ChunkPosition, World};
-use common::{Game, TickLoop};
+use base::{Biome, BlockId, Chunk, ChunkPosition};
+use common::{Game, TickLoop, World};
 use ecs::SystemExecutor;
 use feather_server::{Options, Server};
 use simple_logger::SimpleLogger;
@@ -41,7 +41,7 @@ fn add_spawn_chunks(world: &mut World) {
                     }
                 }
             }
-            world.insert_chunk(chunk);
+            world.chunk_map_mut().insert_chunk(chunk);
         }
     }
 }

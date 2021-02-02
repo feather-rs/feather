@@ -3,7 +3,6 @@
 //! * Inventories
 //! * The block ID system
 //! * The chunk data structure
-//! * The chunk map (`World`)
 
 use std::time::Duration;
 
@@ -25,7 +24,6 @@ pub use generated::{Area, Biome, EntityKind, Item, ItemStack, Particle, Window};
 pub use metadata::EntityMetadata;
 pub use positions::*;
 pub use text::{deserialize_text, Text};
-pub use world::World;
 
 /// Number of updates (ticks) to do per second.
 pub const TPS: u32 = 20;

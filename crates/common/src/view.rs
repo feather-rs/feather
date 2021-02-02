@@ -1,3 +1,4 @@
+use ahash::AHashSet;
 use base::{ChunkPosition, Position};
 use ecs::{SysResult, SystemExecutor};
 use itertools::Either;
@@ -107,6 +108,18 @@ impl View {
                 self.max_z(),
             ))
         }
+    }
+
+    /// Returns the set of chunks that are in `self` but not in `other`.
+    pub fn difference(self, other: View) -> impl Iterator<Item = ChunkPosition> {
+        // PERF: consider analytical approach instead of sets
+        let self_chunks: AHashSet<_> = self.iter().collect();
+        let other_chunks: AHashSet<_> = other.iter().collect();
+        self_chunks
+            .difference(&other_chunks)
+            .copied()
+            .collect::<Vec<_>>()
+            .into_iter()
     }
 
     /// Determines whether the given chunk is visible.

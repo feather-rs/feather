@@ -19,7 +19,15 @@ pub mod view;
 
 pub mod events;
 
+pub mod world_source;
+
+pub mod world;
+pub use world::World;
+
+mod chunk_loading;
+
 /// Registers gameplay systems with the given `Game` and `SystemExecutor`.
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     view::register(game, systems);
+    chunk_loading::register(game, systems);
 }

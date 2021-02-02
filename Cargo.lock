@@ -545,11 +545,15 @@ dependencies = [
 name = "feather-common"
 version = "0.1.0"
 dependencies = [
+ "ahash 0.7.0",
+ "anyhow",
  "feather-base",
+ "feather-blocks",
  "feather-ecs",
  "feather-utils",
  "itertools",
  "log",
+ "parking_lot",
  "smartstring",
  "uuid",
 ]

@@ -1,9 +1,8 @@
 use std::{mem, sync::Arc};
 
-use base::World;
 use ecs::{Ecs, Entity, EntityBuilder, HasEcs, HasResources, Resources};
 
-use crate::{entity::player::Player, events::PlayerJoinEvent};
+use crate::{World, entity::player::Player, events::PlayerJoinEvent};
 
 /// Stores the entire state of a Minecraft game.
 ///

@@ -49,7 +49,7 @@ fn update_chunks(
 
     let mut sent = 0;
     for pos in chunks_to_send {
-        if let Some(chunk) = game.world.chunk_handle_at(pos) {
+        if let Some(chunk) = game.world.chunk_map().chunk_handle_at(pos) {
             client.send_chunk(&chunk);
             sent += 1;
         }

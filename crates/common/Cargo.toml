@@ -8,8 +8,12 @@ edition = "2018"
 base = { path = "../base", package = "feather-base" }
 ecs = { path = "../ecs", package = "feather-ecs" }
 utils = { path = "../utils", package = "feather-utils" }
+blocks = { path = "../blocks", package = "feather-blocks" }
 
 smartstring = "0.2"
 uuid = "0.8"
 log = "0.4"
 itertools = "0.10"
+anyhow = "1"
+ahash = "0.7"
+parking_lot = "0.11"
