@@ -1,5 +1,6 @@
 use base::{ChunkPosition, Position};
 use ecs::{SysResult, SystemExecutor};
+use itertools::Either;
 
 use crate::{
     events::{PlayerJoinEvent, ViewUpdateEvent},
@@ -96,7 +97,16 @@ impl View {
 
     /// Iterates over chunks visible to the player.
     pub fn iter(self) -> impl Iterator<Item = ChunkPosition> {
-        Self::iter_2d(self.min_x(), self.min_z(), self.max_x(), self.max_z())
+        if self.is_empty() {
+            Either::Left(std::iter::empty())
+        } else {
+            Either::Right(Self::iter_2d(
+                self.min_x(),
+                self.min_z(),
+                self.max_x(),
+                self.max_z(),
+            ))
+        }
     }
 
     /// Determines whether the given chunk is visible.
@@ -114,7 +124,7 @@ impl View {
         max_z: i32,
     ) -> impl Iterator<Item = ChunkPosition> {
         (min_x..=max_x)
-            .flat_map(move |x| (min_z..=max_z).map(move |y| (x, y)))
+            .flat_map(move |x| (min_z..=max_z).map(move |z| (x, z)))
             .map(|(x, z)| ChunkPosition { x, z })
     }
 

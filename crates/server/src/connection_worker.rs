@@ -1,4 +1,4 @@
-use std::{io, net::SocketAddr, sync::Arc, time::Duration};
+use std::{fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
 
 use flume::{Receiver, Sender};
 use futures_lite::FutureExt;
@@ -103,7 +103,7 @@ impl Worker {
         self.reader.read().await
     }
 
-    pub async fn write(&mut self, packet: impl Writeable) -> anyhow::Result<()> {
+    pub async fn write(&mut self, packet: impl Writeable + Debug) -> anyhow::Result<()> {
         self.writer.write(packet).await
     }
 
@@ -195,14 +195,12 @@ impl Writer {
 
     pub async fn run(mut self) -> anyhow::Result<()> {
         while let Ok(packet) = self.packets_to_send.recv_async().await {
-            self.codec.encode(&packet, &mut self.buffer);
-            self.stream.write_all(&self.buffer).await?;
-            self.buffer.clear();
+            self.write(packet).await?;
         }
         Ok(())
     }
 
-    pub async fn write(&mut self, packet: impl Writeable) -> anyhow::Result<()> {
+    pub async fn write(&mut self, packet: impl Writeable + Debug) -> anyhow::Result<()> {
         self.codec.encode(&packet, &mut self.buffer);
         self.stream.write_all(&self.buffer).await?;
         self.buffer.clear();

@@ -548,6 +548,7 @@ dependencies = [
  "feather-base",
  "feather-ecs",
  "feather-utils",
+ "itertools",
  "log",
  "smartstring",
  "uuid",
@@ -853,6 +854,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63312a18f7ea8760cdd0a7c5aac1a619752a246b833545e3e36d1f81f7cd9e66"
 dependencies = [
  "cfg-if 0.1.10",
+]
+
+[[package]]
+name = "itertools"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37d572918e350e82412fe766d24b15e6682fb2ed2bbe018280caa810397cb319"
+dependencies = [
+ "either",
 ]
 
 [[package]]

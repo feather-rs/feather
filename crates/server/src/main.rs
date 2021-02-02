@@ -7,7 +7,7 @@ use simple_logger::SimpleLogger;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     SimpleLogger::new()
-        .with_level(log::LevelFilter::Trace)
+        .with_level(log::LevelFilter::Debug)
         .init()
         .unwrap();
 
@@ -32,8 +32,8 @@ async fn main() -> anyhow::Result<()> {
 
 fn add_spawn_chunks(world: &mut World) {
     for cx in -8..=8 {
-        for cy in -8..=8 {
-            let mut chunk = Chunk::new_with_default_biome(ChunkPosition::new(cx, cy), Biome::Swamp);
+        for cz in -8..=8 {
+            let mut chunk = Chunk::new_with_default_biome(ChunkPosition::new(cx, cz), Biome::Swamp);
             for y in 0..64 {
                 for z in 0..16 {
                     for x in 0..16 {

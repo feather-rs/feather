@@ -158,10 +158,10 @@ impl Client {
             chunk.read().position(),
             self.username
         );
-        self.send_packet(UpdateLight {
+        self.send_packet(ChunkData {
             chunk: Arc::clone(chunk),
         });
-        self.send_packet(ChunkData {
+        self.send_packet(UpdateLight {
             chunk: Arc::clone(chunk),
         });
     }

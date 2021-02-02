@@ -4,7 +4,7 @@
 //! determined based on the player's [`View`].
 
 use ahash::AHashSet;
-use base::{ChunkPosition, Position};
+use base::ChunkPosition;
 use common::{events::ViewUpdateEvent, view::View, Game, Name};
 use ecs::{SysResult, SystemExecutor};
 
@@ -15,14 +15,14 @@ pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
 }
 
 fn update_player_view(game: &mut Game, server: &mut Server) -> SysResult {
-    for (_, (&client_id, event, name, position)) in game
+    for (_, (&client_id, event, name)) in game
         .ecs
-        .query::<(&ClientId, &ViewUpdateEvent, &Name, &Position)>()
+        .query::<(&ClientId, &ViewUpdateEvent, &Name)>()
         .iter()
     {
         let client = server.clients.get(client_id).unwrap();
         client.update_own_chunk(event.new_view.center());
-        update_chunks(game, client, event.old_view, event.new_view, name, position)?;
+        update_chunks(game, client, event.old_view, event.new_view, name)?;
     }
     Ok(())
 }
@@ -33,7 +33,6 @@ fn update_chunks(
     old_view: View,
     new_view: View,
     name: &Name,
-    position: &Position,
 ) -> SysResult {
     let old_chunks: AHashSet<ChunkPosition> = old_view.iter().collect();
     let new_chunks: AHashSet<ChunkPosition> = new_view.iter().collect();
@@ -41,6 +40,7 @@ fn update_chunks(
     // Send chunks that are in the new view but not the old view.
     let mut chunks_to_send = Vec::new();
     chunks_to_send.extend(new_chunks.difference(&old_chunks));
+    chunks_to_send.sort_unstable();
 
     // Send the chunks closest to the player first.
     chunks_to_send.sort_unstable_by_key(|chunk: &ChunkPosition| {
@@ -63,12 +63,6 @@ fn update_chunks(
         unsent += 1;
     }
     log::debug!("Unloaded {} chunks for {}", unsent, name);
-
-    if old_view.is_empty() {
-        // Player just joined - send them their position now
-        // that chunks have been sent
-        client.update_own_position(*position);
-    }
 
     Ok(())
 }

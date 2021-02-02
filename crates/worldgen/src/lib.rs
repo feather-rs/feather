@@ -412,7 +412,7 @@ mod tests {
     fn test_chunks_eq(a: &Chunk, b: &Chunk) {
         for x in 0..16 {
             for z in 0..16 {
-                assert_eq!(a.biomes().get(x,0, z), b.biomes().get(x,0, z));
+                assert_eq!(a.biomes().get(x, 0, z), b.biomes().get(x, 0, z));
                 for y in 0..256 {
                     assert_eq!(a.block_at(x, y, z), b.block_at(x, y, z));
                 }
