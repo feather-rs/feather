@@ -20,6 +20,7 @@ async fn main() -> anyhow::Result<()> {
 
     common::register(&mut game, &mut systems);
     server.link_with_game(&mut game, &mut systems);
+    print_systems(&mut systems);
 
     let tick_loop = TickLoop::new(move || {
         systems.run(&mut game);
@@ -45,4 +46,9 @@ fn add_spawn_chunks(world: &mut World) {
             world.chunk_map_mut().insert_chunk(chunk);
         }
     }
+}
+
+fn print_systems(systems: &mut SystemExecutor<Game>) {
+    let systems: Vec<&str> = systems.system_names().collect();
+    log::debug!("---SYSTEMS---\n{:#?}\n", systems);
 }

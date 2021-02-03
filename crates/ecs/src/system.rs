@@ -96,6 +96,16 @@ impl<Input> SystemExecutor<Input> {
         self
     }
 
+    fn add_system_with_name(
+        &mut self,
+        system: impl FnMut(&mut Input) -> SysResult + 'static,
+        name: &str,
+    ) {
+        let mut system = System::from_fn(system);
+        system.name = name.to_owned();
+        self.systems.push(system);
+    }
+
     /// Begins a group with the provided group state type.
     ///
     /// The group state must be added to the `resources`.
@@ -130,6 +140,11 @@ impl<Input> SystemExecutor<Input> {
             }
         }
     }
+
+    /// Gets an iterator over system names.
+    pub fn system_names<'a>(&'a self) -> impl Iterator<Item = &'a str> + 'a {
+        self.systems.iter().map(|system| system.name.as_str())
+    }
 }
 
 /// Builder for a group. Created with [`SystemExecutor::group`].
@@ -144,12 +159,13 @@ where
     State: 'static,
 {
     /// Adds a system to the group.
-    pub fn add_system(
+    pub fn add_system<F: FnMut(&mut Input, &mut State) -> SysResult + 'static>(
         &mut self,
-        system: impl FnMut(&mut Input, &mut State) -> SysResult + 'static,
+        system: F,
     ) -> &mut Self {
         let function = Self::make_function(system);
-        self.systems.add_system(function);
+        self.systems
+            .add_system_with_name(function, type_name::<F>());
         self
     }
 
