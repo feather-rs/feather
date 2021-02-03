@@ -74,7 +74,7 @@ impl Game {
     }
 
     /// Causes the given entity to be removed on the next tick.
-    /// In the meantime, triggers `EntityDespawnEvent` and `PlayerLeaveEvent`.
+    /// In the meantime, triggers `EntityRemoveEvent`.
     pub fn remove_entity(&mut self, entity: Entity) -> Result<(), NoSuchEntity> {
         self.ecs.defer_despawn(entity);
         self.ecs.insert_entity_event(entity, EntityRemoveEvent)

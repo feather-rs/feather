@@ -37,6 +37,20 @@ struct ChunkLoadState {
     chunk_tickets: ChunkTickets,
 }
 
+impl ChunkLoadState {
+    pub fn remove_ticket(&mut self, chunk: ChunkPosition, ticket: Ticket) {
+        self.chunk_tickets.remove_ticket(chunk, ticket);
+
+        // If this was the last ticket, then queue the chunk to be
+        // unloaded.
+        if self.chunk_tickets.num_tickets(chunk) == 0 {
+            self.chunk_tickets.remove_chunk(chunk);
+            self.chunk_unload_queue
+                .push_back(QueuedChunkUnload::new(chunk));
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug)]
 struct QueuedChunkUnload {
     pos: ChunkPosition,
@@ -114,16 +128,7 @@ fn update_tickets_for_players(game: &mut Game, state: &mut ChunkLoadState) -> Sy
 
         // Remove old tickets
         for old_chunk in event.old_view.difference(event.new_view) {
-            state.chunk_tickets.remove_ticket(old_chunk, player_ticket);
-
-            // If this was the last ticket, then queue the chunk to be
-            // unloaded.
-            if state.chunk_tickets.num_tickets(old_chunk) == 0 {
-                state.chunk_tickets.remove_chunk(old_chunk);
-                state
-                    .chunk_unload_queue
-                    .push_back(QueuedChunkUnload::new(old_chunk));
-            }
+            state.remove_ticket(old_chunk, player_ticket);
         }
 
         // Create new tickets
@@ -165,7 +170,7 @@ fn remove_dead_entities(game: &mut Game, state: &mut ChunkLoadState) -> SysResul
     for (entity, _event) in game.ecs.query::<&EntityRemoveEvent>().iter() {
         let entity_ticket = Ticket(entity);
         for chunk in state.chunk_tickets.take_entity_tickets(entity_ticket) {
-            state.chunk_tickets.remove_ticket(chunk, entity_ticket);
+            state.remove_ticket(chunk, entity_ticket);
         }
     }
     Ok(())
