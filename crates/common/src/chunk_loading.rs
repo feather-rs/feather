@@ -2,6 +2,7 @@
 
 use std::{
     collections::VecDeque,
+    mem,
     time::{Duration, Instant},
 };
 
@@ -9,12 +10,16 @@ use ahash::AHashMap;
 use base::ChunkPosition;
 use ecs::{Entity, SysResult, SystemExecutor};
 
-use crate::{events::ViewUpdateEvent, Game};
+use crate::{
+    events::{EntityRemoveEvent, ViewUpdateEvent},
+    Game,
+};
 
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     game.insert_resource(ChunkLoadState::default());
     systems
         .group::<ChunkLoadState>()
+        .add_system(remove_dead_entities)
         .add_system(update_tickets_for_players)
         .add_system(unload_chunks)
         .add_system(load_chunks);
@@ -53,20 +58,20 @@ impl QueuedChunkUnload {
 #[derive(Default)]
 struct ChunkTickets {
     tickets: AHashMap<ChunkPosition, Vec<Ticket>>,
+    by_entity: AHashMap<Ticket, Vec<ChunkPosition>>,
 }
 
 impl ChunkTickets {
     pub fn insert_ticket(&mut self, chunk: ChunkPosition, ticket: Ticket) {
         self.tickets.entry(chunk).or_default().push(ticket);
+        self.by_entity.entry(ticket).or_default().push(chunk);
     }
 
     pub fn remove_ticket(&mut self, chunk: ChunkPosition, ticket: Ticket) {
         if let Some(vec) = self.tickets.get_mut(&chunk) {
-            let index = vec.iter().position(|t| *t == ticket);
-            if let Some(index) = index {
-                vec.swap_remove(index);
-            }
+            vec_remove_item(vec, &ticket);
         }
+        vec_remove_item(self.by_entity.get_mut(&ticket).unwrap(), &chunk);
     }
 
     pub fn num_tickets(&self, chunk: ChunkPosition) -> usize {
@@ -76,8 +81,22 @@ impl ChunkTickets {
         }
     }
 
+    pub fn take_entity_tickets(&mut self, ticket: Ticket) -> Vec<ChunkPosition> {
+        self.by_entity
+            .get_mut(&ticket)
+            .map(mem::take)
+            .unwrap_or_default()
+    }
+
     pub fn remove_chunk(&mut self, pos: ChunkPosition) {
         self.tickets.remove(&pos);
+    }
+}
+
+fn vec_remove_item<T: PartialEq>(vec: &mut Vec<T>, item: &T) {
+    let index = vec.iter().position(|x| x == item);
+    if let Some(index) = index {
+        vec.swap_remove(index);
     }
 }
 
@@ -138,6 +157,16 @@ fn unload_chunks(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
         }
 
         game.world.unload_chunk(unload.pos);
+    }
+    Ok(())
+}
+
+fn remove_dead_entities(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
+    for (entity, _event) in game.ecs.query::<&EntityRemoveEvent>().iter() {
+        let entity_ticket = Ticket(entity);
+        for chunk in state.chunk_tickets.take_entity_tickets(entity_ticket) {
+            state.chunk_tickets.remove_ticket(chunk, entity_ticket);
+        }
     }
     Ok(())
 }

@@ -5,8 +5,7 @@ use flume::{Receiver, Sender};
 use parking_lot::RwLock;
 use protocol::{
     packets::server::{
-        ChunkData, JoinGame, PlayerPositionAndLook, PluginMessage, UnloadChunk, UpdateLight,
-        UpdateViewPosition,
+        ChunkData, JoinGame, PlayerPositionAndLook, PluginMessage, UnloadChunk, UpdateViewPosition,
     },
     ClientPlayPacket, Nbt, ServerPlayPacket,
 };
@@ -79,6 +78,10 @@ impl Client {
 
     pub fn received_packets<'a>(&'a self) -> impl Iterator<Item = ClientPlayPacket> + 'a {
         self.received_packets.try_iter()
+    }
+
+    pub fn is_disconnected(&self) -> bool {
+        self.received_packets.is_disconnected()
     }
 
     pub fn send_join_game(&self, gamemode: Gamemode) {
@@ -160,10 +163,7 @@ impl Client {
         );
         self.send_packet(ChunkData {
             chunk: Arc::clone(chunk),
-        }); /*
-            self.send_packet(UpdateLight {
-                chunk: Arc::clone(chunk),
-            });*/
+        });
     }
 
     pub fn unload_chunk(&self, pos: ChunkPosition) {

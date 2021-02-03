@@ -78,6 +78,14 @@ impl Server {
         clients
     }
 
+    /// Removes a client.
+    pub fn remove_client(&mut self, id: ClientId) {
+        let client = self.clients.remove(id);
+        if let Some(client) = client {
+            log::debug!("Removed client for {}", client.username());
+        }
+    }
+
     /// Allocates a `NetworkId` for an entity.
     pub fn create_network_id(&mut self) -> NetworkId {
         self.network_id_allocator.allocate_id()

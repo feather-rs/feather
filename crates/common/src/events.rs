@@ -29,3 +29,10 @@ pub struct ChunkLoadEvent {
 pub struct ChunkLoadFailEvent {
     pub position: ChunkPosition,
 }
+
+/// Triggered when an entity is removed from the world.
+///
+/// The entity will remain alive for one tick after it is
+/// destroyed to allow systems to observe this event.
+#[derive(Debug)]
+pub struct EntityRemoveEvent;

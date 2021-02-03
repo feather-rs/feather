@@ -1,8 +1,12 @@
 use std::{mem, sync::Arc};
 
-use ecs::{Ecs, Entity, EntityBuilder, HasEcs, HasResources, Resources};
+use ecs::{Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources};
 
-use crate::{entity::player::Player, events::PlayerJoinEvent, World};
+use crate::{
+    entity::player::Player,
+    events::{EntityRemoveEvent, PlayerJoinEvent},
+    World,
+};
 
 /// Stores the entire state of a Minecraft game.
 ///
@@ -67,6 +71,13 @@ impl Game {
         self.entity_builder = builder;
         self.trigger_entity_spawn_events(entity);
         entity
+    }
+
+    /// Causes the given entity to be removed on the next tick.
+    /// In the meantime, triggers `EntityDespawnEvent` and `PlayerLeaveEvent`.
+    pub fn remove_entity(&mut self, entity: Entity) -> Result<(), NoSuchEntity> {
+        self.ecs.defer_despawn(entity);
+        self.ecs.insert_entity_event(entity, EntityRemoveEvent)
     }
 
     fn trigger_entity_spawn_events(&mut self, entity: Entity) {

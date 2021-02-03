@@ -1,4 +1,3 @@
-use base::{Biome, BlockId, Chunk, ChunkPosition};
 use common::{world_source::flat::FlatWorldSource, Game, TickLoop, World};
 use ecs::SystemExecutor;
 use feather_server::{Options, Server};
@@ -16,8 +15,6 @@ async fn main() -> anyhow::Result<()> {
     game.world = World::with_source(FlatWorldSource::new());
     let mut systems = SystemExecutor::new();
 
-    add_spawn_chunks(&mut game.world);
-
     common::register(&mut game, &mut systems);
     server.link_with_game(&mut game, &mut systems);
     print_systems(&mut systems);
@@ -30,22 +27,6 @@ async fn main() -> anyhow::Result<()> {
     tick_loop.run();
 
     Ok(())
-}
-
-fn add_spawn_chunks(world: &mut World) {
-    for cx in -8..=8 {
-        for cz in -8..=8 {
-            let mut chunk = Chunk::new_with_default_biome(ChunkPosition::new(cx, cz), Biome::Swamp);
-            for y in 0..64 {
-                for z in 0..16 {
-                    for x in 0..16 {
-                        chunk.set_block_at(x, y, z, BlockId::grass_block());
-                    }
-                }
-            }
-            world.chunk_map_mut().insert_chunk(chunk);
-        }
-    }
 }
 
 fn print_systems(systems: &mut SystemExecutor<Game>) {

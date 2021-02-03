@@ -127,6 +127,19 @@ impl Ecs {
         self.world.remove_one(entity)
     }
 
+    /// Removes an entity from the ECS.
+    pub fn despawn(&mut self, entity: Entity) -> Result<(), NoSuchEntity> {
+        self.world.despawn(entity)
+    }
+
+    /// Defers removing an entity until before the next time this system
+    /// runs, allowing it to be observed by systems one last time.
+    pub fn defer_despawn(&mut self, entity: Entity) {
+        // a bit of a hack - but this will change once
+        // hecs allows taking out components of a despawned entity
+        self.event_tracker.insert_event(entity);
+    }
+
     /// Returns an iterator over all entities that match a query parameter.
     pub fn query<Q: Query>(&self) -> QueryBorrow<Q> {
         self.world.query()
