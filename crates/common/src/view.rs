@@ -24,7 +24,10 @@ fn update_player_views(game: &mut Game) -> SysResult {
         if position.chunk() != view.center() {
             let old_view = *view;
             let new_view = View::new(position.chunk(), old_view.view_distance);
-            events.push((player, ViewUpdateEvent { old_view, new_view }));
+
+            let event = ViewUpdateEvent::new(old_view, new_view);
+            events.push((player, event));
+
             *view = new_view;
             log::trace!("View of {} has been updated", name.0);
         }
@@ -40,10 +43,7 @@ fn update_player_views(game: &mut Game) -> SysResult {
 fn update_view_on_join(game: &mut Game) -> SysResult {
     let mut events = Vec::new();
     for (player, (&view, name, _)) in game.ecs.query::<(&View, &Name, &PlayerJoinEvent)>().iter() {
-        let event = ViewUpdateEvent {
-            old_view: View::empty(),
-            new_view: view,
-        };
+        let event = ViewUpdateEvent::new(View::empty(), view);
         events.push((player, event));
         log::trace!("View of {} has been updated (player joined)", name);
     }

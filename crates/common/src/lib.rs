@@ -26,8 +26,11 @@ pub use world::World;
 
 mod chunk_loading;
 
+mod chunk_entities;
+
 /// Registers gameplay systems with the given `Game` and `SystemExecutor`.
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     view::register(game, systems);
     chunk_loading::register(game, systems);
+    chunk_entities::register(systems);
 }

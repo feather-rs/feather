@@ -797,7 +797,7 @@ dependencies = [
 [[package]]
 name = "hecs"
 version = "0.3.1"
-source = "git+https://github.com/Ralith/hecs?rev=4a19785#4a19785b2c92c4a976aeae77a267858ccdcffc5d"
+source = "git+https://github.com/caelunshun/hecs?branch=hashbrown-yanked#c7af58fcf459ae0f2d392be8e673edcc34940e5a"
 dependencies = [
  "hashbrown",
 ]

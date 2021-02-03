@@ -1,11 +1,14 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
 
+use base::Position;
+use chunk_subscriptions::ChunkSubscriptions;
 use common::Game;
 use ecs::SystemExecutor;
 use flume::Receiver;
 use initial_handler::NewPlayer;
 use listener::Listener;
 
+mod chunk_subscriptions;
 pub mod client;
 mod connection_worker;
 pub mod favicon;
@@ -37,6 +40,9 @@ pub struct Server {
     network_id_allocator: NetworkIdAllocator,
 
     waiting_chunks: WaitingChunks,
+    chunk_subscriptions: ChunkSubscriptions,
+
+    last_keepalive_time: Instant,
 }
 
 impl Server {
@@ -55,6 +61,8 @@ impl Server {
             new_players,
             network_id_allocator: NetworkIdAllocator::new(),
             waiting_chunks: WaitingChunks::default(),
+            chunk_subscriptions: ChunkSubscriptions::default(),
+            last_keepalive_time: Instant::now(),
         })
     }
 
@@ -96,5 +104,29 @@ impl Server {
         let network_id = self.create_network_id();
         let client = Client::new(player, Arc::clone(&self.options), network_id);
         self.clients.insert(client)
+    }
+
+    /// Invokes a callback on all clients.
+    pub fn broadcast_with(&self, mut callback: impl FnMut(&Client)) {
+        for client in self.clients.iter() {
+            callback(client);
+        }
+    }
+
+    /// Sends a packet to all clients currently subscribed
+    /// to the given position. This function should be
+    /// used for entity updates, block updates, etc—
+    /// any packets that need to be sent only to nearby players.
+    pub fn broadcast_nearby_with(&self, position: Position, mut callback: impl FnMut(&Client)) {
+        for &client_id in self.chunk_subscriptions.subscriptions_for(position.chunk()) {
+            if let Some(client) = self.clients.get(client_id) {
+                callback(client);
+            }
+        }
+    }
+
+    pub fn broadcast_keepalive(&mut self) {
+        self.broadcast_with(|client| client.send_keepalive());
+        self.last_keepalive_time = Instant::now();
     }
 }

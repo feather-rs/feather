@@ -1,11 +1,19 @@
-use std::{cell::Cell, io::Cursor, sync::Arc};
+use std::{
+    cell::{Cell, RefCell},
+    io::Cursor,
+    sync::Arc,
+};
 
-use base::{Chunk, ChunkPosition, Gamemode, Position};
+use ahash::AHashSet;
+use base::{Chunk, ChunkPosition, Gamemode, Position, ProfileProperty};
+use common::Uuid;
 use flume::{Receiver, Sender};
 use parking_lot::RwLock;
 use protocol::{
     packets::server::{
-        ChunkData, JoinGame, PlayerPositionAndLook, PluginMessage, UnloadChunk, UpdateViewPosition,
+        AddPlayer, ChunkData, DestroyEntities, EntityHeadLook, EntityTeleport, JoinGame, KeepAlive,
+        PlayerInfo, PlayerPositionAndLook, PluginMessage, SpawnPlayer, UnloadChunk,
+        UpdateViewPosition,
     },
     ClientPlayPacket, Nbt, ServerPlayPacket,
 };
@@ -39,6 +47,10 @@ impl Clients {
     pub fn get(&self, id: ClientId) -> Option<&Client> {
         self.arena.get(id.0)
     }
+
+    pub fn iter<'a>(&'a self) -> impl Iterator<Item = &'a Client> + 'a {
+        self.arena.iter().map(|(_i, client)| client)
+    }
 }
 
 /// A client connected to a server.
@@ -50,10 +62,13 @@ pub struct Client {
     received_packets: Receiver<ClientPlayPacket>,
     options: Arc<Options>,
     username: String,
+    profile: Vec<ProfileProperty>,
+    uuid: Uuid,
 
     teleport_id_counter: Cell<i32>,
 
     network_id: NetworkId,
+    sent_entities: RefCell<AHashSet<NetworkId>>,
 }
 
 impl Client {
@@ -65,11 +80,22 @@ impl Client {
             username: player.username,
             teleport_id_counter: Cell::new(0),
             network_id,
+            profile: player.profile,
+            uuid: player.uuid,
+            sent_entities: RefCell::new(AHashSet::new()),
         }
+    }
+
+    pub fn profile(&self) -> &[ProfileProperty] {
+        &self.profile
     }
 
     pub fn network_id(&self) -> NetworkId {
         self.network_id
+    }
+
+    pub fn uuid(&self) -> Uuid {
+        self.uuid
     }
 
     pub fn username(&self) -> &str {
@@ -82,6 +108,12 @@ impl Client {
 
     pub fn is_disconnected(&self) -> bool {
         self.received_packets.is_disconnected()
+    }
+
+    /// Returns whether the entity with the given ID
+    /// is currently loaded on the client.
+    pub fn is_entity_loaded(&self, network_id: NetworkId) -> bool {
+        self.sent_entities.borrow().contains(&network_id)
     }
 
     pub fn send_join_game(&self, gamemode: Gamemode) {
@@ -172,6 +204,85 @@ impl Client {
             chunk_x: pos.x,
             chunk_z: pos.z,
         });
+    }
+
+    pub fn add_tablist_player(
+        &self,
+        uuid: Uuid,
+        name: String,
+        profile: &[ProfileProperty],
+        gamemode: Gamemode,
+    ) {
+        log::trace!("Sending AddPlayer({}) to {}", name, self.username);
+        let action = AddPlayer {
+            uuid,
+            name,
+            properties: profile.to_vec(),
+            gamemode,
+            ping: 0,
+            display_name: None,
+        };
+        self.send_packet(PlayerInfo::AddPlayers(vec![action]));
+    }
+
+    pub fn remove_tablist_player(&self, uuid: Uuid) {
+        log::trace!("Sending RemovePlayer({}) to {}", uuid, self.username);
+        self.send_packet(PlayerInfo::RemovePlayers(vec![uuid]));
+    }
+
+    pub fn unload_entity(&self, id: NetworkId) {
+        log::trace!("Unloading {:?} on {}", id, self.username);
+        self.sent_entities.borrow_mut().remove(&id);
+        self.send_packet(DestroyEntities {
+            entity_ids: vec![id.0.into()],
+        });
+    }
+
+    pub fn send_player(&self, network_id: NetworkId, uuid: Uuid, pos: Position) {
+        log::trace!("Sending {:?} to {}", uuid, self.username);
+        assert!(!self.sent_entities.borrow().contains(&network_id));
+        self.send_packet(SpawnPlayer {
+            entity_id: network_id.0,
+            player_uuid: uuid,
+            x: pos.x,
+            y: pos.y,
+            z: pos.z,
+            yaw: pos.yaw,
+            pitch: pos.pitch,
+        });
+        self.register_entity(network_id);
+    }
+
+    pub fn update_entity_position(&self, network_id: NetworkId, position: Position) {
+        if network_id == self.network_id {
+            return;
+        }
+        // Consider using the relative movement packets in the future.
+        // (Entity Teleport works fine but the relative movement packets
+        // save bandwidth.)
+        self.send_packet(EntityTeleport {
+            entity_id: network_id.0,
+            x: position.x,
+            y: position.y,
+            z: position.z,
+            yaw: position.yaw,
+            pitch: position.pitch,
+            on_ground: position.on_ground,
+        });
+        // Needed for head orientation
+        self.send_packet(EntityHeadLook {
+            entity_id: network_id.0,
+            head_yaw: position.yaw,
+        });
+    }
+
+    pub fn send_keepalive(&self) {
+        log::trace!("Sending keepalive to {}", self.username);
+        self.send_packet(KeepAlive { id: 0 });
+    }
+
+    fn register_entity(&self, network_id: NetworkId) {
+        self.sent_entities.borrow_mut().insert(network_id);
     }
 
     fn send_packet(&self, packet: impl Into<ServerPlayPacket>) {

@@ -9,6 +9,7 @@ use std::{
 use ahash::AHashMap;
 use base::ChunkPosition;
 use ecs::{Entity, SysResult, SystemExecutor};
+use utils::vec_remove_item;
 
 use crate::{
     events::{EntityRemoveEvent, ViewUpdateEvent},
@@ -107,13 +108,6 @@ impl ChunkTickets {
     }
 }
 
-fn vec_remove_item<T: PartialEq>(vec: &mut Vec<T>, item: &T) {
-    let index = vec.iter().position(|x| x == item);
-    if let Some(index) = index {
-        vec.swap_remove(index);
-    }
-}
-
 /// ID of a chunk ticket that keeps a chunk loaded.
 ///
 /// Currently just represents an entity, the player
@@ -127,12 +121,12 @@ fn update_tickets_for_players(game: &mut Game, state: &mut ChunkLoadState) -> Sy
         let player_ticket = Ticket(player);
 
         // Remove old tickets
-        for old_chunk in event.old_view.difference(event.new_view) {
+        for &old_chunk in &event.old_chunks {
             state.remove_ticket(old_chunk, player_ticket);
         }
 
         // Create new tickets
-        for new_chunk in event.new_view.difference(event.old_view) {
+        for &new_chunk in &event.new_chunks {
             state.chunk_tickets.insert_ticket(new_chunk, player_ticket);
 
             // Load if needed

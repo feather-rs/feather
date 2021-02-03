@@ -21,10 +21,6 @@ async fn main() -> anyhow::Result<()> {
 
     let tick_loop = TickLoop::new(move || {
         systems.run(&mut game);
-        log::info!(
-            "#Loaded chunks: {}",
-            game.world.chunk_map().iter_chunks().into_iter().count()
-        );
         false
     });
 

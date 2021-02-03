@@ -33,7 +33,10 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
             Position::default().chunk(),
             server.options.view_distance,
         ))
-        .add(Name(client.username().into()));
+        .add(Gamemode::Creative)
+        .add(Name(client.username().into()))
+        .add(client.uuid())
+        .add(client.profile().to_vec());
     game.spawn_entity(builder);
 
     Ok(())

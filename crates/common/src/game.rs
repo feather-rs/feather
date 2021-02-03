@@ -3,10 +3,13 @@ use std::{mem, sync::Arc};
 use ecs::{Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources};
 
 use crate::{
+    chunk_entities::ChunkEntities,
     entity::player::Player,
-    events::{EntityRemoveEvent, PlayerJoinEvent},
+    events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent},
     World,
 };
+
+type EntitySpawnCallback = Box<dyn FnMut(&mut Game, &mut EntityBuilder)>;
 
 /// Stores the entire state of a Minecraft game.
 ///
@@ -29,6 +32,11 @@ pub struct Game {
     /// Stored in an `Arc` for borrow-checker purposes.
     pub resources: Arc<Resources>,
 
+    /// A spatial index to efficiently find which entities are in a given chunk.
+    pub chunk_entities: ChunkEntities,
+
+    entity_spawn_callbacks: Vec<EntitySpawnCallback>,
+
     entity_builder: EntityBuilder,
 }
 
@@ -39,6 +47,8 @@ impl Game {
             world: World::new(),
             ecs: Ecs::new(),
             resources: Arc::new(Resources::new()),
+            chunk_entities: ChunkEntities::default(),
+            entity_spawn_callbacks: Vec::new(),
             entity_builder: EntityBuilder::new(),
         }
     }
@@ -58,6 +68,18 @@ impl Game {
             .insert(resource);
     }
 
+    /// Adds a new entity spawn callback, invoked
+    /// before an entity is created.
+    ///
+    /// This allows you to add components to entities
+    /// before they are built.
+    pub fn add_entity_spawn_callback(
+        &mut self,
+        callback: impl FnMut(&mut Game, &mut EntityBuilder) + 'static,
+    ) {
+        self.entity_spawn_callbacks.push(Box::new(callback));
+    }
+
     /// Creates a new `EntityBuilder`.
     pub fn create_entity_builder(&mut self) -> EntityBuilder {
         mem::take(&mut self.entity_builder)
@@ -67,10 +89,30 @@ impl Game {
     ///
     /// Also triggers necessary events, like `EntitySpawnEvent` and `PlayerJoinEvent`.
     pub fn spawn_entity(&mut self, mut builder: EntityBuilder) -> Entity {
+        self.invoke_entity_spawn_callbacks(&mut builder);
         let entity = self.ecs.spawn(builder.build());
         self.entity_builder = builder;
         self.trigger_entity_spawn_events(entity);
         entity
+    }
+
+    fn invoke_entity_spawn_callbacks(&mut self, builder: &mut EntityBuilder) {
+        let mut callbacks = mem::take(&mut self.entity_spawn_callbacks);
+        for callback in &mut callbacks {
+            callback(self, builder);
+        }
+        self.entity_spawn_callbacks = callbacks;
+    }
+
+    fn trigger_entity_spawn_events(&mut self, entity: Entity) {
+        self.ecs
+            .insert_entity_event(entity, EntityCreateEvent)
+            .unwrap();
+        if self.ecs.get::<Player>(entity).is_ok() {
+            self.ecs
+                .insert_entity_event(entity, PlayerJoinEvent)
+                .unwrap();
+        }
     }
 
     /// Causes the given entity to be removed on the next tick.
@@ -78,14 +120,6 @@ impl Game {
     pub fn remove_entity(&mut self, entity: Entity) -> Result<(), NoSuchEntity> {
         self.ecs.defer_despawn(entity);
         self.ecs.insert_entity_event(entity, EntityRemoveEvent)
-    }
-
-    fn trigger_entity_spawn_events(&mut self, entity: Entity) {
-        if self.ecs.get::<Player>(entity).is_ok() {
-            self.ecs
-                .insert_entity_event(entity, PlayerJoinEvent)
-                .unwrap();
-        }
     }
 }
 

@@ -626,8 +626,8 @@ impl Writeable for PlayerInfo {
             PlayerInfo::AddPlayers(vec) => (0, vec.len()),
             PlayerInfo::UpdateGamemodes(vec) => (1, vec.len()),
             PlayerInfo::UpdatePings(vec) => (2, vec.len()),
-            PlayerInfo::UpdateDisplayNames(vec) => (4, vec.len()),
-            PlayerInfo::RemovePlayers(vec) => (5, vec.len()),
+            PlayerInfo::UpdateDisplayNames(vec) => (3, vec.len()),
+            PlayerInfo::RemovePlayers(vec) => (4, vec.len()),
         };
         VarInt(action_id).write(buffer, version);
         VarInt(num_players as i32).write(buffer, version);

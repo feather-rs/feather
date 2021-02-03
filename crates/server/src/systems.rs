@@ -1,8 +1,12 @@
 //! Systems linking a `Server` and a `Game`.
 
+mod entity;
 mod player_join;
 mod player_leave;
+mod tablist;
 pub mod view;
+
+use std::time::{Duration, Instant};
 
 use common::{Game, Name};
 use ecs::{SysResult, SystemExecutor};
@@ -14,9 +18,15 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
     game.insert_resource(server);
 
     player_join::register(systems);
-    systems.group::<Server>().add_system(handle_packets);
+    systems
+        .group::<Server>()
+        .add_system(handle_packets)
+        .add_system(send_keepalives);
     view::register(game, systems);
+    crate::chunk_subscriptions::register(systems);
     player_leave::register(systems);
+    tablist::register(systems);
+    entity::register(game, systems);
 }
 
 /// Polls for packets received from clients
@@ -42,5 +52,14 @@ fn handle_packets(game: &mut Game, server: &mut Server) -> SysResult {
         }
     }
 
+    Ok(())
+}
+
+/// Sends out keepalive packets at an interval.
+fn send_keepalives(_game: &mut Game, server: &mut Server) -> SysResult {
+    let interval = Duration::from_secs(5);
+    if server.last_keepalive_time + interval < Instant::now() {
+        server.broadcast_keepalive();
+    }
     Ok(())
 }
