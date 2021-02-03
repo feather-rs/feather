@@ -1,5 +1,5 @@
 use base::{Biome, BlockId, Chunk, ChunkPosition};
-use common::{Game, TickLoop, World};
+use common::{world_source::flat::FlatWorldSource, Game, TickLoop, World};
 use ecs::SystemExecutor;
 use feather_server::{Options, Server};
 use simple_logger::SimpleLogger;
@@ -7,12 +7,13 @@ use simple_logger::SimpleLogger;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     SimpleLogger::new()
-        .with_level(log::LevelFilter::Debug)
+        .with_level(log::LevelFilter::Trace)
         .init()
         .unwrap();
 
     let server = Server::bind(Options::default()).await?;
     let mut game = Game::new();
+    game.world = World::with_source(FlatWorldSource::new());
     let mut systems = SystemExecutor::new();
 
     add_spawn_chunks(&mut game.world);

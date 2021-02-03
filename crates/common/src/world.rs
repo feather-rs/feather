@@ -1,10 +1,14 @@
 use ahash::{AHashMap, AHashSet};
 use base::{BlockPosition, Chunk, ChunkPosition, CHUNK_HEIGHT};
 use blocks::BlockId;
+use ecs::Ecs;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::sync::Arc;
 
-use crate::world_source::{null::NullWorldSource, ChunkLoadResult, WorldSource};
+use crate::{
+    events::ChunkLoadEvent,
+    world_source::{null::NullWorldSource, ChunkLoadResult, WorldSource},
+};
 
 /// Stores all blocks and chunks in a world,
 /// along with global world data like weather, time,
@@ -51,7 +55,7 @@ impl World {
 
     /// Loads any chunks that have been loaded asynchronously
     /// after a call to [`queue_chunk_load`].
-    pub fn load_chunks(&mut self) {
+    pub fn load_chunks(&mut self, ecs: &mut Ecs) {
         while let Some(loaded) = self.world_source.poll_loaded_chunk() {
             self.loading_chunks.remove(&loaded.pos);
             if self.canceled_chunk_loads.remove(&loaded.pos) {
@@ -73,6 +77,10 @@ impl World {
                 ChunkLoadResult::Loaded { chunk } => chunk,
             };
             self.chunk_map.insert_chunk(chunk);
+            ecs.insert_event(ChunkLoadEvent {
+                chunk: Arc::clone(&self.chunk_map.0[&loaded.pos]),
+                position: loaded.pos,
+            });
             log::trace!("Loaded chunk {:?}", loaded.pos);
         }
     }

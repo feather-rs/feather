@@ -21,6 +21,7 @@ use network_id_registry::NetworkIdAllocator;
 pub use client::{Client, ClientId, Clients};
 pub use network_id_registry::NetworkId;
 pub use options::Options;
+use systems::view::WaitingChunks;
 
 /// A Minecraft server.
 ///
@@ -34,6 +35,8 @@ pub struct Server {
     clients: Clients,
     new_players: Receiver<NewPlayer>,
     network_id_allocator: NetworkIdAllocator,
+
+    waiting_chunks: WaitingChunks,
 }
 
 impl Server {
@@ -51,6 +54,7 @@ impl Server {
             clients: Clients::new(),
             new_players,
             network_id_allocator: NetworkIdAllocator::new(),
+            waiting_chunks: WaitingChunks::default(),
         })
     }
 

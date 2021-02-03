@@ -43,6 +43,11 @@ mod event;
 /// is automatically removed.
 ///
 /// This ensures that each event is observed exactly once by each system.
+///
+/// Events can either be associated with an entity—in which case they
+/// are added as a component to the entity—or they can be standalone.
+/// For example, `BlockChangeEvent` is not related to any specific
+/// entity. These standalone events are entities with only one component—the event.
 #[derive(Default)]
 pub struct Ecs {
     world: World,
@@ -95,17 +100,25 @@ impl Ecs {
         self.world.insert_one(entity, component)
     }
 
+    /// Creates an event not related to any entity. Use
+    /// `insert_entity_event` for events regarding specific
+    /// entities (`PlayerJoinEvent`, `EntityDamageEvent`, etc...)
+    pub fn insert_event<T: Component>(&mut self, event: T) {
+        let entity = self.world.spawn((event,));
+        self.event_tracker.insert_event(entity);
+    }
+
     /// Adds an event component to an entity and schedules
     /// it to be removed immeditately before the current system
     /// runs again. Thus, all systems have exactly one chance
     /// to observe the event before it is dropped.
-    pub fn insert_event<T: Component>(
+    pub fn insert_entity_event<T: Component>(
         &mut self,
         entity: Entity,
         event: T,
     ) -> Result<(), NoSuchEntity> {
         self.insert(entity, event)?;
-        self.event_tracker.insert_event::<T>(entity);
+        self.event_tracker.insert_entity_event::<T>(entity);
         Ok(())
     }
 

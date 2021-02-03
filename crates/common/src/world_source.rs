@@ -5,7 +5,7 @@ pub mod null;
 
 /// A chunk loaded from a [`WorldSource`].
 pub struct LoadedChunk {
-   pub pos: ChunkPosition,
+    pub pos: ChunkPosition,
     pub result: ChunkLoadResult,
 }
 

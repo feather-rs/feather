@@ -1,6 +1,6 @@
 //! Systems linking a `Server` and a `Game`.
 
-mod view;
+pub mod view;
 
 use anyhow::anyhow;
 use base::{Gamemode, Position};

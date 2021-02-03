@@ -25,12 +25,13 @@ fn update_player_views(game: &mut Game) -> SysResult {
             let old_view = *view;
             let new_view = View::new(position.chunk(), old_view.view_distance);
             events.push((player, ViewUpdateEvent { old_view, new_view }));
+            *view = new_view;
             log::trace!("View of {} has been updated", name.0);
         }
     }
 
     for (player, event) in events {
-        game.ecs.insert_event(player, event)?;
+        game.ecs.insert_entity_event(player, event)?;
     }
     Ok(())
 }
@@ -44,10 +45,10 @@ fn update_view_on_join(game: &mut Game) -> SysResult {
             new_view: view,
         };
         events.push((player, event));
-        log::trace!("View of {} has been updated", name);
+        log::trace!("View of {} has been updated (player joined)", name);
     }
     for (player, event) in events {
-        game.ecs.insert_event(player, event)?;
+        game.ecs.insert_entity_event(player, event)?;
     }
     Ok(())
 }

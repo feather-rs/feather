@@ -3,10 +3,14 @@ use hecs::{Component, Entity, World};
 /// Function to remove an event from the ECS.
 type EventRemoveFn = fn(&mut World, Entity);
 
-fn event_remove_fn<T: Component>() -> EventRemoveFn {
+fn entity_event_remove_fn<T: Component>() -> EventRemoveFn {
     |ecs, entity| {
         let _ = ecs.remove_one::<T>(entity);
     }
+}
+
+fn event_remove_fn(world: &mut World, event_entity: Entity) {
+    let _ = world.despawn(event_entity);
 }
 
 /// Maintains a set of events that need to be removed
@@ -31,10 +35,16 @@ pub struct EventTracker {
 }
 
 impl EventTracker {
-    /// Adds an event to be tracked.
-    pub fn insert_event<T: Component>(&mut self, entity: Entity) {
+    /// Adds an entity event to be tracked.
+    pub fn insert_entity_event<T: Component>(&mut self, entity: Entity) {
         let events_vec = self.current_events_vec();
-        events_vec.push((entity, event_remove_fn::<T>()))
+        events_vec.push((entity, entity_event_remove_fn::<T>()))
+    }
+
+    /// Adds an event to be tracked.
+    pub fn insert_event(&mut self, event_entity: Entity) {
+        let events_vec = self.current_events_vec();
+        events_vec.push((event_entity, event_remove_fn));
     }
 
     pub fn set_current_system_index(&mut self, index: usize) {

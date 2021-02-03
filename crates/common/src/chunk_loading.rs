@@ -16,7 +16,8 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     systems
         .group::<ChunkLoadState>()
         .add_system(update_tickets_for_players)
-        .add_system(unload_chunks);
+        .add_system(unload_chunks)
+        .add_system(load_chunks);
 }
 
 /// Amount of time to wait after a chunk has
@@ -138,5 +139,11 @@ fn unload_chunks(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
 
         game.world.unload_chunk(unload.pos);
     }
+    Ok(())
+}
+
+/// System to call `World::load_chunks` each tick
+fn load_chunks(game: &mut Game, _state: &mut ChunkLoadState) -> SysResult {
+    game.world.load_chunks(&mut game.ecs);
     Ok(())
 }

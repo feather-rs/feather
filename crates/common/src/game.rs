@@ -2,7 +2,7 @@ use std::{mem, sync::Arc};
 
 use ecs::{Ecs, Entity, EntityBuilder, HasEcs, HasResources, Resources};
 
-use crate::{World, entity::player::Player, events::PlayerJoinEvent};
+use crate::{entity::player::Player, events::PlayerJoinEvent, World};
 
 /// Stores the entire state of a Minecraft game.
 ///
@@ -71,7 +71,9 @@ impl Game {
 
     fn trigger_entity_spawn_events(&mut self, entity: Entity) {
         if self.ecs.get::<Player>(entity).is_ok() {
-            self.ecs.insert_event(entity, PlayerJoinEvent).unwrap();
+            self.ecs
+                .insert_entity_event(entity, PlayerJoinEvent)
+                .unwrap();
         }
     }
 }

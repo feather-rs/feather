@@ -32,7 +32,7 @@ fn trigger_system(input: &mut Input) -> SysResult {
     if input.is_first_run {
         let entity = input.ecs.spawn(());
         let event = Event { x: 10 };
-        input.ecs.insert_event(entity, event)?;
+        input.ecs.insert_entity_event(entity, event)?;
     } else {
         let mut query = input.ecs.query::<&Event>();
         assert_eq!(query.iter().next(), None);

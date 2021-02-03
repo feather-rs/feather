@@ -160,10 +160,10 @@ impl Client {
         );
         self.send_packet(ChunkData {
             chunk: Arc::clone(chunk),
-        });
-        self.send_packet(UpdateLight {
-            chunk: Arc::clone(chunk),
-        });
+        }); /*
+            self.send_packet(UpdateLight {
+                chunk: Arc::clone(chunk),
+            });*/
     }
 
     pub fn unload_chunk(&self, pos: ChunkPosition) {
