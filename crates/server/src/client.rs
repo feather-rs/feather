@@ -15,7 +15,7 @@ use protocol::{
         EntityTeleport, JoinGame, KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage,
         SpawnPlayer, UnloadChunk, UpdateViewPosition,
     },
-    ClientPlayPacket, Nbt, ServerPlayPacket,
+    ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
 use vec_arena::Arena;
 
@@ -148,7 +148,11 @@ impl Client {
     }
 
     pub fn send_brand(&self) {
-        self.send_plugin_message("minecraft:brand", "Feather")
+        let mut data = Vec::new();
+        "Feather"
+            .to_owned()
+            .write(&mut data, ProtocolVersion::V1_16_2);
+        self.send_plugin_message("minecraft:brand", data)
     }
 
     pub fn send_plugin_message(&self, channel: impl Into<String>, data: impl Into<Vec<u8>>) {
