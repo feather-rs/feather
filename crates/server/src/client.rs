@@ -11,9 +11,9 @@ use flume::{Receiver, Sender};
 use parking_lot::RwLock;
 use protocol::{
     packets::server::{
-        AddPlayer, ChunkData, DestroyEntities, EntityHeadLook, EntityTeleport, JoinGame, KeepAlive,
-        PlayerInfo, PlayerPositionAndLook, PluginMessage, SpawnPlayer, UnloadChunk,
-        UpdateViewPosition,
+        AddPlayer, Animation, ChunkData, DestroyEntities, EntityAnimation, EntityHeadLook,
+        EntityTeleport, JoinGame, KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage,
+        SpawnPlayer, UnloadChunk, UpdateViewPosition,
     },
     ClientPlayPacket, Nbt, ServerPlayPacket,
 };
@@ -279,6 +279,16 @@ impl Client {
     pub fn send_keepalive(&self) {
         log::trace!("Sending keepalive to {}", self.username);
         self.send_packet(KeepAlive { id: 0 });
+    }
+
+    pub fn send_entity_animation(&self, network_id: NetworkId, animation: Animation) {
+        if network_id == self.network_id {
+            return;
+        }
+        self.send_packet(EntityAnimation {
+            entity_id: network_id.0,
+            animation,
+        })
     }
 
     fn register_entity(&self, network_id: NetworkId) {

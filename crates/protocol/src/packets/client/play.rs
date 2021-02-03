@@ -1,4 +1,5 @@
 use super::*;
+use crate::packets::server::Hand;
 
 packets! {
     TeleportConfirm {
@@ -319,7 +320,7 @@ packets! {
     }
 
     Animation {
-        hand VarInt;
+        hand Hand;
     }
 
     Spectate {

@@ -1,15 +1,22 @@
+use base::Position;
 use common::Game;
-use ecs::{Entity, SysResult};
-use protocol::ClientPlayPacket;
+use ecs::{Entity, EntityRef, SysResult};
+use protocol::{
+    packets::{
+        client,
+        server::{Animation, Hand},
+    },
+    ClientPlayPacket,
+};
 
-use crate::Server;
+use crate::{NetworkId, Server};
 
 mod movement;
 
 /// Handles a packet received from a client.
 pub fn handle_packet(
     game: &mut Game,
-    _server: &mut Server,
+    server: &mut Server,
     player: Entity,
     packet: ClientPlayPacket,
 ) -> SysResult {
@@ -27,6 +34,8 @@ pub fn handle_packet(
         ClientPlayPacket::PlayerMovement(packet) => {
             movement::handle_player_movement(player, packet)
         }
+
+        ClientPlayPacket::Animation(packet) => handle_animation(server, player, packet),
 
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
@@ -68,9 +77,27 @@ pub fn handle_packet(
         | ClientPlayPacket::UpdateJigsawBlock(_)
         | ClientPlayPacket::UpdateStructureBlock(_)
         | ClientPlayPacket::UpdateSign(_)
-        | ClientPlayPacket::Animation(_)
         | ClientPlayPacket::Spectate(_)
         | ClientPlayPacket::PlayerBlockPlacement(_)
         | ClientPlayPacket::UseItem(_) => Ok(()),
     }
+}
+
+fn handle_animation(
+    server: &mut Server,
+    player: EntityRef,
+    packet: client::Animation,
+) -> SysResult {
+    let pos = *player.get::<Position>()?;
+    let network_id = *player.get::<NetworkId>()?;
+
+    let animation = match packet.hand {
+        Hand::Main => Animation::SwingMainArm,
+        Hand::Off => Animation::SwingOffhand,
+    };
+
+    server.broadcast_nearby_with(pos, |client| {
+        client.send_entity_animation(network_id, animation.clone())
+    });
+    Ok(())
 }
