@@ -28,6 +28,9 @@ mod chunk_loading;
 
 mod chunk_entities;
 
+pub mod chat;
+pub use chat::ChatBox;
+
 /// Registers gameplay systems with the given `Game` and `SystemExecutor`.
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     view::register(game, systems);

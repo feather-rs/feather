@@ -1,4 +1,5 @@
-use common::Game;
+use base::Text;
+use common::{chat::ChatKind, Game, Name};
 use ecs::{SysResult, SystemExecutor};
 
 use crate::{ClientId, Server};
@@ -11,11 +12,12 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 
 fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResult {
     let mut entities_to_remove = Vec::new();
-    for (player, &client_id) in game.ecs.query::<&ClientId>().iter() {
+    for (player, (&client_id, name)) in game.ecs.query::<(&ClientId, &Name)>().iter() {
         let client = server.clients.get(client_id).unwrap();
         if client.is_disconnected() {
             server.remove_client(client_id);
             entities_to_remove.push(player);
+            broadcast_player_leave(game, name);
         }
     }
 
@@ -24,4 +26,9 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
     }
 
     Ok(())
+}
+
+fn broadcast_player_leave(game: &Game, username: &Name) {
+    let message = Text::translate_with("multiplayer.player.left", vec![username.0.to_string()]);
+    game.broadcast_chat(ChatKind::System, message);
 }

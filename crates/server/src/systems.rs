@@ -1,5 +1,6 @@
 //! Systems linking a `Server` and a `Game`.
 
+mod chat;
 mod entity;
 mod player_join;
 mod player_leave;
@@ -27,6 +28,7 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
     player_leave::register(systems);
     tablist::register(systems);
     entity::register(game, systems);
+    chat::register(game, systems);
 }
 
 /// Polls for packets received from clients

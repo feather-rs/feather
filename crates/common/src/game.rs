@@ -1,12 +1,14 @@
 use std::{mem, sync::Arc};
 
-use ecs::{Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources};
+use base::Text;
+use ecs::{Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult};
 
 use crate::{
+    chat::{ChatKind, ChatMessage},
     chunk_entities::ChunkEntities,
     entity::player::Player,
     events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent},
-    World,
+    ChatBox, World,
 };
 
 type EntitySpawnCallback = Box<dyn FnMut(&mut Game, &mut EntityBuilder)>;
@@ -120,6 +122,22 @@ impl Game {
     pub fn remove_entity(&mut self, entity: Entity) -> Result<(), NoSuchEntity> {
         self.ecs.defer_despawn(entity);
         self.ecs.insert_entity_event(entity, EntityRemoveEvent)
+    }
+
+    /// Broadcasts a chat message to all entities with
+    /// a `ChatBox` component (usually just players).
+    pub fn broadcast_chat(&self, kind: ChatKind, message: impl Into<Text>) {
+        let message = message.into();
+        for (_, mailbox) in self.ecs.query::<&mut ChatBox>().iter() {
+            mailbox.send(ChatMessage::new(kind, message.clone()));
+        }
+    }
+
+    /// Utility method to send a message to an entity.
+    pub fn send_message(&mut self, entity: Entity, message: ChatMessage) -> SysResult {
+        let mut mailbox = self.ecs.get_mut::<ChatBox>(entity)?;
+        mailbox.send(message);
+        Ok(())
     }
 }
 

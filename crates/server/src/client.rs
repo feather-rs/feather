@@ -6,14 +6,20 @@ use std::{
 
 use ahash::AHashSet;
 use base::{Chunk, ChunkPosition, Gamemode, Position, ProfileProperty};
-use common::Uuid;
+use common::{
+    chat::{ChatKind, ChatMessage},
+    Uuid,
+};
 use flume::{Receiver, Sender};
 use parking_lot::RwLock;
 use protocol::{
-    packets::server::{
-        AddPlayer, Animation, ChunkData, DestroyEntities, EntityAnimation, EntityHeadLook,
-        EntityTeleport, JoinGame, KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage,
-        SpawnPlayer, UnloadChunk, UpdateViewPosition,
+    packets::{
+        self,
+        server::{
+            AddPlayer, Animation, ChatPosition, ChunkData, DestroyEntities, EntityAnimation,
+            EntityHeadLook, EntityTeleport, JoinGame, KeepAlive, PlayerInfo, PlayerPositionAndLook,
+            PluginMessage, SpawnPlayer, UnloadChunk, UpdateViewPosition,
+        },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
@@ -295,11 +301,28 @@ impl Client {
         })
     }
 
+    pub fn send_chat_message(&self, message: ChatMessage) {
+        let packet = chat_packet(message);
+        self.send_packet(packet);
+    }
+
     fn register_entity(&self, network_id: NetworkId) {
         self.sent_entities.borrow_mut().insert(network_id);
     }
 
     fn send_packet(&self, packet: impl Into<ServerPlayPacket>) {
         let _ = self.packets_to_send.try_send(packet.into());
+    }
+}
+
+fn chat_packet(message: ChatMessage) -> packets::server::ChatMessage {
+    packets::server::ChatMessage {
+        message: message.text().to_string(),
+        position: match message.kind() {
+            ChatKind::PlayerChat => ChatPosition::Chat,
+            ChatKind::System => ChatPosition::SystemMessage,
+            ChatKind::AboveHotbar => ChatPosition::Hotbar,
+        },
+        sender: Uuid::default(),
     }
 }

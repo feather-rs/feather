@@ -1,5 +1,5 @@
-use base::Position;
-use common::Game;
+use base::{Position, Text};
+use common::{chat::ChatKind, Game, Name};
 use ecs::{Entity, EntityRef, SysResult};
 use protocol::{
     packets::{
@@ -37,10 +37,11 @@ pub fn handle_packet(
 
         ClientPlayPacket::Animation(packet) => handle_animation(server, player, packet),
 
+        ClientPlayPacket::ChatMessage(packet) => handle_chat_message(game, player, packet),
+
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
         | ClientPlayPacket::SetDifficulty(_)
-        | ClientPlayPacket::ChatMessage(_)
         | ClientPlayPacket::ClientStatus(_)
         | ClientPlayPacket::ClientSettings(_)
         | ClientPlayPacket::TabComplete(_)
@@ -99,5 +100,12 @@ fn handle_animation(
     server.broadcast_nearby_with(pos, |client| {
         client.send_entity_animation(network_id, animation.clone())
     });
+    Ok(())
+}
+
+fn handle_chat_message(game: &Game, player: EntityRef, packet: client::ChatMessage) -> SysResult {
+    let name = player.get::<Name>()?;
+    let message = Text::translate_with("chat.type.text", vec![name.0.to_string(), packet.message]);
+    game.broadcast_chat(ChatKind::PlayerChat, message);
     Ok(())
 }

@@ -1,5 +1,9 @@
-use base::{Gamemode, Position};
-use common::{view::View, Game, Name};
+use base::{Gamemode, Position, Text};
+use common::{
+    chat::{ChatKind, ChatPreference},
+    view::View,
+    ChatBox, Game, Name,
+};
 use ecs::{SysResult, SystemExecutor};
 
 use crate::{ClientId, Server};
@@ -36,8 +40,16 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .add(Gamemode::Creative)
         .add(Name(client.username().into()))
         .add(client.uuid())
-        .add(client.profile().to_vec());
+        .add(client.profile().to_vec())
+        .add(ChatBox::new(ChatPreference::All));
     game.spawn_entity(builder);
 
+    broadcast_player_join(game, client.username());
+
     Ok(())
+}
+
+fn broadcast_player_join(game: &mut Game, username: &str) {
+    let message = Text::translate_with("multiplayer.player.joined", vec![username.to_owned()]);
+    game.broadcast_chat(ChatKind::System, message);
 }
