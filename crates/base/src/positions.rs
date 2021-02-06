@@ -7,6 +7,8 @@ use std::{
 };
 use vek::{Mat4, Vec2, Vec3, Vec4};
 
+use crate::CHUNK_WIDTH;
+
 pub type Vec2i = Vec2<i32>;
 pub type Vec3i = Vec3<i32>;
 pub type Vec4i = Vec4<i32>;
@@ -342,8 +344,8 @@ impl From<BlockPosition> for Position {
 impl From<BlockPosition> for ChunkPosition {
     fn from(pos: BlockPosition) -> Self {
         Self {
-            x: pos.x >> 4,
-            z: pos.z >> 4,
+            x: pos.x.div_euclid(CHUNK_WIDTH as i32),
+            z: pos.z.div_euclid(CHUNK_WIDTH as i32),
         }
     }
 }

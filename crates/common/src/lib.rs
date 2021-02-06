@@ -17,6 +17,9 @@ pub mod entity;
 
 pub mod view;
 
+pub mod window;
+pub use window::Window;
+
 pub mod events;
 
 pub mod world_source;

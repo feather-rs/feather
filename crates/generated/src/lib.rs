@@ -33,8 +33,15 @@ impl ItemStack {
         Self {
             item,
             count,
-            damage: None,
+            damage: item.durability().map(|_| 0),
         }
+    }
+
+    /// Returns whether the given item stack has
+    /// the same type as (but not necessarily the same
+    /// amount as) `self`.
+    pub fn has_same_type(&self, other: &ItemStack) -> bool {
+        other.item == self.item && other.damage == self.damage
     }
 
     /// Returns the item type for this `ItemStack`.
@@ -71,6 +78,49 @@ impl ItemStack {
     /// Sets the count for this `ItemStack`.
     pub fn set_count(&mut self, count: u32) {
         self.count = count;
+    }
+
+    /// Splits this `ItemStack` in half, returning the
+    /// second item stack. If the amount is odd, `self`
+    /// will be left with the least items.
+    pub fn take_half(&mut self) -> ItemStack {
+        let count_left = self.count / 2;
+        let other_half = ItemStack {
+            count: self.count - count_left,
+            ..self.clone()
+        };
+        self.count = count_left;
+        other_half
+    }
+
+    /// Splits this `ItemStack`.
+    pub fn take(&mut self, amount: u32) -> ItemStack {
+        let count_left = self.count.saturating_sub(amount);
+        let count_lost = self.count - count_left;
+        self.count = count_left;
+        ItemStack {
+            count: count_lost,
+            ..self.clone()
+        }
+    }
+
+    /// Merges another `ItemStack` with this one.
+    pub fn merge_with(&mut self, other: &mut ItemStack) {
+        if !self.has_same_type(other) {
+            return;
+        }
+        let new_count = (self.count + other.count).min(self.item.stack_size());
+        let amount_added = new_count - self.count;
+        self.count = new_count;
+        other.count -= amount_added;
+    }
+
+    /// Transfers up to `n` items to `other`.
+    pub fn transfer_to(&mut self, n: u32, other: &mut ItemStack) {
+        let max_transfer = other.item.stack_size().saturating_sub(other.count);
+        let transfer = max_transfer.min(self.count).min(n);
+        self.count -= transfer;
+        other.count += transfer;
     }
 
     /// Damages the item by the specified amount.
@@ -126,6 +176,17 @@ impl Inventory {
         slice.get(slot).map(Mutex::lock)
     }
 
+    /// Gets all the items in this inventory.
+    pub fn to_vec(&self) -> Vec<Option<ItemStack>> {
+        let mut vec = Vec::new();
+        for area in self.backing.areas() {
+            for item in self.backing.area_slice(*area).unwrap() {
+                vec.push(item.lock().clone());
+            }
+        }
+        vec
+    }
+
     /// Creates a new handle to the same inventory.
     ///
     /// This operation is the same as calling `clone()`, but it's more explicit
@@ -158,5 +219,16 @@ impl Window {
     pub fn set_item(&self, index: usize, item: Option<ItemStack>) -> Result<(), WindowError> {
         *self.item(index)? = item;
         Ok(())
+    }
+
+    /// Gets a vector of all items in this window.
+    pub fn to_vec(&self) -> Vec<Option<ItemStack>> {
+        let mut i = 0;
+        let mut vec = Vec::new();
+        while let Ok(item) = self.item(i) {
+            vec.push(item.clone());
+            i += 1;
+        }
+        vec
     }
 }

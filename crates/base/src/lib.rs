@@ -19,7 +19,7 @@ mod world;
 
 pub use blocks::*;
 pub use chunk::{Chunk, ChunkSection, CHUNK_HEIGHT, CHUNK_WIDTH};
-pub use generated::{Area, Biome, EntityKind, Item, ItemStack, Particle, Window};
+pub use generated::{Area, Biome, EntityKind, Inventory, Item, ItemStack, Particle};
 #[doc(inline)]
 pub use metadata::EntityMetadata;
 pub use positions::*;

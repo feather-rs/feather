@@ -109,7 +109,9 @@ for inventory in inventories:
 output += "}"
 
 get_area_fn = "pub fn area_slice(&self, area: Area) -> Option<&[T]> { match self {"
+get_areas_fn = "pub fn areas(&self) -> &'static [Area] { match self {"
 constructor_fns = ""
+inventory_constructor_fns = ""
 
 for inventory in inventories:
     name = inventory['name']
@@ -126,6 +128,11 @@ for inventory in inventories:
         get_area_fn += f"Area::{area_variant} => Some({area}.as_ref()),"
     get_area_fn += "_ => None },"
 
+    get_areas_fn += f"\nInventoryBacking::{variant} {{ .. }} => {{static AREAS: [Area; {len(areas)}] = ["
+    for area in areas:
+        get_areas_fn += f"Area::{common.camel_case(area)},"
+    get_areas_fn += f"];\n &AREAS }},"
+
     constructor_fn = f"pub fn {name}() -> Self where T: Default {{ InventoryBacking::{variant} {{"
     for area in areas:
         constructor_fn += f"{area}: Default::default(),"
@@ -133,7 +140,11 @@ for inventory in inventories:
     constructor_fn += "} }\n"
     constructor_fns += constructor_fn
 
+    inventory_constructor_fns += f"pub fn {name}() -> Self {{ Self {{ backing: std::sync::Arc::new(InventoryBacking::{name}()) }} }}"
+
 get_area_fn += "} }"
-output += f"impl <T> InventoryBacking<T> {{ {get_area_fn} {constructor_fns} }}"
+get_areas_fn += "} }"
+output += f"impl <T> InventoryBacking<T> {{ {get_area_fn} {get_areas_fn} {constructor_fns} }}"
+output += f"impl crate::Inventory {{ {inventory_constructor_fns} }}"
 
 common.output("src/inventory.rs", output)

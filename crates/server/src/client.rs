@@ -5,12 +5,13 @@ use std::{
 };
 
 use ahash::AHashSet;
-use base::{Chunk, ChunkPosition, Gamemode, Position, ProfileProperty};
+use base::{Chunk, ChunkPosition, Gamemode, ItemStack, Position, ProfileProperty};
 use common::{
     chat::{ChatKind, ChatMessage},
-    Uuid,
+    Uuid, Window,
 };
 use flume::{Receiver, Sender};
+use packets::server::{SetSlot, WindowConfirmation};
 use parking_lot::RwLock;
 use protocol::{
     packets::{
@@ -18,7 +19,7 @@ use protocol::{
         server::{
             AddPlayer, Animation, ChatPosition, ChunkData, DestroyEntities, EntityAnimation,
             EntityHeadLook, EntityTeleport, JoinGame, KeepAlive, PlayerInfo, PlayerPositionAndLook,
-            PluginMessage, SpawnPlayer, UnloadChunk, UpdateViewPosition,
+            PluginMessage, SpawnPlayer, UnloadChunk, UpdateViewPosition, WindowItems,
         },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
@@ -304,6 +305,37 @@ impl Client {
     pub fn send_chat_message(&self, message: ChatMessage) {
         let packet = chat_packet(message);
         self.send_packet(packet);
+    }
+
+    pub fn confirm_window_action(&self, window_id: u8, action_number: i16, is_accepted: bool) {
+        self.send_packet(WindowConfirmation {
+            window_id,
+            action_number,
+            is_accepted,
+        });
+    }
+
+    pub fn send_window_items(&self, window: &Window) {
+        log::trace!("Updating window for {}", self.username);
+        let packet = WindowItems {
+            window_id: 0,
+            items: window.inner().to_vec(),
+        };
+        self.send_packet(packet);
+    }
+
+    pub fn set_slot(&self, slot: i16, item: Option<ItemStack>) {
+        log::trace!("Setting slot {} of {} to {:?}", slot, self.username, item);
+        self.send_packet(SetSlot {
+            window_id: 0,
+            slot,
+            slot_data: item,
+        });
+    }
+
+    pub fn set_cursor_slot(&self, item: Option<ItemStack>) {
+        log::trace!("Setting cursor slot of {} to {:?}", self.username, item);
+        self.set_slot(-1, item);
     }
 
     fn register_entity(&self, network_id: NetworkId) {

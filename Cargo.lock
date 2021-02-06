@@ -550,6 +550,7 @@ dependencies = [
  "feather-base",
  "feather-blocks",
  "feather-ecs",
+ "feather-generated",
  "feather-utils",
  "itertools",
  "log",

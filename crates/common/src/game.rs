@@ -1,6 +1,6 @@
 use std::{mem, sync::Arc};
 
-use base::Text;
+use base::{BlockId, BlockPosition, Text};
 use ecs::{Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult};
 
 use crate::{
@@ -138,6 +138,12 @@ impl Game {
         let mut mailbox = self.ecs.get_mut::<ChatBox>(entity)?;
         mailbox.send(message);
         Ok(())
+    }
+
+    /// Breaks the block at the given position, propagating any
+    /// necessary block updates.
+    pub fn break_block_at(&mut self, pos: BlockPosition) -> bool {
+        self.world.set_block_at(pos, BlockId::air())
     }
 }
 

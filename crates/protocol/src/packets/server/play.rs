@@ -263,7 +263,7 @@ packets! {
 
     WindowItems {
         window_id u8;
-        items LengthPrefixedVec<Slot>;
+        items ShortPrefixedVec<Slot>;
     }
 
     WindowProperty {

@@ -1,8 +1,9 @@
-use base::{Gamemode, Position, Text};
+use base::{Area, Gamemode, Inventory, Item, ItemStack, Position, Text};
 use common::{
     chat::{ChatKind, ChatPreference},
     view::View,
-    ChatBox, Game, Name,
+    window::BackingWindow,
+    ChatBox, Game, Name, Window,
 };
 use ecs::{SysResult, SystemExecutor};
 
@@ -23,12 +24,24 @@ fn poll_new_players(game: &mut Game, server: &mut Server) -> SysResult {
 
 fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) -> SysResult {
     let client = server.clients.get(client_id).unwrap();
-    client.send_join_game(Gamemode::Creative);
+    client.send_join_game(Gamemode::Survival);
     client.send_brand();
     client.update_own_position(Position::default());
 
     let mut builder = game.create_entity_builder();
     common::entity::player::build(&mut builder);
+
+    let inventory = Inventory::player();
+    let window = Window::new(BackingWindow::Player {
+        player: inventory.new_handle(),
+    });
+
+    *inventory.item(Area::Hotbar, 0).unwrap() = Some(ItemStack::new(Item::Diamond, 64));
+    *inventory.item(Area::Hotbar, 1).unwrap() = Some(ItemStack::new(Item::OakWood, 64));
+    *inventory.item(Area::Hotbar, 2).unwrap() = Some(ItemStack::new(Item::GoldenSword, 1));
+
+    client.send_window_items(&window);
+
     builder
         .add(Position::default())
         .add(client.network_id())
@@ -37,11 +50,14 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
             Position::default().chunk(),
             server.options.view_distance,
         ))
-        .add(Gamemode::Creative)
+        .add(Gamemode::Survival)
         .add(Name(client.username().into()))
         .add(client.uuid())
         .add(client.profile().to_vec())
-        .add(ChatBox::new(ChatPreference::All));
+        .add(ChatBox::new(ChatPreference::All))
+        .add(inventory)
+        .add(window);
+
     game.spawn_entity(builder);
 
     broadcast_player_join(game, client.username());

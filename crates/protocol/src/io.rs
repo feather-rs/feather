@@ -395,6 +395,71 @@ impl<'a> From<LengthInferredVecU8<'a>> for Vec<u8> {
     }
 }
 
+pub struct ShortPrefixedVec<'a, T: ToOwned>(pub Cow<'a, [T]>)
+where
+    [T]: ToOwned;
+
+impl<'a, T> Readable for ShortPrefixedVec<'a, T>
+where
+    T: Readable + Clone,
+    [T]: ToOwned<Owned = Vec<T>>,
+{
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let length = u16::read(buffer, version)? as usize;
+        let mut vec = Vec::with_capacity(length);
+
+        for _ in 0..length {
+            vec.push(T::read(buffer, version)?);
+        }
+
+        Ok(Self(Cow::Owned(vec)))
+    }
+}
+
+impl<'a, T> Writeable for ShortPrefixedVec<'a, T>
+where
+    T: Writeable + Clone,
+    [T]: ToOwned<Owned = Vec<T>>,
+{
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+        (self.0.len() as u16).write(buffer, version);
+        self.0.iter().for_each(|item| item.write(buffer, version));
+    }
+}
+
+impl<'a, T> From<ShortPrefixedVec<'a, T>> for Vec<T>
+where
+    [T]: ToOwned<Owned = Vec<T>>,
+    T: Clone,
+{
+    fn from(x: ShortPrefixedVec<'a, T>) -> Self {
+        x.0.into_owned()
+    }
+}
+
+impl<'a, T> From<&'a [T]> for ShortPrefixedVec<'a, T>
+where
+    [T]: ToOwned<Owned = Vec<T>>,
+    T: Clone,
+{
+    fn from(slice: &'a [T]) -> Self {
+        ShortPrefixedVec(Cow::Borrowed(slice))
+    }
+}
+
+impl<'a, T> From<Vec<T>> for ShortPrefixedVec<'a, T>
+where
+    [T]: ToOwned<Owned = Vec<T>>,
+    T: Clone,
+{
+    fn from(vec: Vec<T>) -> Self {
+        ShortPrefixedVec(Cow::Owned(vec))
+    }
+}
+
 /// Wrapper over an arbitrary type that implements `Deserialize` and `Serialize`.
 ///
 /// The value will be written to a packet as NBT data.
@@ -474,10 +539,11 @@ impl Writeable for Slot {
 
         if let Some(stack) = self {
             VarInt(stack.item.id() as i32).write(buffer, version);
-            stack.count.write(buffer, version);
+            (stack.count as u8).write(buffer, version);
 
             let tags: ItemNbt = stack.into();
             if tags != ItemNbt::default() {
+                dbg!();
                 Nbt(tags).write(buffer, version);
             } else {
                 0u8.write(buffer, version); // TAG_End
@@ -647,7 +713,7 @@ impl Readable for BlockPosition {
     where
         Self: Sized,
     {
-        let val = u64::read(buffer, version)?;
+        let val = i64::read(buffer, version)?;
 
         let x = (val >> 38) as i32;
         let y = (val & 0xFFF) as i32;

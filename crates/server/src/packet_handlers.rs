@@ -1,5 +1,6 @@
 use base::{Position, Text};
 use common::{chat::ChatKind, Game, Name};
+use digging::handle_player_digging;
 use ecs::{Entity, EntityRef, SysResult};
 use protocol::{
     packets::{
@@ -11,16 +12,18 @@ use protocol::{
 
 use crate::{NetworkId, Server};
 
+mod digging;
+pub mod inventory;
 mod movement;
 
 /// Handles a packet received from a client.
 pub fn handle_packet(
     game: &mut Game,
     server: &mut Server,
-    player: Entity,
+    player_id: Entity,
     packet: ClientPlayPacket,
 ) -> SysResult {
-    let player = game.ecs.entity(player)?;
+    let player = game.ecs.entity(player_id)?;
     match packet {
         ClientPlayPacket::PlayerPosition(packet) => {
             movement::handle_player_position(player, packet)
@@ -39,6 +42,15 @@ pub fn handle_packet(
 
         ClientPlayPacket::ChatMessage(packet) => handle_chat_message(game, player, packet),
 
+        ClientPlayPacket::PlayerDigging(packet) => handle_player_digging(game, packet, player_id),
+
+        ClientPlayPacket::CreativeInventoryAction(packet) => {
+            inventory::handle_creative_inventory_action(player, packet)
+        }
+        ClientPlayPacket::ClickWindow(packet) => {
+            inventory::handle_click_window(server, player, packet)
+        }
+
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
         | ClientPlayPacket::SetDifficulty(_)
@@ -47,7 +59,6 @@ pub fn handle_packet(
         | ClientPlayPacket::TabComplete(_)
         | ClientPlayPacket::WindowConfirmation(_)
         | ClientPlayPacket::ClickWindowButton(_)
-        | ClientPlayPacket::ClickWindow(_)
         | ClientPlayPacket::CloseWindow(_)
         | ClientPlayPacket::PluginMessage(_)
         | ClientPlayPacket::EditBook(_)
@@ -61,7 +72,6 @@ pub fn handle_packet(
         | ClientPlayPacket::PickItem(_)
         | ClientPlayPacket::CraftRecipeRequest(_)
         | ClientPlayPacket::PlayerAbilities(_)
-        | ClientPlayPacket::PlayerDigging(_)
         | ClientPlayPacket::EntityAction(_)
         | ClientPlayPacket::SteerVehicle(_)
         | ClientPlayPacket::SetDisplayedRecipe(_)
@@ -74,7 +84,6 @@ pub fn handle_packet(
         | ClientPlayPacket::HeldItemChange(_)
         | ClientPlayPacket::UpdateCommandBlock(_)
         | ClientPlayPacket::UpdateCommandBlockMinecart(_)
-        | ClientPlayPacket::CreativeInventoryAction(_)
         | ClientPlayPacket::UpdateJigsawBlock(_)
         | ClientPlayPacket::UpdateStructureBlock(_)
         | ClientPlayPacket::UpdateSign(_)

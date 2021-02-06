@@ -1113,6 +1113,39 @@ impl<T> InventoryBacking<T> {
             },
         }
     }
+    pub fn areas(&self) -> &'static [Area] {
+        match self {
+            InventoryBacking::Player { .. } => {
+                static AREAS: [Area; 8] = [
+                    Area::CraftingInput,
+                    Area::CraftingOutput,
+                    Area::Helmet,
+                    Area::Chestplate,
+                    Area::Leggings,
+                    Area::Boots,
+                    Area::Storage,
+                    Area::Hotbar,
+                ];
+                &AREAS
+            }
+            InventoryBacking::Chest { .. } => {
+                static AREAS: [Area; 1] = [Area::Storage];
+                &AREAS
+            }
+            InventoryBacking::CraftingTable { .. } => {
+                static AREAS: [Area; 2] = [Area::CraftingInput, Area::CraftingOutput];
+                &AREAS
+            }
+            InventoryBacking::Furnace { .. } => {
+                static AREAS: [Area; 3] = [
+                    Area::FurnaceIngredient,
+                    Area::FurnaceFuel,
+                    Area::FurnaceOutput,
+                ];
+                &AREAS
+            }
+        }
+    }
     pub fn player() -> Self
     where
         T: Default,
@@ -1153,6 +1186,28 @@ impl<T> InventoryBacking<T> {
             furnace_ingredient: Default::default(),
             furnace_fuel: Default::default(),
             furnace_output: Default::default(),
+        }
+    }
+}
+impl crate::Inventory {
+    pub fn player() -> Self {
+        Self {
+            backing: std::sync::Arc::new(InventoryBacking::player()),
+        }
+    }
+    pub fn chest() -> Self {
+        Self {
+            backing: std::sync::Arc::new(InventoryBacking::chest()),
+        }
+    }
+    pub fn crafting_table() -> Self {
+        Self {
+            backing: std::sync::Arc::new(InventoryBacking::crafting_table()),
+        }
+    }
+    pub fn furnace() -> Self {
+        Self {
+            backing: std::sync::Arc::new(InventoryBacking::furnace()),
         }
     }
 }

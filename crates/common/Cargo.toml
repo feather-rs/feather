@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 base = { path = "../base", package = "feather-base" }
+generated = { path = "../generated", package = "feather-generated" }
 ecs = { path = "../ecs", package = "feather-ecs" }
 utils = { path = "../utils", package = "feather-utils" }
 blocks = { path = "../blocks", package = "feather-blocks" }
