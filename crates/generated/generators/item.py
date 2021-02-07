@@ -1,6 +1,6 @@
 import common
 
-data = common.load_minecraft_json("items.json")
+data = common.load_minecraft_json("items.json", "1.16.2")
 
 items = []
 ids = {}
