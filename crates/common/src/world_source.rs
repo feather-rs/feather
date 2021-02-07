@@ -2,6 +2,7 @@ use base::{Chunk, ChunkPosition};
 
 pub mod flat;
 pub mod null;
+pub mod region;
 
 /// A chunk loaded from a [`WorldSource`].
 pub struct LoadedChunk {
@@ -9,6 +10,7 @@ pub struct LoadedChunk {
     pub result: ChunkLoadResult,
 }
 
+#[derive(Debug)]
 pub enum ChunkLoadResult {
     /// The chunk does not exist in this source.
     Missing,
@@ -19,7 +21,7 @@ pub enum ChunkLoadResult {
 }
 
 /// Provides methods to load chunks, entities, and global world data.
-pub trait WorldSource {
+pub trait WorldSource: 'static {
     /// Enqueues the chunk at `pos` to be loaded.
     /// A future call to `poll_loaded_chunk` should
     /// return this chunk.
@@ -31,4 +33,51 @@ pub trait WorldSource {
     /// words, this method does not need to yield chunks in the
     /// same order they were queued for loading.
     fn poll_loaded_chunk(&mut self) -> Option<LoadedChunk>;
+
+    /// Creates a `WorldSource` that falls back to `fallback`
+    /// if chunks in `self` are missing or corrupt.
+    fn with_fallback(self, fallback: impl WorldSource) -> FallbackWorldSource
+    where
+        Self: Sized,
+    {
+        FallbackWorldSource {
+            first: Box::new(self),
+            fallback: Box::new(fallback),
+        }
+    }
+}
+
+/// `WorldSource` wrapping two world sources. Falls back
+/// to the second source if the first one is missing a chunk.
+pub struct FallbackWorldSource {
+    first: Box<dyn WorldSource>,
+    fallback: Box<dyn WorldSource>,
+}
+
+impl WorldSource for FallbackWorldSource {
+    fn queue_load(&mut self, pos: ChunkPosition) {
+        self.first.queue_load(pos);
+    }
+
+    fn poll_loaded_chunk(&mut self) -> Option<LoadedChunk> {
+        self.first
+            .poll_loaded_chunk()
+            .map(|chunk| {
+                if matches!(
+                    &chunk.result,
+                    ChunkLoadResult::Error(_) | ChunkLoadResult::Missing
+                ) {
+                    self.fallback.queue_load(chunk.pos);
+                    log::trace!(
+                        "Chunk load falling back (failure cause: {:?})",
+                        chunk.result
+                    );
+                    None
+                } else {
+                    Some(chunk)
+                }
+            })
+            .flatten()
+            .or_else(|| self.fallback.poll_loaded_chunk())
+    }
 }

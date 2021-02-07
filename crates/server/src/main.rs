@@ -1,4 +1,7 @@
-use common::{world_source::flat::FlatWorldSource, Game, TickLoop, World};
+use common::{
+    world_source::{flat::FlatWorldSource, region::RegionWorldSource, WorldSource},
+    Game, TickLoop, World,
+};
 use ecs::SystemExecutor;
 use feather_server::{Options, Server};
 use simple_logger::SimpleLogger;
@@ -12,9 +15,11 @@ async fn main() -> anyhow::Result<()> {
 
     let server = Server::bind(Options::default()).await?;
     let mut game = Game::new();
-    game.world = World::with_source(FlatWorldSource::new());
-    let mut systems = SystemExecutor::new();
 
+    let world_source = RegionWorldSource::new("world").with_fallback(FlatWorldSource::new());
+    game.world = World::with_source(world_source);
+
+    let mut systems = SystemExecutor::new();
     common::register(&mut game, &mut systems);
     server.link_with_game(&mut game, &mut systems);
     print_systems(&mut systems);

@@ -6,7 +6,7 @@ use crate::{
     Chunk, ChunkPosition, ChunkSection,
 };
 
-use super::{block_entity::BlockEntityData, entity::EntityData, serialization_helper::packed_u9};
+use super::{block_entity::BlockEntityData, entity::EntityData};
 use bitvec::{bitvec, vec::BitVec};
 use blocks::BlockId;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
@@ -26,8 +26,8 @@ use std::{fs, io, iter};
 const REGION_SIZE: usize = 32;
 
 /// The data version supported by this code, currently corresponding
-/// to 1.13.2.
-const DATA_VERSION: i32 = 1631;
+/// to 1.16.5.
+const DATA_VERSION: i32 = 2586;
 
 /// Length, in bytes, of a sector.
 const SECTOR_BYTES: usize = 4096;
@@ -51,56 +51,32 @@ pub struct ChunkLevel {
     z_pos: i32,
     last_update: i64,
     inhabited_time: i64,
+    #[serde(default)]
     sections: Vec<LevelSection>,
     #[serde(serialize_with = "nbt::i32_array")]
     biomes: Vec<i32>,
+    #[serde(default)]
     entities: Vec<EntityData>,
     #[serde(rename = "TileEntities")]
+    #[serde(default)]
     block_entities: Vec<BlockEntityData>,
-    heightmaps: Heightmaps,
     #[serde(rename = "ToBeTicked")]
+    #[serde(default)]
     awaiting_block_updates: Vec<Vec<i16>>,
     #[serde(rename = "LiquidsToBeTicked")]
+    #[serde(default)]
     awaiting_liquid_updates: Vec<Vec<i16>>,
+    #[serde(default)]
     post_processing: Vec<Vec<i16>>,
     #[serde(rename = "TileTicks")]
+    #[serde(default)]
     scheduled_block_updates: Vec<ScheduledBlockUpdate>,
     #[serde(rename = "LiquidTicks")]
+    #[serde(default)]
     scheduled_liquid_updates: Vec<ScheduledBlockUpdate>,
     #[serde(rename = "Status")]
+    #[serde(default)]
     worldgen_status: Cow<'static, str>,
-}
-
-/// Represents the heightmap data of a chunk.
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub struct Heightmaps {
-    // sometimes a few of those are missing, but we regenerate them anyways
-    /// Deserialization: length of 0 means field was missing,
-    /// length is guaranteed to be a multiple of 64,
-    /// length should be 256 to represent valid data
-    #[serde(with = "packed_u9", default)]
-    light_blocking: Vec<u16>,
-    /// Deserialization: length of 0 means field was missing,
-    /// length is guaranteed to be a multiple of 64,
-    /// length should be 256 to represent valid data
-    #[serde(with = "packed_u9", default)]
-    motion_blocking: Vec<u16>,
-    /// Deserialization: length of 0 means field was missing,
-    /// length is guaranteed to be a multiple of 64,
-    /// length should be 256 to represent valid data
-    #[serde(with = "packed_u9", default)]
-    motion_blocking_no_leaves: Vec<u16>,
-    /// Deserialization: length of 0 means field was missing,
-    /// length is guaranteed to be a multiple of 64,
-    /// length should be 256 to represent valid data
-    #[serde(with = "packed_u9", default)]
-    ocean_floor: Vec<u16>,
-    /// Deserialization: length of 0 means field was missing,
-    /// length is guaranteed to be a multiple of 64,
-    /// length should be 256 to represent valid data
-    #[serde(with = "packed_u9", default)]
-    world_surface: Vec<u16>,
 }
 
 /// Represents a chunk section in a region file.
@@ -109,11 +85,15 @@ pub struct Heightmaps {
 pub struct LevelSection {
     y: i8,
     #[serde(serialize_with = "nbt::i64_array", rename = "BlockStates")]
+    #[serde(default)]
     states: Vec<i64>,
+    #[serde(default)]
     palette: Vec<LevelPaletteEntry>,
     #[serde(serialize_with = "nbt::i8_array")]
+    #[serde(default)]
     block_light: Vec<i8>,
     #[serde(serialize_with = "nbt::i8_array")]
+    #[serde(default)]
     sky_light: Vec<i8>,
 }
 
@@ -234,7 +214,7 @@ impl RegionHandle {
 
         // Parse NBT data
         let cursor = Cursor::new(&buf[1..]);
-        let root: ChunkRoot = match compression_type {
+        let mut root: ChunkRoot = match compression_type {
             1 => nbt::from_gzip_reader(cursor).map_err(Error::Nbt)?,
             2 => nbt::from_zlib_reader(cursor).map_err(Error::Nbt)?,
             _ => return Err(Error::InvalidCompression(compression_type)),
@@ -245,17 +225,17 @@ impl RegionHandle {
             return Err(Error::UnsupportedDataVersion(root.data_version));
         }
 
-        let level = &root.level;
+        let level = &mut root.level;
 
         let mut chunk = Chunk::new(original_pos);
 
         // Read sections
-        for section in &level.sections {
+        for section in &mut level.sections {
             read_section_into_chunk(section, &mut chunk)?;
         }
 
         // Read biomes
-        if level.biomes.len() != 256 {
+        if level.biomes.len() != 1024 {
             return Err(Error::IndexOutOfBounds);
         }
         for index in 0..1024 {
@@ -339,7 +319,12 @@ impl RegionHandle {
     }
 }
 
-fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<(), Error> {
+fn read_section_into_chunk(section: &mut LevelSection, chunk: &mut Chunk) -> Result<(), Error> {
+    if section.y < 0 || section.y >= 16 || section.states.is_empty() {
+        // Void air chunks for lighting - not supported by Feather yet
+        return Ok(());
+    }
+
     let data = &section.states;
 
     // Create palette
@@ -389,6 +374,13 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
         PackedArray::from_u64_vec(data, 4096)
     };
 
+    if section.sky_light.is_empty() {
+        section.sky_light = vec![0; 2048];
+    }
+    if section.block_light .is_empty() {
+        section.block_light = vec![0; 2048];
+    }
+
     if section.block_light.len() != 2048 || section.sky_light.len() != 2048 {
         return Err(Error::IndexOutOfBounds);
     }
@@ -401,10 +393,6 @@ fn read_section_into_chunk(section: &LevelSection, chunk: &mut Chunk) -> Result<
     let blocks = BlockStore::from_raw_parts(Some(palette), data);
 
     let chunk_section = ChunkSection::new(blocks, light);
-
-    if section.y >= 16 {
-        return Err(Error::IndexOutOfBounds);
-    }
 
     chunk.set_section_at(usize::from(section.y as u8), Some(chunk_section));
 
@@ -454,14 +442,6 @@ fn chunk_to_chunk_root(
                 .map(|biome| biome.id() as i32)
                 .collect(),
             entities: entities.into(),
-            // TODO[1.16]: add back heightmaps
-            heightmaps: Heightmaps {
-                light_blocking: vec![0; 256],
-                motion_blocking: vec![0; 256],
-                motion_blocking_no_leaves: vec![0; 256],
-                ocean_floor: vec![0; 256],
-                world_surface: vec![0; 256],
-            },
             awaiting_block_updates: vec![vec![]; 16], // TODO
             awaiting_liquid_updates: vec![vec![]; 16], // TODO
             scheduled_block_updates: vec![],          // TODO
@@ -640,7 +620,7 @@ impl Display for Error {
             }
             Error::InvalidBlock(name) => f.write_str(&format!("Chunk contains invalid block {}", name))?,
             Error::ChunkNotExist => f.write_str("The chunk does not exist")?,
-            Error::UnsupportedDataVersion(_) => f.write_str("The chunk uses an unsupported data version. Feather currently only supports 1.13.2 region files.")?,
+            Error::UnsupportedDataVersion(_) => f.write_str("The chunk uses an unsupported data version. Feather currently only supports 1.16.5 region files.")?,
             Error::InvalidBlockType => f.write_str("Chunk contains invalid block type")?,
             Error::MissingRootTag => f.write_str("Chunk is missing a root NBT tag")?,
             Error::IndexOutOfBounds => f.write_str("Section index out of bounds")?,
@@ -675,7 +655,8 @@ pub fn load_region(dir: &PathBuf, pos: RegionPosition) -> Result<RegionHandle, E
 
     let header = read_header(&mut file)?;
 
-    let num_sectors = file.metadata().map_err(Error::Io)?.len() / SECTOR_BYTES as u64;
+    let num_sectors =
+        (file.metadata().map_err(Error::Io)?.len() + SECTOR_BYTES as u64 - 1) / SECTOR_BYTES as u64;
 
     let allocator = SectorAllocator::new(&header, num_sectors as u32);
 

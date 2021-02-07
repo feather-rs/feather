@@ -24,7 +24,7 @@ fn poll_new_players(game: &mut Game, server: &mut Server) -> SysResult {
 
 fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) -> SysResult {
     let client = server.clients.get(client_id).unwrap();
-    client.send_join_game(Gamemode::Survival);
+    client.send_join_game(Gamemode::Creative);
     client.send_brand();
     client.update_own_position(Position::default());
 
@@ -50,7 +50,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
             Position::default().chunk(),
             server.options.view_distance,
         ))
-        .add(Gamemode::Survival)
+        .add(Gamemode::Creative)
         .add(Name(client.username().into()))
         .add(client.uuid())
         .add(client.profile().to_vec())
