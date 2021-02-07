@@ -24,12 +24,17 @@ pub struct ViewUpdateEvent {
 
 impl ViewUpdateEvent {
     pub fn new(old_view: View, new_view: View) -> Self {
-        Self {
+        let mut this = Self {
             old_view,
             new_view,
             new_chunks: new_view.difference(old_view).collect(),
             old_chunks: old_view.difference(new_view).collect(),
-        }
+        };
+        this.new_chunks
+            .sort_unstable_by_key(|chunk| chunk.distance_squared_to(new_view.center()));
+        this.old_chunks
+            .sort_unstable_by_key(|chunk| chunk.distance_squared_to(old_view.center()));
+        this
     }
 }
 

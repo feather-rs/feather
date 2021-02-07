@@ -41,9 +41,9 @@ impl Writeable for ChunkData {
 
         // Compute primary bit mask
         let mut bitmask = 0;
-        for (y, section) in chunk.sections().iter().enumerate() {
+        for (y, section) in chunk.sections().iter().enumerate().skip(1).take(16) {
             if section.is_some() {
-                bitmask |= 1 << y as i32;
+                bitmask |= 1 << (y - 1) as i32;
             }
         }
         VarInt(bitmask).write(buffer, version);
@@ -58,7 +58,7 @@ impl Writeable for ChunkData {
 
         // Sections
         let mut data = Vec::new();
-        for section in chunk.sections() {
+        for section in chunk.sections().iter().skip(1).take(16) {
             if let Some(section) = section {
                 encode_section(section, &mut data, version);
             }

@@ -214,7 +214,12 @@ impl ChunkPosition {
 
     /// Computes the Manhattan distance from this chunk to another.
     pub fn manhattan_distance_to(self, other: ChunkPosition) -> i32 {
-        (self.x - other.z).abs() + (self.z - other.z).abs()
+        (self.x - other.x).abs() + (self.z - other.z).abs()
+    }
+
+    /// Computes the squared Euclidean distance (in chunks) between `self` and `other`.
+    pub fn distance_squared_to(self, other: ChunkPosition) -> i32 {
+        (self.x - other.x).pow(2) + (self.z - other.z).pow(2)
     }
 }
 

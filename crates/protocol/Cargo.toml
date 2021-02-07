@@ -18,7 +18,7 @@ bytes = "0.5"
 serde = "1"
 byteorder = "1"
 uuid = "0.8"
-hematite-nbt = "0.5"
+hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
 bytemuck = "1"
 num-traits = "0.2"
 

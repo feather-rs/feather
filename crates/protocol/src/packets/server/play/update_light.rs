@@ -29,15 +29,15 @@ impl Writeable for UpdateLight {
         let mut mask = 0;
         for (y, section) in chunk.sections().iter().enumerate() {
             if section.is_some() {
-                mask |= 1 << (y + 1);
+                mask |= 1 << y;
             }
         }
 
         VarInt(mask).write(buffer, version); // sky light mask
         VarInt(mask).write(buffer, version); // block light mask
 
-        VarInt(0).write(buffer, version); // empty sky light mask
-        VarInt(0).write(buffer, version); // empty block light mask
+        VarInt(!mask).write(buffer, version); // empty sky light mask
+        VarInt(!mask).write(buffer, version); // empty block light mask
 
         for section in chunk.sections() {
             if let Some(section) = section {

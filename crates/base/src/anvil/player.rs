@@ -34,6 +34,7 @@ pub struct InventorySlot {
     #[serde(rename = "Count")]
     pub count: i8,
     #[serde(rename = "Slot")]
+    #[serde(default)]
     pub slot: i8,
     #[serde(rename = "id")]
     pub item: String,

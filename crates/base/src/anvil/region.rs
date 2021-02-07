@@ -121,12 +121,6 @@ pub struct ScheduledBlockUpdate {
     /// The identifier of the type of this block
     #[serde(rename = "i")]
     name: Cow<'static, str>,
-    /// When this update should be executed in ticks from current time, can be negative if overdue
-    #[serde(rename = "t")]
-    ticks_from_now: i32,
-    /// Lower priority is handled first when happening on the same tick
-    #[serde(rename = "t")]
-    priority: i32,
     // TODO are these global or chunk coordinates?
     /// X coordinate
     pub x: i32,
@@ -320,11 +314,6 @@ impl RegionHandle {
 }
 
 fn read_section_into_chunk(section: &mut LevelSection, chunk: &mut Chunk) -> Result<(), Error> {
-    if section.y < 0 || section.y >= 16 || section.states.is_empty() {
-        // Void air chunks for lighting - not supported by Feather yet
-        return Ok(());
-    }
-
     let data = &section.states;
 
     // Create palette
@@ -349,7 +338,11 @@ fn read_section_into_chunk(section: &mut LevelSection, chunk: &mut Chunk) -> Res
 
     // Create section
     // TODO don't clone data - need way around this
-    let data = PackedArray::from_u64_vec(data.iter().map(|x| *x as u64).collect(), 4096);
+    let data = if data.is_empty() {
+        PackedArray::new(4096, 4)
+    } else {
+        PackedArray::from_u64_vec(data.iter().map(|x| *x as u64).collect(), 4096)
+    };
 
     // Light
     // convert raw lighting data (4bits / block) into a BitArray
@@ -377,7 +370,7 @@ fn read_section_into_chunk(section: &mut LevelSection, chunk: &mut Chunk) -> Res
     if section.sky_light.is_empty() {
         section.sky_light = vec![0; 2048];
     }
-    if section.block_light .is_empty() {
+    if section.block_light.is_empty() {
         section.block_light = vec![0; 2048];
     }
 
@@ -394,7 +387,7 @@ fn read_section_into_chunk(section: &mut LevelSection, chunk: &mut Chunk) -> Res
 
     let chunk_section = ChunkSection::new(blocks, light);
 
-    chunk.set_section_at(usize::from(section.y as u8), Some(chunk_section));
+    chunk.set_section_at(section.y as isize, Some(chunk_section));
 
     Ok(())
 }

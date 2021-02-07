@@ -25,7 +25,10 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
 /// and despawn entities when they become invisible, based on the client's view.
 pub fn update_visible_entities(game: &mut Game, server: &mut Server) -> SysResult {
     for (player, (event, &client_id)) in game.ecs.query::<(&ViewUpdateEvent, &ClientId)>().iter() {
-        let client = server.clients.get(client_id).unwrap();
+        let client = match server.clients.get(client_id) {
+            Some(client) => client,
+            None => continue,
+        };
 
         // Send newly visible entities
         for &new_chunk in &event.new_chunks {

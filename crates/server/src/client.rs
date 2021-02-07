@@ -1,5 +1,6 @@
 use std::{
     cell::{Cell, RefCell},
+    collections::VecDeque,
     io::Cursor,
     sync::Arc,
 };
@@ -11,7 +12,7 @@ use common::{
     Uuid, Window,
 };
 use flume::{Receiver, Sender};
-use packets::server::{SetSlot, WindowConfirmation};
+use packets::server::{SetSlot, UpdateLight, WindowConfirmation};
 use parking_lot::RwLock;
 use protocol::{
     packets::{
@@ -27,6 +28,9 @@ use protocol::{
 use vec_arena::Arena;
 
 use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
+
+/// Max number of chunks to send to a client per tick.
+const MAX_CHUNKS_PER_TICK: usize = 10;
 
 /// ID of a client. Can be reused.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -76,6 +80,11 @@ pub struct Client {
 
     network_id: NetworkId,
     sent_entities: RefCell<AHashSet<NetworkId>>,
+
+    knows_position: Cell<bool>,
+    known_chunks: RefCell<AHashSet<ChunkPosition>>,
+
+    chunk_send_queue: RefCell<VecDeque<ChunkData>>,
 }
 
 impl Client {
@@ -90,6 +99,9 @@ impl Client {
             profile: player.profile,
             uuid: player.uuid,
             sent_entities: RefCell::new(AHashSet::new()),
+            knows_position: Cell::new(false),
+            known_chunks: RefCell::new(AHashSet::new()),
+            chunk_send_queue: RefCell::new(VecDeque::new()),
         }
     }
 
@@ -115,6 +127,28 @@ impl Client {
 
     pub fn is_disconnected(&self) -> bool {
         self.received_packets.is_disconnected()
+    }
+
+    pub fn known_chunks(&self) -> usize {
+        self.known_chunks.borrow().len()
+    }
+
+    pub fn knows_own_position(&self) -> bool {
+        self.knows_position.get()
+    }
+
+    pub fn tick(&self) {
+        let num_to_send = MAX_CHUNKS_PER_TICK.min(self.chunk_send_queue.borrow().len());
+        for packet in self.chunk_send_queue.borrow_mut().drain(0..num_to_send) {
+            log::trace!(
+                "Sending chunk at {:?} to {}",
+                packet.chunk.read().position(),
+                self.username
+            );
+            let chunk = Arc::clone(&packet.chunk);
+            self.send_packet(UpdateLight { chunk });
+            self.send_packet(packet);
+        }
     }
 
     /// Returns whether the entity with the given ID
@@ -188,6 +222,7 @@ impl Client {
         });
         self.teleport_id_counter
             .set(self.teleport_id_counter.get() + 1);
+        self.knows_position.set(true);
     }
 
     pub fn update_own_chunk(&self, pos: ChunkPosition) {
@@ -199,14 +234,12 @@ impl Client {
     }
 
     pub fn send_chunk(&self, chunk: &Arc<RwLock<Chunk>>) {
-        log::trace!(
-            "Sending chunk at {:?} to {}",
-            chunk.read().position(),
-            self.username
-        );
-        self.send_packet(ChunkData {
+        self.chunk_send_queue.borrow_mut().push_back(ChunkData {
             chunk: Arc::clone(chunk),
         });
+        self.known_chunks
+            .borrow_mut()
+            .insert(chunk.read().position());
     }
 
     pub fn unload_chunk(&self, pos: ChunkPosition) {
@@ -215,6 +248,7 @@ impl Client {
             chunk_x: pos.x,
             chunk_z: pos.z,
         });
+        self.known_chunks.borrow_mut().remove(&pos);
     }
 
     pub fn add_tablist_player(

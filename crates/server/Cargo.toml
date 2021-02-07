@@ -39,5 +39,5 @@ serde_json = "1"
 uuid = "0.8"
 simple_logger = "1"
 vec-arena = "1"
-hematite-nbt = "0.5"
+hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
 parking_lot = "0.11"

@@ -26,7 +26,6 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     let client = server.clients.get(client_id).unwrap();
     client.send_join_game(Gamemode::Creative);
     client.send_brand();
-    client.update_own_position(Position::default());
 
     let mut builder = game.create_entity_builder();
     common::entity::player::build(&mut builder);

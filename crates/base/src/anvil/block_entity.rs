@@ -43,6 +43,7 @@ pub enum BlockEntityKind {
     #[serde(rename = "minecraft:brewing_stand")]
     #[serde(rename_all = "PascalCase")]
     BrewingStand {
+        #[serde(default)]
         items: Vec<InventorySlot>,
         brew_time: i16,
         fuel: i8,
@@ -50,6 +51,7 @@ pub enum BlockEntityKind {
     #[serde(rename = "minecraft:cauldron")]
     #[serde(rename_all = "PascalCase")]
     Cauldron {
+        #[serde(default)]
         items: Vec<InventorySlot>,
         potion_id: i16,
         splash_potion: bool,
@@ -85,10 +87,16 @@ pub enum BlockEntityKind {
     DaylightDetector, // empty
     #[serde(rename = "minecraft:dispenser")]
     #[serde(rename_all = "PascalCase")]
-    Dispenser { items: Vec<InventorySlot> },
+    Dispenser {
+        #[serde(default)]
+        items: Vec<InventorySlot>,
+    },
     #[serde(rename = "minecraft:dropper")]
     #[serde(rename_all = "PascalCase")]
-    Dropper { items: Vec<InventorySlot> },
+    Dropper {
+        #[serde(default)]
+        items: Vec<InventorySlot>,
+    },
     #[serde(rename = "minecraft:enchanting_table")]
     #[serde(rename_all = "PascalCase")]
     EnchantingTable,
@@ -104,6 +112,7 @@ pub enum BlockEntityKind {
     #[serde(rename = "minecraft:furnace")]
     #[serde(rename_all = "PascalCase")]
     Furnace {
+        #[serde(default)]
         items: Vec<InventorySlot>,
         burn_time: i16,
         cook_time: i16,
@@ -112,6 +121,7 @@ pub enum BlockEntityKind {
     #[serde(rename = "minecraft:hopper")]
     #[serde(rename_all = "PascalCase")]
     Hopper {
+        #[serde(default)]
         items: Vec<InventorySlot>,
         transfer_cooldown: i32,
     },
@@ -126,7 +136,10 @@ pub enum BlockEntityKind {
     },
     #[serde(rename = "minecraft:jukebox")]
     #[serde(rename_all = "PascalCase")]
-    Jukebox { record_item: InventorySlot },
+    Jukebox {
+        #[serde(default)]
+        record_item: InventorySlot,
+    },
     // TODO: a few more
     /// Fallback type for unknown block entities
     #[serde(other, serialize_with = "BlockEntityKind::serialize_unknown")]

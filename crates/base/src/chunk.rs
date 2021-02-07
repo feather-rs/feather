@@ -57,7 +57,7 @@ pub use palette::Palette;
 /// Consists of 16 `ChunkSection`s.
 #[derive(Debug, Clone)]
 pub struct Chunk {
-    sections: [Option<ChunkSection>; NUM_SECTIONS],
+    sections: [Option<ChunkSection>; NUM_SECTIONS + 2],
 
     biomes: BiomeStore,
 
@@ -70,7 +70,7 @@ impl Default for Chunk {
     fn default() -> Self {
         let sections = [
             None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-            None, None,
+            None, None, None, None,
         ];
         Self {
             sections,
@@ -143,7 +143,7 @@ impl Chunk {
                 if !block.is_air() {
                     let mut section = ChunkSection::default();
                     let result = section.set_block_at(x, y % SECTION_HEIGHT, z, block);
-                    self.set_section_at(y / SECTION_HEIGHT, Some(section));
+                    self.set_section_at((y / SECTION_HEIGHT) as isize, Some(section));
                     result
                 } else {
                     Some(())
@@ -165,7 +165,7 @@ impl Chunk {
         sections: &'a [Option<ChunkSection>],
     ) -> impl Fn(usize, usize, usize) -> BlockId + 'a {
         move |x, y, z| {
-            let section = &sections[y / SECTION_HEIGHT];
+            let section = &sections[(y / SECTION_HEIGHT) + 1];
             match section {
                 Some(section) => section.block_at(x, y % SECTION_HEIGHT, z).unwrap(),
                 None => BlockId::air(),
@@ -204,15 +204,15 @@ impl Chunk {
     }
 
     fn section_for_y(&self, y: usize) -> Option<&Option<ChunkSection>> {
-        self.sections.get(y / SECTION_HEIGHT)
+        self.sections.get((y / SECTION_HEIGHT) + 1)
     }
 
     fn section_for_y_mut(&mut self, y: usize) -> Option<&mut Option<ChunkSection>> {
-        self.sections.get_mut(y / SECTION_HEIGHT)
+        self.sections.get_mut((y / SECTION_HEIGHT) + 1)
     }
 
     fn clear_section(&mut self, y: usize) {
-        self.sections[y / SECTION_HEIGHT] = None;
+        self.sections[(y / SECTION_HEIGHT) + 1] = None;
     }
 
     /// Gets the [`BiomeStore`] for this chunk.
@@ -246,8 +246,8 @@ impl Chunk {
     }
 
     /// Sets the section at index `y`.
-    pub fn set_section_at(&mut self, y: usize, section: Option<ChunkSection>) {
-        self.sections[y] = section;
+    pub fn set_section_at(&mut self, y: isize, section: Option<ChunkSection>) {
+        self.sections[(y + 1) as usize] = section;
     }
 
     /// Gets the sections of this chunk.

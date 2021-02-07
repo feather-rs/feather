@@ -29,6 +29,7 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
     tablist::register(systems);
     entity::register(game, systems);
     chat::register(game, systems);
+    systems.group::<Server>().add_system(tick_clients);
 }
 
 /// Polls for packets received from clients
@@ -62,6 +63,14 @@ fn send_keepalives(_game: &mut Game, server: &mut Server) -> SysResult {
     let interval = Duration::from_secs(5);
     if server.last_keepalive_time + interval < Instant::now() {
         server.broadcast_keepalive();
+    }
+    Ok(())
+}
+
+/// Ticks `Client`s.
+fn tick_clients(_game: &mut Game, server: &mut Server) -> SysResult {
+    for client in server.clients.iter() {
+        client.tick();
     }
     Ok(())
 }

@@ -4,7 +4,7 @@
 //! determined based on the player's [`View`].
 
 use ahash::AHashMap;
-use base::ChunkPosition;
+use base::{ChunkPosition, Position};
 use common::{
     events::{ChunkLoadEvent, ViewUpdateEvent},
     Game,
@@ -35,10 +35,21 @@ impl WaitingChunks {
 }
 
 fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
-    for (player, (&client_id, event)) in game.ecs.query::<(&ClientId, &ViewUpdateEvent)>().iter() {
+    for (player, (&client_id, event, &position)) in game
+        .ecs
+        .query::<(&ClientId, &ViewUpdateEvent, &Position)>()
+        .iter()
+    {
         let client = server.clients.get(client_id).unwrap();
         client.update_own_chunk(event.new_view.center());
-        update_chunks(game, player, client, event, &mut server.waiting_chunks)?;
+        update_chunks(
+            game,
+            player,
+            client,
+            event,
+            position,
+            &mut server.waiting_chunks,
+        )?;
     }
     Ok(())
 }
@@ -48,18 +59,11 @@ fn update_chunks(
     player: Entity,
     client: &Client,
     event: &ViewUpdateEvent,
+    position: Position,
     waiting_chunks: &mut WaitingChunks,
 ) -> SysResult {
     // Send chunks that are in the new view but not the old view.
-    let mut chunks_to_send = event.new_chunks.clone();
-    chunks_to_send.sort_unstable();
-
-    // Send the chunks closest to the player first.
-    chunks_to_send.sort_unstable_by_key(|chunk: &ChunkPosition| {
-        chunk.manhattan_distance_to(event.new_view.center()).abs()
-    });
-
-    for pos in chunks_to_send {
+    for &pos in &event.new_chunks {
         if let Some(chunk) = game.world.chunk_map().chunk_handle_at(pos) {
             client.send_chunk(&chunk);
         } else {
@@ -71,6 +75,8 @@ fn update_chunks(
     for &pos in &event.old_chunks {
         client.unload_chunk(pos);
     }
+
+    spawn_client_if_needed(client, position);
 
     Ok(())
 }
@@ -86,8 +92,16 @@ fn send_loaded_chunks(game: &mut Game, server: &mut Server) -> SysResult {
             if let Ok(client_id) = game.ecs.get::<ClientId>(player) {
                 let client = server.clients.get(*client_id).unwrap();
                 client.send_chunk(&event.chunk);
+                spawn_client_if_needed(client, *game.ecs.get::<Position>(player)?);
             }
         }
     }
     Ok(())
+}
+
+fn spawn_client_if_needed(client: &Client, pos: Position) {
+    if !client.knows_own_position() && client.known_chunks() >= 9 * 9 {
+        log::debug!("Sent all chunks to {}; now spawning", client.username());
+        client.update_own_position(pos);
+    }
 }

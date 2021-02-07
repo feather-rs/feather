@@ -7,4 +7,3 @@ pub mod entity;
 pub mod level;
 pub mod player;
 pub mod region;
-mod serialization_helper;
