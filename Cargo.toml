@@ -12,6 +12,7 @@ members = [
     "crates/common",
     "crates/protocol",
     "crates/server",
+    "crates/text",
 
     "tools/proxy",
 ]
