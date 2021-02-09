@@ -1,0 +1,9 @@
+[package]
+name = "quill-common"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+libcraft-core = { git = "https://github.com/feather-rs/libcraft" }
+bytemuck = { version = "1", features = ["derive"] }

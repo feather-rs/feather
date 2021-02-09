@@ -1,0 +1,8 @@
+[package]
+name = "simple-plugin"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+quill = { path = "../../crates/quill" }

@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "crates/quill-common",
+    "crates/quill-sys",
+    "crates/quill",
+    "crates/quill-plugin-format",
+    "crates/cargo-quill",
+
+    "example-plugins/simple",
+]
