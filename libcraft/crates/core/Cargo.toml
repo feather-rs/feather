@@ -1,0 +1,8 @@
+[package]
+name = "libcraft-core"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+vek = "0.14"
