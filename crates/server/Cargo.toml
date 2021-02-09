@@ -18,6 +18,7 @@ base = { path = "../base", package = "feather-base" }
 ecs = { path = "../ecs", package = "feather-ecs" }
 protocol = { path = "../protocol", package = "feather-protocol" }
 utils = { path = "../utils", package = "feather-utils" }
+plugin-host = { path = "../plugin-host", package = "feather-plugin-host" }
 
 ahash = "0.7"
 anyhow = "1"
@@ -26,6 +27,9 @@ flume = "0.10"
 futures-lite = "1"
 base64 = "0.13"
 log = "0.4"
+fern = "0.6"
+colored = "2"
+chrono = "0.4"
 ureq = { version = "2", features = ["json"] }
 rsa = "0.3"
 rsa-der = "0.2"
@@ -37,7 +41,6 @@ num-bigint = "0.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 uuid = "0.8"
-simple_logger = "1"
 vec-arena = "1"
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
 parking_lot = "0.11"

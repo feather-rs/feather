@@ -15,8 +15,8 @@ use hecs::{Component, DynamicBundle, Query, World};
 
 #[doc(inline)]
 pub use hecs::{
-    BuiltEntity, ComponentError, Entity, EntityBuilder, MissingComponent, NoSuchEntity,
-    QueryBorrow, Ref, RefMut,
+    BuiltEntity, ComponentError, DynamicQuery, DynamicQueryTypes, Entity, EntityBuilder,
+    MissingComponent, NoSuchEntity, QueryBorrow, Ref, RefMut,
 };
 
 mod system;
@@ -143,6 +143,11 @@ impl Ecs {
     /// Returns an iterator over all entities that match a query parameter.
     pub fn query<Q: Query>(&self) -> QueryBorrow<Q> {
         self.world.query()
+    }
+
+    /// Performs a dynamic query. Used for plugins.
+    pub fn query_dynamic<'q>(&'q self, types: DynamicQueryTypes<'q>) -> DynamicQuery<'q> {
+        self.world.query_dynamic(types)
     }
 
     /// Sets the index of the currently executing system,

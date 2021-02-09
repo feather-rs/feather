@@ -90,9 +90,10 @@ fn send_loaded_chunks(game: &mut Game, server: &mut Server) -> SysResult {
             .drain_players_waiting_for(event.position)
         {
             if let Ok(client_id) = game.ecs.get::<ClientId>(player) {
-                let client = server.clients.get(*client_id).unwrap();
-                client.send_chunk(&event.chunk);
-                spawn_client_if_needed(client, *game.ecs.get::<Position>(player)?);
+                if let Some(client) = server.clients.get(*client_id) {
+                    client.send_chunk(&event.chunk);
+                    spawn_client_if_needed(client, *game.ecs.get::<Position>(player)?);
+                }
             }
         }
     }

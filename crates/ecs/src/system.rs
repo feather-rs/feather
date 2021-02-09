@@ -96,7 +96,7 @@ impl<Input> SystemExecutor<Input> {
         self
     }
 
-    fn add_system_with_name(
+    pub fn add_system_with_name(
         &mut self,
         system: impl FnMut(&mut Input) -> SysResult + 'static,
         name: &str,

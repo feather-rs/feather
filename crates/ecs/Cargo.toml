@@ -5,7 +5,7 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-hecs = { git = "https://github.com/caelunshun/hecs", branch = "hashbrown-yanked" }
+hecs = { git = "https://github.com/feather-rs/feather-hecs" }
 anyhow = "1"
 thiserror = "1"
 log = "0.4"

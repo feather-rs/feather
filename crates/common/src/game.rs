@@ -1,7 +1,10 @@
-use std::{mem, sync::Arc};
+use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
 use base::{BlockId, BlockPosition, Text};
-use ecs::{Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult};
+use ecs::{
+    Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult,
+    SystemExecutor,
+};
 
 use crate::{
     chat::{ChatKind, ChatMessage},
@@ -19,6 +22,7 @@ type EntitySpawnCallback = Box<dyn FnMut(&mut Game, &mut EntityBuilder)>;
 /// * A [`World`](base::World) containing chunks and blocks.
 /// * An [`Ecs`](ecs::Ecs) containing entities.
 /// * A [`Resources`](ecs::Resources) containing additional, user-defined data.
+/// * A [`SystemExecutor`] to run systems.
 ///
 /// `feather-common` provides `Game` methods for actions such
 /// as "drop item" or "kill entity." These high-level methods
@@ -28,6 +32,8 @@ pub struct Game {
     pub world: World,
     /// Contains entities, including players.
     pub ecs: Ecs,
+    /// Contains systems.
+    pub system_executor: Rc<RefCell<SystemExecutor<Game>>>,
 
     /// User-defined resources.
     ///
@@ -48,6 +54,7 @@ impl Game {
         Self {
             world: World::new(),
             ecs: Ecs::new(),
+            system_executor: Rc::new(RefCell::new(SystemExecutor::new())),
             resources: Arc::new(Resources::new()),
             chunk_entities: ChunkEntities::default(),
             entity_spawn_callbacks: Vec::new(),

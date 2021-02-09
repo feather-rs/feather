@@ -1,0 +1,18 @@
+[package]
+name = "feather-plugin-host"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-common = { path = "../common" }
+feather-ecs = { path = "../ecs" }
+
+quill-common = { git = "https://github.com/feather-rs/quill" }
+quill-plugin-format = { git = "https://github.com/feather-rs/quill" }
+wasmer = { version = "1", default-features = false, features = ["default-cranelift", "default-jit"] }
+wasmer-wasi = { version = "1", default-features = false }
+anyhow = "1"
+bytemuck = "1"
+ahash = "0.7"
+log = "0.4"
