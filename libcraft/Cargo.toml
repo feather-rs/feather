@@ -1,4 +1,7 @@
 [workspace]
 members = [
     "crates/core",
+    "crates/blocks",
+    "crates/blocks/data",
+    "crates/blocks/generator",
 ]

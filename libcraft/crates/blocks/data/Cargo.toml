@@ -1,0 +1,10 @@
+[package]
+name = "libcraft-blocks-data"
+version = "0.1.0"
+authors = ["Caelum van Ispelen <caelum12321@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+libcraft-core = { path = "../../core" }
+
+serde = { version = "1", features = ["derive"] }

@@ -6,3 +6,6 @@ edition = "2018"
 
 [dependencies]
 vek = "0.14"
+serde = { version = "1", features = ["derive"] }
+strum = "0.20"
+strum_macros = "0.20"

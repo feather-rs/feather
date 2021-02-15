@@ -1,0 +1,13 @@
+[package]
+name = "libcraft-blocks-generator"
+version = "0.1.0"
+authors = ["Caelum van Ispelen <caelum12321@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+libcraft-blocks-data = { path = "../data" }
+
+anyhow = "1"
+bincode = "1"
+flate2 = "1"
+serde_json = "1"

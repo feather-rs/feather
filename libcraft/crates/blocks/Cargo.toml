@@ -1,0 +1,15 @@
+[package]
+name = "libcraft-blocks"
+version = "0.1.0"
+authors = ["Caelum van Ispelen <caelum12321@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+libcraft-core = { path = "../core" }
+libcraft-blocks-data = { path = "data" }
+
+ahash = "0.7"
+bincode = "1"
+flate2 = "1"
+once_cell = "1"
+thiserror = "1"
