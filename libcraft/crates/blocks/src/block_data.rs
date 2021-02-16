@@ -53,7 +53,7 @@ impl BlockData for AnaloguePowerable {
     }
 
     fn apply(&self, raw: &mut RawBlockStateProperties) {
-        raw.age.replace(self.power);
+        raw.power.replace(self.power);
     }
 }
 
