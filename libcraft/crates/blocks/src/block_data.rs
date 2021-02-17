@@ -1,4 +1,5 @@
 use libcraft_blocks_data::RawBlockStateProperties;
+use libcraft_macros::BlockData;
 
 /// Represents the data (properties) of a block.
 ///
@@ -18,43 +19,17 @@ pub trait BlockData {
 /// represents crop growth.
 ///
 /// Fire also has this property.
-#[derive(Debug)]
+#[derive(Debug, BlockData)]
 pub struct Ageable {
     pub age: u8,
 }
 
-impl BlockData for Ageable {
-    fn from_raw(raw: &RawBlockStateProperties) -> Option<Self>
-    where
-        Self: Sized,
-    {
-        Some(Self { age: raw.age? })
-    }
-
-    fn apply(&self, raw: &mut RawBlockStateProperties) {
-        raw.age.replace(self.age);
-    }
-}
-
 /// A block that can be powered with a redstone
 /// signal.
-#[derive(Debug)]
+#[derive(Debug, BlockData)]
 pub struct AnaloguePowerable {
     /// Typically from 0 to 15, inclusive.
     pub power: u8,
-}
-
-impl BlockData for AnaloguePowerable {
-    fn from_raw(raw: &RawBlockStateProperties) -> Option<Self>
-    where
-        Self: Sized,
-    {
-        Some(Self { power: raw.power? })
-    }
-
-    fn apply(&self, raw: &mut RawBlockStateProperties) {
-        raw.power.replace(self.power);
-    }
 }
 
 // TODO: implement all `BlockData`s displayed at
