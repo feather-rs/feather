@@ -1,0 +1,9 @@
+[package]
+name = "query-entities"
+version = "0.1.0"
+authors = ["Caelum van Ispelen <caelum12321@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+quill = { path = "../../crates/quill" }
+rand = "0.8"

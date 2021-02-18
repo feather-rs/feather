@@ -5,5 +5,12 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-libcraft-core = { git = "https://github.com/feather-rs/libcraft" }
+bincode = "1"
 bytemuck = { version = "1", features = ["derive"] }
+libcraft-core = { git = "https://github.com/feather-rs/libcraft" }
+serde = { version = "1", features = ["derive"] }
+smartstring = { version = "0.2", features = ["serde"] }
+uuid = { version = "0.8", features = ["serde"] }
+
+[dev-dependencies]
+quill = { path = "../quill" }

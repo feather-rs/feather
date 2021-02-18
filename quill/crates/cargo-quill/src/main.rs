@@ -9,7 +9,7 @@ use std::{
 };
 
 const TARGET_FEATURES: &str = "target-feature=+bulk-memory,+mutable-globals,+simd128";
-const TARGET: &str = "wasm32-unknown-unknown";
+const TARGET: &str = "wasm32-wasi";
 
 const COMPRESSION_LEVEL: u32 = 6;
 

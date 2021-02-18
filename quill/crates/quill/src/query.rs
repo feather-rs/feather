@@ -1,52 +1,74 @@
-use std::{any::TypeId, marker::PhantomData};
+//! Query for all entities with a certain set of components.
 
-use quill_common::{HostComponent, QueryData};
+use std::marker::PhantomData;
+
+use quill_common::{entity::QueryData, Component, HostComponent};
 
 use crate::{Entity, EntityId};
 
+/// A type that can be used for a query.
+///
+/// Implemented for tuples of `Query`s as well.
 pub trait Query {
-    fn add_component_types(types: &mut Vec<TypeId>);
+    type Item;
+
+    fn add_component_types(types: &mut Vec<HostComponent>);
 
     unsafe fn get_unchecked(
         data: &QueryData,
         component_index: &mut usize,
-        entity_index: usize,
-    ) -> Self;
+        component_offsets: &mut [usize],
+    ) -> Self::Item;
 }
 
 impl<'a, T> Query for &'a T
 where
-    T: 'static,
+    T: Component,
+    [T]: ToOwned,
 {
-    fn add_component_types(types: &mut Vec<TypeId>) {
-        types.push(TypeId::of::<T>());
+    type Item = T;
+
+    fn add_component_types(types: &mut Vec<HostComponent>) {
+        types.push(T::host_component());
     }
 
     unsafe fn get_unchecked(
         data: &QueryData,
         component_index: &mut usize,
-        entity_index: usize,
-    ) -> Self {
-        let component_slice = *(data.component_ptrs as *const *mut u8).add(*component_index);
-        let component = &*component_slice.cast::<T>().add(entity_index);
+        component_offsets: &mut [usize],
+    ) -> T {
+        let component_len = *((data.component_lens as *const usize).add(*component_index));
+        let component_ptr = *((data.component_ptrs as *const *const u8).add(*component_index));
+
+        let offset = component_offsets[*component_index];
+        let component_ptr = component_ptr.add(offset);
+        let component_len = component_len - offset;
+
+        let component_bytes = std::slice::from_raw_parts(component_ptr, component_len);
+        let (value, advance) = T::from_bytes_unchecked(component_bytes);
+
+        component_offsets[*component_index] += advance;
+
         *component_index += 1;
-        component
+
+        value
     }
 }
 
 macro_rules! impl_query_tuple {
     ($($query:ident),* $(,)?) => {
         impl <$($query: Query),*> Query for ($($query,)*) {
-            fn add_component_types(types: &mut Vec<TypeId>) {
+            type Item = ($($query::Item),*);
+            fn add_component_types(types: &mut Vec<HostComponent>) {
                 $(
                     $query::add_component_types(types);
                 )*
             }
 
-            unsafe fn get_unchecked(data: &QueryData, component_index: &mut usize, entity_index: usize) -> Self {
+            unsafe fn get_unchecked(data: &QueryData, component_index: &mut usize, component_offsets: &mut [usize]) -> Self::Item {
                 (
                     $(
-                        $query::get_unchecked(data, component_index, entity_index)
+                        $query::get_unchecked(data, component_index, component_offsets)
                     ),*
                 )
             }
@@ -67,9 +89,11 @@ impl_query_tuple!(A, B, C, D, E, F, G, H, I, J, K);
 impl_query_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
 impl_query_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M);
 
+/// An iterator over all entities matching a query.
 pub struct QueryIter<Q> {
     data: QueryData,
-    index: usize,
+    entity_index: usize,
+    component_offsets: Vec<usize>,
     _marker: PhantomData<Q>,
 }
 
@@ -81,18 +105,16 @@ where
         let mut component_types = Vec::new();
         Q::add_component_types(&mut component_types);
 
-        let component_types: Vec<HostComponent> = component_types
-            .into_iter()
-            .map(|ty| HostComponent::from_type_id(ty).expect("unknown component type"))
-            .collect();
-
         let data = unsafe {
-            *quill_sys::query_begin(component_types.as_ptr(), component_types.len() as u32)
+            *quill_sys::entity_query(component_types.as_ptr(), component_types.len() as u32)
         };
+
+        let component_offsets = vec![0; component_types.len()];
 
         Self {
             data,
-            index: 0,
+            entity_index: 0,
+            component_offsets,
             _marker: PhantomData,
         }
     }
@@ -102,21 +124,26 @@ impl<Q> Iterator for QueryIter<Q>
 where
     Q: Query,
 {
-    type Item = (Entity, Q);
+    type Item = (Entity, Q::Item);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.index >= self.data.num_entities as usize {
+        if self.entity_index >= self.data.num_entities as usize {
             return None;
         }
 
         let components = unsafe {
             let mut component_index = 0;
-            Q::get_unchecked(&self.data, &mut component_index, self.index)
+            Q::get_unchecked(
+                &self.data,
+                &mut component_index,
+                &mut self.component_offsets,
+            )
         };
-        let entity_id = unsafe { *(self.data.entities_ptr as *const EntityId).add(self.index) };
+        let entity_id =
+            unsafe { *(self.data.entities_ptr as *const EntityId).add(self.entity_index) };
         let entity = Entity::new(entity_id);
 
-        self.index += 1;
+        self.entity_index += 1;
 
         Some((entity, components))
     }

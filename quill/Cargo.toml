@@ -7,4 +7,5 @@ members = [
     "crates/cargo-quill",
 
     "example-plugins/simple",
+    "example-plugins/query-entities",
 ]

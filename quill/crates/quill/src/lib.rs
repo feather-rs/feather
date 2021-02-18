@@ -1,16 +1,25 @@
 //! A WebAssembly-based plugin API for Minecraft servers.
 
+pub mod entities;
 mod entity;
+mod entity_builder;
 mod game;
 pub mod query;
 mod setup;
 
 pub use entity::{Entity, EntityId};
+pub use entity_builder::EntityBuilder;
 pub use game::Game;
 pub use setup::Setup;
 
 #[doc(inline)]
-pub use quill_common::{BlockPosition, ChunkPosition, Position};
+pub use libcraft_core::{
+    BlockPosition, ChunkPosition, Enchantment, EnchantmentKind, Gamemode, Position,
+};
+#[doc(inline)]
+pub use quill_common::{components, entity_init::EntityInit, Component};
+#[doc(inline)]
+pub use uuid::Uuid;
 
 /// Implement this trait for your plugin's struct.
 pub trait Plugin: Sized {
@@ -36,20 +45,30 @@ pub trait Plugin: Sized {
     fn disable(self, game: &mut Game);
 }
 
-/// Invoke this macro in your plugin's main.rs. Give it the
-/// name of your struct implementing `Plugin`.
+/// Invoke this macro in your plugin's main.rs.
+///
+///  Give it the name of your struct implementing `Plugin`.
 ///
 /// # Example
 /// ```no_run
 /// // main.rs
+/// use quill::{Plugin, Setup, Game};
+///
 /// quill::plugin!(MyPlugin);
 ///
 /// pub struct MyPlugin {
 ///    // plugin state goes here
 /// }
 ///
-/// impl quill::Plugin for MyPlugin {
+/// impl Plugin for MyPlugin {
+///     fn enable(game: &mut Game, setup: &mut Setup<Self>) -> Self {
+///         // Initialize plugin state...
+///         Self {}
+///     }
 ///
+///     fn disable(self, game: &mut Game) {
+///         // Clean up...
+///     }
 /// }
 /// ```
 #[macro_export]
@@ -89,5 +108,10 @@ macro_rules! plugin {
             let plugin = PLUGIN.as_mut().expect("quill_setup never called");
             system(plugin, &mut $crate::Game::new());
         }
+
+        /// Never called by Quill, but this is needed
+        /// to avoid linker errors with WASI.
+        #[doc(hidden)]
+        fn main() {}
     };
 }

@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 quill = { path = "../../crates/quill" }
+rand = "0.8"
