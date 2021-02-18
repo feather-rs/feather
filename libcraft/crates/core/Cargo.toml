@@ -5,7 +5,10 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-vek = "0.14"
+bytemuck = { version = "1", features = ["derive"] }
+num-derive = "0.3"
+num-traits = "0.2"
 serde = { version = "1", features = ["derive"] }
 strum = "0.20"
 strum_macros = "0.20"
+vek = "0.14"

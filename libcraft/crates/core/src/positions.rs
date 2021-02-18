@@ -1,6 +1,8 @@
 //! Position and math-related types.
 
+use bytemuck::{Pod, Zeroable};
 use fmt::Formatter;
+use serde::{Deserialize, Serialize};
 use std::{
     fmt::{self, Display},
     ops::{Add, Sub},
@@ -35,18 +37,14 @@ pub fn vec3<T>(x: T, y: T, z: T) -> Vec3<T> {
 /// Creates a `Position`.
 #[macro_export]
 macro_rules! position {
-    ($x:expr, $y:expr, $z:expr, $pitch:expr, $yaw:expr, $on_ground:expr $(,)?) => {
+    ($x:expr, $y:expr, $z:expr, $pitch:expr, $yaw:expr $(,)?) => {
         $crate::Position {
             x: $x,
             y: $y,
             z: $z,
             pitch: $pitch,
             yaw: $yaw,
-            on_ground: $on_ground,
         }
-    };
-    ($x:expr, $y:expr, $z:expr, $pitch: expr, $yaw: expr $(,)?) => {
-        position!($x, $y, $z, $pitch, $yaw, true)
     };
     ($x:expr, $y:expr, $z:expr $(,)?) => {
         position!($x, $y, $z, 0.0, 0.0)
@@ -56,16 +54,18 @@ macro_rules! position {
     };
 }
 
-/// The position of an entity. This includes a world-space transform,
+/// The position of an entity. 
+///
+/// This includes a world-space transform,
 /// a 2D Euler angle rotation, and an on_ground field used for physics.
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Pod, Zeroable)]
+#[repr(C)]
 pub struct Position {
     pub x: f64,
     pub y: f64,
     pub z: f64,
     pub pitch: f32,
     pub yaw: f32,
-    pub on_ground: bool,
 }
 
 impl Default for Position {
@@ -200,7 +200,25 @@ fn square(x: f64) -> f64 {
     x * x
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Default)]
+/// Position of a chunk.
+///
+/// Units are in chunks. 1 chunk equals 16 blocks.
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    Default,
+    Serialize,
+    Deserialize,
+    Zeroable,
+    Pod,
+)]
+#[repr(C)]
 pub struct ChunkPosition {
     pub x: i32,
     pub z: i32,
@@ -239,9 +257,26 @@ impl Add<ChunkPosition> for ChunkPosition {
     }
 }
 
-/// Position of a block in world space. Y coordinate should be within
+/// Position of a block.
+///
+/// Y coordinate should be within
 /// the interval [0, 256).
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Default)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    Default,
+    Serialize,
+    Deserialize,
+    Zeroable,
+    Pod,
+)]
+#[repr(C)]
 pub struct BlockPosition {
     pub x: i32,
     pub y: i32,

@@ -1,5 +1,11 @@
+use num_derive::{FromPrimitive, ToPrimitive};
+use serde::{Deserialize, Serialize};
+
 /// A gamemode.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, FromPrimitive, ToPrimitive,
+)]
+#[serde(rename_all = "snake_case")]
 #[repr(u8)]
 pub enum Gamemode {
     Survival = 0,

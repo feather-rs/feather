@@ -11,6 +11,8 @@ libcraft-macros = { path = "../macros" }
 
 ahash = "0.7"
 bincode = "1"
+bytemuck = { version = "1", features = ["derive"] }
 flate2 = "1"
 once_cell = "1"
+serde = { version = "1", features = ["derive"] }
 thiserror = "1"

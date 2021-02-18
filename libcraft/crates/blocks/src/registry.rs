@@ -1,8 +1,10 @@
 use std::io::Cursor;
 
 use ahash::AHashMap;
+use bytemuck::{Pod, Zeroable};
 use libcraft_blocks_data::{RawBlockState, RawBlockStateProperties};
 use once_cell::sync::Lazy;
+use serde::{Deserialize, Serialize};
 
 use crate::block_data::BlockData;
 
@@ -15,7 +17,9 @@ use crate::block_data::BlockData;
 /// * _Data_, or properties, represented by structs implementing the [`BlockData`](crate::BlockData)
 /// trait. For example, a chest has a "type" property in its block data
 /// that determines whether the chest is single or double.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize, Zeroable, Pod,
+)]
 #[repr(transparent)]
 pub struct BlockState {
     id: u16,
