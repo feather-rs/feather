@@ -1,6 +1,7 @@
 use base::Text;
-use common::{chat::ChatKind, Game, Name};
+use common::{chat::ChatKind, Game};
 use ecs::{SysResult, SystemExecutor};
+use quill_common::components::Name;
 
 use crate::{ClientId, Server};
 
@@ -29,6 +30,6 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
 }
 
 fn broadcast_player_leave(game: &Game, username: &Name) {
-    let message = Text::translate_with("multiplayer.player.left", vec![username.0.to_string()]);
+    let message = Text::translate_with("multiplayer.player.left", vec![username.to_string()]);
     game.broadcast_chat(ChatKind::System, message);
 }

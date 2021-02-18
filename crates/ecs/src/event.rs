@@ -47,6 +47,14 @@ impl EventTracker {
         events_vec.push((event_entity, event_remove_fn));
     }
 
+    /// Adds a custom function to run
+    /// before the current systems executes again.
+    #[allow(unused)]
+    pub fn insert_custom(&mut self, entity: Entity, callback: fn(&mut World, Entity)) {
+        let events_vec = self.current_events_vec();
+        events_vec.push((entity, callback));
+    }
+
     pub fn set_current_system_index(&mut self, index: usize) {
         self.current_system_index = index;
     }

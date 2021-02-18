@@ -9,8 +9,9 @@ pub mod view;
 
 use std::time::{Duration, Instant};
 
-use common::{Game, Name};
+use common::Game;
 use ecs::{SysResult, SystemExecutor};
+use quill_common::components::Name;
 
 use crate::{client::ClientId, Server};
 

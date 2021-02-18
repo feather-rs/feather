@@ -1,21 +1,30 @@
 use std::{
     alloc::Layout,
     cell::{RefCell, RefMut},
-    mem::{self, size_of},
+    mem::size_of,
 };
 
-use anyhow::bail;
+use anyhow::anyhow;
+use anyhow::{bail, Context};
+use bump::PluginBump;
+use bytemuck::Pod;
 use feather_common::Game;
+use feather_ecs::EntityBuilder;
+use quill_common::Component;
+use serde::de::DeserializeOwned;
+use vec_arena::Arena;
 use wasmer::{Instance, LazyInit, Memory, NativeFunc, WasmPtr};
 
 use crate::PluginId;
+
+mod bump;
 
 /// Context passed to host functions.
 ///
 /// Provides access to the [`Game`](feather_common::Game).
 #[derive(Default)]
 pub struct PluginContext {
-    /// Pointer to the [`Game`].
+    /// Pointer to the `Game`.
     game: Option<RefCell<*mut Game>>,
 
     /// The plugin's memory.
@@ -28,13 +37,15 @@ pub struct PluginContext {
     /// Function to invoke a system within the plugin.
     run_system: LazyInit<NativeFunc<u32>>,
 
+    /// Bump allocator to allocate temporary memory.
+    bump: LazyInit<RefCell<PluginBump>>,
+
     /// ID of this plugin.
     plugin_id: LazyInit<PluginId>,
 
     instance: LazyInit<Instance>,
 
-    /// Memory blocks on the plugin that should be freed on a call to `query_end`.
-    query_garbage: Vec<(WasmPtr<u8>, Layout)>,
+    pub entity_builders: Arena<EntityBuilder>,
 }
 
 impl PluginContext {
@@ -54,10 +65,13 @@ impl PluginContext {
             .get_function("quill_run_system")?
             .native()?;
 
+        let bump = PluginBump::new(allocate.clone(), deallocate.clone())?;
+
         self.memory.initialize(memory.clone());
         self.allocate.initialize(allocate);
         self.deallocate.initialize(deallocate);
         self.run_system.initialize(run_system);
+        self.bump.initialize(RefCell::new(bump));
         self.instance.initialize(plugin_instance.clone());
 
         Ok(())
@@ -103,23 +117,19 @@ impl PluginContext {
     }
 
     /// Allocates a pointer with the given layout inside the plugin's linear memory.
-    pub fn allocate(&self, layout: Layout) -> anyhow::Result<WasmPtr<u8>> {
-        let offset = self
-            .allocate
-            .get_ref()
-            .unwrap()
-            .call(layout.size() as u32, layout.align() as u32)?;
-        Ok(WasmPtr::new(offset))
+    ///
+    /// This function uses the bump allocator. Memory
+    /// is automatically freed when the plugin returns frim
+    /// the current system.
+    pub fn bump_allocate(&self, layout: Layout) -> anyhow::Result<WasmPtr<u8>> {
+        self.bump.get_ref().unwrap().borrow_mut().alloc(layout)
     }
 
-    /// Deallocates a pointer with the given layout inside the plugin's linear memory.
-    pub fn deallocate(&self, ptr: WasmPtr<u8>, layout: Layout) -> anyhow::Result<()> {
-        self.deallocate.get_ref().unwrap().call(
-            ptr.offset(),
-            layout.size() as u32,
-            layout.align() as u32,
-        )?;
-        Ok(())
+    /// Resets the bump allocator.
+    ///
+    /// Will trap the plugin if called incorrectly.
+    pub fn bump_reset(&self) -> anyhow::Result<()> {
+        self.bump.get_ref().unwrap().borrow_mut().reset()
     }
 
     /// Copies data into WASM memory, safely.
@@ -162,22 +172,53 @@ impl PluginContext {
 
     /// Allocates memory for and writes `value` into the plugin's memory.
     /// Returns the allocated pointer.
+    ///
+    /// Uses bump-allocated memory that is freed at
+    /// the end of the current system.
     pub fn insert_to_memory<T: Copy>(&self, value: T) -> anyhow::Result<WasmPtr<u8>> {
-        let ptr = self.allocate(Layout::new::<T>())?;
+        let ptr = self.bump_allocate(Layout::new::<T>())?;
         self.write_to_memory(value, ptr)?;
         Ok(ptr)
     }
 
-    pub fn push_query_garbage(&mut self, ptr: WasmPtr<u8>, layout: Layout) {
-        self.query_garbage.push((ptr, layout));
+    /// Gets a `bincode`-encoded value from plugin memory.
+    pub fn read_bincode<T: DeserializeOwned>(
+        &self,
+        ptr: WasmPtr<u8>,
+        len: u32,
+    ) -> anyhow::Result<T> {
+        // SAFETY: No other code is currently
+        // accessing the memory mutably.
+        let bytes = unsafe { self.read_bytes(ptr, len)? };
+        bincode::deserialize(bytes).map_err(From::from)
     }
 
-    pub fn deallocate_query_garbage(&mut self) -> anyhow::Result<()> {
-        let mut query_garbage = mem::take(&mut self.query_garbage);
-        for (ptr, layout) in query_garbage.drain(..) {
-            self.deallocate(ptr, layout)?;
+    /// Gets a `Component` from memory.
+    pub fn read_component<T: Component>(&self, ptr: WasmPtr<u8>, len: u32) -> anyhow::Result<T> {
+        // SAFETY: No other code is currently
+        // accessing the memory mutably.
+        let bytes = unsafe { self.read_bytes(ptr, len)? };
+        T::from_bytes(bytes)
+            .context("malformed component")
+            .map(|(value, _offset)| value)
+    }
+
+    /// Gets a value implementing `bytemuck::Pod` from memory.
+    pub fn read_pod<T: Pod>(&self, ptr: WasmPtr<u8>) -> anyhow::Result<T> {
+        // SAFETY: No other code is currently
+        // accessing the memory mutably.
+        let bytes = unsafe { self.read_bytes(ptr, size_of::<T>() as u32)? };
+        let value = *bytemuck::try_from_bytes(bytes).map_err(|e| anyhow!("{}", e))?;
+        Ok(value)
+    }
+
+    /// # Safety
+    /// Mutating the plugin's memory while this slice
+    /// is alive is undefined behavior.
+    pub unsafe fn read_bytes(&self, ptr: WasmPtr<u8>, len: u32) -> anyhow::Result<&[u8]> {
+        if ptr.offset() as u64 + len as u64 >= self.memory().data_size() {
+            bail!("pointer out of bounds");
         }
-        self.query_garbage = query_garbage;
-        Ok(())
+        Ok(&self.memory().data_unchecked()[ptr.offset() as usize..(ptr.offset() + len) as usize])
     }
 }

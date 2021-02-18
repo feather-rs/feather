@@ -19,7 +19,7 @@ mod world;
 pub use blocks::*;
 pub use chunk::{Chunk, ChunkSection, CHUNK_HEIGHT, CHUNK_WIDTH};
 pub use generated::{Area, Biome, EntityKind, Inventory, Item, ItemStack, Particle};
-pub use libcraft_core::{position, vec3, BlockPosition, ChunkPosition, Position, Vec3d};
+pub use libcraft_core::{position, vec3, BlockPosition, ChunkPosition, Gamemode, Position, Vec3d};
 #[doc(inline)]
 pub use metadata::EntityMetadata;
 pub use text::{deserialize_text, Text};
@@ -40,28 +40,6 @@ pub enum Direction {
     South,
     East,
     West,
-}
-
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    PartialEq,
-    Eq,
-    Hash,
-    PartialOrd,
-    Ord,
-    FromPrimitive,
-    ToPrimitive,
-    Serialize,
-    Deserialize,
-)]
-#[serde(rename_all = "snake_case")]
-pub enum Gamemode {
-    Survival,
-    Creative,
-    Adventure,
-    Spectator,
 }
 
 /// A profile property, which stores metadata

@@ -1,5 +1,5 @@
 use common::{chat::ChatPreference, ChatBox, Game};
-use ecs::{SysResult, SystemExecutor};
+use ecs::{EntityBuilder, SysResult, SystemExecutor};
 
 use crate::{ClientId, Server};
 
@@ -8,9 +8,12 @@ struct Console;
 
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     // Create the console entity so the console can receive messages
-    let mut console = game.create_entity_builder();
+    let mut console = EntityBuilder::new();
     console.add(Console).add(ChatBox::new(ChatPreference::All));
-    game.spawn_entity(console);
+
+    // We can use the raw spawn method because
+    // the console isn't a "normal" entity.
+    game.ecs.spawn(console.build());
 
     systems.add_system(flush_console_chat_box);
     systems.group::<Server>().add_system(flush_chat_boxes);

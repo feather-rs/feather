@@ -1,6 +1,6 @@
 import common
 
-data = common.load_minecraft_json("entities.json")
+data = common.load_minecraft_json("entities.json", "1.16.2")
 
 entities = []
 ids = {}

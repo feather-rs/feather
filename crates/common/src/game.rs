@@ -1,20 +1,20 @@
 use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
-use base::{BlockId, BlockPosition, Text};
+use base::{BlockId, BlockPosition, Position, Text};
 use ecs::{
     Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult,
     SystemExecutor,
 };
+use quill_common::{entities::Player, entity_init::EntityInit};
 
 use crate::{
     chat::{ChatKind, ChatMessage},
     chunk_entities::ChunkEntities,
-    entity::player::Player,
     events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent},
     ChatBox, World,
 };
 
-type EntitySpawnCallback = Box<dyn FnMut(&mut Game, &mut EntityBuilder)>;
+type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, &EntityInit)>;
 
 /// Stores the entire state of a Minecraft game.
 ///
@@ -84,31 +84,36 @@ impl Game {
     /// before they are built.
     pub fn add_entity_spawn_callback(
         &mut self,
-        callback: impl FnMut(&mut Game, &mut EntityBuilder) + 'static,
+        callback: impl FnMut(&mut EntityBuilder, &EntityInit) + 'static,
     ) {
         self.entity_spawn_callbacks.push(Box::new(callback));
     }
 
-    /// Creates a new `EntityBuilder`.
-    pub fn create_entity_builder(&mut self) -> EntityBuilder {
-        mem::take(&mut self.entity_builder)
+    /// Creates an entity builder with the default components
+    /// for an entity of type `init`.
+    pub fn create_entity_builder(&mut self, position: Position, init: EntityInit) -> EntityBuilder {
+        let mut builder = mem::take(&mut self.entity_builder);
+        builder.add(position);
+        self.invoke_entity_spawn_callbacks(&mut builder, init);
+        builder
     }
 
     /// Spawns an entity and returns its [`Entity`](ecs::Entity) handle.
     ///
     /// Also triggers necessary events, like `EntitySpawnEvent` and `PlayerJoinEvent`.
     pub fn spawn_entity(&mut self, mut builder: EntityBuilder) -> Entity {
-        self.invoke_entity_spawn_callbacks(&mut builder);
         let entity = self.ecs.spawn(builder.build());
         self.entity_builder = builder;
+
         self.trigger_entity_spawn_events(entity);
+
         entity
     }
 
-    fn invoke_entity_spawn_callbacks(&mut self, builder: &mut EntityBuilder) {
+    fn invoke_entity_spawn_callbacks(&mut self, builder: &mut EntityBuilder, init: EntityInit) {
         let mut callbacks = mem::take(&mut self.entity_spawn_callbacks);
         for callback in &mut callbacks {
-            callback(self, builder);
+            callback(builder, &init);
         }
         self.entity_spawn_callbacks = callbacks;
     }

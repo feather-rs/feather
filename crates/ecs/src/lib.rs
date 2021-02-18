@@ -10,8 +10,9 @@
 //! This wrapper library exists in case we need additional features in the ECS. If necessary,
 //! we can change the backend crate or fork it as needed, without refactoring the rest of the codebase.
 
+use change::ChangeTracker;
 use event::EventTracker;
-use hecs::{Component, DynamicBundle, Query, World};
+use hecs::{Component, DynamicBundle, Fetch, Query, World};
 
 #[doc(inline)]
 pub use hecs::{
@@ -25,6 +26,7 @@ pub use system::{GroupBuilder, HasEcs, HasResources, SysResult, SystemExecutor};
 mod resources;
 pub use resources::{ResourceError, Resources};
 
+mod change;
 mod event;
 
 /// Stores entities and their components. This is a wrapper
@@ -52,6 +54,7 @@ mod event;
 pub struct Ecs {
     world: World,
     event_tracker: EventTracker,
+    change_tracker: ChangeTracker,
 }
 
 impl Ecs {
@@ -70,7 +73,10 @@ impl Ecs {
 
     /// Spawns an entity with the provided components.
     pub fn spawn(&mut self, components: impl DynamicBundle) -> Entity {
-        self.world.spawn(components)
+        let entity = self.world.reserve_entity();
+        self.change_tracker.on_insert(entity, &components);
+        self.world.insert(entity, components).unwrap();
+        entity
     }
 
     /// Returns an `EntityRef` for an entity.
@@ -159,6 +165,36 @@ impl Ecs {
     /// Should be called before each system runs.
     pub fn remove_old_events(&mut self) {
         self.event_tracker.remove_old_events(&mut self.world);
+    }
+
+    /// Enables change tracking for `T` components.
+    ///
+    /// Calling this allows using `query_changed`
+    /// to iterate over entities whose `T` has changed.
+    pub fn track_component<T: Component>(&mut self) {
+        self.change_tracker.track_component::<T>()
+    }
+
+    /// Iterates over entities whose `T` component
+    /// changed since the previous time the current
+    /// system was executed.
+    ///
+    /// # Panics
+    /// Panics if `track_component` was not called for `T`.
+    pub fn for_each_changed<T: Component, Q: Query>(
+        &self,
+        mut function: impl FnMut(&T, <<Q as Query>::Fetch as Fetch>::Item),
+    ) {
+        for entity in self.change_tracker.iter_changed::<T>() {
+            let mut query = match self.world.query_one::<(&T, Q)>(entity) {
+                Ok(q) => q,
+                Err(_) => continue,
+            };
+            let components = query.get();
+            if let Some((tracked, components)) = components {
+                function(tracked, components);
+            }
+        }
     }
 }
 

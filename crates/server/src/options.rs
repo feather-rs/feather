@@ -26,11 +26,14 @@ pub struct Options {
 impl Default for Options {
     fn default() -> Self {
         Self {
-            port: 25569,
+            port: DEFAULT_PORT,
             bind_address: "0.0.0.0".to_owned(),
             favicon: None,
             motd: "A Feather server".to_owned(),
-            online_mode: true,
+            online_mode: false,
+            #[cfg(debug_assertions)]
+            view_distance: 4,
+            #[cfg(not(debug_assertions))]
             view_distance: 12,
         }
     }

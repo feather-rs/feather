@@ -2,10 +2,11 @@ use ahash::AHashSet;
 use base::{ChunkPosition, Position};
 use ecs::{SysResult, SystemExecutor};
 use itertools::Either;
+use quill_common::components::Name;
 
 use crate::{
     events::{PlayerJoinEvent, ViewUpdateEvent},
-    Game, Name,
+    Game,
 };
 
 /// Registers systems to update the `View` of a player.
@@ -29,7 +30,7 @@ fn update_player_views(game: &mut Game) -> SysResult {
             events.push((player, event));
 
             *view = new_view;
-            log::trace!("View of {} has been updated", name.0);
+            log::trace!("View of {} has been updated", name);
         }
     }
 

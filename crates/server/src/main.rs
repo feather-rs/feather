@@ -35,6 +35,7 @@ async fn main() -> anyhow::Result<()> {
     let tick_loop = TickLoop::new(move || {
         let systems = Rc::clone(&game.system_executor);
         systems.borrow_mut().run(&mut game);
+
         false
     });
 

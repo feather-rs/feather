@@ -2,11 +2,12 @@
 
 use base::{Gamemode, ProfileProperty};
 use common::{
-    entity::player::Player,
     events::{EntityRemoveEvent, PlayerJoinEvent},
-    Game, Name, Uuid,
+    Game,
 };
 use ecs::{SysResult, SystemExecutor};
+use quill_common::{components::Name, entities::Player};
+use uuid::Uuid;
 
 use crate::{ClientId, Server};
 
@@ -43,7 +44,7 @@ fn add_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
     {
         // Add this player to other players' tablists
         server.broadcast_with(|client| {
-            client.add_tablist_player(uuid, name.0.to_string(), profile, gamemode)
+            client.add_tablist_player(uuid, name.to_string(), profile, gamemode)
         });
 
         // Add other players to this player's tablist
@@ -54,7 +55,7 @@ fn add_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
         {
             if let Some(client) = server.clients.get(client_id) {
                 if other_player != player {
-                    client.add_tablist_player(uuid, name.0.to_string(), profile, gamemode);
+                    client.add_tablist_player(uuid, name.to_string(), profile, gamemode);
                 }
             }
         }

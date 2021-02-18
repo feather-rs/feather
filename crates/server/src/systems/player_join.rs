@@ -3,9 +3,10 @@ use common::{
     chat::{ChatKind, ChatPreference},
     view::View,
     window::BackingWindow,
-    ChatBox, Game, Name, Window,
+    ChatBox, Game, Window,
 };
-use ecs::{SysResult, SystemExecutor};
+use ecs::{ SysResult, SystemExecutor};
+use quill_common::{components::Name, entity_init::EntityInit};
 
 use crate::{ClientId, Server};
 
@@ -27,8 +28,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     client.send_join_game(Gamemode::Creative);
     client.send_brand();
 
-    let mut builder = game.create_entity_builder();
-    common::entity::player::build(&mut builder);
+    let mut builder = game.create_entity_builder(Position::default(), EntityInit::Player);
 
     let inventory = Inventory::player();
     let window = Window::new(BackingWindow::Player {
@@ -42,7 +42,6 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     client.send_window_items(&window);
 
     builder
-        .add(Position::default())
         .add(client.network_id())
         .add(client_id)
         .add(View::new(
@@ -50,7 +49,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
             server.options.view_distance,
         ))
         .add(Gamemode::Creative)
-        .add(Name(client.username().into()))
+        .add(Name::new(client.username()))
         .add(client.uuid())
         .add(client.profile().to_vec())
         .add(ChatBox::new(ChatPreference::All))

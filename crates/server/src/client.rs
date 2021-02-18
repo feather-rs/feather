@@ -6,13 +6,13 @@ use std::{
 };
 
 use ahash::AHashSet;
-use base::{Chunk, ChunkPosition, Gamemode, ItemStack, Position, ProfileProperty};
+use base::{Chunk, ChunkPosition, EntityKind, Gamemode, ItemStack, Position, ProfileProperty};
 use common::{
     chat::{ChatKind, ChatMessage},
-    Uuid, Window,
+    Window,
 };
 use flume::{Receiver, Sender};
-use packets::server::{SetSlot, UpdateLight, WindowConfirmation};
+use packets::server::{SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use parking_lot::RwLock;
 use protocol::{
     packets::{
@@ -25,6 +25,8 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
+use quill_common::components::OnGround;
+use uuid::Uuid;
 use vec_arena::Arena;
 
 use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
@@ -85,6 +87,10 @@ pub struct Client {
     known_chunks: RefCell<AHashSet<ChunkPosition>>,
 
     chunk_send_queue: RefCell<VecDeque<ChunkData>>,
+
+    /// The previous own position sent by the client.
+    /// Used to detect when we need to teleport the client.
+    client_known_position: Cell<Option<Position>>,
 }
 
 impl Client {
@@ -102,7 +108,16 @@ impl Client {
             knows_position: Cell::new(false),
             known_chunks: RefCell::new(AHashSet::new()),
             chunk_send_queue: RefCell::new(VecDeque::new()),
+            client_known_position: Cell::new(None),
         }
+    }
+
+    pub fn set_client_known_position(&self, pos: Position) {
+        self.client_known_position.set(Some(pos));
+    }
+
+    pub fn client_known_position(&self) -> Option<Position> {
+        self.client_known_position.get()
     }
 
     pub fn profile(&self) -> &[ProfileProperty] {
@@ -223,6 +238,7 @@ impl Client {
         self.teleport_id_counter
             .set(self.teleport_id_counter.get() + 1);
         self.knows_position.set(true);
+        self.client_known_position.set(Some(new_position));
     }
 
     pub fn update_own_chunk(&self, pos: ChunkPosition) {
@@ -298,12 +314,52 @@ impl Client {
         self.register_entity(network_id);
     }
 
-    pub fn update_entity_position(&self, network_id: NetworkId, position: Position) {
+    pub fn send_living_entity(
+        &self,
+        network_id: NetworkId,
+        uuid: Uuid,
+        pos: Position,
+        kind: EntityKind,
+    ) {
+        log::trace!(
+            "Spawning a {:?} on {} (entity type ID: {})",
+            kind,
+            self.username,
+            kind.id()
+        );
+        self.send_packet(SpawnLivingEntity {
+            entity_id: network_id.0,
+            entity_uuid: uuid,
+            kind: kind.id() as i32,
+            x: pos.x,
+            y: pos.y,
+            z: pos.z,
+            yaw: pos.yaw,
+            pitch: pos.pitch,
+            head_pitch: pos.pitch,
+            velocity_x: 0,
+            velocity_y: 0,
+            velocity_z: 0,
+        });
+    }
+
+    pub fn update_entity_position(
+        &self,
+        network_id: NetworkId,
+        position: Position,
+        on_ground: OnGround,
+    ) {
         if network_id == self.network_id {
+            // This entity is the client. Only update
+            // the position if it has changed from the client's
+            // known position.
+            if Some(position) != self.client_known_position.get() {
+                self.update_own_position(position);
+            }
             return;
         }
         // Consider using the relative movement packets in the future.
-        // (Entity Teleport works fine but the relative movement packets
+        // (Entity Teleport works fine, but the relative movement packets
         // save bandwidth.)
         self.send_packet(EntityTeleport {
             entity_id: network_id.0,
@@ -312,7 +368,7 @@ impl Client {
             z: position.z,
             yaw: position.yaw,
             pitch: position.pitch,
-            on_ground: position.on_ground,
+            on_ground: on_ground.0,
         });
         // Needed for head orientation
         self.send_packet(EntityHeadLook {

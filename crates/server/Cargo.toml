@@ -44,3 +44,15 @@ uuid = "0.8"
 vec-arena = "1"
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
 parking_lot = "0.11"
+quill-common = { git = "https://github.com/feather-rs/quill"  }
+
+[features]
+default = ["plugin-cranelift"]
+
+# Use Cranelift to JIT-compile plugins. Pure Rust
+# but produces slower code than LLVM.
+plugin-cranelift = ["plugin-host/cranelift"]
+# Use LLVM to JIT-compile plugins. Produces
+# very fast code, but requires LLVM to be installed
+# on the build system. May impact startup times.
+plugin-llvm = ["plugin-host/llvm"]

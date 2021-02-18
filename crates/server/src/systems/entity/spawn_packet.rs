@@ -2,17 +2,14 @@ use ahash::AHashSet;
 use anyhow::Context;
 use base::Position;
 use common::{
-    entity::player::Player,
     events::{ChunkCrossEvent, EntityCreateEvent, EntityRemoveEvent, ViewUpdateEvent},
-    Game, Uuid,
+    Game,
 };
-use ecs::{EntityBuilder, EntityRef, SysResult, SystemExecutor};
+use ecs::{SysResult, SystemExecutor};
 
-use crate::{Client, ClientId, NetworkId, Server};
+use crate::{entities::SpawnPacketSender, ClientId, NetworkId, Server};
 
-pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
-    game.add_entity_spawn_callback(add_spawn_packet_component);
-
+pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
     systems
         .group::<Server>()
         .add_system(update_visible_entities)
@@ -35,7 +32,7 @@ pub fn update_visible_entities(game: &mut Game, server: &mut Server) -> SysResul
             for &entity_id in game.chunk_entities.entities_in_chunk(new_chunk) {
                 if entity_id != player {
                     let entity_ref = game.ecs.entity(entity_id)?;
-                    if let Ok(spawn_packet) = entity_ref.get::<SpawnPacket>() {
+                    if let Ok(spawn_packet) = entity_ref.get::<SpawnPacketSender>() {
                         spawn_packet
                             .send(&entity_ref, client)
                             .context("failed to send spawn packet")?;
@@ -63,7 +60,7 @@ pub fn update_visible_entities(game: &mut Game, server: &mut Server) -> SysResul
 fn send_entities_when_created(game: &mut Game, server: &mut Server) -> SysResult {
     for (entity, (_event, &position, spawn_packet)) in game
         .ecs
-        .query::<(&EntityCreateEvent, &Position, &SpawnPacket)>()
+        .query::<(&EntityCreateEvent, &Position, &SpawnPacketSender)>()
         .iter()
     {
         let entity_ref = game.ecs.entity(entity)?;
@@ -94,7 +91,7 @@ fn unload_entities_when_removed(game: &mut Game, server: &mut Server) -> SysResu
 fn update_entities_on_chunk_cross(game: &mut Game, server: &mut Server) -> SysResult {
     for (entity, (event, spawn_packet, &network_id)) in game
         .ecs
-        .query::<(&ChunkCrossEvent, &SpawnPacket, &NetworkId)>()
+        .query::<(&ChunkCrossEvent, &SpawnPacketSender, &NetworkId)>()
         .iter()
     {
         let old_clients: AHashSet<_> = server
@@ -124,35 +121,5 @@ fn update_entities_on_chunk_cross(game: &mut Game, server: &mut Server) -> SysRe
         }
     }
 
-    Ok(())
-}
-
-/// Component that gives the spawn packet for an entity
-/// as a function of its components.
-pub struct SpawnPacket(fn(&EntityRef, &Client) -> SysResult);
-
-impl SpawnPacket {
-    pub fn send(&self, entity: &EntityRef, client: &Client) -> SysResult {
-        (self.0)(entity, client)
-    }
-}
-
-fn add_spawn_packet_component(_game: &mut Game, builder: &mut EntityBuilder) {
-    let packet_fn = if builder.get::<Player>().is_some() {
-        Some(player_spawn_packet)
-    } else {
-        None
-    };
-
-    if let Some(f) = packet_fn {
-        builder.add(SpawnPacket(f));
-    }
-}
-
-fn player_spawn_packet(player: &EntityRef, client: &Client) -> SysResult {
-    let network_id = *player.get::<NetworkId>()?;
-    let uuid = *player.get::<Uuid>()?;
-    let pos = *player.get::<Position>()?;
-    client.send_player(network_id, uuid, pos);
     Ok(())
 }

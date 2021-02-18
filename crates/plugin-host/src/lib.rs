@@ -15,8 +15,10 @@ use env::PluginEnv;
 use feather_common::Game;
 use quill_plugin_format::{PluginFile, PluginMetadata};
 use wasmer::{
-    Cranelift, CraneliftOptLevel, ExportError, Features, Function, Instance, Module, Store, JIT,
+    ChainableNamedResolver, CompilerConfig, ExportError, Features, Function, ImportObject,
+    Instance, Module, Store, JIT,
 };
+use wasmer_wasi::{WasiEnv, WasiState, WasiVersion};
 
 mod context;
 mod env;
@@ -59,10 +61,7 @@ pub struct PluginManager {
 
 impl PluginManager {
     pub fn new() -> Self {
-        let mut compiler_config = Cranelift::new();
-        compiler_config
-            .opt_level(CraneliftOptLevel::Speed)
-            .enable_simd(true);
+        let compiler_config = compiler_config();
         let engine_config = JIT::new(compiler_config).features(WASM_FEATURES);
         let engine = engine_config.engine();
         let store = Store::new(&engine);
@@ -147,7 +146,9 @@ impl PluginManager {
     ) -> anyhow::Result<()> {
         let plugin = self.plugin_mut(plugin_id).context("missing plugin")?;
         plugin.env.context().set_game(game);
-        invoke()
+        invoke()?;
+        plugin.env.context().bump_reset()?;
+        Ok(())
     }
 }
 
@@ -167,7 +168,9 @@ impl Plugin {
         let module = Module::new(store, plugin_file.wasm_bytecode())?;
         let env = PluginEnv::new();
 
-        let imports = host_calls::create_import_object(store, env.clone());
+        let quill_imports = host_calls::create_import_object(store, env.clone());
+        let wasi_imports = create_wasi_imports(store, &plugin_file.metadata().identifier)?;
+        let imports = quill_imports.chain_back(wasi_imports);
 
         let instance = Instance::new(&module, &imports)?;
 
@@ -186,4 +189,30 @@ impl Plugin {
     pub fn setup_function(&self) -> Result<&Function, ExportError> {
         self.instance.exports.get_function("quill_setup")
     }
+}
+
+#[cfg(all(feature = "cranelift", not(feature = "llvm")))]
+fn compiler_config() -> impl CompilerConfig {
+    use wasmer::{Cranelift, CraneliftOptLevel};
+    let mut cfg = Cranelift::new();
+    cfg.opt_level(CraneliftOptLevel::Speed).enable_simd(true);
+    cfg
+}
+
+#[cfg(feature = "llvm")]
+fn compiler_config() -> impl CompilerConfig {
+    use wasmer::{LLVMOptLevel, LLVM};
+    let mut cfg = LLVM::new();
+    cfg.opt_level(LLVMOptLevel::Aggressive);
+    cfg
+}
+
+fn create_wasi_imports(store: &Store, plugin_id: &str) -> anyhow::Result<ImportObject> {
+    let state = WasiState::new(plugin_id).build()?;
+    let env = WasiEnv::new(state);
+    Ok(wasmer_wasi::generate_import_object_from_env(
+        store,
+        env,
+        WasiVersion::Latest,
+    ))
 }

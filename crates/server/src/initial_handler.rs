@@ -3,7 +3,6 @@
 use crate::{connection_worker::Worker, favicon::Favicon};
 use anyhow::bail;
 use base::{ProfileProperty, Text};
-use common::Uuid;
 use flume::{Receiver, Sender};
 use md5::Digest;
 use num_bigint::BigInt;
@@ -22,6 +21,7 @@ use rsa::{PaddingScheme, PublicKeyParts, RSAPrivateKey};
 use serde::{Deserialize, Serialize};
 use sha1::Sha1;
 use std::convert::TryInto;
+use uuid::Uuid;
 
 const SERVER_NAME: &str = "Feather 1.16.5";
 const PROTOCOL_VERSION: i32 = 754;

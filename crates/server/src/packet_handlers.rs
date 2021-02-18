@@ -1,5 +1,5 @@
 use base::{Position, Text};
-use common::{chat::ChatKind, Game, Name};
+use common::{chat::ChatKind, Game};
 use digging::handle_player_digging;
 use ecs::{Entity, EntityRef, SysResult};
 use protocol::{
@@ -9,6 +9,7 @@ use protocol::{
     },
     ClientPlayPacket,
 };
+use quill_common::components::Name;
 
 use crate::{NetworkId, Server};
 
@@ -26,13 +27,13 @@ pub fn handle_packet(
     let player = game.ecs.entity(player_id)?;
     match packet {
         ClientPlayPacket::PlayerPosition(packet) => {
-            movement::handle_player_position(player, packet)
+            movement::handle_player_position(server, player, packet)
         }
         ClientPlayPacket::PlayerPositionAndRotation(packet) => {
-            movement::handle_player_position_and_rotation(player, packet)
+            movement::handle_player_position_and_rotation(server, player, packet)
         }
         ClientPlayPacket::PlayerRotation(packet) => {
-            movement::handle_player_rotation(player, packet)
+            movement::handle_player_rotation(server, player, packet)
         }
         ClientPlayPacket::PlayerMovement(packet) => {
             movement::handle_player_movement(player, packet)
@@ -114,7 +115,7 @@ fn handle_animation(
 
 fn handle_chat_message(game: &Game, player: EntityRef, packet: client::ChatMessage) -> SysResult {
     let name = player.get::<Name>()?;
-    let message = Text::translate_with("chat.type.text", vec![name.0.to_string(), packet.message]);
+    let message = Text::translate_with("chat.type.text", vec![name.to_string(), packet.message]);
     game.broadcast_chat(ChatKind::PlayerChat, message);
     Ok(())
 }

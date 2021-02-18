@@ -11,6 +11,7 @@ use listener::Listener;
 mod chunk_subscriptions;
 pub mod client;
 mod connection_worker;
+mod entities;
 pub mod favicon;
 mod initial_handler;
 mod listener;
@@ -18,8 +19,6 @@ mod network_id_registry;
 mod options;
 mod packet_handlers;
 mod systems;
-
-use network_id_registry::NetworkIdAllocator;
 
 pub use client::{Client, ClientId, Clients};
 pub use network_id_registry::NetworkId;
@@ -37,7 +36,6 @@ pub struct Server {
     options: Arc<Options>,
     clients: Clients,
     new_players: Receiver<NewPlayer>,
-    network_id_allocator: NetworkIdAllocator,
 
     waiting_chunks: WaitingChunks,
     chunk_subscriptions: ChunkSubscriptions,
@@ -59,7 +57,6 @@ impl Server {
             options,
             clients: Clients::new(),
             new_players,
-            network_id_allocator: NetworkIdAllocator::new(),
             waiting_chunks: WaitingChunks::default(),
             chunk_subscriptions: ChunkSubscriptions::default(),
             last_keepalive_time: Instant::now(),
@@ -70,6 +67,7 @@ impl Server {
     /// to the server become part of this `Game`.
     pub fn link_with_game(self, game: &mut Game, systems: &mut SystemExecutor<Game>) {
         systems::register(self, game, systems);
+        game.add_entity_spawn_callback(entities::add_entity_components);
     }
 }
 
@@ -96,7 +94,7 @@ impl Server {
 
     /// Allocates a `NetworkId` for an entity.
     pub fn create_network_id(&mut self) -> NetworkId {
-        self.network_id_allocator.allocate_id()
+        NetworkId::new()
     }
 
     fn create_client(&mut self, player: NewPlayer) -> ClientId {

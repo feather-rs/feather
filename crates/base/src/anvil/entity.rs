@@ -118,7 +118,6 @@ impl BaseEntityData {
                 z: self.position[2],
                 yaw: self.rotation[0],
                 pitch: self.rotation[1],
-                on_ground: true,
             })
         } else {
             Err(EntityLoadError::MissingData)
@@ -310,7 +309,6 @@ mod tests {
         assert!(pos.z - 3.0 < std::f64::EPSILON);
         assert!(pos.yaw - 4.0 < std::f32::EPSILON);
         assert!(pos.pitch - 5.0 < std::f32::EPSILON);
-        assert!(pos.on_ground);
     }
 
     #[test]

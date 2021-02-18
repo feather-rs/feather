@@ -71,12 +71,15 @@ impl HasEcs for Ecs {
 /// Systems run sequentially in the order they are added to the executor.
 pub struct SystemExecutor<Input> {
     systems: Vec<System<Input>>,
+
+    is_first_run: bool,
 }
 
 impl<Input> Default for SystemExecutor<Input> {
     fn default() -> Self {
         Self {
             systems: Vec::new(),
+            is_first_run: true,
         }
     }
 }
@@ -128,7 +131,15 @@ impl<Input> SystemExecutor<Input> {
     {
         for (i, system) in self.systems.iter_mut().enumerate() {
             input.ecs_mut().set_current_system_index(i);
-            input.ecs_mut().remove_old_events();
+
+            // For the first cycle, we don't want to clear
+            // events because some code may have triggered
+            // events _before_ the first system run. Without
+            // this check, these events would be cleared before
+            // any system could observe them.
+            if !self.is_first_run {
+                input.ecs_mut().remove_old_events();
+            }
 
             let result = (system.function)(input);
             if let Err(e) = result {
@@ -139,6 +150,8 @@ impl<Input> SystemExecutor<Input> {
                 );
             }
         }
+
+        self.is_first_run = false;
     }
 
     /// Gets an iterator over system names.

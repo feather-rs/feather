@@ -89,6 +89,7 @@ impl Worker {
         &self.options
     }
 
+    #[allow(unused)]
     pub fn enable_compression(&mut self, threshold: usize) {
         self.reader.codec.enable_compression(threshold);
         self.writer.codec.enable_compression(threshold);

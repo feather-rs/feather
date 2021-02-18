@@ -5,8 +5,10 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+utils = { path = "../utils", package = "feather-utils" }
+
 hecs = { git = "https://github.com/feather-rs/feather-hecs" }
 anyhow = "1"
 thiserror = "1"
 log = "0.4"
-ahash = "0.6"
+ahash = "0.7"
