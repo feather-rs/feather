@@ -1,0 +1,24 @@
+name: main
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Check formatting (run cargo fmt and commit if this step fails)
+      run: cargo fmt -- --check
+    - name: Build
+      run: cargo build
+    - name: Run tests
+      run: cargo test

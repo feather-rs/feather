@@ -54,7 +54,7 @@ macro_rules! position {
     };
 }
 
-/// The position of an entity. 
+/// The position of an entity.
 ///
 /// This includes a world-space transform,
 /// a 2D Euler angle rotation, and an on_ground field used for physics.
