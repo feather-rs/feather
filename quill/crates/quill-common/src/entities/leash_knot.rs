@@ -1,4 +1,4 @@
-use bytemuck::{Zeroable, Pod};
+use bytemuck::{Pod, Zeroable};
 /// Marker component for leash knot entities.
 ///
 /// # Example

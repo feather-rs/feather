@@ -33,7 +33,7 @@ impl Name {
     pub fn new(string: &str) -> Self {
         Self(string.into())
     }
-    
+
     pub fn as_str(&self) -> &str {
         &*self
     }

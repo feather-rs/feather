@@ -9,31 +9,41 @@ use std::{
     io::{Cursor, Read, Write},
 };
 
-use anyhow::anyhow;
+use anyhow::{anyhow, bail};
 use flate2::Compression;
 use tar::Header;
 
-pub use metadata::PluginMetadata;
+pub use metadata::{PluginMetadata, PluginTarget};
+
+use target_lexicon::OperatingSystem;
+pub use target_lexicon::Triple;
 
 const METADATA_PATH: &str = "metadata.json";
-const WASM_BYTECODE_PATH: &str = "module.wasm";
 
 /// A plugin definition stored in the Quill file format.
 pub struct PluginFile<'a> {
-    wasm_bytecode: Cow<'a, [u8]>,
+    module: Cow<'a, [u8]>,
     metadata: PluginMetadata,
 }
 
 impl<'a> PluginFile<'a> {
-    pub fn new(wasm_bytecode: impl Into<Cow<'a, [u8]>>, metadata: PluginMetadata) -> Self {
+    pub fn new(module: impl Into<Cow<'a, [u8]>>, metadata: PluginMetadata) -> Self {
         Self {
-            wasm_bytecode: wasm_bytecode.into(),
+            module: module.into(),
             metadata,
         }
     }
 
-    pub fn wasm_bytecode(&self) -> &[u8] {
-        &*self.wasm_bytecode
+    /// Returns the plugin's module.
+    ///
+    /// If the plugin is a WebAssembly plugin,
+    /// then this is the WASM bytecode.
+    ///
+    /// If the plugin is a native plugin, then
+    /// this is the contents of the shared library
+    /// containing the plugin.
+    pub fn module(&self) -> &[u8] {
+        &*self.module
     }
 
     pub fn metadata(&self) -> &PluginMetadata {
@@ -51,7 +61,7 @@ impl<'a> PluginFile<'a> {
         ));
 
         self.write_metadata(&mut archive_builder);
-        self.write_wasm_bytecode(&mut archive_builder);
+        self.write_module(&mut archive_builder).unwrap();
 
         archive_builder
             .into_inner()
@@ -77,18 +87,18 @@ impl<'a> PluginFile<'a> {
             .expect("write to Vec failed");
     }
 
-    fn write_wasm_bytecode(&self, archive_builder: &mut tar::Builder<impl Write>) {
+    fn write_module(&self, archive_builder: &mut tar::Builder<impl Write>) -> anyhow::Result<()> {
         let mut header = Header::new_gnu();
-        header.set_size(self.wasm_bytecode.len() as u64);
+        header.set_size(self.module.len() as u64);
         header.set_mode(0o644);
 
+        let path = get_module_path(&self.metadata.target)?;
+
         archive_builder
-            .append_data(
-                &mut header,
-                WASM_BYTECODE_PATH,
-                Cursor::new(self.wasm_bytecode()),
-            )
+            .append_data(&mut header, path, Cursor::new(self.module()))
             .expect("write to Vec failed");
+
+        Ok(())
     }
 }
 
@@ -97,29 +107,32 @@ impl PluginFile<'static> {
     pub fn decode(data: impl Read) -> anyhow::Result<Self> {
         let mut archive = tar::Archive::new(flate2::read::GzDecoder::new(data));
 
+        // Current limitation: the metadata must appear
+        // in the tarball before the WASM module.
+
         let mut metadata = None;
-        let mut wasm_bytecode = None;
+        let mut module = None;
+        let mut module_path = None;
         for entry in archive.entries()? {
             let entry = entry?;
 
             match &*entry.path()?.to_string_lossy() {
-                s if s == METADATA_PATH => metadata = Some(Self::decode_metadata(entry)?),
-                s if s == WASM_BYTECODE_PATH => {
-                    wasm_bytecode = Some(Self::decode_wasm_bytecode(entry)?)
+                s if s == METADATA_PATH => {
+                    let meta = Self::decode_metadata(entry)?;
+                    module_path = Some(get_module_path(&meta.target)?);
+                    metadata = Some(meta);
                 }
+                s if Some(s) == module_path => module = Some(Self::decode_wasm_bytecode(entry)?),
                 _ => (),
             }
         }
 
         let metadata =
             metadata.ok_or_else(|| anyhow!("missing plugin metadata ({})", METADATA_PATH))?;
-        let wasm_bytecode = wasm_bytecode
-            .ok_or_else(|| anyhow!("missing WASM bytecode ({})", WASM_BYTECODE_PATH))?
+        let module = module
+            .ok_or_else(|| anyhow!("missing module ({:?})", module_path))?
             .into();
-        Ok(Self {
-            metadata,
-            wasm_bytecode,
-        })
+        Ok(Self { metadata, module })
     }
 
     fn decode_metadata(reader: impl Read) -> anyhow::Result<PluginMetadata> {
@@ -133,13 +146,25 @@ impl PluginFile<'static> {
     }
 }
 
+fn get_module_path(target: &PluginTarget) -> anyhow::Result<&'static str> {
+    Ok(match target {
+        PluginTarget::Wasm => "module.wasm",
+        PluginTarget::Native { target_triple } => match target_triple.operating_system {
+            OperatingSystem::Linux => "module.so",
+            OperatingSystem::Darwin => "module.dylib",
+            OperatingSystem::Windows => "module.dll",
+            os => bail!("unsupported plugin operating system {:?}", os),
+        },
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn roundtrip() {
-        let wasm_bytecode = vec![0xFF; 1024];
+    fn roundtrip_wasm() {
+        let module = vec![0xFF; 1024];
         let metadata = PluginMetadata {
             name: "TestPlugin".to_owned(),
             identifier: "test-plugin".to_owned(),
@@ -147,12 +172,35 @@ mod tests {
             api_version: "0.1.0".to_owned(),
             description: Some("test plugin".to_owned()),
             authors: vec!["caelunshun".to_owned()],
+            target: PluginTarget::Wasm,
         };
-        let file = PluginFile::new(wasm_bytecode.clone(), metadata.clone());
+        let file = PluginFile::new(module.clone(), metadata.clone());
         let encoded = file.encode(8);
         let decoded = PluginFile::decode(Cursor::new(encoded)).unwrap();
 
         assert_eq!(decoded.metadata(), &metadata);
-        assert_eq!(decoded.wasm_bytecode(), wasm_bytecode);
+        assert_eq!(decoded.module(), module);
+    }
+
+    #[test]
+    fn roundtrip_native() {
+        let module = vec![0xEE; 1024];
+        let metadata = PluginMetadata {
+            name: "TestPlugin".to_owned(),
+            identifier: "test-plugin".to_owned(),
+            version: "0.1.0".to_owned(),
+            api_version: "0.1.0".to_owned(),
+            description: Some("test plugin".to_owned()),
+            authors: vec!["caelunshun".to_owned()],
+            target: PluginTarget::Native {
+                target_triple: Triple::host(),
+            },
+        };
+        let file = PluginFile::new(module.clone(), metadata.clone());
+        let encoded = file.encode(8);
+        let decoded = PluginFile::decode(Cursor::new(encoded)).unwrap();
+
+        assert_eq!(decoded.metadata(), &metadata);
+        assert_eq!(decoded.module(), module);
     }
 }

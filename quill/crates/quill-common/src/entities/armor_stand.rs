@@ -1,4 +1,4 @@
-use bytemuck::{Zeroable, Pod};
+use bytemuck::{Pod, Zeroable};
 /// Marker component for armor stand entities.
 ///
 /// # Example

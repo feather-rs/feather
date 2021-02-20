@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+use serde_with::{serde_as, DisplayFromStr};
+use target_lexicon::Triple;
 
 /// A plugin's metadata, stored alongside its WASM module.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -16,4 +18,20 @@ pub struct PluginMetadata {
     pub description: Option<String>,
     #[serde(default)]
     pub authors: Vec<String>,
+
+    pub target: PluginTarget,
+}
+
+/// Type of a plugin
+#[serde_as]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[serde(tag = "adjacent")]
+pub enum PluginTarget {
+    Wasm,
+    Native {
+        /// The target the plugin has been compiled to.
+        #[serde_as(as = "DisplayFromStr")]
+        target_triple: Triple,
+    },
 }

@@ -30,7 +30,7 @@ impl<Plugin> Setup<Plugin> {
         let name = std::any::type_name::<T>();
 
         unsafe {
-            quill_sys::register_system(system_data, name.as_ptr(), name.len() as u32);
+            quill_sys::register_system(system_data.into(), name.as_ptr().into(), name.len() as u32);
         }
 
         self

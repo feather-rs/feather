@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/quill-common",
+    "crates/quill-sys-macros",
     "crates/quill-sys",
     "crates/quill",
     "crates/quill-plugin-format",

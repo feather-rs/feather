@@ -1,6 +1,6 @@
-use std::marker::PhantomData;
+use std::{marker::PhantomData, ptr};
 
-use quill_common::Component;
+use quill_common::{Component, Pointer, PointerMut};
 
 /// Unique internal ID of an entity.
 ///
@@ -52,9 +52,20 @@ impl Entity {
     pub fn get<T: Component>(&self) -> Result<T, MissingComponent> {
         let host_component = T::host_component();
         unsafe {
-            let bytes = quill_sys::entity_get_component(self.id.0, host_component)
-                .ok_or_else(|| MissingComponent(std::any::type_name::<T>()))?;
-            let bytes = std::slice::from_raw_parts(bytes.ptr() as *const u8, bytes.len() as usize);
+            let mut bytes_ptr = Pointer::new(ptr::null());
+            let mut bytes_len = 0u32;
+            quill_sys::entity_get_component(
+                self.id.0,
+                host_component,
+                PointerMut::new(&mut bytes_ptr),
+                PointerMut::new(&mut bytes_len),
+            );
+
+            if bytes_ptr.as_ptr().is_null() {
+                return Err(MissingComponent(std::any::type_name::<T>()));
+            }
+
+            let bytes = std::slice::from_raw_parts(bytes_ptr.as_ptr(), bytes_len as usize);
             Ok(T::from_bytes_unchecked(bytes).0)
         }
     }
@@ -71,7 +82,7 @@ impl Entity {
             quill_sys::entity_set_component(
                 self.id.0,
                 host_component,
-                bytes.as_ptr() as u32,
+                bytes.as_ptr().into(),
                 bytes.len() as u32,
             );
         }
@@ -83,7 +94,9 @@ impl Entity {
     /// See [the wiki](https://wiki.vg/Chat) for more details.
     pub fn send_message(&self, message: impl AsRef<str>) {
         let message = message.as_ref();
-        unsafe { quill_sys::entity_send_message(self.id.0, message.as_ptr(), message.len() as u32) }
+        unsafe {
+            quill_sys::entity_send_message(self.id.0, message.as_ptr().into(), message.len() as u32)
+        }
     }
 
     /// Gets the unique ID of this entity.
