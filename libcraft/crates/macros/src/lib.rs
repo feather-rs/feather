@@ -2,7 +2,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{self, parse_macro_input, Data, DeriveInput, Error, Fields, Result, Ident};
+use syn::{self, parse_macro_input, Data, DeriveInput, Error, Fields, Ident, Result};
 
 #[proc_macro_derive(BlockData)]
 pub fn block_data_derive(input: TokenStream) -> TokenStream {
@@ -17,18 +17,22 @@ fn impl_block_data(ast: &DeriveInput) -> Result<TokenStream> {
 
     if let Data::Struct(data) = &ast.data {
         if let Fields::Named(named_fields) = &data.fields {
-            fields = named_fields.named.iter().map(|field| field.to_owned().ident.unwrap()).collect();
+            fields = named_fields
+                .named
+                .iter()
+                .map(|field| field.to_owned().ident.unwrap())
+                .collect();
         } else {
             return Err(Error::new(
                 name.span(),
                 "Can't derive BlockData for a struct with no named fields",
-            ))
+            ));
         }
     } else {
         return Err(Error::new(
             name.span(),
             "Can't derive BlockData for a non struct",
-        ))
+        ));
     }
 
     let gen = quote! {
