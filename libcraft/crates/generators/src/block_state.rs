@@ -4,7 +4,7 @@ use anyhow::Context;
 use flate2::Compression;
 use libcraft_blocks_data::BlockReport;
 
-fn main() -> anyhow::Result<()> {
+pub fn generate_block_states() -> anyhow::Result<()> {
     let blocks_report =
         fs::read_to_string("blocks.json").context("blocks report `blocks.json` not found")?;
     let blocks_report: BlockReport = serde_json::from_str(&blocks_report)?;
@@ -27,7 +27,7 @@ fn main() -> anyhow::Result<()> {
     fs::write(
         concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../assets/raw_block_states.bc.gz"
+            "/../blocks/assets/raw_block_states.bc.gz"
         ),
         &writer.finish()?,
     )?;

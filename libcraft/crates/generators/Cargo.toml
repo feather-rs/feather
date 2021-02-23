@@ -1,0 +1,13 @@
+[package]
+name = "libcraft-generators"
+version = "0.1.0"
+authors = ["Kalle Kankaanpää"]
+edition = "2018"
+
+[dependencies]
+libcraft-blocks-data = { path = "../blocks/data" }
+
+anyhow = "1"
+bincode = "1"
+flate2 = "1"
+serde_json = "1"

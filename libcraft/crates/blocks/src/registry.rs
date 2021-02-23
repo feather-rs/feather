@@ -89,7 +89,7 @@ impl BlockState {
     }
 }
 
-static REGISTRY: Lazy<BlockRegistry> = Lazy::new(|| BlockRegistry::new());
+static REGISTRY: Lazy<BlockRegistry> = Lazy::new(BlockRegistry::new);
 
 struct BlockRegistry {
     states: Vec<RawBlockState>,
