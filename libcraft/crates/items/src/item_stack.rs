@@ -1,9 +1,7 @@
 #![forbid(unsafe_code, warnings)]
 
 use crate::{Enchantment, Item};
-use core::fmt;
-use serde::de::{Error, Visitor};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
 /// Represents an item stack.
 ///
@@ -237,44 +235,5 @@ impl ItemStack {
             }
             None => false,
         }
-    }
-}
-
-impl Serialize for Item {
-    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(self.name())
-    }
-}
-
-struct ItemVisitor;
-
-impl<'de> Visitor<'de> for ItemVisitor {
-    type Value = Item;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(formatter, "a string")
-    }
-
-    fn visit_str<E>(self, string: &str) -> Result<Self::Value, E>
-    where
-        E: Error,
-    {
-        if let Some(item) = Item::from_name(string) {
-            Ok(item)
-        } else {
-            Err(E::custom("Unknown item name."))
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for Item {
-    fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_str(ItemVisitor)
     }
 }

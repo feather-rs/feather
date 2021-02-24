@@ -5,6 +5,7 @@ from json import load
 from re import split
 from pathlib import Path
 
+from typing import List
 
 LIBCRAFT_ROOT = Path(__file__).parents[3]
 PRISMARINEJS_BASE_PATH = Path(__file__).parents[1] / "minecraft-data" / "data" / "pc"
@@ -141,16 +142,34 @@ def generate_enum_property(
     return result
 
 
-def generate_enum(name: str, variants: list[str]) -> str:
+def generate_enum(name: str, variants: List[str]) -> str:
     """Generates an enum definition with the provided variants."""
-    body = ','.join(variants) + ','
+    return generate_enum_with_derives(name, variants, [])
 
-    return f"""
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+
+def generate_enum_with_derives(name: str, variants: List[str], derives: List[str]) -> str:
+    return generate_enum_with_derives_and_prelude(name, variants, derives, "")
+
+
+def generate_enum_with_prelude(name: str, variants: List[str], prelude: str) -> str:
+    return generate_enum_with_derives_and_prelude(name, variants, [], prelude)
+
+
+def generate_enum_with_derives_and_prelude(name: str, variants: List[str], derives: List[str], prelude: str) -> str:
+    """Generates an enum definition with the provided variants and extra derives."""
+    body = ','.join(variants) + ','
+    extra_derives = "" if len(derives) == 0 else ',' + ','.join(derives)
+    output = f"""
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord{extra_derives})]"""
+    if len(prelude) != 0:
+        output += f"""
+                    {prelude}"""
+    output += f"""
     pub enum {name} {{
         {body}
     }}
     """
+    return output
 
 
 def camel_case(string: str) -> str:

@@ -1,4 +1,4 @@
-from common import load_minecraft_json, camel_case, generate_enum, generate_enum_property, output
+from common import load_minecraft_json, camel_case, generate_enum_with_derives_and_prelude, generate_enum_property, output
 
 items = []
 ids = {}
@@ -21,11 +21,40 @@ for item in load_minecraft_json("items.json", "1.16.2"):
     else:
         durabilities[variant] = f"Some({durability})"
 
-output_data = generate_enum("Item", items)
+output_data = "use serde::{Serialize, Deserialize};"
+
+output_data += generate_enum_with_derives_and_prelude("Item", items, ["Serialize", "Deserialize"],
+                                                     "#[serde(try_from = \"String\", into = \"String\")]")
 output_data += generate_enum_property("Item", "id", "u32", ids, True)
 output_data += generate_enum_property("Item", "name", "&str", names, True, "&'static str")
 output_data += generate_enum_property("Item", "display_name", "&str", display_names, True, "&'static str")
 output_data += generate_enum_property("Item", "stack_size", "u32", stack_sizes)
 output_data += generate_enum_property("Item", "durability", "Option<u32>", durabilities)
+
+output_data += f"""
+    use std::convert::TryFrom;
+
+    impl TryFrom<String> for Item {{
+        type Error = String;
+        
+        fn try_from(value: String) -> Result<Self, Self::Error> {{
+            if let Some(item) = Item::from_name(value.as_str()) {{
+                Ok(item)
+            }} else {{
+                Err(String::from("Unknown item name."))
+            }}
+        }}
+    }}
+"""
+
+output_data += f"""
+    use std::convert::Into;
+
+    impl Into<String> for Item {{
+        fn into(self) -> String {{
+            String::from(self.name())
+        }}
+    }}
+"""
 
 output("crates/items/src/item.rs", output_data)
