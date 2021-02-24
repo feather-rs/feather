@@ -145,6 +145,14 @@ impl ItemStack {
         Ok(self.item)
     }
 
+    /// Sets the item type for this `ItemStack`. Does not check if
+    /// the new item type stack size will be lower than the current
+    /// item count. Returns the new item type.
+    pub fn unchecked_set_item(&mut self, item: Item) -> Item {
+        self.item = item;
+        self.item
+    }
+
     /// Sets the count for this `ItemStack`. Returns the updated
     /// count or fails if the new count would exceed the stack
     /// size for that item type.
