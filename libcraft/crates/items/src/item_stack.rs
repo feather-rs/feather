@@ -9,19 +9,19 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 ///
 /// An item stack includes an item type, an amount and a bunch of properties (enchantments, etc.)
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
 pub struct ItemStack {
     /// The item type of this `ItemStack`.
     #[serde(rename = "id")]
     pub item: Item,
 
     /// The number of items in the `ItemStack`.
+    #[serde(rename = "Count")]
     pub count: u32,
 
     /// The `ItemStack` metadata, containing data such as damage,
     /// repair cost, enchantments...
     #[serde(rename = "tag")]
-    pub meta: ItemStackMeta,
+    pub meta: Option<ItemStackMeta>,
 }
 
 /// Represents the metadata of an `ItemStack`. Contains:
@@ -56,13 +56,13 @@ impl ItemStack {
         Self {
             item,
             count,
-            meta: ItemStackMeta {
+            meta: Some(ItemStackMeta {
                 title: String::from(item.name()),
                 lore: "".to_string(),
                 damage: None,
                 repair_cost: None,
                 enchantments: vec![],
-            },
+            }),
         }
     }
 
@@ -76,7 +76,11 @@ impl ItemStack {
     /// Returns whether the given item stack has the same damage
     /// as `self`.
     pub fn has_same_damage(&self, other: &Self) -> bool {
-        self.meta.damage == other.meta.damage
+        if let (Some(self_meta), Some(other_meta)) = (self.meta.clone(), other.meta.clone()) {
+            self_meta.damage == other_meta.damage
+        } else {
+            self.meta.is_none() && other.meta.is_none()
+        }
     }
 
     /// Returns whether the given `ItemStack` has
@@ -95,7 +99,7 @@ impl ItemStack {
     /// Returns whether the given `ItemStack` has
     /// the same type and damage as `self`.
     pub fn has_same_type_and_damage(&self, other: &Self) -> bool {
-        self.item == other.item && self.meta.damage == other.meta.damage
+        self.item == other.item && self.has_same_damage(other)
     }
 
     /// Returns the item type for this `ItemStack`.
@@ -219,7 +223,10 @@ impl ItemStack {
     /// Damages the item by the specified amount.
     /// If this function returns `true`, then the item is broken.
     pub fn damage(&mut self, amount: u32) -> bool {
-        match &mut self.meta.damage {
+        if self.meta.is_none() {
+            return false;
+        }
+        match &mut self.meta.clone().unwrap().damage {
             Some(damage) => {
                 *damage += amount;
                 if let Some(durability) = self.item.durability() {
