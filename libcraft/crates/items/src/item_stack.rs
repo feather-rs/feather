@@ -117,6 +117,14 @@ impl ItemStack {
         Ok(self.count)
     }
 
+    /// Adds more items to this `ItemStack`. Does not check if the
+    /// addition will make the count to be greater than the
+    /// stack size. Returns the new count.
+    pub fn unchecked_add(&mut self, count: u32) -> u32 {
+        self.count += count;
+        self.count
+    }
+
     /// Removes some items from this `ItemStack`.
     pub fn remove(&mut self, count: u32) -> Result<u32, ()> {
         if self.count < count {
@@ -126,14 +134,34 @@ impl ItemStack {
         Ok(self.count)
     }
 
-    /// Sets the item type for this `ItemStack`.
-    pub fn set_item(&mut self, item: Item) {
-        self.item = item
+    /// Sets the item type for this `ItemStack`. Returns the new
+    /// item type or fails if the current item count exceeds the
+    /// new item type stack size.
+    pub fn set_item(&mut self, item: Item) -> Result<Item, ()> {
+        if self.count > item.stack_size() {
+            return Err(());
+        }
+        self.item = item;
+        Ok(self.item)
     }
 
-    /// Sets the count for this `ItemStack`.
-    pub fn set_count(&mut self, count: u32) {
-        self.count = count
+    /// Sets the count for this `ItemStack`. Returns the updated
+    /// count or fails if the new count would exceed the stack
+    /// size for that item type.
+    pub fn set_count(&mut self, count: u32) -> Result<u32, ()> {
+        if count > self.item.stack_size() {
+            return Err(());
+        }
+        self.count = count;
+        Ok(self.count)
+    }
+
+    /// Sets the count for this `ItemStack`. It will not check if
+    /// the desired count exceeds the current item type stack size.
+    /// Returns the updated count.
+    pub fn unchecked_set_count(&mut self, count: u32) -> u32 {
+        self.count = count;
+        self.count
     }
 
     /// Splits this `ItemStack` in half, returning the
