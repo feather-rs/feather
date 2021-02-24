@@ -1,9 +1,9 @@
 #![forbid(unsafe_code, warnings)]
 
 use crate::{Enchantment, Item};
-use serde::{Serialize, Deserialize, Serializer, Deserializer};
-use serde::de::{Visitor, Error};
 use core::fmt;
+use serde::de::{Error, Visitor};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// Represents an item stack.
 ///
@@ -109,17 +109,20 @@ impl ItemStack {
     }
 
     /// Adds more items to this `ItemStack`. Returns the new count.
-    pub fn add(&mut self, count: u32) -> u32 {
+    pub fn add(&mut self, count: u32) -> Result<u32, ()> {
+        if self.count + count > self.item.stack_size() {
+            return Err(());
+        }
         self.count += count;
-        self.count
+        Ok(self.count)
     }
 
     /// Removes some items from this `ItemStack`.
     pub fn remove(&mut self, count: u32) -> Result<u32, ()> {
-        self.count = match self.count.checked_sub(count) {
-            Some(count) => count,
-            None => return Err(()),
-        };
+        if self.count < count {
+            return Err(());
+        }
+        self.count -= count;
         Ok(self.count)
     }
 
@@ -147,7 +150,7 @@ impl ItemStack {
     pub fn take(&mut self, amount: u32) -> Result<ItemStack, ()> {
         let count_left: i32 = self.count as i32 - amount as i32;
         if count_left < 0 {
-            return Err(())
+            return Err(());
         }
         let taken = ItemStack {
             count: amount,
@@ -195,8 +198,10 @@ impl ItemStack {
 }
 
 impl Serialize for Item {
-    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error> where
-        S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error>
+    where
+        S: Serializer,
+    {
         serializer.serialize_str(self.name())
     }
 }
@@ -211,7 +216,9 @@ impl<'de> Visitor<'de> for ItemVisitor {
     }
 
     fn visit_str<E>(self, string: &str) -> Result<Self::Value, E>
-    where E: Error {
+    where
+        E: Error,
+    {
         if let Some(item) = Item::from_name(string) {
             Ok(item)
         } else {
@@ -221,8 +228,10 @@ impl<'de> Visitor<'de> for ItemVisitor {
 }
 
 impl<'de> Deserialize<'de> for Item {
-    fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error> where
-        D: Deserializer<'de> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error>
+    where
+        D: Deserializer<'de>,
+    {
         deserializer.deserialize_str(ItemVisitor)
     }
 }
