@@ -4,6 +4,8 @@
 
 A Minecraft server implementation written in Rust.
 
+_Notice_: The codebase is undergoing a major refactor in [this PR](https://github.com/feather-rs/feather/pull/307). The PR will be merged shortly, but the code on the `develop` branch is discontinued.
+
 ### Features
 
 Note that Feather is still early in development. Don't expect anything not listed here to work.
