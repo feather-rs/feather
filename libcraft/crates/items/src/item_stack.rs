@@ -1,40 +1,68 @@
 #![forbid(unsafe_code, warnings)]
 
-use crate::{Item};
+use crate::{Enchantment, Item};
+use serde::{Serialize, Deserialize, Serializer, Deserializer};
+use serde::de::{Visitor, Error};
+use core::fmt;
 
 /// Represents an item stack.
 ///
-/// An item stack includes an item type, an amount and a bunch o properties (enchantments, etc.)
-#[derive(Debug, Clone, PartialEq, Eq)]
+/// An item stack includes an item type, an amount and a bunch of properties (enchantments, etc.)
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
 pub struct ItemStack {
-
-    // TODO Migrate all the codegen boilerplate.
     /// The item type of this `ItemStack`.
+    #[serde(rename = "id")]
     pub item: Item,
 
     /// The number of items in the `ItemStack`.
     pub count: u32,
 
-    /// Damage to the item, if it's damageable.
+    /// The `ItemStack` metadata, containing data such as damage,
+    /// repair cost, enchantments...
+    #[serde(rename = "tag")]
+    pub meta: ItemStackMeta,
+}
+
+/// Represents the metadata of an `ItemStack`. Contains:
+/// * Item title
+/// * Item lore (Optional)
+/// * Item damage (Optional)
+/// * Item repair cost (Optional)
+/// * Item enchantments
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct ItemStackMeta {
+    /// The displayed title (name) of the associated `ItemStack`.
+    pub title: String,
+
+    /// The displayed lore of the associated `ItemStack`.
+    pub lore: String,
+
+    /// The damage taken by the `ItemStack`.
     pub damage: Option<u32>,
 
-    /// Repair cost of the item, if it's repairable.
+    /// The cost of repairing the `ItemStack`.
     pub repair_cost: Option<u32>,
 
-    /// Enchantments applied to the item.
+    /// The enchantments applied to this `ItemStack`.
     pub enchantments: Vec<Enchantment>,
-
-    // TODO Add other properties like title and lore.
 }
 
 impl ItemStack {
-
-    /// Creates a new `ItemStack`
+    /// Creates a new `ItemStack` with the default name (title)
+    /// no lore, no damage, no repair cost and no enchantments.
     pub fn new(item: Item, count: u32) -> Self {
         Self {
             item,
             count,
-            damage: item.durability().map(|_| 0)
+            meta: ItemStackMeta {
+                title: String::from(item.name()),
+                lore: "".to_string(),
+                damage: None,
+                repair_cost: None,
+                enchantments: vec![],
+            },
         }
     }
 
@@ -48,14 +76,14 @@ impl ItemStack {
     /// Returns whether the given item stack has the same damage
     /// as `self`.
     pub fn has_same_damage(&self, other: &Self) -> bool {
-        self.damage == other.damage
+        self.meta.damage == other.meta.damage
     }
 
     /// Returns whether the given `ItemStack` has
     /// the same count as (but not necessarily the same
     /// type as) `self`.
     pub fn has_same_count(&self, other: &Self) -> bool {
-        self.count == self.count
+        self.count == other.count
     }
 
     /// Returns whether the given `ItemStack` has the same
@@ -67,7 +95,7 @@ impl ItemStack {
     /// Returns whether the given `ItemStack` has
     /// the same type and damage as `self`.
     pub fn has_same_type_and_damage(&self, other: &Self) -> bool {
-        self.item == other.item && self.damage == other.damage
+        self.item == other.item && self.meta.damage == other.meta.damage
     }
 
     /// Returns the item type for this `ItemStack`.
@@ -83,14 +111,14 @@ impl ItemStack {
     /// Adds more items to this `ItemStack`. Returns the new count.
     pub fn add(&mut self, count: u32) -> u32 {
         self.count += count;
-        self.cout
+        self.count
     }
 
     /// Removes some items from this `ItemStack`.
     pub fn remove(&mut self, count: u32) -> Result<u32, ()> {
         self.count = match self.count.checked_sub(count) {
             Some(count) => count,
-            None => return Err(())
+            None => return Err(()),
         };
         Ok(self.count)
     }
@@ -107,28 +135,32 @@ impl ItemStack {
 
     /// Splits this `ItemStack` in half, returning the
     /// removed half. If the amount is odd, `self`
-    /// will be left with the least items.
+    /// will be left with the least items. Returns the taken
+    /// half.
     pub fn take_half(&mut self) -> ItemStack {
-        self.take((self.count as f64 / 2 as f64).ceil() as u32).unwrap()
+        self.take((self.count as f64 / 2 as f64).ceil() as u32)
+            .unwrap()
     }
 
     /// Splits this `ItemStack` by removing the
-    /// specified amount.
+    /// specified amount. Returns the taken part.
     pub fn take(&mut self, amount: u32) -> Result<ItemStack, ()> {
-        let count_left = self.count - amount;
-        if count_left < 0 { return Err(()) }
-        let other_half = ItemStack {
-            count: self.count - count_left,
+        let count_left: i32 = self.count as i32 - amount as i32;
+        if count_left < 0 {
+            return Err(())
+        }
+        let taken = ItemStack {
+            count: amount,
             ..self.clone()
         };
-        self.count = count_left;
-        Ok(other_half)
+        self.count = count_left as u32;
+        Ok(taken)
     }
 
     /// Merges another `ItemStack` with this one.
     pub fn merge_with(&mut self, other: &mut Self) -> bool {
         if !self.has_same_type_and_damage(other) {
-            return false
+            return false;
         }
         let new_count = (self.count + other.count).min(self.item.stack_size());
         let amount_added = new_count - self.count;
@@ -148,7 +180,7 @@ impl ItemStack {
     /// Damages the item by the specified amount.
     /// If this function returns `true`, then the item is broken.
     pub fn damage(&mut self, amount: u32) -> bool {
-        match &mut self.damage {
+        match &mut self.meta.damage {
             Some(damage) => {
                 *damage += amount;
                 if let Some(durability) = self.item.durability() {
@@ -157,7 +189,40 @@ impl ItemStack {
                     false
                 }
             }
-            None => false
+            None => false,
         }
+    }
+}
+
+impl Serialize for Item {
+    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error> where
+        S: Serializer {
+        serializer.serialize_str(self.name())
+    }
+}
+
+struct ItemVisitor;
+
+impl<'de> Visitor<'de> for ItemVisitor {
+    type Value = Item;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "a string")
+    }
+
+    fn visit_str<E>(self, string: &str) -> Result<Self::Value, E>
+    where E: Error {
+        if let Some(item) = Item::from_name(string) {
+            Ok(item)
+        } else {
+            Err(E::custom("Unknown item name."))
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for Item {
+    fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error> where
+        D: Deserializer<'de> {
+        deserializer.deserialize_str(ItemVisitor)
     }
 }
