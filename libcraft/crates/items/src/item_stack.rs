@@ -1,14 +1,6 @@
 #![forbid(unsafe_code, warnings)]
 
-use crate::Enchantment;
-
-// TODO Remove when all codegen has been migrated and generated. DUMMY STRUCT
-#[derive(Copy, Clone)]
-pub struct Item {}
-impl Item {
-    pub fn durability(&self) -> Option<u32> { None }
-    pub fn stack_size(&self) -> u32         { 64 }
-}
+use crate::{Item};
 
 /// Represents an item stack.
 ///

@@ -2,13 +2,11 @@
 
 pub mod block;
 mod consts;
-mod enchantment;
 mod gamemode;
 mod gamerules;
 mod positions;
 
 pub use consts::*;
-pub use enchantment::{Enchantment, EnchantmentKind};
 pub use gamemode::Gamemode;
 pub use gamerules::GameRules;
 pub use positions::{
