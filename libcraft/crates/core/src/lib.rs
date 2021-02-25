@@ -1,5 +1,6 @@
 //! Foundational types and constants for Minecraft.
 
+mod biome;
 pub mod block;
 mod consts;
 mod enchantment;
@@ -9,6 +10,7 @@ mod gamerules;
 mod particle;
 mod positions;
 
+pub use biome::Biome;
 pub use consts::*;
 pub use enchantment::{Enchantment, EnchantmentKind};
 pub use entity::EntityKind;
