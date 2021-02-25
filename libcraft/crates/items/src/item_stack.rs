@@ -111,26 +111,22 @@ impl ItemStack {
     }
 
     /// Adds more items to this `ItemStack`. Returns the new count.
-    pub fn add(&mut self, count: u32) -> Result<u32, ()> {
-        if self.count + count > self.item.stack_size() {
-            return Err(());
-        }
-        self.count += count;
-        Ok(self.count)
+    pub fn add(&mut self, count: u32) -> Result<u32, ItemStackError> {
+        self.set_count(self.count + count)
     }
 
     /// Adds more items to this `ItemStack`. Does not check if the
     /// addition will make the count to be greater than the
-    /// stack size. Returns the new count.
+    /// stack size. Does not check count overflows. Returns the new count.
     pub fn unchecked_add(&mut self, count: u32) -> u32 {
         self.count += count;
         self.count
     }
 
     /// Removes some items from this `ItemStack`.
-    pub fn remove(&mut self, count: u32) -> Result<u32, ()> {
+    pub fn remove(&mut self, count: u32) -> Result<u32, ItemStackError> {
         if self.count < count {
-            return Err(());
+            return Err(ItemStackError::NotEnoughAmount);
         }
         self.count -= count;
         Ok(self.count)
@@ -139,9 +135,9 @@ impl ItemStack {
     /// Sets the item type for this `ItemStack`. Returns the new
     /// item type or fails if the current item count exceeds the
     /// new item type stack size.
-    pub fn set_item(&mut self, item: Item) -> Result<Item, ()> {
+    pub fn set_item(&mut self, item: Item) -> Result<Item, ItemStackError> {
         if self.count > item.stack_size() {
-            return Err(());
+            return Err(ItemStackError::ExceedsStackSize);
         }
         self.item = item;
         Ok(self.item)
@@ -158,9 +154,11 @@ impl ItemStack {
     /// Sets the count for this `ItemStack`. Returns the updated
     /// count or fails if the new count would exceed the stack
     /// size for that item type.
-    pub fn set_count(&mut self, count: u32) -> Result<u32, ()> {
+    pub fn set_count(&mut self, count: u32) -> Result<u32, ItemStackError> {
         if count > self.item.stack_size() {
-            return Err(());
+            return Err(ItemStackError::ExceedsStackSize);
+        } else if count > i32::MAX as u32 {
+            return Err(ItemStackError::ClientOverflow);
         }
         self.count = count;
         Ok(self.count)
@@ -168,7 +166,7 @@ impl ItemStack {
 
     /// Sets the count for this `ItemStack`. It will not check if
     /// the desired count exceeds the current item type stack size.
-    /// Returns the updated count.
+    ///  Does not check count overflows. Returns the updated count.
     pub fn unchecked_set_count(&mut self, count: u32) -> u32 {
         self.count = count;
         self.count
@@ -185,11 +183,15 @@ impl ItemStack {
 
     /// Splits this `ItemStack` by removing the
     /// specified amount. Returns the taken part.
-    pub fn take(&mut self, amount: u32) -> Result<ItemStack, ()> {
-        let count_left: i32 = self.count as i32 - amount as i32;
-        if count_left < 0 {
-            return Err(());
+    pub fn take(&mut self, amount: u32) -> Result<ItemStack, ItemStackError> {
+        if self.count <= amount {
+            return Err(if self.count == amount {
+                ItemStackError::EmptyStack
+            } else {
+                ItemStackError::NotEnoughAmount
+            });
         }
+        let count_left: u32 = self.count - amount;
         let taken = ItemStack {
             count: amount,
             ..self.clone()
@@ -211,11 +213,22 @@ impl ItemStack {
     }
 
     /// Transfers up to `n` items to `other`.
-    pub fn transfer_to(&mut self, n: u32, other: &mut Self) {
+    pub fn transfer_to(&mut self, n: u32, other: &mut Self) -> Result<(), ItemStackError> {
+        if self.count <= n {
+            return Err(if self.count == n {
+                ItemStackError::EmptyStack
+            } else {
+                ItemStackError::NotEnoughAmount
+            });
+        }
         let max_transfer = other.item.stack_size().saturating_sub(other.count);
         let transfer = max_transfer.min(self.count).min(n);
+        if other.count + transfer > i32::MAX as u32 {
+            return Err(ItemStackError::ClientOverflow);
+        }
         self.count -= transfer;
         other.count += transfer;
+        Ok(())
     }
 
     /// Damages the item by the specified amount.
@@ -236,4 +249,14 @@ impl ItemStack {
             None => false,
         }
     }
+}
+
+/// An error type that may be returned when performing
+/// operations over an `ItemStack`.
+#[derive(Debug)]
+pub enum ItemStackError {
+    ClientOverflow,
+    EmptyStack,
+    ExceedsStackSize,
+    NotEnoughAmount,
 }
