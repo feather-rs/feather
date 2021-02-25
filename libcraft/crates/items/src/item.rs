@@ -1,7 +1,7 @@
 // This file is @generated. Please do not edit.
 use serde::{Deserialize, Serialize};
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
-#[serde(try_from = "String", into = "String")]
+#[serde(try_from = "String", into = "&'static str")]
 pub enum Item {
     Air,
     Stone,
@@ -8858,21 +8858,21 @@ impl Item {
 use std::convert::TryFrom;
 
 impl TryFrom<String> for Item {
-    type Error = String;
+    type Error = &'static str;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if let Some(item) = Item::from_name(value.as_str()) {
             Ok(item)
         } else {
-            Err(String::from("Unknown item name."))
+            Err("Unknown item name.")
         }
     }
 }
 
 use std::convert::Into;
 
-impl Into<String> for Item {
-    fn into(self) -> String {
-        String::from(self.name())
+impl Into<&'static str> for Item {
+    fn into(self) -> &'static str {
+        self.name()
     }
 }

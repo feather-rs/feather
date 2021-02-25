@@ -142,20 +142,7 @@ def generate_enum_property(
     return result
 
 
-def generate_enum(name: str, variants: List[str]) -> str:
-    """Generates an enum definition with the provided variants."""
-    return generate_enum_with_derives(name, variants, [])
-
-
-def generate_enum_with_derives(name: str, variants: List[str], derives: List[str]) -> str:
-    return generate_enum_with_derives_and_prelude(name, variants, derives, "")
-
-
-def generate_enum_with_prelude(name: str, variants: List[str], prelude: str) -> str:
-    return generate_enum_with_derives_and_prelude(name, variants, [], prelude)
-
-
-def generate_enum_with_derives_and_prelude(name: str, variants: List[str], derives: List[str], prelude: str) -> str:
+def generate_enum(name: str, variants: List[str], derives: List[str] = [], prelude: str = "") -> str:
     """Generates an enum definition with the provided variants and extra derives."""
     body = ','.join(variants) + ','
     extra_derives = "" if len(derives) == 0 else ',' + ','.join(derives)
