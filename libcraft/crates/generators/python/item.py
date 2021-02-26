@@ -57,4 +57,20 @@ output_data += f"""
     }}
 """
 
+output_data += f"""
+    use std::str::FromStr;
+
+    impl FromStr for Item {{
+        type Err = &'static str;
+    
+        fn from_str(s: &str) -> Result<Self, Self::Err> {{
+            if let Some(item) = Item::from_name(s) {{
+                Ok(item)
+            }} else {{
+                Err("Unknown item name.")
+            }}
+        }}
+    }}
+"""
+
 output("crates/items/src/item.rs", output_data)

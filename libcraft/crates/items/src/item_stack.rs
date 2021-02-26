@@ -1,7 +1,11 @@
 #![forbid(unsafe_code, warnings)]
 
 use crate::{Enchantment, Item};
+use core::fmt::Display;
+use serde::__private::Formatter;
 use serde::{Deserialize, Serialize};
+use std::error::Error;
+use std::fmt;
 
 /// Represents an item stack.
 ///
@@ -10,16 +14,16 @@ use serde::{Deserialize, Serialize};
 pub struct ItemStack {
     /// The item type of this `ItemStack`.
     #[serde(rename = "id")]
-    pub item: Item,
+    item: Item,
 
     /// The number of items in the `ItemStack`.
     #[serde(rename = "Count")]
-    pub count: u32,
+    count: u32,
 
     /// The `ItemStack` metadata, containing data such as damage,
     /// repair cost, enchantments...
     #[serde(rename = "tag")]
-    pub meta: Option<ItemStackMeta>,
+    meta: Option<ItemStackMeta>,
 }
 
 /// Represents the metadata of an `ItemStack`. Contains:
@@ -32,19 +36,19 @@ pub struct ItemStack {
 #[serde(rename_all = "PascalCase")]
 pub struct ItemStackMeta {
     /// The displayed title (name) of the associated `ItemStack`.
-    pub title: String,
+    title: String,
 
     /// The displayed lore of the associated `ItemStack`.
-    pub lore: String,
+    lore: String,
 
     /// The damage taken by the `ItemStack`.
-    pub damage: Option<u32>,
+    damage: Option<u32>,
 
     /// The cost of repairing the `ItemStack`.
-    pub repair_cost: Option<u32>,
+    repair_cost: Option<u32>,
 
     /// The enchantments applied to this `ItemStack`.
-    pub enchantments: Vec<Enchantment>,
+    enchantments: Vec<Enchantment>,
 }
 
 impl ItemStack {
@@ -74,7 +78,7 @@ impl ItemStack {
     /// Returns whether the given item stack has the same damage
     /// as `self`.
     pub fn has_same_damage(&self, other: &Self) -> bool {
-        if let (Some(self_meta), Some(other_meta)) = (self.meta.clone(), other.meta.clone()) {
+        if let (Some(self_meta), Some(other_meta)) = (self.meta.as_ref(), other.meta.as_ref()) {
             self_meta.damage == other_meta.damage
         } else {
             self.meta.is_none() && other.meta.is_none()
@@ -89,7 +93,8 @@ impl ItemStack {
     }
 
     /// Returns whether the given `ItemStack` has the same
-    /// type and count as `self`.
+    /// type and count as (but not necessarily the same meta
+    /// as) `self`.
     pub fn has_same_type_and_count(&self, other: &Self) -> bool {
         self.item == other.item && self.count == other.count
     }
@@ -177,8 +182,7 @@ impl ItemStack {
     /// will be left with the least items. Returns the taken
     /// half.
     pub fn take_half(&mut self) -> ItemStack {
-        self.take((self.count as f64 / 2 as f64).ceil() as u32)
-            .unwrap()
+        self.take((self.count + 1) / 2).unwrap()
     }
 
     /// Splits this `ItemStack` by removing the
@@ -201,15 +205,15 @@ impl ItemStack {
     }
 
     /// Merges another `ItemStack` with this one.
-    pub fn merge_with(&mut self, other: &mut Self) -> bool {
+    pub fn merge_with(&mut self, other: &mut Self) -> Result<(), ItemStackError> {
         if !self.has_same_type_and_damage(other) {
-            return false;
+            return Err(ItemStackError::IncompatibleStacks);
         }
         let new_count = (self.count + other.count).min(self.item.stack_size());
         let amount_added = new_count - self.count;
         self.count = new_count;
         other.count -= amount_added;
-        true
+        Ok(())
     }
 
     /// Transfers up to `n` items to `other`.
@@ -253,10 +257,19 @@ impl ItemStack {
 
 /// An error type that may be returned when performing
 /// operations over an `ItemStack`.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ItemStackError {
     ClientOverflow,
     EmptyStack,
     ExceedsStackSize,
+    IncompatibleStacks,
     NotEnoughAmount,
 }
+
+impl Display for ItemStackError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
+impl Error for ItemStackError {}

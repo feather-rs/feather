@@ -8876,3 +8876,17 @@ impl Into<&'static str> for Item {
         self.name()
     }
 }
+
+use std::str::FromStr;
+
+impl FromStr for Item {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Some(item) = Item::from_name(s) {
+            Ok(item)
+        } else {
+            Err("Unknown item name.")
+        }
+    }
+}
