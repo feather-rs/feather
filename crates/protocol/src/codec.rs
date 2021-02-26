@@ -53,7 +53,7 @@ impl MinecraftCodec {
                 .crypt_key
                 .map(|key| AesCfb8::new_var(&key, &key).expect("key size is invalid")),
             crypt_key: self.crypt_key,
-            compression: self.compression.clone(),
+            compression: self.compression,
             received_buf: BytesMut::new(),
             staging_buf: Vec::new(),
         }

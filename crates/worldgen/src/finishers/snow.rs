@@ -28,12 +28,12 @@ impl FinishingGenerator for SnowFinisher {
 }
 
 fn is_snowy_biome(biome: Biome) -> bool {
-    match biome {
+    matches!(
+        biome,
         Biome::SnowyTundra
-        | Biome::IceSpikes
-        | Biome::SnowyTaiga
-        | Biome::SnowyTaigaMountains
-        | Biome::SnowyBeach => true,
-        _ => false,
-    }
+            | Biome::IceSpikes
+            | Biome::SnowyTaiga
+            | Biome::SnowyTaigaMountains
+            | Biome::SnowyBeach
+    )
 }

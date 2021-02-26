@@ -1,13 +1,19 @@
 use parking_lot::{Mutex, MutexGuard};
 use std::sync::Arc;
 
+#[allow(clippy::all)]
 mod biome;
+#[allow(clippy::all)]
 mod block;
+#[allow(clippy::all)]
 mod entity;
 #[allow(clippy::all)]
 mod inventory;
+#[allow(clippy::all)]
 mod item;
+#[allow(clippy::all)]
 mod particle;
+#[allow(clippy::all)]
 mod simplified_block;
 
 pub use biome::Biome;
@@ -208,10 +214,10 @@ impl Window {
     pub fn item(&self, index: usize) -> Result<MutexGuard<Option<ItemStack>>, WindowError> {
         let (inventory, area, slot) = self
             .index_to_slot(index)
-            .ok_or_else(|| WindowError::OutOfBounds(index))?;
+            .ok_or(WindowError::OutOfBounds(index))?;
         inventory
             .item(area, slot)
-            .ok_or_else(|| WindowError::OutOfBounds(index))
+            .ok_or(WindowError::OutOfBounds(index))
     }
 
     /// Sets the item at the provided protocol index.

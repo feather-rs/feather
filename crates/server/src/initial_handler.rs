@@ -262,7 +262,7 @@ async fn finish_login(
         .await?;
 
     let new_player = NewPlayer {
-        username: response.name.into(),
+        username: response.name,
         uuid: response.id,
         profile: response.properties,
         received_packets: worker.received_packets(),

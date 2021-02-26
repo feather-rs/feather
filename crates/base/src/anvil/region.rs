@@ -235,7 +235,7 @@ impl RegionHandle {
         for index in 0..1024 {
             let id = level.biomes[index];
             chunk.biomes_mut().as_slice_mut()[index] =
-                Biome::from_id(id as u32).ok_or_else(|| Error::InvalidBiomeId(id))?;
+                Biome::from_id(id as u32).ok_or(Error::InvalidBiomeId(id))?;
         }
 
         // chunk.recalculate_heightmap();
@@ -381,8 +381,8 @@ fn read_section_into_chunk(section: &mut LevelSection, chunk: &mut Chunk) -> Res
     let block_light = convert_light_data(&section.block_light);
     let sky_light = convert_light_data(&section.sky_light);
 
-    let light = LightStore::from_packed_arrays(block_light, sky_light)
-        .ok_or_else(|| Error::IndexOutOfBounds)?;
+    let light =
+        LightStore::from_packed_arrays(block_light, sky_light).ok_or(Error::IndexOutOfBounds)?;
     let blocks = BlockStore::from_raw_parts(Some(palette), data);
 
     let chunk_section = ChunkSection::new(blocks, light);

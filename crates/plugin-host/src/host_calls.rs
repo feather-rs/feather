@@ -86,6 +86,7 @@ fn register_system(
     Ok(())
 }
 
+#[allow(clippy::unnecessary_wraps)]
 fn entity_exists(cx: &mut PluginContext, entity: u64) -> anyhow::Result<u32> {
     let entity = Entity::from_bits(entity);
     let result = cx.game_mut().ecs.entity(entity).is_ok();

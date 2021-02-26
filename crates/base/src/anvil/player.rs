@@ -173,10 +173,7 @@ mod tests {
         let mut cursor = Cursor::new(include_bytes!("player.dat").to_vec());
 
         let player: PlayerData = nbt::from_gzip_reader(&mut cursor).unwrap();
-        assert_eq!(
-            player.gamemode,
-            i32::from(Gamemode::Creative.to_i32().unwrap())
-        );
+        assert_eq!(player.gamemode, Gamemode::Creative.to_i32().unwrap());
         assert_eq!(player.inventory[0].item, "minecraft:diamond_shovel");
         assert_eq!(player.inventory[0].nbt, Some(ItemNbt { damage: Some(3) }));
     }

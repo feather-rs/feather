@@ -3,6 +3,8 @@
 //! This crate implements most functionality that is generic between
 //! client and server, i.e., which does not involve interaction with the network.
 
+#![allow(clippy::unnecessary_wraps)] // systems are required to return Results
+
 mod game;
 use ecs::SystemExecutor;
 pub use game::Game;

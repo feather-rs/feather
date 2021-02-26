@@ -11,6 +11,7 @@ pub struct LoadedChunk {
 }
 
 #[derive(Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum ChunkLoadResult {
     /// The chunk does not exist in this source.
     Missing,

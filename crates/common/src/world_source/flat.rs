@@ -9,6 +9,12 @@ pub struct FlatWorldSource {
     loaded: Vec<LoadedChunk>,
 }
 
+impl Default for FlatWorldSource {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FlatWorldSource {
     pub fn new() -> Self {
         let mut archetype = Chunk::new(ChunkPosition::new(0, 0));

@@ -40,7 +40,7 @@ impl ChatBox {
     }
 
     /// Drains messages in the mailbox.
-    pub fn drain<'a>(&'a mut self) -> impl Iterator<Item = ChatMessage> + 'a {
+    pub fn drain(&mut self) -> impl Iterator<Item = ChatMessage> + '_ {
         let preference = self.preference;
         self.messages
             .drain(..)

@@ -61,7 +61,7 @@ impl Clients {
         self.arena.get(id.0)
     }
 
-    pub fn iter<'a>(&'a self) -> impl Iterator<Item = &'a Client> + 'a {
+    pub fn iter(&self) -> impl Iterator<Item = &'_ Client> + '_ {
         self.arena.iter().map(|(_i, client)| client)
     }
 }
@@ -136,7 +136,7 @@ impl Client {
         &self.username
     }
 
-    pub fn received_packets<'a>(&'a self) -> impl Iterator<Item = ClientPlayPacket> + 'a {
+    pub fn received_packets(&self) -> impl Iterator<Item = ClientPlayPacket> + '_ {
         self.received_packets.try_iter()
     }
 

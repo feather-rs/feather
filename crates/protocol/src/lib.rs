@@ -44,6 +44,12 @@ pub struct ClientPacketCodec {
     codec: MinecraftCodec,
 }
 
+impl Default for ClientPacketCodec {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ClientPacketCodec {
     pub fn new() -> Self {
         Self {
@@ -94,6 +100,12 @@ impl ClientPacketCodec {
 pub struct ServerPacketCodec {
     state: ProtocolState,
     codec: MinecraftCodec,
+}
+
+impl Default for ServerPacketCodec {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ServerPacketCodec {

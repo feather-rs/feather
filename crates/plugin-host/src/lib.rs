@@ -59,6 +59,12 @@ pub struct PluginManager {
     plugins: AHashMap<PluginId, Plugin>,
 }
 
+impl Default for PluginManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PluginManager {
     pub fn new() -> Self {
         let compiler_config = compiler_config();

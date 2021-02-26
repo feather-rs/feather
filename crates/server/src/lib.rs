@@ -1,3 +1,5 @@
+#![allow(clippy::unnecessary_wraps)] // systems are required to return Results
+
 use std::{sync::Arc, time::Instant};
 
 use base::Position;
