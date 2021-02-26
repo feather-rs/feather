@@ -8,7 +8,7 @@ from pathlib import Path
 
 LIBCRAFT_ROOT = Path(__file__).parents[3]
 PRISMARINEJS_BASE_PATH = Path(__file__).parents[1] / "minecraft-data" / "data" / "pc"
-FEATHER_BASE_PATH = Path(__file__).parents[1] / "feather"
+LIBCRAFT_DATA_BASE_PATH = Path(__file__).parents[1] / "libcraft-data"
 
 
 def rustfmt(file_path):
@@ -41,7 +41,7 @@ def load_feather_json(name: str) -> dict:
     Returns:
         A dict containing JSON contents
     """
-    file = open(FEATHER_BASE_PATH / name)
+    file = open(LIBCRAFT_DATA_BASE_PATH / name)
     return load(file)
 
 
