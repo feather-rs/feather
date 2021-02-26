@@ -3,6 +3,8 @@
 //! Uses [`wasmer`](https://docs.rs/wasmer) to run WebAssembly plugins
 //! in a sandbox.
 
+#![allow(warnings)] // TEMP
+
 use std::{
     fs,
     path::Path,
@@ -13,7 +15,9 @@ use ahash::AHashMap;
 use anyhow::Context;
 use env::PluginEnv;
 use feather_common::Game;
+use plugin::Plugin;
 use quill_plugin_format::{PluginFile, PluginMetadata};
+use vec_arena::Arena;
 use wasmer::{
     ChainableNamedResolver, CompilerConfig, ExportError, Features, Function, ImportObject,
     Instance, Module, Store, JIT,
@@ -23,6 +27,8 @@ use wasmer_wasi::{WasiEnv, WasiState, WasiVersion};
 mod context;
 mod env;
 mod host_calls;
+mod host_function;
+mod plugin;
 mod thread_pinned;
 mod wasm_ptr_ext;
 
@@ -43,23 +49,15 @@ const WASM_FEATURES: Features = Features {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct PluginId(usize);
 
-impl PluginId {
-    fn new() -> Self {
-        static NEXT: AtomicUsize = AtomicUsize::new(0);
-        let x = NEXT.fetch_add(1, Ordering::SeqCst);
-        Self(x)
-    }
-}
-
 /// Resource storing all enabled plugins plus the WebAssembly VM.
 pub struct PluginManager {
-    _engine: wasmer::JITEngine,
-    store: wasmer::Store,
+    plugins: Arena<Plugin>,
 
-    plugins: AHashMap<PluginId, Plugin>,
+    store: wasmer::Store,
 }
 
 impl PluginManager {
+    /// Creates a plugin manager with no plugins.
     pub fn new() -> Self {
         let compiler_config = compiler_config();
         let engine_config = JIT::new(compiler_config).features(WASM_FEATURES);
@@ -67,18 +65,13 @@ impl PluginManager {
         let store = Store::new(&engine);
 
         Self {
-            _engine: engine,
+            plugins: Arena::new(),
             store,
-            plugins: AHashMap::new(),
         }
     }
 
-    /// Loads all plugins found within the given directory.
-    pub fn load_plugin_directory(
-        &mut self,
-        game: &mut Game,
-        dir: impl AsRef<Path>,
-    ) -> anyhow::Result<()> {
+    /// Loads all plugins in the given directory.
+    pub fn load_dir(&mut self, game: &mut Game, dir: impl AsRef<Path>) -> anyhow::Result<()> {
         let dir = dir.as_ref();
         if !dir.exists() {
             return Ok(());
@@ -86,108 +79,49 @@ impl PluginManager {
 
         for entry in std::fs::read_dir(dir)? {
             let entry = entry?;
-            if !entry.file_type()?.is_file() {
+            if entry.file_type()?.is_dir() {
                 continue;
             }
+
             if entry.path().extension() != Some("plugin".as_ref()) {
                 continue;
             }
 
-            log::info!("Loading plugin from {}", entry.path().display());
-            let plugin = fs::read(entry.path())?;
-            self.load_plugin(game, &plugin)?;
+            let bytes = fs::read(entry.path())?;
+            self.load(game, &bytes).with_context(|| {
+                format!("failed to load plugin from {}", entry.path().display())
+            })?;
         }
 
         Ok(())
     }
 
-    /// Loads a plugin from its plugin file data.
-    pub fn load_plugin(&mut self, game: &mut Game, plugin: &[u8]) -> anyhow::Result<PluginId> {
-        let plugin = Plugin::new(&self.store, plugin)?;
-        let id = PluginId::new();
-        plugin.env.context().set_plugin_id(id);
+    /// Loads and enables a plugin from the given plugin file bytes.
+    ///
+    /// Returns the ID of the loaded plugin.
+    pub fn load(&mut self, game: &mut Game, file: &[u8]) -> anyhow::Result<PluginId> {
+        let file = PluginFile::decode(file).context("malformed plugin file")?;
 
-        let setup_function = plugin.setup_function()?.clone();
+        let id = PluginId(self.plugins.next_vacant());
+        let mut plugin = Plugin::load(self, &file, id)?;
 
-        self.plugins.insert(id, plugin);
+        plugin.enable(game).context("failed to enable plugin")?;
 
-        // Call the setup function
-        self.invoke_plugin(game, id, || {
-            setup_function.call(&[]).map_err(From::from).map(|_| ())
-        })?;
-
-        let plugin = self.plugin(id).unwrap();
-        log::info!(
-            "Enabled plugin {} version {}",
-            plugin.metadata().name,
-            plugin.metadata().version
-        );
+        self.plugins.insert(plugin);
 
         Ok(id)
     }
 
+    /// Gets the plugin with the given ID,
+    /// or `None` if it has been unloaded.
     pub fn plugin(&self, id: PluginId) -> Option<&Plugin> {
-        self.plugins.get(&id)
+        self.plugins.get(id.0)
     }
 
+    /// Mutably gets the plugin with the given ID,
+    /// or `None` if it has been unloaded.
     pub fn plugin_mut(&mut self, id: PluginId) -> Option<&mut Plugin> {
-        self.plugins.get_mut(&id)
-    }
-
-    /// Invokes a plugin method using the given closure.
-    ///
-    /// This method ensures that the plugin's context is initialized
-    /// with the `Game`.
-    pub fn invoke_plugin(
-        &mut self,
-        game: &mut Game,
-        plugin_id: PluginId,
-        invoke: impl FnOnce() -> anyhow::Result<()>,
-    ) -> anyhow::Result<()> {
-        let plugin = self.plugin_mut(plugin_id).context("missing plugin")?;
-        plugin.env.context().set_game(game);
-        invoke()?;
-        plugin.env.context().bump_reset()?;
-        Ok(())
-    }
-}
-
-/// A loaded plugin.
-pub struct Plugin {
-    _module: Module,
-    instance: Instance,
-    env: PluginEnv,
-    metadata: PluginMetadata,
-}
-
-impl Plugin {
-    /// Loads a plugin from its binary WASM module.
-    pub fn new(store: &Store, plugin: &[u8]) -> anyhow::Result<Self> {
-        let plugin_file = PluginFile::decode(plugin)?;
-
-        let module = Module::new(store, plugin_file.wasm_bytecode())?;
-        let env = PluginEnv::new();
-
-        let quill_imports = host_calls::create_import_object(store, env.clone());
-        let wasi_imports = create_wasi_imports(store, &plugin_file.metadata().identifier)?;
-        let imports = quill_imports.chain_back(wasi_imports);
-
-        let instance = Instance::new(&module, &imports)?;
-
-        Ok(Self {
-            _module: module,
-            instance,
-            env,
-            metadata: plugin_file.metadata().clone(),
-        })
-    }
-
-    pub fn metadata(&self) -> &PluginMetadata {
-        &self.metadata
-    }
-
-    pub fn setup_function(&self) -> Result<&Function, ExportError> {
-        self.instance.exports.get_function("quill_setup")
+        self.plugins.get_mut(id.0)
     }
 }
 
@@ -205,14 +139,4 @@ fn compiler_config() -> impl CompilerConfig {
     let mut cfg = LLVM::new();
     cfg.opt_level(LLVMOptLevel::Aggressive);
     cfg
-}
-
-fn create_wasi_imports(store: &Store, plugin_id: &str) -> anyhow::Result<ImportObject> {
-    let state = WasiState::new(plugin_id).build()?;
-    let env = WasiEnv::new(state);
-    Ok(wasmer_wasi::generate_import_object_from_env(
-        store,
-        env,
-        WasiVersion::Latest,
-    ))
 }

@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
     game.system_executor = Rc::new(RefCell::new(systems));
 
     let mut plugin_manager = PluginManager::new();
-    plugin_manager.load_plugin_directory(&mut game, "plugins")?;
+    plugin_manager.load_dir(&mut game, "plugins")?;
     game.insert_resource(Rc::new(RefCell::new(plugin_manager)));
 
     print_systems(&mut *game.system_executor.borrow_mut());

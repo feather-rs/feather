@@ -5,7 +5,7 @@ use common::{
     window::BackingWindow,
     ChatBox, Game, Window,
 };
-use ecs::{ SysResult, SystemExecutor};
+use ecs::{SysResult, SystemExecutor};
 use quill_common::{components::Name, entity_init::EntityInit};
 
 use crate::{ClientId, Server};

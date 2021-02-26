@@ -1,42 +1,43 @@
 //! Implements the `entity_query` host call.
 
-use std::{alloc::Layout, any::TypeId, mem::size_of};
+use std::{alloc::Layout, any::TypeId, mem::size_of, ptr};
 
 use anyhow::Context;
 use feather_ecs::{DynamicQuery, DynamicQueryTypes, Ecs};
+use feather_plugin_host_macros::host_function;
 use quill_common::{
     component::{ComponentVisitor, SerializationMethod},
     entity::QueryData,
-    Component, EntityId, HostComponent,
+    Component, EntityId, HostComponent, PointerMut,
 };
-use wasmer::WasmPtr;
 
-use crate::{context::PluginContext, wasm_ptr_ext::WasmPtrExt};
+use crate::context::{PluginContext, PluginPtr, PluginPtrMut};
 
+#[host_function]
 pub fn entity_query(
-    cx: &mut PluginContext,
-    components_ptr: WasmPtr<u32>,
+    cx: &PluginContext,
+    components_ptr: PluginPtr<u32>,
     components_len: u32,
-) -> anyhow::Result<WasmPtr<u8>> {
+    query_data_out: PluginPtrMut<QueryData>,
+) -> anyhow::Result<()> {
     let mut components = Vec::with_capacity(components_len as usize);
     for i in 0..components_len {
-        let id = components_ptr
-            .add(i as usize * size_of::<HostComponent>())
-            .deref(cx.memory())
-            .context("bad pointer")?;
-        let component = HostComponent::from_u32(id.get()).context("bad component type")?;
+        let ptr = unsafe { components_ptr.add(i as usize) };
+        let id = cx.read_pod(ptr)?;
+
+        let component = HostComponent::from_u32(id).context("bad component type")?;
         components.push(component);
     }
 
     let game = cx.game_mut();
     let query_data = create_query_data(cx, &game.ecs, &components)?;
+    cx.write_pod(query_data_out, query_data)?;
 
-    let ptr = cx.insert_to_memory(query_data)?;
-    Ok(ptr)
+    Ok(())
 }
 
 struct WrittenComponentData {
-    pointer: WasmPtr<u8>,
+    pointer: PluginPtrMut<u8>,
     len: u32,
 }
 
@@ -67,8 +68,11 @@ impl<'a> ComponentVisitor<anyhow::Result<WrittenComponentData>> for WriteCompone
                     for component_slice in components {
                         for component in component_slice.as_slice::<T>() {
                             let bytes = component.as_bytes();
-                            self.cx
-                                .write_slice_to_memory(bytes, buffer.add(byte_index))?;
+
+                            unsafe {
+                                self.cx.write_bytes(buffer.add(byte_index), bytes)?;
+                            }
+
                             byte_index += bytes.len();
                         }
                     }
@@ -80,19 +84,15 @@ impl<'a> ComponentVisitor<anyhow::Result<WrittenComponentData>> for WriteCompone
                 // Memory will need to be allocated dynamically,
                 // but we can approximate a minimum capacity.
                 let mut bytes = Vec::with_capacity(self.num_entities * size_of::<T>());
-                let mut stride = None;
+
                 // Write components into the buffer.
                 for component_slice in components {
                     for component in component_slice.as_slice::<T>() {
                         component.to_bytes(&mut bytes);
-                        if stride.is_none() {
-                            stride = Some(bytes.len());
-                        }
                     }
                 }
 
-                let buffer = self.cx.bump_allocate(Layout::array::<u8>(bytes.len())?)?;
-                self.cx.write_slice_to_memory(&bytes, buffer)?;
+                let buffer = self.cx.bump_allocate_and_write_bytes(&bytes)?;
                 (buffer, bytes.len())
             }
         };
@@ -116,13 +116,13 @@ fn create_query_data(
     if num_entities == 0 {
         return Ok(QueryData {
             num_entities: 0,
-            entities_ptr: 0,
-            component_ptrs: 0,
-            component_lens: 0,
+            entities_ptr: PointerMut::new(ptr::null_mut()),
+            component_ptrs: PointerMut::new(ptr::null_mut()),
+            component_lens: PointerMut::new(ptr::null_mut()),
         });
     }
 
-    let component_ptrs = cx.bump_allocate(Layout::array::<u32>(types.len())?)?;
+    let component_ptrs = cx.bump_allocate(Layout::array::<PluginPtrMut<u8>>(types.len())?)?;
     let component_lens = cx.bump_allocate(Layout::array::<u32>(types.len())?)?;
     for (i, &typ) in types.iter().enumerate() {
         let data = typ.visit(WriteComponentsVisitor {
@@ -131,23 +131,24 @@ fn create_query_data(
             num_entities,
         })?;
 
-        cx.write_to_memory(
-            data.pointer.offset(),
-            component_ptrs.add(i * size_of::<u32>()),
-        )?;
-        cx.write_to_memory(data.len, component_lens.add(i * size_of::<u32>()))?;
+        unsafe {
+            cx.write_pod(component_ptrs.cast().add(i), data.pointer)?;
+            cx.write_pod(component_lens.cast().add(i), data.len)?;
+        }
     }
 
     let entities_ptr = cx.bump_allocate(Layout::array::<EntityId>(num_entities)?)?;
     for (i, entity) in query.iter_entities().enumerate() {
         let bits = entity.to_bits();
-        cx.write_to_memory(bits, entities_ptr.add(i * size_of::<EntityId>()))?;
+        unsafe {
+            cx.write_pod(entities_ptr.cast().add(i), bits)?;
+        }
     }
 
     Ok(QueryData {
-        num_entities: num_entities as u32,
-        entities_ptr: entities_ptr.offset(),
-        component_ptrs: component_ptrs.offset(),
-        component_lens: component_lens.offset(),
+        num_entities: num_entities as u64,
+        entities_ptr: PointerMut::new(entities_ptr.as_native().cast()),
+        component_ptrs: PointerMut::new(component_ptrs.as_native().cast()),
+        component_lens: PointerMut::new(component_lens.as_native().cast()),
     })
 }

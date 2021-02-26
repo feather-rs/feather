@@ -1,224 +1,410 @@
 use std::{
     alloc::Layout,
-    cell::{RefCell, RefMut},
+    cell::{Ref, RefMut},
+    marker::PhantomData,
     mem::size_of,
+    panic::AssertUnwindSafe,
+    ptr::NonNull,
+    sync::atomic::{AtomicBool, Ordering},
 };
 
 use anyhow::anyhow;
-use anyhow::{bail, Context};
-use bump::PluginBump;
-use bytemuck::Pod;
+use bytemuck::{Pod, Zeroable};
 use feather_common::Game;
 use feather_ecs::EntityBuilder;
 use quill_common::Component;
 use serde::de::DeserializeOwned;
 use vec_arena::Arena;
-use wasmer::{Instance, LazyInit, Memory, NativeFunc, WasmPtr};
+use wasmer::{FromToNativeWasmType, Instance};
 
-use crate::PluginId;
+use crate::{host_function::WasmHostFunction, thread_pinned::ThreadPinned, PluginId};
 
-mod bump;
+mod native;
+mod wasm;
 
-/// Context passed to host functions.
+/// Wraps a pointer into a plugin's memory space.
+#[derive(Copy, Clone, PartialEq, Eq, Zeroable)]
+#[repr(transparent)]
+pub struct PluginPtr<T> {
+    pub ptr: u64,
+    pub _marker: PhantomData<*const T>,
+}
+
+impl<T> PluginPtr<T> {
+    pub fn as_native(&self) -> *const T {
+        self.ptr as usize as *const T
+    }
+
+    /// # Safety
+    /// Adding `n` to this pointer
+    /// must produce a pointer within the same allocated
+    /// object.
+    #[must_use = "PluginPtr::add returns a new pointer"]
+    pub unsafe fn add(self, n: usize) -> Self {
+        Self {
+            ptr: self.ptr + (n * size_of::<T>()) as u64,
+            _marker: self._marker,
+        }
+    }
+
+    /// # Safety
+    /// The cast must be valid.
+    pub unsafe fn cast<U>(self) -> PluginPtr<U> {
+        PluginPtr {
+            ptr: self.ptr,
+            _marker: PhantomData,
+        }
+    }
+}
+
+unsafe impl<T: Copy + 'static> Pod for PluginPtr<T> {}
+
+/// Wraps a pointer into a plugin's memory space.
+#[derive(Copy, Clone, PartialEq, Eq, Zeroable)]
+#[repr(transparent)]
+pub struct PluginPtrMut<T> {
+    pub ptr: u64,
+    pub _marker: PhantomData<*mut T>,
+}
+
+impl<T> PluginPtrMut<T> {
+    pub fn as_native(&self) -> *mut T {
+        self.ptr as usize as *mut T
+    }
+
+    /// # Safety
+    /// A null pointer must be valid in the context it is used.
+    pub unsafe fn null() -> Self {
+        Self {
+            ptr: 0,
+            _marker: PhantomData,
+        }
+    }
+
+    /// # Safety
+    /// Adding `n` to this pointer
+    /// must produce a pointer within the same allocated
+    /// object.
+    #[must_use = "PluginPtrMut::add returns a new pointer"]
+    pub unsafe fn add(self, n: usize) -> Self {
+        Self {
+            ptr: self.ptr + (n * size_of::<T>()) as u64,
+            _marker: self._marker,
+        }
+    }
+
+    /// # Safety
+    /// The cast must be valid.
+    pub unsafe fn cast<U>(self) -> PluginPtrMut<U> {
+        PluginPtrMut {
+            ptr: self.ptr,
+            _marker: PhantomData,
+        }
+    }
+}
+
+unsafe impl<T: Copy + 'static> Pod for PluginPtrMut<T> {}
+
+unsafe impl<T: Copy> FromToNativeWasmType for PluginPtr<T> {
+    type Native = i64;
+
+    fn from_native(native: Self::Native) -> Self {
+        Self {
+            ptr: native as u64,
+            _marker: PhantomData,
+        }
+    }
+
+    fn to_native(self) -> Self::Native {
+        self.ptr as i64
+    }
+}
+
+unsafe impl<T: Copy> FromToNativeWasmType for PluginPtrMut<T> {
+    type Native = i64;
+
+    fn from_native(native: Self::Native) -> Self {
+        Self {
+            ptr: native as u64,
+            _marker: PhantomData,
+        }
+    }
+
+    fn to_native(self) -> Self::Native {
+        self.ptr as i64
+    }
+}
+
+/// Context of a running plugin.
 ///
-/// Provides access to the [`Game`](feather_common::Game).
-#[derive(Default)]
+/// Provides methods to access plugin memory,
+/// invoke exported functions, and access the `Game`.
+///
+/// This type abstracts over WASM or native plugins,
+/// providing the same interface for both.
+///
+/// # Safety
+/// The `native` version of the plugin context
+/// dereferences raw pointers. We assume pointers
+/// passed by plugins are valid. Most functions
+/// will cause undefined behavior if these constraints
+/// are violated.
+///
+/// We type-encode that a pointer originates from a plugin
+/// using the `PluginPtr` structs. Methods that
+/// dereference pointers take instances of these
+/// structs. Since creating a `PluginPtr` is unsafe,
+/// `PluginContext` methods don't have to be marked
+/// unsafe.
+///
+/// On WASM targets, the plugin is never trusted,
+/// and pointer accesses are checked. Undefined behavior
+/// can never occur as a result of malicious plugin input.
 pub struct PluginContext {
-    /// Pointer to the `Game`.
-    game: Option<RefCell<*mut Game>>,
+    inner: Inner,
 
-    /// The plugin's memory.
-    memory: LazyInit<Memory>,
+    /// Whether the plugin is currently being invoked
+    /// on the main thread.
+    /// If this is `true`, then plugin functions are on the call stack.
+    invoking_on_main_thread: AtomicBool,
 
-    /// Function to allocate memory within the plugin's linear memory.
-    allocate: LazyInit<NativeFunc<(u32, u32), u32>>,
-    /// Function to deallocate memory within the plugin's linear memory.
-    deallocate: LazyInit<NativeFunc<(u32, u32, u32)>>,
-    /// Function to invoke a system within the plugin.
-    run_system: LazyInit<NativeFunc<u32>>,
+    /// The current `Game`.
+    ///
+    /// Set to `None` if `invoking_on_main_thread` is `false`.
+    /// Otherwise, must point to a valid game. The pointer
+    /// must be cleared after the plugin finishes executing
+    /// or we risk a dangling reference.
+    game: ThreadPinned<Option<NonNull<Game>>>,
 
-    /// Bump allocator to allocate temporary memory.
-    bump: LazyInit<RefCell<PluginBump>>,
+    /// ID of the plugin.
+    id: PluginId,
 
-    /// ID of this plugin.
-    plugin_id: LazyInit<PluginId>,
-
-    instance: LazyInit<Instance>,
-
-    pub entity_builders: Arena<EntityBuilder>,
+    /// Active entity builders for the plugin.
+    pub entity_builders: ThreadPinned<Arena<EntityBuilder>>,
 }
 
 impl PluginContext {
-    pub fn init_with_instance(&mut self, plugin_instance: &Instance) -> anyhow::Result<()> {
-        let memory = plugin_instance.exports.get_memory("memory")?;
-
-        let allocate = plugin_instance
-            .exports
-            .get_function("quill_allocate")?
-            .native()?;
-        let deallocate = plugin_instance
-            .exports
-            .get_function("quill_deallocate")?
-            .native()?;
-        let run_system = plugin_instance
-            .exports
-            .get_function("quill_run_system")?
-            .native()?;
-
-        let bump = PluginBump::new(allocate.clone(), deallocate.clone())?;
-
-        self.memory.initialize(memory.clone());
-        self.allocate.initialize(allocate);
-        self.deallocate.initialize(deallocate);
-        self.run_system.initialize(run_system);
-        self.bump.initialize(RefCell::new(bump));
-        self.instance.initialize(plugin_instance.clone());
-
-        Ok(())
+    /// Creates a new WASM plugin context.
+    pub fn new_wasm(id: PluginId) -> Self {
+        Self {
+            inner: Inner::Wasm(ThreadPinned::new(wasm::WasmPluginContext::new())),
+            invoking_on_main_thread: AtomicBool::new(false),
+            game: ThreadPinned::new(None),
+            id,
+            entity_builders: ThreadPinned::new(Arena::new()),
+        }
     }
 
-    pub fn set_plugin_id(&mut self, id: PluginId) {
-        self.plugin_id.initialize(id);
+    /// Creates a new native plugin context.
+    pub fn new_native(id: PluginId) -> Self {
+        Self {
+            inner: Inner::Native(native::NativePluginContext::new()),
+            invoking_on_main_thread: AtomicBool::new(false),
+            game: ThreadPinned::new(None),
+            id,
+            entity_builders: ThreadPinned::new(Arena::new()),
+        }
     }
 
-    pub fn plugin_id(&self) -> PluginId {
-        *self.plugin_id.get_ref().unwrap()
+    pub fn init_with_instance(&self, instance: &Instance) -> anyhow::Result<()> {
+        match &self.inner {
+            Inner::Wasm(w) => w.borrow_mut().init_with_instance(instance),
+            Inner::Native(_) => panic!("cannot initialize native plugin context"),
+        }
+    }
+
+    /// Enters the plugin context, invoking a function inside the plugin.
+    ///
+    /// # Panics
+    /// Panics if we are already inside the plugin context.
+    /// Panics if not called on the main thread.
+    pub fn enter<R>(&self, game: &mut Game, callback: impl FnOnce() -> R) -> R {
+        let was_already_entered = self.invoking_on_main_thread.swap(true, Ordering::SeqCst);
+        assert!(!was_already_entered, "cannot recursively invoke a plugin");
+
+        *self.game.borrow_mut() = Some(NonNull::from(game));
+
+        // If a panic occurs, we need to catch it so
+        // we clear `self.game`. Otherwise, we get
+        // a dangling pointer.
+        let result = std::panic::catch_unwind(AssertUnwindSafe(callback));
+
+        self.invoking_on_main_thread.store(false, Ordering::SeqCst);
+        *self.game.borrow_mut() = None;
+
+        self.bump_reset();
+
+        result.unwrap()
     }
 
     /// Gets a mutable reference to the `Game`.
     ///
-    /// # Safety
-    /// This function is not marked `unsafe` as it is only
-    /// accessible internally. However, it may only be called
-    /// within the context of a host call.
+    /// # Panics
+    /// Panics if the plugin is not currently being
+    /// invoked on the main thread.
     pub fn game_mut(&self) -> RefMut<Game> {
-        let ptr = self
-            .game
-            .as_ref()
-            .expect("not inside host call")
-            .borrow_mut();
-        RefMut::map(ptr, |ptr| unsafe { &mut **ptr })
+        let ptr = self.game.borrow_mut();
+        RefMut::map(ptr, |ptr| {
+            let game_ptr = ptr.expect("plugin is not exeuctugin");
+
+            assert!(self.invoking_on_main_thread.load(Ordering::Relaxed));
+
+            // SAFETY: `game_ptr` points to a valid `Game` whenever
+            // the plugin is executing. If the plugin is not
+            // executing, then we already panicked when unwrapping `ptr`.
+            unsafe { &mut *game_ptr.as_ptr() }
+        })
     }
 
-    /// Sets the `Game` used for host calls.
-    pub fn set_game(&mut self, game: &mut Game) {
-        self.game = Some(RefCell::new(game as *mut Game));
+    /// Gets the plugin ID.
+    pub fn plugin_id(&self) -> PluginId {
+        self.id
     }
 
-    /// Gets the plugin memory.
-    pub fn memory(&self) -> &Memory {
-        self.memory.get_ref().unwrap()
-    }
-
-    /// Gets the function to invoke a system on the plugin
-    /// given a pointer to its data.
-    pub fn run_system_fn(&self) -> &NativeFunc<u32> {
-        self.run_system.get_ref().unwrap()
-    }
-
-    /// Allocates a pointer with the given layout inside the plugin's linear memory.
-    ///
-    /// This function uses the bump allocator. Memory
-    /// is automatically freed when the plugin returns frim
-    /// the current system.
-    pub fn bump_allocate(&self, layout: Layout) -> anyhow::Result<WasmPtr<u8>> {
-        self.bump.get_ref().unwrap().borrow_mut().alloc(layout)
-    }
-
-    /// Resets the bump allocator.
-    ///
-    /// Will trap the plugin if called incorrectly.
-    pub fn bump_reset(&self) -> anyhow::Result<()> {
-        self.bump.get_ref().unwrap().borrow_mut().reset()
-    }
-
-    /// Copies data into WASM memory, safely.
-    pub fn write_to_memory<T: Copy>(&self, value: T, dst: WasmPtr<u8>) -> anyhow::Result<()> {
-        self.write_slice_to_memory(&[value], dst)
-    }
-
-    /// Copies a slice of data into WASM memory, safely.
-    pub fn write_slice_to_memory<T: Copy>(
-        &self,
-        values: &[T],
-        dst: WasmPtr<u8>,
-    ) -> anyhow::Result<()> {
-        let src = values.as_ptr().cast::<u8>();
-        unsafe { self.write_raw_to_memory(src, values.len() * size_of::<T>(), dst) }
-    }
-
-    /// Copies raw data into memory.
+    /// Accesses a byte slice in the plugin's memory space.
     ///
     /// # Safety
-    /// `ptr` must be a valid pointer into a slice
-    /// of `len` bytes.
-    pub unsafe fn write_raw_to_memory(
+    /// **WASM**: mutating plugin memory or invoking
+    /// plugin functions while this byte slice is
+    /// alive is undefined behavior.
+    /// **Native**: `ptr` must be valid.
+    pub unsafe fn deref_bytes(&self, ptr: PluginPtr<u8>, len: u32) -> anyhow::Result<&[u8]> {
+        match &self.inner {
+            Inner::Wasm(w) => {
+                let w = w.borrow();
+                let bytes = w.deref_bytes(ptr, len)?;
+                Ok(unsafe { std::slice::from_raw_parts(bytes.as_ptr(), bytes.len()) })
+            }
+            Inner::Native(n) => n.deref_bytes(ptr, len),
+        }
+    }
+
+    /// Accesses a byte slice in the plugin's memory space.
+    ///
+    /// # Safety
+    /// **WASM**: accessing plugin memory or invoking
+    /// plugin functions while this byte slice is
+    /// alive is undefined behavior.
+    /// **Native**: `ptr` must be valid and the aliasing
+    /// rules must not be violated.
+    pub unsafe fn deref_bytes_mut(
         &self,
-        src: *const u8,
-        len: usize,
-        dst: WasmPtr<u8>,
-    ) -> anyhow::Result<()> {
-        if dst.offset() as usize + len > self.memory().data_size() as usize {
-            bail!("ptr out of bounds");
+        ptr: PluginPtrMut<u8>,
+        len: u32,
+    ) -> anyhow::Result<&mut [u8]> {
+        match &self.inner {
+            Inner::Wasm(w) => {
+                let w = w.borrow();
+                let bytes = w.deref_bytes_mut(ptr, len)?;
+                Ok(unsafe { std::slice::from_raw_parts_mut(bytes.as_mut_ptr(), bytes.len()) })
+            }
+            Inner::Native(n) => n.deref_bytes_mut(ptr, len),
+        }
+    }
+
+    /// Accesses a `Pod` value in the plugin's memory space.
+    pub fn read_pod<T: Pod>(&self, ptr: PluginPtr<T>) -> anyhow::Result<T> {
+        // SAFETY: we do not return a reference to these
+        // bytes.
+        unsafe {
+            let bytes = self.deref_bytes(ptr.cast(), size_of::<T>() as u32)?;
+            bytemuck::try_from_bytes(bytes)
+                .map_err(|_| anyhow!("badly aligned data"))
+                .map(|val| *val)
+        }
+    }
+
+    /// Accesses a `bincode`-encoded value in the plugin's memory space.
+    pub fn read_bincode<T: DeserializeOwned>(
+        &self,
+        ptr: PluginPtr<u8>,
+        len: u32,
+    ) -> anyhow::Result<T> {
+        // SAFETY: we do not return a reference to these
+        // bytes.
+        unsafe {
+            let bytes = self.deref_bytes(ptr.cast(), len)?;
+            bincode::deserialize(bytes).map_err(From::from)
+        }
+    }
+
+    /// Deserializes a component value in the plugin's memory space.
+    pub fn read_component<T: Component>(&self, ptr: PluginPtr<u8>, len: u32) -> anyhow::Result<T> {
+        // SAFETY: we do not return a reference to these
+        // bytes.
+        unsafe {
+            let bytes = self.deref_bytes(ptr.cast(), len)?;
+            T::from_bytes(bytes)
+                .ok_or_else(|| anyhow!("malformed component"))
+                .map(|(component, _bytes_read)| component)
+        }
+    }
+
+    /// Reads a string from the plugin's memory space.
+    pub fn read_string(&self, ptr: PluginPtr<u8>, len: u32) -> anyhow::Result<String> {
+        // SAFETY: we do not return a reference to these bytes.
+        unsafe {
+            let bytes = self.deref_bytes(ptr.cast(), len)?;
+            let string = std::str::from_utf8(bytes)?.to_owned();
+            Ok(string)
+        }
+    }
+
+    /// Allocates some memory within the plugin's bump
+    /// allocator.
+    ///
+    /// The memory is reset after the plugin finishes
+    /// executing the current system.
+    pub fn bump_allocate(&self, layout: Layout) -> anyhow::Result<PluginPtrMut<u8>> {
+        match &self.inner {
+            Inner::Wasm(w) => w.borrow().bump_allocate(layout),
+            Inner::Native(n) => n.bump_allocate(layout),
+        }
+    }
+
+    /// Bump allocates some memory, then copies `data` into it.
+    pub fn bump_allocate_and_write_bytes(&self, data: &[u8]) -> anyhow::Result<PluginPtrMut<u8>> {
+        let layout = Layout::array::<u8>(data.len())?;
+        let ptr = self.bump_allocate(layout)?;
+
+        // SAFETY: our access to these bytes is isolated to the
+        // current function. `ptr` is valid as it was just allocated.
+        unsafe {
+            self.write_bytes(ptr, data)?;
         }
 
-        // SAFETY: we do not access the WASM module while
-        // we write to its memory, so a data race is not possible.
-        let dst = self.memory().data_ptr().add(dst.offset() as usize);
-        std::ptr::copy_nonoverlapping(src, dst, len);
-
-        Ok(())
-    }
-
-    /// Allocates memory for and writes `value` into the plugin's memory.
-    /// Returns the allocated pointer.
-    ///
-    /// Uses bump-allocated memory that is freed at
-    /// the end of the current system.
-    pub fn insert_to_memory<T: Copy>(&self, value: T) -> anyhow::Result<WasmPtr<u8>> {
-        let ptr = self.bump_allocate(Layout::new::<T>())?;
-        self.write_to_memory(value, ptr)?;
         Ok(ptr)
     }
 
-    /// Gets a `bincode`-encoded value from plugin memory.
-    pub fn read_bincode<T: DeserializeOwned>(
-        &self,
-        ptr: WasmPtr<u8>,
-        len: u32,
-    ) -> anyhow::Result<T> {
-        // SAFETY: No other code is currently
-        // accessing the memory mutably.
-        let bytes = unsafe { self.read_bytes(ptr, len)? };
-        bincode::deserialize(bytes).map_err(From::from)
-    }
-
-    /// Gets a `Component` from memory.
-    pub fn read_component<T: Component>(&self, ptr: WasmPtr<u8>, len: u32) -> anyhow::Result<T> {
-        // SAFETY: No other code is currently
-        // accessing the memory mutably.
-        let bytes = unsafe { self.read_bytes(ptr, len)? };
-        T::from_bytes(bytes)
-            .context("malformed component")
-            .map(|(value, _offset)| value)
-    }
-
-    /// Gets a value implementing `bytemuck::Pod` from memory.
-    pub fn read_pod<T: Pod>(&self, ptr: WasmPtr<u8>) -> anyhow::Result<T> {
-        // SAFETY: No other code is currently
-        // accessing the memory mutably.
-        let bytes = unsafe { self.read_bytes(ptr, size_of::<T>() as u32)? };
-        let value = *bytemuck::try_from_bytes(bytes).map_err(|e| anyhow!("{}", e))?;
-        Ok(value)
-    }
-
+    /// Writes `data` to `ptr`.
+    ///
     /// # Safety
-    /// Mutating the plugin's memory while this slice
-    /// is alive is undefined behavior.
-    pub unsafe fn read_bytes(&self, ptr: WasmPtr<u8>, len: u32) -> anyhow::Result<&[u8]> {
-        if ptr.offset() as u64 + len as u64 >= self.memory().data_size() {
-            bail!("pointer out of bounds");
-        }
-        Ok(&self.memory().data_unchecked()[ptr.offset() as usize..(ptr.offset() + len) as usize])
+    /// **WASM**: No concerns.
+    /// **NATIVE**: `ptr` must point to a slice
+    /// of at least `len` valid bytes.
+    pub unsafe fn write_bytes(&self, ptr: PluginPtrMut<u8>, data: &[u8]) -> anyhow::Result<()> {
+        let bytes = self.deref_bytes_mut(ptr, data.len() as u32)?;
+        bytes.copy_from_slice(data);
+        Ok(())
     }
+
+    /// Writes a `Pod` type to `ptr`.
+    pub fn write_pod<T: Pod>(&self, ptr: PluginPtrMut<T>, value: T) -> anyhow::Result<()> {
+        // SAFETY: Unlike `write_bytes`, we know `ptr` is valid for values
+        // of type `T` because of its type parameter.
+        unsafe { self.write_bytes(ptr.cast(), bytemuck::bytes_of(&value)) }
+    }
+
+    /// Deallocates all bump-allocated memory.
+    fn bump_reset(&self) {
+        match &self.inner {
+            Inner::Wasm(w) => w.borrow().bump_reset(),
+            Inner::Native(n) => n.bump_reset(),
+        }
+    }
+}
+
+enum Inner {
+    Wasm(ThreadPinned<wasm::WasmPluginContext>),
+    Native(native::NativePluginContext),
 }

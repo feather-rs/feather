@@ -26,7 +26,7 @@ pub struct Options {
 impl Default for Options {
     fn default() -> Self {
         Self {
-            port: DEFAULT_PORT,
+            port: DEFAULT_PORT + 4,
             bind_address: "0.0.0.0".to_owned(),
             favicon: None,
             motd: "A Feather server".to_owned(),

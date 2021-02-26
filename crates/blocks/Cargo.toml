@@ -12,4 +12,4 @@ thiserror = "1"
 num-traits = "0.2"
 serde = { version = "1", features = ["derive"] }
 bincode = "1"
-vek = "0.12"
+vek = "0.14"

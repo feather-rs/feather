@@ -1,6 +1,6 @@
-use quill_common::entities::EvokerFangs;
 use base::EntityKind;
 use ecs::EntityBuilder;
+use quill_common::entities::EvokerFangs;
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);

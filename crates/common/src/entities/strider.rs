@@ -1,6 +1,6 @@
-use quill_common::entities::Strider;
 use base::EntityKind;
 use ecs::EntityBuilder;
+use quill_common::entities::Strider;
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);

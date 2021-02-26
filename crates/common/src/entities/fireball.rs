@@ -1,6 +1,6 @@
-use quill_common::entities::Fireball;
 use base::EntityKind;
 use ecs::EntityBuilder;
+use quill_common::entities::Fireball;
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);

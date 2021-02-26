@@ -1,6 +1,6 @@
-use quill_common::entities::TntMinecart;
 use base::EntityKind;
 use ecs::EntityBuilder;
+use quill_common::entities::TntMinecart;
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);
