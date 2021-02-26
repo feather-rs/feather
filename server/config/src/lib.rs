@@ -160,6 +160,7 @@ impl BanInfo {
 pub struct Ban {
     pub expires_after: Option<SystemTime>,
     pub reason: String,
+    pub banned_by: String,
 }
 
 #[cfg(test)]
