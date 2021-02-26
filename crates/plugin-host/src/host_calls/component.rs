@@ -51,13 +51,13 @@ impl<'a> ComponentVisitor<anyhow::Result<()>> for SetComponentVisitor<'a> {
             .cx
             .read_component::<T>(self.bytes_ptr, self.bytes_len)?;
         let mut game = self.cx.game_mut();
-        
+
         let existing_component = game.ecs.get_mut::<T>(self.entity);
         if let Ok(mut existing_component) = existing_component {
             *existing_component = component;
         } else {
             drop(existing_component);
-            let _= game.ecs.insert(self.entity, component);
+            let _ = game.ecs.insert(self.entity, component);
         }
 
         Ok(())

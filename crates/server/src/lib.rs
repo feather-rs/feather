@@ -10,6 +10,7 @@ use listener::Listener;
 
 mod chunk_subscriptions;
 pub mod client;
+pub mod config;
 mod connection_worker;
 mod entities;
 pub mod favicon;
@@ -52,6 +53,12 @@ impl Server {
 
         let (new_players_tx, new_players) = flume::bounded(4);
         Listener::start(Arc::clone(&options), new_players_tx).await?;
+
+        log::info!(
+            "Server is listening on {}:{}",
+            options.bind_address,
+            options.port
+        );
 
         Ok(Self {
             options,

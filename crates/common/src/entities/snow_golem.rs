@@ -1,6 +1,6 @@
-use quill_common::entities::SnowGolem;
 use base::EntityKind;
 use ecs::EntityBuilder;
+use quill_common::entities::SnowGolem;
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);

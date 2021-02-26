@@ -1,6 +1,6 @@
-use quill_common::entities::Mule;
 use base::EntityKind;
 use ecs::EntityBuilder;
+use quill_common::entities::Mule;
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);

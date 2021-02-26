@@ -1,4 +1,4 @@
-use base::DEFAULT_PORT;
+use base::Gamemode;
 
 use crate::favicon::Favicon;
 
@@ -21,20 +21,10 @@ pub struct Options {
     /// The maximum view distance, which determines
     /// how far players can see.
     pub view_distance: u32,
-}
 
-impl Default for Options {
-    fn default() -> Self {
-        Self {
-            port: DEFAULT_PORT,
-            bind_address: "0.0.0.0".to_owned(),
-            favicon: None,
-            motd: "A Feather server".to_owned(),
-            online_mode: false,
-            #[cfg(debug_assertions)]
-            view_distance: 4,
-            #[cfg(not(debug_assertions))]
-            view_distance: 12,
-        }
-    }
+    /// Maximum number of players to allow on the server.
+    pub max_players: u32,
+
+    /// The default gamemode for new players.
+    pub default_gamemode: Gamemode,
 }

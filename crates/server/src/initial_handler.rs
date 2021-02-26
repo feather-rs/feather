@@ -77,20 +77,22 @@ struct Version {
 
 #[derive(Debug, Serialize)]
 struct Players {
-    max: i32,
+    max: u32,
     online: usize,
 }
 
 async fn handle_status(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
     let _request = worker.read::<ClientStatusPacket>().await?;
 
-    // TODO: correctly fill in this information.
     let payload = StatusResponse {
         version: Version {
             name: SERVER_NAME,
             protocol: PROTOCOL_VERSION,
         },
-        players: Players { max: 16, online: 0 },
+        players: Players {
+            max: worker.options().max_players,
+            online: 0, // TODO (1.16): player count
+        },
         description: Text::from(worker.options().motd.clone()),
         favicon: worker
             .options()

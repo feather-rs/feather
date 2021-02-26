@@ -1,3 +1,5 @@
+use std::fs;
+
 /// The favicon that appears in the server list on the client.
 #[derive(Debug, Clone)]
 pub struct Favicon {
@@ -15,6 +17,15 @@ impl Favicon {
         let prefix = "data:image/png;base64,";
         let base64_encoded = format!("{}{}", prefix, base64);
         Self { base64_encoded }
+    }
+
+    /// Loads the favicon from its default path
+    /// in the current working directory, `server-icon.png`.
+    pub fn load_default() -> Option<Self> {
+        let path = "server-icon.png";
+        let file_contents = fs::read(path).ok()?;
+        let favicon = Self::from_png(&file_contents);
+        Some(favicon)
     }
 
     /// Gets base64-encoded PNG data for the `Response` packet.
