@@ -24,7 +24,7 @@ for item in load_minecraft_json("items.json", "1.16.2"):
 output_data = generate_enum("Item", items)
 output_data += generate_enum_property("Item", "id", "u32", ids, True)
 output_data += generate_enum_property("Item", "name", "&str", names, True, "&'static str")
-output_data += generate_enum_property("Item", "display_name", "&str", display_names, True, "&'static str")
+output_data += generate_enum_property("Item", "display_name", "&str", display_names, False, "&'static str")
 output_data += generate_enum_property("Item", "stack_size", "u32", stack_sizes)
 output_data += generate_enum_property("Item", "durability", "Option<u32>", durabilities)
 
