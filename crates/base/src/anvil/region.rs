@@ -532,8 +532,7 @@ impl SectorAllocator {
         let mut start = 0;
         let mut length = 0;
 
-        let mut sectors_to_set = Vec::new();
-
+        let mut found_block = None;
         for (index, is_used) in self.used_sectors.iter().enumerate() {
             if *is_used {
                 start = 0;
@@ -550,14 +549,17 @@ impl SectorAllocator {
                         count: length as u32,
                     };
 
-                    sectors_to_set.extend(block.offset..block.offset + block.count);
-                    return block;
+                    found_block = Some(block);
+                    break;
                 }
             }
         }
 
-        for sector in sectors_to_set {
-            self.used_sectors.set(sector as usize, true);
+        if let Some(block) = found_block {
+            for sector in block.offset..block.offset + block.count {
+                self.used_sectors.set(sector as usize, true);
+            }
+            return block;
         }
 
         // No sector found: must allocate into end
