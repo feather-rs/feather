@@ -45,7 +45,7 @@ impl FromStr for NamespacedId {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // Determine the namespace and name components.
-        let mut parts = s.split(":");
+        let mut parts = s.split(':');
         let part1 = parts.next().unwrap_or("");
         let part2 = parts.next();
 
