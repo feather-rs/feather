@@ -13,12 +13,12 @@ fn round_up_to(n: usize, divisor: usize) -> Option<usize> {
     Some(n.checked_add(divisor - 1)? & !(divisor - 1))
 }
 
-/// Host-controlled bump allocator for a plugin.
+/// Host-controlled bump allocator for a WASM plugin.
 /// See the Quill docs for why we use this.
 ///
 /// The implementation is mostly ported from the `bumpalo`
 /// crate.
-pub struct PluginBump {
+pub struct WasmBump {
     /// Plugin function to allocate memory. Used
     /// for the slow path when the current chunk
     /// is exhausted.
@@ -29,7 +29,7 @@ pub struct PluginBump {
     chunks: Vec<Chunk>,
 }
 
-impl PluginBump {
+impl WasmBump {
     /// Creates a new bump allocator.
     pub fn new(
         allocate_function: NativeFunc<(u32, u32), u32>,

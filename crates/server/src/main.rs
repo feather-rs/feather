@@ -67,7 +67,7 @@ fn init_world_source(game: &mut Game) {
 
 fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
     let mut plugin_manager = PluginManager::new();
-    plugin_manager.load_plugin_directory(game, PLUGINS_DIRECTORY)?;
+    plugin_manager.load_dir(game, PLUGINS_DIRECTORY)?;
 
     let plugin_manager_rc = Rc::new(RefCell::new(plugin_manager));
     game.insert_resource(plugin_manager_rc);

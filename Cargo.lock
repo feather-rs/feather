@@ -713,7 +713,7 @@ dependencies = [
  "smallvec",
  "thiserror",
  "uuid",
- "vek 0.14.0",
+ "vek",
 ]
 
 [[package]]
@@ -727,7 +727,7 @@ dependencies = [
  "once_cell",
  "serde",
  "thiserror",
- "vek 0.12.1",
+ "vek",
 ]
 
 [[package]]
@@ -802,7 +802,7 @@ dependencies = [
  "num-traits",
  "parking_lot",
  "thiserror",
- "vek 0.12.1",
+ "vek",
 ]
 
 [[package]]
@@ -812,16 +812,32 @@ dependencies = [
  "ahash 0.7.1",
  "anyhow",
  "bincode",
+ "bumpalo",
  "bytemuck",
+ "feather-base",
  "feather-common",
  "feather-ecs",
+ "feather-plugin-host-macros",
+ "libloading 0.7.0",
  "log",
+ "paste 1.0.4",
  "quill-common",
  "quill-plugin-format",
  "serde",
+ "tempfile",
  "vec-arena",
  "wasmer",
  "wasmer-wasi",
+]
+
+[[package]]
+name = "feather-plugin-host-macros"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -1299,7 +1315,7 @@ dependencies = [
  "serde",
  "strum 0.20.0",
  "strum_macros",
- "vek 0.14.0",
+ "vek",
 ]
 
 [[package]]
@@ -1307,6 +1323,16 @@ name = "libloading"
 version = "0.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "351a32417a12d5f7e82c368a66781e307834dae04c6ce0cd4456d52989229883"
+dependencies = [
+ "cfg-if 1.0.0",
+ "winapi",
+]
+
+[[package]]
+name = "libloading"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6f84d96438c15fcd6c3f244c8fce01d1e2b9c6b5623e9c711dc9286d8fc92d6a"
 dependencies = [
  "cfg-if 1.0.0",
  "winapi",
@@ -1671,6 +1697,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "paste"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c5d65c4d95931acda4498f675e332fcbdc9a06705cd07086c510e9b6009cd1c1"
+
+[[package]]
 name = "paste-impl"
 version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1819,7 +1851,7 @@ dependencies = [
 [[package]]
 name = "quill-common"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/quill#7f09f85c1247570035fe4b92a4e194817a529214"
+source = "git+https://github.com/feather-rs/quill?rev=b6def83#b6def838d0e530145fcc6ca54a38ee1227e158f8"
 dependencies = [
  "bincode",
  "bytemuck",
@@ -1832,13 +1864,15 @@ dependencies = [
 [[package]]
 name = "quill-plugin-format"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/quill#7f09f85c1247570035fe4b92a4e194817a529214"
+source = "git+https://github.com/feather-rs/quill?rev=b6def83#b6def838d0e530145fcc6ca54a38ee1227e158f8"
 dependencies = [
  "anyhow",
  "flate2",
  "serde",
  "serde_json",
+ "serde_with",
  "tar",
+ "target-lexicon",
 ]
 
 [[package]]
@@ -2307,7 +2341,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1893a4b8db694e23889b63229b6e1deb33846ee0552588bb6e45e53eff59667d"
 dependencies = [
  "cfg-if 0.1.10",
- "paste",
+ "paste 0.1.18",
 ]
 
 [[package]]
@@ -2774,20 +2808,6 @@ checksum = "eafc1b9b2dfc6f5529177b62cf806484db55b32dc7c9658a118e11bbeb33061d"
 
 [[package]]
 name = "vek"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b5ec6f1e1336c875817faba09752eeac76aa0c51c304b9030cbfcd0daf5e217"
-dependencies = [
- "approx 0.3.2",
- "num-integer",
- "num-traits",
- "rustc_version",
- "serde",
- "static_assertions",
-]
-
-[[package]]
-name = "vek"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdd07aa105f92385e2c8ff5632a2cd426e7f659813edce6f21ff4a9a488b696b"
@@ -3021,7 +3041,7 @@ dependencies = [
  "bincode",
  "cfg-if 0.1.10",
  "leb128",
- "libloading",
+ "libloading 0.6.7",
  "serde",
  "tempfile",
  "tracing",

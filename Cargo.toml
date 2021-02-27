@@ -11,6 +11,7 @@ members = [
     "crates/worldgen",
     "crates/common",
     "crates/protocol",
+    "crates/plugin-host/macros",
     "crates/plugin-host",
     "crates/server",
 
