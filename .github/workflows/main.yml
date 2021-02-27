@@ -18,27 +18,36 @@ jobs:
     - uses: actions/checkout@v2
 
     # Caching
+
+    # Work around https://github.com/actions/cache/issues/403 by using GNU tar
+    # instead of BSD tar.
+    - name: Install GNU tar
+      if: matrix.os == 'macos-10.15'
+      run: |
+        brew install gnu-tar
+        echo PATH="/usr/local/opt/gnu-tar/libexec/gnubin:$PATH" >> $GITHUB_ENV
+
     - name: Cache cargo registry
       uses: actions/cache@v2
       with:
         path: ~/.cargo/registry
-        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-registry2-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
-          ${{ runner.os }}-cargo-registry-
+          ${{ runner.os }}-cargo-registry2-
     - name: Cache cargo index
       uses: actions/cache@v2
       with:
         path: ~/.cargo/git
-        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-index2-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
-          ${{ runner.os }}-cargo-index-
+          ${{ runner.os }}-cargo-index2-
     - name: Cache cargo build
       uses: actions/cache@v2
       with:
         path: target
-        key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-build-target2-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
-          ${{ runner.os }}-cargo-build-target-
+          ${{ runner.os }}-cargo-build-target2-
 
     - name: Install rustfmt
       run: rustup component add rustfmt
