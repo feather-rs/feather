@@ -19,26 +19,26 @@ jobs:
 
     # Caching
     - name: Cache cargo registry
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ~/.cargo/registry
-        key: ${{ runner.os }}-cargo-registry2-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
-          ${{ runner.os }}-cargo-registry2-
+          ${{ runner.os }}-cargo-registry-
     - name: Cache cargo index
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ~/.cargo/git
-        key: ${{ runner.os }}-cargo-index2-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
-          ${{ runner.os }}-cargo-index2-
+          ${{ runner.os }}-cargo-index-
     - name: Cache cargo build
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: target
-        key: ${{ runner.os }}-cargo-build-target2-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: |
-          ${{ runner.os }}-cargo-build-target2-
+          ${{ runner.os }}-cargo-build-target-
 
     - name: Install rustfmt
       run: rustup component add rustfmt
