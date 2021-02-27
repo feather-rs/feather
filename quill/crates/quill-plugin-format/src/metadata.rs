@@ -26,7 +26,6 @@ pub struct PluginMetadata {
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-#[serde(tag = "adjacent")]
 pub enum PluginTarget {
     Wasm,
     Native {
