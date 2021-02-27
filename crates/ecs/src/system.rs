@@ -155,7 +155,7 @@ impl<Input> SystemExecutor<Input> {
     }
 
     /// Gets an iterator over system names.
-    pub fn system_names<'a>(&'a self) -> impl Iterator<Item = &'a str> + 'a {
+    pub fn system_names(&self) -> impl Iterator<Item = &'_ str> + '_ {
         self.systems.iter().map(|system| system.name.as_str())
     }
 }

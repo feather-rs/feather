@@ -9,6 +9,12 @@ pub struct LightStore {
     sky_light: PackedArray,
 }
 
+impl Default for LightStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LightStore {
     /// Creates a `LightStore` with all light set to 15.
     pub fn new() -> Self {

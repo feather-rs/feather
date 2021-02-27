@@ -20,6 +20,12 @@ pub struct BlockStore {
     air_block_count: u32,
 }
 
+impl Default for BlockStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl BlockStore {
     /// Creates a new `BlockStore` containing air.
     pub fn new() -> Self {

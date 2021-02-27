@@ -11,6 +11,13 @@ pub struct Palette {
     free_indices: Vec<usize>,
 }
 
+impl Default for Palette {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[allow(clippy::clippy::len_without_is_empty)] // palette is never empty
 impl Palette {
     /// Creates an empty palette.
     pub fn new() -> Self {

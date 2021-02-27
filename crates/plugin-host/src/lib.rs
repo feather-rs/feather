@@ -56,6 +56,12 @@ pub struct PluginManager {
     store: wasmer::Store,
 }
 
+impl Default for PluginManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PluginManager {
     /// Creates a plugin manager with no plugins.
     pub fn new() -> Self {

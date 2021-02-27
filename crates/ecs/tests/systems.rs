@@ -1,3 +1,5 @@
+#![allow(clippy::unnecessary_wraps)]
+
 use feather_ecs::{Ecs, HasEcs, SysResult, SystemExecutor};
 
 struct Input {

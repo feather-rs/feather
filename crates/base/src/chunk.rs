@@ -161,9 +161,9 @@ impl Chunk {
             .recalculate(Self::block_at_fn(&self.sections))
     }
 
-    fn block_at_fn<'a>(
-        sections: &'a [Option<ChunkSection>],
-    ) -> impl Fn(usize, usize, usize) -> BlockId + 'a {
+    fn block_at_fn(
+        sections: &[Option<ChunkSection>],
+    ) -> impl Fn(usize, usize, usize) -> BlockId + '_ {
         move |x, y, z| {
             let section = &sections[(y / SECTION_HEIGHT) + 1];
             match section {
@@ -393,7 +393,7 @@ mod tests {
 
         chunk.set_block_at(0, 0, 0, BlockId::andesite());
         assert_eq!(chunk.block_at(0, 0, 0).unwrap(), BlockId::andesite());
-        assert!(chunk.section(0).is_some());
+        assert!(chunk.section(1).is_some());
     }
 
     #[test]
@@ -446,7 +446,7 @@ mod tests {
                         assert_eq!(chunk.block_at(x, (section * 16) + y, z), Some(block));
                         if counter != 0 {
                             assert!(
-                                chunk.section(section).is_some(),
+                                chunk.section(section + 1).is_some(),
                                 "Section {} failed",
                                 section
                             );
@@ -459,14 +459,14 @@ mod tests {
 
         // Go through again to be sure
         for section in 0..16 {
-            assert!(chunk.section(section).is_some());
+            assert!(chunk.section(section + 1).is_some());
             let mut counter = 0;
             for x in 0..16 {
                 for y in 0..16 {
                     for z in 0..16 {
                         let block = BlockId::from_vanilla_id(counter);
                         assert_eq!(chunk.block_at(x, (section * 16) + y, z), Some(block));
-                        assert!(chunk.section(section).is_some());
+                        assert!(chunk.section(section + 1).is_some());
                         counter += 1;
                     }
                 }

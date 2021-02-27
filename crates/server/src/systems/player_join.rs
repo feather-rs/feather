@@ -1,4 +1,4 @@
-use base::{Area, Gamemode, Inventory, Item, ItemStack, Position, Text};
+use base::{Inventory, Position, Text};
 use common::{
     chat::{ChatKind, ChatPreference},
     view::View,
@@ -25,7 +25,7 @@ fn poll_new_players(game: &mut Game, server: &mut Server) -> SysResult {
 
 fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) -> SysResult {
     let client = server.clients.get(client_id).unwrap();
-    client.send_join_game(Gamemode::Creative);
+    client.send_join_game(server.options.default_gamemode);
     client.send_brand();
 
     let mut builder = game.create_entity_builder(Position::default(), EntityInit::Player);
@@ -34,10 +34,6 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     let window = Window::new(BackingWindow::Player {
         player: inventory.new_handle(),
     });
-
-    *inventory.item(Area::Hotbar, 0).unwrap() = Some(ItemStack::new(Item::Diamond, 64));
-    *inventory.item(Area::Hotbar, 1).unwrap() = Some(ItemStack::new(Item::OakWood, 64));
-    *inventory.item(Area::Hotbar, 2).unwrap() = Some(ItemStack::new(Item::GoldenSword, 1));
 
     client.send_window_items(&window);
 
@@ -48,7 +44,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
             Position::default().chunk(),
             server.options.view_distance,
         ))
-        .add(Gamemode::Creative)
+        .add(server.options.default_gamemode)
         .add(Name::new(client.username()))
         .add(client.uuid())
         .add(client.profile().to_vec())

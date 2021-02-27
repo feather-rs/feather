@@ -48,6 +48,12 @@ pub struct Game {
     entity_builder: EntityBuilder,
 }
 
+impl Default for Game {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Game {
     /// Creates a new, empty `Game`.
     pub fn new() -> Self {

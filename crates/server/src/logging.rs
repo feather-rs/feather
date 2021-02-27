@@ -1,9 +1,7 @@
 use colored::Colorize;
 use log::{Level, LevelFilter};
 
-const LEVEL: LevelFilter = LevelFilter::Trace;
-
-pub fn init() {
+pub fn init(level: LevelFilter) {
     fern::Dispatch::new()
         .format(|out, message, record| {
             let level_string = match record.level() {
@@ -26,7 +24,7 @@ pub fn init() {
                 message,
             ));
         })
-        .level(LEVEL)
+        .level(level)
         // cranelift_codegen spams debug-level logs
         .level_for("cranelift_codegen", LevelFilter::Info)
         .chain(std::io::stdout())

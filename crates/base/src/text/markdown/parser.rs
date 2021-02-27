@@ -91,7 +91,7 @@ pub fn tokens_to_text(tokens: Vec<LexToken>) -> Token {
     }
 
     let trimmed = s.trim();
-    if s.starts_with(' ') && trimmed != "" {
+    if s.starts_with(' ') && !trimmed.is_empty() {
         let first_span = &tokens[1].span;
         let t = TokenType::Text(trimmed.to_string());
         let span = DynamicSpan::new(

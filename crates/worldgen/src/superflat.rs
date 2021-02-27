@@ -44,9 +44,12 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore] // TODO (1.16): account for new 3D biomes
     pub fn test_worldgen_flat() {
-        let mut options = SuperflatGeneratorOptions::default();
-        options.biome = Biome::Mountains.name().to_owned();
+        let options = SuperflatGeneratorOptions {
+            biome: Biome::Mountains.name().to_owned(),
+            ..Default::default()
+        };
 
         let chunk_pos = ChunkPosition { x: 1, z: 2 };
         let generator = SuperflatWorldGenerator { options };

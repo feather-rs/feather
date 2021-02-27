@@ -74,7 +74,7 @@ impl PackedArray {
     }
 
     /// Returns an iterator over values in this array.
-    pub fn iter<'a>(&'a self) -> impl Iterator<Item = u64> + 'a {
+    pub fn iter(&self) -> impl Iterator<Item = u64> + '_ {
         let values_per_u64 = self.values_per_u64();
         let bits_per_value = self.bits_per_value() as u64;
         let mask = self.mask();
@@ -83,7 +83,7 @@ impl PackedArray {
         self.bits
             .iter()
             .flat_map(move |&u64| {
-                (0..values_per_u64).map(move |i| (u64 >> i as u64 * bits_per_value) & mask)
+                (0..values_per_u64).map(move |i| (u64 >> (i as u64 * bits_per_value)) & mask)
             })
             .take(length)
     }
@@ -219,12 +219,12 @@ mod tests {
             assert_eq!(array.get(i), Some(value));
         }
 
-        for i in 0..array.len() {
-            assert_eq!(array.get(i), Some(oracle[i]));
+        for (i, &oracle_value) in oracle.iter().enumerate() {
+            assert_eq!(array.get(i), Some(oracle_value));
         }
 
-        for (i, value) in array.iter().enumerate() {
-            assert_eq!(value, oracle[i]);
+        for (value, &oracle_value) in array.iter().zip(oracle.iter()) {
+            assert_eq!(value, oracle_value);
         }
     }
 
@@ -243,14 +243,14 @@ mod tests {
                 oracle.push(value);
             }
 
-            for i in 0..array.len() {
-                assert_eq!(array.get(i), Some(oracle[i]));
+            for (i, &oracle_value) in oracle.iter().enumerate() {
+                assert_eq!(array.get(i), Some(oracle_value));
             }
 
             array = array.resized(new_bits_per_value);
 
-            for i in 0..array.len() {
-                assert_eq!(array.get(i), Some(oracle[i]));
+            for (i, &oracle_value) in oracle.iter().enumerate() {
+                assert_eq!(array.get(i), Some(oracle_value));
             }
 
             oracle.clear();

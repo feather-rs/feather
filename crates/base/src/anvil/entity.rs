@@ -62,7 +62,7 @@ pub enum EntityData {
     Horse(AnimalData),
     #[serde(rename = "minecraft:llama")]
     Llama(AnimalData),
-    #[serde(rename = "minectaft:mooshroom")]
+    #[serde(rename = "minecraft:mooshroom")]
     Mooshroom(AnimalData),
     #[serde(rename = "minecraft:rabbit}")]
     Rabbit(AnimalData),
@@ -230,7 +230,7 @@ where
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ItemNbt {
     #[serde(rename = "Damage")]
-    pub damage: Option<i16>,
+    pub damage: Option<i32>,
     // TODO enchantments, display name, ...
 }
 
@@ -252,7 +252,7 @@ where
     fn from(s: S) -> Self {
         let stack = s.borrow();
         Self {
-            damage: stack.damage.map(|d| d as i16),
+            damage: stack.damage.map(|d| d as i32),
         }
     }
 }

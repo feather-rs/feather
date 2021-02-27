@@ -10,8 +10,8 @@ feather-common = { path = "../common" }
 feather-ecs = { path = "../ecs" }
 feather-plugin-host-macros = { path = "macros" }
 
-quill-common = { path = "/home/caelum/dev/quill/crates/quill-common" }
-quill-plugin-format = { path = "/home/caelum/dev/quill/crates/quill-plugin-format" }
+quill-common = { git = "https://github.com/feather-rs/quill", rev = "b6def83" }
+quill-plugin-format = { git = "https://github.com/feather-rs/quill", rev = "b6def83" }
 wasmer = { version = "1", default-features = false, features = ["jit"] }
 wasmer-wasi = { version = "1", default-features = false }
 libloading = "0.7"

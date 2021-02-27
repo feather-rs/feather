@@ -1,0 +1,16 @@
+[package]
+name = "feather-data"
+version = "0.6.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+publish = false
+
+build = "build.rs"
+
+[dependencies]
+feather-data-macro = { path = "macro" }
+
+[build-dependencies]
+reqwest = { version = "0.10", features = ["blocking"] }
+anyhow = "1.0"
+zip = "0.5.8"

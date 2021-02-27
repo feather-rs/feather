@@ -411,7 +411,7 @@ mod tests {
         window.set_item(0, Some(item.clone())).unwrap();
         window.left_click(0).unwrap();
 
-        window.set_item(1, Some(item.clone())).unwrap();
+        window.set_item(1, Some(item)).unwrap();
         window.left_click(1).unwrap();
 
         assert_eq!(window.cursor_item, None);
@@ -425,7 +425,7 @@ mod tests {
     fn window_right_click_pick_up_half() {
         let mut window = window();
         let stack = ItemStack::new(Item::GlassPane, 17);
-        window.set_item(0, Some(stack.clone())).unwrap();
+        window.set_item(0, Some(stack)).unwrap();
 
         window.right_click(0).unwrap();
         assert_eq!(window.cursor_item, Some(ItemStack::new(Item::GlassPane, 9)));
@@ -439,7 +439,7 @@ mod tests {
     fn window_right_click_drop_one_item() {
         let mut window = window();
         let stack = ItemStack::new(Item::GlassPane, 17);
-        window.cursor_item = Some(stack.clone());
+        window.cursor_item = Some(stack);
 
         window.right_click(1).unwrap();
         assert_eq!(
@@ -461,7 +461,7 @@ mod tests {
         window.set_item(0, Some(stack2.clone())).unwrap();
 
         window.right_click(0).unwrap();
-        assert_eq!(window.cursor_item, Some(stack2.clone()));
+        assert_eq!(window.cursor_item, Some(stack2));
         assert_eq!(window.item(0).unwrap().as_ref(), Some(&stack1));
     }
 
@@ -550,7 +550,7 @@ mod tests {
         window.add_paint_slot(5).unwrap();
         window.end_paint().unwrap();
 
-        for slot in vec![0, 1, 5] {
+        for &slot in &[0, 1, 5] {
             assert_eq!(
                 window.item(slot).unwrap().as_ref(),
                 Some(&ItemStack::new(Item::Stone, 21))

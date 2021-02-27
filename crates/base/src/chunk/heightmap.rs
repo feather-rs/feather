@@ -16,6 +16,12 @@ pub struct HeightmapStore {
     pub world_surface: Heightmap<WorldSurface>,
 }
 
+impl Default for HeightmapStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HeightmapStore {
     pub fn new() -> Self {
         Self {
@@ -109,6 +115,15 @@ impl HeightmapFunction for WorldSurface {
 pub struct Heightmap<F> {
     heights: PackedArray,
     _marker: PhantomData<F>,
+}
+
+impl<F> Default for Heightmap<F>
+where
+    F: HeightmapFunction,
+{
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<F> Heightmap<F>
