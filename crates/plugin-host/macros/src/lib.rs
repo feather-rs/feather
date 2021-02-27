@@ -33,10 +33,10 @@ pub fn host_function(
         syn::ReturnType::Type(_, ty) => match *ty {
             syn::Type::Path(path) => {
                 let segments: Vec<PathSegment> = path.path.segments.into_iter().collect();
-                if segments[0].ident.to_string() != "anyhow" {
+                if segments[0].ident != "anyhow" {
                     return_type_panic();
                 }
-                if segments[1].ident.to_string() != "Result" {
+                if segments[1].ident != "Result" {
                     return_type_panic();
                 }
 
