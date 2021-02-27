@@ -1,0 +1,311 @@
+{
+    "areas": [
+        "storage",
+        "crafting_output",
+        "crafting_input",
+        "helmet",
+        "chestplate",
+        "leggings",
+        "boots",
+        "hotbar",
+        "offhand",
+
+        "furnace_ingredient",
+        "furnace_fuel",
+        "furnace_output",
+
+        "enchantment_item",
+        "enchantment_lapis",
+
+        "brewing_bottle",
+        "brewing_ingredient",
+        "brewing_blaze_powder",
+
+        "villager_input",
+        "villager_output",
+
+        "beacon_payment",
+
+        "anvil_input1",
+        "anvil_input2",
+        "anvil_output",
+
+        "saddle",
+        "horse_armor",
+        "llama_carpet",
+
+        "cartography_map",
+        "cartography_paper",
+        "cartography_output",
+
+        "grindstone_input1",
+        "grindstone_input2",
+        "grindstone_output",
+
+        "lectern_book",
+
+        "loom_banner",
+        "loom_dye",
+        "loom_pattern",
+        "loom_output",
+
+        "stonecutter_input",
+        "stonecutter_output"
+    ],
+
+    "inventories": {
+        "player": {
+            "crafting_input": 4,
+            "crafting_output": 1,
+            "helmet": 1,
+            "chestplate": 1,
+            "leggings": 1,
+            "boots": 1,
+            "storage": 27,
+            "hotbar": 9
+        },
+        "chest": {
+            "storage": 27
+        },
+        "crafting_table": {
+            "crafting_input": 9,
+            "crafting_output": 1
+        },
+        "furnace": {
+            "furnace_ingredient": 1,
+            "furnace_fuel": 1,
+            "furnace_output": 1
+        }
+    },
+
+    "windows": {
+        "player": {
+            "inventories": ["player"],
+            "slots": {
+                "player:crafting_output": 1,
+                "player:crafting_input": 4,
+
+                "player:helmet": 1,
+                "player:chestplate": 1,
+                "player:leggings": 1,
+                "player:boots": 1,
+
+                "player:storage": 27,
+                "player:hotbar": 9,
+                "player:offhand": 1
+            }
+        },
+
+        "generic_9x1": {
+            "inventories": ["block", "player"],
+            "slots": {
+                "block:storage": 9,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+        "generic_9x2": {
+            "inventories": ["block", "player"],
+            "slots": {
+                "block:storage": 18,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+        "generic_9x3": {
+            "inventories": ["block", "player"],
+            "slots": {
+                "block:storage": 27,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+        "generic_9x4": {
+            "inventories": ["block", "player"],
+            "slots": {
+                "block:storage": 36,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+        "generic_9x5": {
+            "inventories": ["block", "player"],
+            "slots": {
+                "block:storage": 45,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+        "generic_9x6": {
+            "inventories": ["left_chest", "right_chest", "player"],
+            "slots": {
+                "left_chest:storage": 27,
+                "right_chest:storage": 27,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "generic_3x3": {
+            "inventories": ["block", "player"],
+            "slots": {
+                "block:storage": 9,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "crafting": {
+            "inventories": ["crafting_table", "player"],
+            "slots": {
+                "crafting_table:crafting_output": 1,
+                "crafting_table:crafting_input": 9,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "furnace": {
+            "inventories": ["furnace", "player"],
+            "slots": {
+                "furnace:furnace_ingredient": 1,
+                "furnace:furnace_fuel": 1,
+                "furnace:furnace_output": 1,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+        "blast_furnace": {
+            "inventories": ["blast_furnace", "player"],
+            "slots": {
+                "blast_furnace:furnace_ingredient": 1,
+                "blast_furnace:furnace_fuel": 1,
+                "blast_furnace:furnace_output": 1,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+        "smoker": {
+            "inventories": ["smoker", "player"],
+            "slots": {
+                "smoker:furnace_ingredient": 1,
+                "smoker:furnace_fuel": 1,
+                "smoker:furnace_output": 1,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "enchantment": {
+            "inventories": ["enchantment_table", "player"],
+            "slots": {
+                "enchantment_table:enchantment_item": 1,
+                "enchantment_table:enchantment_lapis": 1,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "brewing_stand": {
+            "inventories": ["brewing_stand", "player"],
+            "slots": {
+                "brewing_stand:brewing_bottle": 3,
+                "brewing_stand:brewing_ingredient": 1,
+                "brewing_stand:brewing_blaze_powder": 1,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "beacon": {
+            "inventories": ["beacon", "player"],
+            "slots": {
+                "beacon:beacon_payment": 1,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "anvil": {
+            "inventories": ["anvil", "player"],
+            "slots": {
+                "anvil:anvil_input1": 1,
+                "anvil:anvil_input2": 1,
+                "anvil:anvil_output": 1,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "hopper": {
+            "inventories": ["hopper", "player"],
+            "slots": {
+                "hopper:storage": 4,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "shulker_box": {
+            "inventories": ["shulker_box", "player"],
+            "slots": {
+                "shulker_box:storage": 27,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "cartography": {
+            "inventories": ["cartography_table", "player"],
+            "slots": {
+                "cartography_table:cartography_map": 1,
+                "cartography_table:cartography_paper": 1,
+                "cartography_table:cartography_output": 1,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "grindstone": {
+            "inventories": ["grindstone", "player"],
+            "slots": {
+                "grindstone:grindstone_input1": 1,
+                "grindstone:grindstone_input2": 1,
+                "grindstone:grindstone_output": 1,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "lectern": {
+            "inventories": ["lectern", "player"],
+            "slots": {
+                "lectern:lectern_book": 1,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "loom": {
+            "inventories": ["loom", "player"],
+            "slots": {
+                "loom:loom_banner": 1,
+                "loom:loom_dye": 1,
+                "loom:loom_pattern": 1,
+                "loom:loom_output": 1,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        },
+
+        "stonecutter": {
+            "inventories": ["stonecutter", "player"],
+            "slots": {
+                "stonecutter:stonecutter_input": 1,
+                "stonecutter:stonecutter_output": 1,
+                "player:storage": 27,
+                "player:hotbar": 9
+            }
+        }
+    }
+}

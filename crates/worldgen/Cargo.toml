@@ -1,0 +1,21 @@
+[package]
+name = "feather-worldgen"
+version = "0.6.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+base = { path = "../base", package = "feather-base" }
+
+bitvec = "0.21"
+smallvec = "1"
+rand = "0.7"
+rand_xorshift = "0.2"
+num-traits = "0.2"
+simdnoise = { git = "https://github.com/jackmott/rust-simd-noise", rev = "6349670" } # needed for https://github.com/jackmott/rust-simd-noise/pull/31
+log = "0.4"
+once_cell = "1"
+strum = "0.19"
+
+[dev-dependencies]
+approx = "0.3"

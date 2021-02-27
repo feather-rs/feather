@@ -11,4 +11,5 @@
 
 world/
 feather.toml
-bans.toml
+
+**/__pycache__/
