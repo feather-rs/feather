@@ -35,7 +35,7 @@ impl EntityBuilder {
             quill_sys::entity_builder_add_component(
                 self.id,
                 host_component,
-                bytes.as_ptr(),
+                bytes.as_ptr().into(),
                 bytes.len() as u32,
             );
         }

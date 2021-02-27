@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 quill-common = { path = "../quill-common" }
+quill-sys-macros = { path = "../quill-sys-macros" }

@@ -1,8 +1,8 @@
 //! Query for all entities with a certain set of components.
 
-use std::marker::PhantomData;
+use std::{marker::PhantomData, mem::MaybeUninit};
 
-use quill_common::{entity::QueryData, Component, HostComponent};
+use quill_common::{entity::QueryData, Component, HostComponent, PointerMut};
 
 use crate::{Entity, EntityId};
 
@@ -37,8 +37,9 @@ where
         component_index: &mut usize,
         component_offsets: &mut [usize],
     ) -> T {
-        let component_len = *((data.component_lens as *const usize).add(*component_index));
-        let component_ptr = *((data.component_ptrs as *const *const u8).add(*component_index));
+        let component_len = *((data.component_lens.as_mut_ptr()).add(*component_index)) as usize;
+        let component_ptr =
+            (*(data.component_ptrs.as_mut_ptr().add(*component_index))).as_mut_ptr();
 
         let offset = component_offsets[*component_index];
         let component_ptr = component_ptr.add(offset);
@@ -105,8 +106,15 @@ where
         let mut component_types = Vec::new();
         Q::add_component_types(&mut component_types);
 
+        let mut data = MaybeUninit::uninit();
         let data = unsafe {
-            *quill_sys::entity_query(component_types.as_ptr(), component_types.len() as u32)
+            quill_sys::entity_query(
+                component_types.as_ptr().into(),
+                component_types.len() as u32,
+                PointerMut::new(&mut data),
+            );
+            // SAFETY: `entity_query` initializes `query_data`.
+            data.assume_init()
         };
 
         let component_offsets = vec![0; component_types.len()];
@@ -139,9 +147,8 @@ where
                 &mut self.component_offsets,
             )
         };
-        let entity_id =
-            unsafe { *(self.data.entities_ptr as *const EntityId).add(self.entity_index) };
-        let entity = Entity::new(entity_id);
+        let entity_id = unsafe { *(self.data.entities_ptr.as_mut_ptr()).add(self.entity_index) };
+        let entity = Entity::new(EntityId(entity_id));
 
         self.entity_index += 1;
 

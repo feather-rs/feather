@@ -1,4 +1,8 @@
-use quill::{EntityInit, Game, Gamemode, Plugin, Position, Setup, Uuid, components::{CustomName, Name}, entities::Cow};
+use quill::{
+    components::{CustomName, Name},
+    entities::Cow,
+    EntityInit, Game, Gamemode, Plugin, Position, Setup, Uuid,
+};
 use rand::Rng;
 
 quill::plugin!(SimplePlugin);

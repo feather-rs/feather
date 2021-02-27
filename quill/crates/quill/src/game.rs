@@ -64,11 +64,11 @@ impl Game {
     #[must_use = "call `finish` on an EntityBuilder to spawn the entity"]
     pub fn create_entity_builder(&self, position: Position, entity: EntityInit) -> EntityBuilder {
         let entity_init = bincode::serialize(&entity).expect("failed to serialize EntityInit");
-        let position = bytemuck::cast_slice(std::slice::from_ref(&position));
+        let position: &[u8] = bytemuck::cast_slice(std::slice::from_ref(&position));
         let id = unsafe {
             quill_sys::entity_builder_new(
-                position.as_ptr(),
-                entity_init.as_ptr(),
+                position.as_ptr().into(),
+                entity_init.as_ptr().into(),
                 entity_init.len() as u32,
             )
         };

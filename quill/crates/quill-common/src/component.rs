@@ -287,8 +287,8 @@ macro_rules! pod_component_impl {
 
             fn from_bytes(bytes: &[u8]) -> Option<(Self, usize)> {
                 let this = bytemuck::try_from_bytes(&bytes[..std::mem::size_of::<Self>()])
-                        .ok()
-                        .copied()?;
+                    .ok()
+                    .copied()?;
                 Some((this, std::mem::size_of::<Self>()))
             }
         }
@@ -316,11 +316,8 @@ macro_rules! bincode_component_impl {
             }
 
             fn from_bytes(bytes: &[u8]) -> Option<(Self, usize)> {
-                use bincode::Options;
                 let mut cursor = std::io::Cursor::new(bytes);
-                let this = bincode::options()
-                    .allow_trailing_bytes()
-                    .deserialize_from(&mut cursor).ok()?;
+                let this = bincode::deserialize_from(&mut cursor).ok()?;
                 Some((this, cursor.position() as usize))
             }
         }

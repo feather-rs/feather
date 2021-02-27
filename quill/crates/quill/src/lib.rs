@@ -21,6 +21,12 @@ pub use quill_common::{components, entity_init::EntityInit, Component};
 #[doc(inline)]
 pub use uuid::Uuid;
 
+// Needed for macros
+#[doc(hidden)]
+pub extern crate bincode;
+#[doc(hidden)]
+pub extern crate quill_sys as sys;
+
 /// Implement this trait for your plugin's struct.
 pub trait Plugin: Sized {
     /// Invoked when the plugin is enabled.
@@ -81,7 +87,29 @@ macro_rules! plugin {
         // Exports to the host required for all plugins
         #[no_mangle]
         #[doc(hidden)]
+        #[cfg(target_arch = "wasm32")]
         pub unsafe extern "C" fn quill_setup() {
+            let plugin = $plugin::enable(&mut $crate::Game::new(), &mut $crate::Setup::new());
+            PLUGIN = Some(plugin);
+        }
+
+        #[no_mangle]
+        #[doc(hidden)]
+        #[cfg(not(target_arch = "wasm32"))]
+        pub unsafe extern "C" fn quill_setup(
+            context: *const (),
+            vtable_ptr: *const u8,
+            vtable_len: usize,
+        ) {
+            // Set up vtable and host context for quill_sys.
+            let vtable_bytes = ::std::slice::from_raw_parts(vtable_ptr, vtable_len);
+            let vtable: ::std::collections::HashMap<&str, usize> =
+                $crate::bincode::deserialize(vtable_bytes).expect("invalid vtable");
+
+            $crate::sys::init_host_context(context);
+            $crate::sys::init_host_vtable(&vtable)
+                .expect("invalid vtable (check that the plugin and host are up to date)");
+
             let plugin = $plugin::enable(&mut $crate::Game::new(), &mut $crate::Setup::new());
             PLUGIN = Some(plugin);
         }
