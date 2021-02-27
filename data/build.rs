@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::{copy, Write};
 use std::path::Path;
 use std::process::Command;
+use zip::ZipArchive;
 
 fn main() {
     match run() {
@@ -53,12 +54,10 @@ fn download_version(url: &str, path: &str, do_generate: bool) -> anyhow::Result<
     );
 
     if do_generate {
-        generate(path).context(
-            "failed to generate vanilla server reports. (is Java installed and in your PATH?)",
-        )?;
+        generate(path).context("failed to generate vanilla server reports.")?;
     }
 
-    extract(path).context("failed to extract vanilla assets. (are the Java developer tools (`jar`) installed and in your PATH?)")?;
+    extract(path).context("failed to extract vanilla assets.")?;
     println!(
         "after extract: {:?}",
         std::fs::read_dir(path)?.collect::<Vec<_>>()
@@ -103,16 +102,32 @@ fn extract<P: AsRef<Path>>(working: P) -> anyhow::Result<()> {
         "{:?}",
         std::fs::read_dir(working.as_ref())?.collect::<Vec<_>>()
     );
-    let status = Command::new("jar")
-        .current_dir(working)
-        .args(&["xf", "server.jar", "assets/", "data/"])
-        .status()?;
-    if !status.success() {
-        anyhow::bail!(
-            "JAR extraction process was not successful (exit status {})",
-            status
-        )
+    let server_jar = working.as_ref().join("server.jar");
+    let mut archive = ZipArchive::new(std::fs::File::open(server_jar)?)?;
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)?;
+        if !(file.name().starts_with("assets/") || file.name().starts_with("data/")) {
+            continue;
+        }
+
+        let outpath_name = file.name().replace("..", ".");
+        let outpath = working.as_ref().join(outpath_name);
+
+        if file.is_dir() {
+            println!("Directory \"{}\" was created", outpath.display());
+            fs::create_dir_all(&outpath).unwrap();
+        } else {
+            println!("Writing to \"{}\"", outpath.display(),);
+            if let Some(p) = outpath.parent() {
+                if !p.exists() {
+                    fs::create_dir_all(&p).unwrap();
+                }
+            }
+            let mut outfile = fs::File::create(&outpath).unwrap();
+            std::io::copy(&mut file, &mut outfile).unwrap();
+        }
     }
+
     Ok(())
 }
 

@@ -10,11 +10,12 @@ use feather_core::blocks::{BlockId, HalfUpperLower, Part, SimplifiedBlockKind};
 use feather_core::inventory::{slot, Area, Inventory, Slot, SlotIndex};
 use feather_core::items::{Item, ItemStack};
 use feather_core::network::packets::{PlayerDigging, PlayerDiggingStatus};
-use feather_core::util::{BlockPosition, Position};
+use feather_core::util::{BlockPosition, Gamemode, Position};
 use feather_definitions::Tool;
 use feather_server_types::{
     BlockUpdateCause, CanBreak, CanInstaBreak, EntitySpawnEvent, Game, HeldItem,
-    InventoryUpdateEvent, ItemDropEvent, PacketBuffers, Velocity, PLAYER_EYE_HEIGHT, TPS,
+    InventoryUpdateEvent, ItemDamageEvent, ItemDropEvent, PacketBuffers, Velocity,
+    PLAYER_EYE_HEIGHT, TPS,
 };
 use feather_server_util::{charge_from_ticks_held, compute_projectile_velocity};
 use fecs::{Entity, IntoQuery, Read, World, Write};
@@ -300,13 +301,13 @@ fn damage_tool(player: Entity, block: BlockId, game: &mut Game, world: &mut Worl
     }
 
     let held_item = world.get::<HeldItem>(player).0;
-    let inventory = world.get_mut::<Inventory>(player);
+    let inventory = world.get::<Inventory>(player);
 
     let item_in_main_hand: Slot = inventory
         .item_at(Area::Hotbar, held_item)
         .expect("held item out of bounds");
 
-    if let Some(mut item) = item_in_main_hand {
+    if let Some(item) = item_in_main_hand {
         let damage_taken = if item.ty == Item::Trident {
             2
         } else {
@@ -319,18 +320,13 @@ fn damage_tool(player: Entity, block: BlockId, game: &mut Game, world: &mut Worl
             }
         };
 
-        item.damage = Some(item.damage.unwrap_or_default() + damage_taken);
-        //TODO item max damage breaks it
-        inventory
-            .set_item_at(Area::Hotbar, held_item, item)
-            .unwrap();
         drop(inventory);
-
-        let inv_update = InventoryUpdateEvent {
-            slots: smallvec![slot(Area::Hotbar, held_item)],
-            entity: player,
+        let damage_event = ItemDamageEvent {
+            player,
+            slot: slot(Area::Hotbar, held_item),
+            damage_taken,
         };
-        game.handle(world, inv_update);
+        game.handle(world, damage_event);
     }
 }
 
@@ -419,6 +415,7 @@ fn handle_consume_item(game: &mut Game, world: &mut World, player: Entity, packe
 }
 
 fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
+<<<<<<< HEAD
     let inventory = world.get::<Inventory>(player);
     let arrow_to_consume: Option<(SlotIndex, ItemStack)> = find_arrow(&inventory);
 
@@ -428,12 +425,15 @@ fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
         if arrow_to_consume.is_none() {
             return;
         }
+=======
+    let gamemode = *world.get::<Gamemode>(player);
+>>>>>>> develop
 
-        // Consume arrow
-        let (arrow_slot, arrow_stack) = arrow_to_consume.unwrap();
-        let mut arrow_stack: ItemStack = arrow_stack;
-        arrow_stack.amount -= 1;
+    {
+        let inventory = world.get::<Inventory>(player);
+        let arrow_to_consume: Option<(SlotIndex, ItemStack)> = find_arrow(&inventory);
 
+<<<<<<< HEAD
         inventory.set_item_at(arrow_slot, arrow_stack);
         game.handle(
             world,
@@ -443,13 +443,37 @@ fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
             },
         );
     }
+=======
+        if gamemode == Gamemode::Survival || gamemode == Gamemode::Adventure {
+            // If no arrow was found, don't shoot
+            if arrow_to_consume.is_none() {
+                return;
+            }
+>>>>>>> develop
 
-    drop(inventory); // Inventory no longer used.
+            // Consume arrow
+            let (arrow_slot, arrow_stack) = arrow_to_consume.unwrap();
+            let mut arrow_stack: ItemStack = arrow_stack;
+            arrow_stack.amount -= 1;
 
-    let _arrow_type: Item = match arrow_to_consume {
-        None => Item::Arrow, // Default to generic arrow in creative mode with none in inventory
-        Some((_, arrow_stack)) => arrow_stack.ty,
-    };
+            inventory
+                .set_item_at(arrow_slot.area, arrow_slot.slot, arrow_stack)
+                .unwrap();
+            drop(inventory);
+            game.handle(
+                world,
+                InventoryUpdateEvent {
+                    slots: smallvec![arrow_slot],
+                    entity: player,
+                },
+            );
+        }
+
+        let _arrow_type: Item = match arrow_to_consume {
+            None => Item::Arrow, // Default to generic arrow in creative mode with none in inventory
+            Some((_, arrow_stack)) => arrow_stack.ty,
+        };
+    }
 
     let timed_use = world.try_get::<ItemTimedUse>(player);
 
@@ -462,6 +486,12 @@ fn handle_shoot_bow(game: &mut Game, world: &mut World, player: Entity) {
     let timed_use = timed_use.unwrap();
 
     let mut time_held = game.tick_count - timed_use.tick_start;
+
+    // if bow not held for at least 4 ticks, don't shoot at all
+    // to avoid extreme bowspamming
+    if time_held < 4 {
+        return;
+    }
 
     if time_held > 20 {
         time_held = 20;
@@ -527,8 +557,5 @@ fn find_arrow(inventory: &Inventory) -> Option<(SlotIndex, ItemStack)> {
 }
 
 fn is_arrow_item(item: Item) -> bool {
-    match item {
-        Item::Arrow | Item::SpectralArrow | Item::TippedArrow => true,
-        _ => false,
-    }
+    matches!(item, Item::Arrow | Item::SpectralArrow | Item::TippedArrow)
 }

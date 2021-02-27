@@ -4,13 +4,13 @@
 
 use feather_server_chunk::ChunkWorkerHandle;
 use feather_server_lighting::LightingWorkerHandle;
-use feather_server_types::{Game, ShutdownChannels, TPS};
+use feather_server_types::{BanInfo, Game, ShutdownChannels, TPS};
 use fecs::{Executor, OwnedResources, ResourcesProvider, World};
 use spin_sleep::LoopHelper;
 use std::ops::Deref;
 use std::panic::AssertUnwindSafe;
 use std::process::exit;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use tokio::runtime;
 
 mod event_handlers;
@@ -135,6 +135,8 @@ async fn shut_down(resources: &OwnedResources, world: &mut World) -> anyhow::Res
     shutdown::save_level(&mut *resources.get_mut::<Game>()).await?;
     log::info!("Saving player data");
     shutdown::save_player_data(&*resources.get::<Game>(), &world)?;
+    log::info!("Saving ban list");
+    shutdown::save_ban_list(&resources.get::<Arc<RwLock<BanInfo>>>()).await?;
     log::info!("Waiting for tasks to finish");
     shutdown::wait_for_task_completion().await?;
 

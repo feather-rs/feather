@@ -14,7 +14,7 @@ use derivative::Derivative;
 use feather_core::anvil::player::PlayerData;
 use feather_core::util::Position;
 use feather_server_types::{
-    Config, PacketBuffers, ServerToWorkerMessage, Uuid, WorkerToServerMessage,
+    Config, PacketBuffers, ServerToWorkerMessage, Uuid, WorkerToServerMessage, WrappedBanInfo,
 };
 use fecs::Entity;
 use once_cell::sync::Lazy;
@@ -84,6 +84,7 @@ impl NetworkIoManager {
     pub fn start(
         listener: TcpListener,
         config: Arc<Config>,
+        ban_info: WrappedBanInfo,
         player_count: Arc<AtomicU32>,
         server_icon: Arc<Option<String>>,
         packet_buffers: Arc<PacketBuffers>,
@@ -95,7 +96,7 @@ impl NetworkIoManager {
             listener,
             listener_tx.clone(),
             listener_rx,
-            config,
+            (config, ban_info),
             player_count,
             server_icon,
             packet_buffers,
@@ -125,7 +126,7 @@ async fn run_listener(
     listener: TcpListener,
     tx: flume::Sender<ListenerToServerMessage>,
     rx: flume::Receiver<ServerToListenerMessage>,
-    config: Arc<Config>,
+    config_bans: (Arc<Config>, WrappedBanInfo),
     player_count: Arc<AtomicU32>,
     server_icon: Arc<Option<String>>,
     packet_buffers: Arc<PacketBuffers>,
@@ -134,7 +135,7 @@ async fn run_listener(
         listener,
         tx,
         rx,
-        config,
+        config_bans,
         player_count,
         server_icon,
         packet_buffers,

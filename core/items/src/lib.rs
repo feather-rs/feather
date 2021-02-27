@@ -12,7 +12,7 @@ pub struct ItemStack {
     /// The number of items in this stack.
     pub amount: u8,
     /// Amount of damage taken on tools/equipment (how much durability expended).
-    pub damage: Option<i16>,
+    pub damage: Option<i32>,
     // TODO enchantments, more
 }
 

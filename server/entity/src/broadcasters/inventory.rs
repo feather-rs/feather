@@ -1,13 +1,17 @@
 //! Broadcasting of inventory-related events.
 
 use crate::inventory::Equipment;
-use feather_core::inventory::{Area, Inventory, SlotIndex, Window};
-use feather_core::network::packets::{EntityEquipment, SetSlot};
+use feather_core::inventory::{slot, Area, Inventory, SlotIndex, Window};
+use feather_core::network::packets::{EntityEquipment, NamedSoundEffect, SetSlot, SoundCategory};
+use feather_core::util::Position;
 use feather_server_types::{
-    EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, Network, NetworkId, Player,
+    EntitySendEvent, Game, HeldItem, InventoryUpdateEvent, ItemDamageEvent, Network, NetworkId,
+    Player,
 };
-use fecs::World;
+use fecs::{Entity, World};
 use num_traits::ToPrimitive;
+use rand::Rng;
+use smallvec::smallvec;
 
 /// System for broadcasting equipment updates.
 #[fecs::event_handler]
@@ -124,6 +128,70 @@ fn is_equipment_update(held_item: usize, slot: SlotIndex) -> Result<Equipment, (
     } else {
         Err(())
     }
+}
+
+/// System for damaging inventory items which should take damage.
+#[fecs::event_handler]
+pub fn on_damage_item(event: &ItemDamageEvent, game: &mut Game, world: &mut World) {
+    let inventory = world.get_mut::<Inventory>(event.player);
+
+    let mut item = match inventory.item_at_mut(event.slot.area, event.slot.slot) {
+        Ok(guard) => guard.unwrap(),
+        Err(_) => return,
+    };
+
+    item.damage = Some(item.damage.unwrap_or_default() + event.damage_taken as i32);
+    let item_broken = if let Some(durability) = item.ty.durability() {
+        if item.damage.unwrap() >= durability as i32 {
+            inventory
+                .remove_item_at(event.slot.area, event.slot.slot)
+                .unwrap();
+            true
+        } else {
+            inventory
+                .set_item_at(event.slot.area, event.slot.slot, item)
+                .unwrap();
+            false
+        }
+    } else {
+        return; // Items with no durability shouldn't take damage
+    };
+    drop(inventory);
+
+    if item_broken {
+        send_item_broken_sound_effect(event.player, game, world);
+    }
+
+    let inv_update = InventoryUpdateEvent {
+        slots: smallvec![slot(event.slot.area, event.slot.slot)],
+        entity: event.player,
+    };
+    game.handle(world, inv_update);
+}
+
+fn send_item_broken_sound_effect(player: Entity, game: &mut Game, world: &mut World) {
+    let (effect_pos_x, effect_pos_y, effect_pos_z) = {
+        let pos = world.get::<Position>(player);
+        (
+            // https://wiki.vg/Data_types#Fixed-point_numbers
+            (pos.x * 8.0) as i32,
+            (pos.y * 8.0) as i32,
+            (pos.z * 8.0) as i32,
+        )
+    };
+    let mut rng = game.rng();
+    let sound_packet = NamedSoundEffect {
+        sound_name: "entity.item.break".into(),
+        sound_category: SoundCategory::Players as i32,
+        effect_pos_x,
+        effect_pos_y,
+        effect_pos_z,
+        volume: 1.0,
+        pitch: rng.gen_range(0.8, 1.2),
+    };
+
+    let network = world.get::<Network>(player);
+    network.send(sound_packet);
 }
 
 #[cfg(test)]

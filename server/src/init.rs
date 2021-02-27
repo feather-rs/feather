@@ -8,7 +8,7 @@ use feather_server_chunk::{chunk_worker, ChunkWorkerHandle};
 use feather_server_config::DEFAULT_CONFIG_STR;
 use feather_server_network::NetworkIoManager;
 use feather_server_packet_buffer::PacketBuffers;
-use feather_server_types::{task, Config, Game, Shared, ShutdownChannels};
+use feather_server_types::{task, BanInfo, Config, Game, Shared, ShutdownChannels};
 use feather_server_worldgen::{
     ComposableGenerator, EmptyWorldGenerator, SuperflatWorldGenerator, WorldGenerator,
 };
@@ -17,7 +17,7 @@ use fxhash::FxHasher;
 use rand::Rng;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use tokio::fs::File;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
@@ -40,6 +40,11 @@ pub async fn init(
         .await
         .context("Failed to load configuration file `feather.toml`")?;
     set_up_logging(&config).context("Failed to initialize logging")?;
+
+    log::info!("Loading ban list");
+    let ban_info = load_ban_info()
+        .await
+        .context("Failed to load ban list `bans.toml`")?;
 
     log::info!("Loading world save");
     let level = load_level(&config)
@@ -64,6 +69,7 @@ pub async fn init(
         event_handlers: Arc::new(event_handlers),
         resources: Arc::new(Default::default()), // we override this momentarily
         bump: Default::default(),
+        game_rules: Default::default(),
     };
     task::init(runtime);
     let packet_buffers = Arc::new(PacketBuffers::new());
@@ -78,10 +84,14 @@ pub async fn init(
     feather_core::blocks::init();
 
     log::info!("Starting networking task");
-    let networking_handle =
-        create_networking_handle(Arc::clone(&config), &game, Arc::clone(&packet_buffers))
-            .await
-            .context("Failed to start the networking task")?;
+    let networking_handle = create_networking_handle(
+        Arc::clone(&config),
+        Arc::clone(&ban_info),
+        &game,
+        Arc::clone(&packet_buffers),
+    )
+    .await
+    .context("Failed to start the networking task")?;
 
     let resources = create_resources(
         resources,
@@ -89,6 +99,7 @@ pub async fn init(
         cworker_handle,
         networking_handle,
         packet_buffers,
+        ban_info,
     );
 
     Ok((executor, resources, world))
@@ -110,6 +121,18 @@ async fn load_config() -> anyhow::Result<Arc<Config>> {
         }
         Err(e) => Err(e.into()),
     }
+    .map(Arc::new)
+}
+
+async fn load_ban_info() -> anyhow::Result<Arc<RwLock<BanInfo>>> {
+    const PATH: &str = "bans.toml";
+
+    match File::open(PATH).await {
+        Ok(mut file) => BanInfo::load_from_file(&mut file).await,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(BanInfo::default()),
+        Err(e) => Err(e.into()),
+    }
+    .map(RwLock::new)
     .map(Arc::new)
 }
 
@@ -235,6 +258,7 @@ fn create_cworker_handle(config: &Config, level: &LevelData) -> ChunkWorkerHandl
 
 async fn create_networking_handle(
     config: Arc<Config>,
+    ban_info: Arc<RwLock<BanInfo>>,
     game: &Game,
     packet_buffers: Arc<PacketBuffers>,
 ) -> anyhow::Result<NetworkIoManager> {
@@ -252,6 +276,7 @@ async fn create_networking_handle(
     Ok(NetworkIoManager::start(
         socket,
         config,
+        ban_info,
         Arc::clone(&game.player_count),
         Arc::new(server_icon),
         packet_buffers,
@@ -303,6 +328,7 @@ fn create_resources(
     cworker_handle: ChunkWorkerHandle,
     networking_handle: NetworkIoManager,
     packet_buffers: Arc<PacketBuffers>,
+    ban_info: Arc<RwLock<BanInfo>>,
 ) -> Arc<OwnedResources> {
     let resources = {
         let resources = resources
@@ -310,6 +336,7 @@ fn create_resources(
             .with(cworker_handle)
             .with(networking_handle)
             .with(packet_buffers)
+            .with(ban_info)
             .with(ShutdownChannels::new());
         Arc::new(resources)
     };

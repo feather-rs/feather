@@ -200,6 +200,7 @@ impl BlockId {
             | SimplifiedBlockKind::Fence
             | SimplifiedBlockKind::FenceGate
             | SimplifiedBlockKind::IronDoor
+            | SimplifiedBlockKind::Stairs
             | SimplifiedBlockKind::WoodenDoor => Some(PlacementType::PlayerDirection),
             SimplifiedBlockKind::Anvil => Some(PlacementType::PlayerDirectionRightAngle),
             _ => None,

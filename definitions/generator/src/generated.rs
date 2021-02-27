@@ -221,10 +221,7 @@ fn generate_block<'a>(
             .map(|(&name, cb_index)| {
                 (
                     VecOrOne::One(name),
-                    ron::Value::Bool(match cb_index {
-                        VecOrOne::One(cb_index) if *cb_index == 1 => true,
-                        _ => false,
-                    }),
+                    ron::Value::Bool(matches!(cb_index, VecOrOne::One(cb_index) if *cb_index == 1)),
                 )
             })
             .collect(),

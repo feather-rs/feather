@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 base = { path = "../base", package = "feather-base" }
 
-bitvec = "0.18"
+bitvec = "0.21"
 smallvec = "1"
 rand = "0.7"
 rand_xorshift = "0.2"

@@ -109,12 +109,27 @@ impl CommandState {
                 say,
                 me,
 
+                kick_1,
+                kick_2,
+
                 stop,
 
                 clear_1,
                 clear_2,
                 clear_3,
                 clear_4,
+
+                seed,
+
+                ban_withreason,
+                ban_noreason,
+                banip_withreason,
+                banip_noreason,
+                banip_withreason_ip,
+                banip_noreason_ip,
+
+                pardon,
+                pardonip,
         }
 
         Self {

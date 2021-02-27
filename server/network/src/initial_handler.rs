@@ -14,8 +14,10 @@
 //! speeding up the login process and making the latency calculation in
 //! the server list ping as low as possible.
 
+use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU32, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
+use std::time::SystemTime;
 
 use rand::rngs::OsRng;
 use rsa::{PaddingScheme, PublicKey, RSAPrivateKey};
@@ -31,7 +33,8 @@ use feather_core::network::packets::{
     DisconnectLogin, EncryptionRequest, EncryptionResponse, Handshake, HandshakeState, LoginStart,
     LoginSuccess, Ping, Pong, Request, Response, SetCompression,
 };
-use feather_server_types::{Config, ProxyMode};
+use feather_server_types::{BanInfo, Config, ProxyMode};
+use feather_server_util::name_to_uuid_offline;
 use mojang_api::ProfileProperty;
 use once_cell::sync::Lazy;
 use uuid::Uuid;
@@ -79,21 +82,7 @@ impl JoinResult {
     fn with_username(username: String) -> Self {
         let mut join_result = JoinResult::default();
 
-        // Compute offline mode UUID
-        // https://gist.github.com/games647/2b6a00a8fc21fd3b88375f03c9e2e603
-        let mut context = md5::Context::new();
-        context.consume(format!("OfflinePlayer:{}", username).as_bytes());
-        let computed = context.compute();
-        let bytes = computed.into();
-
-        let mut builder = uuid::Builder::from_bytes(bytes);
-
-        builder
-            .set_variant(uuid::Variant::RFC4122)
-            .set_version(uuid::Version::Md5);
-
-        join_result.uuid = builder.build();
-
+        join_result.uuid = name_to_uuid_offline(&username);
         join_result.username = Some(username);
 
         join_result
@@ -140,10 +129,15 @@ pub struct InitialHandler {
 
     /// The server's configuration.
     config: Arc<Config>,
+    /// Server bans
+    ban_info: Arc<RwLock<BanInfo>>,
     /// The server's player count.
     player_count: Arc<AtomicU32>,
     /// The server's icon, if any was loaded.
     server_icon: Arc<Option<String>>,
+
+    /// The client's IP address.
+    client_ip: SocketAddr,
 
     /// The player info, set to `Some` once
     /// the initial handler is finished and
@@ -157,8 +151,10 @@ pub struct InitialHandler {
 impl InitialHandler {
     pub fn new(
         config: Arc<Config>,
+        ban_info: Arc<RwLock<BanInfo>>,
         player_count: Arc<AtomicU32>,
         server_icon: Arc<Option<String>>,
+        client_ip: SocketAddr,
     ) -> Self {
         Self {
             action_queue: vec![],
@@ -169,8 +165,11 @@ impl InitialHandler {
             verify_token: rand::random(),
 
             config,
+            ban_info,
             player_count,
             server_icon,
+
+            client_ip,
 
             info: None,
 
@@ -372,6 +371,37 @@ fn handle_login_start(ih: &mut InitialHandler, packet: &LoginStart) -> Result<()
         return Ok(());
     }
 
+    let (reason, remove_ban) = {
+        let ban_info = ih.ban_info.read().unwrap();
+        let ip_ban = ban_info.ip_bans.get(&ih.client_ip.ip());
+
+        if let Some(ban) = ip_ban {
+            // Expire the ban if it's over.
+            if let Some(expires) = ban.expires_after {
+                if expires < SystemTime::now() {
+                    (None, true)
+                } else {
+                    (Some(Text::from(ban.reason.clone())), false)
+                }
+            } else {
+                (Some(Text::from(ban.reason.clone())), false)
+            }
+        } else {
+            (None, false)
+        }
+    };
+
+    if let Some(reason) = reason {
+        disconnect_login(ih, reason);
+        return Ok(());
+    } else if remove_ban {
+        ih.ban_info
+            .write()
+            .unwrap()
+            .ip_bans
+            .remove(&ih.client_ip.ip());
+    }
+
     // If in online mode, encryption needs to be enabled,
     // and authentication needs to be performed.
     // If not in online mode, the login sequence is
@@ -512,9 +542,39 @@ fn finish(ih: &mut InitialHandler) {
 
     let info = ih.info.as_ref().unwrap();
 
+    let uuid_str = info.uuid.to_hyphenated_ref().to_string();
+
+    // Make sure they're not UUID banned
+    let (reason, remove_ban) = {
+        let ban_info = ih.ban_info.read().unwrap();
+        let ip_ban = ban_info.uuid_bans.get(&uuid_str);
+
+        if let Some(ban) = ip_ban {
+            // Expire the ban if it's over.
+            if let Some(expires) = ban.expires_after {
+                if expires < SystemTime::now() {
+                    (None, true)
+                } else {
+                    (Some(Text::from(ban.reason.clone())), false)
+                }
+            } else {
+                (Some(Text::from(ban.reason.clone())), false)
+            }
+        } else {
+            (None, false)
+        }
+    };
+
+    if let Some(reason) = reason {
+        disconnect_login(ih, reason);
+        return;
+    } else if remove_ban {
+        ih.ban_info.write().unwrap().uuid_bans.remove(&uuid_str);
+    }
+
     // Send Login Success
     let login_success = LoginSuccess {
-        uuid: info.uuid.to_hyphenated_ref().to_string(),
+        uuid: uuid_str,
         username: info.username.as_ref().unwrap().to_string(),
     };
     send_packet(ih, login_success);
@@ -895,24 +955,30 @@ mod tests {
     fn ih() -> InitialHandler {
         InitialHandler::new(
             Arc::new(Config::default()),
+            Arc::new(RwLock::new(BanInfo::default())),
             Arc::new(AtomicU32::new(0)),
             Arc::new(Some(String::from("test"))),
+            "127.0.0.1:8080".parse().unwrap(),
         )
     }
 
     fn ih_with_player_count(count: u32) -> InitialHandler {
         InitialHandler::new(
             Arc::new(Config::default()),
+            Arc::new(RwLock::new(BanInfo::default())),
             Arc::new(AtomicU32::new(count)),
             Arc::new(Some(String::from("test"))),
+            "127.0.0.1:8080".parse().unwrap(),
         )
     }
 
     fn ih_with_config(config: Config) -> InitialHandler {
         InitialHandler::new(
             Arc::new(config),
+            Arc::new(RwLock::new(BanInfo::default())),
             Arc::new(AtomicU32::new(0)),
             Arc::new(Some(String::from("test"))),
+            "127.0.0.1:8080".parse().unwrap(),
         )
     }
 }

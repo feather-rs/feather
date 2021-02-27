@@ -139,8 +139,7 @@ enum Mode {
     ShiftClick,
     /// Number key on interval `[1, 9]`
     NumberKey(u8),
-    // TODO: middle click for "non-player inventories"
-    // (probably blocked on impl of block entities?)
+    MiddleClick,
     ItemDrop {
         /// Whether the full stack should be dropped
         /// (this is the case for CTRL+Q)
@@ -182,6 +181,15 @@ impl<'a> TryFrom<&'a ClickWindow> for Mode {
             0 => {
                 let button = parse_button(value.button)?;
 
+                // Slot -999 means that the user clicked outside the window,
+                // dropping the item.
+                if value.slot == -999 {
+                    match button {
+                        MouseButton::Left => return Ok(Mode::ItemDrop { full_stack: true }),
+                        MouseButton::Right => return Ok(Mode::ItemDrop { full_stack: false }),
+                    }
+                }
+
                 Ok(Mode::SingleClick(button))
             }
             1 => {
@@ -197,7 +205,12 @@ impl<'a> TryFrom<&'a ClickWindow> for Mode {
 
                 Ok(Mode::NumberKey(value.button + 1))
             }
-            3 => Err(ModeParseError::Unhandled),
+            3 => {
+                if value.button != 2 {
+                    return Err(ModeParseError::InvalidNumberKeyId(value.button));
+                }
+                Ok(Mode::MiddleClick)
+            }
             4 => {
                 if value.slot == -999 {
                     return Err(ModeParseError::Unhandled);
@@ -307,6 +320,7 @@ fn handle_click_window(
         Mode::DoubleClick => handle_double_click(game, world, player, packet),
         Mode::ShiftClick => handle_shift_click(game, world, player, packet),
         Mode::NumberKey(key) => handle_number_key(game, world, player, packet, key),
+        Mode::MiddleClick => handle_middle_click(game, world, player, packet),
         Mode::ItemDrop { full_stack } => handle_item_drop(game, world, player, packet, full_stack),
         Mode::Paint(action) => handle_paint(game, world, player, packet, action),
     }
@@ -561,6 +575,36 @@ fn handle_number_key(
 
     game.handle(world, event1);
     game.handle(world, event2);
+
+    Ok(())
+}
+
+fn handle_middle_click(
+    _game: &mut Game,
+    world: &mut World,
+    player: Entity,
+    packet: ClickWindow,
+) -> anyhow::Result<()> {
+    let gamemode = *world.get::<Gamemode>(player);
+    if Gamemode::Creative == gamemode {
+        if world.try_get::<PickedItem>(player).is_some() {
+            // Player already has something in its hand.
+            return Ok(());
+        }
+        let window = world.get::<Window>(player);
+        let accessor = window.accessor(world)?;
+
+        // Pick the item in the slot
+        let picked = accessor.item_at(packet.slot as usize)?;
+        if let Some(item) = picked {
+            let count = item.ty.stack_size();
+            drop(accessor);
+            drop(window);
+            world
+                .add(player, PickedItem(item.of_amount(count as u8)))
+                .unwrap();
+        }
+    }
 
     Ok(())
 }
