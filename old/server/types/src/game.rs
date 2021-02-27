@@ -19,7 +19,7 @@ use rand::{Rng, SeedableRng};
 use smallvec::SmallVec;
 use std::cell::{RefCell, RefMut};
 use std::fmt::Display;
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 use thread_local::CachedThreadLocal;
@@ -271,26 +271,15 @@ impl Game {
             return;
         }
 
-        let (should_kill, old_health, new_health) =
-            if let Some(mut health) = world.try_get_mut::<Health>(entity) {
-                let old_health = health.0;
-                let should_kill = match health.0.checked_sub(damage) {
-                    Some(0) => true,
-                    None => {
-                        // below 0
-                        health.0 = 0;
-                        true
-                    }
-                    Some(new_health) => {
-                        health.0 = new_health;
-                        false
-                    }
-                };
-                let new_health = health.0;
-                (should_kill, Some(old_health), new_health)
-            } else {
-                (false, None, 0)
-            };
+        let (old_health, new_health) = if let Some(mut health) = world.try_get_mut::<Health>(entity)
+        {
+            let old_health = health.0;
+            let new_health = health.0.saturating_sub(damage);
+            health.0 = new_health;
+            (Some(old_health), new_health)
+        } else {
+            (None, 0)
+        };
 
         if let Some(old_health) = old_health {
             self.handle(
@@ -301,10 +290,10 @@ impl Game {
                     entity,
                 },
             );
-        }
 
-        if should_kill {
-            self.kill(entity, world);
+            if new_health == 0 {
+                self.kill(entity, world);
+            }
         }
     }
 
@@ -383,32 +372,37 @@ impl ChunkEntities {
 
 /// The current time of the world.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct Time(pub u64);
-
-impl Deref for Time {
-    type Target = u64;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for Time {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
+pub struct Time {
+    game_time: u64,
+    day_time: u64,
 }
 
 impl Time {
-    /// Returns the time of day. This is calculated
-    /// as `time.0 % 24_000`.
+    /// Adds some time to the time of day.
+    pub fn set_time_of_day(&mut self, new_time: u64) {
+        self.day_time = new_time;
+        self.day_time %= 24_000;
+    }
+
+    /// Adds some time to world age.
+    pub fn set_world_age(&mut self, new_time: u64) {
+        self.game_time = new_time;
+    }
+
+    /// Returns the time of day.
     pub fn time_of_day(self) -> u64 {
-        self.0 % 24_000
+        self.day_time
+    }
+
+    /// Returns the days passed. This is calculated
+    /// as `time.0 / 24_000`.
+    pub fn days(self) -> u64 {
+        self.game_time / 24_000
     }
 
     /// Returns the age of the world in ticks. Equivalent to `time.0`.
     pub fn world_age(self) -> u64 {
-        self.0
+        self.game_time
     }
 }
 
