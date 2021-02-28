@@ -1,3 +1,3 @@
 pub mod particle;
 
-pub use particle::*;
+pub use particle::Particle;

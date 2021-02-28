@@ -5,6 +5,6 @@ members = [
     "crates/core",
     "crates/generators",
     "crates/items",
-    "crates/particles",
     "crates/macros",
+    "crates/particles",
 ]
