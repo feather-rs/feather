@@ -2,6 +2,7 @@
 mod utils;
 #[macro_use]
 pub mod component;
+pub mod block;
 pub mod components;
 pub mod entities;
 pub mod entity;
