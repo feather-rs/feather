@@ -9,4 +9,5 @@ members = [
 
     "example-plugins/simple",
     "example-plugins/query-entities",
+    "example-plugins/block-access",
 ]

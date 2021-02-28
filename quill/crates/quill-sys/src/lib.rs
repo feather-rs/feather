@@ -20,7 +20,9 @@
 
 use std::mem::MaybeUninit;
 
-use quill_common::{entity::QueryData, EntityId, HostComponent, Pointer, PointerMut};
+use quill_common::{
+    block::BlockGetResult, entity::QueryData, EntityId, HostComponent, Pointer, PointerMut,
+};
 
 // The attribute macro transforms the block into either:
 // 1. On WASM, an extern "C" block defining functions imported from the host.
@@ -119,4 +121,19 @@ extern "C" {
     /// `builder` is consumed after this call.
     /// Reusing it is undefined behavior.
     pub fn entity_builder_finish(builder: u32) -> EntityId;
+
+    /// Gets the block at the given position.
+    ///
+    /// Returns `None` if the block's chunk is unloaded
+    /// or if the Y coordinate is out of bounds.
+    pub fn block_get(x: i32, y: i32, z: i32) -> BlockGetResult;
+
+    /// Sets the block at the given position.
+    ///
+    /// Returns `true` if successful and `false`
+    /// if the block's chunk is not loaded or
+    /// the Y coordinate is out of bounds.
+    ///
+    /// `block` is the vanilla ID of the block.
+    pub fn block_set(x: i32, y: i32, z: i32, block: u16) -> bool;
 }

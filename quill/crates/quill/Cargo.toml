@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 libcraft-core = { git = "https://github.com/feather-rs/libcraft" }
+libcraft-blocks = { git = "https://github.com/feather-rs/libcraft" }
 bincode = "1"
 bytemuck = "1"
 quill-sys = { path = "../quill-sys" }

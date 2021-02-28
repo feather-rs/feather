@@ -1,6 +1,7 @@
 use std::marker::PhantomData;
 
-use libcraft_core::Position;
+use libcraft_blocks::BlockState;
+use libcraft_core::{BlockPosition, Position, CHUNK_HEIGHT};
 use quill_common::entity_init::EntityInit;
 
 use crate::{
@@ -8,6 +9,15 @@ use crate::{
     EntityBuilder,
 };
 use crate::{Entity, EntityId};
+
+/// Error returned when getting or setting a block fails.
+#[derive(Debug, thiserror::Error)]
+pub enum BlockAccessError {
+    #[error("the block's Y coordinate is outside the range [0, 256)")]
+    YOutOfBounds,
+    #[error("the block's chunk is not loaded")]
+    ChunkNotLoaded,
+}
 
 /// Error returned from [`Game::entity`] if the entity
 /// did not exist.
@@ -89,5 +99,74 @@ impl Game {
     /// ```
     pub fn query<Q: Query>(&self) -> QueryIter<Q> {
         QueryIter::new()
+    }
+
+    /// Gets the block at `pos`.
+    ///
+    /// This function returns an error if the block's
+    /// chunk is not loaded. Unlike in Bukkit, calling this method
+    /// will not cause chunks to be loaded.
+    ///
+    /// Mutating the returned [`BlockState`](libcraft_blocks::BlockState)
+    /// will _not_ cause the block to be modified in the world. In other
+    /// words, the `BlockState` is a copy, not a reference. To update
+    /// the block, call [`set_block`].
+    pub fn block(&self, pos: BlockPosition) -> Result<BlockState, BlockAccessError> {
+        check_y_bound(pos)?;
+
+        let result = unsafe { quill_sys::block_get(pos.x, pos.y, pos.z) };
+
+        result
+            .get()
+            .ok_or(BlockAccessError::ChunkNotLoaded)
+            .map(|block_id| BlockState::from_id(block_id).expect("host gave invalid block ID"))
+    }
+
+    /// Sets the block at `pos`.
+    ///
+    /// This function returns an error if the block's
+    /// chunk is not loaded. Unlike in Bukkit, calling this method
+    /// will not cause chunks to be loaded.
+    pub fn set_block(&self, pos: BlockPosition, block: BlockState) -> Result<(), BlockAccessError> {
+        check_y_bound(pos)?;
+
+        let was_successful = unsafe { quill_sys::block_set(pos.x, pos.y, pos.z, block.id()) };
+
+        if was_successful {
+            Ok(())
+        } else {
+            Err(BlockAccessError::ChunkNotLoaded)
+        }
+    }
+}
+
+fn check_y_bound(pos: BlockPosition) -> Result<(), BlockAccessError> {
+    if pos.y < 0 || pos.y >= CHUNK_HEIGHT as i32 {
+        Err(BlockAccessError::YOutOfBounds)
+    } else {
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn check_y_bound_in_bounds() {
+        assert!(check_y_bound(BlockPosition::new(0, 0, 0)).is_ok());
+        assert!(check_y_bound(BlockPosition::new(0, 255, 0)).is_ok());
+    }
+
+    #[test]
+    fn check_y_bound_out_of_bounds() {
+        assert!(matches!(
+            check_y_bound(BlockPosition::new(0, -1, 0)),
+            Err(BlockAccessError::YOutOfBounds)
+        ));
+        assert!(matches!(
+            check_y_bound(BlockPosition::new(0, 256, 0)),
+            Err(BlockAccessError::YOutOfBounds)
+        ));
     }
 }
