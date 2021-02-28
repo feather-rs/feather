@@ -2,10 +2,10 @@
 
 use crate::{Enchantment, Item};
 use core::fmt::Display;
-use serde::__private::Formatter;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fmt;
+use std::num::NonZeroU32;
 
 /// Represents an item stack.
 ///
@@ -18,7 +18,7 @@ pub struct ItemStack {
 
     /// The number of items in the `ItemStack`.
     #[serde(rename = "Count")]
-    count: u32,
+    count: NonZeroU32,
 
     /// The `ItemStack` metadata, containing data such as damage,
     /// repair cost, enchantments...
@@ -54,10 +54,14 @@ pub struct ItemStackMeta {
 impl ItemStack {
     /// Creates a new `ItemStack` with the default name (title)
     /// no lore, no damage, no repair cost and no enchantments.
-    pub fn new(item: Item, count: u32) -> Self {
-        Self {
+    pub fn new(item: Item, count: u32) -> Result<Self, ItemStackError> {
+        let count = NonZeroU32::new(count);
+        if count.is_none() {
+            return Err(ItemStackError::EmptyStack);
+        }
+        Ok(Self {
             item,
-            count,
+            count: count.unwrap(),
             meta: Some(ItemStackMeta {
                 title: String::from(item.name()),
                 lore: "".to_string(),
@@ -65,7 +69,7 @@ impl ItemStack {
                 repair_cost: None,
                 enchantments: vec![],
             }),
-        }
+        })
     }
 
     /// Returns whether the given item stack has
@@ -112,36 +116,40 @@ impl ItemStack {
 
     /// Returns the number of items in this `ItemStack`.
     pub fn count(&self) -> u32 {
-        self.count
+        self.count.get()
     }
 
     /// Adds more items to this `ItemStack`. Returns the new count.
     pub fn add(&mut self, count: u32) -> Result<u32, ItemStackError> {
-        self.set_count(self.count + count)
+        self.set_count(self.count.get() + count)
     }
 
     /// Adds more items to this `ItemStack`. Does not check if the
     /// addition will make the count to be greater than the
     /// stack size. Does not check count overflows. Returns the new count.
     pub fn unchecked_add(&mut self, count: u32) -> u32 {
-        self.count += count;
-        self.count
+        self.count = NonZeroU32::new(self.count.get() + count).unwrap();
+        self.count.get()
     }
 
     /// Removes some items from this `ItemStack`.
     pub fn remove(&mut self, count: u32) -> Result<u32, ItemStackError> {
-        if self.count < count {
-            return Err(ItemStackError::NotEnoughAmount);
+        if self.count.get() <= count {
+            return Err(if self.count.get() == count {
+                ItemStackError::EmptyStack
+            } else {
+                ItemStackError::NotEnoughAmount
+            });
         }
-        self.count -= count;
-        Ok(self.count)
+        self.count = NonZeroU32::new(self.count.get() - count).unwrap();
+        Ok(self.count.get())
     }
 
     /// Sets the item type for this `ItemStack`. Returns the new
     /// item type or fails if the current item count exceeds the
     /// new item type stack size.
     pub fn set_item(&mut self, item: Item) -> Result<Item, ItemStackError> {
-        if self.count > item.stack_size() {
+        if self.count.get() > item.stack_size() {
             return Err(ItemStackError::ExceedsStackSize);
         }
         self.item = item;
@@ -160,48 +168,58 @@ impl ItemStack {
     /// count or fails if the new count would exceed the stack
     /// size for that item type.
     pub fn set_count(&mut self, count: u32) -> Result<u32, ItemStackError> {
-        if count > self.item.stack_size() {
+        let count = NonZeroU32::new(count);
+        if count.is_none() {
+            return Err(ItemStackError::EmptyStack);
+        }
+        let count = count.unwrap();
+        if count.get() > self.item.stack_size() {
             return Err(ItemStackError::ExceedsStackSize);
-        } else if count > i32::MAX as u32 {
+        } else if count.get() > i32::MAX as u32 {
             return Err(ItemStackError::ClientOverflow);
         }
         self.count = count;
-        Ok(self.count)
+        Ok(self.count.get())
     }
 
     /// Sets the count for this `ItemStack`. It will not check if
     /// the desired count exceeds the current item type stack size.
-    ///  Does not check count overflows. Returns the updated count.
+    /// Does not check count overflows or if the parameter is zero.
+    /// Returns the updated count.
     pub fn unchecked_set_count(&mut self, count: u32) -> u32 {
-        self.count = count;
-        self.count
+        self.count = NonZeroU32::new(count).unwrap();
+        self.count.get()
     }
 
     /// Splits this `ItemStack` in half, returning the
     /// removed half. If the amount is odd, `self`
     /// will be left with the least items. Returns the taken
     /// half.
-    pub fn take_half(&mut self) -> ItemStack {
-        self.take((self.count + 1) / 2).unwrap()
+    pub fn split_half(&self) -> (Option<ItemStack>, ItemStack) {
+        self.split((self.count.get() + 1) / 2).unwrap()
     }
 
     /// Splits this `ItemStack` by removing the
     /// specified amount. Returns the taken part.
-    pub fn take(&mut self, amount: u32) -> Result<ItemStack, ItemStackError> {
-        if self.count <= amount {
-            return Err(if self.count == amount {
-                ItemStackError::EmptyStack
-            } else {
-                ItemStackError::NotEnoughAmount
-            });
+    pub fn split(
+        mut self,
+        amount: u32,
+    ) -> Result<(Option<ItemStack>, ItemStack), (ItemStack, ItemStackError)> {
+        let amount = NonZeroU32::new(amount);
+        if amount.is_none() {
+            return Err((self, ItemStackError::EmptyStack));
         }
-        let count_left: u32 = self.count - amount;
+        let amount = amount.unwrap();
+        if self.count < amount {
+            return Err((self, ItemStackError::NotEnoughAmount));
+        }
+        let count_left: u32 = self.count.get() - amount.get();
         let taken = ItemStack {
             count: amount,
             ..self.clone()
         };
-        self.count = count_left as u32;
-        Ok(taken)
+        self.count = NonZeroU32::new(count_left).unwrap();
+        Ok((if count_left == 0 { None } else { Some(self) }, taken))
     }
 
     /// Merges another `ItemStack` with this one.
@@ -209,29 +227,29 @@ impl ItemStack {
         if !self.has_same_type_and_damage(other) {
             return Err(ItemStackError::IncompatibleStacks);
         }
-        let new_count = (self.count + other.count).min(self.item.stack_size());
-        let amount_added = new_count - self.count;
-        self.count = new_count;
-        other.count -= amount_added;
+        let new_count = (self.count.get() + other.count.get()).min(self.item.stack_size());
+        let amount_added = new_count - self.count.get();
+        self.count = NonZeroU32::new(new_count).unwrap();
+        other.count = NonZeroU32::new(other.count() - amount_added).unwrap();
         Ok(())
     }
 
     /// Transfers up to `n` items to `other`.
     pub fn transfer_to(&mut self, n: u32, other: &mut Self) -> Result<(), ItemStackError> {
-        if self.count <= n {
-            return Err(if self.count == n {
+        if self.count.get() <= n || n == 0 {
+            return Err(if self.count.get() == n || n == 0 {
                 ItemStackError::EmptyStack
             } else {
                 ItemStackError::NotEnoughAmount
             });
         }
-        let max_transfer = other.item.stack_size().saturating_sub(other.count);
-        let transfer = max_transfer.min(self.count).min(n);
-        if other.count + transfer > i32::MAX as u32 {
+        let max_transfer = other.item.stack_size().saturating_sub(other.count.get());
+        let transfer = max_transfer.min(self.count.get()).min(n);
+        if other.count.get() + transfer > i32::MAX as u32 {
             return Err(ItemStackError::ClientOverflow);
         }
-        self.count -= transfer;
-        other.count += transfer;
+        self.count = NonZeroU32::new(transfer).unwrap();
+        other.count = NonZeroU32::new(other.count.get() + transfer).unwrap();
         Ok(())
     }
 
@@ -267,7 +285,7 @@ pub enum ItemStackError {
 }
 
 impl Display for ItemStackError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self)
     }
 }
