@@ -2,6 +2,8 @@
 
 use quill::{entities::Player, BlockState, Game, Plugin, Position};
 
+quill::plugin!(BlockAccess);
+
 pub struct BlockAccess;
 
 impl Plugin for BlockAccess {
