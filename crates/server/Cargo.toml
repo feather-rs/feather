@@ -45,7 +45,7 @@ uuid = "0.8"
 vec-arena = "1"
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
 parking_lot = "0.11"
-quill-common = { git = "https://github.com/feather-rs/quill", rev = "b6def83" }
+quill-common = { git = "https://github.com/feather-rs/quill", rev = "d4da5b6" }
 
 [features]
 default = ["plugin-cranelift"]

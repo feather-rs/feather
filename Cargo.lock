@@ -1851,7 +1851,7 @@ dependencies = [
 [[package]]
 name = "quill-common"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/quill?rev=b6def83#b6def838d0e530145fcc6ca54a38ee1227e158f8"
+source = "git+https://github.com/feather-rs/quill?rev=d4da5b6#d4da5b6529b048da3eafa45d16fa189e89123f5e"
 dependencies = [
  "bincode",
  "bytemuck",
@@ -1864,7 +1864,7 @@ dependencies = [
 [[package]]
 name = "quill-plugin-format"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/quill?rev=b6def83#b6def838d0e530145fcc6ca54a38ee1227e158f8"
+source = "git+https://github.com/feather-rs/quill?rev=d4da5b6#d4da5b6529b048da3eafa45d16fa189e89123f5e"
 dependencies = [
  "anyhow",
  "flate2",
