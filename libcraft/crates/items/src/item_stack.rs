@@ -195,23 +195,23 @@ impl ItemStack {
     /// removed half. If the amount is odd, `self`
     /// will be left with the least items. Returns the taken
     /// half.
-    pub fn split_half(&self) -> (Option<ItemStack>, ItemStack) {
+    pub fn split_half(&mut self) -> (Option<ItemStack>, ItemStack) {
         self.split((self.count.get() + 1) / 2).unwrap()
     }
 
     /// Splits this `ItemStack` by removing the
     /// specified amount. Returns the taken part.
     pub fn split(
-        mut self,
+        &mut self,
         amount: u32,
     ) -> Result<(Option<ItemStack>, ItemStack), (ItemStack, ItemStackError)> {
         let amount = NonZeroU32::new(amount);
         if amount.is_none() {
-            return Err((self, ItemStackError::EmptyStack));
+            return Err((self.clone(), ItemStackError::EmptyStack));
         }
         let amount = amount.unwrap();
         if self.count < amount {
-            return Err((self, ItemStackError::NotEnoughAmount));
+            return Err((self.clone(), ItemStackError::NotEnoughAmount));
         }
         let count_left: u32 = self.count.get() - amount.get();
         let taken = ItemStack {
@@ -219,7 +219,14 @@ impl ItemStack {
             ..self.clone()
         };
         self.count = NonZeroU32::new(count_left).unwrap();
-        Ok((if count_left == 0 { None } else { Some(self) }, taken))
+        Ok((
+            if count_left == 0 {
+                None
+            } else {
+                Some(self.clone())
+            },
+            taken,
+        ))
     }
 
     /// Merges another `ItemStack` with this one.

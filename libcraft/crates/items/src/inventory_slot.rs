@@ -36,7 +36,7 @@ impl InventorySlot {
     pub fn take(&mut self, amount: u32) -> Result<ItemStack, ItemStackError> {
         let split = match mem::take(self) {
             Self::Empty => return Err(ItemStackError::EmptyStack),
-            Self::Filled(stack) => stack.split(amount),
+            Self::Filled(mut stack) => stack.split(amount),
         };
         let (stack, res) = match split {
             Ok((original, new)) => (original, Ok(new)),
