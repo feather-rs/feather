@@ -24,6 +24,6 @@ fn system(_plugin: &mut BlockAccess, game: &mut Game) {
         // Note: In a real plugin, you should gracefully handle players being
         // in unloaded chunks.
         game.set_block(block_pos, BlockState::from_id(33).unwrap())
-            .expect("player is in unloaded chunk");
+            .ok();
     }
 }
