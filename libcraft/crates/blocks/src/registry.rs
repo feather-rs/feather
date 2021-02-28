@@ -1,12 +1,12 @@
-use std::io::Cursor;
+use crate::block_data::BlockData;
+use crate::data::{RawBlockState, RawBlockStateProperties};
 
 use ahash::AHashMap;
 use bytemuck::{Pod, Zeroable};
-use libcraft_blocks_data::{RawBlockState, RawBlockStateProperties};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
-use crate::block_data::BlockData;
+use std::io::Cursor;
 
 /// A block state.
 ///

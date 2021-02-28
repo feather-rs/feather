@@ -1,4 +1,4 @@
-use libcraft_blocks_data::RawBlockStateProperties;
+use crate::data::RawBlockStateProperties;
 use libcraft_macros::BlockData;
 
 /// Represents the data (properties) of a block.

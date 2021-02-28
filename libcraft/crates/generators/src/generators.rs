@@ -1,19 +1,30 @@
-use libcraft_blocks_data::{BlockReport, RawBlockState};
+use crate::common::{compress_and_write, state_name_to_block_kind};
+use libcraft_blocks::data::BlockReport;
 
-pub fn generate_block_states(block_report: &BlockReport) -> anyhow::Result<Vec<RawBlockState>> {
+pub fn generate_block_states(block_report: &BlockReport, path: &str) -> anyhow::Result<()> {
     let mut raw_block_states = Vec::new();
 
-    println!(
-        "Processing {} block report entries",
-        block_report.blocks.len()
-    );
-    for (_, entry) in &block_report.blocks {
+    for (name, entry) in &block_report.blocks {
+        let kind = state_name_to_block_kind(name)?;
         for state in &entry.states {
-            raw_block_states.push(state.to_raw_state());
+            raw_block_states.push(state.to_raw_state(kind));
         }
     }
 
     raw_block_states.sort_unstable_by_key(|state| state.id);
 
-    Ok(raw_block_states)
+    compress_and_write(raw_block_states, path)
+}
+
+pub fn generate_block_properties(block_report: &BlockReport, path: &str) -> anyhow::Result<()> {
+    let mut raw_block_properties = Vec::new();
+
+    for (name, entry) in &block_report.blocks {
+        let kind = state_name_to_block_kind(name)?;
+        raw_block_properties.push(entry.to_raw_properties(kind))
+    }
+
+    raw_block_properties.sort_unstable_by_key(|properties| properties.block_kind);
+
+    compress_and_write(raw_block_properties, path)
 }
