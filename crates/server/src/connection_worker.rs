@@ -1,10 +1,12 @@
 use std::{fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
 
+use base::Text;
 use flume::{Receiver, Sender};
 use futures_lite::FutureExt;
 use io::ErrorKind;
 use protocol::{
-    codec::CryptKey, ClientPlayPacket, MinecraftCodec, Readable, ServerPlayPacket, Writeable,
+    codec::CryptKey, packets::server::Disconnect, ClientPlayPacket, MinecraftCodec, Readable,
+    ServerPlayPacket, Writeable,
 };
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
@@ -18,6 +20,7 @@ use tokio::{
 use crate::{
     initial_handler::{InitialHandling, NewPlayer},
     options::Options,
+    player_count::PlayerCount,
 };
 
 /// Tokio task which handles a connection and processes
@@ -32,6 +35,7 @@ pub struct Worker {
     reader: Reader,
     writer: Writer,
     options: Arc<Options>,
+    player_count: PlayerCount,
     packets_to_send_tx: Sender<ServerPlayPacket>,
     received_packets_rx: Receiver<ClientPlayPacket>,
     new_players: Sender<NewPlayer>,
@@ -42,6 +46,7 @@ impl Worker {
         stream: TcpStream,
         _addr: SocketAddr,
         options: Arc<Options>,
+        player_count: PlayerCount,
         new_players: Sender<NewPlayer>,
     ) -> Self {
         let (reader, writer) = stream.into_split();
@@ -55,6 +60,7 @@ impl Worker {
             reader,
             writer,
             options,
+            player_count,
             packets_to_send_tx,
             received_packets_rx,
             new_players,
@@ -75,18 +81,32 @@ impl Worker {
         }
     }
 
-    async fn proceed(self, result: InitialHandling) {
+    async fn proceed(mut self, result: InitialHandling) {
         match result {
             InitialHandling::Disconnect => (),
             InitialHandling::Join(new_player) => {
+                if self.player_count.try_add_player().is_err() {
+                    self.write(ServerPlayPacket::Disconnect(Disconnect {
+                        reason: Text::from("The server is full!").to_string(),
+                    }))
+                    .await
+                    .ok();
+                    return;
+                }
+
+                let username = new_player.username.clone();
                 let _ = self.new_players.send_async(new_player).await;
-                self.split();
+                self.split(username);
             }
         }
     }
 
     pub fn options(&self) -> &Options {
         &self.options
+    }
+
+    pub fn player_count(&self) -> u32 {
+        self.player_count.get()
     }
 
     #[allow(unused)]
@@ -108,16 +128,23 @@ impl Worker {
         self.writer.write(packet).await
     }
 
-    pub fn split(self) {
-        let Self { reader, writer, .. } = self;
+    pub fn split(self, username: String) {
+        let Self {
+            reader,
+            writer,
+            player_count,
+            ..
+        } = self;
         let reader = tokio::task::spawn(async move { reader.run().await });
         let writer = tokio::task::spawn(async move { writer.run().await });
 
         tokio::task::spawn(async move {
             let result = reader.race(writer).await.expect("task panicked");
             if let Err(e) = result {
-                log::error!("Connection lost: {:?}", e);
+                let message = disconnected_message(e);
+                log::debug!("{} lost connection: {}", username, message);
             }
+            player_count.remove_player();
         });
     }
 
@@ -207,4 +234,13 @@ impl Writer {
         self.buffer.clear();
         Ok(())
     }
+}
+
+fn disconnected_message(e: anyhow::Error) -> String {
+    if let Some(io_error) = e.downcast_ref::<io::Error>() {
+        if io_error.kind() == ErrorKind::UnexpectedEof {
+            return "disconnected".to_owned();
+        }
+    }
+    format!("{:?}", e)
 }

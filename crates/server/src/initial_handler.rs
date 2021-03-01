@@ -78,7 +78,7 @@ struct Version {
 #[derive(Debug, Serialize)]
 struct Players {
     max: u32,
-    online: usize,
+    online: u32,
 }
 
 async fn handle_status(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
@@ -91,7 +91,7 @@ async fn handle_status(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
         },
         players: Players {
             max: worker.options().max_players,
-            online: 0, // TODO (1.16): player count
+            online: worker.player_count(),
         },
         description: Text::from(worker.options().motd.clone()),
         favicon: worker

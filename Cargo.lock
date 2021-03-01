@@ -869,6 +869,7 @@ dependencies = [
  "base64",
  "chrono",
  "colored 2.0.0",
+ "crossbeam-utils",
  "feather-base",
  "feather-common",
  "feather-ecs",

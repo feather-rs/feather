@@ -22,6 +22,7 @@ plugin-host = { path = "../plugin-host", package = "feather-plugin-host" }
 
 ahash = "0.7"
 anyhow = "1"
+crossbeam-utils = "0.8"
 tokio = { version = "1", features = ["full"] }
 flume = "0.10"
 futures-lite = "1"
