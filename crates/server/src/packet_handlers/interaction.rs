@@ -1,5 +1,4 @@
 use crate::{ClientId, Server};
-use base::BlockPosition;
 use common::Game;
 use ecs::{Entity, EntityRef, SysResult};
 use protocol::packets::client::{
@@ -13,15 +12,14 @@ pub fn handle_player_block_placement(
     packet: PlayerBlockPlacement,
     player: EntityRef,
 ) -> SysResult {
-    let transform = match packet.face {
-        BlockFace::Bottom => BlockPosition::new(0, -1, 0),
-        BlockFace::Top => BlockPosition::new(0, 1, 0),
-        BlockFace::North => BlockPosition::new(0, 0, -1),
-        BlockFace::South => BlockPosition::new(0, 0, 1),
-        BlockFace::West => BlockPosition::new(-1, 0, 0),
-        BlockFace::East => BlockPosition::new(1, 0, 0),
+    let position = match packet.face {
+        BlockFace::Bottom => packet.position.down(),
+        BlockFace::Top => packet.position.up(),
+        BlockFace::North => packet.position.north(),
+        BlockFace::South => packet.position.south(),
+        BlockFace::West => packet.position.west(),
+        BlockFace::East => packet.position.east(),
     };
-    let position = packet.position + transform;
 
     log::trace!("Got player block placement at {:?}", position);
 
