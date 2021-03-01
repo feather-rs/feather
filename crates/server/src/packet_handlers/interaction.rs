@@ -1,5 +1,5 @@
 use crate::{ClientId, Server};
-use base::{BlockId, BlockPosition};
+use base::BlockPosition;
 use common::Game;
 use ecs::{Entity, EntityRef, SysResult};
 use protocol::packets::client::{
@@ -8,6 +8,7 @@ use protocol::packets::client::{
 
 /// Handles the player block placement packet. Currently just removes the block client side for the player.
 pub fn handle_player_block_placement(
+    game: &Game,
     server: &mut Server,
     packet: PlayerBlockPlacement,
     player: EntityRef,
@@ -20,14 +21,14 @@ pub fn handle_player_block_placement(
         BlockFace::West => BlockPosition::new(-1, 0, 0),
         BlockFace::East => BlockPosition::new(1, 0, 0),
     };
-
     let position = packet.position + transform;
 
     log::trace!("Got player block placement at {:?}", position);
 
     let client = server.clients.get(*player.get::<ClientId>()?).unwrap();
+    let block_id = game.block(position).unwrap_or_default();
 
-    client.send_block_change(position, BlockId::air());
+    client.send_block_change(position, block_id);
     Ok(())
 }
 

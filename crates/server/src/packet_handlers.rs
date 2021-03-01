@@ -53,7 +53,7 @@ pub fn handle_packet(
         }
 
         ClientPlayPacket::PlayerBlockPlacement(packet) => {
-            handle_player_block_placement(server, packet, player)
+            handle_player_block_placement(game, server, packet, player)
         }
 
         ClientPlayPacket::TeleportConfirm(_)
