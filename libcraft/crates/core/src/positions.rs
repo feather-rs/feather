@@ -318,6 +318,38 @@ impl BlockPosition {
             z: self.z,
         }
     }
+
+    pub fn north(self) -> BlockPosition {
+        Self {
+            x: self.x,
+            y: self.y,
+            z: self.z - 1,
+        }
+    }
+
+    pub fn south(self) -> BlockPosition {
+        Self {
+            x: self.x,
+            y: self.y,
+            z: self.z + 1,
+        }
+    }
+
+    pub fn east(self) -> BlockPosition {
+        Self {
+            x: self.x + 1,
+            y: self.y,
+            z: self.z,
+        }
+    }
+
+    pub fn west(self) -> BlockPosition {
+        Self {
+            x: self.x - 1,
+            y: self.y,
+            z: self.z,
+        }
+    }
 }
 
 impl Add<BlockPosition> for BlockPosition {
