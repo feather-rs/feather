@@ -24,7 +24,7 @@ pub fn generate_block_properties(block_report: &BlockReport, path: &str) -> anyh
         raw_block_properties.push(entry.to_raw_properties(kind))
     }
 
-    raw_block_properties.sort_unstable_by_key(|properties| properties.block_kind);
+    raw_block_properties.sort_unstable_by_key(|properties| properties.kind);
 
     compress_and_write(raw_block_properties, path)
 }

@@ -34,5 +34,5 @@ pub fn state_name_to_block_kind(name: &str) -> Result<BlockKind> {
         .last()
         .map(BlockKind::from_name)
         .flatten()
-        .ok_or(anyhow!("Could not convert state name to BlockKind"))
+        .ok_or_else(|| anyhow!("Could not convert state name to BlockKind"))
 }

@@ -128,7 +128,7 @@ impl BlockReportEntry {
     }
     pub fn to_raw_properties(&self, block_kind: BlockKind) -> RawBlockProperties {
         RawBlockProperties {
-            block_kind: block_kind,
+            kind: block_kind,
             valid_properties: ValidProperties {
                 facing: self.properties("facing"),
                 bamboo_leaves: self.properties("leaves"),
@@ -317,7 +317,7 @@ impl BlockReportState {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct RawBlockProperties {
-    pub block_kind: BlockKind,
+    pub kind: BlockKind,
     pub valid_properties: ValidProperties,
 }
 

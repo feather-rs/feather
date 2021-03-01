@@ -128,7 +128,7 @@ impl BlockRegistry {
 
         let valid_properties = properties
             .iter()
-            .map(|properties| (properties.block_kind, properties.valid_properties.clone()))
+            .map(|properties| (properties.kind, properties.valid_properties.clone()))
             .collect();
 
         Self {
