@@ -1,7 +1,7 @@
 use base::{Position, Text};
 use common::{chat::ChatKind, Game};
-use interaction::{handle_player_block_placement, handle_player_digging};
 use ecs::{Entity, EntityRef, SysResult};
+use interaction::{handle_player_block_placement, handle_player_digging};
 use protocol::{
     packets::{
         client,
@@ -52,7 +52,9 @@ pub fn handle_packet(
             inventory::handle_click_window(server, player, packet)
         }
 
-        ClientPlayPacket::PlayerBlockPlacement(packet) => handle_player_block_placement(server, packet, player),
+        ClientPlayPacket::PlayerBlockPlacement(packet) => {
+            handle_player_block_placement(server, packet, player)
+        }
 
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)

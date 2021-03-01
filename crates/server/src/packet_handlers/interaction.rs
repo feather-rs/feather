@@ -1,11 +1,17 @@
+use crate::{ClientId, Server};
 use base::{BlockId, BlockPosition};
 use common::Game;
 use ecs::{Entity, EntityRef, SysResult};
-use protocol::packets::client::{PlayerBlockPlacement, PlayerDigging, PlayerDiggingStatus, BlockFace};
-use crate::{ClientId, Server};
+use protocol::packets::client::{
+    BlockFace, PlayerBlockPlacement, PlayerDigging, PlayerDiggingStatus,
+};
 
 /// Handles the player block placement packet. Currently just removes the block client side for the player.
-pub fn handle_player_block_placement(server: &mut Server, packet: PlayerBlockPlacement, player: EntityRef) -> SysResult {
+pub fn handle_player_block_placement(
+    server: &mut Server,
+    packet: PlayerBlockPlacement,
+    player: EntityRef,
+) -> SysResult {
     let transform = match packet.face {
         BlockFace::Bottom => BlockPosition::new(0, -1, 0),
         BlockFace::Top => BlockPosition::new(0, 1, 0),
