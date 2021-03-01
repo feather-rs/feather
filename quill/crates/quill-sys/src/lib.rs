@@ -136,4 +136,15 @@ extern "C" {
     ///
     /// `block` is the vanilla ID of the block.
     pub fn block_set(x: i32, y: i32, z: i32, block: u16) -> bool;
+
+    /// Fills the given chunk section with `block`.
+    ///
+    /// Replaces all existing blocks in the section.
+    ///
+    /// This is an optimized bulk operation that will be significantly
+    /// faster than calling [`block_set`] on each block in the chunk section.
+    ///
+    /// Returns `true` if successful and `false` if the
+    /// block's chunk is not loaded or the section index is out of bounds.
+    pub fn block_fill_chunk_section(chunk_x: i32, section_y: u32, chunk_z: i32, block: u16) -> bool;
 }

@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use libcraft_blocks::BlockState;
-use libcraft_core::{BlockPosition, Position, CHUNK_HEIGHT};
+use libcraft_core::{BlockPosition, ChunkPosition, Position, CHUNK_HEIGHT};
 use quill_common::entity_init::EntityInit;
 
 use crate::{
@@ -138,10 +138,44 @@ impl Game {
             Err(BlockAccessError::ChunkNotLoaded)
         }
     }
+
+    /// Efficiently overwrites all blocks in the given chunk section (16x16x16 blocks).
+    ///
+    /// All blocks in the chunk section are replaced with `block`.
+    ///
+    /// This function returns an error if the block's
+    /// chunk is not loaded. Unlike in Bukkit, calling this method
+    /// will not cause chunks to be loaded.
+    pub fn fill_chunk_section(
+        &self,
+        chunk: ChunkPosition,
+        section_y: u32,
+        block: BlockState,
+    ) -> Result<(), BlockAccessError> {
+        check_section_y(section_y)?;
+
+        let block_id = block.id();
+        let was_successful =
+            unsafe { quill_sys::block_fill_chunk_section(chunk.x, section_y, chunk.z, block_id) };
+
+        if was_successful {
+            Ok(())
+        } else {
+            Err(BlockAccessError::ChunkNotLoaded)
+        }
+    }
 }
 
 fn check_y_bound(pos: BlockPosition) -> Result<(), BlockAccessError> {
     if pos.y < 0 || pos.y >= CHUNK_HEIGHT as i32 {
+        Err(BlockAccessError::YOutOfBounds)
+    } else {
+        Ok(())
+    }
+}
+
+fn check_section_y(section_y: u32) -> Result<(), BlockAccessError> {
+    if section_y >= 16 {
         Err(BlockAccessError::YOutOfBounds)
     } else {
         Ok(())
@@ -166,6 +200,24 @@ mod tests {
         ));
         assert!(matches!(
             check_y_bound(BlockPosition::new(0, 256, 0)),
+            Err(BlockAccessError::YOutOfBounds)
+        ));
+    }
+
+    #[test]
+    fn check_section_y_in_bounds() {
+        assert!(check_section_y(0).is_ok());
+        assert!(check_section_y(15).is_ok());
+    }
+
+    #[test]
+    fn check_section_y_out_of_bounds() {
+        assert!(matches!(
+            check_section_y(16),
+            Err(BlockAccessError::YOutOfBounds)
+        ));
+        assert!(matches!(
+            check_section_y(u32::MAX),
             Err(BlockAccessError::YOutOfBounds)
         ));
     }

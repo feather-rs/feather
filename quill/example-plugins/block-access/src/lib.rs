@@ -21,8 +21,6 @@ fn system(_plugin: &mut BlockAccess, game: &mut Game) {
     for (_entity, (_, pos)) in game.query::<(&Player, &Position)>() {
         let block_pos = pos.block();
 
-        // Note: In a real plugin, you should gracefully handle players being
-        // in unloaded chunks.
         game.set_block(block_pos, BlockState::from_id(33).unwrap())
             .ok();
     }
