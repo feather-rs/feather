@@ -63,4 +63,5 @@ host_calls! {
     "entity_send_message" => entity_send_message,
     "block_get" => block_get,
     "block_set" => block_set,
+    "block_fill_chunk_section" => block_fill_chunk_section,
 }

@@ -155,6 +155,23 @@ impl Chunk {
         result
     }
 
+    /// Fills the given chunk section with `block`.
+    pub fn fill_section(&mut self, section: usize, block: BlockId) -> bool {
+        let section = match self.sections.get_mut(section) {
+            Some(section) => section,
+            None => return false,
+        };
+
+        if block == BlockId::air() {
+            *section = None;
+        } else {
+            let section = section.get_or_insert_with(Default::default);
+            section.fill(block);
+        }
+
+        true
+    }
+
     /// Recalculates heightmaps for this chunk.
     pub fn recalculate_heightmaps(&mut self) {
         self.heightmaps
@@ -304,6 +321,13 @@ impl ChunkSection {
     /// Returns `None` if the coordinates were out of bounds.
     pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: BlockId) -> Option<()> {
         self.blocks.set_block_at(x, y, z, block)
+    }
+
+    /// Fills this chunk section with the given block.
+    ///
+    /// Does not currently update heightmaps.
+    pub fn fill(&mut self, block: BlockId) {
+        self.blocks.fill(block);
     }
 
     pub fn block_light_at(&self, x: usize, y: usize, z: usize) -> Option<u8> {
@@ -564,5 +588,20 @@ mod tests {
 
         chunk.set_block_at(0, 10, 0, BlockId::stone());
         assert_eq!(chunk.heightmaps.motion_blocking.height(0, 0), Some(10));
+    }
+
+    #[test]
+    fn fill_chunk_section() {
+        let mut section = ChunkSection::default();
+        section.set_block_at(0, 0, 0, BlockId::stone());
+        section.fill(BlockId::acacia_wood());
+
+        for x in 0..CHUNK_WIDTH {
+            for y in 0..SECTION_HEIGHT {
+                for z in 0..CHUNK_WIDTH {
+                    assert_eq!(section.block_at(x, y, z), Some(BlockId::acacia_wood()));
+                }
+            }
+        }
     }
 }

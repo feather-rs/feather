@@ -223,6 +223,70 @@ impl Writeable for VarInt {
     }
 }
 
+/// A variable-length integer as defined by the Minecraft protocol.
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct VarLong(pub i64);
+
+impl Readable for VarLong {
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let mut num_read = 0;
+        let mut result = 0;
+
+        loop {
+            let read = u8::read(buffer, version)?;
+            let value = i64::from(read & 0b0111_1111);
+            result |= value.overflowing_shl(7 * num_read).0;
+
+            num_read += 1;
+
+            if num_read > 10 {
+                bail!(
+                    "VarInt too long (max length: 5, value read so far: {})",
+                    result
+                );
+            }
+            if read & 0b1000_0000 == 0 {
+                break;
+            }
+        }
+        Ok(VarLong(result))
+    }
+}
+
+impl From<VarLong> for i64 {
+    fn from(x: VarLong) -> Self {
+        x.0
+    }
+}
+
+impl From<i64> for VarLong {
+    fn from(x: i64) -> Self {
+        VarLong(x)
+    }
+}
+
+impl Writeable for VarLong {
+    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
+        let mut x = self.0 as u64;
+        loop {
+            let mut temp = (x & 0b0111_1111) as u8;
+            x >>= 7;
+            if x != 0 {
+                temp |= 0b1000_0000;
+            }
+
+            buffer.write_u8(temp).unwrap();
+
+            if x == 0 {
+                break;
+            }
+        }
+    }
+}
+
 impl Readable for String {
     fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where

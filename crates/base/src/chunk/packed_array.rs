@@ -73,6 +73,20 @@ impl PackedArray {
         *u64 |= value << bit_index;
     }
 
+    /// Sets all values is the packed array to `value`.
+    ///
+    /// # Panics
+    /// Panics if `value > self.max_value()`.
+    pub fn fill(&mut self, value: u64) {
+        assert!(value <= self.max_value());
+        let mut x = 0;
+        for i in 0..self.values_per_u64() {
+            x |= value << (i * self.bits_per_value);
+        }
+
+        self.bits.fill(x);
+    }
+
     /// Returns an iterator over values in this array.
     pub fn iter(&self) -> impl Iterator<Item = u64> + '_ {
         let values_per_u64 = self.values_per_u64();
@@ -255,5 +269,22 @@ mod tests {
 
             oracle.clear();
         }
+    }
+
+    #[test]
+    fn fill() {
+        let mut array = PackedArray::new(1024, 10);
+        array.fill(102);
+        assert!(array.iter().all(|x| x == 102));
+
+        array.fill(256);
+        assert!(array.iter().all(|x| x == 256));
+    }
+
+    #[test]
+    #[should_panic]
+    fn fill_too_large() {
+        let mut array = PackedArray::new(100, 10);
+        array.fill(1024); // 1024 == 2^10
     }
 }

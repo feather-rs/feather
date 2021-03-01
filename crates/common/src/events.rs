@@ -5,6 +5,10 @@ use parking_lot::RwLock;
 
 use crate::view::View;
 
+mod block_change;
+
+pub use block_change::BlockChangeEvent;
+
 /// Triggered when a player joins the `Game`.
 #[derive(Debug)]
 pub struct PlayerJoinEvent;

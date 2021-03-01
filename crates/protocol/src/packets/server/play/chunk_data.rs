@@ -14,18 +14,41 @@ struct Heightmaps {
     motion_blocking: [i64; 37],
 }
 
+#[derive(Debug, Clone)]
+pub enum ChunkDataKind {
+    /// Load a chunk on the client. Sends all sections + biomes.
+    LoadChunk,
+    /// Overwrite an existing chunk on the client. Sends
+    /// only the sections in `sections`.
+    OverwriteChunk { sections: Vec<usize> },
+}
+
 /// Packet to load a chunk on the client.
 #[derive(Clone)]
 pub struct ChunkData {
     /// The chunk to send.
     pub chunk: Arc<RwLock<Chunk>>,
+
+    /// Whether this packet will load a chunk on
+    /// the client or overwrite an existing one.
+    pub kind: ChunkDataKind,
 }
 
 impl Debug for ChunkData {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut debug_struct = f.debug_struct("ChunkData");
         debug_struct.field("position", &self.chunk.read().position());
+        debug_struct.field("kind", &self.kind);
         debug_struct.finish()
+    }
+}
+
+impl ChunkData {
+    fn should_skip_section(&self, y: usize) -> bool {
+        match &self.kind {
+            ChunkDataKind::LoadChunk => false,
+            ChunkDataKind::OverwriteChunk { sections } => !sections.contains(&y),
+        }
     }
 }
 
@@ -36,13 +59,17 @@ impl Writeable for ChunkData {
         chunk.position().x.write(buffer, version);
         chunk.position().z.write(buffer, version);
 
-        // full chunk (always true for us)
-        true.write(buffer, version);
+        let full_chunk = matches!(self.kind, ChunkDataKind::LoadChunk);
+        full_chunk.write(buffer, version);
 
         // Compute primary bit mask
         let mut bitmask = 0;
         for (y, section) in chunk.sections().iter().enumerate().skip(1).take(16) {
             if section.is_some() {
+                if self.should_skip_section(y) {
+                    continue;
+                }
+
                 bitmask |= 1 << (y - 1) as i32;
             }
         }
@@ -51,15 +78,21 @@ impl Writeable for ChunkData {
         let heightmaps = build_heightmaps(&chunk);
         Nbt(heightmaps).write(buffer, version);
 
-        VarInt(1024).write(buffer, version); // length of biomes
-        for &biome in chunk.biomes().as_slice() {
-            VarInt(biome.id() as i32).write(buffer, version);
+        if full_chunk {
+            // Write biomes (only if we're sending a new chunk)
+            VarInt(1024).write(buffer, version); // length of biomes
+            for &biome in chunk.biomes().as_slice() {
+                VarInt(biome.id() as i32).write(buffer, version);
+            }
         }
 
         // Sections
         let mut data = Vec::new();
-        for section in chunk.sections().iter().skip(1).take(16) {
+        for (y, section) in chunk.sections().iter().enumerate().skip(1).take(16) {
             if let Some(section) = section {
+                if self.should_skip_section(y) {
+                    continue;
+                }
                 encode_section(section, &mut data, version);
             }
         }

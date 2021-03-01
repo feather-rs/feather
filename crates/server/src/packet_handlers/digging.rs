@@ -13,7 +13,7 @@ pub fn handle_player_digging(game: &mut Game, packet: PlayerDigging, _player: En
     log::trace!("Got player digging with status {:?}", packet.status);
     match packet.status {
         PlayerDiggingStatus::StartDigging | PlayerDiggingStatus::CancelDigging => {
-            game.break_block_at(packet.position);
+            game.break_block(packet.position);
             Ok(())
         }
         _ => Ok(()),
