@@ -193,7 +193,7 @@ packets! {
     PlayerDigging {
         status PlayerDiggingStatus;
         position BlockPosition;
-        face u8;
+        face BlockFace;
     }
 }
 
@@ -206,6 +206,17 @@ def_enum! {
         4 = DropItem,
         5 = ShootArrow,
         6 = SwapItemInHand,
+    }
+}
+
+def_enum! {
+    BlockFace (u8) {
+        0 = Bottom,
+        1 = Top,
+        2 = North,
+        3 = South,
+        4 = West,
+        5 = East,
     }
 }
 
@@ -330,7 +341,7 @@ packets! {
     PlayerBlockPlacement {
         hand VarInt;
         position BlockPosition;
-        face VarInt;
+        face BlockFace;
         cursor_position_x f32;
         cursor_position_y f32;
         cursor_position_z f32;
