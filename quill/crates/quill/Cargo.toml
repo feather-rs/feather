@@ -5,11 +5,13 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-libcraft-core = { git = "https://github.com/feather-rs/libcraft" }
-libcraft-blocks = { git = "https://github.com/feather-rs/libcraft" }
+libcraft-core = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0"  }
+libcraft-particles = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0" }
+libcraft-blocks = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0" }
 bincode = "1"
 bytemuck = "1"
 quill-sys = { path = "../quill-sys" }
 quill-common = { path = "../quill-common" }
 thiserror = "1"
 uuid = "0.8"
+

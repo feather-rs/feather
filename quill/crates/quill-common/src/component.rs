@@ -3,6 +3,7 @@
 use std::{any::TypeId, borrow::Cow as CloneOnWrite};
 
 use libcraft_core::{Gamemode, Position};
+use libcraft_particles::Particle;
 use uuid::Uuid;
 
 use crate::components::*;
@@ -178,6 +179,7 @@ host_component_enum! {
         OnGround = 1002,
         Name = 1003,
         CustomName = 1004,
+        Particle = 1005,
     }
 }
 
@@ -326,3 +328,4 @@ macro_rules! bincode_component_impl {
 
 bincode_component_impl!(Gamemode);
 bincode_component_impl!(Uuid);
+bincode_component_impl!(Particle);

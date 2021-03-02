@@ -18,6 +18,12 @@ pub use libcraft_blocks::{BlockKind, BlockState};
 pub use libcraft_core::{
     BlockPosition, ChunkPosition, Enchantment, EnchantmentKind, Gamemode, Position,
 };
+
+pub use libcraft_blocks::BlockState;
+
+#[doc(inline)]
+pub use libcraft_particles::{Particle, ParticleKind};
+
 #[doc(inline)]
 pub use quill_common::{components, entity_init::EntityInit, Component};
 #[doc(inline)]

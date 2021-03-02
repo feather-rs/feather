@@ -10,4 +10,5 @@ members = [
     "example-plugins/simple",
     "example-plugins/query-entities",
     "example-plugins/block-access",
+    "example-plugins/particle-example"
 ]

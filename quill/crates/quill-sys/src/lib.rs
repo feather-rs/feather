@@ -92,6 +92,14 @@ extern "C" {
     /// Does nothing if the entity does not exist or it does not have the `Chat` component.
     pub fn entity_send_message(entity: EntityId, message_ptr: Pointer<u8>, message_len: u32);
 
+    /// Creates an empty entity builder.
+    ///
+    /// This builder is used for creating an ecs-entity
+    ///
+    /// **This is NOT specifically for a minecraft entity!**
+    ///
+    pub fn entity_builder_new_empty() -> u32;
+
     /// Creates an entity builder.
     ///
     /// The builder is initialized with the default
@@ -146,5 +154,6 @@ extern "C" {
     ///
     /// Returns `true` if successful and `false` if the
     /// block's chunk is not loaded or the section index is out of bounds.
-    pub fn block_fill_chunk_section(chunk_x: i32, section_y: u32, chunk_z: i32, block: u16) -> bool;
+    pub fn block_fill_chunk_section(chunk_x: i32, section_y: u32, chunk_z: i32, block: u16)
+        -> bool;
 }

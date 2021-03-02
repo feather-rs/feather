@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 
 use libcraft_blocks::BlockState;
 use libcraft_core::{BlockPosition, ChunkPosition, Position, CHUNK_HEIGHT};
+use libcraft_particles::Particle;
 use quill_common::entity_init::EntityInit;
 
 use crate::{
@@ -60,6 +61,16 @@ impl Game {
         Ok(Entity::new(id))
     }
 
+    /// Creates an empty [`EntityBuilder`](create::EntityBuilder)
+    /// to add entities to the ecs.
+    ///
+    /// The builder isn initialised without any components.
+    pub fn create_empty_entity_builder(&self) -> EntityBuilder {
+        let id = unsafe { quill_sys::entity_builder_new_empty() };
+
+        EntityBuilder::new(id)
+    }
+
     /// Creates an [`EntityBuilder`](crate::EntityBuilder)
     /// to spawn an entity at the given position.
     ///
@@ -99,6 +110,32 @@ impl Game {
     /// ```
     pub fn query<Q: Query>(&self) -> QueryIter<Q> {
         QueryIter::new()
+    }
+
+    /// Spawn a particle effect at the position
+    ///
+    /// # Example
+    /// Spawn a flame particle at 0, 0, 0:
+    /// ```no_run
+    /// use quill::{Position, Particle, ParticleKind}
+    ///
+    /// let position = Position {x: 0.0, y: 0.0, z: 0.0, pitch: 0.0, yaw: 0.0}
+    /// let particle = Particle {
+    ///     kind: ParticleKind::Flame,
+    ///     offset_x: 0.0,
+    ///     offset_y: 0.0,
+    ///     offset_z: 0.0,
+    ///     count: 1,
+    /// };
+    ///
+    /// game.spawn_particle(position, particle)
+    /// ```
+    pub fn spawn_particle(&self, position: Position, particle: Particle) {
+        let mut entity_builder = self.create_empty_entity_builder();
+
+        entity_builder.add(position);
+        entity_builder.add(particle);
+        entity_builder.finish();
     }
 
     /// Gets the block at `pos`.
