@@ -2,9 +2,8 @@ use bytemuck::{Pod, Zeroable};
 use libcraft_blocks::BlockState;
 use libcraft_items::Item;
 use ordinalizer::Ordinal;
-use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, Pod, Zeroable)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
 #[repr(C)]
 pub struct Particle {
     pub kind: ParticleKind,
@@ -18,8 +17,7 @@ pub struct Particle {
 /// listed on [the Particle data type](https://wiki.vg/index.php?title=Protocol&oldid=16400#Particle).
 /// Some particles are missing on that list (SoulFlame, Soul, BubblePop and the crying obsidian ones)
 /// So they've been added
-#[derive(Copy, Clone, Debug, PartialEq, Ordinal, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Copy, Clone, Debug, PartialEq, Ordinal)]
 #[repr(C)]
 pub enum ParticleKind {
     AmbientEntityEffect,
@@ -103,8 +101,6 @@ pub enum ParticleKind {
     WhiteAsh,
 }
 
-#[allow(warnings)]
-#[allow(clippy::all)]
 impl ParticleKind {
     /// Returns the `id` property of this `ParticleKind`.
     pub fn id(&self) -> u32 {
@@ -272,8 +268,6 @@ impl ParticleKind {
     }
 }
 
-#[allow(warnings)]
-#[allow(clippy::all)]
 impl ParticleKind {
     /// Returns the `name` property of this `ParticleKind`.
     pub fn name(&self) -> &'static str {
