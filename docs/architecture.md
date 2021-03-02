@@ -28,6 +28,10 @@ The Feather game state is defined in the `Game` struct, which lives in `crates/c
 This struct contains the `World` (blocks) and the `Ecs` (entities). It also provides
 methods for common tasks, like "spawn entity" or "remove entity" or "get block."
 
+Note that entities in the ECS correspond either to Minecraft entities, like players or zombies,
+or to internal entities like the "console entity." In general, you don't have to worry about
+this distinction.
+
 ### Crate Structure
 
 Feather is a complex codebase with multiple components. To improve modularity and reusability, we've
