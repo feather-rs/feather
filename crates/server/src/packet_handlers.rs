@@ -1,7 +1,7 @@
 use base::{Position, Text};
 use common::{chat::ChatKind, Game};
 use ecs::{Entity, EntityRef, SysResult};
-use interaction::{handle_player_block_placement, handle_player_digging};
+use interaction::{handle_held_item_change, handle_player_block_placement, handle_player_digging};
 use protocol::{
     packets::{
         client,
@@ -56,6 +56,8 @@ pub fn handle_packet(
             handle_player_block_placement(game, server, packet, player)
         }
 
+        ClientPlayPacket::HeldItemChange(packet) => handle_held_item_change(player, packet),
+
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
         | ClientPlayPacket::SetDifficulty(_)
@@ -86,7 +88,6 @@ pub fn handle_packet(
         | ClientPlayPacket::AdvancementTab(_)
         | ClientPlayPacket::SelectTrade(_)
         | ClientPlayPacket::SetBeaconEffect(_)
-        | ClientPlayPacket::HeldItemChange(_)
         | ClientPlayPacket::UpdateCommandBlock(_)
         | ClientPlayPacket::UpdateCommandBlockMinecart(_)
         | ClientPlayPacket::UpdateJigsawBlock(_)

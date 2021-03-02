@@ -1,6 +1,7 @@
 use base::{Inventory, Position, Text};
 use common::{
     chat::{ChatKind, ChatPreference},
+    entities::player::HotbarSlot,
     view::View,
     window::BackingWindow,
     ChatBox, Game, Window,
@@ -34,6 +35,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     let window = Window::new(BackingWindow::Player {
         player: inventory.new_handle(),
     });
+    let slot = HotbarSlot(0);
 
     client.send_window_items(&window);
 
@@ -50,7 +52,8 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .add(client.profile().to_vec())
         .add(ChatBox::new(ChatPreference::All))
         .add(inventory)
-        .add(window);
+        .add(window)
+        .add(slot);
 
     game.spawn_entity(builder);
 
