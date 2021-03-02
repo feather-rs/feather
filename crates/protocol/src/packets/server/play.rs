@@ -1,5 +1,3 @@
-use std::num::ParseIntError;
-
 use anyhow::bail;
 use base::{BlockState, Gamemode, ParticleKind, ProfileProperty};
 
@@ -514,7 +512,7 @@ impl Readable for Particle {
         Self: Sized,
     {
         let id = i32::read(buffer, version)?;
-        let particle_kind = ParticleKind::from_id(id as u32).unwrap();
+        let mut particle_kind = ParticleKind::from_id(id as u32).unwrap();
         let long_distance = bool::read(buffer, version)?;
         let x = f64::read(buffer, version)?;
         let y = f64::read(buffer, version)?;
@@ -525,29 +523,29 @@ impl Readable for Particle {
         let particle_data = f32::read(buffer, version)?;
         let particle_count = i32::read(buffer, version)?;
 
-        match particle_kind {
+        match &mut particle_kind {
             ParticleKind::Dust {
-                mut red,
-                mut green,
-                mut blue,
-                mut scale,
+                ref mut red,
+                ref mut green,
+                ref mut blue,
+                ref mut scale,
             } => {
-                red = f32::read(buffer, version)?;
-                green = f32::read(buffer, version)?;
-                blue = f32::read(buffer, version)?;
-                scale = f32::read(buffer, version)?;
+                *red = f32::read(buffer, version)?;
+                *green = f32::read(buffer, version)?;
+                *blue = f32::read(buffer, version)?;
+                *scale = f32::read(buffer, version)?;
             }
-            ParticleKind::Block(mut block_state) => {
+            ParticleKind::Block(ref mut block_state) => {
                 let state = VarInt::read(buffer, version)?;
-                block_state = BlockState::from_id(state.0 as u16).unwrap();
+                *block_state = BlockState::from_id(state.0 as u16).unwrap();
             }
-            ParticleKind::FallingDust(mut block_state) => {
+            ParticleKind::FallingDust(ref mut block_state) => {
                 let state = VarInt::read(buffer, version)?;
-                block_state = BlockState::from_id(state.0 as u16).unwrap();
+                *block_state = BlockState::from_id(state.0 as u16).unwrap();
             }
-            ParticleKind::Item(mut item) => {
+            ParticleKind::Item(ref mut item) => {
                 let _slot = Slot::read(buffer, version)?;
-                item = None; // TODO: Use item from libcraft once fully moved
+                *item = None; // TODO: Use item from libcraft once fully moved
             }
             _ => {}
         }
