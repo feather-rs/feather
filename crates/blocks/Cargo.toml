@@ -1,15 +1,15 @@
 [package]
 name = "feather-blocks"
 version = "0.1.0"
-authors = ["caelunshun <caelunshun@gmail.com>"]
+authors = [ "caelunshun <caelunshun@gmail.com>" ]
 edition = "2018"
 
 [dependencies]
-feather-generated = { path = "../generated" }
-once_cell = { version = "1" }
 anyhow = "1"
-thiserror = "1"
-num-traits = "0.2"
-serde = { version = "1", features = ["derive"] }
 bincode = "1"
+feather-generated = { path = "../generated" }
+num-traits = "0.2"
+once_cell = { version = "1" }
+serde = { version = "1", features = [ "derive" ] }
+thiserror = "1"
 vek = "0.14"

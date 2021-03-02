@@ -874,6 +874,7 @@ dependencies = [
  "base64",
  "chrono",
  "colored 2.0.0",
+ "crossbeam-utils",
  "feather-base",
  "feather-common",
  "feather-ecs",
@@ -891,6 +892,7 @@ dependencies = [
  "parking_lot",
  "quill-common 0.1.0 (git+https://github.com/feather-rs/quill?rev=b6def83)",
  "rand 0.7.3",
+ "ring",
  "rsa",
  "rsa-der",
  "serde",
@@ -1355,7 +1357,7 @@ dependencies = [
 [[package]]
 name = "libcraft-core"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft#a1c51e604e60268a2b9076f6a61eee9efb67b682"
+source = "git+https://github.com/feather-rs/libcraft#76ed5021bddacf1baeb8bc70b6e15b4c631dbfc7"
 dependencies = [
  "bytemuck",
  "num-derive",
@@ -1942,7 +1944,7 @@ dependencies = [
 [[package]]
 name = "quill-common"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/quill?rev=b6def83#b6def838d0e530145fcc6ca54a38ee1227e158f8"
+source = "git+https://github.com/feather-rs/quill?rev=d4da5b6#d4da5b6529b048da3eafa45d16fa189e89123f5e"
 dependencies = [
  "bincode",
  "bytemuck",

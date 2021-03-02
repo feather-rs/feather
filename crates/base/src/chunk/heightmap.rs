@@ -185,11 +185,11 @@ where
     /// Recalculates this entire heightmap.
     pub fn recalculate(&mut self, get_block: impl Fn(usize, usize, usize) -> BlockId) {
         for x in 0..CHUNK_WIDTH {
-            'outer: for z in 0..CHUNK_WIDTH {
+            for z in 0..CHUNK_WIDTH {
                 for y in (0..CHUNK_HEIGHT).rev() {
                     if F::is_solid(get_block(x, y, z)) {
                         self.set_height(x, z, y + 1);
-                        continue 'outer;
+                        break;
                     }
                 }
             }

@@ -22,7 +22,7 @@ packets! {
 
     LoginPluginRequest {
         message_id VarInt;
-        successful bool;
+        channel String;
         data LengthInferredVecU8;
     }
 }

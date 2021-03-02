@@ -75,6 +75,12 @@ impl Palette {
         }
     }
 
+    /// Clears the palette, leaving only the air entry at index 0.
+    pub fn clear(&mut self) {
+        self.blocks.clear();
+        self.blocks.push(BlockId::air());
+    }
+
     fn index_of(&self, block: BlockId) -> Option<usize> {
         self.blocks.iter().position(|b| *b == block)
     }
@@ -131,5 +137,16 @@ mod tests {
             let block = BlockId::from_vanilla_id(i);
             assert_eq!(palette.index_or_insert(block), mapping[&block]);
         }
+    }
+
+    #[test]
+    fn clear() {
+        let mut palette = Palette::new();
+        for id in 100..200 {
+            palette.index_or_insert(BlockId::from_vanilla_id(id));
+        }
+        palette.clear();
+        assert_eq!(palette.len(), 1);
+        assert_eq!(palette.index_of(BlockId::air()), Some(0));
     }
 }

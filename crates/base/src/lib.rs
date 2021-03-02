@@ -47,7 +47,7 @@ pub enum Direction {
 /// A profile property, which stores metadata
 /// for some player's account. This is usually
 /// used to store skin data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ProfileProperty {
     pub name: String,
     pub value: String,

@@ -1,5 +1,6 @@
 //! Systems linking a `Server` and a `Game`.
 
+mod block;
 mod chat;
 mod entity;
 mod player_join;
@@ -29,9 +30,11 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
     crate::chunk_subscriptions::register(systems);
     player_leave::register(systems);
     tablist::register(systems);
+    block::register(systems);
     entity::register(game, systems);
     chat::register(game, systems);
     particle::register(systems);
+
     systems.group::<Server>().add_system(tick_clients);
 }
 

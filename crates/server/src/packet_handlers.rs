@@ -1,7 +1,7 @@
 use base::{Position, Text};
 use common::{chat::ChatKind, Game};
-use digging::handle_player_digging;
 use ecs::{Entity, EntityRef, SysResult};
+use interaction::{handle_player_block_placement, handle_player_digging};
 use protocol::{
     packets::{
         client,
@@ -13,7 +13,7 @@ use quill_common::components::Name;
 
 use crate::{NetworkId, Server};
 
-mod digging;
+mod interaction;
 pub mod inventory;
 mod movement;
 
@@ -50,6 +50,10 @@ pub fn handle_packet(
         }
         ClientPlayPacket::ClickWindow(packet) => {
             inventory::handle_click_window(server, player, packet)
+        }
+
+        ClientPlayPacket::PlayerBlockPlacement(packet) => {
+            handle_player_block_placement(game, server, packet, player)
         }
 
         ClientPlayPacket::TeleportConfirm(_)
@@ -89,7 +93,6 @@ pub fn handle_packet(
         | ClientPlayPacket::UpdateStructureBlock(_)
         | ClientPlayPacket::UpdateSign(_)
         | ClientPlayPacket::Spectate(_)
-        | ClientPlayPacket::PlayerBlockPlacement(_)
         | ClientPlayPacket::UseItem(_) => Ok(()),
     }
 }

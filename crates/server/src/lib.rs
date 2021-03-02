@@ -21,11 +21,13 @@ mod listener;
 mod network_id_registry;
 mod options;
 mod packet_handlers;
+mod player_count;
 mod systems;
 
 pub use client::{Client, ClientId, Clients};
 pub use network_id_registry::NetworkId;
 pub use options::Options;
+use player_count::PlayerCount;
 use systems::view::WaitingChunks;
 
 /// A Minecraft server.
@@ -44,6 +46,8 @@ pub struct Server {
     chunk_subscriptions: ChunkSubscriptions,
 
     last_keepalive_time: Instant,
+
+    player_count: PlayerCount,
 }
 
 impl Server {
@@ -52,9 +56,10 @@ impl Server {
     /// Must be called within the context of a Tokio runtime.
     pub async fn bind(options: Options) -> anyhow::Result<Self> {
         let options = Arc::new(options);
+        let player_count = PlayerCount::new(options.max_players);
 
         let (new_players_tx, new_players) = flume::bounded(4);
-        Listener::start(Arc::clone(&options), new_players_tx).await?;
+        Listener::start(Arc::clone(&options), player_count.clone(), new_players_tx).await?;
 
         log::info!(
             "Server is listening on {}:{}",
@@ -69,6 +74,7 @@ impl Server {
             waiting_chunks: WaitingChunks::default(),
             chunk_subscriptions: ChunkSubscriptions::default(),
             last_keepalive_time: Instant::now(),
+            player_count,
         })
     }
 
@@ -77,6 +83,11 @@ impl Server {
     pub fn link_with_game(self, game: &mut Game, systems: &mut SystemExecutor<Game>) {
         systems::register(self, game, systems);
         game.add_entity_spawn_callback(entities::add_entity_components);
+    }
+
+    /// Gets the number of online players.
+    pub fn player_count(&self) -> u32 {
+        self.player_count.get()
     }
 }
 

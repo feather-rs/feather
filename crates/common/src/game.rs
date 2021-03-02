@@ -1,6 +1,6 @@
 use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
-use base::{BlockId, BlockPosition, Position, Text};
+use base::{BlockId, BlockPosition, ChunkPosition, Position, Text};
 use ecs::{
     Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult,
     SystemExecutor,
@@ -10,7 +10,7 @@ use quill_common::{entities::Player, entity_init::EntityInit};
 use crate::{
     chat::{ChatKind, ChatMessage},
     chunk_entities::ChunkEntities,
-    events::{EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent},
+    events::{BlockChangeEvent, EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent},
     ChatBox, World,
 };
 
@@ -29,6 +29,11 @@ type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, &EntityInit)>;
 /// should be preferred over raw interaction with the ECS.
 pub struct Game {
     /// Contains chunks and blocks.
+    ///
+    /// NB: use methods on `Game` to update
+    /// blocks, not direct methods on `World`.
+    /// The `Game` methods will automatically
+    /// trigger the necessary `BlockChangeEvent`s.
     pub world: World,
     /// Contains entities, including players.
     pub ecs: Ecs,
@@ -164,10 +169,54 @@ impl Game {
         Ok(())
     }
 
+    /// Gets the block at the given position.
+    pub fn block(&self, pos: BlockPosition) -> Option<BlockId> {
+        self.world.block_at(pos)
+    }
+
+    /// Sets the block at the given position.
+    ///
+    /// Triggers necessary `BlockChangeEvent`s.
+    pub fn set_block(&mut self, pos: BlockPosition, block: BlockId) -> bool {
+        let was_successful = self.world.set_block_at(pos, block);
+        if was_successful {
+            self.ecs.insert_event(BlockChangeEvent::single(pos));
+        }
+        was_successful
+    }
+
+    /// Fills the given chunk section (16x16x16 blocks).
+    ///
+    /// All blocks in the chunk section are overwritten with `block`.
+    pub fn fill_chunk_section(
+        &mut self,
+        chunk_pos: ChunkPosition,
+        section_y: usize,
+        block: BlockId,
+    ) -> bool {
+        let mut chunk = match self.world.chunk_map().chunk_at_mut(chunk_pos) {
+            Some(chunk) => chunk,
+            None => return false,
+        };
+
+        let was_successful = chunk.fill_section(section_y + 1, block);
+
+        if !was_successful {
+            return false;
+        }
+
+        self.ecs.insert_event(BlockChangeEvent::fill_chunk_section(
+            chunk_pos,
+            section_y as u32,
+        ));
+
+        true
+    }
+
     /// Breaks the block at the given position, propagating any
     /// necessary block updates.
-    pub fn break_block_at(&mut self, pos: BlockPosition) -> bool {
-        self.world.set_block_at(pos, BlockId::air())
+    pub fn break_block(&mut self, pos: BlockPosition) -> bool {
+        self.set_block(pos, BlockId::air())
     }
 }
 

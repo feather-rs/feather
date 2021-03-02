@@ -4,10 +4,10 @@ use anyhow::bail;
 use base::{Gamemode, ProfileProperty, ParticleKind, BlockState};
 
 use super::*;
-use crate::{Readable, Writeable};
+use crate::{io::VarLong, Readable, Writeable};
 
 mod chunk_data;
-pub use chunk_data::ChunkData;
+pub use chunk_data::{ChunkData, ChunkDataKind};
 
 mod update_light;
 pub use update_light::UpdateLight;
@@ -219,7 +219,7 @@ packets! {
     MultiBlockChange {
         chunk_section_coordinate u64;
         dont_trust_edges bool;
-        records LengthPrefixedVec<u64>;
+        records LengthPrefixedVec<VarLong>;
     }
 
     TabComplete {

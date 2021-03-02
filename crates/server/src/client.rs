@@ -1,7 +1,10 @@
 use std::{cell::{Cell, RefCell}, collections::VecDeque, io::Cursor, sync::Arc};
 
 use ahash::AHashSet;
-use base::{Chunk, ChunkPosition, EntityKind, Gamemode, ItemStack, Position, ProfileProperty};
+use base::{
+    BlockId, BlockPosition, Chunk, ChunkPosition, EntityKind, Gamemode, ItemStack, Position,
+    ProfileProperty,
+};
 use common::{
     chat::{ChatKind, ChatMessage},
     Window,
@@ -13,9 +16,10 @@ use protocol::{
     packets::{
         self,
         server::{
-            AddPlayer, Animation, ChatPosition, ChunkData, DestroyEntities, EntityAnimation,
-            EntityHeadLook, EntityTeleport, JoinGame, KeepAlive, PlayerInfo, PlayerPositionAndLook,
-            PluginMessage, SpawnPlayer, UnloadChunk, UpdateViewPosition, WindowItems,
+            AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
+            DestroyEntities, EntityAnimation, EntityHeadLook, EntityTeleport, JoinGame, KeepAlive,
+            PlayerInfo, PlayerPositionAndLook, PluginMessage, SpawnPlayer, UnloadChunk,
+            UpdateViewPosition, WindowItems,
         },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
@@ -247,10 +251,25 @@ impl Client {
     pub fn send_chunk(&self, chunk: &Arc<RwLock<Chunk>>) {
         self.chunk_send_queue.borrow_mut().push_back(ChunkData {
             chunk: Arc::clone(chunk),
+            kind: ChunkDataKind::LoadChunk,
         });
         self.known_chunks
             .borrow_mut()
             .insert(chunk.read().position());
+    }
+
+    pub fn overwrite_chunk_sections(&self, chunk: &Arc<RwLock<Chunk>>, sections: Vec<usize>) {
+        self.send_packet(ChunkData {
+            chunk: Arc::clone(chunk),
+            kind: ChunkDataKind::OverwriteChunk { sections },
+        });
+    }
+
+    pub fn send_block_change(&self, position: BlockPosition, new_block: BlockId) {
+        self.send_packet(BlockChange {
+            position,
+            block: new_block,
+        });
     }
 
     pub fn unload_chunk(&self, pos: ChunkPosition) {

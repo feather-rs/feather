@@ -42,10 +42,20 @@ impl Config {
             bind_address: self.network.address.to_string(),
             favicon: Favicon::load_default(),
             motd: self.server.motd.clone(),
-            online_mode: self.server.online_mode,
+            online_mode: if self.proxy.proxy_mode != ProxyMode::None {
+                false
+            } else {
+                self.server.online_mode
+            },
             view_distance: self.server.view_distance,
             max_players: self.server.max_players,
             default_gamemode: self.server.default_gamemode,
+            proxy_mode: match self.proxy.proxy_mode {
+                ProxyMode::None => None,
+                ProxyMode::Bungee => Some(crate::options::ProxyMode::Bungeecord),
+                ProxyMode::Velocity => Some(crate::options::ProxyMode::Velocity),
+            },
+            velocity_secret: self.proxy.velocity_secret.clone(),
         }
     }
 }
@@ -82,9 +92,10 @@ pub struct World {
 #[derive(Debug, Deserialize)]
 pub struct Proxy {
     pub proxy_mode: ProxyMode,
+    pub velocity_secret: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ProxyMode {
     None,

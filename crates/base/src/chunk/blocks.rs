@@ -93,6 +93,24 @@ impl BlockStore {
         Some(())
     }
 
+    pub fn fill(&mut self, block: BlockId) {
+        let index = if let Some(ref mut palette) = self.palette {
+            palette.clear();
+            palette.index_or_insert(block)
+        } else {
+            self.palette = Some(Palette::new());
+            self.palette.as_mut().unwrap().index_or_insert(block)
+        };
+
+        self.blocks.fill(index as u64);
+
+        if block.is_air() {
+            self.air_block_count = SECTION_VOLUME as u32;
+        } else {
+            self.air_block_count = 0;
+        }
+    }
+
     fn get_block_palette_index(&mut self, block: BlockId) -> usize {
         match &mut self.palette {
             Some(p) => {
