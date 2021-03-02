@@ -76,7 +76,7 @@ for block in load_minecraft_json("blocks.json"):
         Some(TOOLS)
         """
 
-output_data = "#[derive(num_derive::FromPrimitive, num_derive::ToPrimitive)]" + generate_enum("BlockKind", blocks)
+output_data = "#[derive(num_derive::FromPrimitive, num_derive::ToPrimitive, serde::Serialize, serde::Deserialize)]" + generate_enum("BlockKind", blocks)
 output_data += generate_enum_property("BlockKind", "id", "u32", ids, True)
 output_data += generate_enum_property("BlockKind", "name", "&str", names, True, "&'static str")
 output_data += generate_enum_property("BlockKind", "display_name", "&str", display_names, True, "&'static str")

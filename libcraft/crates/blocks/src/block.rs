@@ -2,6 +2,8 @@
 #[derive(
     num_derive::FromPrimitive,
     num_derive::ToPrimitive,
+    serde::Serialize,
+    serde::Deserialize,
     Copy,
     Clone,
     Debug,
