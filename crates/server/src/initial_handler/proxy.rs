@@ -4,7 +4,7 @@ use base::ProfileProperty;
 use protocol::packets::client::Handshake;
 use uuid::Uuid;
 
-use crate::{connection_worker::Worker, options::ProxyMode};
+use crate::connection_worker::Worker;
 
 mod bungeecord;
 mod velocity;
@@ -23,13 +23,10 @@ pub struct ProxyData {
 }
 
 /// Runs proxy forwarding and returns the client's `ProxyData`.
-pub async fn do_ip_forwarding(
-    worker: &mut Worker,
-    mode: ProxyMode,
-    handshake: &Handshake,
-) -> anyhow::Result<ProxyData> {
-    match mode {
-        ProxyMode::Bungeecord => bungeecord::extract(handshake),
-        ProxyMode::Velocity => todo!(),
-    }
+pub fn do_bungee_ip_forwarding(handshake: &Handshake) -> anyhow::Result<ProxyData> {
+    bungeecord::extract(handshake)
+}
+
+pub async fn do_velocity_ip_forwarding(worker: &mut Worker) -> anyhow::Result<ProxyData> {
+    velocity::run(worker).await
 }

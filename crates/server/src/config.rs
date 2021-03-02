@@ -55,6 +55,7 @@ impl Config {
                 ProxyMode::Bungee => Some(crate::options::ProxyMode::Bungeecord),
                 ProxyMode::Velocity => Some(crate::options::ProxyMode::Velocity),
             },
+            velocity_secret: self.proxy.velocity_secret.clone(),
         }
     }
 }
@@ -91,6 +92,7 @@ pub struct World {
 #[derive(Debug, Deserialize)]
 pub struct Proxy {
     pub proxy_mode: ProxyMode,
+    pub velocity_secret: String,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Eq)]

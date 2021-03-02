@@ -23,9 +23,9 @@ use super::ProxyData;
 /// | UUID            | The UUID that is associated to the clients account  |
 /// | Mojang response | A JSON formatted version of the `properties` field
 /// in [Mojangs response](https://wiki.vg/Protocol_Encryption#Server)       |
+#[allow(clippy::match_ref_pats)]
 pub fn extract(packet: &Handshake) -> anyhow::Result<ProxyData> {
     let parts: Vec<&str> = packet.server_address.split('\0').collect();
-    dbg!(&parts);
     match parts.as_slice() {
         &[host, client, uuid, json_properties] => Ok(ProxyData {
             host: host.to_owned(),

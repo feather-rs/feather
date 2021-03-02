@@ -889,6 +889,7 @@ dependencies = [
  "parking_lot",
  "quill-common",
  "rand 0.7.3",
+ "ring",
  "rsa",
  "rsa-der",
  "serde",

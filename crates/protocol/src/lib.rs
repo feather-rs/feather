@@ -2,13 +2,13 @@ use anyhow::anyhow;
 use base::ItemStack;
 
 pub mod codec;
-mod io;
+pub mod io;
 pub mod packets;
 
 #[doc(inline)]
 pub use codec::MinecraftCodec;
 pub use io::Nbt;
-pub use io::{Readable, Writeable};
+pub use io::{Readable, VarInt, VarLong, Writeable};
 #[doc(inline)]
 pub use packets::{
     client::{ClientHandshakePacket, ClientLoginPacket, ClientPlayPacket, ClientStatusPacket},

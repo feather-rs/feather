@@ -30,6 +30,8 @@ pub struct Options {
 
     /// Proxy IP forwarding mode
     pub proxy_mode: Option<ProxyMode>,
+    // HMAC key used with Velocity IP forwarding.
+    pub velocity_secret: String,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]

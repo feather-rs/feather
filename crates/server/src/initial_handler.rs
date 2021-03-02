@@ -61,11 +61,12 @@ pub async fn handle(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
     match handshake.next_state {
         HandshakeState::Status => handle_status(worker).await,
         HandshakeState::Login => {
-            let proxy_data = if let Some(proxy_mode) = worker.options().proxy_mode {
-                Some(proxy::do_ip_forwarding(worker, proxy_mode, &handshake).await?)
-            } else {
-                None
-            };
+            let proxy_data =
+                if let Some(crate::options::ProxyMode::Bungeecord) = worker.options().proxy_mode {
+                    Some(proxy::do_bungee_ip_forwarding(&handshake)?)
+                } else {
+                    None
+                };
             handle_login(worker, proxy_data).await
         }
     }
@@ -135,13 +136,18 @@ async fn handle_status(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
 
 async fn handle_login(
     worker: &mut Worker,
-    proxy_data: Option<ProxyData>,
+    mut proxy_data: Option<ProxyData>,
 ) -> anyhow::Result<InitialHandling> {
     let login_start = match worker.read::<ClientLoginPacket>().await? {
         ClientLoginPacket::LoginStart(l) => l,
         _ => bail!("expected login start"),
     };
     log::debug!("{} is logging in", login_start.name);
+
+    // Velocity IP forwarding runs after Login Start is received.
+    if let Some(crate::options::ProxyMode::Velocity) = worker.options().proxy_mode {
+        proxy_data = Some(proxy::do_velocity_ip_forwarding(worker).await?);
+    }
 
     if worker.options().online_mode {
         enable_encryption(worker, login_start.name).await
