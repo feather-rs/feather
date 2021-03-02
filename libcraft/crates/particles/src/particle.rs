@@ -1,7 +1,7 @@
-use serde::{Serialize, Deserialize};
 use libcraft_blocks::BlockState;
 use libcraft_items::Item;
 use ordinalizer::Ordinal;
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 #[repr(C)]
