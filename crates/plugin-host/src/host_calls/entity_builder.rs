@@ -15,7 +15,7 @@ pub fn entity_builder_new_empty(cx: &PluginContext) -> anyhow::Result<u32> {
     }
 
     Ok(id as u32)
-} 
+}
 
 #[host_function]
 pub fn entity_builder_new(

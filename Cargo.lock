@@ -767,7 +767,7 @@ dependencies = [
  "itertools 0.10.0",
  "log",
  "parking_lot",
- "quill-common 0.1.0 (git+https://github.com/feather-rs/quill?rev=b6def83)",
+ "quill-common 0.1.0 (git+https://github.com/feather-rs/quill?rev=d4da5b6)",
  "smartstring",
  "uuid",
 ]
@@ -890,7 +890,7 @@ dependencies = [
  "num-bigint 0.3.1",
  "once_cell",
  "parking_lot",
- "quill-common 0.1.0 (git+https://github.com/feather-rs/quill?rev=b6def83)",
+ "quill-common 0.1.0 (git+https://github.com/feather-rs/quill?rev=d4da5b6)",
  "rand 0.7.3",
  "ring",
  "rsa",
@@ -1944,11 +1944,12 @@ dependencies = [
 [[package]]
 name = "quill-common"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/quill?rev=d4da5b6#d4da5b6529b048da3eafa45d16fa189e89123f5e"
+source = "git+https://github.com/feather-rs/quill?rev=bf63d1a#bf63d1a71d38034a1b259b24ba1ae8a66ef4c5b8"
 dependencies = [
  "bincode",
  "bytemuck",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft)",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
+ "libcraft-particles",
  "serde",
  "smartstring",
  "uuid",
@@ -1957,12 +1958,11 @@ dependencies = [
 [[package]]
 name = "quill-common"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/quill?rev=bf63d1a#bf63d1a71d38034a1b259b24ba1ae8a66ef4c5b8"
+source = "git+https://github.com/feather-rs/quill?rev=d4da5b6#d4da5b6529b048da3eafa45d16fa189e89123f5e"
 dependencies = [
  "bincode",
  "bytemuck",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
- "libcraft-particles",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft)",
  "serde",
  "smartstring",
  "uuid",

@@ -1,4 +1,9 @@
-use std::{cell::{Cell, RefCell}, collections::VecDeque, io::Cursor, sync::Arc};
+use std::{
+    cell::{Cell, RefCell},
+    collections::VecDeque,
+    io::Cursor,
+    sync::Arc,
+};
 
 use ahash::AHashSet;
 use base::{
@@ -10,7 +15,7 @@ use common::{
     Window,
 };
 use flume::{Receiver, Sender};
-use packets::server::{SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation, Particle};
+use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use parking_lot::RwLock;
 use protocol::{
     packets::{
@@ -437,7 +442,7 @@ impl Client {
         });
     }
 
-    pub fn send_particle (&self, particle: &base::Particle, position: &Position) {
+    pub fn send_particle(&self, particle: &base::Particle, position: &Position) {
         self.send_packet(Particle {
             particle_kind: particle.kind,
             long_distance: true,
@@ -448,7 +453,7 @@ impl Client {
             offset_y: particle.offset_y,
             offset_z: particle.offset_z,
             particle_data: 0.0,
-            particle_count: particle.count
+            particle_count: particle.count,
         })
     }
 

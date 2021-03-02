@@ -1,7 +1,7 @@
 use std::num::ParseIntError;
 
 use anyhow::bail;
-use base::{Gamemode, ProfileProperty, ParticleKind, BlockState};
+use base::{BlockState, Gamemode, ParticleKind, ProfileProperty};
 
 use super::*;
 use crate::{io::VarLong, Readable, Writeable};
@@ -502,12 +502,17 @@ pub struct Particle {
     pub offset_y: f32,
     pub offset_z: f32,
     pub particle_data: f32,
-    pub particle_count: i32
+    pub particle_count: i32,
 }
 
 impl Readable for Particle {
-    fn read(buffer: &mut std::io::Cursor<&[u8]>, version: crate::ProtocolVersion) -> anyhow::Result<Self> where Self: Sized{
-        
+    fn read(
+        buffer: &mut std::io::Cursor<&[u8]>,
+        version: crate::ProtocolVersion,
+    ) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
         let id = i32::read(buffer, version)?;
         let particle_kind = ParticleKind::from_id(id as u32).unwrap();
         let long_distance = bool::read(buffer, version)?;
@@ -521,20 +526,25 @@ impl Readable for Particle {
         let particle_count = i32::read(buffer, version)?;
 
         match particle_kind {
-            ParticleKind::Dust{mut red, mut green, mut blue, mut scale, } => {
+            ParticleKind::Dust {
+                mut red,
+                mut green,
+                mut blue,
+                mut scale,
+            } => {
                 red = f32::read(buffer, version)?;
                 green = f32::read(buffer, version)?;
                 blue = f32::read(buffer, version)?;
                 scale = f32::read(buffer, version)?;
-            },
+            }
             ParticleKind::Block(mut block_state) => {
                 let state = VarInt::read(buffer, version)?;
                 block_state = BlockState::from_id(state.0 as u16).unwrap();
-            },
+            }
             ParticleKind::FallingDust(mut block_state) => {
                 let state = VarInt::read(buffer, version)?;
                 block_state = BlockState::from_id(state.0 as u16).unwrap();
-            },
+            }
             ParticleKind::Item(mut item) => {
                 let _slot = Slot::read(buffer, version)?;
                 item = None; // TODO: Use item from libcraft once fully moved
@@ -545,14 +555,14 @@ impl Readable for Particle {
         Ok(Particle {
             particle_kind,
             long_distance,
-            x, 
-            y, 
+            x,
+            y,
             z,
-            offset_x, 
-            offset_y, 
+            offset_x,
+            offset_y,
             offset_z,
-            particle_data, 
-            particle_count
+            particle_data,
+            particle_count,
         })
     }
 }
@@ -571,18 +581,23 @@ impl Writeable for Particle {
         self.particle_count.write(buffer, version);
 
         match self.particle_kind {
-            ParticleKind::Dust{red, green, blue, scale, } => {
+            ParticleKind::Dust {
+                red,
+                green,
+                blue,
+                scale,
+            } => {
                 red.write(buffer, version);
                 green.write(buffer, version);
                 blue.write(buffer, version);
                 scale.write(buffer, version);
-            },
+            }
             ParticleKind::Block(block_state) => {
                 VarInt(block_state.id() as i32).write(buffer, version);
-            },
+            }
             ParticleKind::FallingDust(block_state) => {
                 VarInt(block_state.id() as i32).write(buffer, version);
-            },
+            }
             ParticleKind::Item(_item) => {
                 todo![];
             }
