@@ -32,6 +32,17 @@ Note that entities in the ECS correspond either to Minecraft entities, like play
 or to internal entities like the "console entity." In general, you don't have to worry about
 this distinction.
 
+### Commonly used components
+
+This is a list of components that are frequently accessed throughout the codebase.
+* `Position`
+* `Gamemode` for players
+* `Name` - player's username (not for other entities)
+* `CustomName` - entity's custom name (not for players)
+* `Inventory`
+* `Window` - wraps one or more `Inventory`s that the player is looking at right now. In a chest,
+for example, a player's window would wrap the player inventory and the chest inventory.
+
 ### Crate Structure
 
 Feather is a complex codebase with multiple components. To improve modularity and reusability, we've
