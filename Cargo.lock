@@ -700,7 +700,7 @@ dependencies = [
  "feather-blocks",
  "feather-generated",
  "hematite-nbt",
- "libcraft-core",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft)",
  "nom",
  "nom_locate",
  "num-derive",
@@ -762,6 +762,7 @@ dependencies = [
  "feather-utils",
  "flume",
  "itertools 0.10.0",
+ "libcraft-core 0.1.0 (git+https://github.com/amberkowalski/libcraft.git?branch=amber-entity-interact)",
  "log",
  "parking_lot",
  "quill-common",
@@ -882,6 +883,7 @@ dependencies = [
  "flume",
  "futures-lite",
  "hematite-nbt",
+ "libcraft-core 0.1.0 (git+https://github.com/amberkowalski/libcraft.git?branch=amber-entity-interact)",
  "log",
  "md-5",
  "num-bigint 0.3.1",
@@ -1307,6 +1309,20 @@ name = "libc"
 version = "0.2.86"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7282d924be3275cec7f6756ff4121987bc6481325397dde6ba3e7802b1a8b1c"
+
+[[package]]
+name = "libcraft-core"
+version = "0.1.0"
+source = "git+https://github.com/amberkowalski/libcraft.git?branch=amber-entity-interact#39ca51dce4295b2f124172abd26ad42a61d83c73"
+dependencies = [
+ "bytemuck",
+ "num-derive",
+ "num-traits",
+ "serde",
+ "strum 0.20.0",
+ "strum_macros",
+ "vek",
+]
 
 [[package]]
 name = "libcraft-core"
@@ -1859,7 +1875,7 @@ source = "git+https://github.com/feather-rs/quill?rev=d4da5b6#d4da5b6529b048da3e
 dependencies = [
  "bincode",
  "bytemuck",
- "libcraft-core",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft)",
  "serde",
  "smartstring",
  "uuid",

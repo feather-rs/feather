@@ -19,3 +19,4 @@ quill-common = { git = "https://github.com/feather-rs/quill", rev = "d4da5b6" }
 smartstring = "0.2"
 utils = { path = "../utils", package = "feather-utils" }
 uuid = { version = "0.8", features = [ "v4" ] }
+libcraft-core = { git = "https://github.com/amberkowalski/libcraft.git", branch = "amber-entity-interact" }
