@@ -23,8 +23,12 @@ use sha1::Sha1;
 use std::convert::TryInto;
 use uuid::Uuid;
 
+use self::proxy::ProxyData;
+
 const SERVER_NAME: &str = "Feather 1.16.5";
 const PROTOCOL_VERSION: i32 = 754;
+
+mod proxy;
 
 /// Information for a newly connected player.
 #[derive(Debug)]
@@ -56,7 +60,14 @@ pub async fn handle(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
 
     match handshake.next_state {
         HandshakeState::Status => handle_status(worker).await,
-        HandshakeState::Login => handle_login(worker).await,
+        HandshakeState::Login => {
+            let proxy_data = if let Some(proxy_mode) = worker.options().proxy_mode {
+                Some(proxy::do_ip_forwarding(worker, proxy_mode, &handshake).await?)
+            } else {
+                None
+            };
+            handle_login(worker, proxy_data).await
+        }
     }
 }
 
@@ -122,7 +133,10 @@ async fn handle_status(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
     Ok(InitialHandling::Disconnect)
 }
 
-async fn handle_login(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
+async fn handle_login(
+    worker: &mut Worker,
+    proxy_data: Option<ProxyData>,
+) -> anyhow::Result<InitialHandling> {
     let login_start = match worker.read::<ClientLoginPacket>().await? {
         ClientLoginPacket::LoginStart(l) => l,
         _ => bail!("expected login start"),
@@ -132,7 +146,14 @@ async fn handle_login(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
     if worker.options().online_mode {
         enable_encryption(worker, login_start.name).await
     } else {
-        let profile = offline_mode_profile(login_start.name);
+        let profile = match proxy_data {
+            Some(proxy_data) => AuthResponse {
+                id: proxy_data.uuid,
+                name: login_start.name.clone(),
+                properties: proxy_data.profile,
+            },
+            None => offline_mode_profile(login_start.name),
+        };
         finish_login(worker, profile).await
     }
 }

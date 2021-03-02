@@ -40,7 +40,6 @@ generator = "default"
 # will be converted using a hash function.
 seed = ""
 
-# Unimplemented
 [proxy]
 # Select the IP forwarding mode that is used by proxies like BungeeCord or Velocity.
 # Valid values are

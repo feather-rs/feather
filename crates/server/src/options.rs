@@ -27,4 +27,13 @@ pub struct Options {
 
     /// The default gamemode for new players.
     pub default_gamemode: Gamemode,
+
+    /// Proxy IP forwarding mode
+    pub proxy_mode: Option<ProxyMode>,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum ProxyMode {
+    Bungeecord,
+    Velocity,
 }
