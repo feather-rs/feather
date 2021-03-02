@@ -1,8 +1,8 @@
+use bytemuck::{Pod, Zeroable};
 use libcraft_blocks::BlockState;
 use libcraft_items::Item;
-use bytemuck::{Pod, Zeroable};
-use serde::{Serialize, Deserialize};
 use ordinalizer::Ordinal;
+use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Pod, Zeroable)]
 #[repr(C)]
@@ -11,7 +11,7 @@ pub struct Particle {
     pub offset_x: f32,
     pub offset_y: f32,
     pub offset_z: f32,
-    pub count: i32
+    pub count: i32,
 }
 
 /// This is an enum over the kinds of particles
@@ -97,10 +97,10 @@ pub enum ParticleKind {
     CrimsonSpore,
     WarpedSpore,
     DrippingObsidianTear,
-    FallingObsidianTear ,
+    FallingObsidianTear,
     LandingObsidianTear,
     ReversePortal,
-    WhiteAsh
+    WhiteAsh,
 }
 
 #[allow(warnings)]
@@ -123,7 +123,7 @@ impl ParticleKind {
             ParticleKind::LandingLava => 11,
             ParticleKind::DrippingWater => 12,
             ParticleKind::FallingWater => 13,
-            ParticleKind::Dust{..} => 14,
+            ParticleKind::Dust { .. } => 14,
             ParticleKind::Effect => 15,
             ParticleKind::ElderGuardian => 16,
             ParticleKind::EnchantedHit => 17,
@@ -204,7 +204,12 @@ impl ParticleKind {
             11 => Some(ParticleKind::LandingLava),
             12 => Some(ParticleKind::DrippingWater),
             13 => Some(ParticleKind::FallingWater),
-            14 => Some(ParticleKind::Dust{red: 0.0, blue: 0.0, green: 0.0, scale: 0.0}),
+            14 => Some(ParticleKind::Dust {
+                red: 0.0,
+                blue: 0.0,
+                green: 0.0,
+                scale: 0.0,
+            }),
             15 => Some(ParticleKind::Effect),
             16 => Some(ParticleKind::ElderGuardian),
             17 => Some(ParticleKind::EnchantedHit),
@@ -287,7 +292,7 @@ impl ParticleKind {
             ParticleKind::LandingLava => "landing_lava",
             ParticleKind::DrippingWater => "dripping_water",
             ParticleKind::FallingWater => "falling_water",
-            ParticleKind::Dust{..} => "dust",
+            ParticleKind::Dust { .. } => "dust",
             ParticleKind::Effect => "effect",
             ParticleKind::ElderGuardian => "elder_guardian",
             ParticleKind::EnchantedHit => "enchanted_hit",
@@ -352,4 +357,3 @@ impl ParticleKind {
 unsafe impl Zeroable for ParticleKind {}
 
 unsafe impl Pod for ParticleKind {}
-
