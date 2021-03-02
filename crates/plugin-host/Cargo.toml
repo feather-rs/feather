@@ -1,31 +1,30 @@
 [package]
 name = "feather-plugin-host"
 version = "0.1.0"
-authors = ["caelunshun <caelunshun@gmail.com>"]
+authors = [ "caelunshun <caelunshun@gmail.com>" ]
 edition = "2018"
 
 [dependencies]
+ahash = "0.7"
+anyhow = "1"
+bincode = "1"
+bumpalo = "3"
+bytemuck = "1"
 feather-base = { path = "../base" }
 feather-common = { path = "../common" }
 feather-ecs = { path = "../ecs" }
 feather-plugin-host-macros = { path = "macros" }
-
+libloading = "0.7"
+log = "0.4"
+paste = "1"
 quill-common = { git = "https://github.com/feather-rs/quill", rev = "d4da5b6" }
 quill-plugin-format = { git = "https://github.com/feather-rs/quill", rev = "d4da5b6" }
-wasmer = { version = "1", default-features = false, features = ["jit"] }
-wasmer-wasi = { version = "1", default-features = false }
-libloading = "0.7"
-tempfile = "3"
-anyhow = "1"
-bumpalo = "3"
-bytemuck = "1"
-ahash = "0.7"
-log = "0.4"
-vec-arena = "1"
-bincode = "1"
 serde = "1"
-paste = "1"
+tempfile = "3"
+vec-arena = "1"
+wasmer = { version = "1", default-features = false, features = [ "jit" ] }
+wasmer-wasi = { version = "1", default-features = false }
 
 [features]
-llvm = ["wasmer/llvm"]
-cranelift = ["wasmer/cranelift"]
+llvm = [ "wasmer/llvm" ]
+cranelift = [ "wasmer/cranelift" ]
