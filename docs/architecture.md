@@ -1,10 +1,28 @@
 ### Architecture
 
 Feather uses the Entity-Component-System architecture, also known as ECS. This architecture
-is widely used in the Rust gamedev ecosystem. For more information, we recommend checking
-out:
-* the [`hecs`](https://docs.rs/hecs) documentation
-* the [Bevy documentation](https://bevyengine.org/learn/book/getting-started/ecs/)
+is widely used in the Rust gamedev ecosystem. 
+
+In the ECS architecture, there are three key types of objects:
+* Entities: these are just IDs. In Feather, these are represented by the `Entity` struct.
+They allow access to components.
+* Components: these represent entities' data. Each entity can have zero or one component of every type. For example, `Position`
+stores an entity position, and entities with the `Position` component have a position. You can access components
+via `Game.ecs.get::<T>()`, where `T` is the component you want.
+* Systems: functions that run each tick. While components are data, systems are logic. They operate on components.
+
+ECS implementations allow for _queries_ that allow iteration over all entities with a specific set of components.
+For example, to implement trivial physics:
+
+```rust
+for (entity, (position, velocity)) in game.ecs.query::<(&mut Position, &Velocity)>().iter() {
+    *position += *velocity;
+}
+```
+
+The above code snippet iterates over _all_ entities with `Position` and `Velocity` components.
+
+For more information on the ECS, we recommend checking out the [`hecs`](https://docs.rs/hecs) documentation.
 
 The Feather game state is defined in the `Game` struct, which lives in `crates/common/src/game.rs`.
 This struct contains the `World` (blocks) and the `Ecs` (entities). It also provides
@@ -75,9 +93,14 @@ the packet sending code. Add a method there to send the packet you need.
 It's not possible to send packets from the `feather-common` crate. Instead, you should
 trigger an event and handle it in `feather-server`. 
 
+### Sending packets to nearby players
+
+Some packets should be sent to all players that can see a given entity, or all
+players that can see a given block. Use `Server::broadcast_nearby_with` for this.
+
 ### Receiving packets
 
-Packets are hanlded in `crates/server/src/packet_handlers.rs`. Add the necessary match
+Packets are handled in `crates/server/src/packet_handlers.rs`. Add the necessary match
 arm and implement your packet handler.
 
 ### Further questions
