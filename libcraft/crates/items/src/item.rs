@@ -1,6 +1,7 @@
 // This file is @generated. Please do not edit.
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    serde::Serialize, serde::Deserialize, Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum Item {
     Air,
     Stone,

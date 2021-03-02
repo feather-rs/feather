@@ -21,7 +21,7 @@ for item in load_minecraft_json("items.json", "1.16.2"):
     else:
         durabilities[variant] = f"Some({durability})"
 
-output_data = generate_enum("Item", items)
+output_data = "#[derive(serde::Serialize, serde::Deserialize)]" + generate_enum("Item", items)
 output_data += generate_enum_property("Item", "id", "u32", ids, True)
 output_data += generate_enum_property("Item", "name", "&str", names, True, "&'static str")
 output_data += generate_enum_property("Item", "display_name", "&str", display_names, False, "&'static str")

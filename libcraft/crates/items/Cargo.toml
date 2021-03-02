@@ -5,3 +5,4 @@ authors = ["Kalle Kankaanpää"]
 edition = "2018"
 
 [dependencies]
+serde = { version = "1", features = ["derive"] }
