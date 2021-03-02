@@ -5,7 +5,10 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-libcraft-core = { git = "https://github.com/feather-rs/libcraft" }
+libcraft-core = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0"}
+libcraft-particles = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0" }
+libcraft-blocks = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0" }
+libcraft-items = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0"  }
 blocks = { path = "../blocks", package = "feather-blocks" }
 generated = { path = "../generated", package = "feather-generated" }
 
