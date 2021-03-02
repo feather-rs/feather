@@ -8,7 +8,7 @@ mod player_leave;
 mod tablist;
 pub mod view;
 
-use std::time::{Duration, Instant};
+use std::{sync::atomic::AtomicUsize, time::{Duration, Instant}};
 
 use common::Game;
 use ecs::{SysResult, SystemExecutor};
@@ -76,5 +76,13 @@ fn tick_clients(_game: &mut Game, server: &mut Server) -> SysResult {
     for client in server.clients.iter() {
         client.tick();
     }
+
+    static COUNTER: std::sync::atomic::AtomicUsize =AtomicUsize::new(0);
+    if COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst) >= 200 {
+        for client in server.clients.iter() {
+            client.disconnect("test");
+        }
+    }
+
     Ok(())
 }
