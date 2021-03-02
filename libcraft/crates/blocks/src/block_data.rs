@@ -1,4 +1,4 @@
-use crate::data::RawBlockStateProperties;
+use crate::data::{RawBlockStateProperties, ValidProperties};
 use libcraft_core::block::{
     AttachedFace, Axis, BambooLeaves, BedPart, BellAttachment, BlockFace, BlockHalf, ChestType,
     ComparatorMode, Instrument, Orientation, PistonType, RailShape, SlabType, StairShape,
@@ -13,7 +13,7 @@ use libcraft_macros::BlockData;
 /// This trait is internal; don't try implementing it for your
 /// own types.
 pub trait BlockData {
-    fn from_raw(raw: &RawBlockStateProperties) -> Option<Self>
+    fn from_raw(raw: &RawBlockStateProperties, valid: ValidProperties) -> Option<Self>
     where
         Self: Sized;
 
@@ -28,535 +28,550 @@ pub trait BlockData {
 /// Fire also has this property.
 #[derive(Debug, BlockData)]
 pub struct Ageable {
-    pub age: u8,
+    age: u8,
+    valid_properties: ValidProperties,
 }
 
 /// A block that can be powered with a redstone
 /// signal.
 #[derive(Debug, BlockData)]
 pub struct AnaloguePowerable {
-    /// Typically from 0 to 15, inclusive.
-    pub power: u8,
+    power: u8,
+    valid_properties: ValidProperties,
 }
 
-/// A block that has an "attached" property.
-///
-/// Updating the property will update tripwire
-/// hook texture to indicate it is connected to
-/// a string.
 #[derive(Debug, BlockData)]
 pub struct Attachable {
-    pub attached: bool,
+    attached: bool,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct Bisected {
-    pub half: BlockHalf,
+    half: BlockHalf,
+    valid_properties: ValidProperties,
 }
 
-/// Missing the implementation for retrieving the
-/// valid faces of the block.
 #[derive(Debug, BlockData)]
 pub struct Directional {
-    pub facing: BlockFace,
+    facing: BlockFace,
+    valid_properties: ValidProperties,
 }
 
 /// Represents the face to which a lever or
 /// button is stuck.
 #[derive(Debug, BlockData)]
 pub struct FaceAttachable {
-    pub attached_face: AttachedFace,
+    attached_face: AttachedFace,
+    valid_properties: ValidProperties,
 }
 
 /// Represents the fluid level contained
 /// within this block.
 #[derive(Debug, BlockData)]
 pub struct Levelled {
-    /// Should be from 1 to 15, inclusive.
-    pub level: u8,
+    level: u8,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct Lightable {
-    pub lit: bool,
+    lit: bool,
+    valid_properties: ValidProperties,
 }
 
-/// Differs a bit from the spigot version but
-/// can be used to set the faces
-///
-/// Missing a way
-/// Also as of now, no way to retrieve the
-/// "allowed faces"
 #[derive(Debug, BlockData)]
 pub struct MultipleFacing {
-    pub down: bool,
-    pub east: bool,
-    pub north: bool,
-    pub south: bool,
-    pub west: bool,
-    pub up: bool,
+    down: bool,
+    east: bool,
+    north: bool,
+    south: bool,
+    west: bool,
+    up: bool,
+    valid_properties: ValidProperties,
 }
 
 /// Denotes whether the block can be opened.
 #[derive(Debug, BlockData)]
 pub struct Openable {
-    pub open: bool,
+    open: bool,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct Orientable {
-    pub axis: Axis,
+    axis: Axis,
+    valid_properties: ValidProperties,
 }
 
 /// Indicates whether block is in powered state
 #[derive(Debug, BlockData)]
 pub struct Powerable {
-    pub powered: bool,
+    powered: bool,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct Rail {
-    pub rail_shape: RailShape,
+    rail_shape: RailShape,
+    valid_properties: ValidProperties,
 }
 
 /// Current rotation of the block
 #[derive(Debug, BlockData)]
 pub struct Rotatable {
-    pub rotation: BlockFace,
+    rotation: BlockFace,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct Snowable {
-    pub snowy: bool,
+    snowy: bool,
+    valid_properties: ValidProperties,
 }
 
 /// Whether the block has water in it
 #[derive(Debug, BlockData)]
 pub struct Waterlogged {
-    pub waterlogged: bool,
+    waterlogged: bool,
+    valid_properties: ValidProperties,
 }
 
 // Specific BlockData structs
 
-// Bamboo (Ageable, Sapling)
 #[derive(Debug, BlockData)]
 pub struct Bamboo {
-    pub age: u8,
-    pub stage: u8,
-    pub bamboo_leaves: BambooLeaves,
+    age: u8,
+    stage: u8,
+    bamboo_leaves: BambooLeaves,
+    valid_properties: ValidProperties,
 }
 
-// Bed (Directional)
 #[derive(Debug, BlockData)]
 pub struct Bed {
-    pub facing: BlockFace,
-    pub part: BedPart,
+    facing: BlockFace,
+    part: BedPart,
+    valid_properties: ValidProperties,
 }
 
-// Beehive (Directional)
 #[derive(Debug, BlockData)]
 pub struct Beehive {
-    pub facing: BlockFace,
-    pub honey_level: u8,
+    facing: BlockFace,
+    honey_level: u8,
+    valid_properties: ValidProperties,
 }
 
-// Bell (Directional, Powerable)
 #[derive(Debug, BlockData)]
 pub struct Bell {
-    pub facing: BlockFace,
-    pub powered: bool,
-    pub bell_attachment: BellAttachment,
+    facing: BlockFace,
+    powered: bool,
+    bell_attachment: BellAttachment,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct BrewingStand {
-    pub has_bottle_0: bool,
-    pub has_bottle_1: bool,
-    pub has_bottle_2: bool,
+    has_bottle_0: bool,
+    has_bottle_1: bool,
+    has_bottle_2: bool,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct BubbleColumn {
-    pub drag: u8,
+    drag: u8,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct Cake {
-    pub bites: u8,
+    bites: u8,
+    valid_properties: ValidProperties,
 }
 
-// Campfire (Directional, Lightable, Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct Campfire {
-    pub facing: BlockFace,
-    pub lit: bool,
-    pub waterlogged: bool,
-    pub signal_fire: bool,
+    facing: BlockFace,
+    lit: bool,
+    waterlogged: bool,
+    signal_fire: bool,
+    valid_properties: ValidProperties,
 }
 
-// Chain (Orientable, Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct Chain {
-    pub facing: BlockFace,
-    pub waterlogged: bool,
+    facing: BlockFace,
+    waterlogged: bool,
+    valid_properties: ValidProperties,
 }
 
-// Chest (Directional, Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct Chest {
-    pub facing: BlockFace,
-    pub waterlogged: bool,
-    pub chest_type: ChestType,
+    facing: BlockFace,
+    waterlogged: bool,
+    chest_type: ChestType,
+    valid_properties: ValidProperties,
 }
 
-// Cocoa (Ageable, Directional)
 #[derive(Debug, BlockData)]
 pub struct Cocoa {
-    pub age: u8,
-    pub facing: BlockFace,
+    age: u8,
+    facing: BlockFace,
+    valid_properties: ValidProperties,
 }
 
-// CommandBlock (Directional)
 #[derive(Debug, BlockData)]
 pub struct CommandBlock {
-    pub facing: BlockFace,
-    pub conditional: bool,
+    facing: BlockFace,
+    conditional: bool,
+    valid_properties: ValidProperties,
 }
 
-// Comparator (Directional, Powerable)
 #[derive(Debug, BlockData)]
 pub struct Comparator {
-    pub facing: BlockFace,
-    pub powered: bool,
-    pub comparator_mode: ComparatorMode,
+    facing: BlockFace,
+    powered: bool,
+    comparator_mode: ComparatorMode,
+    valid_properties: ValidProperties,
 }
 
-// CoralWallFan (Directional, Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct CoralWallFan {
-    pub facing: BlockFace,
-    pub waterlogged: bool,
+    facing: BlockFace,
+    waterlogged: bool,
+    valid_properties: ValidProperties,
 }
 
-// DaylightDetector (AnaloguePowerable)
 #[derive(Debug, BlockData)]
 pub struct DaylightDetector {
-    pub power: u8,
-    pub inverted: bool,
+    power: u8,
+    inverted: bool,
+    valid_properties: ValidProperties,
 }
 
-// Dispenser (Directional)
 #[derive(Debug, BlockData)]
 pub struct Dispenser {
-    pub facing: BlockFace,
-    pub triggered: bool,
+    facing: BlockFace,
+    triggered: bool,
+    valid_properties: ValidProperties,
 }
 
-// Door (Bisected, Directional, Openable, Powerable)
 #[derive(Debug, BlockData)]
 pub struct Door {
-    pub half: BlockHalf,
-    pub facing: BlockFace,
-    pub open: bool,
-    pub powered: bool,
+    half: BlockHalf,
+    facing: BlockFace,
+    open: bool,
+    powered: bool,
+    valid_properties: ValidProperties,
 }
 
-// EnderChest (Directional, Waterlogged)
-#[derive(Debug, BlockData)]
-pub struct EnderChest {
-    pub facing: BlockFace,
-    pub waterlogged: bool,
-}
-
-// EndPortalFrame (Directional)
 #[derive(Debug, BlockData)]
 pub struct EndPortalFrame {
-    pub facing: BlockFace,
-    pub eye: bool,
+    facing: BlockFace,
+    eye: bool,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct Farmland {
-    pub moisture: u8,
+    moisture: u8,
+    valid_properties: ValidProperties,
 }
 
-// Fence (MultipleFacing, Waterlogged)
-/// Still requires the MultipleFacing implementation
 #[derive(Debug, BlockData)]
 pub struct Fence {
-    pub waterlogged: bool,
+    waterlogged: bool,
+    down: bool,
+    east: bool,
+    north: bool,
+    south: bool,
+    west: bool,
+    up: bool,
+    valid_properties: ValidProperties,
 }
 
-// Fire (Ageable, MultipleFacing)
-/// Still requires the MultipleFacing implementation
-#[derive(Debug, BlockData)]
-pub struct Fire {
-    pub age: u8,
-}
-
-// Furnace (Directional, Lightable)
 #[derive(Debug, BlockData)]
 pub struct Furnace {
-    pub facing: BlockFace,
-    pub lit: bool,
+    facing: BlockFace,
+    lit: bool,
+    valid_properties: ValidProperties,
 }
 
-// Gate (Directional, Openable, Powerable)
 #[derive(Debug, BlockData)]
 pub struct Gate {
-    pub facing: BlockFace,
-    pub open: bool,
-    pub powered: bool,
-    pub in_wall: bool,
+    facing: BlockFace,
+    open: bool,
+    powered: bool,
+    in_wall: bool,
+    valid_properties: ValidProperties,
 }
 
-// GlassPane (MultipleFacing, Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct GlassPane {
-    pub facing: BlockFace,
-    pub waterlogged: bool,
+    facing: BlockFace,
+    waterlogged: bool,
+    down: bool,
+    east: bool,
+    north: bool,
+    south: bool,
+    west: bool,
+    up: bool,
+    valid_properties: ValidProperties,
 }
 
-// Grindstone (Directional, FaceAttachable)
 #[derive(Debug, BlockData)]
 pub struct Grindstone {
-    pub facing: BlockFace,
-    pub attached_face: AttachedFace,
+    facing: BlockFace,
+    attached_face: AttachedFace,
+    valid_properties: ValidProperties,
 }
 
-// Hopper (Directional)
 #[derive(Debug, BlockData)]
 pub struct Hopper {
-    pub facing: BlockFace,
-    pub enabled: bool,
+    facing: BlockFace,
+    enabled: bool,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct Jigsaw {
-    pub orientation: Orientation,
+    orientation: Orientation,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct JukeBox {
-    pub has_record: bool,
+    has_record: bool,
+    valid_properties: ValidProperties,
 }
 
-// Ladder (Directional, Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct Ladder {
-    pub facing: BlockFace,
-    pub waterlogged: bool,
+    facing: BlockFace,
+    waterlogged: bool,
+    valid_properties: ValidProperties,
 }
 
-// Lantern (Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct Lantern {
-    pub waterlogged: bool,
-    pub hanging: bool,
+    waterlogged: bool,
+    hanging: bool,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct Leaves {
-    pub distance: u8,
-    pub persistent: bool,
+    distance: u8,
+    persistent: bool,
+    valid_properties: ValidProperties,
 }
 
-// Lectern (Directional, Powerable)
 #[derive(Debug, BlockData)]
 pub struct Lectern {
-    pub facing: BlockFace,
-    pub powered: bool,
-    pub has_book: bool,
+    facing: BlockFace,
+    powered: bool,
+    has_book: bool,
+    valid_properties: ValidProperties,
 }
 
-// NoteBlock (Powerable)
 #[derive(Debug, BlockData)]
 pub struct NoteBlock {
-    pub powered: bool,
-    pub instrument: Instrument,
+    powered: bool,
+    instrument: Instrument,
+    valid_properties: ValidProperties,
 }
 
-// Observer (Directional, Powerable)
 #[derive(Debug, BlockData)]
 pub struct Observer {
-    pub facing: BlockFace,
-    pub powered: bool,
+    facing: BlockFace,
+    powered: bool,
+    valid_properties: ValidProperties,
 }
 
-// Piston (Directional)
 #[derive(Debug, BlockData)]
 pub struct Piston {
-    pub facing: BlockFace,
-    pub extended: bool,
+    facing: BlockFace,
+    extended: bool,
+    valid_properties: ValidProperties,
 }
 
-// PistonHead (TechnicalPiston)
 #[derive(Debug, BlockData)]
 pub struct PistonHead {
-    pub facing: BlockFace,
-    pub piston_type: PistonType,
-    pub short: bool,
+    facing: BlockFace,
+    piston_type: PistonType,
+    short: bool,
+    valid_properties: ValidProperties,
 }
 
-// RedstoneRail (Powerable, Rail)
 #[derive(Debug, BlockData)]
 pub struct RedstoneRail {
-    pub powered: bool,
-    pub rail_shape: RailShape,
+    powered: bool,
+    rail_shape: RailShape,
+    valid_properties: ValidProperties,
 }
 
-// RedstoneWallTorch (Directional, Lightable)
 #[derive(Debug, BlockData)]
 pub struct RedstoneWallTorch {
-    pub facing: BlockFace,
-    pub lit: bool,
+    facing: BlockFace,
+    lit: bool,
+    valid_properties: ValidProperties,
 }
 
-// RedstoneWire (AnaloguePowerable)
-/// MISSING FUNCTIONALITY
 #[derive(Debug, BlockData)]
 pub struct RedstoneWire {
-    pub power: u8,
-    pub north: bool,
-    pub east: bool,
-    pub south: bool,
-    pub west: bool,
+    power: u8,
+    north: bool,
+    east: bool,
+    south: bool,
+    west: bool,
+    valid_properties: ValidProperties,
 }
 
-// Repeater (Directional, Powerable)
+#[derive(Debug, BlockData)]
 pub struct Repeater {
-    pub facing: BlockFace,
-    pub powered: bool,
-    pub delay: u8,
+    facing: BlockFace,
+    powered: bool,
+    delay: u8,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct RespawnAnchor {
-    pub charges: u8,
+    charges: u8,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct Sapling {
-    pub stage: u8,
+    stage: u8,
+    valid_properties: ValidProperties,
 }
 
-// Scaffolding (Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct Scaffolding {
-    pub waterlogged: bool,
-    pub bottom: bool,
+    waterlogged: bool,
+    bottom: bool,
+    valid_properties: ValidProperties,
 }
 
-// SeaPickle (Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct SeaPickle {
-    pub waterlogged: bool,
-    pub pickles: u8,
+    waterlogged: bool,
+    pickles: u8,
+    valid_properties: ValidProperties,
 }
 
-// Sign (Rotatable, Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct Sign {
-    pub rotation: BlockFace,
-    pub waterlogged: bool,
+    rotation: BlockFace,
+    waterlogged: bool,
+    valid_properties: ValidProperties,
 }
 
-// Slab (Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct Slab {
-    pub waterlogged: bool,
-    pub slab_type: SlabType,
+    waterlogged: bool,
+    slab_type: SlabType,
+    valid_properties: ValidProperties,
 }
 
-/// Lacks the min and max values for snow
 #[derive(Debug, BlockData)]
 pub struct Snow {
-    pub layers: u8,
+    layers: u8,
+    valid_properties: ValidProperties,
 }
 
-// Stairs (Bisected, Directional, Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct Stairs {
-    pub half: BlockHalf,
-    pub facing: BlockFace,
-    pub waterlogged: bool,
-    pub stair_shape: StairShape,
+    half: BlockHalf,
+    facing: BlockFace,
+    waterlogged: bool,
+    stair_shape: StairShape,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct StructureBlock {
-    pub structure_block_mode: StructureBlockMode,
+    structure_block_mode: StructureBlockMode,
+    valid_properties: ValidProperties,
 }
 
-// Switch (Directional, FaceAttachable, Powerable)
 #[derive(Debug, BlockData)]
 pub struct Switch {
-    pub facing: BlockFace,
-    pub attached_face: AttachedFace,
-    pub powered: bool,
+    facing: BlockFace,
+    attached_face: AttachedFace,
+    powered: bool,
+    valid_properties: ValidProperties,
 }
 
-// TechnicalPiston (Directional)
 #[derive(Debug, BlockData)]
 pub struct TechnicalPiston {
-    pub facing: BlockFace,
-    pub piston_type: PistonType,
+    facing: BlockFace,
+    piston_type: PistonType,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct TNT {
-    pub unstable: bool,
+    unstable: bool,
+    valid_properties: ValidProperties,
 }
 
-// TrapDoor (Bisected, Directional, Openable, Powerable, Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct TrapDoor {
-    pub half: BlockHalf,
-    pub facing: BlockFace,
-    pub open: bool,
-    pub powered: bool,
-    pub waterlogged: bool,
+    half: BlockHalf,
+    facing: BlockFace,
+    open: bool,
+    powered: bool,
+    waterlogged: bool,
+    valid_properties: ValidProperties,
 }
 
-// Tripwire (Attachable, MultipleFacing, Powerable)
-/// MISSING MULTIPLEFACING
 #[derive(Debug, BlockData)]
 pub struct Tripwire {
-    pub attached: bool,
-    pub powered: bool,
-    pub disarmed: bool,
+    attached: bool,
+    powered: bool,
+    down: bool,
+    east: bool,
+    north: bool,
+    south: bool,
+    west: bool,
+    up: bool,
+    disarmed: bool,
+    valid_properties: ValidProperties,
 }
 
-// TripwireHook (Attachable, Directional, Powerable)
 #[derive(Debug, BlockData)]
 pub struct TripwireHook {
-    pub attached: bool,
-    pub facing: BlockFace,
-    pub powered: bool,
+    attached: bool,
+    facing: BlockFace,
+    powered: bool,
+    valid_properties: ValidProperties,
 }
 
 #[derive(Debug, BlockData)]
 pub struct TurtleEgg {
-    pub hatch: u8,
-    pub eggs: u8,
+    hatch: u8,
+    eggs: u8,
+    valid_properties: ValidProperties,
 }
 
-// Wall (Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct Wall {
-    pub waterlogged: bool,
-    pub wall_north: WallConnection,
-    pub wall_east: WallConnection,
-    pub wall_south: WallConnection,
-    pub wall_west: WallConnection,
-    pub wall_up: WallConnection,
+    waterlogged: bool,
+    wall_north: WallConnection,
+    wall_east: WallConnection,
+    wall_south: WallConnection,
+    wall_west: WallConnection,
+    wall_up: WallConnection,
+    valid_properties: ValidProperties,
 }
 
-// WallSign (Directional, Waterlogged)
 #[derive(Debug, BlockData)]
 pub struct WallSign {
-    pub facing: BlockFace,
-    pub waterlogged: bool,
+    facing: BlockFace,
+    waterlogged: bool,
+    valid_properties: ValidProperties,
 }
 
 // https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/data/BlockData.html
