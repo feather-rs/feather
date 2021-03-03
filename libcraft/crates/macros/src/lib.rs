@@ -68,7 +68,7 @@ fn impl_block_data(name: &Ident, fields: &Vec<Field>) -> TokenStream2 {
     let idents: Vec<Ident> = fields.iter().map(|f| f.to_owned().ident.unwrap()).collect();
     quote!(
         impl BlockData for #name {
-            fn from_raw(raw: &RawBlockStateProperties, valid: ValidProperties) -> Option<Self>
+            fn from_raw(raw: &RawBlockStateProperties, valid: &'static ValidProperties) -> Option<Self>
             where
                 Self: Sized,
             {
@@ -88,11 +88,10 @@ fn impl_getters_and_setters(name: &Ident, fields: &Vec<Field>) -> TokenStream2 {
         let field = field.to_owned();
         let ident = field.ident.unwrap();
         let ty = field.ty;
-        let get_ident = format_ident!("get_{}", ident);
         let set_ident = format_ident!("set_{}", ident);
         let valid_ident = format_ident!("valid_{}", ident);
         getters_setters.push(quote! {
-            pub fn #get_ident (&self) -> #ty {
+            pub fn #ident (&self) -> #ty {
                 self.#ident
             }
 
@@ -105,8 +104,8 @@ fn impl_getters_and_setters(name: &Ident, fields: &Vec<Field>) -> TokenStream2 {
                 }
             }
 
-            pub fn #valid_ident (&self) -> Vec<#ty> {
-                self.valid_properties.#ident.clone()
+            pub fn #valid_ident (&self) -> &[#ty] {
+                &self.valid_properties.#ident
             }
         })
     }

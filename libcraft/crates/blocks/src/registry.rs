@@ -35,10 +35,7 @@ impl BlockState {
     /// The returned `BlockData` is not linked with this `BlockState` instance.
     /// You need to call [`set_data`] to apply any changes made to the block data.
     pub fn data_as<T: BlockData>(self) -> Option<T> {
-        T::from_raw(
-            &self.raw().properties,
-            self.get_valid_properties().to_owned(),
-        )
+        T::from_raw(&self.raw().properties, self.get_valid_properties())
     }
 
     /// Applies the given `BlockData` to this block state.
@@ -80,7 +77,7 @@ impl BlockState {
         REGISTRY.raw_state(self.id).is_some()
     }
 
-    pub fn get_valid_properties(&self) -> &ValidProperties {
+    pub fn get_valid_properties(&self) -> &'static ValidProperties {
         REGISTRY.valid_properties.get(&self.raw().kind).unwrap()
     }
 
