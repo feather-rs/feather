@@ -7,7 +7,10 @@ use protocol::packets::client::{
     BlockFace, InteractEntity, InteractEntityKind, PlayerBlockPlacement, PlayerDigging,
     PlayerDiggingStatus,
 };
-use quill_common::events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent};
+use quill_common::{
+    events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent},
+    EntityId,
+};
 
 /// Handles the player block placement packet. Currently just removes the block client side for the player.
 pub fn handle_player_block_placement(
@@ -148,14 +151,14 @@ pub fn handle_interact_entity(
 
     let event = match packet.kind {
         InteractEntityKind::Attack => InteractEntityEvent {
-            target,
+            target: EntityId(target.id() as u64),
             ty: InteractionType::Attack,
             target_pos: None,
             hand: None,
             sneaking: packet.sneaking,
         },
         InteractEntityKind::Interact => InteractEntityEvent {
-            target,
+            target: EntityId(target.id() as u64),
             ty: InteractionType::Interact,
             target_pos: None,
             hand: None,
@@ -174,7 +177,7 @@ pub fn handle_interact_entity(
             };
 
             InteractEntityEvent {
-                target,
+                target: EntityId(target.id() as u64),
                 ty: InteractionType::Attack,
                 target_pos: Some(Vec3f::new(
                     target_x as f32,
