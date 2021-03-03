@@ -3,7 +3,6 @@
 mod biome;
 pub mod block;
 mod consts;
-mod enchantment;
 mod entity;
 mod gamemode;
 mod gamerules;
@@ -13,7 +12,6 @@ mod positions;
 
 pub use biome::Biome;
 pub use consts::*;
-pub use enchantment::{Enchantment, EnchantmentKind};
 pub use entity::EntityKind;
 pub use gamemode::Gamemode;
 pub use gamerules::GameRules;

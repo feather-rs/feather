@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 /// An enchantment attached to an item.
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Enchantment {
     #[serde(rename = "id")]
     kind: EnchantmentKind,
@@ -54,7 +54,7 @@ impl Enchantment {
 }
 
 /// Kind of an enchantment.
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum EnchantmentKind {
     AquaAffinity,
