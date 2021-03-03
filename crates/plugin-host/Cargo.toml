@@ -14,11 +14,12 @@ feather-base = { path = "../base" }
 feather-common = { path = "../common" }
 feather-ecs = { path = "../ecs" }
 feather-plugin-host-macros = { path = "macros" }
+
 libloading = "0.7"
 log = "0.4"
 paste = "1"
-quill-common = { git = "https://github.com/feather-rs/quill", rev = "d4da5b6" }
-quill-plugin-format = { git = "https://github.com/feather-rs/quill", rev = "d4da5b6" }
+quill-common = { git = "https://github.com/feather-rs/quill", rev = "bf63d1a" }
+quill-plugin-format = { git = "https://github.com/feather-rs/quill", rev = "bf63d1a" }
 serde = "1"
 tempfile = "3"
 vec-arena = "1"

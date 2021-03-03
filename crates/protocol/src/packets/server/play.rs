@@ -1,5 +1,5 @@
 use anyhow::bail;
-use base::{Gamemode, ProfileProperty};
+use base::{BlockState, Gamemode, ParticleKind, ProfileProperty};
 
 use super::*;
 use crate::{io::VarLong, Readable, Writeable};
@@ -350,21 +350,6 @@ packets! {
         data i32;
         disable_relative_volume bool;
     }
-
-    Particle {
-        particle_id i32;
-        long_distance bool;
-        x f64;
-        y f64;
-        z f64;
-        offset_x f32;
-        offset_y f32;
-        offset_z f32;
-        particle_data f32;
-        particle_count i32;
-        // TODO: remaining data varies depending on the particle
-        __todo__ LengthInferredVecU8;
-    }
 }
 
 packets! {
@@ -500,6 +485,121 @@ def_enum! {
             player_id VarInt;
             entity_id i32;
             message String;
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Particle {
+    pub particle_kind: ParticleKind,
+    pub long_distance: bool,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub offset_x: f32,
+    pub offset_y: f32,
+    pub offset_z: f32,
+    pub particle_data: f32,
+    pub particle_count: i32,
+}
+
+impl Readable for Particle {
+    fn read(
+        buffer: &mut std::io::Cursor<&[u8]>,
+        version: crate::ProtocolVersion,
+    ) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let id = i32::read(buffer, version)?;
+        let mut particle_kind = ParticleKind::from_id(id as u32).unwrap();
+        let long_distance = bool::read(buffer, version)?;
+        let x = f64::read(buffer, version)?;
+        let y = f64::read(buffer, version)?;
+        let z = f64::read(buffer, version)?;
+        let offset_x = f32::read(buffer, version)?;
+        let offset_y = f32::read(buffer, version)?;
+        let offset_z = f32::read(buffer, version)?;
+        let particle_data = f32::read(buffer, version)?;
+        let particle_count = i32::read(buffer, version)?;
+
+        match &mut particle_kind {
+            ParticleKind::Dust {
+                ref mut red,
+                ref mut green,
+                ref mut blue,
+                ref mut scale,
+            } => {
+                *red = f32::read(buffer, version)?;
+                *green = f32::read(buffer, version)?;
+                *blue = f32::read(buffer, version)?;
+                *scale = f32::read(buffer, version)?;
+            }
+            ParticleKind::Block(ref mut block_state) => {
+                let state = VarInt::read(buffer, version)?;
+                *block_state = BlockState::from_id(state.0 as u16).unwrap();
+            }
+            ParticleKind::FallingDust(ref mut block_state) => {
+                let state = VarInt::read(buffer, version)?;
+                *block_state = BlockState::from_id(state.0 as u16).unwrap();
+            }
+            ParticleKind::Item(ref mut item) => {
+                let _slot = Slot::read(buffer, version)?;
+                *item = None; // TODO: Use item from libcraft once fully moved
+            }
+            _ => {}
+        }
+
+        Ok(Particle {
+            particle_kind,
+            long_distance,
+            x,
+            y,
+            z,
+            offset_x,
+            offset_y,
+            offset_z,
+            particle_data,
+            particle_count,
+        })
+    }
+}
+
+impl Writeable for Particle {
+    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
+        self.particle_kind.id().write(buffer, version);
+        self.long_distance.write(buffer, version);
+        self.x.write(buffer, version);
+        self.y.write(buffer, version);
+        self.z.write(buffer, version);
+        self.offset_x.write(buffer, version);
+        self.offset_y.write(buffer, version);
+        self.offset_z.write(buffer, version);
+        self.particle_data.write(buffer, version);
+        self.particle_count.write(buffer, version);
+
+        match self.particle_kind {
+            ParticleKind::Dust {
+                red,
+                green,
+                blue,
+                scale,
+            } => {
+                red.write(buffer, version);
+                green.write(buffer, version);
+                blue.write(buffer, version);
+                scale.write(buffer, version);
+            }
+            ParticleKind::Block(block_state) => {
+                VarInt(block_state.id() as i32).write(buffer, version);
+            }
+            ParticleKind::FallingDust(block_state) => {
+                VarInt(block_state.id() as i32).write(buffer, version);
+            }
+            ParticleKind::Item(_item) => {
+                todo![];
+            }
+            _ => {}
         }
     }
 }

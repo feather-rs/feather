@@ -15,7 +15,7 @@ generated = { path = "../generated", package = "feather-generated" }
 itertools = "0.10"
 log = "0.4"
 parking_lot = "0.11"
-quill-common = { git = "https://github.com/feather-rs/quill", rev = "d4da5b6" }
+quill-common = { git = "https://github.com/feather-rs/quill", rev = "bf63d1a" }
 smartstring = "0.2"
 utils = { path = "../utils", package = "feather-utils" }
 uuid = { version = "0.8", features = [ "v4" ] }

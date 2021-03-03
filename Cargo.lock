@@ -700,7 +700,10 @@ dependencies = [
  "feather-blocks",
  "feather-generated",
  "hematite-nbt",
+ "libcraft-blocks",
  "libcraft-core",
+ "libcraft-items",
+ "libcraft-particles",
  "nom",
  "nom_locate",
  "num-derive",
@@ -1311,6 +1314,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "265d751d31d6780a3f956bb5b8022feba2d94eeee5a84ba64f4212eedca42213"
 
 [[package]]
+name = "libcraft-blocks"
+version = "0.1.0"
+source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
+dependencies = [
+ "ahash 0.7.1",
+ "bincode",
+ "bytemuck",
+ "flate2",
+ "libcraft-blocks-data",
+ "libcraft-core",
+ "libcraft-items",
+ "libcraft-macros",
+ "num-derive",
+ "num-traits",
+ "once_cell",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
+name = "libcraft-blocks-data"
+version = "0.1.0"
+source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
+dependencies = [
+ "libcraft-core",
+ "serde",
+]
+
+[[package]]
 name = "libcraft-core"
 version = "0.1.0"
 source = "git+https://github.com/feather-rs/libcraft#6d0e889b33e8e70f554b142c3cdecbe0ca9ef26e"
@@ -1322,6 +1354,37 @@ dependencies = [
  "strum 0.20.0",
  "strum_macros",
  "vek",
+]
+
+[[package]]
+name = "libcraft-items"
+version = "0.1.0"
+source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "libcraft-macros"
+version = "0.1.0"
+source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "libcraft-particles"
+version = "0.1.0"
+source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
+dependencies = [
+ "bytemuck",
+ "libcraft-blocks",
+ "libcraft-items",
+ "num-derive",
+ "num-traits",
+ "ordinalizer",
+ "serde",
 ]
 
 [[package]]
@@ -1662,6 +1725,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
+name = "ordinalizer"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f631c9219be3de11edcff6a906b344dcab3e927e13506a366ddaa8ec49ad7c41"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "parking"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1857,11 +1932,12 @@ dependencies = [
 [[package]]
 name = "quill-common"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/quill?rev=d4da5b6#d4da5b6529b048da3eafa45d16fa189e89123f5e"
+source = "git+https://github.com/feather-rs/quill?rev=bf63d1a#bf63d1a71d38034a1b259b24ba1ae8a66ef4c5b8"
 dependencies = [
  "bincode",
  "bytemuck",
  "libcraft-core",
+ "libcraft-particles",
  "serde",
  "smartstring",
  "uuid",
@@ -1870,7 +1946,7 @@ dependencies = [
 [[package]]
 name = "quill-plugin-format"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/quill?rev=d4da5b6#d4da5b6529b048da3eafa45d16fa189e89123f5e"
+source = "git+https://github.com/feather-rs/quill?rev=bf63d1a#bf63d1a71d38034a1b259b24ba1ae8a66ef4c5b8"
 dependencies = [
  "anyhow",
  "flate2",

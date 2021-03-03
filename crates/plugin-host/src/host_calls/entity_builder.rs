@@ -6,6 +6,18 @@ use quill_common::{component::ComponentVisitor, HostComponent};
 use crate::context::{PluginContext, PluginPtr};
 
 #[host_function]
+pub fn entity_builder_new_empty(cx: &PluginContext) -> anyhow::Result<u32> {
+    let builder = cx.game_mut().create_empty_entity_builder();
+    let id = cx.entity_builders.borrow_mut().insert(builder);
+
+    if id > u32::MAX as usize {
+        bail!("created too many entity builders!");
+    }
+
+    Ok(id as u32)
+}
+
+#[host_function]
 pub fn entity_builder_new(
     cx: &PluginContext,
     position: PluginPtr<Position>,

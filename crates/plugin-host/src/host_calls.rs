@@ -55,6 +55,7 @@ host_calls! {
     "register_system" => register_system,
     "entity_get_component" => entity_get_component,
     "entity_set_component" => entity_set_component,
+    "entity_builder_new_empty" => entity_builder_new_empty,
     "entity_builder_new" => entity_builder_new,
     "entity_builder_add_component" => entity_builder_add_component,
     "entity_builder_finish" => entity_builder_finish,
