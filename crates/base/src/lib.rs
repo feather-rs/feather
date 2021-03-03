@@ -18,8 +18,10 @@ mod world;
 
 pub use blocks::*;
 pub use chunk::{Chunk, ChunkSection, CHUNK_HEIGHT, CHUNK_WIDTH};
-pub use generated::{Area, Biome, EntityKind, Inventory, Item, ItemStack, Particle};
+pub use generated::{Area, Biome, EntityKind, Inventory, Item, ItemStack};
+pub use libcraft_blocks::{BlockKind, BlockState};
 pub use libcraft_core::{position, vec3, BlockPosition, ChunkPosition, Gamemode, Position, Vec3d};
+pub use libcraft_particles::{Particle, ParticleKind};
 #[doc(inline)]
 pub use metadata::EntityMetadata;
 pub use text::{deserialize_text, Text};
@@ -45,7 +47,7 @@ pub enum Direction {
 /// A profile property, which stores metadata
 /// for some player's account. This is usually
 /// used to store skin data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ProfileProperty {
     pub name: String,
     pub value: String,

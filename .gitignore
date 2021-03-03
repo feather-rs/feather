@@ -13,3 +13,5 @@ world/
 feather.toml
 
 **/__pycache__/
+
+.DS_STORE

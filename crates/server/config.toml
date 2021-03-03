@@ -40,11 +40,14 @@ generator = "default"
 # will be converted using a hash function.
 seed = ""
 
-# Unimplemented
 [proxy]
 # Select the IP forwarding mode that is used by proxies like BungeeCord or Velocity.
 # Valid values are
 # - "none" - for usage without a proxy
 # - "bungee" - for BungeeCord/Waterfall/Travertine
-# - "velocity" - for Velocity style proxies (unimplemented)
+# - "velocity" - for Velocity style proxies
 proxy_mode = "none"
+
+# For Velocity, you must specify the forwarding-secret from Velocity's
+# velocity.toml file.
+velocity_secret = ""

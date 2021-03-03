@@ -1,7 +1,12 @@
 use base::{Position, Text};
 use common::{chat::ChatKind, Game};
 use ecs::{Entity, EntityRef, SysResult};
-use interaction::{handle_held_item_change, handle_player_block_placement, handle_player_digging};
+use interaction::{
+    handle_held_item_change,
+    handle_interact_entity,
+    handle_player_block_placement,
+    handle_player_digging,
+};
 use protocol::{
     packets::{
         client,
@@ -57,6 +62,9 @@ pub fn handle_packet(
         }
 
         ClientPlayPacket::HeldItemChange(packet) => handle_held_item_change(player, packet),
+        ClientPlayPacket::InteractEntity(packet) => {
+            handle_interact_entity(game, server, packet, player_id)
+        }
 
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
@@ -70,7 +78,6 @@ pub fn handle_packet(
         | ClientPlayPacket::PluginMessage(_)
         | ClientPlayPacket::EditBook(_)
         | ClientPlayPacket::QueryEntityNbt(_)
-        | ClientPlayPacket::InteractEntity(_)
         | ClientPlayPacket::GenerateStructure(_)
         | ClientPlayPacket::KeepAlive(_)
         | ClientPlayPacket::LockDifficulty(_)
