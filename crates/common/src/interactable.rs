@@ -53,10 +53,7 @@ impl InteractableRegistry {
     }
 
     pub fn is_registered(&self, block: BlockKind) -> bool {
-        match self.registry.get(&block) {
-            Some(_) => true,
-            None => false,
-        }
+        self.registry.get(&block).is_some()
     }
 }
 

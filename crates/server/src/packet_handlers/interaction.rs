@@ -21,7 +21,18 @@ pub fn handle_player_block_placement(
     let hand = match packet.hand {
         0 => Hand::Main,
         1 => Hand::Offhand,
-        _ => unreachable!(),
+        _ => {
+            let client_id = game.ecs.get::<ClientId>(player).unwrap();
+
+            let client = _server.clients.get(*client_id).unwrap();
+
+            client.disconnect("Malformed Packet!");
+
+            anyhow::bail!(
+                "Player sent a malformed `PlayerBlockPlacement` packet. {:?}",
+                packet
+            )
+        }
     };
 
     let face = match packet.face {
@@ -39,7 +50,24 @@ pub fn handle_player_block_placement(
         packet.cursor_position_z,
     );
 
-    let block_kind = { game.block(packet.position).unwrap().kind() };
+    let block_kind = {
+        let result = game.block(packet.position);
+        match result {
+            Some(block) => block.kind(),
+            None => {
+                let client_id = game.ecs.get::<ClientId>(player).unwrap();
+
+                let client = _server.clients.get(*client_id).unwrap();
+
+                client.disconnect("Attempted to interact with an unloaded block!");
+
+                anyhow::bail!(
+                    "Player attempted to interact with an unloaded block. {:?}",
+                    packet
+                )
+            }
+        }
+    };
 
     let interactable_registry = game
         .resources
