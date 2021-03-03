@@ -23,7 +23,7 @@ pub use libcraft_core::{
 pub use libcraft_particles::{Particle, ParticleKind};
 
 #[doc(inline)]
-pub use quill_common::{components, entity_init::EntityInit, Component};
+pub use quill_common::{components, entity_init::EntityInit, events, Component};
 #[doc(inline)]
 pub use uuid::Uuid;
 

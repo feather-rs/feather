@@ -7,6 +7,7 @@ pub mod components;
 pub mod entities;
 pub mod entity;
 pub mod entity_init;
+pub mod events;
 
 use std::marker::PhantomData;
 

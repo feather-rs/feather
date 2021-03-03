@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 use crate::components::*;
 use crate::entities::*;
+use crate::events::*;
 
 /// Used to convert dynamic `HostComponent`s to
 /// statically-typed generic `T`s.
@@ -180,6 +181,9 @@ host_component_enum! {
         Name = 1003,
         CustomName = 1004,
         Particle = 1005,
+        InteractEntityEvent = 1006,
+        BlockPlacementEvent = 1007,
+        BlockInteractEvent = 1008
     }
 }
 
@@ -329,3 +333,6 @@ macro_rules! bincode_component_impl {
 bincode_component_impl!(Gamemode);
 bincode_component_impl!(Uuid);
 bincode_component_impl!(Particle);
+bincode_component_impl!(InteractEntityEvent);
+bincode_component_impl!(BlockPlacementEvent);
+bincode_component_impl!(BlockInteractEvent);

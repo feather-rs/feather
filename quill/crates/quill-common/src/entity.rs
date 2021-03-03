@@ -1,8 +1,9 @@
 use bytemuck::{Pod, Zeroable};
+use serde::{Deserialize, Serialize};
 
 use crate::PointerMut;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Zeroable, Pod)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Zeroable, Pod, Serialize, Deserialize)]
 #[repr(transparent)]
 pub struct EntityId(pub u64);
 
