@@ -420,3 +420,13 @@ impl From<BlockPosition> for ChunkPosition {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum BlockFace {
+    Bottom,
+    Top,
+    North,
+    South,
+    West,
+    East,
+}
