@@ -33,11 +33,14 @@ pub use chat::ChatBox;
 
 pub mod entities;
 
+pub mod interactable;
+
 /// Registers gameplay systems with the given `Game` and `SystemExecutor`.
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
     view::register(game, systems);
     chunk_loading::register(game, systems);
     chunk_entities::register(systems);
+    interactable::register(game);
 
     game.add_entity_spawn_callback(entities::add_entity_components);
 }

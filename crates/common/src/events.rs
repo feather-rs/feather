@@ -10,7 +10,7 @@ mod block_interact;
 mod interact_entity;
 
 pub use block_change::BlockChangeEvent;
-pub use block_interact::BlockInteractEvent;
+pub use block_interact::{BlockInteractEvent, BlockPlacementEvent};
 pub use interact_entity::InteractEntityEvent;
 
 /// Triggered when a player joins the `Game`.

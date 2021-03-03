@@ -1,6 +1,9 @@
 use crate::{ClientId, NetworkId, Server};
-use common::events::{BlockPlacementEvent, InteractEntityEvent};
 use common::Game;
+use common::{
+    events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent},
+    interactable::InteractableRegistry,
+};
 use ecs::{Entity, SysResult};
 use libcraft_core::{InteractBlockFace, InteractHand, InteractionType, Vec3f};
 use protocol::packets::client::{
@@ -36,15 +39,36 @@ pub fn handle_player_block_placement(
         packet.cursor_position_z,
     );
 
-    let event = BlockPlacementEvent {
-        hand,
-        location: packet.position,
-        face,
-        cursor_position,
-        inside_block: packet.inside_block,
-    };
+    let block_kind = { game.block(packet.position).unwrap().kind() };
 
-    game.ecs.insert_entity_event(player, event)?;
+    let interactable_registry = game
+        .resources
+        .get::<InteractableRegistry>()
+        .expect("Failed to get the interactable registry");
+
+    if interactable_registry.is_registered(block_kind) {
+        // Handle this as a block interaction
+        let event = BlockInteractEvent {
+            hand,
+            location: packet.position,
+            face,
+            cursor_position,
+            inside_block: packet.inside_block,
+        };
+
+        game.ecs.insert_entity_event(player, event)?;
+    } else {
+        // Handle this as a block placement
+        let event = BlockPlacementEvent {
+            hand,
+            location: packet.position,
+            face,
+            cursor_position,
+            inside_block: packet.inside_block,
+        };
+
+        game.ecs.insert_entity_event(player, event)?;
+    }
 
     Ok(())
 }
