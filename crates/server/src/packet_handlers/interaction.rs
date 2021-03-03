@@ -66,7 +66,18 @@ pub fn handle_interact_entity(
             }
         }
 
-        found_entity.expect("Invalid entity")
+        match found_entity {
+            None => {
+                let client_id = game.ecs.get::<ClientId>(player).unwrap();
+
+                let client = _server.clients.get(*client_id).unwrap();
+
+                client.disconnect("Interacted with an invalid entity!");
+
+                anyhow::bail!("Player attempted to interact with an invalid entity.")
+            }
+            Some(entity) => entity,
+        }
     };
 
     let event = match packet.kind {
