@@ -701,7 +701,7 @@ dependencies = [
  "feather-generated",
  "hematite-nbt",
  "libcraft-blocks",
- "libcraft-core",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
  "libcraft-items",
  "libcraft-particles",
  "nom",
@@ -765,7 +765,7 @@ dependencies = [
  "feather-utils",
  "flume",
  "itertools 0.10.0",
- "libcraft-core",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft)",
  "log",
  "parking_lot",
  "quill-common",
@@ -886,7 +886,7 @@ dependencies = [
  "flume",
  "futures-lite",
  "hematite-nbt",
- "libcraft-core",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft)",
  "log",
  "md-5",
  "num-bigint 0.3.1",
@@ -1318,12 +1318,12 @@ name = "libcraft-blocks"
 version = "0.1.0"
 source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
 dependencies = [
- "ahash 0.7.1",
+ "ahash 0.7.2",
  "bincode",
  "bytemuck",
  "flate2",
  "libcraft-blocks-data",
- "libcraft-core",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
  "libcraft-items",
  "libcraft-macros",
  "num-derive",
@@ -1338,8 +1338,22 @@ name = "libcraft-blocks-data"
 version = "0.1.0"
 source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
 dependencies = [
- "libcraft-core",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
  "serde",
+]
+
+[[package]]
+name = "libcraft-core"
+version = "0.1.0"
+source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
+dependencies = [
+ "bytemuck",
+ "num-derive",
+ "num-traits",
+ "serde",
+ "strum 0.20.0",
+ "strum_macros",
+ "vek",
 ]
 
 [[package]]
@@ -1936,7 +1950,7 @@ source = "git+https://github.com/feather-rs/quill?rev=bf63d1a#bf63d1a71d38034a1b
 dependencies = [
  "bincode",
  "bytemuck",
- "libcraft-core",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
  "libcraft-particles",
  "serde",
  "smartstring",
