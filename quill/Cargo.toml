@@ -1,0 +1,15 @@
+[workspace]
+members = [
+    "crates/quill-common",
+    "crates/quill-sys-macros",
+    "crates/quill-sys",
+    "crates/quill",
+    "crates/quill-plugin-format",
+    "crates/cargo-quill",
+
+    "example-plugins/simple",
+    "example-plugins/query-entities",
+    "example-plugins/block-access",
+    "example-plugins/particle-example",
+    "example-plugins/block-place"
+]
