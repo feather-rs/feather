@@ -2,14 +2,14 @@ use std::{io::Write, sync::Arc};
 
 use anyhow::Context;
 use libloading::Library;
-use tempfile::NamedTempFile;
+use tempfile::{NamedTempFile, TempPath};
 
 use crate::context::{PluginContext, PluginPtrMut};
 
 /// A native plugin loaded from a shared library
 pub struct NativePlugin {
-    /// The tempfile containing the plugin shared library.
-    tempfile: NamedTempFile,
+    /// The tempfile containing the shared library.
+    tempfile: TempPath,
 
     /// The plugin's shared library.
     library: Library,
@@ -36,13 +36,13 @@ impl NativePlugin {
         let mut tempfile = NamedTempFile::new()?;
         tempfile.write_all(module)?;
         tempfile.flush()?;
-        let path = tempfile.path();
+        let path = tempfile.into_temp_path();
 
         // SAFETY: Library::new() is unsafe because
         // the loaded module can execute arbitrary
         // code. Since native plugins are trusted,
         // this is sound.
-        let library = unsafe { Library::new(path)? };
+        let library = unsafe { Library::new(&path)? };
 
         // SAFETY: these functions will not be accessed after the plugin is unloaded.
         let enable = unsafe {
@@ -57,7 +57,7 @@ impl NativePlugin {
         };
 
         Ok(Self {
-            tempfile,
+            tempfile: path,
             library,
             enable,
             run_system,
