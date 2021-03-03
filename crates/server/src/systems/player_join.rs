@@ -35,7 +35,6 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     let window = Window::new(BackingWindow::Player {
         player: inventory.new_handle(),
     });
-    let slot = HotbarSlot(0);
 
     client.send_window_items(&window);
 
@@ -53,7 +52,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .add(ChatBox::new(ChatPreference::All))
         .add(inventory)
         .add(window)
-        .add(slot);
+        .add(HotbarSlot::default());
 
     game.spawn_entity(builder);
 

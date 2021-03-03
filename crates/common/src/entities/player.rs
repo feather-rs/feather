@@ -1,5 +1,6 @@
+use anyhow::bail;
 use base::EntityKind;
-use ecs::EntityBuilder;
+use ecs::{EntityBuilder, SysResult};
 use quill_common::entities::Player;
 
 pub fn build_default(builder: &mut EntityBuilder) {
@@ -9,4 +10,27 @@ pub fn build_default(builder: &mut EntityBuilder) {
 
 /// The hotbar slot a player's cursor is currently on
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub struct HotbarSlot(pub usize);
+pub struct HotbarSlot(usize);
+
+impl HotbarSlot {
+    pub fn new(id: usize) -> Self {
+        Self(id)
+    }
+
+    pub fn default() -> Self {
+        Self(0)
+    }
+
+    pub fn get(&self) -> usize {
+        self.0
+    }
+
+    pub fn set(&mut self, id: usize) -> SysResult {
+        if id > 8 {
+            bail!("invalid hotbar slot id");
+        }
+
+        self.0 = id;
+        Ok(())
+    }
+}

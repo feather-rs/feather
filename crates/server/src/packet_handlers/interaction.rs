@@ -50,17 +50,12 @@ pub fn handle_player_digging(game: &mut Game, packet: PlayerDigging, _player: En
 }
 
 pub fn handle_held_item_change(player: EntityRef, packet: HeldItemChange) -> SysResult {
-    let new_slot = packet.slot as usize;
-
-    if new_slot > 8 {
-        bail!("invalid hotbar slot id");
-    }
-
+    let new_id = packet.slot as usize;
     let mut slot = player.get_mut::<HotbarSlot>()?;
 
-    log::trace!("Got player slot change from {} to {}", slot.0, new_slot);
+    log::trace!("Got player slot change from {} to {}", slot.get(), new_id);
 
-    slot.0 = new_slot;
+    slot.set(new_id)?;
     Ok(())
 }
 
@@ -74,13 +69,16 @@ mod tests {
     #[test]
     fn held_item_change() {
         let mut game = Game::new();
-        let entity = game.ecs.spawn((HotbarSlot(0),));
+        let entity = game.ecs.spawn((HotbarSlot::new(0),));
         let player = game.ecs.entity(entity).unwrap();
 
         let packet = HeldItemChange { slot: 8 };
 
         handle_held_item_change(player, packet).unwrap();
 
-        assert_eq!(*game.ecs.get::<HotbarSlot>(entity).unwrap(), HotbarSlot(8));
+        assert_eq!(
+            *game.ecs.get::<HotbarSlot>(entity).unwrap(),
+            HotbarSlot::new(8)
+        );
     }
 }
