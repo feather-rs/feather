@@ -53,7 +53,7 @@ pub fn handle_packet(
         }
 
         ClientPlayPacket::PlayerBlockPlacement(packet) => {
-            handle_player_block_placement(game, server, packet, player)
+            handle_player_block_placement(game, server, packet, player_id)
         }
 
         ClientPlayPacket::InteractEntity(packet) => {

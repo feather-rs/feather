@@ -701,7 +701,7 @@ dependencies = [
  "feather-generated",
  "hematite-nbt",
  "libcraft-blocks",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
+ "libcraft-core 0.1.0 (git+https://github.com/amberkowalski/libcraft.git?branch=amber-block-interact)",
  "libcraft-items",
  "libcraft-particles",
  "nom",
@@ -765,7 +765,7 @@ dependencies = [
  "feather-utils",
  "flume",
  "itertools 0.10.0",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft)",
+ "libcraft-core 0.1.0 (git+https://github.com/amberkowalski/libcraft.git?branch=amber-block-interact)",
  "log",
  "parking_lot",
  "quill-common",
@@ -886,7 +886,7 @@ dependencies = [
  "flume",
  "futures-lite",
  "hematite-nbt",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft)",
+ "libcraft-core 0.1.0 (git+https://github.com/amberkowalski/libcraft.git?branch=amber-block-interact)",
  "log",
  "md-5",
  "num-bigint 0.3.1",
@@ -1345,7 +1345,7 @@ dependencies = [
 [[package]]
 name = "libcraft-core"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
+source = "git+https://github.com/amberkowalski/libcraft.git?branch=amber-block-interact#0b7b2d6954dec30a6037749a0556c8faf257da6d"
 dependencies = [
  "bytemuck",
  "num-derive",
@@ -1359,7 +1359,7 @@ dependencies = [
 [[package]]
 name = "libcraft-core"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft#6d0e889b33e8e70f554b142c3cdecbe0ca9ef26e"
+source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
 dependencies = [
  "bytemuck",
  "num-derive",

@@ -1,8 +1,8 @@
 use crate::{ClientId, NetworkId, Server};
-use common::events::InteractEntityEvent;
+use common::events::{BlockPlacementEvent, InteractEntityEvent};
 use common::Game;
-use ecs::{Entity, EntityRef, SysResult};
-use libcraft_core::{InteractHand, InteractionType, Vec3f};
+use ecs::{Entity, SysResult};
+use libcraft_core::{InteractBlockFace, InteractHand, InteractionType, Vec3f};
 use protocol::packets::client::{
     BlockFace, InteractEntity, InteractEntityKind, PlayerBlockPlacement, PlayerDigging,
     PlayerDiggingStatus,
@@ -10,26 +10,42 @@ use protocol::packets::client::{
 
 /// Handles the player block placement packet. Currently just removes the block client side for the player.
 pub fn handle_player_block_placement(
-    game: &Game,
-    server: &mut Server,
+    game: &mut Game,
+    _server: &mut Server,
     packet: PlayerBlockPlacement,
-    player: EntityRef,
+    player: Entity,
 ) -> SysResult {
-    let position = match packet.face {
-        BlockFace::Bottom => packet.position.down(),
-        BlockFace::Top => packet.position.up(),
-        BlockFace::North => packet.position.north(),
-        BlockFace::South => packet.position.south(),
-        BlockFace::West => packet.position.west(),
-        BlockFace::East => packet.position.east(),
+    let hand = match packet.hand {
+        0 => InteractHand::Main,
+        1 => InteractHand::Offhand,
+        _ => unreachable!(),
     };
 
-    log::trace!("Got player block placement at {:?}", position);
+    let face = match packet.face {
+        BlockFace::North => InteractBlockFace::North,
+        BlockFace::South => InteractBlockFace::South,
+        BlockFace::East => InteractBlockFace::East,
+        BlockFace::West => InteractBlockFace::West,
+        BlockFace::Top => InteractBlockFace::Top,
+        BlockFace::Bottom => InteractBlockFace::Bottom,
+    };
 
-    let client = server.clients.get(*player.get::<ClientId>()?).unwrap();
-    let block_id = game.block(position).unwrap_or_default();
+    let cursor_position = Vec3f::new(
+        packet.cursor_position_x,
+        packet.cursor_position_y,
+        packet.cursor_position_z,
+    );
 
-    client.send_block_change(position, block_id);
+    let event = BlockPlacementEvent {
+        hand,
+        location: packet.position,
+        face,
+        cursor_position,
+        inside_block: packet.inside_block,
+    };
+
+    game.ecs.insert_entity_event(player, event)?;
+
     Ok(())
 }
 
