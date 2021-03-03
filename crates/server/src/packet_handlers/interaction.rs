@@ -1,5 +1,4 @@
 use crate::{ClientId, Server};
-use anyhow::bail;
 use common::{entities::player::HotbarSlot, Game};
 use ecs::{Entity, EntityRef, SysResult};
 use protocol::packets::client::{
