@@ -421,7 +421,7 @@ impl From<BlockPosition> for ChunkPosition {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum BlockFace {
     Bottom,
     Top,
