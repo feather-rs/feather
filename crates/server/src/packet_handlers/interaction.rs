@@ -1,11 +1,12 @@
 use crate::{ClientId, NetworkId, Server};
+use common::{entities::player::HotbarSlot, Game};
 use common::events::InteractEntityEvent;
-use common::Game;
 use ecs::{Entity, EntityRef, SysResult};
 use libcraft_core::{InteractHand, InteractionType, Vec3f};
 use protocol::packets::client::{
-    BlockFace, InteractEntity, InteractEntityKind, PlayerBlockPlacement, PlayerDigging,
-    PlayerDiggingStatus,
+    BlockFace, HeldItemChange,
+    InteractEntity, InteractEntityKind, PlayerBlockPlacement,
+    PlayerDigging, PlayerDiggingStatus,
 };
 
 /// Handles the player block placement packet. Currently just removes the block client side for the player.
@@ -124,4 +125,38 @@ pub fn handle_interact_entity(
     game.ecs.insert_entity_event(player, event)?;
 
     Ok(())
+}
+
+pub fn handle_held_item_change(player: EntityRef, packet: HeldItemChange) -> SysResult {
+    let new_id = packet.slot as usize;
+    let mut slot = player.get_mut::<HotbarSlot>()?;
+
+    log::trace!("Got player slot change from {} to {}", slot.get(), new_id);
+
+    slot.set(new_id)?;
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use common::Game;
+    use protocol::packets::client::HeldItemChange;
+
+    use super::*;
+
+    #[test]
+    fn held_item_change() {
+        let mut game = Game::new();
+        let entity = game.ecs.spawn((HotbarSlot::new(0),));
+        let player = game.ecs.entity(entity).unwrap();
+
+        let packet = HeldItemChange { slot: 8 };
+
+        handle_held_item_change(player, packet).unwrap();
+
+        assert_eq!(
+            *game.ecs.get::<HotbarSlot>(entity).unwrap(),
+            HotbarSlot::new(8)
+        );
+    }
 }
