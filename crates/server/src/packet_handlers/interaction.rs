@@ -1,8 +1,11 @@
 use crate::{ClientId, NetworkId, Server};
-use common::events::InteractEntityEvent;
 use common::Game;
-use ecs::{Entity, EntityRef, SysResult};
-use libcraft_core::{InteractHand, InteractionType, Vec3f};
+use common::{
+    events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent},
+    interactable::InteractableRegistry,
+};
+use ecs::{Entity, SysResult};
+use libcraft_core::{BlockFace as LibcraftBlockFace, Hand, InteractionType, Vec3f};
 use protocol::packets::client::{
     BlockFace, InteractEntity, InteractEntityKind, PlayerBlockPlacement, PlayerDigging,
     PlayerDiggingStatus,
@@ -10,26 +13,91 @@ use protocol::packets::client::{
 
 /// Handles the player block placement packet. Currently just removes the block client side for the player.
 pub fn handle_player_block_placement(
-    game: &Game,
-    server: &mut Server,
+    game: &mut Game,
+    _server: &mut Server,
     packet: PlayerBlockPlacement,
-    player: EntityRef,
+    player: Entity,
 ) -> SysResult {
-    let position = match packet.face {
-        BlockFace::Bottom => packet.position.down(),
-        BlockFace::Top => packet.position.up(),
-        BlockFace::North => packet.position.north(),
-        BlockFace::South => packet.position.south(),
-        BlockFace::West => packet.position.west(),
-        BlockFace::East => packet.position.east(),
+    let hand = match packet.hand {
+        0 => Hand::Main,
+        1 => Hand::Offhand,
+        _ => {
+            let client_id = game.ecs.get::<ClientId>(player).unwrap();
+
+            let client = _server.clients.get(*client_id).unwrap();
+
+            client.disconnect("Malformed Packet!");
+
+            anyhow::bail!(
+                "Player sent a malformed `PlayerBlockPlacement` packet. {:?}",
+                packet
+            )
+        }
     };
 
-    log::trace!("Got player block placement at {:?}", position);
+    let face = match packet.face {
+        BlockFace::North => LibcraftBlockFace::North,
+        BlockFace::South => LibcraftBlockFace::South,
+        BlockFace::East => LibcraftBlockFace::East,
+        BlockFace::West => LibcraftBlockFace::West,
+        BlockFace::Top => LibcraftBlockFace::Top,
+        BlockFace::Bottom => LibcraftBlockFace::Bottom,
+    };
 
-    let client = server.clients.get(*player.get::<ClientId>()?).unwrap();
-    let block_id = game.block(position).unwrap_or_default();
+    let cursor_position = Vec3f::new(
+        packet.cursor_position_x,
+        packet.cursor_position_y,
+        packet.cursor_position_z,
+    );
 
-    client.send_block_change(position, block_id);
+    let block_kind = {
+        let result = game.block(packet.position);
+        match result {
+            Some(block) => block.kind(),
+            None => {
+                let client_id = game.ecs.get::<ClientId>(player).unwrap();
+
+                let client = _server.clients.get(*client_id).unwrap();
+
+                client.disconnect("Attempted to interact with an unloaded block!");
+
+                anyhow::bail!(
+                    "Player attempted to interact with an unloaded block. {:?}",
+                    packet
+                )
+            }
+        }
+    };
+
+    let interactable_registry = game
+        .resources
+        .get::<InteractableRegistry>()
+        .expect("Failed to get the interactable registry");
+
+    if interactable_registry.is_registered(block_kind) {
+        // Handle this as a block interaction
+        let event = BlockInteractEvent {
+            hand,
+            location: packet.position,
+            face,
+            cursor_position,
+            inside_block: packet.inside_block,
+        };
+
+        game.ecs.insert_entity_event(player, event)?;
+    } else {
+        // Handle this as a block placement
+        let event = BlockPlacementEvent {
+            hand,
+            location: packet.position,
+            face,
+            cursor_position,
+            inside_block: packet.inside_block,
+        };
+
+        game.ecs.insert_entity_event(player, event)?;
+    }
+
     Ok(())
 }
 
@@ -102,8 +170,8 @@ pub fn handle_interact_entity(
             hand,
         } => {
             let hand = match hand {
-                0 => InteractHand::Main,
-                1 => InteractHand::Offhand,
+                0 => Hand::Main,
+                1 => Hand::Offhand,
                 _ => unreachable!(),
             };
 

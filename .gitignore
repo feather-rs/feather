@@ -11,6 +11,7 @@
 
 world/
 feather.toml
+config.toml
 
 **/__pycache__/
 

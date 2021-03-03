@@ -701,7 +701,7 @@ dependencies = [
  "feather-generated",
  "hematite-nbt",
  "libcraft-blocks",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft.git)",
  "libcraft-items",
  "libcraft-particles",
  "nom",
@@ -765,7 +765,7 @@ dependencies = [
  "feather-utils",
  "flume",
  "itertools 0.10.0",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft)",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft.git)",
  "log",
  "parking_lot",
  "quill-common",
@@ -886,7 +886,7 @@ dependencies = [
  "flume",
  "futures-lite",
  "hematite-nbt",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft)",
+ "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft.git)",
  "log",
  "md-5",
  "num-bigint 0.3.1",
@@ -1359,7 +1359,7 @@ dependencies = [
 [[package]]
 name = "libcraft-core"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft#6d0e889b33e8e70f554b142c3cdecbe0ca9ef26e"
+source = "git+https://github.com/feather-rs/libcraft.git#58c1e40de8673b7cd0b3ea4d5c284bf5100d9f7d"
 dependencies = [
  "bytemuck",
  "num-derive",
@@ -2904,9 +2904,9 @@ checksum = "eafc1b9b2dfc6f5529177b62cf806484db55b32dc7c9658a118e11bbeb33061d"
 
 [[package]]
 name = "vek"
-version = "0.14.0"
+version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cdd07aa105f92385e2c8ff5632a2cd426e7f659813edce6f21ff4a9a488b696b"
+checksum = "04d6626f32b226e2c5b35f23ea87eaf683f3d93eaeb16b4084d0683479616f0f"
 dependencies = [
  "approx 0.4.0",
  "num-integer",

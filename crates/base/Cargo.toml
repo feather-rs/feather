@@ -15,7 +15,7 @@ byteorder = "1"
 generated = { path = "../generated", package = "feather-generated" }
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
 libcraft-blocks = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0" }
-libcraft-core = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0" }
+libcraft-core = { git = "https://github.com/feather-rs/libcraft" }
 libcraft-items = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0" }
 
 libcraft-particles = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0" }
