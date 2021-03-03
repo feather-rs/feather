@@ -701,7 +701,7 @@ dependencies = [
  "feather-generated",
  "hematite-nbt",
  "libcraft-blocks",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
+ "libcraft-core",
  "libcraft-items",
  "libcraft-particles",
  "nom",
@@ -767,7 +767,7 @@ dependencies = [
  "itertools 0.10.0",
  "log",
  "parking_lot",
- "quill-common 0.1.0 (git+https://github.com/feather-rs/quill?rev=d4da5b6)",
+ "quill-common",
  "smartstring",
  "uuid",
 ]
@@ -826,7 +826,7 @@ dependencies = [
  "libloading 0.7.0",
  "log",
  "paste 1.0.4",
- "quill-common 0.1.0 (git+https://github.com/feather-rs/quill?rev=bf63d1a)",
+ "quill-common",
  "quill-plugin-format",
  "serde",
  "tempfile",
@@ -890,7 +890,7 @@ dependencies = [
  "num-bigint 0.3.1",
  "once_cell",
  "parking_lot",
- "quill-common 0.1.0 (git+https://github.com/feather-rs/quill?rev=d4da5b6)",
+ "quill-common",
  "rand 0.7.3",
  "ring",
  "rsa",
@@ -1321,7 +1321,7 @@ dependencies = [
  "bytemuck",
  "flate2",
  "libcraft-blocks-data",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
+ "libcraft-core",
  "libcraft-items",
  "libcraft-macros",
  "num-derive",
@@ -1336,7 +1336,7 @@ name = "libcraft-blocks-data"
 version = "0.1.0"
 source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
 dependencies = [
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
+ "libcraft-core",
  "serde",
 ]
 
@@ -1344,20 +1344,6 @@ dependencies = [
 name = "libcraft-core"
 version = "0.1.0"
 source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
-dependencies = [
- "bytemuck",
- "num-derive",
- "num-traits",
- "serde",
- "strum 0.20.0",
- "strum_macros",
- "vek",
-]
-
-[[package]]
-name = "libcraft-core"
-version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft#76ed5021bddacf1baeb8bc70b6e15b4c631dbfc7"
 dependencies = [
  "bytemuck",
  "num-derive",
@@ -1948,21 +1934,8 @@ source = "git+https://github.com/feather-rs/quill?rev=bf63d1a#bf63d1a71d38034a1b
 dependencies = [
  "bincode",
  "bytemuck",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
+ "libcraft-core",
  "libcraft-particles",
- "serde",
- "smartstring",
- "uuid",
-]
-
-[[package]]
-name = "quill-common"
-version = "0.1.0"
-source = "git+https://github.com/feather-rs/quill?rev=d4da5b6#d4da5b6529b048da3eafa45d16fa189e89123f5e"
-dependencies = [
- "bincode",
- "bytemuck",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft)",
  "serde",
  "smartstring",
  "uuid",
