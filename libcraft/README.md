@@ -1,6 +1,6 @@
 # libcraft
 
-General-purpose Minecraft types and functions for Rust. Work in progress; code is being moved from the [Feather repository](https://github.com/feather-rs/feather/tree/1.16).
+General-purpose Minecraft types and functions for Rust. Work in progress; code is being moved from the [Feather repository](https://github.com/feather-rs/feather).
 
 Once finished, this crate will provide:
 * Block struct with access to properties, block state values, and IDs
