@@ -60,9 +60,9 @@ dependencies = [
 
 [[package]]
 name = "ahash"
-version = "0.7.1"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1dd69f6bbb6851e9bba54499698ed6b50640e35544e6b552e7604ad6258778b9"
+checksum = "7f200cbb1e856866d9eade941cf3aa0c5d7dd36f74311c4273b494f4ef036957"
 dependencies = [
  "getrandom 0.2.2",
  "once_cell",
@@ -644,9 +644,9 @@ checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
 name = "enumset"
-version = "1.0.5"
+version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c70e3089d60da62772627697a83dd166615072eebe1a52ac05f16bdbd0165dc3"
+checksum = "fbd795df6708a599abf1ee10eacc72efd052b7a5f70fdf0715e4d5151a6db9c3"
 dependencies = [
  "enumset_derive",
 ]
@@ -756,7 +756,7 @@ dependencies = [
 name = "feather-common"
 version = "0.1.0"
 dependencies = [
- "ahash 0.7.1",
+ "ahash 0.7.2",
  "anyhow",
  "feather-base",
  "feather-blocks",
@@ -765,6 +765,7 @@ dependencies = [
  "feather-utils",
  "flume",
  "itertools 0.10.0",
+ "libcraft-core",
  "log",
  "parking_lot",
  "quill-common",
@@ -791,7 +792,7 @@ dependencies = [
 name = "feather-ecs"
 version = "0.1.0"
 dependencies = [
- "ahash 0.7.1",
+ "ahash 0.7.2",
  "anyhow",
  "feather-utils",
  "hecs",
@@ -814,7 +815,7 @@ dependencies = [
 name = "feather-plugin-host"
 version = "0.1.0"
 dependencies = [
- "ahash 0.7.1",
+ "ahash 0.7.2",
  "anyhow",
  "bincode",
  "bumpalo",
@@ -869,7 +870,7 @@ dependencies = [
 name = "feather-server"
 version = "0.1.0"
 dependencies = [
- "ahash 0.7.1",
+ "ahash 0.7.2",
  "anyhow",
  "base64",
  "chrono",
@@ -885,6 +886,7 @@ dependencies = [
  "flume",
  "futures-lite",
  "hematite-nbt",
+ "libcraft-core",
  "log",
  "md-5",
  "num-bigint 0.3.1",
@@ -1307,9 +1309,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.86"
+version = "0.2.87"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7282d924be3275cec7f6756ff4121987bc6481325397dde6ba3e7802b1a8b1c"
+checksum = "265d751d31d6780a3f956bb5b8022feba2d94eeee5a84ba64f4212eedca42213"
 
 [[package]]
 name = "libcraft-blocks"
@@ -1343,7 +1345,7 @@ dependencies = [
 [[package]]
 name = "libcraft-core"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
+source = "git+https://github.com/feather-rs/libcraft#6d0e889b33e8e70f554b142c3cdecbe0ca9ef26e"
 dependencies = [
  "bytemuck",
  "num-derive",
@@ -1413,9 +1415,9 @@ checksum = "c7d73b3f436185384286bd8098d17ec07c9a7d2388a6599f824d8502b529702a"
 
 [[package]]
 name = "llvm-sys"
-version = "110.0.0"
+version = "110.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0062a0c6635fb5d57c6ebba072dcae50e41651030363cf06d220b0d016840f2"
+checksum = "21ede189444b8c78907e5d36da5dabcf153170fcff9c1dba48afc4b33c7e19f0"
 dependencies = [
  "cc",
  "lazy_static",
@@ -1712,9 +1714,9 @@ checksum = "a9a7ab5d64814df0fe4a4b5ead45ed6c5f181ee3ff04ba344313a6c80446c5d4"
 
 [[package]]
 name = "once_cell"
-version = "1.7.0"
+version = "1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10acf907b94fc1b1a152d08ef97e7759650268cf986bf127f387e602b02c7e5a"
+checksum = "af8b08b04175473088b46763e51ee54da5f9a164bc162f615b91bc179dbf15a3"
 
 [[package]]
 name = "opaque-debug"
@@ -1838,9 +1840,9 @@ dependencies = [
 
 [[package]]
 name = "pin-project-lite"
-version = "0.2.4"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "439697af366c49a6d0a010c56a0d97685bc140ce0d377b13a2ea2aa42d64a827"
+checksum = "0cf491442e4b033ed1c722cb9f0df5fcfcf4de682466c46469c36bc47dc5548a"
 
 [[package]]
 name = "pkg-config"
@@ -2339,9 +2341,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.63"
+version = "1.0.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43535db9747a4ba938c0ce0a98cc631a46ebf943c9e1d604e091df6007620bf6"
+checksum = "799e97dc9fdae36a5c8b8f2cae9ce2ee9fdce2058c57a93e6099d919fd982f79"
 dependencies = [
  "itoa",
  "ryu",

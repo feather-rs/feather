@@ -8,7 +8,7 @@ use std::{
 use ahash::AHashSet;
 use base::{
     BlockId, BlockPosition, Chunk, ChunkPosition, EntityKind, Gamemode, ItemStack, Position,
-    ProfileProperty,
+    ProfileProperty, Text,
 };
 use common::{
     chat::{ChatKind, ChatMessage},
@@ -22,8 +22,8 @@ use protocol::{
         self,
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
-            DestroyEntities, EntityAnimation, EntityHeadLook, EntityTeleport, JoinGame, KeepAlive,
-            PlayerInfo, PlayerPositionAndLook, PluginMessage, SpawnPlayer, UnloadChunk,
+            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityTeleport, JoinGame,
+            KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SpawnPlayer, UnloadChunk,
             UpdateViewPosition, WindowItems,
         },
     },
@@ -95,6 +95,8 @@ pub struct Client {
     /// The previous own position sent by the client.
     /// Used to detect when we need to teleport the client.
     client_known_position: Cell<Option<Position>>,
+
+    disconnected: Cell<bool>,
 }
 
 impl Client {
@@ -113,6 +115,7 @@ impl Client {
             known_chunks: RefCell::new(AHashSet::new()),
             chunk_send_queue: RefCell::new(VecDeque::new()),
             client_known_position: Cell::new(None),
+            disconnected: Cell::new(false),
         }
     }
 
@@ -145,7 +148,7 @@ impl Client {
     }
 
     pub fn is_disconnected(&self) -> bool {
-        self.received_packets.is_disconnected()
+        self.received_packets.is_disconnected() || self.disconnected.get()
     }
 
     pub fn known_chunks(&self) -> usize {
@@ -468,6 +471,13 @@ impl Client {
 
     fn send_packet(&self, packet: impl Into<ServerPlayPacket>) {
         let _ = self.packets_to_send.try_send(packet.into());
+    }
+
+    pub fn disconnect(&self, reason: &str) {
+        self.disconnected.set(true);
+        self.send_packet(Disconnect {
+            reason: Text::from(reason.to_owned()).to_string(),
+        });
     }
 }
 
