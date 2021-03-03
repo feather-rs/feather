@@ -27,7 +27,7 @@ output_data += generate_enum("Item", items, derives=["Serialize", "Deserialize"]
                                                      prelude="#[serde(try_from = \"String\", into = \"&'static str\")]")
 output_data += generate_enum_property("Item", "id", "u32", ids, True)
 output_data += generate_enum_property("Item", "name", "&str", names, True, "&'static str")
-output_data += generate_enum_property("Item", "display_name", "&str", display_names, True, "&'static str")
+output_data += generate_enum_property("Item", "display_name", "&str", display_names, False, "&'static str")
 output_data += generate_enum_property("Item", "stack_size", "u32", stack_sizes)
 output_data += generate_enum_property("Item", "durability", "Option<u32>", durabilities)
 

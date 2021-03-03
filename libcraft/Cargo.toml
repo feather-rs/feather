@@ -1,9 +1,9 @@
 [workspace]
 members = [
     "crates/blocks",
-    "crates/blocks/data",
     "crates/core",
     "crates/generators",
     "crates/items",
     "crates/macros",
+    "crates/particles",
 ]

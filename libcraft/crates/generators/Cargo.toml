@@ -5,9 +5,10 @@ authors = ["Kalle Kankaanpää"]
 edition = "2018"
 
 [dependencies]
-libcraft-blocks-data = { path = "../blocks/data" }
+libcraft-blocks = { path = "../blocks" }
 
 anyhow = "1"
 bincode = "1"
 flate2 = "1"
 serde_json = "1"
+serde = "1"

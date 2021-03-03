@@ -6,7 +6,6 @@ edition = "2018"
 
 [dependencies]
 libcraft-core = { path = "../core" }
-libcraft-blocks-data = { path = "data" }
 libcraft-items = { path = "../items" }
 libcraft-macros = { path = "../macros" }
 
