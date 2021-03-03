@@ -5,7 +5,7 @@ use common::{
     interactable::InteractableRegistry,
 };
 use ecs::{Entity, SysResult};
-use libcraft_core::{InteractBlockFace, InteractHand, InteractionType, Vec3f};
+use libcraft_core::{BlockFace as LibcraftBlockFace, Hand, InteractionType, Vec3f};
 use protocol::packets::client::{
     BlockFace, InteractEntity, InteractEntityKind, PlayerBlockPlacement, PlayerDigging,
     PlayerDiggingStatus,
@@ -19,18 +19,18 @@ pub fn handle_player_block_placement(
     player: Entity,
 ) -> SysResult {
     let hand = match packet.hand {
-        0 => InteractHand::Main,
-        1 => InteractHand::Offhand,
+        0 => Hand::Main,
+        1 => Hand::Offhand,
         _ => unreachable!(),
     };
 
     let face = match packet.face {
-        BlockFace::North => InteractBlockFace::North,
-        BlockFace::South => InteractBlockFace::South,
-        BlockFace::East => InteractBlockFace::East,
-        BlockFace::West => InteractBlockFace::West,
-        BlockFace::Top => InteractBlockFace::Top,
-        BlockFace::Bottom => InteractBlockFace::Bottom,
+        BlockFace::North => LibcraftBlockFace::North,
+        BlockFace::South => LibcraftBlockFace::South,
+        BlockFace::East => LibcraftBlockFace::East,
+        BlockFace::West => LibcraftBlockFace::West,
+        BlockFace::Top => LibcraftBlockFace::Top,
+        BlockFace::Bottom => LibcraftBlockFace::Bottom,
     };
 
     let cursor_position = Vec3f::new(
@@ -142,8 +142,8 @@ pub fn handle_interact_entity(
             hand,
         } => {
             let hand = match hand {
-                0 => InteractHand::Main,
-                1 => InteractHand::Offhand,
+                0 => Hand::Main,
+                1 => Hand::Offhand,
                 _ => unreachable!(),
             };
 

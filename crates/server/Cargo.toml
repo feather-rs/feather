@@ -47,8 +47,7 @@ ureq = { version = "2", features = [ "json" ] }
 utils = { path = "../utils", package = "feather-utils" }
 uuid = "0.8"
 vec-arena = "1"
-# libcraft-core = { git = "https://github.com/feather-rs/libcraft.git"}
-libcraft-core = { git = "https://github.com/amberkowalski/libcraft.git", branch = "amber-block-interact" }
+libcraft-core = { git = "https://github.com/feather-rs/libcraft.git"}
 
 [features]
 default = [ "plugin-cranelift" ]
