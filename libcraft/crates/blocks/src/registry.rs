@@ -1,12 +1,12 @@
-use std::io::Cursor;
+use crate::data::{RawBlockProperties, RawBlockState, RawBlockStateProperties, ValidProperties};
+use crate::{BlockData, BlockKind};
 
 use ahash::AHashMap;
 use bytemuck::{Pod, Zeroable};
-use libcraft_blocks_data::{RawBlockState, RawBlockStateProperties};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
-use crate::block_data::BlockData;
+use std::io::Cursor;
 
 /// A block state.
 ///
@@ -35,7 +35,7 @@ impl BlockState {
     /// The returned `BlockData` is not linked with this `BlockState` instance.
     /// You need to call [`set_data`] to apply any changes made to the block data.
     pub fn data_as<T: BlockData>(self) -> Option<T> {
-        T::from_raw(&self.raw().properties)
+        T::from_raw(&self.raw().properties, self.get_valid_properties())
     }
 
     /// Applies the given `BlockData` to this block state.
@@ -77,6 +77,10 @@ impl BlockState {
         REGISTRY.raw_state(self.id).is_some()
     }
 
+    pub fn get_valid_properties(&self) -> &'static ValidProperties {
+        REGISTRY.valid_properties.get(&self.raw().kind).unwrap()
+    }
+
     /// Gets the raw block state for this block state.
     pub(crate) fn raw(&self) -> &RawBlockState {
         REGISTRY.raw_state(self.id).expect("bad block")
@@ -94,14 +98,20 @@ static REGISTRY: Lazy<BlockRegistry> = Lazy::new(BlockRegistry::new);
 struct BlockRegistry {
     states: Vec<RawBlockState>,
     id_mapping: AHashMap<RawBlockStateProperties, u16>,
+    valid_properties: AHashMap<BlockKind, ValidProperties>,
 }
 
 impl BlockRegistry {
     fn new() -> Self {
-        const DATA: &[u8] = include_bytes!("../assets/raw_block_states.bc.gz");
-        let reader = flate2::bufread::GzDecoder::new(Cursor::new(DATA));
+        const STATE_DATA: &[u8] = include_bytes!("../assets/raw_block_states.bc.gz");
+        let state_reader = flate2::bufread::GzDecoder::new(Cursor::new(STATE_DATA));
         let states: Vec<RawBlockState> =
-            bincode::deserialize_from(reader).expect("malformed block state data");
+            bincode::deserialize_from(state_reader).expect("malformed block state data");
+
+        const PROPERTY_DATA: &[u8] = include_bytes!("../assets/raw_block_properties.bc.gz");
+        let property_reader = flate2::bufread::GzDecoder::new(Cursor::new(PROPERTY_DATA));
+        let properties: Vec<RawBlockProperties> =
+            bincode::deserialize_from(property_reader).expect("malformed block properties");
 
         // Ensure that indexes match IDs.
         #[cfg(debug_assertions)]
@@ -116,7 +126,16 @@ impl BlockRegistry {
             .map(|state| (state.properties.clone(), state.id))
             .collect();
 
-        Self { states, id_mapping }
+        let valid_properties = properties
+            .iter()
+            .map(|properties| (properties.kind, properties.valid_properties.clone()))
+            .collect();
+
+        Self {
+            states,
+            id_mapping,
+            valid_properties,
+        }
     }
 
     fn raw_state(&self, id: u16) -> Option<&RawBlockState> {

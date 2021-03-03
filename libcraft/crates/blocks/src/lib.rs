@@ -1,5 +1,6 @@
 mod block;
 mod block_data;
+pub mod data;
 mod registry;
 mod simplified_block;
 
