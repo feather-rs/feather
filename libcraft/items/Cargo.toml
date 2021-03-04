@@ -1,0 +1,8 @@
+[package]
+name = "libcraft-items"
+version = "0.1.0"
+authors = ["Kalle Kankaanpää", "Pau Machetti <paumachetti@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }

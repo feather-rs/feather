@@ -1,0 +1,22 @@
+[package]
+name = "feather-common"
+version = "0.1.0"
+authors = [ "caelunshun <caelunshun@gmail.com>" ]
+edition = "2018"
+
+[dependencies]
+ahash = "0.7"
+anyhow = "1"
+base = { path = "../base", package = "feather-base" }
+blocks = { path = "../blocks", package = "feather-blocks" }
+ecs = { path = "../ecs", package = "feather-ecs" }
+flume = "0.10"
+generated = { path = "../generated", package = "feather-generated" }
+itertools = "0.10"
+log = "0.4"
+parking_lot = "0.11"
+quill-common = { path = "../../quill/common" }
+smartstring = "0.2"
+utils = { path = "../utils", package = "feather-utils" }
+uuid = { version = "0.8", features = [ "v4" ] }
+libcraft-core = { path = "../../libcraft/core" }

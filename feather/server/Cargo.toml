@@ -1,0 +1,61 @@
+[package]
+name = "feather-server"
+version = "0.1.0"
+authors = [ "caelunshun <caelunshun@gmail.com>" ]
+edition = "2018"
+default-run = "feather-server"
+
+[[bin]]
+path = "src/main.rs"
+name = "feather-server"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+ahash = "0.7"
+anyhow = "1"
+base = { path = "../base", package = "feather-base" }
+base64 = "0.13"
+chrono = "0.4"
+colored = "2"
+common = { path = "../common", package = "feather-common" }
+crossbeam-utils = "0.8"
+ecs = { path = "../ecs", package = "feather-ecs" }
+fern = "0.6"
+flume = "0.10"
+futures-lite = "1"
+hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
+log = "0.4"
+md-5 = "0.9"
+num-bigint = "0.3"
+once_cell = "1"
+parking_lot = "0.11"
+plugin-host = { path = "../plugin-host", package = "feather-plugin-host" }
+protocol = { path = "../protocol", package = "feather-protocol" }
+quill-common = { path = "../../quill/common" }
+rand = "0.7"
+ring = "0.16"
+rsa = "0.3"
+rsa-der = "0.2"
+serde = { version = "1", features = [ "derive" ] }
+serde_json = "1"
+sha-1 = "0.9"
+tokio = { version = "1", features = [ "full" ] }
+toml = "0.5"
+ureq = { version = "2", features = [ "json" ] }
+utils = { path = "../utils", package = "feather-utils" }
+uuid = "0.8"
+vec-arena = "1"
+libcraft-core = { path = "../../libcraft/core" }
+
+[features]
+default = [ "plugin-cranelift" ]
+
+# Use Cranelift to JIT-compile plugins. Pure Rust
+# but produces slower code than LLVM.
+plugin-cranelift = [ "plugin-host/cranelift" ]
+# Use LLVM to JIT-compile plugins. Produces
+# very fast code, but requires LLVM to be installed
+# on the build system. May impact startup times.
+plugin-llvm = [ "plugin-host/llvm" ]

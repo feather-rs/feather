@@ -1,17 +1,16 @@
 **/target
 **/*.rs.bk
 **/.idea
+**/.vscode
+
+# Cargo build configuration
 .cargo
-.vscode
-/data/minecraft
-/data/minecraft-1.15
-/data/minecraft-data
-.azure-pipelines.yml
-.codecov.yml
 
 world/
-feather.toml
+/config.toml
 
+# Python cache files (libcraft)
 **/__pycache__/
 
-.DS_STORE
+# macOS desktop files
+**/.DS_STORE
