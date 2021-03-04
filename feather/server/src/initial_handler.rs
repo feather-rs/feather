@@ -58,7 +58,7 @@ pub async fn handle(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
 
     let ClientHandshakePacket::Handshake(handshake) = handshake;
 
-    if handshake.protocol_version < 751 {
+    if handshake.protocol_version < PROTOCOL_VERSION {
         worker
             .write(ServerLoginPacket::DisconnectLogin(DisconnectLogin {
                 reason: Text::from("Invalid protocol! The server is running on version 1.16!")
