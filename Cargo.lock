@@ -252,6 +252,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "block-access"
+version = "0.1.0"
+dependencies = [
+ "quill",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -267,6 +274,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f337a3e6da609650eb74e02bc9fac7b735049f7623ab12f2e4c719316fcc7e80"
 dependencies = [
  "generic-array",
+]
+
+[[package]]
+name = "block-place"
+version = "0.1.0"
+dependencies = [
+ "quill",
 ]
 
 [[package]]
@@ -345,6 +359,39 @@ name = "cache-padded"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "631ae5198c9be5e753e5cc215e1bd73c2b466a3565173db433f52bb9d3e66dba"
+
+[[package]]
+name = "cargo-platform"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0226944a63d1bf35a3b5f948dd7c59e263db83695c9e8bffc4037de02e30f1d7"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "cargo-quill"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argh",
+ "cargo_metadata",
+ "heck",
+ "quill-plugin-format",
+]
+
+[[package]]
+name = "cargo_metadata"
+version = "0.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7714a157da7991e23d90686b9524b9e12e0407a108647f52e9328f4b3d51ac7f"
+dependencies = [
+ "cargo-platform",
+ "semver 0.11.0",
+ "semver-parser 0.10.2",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "cc"
@@ -701,7 +748,7 @@ dependencies = [
  "feather-generated",
  "hematite-nbt",
  "libcraft-blocks",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft.git)",
+ "libcraft-core",
  "libcraft-items",
  "libcraft-particles",
  "nom",
@@ -765,7 +812,7 @@ dependencies = [
  "feather-utils",
  "flume",
  "itertools 0.10.0",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft.git)",
+ "libcraft-core",
  "log",
  "parking_lot",
  "quill-common",
@@ -886,7 +933,7 @@ dependencies = [
  "flume",
  "futures-lite",
  "hematite-nbt",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft.git)",
+ "libcraft-core",
  "log",
  "md-5",
  "num-bigint 0.3.1",
@@ -1316,14 +1363,12 @@ checksum = "265d751d31d6780a3f956bb5b8022feba2d94eeee5a84ba64f4212eedca42213"
 [[package]]
 name = "libcraft-blocks"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
 dependencies = [
  "ahash 0.7.2",
  "bincode",
  "bytemuck",
  "flate2",
- "libcraft-blocks-data",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
+ "libcraft-core",
  "libcraft-items",
  "libcraft-macros",
  "num-derive",
@@ -1334,18 +1379,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "libcraft-blocks-data"
-version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
-dependencies = [
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
- "serde",
-]
-
-[[package]]
 name = "libcraft-core"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
 dependencies = [
  "bytemuck",
  "num-derive",
@@ -1357,23 +1392,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "libcraft-core"
+name = "libcraft-generators"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft.git#58c1e40de8673b7cd0b3ea4d5c284bf5100d9f7d"
 dependencies = [
- "bytemuck",
- "num-derive",
- "num-traits",
+ "anyhow",
+ "bincode",
+ "flate2",
+ "libcraft-blocks",
  "serde",
- "strum 0.20.0",
- "strum_macros",
- "vek",
+ "serde_json",
 ]
 
 [[package]]
 name = "libcraft-items"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
 dependencies = [
  "serde",
 ]
@@ -1381,8 +1413,8 @@ dependencies = [
 [[package]]
 name = "libcraft-macros"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
 dependencies = [
+ "proc-macro2",
  "quote",
  "syn",
 ]
@@ -1390,7 +1422,6 @@ dependencies = [
 [[package]]
 name = "libcraft-particles"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/libcraft?rev=0b49cd0#0b49cd08c013af1f525a647a5c3b57dab3327cd4"
 dependencies = [
  "bytemuck",
  "libcraft-blocks",
@@ -1782,6 +1813,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "particle-example"
+version = "0.1.0"
+dependencies = [
+ "quill",
+]
+
+[[package]]
 name = "paste"
 version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1944,14 +1982,37 @@ dependencies = [
 ]
 
 [[package]]
-name = "quill-common"
+name = "query-entities"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/quill?rev=bf63d1a#bf63d1a71d38034a1b259b24ba1ae8a66ef4c5b8"
+dependencies = [
+ "quill",
+ "rand 0.8.3",
+]
+
+[[package]]
+name = "quill"
+version = "0.1.0"
 dependencies = [
  "bincode",
  "bytemuck",
- "libcraft-core 0.1.0 (git+https://github.com/feather-rs/libcraft?rev=0b49cd0)",
+ "libcraft-blocks",
+ "libcraft-core",
  "libcraft-particles",
+ "quill-common",
+ "quill-sys",
+ "thiserror",
+ "uuid",
+]
+
+[[package]]
+name = "quill-common"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "bytemuck",
+ "libcraft-core",
+ "libcraft-particles",
+ "quill",
  "serde",
  "smartstring",
  "uuid",
@@ -1960,7 +2021,6 @@ dependencies = [
 [[package]]
 name = "quill-plugin-format"
 version = "0.1.0"
-source = "git+https://github.com/feather-rs/quill?rev=bf63d1a#bf63d1a71d38034a1b259b24ba1ae8a66ef4c5b8"
 dependencies = [
  "anyhow",
  "flate2",
@@ -1969,6 +2029,23 @@ dependencies = [
  "serde_with",
  "tar",
  "target-lexicon",
+]
+
+[[package]]
+name = "quill-sys"
+version = "0.1.0"
+dependencies = [
+ "quill-common",
+ "quill-sys-macros",
+]
+
+[[package]]
+name = "quill-sys-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -2307,6 +2384,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f301af10236f6df4160f7c3f04eec6dbc70ace82d23326abad5edee88801c6b6"
 dependencies = [
  "semver-parser 0.10.2",
+ "serde",
 ]
 
 [[package]]
@@ -2446,6 +2524,14 @@ version = "3.1.6"
 source = "git+https://github.com/jackmott/rust-simd-noise?rev=6349670#6349670ebf3ea2bf7bca6695d33388bad2e197d9"
 dependencies = [
  "simdeez",
+]
+
+[[package]]
+name = "simple-plugin"
+version = "0.1.0"
+dependencies = [
+ "quill",
+ "rand 0.8.3",
 ]
 
 [[package]]

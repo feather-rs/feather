@@ -1,0 +1,9 @@
+[package]
+name = "quill-sys"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+quill-common = { path = "../common" }
+quill-sys-macros = { path = "../sys-macros" }

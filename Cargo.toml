@@ -1,67 +1,45 @@
 [workspace]
 members = [
-    # Listed in the order they appear in the dependency tree (from bottom to top)
-    "crates/utils",
-    "crates/generated",
-    "crates/blocks",
-    "crates/blocks/generator",
-    "crates/base",
-    "crates/ecs",
-    "crates/datapacks",
-    "crates/worldgen",
-    "crates/common",
-    "crates/protocol",
-    "crates/plugin-host/macros",
-    "crates/plugin-host",
-    "crates/server",
+    # libcraft
+    "libcraft/core",
+    "libcraft/blocks",
+    "libcraft/generators",
+    "libcraft/items",
+    "libcraft/macros",
+    "libcraft/particles",
 
+    # Quill
+    "quill/sys-macros",
+    "quill/sys",
+    "quill/common",
+    "quill/api",
+    "quill/plugin-format",
+    "quill/cargo-quill",
+
+    # Quill example plugins
+    "quill/example-plugins/block-access",
+    "quill/example-plugins/block-place",
+    "quill/example-plugins/particle-example",
+    "quill/example-plugins/query-entities",
+    "quill/example-plugins/simple",
+
+    # Feather (common and server)
+    "feather/utils",
+    "feather/generated",
+    "feather/blocks",
+    "feather/blocks/generator",
+    "feather/base",
+    "feather/ecs",
+    "feather/datapacks",
+    "feather/worldgen",
+    "feather/common",
+    "feather/protocol",
+    "feather/plugin-host/macros",
+    "feather/plugin-host",
+    "feather/server",
+
+    # Other
     "tools/proxy",
-]
-
-# Temp until we finish porting everything to new 1.16 design
-exclude = [
-    "core",
-    "core/anvil",
-    "core/blocks",
-    "core/blocks/generator",
-    "core/biomes",
-    "core/chunk",
-    "core/chunk_map",
-    "core/entity_metadata",
-    "core/item_block",
-    "core/items",
-    "core/loot",
-    "core/loot/model",
-    "core/misc",
-    "core/protocol",
-    "core/inventory",
-    "core/text",
-    "core/util",
-
-    "definitions",
-    "definitions/generator",
-
-    "server",
-    "server/template",
-    "server/block",
-    "server/chat",
-    "server/chunk",
-    "server/commands",
-    "server/config",
-    "server/entity",
-    "server/lighting",
-    "server/network",
-    "server/packet_buffer",
-    "server/physics",
-    "server/player",
-    "server/test",
-    "server/types",
-    "server/util",
-    "server/weather",
-    "server/worldgen",
-
-    "data",
-    "data/macro"
 ]
 
 [profile.release]
