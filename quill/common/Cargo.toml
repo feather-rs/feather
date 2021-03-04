@@ -7,11 +7,11 @@ edition = "2018"
 [dependencies]
 bincode = "1"
 bytemuck = { version = "1", features = ["derive"] }
-libcraft-core = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0"  }
-libcraft-particles = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0" }
+libcraft-core = { path = "../../libcraft/core" }
+libcraft-particles = { path = "../../libcraft/particles" }
 serde = { version = "1", features = ["derive"] }
 smartstring = { version = "0.2", features = ["serde"] }
 uuid = { version = "0.8", features = ["serde"] }
 
 [dev-dependencies]
-quill = { path = "../quill" }
+quill = { path = "../api" }

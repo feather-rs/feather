@@ -18,8 +18,8 @@ feather-plugin-host-macros = { path = "macros" }
 libloading = "0.7"
 log = "0.4"
 paste = "1"
-quill-common = { git = "https://github.com/feather-rs/quill", rev = "bf63d1a" }
-quill-plugin-format = { git = "https://github.com/feather-rs/quill", rev = "bf63d1a" }
+quill-common = { path = "../../quill/common" }
+quill-plugin-format = { path = "../../quill/plugin-format" }
 serde = "1"
 tempfile = "3"
 vec-arena = "1"

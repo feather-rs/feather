@@ -1,3 +1,0 @@
-[submodule "crates/generators/minecraft-data"]
-	path = crates/generators/minecraft-data
-	url = https://github.com/PrismarineJS/minecraft-data

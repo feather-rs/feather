@@ -8,5 +8,5 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-quill = { path = "../../crates/quill" }
+quill = { path = "../../api" }
 rand = "0.8"

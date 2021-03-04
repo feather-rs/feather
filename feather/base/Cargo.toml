@@ -14,11 +14,10 @@ blocks = { path = "../blocks", package = "feather-blocks" }
 byteorder = "1"
 generated = { path = "../generated", package = "feather-generated" }
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
-libcraft-blocks = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0" }
-libcraft-core = { git = "https://github.com/feather-rs/libcraft" }
-libcraft-items = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0" }
-
-libcraft-particles = { git = "https://github.com/feather-rs/libcraft", rev = "0b49cd0" }
+libcraft-blocks = { path = "../../libcraft/blocks" }
+libcraft-core = { path = "../../libcraft/core" }
+libcraft-items = { path = "../../libcraft/items" }
+libcraft-particles = { path = "../../libcraft/particles" }
 nom = "5"
 nom_locate = "2"
 num-derive = "0.3"
@@ -30,7 +29,6 @@ serde_with = "1"
 smallvec = "1"
 thiserror = "1"
 uuid = { version = "0.8", features = [ "serde" ] }
-
 vek = "0.14"
 
 [dev-dependencies]

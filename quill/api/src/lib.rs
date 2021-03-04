@@ -15,9 +15,7 @@ pub use setup::Setup;
 #[doc(inline)]
 pub use libcraft_blocks::{BlockKind, BlockState};
 #[doc(inline)]
-pub use libcraft_core::{
-    BlockPosition, ChunkPosition, Enchantment, EnchantmentKind, Gamemode, Position,
-};
+pub use libcraft_core::{BlockPosition, ChunkPosition, Gamemode, Position};
 
 #[doc(inline)]
 pub use libcraft_particles::{Particle, ParticleKind};

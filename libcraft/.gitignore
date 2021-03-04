@@ -1,9 +1,0 @@
-/target
-Cargo.lock
-
-# Exclude IDE files.
-/.idea
-/.vscode
-
-# ignore the pycache files created by generators
-__pycache__/
