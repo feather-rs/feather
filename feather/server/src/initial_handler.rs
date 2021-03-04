@@ -58,20 +58,21 @@ pub async fn handle(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
 
     let ClientHandshakePacket::Handshake(handshake) = handshake;
 
-    
     match handshake.next_state {
         HandshakeState::Status => handle_status(worker).await,
         HandshakeState::Login => {
             if handshake.protocol_version < PROTOCOL_VERSION {
                 worker
                     .write(ServerLoginPacket::DisconnectLogin(DisconnectLogin {
-                        reason: Text::from("Invalid protocol! The server is running on version 1.16!")
-                            .to_string(),
+                        reason: Text::from(
+                            "Invalid protocol! The server is running on version 1.16!",
+                        )
+                        .to_string(),
                     }))
                     .await
                     .ok();
                 return Ok(InitialHandling::Disconnect);
-            }        
+            }
             let proxy_data =
                 if let Some(crate::options::ProxyMode::Bungeecord) = worker.options().proxy_mode {
                     Some(proxy::do_bungee_ip_forwarding(&handshake)?)
