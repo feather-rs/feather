@@ -11,7 +11,7 @@ use protocol::{
     codec::CryptKey,
     packets::{
         client::{HandshakeState, Ping},
-        server::{EncryptionRequest, LoginSuccess, Pong, Response},
+        server::{DisconnectLogin, EncryptionRequest, LoginSuccess, Pong, Response},
     },
     ClientHandshakePacket, ClientLoginPacket, ClientPlayPacket, ClientStatusPacket,
     ServerLoginPacket, ServerPlayPacket, ServerStatusPacket,
@@ -57,6 +57,17 @@ pub async fn handle(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
     let handshake = worker.read::<ClientHandshakePacket>().await?;
 
     let ClientHandshakePacket::Handshake(handshake) = handshake;
+
+    if handshake.protocol_version < 751 {
+        worker
+            .write(ServerLoginPacket::DisconnectLogin(DisconnectLogin {
+                reason: Text::from("Invalid protocol! The server is running on version 1.16!")
+                    .to_string(),
+            }))
+            .await
+            .ok();
+        return Ok(InitialHandling::Disconnect);
+    }
 
     match handshake.next_state {
         HandshakeState::Status => handle_status(worker).await,
