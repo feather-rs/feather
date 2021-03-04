@@ -48,6 +48,9 @@ pub struct Game {
     /// A spatial index to efficiently find which entities are in a given chunk.
     pub chunk_entities: ChunkEntities,
 
+	/// Total ticks elapsed since the server started.
+	pub tick_count: u64,
+
     entity_spawn_callbacks: Vec<EntitySpawnCallback>,
 
     entity_builder: EntityBuilder,
@@ -68,6 +71,7 @@ impl Game {
             system_executor: Rc::new(RefCell::new(SystemExecutor::new())),
             resources: Arc::new(Resources::new()),
             chunk_entities: ChunkEntities::default(),
+			tick_count: 0,
             entity_spawn_callbacks: Vec::new(),
             entity_builder: EntityBuilder::new(),
         }
