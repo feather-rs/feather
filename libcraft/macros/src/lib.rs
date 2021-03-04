@@ -36,9 +36,9 @@ fn get_fields(ast: &DeriveInput) -> Result<Vec<Field>> {
                 .map(|field| field.to_owned())
                 .collect();
 
-            let valid = fields.iter().position(|field| {
-                field.to_owned().ident.unwrap().to_string() == "valid_properties"
-            });
+            let valid = fields
+                .iter()
+                .position(|field| field.to_owned().ident.unwrap() == "valid_properties");
 
             if let Some(index) = valid {
                 fields.remove(index);
@@ -64,7 +64,7 @@ fn get_fields(ast: &DeriveInput) -> Result<Vec<Field>> {
     Ok(fields)
 }
 
-fn impl_block_data(name: &Ident, fields: &Vec<Field>) -> TokenStream2 {
+fn impl_block_data(name: &Ident, fields: &[Field]) -> TokenStream2 {
     let idents: Vec<Ident> = fields.iter().map(|f| f.to_owned().ident.unwrap()).collect();
     quote!(
         impl BlockData for #name {
@@ -82,7 +82,7 @@ fn impl_block_data(name: &Ident, fields: &Vec<Field>) -> TokenStream2 {
     )
 }
 
-fn impl_getters_and_setters(name: &Ident, fields: &Vec<Field>) -> TokenStream2 {
+fn impl_getters_and_setters(name: &Ident, fields: &[Field]) -> TokenStream2 {
     let mut getters_setters = Vec::new();
     for field in fields {
         let field = field.to_owned();
