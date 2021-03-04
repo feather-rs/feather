@@ -1,5 +1,6 @@
 //! A WebAssembly-based plugin API for Minecraft servers.
 
+pub mod bundler;
 pub mod entities;
 mod entity;
 mod entity_builder;
