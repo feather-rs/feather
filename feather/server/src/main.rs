@@ -89,8 +89,8 @@ fn create_tick_loop(mut game: Game) -> TickLoop {
     TickLoop::new(move || {
         let systems = Rc::clone(&game.system_executor);
         systems.borrow_mut().run(&mut game);
-		game.tick_count += 1;
-		
+        game.tick_count += 1;
+        
         false
     })
 }
