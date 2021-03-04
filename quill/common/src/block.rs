@@ -20,7 +20,7 @@ impl BlockGetResult {
         }
     }
 
-    pub fn to_u32(self) -> u32 {
+    pub fn to_u32(&self) -> u32 {
         self.0
     }
 }

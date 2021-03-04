@@ -14,6 +14,12 @@ pub trait Query {
 
     fn add_component_types(types: &mut Vec<HostComponent>);
 
+    /// # Safety
+    /// `component_index` must be a valid index less
+    /// than the number of entities in the query data.
+    ///
+    /// `component_offsets` must contain the proper byte offset
+    /// of the current component index.
     unsafe fn get_unchecked(
         data: &QueryData,
         component_index: &mut usize,

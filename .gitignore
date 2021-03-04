@@ -7,7 +7,7 @@
 .cargo
 
 world/
-config.toml
+/config.toml
 
 # Python cache files (libcraft)
 **/__pycache__/
