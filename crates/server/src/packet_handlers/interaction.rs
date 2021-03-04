@@ -1,11 +1,10 @@
 use crate::{ClientId, NetworkId, Server};
-use common::{entities::player::HotbarSlot, Game};
 use common::events::InteractEntityEvent;
+use common::{entities::player::HotbarSlot, Game};
 use ecs::{Entity, EntityRef, SysResult};
 use libcraft_core::{InteractHand, InteractionType, Vec3f};
 use protocol::packets::client::{
-    BlockFace, HeldItemChange,
-    InteractEntity, InteractEntityKind, PlayerBlockPlacement,
+    BlockFace, HeldItemChange, InteractEntity, InteractEntityKind, PlayerBlockPlacement,
     PlayerDigging, PlayerDiggingStatus,
 };
 
