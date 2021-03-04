@@ -6,7 +6,7 @@ use libcraft_particles::Particle;
 use quill_common::entity_init::EntityInit;
 
 use crate::{
-    bundler::DynamicBundle,
+    bundler::ComponentBundle,
     query::{Query, QueryIter},
     EntityBuilder,
 };
@@ -101,7 +101,7 @@ impl Game {
     /// Spawns a new [`Entity`] with the supllied components.
     ///
     /// The builder is not initialized with any default components.
-    pub fn spawn(&self, components: impl DynamicBundle) -> Entity {
+    pub fn spawn(&self, components: impl ComponentBundle) -> Entity {
         let mut builder = self.create_empty_entity_builder();
         components.add_to_builder(&mut builder);
         builder.finish()
