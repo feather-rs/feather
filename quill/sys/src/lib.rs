@@ -156,4 +156,11 @@ extern "C" {
     /// block's chunk is not loaded or the section index is out of bounds.
     pub fn block_fill_chunk_section(chunk_x: i32, section_y: u32, chunk_z: i32, block: u16)
         -> bool;
+    
+    pub fn plugin_message_send(
+        channel_ptr: Pointer<u8>,
+        channel_len: u32,
+        data_ptr: Pointer<u8>,
+        data_len: u32
+    );
 }

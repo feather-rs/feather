@@ -12,6 +12,7 @@ mod block;
 mod component;
 mod entity;
 mod entity_builder;
+mod plugin_message;
 mod query;
 mod system;
 
@@ -48,6 +49,7 @@ use block::*;
 use component::*;
 use entity::*;
 use entity_builder::*;
+use plugin_message::*;
 use query::*;
 use system::*;
 
@@ -65,4 +67,5 @@ host_calls! {
     "block_get" => block_get,
     "block_set" => block_set,
     "block_fill_chunk_section" => block_fill_chunk_section,
+    "plugin_message_send" => plugin_message_send,
 }
