@@ -90,7 +90,7 @@ fn create_tick_loop(mut game: Game) -> TickLoop {
         let systems = Rc::clone(&game.system_executor);
         systems.borrow_mut().run(&mut game);
         game.tick_count += 1;
-        
+
         false
     })
 }
