@@ -12,7 +12,7 @@ pub fn plugin_message_send(
     data_len: u32,
 ) -> anyhow::Result<()> {
     let channel = cx.read_string(channel_ptr, channel_len)?;
-    let data = cx.read_string(data_ptr, data_len)?.into();
+    let data = cx.read_bytes(data_ptr, data_len)?;
 
     let event = PluginMessageEvent {
         channel,

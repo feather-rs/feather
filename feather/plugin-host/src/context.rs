@@ -350,6 +350,15 @@ impl PluginContext {
         }
     }
 
+    /// Reads a `Vec<u8>` from the plugin's memory space.
+    pub fn read_bytes(&self, ptr: PluginPtr<u8>, len: u32) -> anyhow::Result<Vec<u8>> {
+        // SAFETY: we do not return a reference to these bytes.
+        unsafe {
+            let bytes = self.deref_bytes(ptr.cast(), len)?;
+            Ok(bytes.to_owned())
+        }
+    }
+
     /// Allocates some memory within the plugin's bump
     /// allocator.
     ///
