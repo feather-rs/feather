@@ -26,4 +26,4 @@ output_data += generate_enum_property("EntityKind", "name", "&str", names, True,
 output_data += generate_enum_property("EntityKind", "display_name", "&str", display_names, True, "&'static str")
 output_data += generate_enum_property("EntityKind", "bounding_box", "vek::Aabb<f64>", bboxes)
 
-output("crates/core/src/entity.rs", output_data)
+output("core/src/entity.rs", output_data)

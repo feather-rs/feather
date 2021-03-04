@@ -7,8 +7,8 @@ from pathlib import Path
 
 from typing import List
 
-LIBCRAFT_ROOT = Path(__file__).parents[3]
-PRISMARINEJS_BASE_PATH = Path(__file__).parents[1] / "minecraft-data" / "data" / "pc"
+LIBCRAFT_ROOT = Path(__file__).parents[1] / ".."
+PRISMARINEJS_BASE_PATH = Path(__file__).parents[1] / ".." / ".." / "minecraft-data" / "data" / "pc"
 LIBCRAFT_DATA_BASE_PATH = Path(__file__).parents[1] / "libcraft-data"
 
 

@@ -10,7 +10,7 @@ def rustfmt(file_path):
     subprocess.run(["rustfmt", file_path])
 
 
-PRISMARINEJS_BASE_PATH = "minecraft-data/data/pc"
+PRISMARINEJS_BASE_PATH = "../../minecraft-data/data/pc"
 FEATHER_BASE_PATH = "feather"
 
 

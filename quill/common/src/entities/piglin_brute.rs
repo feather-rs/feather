@@ -7,7 +7,7 @@ use bytemuck::{Pod, Zeroable};
 /// use quill::{Game, Position, entities::PiglinBrute};
 /// # struct MyPlugin;
 /// fn print_entities_system(_plugin: &mut MyPlugin, game: &mut Game) {
-///     for (entity, (position, _)) in game.query::<(&Position, &PiglinPrute)>() {
+///     for (entity, (position, _)) in game.query::<(&Position, &PiglinBrute)>() {
 ///         println!("Found a piglin brute with position {:?}", position);
 ///     }
 /// }

@@ -117,9 +117,10 @@ impl Game {
     /// # Example
     /// Spawn a flame particle at 0, 0, 0:
     /// ```no_run
-    /// use quill::{Position, Particle, ParticleKind}
+    /// # let game: quill::Game = unreachable!();
+    /// use quill::{Position, Particle, ParticleKind};
     ///
-    /// let position = Position {x: 0.0, y: 0.0, z: 0.0, pitch: 0.0, yaw: 0.0}
+    /// let position = Position {x: 0.0, y: 0.0, z: 0.0, pitch: 0.0, yaw: 0.0};
     /// let particle = Particle {
     ///     kind: ParticleKind::Flame,
     ///     offset_x: 0.0,
@@ -128,7 +129,7 @@ impl Game {
     ///     count: 1,
     /// };
     ///
-    /// game.spawn_particle(position, particle)
+    /// game.spawn_particle(position, particle);
     /// ```
     pub fn spawn_particle(&self, position: Position, particle: Particle) {
         let mut entity_builder = self.create_empty_entity_builder();

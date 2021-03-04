@@ -73,4 +73,4 @@ output_data += f"""
     }}
 """
 
-output("crates/items/src/item.rs", output_data)
+output("items/src/item.rs", output_data)

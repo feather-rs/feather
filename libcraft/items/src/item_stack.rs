@@ -1,4 +1,5 @@
-#![forbid(unsafe_code, warnings)]
+#![forbid(unsafe_code)]
+#![deny(warnings)]
 
 use crate::{Enchantment, Item};
 use core::fmt::Display;

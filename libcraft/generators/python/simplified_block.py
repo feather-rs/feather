@@ -32,4 +32,4 @@ for block in blocks:
 
 output_data = "use crate::BlockKind;" + generate_enum("SimplifiedBlockKind", variants)
 output_data += generate_enum_property("BlockKind", "simplified_kind", "SimplifiedBlockKind", mapping)
-output("crates/blocks/src/simplified_block.rs", output_data)
+output("blocks/src/simplified_block.rs", output_data)

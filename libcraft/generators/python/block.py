@@ -93,4 +93,4 @@ output_data += generate_enum_property("BlockKind", "dig_multipliers",
 output_data += generate_enum_property("BlockKind", "harvest_tools",
                                       "Option<&'static [libcraft_items::Item]>", harvest_tools)
 
-output("crates/blocks/src/block.rs", output_data)
+output("blocks/src/block.rs", output_data)

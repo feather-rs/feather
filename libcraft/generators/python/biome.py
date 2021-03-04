@@ -25,5 +25,5 @@ output_data += generate_enum_property("Biome", "display_name", "&str", display_n
 output_data += generate_enum_property("Biome", "rainfall", "f32", rainfalls)
 output_data += generate_enum_property("Biome", "temperature", "f32", temperatures)
 
-output("crates/core/src/biome.rs", output_data)
+output("core/src/biome.rs", output_data)
 

@@ -29,7 +29,7 @@ def main ():
     output_data = generate_enum("Particle", particles)
     output_data += generate_enum_property("Particle", "id", "u32", ids, True)
     output_data += generate_enum_property("Particle", "name", "&str", names, True, "&'static str")
-    output("crates/core/src/particle.rs", output_data)
+    output("core/src/particle.rs", output_data)
 
 def generate_particle_data (name: str, data: dict):
 
