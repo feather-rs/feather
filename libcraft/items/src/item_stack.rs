@@ -36,6 +36,8 @@ pub struct ItemStack {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct ItemStackMeta {
+    // TODO: Structrure ItemStackMeta according to https://minecraft.gamepedia.com/Player.dat_format#Item_structure
+
     /// The displayed title (name) of the associated `ItemStack`.
     title: String,
 
