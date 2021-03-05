@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate bitflags;
+
 mod enchantment;
 mod inventory_slot;
 mod item;

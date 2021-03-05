@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
+bitflags = "1.2.1"
