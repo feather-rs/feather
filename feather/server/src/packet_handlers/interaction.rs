@@ -1,11 +1,7 @@
 use crate::{ClientId, NetworkId, Server};
 use common::entities::player::HotbarSlot;
-use common::events::InteractEntityEvent;
+use common::interactable::InteractableRegistry;
 use common::Game;
-use common::{
-    events::{BlockInteractEvent, BlockPlacementEvent},
-    interactable::InteractableRegistry,
-};
 use ecs::{Entity, EntityRef, SysResult};
 use libcraft_core::{BlockFace as LibcraftBlockFace, Hand};
 use libcraft_core::{InteractionType, Vec3f};
@@ -13,7 +9,10 @@ use protocol::packets::client::{
     BlockFace, HeldItemChange, InteractEntity, InteractEntityKind, PlayerBlockPlacement,
     PlayerDigging, PlayerDiggingStatus,
 };
-
+use quill_common::{
+    events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent},
+    EntityId,
+};
 /// Handles the player block placement packet. Currently just removes the block client side for the player.
 pub fn handle_player_block_placement(
     game: &mut Game,
@@ -153,14 +152,14 @@ pub fn handle_interact_entity(
 
     let event = match packet.kind {
         InteractEntityKind::Attack => InteractEntityEvent {
-            target,
+            target: EntityId(target.id() as u64),
             ty: InteractionType::Attack,
             target_pos: None,
             hand: None,
             sneaking: packet.sneaking,
         },
         InteractEntityKind::Interact => InteractEntityEvent {
-            target,
+            target: EntityId(target.id() as u64),
             ty: InteractionType::Interact,
             target_pos: None,
             hand: None,
@@ -179,7 +178,7 @@ pub fn handle_interact_entity(
             };
 
             InteractEntityEvent {
-                target,
+                target: EntityId(target.id() as u64),
                 ty: InteractionType::Attack,
                 target_pos: Some(Vec3f::new(
                     target_x as f32,
