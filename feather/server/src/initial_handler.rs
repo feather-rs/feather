@@ -11,7 +11,9 @@ use protocol::{
     codec::CryptKey,
     packets::{
         client::{HandshakeState, Ping},
-        server::{DisconnectLogin, EncryptionRequest, LoginSuccess, Pong, Response},
+        server::{
+            DisconnectLogin, EncryptionRequest, LoginSuccess, Pong, Response, SetCompression,
+        },
     },
     ClientHandshakePacket, ClientLoginPacket, ClientPlayPacket, ClientStatusPacket,
     ServerLoginPacket, ServerPlayPacket, ServerStatusPacket,
@@ -292,6 +294,8 @@ async fn finish_login(
     worker: &mut Worker,
     response: AuthResponse,
 ) -> anyhow::Result<InitialHandling> {
+    enable_compression(worker).await?;
+
     let success = LoginSuccess {
         uuid: response.id,
         username: response.name.clone(),
@@ -309,4 +313,15 @@ async fn finish_login(
     };
     log::debug!("Completed initial handling for {}", new_player.username);
     Ok(InitialHandling::Join(new_player))
+}
+
+async fn enable_compression(worker: &mut Worker) -> anyhow::Result<()> {
+    if let Some(threshold) = worker.options().compression_threshold {
+        let packet = ServerLoginPacket::SetCompression(SetCompression {
+            threshold: threshold as i32,
+        });
+        worker.write(&packet).await?;
+        worker.enable_compression(threshold);
+    }
+    Ok(())
 }

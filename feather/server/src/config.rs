@@ -47,6 +47,11 @@ impl Config {
             } else {
                 self.server.online_mode
             },
+            compression_threshold: if self.network.compression_threshold <= 0 {
+                None
+            } else {
+                Some(self.network.compression_threshold as usize)
+            },
             view_distance: self.server.view_distance,
             max_players: self.server.max_players,
             default_gamemode: self.server.default_gamemode,
@@ -64,7 +69,7 @@ impl Config {
 pub struct Network {
     pub address: Ipv4Addr,
     pub port: u16,
-    pub compression_threshold: u32,
+    pub compression_threshold: i32,
 }
 
 #[derive(Debug, Deserialize)]

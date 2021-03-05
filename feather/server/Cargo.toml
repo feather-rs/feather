@@ -23,6 +23,7 @@ common = { path = "../common", package = "feather-common" }
 crossbeam-utils = "0.8"
 ecs = { path = "../ecs", package = "feather-ecs" }
 fern = "0.6"
+flate2 = "1"
 flume = "0.10"
 futures-lite = "1"
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
@@ -51,6 +52,9 @@ libcraft-core = { path = "../../libcraft/core" }
 
 [features]
 default = [ "plugin-cranelift" ]
+
+# Use zlib-ng for faster compression. Requires CMake.
+zlib-ng = [ "flate2/zlib-ng-compat" ]
 
 # Use Cranelift to JIT-compile plugins. Pure Rust
 # but produces slower code than LLVM.
