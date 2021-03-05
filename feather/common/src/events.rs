@@ -6,13 +6,8 @@ use parking_lot::RwLock;
 use crate::view::View;
 
 mod block_change;
-mod block_interact;
-mod interact_entity;
 
 pub use block_change::BlockChangeEvent;
-pub use block_interact::{BlockInteractEvent, BlockPlacementEvent};
-pub use interact_entity::InteractEntityEvent;
-
 /// Triggered when a player joins the `Game`.
 #[derive(Debug)]
 pub struct PlayerJoinEvent;
