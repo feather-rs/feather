@@ -36,22 +36,9 @@ pub struct ItemStack {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct ItemStackMeta {
-    // TODO: Structrure ItemStackMeta according to https://minecraft.gamepedia.com/Player.dat_format#Item_structure
 
-    /// The displayed title (name) of the associated `ItemStack`.
-    title: String,
 
-    /// The displayed lore of the associated `ItemStack`.
-    lore: String,
 
-    /// The damage taken by the `ItemStack`.
-    damage: Option<u32>,
-
-    /// The cost of repairing the `ItemStack`.
-    repair_cost: Option<u32>,
-
-    /// The enchantments applied to this `ItemStack`.
-    enchantments: Vec<Enchantment>,
 }
 
 impl ItemStack {
