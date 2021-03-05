@@ -214,7 +214,7 @@ impl VarInt {
                 temp |= 0b1000_0000;
             }
 
-            writer.write(&[temp])?;
+            writer.write_all(&[temp])?;
 
             if x == 0 {
                 break;
