@@ -1,4 +1,5 @@
 use parking_lot::{Mutex, MutexGuard};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 #[allow(clippy::all)]
@@ -19,12 +20,12 @@ mod simplified_block;
 pub use biome::Biome;
 pub use block::BlockKind;
 pub use entity::EntityKind;
-pub use inventory::{Area, InventoryBacking, Window};
+pub use inventory::{Area, HostWindow, InventoryBacking};
 pub use item::Item;
 pub use particle::Particle;
 pub use simplified_block::SimplifiedBlockKind;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ItemStack {
     pub item: Item,
     pub count: u32,
@@ -146,7 +147,8 @@ impl ItemStack {
     }
 }
 
-type Slot = Mutex<Option<ItemStack>>;
+type HostSlot = Mutex<Option<ItemStack>>;
+type Slot = Option<ItemStack>;
 
 /// A handle to an inventory.
 ///
@@ -159,11 +161,16 @@ type Slot = Mutex<Option<ItemStack>>;
 /// it is cheap and creates a new handle to the same inventory. Interior mutability
 /// is used to make this safe.
 #[derive(Debug, Clone)]
-pub struct Inventory {
-    backing: Arc<InventoryBacking<Slot>>,
+pub struct HostInventory {
+    backing: Arc<InventoryBacking<HostSlot>>,
 }
 
-impl Inventory {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Inventory {
+    backing: InventoryBacking<Slot>,
+}
+
+impl HostInventory {
     /// Returns whether two `Inventory` handles point to the same
     /// backing inventory.
     pub fn ptr_eq(&self, other: &Self) -> bool {
@@ -197,7 +204,7 @@ impl Inventory {
     ///
     /// This operation is the same as calling `clone()`, but it's more explicit
     /// in its intent.
-    pub fn new_handle(&self) -> Inventory {
+    pub fn new_handle(&self) -> HostInventory {
         self.clone()
     }
 }
@@ -208,7 +215,7 @@ pub enum WindowError {
     OutOfBounds(usize),
 }
 
-impl Window {
+impl HostWindow {
     /// Gets the item at the provided protocol index.
     /// Returns an error if index is invalid.
     pub fn item(&self, index: usize) -> Result<MutexGuard<Option<ItemStack>>, WindowError> {
