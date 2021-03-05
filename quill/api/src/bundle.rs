@@ -11,36 +11,26 @@ impl ComponentBundle for () {
     fn add_to_builder(self, _builder: &mut EntityBuilder) {}
 }
 
-impl<C> ComponentBundle for (C,)
-where
-    C: Component,
-{
-    #[inline]
-    fn add_to_builder(self, builder: &mut EntityBuilder) {
-        builder.add(self.0);
-    }
-}
-
 macro_rules! tuple_impl {
-    ($head:ident $(,$tail:ident)*$(,)?) => {
-        impl<$head, $($tail),*> ComponentBundle for ($head, $($tail),*)
+    ($($idents:ident),*$(,)?) => {
+        impl<$($idents),*> ComponentBundle for ($($idents,)*)
         where
-            ($head,): ComponentBundle,
-            ($($tail,)*): ComponentBundle,
+            $($idents: Component),*
         {
             #[inline]
             #[allow(non_snake_case)]
             fn add_to_builder(self, builder: &mut EntityBuilder) {
-                let ($head, $($tail),*) = self;
-                ComponentBundle::add_to_builder(($head,), builder);
-                ComponentBundle::add_to_builder(($($tail,)*), builder);
+                let ($($idents,)*) = self;
+                $(builder.add($idents);)*
             }
         }
     };
 }
 
 macro_rules! smaller_tuples_too {
-    ($macro:ident, $head:ident $(,)?) => {};
+    ($macro:ident, $head:ident $(,)?) => {
+        $macro!($head);
+    };
     ($macro:ident, $head:ident, $($tail:ident),* $(,)?) => {
         $macro!($head, $($tail),*);
         smaller_tuples_too!($macro, $($tail),*);

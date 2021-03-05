@@ -1,6 +1,6 @@
 //! A WebAssembly-based plugin API for Minecraft servers.
 
-pub mod bundler;
+pub mod bundle;
 pub mod entities;
 mod entity;
 mod entity_builder;
@@ -8,6 +8,7 @@ mod game;
 pub mod query;
 mod setup;
 
+pub use bundle::ComponentBundle;
 pub use entity::{Entity, EntityId};
 pub use entity_builder::EntityBuilder;
 pub use game::Game;
