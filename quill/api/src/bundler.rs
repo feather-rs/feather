@@ -23,14 +23,14 @@ macro_rules! tuple_impl {
     ($head:ident $(,$tail:ident)*$(,)?) => {
         impl<$head, $($tail),*> ComponentBundle for ($head, $($tail),*)
         where
-            $head: ComponentBundle,
+            ($head,): ComponentBundle,
             ($($tail,)*): ComponentBundle,
         {
             #[allow(non_snake_case)]
             #[inline]
             fn add_to_builder(self, builder: &mut EntityBuilder) {
                 let ($head, $($tail),*) = self;
-                ComponentBundle::add_to_builder($head, builder);
+                ComponentBundle::add_to_builder(($head,), builder);
                 ComponentBundle::add_to_builder(($($tail,)*), builder);
             }
         }
