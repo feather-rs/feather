@@ -751,6 +751,7 @@ dependencies = [
  "libcraft-core",
  "libcraft-items",
  "libcraft-particles",
+ "libcraft-text",
  "nom",
  "nom_locate",
  "num-derive",
@@ -1430,6 +1431,20 @@ dependencies = [
  "num-traits",
  "ordinalizer",
  "serde",
+]
+
+[[package]]
+name = "libcraft-text"
+version = "0.1.0"
+dependencies = [
+ "hematite-nbt",
+ "nom",
+ "nom_locate",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror",
+ "uuid",
 ]
 
 [[package]]

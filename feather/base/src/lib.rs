@@ -13,7 +13,6 @@ pub mod anvil;
 pub mod chunk;
 pub mod inventory;
 pub mod metadata;
-pub mod text;
 mod world;
 
 pub use blocks::*;
@@ -22,9 +21,9 @@ pub use generated::{Area, Biome, EntityKind, Inventory, Item, ItemStack};
 pub use libcraft_blocks::{BlockKind, BlockState};
 pub use libcraft_core::{position, vec3, BlockPosition, ChunkPosition, Gamemode, Position, Vec3d};
 pub use libcraft_particles::{Particle, ParticleKind};
+pub use libcraft_text::{deserialize_text, Text};
 #[doc(inline)]
 pub use metadata::EntityMetadata;
-pub use text::{deserialize_text, Text};
 
 /// Number of updates (ticks) to do per second.
 pub const TPS: u32 = 20;
