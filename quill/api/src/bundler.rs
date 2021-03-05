@@ -7,6 +7,7 @@ pub trait ComponentBundle {
 }
 
 impl ComponentBundle for () {
+    #[inline]
     fn add_to_builder(self, _builder: &mut EntityBuilder) {}
 }
 
@@ -14,6 +15,7 @@ impl<C> ComponentBundle for (C,)
 where
     C: Component,
 {
+    #[inline]
     fn add_to_builder(self, builder: &mut EntityBuilder) {
         builder.add(self.0);
     }
@@ -26,8 +28,8 @@ macro_rules! tuple_impl {
             ($head,): ComponentBundle,
             ($($tail,)*): ComponentBundle,
         {
-            #[allow(non_snake_case)]
             #[inline]
+            #[allow(non_snake_case)]
             fn add_to_builder(self, builder: &mut EntityBuilder) {
                 let ($head, $($tail),*) = self;
                 ComponentBundle::add_to_builder(($head,), builder);
@@ -38,9 +40,8 @@ macro_rules! tuple_impl {
 }
 
 macro_rules! smaller_tuples_too {
-    ($macro:ident, $head:ident) => {
-    };
-    ($macro:ident, $head:ident, $($tail:ident),*$(,)?) => {
+    ($macro:ident, $head:ident $(,)?) => {};
+    ($macro:ident, $head:ident, $($tail:ident),* $(,)?) => {
         $macro!($head, $($tail),*);
         smaller_tuples_too!($macro, $($tail),*);
     };
