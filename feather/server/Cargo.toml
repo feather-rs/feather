@@ -49,6 +49,10 @@ uuid = "0.8"
 vec-arena = "1"
 libcraft-core = { path = "../../libcraft/core" }
 
+# On Linux, use zlib-ng for faster compression.
+[target.'cfg(unix)'.dependencies]
+flate2 = { version = "1", features = ["zlib-ng-compat"] }
+
 [features]
 default = [ "plugin-cranelift" ]
 

@@ -13,7 +13,7 @@ use std::{
     borrow::Cow,
     collections::BTreeMap,
     convert::{TryFrom, TryInto},
-    io::{Cursor, Read},
+    io::{self, Cursor, Read, Write},
     iter,
     num::TryFromIntError,
 };
@@ -204,8 +204,8 @@ impl From<i32> for VarInt {
     }
 }
 
-impl Writeable for VarInt {
-    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
+impl VarInt {
+    pub fn write_to(&self, mut writer: impl Write) -> io::Result<()> {
         let mut x = self.0 as u32;
         loop {
             let mut temp = (x & 0b0111_1111) as u8;
@@ -214,12 +214,19 @@ impl Writeable for VarInt {
                 temp |= 0b1000_0000;
             }
 
-            buffer.write_u8(temp).unwrap();
+            writer.write(&[temp])?;
 
             if x == 0 {
                 break;
             }
         }
+        Ok(())
+    }
+}
+
+impl Writeable for VarInt {
+    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
+        self.write_to(buffer).expect("write to Vec failed");
     }
 }
 

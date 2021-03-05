@@ -32,6 +32,9 @@ pub struct Options {
     pub proxy_mode: Option<ProxyMode>,
     // HMAC key used with Velocity IP forwarding.
     pub velocity_secret: String,
+
+    /// Packet size threshold at which to compress data
+    pub compression_threshold: Option<usize>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
