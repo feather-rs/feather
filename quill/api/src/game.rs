@@ -6,9 +6,8 @@ use libcraft_particles::Particle;
 use quill_common::entity_init::EntityInit;
 
 use crate::{
-    ComponentBundle,
     query::{Query, QueryIter},
-    EntityBuilder,
+    ComponentBundle, EntityBuilder,
 };
 use crate::{Entity, EntityId};
 
