@@ -17,10 +17,7 @@ pub fn plugin_message_send(
     let data = cx.read_bytes(data_ptr, data_len)?;
 
     let entity = Entity::from_bits(entity);
-    let event = PluginMessageEvent {
-        channel,
-        data,
-    };
+    let event = PluginMessageEvent { channel, data };
     cx.game_mut().ecs.insert_entity_event(entity, event)?;
 
     Ok(())

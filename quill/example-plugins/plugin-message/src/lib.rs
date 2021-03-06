@@ -17,7 +17,12 @@ impl Plugin for PluginMessage {
 
 fn plugin_message_system(_plugin: &mut PluginMessage, game: &mut Game) {
     for (entity, (_, position)) in game.query::<(&Player, &Position)>() {
-        if let BlockPosition { x: 10..=12, y: _, z: 10..=12 } = position.block() {
+        if let BlockPosition {
+            x: 10..=12,
+            y: _,
+            z: 10..=12,
+        } = position.block()
+        {
             let mut data = Vec::new();
             data.extend_from_slice(&u16::to_be_bytes(7));
             data.extend_from_slice(b"Connect");

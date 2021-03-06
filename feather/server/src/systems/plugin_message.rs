@@ -3,7 +3,9 @@ use common::{events::PluginMessageEvent, Game};
 use ecs::{SysResult, SystemExecutor};
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
-    systems.group::<Server>().add_system(send_plugin_message_packets);
+    systems
+        .group::<Server>()
+        .add_system(send_plugin_message_packets);
 }
 
 fn send_plugin_message_packets(game: &mut Game, server: &mut Server) -> SysResult {

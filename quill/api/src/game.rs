@@ -214,7 +214,7 @@ impl Game {
                 channel_ptr,
                 channel.len() as u32,
                 data_ptr,
-                data.len() as u32
+                data.len() as u32,
             )
         }
     }

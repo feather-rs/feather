@@ -156,15 +156,15 @@ extern "C" {
     /// block's chunk is not loaded or the section index is out of bounds.
     pub fn block_fill_chunk_section(chunk_x: i32, section_y: u32, chunk_z: i32, block: u16)
         -> bool;
-    
+
     /// Sends a custom packet to an entity.
-    /// 
+    ///
     /// Does nothing if the entity does not have the `ClientId` component.
     pub fn plugin_message_send(
         entity: EntityId,
         channel_ptr: Pointer<u8>,
         channel_len: u32,
         data_ptr: Pointer<u8>,
-        data_len: u32
+        data_len: u32,
     );
 }
