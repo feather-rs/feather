@@ -9,7 +9,7 @@ pub trait SendMessage<Index> {
 impl<T, Index> SendMessage<Index> for (Entity, T)
 where
     T: Tuple,
-    <T as Tuple>::HList: Plucker<Ref<Player>, Index>
+    <T as Tuple>::HList: Plucker<Player, Index>
 {
     fn send_message(&self, message: &str) {
         let components = &self.1;
