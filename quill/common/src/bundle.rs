@@ -8,9 +8,13 @@ pub trait ComponentBundle {
     fn add_to_builder(self, builder: &mut impl EntityBuilder);
 }
 
-impl ComponentBundle for () {
-    #[inline]
-    fn add_to_builder(self, _builder: &mut impl EntityBuilder) {}
+impl<T> ComponentBundle for T
+where
+    T: Component,
+{
+    fn add_to_builder(self, builder: &mut impl EntityBuilder) {
+        builder.add(self);
+    }
 }
 
 macro_rules! tuple_impl {
