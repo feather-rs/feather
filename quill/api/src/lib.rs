@@ -1,6 +1,5 @@
 //! A WebAssembly-based plugin API for Minecraft servers.
 
-pub mod bundle;
 pub mod entities;
 mod entity;
 mod entity_builder;
@@ -8,7 +7,6 @@ mod game;
 pub mod query;
 mod setup;
 
-pub use bundle::ComponentBundle;
 pub use entity::{Entity, EntityId};
 pub use entity_builder::EntityBuilder;
 pub use game::Game;
@@ -23,7 +21,7 @@ pub use libcraft_core::{BlockPosition, ChunkPosition, Gamemode, Position};
 pub use libcraft_particles::{Particle, ParticleKind};
 
 #[doc(inline)]
-pub use quill_common::{components, entity_init::EntityInit, events, Component};
+pub use quill_common::{components, entity_init::EntityInit, events, Component, ComponentBundle};
 #[doc(inline)]
 pub use uuid::Uuid;
 

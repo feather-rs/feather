@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use quill_common::Component;
+use quill_common::{bundle, Component};
 
 use crate::{Entity, EntityId};
 
@@ -14,6 +14,12 @@ use crate::{Entity, EntityId};
 pub struct EntityBuilder {
     id: u32,
     _not_send_sync: PhantomData<*mut ()>,
+}
+
+impl bundle::EntityBuilder for EntityBuilder {
+    fn add<C: Component>(&mut self, component: C) -> &mut Self {
+        EntityBuilder::add(self, component)
+    }
 }
 
 impl EntityBuilder {

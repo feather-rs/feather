@@ -1,27 +1,29 @@
-use quill_common::Component;
+use crate::Component;
 
-use crate::EntityBuilder;
+pub trait EntityBuilder {
+    fn add<C: Component>(&mut self, component: C) -> &mut Self;
+}
 
 pub trait ComponentBundle {
-    fn add_to_builder(self, builder: &mut EntityBuilder);
+    fn add_to_builder(self, builder: &mut impl EntityBuilder);
 }
 
 impl ComponentBundle for () {
     #[inline]
-    fn add_to_builder(self, _builder: &mut EntityBuilder) {}
+    fn add_to_builder(self, _builder: &mut impl EntityBuilder) {}
 }
 
 macro_rules! tuple_impl {
     ($($idents:ident),*$(,)?) => {
         impl<$($idents),*> ComponentBundle for ($($idents,)*)
         where
-            $($idents: Component),*
+            $($idents: ComponentBundle),*
         {
             #[inline]
             #[allow(non_snake_case)]
-            fn add_to_builder(self, builder: &mut EntityBuilder) {
+            fn add_to_builder(self, builder: &mut impl EntityBuilder) {
                 let ($($idents,)*) = self;
-                $(builder.add($idents);)*
+                $(ComponentBundle::add_to_builder($idents, builder);)*
             }
         }
     };
