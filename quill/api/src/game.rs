@@ -204,11 +204,18 @@ impl Game {
         }
     }
 
-    pub fn send_plugin_message(channel: &str, data: &[u8]) {
+    /// Sends a custom packet to an entity.
+    pub fn send_plugin_message(entity: EntityId, channel: &str, data: &[u8]) {
         let channel_ptr = channel.as_ptr().into();
         let data_ptr = data.as_ptr().into();
         unsafe {
-            quill_sys::plugin_message_send(channel_ptr, channel.len() as u32, data_ptr, data.len() as u32)
+            quill_sys::plugin_message_send(
+                entity.0,
+                channel_ptr,
+                channel.len() as u32,
+                data_ptr,
+                data.len() as u32
+            )
         }
     }
 }
