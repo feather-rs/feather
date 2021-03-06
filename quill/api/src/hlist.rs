@@ -99,14 +99,6 @@ pub trait Plucker<Target, Index> {
     fn pluck(self) -> (Target, Self::Remainder);
 }
 
-pub trait PluckerRef<Target, Index> {
-    fn pluck(&self) -> &Target;
-}
-
-pub trait PluckerRefMut<Target, Index> {
-    fn pluck(&mut self) -> &mut Target;
-}
-
 struct Here {}
 
 impl<Target, Tail> Plucker<Target, Here> for HCons<Target, Tail> {
@@ -115,20 +107,6 @@ impl<Target, Tail> Plucker<Target, Here> for HCons<Target, Tail> {
     #[inline]
     fn pluck(self) -> (Target, Self::Remainder) {
         (self.head, self.tail)
-    }
-}
-
-impl<Target, Tail> PluckerRef<Target, Here> for HCons<Target, Tail> {
-    #[inline]
-    fn pluck(&self) -> &Target {
-        &self.head
-    }
-}
-
-impl<Target, Tail> PluckerRefMut<Target, Here> for HCons<Target, Tail> {
-    #[inline]
-    fn pluck(&mut self) -> &mut Target {
-        &mut self.head
     }
 }
 
@@ -151,25 +129,5 @@ where
                 tail: tail_remainder,
             },
         )
-    }
-}
-
-impl<Target, Head, Tail, TailIndex> PluckerRef<Target, There<TailIndex>> for HCons<Head, Tail>
-where
-    Tail: PluckerRef<Target, TailIndex>,
-{
-    #[inline]
-    fn pluck(&self) -> &Target {
-        <Tail as PluckerRef<Target, TailIndex>>::pluck(&self.tail)
-    }
-}
-
-impl<Target, Head, Tail, TailIndex> PluckerRefMut<Target, There<TailIndex>> for HCons<Head, Tail>
-where
-    Tail: PluckerRefMut<Target, TailIndex>,
-{
-    #[inline]
-    fn pluck(&mut self) -> &mut Target {
-        <Tail as PluckerRefMut<Target, TailIndex>>::pluck(&mut self.tail)
     }
 }
