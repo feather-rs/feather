@@ -11,7 +11,9 @@ use protocol::{
     codec::CryptKey,
     packets::{
         client::{HandshakeState, Ping},
-        server::{EncryptionRequest, LoginSuccess, Pong, Response},
+        server::{
+            DisconnectLogin, EncryptionRequest, LoginSuccess, Pong, Response, SetCompression,
+        },
     },
     ClientHandshakePacket, ClientLoginPacket, ClientPlayPacket, ClientStatusPacket,
     ServerLoginPacket, ServerPlayPacket, ServerStatusPacket,
@@ -61,6 +63,18 @@ pub async fn handle(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
     match handshake.next_state {
         HandshakeState::Status => handle_status(worker).await,
         HandshakeState::Login => {
+            if handshake.protocol_version < PROTOCOL_VERSION {
+                worker
+                    .write(ServerLoginPacket::DisconnectLogin(DisconnectLogin {
+                        reason: Text::from(
+                            "Invalid protocol! The server is running on version 1.16!",
+                        )
+                        .to_string(),
+                    }))
+                    .await
+                    .ok();
+                return Ok(InitialHandling::Disconnect);
+            }
             let proxy_data =
                 if let Some(crate::options::ProxyMode::Bungeecord) = worker.options().proxy_mode {
                     Some(proxy::do_bungee_ip_forwarding(&handshake)?)
@@ -280,6 +294,8 @@ async fn finish_login(
     worker: &mut Worker,
     response: AuthResponse,
 ) -> anyhow::Result<InitialHandling> {
+    enable_compression(worker).await?;
+
     let success = LoginSuccess {
         uuid: response.id,
         username: response.name.clone(),
@@ -297,4 +313,15 @@ async fn finish_login(
     };
     log::debug!("Completed initial handling for {}", new_player.username);
     Ok(InitialHandling::Join(new_player))
+}
+
+async fn enable_compression(worker: &mut Worker) -> anyhow::Result<()> {
+    if let Some(threshold) = worker.options().compression_threshold {
+        let packet = ServerLoginPacket::SetCompression(SetCompression {
+            threshold: threshold as i32,
+        });
+        worker.write(&packet).await?;
+        worker.enable_compression(threshold);
+    }
+    Ok(())
 }

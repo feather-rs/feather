@@ -5,7 +5,11 @@ use cfb8::{
     stream_cipher::{NewStreamCipher, StreamCipher},
     Cfb8,
 };
-use std::io::Cursor;
+use flate2::{
+    bufread::{ZlibDecoder, ZlibEncoder},
+    Compression,
+};
+use std::io::{Cursor, Read};
 
 type AesCfb8 = Cfb8<Aes128>;
 pub type CompressionThreshold = usize;
@@ -24,8 +28,10 @@ pub struct MinecraftCodec {
 
     /// A buffer of received bytes.
     received_buf: BytesMut,
-    /// Auxilary buffer for use with compression.
+    /// Auxilary buffer.
     staging_buf: Vec<u8>,
+    /// Another auxilary buffer.
+    compression_target: Vec<u8>,
 }
 
 impl MinecraftCodec {
@@ -56,6 +62,7 @@ impl MinecraftCodec {
             compression: self.compression,
             received_buf: BytesMut::new(),
             staging_buf: Vec::new(),
+            compression_target: Vec::new(),
         }
     }
 
@@ -76,8 +83,38 @@ impl MinecraftCodec {
         self.staging_buf.clear();
     }
 
-    fn encode_compressed(&mut self, _output: &mut Vec<u8>, _threshold: CompressionThreshold) {
-        todo!()
+    fn encode_compressed(&mut self, output: &mut Vec<u8>, threshold: CompressionThreshold) {
+        let (data_length, data) = if self.staging_buf.len() >= threshold {
+            self.data_compressed()
+        } else {
+            self.data_uncompressed()
+        };
+
+        const MAX_VAR_INT_LENGTH: usize = 5;
+        let mut buf = [0u8; MAX_VAR_INT_LENGTH];
+        let mut data_length_bytes = Cursor::new(&mut buf[..]);
+        VarInt(data_length as i32)
+            .write_to(&mut data_length_bytes)
+            .unwrap();
+
+        let packet_length = data_length_bytes.position() as usize + data.len();
+        VarInt(packet_length as i32).write(output, ProtocolVersion::V1_16_2);
+        VarInt(data_length as i32).write(output, ProtocolVersion::V1_16_2);
+        output.extend_from_slice(data);
+
+        self.compression_target.clear();
+    }
+
+    fn data_compressed(&mut self) -> (usize, &[u8]) {
+        let mut encoder = ZlibEncoder::new(self.staging_buf.as_slice(), Compression::default());
+        encoder
+            .read_to_end(&mut self.compression_target)
+            .expect("compression failed");
+        (self.staging_buf.len(), self.compression_target.as_slice())
+    }
+
+    fn data_uncompressed(&mut self) -> (usize, &[u8]) {
+        (0, self.staging_buf.as_slice())
     }
 
     fn encode_uncompressed(&mut self, output: &mut Vec<u8>) {
@@ -114,11 +151,23 @@ impl MinecraftCodec {
                     &self.received_buf
                         [length_field_length..length_field_length + length.0 as usize],
                 );
+
+                if self.compression.is_some() {
+                    let data_length = VarInt::read(&mut cursor, ProtocolVersion::V1_16_2)?;
+                    if data_length.0 != 0 {
+                        let mut decoder =
+                            ZlibDecoder::new(&cursor.get_ref()[cursor.position() as usize..]);
+                        decoder.read_to_end(&mut self.compression_target)?;
+                        cursor = Cursor::new(&self.compression_target);
+                    }
+                }
+
                 let packet = T::read(&mut cursor, ProtocolVersion::V1_16_2)?;
 
                 let bytes_read = cursor.position() as usize + length_field_length;
                 self.received_buf = self.received_buf.split_off(bytes_read);
 
+                self.compression_target.clear();
                 Some(packet)
             } else {
                 None

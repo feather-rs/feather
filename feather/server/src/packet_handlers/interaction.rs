@@ -1,16 +1,18 @@
 use crate::{ClientId, NetworkId, Server};
+use common::entities::player::HotbarSlot;
+use common::interactable::InteractableRegistry;
 use common::Game;
-use common::{
-    events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent},
-    interactable::InteractableRegistry,
-};
-use ecs::{Entity, SysResult};
-use libcraft_core::{BlockFace as LibcraftBlockFace, Hand, InteractionType, Vec3f};
+use ecs::{Entity, EntityRef, SysResult};
+use libcraft_core::{BlockFace as LibcraftBlockFace, Hand};
+use libcraft_core::{InteractionType, Vec3f};
 use protocol::packets::client::{
-    BlockFace, InteractEntity, InteractEntityKind, PlayerBlockPlacement, PlayerDigging,
-    PlayerDiggingStatus,
+    BlockFace, HeldItemChange, InteractEntity, InteractEntityKind, PlayerBlockPlacement,
+    PlayerDigging, PlayerDiggingStatus,
 };
-
+use quill_common::{
+    events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent},
+    EntityId,
+};
 /// Handles the player block placement packet. Currently just removes the block client side for the player.
 pub fn handle_player_block_placement(
     game: &mut Game,
@@ -150,14 +152,14 @@ pub fn handle_interact_entity(
 
     let event = match packet.kind {
         InteractEntityKind::Attack => InteractEntityEvent {
-            target,
+            target: EntityId(target.id() as u64),
             ty: InteractionType::Attack,
             target_pos: None,
             hand: None,
             sneaking: packet.sneaking,
         },
         InteractEntityKind::Interact => InteractEntityEvent {
-            target,
+            target: EntityId(target.id() as u64),
             ty: InteractionType::Interact,
             target_pos: None,
             hand: None,
@@ -176,7 +178,7 @@ pub fn handle_interact_entity(
             };
 
             InteractEntityEvent {
-                target,
+                target: EntityId(target.id() as u64),
                 ty: InteractionType::Attack,
                 target_pos: Some(Vec3f::new(
                     target_x as f32,
@@ -192,4 +194,38 @@ pub fn handle_interact_entity(
     game.ecs.insert_entity_event(player, event)?;
 
     Ok(())
+}
+
+pub fn handle_held_item_change(player: EntityRef, packet: HeldItemChange) -> SysResult {
+    let new_id = packet.slot as usize;
+    let mut slot = player.get_mut::<HotbarSlot>()?;
+
+    log::trace!("Got player slot change from {} to {}", slot.get(), new_id);
+
+    slot.set(new_id)?;
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use common::Game;
+    use protocol::packets::client::HeldItemChange;
+
+    use super::*;
+
+    #[test]
+    fn held_item_change() {
+        let mut game = Game::new();
+        let entity = game.ecs.spawn((HotbarSlot::new(0),));
+        let player = game.ecs.entity(entity).unwrap();
+
+        let packet = HeldItemChange { slot: 8 };
+
+        handle_held_item_change(player, packet).unwrap();
+
+        assert_eq!(
+            *game.ecs.get::<HotbarSlot>(entity).unwrap(),
+            HotbarSlot::new(8)
+        );
+    }
 }

@@ -113,11 +113,15 @@ impl Worker {
     pub fn enable_compression(&mut self, threshold: usize) {
         self.reader.codec.enable_compression(threshold);
         self.writer.codec.enable_compression(threshold);
+
+        log::debug!("Enabled compression");
     }
 
     pub fn enable_encryption(&mut self, key: CryptKey) {
         self.reader.codec.enable_encryption(key);
         self.writer.codec.enable_encryption(key);
+
+        log::debug!("Enabled encryption");
     }
 
     pub async fn read<P: Readable>(&mut self) -> anyhow::Result<P> {
