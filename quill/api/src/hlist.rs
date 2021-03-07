@@ -40,9 +40,7 @@ impl<'a> HListRef<'a> for () {
     type Tuple = ();
 
     #[inline]
-    fn flatten(&'a self) -> Self::Tuple {
-        ()
-    }
+    fn flatten(&'a self) -> Self::Tuple {}
 }
 
 impl Tuple for () {
@@ -56,9 +54,7 @@ impl<'a> TupleRef<'a> for () {
     type HList = ();
 
     #[inline]
-    fn hlist(&'a self) -> Self::HList {
-        ()
-    }
+    fn hlist(&'a self) -> Self::HList {}
 }
 
 macro_rules! HList {
