@@ -11,8 +11,8 @@ where
     T: TupleRef<'a>,
     <T as TupleRef<'a>>::HList: PluckerRef<Player, Index>,
 {
-    fn send_message(&'a self, message: &str) {
+    fn send_message(&'a self, _message: &str) {
         let foo = self.1.hlist();
-        let player = PluckerRef::<Player, Index>::pluck(&foo);
+        let _player: &Player = PluckerRef::<Player, Index>::pluck(&foo);
     }
 }
