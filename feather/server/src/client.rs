@@ -22,9 +22,9 @@ use protocol::{
         self,
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
-            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityTeleport, JoinGame,
-            KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SpawnPlayer, UnloadChunk,
-            UpdateViewPosition, WindowItems,
+            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityMetadataEntry,
+            EntityTeleport, JoinGame, KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage,
+            SendEntityMetadata, SpawnPlayer, UnloadChunk, UpdateViewPosition, WindowItems,
         },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
@@ -463,6 +463,21 @@ impl Client {
     pub fn set_cursor_slot(&self, item: Option<ItemStack>) {
         log::trace!("Setting cursor slot of {} to {:?}", self.username, item);
         self.set_slot(-1, item);
+    }
+
+    pub fn send_player_model_flags(&self, netowrk_id: NetworkId, model_flags: u8) {
+        let data = nbt::Blob::new();
+        data.insert("", model_flags)
+        let mut data: Vec<EntityMetadataEntry> = Vec::new();
+        data.push(EntityMetadataEntry {
+            index: 16,
+            entry_type: 0,
+            entry_value: data,
+        });
+        self.send_packet(SendEntityMetadata {
+            entity_id: netowrk_id.0,
+            entries: data,
+        });
     }
 
     fn register_entity(&self, network_id: NetworkId) {

@@ -904,11 +904,6 @@ packets! {
         score_name String;
     }
 
-    SendEntityMetadata {
-        entity_id VarInt;
-        __todo__ LengthInferredVecU8;
-    }
-
     AttachEntity {
         attached_entity_id i32;
         holding_entity_id i32;
@@ -992,6 +987,50 @@ impl Writeable for EntityEquipment {
 pub struct EquipmentEntry {
     pub slot: EquipmentSlot,
     pub item: Slot,
+}
+
+/// # SendEntityMetadata
+/// **BIG ALPHA!**
+/// Using this packet isn't recommended at its current state as it is very instable and currently just build to support skin overlays
+#[derive(Debug, Clone)]
+pub struct SendEntityMetadata {
+    pub entity_id: i32,
+    pub entries: Vec<EntityMetadataEntry>,
+}
+
+impl Readable for SendEntityMetadata {
+    fn read(
+        buffer: &mut std::io::Cursor<&[u8]>,
+        version: crate::ProtocolVersion,
+    ) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        let entity_id = VarInt::read(buffer, version)?.0;
+        let mut entries = Vec::new();
+        Ok(SendEntityMetadata { entity_id, entries })
+    }
+}
+
+impl Writeable for SendEntityMetadata {
+    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
+        VarInt(self.entity_id).write(buffer, version);
+
+        for (_i, entry) in self.entries.iter().enumerate() {
+            entry.index.write(buffer, version);
+            VarInt(entry.entry_type).write(buffer, version);
+            let entry_value = entry.entry_value.get("").unwrap();
+            entry_value.write(buffer, version);
+        }
+        0xff.write(buffer, version);
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct EntityMetadataEntry {
+    pub index: u8,
+    pub entry_type: i32,
+    pub entry_value: nbt::Blob,
 }
 
 def_enum! {
