@@ -11,10 +11,22 @@ pub trait HList: Sized {
     fn flatten(self) -> Self::Tuple;
 }
 
+pub trait HListRef<'a>: Sized {
+    type Tuple: TupleRef<'a, HList = Self>;
+
+    fn flatten(&'a self) -> Self::Tuple;
+}
+
 pub trait Tuple: Sized {
     type HList: HList<Tuple = Self>;
 
     fn hlist(self) -> Self::HList;
+}
+
+pub trait TupleRef<'a>: Sized {
+    type HList: HListRef<'a, Tuple = Self>;
+
+    fn hlist(&'a self) -> Self::HList;
 }
 
 impl HList for () {
@@ -24,11 +36,50 @@ impl HList for () {
     fn flatten(self) -> Self::Tuple {}
 }
 
+impl<'a> HListRef<'a> for &'a () {
+    type Tuple = &'a ();
+
+    #[inline]
+    fn flatten(&'a self) -> Self::Tuple {
+        &()
+    }
+}
+
+impl<'a, T1> HListRef<'a> for HCons<&'a T1, &'a ()> {
+    type Tuple = (&'a T1,);
+
+    #[inline]
+    fn flatten(&'a self) -> Self::Tuple {
+        (&self.head,)
+    }
+}
+
 impl Tuple for () {
     type HList = ();
 
     #[inline]
     fn hlist(self) -> Self::HList {}
+}
+
+impl<'a> TupleRef<'a> for &'a () {
+    type HList = &'a ();
+
+    #[inline]
+    fn hlist(&'a self) -> Self::HList {
+        &()
+    }
+}
+
+impl<'a, T1> TupleRef<'a> for (&'a T1,) {
+    type HList = HCons<&'a T1, &'a ()>;
+
+    #[inline]
+    fn hlist(&'a self) -> Self::HList {
+        HCons {
+            head: self.0,
+            tail: &(),
+        }
+    }
 }
 
 macro_rules! Product {
@@ -99,7 +150,11 @@ pub trait Plucker<Target, Index> {
     fn pluck(self) -> (Target, Self::Remainder);
 }
 
-struct Here {}
+pub trait PluckerRef<Target, Index> {
+    fn pluck(&self) -> &Target;
+}
+
+pub struct Here();
 
 impl<Target, Tail> Plucker<Target, Here> for HCons<Target, Tail> {
     type Remainder = Tail;
@@ -110,7 +165,14 @@ impl<Target, Tail> Plucker<Target, Here> for HCons<Target, Tail> {
     }
 }
 
-struct There<T>(PhantomData<T>);
+impl<'a, Target, Tail> PluckerRef<Target, Here> for &'a HCons<&'a Target, &'a Tail> {
+    #[inline]
+    fn pluck(&self) -> &Target {
+        self.head
+    }
+}
+
+pub struct There<T>(PhantomData<T>);
 
 impl<Target, Head, Tail, TailIndex> Plucker<Target, There<TailIndex>> for HCons<Head, Tail>
 where
@@ -131,3 +193,14 @@ where
         )
     }
 }
+
+impl<'a, Target, Head, Tail, TailIndex> PluckerRef<Target, There<TailIndex>> for &'a HCons<&'a Head, &'a Tail>
+where
+    &'a Tail: PluckerRef<Target, TailIndex>,
+{
+    #[inline]
+    fn pluck(&self) -> &Target {
+        <&'a Tail as PluckerRef<Target, TailIndex>>::pluck(&self.tail)
+    }
+}
+

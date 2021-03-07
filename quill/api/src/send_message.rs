@@ -1,18 +1,18 @@
 use quill_common::entities::Player;
 
-use crate::{Entity, Plucker, Tuple};
+use crate::{Entity, PluckerRef, TupleRef};
 
-pub trait SendMessage<Index> {
-    fn send_message(&self, message: &str);
+pub trait SendMessage<'a, Index> {
+    fn send_message(&'a self, message: &str);
 }
 
-impl<T, Index> SendMessage<Index> for (Entity, T)
+impl<'a, T, Index> SendMessage<'a, Index> for (&'a Entity, &'a T)
 where
-    T: Tuple,
-    <T as Tuple>::HList: Plucker<Player, Index>
+    &'a T: TupleRef<'a>,
+    <&'a T as TupleRef<'a>>::HList: PluckerRef<Player, Index>
 {
-    fn send_message(&self, message: &str) {
-        let components = &self.1;
-        let player = Plucker::<Player, Index>::pluck(&components.hlist());
+    fn send_message(&'a self, message: &str) {
+        let foo = self.1.hlist();
+        let player = PluckerRef::<Player, Index>::pluck(&foo);
     }
 }
