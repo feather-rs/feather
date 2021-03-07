@@ -53,7 +53,6 @@ fn query_system(plugin: &mut QueryEntities, game: &mut Game) {
     }
 
     for (entity, (player,)) in game.query::<(&Player,)>() {
-        (&entity, (&player,)).send_message("Hello world!");
-        (&entity, (&player,)).send_message("Hello world!");
+        (&entity, (&player,)).send_message("foo");
     }
 }

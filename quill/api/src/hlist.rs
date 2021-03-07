@@ -11,22 +11,10 @@ pub trait HList: Sized {
     fn flatten(self) -> Self::Tuple;
 }
 
-pub trait HListRef<'a>: Sized {
-    type Tuple: TupleRef<'a, HList = Self>;
-
-    fn flatten(&'a self) -> Self::Tuple;
-}
-
 pub trait Tuple: Sized {
     type HList: HList<Tuple = Self>;
 
     fn hlist(self) -> Self::HList;
-}
-
-pub trait TupleRef<'a>: Sized {
-    type HList: HListRef<'a, Tuple = Self>;
-
-    fn hlist(&'a self) -> Self::HList;
 }
 
 impl HList for () {
@@ -36,25 +24,11 @@ impl HList for () {
     fn flatten(self) -> Self::Tuple {}
 }
 
-impl<'a> HListRef<'a> for () {
-    type Tuple = ();
-
-    #[inline]
-    fn flatten(&'a self) -> Self::Tuple {}
-}
-
 impl Tuple for () {
     type HList = ();
 
     #[inline]
     fn hlist(self) -> Self::HList {}
-}
-
-impl<'a> TupleRef<'a> for () {
-    type HList = ();
-
-    #[inline]
-    fn hlist(&'a self) -> Self::HList {}
 }
 
 macro_rules! HList {
@@ -87,17 +61,6 @@ macro_rules! impl_tuple {
             }
         }
 
-        impl<'a, $head $(,$tail)*> HListRef<'a> for HList!(&'a $head $(,&'a $tail)*) {
-            type Tuple = (&'a $head, $(&'a $tail),*);
-
-            #[inline]
-            fn flatten(&'a self) -> Self::Tuple {
-                #[allow(non_snake_case)]
-                let hlist_pat!($head, $($tail),*) = self;
-                ($head, $($tail),*)
-            }
-        }
-
         impl<$head $(,$tail)*> Tuple for ($head, $($tail),*) {
             type HList = HCons<$head, <($($tail,)*) as Tuple>::HList>;
 
@@ -108,20 +71,6 @@ macro_rules! impl_tuple {
                 HCons {
                     head: $head,
                     tail: ($($tail,)*).hlist(),
-                }
-            }
-        }
-
-        impl<'a, $head $(,$tail)*> TupleRef<'a> for (&'a $head, $(&'a $tail),*) {
-            type HList = HCons<&'a $head, <($(&'a $tail,)*) as Tuple>::HList>;
-
-            #[inline]
-            fn hlist(&'a self) -> Self::HList {
-                #[allow(non_snake_case)]
-                let ($head, $($tail),*) = self;
-                HCons {
-                    head: $head,
-                    tail: ($(*$tail,)*).hlist(),
                 }
             }
         }
@@ -153,6 +102,10 @@ pub trait PluckerRef<Target, Index> {
     fn pluck(&self) -> &Target;
 }
 
+pub trait PluckerMut<Target, Index> {
+    fn pluck(&mut self) -> &mut Target;
+}
+
 pub struct Here();
 
 impl<Target, Tail> Plucker<Target, Here> for HCons<Target, Tail> {
@@ -164,10 +117,17 @@ impl<Target, Tail> Plucker<Target, Here> for HCons<Target, Tail> {
     }
 }
 
-impl<'a, Target, Tail> PluckerRef<Target, Here> for HCons<&'a Target, Tail> {
+impl<Target, Tail> PluckerRef<Target, Here> for HCons<&'_ Target, Tail> {
     #[inline]
     fn pluck(&self) -> &Target {
-        self.head
+        &self.head
+    }
+}
+
+impl<Target, Tail> PluckerMut<Target, Here> for HCons<&'_ mut Target, Tail> {
+    #[inline]
+    fn pluck(&mut self) -> &mut Target {
+        &mut self.head
     }
 }
 
@@ -193,13 +153,22 @@ where
     }
 }
 
-impl<'a, Target, Head, Tail, TailIndex> PluckerRef<Target, There<TailIndex>>
-    for HCons<&'a Head, Tail>
+impl<Target, Head, Tail, TailIndex> PluckerRef<Target, There<TailIndex>> for HCons<Head, Tail>
 where
     Tail: PluckerRef<Target, TailIndex>,
 {
     #[inline]
     fn pluck(&self) -> &Target {
         <Tail as PluckerRef<Target, TailIndex>>::pluck(&self.tail)
+    }
+}
+
+impl<Target, Head, Tail, TailIndex> PluckerMut<Target, There<TailIndex>> for HCons<Head, Tail>
+where
+    Tail: PluckerMut<Target, TailIndex>,
+{
+    #[inline]
+    fn pluck(&mut self) -> &mut Target {
+        <Tail as PluckerMut<Target, TailIndex>>::pluck(&mut self.tail)
     }
 }
