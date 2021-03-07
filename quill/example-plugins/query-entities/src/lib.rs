@@ -1,7 +1,11 @@
 //! An example plugin that spawns 10,000 entities
 //! on startup, then moves them each tick using a query.
 
-use quill::{EntityInit, Game, Plugin, Position, entities::{PiglinBrute, Player}, send_message::SendMessage};
+use quill::{
+    entities::{PiglinBrute, Player},
+    send_message::SendMessage,
+    EntityInit, Game, Plugin, Position,
+};
 use rand::Rng;
 
 quill::plugin!(QueryEntities);
@@ -47,9 +51,9 @@ fn query_system(plugin: &mut QueryEntities, game: &mut Game) {
             ..position
         });
     }
- 
+
     for (entity, (player,)) in game.query::<(&Player,)>() {
         (&entity, (&player,)).send_message("Hello world!");
-        (&entity, (&player,)).send_message("Hello world!");        
+        (&entity, (&player,)).send_message("Hello world!");
     }
 }

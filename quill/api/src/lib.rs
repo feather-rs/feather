@@ -4,10 +4,10 @@ pub mod entities;
 mod entity;
 mod entity_builder;
 mod game;
-pub mod query;
 pub mod hlist;
-mod setup;
+pub mod query;
 pub mod send_message;
+mod setup;
 
 pub use entity::{Entity, EntityId};
 pub use entity_builder::EntityBuilder;
