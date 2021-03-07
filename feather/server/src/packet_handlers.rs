@@ -16,9 +16,12 @@ use quill_common::components::Name;
 
 use crate::{NetworkId, Server};
 
+use self::health::handle_client_status;
+
 mod interaction;
 pub mod inventory;
 mod movement;
+mod health;
 
 /// Handles a packet received from a client.
 pub fn handle_packet(
@@ -64,10 +67,13 @@ pub fn handle_packet(
             handle_interact_entity(game, server, packet, player_id)
         }
 
+        ClientPlayPacket::ClientStatus(packet) => {
+            handle_client_status(game, server, player_id, packet)
+        }
+
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
         | ClientPlayPacket::SetDifficulty(_)
-        | ClientPlayPacket::ClientStatus(_)
         | ClientPlayPacket::ClientSettings(_)
         | ClientPlayPacket::TabComplete(_)
         | ClientPlayPacket::WindowConfirmation(_)

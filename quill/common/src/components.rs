@@ -98,3 +98,39 @@ impl Display for CustomName {
         self.0.fmt(f)
     }
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Health {
+    pub health: u32,
+    pub max_health: u32,
+}
+
+impl Health {
+    pub fn new(max_health: u32) -> Self {
+        let health = max_health;
+        Self { health, max_health }
+    }
+
+    pub fn deal_damage(&mut self, damage: u32) {
+        self.health = self.health.saturating_sub(damage);
+    }
+
+    pub fn regenerate() {
+        todo!()
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Hunger {
+    pub food: u32,
+    pub saturation: u32,
+}
+
+impl Hunger {
+    pub fn new() -> Self {
+        Self {
+            food: 20,
+            saturation: 5,
+        }
+    }
+}

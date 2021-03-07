@@ -15,7 +15,7 @@ use common::{
     Window,
 };
 use flume::{Receiver, Sender};
-use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
+use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation, UpdateHealth, Respawn,};
 use parking_lot::RwLock;
 use protocol::{
     packets::{
@@ -29,7 +29,7 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
-use quill_common::components::OnGround;
+use quill_common::components::{OnGround, Health, Hunger,};
 use uuid::Uuid;
 use vec_arena::Arena;
 
@@ -463,6 +463,36 @@ impl Client {
     pub fn set_cursor_slot(&self, item: Option<ItemStack>) {
         log::trace!("Setting cursor slot of {} to {:?}", self.username, item);
         self.set_slot(-1, item);
+    }
+
+    pub fn update_health(&self, player_health: &Health) {
+		let player_hunger = Hunger::new();	
+
+		self.send_packet(UpdateHealth {
+			health: player_health.health as f32,
+			food: player_hunger.food as i32,
+			food_saturation: player_hunger.saturation as f32,
+		});
+
+        log::info!("{:?}", player_health);
+	}
+
+    pub fn respawn_player(&self, gamemode: Gamemode) {
+        let dimension = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
+            "../../../assets/dimension.nbt"
+        )))
+        .expect("dimension asset is malformed");
+        
+        self.send_packet(Respawn {
+            dimension: Nbt(dimension),
+            world_name: "world".to_owned(),
+            hashed_seed: 0,
+            gamemode,
+            previous_gamemode: Gamemode::Survival,
+            is_debug: false,
+            is_flat: false,
+            copy_metadata: false,
+        });
     }
 
     fn register_entity(&self, network_id: NetworkId) {

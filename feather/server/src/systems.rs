@@ -7,6 +7,7 @@ mod particle;
 mod player_join;
 mod player_leave;
 mod tablist;
+mod health;
 pub mod view;
 
 use std::time::{Duration, Instant};
@@ -34,6 +35,7 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
     entity::register(game, systems);
     chat::register(game, systems);
     particle::register(systems);
+    //health::register(game, systems);
 
     systems.group::<Server>().add_system(tick_clients);
 }
