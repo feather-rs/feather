@@ -36,21 +36,12 @@ impl HList for () {
     fn flatten(self) -> Self::Tuple {}
 }
 
-impl<'a> HListRef<'a> for &'a () {
-    type Tuple = &'a ();
+impl<'a> HListRef<'a> for () {
+    type Tuple = ();
 
     #[inline]
     fn flatten(&'a self) -> Self::Tuple {
-        &()
-    }
-}
-
-impl<'a, T1> HListRef<'a> for HCons<&'a T1, &'a ()> {
-    type Tuple = (&'a T1,);
-
-    #[inline]
-    fn flatten(&'a self) -> Self::Tuple {
-        (&self.head,)
+        ()
     }
 }
 
@@ -61,46 +52,56 @@ impl Tuple for () {
     fn hlist(self) -> Self::HList {}
 }
 
-impl<'a> TupleRef<'a> for &'a () {
-    type HList = &'a ();
+impl<'a> TupleRef<'a> for () {
+    type HList = ();
 
     #[inline]
     fn hlist(&'a self) -> Self::HList {
-        &()
+        ()
     }
 }
 
-impl<'a, T1> TupleRef<'a> for (&'a T1,) {
-    type HList = HCons<&'a T1, &'a ()>;
-
-    #[inline]
-    fn hlist(&'a self) -> Self::HList {
-        HCons {
-            head: self.0,
-            tail: &(),
-        }
-    }
-}
-
-macro_rules! Product {
+macro_rules! HList {
     () => { () };
-    ($head:ident $(,$tail:ident)* $(,)?) => {
-        HCons<$head, Product!($($tail),*)>
+    ($head:ty $(,$tail:ty)* $(,)?) => {
+        HCons<$head, HList!($($tail),*)>
     };
 }
 
-macro_rules! product_pat {
+macro_rules! hlist_pat {
     () => { () };
     ($head:ident $(,$tail:ident)* $(,)?) => {
         HCons {
             head: $head, 
-            tail: product_pat!($($tail),*)
+            tail: hlist_pat!($($tail),*)
         }
     };
 }
 
 macro_rules! impl_tuple {
     ($head:ident $(,$tail:ident)* $(,)?) => {
+        impl<$head $(,$tail)*> HList for HList!($head $(,$tail)*) {
+            type Tuple = ($head, $($tail),*);
+
+            #[inline]
+            fn flatten(self) -> Self::Tuple {
+                #[allow(non_snake_case)]
+                let hlist_pat!($head, $($tail),*) = self;
+                ($head, $($tail),*)
+            }
+        }
+
+        impl<'a, $head $(,$tail)*> HListRef<'a> for HList!(&'a $head $(,&'a $tail)*) {
+            type Tuple = (&'a $head, $(&'a $tail),*);
+        
+            #[inline]
+            fn flatten(&'a self) -> Self::Tuple {
+                #[allow(non_snake_case)]
+                let hlist_pat!($head, $($tail),*) = self;
+                ($head, $($tail),*)
+            }
+        }
+
         impl<$head $(,$tail)*> Tuple for ($head, $($tail),*) {
             type HList = HCons<$head, <($($tail,)*) as Tuple>::HList>;
 
@@ -115,14 +116,17 @@ macro_rules! impl_tuple {
             }
         }
 
-        impl<$head $(,$tail)*> HList for Product!($head $(,$tail)*) {
-            type Tuple = ($head, $($tail),*);
-
+        impl<'a, $head $(,$tail)*> TupleRef<'a> for (&'a $head, $(&'a $tail),*) {
+            type HList = HCons<&'a $head, <($(&'a $tail,)*) as Tuple>::HList>;
+        
             #[inline]
-            fn flatten(self) -> Self::Tuple {
+            fn hlist(&'a self) -> Self::HList {
                 #[allow(non_snake_case)]
-                let product_pat!($head, $($tail),*) = self;
-                ($head, $($tail),*)
+                let ($head, $($tail),*) = self;
+                HCons {
+                    head: $head,
+                    tail: ($(*$tail,)*).hlist(),
+                }
             }
         }
     };
@@ -165,7 +169,7 @@ impl<Target, Tail> Plucker<Target, Here> for HCons<Target, Tail> {
     }
 }
 
-impl<'a, Target, Tail> PluckerRef<Target, Here> for &'a HCons<&'a Target, &'a Tail> {
+impl<'a, Target, Tail> PluckerRef<Target, Here> for HCons<&'a Target, Tail> {
     #[inline]
     fn pluck(&self) -> &Target {
         self.head
@@ -194,13 +198,13 @@ where
     }
 }
 
-impl<'a, Target, Head, Tail, TailIndex> PluckerRef<Target, There<TailIndex>> for &'a HCons<&'a Head, &'a Tail>
+impl<'a, Target, Head, Tail, TailIndex> PluckerRef<Target, There<TailIndex>> for HCons<&'a Head, Tail>
 where
-    &'a Tail: PluckerRef<Target, TailIndex>,
+    Tail: PluckerRef<Target, TailIndex>,
 {
     #[inline]
     fn pluck(&self) -> &Target {
-        <&'a Tail as PluckerRef<Target, TailIndex>>::pluck(&self.tail)
+        <Tail as PluckerRef<Target, TailIndex>>::pluck(&self.tail)
     }
 }
 
