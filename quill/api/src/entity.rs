@@ -99,6 +99,13 @@ impl Entity {
         }
     }
 
+    pub fn send_title(&self, title: impl AsRef<libcraft_text::Title>) {
+        let title = title.as_ref();
+        unsafe {
+            quill_sys::entity_send_title(self.0.id, title.as_ptr().into(), title.len() as u32);
+        }
+    }
+
     /// Gets the unique ID of this entity.
     pub fn id(&self) -> EntityId {
         self.id

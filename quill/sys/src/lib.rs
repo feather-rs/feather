@@ -92,6 +92,13 @@ extern "C" {
     /// Does nothing if the entity does not exist or it does not have the `Chat` component.
     pub fn entity_send_message(entity: EntityId, message_ptr: Pointer<u8>, message_len: u32);
 
+    /// Sends a title to an entity.
+    ///
+    /// The given `Title` should contain at least a `title` or a `sub_title`
+    ///
+    /// Does nothing if the entity does not exist or if it does not have the `Chat` component.
+    pub fn entity_send_title(entity: EntityId, title_ptr: Pointer<u8>, title_len: u32);
+
     /// Creates an empty entity builder.
     ///
     /// This builder is used for creating an ecs-entity
