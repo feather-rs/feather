@@ -35,8 +35,8 @@ impl Dimension {
         }
     }
 
-    pub fn from_namespaced_id(id: &String) -> Option<Self> {
-        match id.as_str() {
+    pub fn from_namespaced_id(id: &str) -> Option<Self> {
+        match id {
             "minecraft:overworld" => Some(Self::Overworld),
             "minecraft:the_nether" => Some(Self::TheNether),
             "minecraft:the_end" => Some(Self::TheEnd),
@@ -46,23 +46,37 @@ impl Dimension {
 }
 
 impl TryFrom<String> for Dimension {
-    type Error = String;
+    type Error = &'static str;
 
     fn try_from(namespaced_value: String) -> Result<Self, Self::Error> {
-        if let Some(val) = Self::from_namespaced_id(&namespaced_value) {
+        if let Some(val) = Self::from_namespaced_id(namespaced_value.as_str()) {
             Ok(val)
         } else {
-            Err(format!(
-                "There is no dimension with namespaced_id {}",
-                namespaced_value
-            )
-            .to_string())
+            Err("Unknown dimension namespaced_id.")
         }
     }
 }
 
-impl Into<&'static str> for Dimension {
-    fn into(self) -> &'static str {
-        self.namespaced_id()
+impl From<Dimension> for &'static str {
+    fn from(value: Dimension) -> Self {
+        value.namespaced_id()
+    }
+}
+
+impl TryFrom<i32> for Dimension {
+    type Error = &'static str;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        if let Some(val) = Self::from_dim_id(value) {
+            Ok(val)
+        } else {
+            Err("Unknown dimension dim_id.")
+        }
+    }
+}
+
+impl From<Dimension> for i32 {
+    fn from(value: Dimension) -> Self {
+        value.dim_id()
     }
 }
