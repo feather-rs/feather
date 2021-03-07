@@ -14,8 +14,9 @@ via `Game.ecs.get::<T>()`, where `T` is the component you want.
 ECS implementations allow for _queries_ that allow iteration over all entities with a specific set of components.
 For example, to implement trivial physics:
 
-```rust
-for (entity, (position, velocity)) in game.ecs.query::<(&mut Position, &Velocity)>().iter() {
+```rust ,no_run,noplayground
+let query = game.ecs.query::<(&mut Position, &Velocity)>();
+for (entity, (position, velocity)) in query.iter() {
     *position += *velocity;
 }
 ```
@@ -91,8 +92,9 @@ For example, `BlockChangeEvent` is one such event.
 To handle events, query for entities with that component. For example, to query
 for players that just joined, use:
 
-```rust
-for (player_entity, event) in game.ecs.query::<(&PlayerJoinEvent)>().iter() {
+```rust ,no_run,noplayground
+let query = game.ecs.query::<(&PlayerJoinEvent)>();
+for (player_entity, event) in query.iter() {
     // handle event...
 }
 ```
