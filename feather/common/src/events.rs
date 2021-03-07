@@ -6,8 +6,11 @@ use parking_lot::RwLock;
 use crate::view::View;
 
 mod block_change;
+mod plugin_message;
 
 pub use block_change::BlockChangeEvent;
+pub use plugin_message::PluginMessageEvent;
+
 /// Triggered when a player joins the `Game`.
 #[derive(Debug)]
 pub struct PlayerJoinEvent;
