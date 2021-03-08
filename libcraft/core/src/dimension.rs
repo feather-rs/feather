@@ -10,7 +10,7 @@ pub enum Dimension {
 }
 
 impl Dimension {
-    pub fn dim_id(&self) -> i32 {
+    pub fn id(&self) -> i32 {
         match self {
             Self::Overworld => 0,
             Self::TheNether => -1,
@@ -18,7 +18,7 @@ impl Dimension {
         }
     }
 
-    pub fn from_dim_id(id: i32) -> Option<Self> {
+    pub fn from_id(id: i32) -> Option<Self> {
         match id {
             0 => Some(Self::Overworld),
             -1 => Some(Self::TheNether),
@@ -67,7 +67,7 @@ impl TryFrom<i32> for Dimension {
     type Error = &'static str;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if let Some(val) = Self::from_dim_id(value) {
+        if let Some(val) = Self::from_id(value) {
             Ok(val)
         } else {
             Err("Unknown dimension dim_id.")
@@ -77,6 +77,6 @@ impl TryFrom<i32> for Dimension {
 
 impl From<Dimension> for i32 {
     fn from(value: Dimension) -> Self {
-        value.dim_id()
+        value.id()
     }
 }
