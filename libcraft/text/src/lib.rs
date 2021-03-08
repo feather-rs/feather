@@ -237,7 +237,7 @@ impl<'a> Text<'a> {
 
 impl<'a, T> From<T> for Text<'a>
 where
-    T: Into<Cow<'a, str>>
+    T: Into<Cow<'a, str>>,
 {
     fn from(text: T) -> Self {
         Text::of(text)

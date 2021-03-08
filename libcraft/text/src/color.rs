@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
-use std::{convert::TryFrom, borrow::Cow};
 use super::Text;
+use serde::{Deserialize, Serialize};
+use std::{borrow::Cow, convert::TryFrom};
 
 macro_rules! colors {
     {$($ident:ident => $name:ident => $rgb:expr),* $(,)?} => {

@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::{ClickEvent, HoverEvent, Color};
+use crate::{ClickEvent, Color, HoverEvent};
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize, Serialize)]
 pub struct Attributes<'a> {
@@ -34,10 +34,18 @@ pub struct Attributes<'a> {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub insertion: Option<Cow<'a, str>>,
     /// Allows for events to occur when the player clicks on text. Only work in chat messages and written books, unless specified otherwise.
-    #[serde(rename = "clickEvent", skip_serializing_if = "Option::is_none", default)]
+    #[serde(
+        rename = "clickEvent",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
     pub click_event: Option<ClickEvent<'a>>,
     /// Allows for a tooltip to be displayed when the player hovers their mouse over text.
-    #[serde(rename = "hoverEvent", skip_serializing_if = "Option::is_none", default)]
+    #[serde(
+        rename = "hoverEvent",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
     pub hover_event: Option<HoverEvent<'a>>,
 }
 

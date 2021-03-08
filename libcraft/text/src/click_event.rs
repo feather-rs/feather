@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
 use crate::Text;
@@ -19,10 +19,10 @@ pub enum ClickEvent<'a> {
     /// Since they are run by the server, sign commands have the same permission level as a command block instead of using the player's permission level,
     /// are not restricted by chat length limits, and do not need to be prefixed with a "/" slash.
     RunCommand(Cow<'a, str>),
-    /// Only usable for messages in chat. 
+    /// Only usable for messages in chat.
     /// Replaces the content of the chat box with the given text - usually a command, but it is not required to be a command (commands should be prefixed with /).
     SuggestCommand(Cow<'a, str>),
-    /// Only usable within written books. 
+    /// Only usable within written books.
     /// Changes the page of the book to the given page, starting at 1.
     /// If the page is less than one or beyond the number of pages in the book, the event is ignored.
     ChangePage(u8),

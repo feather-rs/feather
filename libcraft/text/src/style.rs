@@ -1,5 +1,5 @@
-use std::convert::TryFrom;
 use super::Text;
+use std::convert::TryFrom;
 
 macro_rules! styles {
     {$($ident:ident => $name:ident),* $(,)?} => {
