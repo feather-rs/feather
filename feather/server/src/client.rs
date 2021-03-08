@@ -7,8 +7,8 @@ use std::{
 
 use ahash::AHashSet;
 use base::{
-    BlockId, BlockPosition, Chunk, ChunkPosition, EntityKind, Gamemode, ItemStack, Position,
-    ProfileProperty, Text,
+    BlockId, BlockPosition, Chunk, ChunkPosition, EntityKind, EntityMetadata, Gamemode, ItemStack,
+    Position, ProfileProperty, Text,
 };
 use common::{
     chat::{ChatKind, ChatMessage},
@@ -22,9 +22,9 @@ use protocol::{
         self,
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
-            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityMetadataEntry,
-            EntityTeleport, JoinGame, KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage,
-            SendEntityMetadata, SpawnPlayer, UnloadChunk, UpdateViewPosition, WindowItems,
+            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityTeleport, JoinGame,
+            KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SendEntityMetadata,
+            SpawnPlayer, UnloadChunk, UpdateViewPosition, WindowItems,
         },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
@@ -465,14 +465,14 @@ impl Client {
         self.set_slot(-1, item);
     }
 
-    /*pub fn send_player_model_flags(&self, netowrk_id: NetworkId, model_flags: u8) {
-        let data: Vec<EntityMetadataEntry> =
-            vec![EntityMetadataEntry::new(16, 1, model_flags as i8)];
+    pub fn send_player_model_flags(&self, netowrk_id: NetworkId, model_flags: u8) {
+        let mut entity_metadata = EntityMetadata::new();
+        entity_metadata.set(16, model_flags);
         self.send_packet(SendEntityMetadata {
             entity_id: netowrk_id.0,
-            entries: data,
+            entries: entity_metadata,
         });
-    }*/
+    }
 
     fn register_entity(&self, network_id: NetworkId) {
         self.sent_entities.borrow_mut().insert(network_id);

@@ -10,6 +10,7 @@ use uuid::Uuid;
 
 pub type OptUuid = Option<Uuid>;
 pub type OptChat = Option<String>;
+pub type OptVarInt = Option<i32>;
 
 // Meta index constants.
 pub const META_INDEX_ENTITY_BITMASK: u8 = 0;
@@ -42,7 +43,7 @@ pub enum MetaEntry {
     Float(f32),
     String(String),
     Chat(String),
-    OptChat(Option<String>),
+    OptChat(OptChat),
     Slot(Option<ItemStack>),
     Boolean(bool),
     Rotation(f32, f32, f32),
@@ -52,7 +53,10 @@ pub enum MetaEntry {
     OptUuid(OptUuid),
     OptBlockId(Option<i32>),
     Nbt(nbt::Blob),
-    Particle, // TODO
+    Particle,
+    VillagerData,
+    OptVarInt(OptVarInt),
+    Pose(i32),
 }
 
 impl MetaEntry {
@@ -74,6 +78,9 @@ impl MetaEntry {
             MetaEntry::OptBlockId(_) => 13,
             MetaEntry::Nbt(_) => 14,
             MetaEntry::Particle => 15,
+            MetaEntry::VillagerData => 16,
+            MetaEntry::OptVarInt(_) => 17,
+            MetaEntry::Pose(_) => 18,
         }
     }
 }
@@ -100,9 +107,15 @@ impl ToMetaEntry for i32 {
     }
 }
 
-impl ToMetaEntry for bool {
+impl ToMetaEntry for f32 {
     fn to_meta_entry(&self) -> MetaEntry {
-        MetaEntry::Boolean(*self)
+        MetaEntry::Float(*self)
+    }
+}
+
+impl ToMetaEntry for OptChat {
+    fn to_meta_entry(&self) -> MetaEntry {
+        MetaEntry::OptChat(self.clone())
     }
 }
 
@@ -112,15 +125,9 @@ impl ToMetaEntry for Option<ItemStack> {
     }
 }
 
-impl ToMetaEntry for f32 {
+impl ToMetaEntry for bool {
     fn to_meta_entry(&self) -> MetaEntry {
-        MetaEntry::Float(*self)
-    }
-}
-
-impl ToMetaEntry for OptUuid {
-    fn to_meta_entry(&self) -> MetaEntry {
-        MetaEntry::OptUuid(*self)
+        MetaEntry::Boolean(*self)
     }
 }
 
@@ -130,9 +137,15 @@ impl ToMetaEntry for BlockPosition {
     }
 }
 
-impl ToMetaEntry for OptChat {
+impl ToMetaEntry for OptUuid {
     fn to_meta_entry(&self) -> MetaEntry {
-        MetaEntry::OptChat(self.clone())
+        MetaEntry::OptUuid(*self)
+    }
+}
+
+impl ToMetaEntry for OptVarInt {
+    fn to_meta_entry(&self) -> MetaEntry {
+        MetaEntry::OptVarInt(self.clone())
     }
 }
 
