@@ -6,8 +6,9 @@ use parking_lot::RwLock;
 use crate::view::View;
 
 mod block_change;
-pub mod damage;
 mod plugin_message;
+
+pub mod damage;
 
 pub use block_change::BlockChangeEvent;
 pub use damage::DamageType;

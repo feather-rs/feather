@@ -468,7 +468,7 @@ impl Client {
     }
 
     pub fn update_health(&self, player_health: &Health) {
-        let player_hunger = Hunger::new();
+        let player_hunger = Hunger::default();
 
         self.send_packet(UpdateHealth {
             health: player_health.health as f32,
@@ -477,6 +477,7 @@ impl Client {
         });
 
         log::info!("{:?}", player_health);
+
     }
 
     pub fn respawn_player(&self, gamemode: Gamemode) {

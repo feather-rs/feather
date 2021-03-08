@@ -107,7 +107,7 @@ pub struct Health {
 
 impl Health {
     pub fn new(max_health: u32) -> Self {
-        let health = max_health;
+        let health = 1;
         Self { health, max_health }
     }
 
@@ -115,8 +115,8 @@ impl Health {
         self.health = self.health.saturating_sub(damage);
     }
 
-    pub fn regenerate() {
-        todo!()
+    pub fn regenerate(&mut self, hearts: u32) {
+        self.health = self.health.saturating_add(hearts).clamp(0, self.max_health);
     }
 }
 
@@ -126,11 +126,15 @@ pub struct Hunger {
     pub saturation: u32,
 }
 
-impl Hunger {
-    pub fn new() -> Self {
+impl Default for Hunger {
+    fn default() -> Self {
         Self {
             food: 20,
-            saturation: 5,
+            saturation: 20,
         }
     }
+}
+
+impl Hunger {
+
 }
