@@ -30,7 +30,9 @@ cargo install cargo-quill
 
 ## Creating a new plugin
 To create a new plugin in an exisiting directory
-`cargo quill init`
+```sh
+cargo quill init
+```
 
 This command will create a new Cargo cdylib in the current directory.
 Give a path as an argument to create in the given directory.
