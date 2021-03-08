@@ -7,9 +7,11 @@ use crate::view::View;
 
 mod block_change;
 mod plugin_message;
+pub mod damage;
 
 pub use block_change::BlockChangeEvent;
 pub use plugin_message::PluginMessageEvent;
+pub use damage::DamageType;
 
 /// Triggered when a player joins the `Game`.
 #[derive(Debug)]
@@ -76,3 +78,8 @@ pub struct EntityRemoveEvent;
 /// Triggered when an entity is added into the world.
 #[derive(Debug)]
 pub struct EntityCreateEvent;
+
+#[derive(Debug)]
+pub struct DamageEvent {
+    pub damage_type: DamageType,
+}
