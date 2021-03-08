@@ -124,15 +124,27 @@ impl Health {
 pub struct Hunger {
     pub food: u32,
     pub saturation: u32,
+    pub timer: u32,
+    pub exhaustion: u32,
 }
 
 impl Default for Hunger {
     fn default() -> Self {
         Self {
             food: 20,
-            saturation: 20,
+            saturation: 5,
+            timer: 0,
+            exhaustion: 0,
         }
     }
 }
 
-impl Hunger {}
+impl Hunger {
+    pub fn lose_food(&mut self, food: u32) {
+        self.food = self.food.saturating_sub(food);
+    }
+
+    pub fn regenerate(&mut self, food: u32) {
+        self.food = self.food.saturating_add(food).clamp(0, 20);
+    }
+}

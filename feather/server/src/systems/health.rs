@@ -20,8 +20,8 @@ fn damage_handler(game: &mut Game, server: &mut Server) -> SysResult {
     if game.tick_count % 8 == 0 {
         for (player, (client_id, health)) in game.ecs.query::<(&ClientId, &mut Health)>().iter() {
             if let Some(client) = server.clients.get(*client_id) {
-                // health.deal_damage(1);
-                // client.update_health(&health);
+                health.deal_damage(1);
+                client.update_health(&health);
             }
         }
     }
