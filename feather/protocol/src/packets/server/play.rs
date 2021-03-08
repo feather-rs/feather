@@ -10,9 +10,6 @@ pub use chunk_data::{ChunkData, ChunkDataKind};
 mod update_light;
 pub use update_light::UpdateLight;
 
-/*mod send_entity_metadata;
-pub use send_entity_metadata::{EntityMetadataEntry, SendEntityMetadata};*/
-
 packets! {
     SpawnEntity {
         entity_id VarInt;
