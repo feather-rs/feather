@@ -915,6 +915,10 @@ packets! {
         velocity_y i16;
         velocity_z i16;
     }
+    SendEntityMetadata {
+        entity_id VarInt;
+        __todo__ LengthInferredVecU8;
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -988,7 +992,7 @@ pub struct EquipmentEntry {
     pub slot: EquipmentSlot,
     pub item: Slot,
 }
-
+/*
 /// # SendEntityMetadata
 /// **BIG ALPHA!**
 /// Using this packet isn't recommended at its current state as it is very instable and currently just build to support skin overlays
@@ -1007,7 +1011,7 @@ impl Readable for SendEntityMetadata {
         Self: Sized,
     {
         let entity_id = VarInt::read(buffer, version)?.0;
-        let mut entries = Vec::new();
+        let entries = Vec::new();
         Ok(SendEntityMetadata { entity_id, entries })
     }
 }
@@ -1019,18 +1023,39 @@ impl Writeable for SendEntityMetadata {
         for (_i, entry) in self.entries.iter().enumerate() {
             entry.index.write(buffer, version);
             VarInt(entry.entry_type).write(buffer, version);
-            let entry_value = entry.entry_value.get("").unwrap();
-            entry_value.write(buffer, version);
+            let entry_value = entry.entry_value.get("value").unwrap();
+            match entry_value.to_writer(buffer) {
+                Ok(_) => {},
+                Err(_) => println!("Failed to write Entity Metadata to SendEntityMetadata packet!")
+            }
+                
         }
         0xff.write(buffer, version);
     }
-}
+}*/
 
+/// Please use `EntityMetadataEntry::new(index, entry_type, entry_value)` to initalize!
 #[derive(Debug, Clone)]
 pub struct EntityMetadataEntry {
     pub index: u8,
     pub entry_type: i32,
     pub entry_value: nbt::Blob,
+}
+
+impl EntityMetadataEntry {
+    pub fn new<T>(index: u8, entry_type: i32, entry_value: T) -> Self
+    where
+        T: Into<nbt::Value>,
+    {
+        let mut blob = nbt::Blob::new();
+        blob.insert("value", entry_value)
+            .expect("Error writing entry!");
+        Self {
+            index,
+            entry_type,
+            entry_value: blob,
+        }
+    }
 }
 
 def_enum! {

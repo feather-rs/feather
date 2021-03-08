@@ -465,20 +465,14 @@ impl Client {
         self.set_slot(-1, item);
     }
 
-    pub fn send_player_model_flags(&self, netowrk_id: NetworkId, model_flags: u8) {
-        let data = nbt::Blob::new();
-        data.insert("", model_flags)
-        let mut data: Vec<EntityMetadataEntry> = Vec::new();
-        data.push(EntityMetadataEntry {
-            index: 16,
-            entry_type: 0,
-            entry_value: data,
-        });
+    /*pub fn send_player_model_flags(&self, netowrk_id: NetworkId, model_flags: u8) {
+        let data: Vec<EntityMetadataEntry> =
+            vec![EntityMetadataEntry::new(16, 1, model_flags as i8)];
         self.send_packet(SendEntityMetadata {
             entity_id: netowrk_id.0,
             entries: data,
         });
-    }
+    }*/
 
     fn register_entity(&self, network_id: NetworkId) {
         self.sent_entities.borrow_mut().insert(network_id);
