@@ -31,7 +31,7 @@ cargo install cargo-quill
 ## Creating a new plugin
 To create a new plugin in an exisiting directory
 ```sh
-cargo quill init
+cargo quill init [path]
 ```
 
 This command will create a new Cargo cdylib in the current directory.
@@ -43,6 +43,27 @@ src/
 └── lib.rs
 .gitignore
 cargo.toml
+```
+
+## Recomendations
+We also recomend that you install the following
+### Rust analyzer
+rust-analyzer is an experimental modular compiler frontend for the Rust language. It is a part of a larger rls-2.0 effort to create excellent IDE support for Rust.
+
+Usally your IDE can install rust analyzer, if not follow this [guide](https://rust-analyzer.github.io/manual.html#installation).
+### Rustfmt
+A tool for formatting Rust code according to style guidelines.
+
+To install rustfmt run the following in your terminal.
+```sh
+rustup component add rustfmt
+```
+### Clippy
+A collection of lints to catch common mistakes and improve your Rust code.
+
+To install clippy run the following in your terminal.
+```sh
+rustup component add clippy
 ```
 
 ## Plugin identifier

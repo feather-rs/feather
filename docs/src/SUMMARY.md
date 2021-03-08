@@ -1,8 +1,9 @@
 # Summary
 
 # Feather
-- [Getting started]()
-    - [config.toml]()
+- [Getting started](feather/getting-started.md)
+- [config.toml](feather/config.md)
+- [Plugins](feather/plugins.md)
 
 # Quill
 - [Writing a plugin]()
