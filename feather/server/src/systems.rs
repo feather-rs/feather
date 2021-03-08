@@ -3,12 +3,12 @@
 mod block;
 mod chat;
 mod entity;
+mod health;
 mod particle;
 mod player_join;
 mod player_leave;
 mod plugin_message;
 mod tablist;
-mod health;
 pub mod view;
 
 use std::time::{Duration, Instant};

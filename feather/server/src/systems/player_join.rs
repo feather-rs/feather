@@ -8,11 +8,9 @@ use common::{
 };
 use ecs::{SysResult, SystemExecutor};
 use quill_common::{
-    components::{
-        Name,
-        Health
-    }, 
-    entity_init::EntityInit};
+    components::{Health, Name},
+    entity_init::EntityInit,
+};
 
 use crate::{ClientId, Server};
 

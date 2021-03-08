@@ -18,10 +18,10 @@ use crate::{NetworkId, Server};
 
 use self::health::handle_client_status;
 
+mod health;
 mod interaction;
 pub mod inventory;
 mod movement;
-mod health;
 
 /// Handles a packet received from a client.
 pub fn handle_packet(

@@ -1,7 +1,10 @@
 use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
 use base::{BlockId, BlockPosition, ChunkPosition, Position, Text};
-use ecs::{Ecs, Entity, EntityBuilder, EntityRef, HasEcs, HasResources, NoSuchEntity, Resources, SysResult, SystemExecutor};
+use ecs::{
+    Ecs, Entity, EntityBuilder, EntityRef, HasEcs, HasResources, NoSuchEntity, Resources,
+    SysResult, SystemExecutor,
+};
 use quill_common::{components::Health, entities::Player, entity_init::EntityInit};
 
 use crate::{
