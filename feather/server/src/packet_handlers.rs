@@ -135,7 +135,6 @@ fn handle_client_settings(
     player: EntityRef,
     packet: client::ClientSettings,
 ) -> SysResult {
-    /*log::trace!("Updating a player's client settings!");*/
     let network_id = *player.get::<NetworkId>()?;
     server.broadcast_with(|client| {
         client.send_player_model_flags(network_id, packet.displayed_skin_parts)
