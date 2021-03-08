@@ -145,7 +145,7 @@ impl ToMetaEntry for OptUuid {
 
 impl ToMetaEntry for OptVarInt {
     fn to_meta_entry(&self) -> MetaEntry {
-        MetaEntry::OptVarInt(self.clone())
+        MetaEntry::OptVarInt(*self)
     }
 }
 
