@@ -63,18 +63,6 @@ impl From<Dimension> for &'static str {
     }
 }
 
-impl TryFrom<i32> for Dimension {
-    type Error = &'static str;
-
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        if let Some(val) = Self::from_id(value) {
-            Ok(val)
-        } else {
-            Err("Unknown dimension dim_id.")
-        }
-    }
-}
-
 impl From<Dimension> for i32 {
     fn from(value: Dimension) -> Self {
         value.id()
