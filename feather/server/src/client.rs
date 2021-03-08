@@ -477,7 +477,6 @@ impl Client {
         });
 
         log::info!("{:?}", player_health);
-
     }
 
     pub fn respawn_player(&self, gamemode: Gamemode) {

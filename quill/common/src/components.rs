@@ -135,6 +135,4 @@ impl Default for Hunger {
     }
 }
 
-impl Hunger {
-
-}
+impl Hunger {}

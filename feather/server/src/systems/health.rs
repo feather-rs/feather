@@ -4,7 +4,8 @@ use ecs::{EntityRef, SysResult, SystemExecutor};
 use quill_common::components::Health;
 
 pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
-    systems.group::<Server>()
+    systems
+        .group::<Server>()
         .add_system(damage_handler)
         .add_system(health_regen);
 }
