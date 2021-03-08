@@ -159,7 +159,7 @@ impl Game {
 
     /// Broadcasts a chat message to all entities with
     /// a `ChatBox` component (usually just players).
-    pub fn broadcast_chat(&self, kind: ChatKind, message: impl Into<Text>) {
+    pub fn broadcast_chat(&self, kind: ChatKind, message: impl Into<Text<'static>>) {
         let message = message.into();
         for (_, mailbox) in self.ecs.query::<&mut ChatBox>().iter() {
             mailbox.send(ChatMessage::new(kind, message.clone()));

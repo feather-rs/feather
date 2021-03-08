@@ -69,7 +69,7 @@ pub async fn handle(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
                         reason: Text::from(
                             "Invalid protocol! The server is running on version 1.16!",
                         )
-                        .to_string(),
+                        .to_json(),
                     }))
                     .await
                     .ok();
@@ -90,7 +90,7 @@ pub async fn handle(worker: &mut Worker) -> anyhow::Result<InitialHandling> {
 struct StatusResponse<'a> {
     version: Version,
     players: Players,
-    description: Text,
+    description: Text<'static>,
     #[serde(skip_serializing_if = "Option::is_none")]
     favicon: Option<&'a str>,
 }

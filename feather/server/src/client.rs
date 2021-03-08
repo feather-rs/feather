@@ -476,15 +476,15 @@ impl Client {
     pub fn disconnect(&self, reason: &str) {
         self.disconnected.set(true);
         self.send_packet(Disconnect {
-            reason: Text::from(reason.to_owned()).to_string(),
+            reason: Text::from(reason.to_owned()).to_json(),
         });
     }
 }
 
 fn chat_packet(message: ChatMessage) -> packets::server::ChatMessage {
     packets::server::ChatMessage {
-        message: message.text().to_string(),
-        position: match message.kind() {
+        message: message.text.to_json(),
+        position: match message.kind {
             ChatKind::PlayerChat => ChatPosition::Chat,
             ChatKind::System => ChatPosition::SystemMessage,
             ChatKind::AboveHotbar => ChatPosition::Hotbar,

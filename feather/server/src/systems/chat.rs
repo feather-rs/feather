@@ -37,7 +37,7 @@ fn flush_console_chat_box(game: &mut Game) -> SysResult {
     for (_, (_console, mailbox)) in game.ecs.query::<(&Console, &mut ChatBox)>().iter() {
         for message in mailbox.drain() {
             // TODO: properly display chat message
-            log::info!("{:?}", message.text());
+            log::info!("{:?}", message.text);
         }
     }
 

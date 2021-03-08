@@ -21,7 +21,7 @@ pub fn entity_send_message(
     let entity = Entity::from_bits(entity);
     let _ = cx.game_mut().send_message(
         entity,
-        ChatMessage::new(ChatKind::System, Text::from(message)),
+        ChatMessage::new(ChatKind::System, Text::of(message)),
     );
     Ok(())
 }
