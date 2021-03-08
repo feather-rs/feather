@@ -7,7 +7,6 @@
 # Quill
 - [Writing a plugin]()
     - [Getting started](quill/getting-started.md)
-    - [Plugin identifiers](quill/plugin-identifiers.md)
     - [ECS](quill/ecs.md)
         - [Components]()
         - [Bundles]()
