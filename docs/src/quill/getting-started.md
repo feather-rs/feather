@@ -1,8 +1,8 @@
 # Getting started
 
-## Install `rustup`
+## Install Rust
 
-First you should install `rustup`, you can follow the guide below or visit [rustup.rs](https://rustup.rs/) directly.
+First you should install Rust, you can follow the guide below or visit [rustup.rs](https://rustup.rs/) directly.
 
 ### To install Rust, if you are running Unix,
 run the following in your terminal, then follow the onscreen instructions.
@@ -20,10 +20,10 @@ download and run \
 [rustup-init.exe](https://win.rustup.rs/i686) \
 then follow the onscreen instructions. 
 
-## Install `cargo-quill`
-Second you are should install the `cargo-quill` CLI utility.
+## Install Quill
+Second you are should install the Quill utility.
 
-To install `cargo-quill` run the following in your terminal.
+To install Quill utility run the following in your terminal.
 ```sh
 cargo install cargo-quill
 ```
