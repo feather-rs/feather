@@ -12,11 +12,15 @@ pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
 
 fn damage_handler(game: &mut Game, server: &mut Server) -> SysResult {
     for (entity, (event, health)) in game.ecs.query::<(&DamageEvent, &mut Health)>().iter() {
+        let player_client = {
+            let client_id = game.ecs.get::<ClientId>(entity)?;
+            server.clients.get(*client_id)
+        };
+
         match event.damage_type {
             DamageType::FallDamage(_) => {}
             DamageType::Hunger => {
-                let client_id = game.ecs.get::<ClientId>(entity)?;
-                if let Some(client) = server.clients.get(*client_id) {
+                if let Some(client) = player_client {
                     health.deal_damage(1);
                     client.update_health(&health);
                 }
