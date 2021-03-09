@@ -8,7 +8,7 @@ use common::{
 };
 use ecs::{SysResult, SystemExecutor};
 use quill_common::{
-    components::{Health, Name},
+    components::{Health, Hunger, Name},
     entity_init::EntityInit,
 };
 
@@ -41,6 +41,11 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
 
     client.send_window_items(&window);
 
+    let health = Health::new(20);
+    let hunger = Hunger::default();
+
+    client.update_health(&health);
+
     builder
         .add(client.network_id())
         .add(client_id)
@@ -56,7 +61,8 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .add(inventory)
         .add(window)
         .add(HotbarSlot::default())
-        .add(Health::new(20));
+        .add(health)
+        .add(hunger);
 
     game.spawn_entity(builder);
 

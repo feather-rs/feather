@@ -84,3 +84,9 @@ pub struct EntityCreateEvent;
 pub struct DamageEvent {
     pub damage_type: DamageType,
 }
+
+impl DamageEvent {
+    pub fn new(damage_type: DamageType) -> Self {
+        Self { damage_type }
+    }
+}

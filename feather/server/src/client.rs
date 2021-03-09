@@ -7,8 +7,8 @@ use std::{
 
 use ahash::AHashSet;
 use base::{
-    BlockId, BlockPosition, Chunk, ChunkPosition, EntityKind, Gamemode, ItemStack, Position,
-    ProfileProperty, Text,
+    BlockId, BlockPosition, Chunk, ChunkPosition, EntityKind, EntityMetadata, Gamemode, ItemStack,
+    Position, ProfileProperty, Text,
 };
 use common::{
     chat::{ChatKind, ChatMessage},
@@ -25,8 +25,8 @@ use protocol::{
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
             DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityTeleport, JoinGame,
-            KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SpawnPlayer, UnloadChunk,
-            UpdateViewPosition, WindowItems,
+            KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SendEntityMetadata,
+            SpawnPlayer, UnloadChunk, UpdateViewPosition, WindowItems,
         },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
@@ -475,8 +475,6 @@ impl Client {
             food: player_hunger.food as i32,
             food_saturation: player_hunger.saturation as f32,
         });
-
-        log::info!("{:?}", player_health);
     }
 
     pub fn respawn_player(&self, gamemode: Gamemode) {
@@ -494,6 +492,15 @@ impl Client {
             is_debug: false,
             is_flat: false,
             copy_metadata: false,
+        });
+    }
+
+    pub fn send_player_model_flags(&self, netowrk_id: NetworkId, model_flags: u8) {
+        let mut entity_metadata = EntityMetadata::new();
+        entity_metadata.set(16, model_flags);
+        self.send_packet(SendEntityMetadata {
+            entity_id: netowrk_id.0,
+            entries: entity_metadata,
         });
     }
 

@@ -6,7 +6,7 @@ A Minecraft server implementation written in Rust.
 
 ### Status
 
-The project is in an early stage. Many, many features are unimplemented. We welcome help from anyone willing to contribute!
+The project is in an **early stage**. Many, many features are unimplemented. We welcome help from anyone willing to contribute!
 
 ### Supported Minecraft versions
 
@@ -22,7 +22,7 @@ is not a problem for such servers that require a small subset of vanilla functio
 and performance lends itself to these types of servers. Therefore, our current focus is
 on building a rich plugin API to enable these use cases.
 
-In the long term, Feather could be used on larger, more survival-like servers, where its performance should allow
+In the long term, Feather could be used on larger, more survival-like servers, where its performance should allow many players to simultaneously play on the same world requiring very few resources.
 
 ### Ecosystem
 
@@ -54,7 +54,7 @@ To run Feather:
   * On Linux and macOS: `./feather-server` in the server directory
   * On Windows: double-click `feather-server.exe`
   
-The server will create a configuration file (`feather.toml`) which you can modify.
+The server will create a configuration file (`config.toml`) which you can modify.
 
 Feather will generate a world by default. If you want to load a vanilla world,
 copy the world save to the server directory under the name "world" (by default).
