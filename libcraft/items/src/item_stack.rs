@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 #![deny(warnings)]
 
-use crate::{Enchantment, Item};
+use crate::{Item, ItemStackMeta};
 use core::fmt::Display;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
@@ -27,20 +27,6 @@ pub struct ItemStack {
     meta: Option<ItemStackMeta>,
 }
 
-/// Represents the metadata of an `ItemStack`. Contains:
-/// * Item title
-/// * Item lore (Optional)
-/// * Item damage (Optional)
-/// * Item repair cost (Optional)
-/// * Item enchantments
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub struct ItemStackMeta {
-
-
-
-}
-
 impl ItemStack {
     /// Creates a new `ItemStack` with the default name (title)
     /// no lore, no damage, no repair cost and no enchantments.
@@ -52,13 +38,7 @@ impl ItemStack {
         Ok(Self {
             item,
             count: count.unwrap(),
-            meta: Some(ItemStackMeta {
-                title: String::from(item.name()),
-                lore: "".to_string(),
-                damage: None,
-                repair_cost: None,
-                enchantments: vec![],
-            }),
+            meta: Some(ItemStackMeta { compounds: vec![] }),
         })
     }
 
@@ -71,12 +51,9 @@ impl ItemStack {
 
     /// Returns whether the given item stack has the same damage
     /// as `self`.
-    pub fn has_same_damage(&self, other: &Self) -> bool {
-        if let (Some(self_meta), Some(other_meta)) = (self.meta.as_ref(), other.meta.as_ref()) {
-            self_meta.damage == other_meta.damage
-        } else {
-            self.meta.is_none() && other.meta.is_none()
-        }
+    pub fn has_same_damage(&self, _other: &Self) -> bool {
+        // TODO Adapt to new meta system. Probably this shouldn't be here?
+        unimplemented!()
     }
 
     /// Returns whether the given `ItemStack` has
@@ -96,7 +73,8 @@ impl ItemStack {
     /// Returns whether the given `ItemStack` has
     /// the same type and damage as `self`.
     pub fn has_same_type_and_damage(&self, other: &Self) -> bool {
-        self.item == other.item && self.has_same_damage(other)
+        // TODO Adapt to new meta system. Probably this shouldn't be here?
+        self.item == other.item && unimplemented!()
     }
 
     /// Returns the item type for this `ItemStack`.
@@ -252,21 +230,9 @@ impl ItemStack {
 
     /// Damages the item by the specified amount.
     /// If this function returns `true`, then the item is broken.
-    pub fn damage(&mut self, amount: u32) -> bool {
-        if self.meta.is_none() {
-            return false;
-        }
-        match &mut self.meta.clone().unwrap().damage {
-            Some(damage) => {
-                *damage += amount;
-                if let Some(durability) = self.item.durability() {
-                    *damage >= durability
-                } else {
-                    false
-                }
-            }
-            None => false,
-        }
+    pub fn damage(&mut self, _amount: u32) -> bool {
+        // TODO Adapt to new meta system. Probably this shouldn't be here?
+        unimplemented!()
     }
 }
 
