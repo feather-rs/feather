@@ -22,7 +22,7 @@ is not a problem for such servers that require a small subset of vanilla functio
 and performance lends itself to these types of servers. Therefore, our current focus is
 on building a rich plugin API to enable these use cases.
 
-In the long term, Feather could be used on larger, more survival-like servers, where its performance should allow
+In the long term, Feather could be used on larger, more survival-like servers, where its performance should allow many players to simultaneously play on the same world with very few resources.
 
 ### Ecosystem
 
