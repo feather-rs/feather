@@ -19,4 +19,3 @@ _Leave empty if none_
 - [ ] Ran `cargo fmt`, `cargo clippy`, `cargo build --release` and `cargo test` and fixed any generated errors!
 - [ ] Removed unnecessary commented out code
 - [ ] Used specific traces (if you trace actions please specify the cause i.e. the player)
-- [ ] _Further_
