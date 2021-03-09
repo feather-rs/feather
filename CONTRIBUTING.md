@@ -10,10 +10,9 @@ If you want to work on the codebase, please keep the following in mind:
 
 ## Notes to your code
 
-Here are things to look at before requesting a merge:
+For notes to your code check the Checklist from [`pull_request_template.md`](docs/pull_request_template.md)
 
-* **Remove your own unused, commented out code:** Remove commented out code used for testing purposes.
-* **Tracing actions:** If tracing i.e. a players actions, make sure to include an identifier to the player, don't just trace in general!
+
 
 # Original code (code from Minecraft)
 
