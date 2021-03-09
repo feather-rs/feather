@@ -6,8 +6,8 @@ mod enchantment;
 mod inventory_slot;
 mod item;
 mod item_stack;
-mod utils;
 mod meta;
+mod utils;
 
 pub use enchantment::{Enchantment, EnchantmentKind};
 pub use inventory_slot::InventorySlot;
