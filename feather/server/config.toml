@@ -15,11 +15,11 @@ default_gamemode = "creative"
 view_distance = 12
 
 [log]
-# If you prefer less verbose logs, switch this to "info."
-# For development, it might be useful to set this to "trace."
+# If you prefer less verbose logs, switch this to "info".
+# For development, it might be useful to set this to "trace".
 level = "debug"
 
-# Unimplemented
+# UNINMPLEMENTED
 [resource_pack]
 # Server resource pack which is sent to players
 # upon joining. Set this to an empty string to disable.
@@ -27,7 +27,7 @@ url = ""
 # Optional SHA1 hash of the resource pack file.
 hash = ""
 
-# Unimplemented
+# UNIMPLEMENTED
 [world]
 # The name of the directory containing the world.
 name = "world"
@@ -43,7 +43,7 @@ seed = ""
 [proxy]
 # Select the IP forwarding mode that is used by proxies like BungeeCord or Velocity.
 # Valid values are
-# - "none" - for usage without a proxy
+# - "none" - for usage without a proxy or with feathers built in proxy
 # - "bungee" - for BungeeCord/Waterfall/Travertine
 # - "velocity" - for Velocity style proxies
 proxy_mode = "none"
