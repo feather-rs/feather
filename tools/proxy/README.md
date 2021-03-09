@@ -19,7 +19,7 @@ or the proxy will not work for the time being.
 
 To set up the proxy with feather server:
 
-* Build and start feather (See main [`README.md`](../README.md))
+* Build and start feather (See main [`README.md`](../../README.md))
 * In the `config.toml` set `online_mode = false` and `compression_threshold = -1`.
 * Run the proxy with `cargo run --bin minecraft-proxy -- --port 25577 --server-port 25565`.
 * Connect your client to `localhost:25577`.
