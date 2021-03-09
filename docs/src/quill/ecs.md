@@ -6,9 +6,51 @@ In ecs you store each field as an array and combine the data into an object at t
 
 
 A `Component` is either a marker or a small amount of data.
-An `Entity` is a set of components.
-The `World` is a set of entities.
+
+```rust
+pub struct PlayerMarker;
+pub struct PiglinMarker;
+pub struct MessageReciver;
+```
+
+```rust
+pub struct Health {
+    pub value: u32,
+    pub max: u32,
+}
+```
+
+
+```rust
+pub struct Position {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+} 
+```
+
+Maybe inventories should be split up into many smaller inventories?
+```rust
+pub struct Inventory {
+
+}
+
+pub struct Armor {
+
+}
+
+pub struct Helmet(ItemStack)
+
+```
+
+An example of an `enum` component.
+
+An `Entity` is an id which refrences a set of components stored in the `Ecs`. 
+The `Ecs` is a mapping of `Entity` to a set of components.
 A `Query` is a set of components and is used to access entities from the world whos components intersect with the query. 
+
+> **__Note:__** `Ecs` is usally called `World` outside of Feather. \
+> We have chosen the name `Ecs` for the `World` to eliminate confusion with the Minecraft `World`.
 
 An example
 ```rust

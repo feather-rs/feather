@@ -12,7 +12,7 @@ Feather is split into several smaller crates and projects:
     - `base` is deprecated in favour of `libcraft`
     - `blocks` is deprecated in favour of `libcraft`
     - `common`
-    - `datapacks` should maybe be deprecated in favour of `libcraft` and be based on `prismarinejs/minecraft-data`.
+    - `datapacks` should be moved to `libcraft`
     - `ecs`
     - `generated` is deprecated in favour of `libcraft`
     - `plugin-host`
@@ -24,5 +24,5 @@ Feather is split into several smaller crates and projects:
     - `api` is what plugins will inteface with.
     - `cargo-quill` is a CLI which can be used to build, run, and publish plugins.
     - `common` is for what both `quill-api` and `feather` needs access to.
-    - `sys` is where all externally exported functions are defined.
+    - `sys` is where all externally exported host functions are defined.
     - `sys-macros` contains a procmacro which redefines host calls depending on what architecture is being targeted.
