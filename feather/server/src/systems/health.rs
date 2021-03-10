@@ -1,5 +1,5 @@
 use crate::{ClientId, Game, Server};
-use common::events::{UpdateHealthEvent, HealthEventType};
+use common::events::{HealthEventType, UpdateHealthEvent};
 use ecs::{Entity, SysResult, SystemExecutor};
 use quill_common::components::{Health, Hunger};
 
@@ -15,27 +15,27 @@ fn damage_handler(game: &mut Game, server: &mut Server) -> SysResult {
         match event.event_type {
             HealthEventType::Regen(hearts) => health.regenerate(hearts),
 
-            HealthEventType::FallDamage(_) => {},
+            HealthEventType::FallDamage(_) => {}
             HealthEventType::Hunger => health.deal_damage(1),
-            }
-
-            let client_id = game.ecs.get::<ClientId>(entity)?;
-            if let Some(client) = server.clients.get(*client_id) {
-                client.update_health(&health);
-            }
         }
 
-        // if game.tick_count % 8 == 0 {
-        //     for (player, (client_id, health)) in game.ecs.query::<(&ClientId, &mut Health)>().iter() {
-        //         if let Some(client) = server.clients.get(*client_id) {
-        //             health.deal_damage(1);
-        //             client.update_health(&health);
-        //         }
-        //     }
-        // }
-    
-        Ok(())
+        let client_id = game.ecs.get::<ClientId>(entity)?;
+        if let Some(client) = server.clients.get(*client_id) {
+            client.update_health(&health);
+        }
     }
+
+    // if game.tick_count % 8 == 0 {
+    //     for (player, (client_id, health)) in game.ecs.query::<(&ClientId, &mut Health)>().iter() {
+    //         if let Some(client) = server.clients.get(*client_id) {
+    //             health.deal_damage(1);
+    //             client.update_health(&health);
+    //         }
+    //     }
+    // }
+
+    Ok(())
+}
 
 fn entity_regeneration(game: &mut Game, server: &mut Server) -> SysResult {
     let mut events: Vec<(Entity, UpdateHealthEvent)> = Vec::new();
