@@ -225,7 +225,7 @@ impl Game {
 
     pub fn reset_player(&self, player: EntityRef) {
         if let Ok(mut health) = player.get_mut::<Health>() {
-            *health = Health::new(20);
+            health.health = health.max_health;
         }
     }
 }

@@ -467,9 +467,7 @@ impl Client {
         self.set_slot(-1, item);
     }
 
-    pub fn update_health(&self, player_health: &Health) {
-        let player_hunger = Hunger::default();
-
+    pub fn update_status(&self, player_health: &Health, player_hunger: &Hunger) {
         self.send_packet(UpdateHealth {
             health: player_health.health as f32,
             food: player_hunger.food as i32,

@@ -44,7 +44,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     let health = Health::new(20);
     let hunger = Hunger::default();
 
-    client.update_health(&health);
+    client.update_status(&health, &hunger);
 
     builder
         .add(client.network_id())

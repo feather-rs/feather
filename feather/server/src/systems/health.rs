@@ -7,9 +7,10 @@ pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
     systems
         .group::<Server>()
         .add_system(damage_handler)
-        .add_system(entity_regeneration);
+        .add_system(entity_health_regeneration);
 }
 
+// TODO: Implement for entities besides players.
 fn damage_handler(game: &mut Game, server: &mut Server) -> SysResult {
     for (entity, (event, health)) in game.ecs.query::<(&UpdateHealthEvent, &mut Health)>().iter() {
         match event.event_type {
@@ -21,23 +22,16 @@ fn damage_handler(game: &mut Game, server: &mut Server) -> SysResult {
 
         let client_id = game.ecs.get::<ClientId>(entity)?;
         if let Some(client) = server.clients.get(*client_id) {
-            client.update_health(&health);
+            let hunger = game.ecs.entity(entity)?.get::<&Hunger>()?;
+            client.update_status(&health, &hunger);
         }
     }
-
-    // if game.tick_count % 8 == 0 {
-    //     for (player, (client_id, health)) in game.ecs.query::<(&ClientId, &mut Health)>().iter() {
-    //         if let Some(client) = server.clients.get(*client_id) {
-    //             health.deal_damage(1);
-    //             client.update_health(&health);
-    //         }
-    //     }
-    // }
 
     Ok(())
 }
 
-fn entity_regeneration(game: &mut Game, server: &mut Server) -> SysResult {
+// TODO: Switch to checking if an entity is a player instead of checking for a client,
+fn entity_health_regeneration(game: &mut Game, server: &mut Server) -> SysResult {
     let mut events: Vec<(Entity, UpdateHealthEvent)> = Vec::new();
 
     for (player, hunger) in game.ecs.query::<&mut Hunger>().iter() {

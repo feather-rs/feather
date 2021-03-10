@@ -14,7 +14,7 @@ pub use block_change::BlockChangeEvent;
 pub use health::HealthEventType;
 pub use plugin_message::PluginMessageEvent;
 
-/// Triggered when a player joins the `Game`.
+/// Triggered when a player joins the game.
 #[derive(Debug)]
 pub struct PlayerJoinEvent;
 
@@ -80,6 +80,7 @@ pub struct EntityRemoveEvent;
 #[derive(Debug)]
 pub struct EntityCreateEvent;
 
+/// Triggered by systems that need to mutate the health of an entity.
 #[derive(Debug)]
 pub struct UpdateHealthEvent {
     pub event_type: HealthEventType,
