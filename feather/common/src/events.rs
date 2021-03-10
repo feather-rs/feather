@@ -8,10 +8,10 @@ use crate::view::View;
 mod block_change;
 mod plugin_message;
 
-pub mod damage;
+pub mod health;
 
 pub use block_change::BlockChangeEvent;
-pub use damage::DamageType;
+pub use health::HealthEventType;
 pub use plugin_message::PluginMessageEvent;
 
 /// Triggered when a player joins the `Game`.
@@ -81,12 +81,12 @@ pub struct EntityRemoveEvent;
 pub struct EntityCreateEvent;
 
 #[derive(Debug)]
-pub struct DamageEvent {
-    pub damage_type: DamageType,
+pub struct UpdateHealthEvent {
+    pub event_type: HealthEventType,
 }
 
-impl DamageEvent {
-    pub fn new(damage_type: DamageType) -> Self {
-        Self { damage_type }
+impl UpdateHealthEvent {
+    pub fn new(event_type: HealthEventType) -> Self {
+        Self { event_type }
     }
 }

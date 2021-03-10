@@ -1,5 +1,7 @@
 #[derive(Debug)]
-pub enum DamageType {
+pub enum HealthEventType {
+    Regen(u32),
+
     FallDamage(u32),
     Hunger,
 }

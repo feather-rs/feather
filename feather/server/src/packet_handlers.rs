@@ -16,8 +16,6 @@ use quill_common::components::Name;
 
 use crate::{NetworkId, Server};
 
-use self::health::handle_client_status;
-
 mod health;
 mod interaction;
 pub mod inventory;
@@ -68,7 +66,7 @@ pub fn handle_packet(
         }
 
         ClientPlayPacket::ClientStatus(packet) => {
-            handle_client_status(game, server, player_id, packet)
+            health::handle_client_status(game, server, player_id, packet)
         }
 
         ClientPlayPacket::ClientSettings(packet) => handle_client_settings(server, player, packet),
