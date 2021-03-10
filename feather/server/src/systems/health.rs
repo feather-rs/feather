@@ -42,7 +42,7 @@ fn entity_regeneration(game: &mut Game, server: &mut Server) -> SysResult {
 
     for (player, hunger) in game.ecs.query::<&mut Hunger>().iter() {
         let client_id = game.ecs.get::<ClientId>(player)?;
-        if let Some(_) = server.clients.get(*client_id) {
+        if server.clients.get(*client_id).is_some() {
             match hunger.food {
                 20 if hunger.saturation > 0 => {
                     if game.tick_count % 10 == 0 {
