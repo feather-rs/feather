@@ -27,15 +27,15 @@ impl ChatBox {
         self.messages.push(message);
     }
 
-    pub fn send_chat(&mut self, message: impl Into<Text>) {
+    pub fn send_chat(&mut self, message: impl Into<Text<'static>>) {
         self.send(ChatMessage::new(ChatKind::PlayerChat, message.into()));
     }
 
-    pub fn send_system(&mut self, message: impl Into<Text>) {
+    pub fn send_system(&mut self, message: impl Into<Text<'static>>) {
         self.send(ChatMessage::new(ChatKind::System, message.into()));
     }
 
-    pub fn send_above_hotbar(&mut self, message: impl Into<Text>) {
+    pub fn send_above_hotbar(&mut self, message: impl Into<Text<'static>>) {
         self.send(ChatMessage::new(ChatKind::AboveHotbar, message.into()));
     }
 
@@ -51,21 +51,13 @@ impl ChatBox {
 /// Represents a chat message.
 #[derive(Debug, Clone)]
 pub struct ChatMessage {
-    kind: ChatKind,
-    message: Text,
+    pub kind: ChatKind,
+    pub text: Text<'static>,
 }
 
 impl ChatMessage {
-    pub fn new(kind: ChatKind, message: Text) -> Self {
-        Self { kind, message }
-    }
-
-    pub fn kind(&self) -> ChatKind {
-        self.kind
-    }
-
-    pub fn text(&self) -> &Text {
-        &self.message
+    pub fn new(kind: ChatKind, text: Text<'static>) -> Self {
+        Self { kind, text }
     }
 }
 

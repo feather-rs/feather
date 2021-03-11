@@ -87,7 +87,7 @@ impl Worker {
             InitialHandling::Join(new_player) => {
                 if self.player_count.try_add_player().is_err() {
                     self.write(ServerPlayPacket::Disconnect(Disconnect {
-                        reason: Text::from("The server is full!").to_string(),
+                        reason: Text::from("The server is full!").to_json(),
                     }))
                     .await
                     .ok();
