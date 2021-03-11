@@ -107,16 +107,19 @@ pub struct Health {
 
 impl Health {
     pub fn new(max_health: u32) -> Self {
-        let health = max_health;
+        let health = 1;
         Self { health, max_health }
     }
 
-    pub fn deal_damage(&mut self, damage: u32) {
-        self.health = self.health.saturating_sub(damage);
+    pub fn harm(&mut self, half_hearts: u32) {
+        self.health = self.health.saturating_sub(half_hearts);
     }
 
-    pub fn regenerate(&mut self, hearts: u32) {
-        self.health = self.health.saturating_add(hearts).clamp(0, self.max_health);
+    pub fn heal(&mut self, half_hearts: u32) {
+        self.health = self
+            .health
+            .saturating_add(half_hearts)
+            .clamp(0, self.max_health);
     }
 }
 

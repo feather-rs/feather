@@ -4,6 +4,7 @@ mod block;
 mod chat;
 mod entity;
 mod health;
+mod hunger;
 mod particle;
 mod player_join;
 mod player_leave;
@@ -37,6 +38,7 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
     chat::register(game, systems);
     particle::register(systems);
     health::register(game, systems);
+    hunger::register(game, systems);
     plugin_message::register(systems);
 
     systems.group::<Server>().add_system(tick_clients);

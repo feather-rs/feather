@@ -11,7 +11,7 @@ mod plugin_message;
 pub mod health;
 
 pub use block_change::BlockChangeEvent;
-pub use health::HealthEventType;
+pub use health::*;
 pub use plugin_message::PluginMessageEvent;
 
 /// Triggered when a player joins the game.
