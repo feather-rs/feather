@@ -2065,6 +2065,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "quill-ecs"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+]
+
+[[package]]
 name = "quill-plugin-format"
 version = "0.1.0"
 dependencies = [
