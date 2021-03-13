@@ -23,8 +23,8 @@ use protocol::{
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
             DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityTeleport, JoinGame,
-            KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SpawnPlayer, UnloadChunk,
-            UpdateViewPosition, WindowItems,
+            KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SpawnPlayer, Title,
+            UnloadChunk, UpdateViewPosition, WindowItems,
         },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
@@ -417,6 +417,52 @@ impl Client {
     pub fn send_chat_message(&self, message: ChatMessage) {
         let packet = chat_packet(message);
         self.send_packet(packet);
+    }
+
+    /// Sends all the required packets to display the [`Title`]
+    ///
+    /// If both the `title` and the `sub_title` are set to `None`
+    /// This will emit the [`Title::Hide`] packet.
+    ///
+    /// If the sum of `fade_in`, `stay` and `fade_out` is `0`
+    /// This will emit the [`Title::Reset`] packet.
+    pub fn send_title(&self, title: base::Title) {
+        if title.title.is_none() && title.sub_title.is_none() {
+            self.send_packet(Title::Hide);
+        } else if title.fade_in + title.stay + title.fade_out == 0 {
+            self.send_packet(Title::Reset);
+        } else {
+            if let Some(main_title) = title.title {
+                self.send_packet(Title::SetTitle { text: main_title });
+            }
+
+            if let Some(sub_title) = title.sub_title {
+                self.send_packet(Title::SetSubtitle { text: sub_title })
+            }
+
+            self.send_packet(Title::SetTimesAndDisplay {
+                fade_in: title.fade_in as i32,
+                stay: title.stay as i32,
+                fade_out: title.fade_out as i32,
+            });
+        }
+    }
+
+    /// Resets the title for the player, this removes
+    /// the text from the screen.
+    ///
+    /// Not to be confused with [`Self::hide_title()`]
+    pub fn reset_title(&self) {
+        self.send_packet(Title::Reset);
+    }
+
+    /// Hides the title for the player, this removes
+    /// the text from the screen, but it will re-appear again
+    /// if the set times packet is sent again.
+    ///
+    /// Not to be confused with [`Self::reset_title()`]
+    pub fn hide_title(&self) {
+        self.send_packet(Title::Hide);
     }
 
     pub fn confirm_window_action(&self, window_id: u8, action_number: i16, is_accepted: bool) {
