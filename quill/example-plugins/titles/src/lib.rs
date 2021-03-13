@@ -24,11 +24,10 @@ fn title_system(plugin: &mut TitleExample, game: &mut Game) {
     // Run once every 100 ticks (5 seconds)
     if plugin.tick_count % 100 == 0 && !plugin.title_active {
         let component = TextComponentBuilder::gray(TextComponent::from("Wicked fast Minecraft!"));
-        let title_component = TextComponentBuilder::white(TextComponent::from("Hello Feather!"));
 
         // Create a title to send to the player
         let title = Title {
-            title: Some(Text::from(title_component).to_string()),
+            title: Some(Text::from("Hello Feather!").to_string()),
             sub_title: Some(Text::from(component).to_string()),
             fade_in: 5,
             stay: 400,
