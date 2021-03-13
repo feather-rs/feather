@@ -64,6 +64,7 @@ host_calls! {
     "entity_query" => entity_query,
     "entity_exists" => entity_exists,
     "entity_send_message" => entity_send_message,
+    "entity_send_title" => entity_send_title,
     "block_get" => block_get,
     "block_set" => block_set,
     "block_fill_chunk_section" => block_fill_chunk_section,
