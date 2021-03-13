@@ -8,6 +8,7 @@ edition = "2018"
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-particles = { path = "../../libcraft/particles" }
 libcraft-blocks = { path = "../../libcraft/blocks" }
+libcraft-text = { path = "../../libcraft/text" }
 bincode = "1"
 bytemuck = "1"
 quill-sys = { path = "../sys" }

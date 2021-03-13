@@ -99,6 +99,24 @@ impl Entity {
         }
     }
 
+    /// Sends the given title to this entity.
+    pub fn send_title(&self, title: &libcraft_text::Title) {
+        let title = bincode::serialize(title).expect("failed to serialize Title");
+        unsafe {
+            quill_sys::entity_send_title(self.id.0, title.as_ptr().into(), title.len() as u32);
+        }
+    }
+
+    /// Hides the currently visible title for this entity, will do nothing if the there's no title
+    pub fn hide_title(&self) {
+        self.send_title(&libcraft_text::title::Title::HIDE);
+    }
+
+    /// Resets the currently visible title for this entity, will do nothing if there's no title
+    pub fn reset_title(&self) {
+        self.send_title(&libcraft_text::title::Title::RESET)
+    }
+
     /// Gets the unique ID of this entity.
     pub fn id(&self) -> EntityId {
         self.id

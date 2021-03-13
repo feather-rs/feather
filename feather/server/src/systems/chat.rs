@@ -17,6 +17,7 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
 
     systems.add_system(flush_console_chat_box);
     systems.group::<Server>().add_system(flush_chat_boxes);
+    systems.group::<Server>().add_system(flush_title_chat_boxes);
 }
 
 /// Flushes players' chat mailboxes and sends the needed packets.
@@ -38,6 +39,18 @@ fn flush_console_chat_box(game: &mut Game) -> SysResult {
         for message in mailbox.drain() {
             // TODO: properly display chat message
             log::info!("{:?}", message.text());
+        }
+    }
+
+    Ok(())
+}
+
+fn flush_title_chat_boxes(game: &mut Game, server: &mut Server) -> SysResult {
+    for (_, (&client_id, mailbox)) in game.ecs.query::<(&ClientId, &mut ChatBox)>().iter() {
+        if let Some(client) = server.clients.get(client_id) {
+            for message in mailbox.drain_titles() {
+                client.send_title(message);
+            }
         }
     }
 
