@@ -1,5 +1,5 @@
 use anyhow::bail;
-use base::{BlockState, Gamemode, ParticleKind, ProfileProperty};
+use base::{BlockState, EntityMetadata, Gamemode, ParticleKind, ProfileProperty};
 
 use super::*;
 use crate::{io::VarLong, Readable, Writeable};
@@ -904,11 +904,6 @@ packets! {
         score_name String;
     }
 
-    SendEntityMetadata {
-        entity_id VarInt;
-        __todo__ LengthInferredVecU8;
-    }
-
     AttachEntity {
         attached_entity_id i32;
         holding_entity_id i32;
@@ -919,6 +914,11 @@ packets! {
         velocity_x i16;
         velocity_y i16;
         velocity_z i16;
+    }
+
+    SendEntityMetadata {
+        entity_id VarInt;
+        entries EntityMetadata;
     }
 }
 

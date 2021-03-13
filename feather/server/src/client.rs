@@ -7,8 +7,8 @@ use std::{
 
 use ahash::AHashSet;
 use base::{
-    BlockId, BlockPosition, Chunk, ChunkPosition, EntityKind, Gamemode, ItemStack, Position,
-    ProfileProperty, Text,
+    BlockId, BlockPosition, Chunk, ChunkPosition, EntityKind, EntityMetadata, Gamemode, ItemStack,
+    Position, ProfileProperty, Text,
 };
 use common::{
     chat::{ChatKind, ChatMessage},
@@ -23,8 +23,8 @@ use protocol::{
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
             DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityTeleport, JoinGame,
-            KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SpawnPlayer, Title,
-            UnloadChunk, UpdateViewPosition, WindowItems,
+            KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SpawnPlayer, SendEntityMetadata,
+            Title, UnloadChunk, UpdateViewPosition, WindowItems, 
         },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
@@ -509,6 +509,15 @@ impl Client {
     pub fn set_cursor_slot(&self, item: Option<ItemStack>) {
         log::trace!("Setting cursor slot of {} to {:?}", self.username, item);
         self.set_slot(-1, item);
+    }
+
+    pub fn send_player_model_flags(&self, netowrk_id: NetworkId, model_flags: u8) {
+        let mut entity_metadata = EntityMetadata::new();
+        entity_metadata.set(16, model_flags);
+        self.send_packet(SendEntityMetadata {
+            entity_id: netowrk_id.0,
+            entries: entity_metadata,
+        });
     }
 
     fn register_entity(&self, network_id: NetworkId) {

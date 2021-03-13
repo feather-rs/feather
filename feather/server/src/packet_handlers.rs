@@ -64,11 +64,12 @@ pub fn handle_packet(
             handle_interact_entity(game, server, packet, player_id)
         }
 
+        ClientPlayPacket::ClientSettings(packet) => handle_client_settings(server, player, packet),
+
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
         | ClientPlayPacket::SetDifficulty(_)
         | ClientPlayPacket::ClientStatus(_)
-        | ClientPlayPacket::ClientSettings(_)
         | ClientPlayPacket::TabComplete(_)
         | ClientPlayPacket::WindowConfirmation(_)
         | ClientPlayPacket::ClickWindowButton(_)
@@ -126,5 +127,17 @@ fn handle_chat_message(game: &Game, player: EntityRef, packet: client::ChatMessa
     let name = player.get::<Name>()?;
     let message = Text::translate_with("chat.type.text", vec![name.to_string(), packet.message]);
     game.broadcast_chat(ChatKind::PlayerChat, message);
+    Ok(())
+}
+
+fn handle_client_settings(
+    server: &mut Server,
+    player: EntityRef,
+    packet: client::ClientSettings,
+) -> SysResult {
+    let network_id = *player.get::<NetworkId>()?;
+    server.broadcast_with(|client| {
+        client.send_player_model_flags(network_id, packet.displayed_skin_parts)
+    });
     Ok(())
 }

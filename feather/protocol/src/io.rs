@@ -690,6 +690,14 @@ fn read_meta_entry(
             None
         }),
         14 => MetaEntry::Nbt(Nbt::read(buffer, version)?.0),
+        15 => MetaEntry::Particle,
+        16 => MetaEntry::VillagerData,
+        17 => MetaEntry::OptVarInt(if bool::read(buffer, version)? {
+            Some(VarInt::read(buffer, version)?.0)
+        } else {
+            None
+        }),
+        18 => MetaEntry::Pose(VarInt::read(buffer, version)?.0),
         x => bail!("invalid entity metadata entry ID {}", x),
     })
 }
@@ -758,6 +766,16 @@ fn write_meta_entry(entry: &MetaEntry, buffer: &mut Vec<u8>, version: ProtocolVe
         }
         MetaEntry::Nbt(val) => Nbt(val).write(buffer, version),
         MetaEntry::Particle => unimplemented!("entity metadata with particles"),
+        MetaEntry::VillagerData => unimplemented!("entity metadata with villager data"),
+        MetaEntry::OptVarInt(ox) => {
+            if let Some(x) = ox {
+                true.write(buffer, version);
+                x.write(buffer, version);
+            } else {
+                false.write(buffer, version);
+            }
+        }
+        MetaEntry::Pose(x) => VarInt(x.to_i32().unwrap()).write(buffer, version),
     }
 }
 
