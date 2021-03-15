@@ -8,6 +8,7 @@ mod entity_builder;
 mod layout_ext;
 mod space;
 mod storage;
+mod bundle;
 
 pub use component::{Component, ComponentTypeId};
 pub use ecs::{ComponentError, Ecs, EntityDead};

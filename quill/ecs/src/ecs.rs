@@ -3,6 +3,7 @@ use std::any::type_name;
 use ahash::AHashMap;
 
 use crate::{
+    bundle::ComponentBundle,
     component::{Component, ComponentMeta, ComponentTypeId},
     entity::{Entities, EntityId},
     entity_builder::EntityBuilder,
@@ -80,7 +81,9 @@ impl Ecs {
     /// from `builder` to the entity.
     ///
     /// `builder` is reset and can be reused after this call.
-    pub fn spawn(&mut self, builder: &mut EntityBuilder) -> EntityId {
+    ///
+    /// Time complexity: O(n) with respect to the number of components in `builder`.
+    pub fn spawn_builder(&mut self, builder: &mut EntityBuilder) -> EntityId {
         let entity = self.spawn_empty();
 
         for (component_meta, component) in builder.drain() {
@@ -93,6 +96,35 @@ impl Ecs {
         builder.reset();
 
         entity
+    }
+
+    /// Creates a new entity using a `ComponentBundle`, i.e.,
+    /// a tuple of components.
+    ///
+    /// Time complexity: O(n) with respect to the number of components in `bundle`.
+    pub fn spawn_bundle(&mut self, bundle: impl ComponentBundle) -> EntityId {
+        let entity = self.spawn_empty();
+
+        bundle.add_to_entity(self, entity);
+
+        entity
+    }
+
+    /// Despawns an entity. Future access to the entity
+    /// will result in `EntityDead`.
+    ///
+    /// Time complexity: O(n) with respect to the total number of components
+    /// stored in this ECS.
+    pub fn despawn(&mut self, entity: EntityId) -> Result<(), EntityDead> {
+        self.entities.deallocate(entity).map_err(|_| EntityDead)?;
+
+        // PERF: could we somehow optimize this linear search
+        // by only checking storages containing the entity?
+        for storage in self.components.values_mut() {
+            storage.remove(entity.index());
+        }
+
+        Ok(())
     }
 
     fn check_entity(&self, entity: EntityId) -> Result<(), EntityDead> {

@@ -57,7 +57,7 @@ impl EntityBuilder {
 
     /// Spawns the entity builder into an `Ecs`.
     pub fn spawn_into(&mut self, ecs: &mut Ecs) -> EntityId {
-        ecs.spawn(self)
+        ecs.spawn_builder(self)
     }
 
     /// Drains the builder, returning tuples of
