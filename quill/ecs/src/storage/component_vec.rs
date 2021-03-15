@@ -17,8 +17,8 @@ use super::blob_array::BlobArray;
 /// array; the next 1024 in the second; and so on. Therefore, arrays are never resized,
 /// which gives two key properties:
 /// 1. Values have a stable location in memory: regrowth does not move data.
-/// 2. Insertion is `O(1)` in the worst case; if we allowed for regrowth, the worst
-/// case would be `O(n)`.
+/// 2. Pushing is `O(1)` in the worst case. On the other hand,
+/// if we allowed for regrowth, the worst case would be `O(n)`.
 pub struct ComponentVec {
     arrays: ArrayVec<[BlobArray; MAX_NUM_ARRAYS]>,
     component_meta: ComponentMeta,
@@ -99,6 +99,10 @@ impl ComponentVec {
     /// Returns the number of components in the vector.
     pub fn len(&self) -> u32 {
         self.len
+    }
+
+    pub fn component_meta(&self) -> &ComponentMeta {
+        &self.component_meta
     }
 
     fn check_invariants(&self) {

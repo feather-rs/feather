@@ -2,6 +2,13 @@ use std::{alloc::Layout, any::TypeId, sync::Arc};
 
 use crate::space::MemorySpace;
 
+/// A type that can be used as a component.
+///
+/// Components must implement this trait.
+pub trait Component: Send + 'static {}
+
+impl<T> Component for T where T: Send + 'static {}
+
 /// Type ID of a component.
 ///
 /// Supports both Rust types and arbitrary

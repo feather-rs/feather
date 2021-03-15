@@ -4,14 +4,19 @@ use component::ComponentTypeId;
 
 use crate::component::{self, ComponentMeta};
 
-use super::blob_array::BlobArray;
+use super::{blob_array::BlobArray, component_vec::ComponentVec};
 
 /// Stores components in a sparse set.
 pub struct SparseSetStorage {
+    // Data structure invariant: if `dense[sparse[i]] == i`,
+    // then the storage contains a component for the entity with index `i`,
+    // and that component is stored at `components[sparse[i]]`.
+    //
+    // It follows that the component at `components[i]` belongs to
+    // the entity index at `dense[i]` for all `i`.
     sparse: Vec<u32>,
     dense: Vec<u32>,
-    components: BlobArray,
-    component_meta: ComponentMeta,
+    components: ComponentVec,
 }
 
 impl SparseSetStorage {
@@ -19,8 +24,7 @@ impl SparseSetStorage {
         Self {
             sparse: Vec::new(),
             dense: Vec::new(),
-            components: BlobArray::new(component_meta.layout, 1),
-            component_meta,
+            components: ComponentVec::new(component_meta),
         }
     }
 
@@ -36,7 +40,7 @@ impl SparseSetStorage {
         self.grow_sparse_for(index);
 
         self.sparse[index as usize] = self.dense.len() as u32;
-        self.components.push_raw(component);
+        self.components.push(component);
         self.dense.push(index);
     }
 
@@ -61,7 +65,9 @@ impl SparseSetStorage {
         let dense = *self.dense.get(sparse as usize)?;
 
         if dense == index {
-            self.components.get_raw(sparse as usize)
+            // SAFETY: by the data structure invariant,
+            // `sparse` exists in `components` if `dense[sparse] == index`.
+            unsafe { Some(self.components.get_unchecked(sparse)) }
         } else {
             None
         }
@@ -88,7 +94,10 @@ impl SparseSetStorage {
     }
 
     fn assert_type_matches<T: 'static>(&self) {
-        assert_eq!(ComponentTypeId::of::<T>(), self.component_meta.type_id);
+        assert_eq!(
+            ComponentTypeId::of::<T>(),
+            self.components.component_meta().type_id
+        );
     }
 }
 

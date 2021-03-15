@@ -59,26 +59,6 @@ fn query_all() {
 }
 
 #[test]
-#[cfg(feature = "macros")]
-fn derived_query() {
-    #[derive(Query, Debug, PartialEq)]
-    struct Foo<'a> {
-        x: &'a i32,
-        y: &'a mut bool,
-    }
-
-    let mut world = World::new();
-    let e = world.spawn((42, false));
-    assert_eq!(
-        world.query_one_mut::<Foo>(e).unwrap(),
-        Foo {
-            x: &42,
-            y: &mut false
-        }
-    );
-}
-
-#[test]
 fn query_single_component() {
     let mut world = World::new();
     let e = world.spawn(("abc", 123));
