@@ -11,7 +11,7 @@ macro_rules! bundle_tuple {
         impl <$($ty: Component),*> ComponentBundle for ($($ty,)*) {
             #[allow(non_snake_case)]
             fn add_to_entity(self, ecs: &mut Ecs, entity: EntityId) {
-                let ($($ty),*) = self;
+                let ($($ty,)*) = self;
                 $(
                     ecs.insert(entity, $ty).unwrap();
                 )*

@@ -35,3 +35,15 @@ fn spawn_many_entities() {
         );
     }
 }
+
+#[test]
+fn zero_sized_components() {
+    let mut ecs = Ecs::new();
+
+    #[derive(PartialEq, Debug)]
+    struct ZeroSized;
+
+    let entity = ecs.spawn_bundle((ZeroSized,));
+
+    assert_eq!(*ecs.get::<ZeroSized>(entity).unwrap(), ZeroSized);
+}

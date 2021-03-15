@@ -46,8 +46,13 @@ impl BlobArray {
         assert_ne!(capacity, 0, "capacity cannot be zero");
 
         // Allocate space for the items.
-        let ptr = unsafe { space.alloc(item_layout.repeat(capacity).unwrap().0) };
-        let ptr = NonNull::new(ptr).expect("allocation failed");
+        let ptr = if item_layout.size() == 0 {
+            // Use a dangling pointer - we can't make allocations of zero size.
+            NonNull::new(item_layout.align() as *mut _).expect("zero align")
+        } else {
+            let ptr = unsafe { space.alloc(item_layout.repeat(capacity).unwrap().0) };
+            NonNull::new(ptr).expect("allocation failed")
+        };
 
         Self {
             space,
@@ -180,11 +185,13 @@ impl BlobArray {
 
 impl Drop for BlobArray {
     fn drop(&mut self) {
-        unsafe {
-            self.space.dealloc(
-                self.ptr.as_ptr(),
-                self.item_layout.repeat(self.capacity).unwrap().0,
-            );
+        if self.item_layout.size() != 0 {
+            unsafe {
+                self.space.dealloc(
+                    self.ptr.as_ptr(),
+                    self.item_layout.repeat(self.capacity).unwrap().0,
+                );
+            }
         }
     }
 }

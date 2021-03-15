@@ -8,6 +8,7 @@
 // http://opensource.org/licenses/MIT>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
 
+/*
 use quill_ecs::*;
 
 #[test]
@@ -380,3 +381,4 @@ fn duplicate_components_panic() {
     let mut world = Ecs::new();
     world.reserve::<(f32, i64, f32)>(1);
 }
+*/
