@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 bytemuck = "1"
+arrayvec = "0.5"

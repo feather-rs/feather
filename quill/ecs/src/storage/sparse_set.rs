@@ -4,13 +4,13 @@ use component::ComponentTypeId;
 
 use crate::component::{self, ComponentMeta};
 
-use super::blob_vec::BlobVec;
+use super::blob_array::BlobArray;
 
 /// Stores components in a sparse set.
 pub struct SparseSetStorage {
     sparse: Vec<u32>,
     dense: Vec<u32>,
-    components: BlobVec,
+    components: BlobArray,
     component_meta: ComponentMeta,
 }
 
@@ -19,7 +19,7 @@ impl SparseSetStorage {
         Self {
             sparse: Vec::new(),
             dense: Vec::new(),
-            components: BlobVec::new(component_meta.layout),
+            components: BlobArray::new(component_meta.layout, 1),
             component_meta,
         }
     }

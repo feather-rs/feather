@@ -8,52 +8,71 @@ use std::{
 use crate::layout_ext::LayoutExt;
 use crate::space::MemorySpace;
 
-/// A vector of values of the same layout, stored
+/// Returned from `push` when the blob array is full.
+#[derive(Debug)]
+pub struct Full;
+
+/// A heap-allocated array of values of the same layout, stored
 /// as raw bytes.
-pub struct BlobVec {
+///
+/// This is an untyped version of a `Box<[T]>`.
+///
+/// Does not support resizing. Values have a fixed location in memory
+/// unless `swap_remove` is called.
+pub struct BlobArray {
     /// Memory where the values are allocated.
     space: Arc<MemorySpace>,
     /// Layout of the values stored in the blob vector.
     item_layout: Layout,
 
+    /// The maximum number of items.
     capacity: usize,
+    /// The number of items.
     len: usize,
+    /// Untyped pointer to the items.
     ptr: NonNull<u8>,
 }
 
-impl BlobVec {
-    pub fn new(item_layout: Layout) -> Self {
-        Self::with_space(item_layout, Arc::new(MemorySpace::host()))
+impl BlobArray {
+    pub fn new(item_layout: Layout, capacity: usize) -> Self {
+        Self::with_space(item_layout, Arc::new(MemorySpace::host()), capacity)
     }
 
-    pub fn with_space(item_layout: Layout, space: Arc<MemorySpace>) -> Self {
-        // Create a dangling pointer.
-        let ptr = NonNull::new(item_layout.align() as *mut u8).expect("align > 0");
+    pub fn with_space(item_layout: Layout, space: Arc<MemorySpace>, capacity: usize) -> Self {
+        assert!(
+            capacity < isize::MAX as usize,
+            "capacity cannot exceed isize::MAX"
+        );
+        assert_ne!(capacity, 0, "capacity cannot be zero");
+
+        // Allocate space for the items.
+        let ptr = unsafe { space.alloc(item_layout.repeat(capacity).unwrap().0) };
+        let ptr = NonNull::new(ptr).expect("allocation failed");
 
         Self {
             space,
             item_layout,
 
-            capacity: 0,
+            capacity,
             len: 0,
             ptr,
         }
     }
 
-    pub fn push<T>(&mut self, value: T) {
+    pub fn push<T>(&mut self, value: T) -> Result<(), Full> {
         self.assert_layout_matches::<T>();
 
+        // Put the value in a MaybeUninit so that
+        // it is not dropped after its bytes have been copied.
+        // Otherwise, we risk a double free.
         let value = MaybeUninit::new(value);
-        unsafe {
-            self.push_raw(value.as_ptr().cast());
-        }
+        unsafe { self.push_raw(value.as_ptr().cast()) }
     }
 
-    pub unsafe fn push_raw(&mut self, value: *const u8) {
-        let new_len = self.len.checked_add(1).expect("length overflow");
+    pub unsafe fn push_raw(&mut self, value: *const u8) -> Result<(), Full> {
+        let new_len = self.len + 1;
         if new_len > self.capacity {
-            self.grow();
-            debug_assert!(new_len <= self.capacity);
+            return Err(Full);
         }
 
         self.len = new_len;
@@ -63,39 +82,12 @@ impl BlobVec {
         }
 
         self.check_invariants();
+
+        Ok(())
     }
 
-    fn grow(&mut self) {
-        let old_capacity = self.capacity;
-        let new_capacity = match old_capacity {
-            0 => 4,
-            x => x.checked_mul(2).expect("capacity overflow"),
-        };
-
-        self.capacity = new_capacity;
-
-        unsafe {
-            let new_layout = self
-                .item_layout
-                .repeat(new_capacity)
-                .expect("capacity overflow")
-                .0;
-            let new_ptr = self.space.alloc(new_layout);
-
-            // Copy old data
-            ptr::copy_nonoverlapping(self.ptr.as_ptr(), new_ptr, self.byte_len());
-
-            if old_capacity != 0 {
-                self.space.dealloc(
-                    self.ptr.as_ptr(),
-                    self.item_layout.repeat(old_capacity).unwrap().0,
-                );
-            }
-
-            self.ptr = NonNull::new(new_ptr).unwrap();
-        }
-
-        self.check_invariants();
+    pub unsafe fn set_len(&mut self, len: usize) {
+        self.len = len;
     }
 
     /// # Safety
@@ -119,18 +111,25 @@ impl BlobVec {
             return None;
         }
 
-        unsafe {
-            let ptr = self.item_ptr(index);
-            Some(NonNull::new_unchecked(ptr))
-        }
+        // SAFETY: `index` is in bounds.
+        unsafe { Some(self.get_raw_unchecked(index)) }
     }
 
     /// # Safety
-    /// The values stored in this vector must be of type `T`.
-    pub unsafe fn swap_remove<T>(&mut self, at_index: usize) -> T {
-        self.assert_layout_matches::<T>();
+    /// `index` must be within bounds.
+    pub unsafe fn get_raw_unchecked(&self, index: usize) -> NonNull<u8> {
+        let ptr = self.item_ptr(index);
+        NonNull::new_unchecked(ptr)
+    }
+
+    /// Removes the value at `at_index` and moves
+    /// the last item to `at_index`.
+    ///
+    /// # Panics
+    /// Panics if `at_index >= self.len()`.
+    pub fn swap_remove(&mut self, at_index: usize) {
         assert!(
-            at_index <= self.len,
+            at_index < self.len,
             "swap remove index out of bounds ({} > {})",
             at_index,
             self.len
@@ -139,17 +138,13 @@ impl BlobVec {
         let ptr = self.item_ptr(at_index);
         let end_ptr = self.item_ptr(self.len - 1);
 
-        let value = ptr::read(ptr.cast::<T>());
-
-        std::ptr::swap(ptr, end_ptr);
+        // Move the value at `end_ptr` to
+        // `ptr`, overwriting the value at `ptr`.
+        unsafe {
+            std::ptr::copy(end_ptr, ptr, self.item_layout.size());
+        }
 
         self.len -= 1;
-
-        value
-    }
-
-    pub fn swap_remove_raw(&mut self, index: usize) -> Option<NonNull<u8>> {
-        
     }
 
     fn item_ptr(&self, offset: usize) -> *mut u8 {
@@ -183,11 +178,8 @@ impl BlobVec {
     }
 }
 
-impl Drop for BlobVec {
+impl Drop for BlobArray {
     fn drop(&mut self) {
-        if self.capacity == 0 {
-            return;
-        }
         unsafe {
             self.space.dealloc(
                 self.ptr.as_ptr(),
@@ -203,13 +195,14 @@ mod tests {
 
     #[test]
     fn push_get() {
-        let mut vec = BlobVec::new(Layout::new::<usize>());
+        let mut vec = BlobArray::new(Layout::new::<usize>(), 1001);
         vec.push(123usize);
         for i in 0usize..1000 {
             vec.push(i);
         }
         assert_eq!(vec.len(), 1001);
         assert!(vec.capacity() >= vec.len());
+        assert!(vec.push(10usize).is_err());
         unsafe {
             assert_eq!(vec.get(0), Some(&123usize));
             for i in 1..1001 {
@@ -221,7 +214,7 @@ mod tests {
 
     #[test]
     fn push_get_raw_bytes() {
-        let mut vec = BlobVec::new(Layout::new::<usize>());
+        let mut vec = BlobArray::new(Layout::new::<usize>(), 1000);
         for i in 0usize..1000 {
             vec.push(i);
         }
@@ -236,7 +229,7 @@ mod tests {
 
     #[test]
     fn swap_remove() {
-        let mut vec = BlobVec::new(Layout::new::<usize>());
+        let mut vec = BlobArray::new(Layout::new::<usize>(), 100);
         for i in 0..100 {
             vec.push(i as usize);
         }
@@ -244,10 +237,8 @@ mod tests {
         assert_eq!(vec.len(), 100);
 
         unsafe {
-            let value = vec.swap_remove::<usize>(50);
+            vec.swap_remove(50);
             assert_eq!(vec.len(), 99);
-
-            assert_eq!(value, 50);
 
             assert_eq!(vec.get(98), Some(&98usize));
             assert_eq!(vec.get(50), Some(&99usize));
