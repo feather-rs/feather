@@ -57,6 +57,9 @@ impl SparseSetStorage {
         }
     }
 
+    /// # Safety
+    /// `component` must point to a valid (but not necessarily aligned) instance of the component
+    /// stored in this sparse set.
     pub unsafe fn insert_raw(&mut self, index: u32, component: *const u8) {
         self.grow_sparse_for(index);
 
@@ -181,6 +184,10 @@ impl<'a> SparseSetRef<'a> {
     /// Returns the number of values stored in the sparse set.
     pub fn len(&self) -> usize {
         self.dense.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     /// Returns an iterator over (sparse_index, dense_index) within this sparse set.

@@ -65,6 +65,7 @@ pub struct QueryDriverIter<'w, 'q> {
 }
 
 impl<'w, 'q> QueryDriverIter<'w, 'q> {
+    #[allow(clippy::never_loop)] // looks like a false positive - the loop has a `continue`
     pub fn next(&mut self) -> Option<QueryItem> {
         loop {
             let (sparse_index, lead_dense_index) = self.lead_iter.next()?;

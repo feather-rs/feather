@@ -116,3 +116,38 @@ impl<'a, T> Drop for RefMut<'a, T> {
         self.flag.unborrow_mut();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn borrow_unborrow() {
+        let flag = BorrowFlag::default();
+        flag.borrow().unwrap();
+        assert!(flag.borrow_mut().is_err());
+        flag.borrow().unwrap();
+        assert!(flag.borrow_mut().is_err());
+
+        flag.unborrow();
+        assert!(flag.borrow_mut().is_err());
+        flag.unborrow();
+
+        flag.borrow_mut().unwrap();
+        assert!(flag.borrow().is_err());
+        assert!(flag.borrow_mut().is_err());
+
+        flag.unborrow_mut();
+        flag.borrow().unwrap();
+    }
+
+    #[test]
+    fn borrow_max_amount() {
+        let flag = BorrowFlag::default();
+        for _ in 0..254 {
+            flag.borrow().unwrap();
+            assert!(flag.borrow_mut().is_err());
+        }
+        assert!(flag.borrow().is_err());
+    }
+}

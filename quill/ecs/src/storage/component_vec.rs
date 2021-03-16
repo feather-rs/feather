@@ -141,7 +141,7 @@ impl ComponentVec {
             .arrays
             .last()
             .map(|array| array.capacity())
-            .unwrap_or(2usize.pow(START_CAP_LOG2 as u32));
+            .unwrap_or_else(|| 2usize.pow(START_CAP_LOG2 as u32));
         let next_capacity = previous_capacity.checked_mul(2).expect("capacity overflow");
         let array = BlobArray::new(self.component_meta.layout, next_capacity);
         self.arrays.push(array);
