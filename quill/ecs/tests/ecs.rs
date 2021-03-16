@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use quill_ecs::*;
 
 #[test]
@@ -82,4 +84,49 @@ fn remove_nonexisting() {
 
     let entity = ecs.spawn_bundle((10i32,));
     assert!(ecs.remove::<usize>(entity).is_err());
+}
+
+#[test]
+fn query_basic() {
+    let mut ecs = Ecs::new();
+
+    let entity1 = ecs.spawn_bundle((10i32, "name1"));
+    let entity2 = ecs.spawn_bundle((15i32, "name2", 50.0f32));
+
+    let mut query = ecs.query::<(&i32, &&'static str)>();
+    let mut iter = query.iter();
+
+    assert_eq!(iter.next(), Some((entity1, (&10, &"name1"))));
+    assert_eq!(iter.next(), Some((entity2, (&15, &"name2"))));
+    assert_eq!(iter.next(), None);
+}
+
+#[test]
+fn query_big_ecs_after_despawn() {
+    let mut ecs = Ecs::new();
+
+    let mut entities = Vec::new();
+    for i in 0..10_000usize {
+        let mut builder = EntityBuilder::new();
+        if i % 3 == 0 {
+            builder.add(format!("entity #{}", i));
+        }
+        builder.add(i);
+        let entity = builder.spawn_into(&mut ecs);
+        if i % 3 == 0 {
+            entities.push(entity);
+        }
+    }
+
+    let last = entities.len() - 1;
+    ecs.despawn(entities.remove(last)).unwrap();
+
+    let queried: HashMap<EntityId, (&String, &usize)> =
+        ecs.query::<(&String, &usize)>().iter().collect();
+
+    for (i, entity) in entities.iter().copied().enumerate() {
+        assert_eq!(queried[&entity], (&format!("entity #{}", i * 3), &(i * 3)));
+    }
+
+    assert_eq!(queried.len(), entities.len());
 }

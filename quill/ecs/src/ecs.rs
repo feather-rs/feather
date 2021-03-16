@@ -1,4 +1,4 @@
-use std::{any::type_name, iter};
+use std::{any::type_name, borrow::Cow, iter, marker::PhantomData};
 
 use ahash::AHashMap;
 use itertools::Either;
@@ -8,6 +8,7 @@ use crate::{
     component::{Component, ComponentMeta},
     entity::{Entities, EntityId},
     entity_builder::EntityBuilder,
+    query::{QueryDriverIter, QueryTuple},
     storage::SparseSetStorage,
     QueryDriver,
 };
@@ -140,36 +141,75 @@ impl Ecs {
         Ok(())
     }
 
-    /*
     /// Queries for all entities that have the given set of components.
     ///
     /// Returns an iterator over tuples of `(entity, components)`.
-    pub fn query<'a, Q: QueryTuple>(
-        &'a self,
-    ) -> impl Iterator<Item = (EntityId, Q::Output<'a>)> + 'a
-    where
-        Q::Output<'a>: 'a,
-    {
-        let sparse_sets = match Q::sparse_sets(&self.components) {
-            Some(s) => s,
-            None => return Either::Left(iter::empty()),
-        };
-        let sparse_set_refs: Vec<_> = sparse_sets.iter().map(|s| s.to_ref()).collect();
+    pub fn query<'w, 'q, Q: QueryTuple<'w>>(&'w self) -> Query<'w, 'q, Q> {
+        let sparse_sets = Q::sparse_sets(&self.components).unwrap_or_else(|| todo!());
+        let sparse_set_refs: Vec<_> = sparse_sets.iter().map(|set| set.to_ref()).collect();
         let dense_indices = Q::dense_indices();
 
-        let driver = QueryDriver::new(&sparse_set_refs, &dense_indices);
+        let driver = QueryDriver::new(Cow::Owned(sparse_set_refs), Cow::Owned(dense_indices));
 
-        Either::Right(driver.iter().map(move |item| {
-            let components = unsafe { Q::make_output(&sparse_sets, item.dense_indices) };
-            let entity = self.entities.get(item.sparse_index);
-            (entity, components)
-        }))
+        Query {
+            driver,
+            sparse_sets,
+            entities: &self.entities,
+            _marker: PhantomData,
+        }
     }
-    */
 
     fn check_entity(&self, entity: EntityId) -> Result<(), EntityDead> {
         self.entities
             .check_generation(entity)
             .map_err(|_| EntityDead)
+    }
+}
+
+/// An iterator over a statically-typed query.
+///
+/// Call [`iter`] to iterate over the items.
+pub struct Query<'w, 'q, Q> {
+    driver: QueryDriver<'w, 'q>,
+    sparse_sets: Vec<&'w SparseSetStorage>,
+    entities: &'w Entities,
+    _marker: PhantomData<Q>,
+}
+
+impl<'w, 'q, Q> Query<'w, 'q, Q>
+where
+    Q: QueryTuple<'w>,
+{
+    pub fn iter(&'q mut self) -> QueryIter<'w, 'q, Q> {
+        QueryIter {
+            driver: self.driver.iter(),
+            sparse_sets: &self.sparse_sets,
+            entities: self.entities,
+            _marker: self._marker,
+        }
+    }
+}
+
+pub struct QueryIter<'w, 'q, Q> {
+    driver: QueryDriverIter<'w, 'q>,
+    sparse_sets: &'q [&'w SparseSetStorage],
+    entities: &'w Entities,
+    _marker: PhantomData<Q>,
+}
+
+impl<'w, 'q, Q> Iterator for QueryIter<'w, 'q, Q>
+where
+    Q: QueryTuple<'w>,
+{
+    type Item = (EntityId, Q::Output);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = self.driver.next()?;
+
+        let components = unsafe { Q::make_output(self.sparse_sets, item.dense_indices) };
+
+        let entity = self.entities.get(item.sparse_index);
+
+        Some((entity, components))
     }
 }

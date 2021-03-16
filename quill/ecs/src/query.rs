@@ -1,6 +1,6 @@
 //! Dynamic query infrastructure.
 
-use std::{any::TypeId, cell::Cell, ops::Deref};
+use std::{any::TypeId, borrow::Cow, cell::Cell, ops::Deref};
 
 use crate::{storage::sparse_set, Component, Components, Ecs, SparseSetRef, SparseSetStorage};
 
@@ -8,15 +8,15 @@ use crate::{storage::sparse_set, Component, Components, Ecs, SparseSetRef, Spars
 /// whose components satisfy the query parameters.
 pub struct QueryDriver<'w, 'q> {
     /// A sparse set for each component in the query.
-    sparse_sets: &'q [SparseSetRef<'w>],
+    sparse_sets: Cow<'q, [SparseSetRef<'w>]>,
 
     /// The "lead" sparse set, chosen as the set with
     /// the smallest number of components.
-    lead: SparseSetRef<'q>,
+    lead: SparseSetRef<'w>,
 
     /// Used as the yielded value for the iterator.
     /// (We can't own this because of the lack of GATs.)
-    dense_indices: &'q [Cell<u32>],
+    dense_indices: Cow<'q, [Cell<u32>]>,
 }
 
 impl<'w, 'q> QueryDriver<'w, 'q> {
@@ -27,15 +27,19 @@ impl<'w, 'q> QueryDriver<'w, 'q> {
     ///
     /// # Panics
     /// Panics if `sparse_sets.len() != dense_indices.len()`.
-    pub fn new(sparse_sets: &'q [SparseSetRef<'w>], dense_indices: &'q [Cell<u32>]) -> Self {
+    pub fn new(
+        sparse_sets: Cow<'q, [SparseSetRef<'w>]>,
+        dense_indices: Cow<'q, [Cell<u32>]>,
+    ) -> Self {
         let lead = sparse_sets
             .iter()
             .min_by_key(|set| set.len())
-            .unwrap_or(SparseSetRef::empty());
+            .copied()
+            .unwrap_or(*SparseSetRef::empty());
 
         Self {
             sparse_sets,
-            lead: *lead,
+            lead,
             dense_indices,
         }
     }
@@ -60,10 +64,8 @@ pub struct QueryDriverIter<'w, 'q> {
     lead_iter: sparse_set::Iter<'q>,
 }
 
-impl<'w, 'q> Iterator for QueryDriverIter<'w, 'q> {
-    type Item = QueryItem<'q>;
-
-    fn next(&mut self) -> Option<Self::Item> {
+impl<'w, 'q> QueryDriverIter<'w, 'q> {
+    pub fn next(&mut self) -> Option<QueryItem> {
         loop {
             let (sparse_index, lead_dense_index) = self.lead_iter.next()?;
 
@@ -98,36 +100,35 @@ pub struct QueryItem<'q> {
 
 // -- Static queries
 
-/*
 /// A typed query element.
-pub trait QueryParameter {
-    type Output;
+pub trait QueryParameter<'a> {
+    type Output: 'a;
     type Component: Component;
 
     unsafe fn get_unchecked_by_dense_index(
-        storage: &SparseSetStorage,
+        storage: &'a SparseSetStorage,
         dense_index: u32,
     ) -> Self::Output;
 }
 
-impl<'a, T> QueryParameter for &'a T
+impl<'a, T> QueryParameter<'a> for &'a T
 where
     T: Component,
 {
-    type Output<'b> = &'b T;
+    type Output = &'a T;
     type Component = T;
 
     unsafe fn get_unchecked_by_dense_index(
-        storage: &SparseSetStorage,
+        storage: &'a SparseSetStorage,
         dense_index: u32,
-    ) -> Self::Output<'_> {
+    ) -> Self::Output {
         storage.get_unchecked_by_dense_index(dense_index)
     }
 }
 
 /// A tuple of query parameters.
-pub trait QueryTuple {
-    type Output<'s>;
+pub trait QueryTuple<'a> {
+    type Output: 'a;
 
     // avoiding allocations here is blocked on const generics and/or GATs
     fn sparse_sets(components: &Components) -> Option<Vec<&SparseSetStorage>>;
@@ -141,16 +142,16 @@ pub trait QueryTuple {
     /// `dense_indices` and `sparse_sets` must have a length equal
     /// to the length of the vectors returned by the corresponding methods
     /// of this trait.
-    unsafe fn make_output<'s>(
-        sparse_sets: &'s [&'s SparseSetStorage],
+    unsafe fn make_output(
+        sparse_sets: &[&'a SparseSetStorage],
         dense_indices: &[Cell<u32>],
-    ) -> Self::Output<'s>;
+    ) -> Self::Output;
 }
 
 macro_rules! query_tuple_impl {
     ($count:literal, $(($ty:ident, $index:literal)),* $(,)?) => {
-        impl <$($ty: QueryParameter),*> QueryTuple for ($($ty),*) {
-            type Output<'s> = ($($ty::Output<'s>),*);
+        impl <'a, $($ty: QueryParameter<'a>),*> QueryTuple<'a> for ($($ty),*) {
+            type Output = ($($ty::Output),*);
 
             fn sparse_sets(components: &Components) -> Option<Vec<&SparseSetStorage>> {
                 Some(vec![
@@ -164,10 +165,10 @@ macro_rules! query_tuple_impl {
                 vec![Cell::new(0); $count]
             }
 
-            unsafe fn make_output<'s>(
-                sparse_sets: &'s [&'s SparseSetStorage],
+            unsafe fn make_output(
+                sparse_sets: &[&'a SparseSetStorage],
                 dense_indices: &[Cell<u32>],
-            ) -> Self::Output<'s> {
+            ) -> Self::Output {
                 (
                     $(
                         $ty::get_unchecked_by_dense_index(sparse_sets.get_unchecked($index), dense_indices.get_unchecked($index).get())
@@ -179,4 +180,4 @@ macro_rules! query_tuple_impl {
 }
 
 query_tuple_impl!(1, (T1, 0));
-*/
+query_tuple_impl!(2, (T1, 0), (T2, 1));
