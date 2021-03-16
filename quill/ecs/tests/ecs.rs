@@ -106,7 +106,7 @@ fn query_big_ecs_after_despawn() {
     let mut ecs = Ecs::new();
 
     let mut entities = Vec::new();
-    for i in 0..10_000usize {
+    for i in 0..100usize {
         let mut builder = EntityBuilder::new();
         if i % 3 == 0 {
             builder.add(format!("entity #{}", i));
@@ -129,4 +129,11 @@ fn query_big_ecs_after_despawn() {
     }
 
     assert_eq!(queried.len(), entities.len());
+}
+
+#[test]
+fn empty_query() {
+    let ecs = Ecs::new();
+
+    assert_eq!(ecs.query::<&i32>().iter().count(), 0);
 }

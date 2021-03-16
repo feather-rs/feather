@@ -6,12 +6,17 @@ use std::{
     ptr::NonNull,
 };
 
+use once_cell::sync::Lazy;
+use thread_local::ThreadLocal;
+
 use crate::{
     borrow::BorrowFlag,
     component::{self, ComponentMeta},
 };
 
 use super::{blob_array::BlobArray, component_vec::ComponentVec};
+
+static EMPTY: Lazy<ThreadLocal<SparseSetStorage>> = Lazy::new(ThreadLocal::new);
 
 /// Stores components in a sparse set.
 pub struct SparseSetStorage {
@@ -35,6 +40,13 @@ impl SparseSetStorage {
             components: ComponentVec::new(component_meta),
             borrow_flags: Vec::new(),
         }
+    }
+
+    /// The empty sparse set.
+    /// Attempting to access components from this sparse
+    /// set will usually cause a panic.
+    pub fn empty() -> &'static Self {
+        EMPTY.get_or(|| SparseSetStorage::new(ComponentMeta::of::<()>()))
     }
 
     pub fn insert<T: 'static>(&mut self, index: u32, value: T) {

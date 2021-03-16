@@ -188,6 +188,8 @@ impl Drop for BlobArray {
     }
 }
 
+unsafe impl Send for BlobArray {}
+
 #[cfg(test)]
 mod tests {
     use super::*;

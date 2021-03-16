@@ -131,7 +131,7 @@ pub trait QueryTuple<'a> {
     type Output: 'a;
 
     // avoiding allocations here is blocked on const generics and/or GATs
-    fn sparse_sets(components: &Components) -> Option<Vec<&SparseSetStorage>>;
+    fn sparse_sets(components: &Components) -> Vec<&SparseSetStorage>;
 
     fn dense_indices() -> Vec<Cell<u32>>;
 
@@ -153,12 +153,12 @@ macro_rules! query_tuple_impl {
         impl <'a, $($ty: QueryParameter<'a>),*> QueryTuple<'a> for ($($ty),*) {
             type Output = ($($ty::Output),*);
 
-            fn sparse_sets(components: &Components) -> Option<Vec<&SparseSetStorage>> {
-                Some(vec![
+            fn sparse_sets(components: &Components) -> Vec<&SparseSetStorage> {
+                vec![
                     $(
-                        components.storage_for::<$ty::Component>().ok()?,
+                        components.storage_for::<$ty::Component>().unwrap_or_else(|_| SparseSetStorage::empty()),
                     )*
-                ])
+                ]
             }
 
             fn dense_indices() -> Vec<Cell<u32>> {

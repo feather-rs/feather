@@ -145,7 +145,7 @@ impl Ecs {
     ///
     /// Returns an iterator over tuples of `(entity, components)`.
     pub fn query<'w, 'q, Q: QueryTuple<'w>>(&'w self) -> Query<'w, 'q, Q> {
-        let sparse_sets = Q::sparse_sets(&self.components).unwrap_or_else(|| todo!());
+        let sparse_sets = Q::sparse_sets(&self.components);
         let sparse_set_refs: Vec<_> = sparse_sets.iter().map(|set| set.to_ref()).collect();
         let dense_indices = Q::dense_indices();
 

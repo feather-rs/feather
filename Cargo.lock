@@ -2071,7 +2071,9 @@ dependencies = [
  "ahash 0.7.2",
  "arrayvec",
  "itertools 0.10.0",
+ "once_cell",
  "thiserror",
+ "thread_local",
 ]
 
 [[package]]
