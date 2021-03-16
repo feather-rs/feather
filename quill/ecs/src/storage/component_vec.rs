@@ -2,7 +2,7 @@ use std::{alloc::Layout, ptr::NonNull, sync::Arc};
 
 use arrayvec::ArrayVec;
 
-use crate::{component::ComponentMeta, space::MemorySpace};
+use crate::component::ComponentMeta;
 
 use super::blob_array::BlobArray;
 

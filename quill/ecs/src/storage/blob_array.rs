@@ -6,7 +6,6 @@ use std::{
 };
 
 use crate::layout_ext::LayoutExt;
-use crate::space::MemorySpace;
 
 /// Returned from `push` when the blob array is full.
 #[derive(Debug)]
@@ -20,8 +19,6 @@ pub struct Full;
 /// Does not support resizing. Values have a fixed location in memory
 /// unless `swap_remove` is called.
 pub struct BlobArray {
-    /// Memory where the values are allocated.
-    space: Arc<MemorySpace>,
     /// Layout of the values stored in the blob vector.
     item_layout: Layout,
 
@@ -35,10 +32,6 @@ pub struct BlobArray {
 
 impl BlobArray {
     pub fn new(item_layout: Layout, capacity: usize) -> Self {
-        Self::with_space(item_layout, Arc::new(MemorySpace::host()), capacity)
-    }
-
-    pub fn with_space(item_layout: Layout, space: Arc<MemorySpace>, capacity: usize) -> Self {
         assert!(
             capacity < isize::MAX as usize,
             "capacity cannot exceed isize::MAX"
@@ -50,12 +43,11 @@ impl BlobArray {
             // Use a dangling pointer - we can't make allocations of zero size.
             NonNull::new(item_layout.align() as *mut _).expect("zero align")
         } else {
-            let ptr = unsafe { space.alloc(item_layout.repeat(capacity).unwrap().0) };
+            let ptr = unsafe { std::alloc::alloc(item_layout.repeat(capacity).unwrap().0) };
             NonNull::new(ptr).expect("allocation failed")
         };
 
         Self {
-            space,
             item_layout,
 
             capacity,
@@ -187,7 +179,7 @@ impl Drop for BlobArray {
     fn drop(&mut self) {
         if self.item_layout.size() != 0 {
             unsafe {
-                self.space.dealloc(
+                std::alloc::dealloc(
                     self.ptr.as_ptr(),
                     self.item_layout.repeat(self.capacity).unwrap().0,
                 );

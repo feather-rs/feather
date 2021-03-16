@@ -1,6 +1,4 @@
-use std::{iter, mem::MaybeUninit, ptr::NonNull};
-
-use component::ComponentTypeId;
+use std::{any::TypeId, iter, mem::MaybeUninit, ptr::NonNull};
 
 use crate::{
     borrow::BorrowFlag,
@@ -8,28 +6,6 @@ use crate::{
 };
 
 use super::{blob_array::BlobArray, component_vec::ComponentVec};
-
-/// An immutable reference to a sparse set.
-pub struct SparseSetRef<'a> {
-    sparse: &'a [u32],
-    dense: &'a [u32],
-}
-
-impl<'a> SparseSetRef<'a> {
-    pub(crate) fn dense_index_of(&self, index: u32) -> Option<u32> {
-        let sparse = *self.sparse.get(index as usize)?;
-        let dense = *self.dense.get(sparse as usize)?;
-        if dense == index {
-            Some(sparse)
-        } else {
-            None
-        }
-    }
-
-    pub fn contains(&self, index: u32) -> bool {
-        self.dense_index_of(index).is_some()
-    }
-}
 
 /// Stores components in a sparse set.
 pub struct SparseSetStorage {
@@ -101,6 +77,14 @@ impl SparseSetStorage {
         }
     }
 
+    /// # Safety
+    /// The sparse set must contain a value at dense
+    /// index `index`. (Note that dense indices are _not_
+    /// the same as entity indices, referred to as sparse indices here.)
+    pub unsafe fn get_unchecked_by_dense_index<T: 'static>(&self, dense_index: u32) -> &T {
+        &*self.components.get_unchecked(dense_index).cast().as_ptr()
+    }
+
     pub fn remove(&mut self, index: u32) -> bool {
         let sparse = match self.sparse.get(index as usize) {
             Some(&s) => s,
@@ -141,10 +125,52 @@ impl SparseSetStorage {
     }
 
     fn assert_type_matches<T: 'static>(&self) {
-        assert_eq!(
-            ComponentTypeId::of::<T>(),
-            self.components.component_meta().type_id
-        );
+        assert_eq!(TypeId::of::<T>(), self.components.component_meta().type_id);
+    }
+}
+
+/// An immutable reference to a sparse set.
+#[derive(Copy, Clone)]
+pub struct SparseSetRef<'a> {
+    sparse: &'a [u32],
+    dense: &'a [u32],
+}
+
+impl<'a> SparseSetRef<'a> {
+    pub fn empty() -> &'static Self {
+        const EMPTY: SparseSetRef<'static> = SparseSetRef {
+            sparse: &[],
+            dense: &[],
+        };
+        &EMPTY
+    }
+
+    pub(crate) fn dense_index_of(&self, index: u32) -> Option<u32> {
+        let sparse = *self.sparse.get(index as usize)?;
+        let dense = *self.dense.get(sparse as usize)?;
+        if dense == index {
+            Some(sparse)
+        } else {
+            None
+        }
+    }
+
+    /// Returns whether the sparse set contains the given index.
+    pub fn contains(&self, index: u32) -> bool {
+        self.dense_index_of(index).is_some()
+    }
+
+    /// Returns the number of values stored in the sparse set.
+    pub fn len(&self) -> usize {
+        self.dense.len()
+    }
+
+    /// Returns an iterator over (sparse_index, dense_index) within this sparse set.
+    pub fn iter(&self) -> impl Iterator<Item = (u32, u32)> + '_ {
+        self.dense
+            .iter()
+            .enumerate()
+            .map(|(dense_index, &sparse_index)| (sparse_index, dense_index as u32))
     }
 }
 

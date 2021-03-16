@@ -7,4 +7,5 @@ edition = "2018"
 [dependencies]
 ahash = "0.7"
 arrayvec = "0.5"
+itertools = "0.10"
 thiserror = "1"

@@ -1,9 +1,10 @@
 use std::{
+    any::TypeId,
     mem::{size_of, MaybeUninit},
     ptr::{self, NonNull},
 };
 
-use crate::{component::ComponentMeta, Component, ComponentTypeId, Ecs, EntityId};
+use crate::{component::ComponentMeta, Component, Ecs, EntityId};
 
 /// A utility to build an entity's components.
 ///
@@ -52,7 +53,7 @@ impl EntityBuilder {
     pub fn has<T: Component>(&self) -> bool {
         self.entries
             .iter()
-            .any(|entry| entry.component_meta.type_id == ComponentTypeId::of::<T>())
+            .any(|entry| entry.component_meta.type_id == TypeId::of::<T>())
     }
 
     /// Spawns the entity builder into an `Ecs`.
@@ -100,18 +101,18 @@ mod tests {
         unsafe {
             let mut iter = builder.drain();
             let (meta, data) = iter.next().unwrap();
-            assert_eq!(meta.type_id, ComponentTypeId::of::<i32>());
+            assert_eq!(meta.type_id, TypeId::of::<i32>());
             assert_eq!(ptr::read_unaligned::<i32>(data.cast().as_ptr()), 10i32);
 
             let (meta, data) = iter.next().unwrap();
-            assert_eq!(meta.type_id, ComponentTypeId::of::<String>());
+            assert_eq!(meta.type_id, TypeId::of::<String>());
             assert_eq!(
                 ptr::read_unaligned::<String>(data.cast().as_ptr()),
                 "a string"
             );
 
             let (meta, data) = iter.next().unwrap();
-            assert_eq!(meta.type_id, ComponentTypeId::of::<usize>());
+            assert_eq!(meta.type_id, TypeId::of::<usize>());
             assert_eq!(ptr::read_unaligned::<usize>(data.cast().as_ptr()), 50usize);
 
             assert!(iter.next().is_none());

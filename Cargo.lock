@@ -2070,6 +2070,7 @@ version = "0.1.0"
 dependencies = [
  "ahash 0.7.2",
  "arrayvec",
+ "itertools 0.10.0",
  "thiserror",
 ]
 

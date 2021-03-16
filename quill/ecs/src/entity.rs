@@ -80,6 +80,14 @@ impl Entities {
             Ok(())
         }
     }
+
+    /// Gets the entity with generation for the given index.
+    pub fn get(&self, index: u32) -> EntityId {
+        EntityId {
+            index,
+            generation: self.generations[index as usize],
+        }
+    }
 }
 
 #[cfg(test)]

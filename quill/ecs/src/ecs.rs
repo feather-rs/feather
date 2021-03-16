@@ -1,14 +1,20 @@
-use std::any::type_name;
+use std::{any::type_name, iter};
 
 use ahash::AHashMap;
+use itertools::Either;
 
 use crate::{
     bundle::ComponentBundle,
-    component::{Component, ComponentMeta, ComponentTypeId},
+    component::{Component, ComponentMeta},
     entity::{Entities, EntityId},
     entity_builder::EntityBuilder,
     storage::SparseSetStorage,
+    QueryDriver, QueryTuple,
 };
+
+pub use self::components::Components;
+
+mod components;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ComponentError {
@@ -32,7 +38,7 @@ pub struct EntityDead;
 /// Feather, the `World` stores blocks, not entities.)
 #[derive(Default)]
 pub struct Ecs {
-    components: AHashMap<ComponentTypeId, SparseSetStorage>,
+    components: Components,
     entities: Entities,
 }
 
@@ -46,11 +52,8 @@ impl Ecs {
     ///
     /// Time complexity: O(1)
     pub fn get<T: Component>(&self, entity: EntityId) -> Result<&T, ComponentError> {
-        let storage = self.storage_for::<T>()?;
         self.check_entity(entity)?;
-        storage
-            .get::<T>(entity.index())
-            .ok_or_else(|| ComponentError::MissingComponent(type_name::<T>()))
+        self.components.get(entity.index())
     }
 
     /// Inserts a component for an entity.
@@ -65,8 +68,7 @@ impl Ecs {
         component: T,
     ) -> Result<(), EntityDead> {
         self.check_entity(entity)?;
-        let storage = self.storage_or_insert_for::<T>();
-        storage.insert(entity.index(), component);
+        self.components.insert(entity.index(), component);
         Ok(())
     }
 
@@ -74,14 +76,11 @@ impl Ecs {
     ///
     /// Returns `Err` if the entity does not exist
     /// or if it did not have the component.
+    ///
+    /// Time complexity: O(1)
     pub fn remove<T: Component>(&mut self, entity: EntityId) -> Result<(), ComponentError> {
         self.check_entity(entity)?;
-        let storage = self.storage_mut_for::<T>()?;
-        if storage.remove(entity.index()) {
-            Ok(())
-        } else {
-            Err(ComponentError::MissingComponent(type_name::<T>()))
-        }
+        self.components.remove::<T>(entity.index())
     }
 
     /// Creates a new entity with no components.
@@ -101,9 +100,9 @@ impl Ecs {
         let entity = self.spawn_empty();
 
         for (component_meta, component) in builder.drain() {
-            let storage = self.storage_or_insert_for_untyped(component_meta);
             unsafe {
-                storage.insert_raw(entity.index(), component.as_ptr());
+                self.components
+                    .insert_raw(entity.index(), component_meta, component.as_ptr());
             }
         }
 
@@ -134,43 +133,41 @@ impl Ecs {
 
         // PERF: could we somehow optimize this linear search
         // by only checking storages containing the entity?
-        for storage in self.components.values_mut() {
+        for (_, storage) in self.components.storages_mut() {
             storage.remove(entity.index());
         }
 
         Ok(())
     }
 
+    /// Queries for all entities that have the given set of components.
+    ///
+    /// Returns an iterator over tuples of `(entity, components)`.
+    pub fn query<'a, Q: QueryTuple>(
+        &'a self,
+    ) -> impl Iterator<Item = (EntityId, Q::Output<'a>)> + 'a
+    where
+        Q::Output<'a>: 'a,
+    {
+        let sparse_sets = match Q::sparse_sets(&self.components) {
+            Some(s) => s,
+            None => return Either::Left(iter::empty()),
+        };
+        let sparse_set_refs: Vec<_> = sparse_sets.iter().map(|s| s.to_ref()).collect();
+        let dense_indices = Q::dense_indices();
+
+        let driver = QueryDriver::new(&sparse_set_refs, &dense_indices);
+
+        Either::Right(driver.iter().map(move |item| {
+            let components = unsafe { Q::make_output(&sparse_sets, item.dense_indices) };
+            let entity = self.entities.get(item.sparse_index);
+            (entity, components)
+        }))
+    }
+
     fn check_entity(&self, entity: EntityId) -> Result<(), EntityDead> {
         self.entities
             .check_generation(entity)
             .map_err(|_| EntityDead)
-    }
-
-    fn storage_for<T: Component>(&self) -> Result<&SparseSetStorage, ComponentError> {
-        self.components
-            .get(&ComponentTypeId::of::<T>())
-            .ok_or_else(|| ComponentError::MissingComponent(type_name::<T>()))
-    }
-
-    fn storage_mut_for<T: Component>(&mut self) -> Result<&mut SparseSetStorage, ComponentError> {
-        self.components
-            .get_mut(&ComponentTypeId::of::<T>())
-            .ok_or_else(|| ComponentError::MissingComponent(type_name::<T>()))
-    }
-
-    fn storage_or_insert_for<T: Component>(&mut self) -> &mut SparseSetStorage {
-        self.components
-            .entry(ComponentTypeId::of::<T>())
-            .or_insert_with(|| SparseSetStorage::new(ComponentMeta::of::<T>()))
-    }
-
-    fn storage_or_insert_for_untyped(
-        &mut self,
-        component_meta: ComponentMeta,
-    ) -> &mut SparseSetStorage {
-        self.components
-            .entry(component_meta.type_id)
-            .or_insert_with(|| SparseSetStorage::new(component_meta))
     }
 }
