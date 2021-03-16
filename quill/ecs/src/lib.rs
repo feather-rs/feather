@@ -1,6 +1,7 @@
 #![allow(unused)] // TEMP (remove before merge)
 #![allow(unstable_name_collisions)]
 
+mod borrow;
 mod bundle;
 mod component;
 mod ecs;

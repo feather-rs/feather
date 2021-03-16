@@ -70,6 +70,20 @@ impl Ecs {
         Ok(())
     }
 
+    /// Removes a component from an entity.
+    ///
+    /// Returns `Err` if the entity does not exist
+    /// or if it did not have the component.
+    pub fn remove<T: Component>(&mut self, entity: EntityId) -> Result<(), ComponentError> {
+        self.check_entity(entity)?;
+        let storage = self.storage_mut_for::<T>()?;
+        if storage.remove(entity.index()) {
+            Ok(())
+        } else {
+            Err(ComponentError::MissingComponent(type_name::<T>()))
+        }
+    }
+
     /// Creates a new entity with no components.
     ///
     /// Time complexity: O(1)
@@ -136,6 +150,12 @@ impl Ecs {
     fn storage_for<T: Component>(&self) -> Result<&SparseSetStorage, ComponentError> {
         self.components
             .get(&ComponentTypeId::of::<T>())
+            .ok_or_else(|| ComponentError::MissingComponent(type_name::<T>()))
+    }
+
+    fn storage_mut_for<T: Component>(&mut self) -> Result<&mut SparseSetStorage, ComponentError> {
+        self.components
+            .get_mut(&ComponentTypeId::of::<T>())
             .ok_or_else(|| ComponentError::MissingComponent(type_name::<T>()))
     }
 

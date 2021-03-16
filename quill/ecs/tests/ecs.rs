@@ -47,3 +47,39 @@ fn zero_sized_components() {
 
     assert_eq!(*ecs.get::<ZeroSized>(entity).unwrap(), ZeroSized);
 }
+
+#[test]
+fn remove_components() {
+    let mut ecs = Ecs::new();
+
+    let entity1 = ecs.spawn_bundle((10i32, "string"));
+    let entity2 = ecs.spawn_bundle((15i32, "string2"));
+
+    ecs.remove::<i32>(entity1).unwrap();
+    assert!(ecs.get::<i32>(entity1).is_err());
+    assert_eq!(*ecs.get::<i32>(entity2).unwrap(), 15);
+}
+
+#[test]
+fn remove_components_large_storage() {
+    let mut ecs = Ecs::new();
+
+    let mut entities: Vec<EntityId> = (0..10_000usize).map(|i| ecs.spawn_bundle((i,))).collect();
+
+    let removed_entity = entities.remove(5000);
+    ecs.remove::<usize>(removed_entity).unwrap();
+    assert!(ecs.get::<usize>(removed_entity).is_err());
+
+    for (i, entity) in entities.into_iter().enumerate() {
+        let i = if i >= 5000 { i + 1 } else { i };
+        assert_eq!(*ecs.get::<usize>(entity).unwrap(), i);
+    }
+}
+
+#[test]
+fn remove_nonexisting() {
+    let mut ecs = Ecs::new();
+
+    let entity = ecs.spawn_bundle((10i32,));
+    assert!(ecs.remove::<usize>(entity).is_err());
+}

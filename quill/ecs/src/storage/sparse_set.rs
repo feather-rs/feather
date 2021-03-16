@@ -2,9 +2,34 @@ use std::{iter, mem::MaybeUninit, ptr::NonNull};
 
 use component::ComponentTypeId;
 
-use crate::component::{self, ComponentMeta};
+use crate::{
+    borrow::BorrowFlag,
+    component::{self, ComponentMeta},
+};
 
 use super::{blob_array::BlobArray, component_vec::ComponentVec};
+
+/// An immutable reference to a sparse set.
+pub struct SparseSetRef<'a> {
+    sparse: &'a [u32],
+    dense: &'a [u32],
+}
+
+impl<'a> SparseSetRef<'a> {
+    pub(crate) fn dense_index_of(&self, index: u32) -> Option<u32> {
+        let sparse = *self.sparse.get(index as usize)?;
+        let dense = *self.dense.get(sparse as usize)?;
+        if dense == index {
+            Some(sparse)
+        } else {
+            None
+        }
+    }
+
+    pub fn contains(&self, index: u32) -> bool {
+        self.dense_index_of(index).is_some()
+    }
+}
 
 /// Stores components in a sparse set.
 pub struct SparseSetStorage {
@@ -17,6 +42,7 @@ pub struct SparseSetStorage {
     sparse: Vec<u32>,
     dense: Vec<u32>,
     components: ComponentVec,
+    borrow_flags: Vec<BorrowFlag>,
 }
 
 impl SparseSetStorage {
@@ -25,6 +51,7 @@ impl SparseSetStorage {
             sparse: Vec::new(),
             dense: Vec::new(),
             components: ComponentVec::new(component_meta),
+            borrow_flags: Vec::new(),
         }
     }
 
@@ -42,6 +69,7 @@ impl SparseSetStorage {
         self.sparse[index as usize] = self.dense.len() as u32;
         self.components.push(component);
         self.dense.push(index);
+        self.borrow_flags.push(BorrowFlag::default());
     }
 
     pub fn get<T: 'static>(&self, index: u32) -> Option<&T> {
@@ -73,15 +101,34 @@ impl SparseSetStorage {
         }
     }
 
-    pub fn remove(&mut self, index: u32) -> Option<()> {
-        let sparse = *self.sparse.get(index as usize)?;
-        let dense = self.dense.get_mut(sparse as usize)?;
+    pub fn remove(&mut self, index: u32) -> bool {
+        let sparse = match self.sparse.get(index as usize) {
+            Some(&s) => s,
+            None => return false,
+        };
+        let dense = match self.dense.get(sparse as usize) {
+            Some(&d) => d,
+            None => return false,
+        };
 
-        if *dense == index {
-            *dense = u32::MAX;
-            Some(())
+        if dense == index {
+            // Swap-remove the entity.
+            self.dense.swap_remove(sparse as usize);
+            if let Some(&new_entity_at_index) = self.dense.get(sparse as usize) {
+                self.sparse[new_entity_at_index as usize] = sparse;
+            }
+            self.components.swap_remove(sparse);
+            self.borrow_flags.swap_remove(sparse as usize);
+            true
         } else {
-            None
+            false
+        }
+    }
+
+    pub fn to_ref(&self) -> SparseSetRef {
+        SparseSetRef {
+            sparse: &self.sparse,
+            dense: &self.dense,
         }
     }
 
