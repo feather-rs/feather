@@ -1,7 +1,5 @@
 #![allow(unused)] // TEMP (remove before merge)
 #![allow(unstable_name_collisions)]
-#![feature(generic_associated_types)] // TEMP: need to figure out how to remove this before merge (needed for queries)
-#![allow(incomplete_features)]
 
 mod borrow;
 mod bundle;
@@ -17,5 +15,5 @@ pub use component::Component;
 pub use ecs::{ComponentError, Components, Ecs, EntityDead};
 pub use entity::EntityId;
 pub use entity_builder::EntityBuilder;
-pub use query::{QueryDriver, QueryItem, QueryParameter, QueryTuple};
+pub use query::{QueryDriver, QueryItem};
 pub use storage::{SparseSetRef, SparseSetStorage};

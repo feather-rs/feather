@@ -9,7 +9,7 @@ use crate::{
     entity::{Entities, EntityId},
     entity_builder::EntityBuilder,
     storage::SparseSetStorage,
-    QueryDriver, QueryTuple,
+    QueryDriver,
 };
 
 pub use self::components::Components;
@@ -140,6 +140,7 @@ impl Ecs {
         Ok(())
     }
 
+    /*
     /// Queries for all entities that have the given set of components.
     ///
     /// Returns an iterator over tuples of `(entity, components)`.
@@ -164,6 +165,7 @@ impl Ecs {
             (entity, components)
         }))
     }
+    */
 
     fn check_entity(&self, entity: EntityId) -> Result<(), EntityDead> {
         self.entities

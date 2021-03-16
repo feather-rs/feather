@@ -1,4 +1,10 @@
-use std::{any::TypeId, iter, mem::MaybeUninit, ptr::NonNull};
+use core::slice;
+use std::{
+    any::TypeId,
+    iter::{self, Enumerate},
+    mem::MaybeUninit,
+    ptr::NonNull,
+};
 
 use crate::{
     borrow::BorrowFlag,
@@ -166,11 +172,23 @@ impl<'a> SparseSetRef<'a> {
     }
 
     /// Returns an iterator over (sparse_index, dense_index) within this sparse set.
-    pub fn iter(&self) -> impl Iterator<Item = (u32, u32)> + '_ {
-        self.dense
-            .iter()
-            .enumerate()
-            .map(|(dense_index, &sparse_index)| (sparse_index, dense_index as u32))
+    pub fn iter(&self) -> Iter<'a> {
+        Iter {
+            inner: self.dense.iter().enumerate(),
+        }
+    }
+}
+
+pub struct Iter<'a> {
+    inner: Enumerate<slice::Iter<'a, u32>>,
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = (u32, u32);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let (dense_index, sparse_index) = self.inner.next()?;
+        Some((*sparse_index, dense_index as u32))
     }
 }
 
