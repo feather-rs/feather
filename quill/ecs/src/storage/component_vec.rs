@@ -88,6 +88,8 @@ impl ComponentVec {
             let item_array = self.array_for_item_mut(index);
             let removed_item = item_array.get_raw_unchecked(item_index_within_array(index));
 
+            (self.component_meta.drop_fn)(removed_item.as_ptr());
+
             std::ptr::copy(last_item.as_ptr(), removed_item.as_ptr(), item_size);
         }
 
@@ -143,7 +145,11 @@ impl ComponentVec {
             .map(|array| array.capacity())
             .unwrap_or_else(|| 2usize.pow(START_CAP_LOG2 as u32));
         let next_capacity = previous_capacity.checked_mul(2).expect("capacity overflow");
-        let array = BlobArray::new(self.component_meta.layout, next_capacity);
+        let array = BlobArray::new(
+            self.component_meta.layout,
+            self.component_meta.drop_fn,
+            next_capacity,
+        );
         self.arrays.push(array);
     }
 }

@@ -21,6 +21,8 @@ pub struct Full;
 pub struct BlobArray {
     /// Layout of the values stored in the blob vector.
     item_layout: Layout,
+    /// Function to drop items in the array.
+    item_drop_fn: unsafe fn(*mut u8),
 
     /// The maximum number of items.
     capacity: usize,
@@ -31,7 +33,7 @@ pub struct BlobArray {
 }
 
 impl BlobArray {
-    pub fn new(item_layout: Layout, capacity: usize) -> Self {
+    pub fn new(item_layout: Layout, item_drop_fn: unsafe fn(*mut u8), capacity: usize) -> Self {
         assert!(
             capacity < isize::MAX as usize,
             "capacity cannot exceed isize::MAX"
@@ -49,6 +51,7 @@ impl BlobArray {
 
         Self {
             item_layout,
+            item_drop_fn,
 
             capacity,
             len: 0,
@@ -135,9 +138,11 @@ impl BlobArray {
         let ptr = self.item_ptr(at_index);
         let end_ptr = self.item_ptr(self.len - 1);
 
-        // Move the value at `end_ptr` to
-        // `ptr`, overwriting the value at `ptr`.
         unsafe {
+            (self.item_drop_fn)(ptr);
+
+            // Move the value at `end_ptr` to
+            // `ptr`, overwriting the value at `ptr`.
             std::ptr::copy(end_ptr, ptr, self.item_layout.size());
         }
 
@@ -177,6 +182,12 @@ impl BlobArray {
 
 impl Drop for BlobArray {
     fn drop(&mut self) {
+        for i in 0..self.len() {
+            let ptr = self.get_raw(i).unwrap().as_ptr();
+            unsafe {
+                (self.item_drop_fn)(ptr);
+            }
+        }
         if self.item_layout.size() != 0 {
             unsafe {
                 std::alloc::dealloc(
@@ -192,11 +203,13 @@ unsafe impl Send for BlobArray {}
 
 #[cfg(test)]
 mod tests {
+    use std::sync::atomic::{AtomicBool, Ordering};
+
     use super::*;
 
     #[test]
     fn push_get() {
-        let mut vec = BlobArray::new(Layout::new::<usize>(), 1001);
+        let mut vec = BlobArray::new(Layout::new::<usize>(), |_| (), 1001);
         vec.push(123usize);
         for i in 0usize..1000 {
             vec.push(i);
@@ -215,7 +228,7 @@ mod tests {
 
     #[test]
     fn push_get_raw_bytes() {
-        let mut vec = BlobArray::new(Layout::new::<usize>(), 1000);
+        let mut vec = BlobArray::new(Layout::new::<usize>(), |_| (), 1000);
         for i in 0usize..1000 {
             vec.push(i);
         }
@@ -230,7 +243,7 @@ mod tests {
 
     #[test]
     fn swap_remove() {
-        let mut vec = BlobArray::new(Layout::new::<usize>(), 100);
+        let mut vec = BlobArray::new(Layout::new::<usize>(), |_| (), 100);
         for i in 0..100 {
             vec.push(i as usize);
         }
@@ -244,6 +257,33 @@ mod tests {
             assert_eq!(vec.get(98), Some(&98usize));
             assert_eq!(vec.get(50), Some(&99usize));
         }
+    }
+
+    #[test]
+    fn calls_drop_fn() {
+        struct NeedsDrop {
+            x: i32,
+        }
+
+        static WAS_DROPPED: AtomicBool = AtomicBool::new(false);
+
+        impl Drop for NeedsDrop {
+            fn drop(&mut self) {
+                WAS_DROPPED.store(true, Ordering::SeqCst);
+                assert_eq!(self.x, 15);
+            }
+        }
+
+        let mut vec = BlobArray::new(
+            Layout::new::<NeedsDrop>(),
+            |ptr| unsafe { ptr::drop_in_place::<NeedsDrop>(ptr.cast()) },
+            1,
+        );
+        vec.push(NeedsDrop { x: 15 });
+
+        vec.swap_remove(0);
+
+        assert!(WAS_DROPPED.load(Ordering::SeqCst));
     }
 
     /*  #[test]
