@@ -31,19 +31,14 @@ pub struct EntityDead;
 
 /// The entity-component data structure.
 ///
-/// An `Ecs` stores _components_ for _entities_.
-///
-/// This struct is equivalent to `World` in most ECS
-/// libraries, but it has been renamed to `Ecs` to avoid
-/// conflict with Minecraft's definition of a "world." (In
-/// Feather, the `World` stores blocks, not entities.)
+/// A `World` stores _components_ for _entities_.
 #[derive(Default)]
-pub struct Ecs {
+pub struct World {
     components: Components,
     entities: Entities,
 }
 
-impl Ecs {
+impl World {
     /// Creates a new, empty ECS.
     pub fn new() -> Self {
         Self::default()

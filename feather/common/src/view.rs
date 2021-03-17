@@ -20,7 +20,7 @@ pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
 fn update_player_views(game: &mut Game) -> SysResult {
     let mut events = Vec::new();
     for (player, (view, &position, name)) in
-        game.ecs.query::<(&mut View, &Position, &Name)>().iter()
+        game.world.query::<(&mut View, &Position, &Name)>().iter()
     {
         if position.chunk() != view.center() {
             let old_view = *view;
@@ -35,7 +35,7 @@ fn update_player_views(game: &mut Game) -> SysResult {
     }
 
     for (player, event) in events {
-        game.ecs.insert_entity_event(player, event)?;
+        game.world.insert_entity_event(player, event)?;
     }
     Ok(())
 }
@@ -43,13 +43,17 @@ fn update_player_views(game: &mut Game) -> SysResult {
 /// Triggers a ViewUpdateEvent when a player joins the game.
 fn update_view_on_join(game: &mut Game) -> SysResult {
     let mut events = Vec::new();
-    for (player, (&view, name, _)) in game.ecs.query::<(&View, &Name, &PlayerJoinEvent)>().iter() {
+    for (player, (&view, name, _)) in game
+        .world
+        .query::<(&View, &Name, &PlayerJoinEvent)>()
+        .iter()
+    {
         let event = ViewUpdateEvent::new(View::empty(), view);
         events.push((player, event));
         log::trace!("View of {} has been updated (player joined)", name);
     }
     for (player, event) in events {
-        game.ecs.insert_entity_event(player, event)?;
+        game.world.insert_entity_event(player, event)?;
     }
     Ok(())
 }

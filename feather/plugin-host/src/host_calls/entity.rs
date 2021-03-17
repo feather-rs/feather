@@ -7,7 +7,12 @@ use crate::context::{PluginContext, PluginPtr};
 
 #[host_function]
 pub fn entity_exists(cx: &PluginContext, entity: u64) -> anyhow::Result<u32> {
-    Ok(cx.game_mut().ecs.entity(Entity::from_bits(entity)).is_ok()).map(|b| b as u32)
+    Ok(cx
+        .game_mut()
+        .world
+        .entity(Entity::from_bits(entity))
+        .is_ok())
+    .map(|b| b as u32)
 }
 
 #[host_function]

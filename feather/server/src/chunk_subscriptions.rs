@@ -34,7 +34,7 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 
 fn update_chunk_subscriptions(game: &mut Game, server: &mut Server) -> SysResult {
     // Update players whose views have changed
-    for (_, (event, &client_id)) in game.ecs.query::<(&ViewUpdateEvent, &ClientId)>().iter() {
+    for (_, (event, &client_id)) in game.world.query::<(&ViewUpdateEvent, &ClientId)>().iter() {
         for new_chunk in event.new_view.difference(event.old_view) {
             server
                 .chunk_subscriptions
@@ -50,7 +50,7 @@ fn update_chunk_subscriptions(game: &mut Game, server: &mut Server) -> SysResult
 
     // Update players that have left
     for (_, (_event, &client_id, &view)) in game
-        .ecs
+        .world
         .query::<(&EntityRemoveEvent, &ClientId, &View)>()
         .iter()
     {

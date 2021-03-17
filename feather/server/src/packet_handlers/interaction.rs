@@ -24,7 +24,7 @@ pub fn handle_player_block_placement(
         0 => Hand::Main,
         1 => Hand::Offhand,
         _ => {
-            let client_id = game.ecs.get::<ClientId>(player).unwrap();
+            let client_id = game.world.get::<ClientId>(player).unwrap();
 
             let client = _server.clients.get(*client_id).unwrap();
 
@@ -57,7 +57,7 @@ pub fn handle_player_block_placement(
         match result {
             Some(block) => block.kind(),
             None => {
-                let client_id = game.ecs.get::<ClientId>(player).unwrap();
+                let client_id = game.world.get::<ClientId>(player).unwrap();
 
                 let client = _server.clients.get(*client_id).unwrap();
 
@@ -86,7 +86,7 @@ pub fn handle_player_block_placement(
             inside_block: packet.inside_block,
         };
 
-        game.ecs.insert_entity_event(player, event)?;
+        game.world.insert_entity_event(player, event)?;
     } else {
         // Handle this as a block placement
         let event = BlockPlacementEvent {
@@ -97,7 +97,7 @@ pub fn handle_player_block_placement(
             inside_block: packet.inside_block,
         };
 
-        game.ecs.insert_entity_event(player, event)?;
+        game.world.insert_entity_event(player, event)?;
     }
 
     Ok(())
@@ -129,7 +129,7 @@ pub fn handle_interact_entity(
 ) -> SysResult {
     let target = {
         let mut found_entity = None;
-        for (entity, &network_id) in game.ecs.query::<&NetworkId>().iter() {
+        for (entity, &network_id) in game.world.query::<&NetworkId>().iter() {
             if network_id.0 == packet.entity_id {
                 found_entity = Some(entity);
                 break;
@@ -138,7 +138,7 @@ pub fn handle_interact_entity(
 
         match found_entity {
             None => {
-                let client_id = game.ecs.get::<ClientId>(player).unwrap();
+                let client_id = game.world.get::<ClientId>(player).unwrap();
 
                 let client = _server.clients.get(*client_id).unwrap();
 
@@ -191,7 +191,7 @@ pub fn handle_interact_entity(
         }
     };
 
-    game.ecs.insert_entity_event(player, event)?;
+    game.world.insert_entity_event(player, event)?;
 
     Ok(())
 }
@@ -216,15 +216,15 @@ mod tests {
     #[test]
     fn held_item_change() {
         let mut game = Game::new();
-        let entity = game.ecs.spawn((HotbarSlot::new(0),));
-        let player = game.ecs.entity(entity).unwrap();
+        let entity = game.world.spawn((HotbarSlot::new(0),));
+        let player = game.world.entity(entity).unwrap();
 
         let packet = HeldItemChange { slot: 8 };
 
         handle_held_item_change(player, packet).unwrap();
 
         assert_eq!(
-            *game.ecs.get::<HotbarSlot>(entity).unwrap(),
+            *game.world.get::<HotbarSlot>(entity).unwrap(),
             HotbarSlot::new(8)
         );
     }

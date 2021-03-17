@@ -2,7 +2,7 @@
 
 use std::{any::TypeId, borrow::Cow, cell::Cell, ops::Deref};
 
-use crate::{storage::sparse_set, Component, Components, Ecs, SparseSetRef, SparseSetStorage};
+use crate::{storage::sparse_set, Component, Components, SparseSetRef, SparseSetStorage, World};
 
 /// Drives a query by yielding the entities
 /// whose components satisfy the query parameters.

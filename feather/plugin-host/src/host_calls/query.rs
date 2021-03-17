@@ -30,7 +30,7 @@ pub fn entity_query(
     }
 
     let game = cx.game_mut();
-    let query_data = create_query_data(cx, &game.ecs, &components)?;
+    let query_data = create_query_data(cx, &game.world, &components)?;
     cx.write_pod(query_data_out, query_data)?;
 
     Ok(())

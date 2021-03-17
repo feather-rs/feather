@@ -19,10 +19,10 @@ pub use window::Window;
 
 pub mod events;
 
-pub mod world_source;
+pub mod level_source;
 
-pub mod world;
-pub use world::World;
+pub mod level;
+pub use level::Level;
 
 mod chunk_loading;
 

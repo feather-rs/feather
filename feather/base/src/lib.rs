@@ -13,7 +13,6 @@ pub mod anvil;
 pub mod chunk;
 pub mod inventory;
 pub mod metadata;
-mod world;
 
 pub use blocks::*;
 pub use chunk::{Chunk, ChunkSection, CHUNK_HEIGHT, CHUNK_WIDTH};

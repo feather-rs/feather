@@ -4,16 +4,16 @@
 mod borrow;
 mod bundle;
 mod component;
-mod ecs;
 mod entity;
 mod entity_builder;
 mod layout_ext;
 mod query;
 mod storage;
+mod world;
 
 pub use component::Component;
-pub use ecs::{ComponentError, Components, Ecs, EntityDead};
 pub use entity::EntityId;
 pub use entity_builder::EntityBuilder;
 pub use query::{QueryDriver, QueryItem};
 pub use storage::{SparseSetRef, SparseSetStorage};
+pub use world::{ComponentError, Components, EntityDead, World};

@@ -4,7 +4,7 @@ use std::{
     ptr::{self, NonNull},
 };
 
-use crate::{component::ComponentMeta, Component, Ecs, EntityId};
+use crate::{component::ComponentMeta, Component, EntityId, World};
 
 /// A utility to build an entity's components.
 ///
@@ -57,7 +57,7 @@ impl EntityBuilder {
     }
 
     /// Spawns the entity builder into an `Ecs`.
-    pub fn spawn_into(&mut self, ecs: &mut Ecs) -> EntityId {
+    pub fn spawn_into(&mut self, ecs: &mut World) -> EntityId {
         ecs.spawn_builder(self)
     }
 

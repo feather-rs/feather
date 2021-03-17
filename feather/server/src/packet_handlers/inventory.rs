@@ -86,8 +86,8 @@ mod tests {
     #[test]
     fn creative_inventory_action_survival_mode() {
         let mut game = Game::new();
-        let entity = game.ecs.spawn((Gamemode::Survival, player_window()));
-        let player = game.ecs.entity(entity).unwrap();
+        let entity = game.world.spawn((Gamemode::Survival, player_window()));
+        let player = game.world.entity(entity).unwrap();
 
         let packet = CreativeInventoryAction {
             slot: 10,
@@ -96,7 +96,7 @@ mod tests {
         handle_creative_inventory_action(player, packet).unwrap_err();
 
         assert!(game
-            .ecs
+            .world
             .get::<Window>(entity)
             .unwrap()
             .item(10)
@@ -107,14 +107,14 @@ mod tests {
     #[test]
     fn creative_inventory_action_non_player_window() {
         let mut game = Game::new();
-        let entity = game.ecs.spawn((
+        let entity = game.world.spawn((
             Window::new(BackingWindow::Generic9x3 {
                 player: Inventory::player(),
                 block: Inventory::chest(),
             }),
             Gamemode::Creative,
         ));
-        let player = game.ecs.entity(entity).unwrap();
+        let player = game.world.entity(entity).unwrap();
 
         let packet = CreativeInventoryAction {
             slot: 5,
@@ -123,7 +123,7 @@ mod tests {
         handle_creative_inventory_action(player, packet).unwrap_err();
 
         assert!(game
-            .ecs
+            .world
             .get::<Window>(entity)
             .unwrap()
             .item(5)
@@ -134,8 +134,8 @@ mod tests {
     #[test]
     fn creative_inventory_action() {
         let mut game = Game::new();
-        let entity = game.ecs.spawn((Gamemode::Creative, player_window()));
-        let player = game.ecs.entity(entity).unwrap();
+        let entity = game.world.spawn((Gamemode::Creative, player_window()));
+        let player = game.world.entity(entity).unwrap();
 
         let packet = CreativeInventoryAction {
             slot: 5,
@@ -144,7 +144,7 @@ mod tests {
         handle_creative_inventory_action(player, packet).unwrap();
 
         assert_eq!(
-            game.ecs
+            game.world
                 .get::<Window>(entity)
                 .unwrap()
                 .item(5)

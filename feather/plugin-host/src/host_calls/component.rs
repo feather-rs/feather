@@ -13,7 +13,7 @@ struct GetComponentVisitor<'a> {
 impl<'a> ComponentVisitor<anyhow::Result<(PluginPtrMut<u8>, u32)>> for GetComponentVisitor<'a> {
     fn visit<T: quill_common::Component>(self) -> anyhow::Result<(PluginPtrMut<u8>, u32)> {
         let game = self.cx.game_mut();
-        let component = match game.ecs.get::<T>(self.entity) {
+        let component = match game.world.get::<T>(self.entity) {
             Ok(c) => c,
             Err(_) => return Ok((unsafe { PluginPtrMut::null() }, 0)),
         };
@@ -57,12 +57,12 @@ impl<'a> ComponentVisitor<anyhow::Result<()>> for SetComponentVisitor<'a> {
             .read_component::<T>(self.bytes_ptr, self.bytes_len)?;
         let mut game = self.cx.game_mut();
 
-        let existing_component = game.ecs.get_mut::<T>(self.entity);
+        let existing_component = game.world.get_mut::<T>(self.entity);
         if let Ok(mut existing_component) = existing_component {
             *existing_component = component;
         } else {
             drop(existing_component);
-            let _ = game.ecs.insert(self.entity, component);
+            let _ = game.world.insert(self.entity, component);
         }
 
         Ok(())

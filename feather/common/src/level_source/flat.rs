@@ -1,21 +1,21 @@
 use base::{BlockId, Chunk, ChunkPosition, CHUNK_WIDTH};
 
-use super::{ChunkLoadResult, LoadedChunk, WorldSource};
+use super::{ChunkLoadResult, LevelSource, LoadedChunk};
 
 /// A world source used for debugging that emits
 /// only flat chunks and does no IO.
-pub struct FlatWorldSource {
+pub struct FlatLevelSource {
     archetype: Chunk,
     loaded: Vec<LoadedChunk>,
 }
 
-impl Default for FlatWorldSource {
+impl Default for FlatLevelSource {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl FlatWorldSource {
+impl FlatLevelSource {
     pub fn new() -> Self {
         let mut archetype = Chunk::new(ChunkPosition::new(0, 0));
         for y in 0..64 {
@@ -38,7 +38,7 @@ impl FlatWorldSource {
     }
 }
 
-impl WorldSource for FlatWorldSource {
+impl LevelSource for FlatLevelSource {
     fn queue_load(&mut self, pos: base::ChunkPosition) {
         let mut chunk = self.archetype.clone();
         chunk.set_position(pos);

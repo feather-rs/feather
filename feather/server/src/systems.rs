@@ -45,7 +45,7 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
 fn handle_packets(game: &mut Game, server: &mut Server) -> SysResult {
     let mut packets = Vec::new();
 
-    for (player, &client_id) in game.ecs.query::<&ClientId>().iter() {
+    for (player, &client_id) in game.world.query::<&ClientId>().iter() {
         if let Some(client) = server.clients.get(client_id) {
             for packet in client.received_packets() {
                 packets.push((player, packet));
@@ -57,7 +57,7 @@ fn handle_packets(game: &mut Game, server: &mut Server) -> SysResult {
         if let Err(e) = crate::packet_handlers::handle_packet(game, server, player, packet) {
             log::warn!(
                 "Failed to handle packet from '{}': {:?}",
-                &**game.ecs.get::<Name>(player)?,
+                &**game.world.get::<Name>(player)?,
                 e
             );
         }
