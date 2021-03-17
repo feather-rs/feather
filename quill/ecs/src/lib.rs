@@ -11,6 +11,7 @@ mod query;
 mod storage;
 mod world;
 
+pub use borrow::{BorrowError, BorrowFlag, Ref, RefMut};
 pub use component::Component;
 pub use entity::EntityId;
 pub use entity_builder::EntityBuilder;

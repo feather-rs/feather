@@ -1,5 +1,8 @@
 //! Tests taken from the `hecs` crate. Original source
 //! available at https://github.com/Ralith/hecs/blob/master/tests/tests.rs.
+//!
+//! Adjusted to fit API differences. Some tests have been ommitted or
+//! commented out, because they test features not available in this library.
 
 // Copyright 2019 Google LLC
 //
@@ -8,12 +11,11 @@
 // http://opensource.org/licenses/MIT>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
 
-/*
 use quill_ecs::*;
 
 #[test]
 fn random_access() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let e = world.spawn_bundle(("abc", 123));
     let f = world.spawn_bundle(("def", 456, true));
     assert_eq!(*world.get::<&str>(e).unwrap(), "abc");
@@ -26,12 +28,12 @@ fn random_access() {
 
 #[test]
 fn despawn() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let e = world.spawn_bundle(("abc", 123));
     let f = world.spawn_bundle(("def", 456));
-    assert_eq!(world.query::<()>().iter().count(), 2);
+    assert_eq!(world.iter().count(), 2);
     world.despawn(e).unwrap();
-    assert_eq!(world.query::<()>().iter().count(), 1);
+    assert_eq!(world.iter().count(), 1);
     assert!(world.get::<&str>(e).is_err());
     assert!(world.get::<i32>(e).is_err());
     assert_eq!(*world.get::<&str>(f).unwrap(), "def");
@@ -40,34 +42,34 @@ fn despawn() {
 
 #[test]
 fn query_all() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let e = world.spawn_bundle(("abc", 123));
     let f = world.spawn_bundle(("def", 456));
 
     let ents = world
         .query::<(&i32, &&str)>()
         .iter()
-        .map(|(e, (&i, &s))| (e, i, s))
+        .map(|(e, (i, s))| (e, *i, *s))
         .collect::<Vec<_>>();
     assert_eq!(ents.len(), 2);
     assert!(ents.contains(&(e, 123, "abc")));
     assert!(ents.contains(&(f, 456, "def")));
 
-    let ents = world.query::<()>().iter().collect::<Vec<_>>();
+    let ents = world.iter().collect::<Vec<_>>();
     assert_eq!(ents.len(), 2);
-    assert!(ents.contains(&(e, ())));
-    assert!(ents.contains(&(f, ())));
+    assert!(ents.contains(&e));
+    assert!(ents.contains(&f));
 }
 
 #[test]
 fn query_single_component() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let e = world.spawn_bundle(("abc", 123));
     let f = world.spawn_bundle(("def", 456, true));
     let ents = world
         .query::<&i32>()
         .iter()
-        .map(|(e, &i)| (e, i))
+        .map(|(e, i)| (e, *i))
         .collect::<Vec<_>>();
     assert_eq!(ents.len(), 2);
     assert!(ents.contains(&(e, 123)));
@@ -76,7 +78,7 @@ fn query_single_component() {
 
 #[test]
 fn query_missing_component() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     world.spawn_bundle(("abc", 123));
     world.spawn_bundle(("def", 456));
     assert!(world.query::<(&bool, &i32)>().iter().next().is_none());
@@ -84,20 +86,21 @@ fn query_missing_component() {
 
 #[test]
 fn query_sparse_component() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     world.spawn_bundle(("abc", 123));
     let f = world.spawn_bundle(("def", 456, true));
     let ents = world
         .query::<&bool>()
         .iter()
-        .map(|(e, &b)| (e, b))
+        .map(|(e, b)| (e, *b))
         .collect::<Vec<_>>();
     assert_eq!(ents, &[(f, true)]);
 }
 
+/*
 #[test]
 fn query_optional_component() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let e = world.spawn_bundle(("abc", 123));
     let f = world.spawn_bundle(("def", 456, true));
     let ents = world
@@ -109,19 +112,20 @@ fn query_optional_component() {
     assert!(ents.contains(&(e, None, 123)));
     assert!(ents.contains(&(f, Some(true), 456)));
 }
+*/
 
 #[test]
 fn build_entity() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let mut entity = EntityBuilder::new();
     entity.add("abc");
     entity.add(123);
-    let e = world.spawn_bundle(entity.build());
+    let e = entity.spawn_into(&mut world);
     entity.add("def");
     entity.add([0u8; 1024]);
     entity.add(456);
     entity.add(789);
-    let f = world.spawn_bundle(entity.build());
+    let f = entity.spawn_into(&mut world);
     assert_eq!(*world.get::<&str>(e).unwrap(), "abc");
     assert_eq!(*world.get::<i32>(e).unwrap(), 123);
     assert_eq!(*world.get::<&str>(f).unwrap(), "def");
@@ -130,7 +134,7 @@ fn build_entity() {
 
 #[test]
 fn access_builder_components() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let mut entity = EntityBuilder::new();
 
     entity.add("abc");
@@ -140,28 +144,24 @@ fn access_builder_components() {
     assert!(entity.has::<i32>());
     assert!(!entity.has::<usize>());
 
-    assert_eq!(*entity.get::<&str>().unwrap(), "abc");
-    assert_eq!(*entity.get::<i32>().unwrap(), 123);
-    assert_eq!(entity.get::<usize>(), None);
-
-    *entity.get_mut::<i32>().unwrap() = 456;
-    assert_eq!(*entity.get::<i32>().unwrap(), 456);
-
-    let g = world.spawn_bundle(entity.build());
+    let g = world.spawn_builder(&mut entity);
 
     assert_eq!(*world.get::<&str>(g).unwrap(), "abc");
-    assert_eq!(*world.get::<i32>(g).unwrap(), 456);
+    assert_eq!(*world.get::<i32>(g).unwrap(), 123);
 }
 
 #[test]
 fn build_entity_bundle() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let mut entity = EntityBuilder::new();
-    entity.add_bundle(("abc", 123));
-    let e = world.spawn_bundle(entity.build());
+    entity.add(123);
+    entity.add("abc");
+    let e = entity.spawn_into(&mut world);
     entity.add(456);
-    entity.add_bundle(("def", [0u8; 1024], 789));
-    let f = world.spawn_bundle(entity.build());
+    entity.add("def");
+    entity.add([0u8; 1024]);
+    entity.add(789);
+    let f = entity.spawn_into(&mut world);
     assert_eq!(*world.get::<&str>(e).unwrap(), "abc");
     assert_eq!(*world.get::<i32>(e).unwrap(), 123);
     assert_eq!(*world.get::<&str>(f).unwrap(), "def");
@@ -170,23 +170,24 @@ fn build_entity_bundle() {
 
 #[test]
 fn dynamic_components() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let e = world.spawn_bundle((42,));
-    world.insert(e, (true, "abc")).unwrap();
+    world.insert(e, true).unwrap();
+    world.insert(e, "abc").unwrap();
     assert_eq!(
         world
             .query::<(&i32, &bool)>()
             .iter()
-            .map(|(e, (&i, &b))| (e, i, b))
+            .map(|(e, (i, b))| (e, *i, *b))
             .collect::<Vec<_>>(),
         &[(e, 42, true)]
     );
-    assert_eq!(world.remove_one::<i32>(e), Ok(42));
+    world.remove::<i32>(e).unwrap();
     assert_eq!(
         world
             .query::<(&i32, &bool)>()
             .iter()
-            .map(|(e, (&i, &b))| (e, i, b))
+            .map(|(e, (i, b))| (e, *i, *b))
             .collect::<Vec<_>>(),
         &[]
     );
@@ -194,35 +195,25 @@ fn dynamic_components() {
         world
             .query::<(&bool, &&str)>()
             .iter()
-            .map(|(e, (&b, &s))| (e, b, s))
+            .map(|(e, (b, s))| (e, *b, *s))
             .collect::<Vec<_>>(),
         &[(e, true, "abc")]
     );
 }
 
 #[test]
-#[should_panic(expected = "already borrowed")]
+#[should_panic(expected = "query causes borrow conflicts: BorrowError")]
 fn illegal_borrow() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     world.spawn_bundle(("abc", 123));
     world.spawn_bundle(("def", 456));
 
-    world.query::<(&mut i32, &i32)>().iter();
-}
-
-#[test]
-#[should_panic(expected = "already borrowed")]
-fn illegal_borrow_2() {
-    let mut world = Ecs::new();
-    world.spawn_bundle(("abc", 123));
-    world.spawn_bundle(("def", 456));
-
-    world.query::<(&mut i32, &mut i32)>().iter();
+    let _ = world.query::<(&mut i32, &i32)>().iter().collect::<Vec<_>>();
 }
 
 #[test]
 fn disjoint_queries() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     world.spawn_bundle(("abc", true));
     world.spawn_bundle(("def", 456));
 
@@ -232,7 +223,7 @@ fn disjoint_queries() {
 
 #[test]
 fn shared_borrow() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     world.spawn_bundle(("abc", 123));
     world.spawn_bundle(("def", 456));
 
@@ -240,58 +231,18 @@ fn shared_borrow() {
 }
 
 #[test]
-#[should_panic(expected = "already borrowed")]
+#[should_panic(expected = "BorrowConflict(BorrowError)")]
 fn illegal_random_access() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let e = world.spawn_bundle(("abc", 123));
     let _borrow = world.get_mut::<i32>(e).unwrap();
     world.get::<i32>(e).unwrap();
 }
 
 #[test]
-#[cfg(feature = "macros")]
-fn derived_bundle() {
-    #[derive(Bundle)]
-    struct Foo {
-        x: i32,
-        y: char,
-    }
-
-    let mut world = Ecs::new();
-    let e = world.spawn(Foo { x: 42, y: 'a' });
-    assert_eq!(*world.get::<i32>(e).unwrap(), 42);
-    assert_eq!(*world.get::<char>(e).unwrap(), 'a');
-}
-
-#[test]
-#[cfg(feature = "macros")]
-#[cfg_attr(
-    debug_assertions,
-    should_panic(
-        expected = "attempted to allocate entity with duplicate i32 components; each type must occur at most once!"
-    )
-)]
-#[cfg_attr(
-    not(debug_assertions),
-    should_panic(
-        expected = "attempted to allocate entity with duplicate components; each type must occur at most once!"
-    )
-)]
-fn bad_bundle_derive() {
-    #[derive(Bundle)]
-    struct Foo {
-        x: i32,
-        y: i32,
-    }
-
-    let mut world = Ecs::new();
-    world.spawn(Foo { x: 42, y: 42 });
-}
-
-#[test]
 #[cfg_attr(miri, ignore)]
 fn spawn_many() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     const N: usize = 100_000;
     for _ in 0..N {
         world.spawn_bundle((42u128,));
@@ -299,40 +250,44 @@ fn spawn_many() {
     assert_eq!(world.iter().count(), N);
 }
 
+/*
 #[test]
 fn clear() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     world.spawn_bundle(("abc", 123));
     world.spawn_bundle(("def", 456, true));
     world.clear();
     assert_eq!(world.iter().count(), 0);
 }
+*/
 
 #[test]
-#[should_panic(expected = "twice on the same borrow")]
+#[should_panic(expected = "query causes borrow conflicts: BorrowError")]
 fn alias() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     world.spawn_bundle(("abc", 123));
     world.spawn_bundle(("def", 456, true));
     let mut q = world.query::<&mut i32>();
     let _a = q.iter().collect::<Vec<_>>();
+    let mut q = world.query::<&mut i32>();
     let _b = q.iter().collect::<Vec<_>>();
 }
 
 #[test]
 fn remove_missing() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let e = world.spawn_bundle(("abc", 123));
     assert!(world.remove::<bool>(e).is_err());
 }
 
+/*
 #[test]
 fn reserve() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let a = world.reserve_entity();
     let b = world.reserve_entity();
 
-    assert_eq!(world.query::<()>().iter().count(), 0);
+    assert_eq!(world.iter().count(), 0);
 
     world.flush();
 
@@ -349,7 +304,7 @@ fn reserve() {
 
 #[test]
 fn query_one() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     let a = world.spawn_bundle(("abc", 123));
     let b = world.spawn_bundle(("def", 456));
     let c = world.spawn_bundle(("ghi", 789, true));
@@ -378,7 +333,7 @@ fn query_one() {
     )
 )]
 fn duplicate_components_panic() {
-    let mut world = Ecs::new();
+    let mut world = World::new();
     world.reserve::<(f32, i64, f32)>(1);
 }
 */

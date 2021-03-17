@@ -1,5 +1,6 @@
 use std::{
     cell::Cell,
+    fmt::{Debug, Display},
     ops::{Deref, DerefMut},
 };
 
@@ -8,7 +9,7 @@ use std::{
 /// Supports either one mutable reference or up to 254 shared references.
 /// Exceeding either limit results in `BorrowError`.
 #[derive(Default)]
-pub(crate) struct BorrowFlag {
+pub struct BorrowFlag {
     flag: Cell<u8>,
 }
 
@@ -76,6 +77,33 @@ impl<'a, T> Deref for Ref<'a, T> {
     }
 }
 
+impl<'a, T> Debug for Ref<'a, T>
+where
+    T: Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.component.fmt(f)
+    }
+}
+
+impl<'a, T> Display for Ref<'a, T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.component.fmt(f)
+    }
+}
+
+impl<'a, T> PartialEq<&'a T> for Ref<'a, T>
+where
+    &'a T: PartialEq<&'a T>,
+{
+    fn eq(&self, other: &&'a T) -> bool {
+        self.component.eq(other)
+    }
+}
+
 impl<'a, T> Drop for Ref<'a, T> {
     fn drop(&mut self) {
         self.flag.unborrow();
@@ -108,6 +136,24 @@ impl<'a, T> Deref for RefMut<'a, T> {
 impl<'a, T> DerefMut for RefMut<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.component
+    }
+}
+
+impl<'a, T> Debug for RefMut<'a, T>
+where
+    T: Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.component.fmt(f)
+    }
+}
+
+impl<'a, T> Display for RefMut<'a, T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.component.fmt(f)
     }
 }
 

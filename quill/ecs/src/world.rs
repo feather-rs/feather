@@ -10,7 +10,7 @@ use crate::{
     entity_builder::EntityBuilder,
     query::{QueryDriverIter, QueryTuple},
     storage::SparseSetStorage,
-    QueryDriver,
+    BorrowError, QueryDriver, Ref, RefMut,
 };
 
 pub use self::components::Components;
@@ -23,6 +23,8 @@ pub enum ComponentError {
     MissingComponent(&'static str),
     #[error(transparent)]
     MissingEntity(#[from] EntityDead),
+    #[error(transparent)]
+    BorrowConflict(#[from] BorrowError),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -46,10 +48,27 @@ impl World {
 
     /// Gets a component for an entity.
     ///
+    /// Borrow checking is dynamic. If a mutable reference to the
+    /// component is still active, this function will return an error.
+    ///
+    /// Note that at most 254 `Ref`s can exist for a given component. Attempting
+    /// to acquire more will result in anerror.
+    ///
     /// Time complexity: O(1)
-    pub fn get<T: Component>(&self, entity: EntityId) -> Result<&T, ComponentError> {
+    pub fn get<T: Component>(&self, entity: EntityId) -> Result<Ref<T>, ComponentError> {
         self.check_entity(entity)?;
         self.components.get(entity.index())
+    }
+
+    /// Mutably gets a component for an entity.
+    ///
+    /// Borrow checking is dynamic. If any references to the
+    /// component are still alive, this function will return an error.
+    ///
+    /// Time complexity: O(1)
+    pub fn get_mut<T: Component>(&self, entity: EntityId) -> Result<RefMut<T>, ComponentError> {
+        self.check_entity(entity)?;
+        self.components.get_mut(entity.index())
     }
 
     /// Inserts a component for an entity.
@@ -152,6 +171,11 @@ impl World {
             entities: &self.entities,
             _marker: PhantomData,
         }
+    }
+
+    /// Iterates over all alive entities in this world.
+    pub fn iter(&self) -> impl Iterator<Item = EntityId> + '_ {
+        self.entities.iter()
     }
 
     fn check_entity(&self, entity: EntityId) -> Result<(), EntityDead> {

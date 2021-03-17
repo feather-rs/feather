@@ -2,7 +2,9 @@ use std::any::{type_name, TypeId};
 
 use ahash::AHashMap;
 
-use crate::{component::ComponentMeta, storage::SparseSetStorage, Component, ComponentError};
+use crate::{
+    component::ComponentMeta, storage::SparseSetStorage, Component, ComponentError, Ref, RefMut,
+};
 
 /// A raw ECS that stores only components but does not track
 /// entities.
@@ -43,9 +45,15 @@ impl Components {
         }
     }
 
-    pub fn get<T: Component>(&self, index: u32) -> Result<&T, ComponentError> {
+    pub fn get<T: Component>(&self, index: u32) -> Result<Ref<T>, ComponentError> {
         self.storage_for::<T>()?
-            .get(index)
+            .get(index)?
+            .ok_or_else(|| ComponentError::MissingComponent(type_name::<T>()))
+    }
+
+    pub fn get_mut<T: Component>(&self, index: u32) -> Result<RefMut<T>, ComponentError> {
+        self.storage_for::<T>()?
+            .get_mut(index)?
             .ok_or_else(|| ComponentError::MissingComponent(type_name::<T>()))
     }
 

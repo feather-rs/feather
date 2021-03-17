@@ -96,9 +96,17 @@ fn query_basic() {
     let mut query = world.query::<(&i32, &&'static str)>();
     let mut iter = query.iter();
 
-    assert_eq!(iter.next(), Some((entity1, (&10, &"name1"))));
-    assert_eq!(iter.next(), Some((entity2, (&15, &"name2"))));
-    assert_eq!(iter.next(), None);
+    let (entity, (i, name)) = iter.next().unwrap();
+    assert_eq!(entity, entity1);
+    assert_eq!(*i, 10);
+    assert_eq!(*name, "name1");
+
+    let (entity, (i, name)) = iter.next().unwrap();
+    assert_eq!(entity, entity2);
+    assert_eq!(*i, 15);
+    assert_eq!(*name, "name2");
+
+    assert!(iter.next().is_none());
 }
 
 #[test]
@@ -121,11 +129,13 @@ fn query_big_ecs_after_despawn() {
     let last = entities.len() - 1;
     world.despawn(entities.remove(last)).unwrap();
 
-    let queried: HashMap<EntityId, (&String, &usize)> =
+    let queried: HashMap<EntityId, (Ref<String>, Ref<usize>)> =
         world.query::<(&String, &usize)>().iter().collect();
 
     for (i, entity) in entities.iter().copied().enumerate() {
-        assert_eq!(queried[&entity], (&format!("entity #{}", i * 3), &(i * 3)));
+        let (name, number) = &queried[&entity];
+        assert_eq!(*name, &format!("entity #{}", i * 3));
+        assert_eq!(**number, i * 3);
     }
 
     assert_eq!(queried.len(), entities.len());
@@ -136,4 +146,64 @@ fn empty_query() {
     let world = World::new();
 
     assert_eq!(world.query::<&i32>().iter().count(), 0);
+}
+
+#[test]
+fn mutable_access() {
+    let mut world = World::new();
+    let entity = world.spawn_bundle((10i32,));
+    *world.get_mut::<i32>(entity).unwrap() = 15;
+    assert_eq!(*world.get::<i32>(entity).unwrap(), 15);
+}
+
+#[test]
+fn borrow_conflict_mutable() {
+    let mut world = World::new();
+    let entity = world.spawn_bundle((10i32,));
+
+    let mut reference = world.get_mut::<i32>(entity).unwrap();
+
+    assert!(matches!(
+        world.get::<i32>(entity),
+        Err(ComponentError::BorrowConflict(_))
+    ));
+    *reference = 5;
+
+    drop(reference);
+    assert_eq!(*world.get::<i32>(entity).unwrap(), 5);
+}
+
+#[test]
+fn borrow_conflict_shared() {
+    let mut world = World::new();
+    let entity = world.spawn_bundle((10i32,));
+
+    let _reference = world.get::<i32>(entity).unwrap();
+    assert!(matches!(
+        world.get_mut::<i32>(entity),
+        Err(ComponentError::BorrowConflict(_))
+    ));
+}
+
+#[test]
+fn too_many_shared_borrows() {
+    let mut world = World::new();
+    let entity = world.spawn_bundle((10i32,));
+
+    let refs: Vec<_> = (0..254)
+        .map(|_| world.get::<i32>(entity).unwrap())
+        .collect();
+
+    assert!(matches!(
+        world.get::<i32>(entity),
+        Err(ComponentError::BorrowConflict(_))
+    ));
+    assert!(matches!(
+        world.get_mut::<i32>(entity),
+        Err(ComponentError::BorrowConflict(_))
+    ));
+
+    drop(refs);
+
+    assert_eq!(*world.get::<i32>(entity).unwrap(), 10);
 }

@@ -12,6 +12,7 @@ use thread_local::ThreadLocal;
 use crate::{
     borrow::BorrowFlag,
     component::{self, ComponentMeta},
+    BorrowError, ComponentError, Ref, RefMut,
 };
 
 use super::{blob_array::BlobArray, component_vec::ComponentVec};
@@ -69,30 +70,47 @@ impl SparseSetStorage {
         self.borrow_flags.push(BorrowFlag::default());
     }
 
-    pub fn get<T: 'static>(&self, index: u32) -> Option<&T> {
+    pub fn get<T: 'static>(&self, index: u32) -> Result<Option<Ref<T>>, BorrowError> {
         self.assert_type_matches::<T>();
         unsafe {
-            let ptr = self.get_raw(index)?;
-            Some(&*ptr.as_ptr().cast())
+            let (ptr, borrow_flag) = match self.get_raw(index) {
+                Some(x) => x,
+                None => return Ok(None),
+            };
+
+            borrow_flag.borrow()?;
+            let component = &*ptr.as_ptr().cast();
+
+            Ok(Some(Ref::new(component, borrow_flag)))
         }
     }
 
-    pub fn get_mut<T: 'static>(&mut self, index: u32) -> Option<&mut T> {
+    pub fn get_mut<T: 'static>(&self, index: u32) -> Result<Option<RefMut<T>>, BorrowError> {
         self.assert_type_matches::<T>();
         unsafe {
-            let ptr = self.get_raw(index)?;
-            Some(&mut *ptr.as_ptr().cast())
+            let (ptr, borrow_flag) = match self.get_raw(index) {
+                Some(x) => x,
+                None => return Ok(None),
+            };
+
+            borrow_flag.borrow_mut()?;
+            let component = &mut *ptr.as_ptr().cast();
+
+            Ok(Some(RefMut::new(component, borrow_flag)))
         }
     }
 
-    pub fn get_raw(&self, index: u32) -> Option<NonNull<u8>> {
+    pub(crate) fn get_raw(&self, index: u32) -> Option<(NonNull<u8>, &BorrowFlag)> {
         let sparse = *self.sparse.get(index as usize)?;
         let dense = *self.dense.get(sparse as usize)?;
 
         if dense == index {
             // SAFETY: by the data structure invariant,
             // `sparse` exists in `components` if `dense[sparse] == index`.
-            unsafe { Some(self.components.get_unchecked(sparse)) }
+            let component = unsafe { self.components.get_unchecked(sparse) };
+            let borrow_flag = unsafe { self.borrow_flags.get_unchecked(sparse as usize) };
+
+            Some((component, borrow_flag))
         } else {
             None
         }
@@ -102,8 +120,13 @@ impl SparseSetStorage {
     /// The sparse set must contain a value at dense
     /// index `index`. (Note that dense indices are _not_
     /// the same as entity indices, referred to as sparse indices here.)
-    pub unsafe fn get_unchecked_by_dense_index<T: 'static>(&self, dense_index: u32) -> &T {
-        &*self.components.get_unchecked(dense_index).cast().as_ptr()
+    pub unsafe fn get_unchecked_by_dense_index<T: 'static>(
+        &self,
+        dense_index: u32,
+    ) -> (NonNull<T>, &BorrowFlag) {
+        let component = self.components.get_unchecked(dense_index).cast();
+        let borrow_flag = self.borrow_flags.get_unchecked(dense_index as usize);
+        (component, borrow_flag)
     }
 
     pub fn remove(&mut self, index: u32) -> bool {
@@ -227,11 +250,20 @@ mod tests {
         storage.insert(entity_b, "entity b");
         storage.insert(entity_a, "entity a");
 
-        assert_eq!(storage.get::<&'static str>(entity_b).unwrap(), &"entity b");
-        assert_eq!(storage.get::<&'static str>(entity_a).unwrap(), &"entity a");
+        assert_eq!(
+            *storage.get::<&'static str>(entity_b).unwrap().unwrap(),
+            "entity b"
+        );
+        assert_eq!(
+            *storage.get::<&'static str>(entity_a).unwrap().unwrap(),
+            "entity a"
+        );
 
         storage.remove(entity_a);
-        assert_eq!(storage.get::<&'static str>(entity_b).unwrap(), &"entity b");
-        assert_eq!(storage.get::<&'static str>(entity_a), None);
+        assert_eq!(
+            *storage.get::<&'static str>(entity_b).unwrap().unwrap(),
+            "entity b"
+        );
+        assert!(storage.get::<&'static str>(entity_a).unwrap().is_none());
     }
 }

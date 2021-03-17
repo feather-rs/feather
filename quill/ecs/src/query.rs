@@ -2,7 +2,9 @@
 
 use std::{any::TypeId, borrow::Cow, cell::Cell, ops::Deref};
 
-use crate::{storage::sparse_set, Component, Components, SparseSetRef, SparseSetStorage, World};
+use crate::{
+    storage::sparse_set, Component, Components, Ref, RefMut, SparseSetRef, SparseSetStorage, World,
+};
 
 /// Drives a query by yielding the entities
 /// whose components satisfy the query parameters.
@@ -116,14 +118,35 @@ impl<'a, T> QueryParameter<'a> for &'a T
 where
     T: Component,
 {
-    type Output = &'a T;
+    type Output = Ref<'a, T>;
     type Component = T;
 
     unsafe fn get_unchecked_by_dense_index(
         storage: &'a SparseSetStorage,
         dense_index: u32,
     ) -> Self::Output {
-        storage.get_unchecked_by_dense_index(dense_index)
+        let (ptr, borrow_flag) = storage.get_unchecked_by_dense_index(dense_index);
+        borrow_flag.borrow().expect("query causes borrow conflicts");
+        Ref::new(&*ptr.as_ptr(), borrow_flag)
+    }
+}
+
+impl<'a, T> QueryParameter<'a> for &'a mut T
+where
+    T: Component,
+{
+    type Output = RefMut<'a, T>;
+    type Component = T;
+
+    unsafe fn get_unchecked_by_dense_index(
+        storage: &'a SparseSetStorage,
+        dense_index: u32,
+    ) -> Self::Output {
+        let (ptr, borrow_flag) = storage.get_unchecked_by_dense_index(dense_index);
+        borrow_flag
+            .borrow_mut()
+            .expect("query causes borrow conflicts");
+        RefMut::new(&mut *ptr.as_ptr(), borrow_flag)
     }
 }
 
@@ -180,5 +203,84 @@ macro_rules! query_tuple_impl {
     }
 }
 
-query_tuple_impl!(1, (T1, 0));
-query_tuple_impl!(2, (T1, 0), (T2, 1));
+query_tuple_impl!(1, (T0, 0));
+query_tuple_impl!(2, (T0, 0), (T1, 1));
+query_tuple_impl!(3, (T0, 0), (T1, 1), (T2, 2));
+query_tuple_impl!(4, (T0, 0), (T1, 1), (T2, 2), (T3, 3));
+query_tuple_impl!(5, (T0, 0), (T1, 1), (T2, 2), (T3, 3), (T4, 4));
+query_tuple_impl!(6, (T0, 0), (T1, 1), (T2, 2), (T3, 3), (T4, 4), (T5, 5));
+query_tuple_impl!(
+    7,
+    (T0, 0),
+    (T1, 1),
+    (T2, 2),
+    (T3, 3),
+    (T4, 4),
+    (T5, 5),
+    (T6, 6)
+);
+query_tuple_impl!(
+    8,
+    (T0, 0),
+    (T1, 1),
+    (T2, 2),
+    (T3, 3),
+    (T4, 4),
+    (T5, 5),
+    (T6, 6),
+    (T7, 7)
+);
+query_tuple_impl!(
+    9,
+    (T0, 0),
+    (T1, 1),
+    (T2, 2),
+    (T3, 3),
+    (T4, 4),
+    (T5, 5),
+    (T6, 6),
+    (T7, 7),
+    (T8, 8)
+);
+query_tuple_impl!(
+    10,
+    (T0, 0),
+    (T1, 1),
+    (T2, 2),
+    (T3, 3),
+    (T4, 4),
+    (T5, 5),
+    (T6, 6),
+    (T7, 7),
+    (T8, 8),
+    (T9, 9)
+);
+query_tuple_impl!(
+    11,
+    (T0, 0),
+    (T1, 1),
+    (T2, 2),
+    (T3, 3),
+    (T4, 4),
+    (T5, 5),
+    (T6, 6),
+    (T7, 7),
+    (T8, 8),
+    (T9, 9),
+    (T10, 10)
+);
+query_tuple_impl!(
+    12,
+    (T0, 0),
+    (T1, 1),
+    (T2, 2),
+    (T3, 3),
+    (T4, 4),
+    (T5, 5),
+    (T6, 6),
+    (T7, 7),
+    (T8, 8),
+    (T9, 9),
+    (T10, 10),
+    (T11, 11)
+);

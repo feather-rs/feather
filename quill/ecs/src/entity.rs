@@ -88,6 +88,17 @@ impl Entities {
             generation: self.generations[index as usize],
         }
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = EntityId> + '_ {
+        self.generations
+            .iter()
+            .enumerate()
+            .map(|(index, &generation)| EntityId {
+                index: index as u32,
+                generation,
+            })
+            .filter(move |entity| !self.free_indices.contains(&entity.index))
+    }
 }
 
 #[cfg(test)]
