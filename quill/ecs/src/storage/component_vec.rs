@@ -199,6 +199,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn push_and_get() {
         let meta = ComponentMeta::of::<i32>();
         let mut vec = ComponentVec::new(meta);
@@ -214,6 +215,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn swap_remove() {
         let meta = ComponentMeta::of::<i32>();
         let mut vec = ComponentVec::new(meta);

@@ -17,6 +17,7 @@ fn insert_and_get() {
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn spawn_many_entities() {
     let mut world = World::new();
 
@@ -63,6 +64,7 @@ fn remove_components() {
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn remove_components_large_storage() {
     let mut world = World::new();
 
