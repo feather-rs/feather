@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use quill_ecs::*;
+use vane::*;
 
 #[test]
 fn insert_and_get() {

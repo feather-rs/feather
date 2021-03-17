@@ -2065,18 +2065,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "quill-ecs"
-version = "0.1.0"
-dependencies = [
- "ahash 0.7.2",
- "arrayvec",
- "itertools 0.10.0",
- "once_cell",
- "thiserror",
- "thread_local",
-]
-
-[[package]]
 name = "quill-plugin-format"
 version = "0.1.0"
 dependencies = [
@@ -3038,6 +3026,18 @@ checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 dependencies = [
  "getrandom 0.2.2",
  "serde",
+]
+
+[[package]]
+name = "vane"
+version = "0.1.0"
+dependencies = [
+ "ahash 0.7.2",
+ "arrayvec",
+ "itertools 0.10.0",
+ "once_cell",
+ "thiserror",
+ "thread_local",
 ]
 
 [[package]]

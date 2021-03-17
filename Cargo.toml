@@ -12,7 +12,6 @@ members = [
     # Quill
     "quill/sys-macros",
     "quill/sys",
-    "quill/ecs",
     "quill/common",
     "quill/api",
     "quill/plugin-format",
@@ -43,6 +42,7 @@ members = [
 
     # Other
     "tools/proxy",
+    "vane",
 ]
 
 [profile.release]
