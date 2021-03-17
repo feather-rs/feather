@@ -1,4 +1,5 @@
 use std::{
+    alloc::{alloc, dealloc},
     any::TypeId,
     mem::{size_of, MaybeUninit},
     ptr::{self, NonNull},
@@ -77,9 +78,29 @@ impl EntityBuilder {
     }
 
     /// Resets the builder, clearing all components.
-    pub fn reset(&mut self) {
+    ///
+    /// Does not invoke component drop functions.
+    pub(crate) fn reset(&mut self) {
         self.entries.clear();
         self.components.clear();
+    }
+}
+
+impl Drop for EntityBuilder {
+    fn drop(&mut self) {
+        for entry in self.entries.drain(..) {
+            unsafe {
+                let src_ptr = self.components.as_ptr().add(entry.offset).cast::<u8>();
+                // Pointers in the entity builder are unaligned, so a
+                // separate, aligned buffer is needed to store the component for dropping.
+                let buffer = alloc(entry.component_meta.layout);
+                std::ptr::copy_nonoverlapping(src_ptr, buffer, entry.component_meta.layout.size());
+
+                (entry.component_meta.drop_fn)(buffer);
+
+                dealloc(buffer, entry.component_meta.layout);
+            }
+        }
     }
 }
 
@@ -120,5 +141,14 @@ mod tests {
 
         builder.reset();
         assert_eq!(builder.drain().count(), 0);
+    }
+
+    #[test]
+    fn drops_components_on_drop() {
+        let mut builder = EntityBuilder::new();
+        builder.add(vec![1, 2, 3]);
+        drop(builder);
+
+        // A memory leak is detected by Miri if this fails
     }
 }
