@@ -394,13 +394,13 @@ pub fn adjacent_to_bbox(
         0 => 1,
         1 => 2,
         2 => 0,
-        _ => unreachable!(),
+        _ => unreachable!("Assertion should have triggerd"),
     };
     let other_axis2 = match axis {
         0 => 2,
         1 => 0,
         2 => 1,
-        _ => unreachable!(),
+        _ => unreachable!("Assertion should have triggerd"),
     };
 
     let offsets = {
