@@ -25,6 +25,7 @@ tempfile = "3"
 vec-arena = "1"
 wasmer = { version = "1", default-features = false, features = [ "jit" ] }
 wasmer-wasi = { version = "1", default-features = false }
+lieutenant = { git = "https://github.com/Miro-Andrin/lieutenant.git", branch = "new-new-command-builder" }
 
 [features]
 llvm = [ "wasmer/llvm" ]

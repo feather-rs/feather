@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{alloc::Layout, convert::TryInto, sync::Arc};
 
 use anyhow::bail;
 use feather_common::Game;
@@ -91,6 +91,39 @@ impl Plugin {
             Inner::Native(n) => {
                 n.run_system(data);
                 Ok(())
+            }
+        })
+    }
+
+    /// Returns true or false depending on if
+    //  the input was parsed correctly or not.
+    ///
+    /// 'function' must be data pointer passed
+    ///  to the register command host call
+    pub fn call_command(
+        &self,
+        game: &mut Game,
+        input: &str,
+        function: PluginPtrMut<u8>,
+    ) -> anyhow::Result<i64> {
+        self.context.enter(game, || match &self.inner {
+            Inner::Wasm(w) => {
+                // Write command input into memmory space of plugin
+                let ptr = self
+                    .context
+                    .bump_allocate_and_write_bytes(input.as_bytes())?;
+                
+                let res = w.call_command(function, ptr.into(), input.len().try_into().expect(""));
+
+                // Free the memmory we wrote into the plugin.
+                unsafe {
+                    self.context.deref_bytes_mut(ptr, input.len() as u32);
+                }
+                res
+            }
+            Inner::Native(n) => {
+                // n.call_command(game,input, function)
+                todo!()
             }
         })
     }

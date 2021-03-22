@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use base::{Position, Text};
 use common::{chat::ChatKind, Game};
 use ecs::{Entity, EntityRef, SysResult};
@@ -5,6 +7,8 @@ use interaction::{
     handle_held_item_change, handle_interact_entity, handle_player_block_placement,
     handle_player_digging,
 };
+
+use plugin_host::CommandDispatcher;
 use protocol::{
     packets::{
         client,
@@ -44,7 +48,7 @@ pub fn handle_packet(
 
         ClientPlayPacket::Animation(packet) => handle_animation(server, player, packet),
 
-        ClientPlayPacket::ChatMessage(packet) => handle_chat_message(game, player, packet),
+        ClientPlayPacket::ChatMessage(packet) => handle_chat_message(game, player_id, packet),
 
         ClientPlayPacket::PlayerDigging(packet) => handle_player_digging(game, packet, player_id),
 
@@ -123,10 +127,26 @@ fn handle_animation(
     Ok(())
 }
 
-fn handle_chat_message(game: &Game, player: EntityRef, packet: client::ChatMessage) -> SysResult {
-    let name = player.get::<Name>()?;
-    let message = Text::translate_with("chat.type.text", vec![name.to_string(), packet.message]);
-    game.broadcast_chat(ChatKind::PlayerChat, message);
+fn handle_chat_message(
+    game: &mut Game,
+    player_id: Entity,
+    packet: client::ChatMessage,
+) -> SysResult {
+    // Determine if chat msg is a command, unwrap won't panic because dispatcher is set on startup of server (in main)
+    let dispatcher = Rc::clone(&*game.resources.get::<Rc<RefCell<CommandDispatcher>>>()?);
+    let dispatcher = dispatcher.borrow();
+
+    if let Err(_) = dispatcher.call(game, packet.message.as_str(), Some(player_id)) {
+        // Command did not run
+        let player = game.ecs.entity(player_id)?;
+        let name = player.get::<Name>()?;
+        let message =
+            Text::translate_with("chat.type.text", vec![name.to_string(), packet.message]);
+        game.broadcast_chat(ChatKind::PlayerChat, message);
+    }
+
+    
+
     Ok(())
 }
 

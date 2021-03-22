@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use anyhow::bail;
 use quill_plugin_format::PluginMetadata;
 use wasmer::{
     ChainableNamedResolver, Features, Function, ImportObject, Instance, Module, NativeFunc, Store,
@@ -19,6 +20,9 @@ pub struct WasmPlugin {
 
     /// Exported function to enable the plugin.
     enable: Function,
+
+    /// Exported function to call a command
+    call_command: NativeFunc<(u32, u32, u32), u32>,
 
     /// Exported function to run a system given its data pointer.
     run_system: NativeFunc<u32>,
@@ -48,9 +52,16 @@ impl WasmPlugin {
             .clone();
         let enable = instance.exports.get_function("quill_setup")?.clone();
 
+        let call_command = instance
+            .exports
+            .get_function("quill_call_command")?
+            .native()?
+            .clone();
+
         Ok(Self {
             instance,
             run_system,
+            call_command,
             enable,
         })
     }
@@ -63,6 +74,26 @@ impl WasmPlugin {
     pub fn run_system(&self, data_ptr: PluginPtrMut<u8>) -> anyhow::Result<()> {
         self.run_system.call(data_ptr.ptr as u32)?;
         Ok(())
+    }
+
+    pub fn call_command(
+        &self,
+        function: PluginPtrMut<u8>,
+        input: PluginPtrMut<u8>,
+        input_len: u32,
+    ) -> anyhow::Result<i64> {
+        ///  pub unsafe extern "C" fn quill_call_command(ptr: *mut u8, input_ptr: *mut u8, input_len: u32) -> u32 {
+        let sucsess = self
+            .call_command
+            .call(function.ptr as u32, input.ptr as u32, input_len);
+            
+        
+        if sucsess? == (false as u32) {
+            bail!("Command parsing failed")
+        } else {
+            //TODO make return values work.
+            Ok(0)
+        }
     }
 }
 

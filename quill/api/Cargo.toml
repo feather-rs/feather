@@ -15,4 +15,5 @@ quill-sys = { path = "../sys" }
 quill-common = { path = "../common" }
 thiserror = "1"
 uuid = "0.8"
+lieutenant = { git = "https://github.com/Miro-Andrin/lieutenant.git", branch = "new-new-command-builder" }
 

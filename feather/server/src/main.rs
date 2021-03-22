@@ -7,6 +7,7 @@ use common::{
 };
 use ecs::SystemExecutor;
 use feather_server::Server;
+use plugin_host::CommandDispatcher;
 use plugin_host::PluginManager;
 
 mod logging;
@@ -37,6 +38,7 @@ fn init_game(server: Server) -> anyhow::Result<Game> {
     let mut game = Game::new();
     init_systems(&mut game, server);
     init_world_source(&mut game);
+    init_command_disptcher(&mut game)?;
     init_plugin_manager(&mut game)?;
     Ok(game)
 }
@@ -71,6 +73,15 @@ fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
 
     let plugin_manager_rc = Rc::new(RefCell::new(plugin_manager));
     game.insert_resource(plugin_manager_rc);
+    Ok(())
+}
+
+/// Sets up game resource for handeling dispatching commands like '/msg @p ...'
+/// to the respective plugins.
+fn init_command_disptcher(game: &mut Game) -> anyhow::Result<()> {
+    let cmd_d = CommandDispatcher::new();
+    let rc = Rc::new(RefCell::new(cmd_d));
+    game.insert_resource(rc);
     Ok(())
 }
 
