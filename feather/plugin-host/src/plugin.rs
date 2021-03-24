@@ -1,11 +1,16 @@
-use std::{alloc::Layout, convert::TryInto, sync::Arc};
+use std::{
+    alloc::Layout, collections::btree_map::Entry, convert::TryInto, marker::PhantomData, sync::Arc,
+};
 
 use anyhow::bail;
+use bincode::config::Bounded;
 use feather_common::Game;
+use feather_ecs::Entity;
+use quill_common::EntityId;
 use quill_plugin_format::{PluginFile, PluginMetadata, PluginTarget, Triple};
 
 use crate::{
-    context::{PluginContext, PluginPtrMut},
+    context::{PluginContext, PluginPtr, PluginPtrMut},
     PluginId, PluginManager,
 };
 
@@ -95,35 +100,61 @@ impl Plugin {
         })
     }
 
-    /// Returns true or false depending on if
-    //  the input was parsed correctly or not.
+    /// 'function' must be pointer passed to the
+    /// register command host call.
     ///
-    /// 'function' must be data pointer passed
-    ///  to the register command host call
+    /// caller: Some(entity) => player.
+    /// caller: None => Terminal
     pub fn call_command(
         &self,
         game: &mut Game,
         input: &str,
         function: PluginPtrMut<u8>,
+        caller: Option<EntityId>,
     ) -> anyhow::Result<i64> {
-        self.context.enter(game, || match &self.inner {
-            Inner::Wasm(w) => {
-                // Write command input into memmory space of plugin
-                let ptr = self
-                    .context
-                    .bump_allocate_and_write_bytes(input.as_bytes())?;
-                
-                let res = w.call_command(function, ptr.into(), input.len().try_into().expect(""));
+        self.context.enter(game, || {
+            let context = Arc::clone(&self.context);
 
-                // Free the memmory we wrote into the plugin.
-                unsafe {
-                    self.context.deref_bytes_mut(ptr, input.len() as u32);
+            // Allocate space inside the plugin memmory and copy over the command input
+            // @TODO mention this as a potential error case.
+            let input_len: u32 = input.len().try_into()?;
+            let input_ptr = context.bump_allocate_and_write_bytes(input.as_bytes())?;
+
+            // Allocate space inside the plugin memmory were we want the resulting i64 to be stor.
+            let result_ptr_mut: PluginPtrMut<i64> =
+                unsafe { context.bump_allocate(Layout::new::<i64>())?.cast() };
+
+            // Allocate space inside the plugin memmory were we store callers entity_id: u64, but its an optional
+            let encoded_caller = bincode::serialize(&caller)?;
+            let encoded_caller_len = encoded_caller.len() as u32;
+            let encoded_caller_ptr =
+                context.bump_allocate_and_write_bytes(encoded_caller.as_slice())?;
+
+            match &self.inner {
+                Inner::Wasm(w) => {
+                    let res = w.call_command(
+                        function,
+                        input_ptr,
+                        input_len,
+                        encoded_caller_ptr,
+                        encoded_caller_len,
+                        result_ptr_mut,
+                    )?;
+                    context.read_bincode::<i64>(unsafe { res.cast::<u8>() }, 64 / 8)
                 }
-                res
-            }
-            Inner::Native(n) => {
-                // n.call_command(game,input, function)
-                todo!()
+                Inner::Native(n) => {
+                    // n.call_command(game,input, function)
+                    let res = n.call_command(
+                        function,
+                        input_ptr,
+                        input_len,
+                        encoded_caller_ptr,
+                        encoded_caller_len,
+                        result_ptr_mut,
+                    )?;
+
+                    context.read_bincode::<i64>(unsafe { res.cast::<u8>() }, 64 / 8)
+                }
             }
         })
     }
