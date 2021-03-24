@@ -83,7 +83,7 @@ impl<Plugin: 'static> Setup<Plugin> {
 
         if !was_sucsess {
             // Figure out what to do if a command was not able to be added.
-            // TODO
+            // @TODO
         }
 
         self

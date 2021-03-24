@@ -16,7 +16,7 @@ use protocol::{
     },
     ClientPlayPacket,
 };
-use quill_common::components::Name;
+use quill_common::{components::Name, EntityId};
 
 use crate::{NetworkId, Server};
 
@@ -136,16 +136,24 @@ fn handle_chat_message(
     let dispatcher = Rc::clone(&*game.resources.get::<Rc<RefCell<CommandDispatcher>>>()?);
     let dispatcher = dispatcher.borrow();
 
-    if let Err(_) = dispatcher.call(game, packet.message.as_str(), Some(player_id)) {
-        // Command did not run
-        let player = game.ecs.entity(player_id)?;
-        let name = player.get::<Name>()?;
-        let message =
-            Text::translate_with("chat.type.text", vec![name.to_string(), packet.message]);
-        game.broadcast_chat(ChatKind::PlayerChat, message);
+    match dispatcher.call(
+        game,
+        packet.message.as_str(),
+        Some(EntityId(player_id.to_bits())),
+    ) {
+        Err(_) => {
+            // Command did not run because parsing failed, or len ofmessage was longer then u32::MAX
+            let player = game.ecs.entity(player_id)?;
+            let name = player.get::<Name>()?;
+            let message =
+                Text::translate_with("chat.type.text", vec![name.to_string(), packet.message]);
+            game.broadcast_chat(ChatKind::PlayerChat, message);
+        }
+        Ok(res) => {
+            //@TODO
+            println!("Result was: {}", res);
+        }
     }
-
-    
 
     Ok(())
 }

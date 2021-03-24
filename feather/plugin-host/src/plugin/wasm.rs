@@ -1,6 +1,7 @@
-use std::sync::Arc;
+use std::{alloc::Layout, borrow::BorrowMut, marker::PhantomData, sync::Arc};
 
 use anyhow::bail;
+use quill_common::EntityId;
 use quill_plugin_format::PluginMetadata;
 use wasmer::{
     ChainableNamedResolver, Features, Function, ImportObject, Instance, Module, NativeFunc, Store,
@@ -22,7 +23,7 @@ pub struct WasmPlugin {
     enable: Function,
 
     /// Exported function to call a command
-    call_command: NativeFunc<(u32, u32, u32), u32>,
+    call_command: NativeFunc<(u32, u32, u32, u32, u32, u32), u32>,
 
     /// Exported function to run a system given its data pointer.
     run_system: NativeFunc<u32>,
@@ -76,23 +77,34 @@ impl WasmPlugin {
         Ok(())
     }
 
+    /// Has to be called inside a PluginContext::enter, since else the allocated values wont be dropped.
     pub fn call_command(
         &self,
         function: PluginPtrMut<u8>,
-        input: PluginPtrMut<u8>,
+        input_ptr: PluginPtrMut<u8>,
         input_len: u32,
-    ) -> anyhow::Result<i64> {
-        ///  pub unsafe extern "C" fn quill_call_command(ptr: *mut u8, input_ptr: *mut u8, input_len: u32) -> u32 {
-        let sucsess = self
-            .call_command
-            .call(function.ptr as u32, input.ptr as u32, input_len);
-            
-        
-        if sucsess? == (false as u32) {
+        caller_ptr: PluginPtrMut<u8>,
+        caller_len: u32, // Maybe null pointer to i64 (EntityId), null means terminal.
+        result_ptr: PluginPtrMut<i64>, // Pointer to were we expect resulting i64 to be stores if return value is true.
+    ) -> anyhow::Result<PluginPtr<i64>> {
+        let sucsess = self.call_command.call(
+            function.ptr as u32,
+            input_ptr.ptr as u32,
+            input_len,
+            caller_ptr.ptr as u32,
+            caller_len,
+            result_ptr.ptr as u32,
+        )?;
+
+        if sucsess == (false as u32) {
             bail!("Command parsing failed")
         } else {
-            //TODO make return values work.
-            Ok(0)
+            // Turn PluginPtrMut into PluginPtr
+            let result_ptr = PluginPtr {
+                ptr: result_ptr.ptr,
+                _marker: PhantomData,
+            };
+            Ok(result_ptr)
         }
     }
 }

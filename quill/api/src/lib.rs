@@ -25,7 +25,9 @@ pub use libcraft_particles::{Particle, ParticleKind};
 pub use libcraft_text::*;
 
 #[doc(inline)]
-pub use quill_common::{components, entity_init::EntityInit, events, Component};
+pub use quill_common::{
+    components, entity_init::EntityInit, events, Component, EntityId as CommonEntityId,
+};
 #[doc(inline)]
 pub use uuid::Uuid;
 
@@ -150,30 +152,39 @@ macro_rules! plugin {
         #[no_mangle]
         #[doc(hidden)]
         pub unsafe extern "C" fn quill_call_command(
-            ptr: *mut u8,
-            input_ptr: *mut u8,
+            cmd_ptr: *mut u8,
+            input_ptr: *mut u8, // Input  is the string that the user wrote, like "/msg ..."".
             input_len: u32,
+            caller_ptr: *mut u8, // Pointer to entity_id that might be null. bincode encoded.
+            caller_len: u32,
+            result: *mut i64,
         ) -> u32 {
-            let command = &mut *ptr.cast::<Box<
+            let command = &mut *cmd_ptr.cast::<Box<
                 dyn $crate::Command<
                     GameState = (&mut $plugin, &mut $crate::CommandContext),
                     CommandResult = i64,
                 >,
             >>();
+
+            let caller_data: &[u8] =
+                unsafe { std::slice::from_raw_parts(caller_ptr, caller_len as usize) };
+            let caller_decoded: Option<$crate::CommonEntityId> =
+                $crate::bincode::deserialize(caller_data).unwrap();
+
             let mut command_context = $crate::CommandContext {
                 game: $crate::Game::new(),
-                caller: $crate::Caller::Terminal,
+                caller: caller_decoded.into(),
             };
 
             let input = unsafe {
                 let slice = std::slice::from_raw_parts(input_ptr, input_len as usize);
-                std::str::from_utf8(slice).expect("Not valid utf-8") 
+                std::str::from_utf8(slice).expect("Not valid utf-8")
             };
 
             let plugin = PLUGIN.as_mut().expect("quill_setup never called");
             match command.call((plugin, &mut command_context), &input) {
                 Ok(res) => {
-                    //*result = res;
+                    *result = res;
                     true as u32
                 }
                 Err(_) => false as u32,
