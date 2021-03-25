@@ -67,7 +67,7 @@ fn init_world_source(game: &mut Game) {
     game.world = World::with_source(world_source);
 }
 
-fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()>   {
+fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
     let mut plugin_manager = PluginManager::new();
     plugin_manager.load_dir(game, PLUGINS_DIRECTORY)?;
 
@@ -76,7 +76,7 @@ fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()>   {
     Ok(())
 }
 
-/// Sets up game resource for handeling dispatching 
+/// Sets up game resource for handeling dispatching
 /// commands like '/msg @p ...' to the respective
 /// plugins. Has to be loaded before init_plugin_manager.
 fn init_command_disptcher(game: &mut Game) {

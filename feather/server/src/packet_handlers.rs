@@ -152,7 +152,6 @@ fn handle_chat_message(
         Ok(res) => {
             //TODO figure out what to do with the result
             println!("Result from running command was: {}", res);
-
         }
     }
 
