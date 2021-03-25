@@ -116,7 +116,6 @@ impl Plugin {
             let context = Arc::clone(&self.context);
 
             // Allocate space inside the plugin memmory and copy over the command input
-            // @TODO mention this as a potential error case.
             let input_len: u32 = input.len().try_into()?;
             let input_ptr = context.bump_allocate_and_write_bytes(input.as_bytes())?;
 

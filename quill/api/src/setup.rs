@@ -82,10 +82,10 @@ impl<Plugin: 'static> Setup<Plugin> {
         };
 
         if !was_sucsess {
-            // Figure out what to do if a command was not able to be added.
-            // @TODO
+            // TODO Figure out what to do if a command was not able to be added.
+            panic!("Not able to add command, with regex: {}",regex);
         }
-
+        
         self
     }
 }
