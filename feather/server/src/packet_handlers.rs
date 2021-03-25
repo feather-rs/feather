@@ -150,8 +150,9 @@ fn handle_chat_message(
             game.broadcast_chat(ChatKind::PlayerChat, message);
         }
         Ok(res) => {
-            //@TODO
-            println!("Result was: {}", res);
+            //TODO figure out what to do with the result
+            println!("Result from running command was: {}", res);
+
         }
     }
 
