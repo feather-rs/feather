@@ -55,8 +55,7 @@ impl<Plugin: 'static> Setup<Plugin> {
     /// then you should be fine.
     ///
     /// If you need to listen in on all chat msg's then
-    /// you should ... @TODO give alternative.
-    //pub fn add_command<P, T: FnMut(&mut CommandContext<P>, &str) -> u32>(
+    /// you should ... TODO give alternative.
     pub fn add_command<
         'a,
         C: Command<GameState = (&'a mut Plugin, &'a mut CommandContext), CommandResult = i64>,
@@ -85,7 +84,7 @@ impl<Plugin: 'static> Setup<Plugin> {
             // TODO Figure out what to do if a command was not able to be added.
             panic!("Not able to add command, with regex: {}",regex);
         }
-        
+
         self
     }
 }
