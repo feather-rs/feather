@@ -25,3 +25,16 @@ pub fn entity_send_message(
     );
     Ok(())
 }
+
+#[host_function]
+pub fn entity_send_title(
+    cx: &PluginContext,
+    entity: u64,
+    title_ptr: PluginPtr<u8>,
+    title_len: u32,
+) -> anyhow::Result<()> {
+    let title = cx.read_bincode(title_ptr, title_len)?;
+    let entity = Entity::from_bits(entity);
+    cx.game_mut().send_title(entity, title);
+    Ok(())
+}

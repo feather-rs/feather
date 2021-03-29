@@ -1,4 +1,4 @@
-use base::Text;
+use base::{Text, Title};
 
 /// An entity's "mailbox" for receiving chat messages.
 ///
@@ -8,6 +8,7 @@ use base::Text;
 #[derive(Debug)]
 pub struct ChatBox {
     messages: Vec<ChatMessage>,
+    titles: Vec<Title>,
     preference: ChatPreference,
 }
 
@@ -15,6 +16,7 @@ impl ChatBox {
     pub fn new(preference: ChatPreference) -> Self {
         Self {
             messages: Vec::new(),
+            titles: Vec::new(),
             preference,
         }
     }
@@ -37,6 +39,16 @@ impl ChatBox {
 
     pub fn send_above_hotbar(&mut self, message: impl Into<Text>) {
         self.send(ChatMessage::new(ChatKind::AboveHotbar, message.into()));
+    }
+
+    /// Adds the [`Title`] to the title queue.
+    pub fn send_title(&mut self, title: Title) {
+        self.titles.push(title);
+    }
+
+    /// Drains titles in the mailbox
+    pub fn drain_titles(&mut self) -> impl Iterator<Item = Title> + '_ {
+        self.titles.drain(..)
     }
 
     /// Drains messages in the mailbox.

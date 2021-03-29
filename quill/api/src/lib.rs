@@ -16,9 +16,10 @@ pub use setup::Setup;
 pub use libcraft_blocks::{BlockKind, BlockState};
 #[doc(inline)]
 pub use libcraft_core::{BlockPosition, ChunkPosition, Gamemode, Position};
-
 #[doc(inline)]
 pub use libcraft_particles::{Particle, ParticleKind};
+#[doc(inline)]
+pub use libcraft_text::*;
 
 #[doc(inline)]
 pub use quill_common::{components, entity_init::EntityInit, events, Component};
