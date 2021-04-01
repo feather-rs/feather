@@ -512,7 +512,7 @@ pub struct TechnicalPiston {
 }
 
 #[derive(Debug, BlockData)]
-pub struct TNT {
+pub struct Tnt {
     unstable: bool,
     valid_properties: &'static ValidProperties,
 }
