@@ -39,15 +39,12 @@ impl Writeable for UpdateLight {
         VarInt(!mask).write(buffer, version); // empty sky light mask
         VarInt(!mask).write(buffer, version); // empty block light mask
 
-        for section in chunk.sections() {
-            if let Some(section) = section {
-                encode_light(section.light().sky_light(), buffer, version);
-            }
+        for section in chunk.sections().iter().flatten() {
+            encode_light(section.light().sky_light(), buffer, version);
         }
-        for section in chunk.sections() {
-            if let Some(section) = section {
-                encode_light(section.light().block_light(), buffer, version);
-            }
+        
+        for section in chunk.sections().iter().flatten() {
+            encode_light(section.light().block_light(), buffer, version);
         }
     }
 }
