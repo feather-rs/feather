@@ -45,5 +45,10 @@ members = [
     "tools/proxy",
 ]
 
+[features]
+default = []
+
+dynamic = ["feather/dylib"]
+
 [profile.release]
 debug = true
