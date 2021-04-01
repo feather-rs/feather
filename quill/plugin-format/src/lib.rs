@@ -132,7 +132,7 @@ impl PluginFile<'static> {
         let module = module
             .ok_or_else(|| anyhow!("missing module ({:?})", module_path))?
             .into();
-        Ok(Self { metadata, module })
+        Ok(Self { module, metadata })
     }
 
     fn decode_metadata(reader: impl Read) -> anyhow::Result<PluginMetadata> {

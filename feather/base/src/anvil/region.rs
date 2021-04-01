@@ -19,7 +19,7 @@ use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::io::{Cursor, SeekFrom};
 use std::ops::Deref;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::{fs, io, iter};
 
 /// The length and width of a region, in chunks.
@@ -642,7 +642,7 @@ impl std::error::Error for Error {}
 /// This function does not actually load all the chunks
 /// in the region into memory; it only reads the file's
 /// header so that chunks can be retrieved later.
-pub fn load_region(dir: &PathBuf, pos: RegionPosition) -> Result<RegionHandle, Error> {
+pub fn load_region(dir: &Path, pos: RegionPosition) -> Result<RegionHandle, Error> {
     let mut file = {
         let buf = region_file_path(dir, pos);
 
@@ -677,7 +677,7 @@ pub fn load_region(dir: &PathBuf, pos: RegionPosition) -> Result<RegionHandle, E
 /// If the region file already exist, it will be __overwritten__.
 /// Care must be taken to ensure that this function is only called
 /// for nonexistent regions.
-pub fn create_region(dir: &PathBuf, pos: RegionPosition) -> Result<RegionHandle, Error> {
+pub fn create_region(dir: &Path, pos: RegionPosition) -> Result<RegionHandle, Error> {
     create_region_dir(dir).map_err(Error::Io)?;
     let mut file = {
         let buf = region_file_path(dir, pos);
@@ -705,14 +705,14 @@ fn open_opts() -> OpenOptions {
         .clone()
 }
 
-fn region_file_path(dir: &PathBuf, pos: RegionPosition) -> PathBuf {
-    let mut buf = dir.clone();
+fn region_file_path(dir: &Path, pos: RegionPosition) -> PathBuf {
+    let mut buf = dir.to_path_buf();
     buf.push(format!("region/r.{}.{}.mca", pos.x, pos.z));
     buf
 }
 
-fn create_region_dir(dir: &PathBuf) -> Result<(), io::Error> {
-    let mut dir = dir.clone();
+fn create_region_dir(dir: &Path) -> Result<(), io::Error> {
+    let mut dir = dir.to_path_buf();
     dir.push("region");
     fs::create_dir_all(dir.as_path())
 }
