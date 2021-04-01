@@ -136,9 +136,9 @@ impl PackedArray {
         }
 
         Self {
-            bits,
-            bits_per_value,
             length,
+            bits_per_value,
+            bits,
         }
     }
 
