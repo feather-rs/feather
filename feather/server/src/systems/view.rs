@@ -36,7 +36,7 @@ impl WaitingChunks {
 
 fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
     for (player, (&client_id, event, &position)) in game
-        .ecs
+        .world
         .query::<(&ClientId, &ViewUpdateEvent, &Position)>()
         .iter()
     {
@@ -64,7 +64,7 @@ fn update_chunks(
 ) -> SysResult {
     // Send chunks that are in the new view but not the old view.
     for &pos in &event.new_chunks {
-        if let Some(chunk) = game.world.chunk_map().chunk_handle_at(pos) {
+        if let Some(chunk) = game.level.chunk_map().chunk_handle_at(pos) {
             client.send_chunk(&chunk);
         } else {
             waiting_chunks.insert(player, pos);
@@ -84,15 +84,15 @@ fn update_chunks(
 /// Sends newly loaded chunks to players currently
 /// waiting for those chunks to load.
 fn send_loaded_chunks(game: &mut Game, server: &mut Server) -> SysResult {
-    for (_, event) in game.ecs.query::<&ChunkLoadEvent>().iter() {
+    for (_, event) in game.world.query::<&ChunkLoadEvent>().iter() {
         for player in server
             .waiting_chunks
             .drain_players_waiting_for(event.position)
         {
-            if let Ok(client_id) = game.ecs.get::<ClientId>(player) {
+            if let Ok(client_id) = game.world.get::<ClientId>(player) {
                 if let Some(client) = server.clients.get(*client_id) {
                     client.send_chunk(&event.chunk);
-                    spawn_client_if_needed(client, *game.ecs.get::<Position>(player)?);
+                    spawn_client_if_needed(client, *game.world.get::<Position>(player)?);
                 }
             }
         }

@@ -43,6 +43,7 @@ members = [
 
     # Other
     "tools/proxy",
+    "vane",
 ]
 
 [profile.release]

@@ -6,7 +6,7 @@
 # Cargo build configuration
 .cargo
 
-world/
+/world
 /config.toml
 
 # Python cache files (libcraft)

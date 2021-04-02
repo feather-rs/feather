@@ -117,7 +117,7 @@ struct Ticket(Entity);
 
 /// System to populate chunk tickets based on players' views.
 fn update_tickets_for_players(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
-    for (player, event) in game.ecs.query::<&ViewUpdateEvent>().iter() {
+    for (player, event) in game.world.query::<&ViewUpdateEvent>().iter() {
         let player_ticket = Ticket(player);
 
         // Remove old tickets
@@ -130,8 +130,8 @@ fn update_tickets_for_players(game: &mut Game, state: &mut ChunkLoadState) -> Sy
             state.chunk_tickets.insert_ticket(new_chunk, player_ticket);
 
             // Load if needed
-            if !game.world.is_chunk_loaded(new_chunk) && !game.world.is_chunk_loading(new_chunk) {
-                game.world.queue_chunk_load(new_chunk);
+            if !game.level.is_chunk_loaded(new_chunk) && !game.level.is_chunk_loading(new_chunk) {
+                game.level.queue_chunk_load(new_chunk);
             }
         }
     }
@@ -155,13 +155,13 @@ fn unload_chunks(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
             continue;
         }
 
-        game.world.unload_chunk(unload.pos);
+        game.level.unload_chunk(unload.pos);
     }
     Ok(())
 }
 
 fn remove_dead_entities(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
-    for (entity, _event) in game.ecs.query::<&EntityRemoveEvent>().iter() {
+    for (entity, _event) in game.world.query::<&EntityRemoveEvent>().iter() {
         let entity_ticket = Ticket(entity);
         for chunk in state.chunk_tickets.take_entity_tickets(entity_ticket) {
             state.remove_ticket(chunk, entity_ticket);
@@ -172,6 +172,6 @@ fn remove_dead_entities(game: &mut Game, state: &mut ChunkLoadState) -> SysResul
 
 /// System to call `World::load_chunks` each tick
 fn load_chunks(game: &mut Game, _state: &mut ChunkLoadState) -> SysResult {
-    game.world.load_chunks(&mut game.ecs);
+    game.level.load_chunks(&mut game.world);
     Ok(())
 }

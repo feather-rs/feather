@@ -20,7 +20,7 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 
 fn remove_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
     for (_, (_event, _player, &uuid)) in game
-        .ecs
+        .world
         .query::<(&EntityRemoveEvent, &Player, &Uuid)>()
         .iter()
     {
@@ -31,7 +31,7 @@ fn remove_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
 
 fn add_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
     for (player, (_, &client_id, &uuid, name, &gamemode, profile)) in game
-        .ecs
+        .world
         .query::<(
             &PlayerJoinEvent,
             &ClientId,
@@ -49,7 +49,7 @@ fn add_tablist_players(game: &mut Game, server: &mut Server) -> SysResult {
 
         // Add other players to this player's tablist
         for (other_player, (&uuid, name, &gamemode, profile)) in game
-            .ecs
+            .world
             .query::<(&Uuid, &Name, &Gamemode, &Vec<ProfileProperty>)>()
             .iter()
         {

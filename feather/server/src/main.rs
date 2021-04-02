@@ -2,8 +2,8 @@ use std::{cell::RefCell, rc::Rc};
 
 use anyhow::Context;
 use common::{
-    world_source::{flat::FlatWorldSource, region::RegionWorldSource, WorldSource},
-    Game, TickLoop, World,
+    level_source::{flat::FlatLevelSource, region::RegionLevelSource, LevelSource},
+    Game, Level, TickLoop,
 };
 use ecs::SystemExecutor;
 use feather_server::Server;
@@ -61,8 +61,8 @@ fn init_world_source(game: &mut Game) {
     // world otherwise. This is a placeholder:
     // we don't have proper world generation yet.
     let world_source =
-        RegionWorldSource::new(WORLD_DIRECTORY).with_fallback(FlatWorldSource::new());
-    game.world = World::with_source(world_source);
+        RegionLevelSource::new(WORLD_DIRECTORY).with_fallback(FlatLevelSource::new());
+    game.level = Level::with_source(world_source);
 }
 
 fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {

@@ -1,14 +1,14 @@
 use base::ChunkPosition;
 
-use super::{ChunkLoadResult, LoadedChunk, WorldSource};
+use super::{ChunkLoadResult, LevelSource, LoadedChunk};
 
 /// A world source that always yields `ChunkLoadResult::Missing`.
 #[derive(Default)]
-pub struct NullWorldSource {
+pub struct NullLevelSource {
     loaded: Vec<ChunkPosition>,
 }
 
-impl WorldSource for NullWorldSource {
+impl LevelSource for NullLevelSource {
     fn queue_load(&mut self, pos: ChunkPosition) {
         self.loaded.push(pos);
     }

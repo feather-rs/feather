@@ -7,40 +7,37 @@ use std::sync::Arc;
 
 use crate::{
     events::ChunkLoadEvent,
-    world_source::{null::NullWorldSource, ChunkLoadResult, WorldSource},
+    level_source::{null::NullLevelSource, ChunkLoadResult, LevelSource},
 };
 
 /// Stores all blocks and chunks in a world,
 /// along with global world data like weather, time,
-/// and the [`WorldSource`](crate::world_source::WorldSource).
-///
-/// NB: _not_ what most Rust ECSs call "world."
-/// This does not store entities; it only contains blocks.
-pub struct World {
+/// and the [`LevelSource`](crate::level_source::LevelSource).
+pub struct Level {
     chunk_map: ChunkMap,
-    world_source: Box<dyn WorldSource>,
+    world_source: Box<dyn LevelSource>,
     loading_chunks: AHashSet<ChunkPosition>,
     canceled_chunk_loads: AHashSet<ChunkPosition>,
 }
 
-impl Default for World {
+impl Default for Level {
     fn default() -> Self {
         Self {
             chunk_map: ChunkMap::new(),
-            world_source: Box::new(NullWorldSource::default()),
+            world_source: Box::new(NullLevelSource::default()),
             loading_chunks: AHashSet::new(),
             canceled_chunk_loads: AHashSet::new(),
         }
     }
 }
 
-impl World {
+impl Level {
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Creates a `World` from a `WorldSource` for loading chunks.
-    pub fn with_source(world_source: impl WorldSource + 'static) -> Self {
+    pub fn with_source(world_source: impl LevelSource + 'static) -> Self {
         Self {
             world_source: Box::new(world_source),
             ..Default::default()
@@ -228,7 +225,7 @@ mod tests {
 
     #[test]
     fn world_out_of_bounds() {
-        let mut world = World::new();
+        let mut world = Level::new();
         world
             .chunk_map_mut()
             .insert_chunk(Chunk::new(ChunkPosition::new(0, 0)));

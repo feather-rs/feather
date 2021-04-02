@@ -18,7 +18,7 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
 /// Sends entity movement packets.
 fn send_entity_movement(game: &mut Game, server: &mut Server) -> SysResult {
     for (_, (&position, prev_position, &on_ground, &network_id)) in game
-        .ecs
+        .world
         .query::<(&Position, &mut PreviousPosition, &OnGround, &NetworkId)>()
         .iter()
     {

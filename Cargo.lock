@@ -3038,6 +3038,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "vane"
+version = "0.1.0"
+dependencies = [
+ "ahash 0.7.2",
+ "arrayvec",
+ "itertools 0.10.0",
+ "once_cell",
+ "thiserror",
+ "thread_local",
+]
+
+[[package]]
 name = "vcpkg"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"

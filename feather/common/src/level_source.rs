@@ -22,7 +22,7 @@ pub enum ChunkLoadResult {
 }
 
 /// Provides methods to load chunks, entities, and global world data.
-pub trait WorldSource: 'static {
+pub trait LevelSource: 'static {
     /// Enqueues the chunk at `pos` to be loaded.
     /// A future call to `poll_loaded_chunk` should
     /// return this chunk.
@@ -37,7 +37,7 @@ pub trait WorldSource: 'static {
 
     /// Creates a `WorldSource` that falls back to `fallback`
     /// if chunks in `self` are missing or corrupt.
-    fn with_fallback(self, fallback: impl WorldSource) -> FallbackWorldSource
+    fn with_fallback(self, fallback: impl LevelSource) -> FallbackWorldSource
     where
         Self: Sized,
     {
@@ -51,11 +51,11 @@ pub trait WorldSource: 'static {
 /// `WorldSource` wrapping two world sources. Falls back
 /// to the second source if the first one is missing a chunk.
 pub struct FallbackWorldSource {
-    first: Box<dyn WorldSource>,
-    fallback: Box<dyn WorldSource>,
+    first: Box<dyn LevelSource>,
+    fallback: Box<dyn LevelSource>,
 }
 
-impl WorldSource for FallbackWorldSource {
+impl LevelSource for FallbackWorldSource {
     fn queue_load(&mut self, pos: ChunkPosition) {
         self.first.queue_load(pos);
     }

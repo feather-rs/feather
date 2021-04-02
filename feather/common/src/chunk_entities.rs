@@ -53,7 +53,7 @@ fn update_chunk_entities(game: &mut Game) -> SysResult {
     // Entities that have crossed chunks
     let mut events = Vec::new();
     for (entity, (old_chunk, &position)) in
-        game.ecs.query::<(&mut ChunkPosition, &Position)>().iter()
+        game.world.query::<(&mut ChunkPosition, &Position)>().iter()
     {
         let new_chunk = position.chunk();
         if position.chunk() != *old_chunk {
@@ -71,12 +71,13 @@ fn update_chunk_entities(game: &mut Game) -> SysResult {
         }
     }
     for (entity, event) in events {
-        game.ecs.insert_entity_event(entity, event)?;
+        game.world.insert_entity_event(entity, event)?;
     }
 
     // Entities that have been created
     let mut insertions = Vec::new();
-    for (entity, (_event, &position)) in game.ecs.query::<(&EntityCreateEvent, &Position)>().iter()
+    for (entity, (_event, &position)) in
+        game.world.query::<(&EntityCreateEvent, &Position)>().iter()
     {
         let chunk = position.chunk();
         game.chunk_entities.update(entity, None, chunk);
@@ -84,12 +85,12 @@ fn update_chunk_entities(game: &mut Game) -> SysResult {
     }
     // Add ChunkPosition component to new entities
     for (entity, chunk) in insertions {
-        game.ecs.insert(entity, chunk)?;
+        game.world.insert(entity, chunk)?;
     }
 
     // Entities that have been destroyed
     for (entity, (_event, &chunk)) in game
-        .ecs
+        .world
         .query::<(&EntityRemoveEvent, &ChunkPosition)>()
         .iter()
     {

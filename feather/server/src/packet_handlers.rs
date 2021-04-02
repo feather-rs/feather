@@ -27,7 +27,7 @@ pub fn handle_packet(
     player_id: Entity,
     packet: ClientPlayPacket,
 ) -> SysResult {
-    let player = game.ecs.entity(player_id)?;
+    let player = game.world.entity(player_id)?;
     match packet {
         ClientPlayPacket::PlayerPosition(packet) => {
             movement::handle_player_position(server, player, packet)

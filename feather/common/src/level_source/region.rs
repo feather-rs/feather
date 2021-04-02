@@ -11,15 +11,15 @@ use base::{
 };
 use flume::{Receiver, Sender};
 
-use super::{ChunkLoadResult, LoadedChunk, WorldSource};
+use super::{ChunkLoadResult, LevelSource, LoadedChunk};
 
 /// World source loading from a vanilla (Anvil) world.
-pub struct RegionWorldSource {
+pub struct RegionLevelSource {
     request_sender: Sender<ChunkPosition>,
     result_receiver: Receiver<LoadedChunk>,
 }
 
-impl RegionWorldSource {
+impl RegionLevelSource {
     pub fn new(world_dir: impl Into<PathBuf>) -> Self {
         let (request_sender, request_receiver) = flume::unbounded();
         let (worker, result_receiver) = Worker::new(world_dir.into(), request_receiver);
@@ -33,7 +33,7 @@ impl RegionWorldSource {
     }
 }
 
-impl WorldSource for RegionWorldSource {
+impl LevelSource for RegionLevelSource {
     fn queue_load(&mut self, pos: ChunkPosition) {
         self.request_sender
             .send(pos)

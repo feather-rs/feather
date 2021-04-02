@@ -27,7 +27,7 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 }
 
 fn broadcast_block_changes(game: &mut Game, server: &mut Server) -> SysResult {
-    for (_, event) in game.ecs.query::<&BlockChangeEvent>().iter() {
+    for (_, event) in game.world.query::<&BlockChangeEvent>().iter() {
         broadcast_block_change(event, game, server);
     }
     Ok(())
@@ -56,7 +56,7 @@ fn broadcast_block_change_chunk_overwrite(
     }
 
     for (chunk_pos, sections) in sections {
-        let chunk = game.world.chunk_map().chunk_handle_at(chunk_pos);
+        let chunk = game.level.chunk_map().chunk_handle_at(chunk_pos);
         if let Some(chunk) = chunk {
             let position = position!(
                 (chunk_pos.x * CHUNK_WIDTH as i32) as f64,
