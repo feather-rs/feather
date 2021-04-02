@@ -13,14 +13,17 @@ pub fn handle_client_status(
 ) -> SysResult {
     match packet {
         ClientStatus::PerformRespawn => {
-            let client_id = game.ecs.get::<ClientId>(player_id).unwrap();
-            let client = server.clients.get(*client_id).unwrap();
+            let client_id = game.ecs.get::<ClientId>(player_id)?;
+            if let Some(client) = server.clients.get(*client_id) {
+                let gamemode = game.ecs.get::<Gamemode>(player_id)?;
+                client.send_respawn(*gamemode, false);
 
-            client.respawn_player(Gamemode::Survival);
-
-            let player = game.ecs.entity(player_id)?;
-            game.reset_player(player);
+                // Temporary, will be replaced with an event.
+                let player = game.ecs.entity(player_id)?;
+                game.reset_player(player);
+            }
         }
+
         ClientStatus::RequestStats => {}
     }
 

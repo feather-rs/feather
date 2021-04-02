@@ -521,7 +521,7 @@ impl Client {
         });
     }
 
-    pub fn respawn_player(&self, gamemode: Gamemode) {
+    pub fn send_respawn(&self, gamemode: Gamemode, copy_metadata: bool) {
         let dimension = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
             "../../../assets/dimension.nbt"
         )))
@@ -532,10 +532,10 @@ impl Client {
             world_name: "world".to_owned(),
             hashed_seed: 0,
             gamemode,
-            previous_gamemode: Gamemode::Survival,
+            previous_gamemode: gamemode,
             is_debug: false,
             is_flat: false,
-            copy_metadata: false,
+            copy_metadata,
         });
     }
 
