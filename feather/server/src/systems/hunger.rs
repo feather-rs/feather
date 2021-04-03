@@ -1,7 +1,6 @@
 use crate::{Game, Server};
-use common::events::{HealthEventType, UpdateHealthEvent};
 use ecs::{SysResult, SystemExecutor};
-use quill_common::components::Hunger;
+use quill_common::{components::Hunger, events::UpdateHealthEvent};
 
 pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
     systems.group::<Server>().add_system(hunger_health_events);
@@ -14,17 +13,17 @@ fn hunger_health_events(game: &mut Game, _server: &mut Server) -> SysResult {
         match hunger.food {
             20 if hunger.saturation > 0 => {
                 if game.tick_count % 10 == 0 {
-                    events.push((player, UpdateHealthEvent::new(HealthEventType::Heal(1))));
+                    events.push((player, UpdateHealthEvent::Heal(1)));
                 }
             }
             18..=20 => {
                 if game.tick_count % 80 == 0 {
-                    events.push((player, UpdateHealthEvent::new(HealthEventType::Heal(1))));
+                    events.push((player, UpdateHealthEvent::Heal(1)));
                 }
             }
             0 => {
                 if game.tick_count % 80 == 0 {
-                    events.push((player, UpdateHealthEvent::new(HealthEventType::Harm(1))));
+                    events.push((player, UpdateHealthEvent::Harm(1)));
                 }
             }
             _ => {}

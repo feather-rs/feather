@@ -8,10 +8,7 @@ use crate::view::View;
 mod block_change;
 mod plugin_message;
 
-pub mod health;
-
 pub use block_change::BlockChangeEvent;
-pub use health::*;
 pub use plugin_message::PluginMessageEvent;
 
 /// Triggered when a player joins the game.
@@ -79,15 +76,3 @@ pub struct EntityRemoveEvent;
 /// Triggered when an entity is added into the world.
 #[derive(Debug)]
 pub struct EntityCreateEvent;
-
-/// Triggered by systems that need to mutate the health of an entity.
-#[derive(Debug)]
-pub struct UpdateHealthEvent {
-    pub event_type: HealthEventType,
-}
-
-impl UpdateHealthEvent {
-    pub fn new(event_type: HealthEventType) -> Self {
-        Self { event_type }
-    }
-}
