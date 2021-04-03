@@ -2,7 +2,7 @@ use crate::{ClientId, Game, Server};
 use ecs::{SysResult, SystemExecutor};
 use quill_common::{
     components::{Health, Hunger},
-    events::UpdateHealthEvent,
+    events::{EntityDamageEvent, EntityHealthEvent, EntityRegenEvent},
 };
 
 pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
@@ -11,10 +11,14 @@ pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
 
 // TODO: Implement for entities besides players.
 fn health_events_handler(game: &mut Game, server: &mut Server) -> SysResult {
-    for (entity, (event, health)) in game.ecs.query::<(&UpdateHealthEvent, &mut Health)>().iter() {
+    for (entity, (event, health)) in game.ecs.query::<(&EntityHealthEvent, &mut Health)>().iter() {
         match event {
-            UpdateHealthEvent::Heal(half_hearts) => health.heal(*half_hearts),
-            UpdateHealthEvent::Harm(half_hearts) => health.harm(*half_hearts),
+            EntityHealthEvent::Regen(EntityRegenEvent { amount, .. }) => health.heal(*amount),
+            EntityHealthEvent::Damage(EntityDamageEvent {
+                amount: _,
+                final_amount,
+                ..
+            }) => health.harm(*final_amount),
         }
 
         if let Ok(client_id) = game.ecs.get::<ClientId>(entity) {

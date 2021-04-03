@@ -1,8 +1,20 @@
 use serde::{Deserialize, Serialize};
 
-/// Triggered by systems that need to mutate the health of an entity.
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum UpdateHealthEvent {
-    Heal(u32),
-    Harm(u32),
+pub struct EntityDamageEvent {
+    pub amount: u32,
+    pub final_amount: u32,
+    pub is_cancelled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EntityRegenEvent {
+    pub amount: u32,
+    pub is_cancelled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum EntityHealthEvent {
+    Damage(EntityDamageEvent),
+    Regen(EntityRegenEvent),
 }

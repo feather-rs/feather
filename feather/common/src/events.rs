@@ -6,9 +6,11 @@ use parking_lot::RwLock;
 use crate::view::View;
 
 mod block_change;
+mod health;
 mod plugin_message;
 
 pub use block_change::BlockChangeEvent;
+pub use health::*;
 pub use plugin_message::PluginMessageEvent;
 
 /// Triggered when a player joins the game.
