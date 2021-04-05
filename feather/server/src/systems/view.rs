@@ -1,7 +1,7 @@
 //! Sends and unloads entities and chunks for a client.
 //!
 //! The entities and chunks visible to each client are
-//! determined based on the player's [`View`].
+//! determined based on the player's [`common::view::View`].
 
 use ahash::AHashMap;
 use base::{ChunkPosition, Position};

@@ -54,7 +54,7 @@ impl World {
     }
 
     /// Loads any chunks that have been loaded asynchronously
-    /// after a call to [`queue_chunk_load`].
+    /// after a call to [`World::queue_chunk_load`].
     pub fn load_chunks(&mut self, ecs: &mut Ecs) {
         while let Some(loaded) = self.world_source.poll_loaded_chunk() {
             self.loading_chunks.remove(&loaded.pos);
