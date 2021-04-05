@@ -4,6 +4,6 @@ mod interact_entity;
 
 pub use block_interact::{BlockInteractEvent, BlockPlacementEvent};
 pub use health::{
-    EntityDamageEventType, EntityHealthEvent, EntityRegenEventType, EntityResurrectionEvent,
+    EntityDamageEventType, EntityHealthEvent, EntityRegenEventType, EntityResurrectionEvent, EntitySuicideEvent
 };
 pub use interact_entity::InteractEntityEvent;

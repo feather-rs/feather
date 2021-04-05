@@ -2,11 +2,15 @@ use crate::{ClientId, Game, Server};
 use ecs::{SysResult, SystemExecutor};
 use quill_common::{
     components::{Health, Hunger},
-    events::EntityHealthEvent,
+    events::{EntityHealthEvent, EntityResurrectionEvent, EntitySuicideEvent},
 };
 
 pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
-    systems.group::<Server>().add_system(health_events_handler);
+    systems
+        .group::<Server>()
+        .add_system(entity_resurrection)
+        .add_system(entity_suicide)
+        .add_system(health_events_handler);
 }
 
 // TODO: Implement for entities besides players.
@@ -23,6 +27,42 @@ fn health_events_handler(game: &mut Game, server: &mut Server) -> SysResult {
                 client.update_status(&health, &hunger);
             }
         }
+    }
+
+    Ok(())
+}
+
+fn entity_resurrection(game: &mut Game, _server: &mut Server) -> SysResult {
+    let mut events = Vec::new();
+
+    for (entity, (_, health)) in game
+        .ecs
+        .query::<(&EntityResurrectionEvent, &mut Health)>()
+        .iter()
+    {
+        events.push((entity, EntityHealthEvent::Regen(health.max_health)));
+    }
+
+    for (entity, event) in events {
+        game.ecs.insert_entity_event(entity, event)?;
+    }
+
+    Ok(())
+}
+
+fn entity_suicide(game: &mut Game, _server: &mut Server) -> SysResult {
+    let mut events = Vec::new();
+
+    for (entity, (_, health)) in game
+        .ecs
+        .query::<(&EntitySuicideEvent, &mut Health)>()
+        .iter()
+    {
+        events.push((entity, EntityHealthEvent::Damage(health.max_health)));
+    }
+
+    for (entity, event) in events {
+        game.ecs.insert_entity_event(entity, event)?;
     }
 
     Ok(())

@@ -13,12 +13,12 @@ fn hunger_health_events(game: &mut Game, _server: &mut Server) -> SysResult {
         match hunger.food {
             20 if hunger.saturation > 0 => {
                 if game.tick_count % 10 == 0 {
-                    events.push((player, EntityHealthEvent::Regen(1)));
+                    events.push((player, EntityHealthEvent::Damage(1)));
                 }
             }
             18..=20 => {
                 if game.tick_count % 80 == 0 {
-                    events.push((player, EntityHealthEvent::Regen(1)));
+                    events.push((player, EntityHealthEvent::Damage(1)));
                 }
             }
             0 => {

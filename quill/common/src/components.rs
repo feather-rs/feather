@@ -107,7 +107,7 @@ pub struct Health {
 
 impl Health {
     pub fn new(max_health: u32) -> Self {
-        let health = 1;
+        let health = max_health;
         Self { health, max_health }
     }
 
