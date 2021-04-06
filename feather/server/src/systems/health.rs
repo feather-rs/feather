@@ -2,7 +2,10 @@ use crate::{ClientId, Game, Server};
 use ecs::{SysResult, SystemExecutor};
 use quill_common::{
     components::{Health, Hunger},
-    events::{EntityHealthEvent, EntityResurrectionEvent, EntitySuicideEvent},
+    events::{
+        EntityDamageEventType, EntityHealthEvent, EntityRegenEventType, EntityResurrectionEvent,
+        EntitySuicideEvent,
+    },
 };
 
 pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
@@ -10,6 +13,8 @@ pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
         .group::<Server>()
         .add_system(entity_resurrection)
         .add_system(entity_suicide)
+        .add_system(player_eating_regen)
+        .add_system(player_hunger)
         .add_system(health_events_handler);
 }
 
@@ -59,6 +64,42 @@ fn entity_suicide(game: &mut Game, _server: &mut Server) -> SysResult {
         .iter()
     {
         events.push((entity, EntityHealthEvent::Damage(health.max_health)));
+    }
+
+    for (entity, event) in events {
+        game.ecs.insert_entity_event(entity, event)?;
+    }
+
+    Ok(())
+}
+
+fn player_eating_regen(game: &mut Game, _server: &mut Server) -> SysResult {
+    let mut events = Vec::new();
+
+    for (entity, event) in game.ecs.query::<&EntityRegenEventType>().iter() {
+        match event {
+            EntityRegenEventType::Eating => events.push((entity, EntityHealthEvent::Regen(1))),
+            _ => {}
+        }
+    }
+
+    for (entity, event) in events {
+        game.ecs.insert_entity_event(entity, event)?;
+    }
+
+    Ok(())
+}
+
+fn player_hunger(game: &mut Game, _server: &mut Server) -> SysResult {
+    let mut events = Vec::new();
+
+    for (entity, event) in game.ecs.query::<&EntityDamageEventType>().iter() {
+        match event {
+            EntityDamageEventType::Starvation => {
+                events.push((entity, EntityHealthEvent::Damage(1)))
+            }
+            _ => {}
+        }
     }
 
     for (entity, event) in events {

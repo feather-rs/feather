@@ -1,4 +1,4 @@
-//! Taken from Spigot's documentation, EntityRegainHealthEvent<https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/EntityRegainHealthEvent.html> and EntityDamageEvent<https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/EntityDamageEvent.html> 
+//! Taken from Spigot's documentation, EntityRegainHealthEvent<https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/EntityRegainHealthEvent.html> and EntityDamageEvent<https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/EntityDamageEvent.html>
 
 use serde::{Deserialize, Serialize};
 
@@ -8,7 +8,6 @@ pub enum EntityHealthEvent {
     Damage(u32),
     Regen(u32),
 }
-
 
 /// Damage Events
 #[derive(Debug, Serialize, Deserialize, Clone)]
