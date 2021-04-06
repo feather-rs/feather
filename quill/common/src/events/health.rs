@@ -10,171 +10,211 @@ pub enum EntityHealthEvent {
 }
 
 /// Damage Events
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum EntityDamageEventType {
+pub mod entity_damage_event_type {
+    use super::{Deserialize, Serialize};
+
     /// Damage caused by being in the area when a block explodes.
     ///
     /// Damage: Variable
-    BlockExplosion(u32),
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct BlockExplosion(u32);
 
     /// Damage caused when an entity contacts a block such as a Cactus.
     ///
     /// Damage: 1
-    Contact,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Contact;
 
     /// Damage caused when an entity is colliding with too many entities due to the `maxEntityCramming` game rule.
     ///
     /// Damage: 6
-    Cramming,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Cramming;
 
     /// Damage caused by a dragon breathing fire.
     ///
     /// Damage: Variable
-    DragonBreath(u32),
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct DragonBreath(u32);
 
     /// Damage caused by running out of air while in water.
     ///
     /// Damage: 2
-    Drowning,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Drowning;
 
     /// Damage caused when an entity that should be in water is not.
     ///
     /// Damage: 1
-    DryOut,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct DryOut;
 
     /// Damage caused when an entity attacks another entity.
     ///
     /// Damage: Variable
-    EntityAttack(u32),
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct EntityAttack(u32);
 
     /// Damage caused by being in the area when an entity, such as a Creeper, explodes.
     ///
     /// Damage: Variable
-    EntityExplosion(u32),
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct EntityExplosion(u32);
 
     /// Damage caused when an entity attacks another entity in a sweep attack.
     ///
     /// Damage: Variable
-    EntitySweepAttack(u32),
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct EntitySweepAttack(u32);
 
     /// Damage caused when an entity falls a distance greater than 3 blocks.
     ///
     /// Damage: fall_height - 3
-    Fall(u32),
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Fall(u32);
 
     /// Damage caused by being hit by a falling block which deals damage.
     ///
     /// Damage: Variable
-    FallingBlock(u32),
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct FallingBlock(u32);
 
     /// Damage caused by direct exposure to fire.
     ///
     /// Damage: 1
-    Fire,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Fire;
 
     /// Damage caused due to burns caused by fire.
     ///
     /// Damage: 1
-    FireTick,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct FireTick;
 
     /// Damage caused when an entity runs into a wall.
     ///
     /// Damage: Variable
-    FlyIntoWall(u32),
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct FlyIntoWall(u32);
 
     /// Damage caused when an entity steps on a magma block.
     ///
     /// Damage: 1
-    HotFloor,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct HotFloor;
 
     /// Damage caused by direct exposure to lava.
     ///
     /// Damage: 4
-    Lava,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Lava;
 
     /// Damage caused by being struck by lightning.
     ///
     /// Damage: 5
-    Lightning,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Lightning;
 
     /// Damage caused by being hit by a damage potion or spell.
     ///
     /// Damage: Variable
-    Magic(u32),
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Magic(u32);
 
     /// Damage caused due to a snowman melting.
     ///
     /// Damage: 1
-    Melting,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Melting;
 
     /// Damage caused due to an ongoing poison effect.
     ///
     /// Damage: 1
-    Poison,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Poison;
 
     /// Damage caused when attacked by a projectile.
     ///
     /// Damage: Variable
-    Projectile(u32),
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Projectile(u32);
 
     /// Damage caused by starving due to having an empty hunger bar.
     ///
     /// Damage: 1
-    Starvation,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Starvation;
 
     /// Damage caused by being put in a block.
     ///
     /// Damage: 1
-    Suffocation,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Suffocation;
 
     /// Damage caused in retaliation to another attack by the Thorns enchantment.
     ///
     /// Damage: 1-4
-    Thorns,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Thorns;
 
     /// Damage caused by falling into the void.
     ///
     /// Damage: 4 for players
-    Void,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Void;
 
     /// Damage caused by Wither potion effect.
     ///
     /// Damage: Variable
-    Wither(u32),
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Wither(u32);
 }
 
 /// Regeneration Events
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum EntityRegenEventType {
+pub mod entity_regen_event_type {
+    use super::{Deserialize, Serialize};
+
     /// Health regeneration from eating consumables.
-    Eating,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Eating;
 
     /// Ender Dragon health regeneration from ender crystals.
-    EnderCrystal,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct EnderCrystal;
 
     /// Potions or spells.
-    Magic,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Magic;
 
     /// Healed over time by potions or spells.
-    MagicRegen,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct MagicRegen;
 
     /// Health regeneration due to Peaceful mode (difficulty=0).
-    Regen,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Regen;
 
     /// Health regeneration due to their hunger being satisfied.
-    Satiated,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Satiated;
 
     /// Wither passive health regeneration.
-    Wither,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct Wither;
 
     /// Wither health regeneration when spawning.
-    WitherSpawn,
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct WitherSpawn;
 }
 
-/// Special event for respawning.
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct EntityResurrectionEvent;
+pub mod entity_special_event_type {
+    use super::{Deserialize, Serialize};
 
-/// Caused by committing suicide using the command, `/kill`.
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct EntitySuicideEvent;
+    /// Special event for respawning.
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct EntityResurrectionEvent;
+
+    /// Caused by committing suicide using the command, `/kill`.
+    #[derive(Debug, Serialize, Deserialize, Clone)]
+    pub struct EntitySuicideEvent;
+}

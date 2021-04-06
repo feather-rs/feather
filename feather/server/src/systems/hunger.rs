@@ -2,7 +2,7 @@ use crate::{Game, Server};
 use ecs::{SysResult, SystemExecutor};
 use quill_common::{
     components::Hunger,
-    events::{EntityDamageEventType, EntityRegenEventType},
+    events::{entity_damage_event_type, entity_regen_event_type},
 };
 
 pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
@@ -17,17 +17,17 @@ fn hunger_events(game: &mut Game, _server: &mut Server) -> SysResult {
         match hunger.food {
             20 if hunger.saturation > 0 => {
                 if game.tick_count % 10 == 0 {
-                    eating_events.push((player, EntityRegenEventType::Eating));
+                    eating_events.push((player, entity_regen_event_type::Eating));
                 }
             }
             18..=20 => {
                 if game.tick_count % 80 == 0 {
-                    eating_events.push((player, EntityRegenEventType::Eating));
+                    eating_events.push((player, entity_regen_event_type::Eating));
                 }
             }
             0 => {
                 if game.tick_count % 80 == 0 {
-                    starving_events.push((player, EntityDamageEventType::Starvation));
+                    starving_events.push((player, entity_damage_event_type::Starvation));
                 }
             }
             _ => {}

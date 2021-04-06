@@ -3,8 +3,8 @@ use ecs::{SysResult, SystemExecutor};
 use quill_common::{
     components::{Health, Hunger},
     events::{
-        EntityDamageEventType, EntityHealthEvent, EntityRegenEventType, EntityResurrectionEvent,
-        EntitySuicideEvent,
+        entity_damage_event_type, entity_regen_event_type, entity_special_event_type,
+        EntityHealthEvent,
     },
 };
 
@@ -42,7 +42,10 @@ fn entity_resurrection(game: &mut Game, _server: &mut Server) -> SysResult {
 
     for (entity, (_, health)) in game
         .ecs
-        .query::<(&EntityResurrectionEvent, &mut Health)>()
+        .query::<(
+            &entity_special_event_type::EntityResurrectionEvent,
+            &mut Health,
+        )>()
         .iter()
     {
         events.push((entity, EntityHealthEvent::Regen(health.max_health)));
@@ -60,7 +63,7 @@ fn entity_suicide(game: &mut Game, _server: &mut Server) -> SysResult {
 
     for (entity, (_, health)) in game
         .ecs
-        .query::<(&EntitySuicideEvent, &mut Health)>()
+        .query::<(&entity_special_event_type::EntitySuicideEvent, &mut Health)>()
         .iter()
     {
         events.push((entity, EntityHealthEvent::Damage(health.max_health)));
@@ -76,11 +79,8 @@ fn entity_suicide(game: &mut Game, _server: &mut Server) -> SysResult {
 fn player_eating_regen(game: &mut Game, _server: &mut Server) -> SysResult {
     let mut events = Vec::new();
 
-    for (entity, event) in game.ecs.query::<&EntityRegenEventType>().iter() {
-        match event {
-            EntityRegenEventType::Eating => events.push((entity, EntityHealthEvent::Regen(1))),
-            _ => {}
-        }
+    for (entity, _) in game.ecs.query::<&entity_regen_event_type::Eating>().iter() {
+        events.push((entity, EntityHealthEvent::Regen(1)));
     }
 
     for (entity, event) in events {
@@ -93,13 +93,12 @@ fn player_eating_regen(game: &mut Game, _server: &mut Server) -> SysResult {
 fn player_hunger(game: &mut Game, _server: &mut Server) -> SysResult {
     let mut events = Vec::new();
 
-    for (entity, event) in game.ecs.query::<&EntityDamageEventType>().iter() {
-        match event {
-            EntityDamageEventType::Starvation => {
-                events.push((entity, EntityHealthEvent::Damage(1)))
-            }
-            _ => {}
-        }
+    for (entity, _) in game
+        .ecs
+        .query::<&entity_damage_event_type::Starvation>()
+        .iter()
+    {
+        events.push((entity, EntityHealthEvent::Damage(1)));
     }
 
     for (entity, event) in events {
