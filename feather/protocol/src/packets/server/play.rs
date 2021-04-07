@@ -1189,115 +1189,82 @@ def_enum! {
     }
 }
 
+// #[derive(Debug, Clone)]
+// pub struct EntityPropertyKind {
+//     pub min: f32,
+//     pub max: f32,
+//     pub value: f32,
+// }
+
 #[derive(Debug, Clone)]
-pub struct EntityPropertyKind {
-    pub min: f32,
-    pub max: f32,
-    pub value: f32,
+pub enum EntityPropertyKind {
+    MaxHealth,
+    FollowRange,
+    KnockbackResistance,
+    MovementSpeed,
+    AttackDamage,
+    AttackSpeed,
+    AttackKnockback,
+    FlyingSpeed,
+    Armor,
+    ArmorToughness,
+    Luck,
+    HorseJumpStrength,
+    ZombieSpawnReinforcements,
 }
 
 impl EntityPropertyKind {
     pub fn from_key(key: &str) -> anyhow::Result<Self> {
-        let item = match key {
-            "general:max_health" => {
-                Self {
-                    min: 0.0,
-                    max: 1024.0,
-                    value: 20.0,
-                }
+        Ok(
+            match key {
+                "general:max_health" => EntityPropertyKind::MaxHealth,
+                "general:follow_range" => EntityPropertyKind::FollowRange,
+                "general:knockback_resistance" => EntityPropertyKind::KnockbackResistance,
+                "general:movement_speed" => EntityPropertyKind::MovementSpeed,
+                "general:attack_damage" => EntityPropertyKind::AttackDamage,
+                "general:attack_speed" => EntityPropertyKind::AttackSpeed,
+                "general:attack_knockback" => EntityPropertyKind::AttackKnockback,
+                "general:flying_speed" => EntityPropertyKind::FlyingSpeed,
+                "general:armor" => EntityPropertyKind::Armor,
+                "general:armor_toughness" => EntityPropertyKind::ArmorToughness,
+                "general:luck" => EntityPropertyKind::Luck,
+                "horse:jump_strength" => EntityPropertyKind::HorseJumpStrength,
+                "zombie:spawn_reinforcements" => EntityPropertyKind::ZombieSpawnReinforcements,
+                _ => return Err(anyhow::anyhow!("invalid entity property key: '{}'", key))
             }
-            "general:follow_range" => {
-                Self {
-                    min: 0.0,
-                    max: 2048.0,
-                    value: 32.0,
-                }
-            }
-            "general:knockback_resistance" => {
-                Self {
-                    min: 0.0,
-                    max: 1.0,
-                    value: 0.0,
-                }
-            }
-            "general:movement_speed" => {
-                Self {
-                    min: 0.0,
-                    max: 1024.0,
-                    value: 0.7,
-                }
-            }
-            "general:attack_damage" => {
-                Self {
-                    min: 0.0,
-                    max: 2048.0,
-                    value: 2.0,
-                }
-            }"general:attack_speed" => {
-                Self {
-                    min: 0.0,
-                    max: 1024.0,
-                    value: 4.0,
-                }
-            }
-            "general:attack_knockback" => {
-                Self {
-                    min: 0.0,
-                    max: 5.0,
-                    value: 0.0,
-                }
-            }
-            "general:flying_speed" => {
-                Self {
-                    min: 0.0,
-                    max: 1024.0,
-                    value: 0.4,
-                }
-            }
-            "general:armor" => {
-                Self {
-                    min: 0.0,
-                    max: 30.0,
-                    value: 0.0,
-                }
-            }
-            "general:armor_toughness" => {
-                Self {
-                    min: 0.0,
-                    max: 20.0,
-                    value: 0.0,
-                }
-            }
-            "general:luck" => {
-                Self {
-                    min: -1024.0,
-                    max: 1024.0,
-                    value: 0.0,
-                }
-            }
-            "horse:jump_strength" => {
-                Self {
-                    min: 0.0,
-                    max: 2.0,
-                    value: 0.7,
-                }
-            }
-            "zombie:spawn_reinforcements" => {
-                Self {
-                    min: 0.0,
-                    max: 1.0,
-                    value: 0.0,
-                }
-            }
-            _ => return Err(anyhow::anyhow!("invalid entity property key: '{}'", key))
-        };
+        )
+    }
 
-        Ok(item)
+    pub fn max_value(&self) -> f32 {
+        match &self {
+            EntityPropertyKind::MaxHealth => 1024.0,
+            EntityPropertyKind::FollowRange => 2048.0,
+            EntityPropertyKind::KnockbackResistance => 1.0,
+            EntityPropertyKind::MovementSpeed => 1024.0,
+            EntityPropertyKind::AttackDamage => 2048.0,
+            EntityPropertyKind::AttackSpeed => 1024.0,
+            EntityPropertyKind::AttackKnockback => 5.0,
+            EntityPropertyKind::FlyingSpeed => 1024.0,
+            EntityPropertyKind::Armor => 30.0,
+            EntityPropertyKind::ArmorToughness => 20.0,
+            EntityPropertyKind::Luck => 1024.0,
+            EntityPropertyKind::HorseJumpStrength => 2.0,
+            EntityPropertyKind::ZombieSpawnReinforcements => 1.0,
+        }
+    }
+
+    pub fn min_value(&self) -> f32 {
+        if let EntityPropertyKind::Luck = &self {
+            return -1024.0;
+        }
+
+        0.0
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Modifier {
+    pub uuid: Uuid,
     pub amount: f32,
     pub operation: OperationKind,
 }
@@ -1306,6 +1273,7 @@ pub struct Modifier {
 pub struct EntityProperty {
     pub property: EntityPropertyKind,
     pub modifier: Modifier,
+    pub value: f32,
 }
 
 impl Readable for EntityProperty {
@@ -1316,6 +1284,9 @@ impl Readable for EntityProperty {
     where
         Self: Sized,
     {
+        let property_key = String::read(buffer, version)?;
+        let property = EntityPropertyKind::from_key(&property_key)?;
+        let value = f32::read(buffer, version)?;
         
     }
 }
