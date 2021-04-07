@@ -2,7 +2,7 @@ use base::Gamemode;
 use common::Game;
 use ecs::{Entity, SysResult};
 use protocol::packets::client::ClientStatus;
-use quill_common::events::entity_special_event_type;
+use quill_common::events::entity_special_event_kind;
 
 use crate::{ClientId, Server};
 
@@ -28,7 +28,7 @@ pub fn handle_client_status(
             if send_event {
                 game.ecs.insert_entity_event(
                     player,
-                    entity_special_event_type::EntityResurrectionEvent,
+                    entity_special_event_kind::EntityResurrectionEvent,
                 )?;
             }
         }

@@ -30,6 +30,7 @@ fn health_events_handler(game: &mut Game, server: &mut Server) -> SysResult {
             if let Some(client) = server.clients.get(*client_id) {
                 let hunger = game.ecs.entity(entity)?.get::<Hunger>()?;
                 client.update_status(&health, &hunger);
+                client.test_func_r(client.network_id());
             }
         }
     }

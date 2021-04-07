@@ -24,9 +24,9 @@ use protocol::{
         self,
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
-            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityTeleport, JoinGame,
+            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityTeleport, EntityProperties, JoinGame,
             KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SendEntityMetadata,
-            SpawnPlayer, Title, UnloadChunk, UpdateViewPosition, WindowItems,
+            SpawnPlayer, Title, UnloadChunk, AttributeModifier, UpdateViewPosition, WindowItems, EntityProperty, EntityAttributeKind
         },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
@@ -35,7 +35,7 @@ use quill_common::components::{Health, Hunger, OnGround};
 use uuid::Uuid;
 use vec_arena::Arena;
 
-use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
+use crate::{Options, entities, initial_handler::NewPlayer, network_id_registry::NetworkId};
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
@@ -537,6 +537,18 @@ impl Client {
             is_flat: false,
             copy_metadata,
         });
+    }
+
+    pub fn test_func_r(&self, network_id: NetworkId) {
+        let test_property = vec![EntityProperty {
+            attribute: EntityAttributeKind::MaxHealth,
+            modifiers: vec![],
+            value: 20.0,
+        }];
+        self.send_packet(EntityProperties {
+            entity_id: network_id.0,
+            properties: test_property
+        })
     }
 
     pub fn send_player_model_flags(&self, netowrk_id: NetworkId, model_flags: u8) {
