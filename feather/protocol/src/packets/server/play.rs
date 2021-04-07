@@ -1190,26 +1190,116 @@ def_enum! {
 }
 
 #[derive(Debug, Clone)]
-pub struct Modifier {
-    pub amount: f32,
-    pub operation: OperationKind,
+pub struct EntityPropertyKind {
+    pub min: f32,
+    pub max: f32,
+    pub value: f32,
+}
+
+impl EntityPropertyKind {
+    pub fn from_key(key: &str) -> anyhow::Result<Self> {
+        let item = match key {
+            "general:max_health" => {
+                Self {
+                    min: 0.0,
+                    max: 1024.0,
+                    value: 20.0,
+                }
+            }
+            "general:follow_range" => {
+                Self {
+                    min: 0.0,
+                    max: 2048.0,
+                    value: 32.0,
+                }
+            }
+            "general:knockback_resistance" => {
+                Self {
+                    min: 0.0,
+                    max: 1.0,
+                    value: 0.0,
+                }
+            }
+            "general:movement_speed" => {
+                Self {
+                    min: 0.0,
+                    max: 1024.0,
+                    value: 0.7,
+                }
+            }
+            "general:attack_damage" => {
+                Self {
+                    min: 0.0,
+                    max: 2048.0,
+                    value: 2.0,
+                }
+            }"general:attack_speed" => {
+                Self {
+                    min: 0.0,
+                    max: 1024.0,
+                    value: 4.0,
+                }
+            }
+            "general:attack_knockback" => {
+                Self {
+                    min: 0.0,
+                    max: 5.0,
+                    value: 0.0,
+                }
+            }
+            "general:flying_speed" => {
+                Self {
+                    min: 0.0,
+                    max: 1024.0,
+                    value: 0.4,
+                }
+            }
+            "general:armor" => {
+                Self {
+                    min: 0.0,
+                    max: 30.0,
+                    value: 0.0,
+                }
+            }
+            "general:armor_toughness" => {
+                Self {
+                    min: 0.0,
+                    max: 20.0,
+                    value: 0.0,
+                }
+            }
+            "general:luck" => {
+                Self {
+                    min: -1024.0,
+                    max: 1024.0,
+                    value: 0.0,
+                }
+            }
+            "horse:jump_strength" => {
+                Self {
+                    min: 0.0,
+                    max: 2.0,
+                    value: 0.7,
+                }
+            }
+            "zombie:spawn_reinforcements" => {
+                Self {
+                    min: 0.0,
+                    max: 1.0,
+                    value: 0.0,
+                }
+            }
+            _ => return Err(anyhow::anyhow!("invalid entity property key: '{}'", key))
+        };
+
+        Ok(item)
+    }
 }
 
 #[derive(Debug, Clone)]
-pub enum EntityPropertyKind {
-    MaxHealth(f32),
-    FollowRange(f32),
-    KnockbackResistance(f32),
-    MovementSpeed(f32),
-    AttackDamage(f32),
-    AttackSpeed(f32),
-    FlyingSpeed(f32),
-    Armor(f32),
-    ArmorToughness(f32),
-    AttackKnockback(f32),
-    Luck(f32),
-    JumpStrength(f32),
-    SpawnReinforcements(f32),
+pub struct Modifier {
+    pub amount: f32,
+    pub operation: OperationKind,
 }
 
 #[derive(Debug, Clone)]
@@ -1226,7 +1316,7 @@ impl Readable for EntityProperty {
     where
         Self: Sized,
     {
-        todo!()
+        
     }
 }
 
