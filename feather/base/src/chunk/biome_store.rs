@@ -26,7 +26,7 @@ impl BiomeStore {
         }
     }
 
-    /// Creates a `BiomeStore` from a slice of [`BIOME_PER_CHUNK`] biomes.
+    /// Creates a `BiomeStore` from a slice of `BIOMES_PER_CHUNK` biomes.
     ///
     /// Returns `None` if `biomes` is not of the correct length.
     pub fn from_slice(biome_slice: &[Biome]) -> Option<Self> {

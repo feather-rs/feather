@@ -199,8 +199,8 @@ pub enum SerializationMethod {
 /// A type that can be used as a component.
 ///
 /// # Safety
-/// `from_bytes` must return `Some(_)` if given
-/// any byte slice returned by `to_bytes`. A violation
+/// [`Component::from_bytes`] must return `Some(_)` if given
+/// any byte slice returned by [`Component::to_bytes`]. A violation
 /// if this contract may result in undefined behavior
 /// on the plugin side.
 pub unsafe trait Component: Send + Sync + Sized + 'static {
@@ -228,7 +228,7 @@ pub unsafe trait Component: Send + Sync + Sized + 'static {
     fn as_bytes(&self) -> &[u8];
 
     /// Deserializes this component from bytes
-    /// returned by [`to_bytes`].
+    /// returned by [`Component::to_bytes`].
     ///
     /// Returns the number of bytes used to deserialize
     /// `self`. `bytes` may have a greater length than is needed.
@@ -239,7 +239,7 @@ pub unsafe trait Component: Send + Sync + Sized + 'static {
     /// that can be returned by `Self::to_bytes`.
     fn from_bytes(bytes: &[u8]) -> Option<(Self, usize)>;
 
-    /// Deserializes this component from bytes returned by [`to_bytes`]
+    /// Deserializes this component from bytes returned by [`Component::to_bytes`]
     /// without validating correctness.
     ///
     /// The default implementation of this method calls [`Self::from_bytes`]

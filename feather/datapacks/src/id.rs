@@ -7,7 +7,7 @@ use std::{
 };
 
 /// A namespaced identifier, also known as a "resource location"
-/// in Forge. See https://minecraft.gamepedia.com/Namespaced_ID.
+/// in Forge. See <https://minecraft.gamepedia.com/Namespaced_ID>.
 ///
 /// Namespaced IDs can be parsed using the `FromStr` implementation,
 /// and they can be formatted using the `Display` impl or by calling `to_string()`.

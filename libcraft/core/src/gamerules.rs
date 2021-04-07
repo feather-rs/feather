@@ -1,4 +1,4 @@
-//! Data sourced from: https://minecraft.gamepedia.com/Game_rule
+//! Data sourced from: <https://minecraft.gamepedia.com/Game_rule>
 
 use serde::{Deserialize, Serialize};
 
