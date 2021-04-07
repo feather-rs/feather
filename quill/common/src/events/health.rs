@@ -10,7 +10,7 @@ pub enum EntityHealthEvent {
 }
 
 /// Damage Events
-pub mod entity_damage_event_type {
+pub mod entity_damage_event_kind {
     use super::{Deserialize, Serialize};
 
     /// Damage caused by being in the area when a block explodes.
@@ -171,7 +171,7 @@ pub mod entity_damage_event_type {
 }
 
 /// Regeneration Events
-pub mod entity_regen_event_type {
+pub mod entity_regen_event_kind {
     use super::{Deserialize, Serialize};
 
     /// Health regeneration from eating consumables.
@@ -207,7 +207,7 @@ pub mod entity_regen_event_type {
     pub struct WitherSpawn;
 }
 
-pub mod entity_special_event_type {
+pub mod entity_special_event_kind {
     use super::{Deserialize, Serialize};
 
     /// Special event for respawning.

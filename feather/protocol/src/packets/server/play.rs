@@ -1162,7 +1162,9 @@ packets! {
     }
 
     EntityProperties {
-        __todo__ LengthInferredVecU8;
+        entity_id VarInt;
+        property Vec<EntityProperty>;
+
     }
 
     EntityEffect {
@@ -1176,6 +1178,55 @@ packets! {
     DeclareRecipes {
         // This packet isn't currently working. Fortunately, we don't really need it.
         __todo__ LengthInferredVecU8;
+    }
+}
+
+def_enum! {
+    OperationKind (u8) {
+        0 = AddSubtract,
+        1 = AddSubtractPercent,
+        2 = MultiplyPercent
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Modifier {
+    pub amount: f32,
+    pub operation: OperationKind,
+}
+
+#[derive(Debug, Clone)]
+pub enum EntityPropertyKind {
+    MaxHealth(f32),
+    FollowRange(f32),
+    KnockbackResistance(f32),
+    MovementSpeed(f32),
+    AttackDamage(f32),
+    AttackSpeed(f32),
+    FlyingSpeed(f32),
+    Armor(f32),
+    ArmorToughness(f32),
+    AttackKnockback(f32),
+    Luck(f32),
+    JumpStrength(f32),
+    SpawnReinforcements(f32),
+}
+
+#[derive(Debug, Clone)]
+pub struct EntityProperty {
+    pub property: EntityPropertyKind,
+    pub modifier: Modifier,
+}
+
+impl Readable for EntityProperty {
+    fn read(
+        buffer: &mut std::io::Cursor<&[u8]>,
+        version: crate::ProtocolVersion,
+    ) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        todo!()
     }
 }
 

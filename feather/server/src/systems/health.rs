@@ -3,7 +3,7 @@ use ecs::{SysResult, SystemExecutor};
 use quill_common::{
     components::{Health, Hunger},
     events::{
-        entity_damage_event_type, entity_regen_event_type, entity_special_event_type,
+        entity_damage_event_kind, entity_regen_event_kind, entity_special_event_kind,
         EntityHealthEvent,
     },
 };
@@ -43,7 +43,7 @@ fn entity_resurrection(game: &mut Game, _server: &mut Server) -> SysResult {
     for (entity, (_, health)) in game
         .ecs
         .query::<(
-            &entity_special_event_type::EntityResurrectionEvent,
+            &entity_special_event_kind::EntityResurrectionEvent,
             &mut Health,
         )>()
         .iter()
@@ -63,7 +63,7 @@ fn entity_suicide(game: &mut Game, _server: &mut Server) -> SysResult {
 
     for (entity, (_, health)) in game
         .ecs
-        .query::<(&entity_special_event_type::EntitySuicideEvent, &mut Health)>()
+        .query::<(&entity_special_event_kind::EntitySuicideEvent, &mut Health)>()
         .iter()
     {
         events.push((entity, EntityHealthEvent::Damage(health.max_health)));
@@ -79,7 +79,7 @@ fn entity_suicide(game: &mut Game, _server: &mut Server) -> SysResult {
 fn player_eating_regen(game: &mut Game, _server: &mut Server) -> SysResult {
     let mut events = Vec::new();
 
-    for (entity, _) in game.ecs.query::<&entity_regen_event_type::Eating>().iter() {
+    for (entity, _) in game.ecs.query::<&entity_regen_event_kind::Eating>().iter() {
         events.push((entity, EntityHealthEvent::Regen(1)));
     }
 
@@ -95,7 +95,7 @@ fn player_hunger(game: &mut Game, _server: &mut Server) -> SysResult {
 
     for (entity, _) in game
         .ecs
-        .query::<&entity_damage_event_type::Starvation>()
+        .query::<&entity_damage_event_kind::Starvation>()
         .iter()
     {
         events.push((entity, EntityHealthEvent::Damage(1)));

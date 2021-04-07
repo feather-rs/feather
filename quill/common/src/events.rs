@@ -5,7 +5,7 @@ mod interact_entity;
 
 pub use block_interact::{BlockInteractEvent, BlockPlacementEvent};
 pub use health::{
-    entity_damage_event_type, entity_regen_event_type, entity_special_event_type, EntityHealthEvent,
+    entity_damage_event_kind, entity_regen_event_kind, entity_special_event_kind, EntityHealthEvent,
 };
-pub use hunger::{entity_exhaustion_event_type, EntityHungerEvent};
+pub use hunger::{entity_exhaustion_event_kind, EntityHungerEvent};
 pub use interact_entity::InteractEntityEvent;

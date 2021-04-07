@@ -8,7 +8,7 @@ pub enum EntityHungerEvent {
     DepleteFood(u32),
 }
 
-pub mod entity_exhaustion_event_type {
+pub mod entity_exhaustion_event_kind {
     use super::{Deserialize, Serialize};
 
     ///
