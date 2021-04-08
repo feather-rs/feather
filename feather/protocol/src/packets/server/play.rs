@@ -1189,61 +1189,25 @@ def_enum! {
     }
 }
 
-#[derive(Debug, Clone)]
-pub enum EntityAttributeKind {
-    MaxHealth,
-    FollowRange,
-    KnockbackResistance,
-    MovementSpeed,
-    AttackDamage,
-    AttackSpeed,
-    AttackKnockback,
-    FlyingSpeed,
-    Armor,
-    ArmorToughness,
-    Luck,
-    HorseJumpStrength,
-    ZombieSpawnReinforcements,
+def_enum! {
+    EntityAttributeKind (String) {
+        "generic.max_health" = MaxHealth,
+        "generic.follow_range" = FollowRange,
+        "generic.knockback_resistance" = KnockbackResistance,
+        "generic.movement_speed" = MovementSpeed,
+        "generic.attack_damage" = AttackDamage,
+        "generic.attack_speed" = AttackSpeed,
+        "generic.attack_knockback" = AttackKnockback,
+        "generic.flying_speed" = FlyingSpeed,
+        "generic.armor" = Armor,
+        "generic.armor_toughness" = ArmorToughness,
+        "generic.luck" = Luck,
+        "horse.jump_strength" = HorseJumpStrength,
+        "zombie.spawn_reinforcements" = ZombieSpawnReinforcements,
+    }
 }
 
 impl EntityAttributeKind {
-    pub fn from_key(key: &str) -> anyhow::Result<Self> {
-        Ok(match key {
-            "generic:max_health" => EntityAttributeKind::MaxHealth,
-            "generic:follow_range" => EntityAttributeKind::FollowRange,
-            "generic:knockback_resistance" => EntityAttributeKind::KnockbackResistance,
-            "generic:movement_speed" => EntityAttributeKind::MovementSpeed,
-            "generic:attack_damage" => EntityAttributeKind::AttackDamage,
-            "generic:attack_speed" => EntityAttributeKind::AttackSpeed,
-            "generic:attack_knockback" => EntityAttributeKind::AttackKnockback,
-            "generic:flying_speed" => EntityAttributeKind::FlyingSpeed,
-            "generic:armor" => EntityAttributeKind::Armor,
-            "generic:armor_toughness" => EntityAttributeKind::ArmorToughness,
-            "generic:luck" => EntityAttributeKind::Luck,
-            "horse:jump_strength" => EntityAttributeKind::HorseJumpStrength,
-            "zombie:spawn_reinforcements" => EntityAttributeKind::ZombieSpawnReinforcements,
-            _ => return Err(anyhow::anyhow!("invalid entity property key: '{}'", key)),
-        })
-    }
-
-    pub fn id(&self) -> String {
-        String::from(match self {
-            EntityAttributeKind::MaxHealth => "generic:max_health",
-            EntityAttributeKind::FollowRange => "generic:follow_range",
-            EntityAttributeKind::KnockbackResistance => "generic:knockback_resistance",
-            EntityAttributeKind::MovementSpeed => "generic:movement_speed",
-            EntityAttributeKind::AttackDamage => "generic:attack_damage",
-            EntityAttributeKind::AttackSpeed => "generic:attack_speed",
-            EntityAttributeKind::AttackKnockback => "generic:attack_knockback",
-            EntityAttributeKind::FlyingSpeed => "generic:flying_speed",
-            EntityAttributeKind::Armor => "generic:armor",
-            EntityAttributeKind::ArmorToughness => "generic:armor_toughness",
-            EntityAttributeKind::Luck => "generic:luck",
-            EntityAttributeKind::HorseJumpStrength => "horse:jump_strength",
-            EntityAttributeKind::ZombieSpawnReinforcements => "zombie:spawn_reinforcements",
-        })
-    }
-
     pub fn max_value(&self) -> f32 {
         match &self {
             EntityAttributeKind::MaxHealth => 1024.0,
@@ -1271,70 +1235,17 @@ impl EntityAttributeKind {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct AttributeModifier {
-    pub uuid: Uuid,
-    pub amount: f32,
-    pub operation: OperationKind,
-}
-
-#[derive(Debug, Clone)]
-pub struct EntityProperty {
-    pub attribute: EntityAttributeKind,
-    pub modifiers: Vec<AttributeModifier>,
-    pub value: f32,
-}
-
-impl Readable for EntityProperty {
-    fn read(
-        buffer: &mut std::io::Cursor<&[u8]>,
-        version: crate::ProtocolVersion,
-    ) -> anyhow::Result<Self>
-    where
-        Self: Sized,
-    {
-        let attribute_key = String::read(buffer, version)?;
-        let attribute = EntityAttributeKind::from_key(&attribute_key)?;
-        let value = f32::read(buffer, version)?;
-
-        let num_modifiers = VarInt::read(buffer, version)?.0;
-        let mut modifiers = Vec::new();
-
-        for _ in 0..num_modifiers {
-            let uuid = Uuid::read(buffer, version)?;
-            let amount = f32::read(buffer, version)?;
-            let operation = OperationKind::read(buffer, version)?;
-
-            modifiers.push(AttributeModifier {
-                uuid,
-                amount,
-                operation,
-            });
-        }
-
-        Ok(Self {
-            attribute,
-            modifiers,
-            value,
-        })
+packets! {
+    AttributeModifier {
+        uuid Uuid;
+        amount f64;
+        operation OperationKind;
     }
-}
 
-impl Writeable for EntityProperty {
-    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
-        self.attribute.id().write(buffer, version);
-        self.value.write(buffer, version);
-
-        let num_modifiers = self.modifiers.len() as i32;
-        VarInt(num_modifiers).write(buffer, version);
-
-        for modifier in &self.modifiers {
-            modifier.uuid.write(buffer, version);
-            modifier.amount.write(buffer, version);
-            modifier.operation.write(buffer, version);
-        }
-
-        println!("{:?}", buffer);
+    EntityProperty {
+        attribute EntityAttributeKind;
+        value f64;
+        modifiers LengthPrefixedVec<AttributeModifier>
     }
 }
 

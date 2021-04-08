@@ -15,9 +15,7 @@ use common::{
     Window,
 };
 use flume::{Receiver, Sender};
-use packets::server::{
-    Particle, Respawn, SetSlot, SpawnLivingEntity, UpdateHealth, UpdateLight, WindowConfirmation,
-};
+use packets::server::{OperationKind, Particle, Respawn, SetSlot, SpawnLivingEntity, UpdateHealth, UpdateLight, WindowConfirmation};
 use parking_lot::RwLock;
 use protocol::{
     packets::{
@@ -541,12 +539,16 @@ impl Client {
 
     pub fn test_func_r(&self, network_id: NetworkId) {
         let test_property = vec![EntityProperty {
-            attribute: EntityAttributeKind::MaxHealth,
-            modifiers: vec![],
+            attribute: EntityAttributeKind::FlyingSpeed,
+            modifiers: vec![AttributeModifier {
+                uuid: self.uuid,
+                amount: 1.0,
+                operation: OperationKind::AddSubtract,
+            }],
             value: 20.0,
         }];
         self.send_packet(EntityProperties {
-            entity_id: network_id.0,
+            entity_id: self.network_id.0,
             properties: test_property
         })
     }
