@@ -442,6 +442,7 @@ where
 
 pub type VarIntPrefixedVec<'a, T> = LengthPrefixedVec<'a, VarInt, T>;
 pub type ShortPrefixedVec<'a, T> = LengthPrefixedVec<'a, u16, T>;
+pub type IntPrefixedVec<'a, T> = LengthPrefixedVec<'a, i32, T>;
 
 /// A vector of bytes which consumes all remaining bytes in this packet.
 /// This is used by the plugin messaging packets, for one.

@@ -1163,7 +1163,7 @@ packets! {
 
     EntityProperties {
         entity_id VarInt;
-        properties LengthPrefixedVec<EntityProperty>;
+        properties IntPrefixedVec<EntityProperty>;
 
     }
 
@@ -1245,7 +1245,7 @@ packets! {
     EntityProperty {
         attribute EntityAttributeKind;
         value f64;
-        modifiers LengthPrefixedVec<AttributeModifier>
+        modifiers VarIntPrefixedVec<AttributeModifier>
     }
 }
 
