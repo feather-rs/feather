@@ -2,7 +2,7 @@ macro_rules! user_type {
     (VarInt) => {
         i32
     };
-    (LengthPrefixedVec <$inner:ident>) => {
+    (VarIntPrefixedVec <$inner:ident>) => {
         Vec<$inner>
     };
     (ShortPrefixedVec <$inner:ident>) => {
@@ -23,8 +23,8 @@ macro_rules! user_type_convert_to_writeable {
     (VarInt, $e:expr) => {
         VarInt(*$e as i32)
     };
-    (LengthPrefixedVec <$inner:ident>, $e:expr) => {
-        LengthPrefixedVec::from($e.as_slice())
+    (VarIntPrefixedVec <$inner:ident>, $e:expr) => {
+        VarIntPrefixedVec::from($e.as_slice())
     };
     (ShortPrefixedVec <$inner:ident>, $e:expr) => {
         ShortPrefixedVec::from($e.as_slice())
@@ -281,7 +281,7 @@ pub trait VariantOf<Enum> {
         Self: Sized;
 }
 
-use crate::io::{Angle, LengthInferredVecU8, LengthPrefixedVec, Nbt, ShortPrefixedVec, VarInt};
+use crate::io::{Angle, LengthInferredVecU8, Nbt, ShortPrefixedVec, VarInt, VarIntPrefixedVec};
 use crate::Slot;
 use base::{BlockId, BlockPosition};
 use nbt::Blob;
