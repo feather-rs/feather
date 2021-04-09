@@ -7,8 +7,8 @@ packets! {
 
     EncryptionRequest {
         server_id String;
-        public_key LengthPrefixedVec<u8>;
-        verify_token LengthPrefixedVec<u8>;
+        public_key VarIntPrefixedVec<u8>;
+        verify_token VarIntPrefixedVec<u8>;
     }
 
     LoginSuccess {

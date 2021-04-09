@@ -32,7 +32,7 @@ use systems::view::WaitingChunks;
 
 /// A Minecraft server.
 ///
-/// Call [`register`] to register the server
+/// Call [`link_with_game`](Server::link_with_game) to register the server
 /// with a [`Game`](common::Game). This will
 /// cause the server to serve the game to players.
 ///

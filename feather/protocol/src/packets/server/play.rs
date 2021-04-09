@@ -97,7 +97,7 @@ def_enum! {
 
 packets! {
     Statistics {
-        statistics LengthPrefixedVec<Statistic>;
+        statistics VarIntPrefixedVec<Statistic>;
     }
 
     Statistic {
@@ -217,14 +217,14 @@ packets! {
     MultiBlockChange {
         chunk_section_coordinate u64;
         dont_trust_edges bool;
-        records LengthPrefixedVec<VarLong>;
+        records VarIntPrefixedVec<VarLong>;
     }
 
     TabComplete {
         id VarInt;
         start VarInt;
         length VarInt;
-        matches LengthPrefixedVec<TabCompleteMatch>;
+        matches VarIntPrefixedVec<TabCompleteMatch>;
     }
 
     TabCompleteMatch {
@@ -242,7 +242,7 @@ packets! {
 
     CommandNode {
         flags u8;
-        children LengthPrefixedVec<VarInt>;
+        children VarIntPrefixedVec<VarInt>;
         redirect_node Option<VarInt>;
         name Option<String>;
         parser Option<String>;
@@ -312,7 +312,7 @@ packets! {
         y f32;
         z f32;
         strength f32;
-        records LengthPrefixedVec<ExplosionRecord>;
+        records VarIntPrefixedVec<ExplosionRecord>;
         player_motion_x f32;
         player_motion_y f32;
         player_motion_z f32;
@@ -358,7 +358,7 @@ packets! {
         is_hardcore bool;
         gamemode Gamemode;
         previous_gamemode u8; // can be 255 if "not set," otherwise corresponds to a gamemode ID
-        world_names LengthPrefixedVec<String>;
+        world_names VarIntPrefixedVec<String>;
 
         dimension_codec Nbt<Blob>;
         dimension Nbt<Blob>;
@@ -381,7 +381,7 @@ packets! {
         scale i8;
         show_tracking_position bool;
         is_locked bool;
-        icons LengthPrefixedVec<Icon>;
+        icons VarIntPrefixedVec<Icon>;
         // TODO: a bunch of fields only if a Columns is set to 0
         __todo__ LengthInferredVecU8;
     }
@@ -814,7 +814,7 @@ packets! {
     }
 
     DestroyEntities {
-        entity_ids LengthPrefixedVec<VarInt>;
+        entity_ids VarIntPrefixedVec<VarInt>;
     }
 
     RemoveEntityEffect {
@@ -1027,7 +1027,7 @@ packets! {
 
     SetPassengers {
         entity_id VarInt;
-        passengers LengthPrefixedVec<VarInt>;
+        passengers VarIntPrefixedVec<VarInt>;
     }
 
     Teams {
@@ -1046,7 +1046,7 @@ def_enum! {
             team_color VarInt;
             team_prefix String;
             team_suffix String;
-            entities LengthPrefixedVec<String>; // usernames or UUIDs
+            entities VarIntPrefixedVec<String>; // usernames or UUIDs
         },
         1 = RemoveTeam,
         2 = UpdateTeamInfo {
@@ -1059,10 +1059,10 @@ def_enum! {
             team_suffix String;
         },
         3 = AddEntitiesToTeam {
-            entities LengthPrefixedVec<String>;
+            entities VarIntPrefixedVec<String>;
         },
         4 = RemoveEntitiesFromTeam {
-            entities LengthPrefixedVec<String>;
+            entities VarIntPrefixedVec<String>;
         },
     }
 }
@@ -1255,7 +1255,7 @@ def_enum! {
             id String;
             group String;
             ingredient VarInt;
-            ingredients LengthPrefixedVec<Ingredient>;
+            ingredients VarIntPrefixedVec<Ingredient>;
             result Slot;
         },
         "minecraft:crafting_shaped" = Shaped {
@@ -1263,7 +1263,7 @@ def_enum! {
             width VarInt;
             height VarInt;
             group String;
-            ingredients LengthPrefixedVec<Ingredient>;
+            ingredients VarIntPrefixedVec<Ingredient>;
             result Slot;
         },
         "minecraft:crafting_special_armordye" = ArmorDye { id String; },
@@ -1323,18 +1323,18 @@ def_enum! {
 
 packets! {
     Ingredient {
-        allowed_items LengthPrefixedVec<Slot>;
+        allowed_items VarIntPrefixedVec<Slot>;
     }
 
     AllTags {
-        block_tags LengthPrefixedVec<Tag>;
-        item_tags LengthPrefixedVec<Tag>;
-        fluid_tags LengthPrefixedVec<Tag>;
-        entity_tags LengthPrefixedVec<Tag>;
+        block_tags VarIntPrefixedVec<Tag>;
+        item_tags VarIntPrefixedVec<Tag>;
+        fluid_tags VarIntPrefixedVec<Tag>;
+        entity_tags VarIntPrefixedVec<Tag>;
     }
 
     Tag {
         name String;
-        entries LengthPrefixedVec<VarInt>;
+        entries VarIntPrefixedVec<VarInt>;
     }
 }

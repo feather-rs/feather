@@ -8,8 +8,8 @@ use crate::{Entity, EntityId};
 ///
 /// Created via [`Game::create_entity_builder`](crate::Game::create_entity_builder).
 ///
-/// Add components to the entity with [`add`].
-/// Finish building the entity with [`finish`].
+/// Add components to the entity with [`EntityBuilder::add`].
+/// Finish building the entity with [`EntityBuilder::finish`].
 #[derive(Debug)]
 pub struct EntityBuilder {
     id: u32,

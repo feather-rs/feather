@@ -1,5 +1,5 @@
 //! This module implements the entity
-//! metadata format. See https://wiki.vg/Entity_metadata
+//! metadata format. See <https://wiki.vg/Entity_metadata>
 //! for the specification.
 
 use crate::{BlockPosition, Direction};

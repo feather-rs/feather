@@ -15,6 +15,7 @@ use std::{
     convert::{TryFrom, TryInto},
     io::{self, Cursor, Read, Write},
     iter,
+    marker::PhantomData,
     num::TryFromIntError,
 };
 use thiserror::Error;
@@ -366,20 +367,23 @@ pub const MAX_LENGTH: usize = 1024 * 1024; // 2^20 elements
 /// The array is prefixed with a `VarInt` length.
 ///
 /// This will reject arrays of lengths larger than MAX_LENGTH.
-pub struct LengthPrefixedVec<'a, T>(pub Cow<'a, [T]>)
+pub struct LengthPrefixedVec<'a, P, T>(pub Cow<'a, [T]>, PhantomData<P>)
 where
-    [T]: ToOwned<Owned = Vec<T>>;
+    [T]: ToOwned<Owned = Vec<T>>,
+    P: TryInto<usize>;
 
-impl<'a, T> Readable for LengthPrefixedVec<'a, T>
+impl<'a, P, T> Readable for LengthPrefixedVec<'a, P, T>
 where
     T: Readable,
     [T]: ToOwned<Owned = Vec<T>>,
+    P: TryInto<usize> + Readable,
+    P::Error: std::error::Error + Send + Sync + 'static,
 {
     fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
-        let length: usize = VarInt::read(buffer, version)?.0.try_into()?;
+        let length: usize = P::read(buffer, version)?.try_into()?;
 
         if length > MAX_LENGTH {
             bail!("array length too large ({} > {})", length, MAX_LENGTH);
@@ -388,50 +392,56 @@ where
         let vec = iter::repeat_with(|| T::read(buffer, version))
             .take(length)
             .collect::<anyhow::Result<Vec<T>>>()?;
-        Ok(LengthPrefixedVec(Cow::Owned(vec)))
+        Ok(Self(Cow::Owned(vec), PhantomData))
     }
 }
 
-impl<'a, T> Writeable for LengthPrefixedVec<'a, T>
+impl<'a, P, T> Writeable for LengthPrefixedVec<'a, P, T>
 where
     T: Writeable,
     [T]: ToOwned<Owned = Vec<T>>,
+    P: TryInto<usize> + TryFrom<usize> + Writeable,
+    <P as TryFrom<usize>>::Error: std::fmt::Debug,
 {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
-        VarInt::from(self.0.len()).write(buffer, version);
+        P::try_from(self.0.len()).unwrap().write(buffer, version);
 
-        for element in &*self.0 {
-            element.write(buffer, version);
-        }
+        self.0.iter().for_each(|item| item.write(buffer, version));
     }
 }
 
-impl<'a, T> From<LengthPrefixedVec<'a, T>> for Vec<T>
+impl<'a, P, T> From<LengthPrefixedVec<'a, P, T>> for Vec<T>
 where
     [T]: ToOwned<Owned = Vec<T>>,
+    P: TryInto<usize>,
 {
-    fn from(x: LengthPrefixedVec<'a, T>) -> Self {
+    fn from(x: LengthPrefixedVec<'a, P, T>) -> Self {
         x.0.into_owned()
     }
 }
 
-impl<'a, T> From<&'a [T]> for LengthPrefixedVec<'a, T>
+impl<'a, P, T> From<&'a [T]> for LengthPrefixedVec<'a, P, T>
 where
     [T]: ToOwned<Owned = Vec<T>>,
+    P: TryInto<usize>,
 {
     fn from(slice: &'a [T]) -> Self {
-        LengthPrefixedVec(Cow::Borrowed(slice))
+        Self(Cow::Borrowed(slice), PhantomData)
     }
 }
 
-impl<'a, T> From<Vec<T>> for LengthPrefixedVec<'a, T>
+impl<'a, P, T> From<Vec<T>> for LengthPrefixedVec<'a, P, T>
 where
     [T]: ToOwned<Owned = Vec<T>>,
+    P: TryInto<usize>,
 {
     fn from(vec: Vec<T>) -> Self {
-        LengthPrefixedVec(Cow::Owned(vec))
+        Self(Cow::Owned(vec), PhantomData)
     }
 }
+
+pub type VarIntPrefixedVec<'a, T> = LengthPrefixedVec<'a, VarInt, T>;
+pub type ShortPrefixedVec<'a, T> = LengthPrefixedVec<'a, u16, T>;
 
 /// A vector of bytes which consumes all remaining bytes in this packet.
 /// This is used by the plugin messaging packets, for one.
@@ -463,71 +473,6 @@ impl<'a> From<&'a [u8]> for LengthInferredVecU8<'a> {
 impl<'a> From<LengthInferredVecU8<'a>> for Vec<u8> {
     fn from(x: LengthInferredVecU8<'a>) -> Self {
         x.0.into_owned()
-    }
-}
-
-pub struct ShortPrefixedVec<'a, T: ToOwned>(pub Cow<'a, [T]>)
-where
-    [T]: ToOwned;
-
-impl<'a, T> Readable for ShortPrefixedVec<'a, T>
-where
-    T: Readable + Clone,
-    [T]: ToOwned<Owned = Vec<T>>,
-{
-    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
-    where
-        Self: Sized,
-    {
-        let length = u16::read(buffer, version)? as usize;
-        let mut vec = Vec::with_capacity(length);
-
-        for _ in 0..length {
-            vec.push(T::read(buffer, version)?);
-        }
-
-        Ok(Self(Cow::Owned(vec)))
-    }
-}
-
-impl<'a, T> Writeable for ShortPrefixedVec<'a, T>
-where
-    T: Writeable + Clone,
-    [T]: ToOwned<Owned = Vec<T>>,
-{
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
-        (self.0.len() as u16).write(buffer, version);
-        self.0.iter().for_each(|item| item.write(buffer, version));
-    }
-}
-
-impl<'a, T> From<ShortPrefixedVec<'a, T>> for Vec<T>
-where
-    [T]: ToOwned<Owned = Vec<T>>,
-    T: Clone,
-{
-    fn from(x: ShortPrefixedVec<'a, T>) -> Self {
-        x.0.into_owned()
-    }
-}
-
-impl<'a, T> From<&'a [T]> for ShortPrefixedVec<'a, T>
-where
-    [T]: ToOwned<Owned = Vec<T>>,
-    T: Clone,
-{
-    fn from(slice: &'a [T]) -> Self {
-        ShortPrefixedVec(Cow::Borrowed(slice))
-    }
-}
-
-impl<'a, T> From<Vec<T>> for ShortPrefixedVec<'a, T>
-where
-    [T]: ToOwned<Owned = Vec<T>>,
-    T: Clone,
-{
-    fn from(vec: Vec<T>) -> Self {
-        ShortPrefixedVec(Cow::Owned(vec))
     }
 }
 

@@ -4,7 +4,7 @@ use quill_common::{Component, Pointer, PointerMut};
 
 /// Unique internal ID of an entity.
 ///
-/// Can be passed to [`Game::entity`] to get an [`Entity`]
+/// Can be passed to [`crate::Game::entity`] to get an [`Entity`]
 /// handle.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(transparent)]
@@ -21,7 +21,7 @@ pub struct MissingComponent(&'static str);
 /// Allows access to the entity's components, like
 /// position and UUID.
 ///
-/// Use [`Game::entity`] to get an `Entity` instance.
+/// Use [`crate::Game::entity`] to get an `Entity` instance.
 ///
 /// An `Entity` be sent or shared between threads. However,
 /// an [`EntityId`] can.

@@ -1,6 +1,6 @@
 //! Components not associated with a specific type of entity.
 //!
-//! See the [entities module](::quill::entities) for entity-specific
+//! See the [entities module](crate::entities) for entity-specific
 //! components.
 
 use std::{
