@@ -19,7 +19,7 @@ type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, &EntityInit)>;
 /// Stores the entire state of a Minecraft game.
 ///
 /// This contains:
-/// * A [`World`](base::World) containing chunks and blocks.
+/// * A [`World`](crate::World) containing chunks and blocks.
 /// * An [`Ecs`](ecs::Ecs) containing entities.
 /// * A [`Resources`](ecs::Resources) containing additional, user-defined data.
 /// * A [`SystemExecutor`] to run systems.

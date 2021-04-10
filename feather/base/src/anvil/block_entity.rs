@@ -6,7 +6,7 @@ use super::player::InventorySlot;
 /// A block entity loaded or saved to the Anvil format.
 /// Should be serialized using NBT.
 ///
-/// https://minecraft.gamepedia.com/Chunk_format#Block_entity_format
+/// <https://minecraft.gamepedia.com/Chunk_format#Block_entity_format>
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlockEntityData {
     #[serde(flatten)]

@@ -1,4 +1,4 @@
-//! Data sourced from: https://minecraft.gamepedia.com/Enchanting#Enchantments
+//! Data sourced from: <https://minecraft.gamepedia.com/Enchanting#Enchantments>
 
 use serde::{Deserialize, Serialize};
 

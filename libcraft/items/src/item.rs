@@ -7886,11 +7886,11 @@ impl TryFrom<String> for Item {
     }
 }
 
-use std::convert::Into;
+use std::convert::From;
 
-impl Into<&'static str> for Item {
-    fn into(self) -> &'static str {
-        self.name()
+impl From<Item> for &'static str {
+    fn from(item: Item) -> &'static str {
+        item.name()
     }
 }
 

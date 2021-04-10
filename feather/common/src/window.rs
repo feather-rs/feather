@@ -12,7 +12,7 @@ use parking_lot::MutexGuard;
 /// conversion between protocol and slot indices.
 ///
 /// Also provides high-level methods to interact with the inventory,
-/// like [`right_click`], [`shift_left_click`], etc.
+/// like [`Window::right_click`], [`Window::shift_click`], etc.
 #[derive(Debug)]
 pub struct Window {
     /// The backing window (contains the `Inventory`s)

@@ -33,7 +33,7 @@ impl BlockState {
     ///
     /// # Warning
     /// The returned `BlockData` is not linked with this `BlockState` instance.
-    /// You need to call [`set_data`] to apply any changes made to the block data.
+    /// You need to call [`BlockState::set_data`] to apply any changes made to the block data.
     pub fn data_as<T: BlockData>(self) -> Option<T> {
         T::from_raw(&self.raw().properties, self.get_valid_properties())
     }

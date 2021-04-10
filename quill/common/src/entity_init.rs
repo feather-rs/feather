@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Initial state of an entity passed
-/// to [`Game::create_entity_builder`](::quill::Game::create_entity_builder).
+/// to `Game::create_entity_builder`.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum EntityInit {
     /// Spawn an area effect cloud.

@@ -49,7 +49,7 @@ pub trait Plugin: Sized {
     /// Invoked before the plugin is disabled.
     ///
     /// # Warning
-    /// Like [`enable`], this method is not necessarily called
+    /// Like [`Plugin::enable`], this method is not necessarily called
     /// when the server shuts down. Users may choose to disable
     /// plugins at another time. Therefore, do not assume that
     /// the server is shutting down when this method is called.

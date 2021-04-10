@@ -62,7 +62,7 @@ impl Game {
         Ok(Entity::new(id))
     }
 
-    /// Creates an empty [`EntityBuilder`](create::EntityBuilder)
+    /// Creates an empty [`EntityBuilder`](crate::EntityBuilder)
     /// to add entities to the ecs.
     ///
     /// The builder isn initialised without any components.
@@ -149,7 +149,7 @@ impl Game {
     /// Mutating the returned [`BlockState`](libcraft_blocks::BlockState)
     /// will _not_ cause the block to be modified in the world. In other
     /// words, the `BlockState` is a copy, not a reference. To update
-    /// the block, call [`set_block`].
+    /// the block, call [`Game::set_block`].
     pub fn block(&self, pos: BlockPosition) -> Result<BlockState, BlockAccessError> {
         check_y_bound(pos)?;
 

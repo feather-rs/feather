@@ -96,7 +96,7 @@ impl Ecs {
 
     /// Adds a component to an entity.
     ///
-    /// Do not use this function to add events. Use [`insert_event`]
+    /// Do not use this function to add events. Use [`Ecs::insert_event`]
     /// instead.
     pub fn insert(
         &mut self,
