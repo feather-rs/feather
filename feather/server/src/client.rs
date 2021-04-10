@@ -214,8 +214,7 @@ impl Client {
         let mut data = Vec::new();
         "Feather"
             .to_owned()
-            .write(&mut data, ProtocolVersion::V1_16_2)
-            .unwrap();
+            .write(&mut data, ProtocolVersion::V1_16_2);
         self.send_plugin_message("minecraft:brand", data)
     }
 

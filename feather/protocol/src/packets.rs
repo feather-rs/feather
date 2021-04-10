@@ -81,11 +81,10 @@ macro_rules! packets {
 
             #[allow(unused_variables)]
             impl crate::Writeable for $packet {
-                fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
+                fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
                     $(
-                        user_type_convert_to_writeable!($typ $(<$generics>)?, &self.$field).write(buffer, version)?;
+                        user_type_convert_to_writeable!($typ $(<$generics>)?, &self.$field).write(buffer, version);
                     )*
-                    Ok(())
                 }
             }
         )*
@@ -170,7 +169,7 @@ macro_rules! def_enum {
         }
 
         impl crate::Writeable for $ident {
-            fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
+            fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
                 match self {
                     $(
                         $ident::$variant $(
@@ -179,17 +178,16 @@ macro_rules! def_enum {
                             }
                         )? => {
                             let discriminant = <$discriminant_type>::from($discriminant);
-                            discriminant.write(buffer, version)?;
+                            discriminant.write(buffer, version);
 
                             $(
                                 $(
-                                    user_type_convert_to_writeable!($typ $(<$generics>)?, $field).write(buffer, version)?;
+                                    user_type_convert_to_writeable!($typ $(<$generics>)?, $field).write(buffer, version);
                                 )*
                             )?
                         }
                     )*
                 }
-                Ok(())
             }
         }
     };
@@ -235,17 +233,15 @@ macro_rules! packet_enum {
         }
 
         impl crate::Writeable for $ident {
-            fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
-                VarInt(self.id() as i32).write(buffer, version)?;
+            fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
+                VarInt(self.id() as i32).write(buffer, version);
                 match self {
                     $(
                         $ident::$packet(packet) => {
-                            packet.write(buffer, version)?;
+                            packet.write(buffer, version);
                         }
                     )*
                 }
-
-                Ok(())
             }
         }
 
