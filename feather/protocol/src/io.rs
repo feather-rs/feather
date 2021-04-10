@@ -369,8 +369,7 @@ pub const MAX_LENGTH: usize = 1024 * 1024; // 2^20 elements
 /// This will reject arrays of lengths larger than MAX_LENGTH.
 pub struct LengthPrefixedVec<'a, P, T>(pub Cow<'a, [T]>, PhantomData<P>)
 where
-    [T]: ToOwned<Owned = Vec<T>>,
-    P: TryInto<usize>;
+    [T]: ToOwned<Owned = Vec<T>>;
 
 impl<'a, P, T> Readable for LengthPrefixedVec<'a, P, T>
 where
@@ -400,8 +399,8 @@ impl<'a, P, T> Writeable for LengthPrefixedVec<'a, P, T>
 where
     T: Writeable,
     [T]: ToOwned<Owned = Vec<T>>,
-    P: TryInto<usize> + TryFrom<usize> + Writeable,
-    <P as TryFrom<usize>>::Error: std::fmt::Debug,
+    P: TryFrom<usize> + Writeable,
+    P::Error: std::fmt::Debug,
 {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
         P::try_from(self.0.len()).unwrap().write(buffer, version);
@@ -413,7 +412,6 @@ where
 impl<'a, P, T> From<LengthPrefixedVec<'a, P, T>> for Vec<T>
 where
     [T]: ToOwned<Owned = Vec<T>>,
-    P: TryInto<usize>,
 {
     fn from(x: LengthPrefixedVec<'a, P, T>) -> Self {
         x.0.into_owned()
@@ -423,7 +421,6 @@ where
 impl<'a, P, T> From<&'a [T]> for LengthPrefixedVec<'a, P, T>
 where
     [T]: ToOwned<Owned = Vec<T>>,
-    P: TryInto<usize>,
 {
     fn from(slice: &'a [T]) -> Self {
         Self(Cow::Borrowed(slice), PhantomData)
@@ -433,7 +430,6 @@ where
 impl<'a, P, T> From<Vec<T>> for LengthPrefixedVec<'a, P, T>
 where
     [T]: ToOwned<Owned = Vec<T>>,
-    P: TryInto<usize>,
 {
     fn from(vec: Vec<T>) -> Self {
         Self(Cow::Owned(vec), PhantomData)
