@@ -68,7 +68,9 @@ impl MinecraftCodec {
 
     /// Writes a packet into the provided writer.
     pub fn encode(&mut self, packet: &impl Writeable, output: &mut Vec<u8>) {
-        packet.write(&mut self.staging_buf, ProtocolVersion::V1_16_2);
+        packet
+            .write(&mut self.staging_buf, ProtocolVersion::V1_16_2)
+            .unwrap();
 
         if let Some(threshold) = self.compression {
             self.encode_compressed(output, threshold);
@@ -98,8 +100,12 @@ impl MinecraftCodec {
             .unwrap();
 
         let packet_length = data_length_bytes.position() as usize + data.len();
-        VarInt(packet_length as i32).write(output, ProtocolVersion::V1_16_2);
-        VarInt(data_length as i32).write(output, ProtocolVersion::V1_16_2);
+        VarInt(packet_length as i32)
+            .write(output, ProtocolVersion::V1_16_2)
+            .unwrap();
+        VarInt(data_length as i32)
+            .write(output, ProtocolVersion::V1_16_2)
+            .unwrap();
         output.extend_from_slice(data);
 
         self.compression_target.clear();
@@ -121,7 +127,9 @@ impl MinecraftCodec {
         // TODO: we should probably be able to determine the length without writing the packet,
         // which could remove an unnecessary copy.
         let length = self.staging_buf.len() as i32;
-        VarInt(length).write(output, ProtocolVersion::V1_16_2);
+        VarInt(length)
+            .write(output, ProtocolVersion::V1_16_2)
+            .unwrap();
         output.extend_from_slice(&self.staging_buf);
     }
 
