@@ -299,7 +299,7 @@ impl Writeable for VarLong {
                 break;
             }
         }
-        
+
         Ok(())
     }
 }
@@ -343,7 +343,7 @@ impl Writeable for String {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         VarInt(self.len() as i32).write(buffer, version)?;
         buffer.extend_from_slice(self.as_bytes());
-        
+
         Ok(())
     }
 }
@@ -417,7 +417,9 @@ where
 {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         P::try_from(self.0.len())?.write(buffer, version)?;
-        self.0.iter().for_each(|item| item.write(buffer, version).expect("failed to write to vec"));
+        self.0
+            .iter()
+            .for_each(|item| item.write(buffer, version).expect("failed to write to vec"));
 
         Ok(())
     }
@@ -676,7 +678,11 @@ impl Writeable for EntityMetadata {
     }
 }
 
-fn write_meta_entry(entry: &MetaEntry, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+fn write_meta_entry(
+    entry: &MetaEntry,
+    buffer: &mut Vec<u8>,
+    version: ProtocolVersion,
+) -> anyhow::Result<()> {
     match entry {
         MetaEntry::Byte(x) => x.write(buffer, version)?,
         MetaEntry::VarInt(x) => {

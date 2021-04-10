@@ -85,7 +85,11 @@ impl MinecraftCodec {
         Ok(())
     }
 
-    fn encode_compressed(&mut self, output: &mut Vec<u8>, threshold: CompressionThreshold) -> anyhow::Result<()> {
+    fn encode_compressed(
+        &mut self,
+        output: &mut Vec<u8>,
+        threshold: CompressionThreshold,
+    ) -> anyhow::Result<()> {
         let (data_length, data) = if self.staging_buf.len() >= threshold {
             self.data_compressed()
         } else {

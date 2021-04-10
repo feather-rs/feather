@@ -987,7 +987,7 @@ impl Writeable for EntityEquipment {
             slot_byte.write(buffer, version)?;
             entry.item.write(buffer, version)?;
         }
-        
+
         Ok(())
     }
 }

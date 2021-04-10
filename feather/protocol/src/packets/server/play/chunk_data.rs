@@ -112,7 +112,11 @@ fn build_heightmaps(chunk: &Chunk) -> Heightmaps {
     Heightmaps { motion_blocking }
 }
 
-fn encode_section(section: &ChunkSection, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+fn encode_section(
+    section: &ChunkSection,
+    buffer: &mut Vec<u8>,
+    version: ProtocolVersion,
+) -> anyhow::Result<()> {
     (section.non_air_blocks() as u16).write(buffer, version)?;
     (section.blocks().data().bits_per_value() as u8).write(buffer, version)?;
 
