@@ -15,6 +15,7 @@ use std::{
     convert::{TryFrom, TryInto},
     io::{self, Cursor, Read, Write},
     iter,
+    marker::PhantomData,
     num::TryFromIntError,
 };
 use thiserror::Error;
@@ -33,15 +34,16 @@ pub trait Readable {
 /// to a buffer.
 pub trait Writeable: Sized {
     /// Writes this value to the given buffer.
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion);
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()>;
 }
 
 impl<'a, T> Writeable for &'a T
 where
     T: Writeable,
 {
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
-        T::write(*self, buffer, version);
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+        T::write(*self, buffer, version)?;
+        Ok(())
     }
 }
 
@@ -62,8 +64,9 @@ macro_rules! integer_impl {
             }
 
             impl Writeable for $int {
-                fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
-                    buffer.$write_fn::<BigEndian>(*self).unwrap();
+                fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) -> anyhow::Result<()> {
+                    buffer.$write_fn::<BigEndian>(*self)?;
+                    Ok(())
                 }
             }
         )*
@@ -93,8 +96,9 @@ impl Readable for u8 {
 }
 
 impl Writeable for u8 {
-    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
-        buffer.write_u8(*self).unwrap();
+    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) -> anyhow::Result<()> {
+        buffer.write_u8(*self)?;
+        Ok(())
     }
 }
 
@@ -108,8 +112,9 @@ impl Readable for i8 {
 }
 
 impl Writeable for i8 {
-    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
-        buffer.write_i8(*self).unwrap()
+    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) -> anyhow::Result<()> {
+        buffer.write_i8(*self)?;
+        Ok(())
     }
 }
 
@@ -136,13 +141,15 @@ impl<T> Writeable for Option<T>
 where
     T: Writeable,
 {
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         let present = self.is_some();
-        present.write(buffer, version);
+        present.write(buffer, version)?;
 
         if let Some(value) = self {
-            value.write(buffer, version);
+            value.write(buffer, version)?;
         }
+
+        Ok(())
     }
 }
 
@@ -225,8 +232,9 @@ impl VarInt {
 }
 
 impl Writeable for VarInt {
-    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) -> anyhow::Result<()> {
         self.write_to(buffer).expect("write to Vec failed");
+        Ok(())
     }
 }
 
@@ -276,7 +284,7 @@ impl From<i64> for VarLong {
 }
 
 impl Writeable for VarLong {
-    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) -> anyhow::Result<()> {
         let mut x = self.0 as u64;
         loop {
             let mut temp = (x & 0b0111_1111) as u8;
@@ -291,6 +299,8 @@ impl Writeable for VarLong {
                 break;
             }
         }
+
+        Ok(())
     }
 }
 
@@ -330,9 +340,11 @@ impl Readable for String {
 }
 
 impl Writeable for String {
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
-        VarInt(self.len() as i32).write(buffer, version);
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+        VarInt(self.len() as i32).write(buffer, version)?;
         buffer.extend_from_slice(self.as_bytes());
+
+        Ok(())
     }
 }
 
@@ -354,9 +366,11 @@ impl Readable for bool {
 }
 
 impl Writeable for bool {
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         let x = if *self { 1u8 } else { 0 };
-        x.write(buffer, version);
+        x.write(buffer, version)?;
+
+        Ok(())
     }
 }
 
@@ -366,20 +380,22 @@ pub const MAX_LENGTH: usize = 1024 * 1024; // 2^20 elements
 /// The array is prefixed with a `VarInt` length.
 ///
 /// This will reject arrays of lengths larger than MAX_LENGTH.
-pub struct LengthPrefixedVec<'a, T>(pub Cow<'a, [T]>)
+pub struct LengthPrefixedVec<'a, P, T>(pub Cow<'a, [T]>, PhantomData<P>)
 where
     [T]: ToOwned<Owned = Vec<T>>;
 
-impl<'a, T> Readable for LengthPrefixedVec<'a, T>
+impl<'a, P, T> Readable for LengthPrefixedVec<'a, P, T>
 where
     T: Readable,
     [T]: ToOwned<Owned = Vec<T>>,
+    P: TryInto<usize> + Readable,
+    P::Error: std::error::Error + Send + Sync + 'static,
 {
     fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
-        let length: usize = VarInt::read(buffer, version)?.0.try_into()?;
+        let length: usize = P::read(buffer, version)?.try_into()?;
 
         if length > MAX_LENGTH {
             bail!("array length too large ({} > {})", length, MAX_LENGTH);
@@ -388,50 +404,56 @@ where
         let vec = iter::repeat_with(|| T::read(buffer, version))
             .take(length)
             .collect::<anyhow::Result<Vec<T>>>()?;
-        Ok(LengthPrefixedVec(Cow::Owned(vec)))
+        Ok(Self(Cow::Owned(vec), PhantomData))
     }
 }
 
-impl<'a, T> Writeable for LengthPrefixedVec<'a, T>
+impl<'a, P, T> Writeable for LengthPrefixedVec<'a, P, T>
 where
     T: Writeable,
     [T]: ToOwned<Owned = Vec<T>>,
+    P: TryFrom<usize> + Writeable,
+    P::Error: std::error::Error + Send + Sync + 'static,
 {
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
-        VarInt::from(self.0.len()).write(buffer, version);
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+        P::try_from(self.0.len())?.write(buffer, version)?;
+        self.0
+            .iter()
+            .for_each(|item| item.write(buffer, version).expect("failed to write to vec"));
 
-        for element in &*self.0 {
-            element.write(buffer, version);
-        }
+        Ok(())
     }
 }
 
-impl<'a, T> From<LengthPrefixedVec<'a, T>> for Vec<T>
+impl<'a, P, T> From<LengthPrefixedVec<'a, P, T>> for Vec<T>
 where
     [T]: ToOwned<Owned = Vec<T>>,
 {
-    fn from(x: LengthPrefixedVec<'a, T>) -> Self {
+    fn from(x: LengthPrefixedVec<'a, P, T>) -> Self {
         x.0.into_owned()
     }
 }
 
-impl<'a, T> From<&'a [T]> for LengthPrefixedVec<'a, T>
+impl<'a, P, T> From<&'a [T]> for LengthPrefixedVec<'a, P, T>
 where
     [T]: ToOwned<Owned = Vec<T>>,
 {
     fn from(slice: &'a [T]) -> Self {
-        LengthPrefixedVec(Cow::Borrowed(slice))
+        Self(Cow::Borrowed(slice), PhantomData)
     }
 }
 
-impl<'a, T> From<Vec<T>> for LengthPrefixedVec<'a, T>
+impl<'a, P, T> From<Vec<T>> for LengthPrefixedVec<'a, P, T>
 where
     [T]: ToOwned<Owned = Vec<T>>,
 {
     fn from(vec: Vec<T>) -> Self {
-        LengthPrefixedVec(Cow::Owned(vec))
+        Self(Cow::Owned(vec), PhantomData)
     }
 }
+
+pub type VarIntPrefixedVec<'a, T> = LengthPrefixedVec<'a, VarInt, T>;
+pub type ShortPrefixedVec<'a, T> = LengthPrefixedVec<'a, u16, T>;
 
 /// A vector of bytes which consumes all remaining bytes in this packet.
 /// This is used by the plugin messaging packets, for one.
@@ -449,8 +471,9 @@ impl<'a> Readable for LengthInferredVecU8<'a> {
 }
 
 impl<'a> Writeable for LengthInferredVecU8<'a> {
-    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) -> anyhow::Result<()> {
         buffer.extend_from_slice(&*self.0);
+        Ok(())
     }
 }
 
@@ -463,71 +486,6 @@ impl<'a> From<&'a [u8]> for LengthInferredVecU8<'a> {
 impl<'a> From<LengthInferredVecU8<'a>> for Vec<u8> {
     fn from(x: LengthInferredVecU8<'a>) -> Self {
         x.0.into_owned()
-    }
-}
-
-pub struct ShortPrefixedVec<'a, T: ToOwned>(pub Cow<'a, [T]>)
-where
-    [T]: ToOwned;
-
-impl<'a, T> Readable for ShortPrefixedVec<'a, T>
-where
-    T: Readable + Clone,
-    [T]: ToOwned<Owned = Vec<T>>,
-{
-    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
-    where
-        Self: Sized,
-    {
-        let length = u16::read(buffer, version)? as usize;
-        let mut vec = Vec::with_capacity(length);
-
-        for _ in 0..length {
-            vec.push(T::read(buffer, version)?);
-        }
-
-        Ok(Self(Cow::Owned(vec)))
-    }
-}
-
-impl<'a, T> Writeable for ShortPrefixedVec<'a, T>
-where
-    T: Writeable + Clone,
-    [T]: ToOwned<Owned = Vec<T>>,
-{
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
-        (self.0.len() as u16).write(buffer, version);
-        self.0.iter().for_each(|item| item.write(buffer, version));
-    }
-}
-
-impl<'a, T> From<ShortPrefixedVec<'a, T>> for Vec<T>
-where
-    [T]: ToOwned<Owned = Vec<T>>,
-    T: Clone,
-{
-    fn from(x: ShortPrefixedVec<'a, T>) -> Self {
-        x.0.into_owned()
-    }
-}
-
-impl<'a, T> From<&'a [T]> for ShortPrefixedVec<'a, T>
-where
-    [T]: ToOwned<Owned = Vec<T>>,
-    T: Clone,
-{
-    fn from(slice: &'a [T]) -> Self {
-        ShortPrefixedVec(Cow::Borrowed(slice))
-    }
-}
-
-impl<'a, T> From<Vec<T>> for ShortPrefixedVec<'a, T>
-where
-    [T]: ToOwned<Owned = Vec<T>>,
-    T: Clone,
-{
-    fn from(vec: Vec<T>) -> Self {
-        ShortPrefixedVec(Cow::Owned(vec))
     }
 }
 
@@ -555,7 +513,7 @@ impl<T> Writeable for Nbt<T>
 where
     T: Serialize,
 {
-    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) -> anyhow::Result<()> {
         nbt::to_writer(buffer, &self.0, None).unwrap_or_else(|e| {
             panic!(
                 "could not serialize struct of type '{}' to NBT: {}",
@@ -563,6 +521,8 @@ where
                 e
             )
         });
+
+        Ok(())
     }
 }
 
@@ -605,21 +565,23 @@ impl Readable for Slot {
 }
 
 impl Writeable for Slot {
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
-        self.is_some().write(buffer, version);
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+        self.is_some().write(buffer, version)?;
 
         if let Some(stack) = self {
-            VarInt(stack.item.id() as i32).write(buffer, version);
-            (stack.count as u8).write(buffer, version);
+            VarInt(stack.item.id() as i32).write(buffer, version)?;
+            (stack.count as u8).write(buffer, version)?;
 
             let tags: ItemNbt = stack.into();
             if tags != ItemNbt::default() {
                 dbg!();
-                Nbt(tags).write(buffer, version);
+                Nbt(tags).write(buffer, version)?;
             } else {
-                0u8.write(buffer, version); // TAG_End
+                0u8.write(buffer, version)?; // TAG_End
             }
         }
+
+        Ok(())
     }
 }
 
@@ -703,80 +665,87 @@ fn read_meta_entry(
 }
 
 impl Writeable for EntityMetadata {
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         for (index, entry) in self.iter() {
-            index.write(buffer, version);
-            VarInt(entry.id()).write(buffer, version);
-            write_meta_entry(entry, buffer, version);
+            index.write(buffer, version)?;
+            VarInt(entry.id()).write(buffer, version)?;
+            write_meta_entry(entry, buffer, version)?;
         }
 
         // End of metadata
         buffer.push(0xFF);
+        Ok(())
     }
 }
 
-fn write_meta_entry(entry: &MetaEntry, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+fn write_meta_entry(
+    entry: &MetaEntry,
+    buffer: &mut Vec<u8>,
+    version: ProtocolVersion,
+) -> anyhow::Result<()> {
     match entry {
-        MetaEntry::Byte(x) => x.write(buffer, version),
+        MetaEntry::Byte(x) => x.write(buffer, version)?,
         MetaEntry::VarInt(x) => {
-            VarInt(*x).write(buffer, version);
+            VarInt(*x).write(buffer, version)?;
         }
-        MetaEntry::Float(x) => x.write(buffer, version),
-        MetaEntry::String(x) => x.write(buffer, version),
-        MetaEntry::Chat(x) => x.write(buffer, version),
+        MetaEntry::Float(x) => x.write(buffer, version)?,
+        MetaEntry::String(x) => x.write(buffer, version)?,
+        MetaEntry::Chat(x) => x.write(buffer, version)?,
         MetaEntry::OptChat(ox) => {
             if let Some(x) = ox {
-                true.write(buffer, version);
-                x.write(buffer, version);
+                true.write(buffer, version)?;
+                x.write(buffer, version)?;
             } else {
-                false.write(buffer, version);
+                false.write(buffer, version)?;
             }
         }
-        MetaEntry::Slot(slot) => slot.write(buffer, version),
-        MetaEntry::Boolean(x) => x.write(buffer, version),
+        MetaEntry::Slot(slot) => slot.write(buffer, version)?,
+        MetaEntry::Boolean(x) => x.write(buffer, version)?,
         MetaEntry::Rotation(x, y, z) => {
-            x.write(buffer, version);
-            y.write(buffer, version);
-            z.write(buffer, version);
+            x.write(buffer, version)?;
+            y.write(buffer, version)?;
+            z.write(buffer, version)?;
         }
-        MetaEntry::Position(x) => x.write(buffer, version),
+        MetaEntry::Position(x) => x.write(buffer, version)?,
         MetaEntry::OptPosition(ox) => {
             if let Some(x) = ox {
-                true.write(buffer, version);
-                x.write(buffer, version);
+                true.write(buffer, version)?;
+                x.write(buffer, version)?;
             } else {
-                false.write(buffer, version);
+                false.write(buffer, version)?;
             }
         }
-        MetaEntry::Direction(x) => VarInt(x.to_i32().unwrap()).write(buffer, version),
+        MetaEntry::Direction(x) => VarInt(x.to_i32().unwrap()).write(buffer, version)?,
         MetaEntry::OptUuid(ox) => {
             if let Some(x) = ox {
-                true.write(buffer, version);
-                x.write(buffer, version);
+                true.write(buffer, version)?;
+                x.write(buffer, version)?;
             } else {
-                false.write(buffer, version);
+                false.write(buffer, version)?;
             }
         }
         MetaEntry::OptBlockId(ox) => {
             if let Some(x) = ox {
-                VarInt(*x).write(buffer, version);
+                VarInt(*x).write(buffer, version)?;
             } else {
-                VarInt(0).write(buffer, version); // No value implies air
+                VarInt(0).write(buffer, version)?; // No value implies air
             }
         }
-        MetaEntry::Nbt(val) => Nbt(val).write(buffer, version),
+        MetaEntry::Nbt(val) => Nbt(val).write(buffer, version)?,
         MetaEntry::Particle => unimplemented!("entity metadata with particles"),
         MetaEntry::VillagerData => unimplemented!("entity metadata with villager data"),
         MetaEntry::OptVarInt(ox) => {
             if let Some(x) = ox {
-                true.write(buffer, version);
-                x.write(buffer, version);
+                true.write(buffer, version)?;
+                x.write(buffer, version)?;
             } else {
-                false.write(buffer, version);
+                false.write(buffer, version)?;
             }
         }
-        MetaEntry::Pose(x) => VarInt(x.to_i32().unwrap()).write(buffer, version),
+        MetaEntry::Pose(x) => VarInt(x.to_i32().unwrap()).write(buffer, version)?,
     }
+
+    Ok(())
 }
 
 impl Readable for Uuid {
@@ -792,8 +761,9 @@ impl Readable for Uuid {
 }
 
 impl Writeable for Uuid {
-    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, _version: ProtocolVersion) -> anyhow::Result<()> {
         buffer.extend_from_slice(self.as_bytes());
+        Ok(())
     }
 }
 
@@ -813,11 +783,13 @@ impl Readable for BlockPosition {
 }
 
 impl Writeable for BlockPosition {
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         let val = ((self.x as u64 & 0x3FFFFFF) << 38)
             | ((self.z as u64 & 0x3FFFFFF) << 12)
             | (self.y as u64 & 0xFFF);
-        val.write(buffer, version);
+        val.write(buffer, version)?;
+
+        Ok(())
     }
 }
 
@@ -845,9 +817,11 @@ impl Readable for Angle {
 }
 
 impl Writeable for Angle {
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         let val = (self.0 / 360.0 * 256.0).round() as u8;
-        val.write(buffer, version);
+        val.write(buffer, version)?;
+
+        Ok(())
     }
 }
 
@@ -864,8 +838,9 @@ impl Readable for BlockId {
 }
 
 impl Writeable for BlockId {
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
-        VarInt(self.vanilla_id().into()).write(buffer, version);
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+        VarInt(self.vanilla_id().into()).write(buffer, version)?;
+        Ok(())
     }
 }
 
@@ -886,13 +861,15 @@ impl Readable for Gamemode {
 }
 
 impl Writeable for Gamemode {
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         let id = match self {
             Gamemode::Survival => 0,
             Gamemode::Creative => 1,
             Gamemode::Adventure => 2,
             Gamemode::Spectator => 3,
         };
-        (id as u8).write(buffer, version);
+        (id as u8).write(buffer, version)?;
+
+        Ok(())
     }
 }

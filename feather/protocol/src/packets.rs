@@ -2,7 +2,7 @@ macro_rules! user_type {
     (VarInt) => {
         i32
     };
-    (LengthPrefixedVec <$inner:ident>) => {
+    (VarIntPrefixedVec <$inner:ident>) => {
         Vec<$inner>
     };
     (ShortPrefixedVec <$inner:ident>) => {
@@ -23,8 +23,8 @@ macro_rules! user_type_convert_to_writeable {
     (VarInt, $e:expr) => {
         VarInt(*$e as i32)
     };
-    (LengthPrefixedVec <$inner:ident>, $e:expr) => {
-        LengthPrefixedVec::from($e.as_slice())
+    (VarIntPrefixedVec <$inner:ident>, $e:expr) => {
+        VarIntPrefixedVec::from($e.as_slice())
     };
     (ShortPrefixedVec <$inner:ident>, $e:expr) => {
         ShortPrefixedVec::from($e.as_slice())
@@ -81,10 +81,11 @@ macro_rules! packets {
 
             #[allow(unused_variables)]
             impl crate::Writeable for $packet {
-                fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
+                fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
                     $(
-                        user_type_convert_to_writeable!($typ $(<$generics>)?, &self.$field).write(buffer, version);
+                        user_type_convert_to_writeable!($typ $(<$generics>)?, &self.$field).write(buffer, version)?;
                     )*
+                    Ok(())
                 }
             }
         )*
@@ -169,7 +170,7 @@ macro_rules! def_enum {
         }
 
         impl crate::Writeable for $ident {
-            fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
+            fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
                 match self {
                     $(
                         $ident::$variant $(
@@ -178,16 +179,17 @@ macro_rules! def_enum {
                             }
                         )? => {
                             let discriminant = <$discriminant_type>::from($discriminant);
-                            discriminant.write(buffer, version);
+                            discriminant.write(buffer, version)?;
 
                             $(
                                 $(
-                                    user_type_convert_to_writeable!($typ $(<$generics>)?, $field).write(buffer, version);
+                                    user_type_convert_to_writeable!($typ $(<$generics>)?, $field).write(buffer, version)?;
                                 )*
                             )?
                         }
                     )*
                 }
+                Ok(())
             }
         }
     };
@@ -233,15 +235,16 @@ macro_rules! packet_enum {
         }
 
         impl crate::Writeable for $ident {
-            fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
-                VarInt(self.id() as i32).write(buffer, version);
+            fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
+                VarInt(self.id() as i32).write(buffer, version)?;
                 match self {
                     $(
                         $ident::$packet(packet) => {
-                            packet.write(buffer, version);
+                            packet.write(buffer, version)?;
                         }
                     )*
                 }
+                Ok(())
             }
         }
 
@@ -281,7 +284,7 @@ pub trait VariantOf<Enum> {
         Self: Sized;
 }
 
-use crate::io::{Angle, LengthInferredVecU8, LengthPrefixedVec, Nbt, ShortPrefixedVec, VarInt};
+use crate::io::{Angle, LengthInferredVecU8, Nbt, ShortPrefixedVec, VarInt, VarIntPrefixedVec};
 use crate::Slot;
 use base::{BlockId, BlockPosition};
 use nbt::Blob;

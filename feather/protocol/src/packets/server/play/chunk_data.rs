@@ -53,14 +53,14 @@ impl ChunkData {
 }
 
 impl Writeable for ChunkData {
-    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
         let chunk = self.chunk.read();
 
-        chunk.position().x.write(buffer, version);
-        chunk.position().z.write(buffer, version);
+        chunk.position().x.write(buffer, version)?;
+        chunk.position().z.write(buffer, version)?;
 
         let full_chunk = matches!(self.kind, ChunkDataKind::LoadChunk);
-        full_chunk.write(buffer, version);
+        full_chunk.write(buffer, version)?;
 
         // Compute primary bit mask
         let mut bitmask = 0;
@@ -73,16 +73,16 @@ impl Writeable for ChunkData {
                 bitmask |= 1 << (y - 1) as i32;
             }
         }
-        VarInt(bitmask).write(buffer, version);
+        VarInt(bitmask).write(buffer, version)?;
 
         let heightmaps = build_heightmaps(&chunk);
-        Nbt(heightmaps).write(buffer, version);
+        Nbt(heightmaps).write(buffer, version)?;
 
         if full_chunk {
             // Write biomes (only if we're sending a new chunk)
-            VarInt(1024).write(buffer, version); // length of biomes
+            VarInt(1024).write(buffer, version)?; // length of biomes
             for &biome in chunk.biomes().as_slice() {
-                VarInt(biome.id() as i32).write(buffer, version);
+                VarInt(biome.id() as i32).write(buffer, version)?;
             }
         }
 
@@ -93,13 +93,15 @@ impl Writeable for ChunkData {
                 if self.should_skip_section(y) {
                     continue;
                 }
-                encode_section(section, &mut data, version);
+                encode_section(section, &mut data, version)?;
             }
         }
-        VarInt(data.len() as i32).write(buffer, version);
+        VarInt(data.len() as i32).write(buffer, version)?;
         buffer.extend_from_slice(&data);
 
-        VarInt(0).write(buffer, version); // number of block entities - always 0 for Feather
+        VarInt(0).write(buffer, version)?; // number of block entities - always 0 for Feather
+
+        Ok(())
     }
 }
 
@@ -110,22 +112,28 @@ fn build_heightmaps(chunk: &Chunk) -> Heightmaps {
     Heightmaps { motion_blocking }
 }
 
-fn encode_section(section: &ChunkSection, buffer: &mut Vec<u8>, version: ProtocolVersion) {
-    (section.non_air_blocks() as u16).write(buffer, version);
-    (section.blocks().data().bits_per_value() as u8).write(buffer, version);
+fn encode_section(
+    section: &ChunkSection,
+    buffer: &mut Vec<u8>,
+    version: ProtocolVersion,
+) -> anyhow::Result<()> {
+    (section.non_air_blocks() as u16).write(buffer, version)?;
+    (section.blocks().data().bits_per_value() as u8).write(buffer, version)?;
 
     if let Some(palette) = section.blocks().palette() {
-        VarInt(palette.len() as i32).write(buffer, version);
+        VarInt(palette.len() as i32).write(buffer, version)?;
         for &block in palette.as_slice() {
-            VarInt(block.vanilla_id() as i32).write(buffer, version);
+            VarInt(block.vanilla_id() as i32).write(buffer, version)?;
         }
     }
 
     let data = section.blocks().data().as_u64_slice();
-    VarInt(data.len() as i32).write(buffer, version);
+    VarInt(data.len() as i32).write(buffer, version)?;
     for &x in data {
-        x.write(buffer, version);
+        x.write(buffer, version)?;
     }
+
+    Ok(())
 }
 
 impl Readable for ChunkData {

@@ -6,8 +6,8 @@ packets! {
     }
 
     EncryptionResponse {
-        shared_secret LengthPrefixedVec<u8>;
-        verify_token LengthPrefixedVec<u8>;
+        shared_secret VarIntPrefixedVec<u8>;
+        verify_token VarIntPrefixedVec<u8>;
     }
 
     LoginPluginResponse {
