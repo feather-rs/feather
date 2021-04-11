@@ -3,12 +3,9 @@ macro_rules! user_type {
         i32
     };
     (VarIntPrefixedVec <$inner:ident>) => {
-<<<<<<< HEAD
         Vec<$inner>
     };
     (IntPrefixedVec <$inner:ident>) => {
-=======
->>>>>>> 679bc6e8c988425ef448004ed806120190c62164
         Vec<$inner>
     };
     (ShortPrefixedVec <$inner:ident>) => {
@@ -31,12 +28,9 @@ macro_rules! user_type_convert_to_writeable {
     };
     (VarIntPrefixedVec <$inner:ident>, $e:expr) => {
         VarIntPrefixedVec::from($e.as_slice())
-<<<<<<< HEAD
     };
     (IntPrefixedVec <$inner:ident>, $e:expr) => {
         IntPrefixedVec::from($e.as_slice())
-=======
->>>>>>> 679bc6e8c988425ef448004ed806120190c62164
     };
     (ShortPrefixedVec <$inner:ident>, $e:expr) => {
         ShortPrefixedVec::from($e.as_slice())
@@ -296,13 +290,9 @@ pub trait VariantOf<Enum> {
         Self: Sized;
 }
 
-<<<<<<< HEAD
 use crate::io::{
     Angle, IntPrefixedVec, LengthInferredVecU8, Nbt, ShortPrefixedVec, VarInt, VarIntPrefixedVec,
 };
-=======
-use crate::io::{Angle, LengthInferredVecU8, Nbt, ShortPrefixedVec, VarInt, VarIntPrefixedVec};
->>>>>>> 679bc6e8c988425ef448004ed806120190c62164
 use crate::Slot;
 use base::{BlockId, BlockPosition};
 use nbt::Blob;
