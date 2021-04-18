@@ -820,6 +820,7 @@ dependencies = [
  "feather-ecs",
  "feather-generated",
  "feather-utils",
+ "feather-worldgen",
  "flume",
  "itertools 0.10.0",
  "libcraft-core",

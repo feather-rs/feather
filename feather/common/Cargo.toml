@@ -20,3 +20,4 @@ smartstring = "0.2"
 utils = { path = "../utils", package = "feather-utils" }
 uuid = { version = "0.8", features = [ "v4" ] }
 libcraft-core = { path = "../../libcraft/core" }
+feather-worldgen = { path = "../worldgen" }

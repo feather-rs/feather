@@ -141,8 +141,8 @@ impl WorldGenerator for ComposableGenerator {
 
         let mut chunk = Chunk::new(position);
 
-        for x in 0..16 {
-            for z in 0..16 {
+        for x in 0..4 {
+            for z in 0..4 {
                 chunk.biomes_mut().set(x, 0, z, biomes.biome_at(x, z));
             }
         }
