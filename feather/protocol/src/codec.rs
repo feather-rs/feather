@@ -174,7 +174,7 @@ impl MinecraftCodec {
 
                 let packet = T::read(&mut cursor, ProtocolVersion::V1_16_2)?;
 
-                let bytes_read = cursor.position() as usize + length_field_length;
+                let bytes_read = length.0 as usize + length_field_length;
                 self.received_buf = self.received_buf.split_off(bytes_read);
 
                 self.compression_target.clear();
