@@ -17,23 +17,33 @@ impl Default for FlatWorldSource {
 
 impl FlatWorldSource {
     pub fn new() -> Self {
-        let mut archetype = Chunk::new(ChunkPosition::new(0, 0));
-        for y in 0..64 {
-            for z in 0..CHUNK_WIDTH {
-                for x in 0..CHUNK_WIDTH {
-                    let block = if y == 63 {
-                        BlockId::grass_block()
-                    } else {
-                        BlockId::stone()
-                    };
-                    archetype.set_block_at(x, y, z, block);
-                }
-            }
-        }
+        let archetype = Self::generate();
 
         Self {
             archetype,
             loaded: Vec::new(),
+        }
+    }
+
+    fn generate() -> Chunk {
+        let mut archetype = Chunk::new(ChunkPosition::new(0, 0));
+        for y in 0..64 {
+            for z in 0..CHUNK_WIDTH {
+                for x in 0..CHUNK_WIDTH {
+                    archetype.set_block_at(x, y, z, Self::select_block(y));
+                }
+            }
+        }
+        archetype
+    }
+
+    fn select_block(height: usize) -> BlockId {
+        match height {
+            0 => BlockId::bedrock(),
+            1..=57 => BlockId::stone(),
+            58..=62 => BlockId::dirt(),
+            63 => BlockId::grass_block(),
+            _ => BlockId::air(),
         }
     }
 }
