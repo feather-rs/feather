@@ -174,4 +174,26 @@ extern "C" {
         data_ptr: Pointer<u8>,
         data_len: u32,
     );
+
+    ///  Sends a regex string to the server and a pointer
+    ///  to a Box<dyn Command<...>>. Returns 'true'/'false'
+    ///  depending on if addition was sucsessfull.
+    ///
+    ///  When some text matches* the regex, the server is
+    ///  going to call the command. The first command it
+    ///  finds that returns Ok it considerd to have parsed
+    ///  and rand the command sucsessfully. It then wont try to
+    ///  call any other matches.
+    ///
+    ///  The server is lazy when matching the regex. If you
+    ///  register a regex/command starting with a "/zombiemode"
+    ///  and you have the only regex starting with a /z, then
+    ///  the server might call your command if someone
+    ///  types something that matches "/z.*".
+    ///
+    ///  Don't register road regexes like ".*". It prevents
+    ///  us from beeing lazy, which makes command dispatching
+    ///  slower and also increases memmory usage.
+    pub fn register_command(regex: Pointer<u8>, regex_len: u32, command: PointerMut<u8>) -> bool;
+
 }

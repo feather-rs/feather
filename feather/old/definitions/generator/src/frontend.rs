@@ -87,7 +87,7 @@ impl<'a, 'b> Query<'a> for CompileEnum<'b> {
 
         let (name, variants) = match model {
             Model::Enum { variants, name } => (*name, variants.as_slice()),
-            _ => unreachable!(),
+            _ => unreachable!("model not there"),
         };
 
         let mut actual_variants = vec![];

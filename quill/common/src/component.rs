@@ -284,7 +284,7 @@ macro_rules! pod_component_impl {
             }
 
             fn to_bytes(&self, _target: &mut Vec<u8>) {
-                unreachable!()
+                unreachable!("to_bytes not implemented")
             }
 
             fn as_bytes(&self) -> &[u8] {
@@ -318,7 +318,7 @@ macro_rules! bincode_component_impl {
             }
 
             fn as_bytes(&self) -> &[u8] {
-                unreachable!()
+                unreachable!("as_bytes not implemented")
             }
 
             fn from_bytes(bytes: &[u8]) -> Option<(Self, usize)> {

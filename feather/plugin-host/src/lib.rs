@@ -24,6 +24,7 @@ use wasmer::{
 };
 use wasmer_wasi::{WasiEnv, WasiState, WasiVersion};
 
+pub mod command_dispatcher;
 mod context;
 mod env;
 mod host_calls;
@@ -31,6 +32,8 @@ mod host_function;
 mod plugin;
 mod thread_pinned;
 mod wasm_ptr_ext;
+
+pub use command_dispatcher::CommandDispatcher;
 
 /// Features enabled for WASM plugins
 const WASM_FEATURES: Features = Features {

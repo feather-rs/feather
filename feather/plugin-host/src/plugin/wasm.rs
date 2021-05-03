@@ -1,5 +1,7 @@
-use std::sync::Arc;
+use std::{alloc::Layout, borrow::BorrowMut, marker::PhantomData, sync::Arc};
 
+use anyhow::bail;
+use quill_common::EntityId;
 use quill_plugin_format::PluginMetadata;
 use wasmer::{
     ChainableNamedResolver, Features, Function, ImportObject, Instance, Module, NativeFunc, Store,
@@ -19,6 +21,9 @@ pub struct WasmPlugin {
 
     /// Exported function to enable the plugin.
     enable: Function,
+
+    /// Exported function to call a command
+    call_command: NativeFunc<(u32, u32, u32, u32, u32, u32), u32>,
 
     /// Exported function to run a system given its data pointer.
     run_system: NativeFunc<u32>,
@@ -48,9 +53,16 @@ impl WasmPlugin {
             .clone();
         let enable = instance.exports.get_function("quill_setup")?.clone();
 
+        let call_command = instance
+            .exports
+            .get_function("quill_call_command")?
+            .native()?
+            .clone();
+
         Ok(Self {
             instance,
             run_system,
+            call_command,
             enable,
         })
     }
@@ -63,6 +75,37 @@ impl WasmPlugin {
     pub fn run_system(&self, data_ptr: PluginPtrMut<u8>) -> anyhow::Result<()> {
         self.run_system.call(data_ptr.ptr as u32)?;
         Ok(())
+    }
+
+    /// Has to be called inside a PluginContext::enter, since else the allocated values wont be dropped.
+    pub fn call_command(
+        &self,
+        function: PluginPtrMut<u8>,
+        input_ptr: PluginPtrMut<u8>,
+        input_len: u32,
+        caller_ptr: PluginPtrMut<u8>,
+        caller_len: u32, // Maybe null pointer to i64 (EntityId), null means terminal.
+        result_ptr: PluginPtrMut<i64>, // Pointer to were we expect resulting i64 to be stores if return value is true.
+    ) -> anyhow::Result<PluginPtr<i64>> {
+        let sucsess = self.call_command.call(
+            function.ptr as u32,
+            input_ptr.ptr as u32,
+            input_len,
+            caller_ptr.ptr as u32,
+            caller_len,
+            result_ptr.ptr as u32,
+        )?;
+
+        if sucsess == (false as u32) {
+            bail!("Command parsing failed")
+        } else {
+            // Turn PluginPtrMut into PluginPtr
+            let result_ptr = PluginPtr {
+                ptr: result_ptr.ptr,
+                _marker: PhantomData,
+            };
+            Ok(result_ptr)
+        }
     }
 }
 

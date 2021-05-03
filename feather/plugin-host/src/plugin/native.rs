@@ -1,10 +1,10 @@
-use std::{io::Write, sync::Arc};
+use std::{io::Write, marker::PhantomData, sync::Arc};
 
-use anyhow::Context;
+use anyhow::{bail, Context};
 use libloading::Library;
 use tempfile::{NamedTempFile, TempPath};
 
-use crate::context::{PluginContext, PluginPtrMut};
+use crate::context::{PluginContext, PluginPtr, PluginPtrMut};
 
 /// A native plugin loaded from a shared library
 pub struct NativePlugin {
@@ -27,6 +27,15 @@ pub struct NativePlugin {
     /// Parameters:
     /// 1. Plugin data pointer for this system
     run_system: unsafe extern "C" fn(*mut u8),
+
+    call_command: unsafe extern "C" fn(
+        cmd_ptr: *mut u8,
+        input_ptr: *mut u8, // Input  is the string that the user wrote, like "/msg ..."".
+        input_len: u32,
+        caller_ptr: *mut u8, // Pointer to entity_id that might be null. bincode encoded.
+        caller_len: u32,
+        result: *mut i64,
+    ) -> u32,
 }
 
 impl NativePlugin {
@@ -56,11 +65,18 @@ impl NativePlugin {
                 .context("plugin is missing quill_run_system export")?
         };
 
+        let call_command = unsafe {
+            *library
+                .get("quill_call_command".as_bytes())
+                .context("plugin is missing quill_call_command export")?
+        };
+
         Ok(Self {
             tempfile: path,
             library,
             enable,
             run_system,
+            call_command,
         })
     }
 
@@ -88,5 +104,37 @@ impl NativePlugin {
     pub fn run_system(&self, data: PluginPtrMut<u8>) {
         // SAFETY: we assume the plugin is sound.
         unsafe { (self.run_system)(data.as_native()) }
+    }
+
+    pub fn call_command(
+        &self,
+        function: PluginPtrMut<u8>,
+        input_ptr: PluginPtrMut<u8>,
+        input_len: u32,
+        caller_ptr: PluginPtrMut<u8>,
+        caller_len: u32, // Maybe null pointer to i64 (EntityId), null means terminal.
+        result_ptr: PluginPtrMut<i64>, // Pointer to were we expect resulting i64 to be stores if return value is true.
+    ) -> anyhow::Result<PluginPtr<i64>> {
+        let res = unsafe {
+            (self.call_command)(
+                function.as_native(),
+                input_ptr.as_native(),
+                input_len,
+                caller_ptr.as_native(),
+                caller_len,
+                result_ptr.as_native(),
+            )
+        };
+
+        if res == (true as u32) {
+            // Turn PluginPtrMut into PluginPtr
+            let result_ptr = PluginPtr {
+                ptr: result_ptr.ptr,
+                _marker: PhantomData,
+            };
+            Ok(result_ptr)
+        } else {
+            bail!("Command failed, probably due to not beeing able to parse")
+        }
     }
 }
