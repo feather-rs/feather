@@ -67,13 +67,13 @@ impl MinecraftCodec {
     }
 
     /// Writes a packet into the provided writer.
-    pub fn encode(&mut self, packet: &impl Writeable, output: &mut Vec<u8>) {
-        packet.write(&mut self.staging_buf, ProtocolVersion::V1_16_2);
+    pub fn encode(&mut self, packet: &impl Writeable, output: &mut Vec<u8>) -> anyhow::Result<()> {
+        packet.write(&mut self.staging_buf, ProtocolVersion::V1_16_2)?;
 
         if let Some(threshold) = self.compression {
-            self.encode_compressed(output, threshold);
+            self.encode_compressed(output, threshold)?;
         } else {
-            self.encode_uncompressed(output);
+            self.encode_uncompressed(output)?;
         }
 
         if let Some(cryptor) = &mut self.cryptor {
@@ -81,9 +81,15 @@ impl MinecraftCodec {
         }
 
         self.staging_buf.clear();
+
+        Ok(())
     }
 
-    fn encode_compressed(&mut self, output: &mut Vec<u8>, threshold: CompressionThreshold) {
+    fn encode_compressed(
+        &mut self,
+        output: &mut Vec<u8>,
+        threshold: CompressionThreshold,
+    ) -> anyhow::Result<()> {
         let (data_length, data) = if self.staging_buf.len() >= threshold {
             self.data_compressed()
         } else {
@@ -98,11 +104,13 @@ impl MinecraftCodec {
             .unwrap();
 
         let packet_length = data_length_bytes.position() as usize + data.len();
-        VarInt(packet_length as i32).write(output, ProtocolVersion::V1_16_2);
-        VarInt(data_length as i32).write(output, ProtocolVersion::V1_16_2);
+        VarInt(packet_length as i32).write(output, ProtocolVersion::V1_16_2)?;
+        VarInt(data_length as i32).write(output, ProtocolVersion::V1_16_2)?;
         output.extend_from_slice(data);
 
         self.compression_target.clear();
+
+        Ok(())
     }
 
     fn data_compressed(&mut self) -> (usize, &[u8]) {
@@ -117,12 +125,14 @@ impl MinecraftCodec {
         (0, self.staging_buf.as_slice())
     }
 
-    fn encode_uncompressed(&mut self, output: &mut Vec<u8>) {
+    fn encode_uncompressed(&mut self, output: &mut Vec<u8>) -> anyhow::Result<()> {
         // TODO: we should probably be able to determine the length without writing the packet,
         // which could remove an unnecessary copy.
         let length = self.staging_buf.len() as i32;
-        VarInt(length).write(output, ProtocolVersion::V1_16_2);
+        VarInt(length).write(output, ProtocolVersion::V1_16_2)?;
         output.extend_from_slice(&self.staging_buf);
+
+        Ok(())
     }
 
     /// Accepts newly received bytes.
@@ -164,7 +174,7 @@ impl MinecraftCodec {
 
                 let packet = T::read(&mut cursor, ProtocolVersion::V1_16_2)?;
 
-                let bytes_read = cursor.position() as usize + length_field_length;
+                let bytes_read = length.0 as usize + length_field_length;
                 self.received_buf = self.received_buf.split_off(bytes_read);
 
                 self.compression_target.clear();

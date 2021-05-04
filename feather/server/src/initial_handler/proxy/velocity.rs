@@ -4,7 +4,7 @@ use anyhow::anyhow;
 use anyhow::bail;
 use base::ProfileProperty;
 use protocol::{
-    io::LengthPrefixedVec, packets::server::LoginPluginRequest, ClientLoginPacket, ProtocolVersion,
+    io::VarIntPrefixedVec, packets::server::LoginPluginRequest, ClientLoginPacket, ProtocolVersion,
     Readable, ServerLoginPacket, VarInt,
 };
 use ring::{
@@ -76,7 +76,7 @@ fn read_player_info(key: &str, payload: &[u8]) -> anyhow::Result<ProxyData> {
     let client = String::read(&mut payload, mcversion)?;
     let uuid = Uuid::read(&mut payload, mcversion)?;
     let _name = String::read(&mut payload, mcversion)?;
-    let properties = LengthPrefixedVec::<Property>::read(&mut payload, mcversion)?;
+    let properties = VarIntPrefixedVec::<Property>::read(&mut payload, mcversion)?;
 
     Ok(ProxyData {
         host: "".to_owned(),

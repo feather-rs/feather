@@ -233,7 +233,7 @@ impl Writer {
     }
 
     pub async fn write(&mut self, packet: impl Writeable + Debug) -> anyhow::Result<()> {
-        self.codec.encode(&packet, &mut self.buffer);
+        self.codec.encode(&packet, &mut self.buffer)?;
         self.stream.write_all(&self.buffer).await?;
         self.buffer.clear();
         Ok(())

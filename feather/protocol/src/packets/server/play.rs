@@ -97,7 +97,7 @@ def_enum! {
 
 packets! {
     Statistics {
-        statistics LengthPrefixedVec<Statistic>;
+        statistics VarIntPrefixedVec<Statistic>;
     }
 
     Statistic {
@@ -217,14 +217,14 @@ packets! {
     MultiBlockChange {
         chunk_section_coordinate u64;
         dont_trust_edges bool;
-        records LengthPrefixedVec<VarLong>;
+        records VarIntPrefixedVec<VarLong>;
     }
 
     TabComplete {
         id VarInt;
         start VarInt;
         length VarInt;
-        matches LengthPrefixedVec<TabCompleteMatch>;
+        matches VarIntPrefixedVec<TabCompleteMatch>;
     }
 
     TabCompleteMatch {
@@ -242,7 +242,7 @@ packets! {
 
     CommandNode {
         flags u8;
-        children LengthPrefixedVec<VarInt>;
+        children VarIntPrefixedVec<VarInt>;
         redirect_node Option<VarInt>;
         name Option<String>;
         parser Option<String>;
@@ -312,7 +312,7 @@ packets! {
         y f32;
         z f32;
         strength f32;
-        records LengthPrefixedVec<ExplosionRecord>;
+        records VarIntPrefixedVec<ExplosionRecord>;
         player_motion_x f32;
         player_motion_y f32;
         player_motion_z f32;
@@ -358,7 +358,7 @@ packets! {
         is_hardcore bool;
         gamemode Gamemode;
         previous_gamemode u8; // can be 255 if "not set," otherwise corresponds to a gamemode ID
-        world_names LengthPrefixedVec<String>;
+        world_names VarIntPrefixedVec<String>;
 
         dimension_codec Nbt<Blob>;
         dimension Nbt<Blob>;
@@ -381,7 +381,7 @@ packets! {
         scale i8;
         show_tracking_position bool;
         is_locked bool;
-        icons LengthPrefixedVec<Icon>;
+        icons VarIntPrefixedVec<Icon>;
         // TODO: a bunch of fields only if a Columns is set to 0
         __todo__ LengthInferredVecU8;
     }
@@ -566,17 +566,17 @@ impl Readable for Particle {
 }
 
 impl Writeable for Particle {
-    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
-        self.particle_kind.id().write(buffer, version);
-        self.long_distance.write(buffer, version);
-        self.x.write(buffer, version);
-        self.y.write(buffer, version);
-        self.z.write(buffer, version);
-        self.offset_x.write(buffer, version);
-        self.offset_y.write(buffer, version);
-        self.offset_z.write(buffer, version);
-        self.particle_data.write(buffer, version);
-        self.particle_count.write(buffer, version);
+    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
+        self.particle_kind.id().write(buffer, version)?;
+        self.long_distance.write(buffer, version)?;
+        self.x.write(buffer, version)?;
+        self.y.write(buffer, version)?;
+        self.z.write(buffer, version)?;
+        self.offset_x.write(buffer, version)?;
+        self.offset_y.write(buffer, version)?;
+        self.offset_z.write(buffer, version)?;
+        self.particle_data.write(buffer, version)?;
+        self.particle_count.write(buffer, version)?;
 
         match self.particle_kind {
             ParticleKind::Dust {
@@ -585,22 +585,23 @@ impl Writeable for Particle {
                 blue,
                 scale,
             } => {
-                red.write(buffer, version);
-                green.write(buffer, version);
-                blue.write(buffer, version);
-                scale.write(buffer, version);
+                red.write(buffer, version)?;
+                green.write(buffer, version)?;
+                blue.write(buffer, version)?;
+                scale.write(buffer, version)?;
             }
             ParticleKind::Block(block_state) => {
-                VarInt(block_state.id() as i32).write(buffer, version);
+                VarInt(block_state.id() as i32).write(buffer, version)?;
             }
             ParticleKind::FallingDust(block_state) => {
-                VarInt(block_state.id() as i32).write(buffer, version);
+                VarInt(block_state.id() as i32).write(buffer, version)?;
             }
             ParticleKind::Item(_item) => {
                 todo![];
             }
             _ => {}
         }
+        Ok(())
     }
 }
 
@@ -721,7 +722,7 @@ impl Readable for PlayerInfo {
 }
 
 impl Writeable for PlayerInfo {
-    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
+    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
         let (action_id, num_players) = match self {
             PlayerInfo::AddPlayers(vec) => (0, vec.len()),
             PlayerInfo::UpdateGamemodes(vec) => (1, vec.len()),
@@ -729,59 +730,60 @@ impl Writeable for PlayerInfo {
             PlayerInfo::UpdateDisplayNames(vec) => (3, vec.len()),
             PlayerInfo::RemovePlayers(vec) => (4, vec.len()),
         };
-        VarInt(action_id).write(buffer, version);
-        VarInt(num_players as i32).write(buffer, version);
+        VarInt(action_id).write(buffer, version)?;
+        VarInt(num_players as i32).write(buffer, version)?;
 
         match self {
             PlayerInfo::AddPlayers(vec) => {
                 for action in vec {
-                    action.uuid.write(buffer, version);
-                    action.name.write(buffer, version);
+                    action.uuid.write(buffer, version)?;
+                    action.name.write(buffer, version)?;
 
-                    VarInt(action.properties.len() as i32).write(buffer, version);
+                    VarInt(action.properties.len() as i32).write(buffer, version)?;
                     for prop in &action.properties {
-                        prop.name.write(buffer, version);
-                        prop.value.write(buffer, version);
-                        true.write(buffer, version); // signature is present
-                        prop.signature.write(buffer, version);
+                        prop.name.write(buffer, version)?;
+                        prop.value.write(buffer, version)?;
+                        true.write(buffer, version)?; // signature is present
+                        prop.signature.write(buffer, version)?;
                     }
 
-                    action.gamemode.write(buffer, version);
-                    VarInt(action.ping).write(buffer, version);
+                    action.gamemode.write(buffer, version)?;
+                    VarInt(action.ping).write(buffer, version)?;
 
-                    action.display_name.is_some().write(buffer, version);
+                    action.display_name.is_some().write(buffer, version)?;
                     if let Some(display_name) = &action.display_name {
-                        display_name.write(buffer, version);
+                        display_name.write(buffer, version)?;
                     }
                 }
             }
             PlayerInfo::UpdateGamemodes(vec) => {
                 for (uuid, gamemode) in vec {
-                    uuid.write(buffer, version);
-                    gamemode.write(buffer, version);
+                    uuid.write(buffer, version)?;
+                    gamemode.write(buffer, version)?;
                 }
             }
             PlayerInfo::UpdatePings(vec) => {
                 for (uuid, ping) in vec {
-                    uuid.write(buffer, version);
-                    VarInt(*ping).write(buffer, version);
+                    uuid.write(buffer, version)?;
+                    VarInt(*ping).write(buffer, version)?;
                 }
             }
             PlayerInfo::UpdateDisplayNames(vec) => {
                 for (uuid, display_name) in vec {
-                    uuid.write(buffer, version);
-                    display_name.is_some().write(buffer, version);
+                    uuid.write(buffer, version)?;
+                    display_name.is_some().write(buffer, version)?;
                     if let Some(display_name) = &display_name {
-                        display_name.write(buffer, version);
+                        display_name.write(buffer, version)?;
                     }
                 }
             }
             PlayerInfo::RemovePlayers(vec) => {
                 for uuid in vec {
-                    uuid.write(buffer, version)
+                    uuid.write(buffer, version)?
                 }
             }
         }
+        Ok(())
     }
 }
 
@@ -814,7 +816,7 @@ packets! {
     }
 
     DestroyEntities {
-        entity_ids LengthPrefixedVec<VarInt>;
+        entity_ids VarIntPrefixedVec<VarInt>;
     }
 
     RemoveEntityEffect {
@@ -967,8 +969,8 @@ impl Readable for EntityEquipment {
 }
 
 impl Writeable for EntityEquipment {
-    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) {
-        VarInt(self.entity_id).write(buffer, version);
+    fn write(&self, buffer: &mut Vec<u8>, version: crate::ProtocolVersion) -> anyhow::Result<()> {
+        VarInt(self.entity_id).write(buffer, version)?;
 
         for (i, entry) in self.entries.iter().enumerate() {
             let mut slot_byte = match entry.slot {
@@ -982,9 +984,11 @@ impl Writeable for EntityEquipment {
             if i != self.entries.len() - 1 {
                 slot_byte |= 0b1000_0000;
             }
-            slot_byte.write(buffer, version);
-            entry.item.write(buffer, version);
+            slot_byte.write(buffer, version)?;
+            entry.item.write(buffer, version)?;
         }
+
+        Ok(())
     }
 }
 
@@ -1027,7 +1031,7 @@ packets! {
 
     SetPassengers {
         entity_id VarInt;
-        passengers LengthPrefixedVec<VarInt>;
+        passengers VarIntPrefixedVec<VarInt>;
     }
 
     Teams {
@@ -1046,7 +1050,7 @@ def_enum! {
             team_color VarInt;
             team_prefix String;
             team_suffix String;
-            entities LengthPrefixedVec<String>; // usernames or UUIDs
+            entities VarIntPrefixedVec<String>; // usernames or UUIDs
         },
         1 = RemoveTeam,
         2 = UpdateTeamInfo {
@@ -1059,10 +1063,10 @@ def_enum! {
             team_suffix String;
         },
         3 = AddEntitiesToTeam {
-            entities LengthPrefixedVec<String>;
+            entities VarIntPrefixedVec<String>;
         },
         4 = RemoveEntitiesFromTeam {
-            entities LengthPrefixedVec<String>;
+            entities VarIntPrefixedVec<String>;
         },
     }
 }
@@ -1185,7 +1189,7 @@ def_enum! {
             id String;
             group String;
             ingredient VarInt;
-            ingredients LengthPrefixedVec<Ingredient>;
+            ingredients VarIntPrefixedVec<Ingredient>;
             result Slot;
         },
         "minecraft:crafting_shaped" = Shaped {
@@ -1193,7 +1197,7 @@ def_enum! {
             width VarInt;
             height VarInt;
             group String;
-            ingredients LengthPrefixedVec<Ingredient>;
+            ingredients VarIntPrefixedVec<Ingredient>;
             result Slot;
         },
         "minecraft:crafting_special_armordye" = ArmorDye { id String; },
@@ -1253,18 +1257,18 @@ def_enum! {
 
 packets! {
     Ingredient {
-        allowed_items LengthPrefixedVec<Slot>;
+        allowed_items VarIntPrefixedVec<Slot>;
     }
 
     AllTags {
-        block_tags LengthPrefixedVec<Tag>;
-        item_tags LengthPrefixedVec<Tag>;
-        fluid_tags LengthPrefixedVec<Tag>;
-        entity_tags LengthPrefixedVec<Tag>;
+        block_tags VarIntPrefixedVec<Tag>;
+        item_tags VarIntPrefixedVec<Tag>;
+        fluid_tags VarIntPrefixedVec<Tag>;
+        entity_tags VarIntPrefixedVec<Tag>;
     }
 
     Tag {
         name String;
-        entries LengthPrefixedVec<VarInt>;
+        entries VarIntPrefixedVec<VarInt>;
     }
 }

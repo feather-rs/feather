@@ -88,10 +88,10 @@ impl ClientPacketCodec {
     /// Encodes a `ClientPacket` into a buffer.
     pub fn encode(&mut self, packet: &ClientPacket, buffer: &mut Vec<u8>) {
         match packet {
-            ClientPacket::Handshake(packet) => self.codec.encode(packet, buffer),
-            ClientPacket::Status(packet) => self.codec.encode(packet, buffer),
-            ClientPacket::Login(packet) => self.codec.encode(packet, buffer),
-            ClientPacket::Play(packet) => self.codec.encode(packet, buffer),
+            ClientPacket::Handshake(packet) => self.codec.encode(packet, buffer).unwrap(),
+            ClientPacket::Status(packet) => self.codec.encode(packet, buffer).unwrap(),
+            ClientPacket::Login(packet) => self.codec.encode(packet, buffer).unwrap(),
+            ClientPacket::Play(packet) => self.codec.encode(packet, buffer).unwrap(),
         }
     }
 }
@@ -143,9 +143,9 @@ impl ServerPacketCodec {
     /// Encodes a `ServerPacket` into a buffer.
     pub fn encode(&mut self, packet: &ServerPacket, buffer: &mut Vec<u8>) {
         match packet {
-            ServerPacket::Status(packet) => self.codec.encode(packet, buffer),
-            ServerPacket::Login(packet) => self.codec.encode(packet, buffer),
-            ServerPacket::Play(packet) => self.codec.encode(packet, buffer),
+            ServerPacket::Status(packet) => self.codec.encode(packet, buffer).unwrap(),
+            ServerPacket::Login(packet) => self.codec.encode(packet, buffer).unwrap(),
+            ServerPacket::Play(packet) => self.codec.encode(packet, buffer).unwrap(),
         }
     }
 }
