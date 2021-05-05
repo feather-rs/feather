@@ -1,7 +1,7 @@
 ### Architecture
 
 Feather uses the Entity-Component-System architecture, also known as ECS. This architecture
-is widely used in the Rust gamedev ecosystem. 
+is widely used in the Rust game dev ecosystem. 
 
 In the ECS architecture, there are three key types of objects:
 * Entities: these are just IDs. In Feather, these are represented by the `Entity` struct.
@@ -28,7 +28,7 @@ The Feather game state is defined in the `Game` struct, which lives in `crates/c
 This struct contains the `World` (blocks) and the `Ecs` (entities). It also provides
 methods for common tasks, like "spawn entity" or "remove entity" or "get block."
 
-Note that entities in the ECS correspond either to Minecraft entities, like players or zombies,
+Note that entities in the ECS correspond either to Minecraft entities, like players or zombies
 or to internal entities like the "console entity." In general, you don't have to worry about
 this distinction.
 
@@ -40,7 +40,7 @@ This is a list of components that are frequently accessed throughout the codebas
 * `Name` - player's username (not for other entities)
 * `CustomName` - entity's custom name (not for players)
 * `Inventory`
-* `Window` - wraps one or more `Inventory`s that the player is looking at right now. In a chest,
+* `Window` - wraps one or more `Inventory` that the player is looking at right now. In a chest,
 for example, a player's window would wrap the player inventory and the chest inventory.
 
 ### Crate Structure
@@ -52,7 +52,7 @@ split the codebase into a series of crates:
 For example, the block, item, chunk, and region file structs live in `libcraft`. `libcraft` code is intended
 for use in other Rust Minecraft tools, like map editors or world file converters.
 * The plugin API lives in [`quill`](https://github.com/feather-rs/quill), which actually consists of three major crates:
-  * `quill-common` is shared between Feather itself and plugins. This is where most of our ECS components are defined,
+  * `quill-common` is shared between Feather itself and plugins. This is where most of our ECS components are defined
   so that both plugins and Feather can access them.
   * `quill-sys` provides FFI functions for "host calls." Host calls are low-level functions that
   plugins call to perform actions. For example, "get component" and "send message" are host calls.
@@ -78,7 +78,7 @@ The component can then be accessed both from Feather and from plugins.
 In Feather, events are components. An entity with the `PlayerJoinEvent` component just joined
 the game, for example.
 
-The event sytsem serves as a mechanism to communicate between different crates and modules.
+The event system serves as a mechanism to communicate between different crates and modules.
 For example, triggering a `BlockChangeEvent` _anywhere_ causes `feather-server` to send block
 update packets to players.
 
@@ -110,7 +110,7 @@ trigger an event and handle it in `feather-server`.
 
 ### Sending packets to nearby players
 
-Some packets should be sent to all players that can see a given entity, or all
+Some packets should be sent to all players that can see a given entity or all
 players that can see a given block. Use `Server::broadcast_nearby_with` for this.
 
 ### Receiving packets
