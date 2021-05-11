@@ -67,3 +67,7 @@ jobs:
     
     - name: Check formatting
       run: cargo fmt -- --check
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Build
+        path: target/release/feather_server*
