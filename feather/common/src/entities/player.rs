@@ -1,12 +1,15 @@
 use anyhow::bail;
 use base::EntityKind;
 use ecs::{EntityBuilder, SysResult};
-use quill_common::entities::Player;
+use quill_common::{components::CreativeFlying, entities::Player};
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);
-    builder.add(Player).add(EntityKind::Player);
-}
+    builder
+        .add(Player)
+        .add(CreativeFlying(false))
+        .add(EntityKind::Player);
+}   
 
 /// The hotbar slot a player's cursor is currently on
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
