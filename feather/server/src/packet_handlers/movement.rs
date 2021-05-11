@@ -1,9 +1,7 @@
 use base::Position;
 use ecs::{EntityRef, SysResult};
-use protocol::packets::client::{
-    PlayerMovement, PlayerPosition, PlayerPositionAndRotation, PlayerRotation,
-};
-use quill_common::components::OnGround;
+use protocol::packets::{client::{PlayerAbilities, PlayerMovement, PlayerPosition, PlayerPositionAndRotation, PlayerRotation}};
+use quill_common::components::{CreativeFlying, OnGround};
 
 use crate::{ClientId, Server};
 
@@ -88,4 +86,56 @@ fn update_client_position(server: &Server, player: EntityRef, pos: Position) -> 
         client.set_client_known_position(pos);
     }
     Ok(())
+}
+
+/// Handles the PlayerAbilities packet that signals, if the client wants to 
+/// start/stop flying (like in creative mode).
+pub fn handle_player_abilities(
+    server: &Server,
+    player: EntityRef,
+    packet: PlayerAbilities,
+) -> SysResult {
+
+    let mut flying = player.get_mut::<CreativeFlying>()?;
+
+    match packet.flags {
+        0 => {
+            // Flying stopped
+            
+            if flying.0 {
+                // Then it used to fly, therefor we need to trigger a event
+                // The vanilla client is actually quite good at keeping track of sending
+                // this packet only when there is a change, so this if should basically
+                // always trigger. 
+                
+                // @TODO
+            }
+
+            flying.0 = false;
+        },
+        2 => {
+            // Flying started
+
+            if ! flying.0 {
+                // Then it used to not fly, therefor we need to trigger a event.
+                // The vanilla client is actually quite good at keeping track of sending
+                // this packet only when there is a change, so this if should basically
+                // always trigger. 
+
+                
+                // @TODO
+            }
+            
+            flying.0 = false;
+        },
+        err => {
+            // Unexpected flat value
+            log::error!("Got a unexpected flag in the PlayerAbilities packet. The value was: {} and not 0 or 2.", err)
+        }
+    }
+
+    Ok(())
+
+
+
 }

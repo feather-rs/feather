@@ -66,6 +66,10 @@ pub fn handle_packet(
 
         ClientPlayPacket::ClientSettings(packet) => handle_client_settings(server, player, packet),
 
+        ClientPlayPacket::PlayerAbilities(packet) => {
+            movement::handle_player_abilities(server, player, packet)
+        }
+
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
         | ClientPlayPacket::SetDifficulty(_)
@@ -84,7 +88,6 @@ pub fn handle_packet(
         | ClientPlayPacket::SteerBoat(_)
         | ClientPlayPacket::PickItem(_)
         | ClientPlayPacket::CraftRecipeRequest(_)
-        | ClientPlayPacket::PlayerAbilities(_)
         | ClientPlayPacket::EntityAction(_)
         | ClientPlayPacket::SteerVehicle(_)
         | ClientPlayPacket::SetDisplayedRecipe(_)
