@@ -9,7 +9,7 @@ pub fn build_default(builder: &mut EntityBuilder) {
         .add(Player)
         .add(CreativeFlying(false))
         .add(EntityKind::Player);
-}   
+}
 
 /// The hotbar slot a player's cursor is currently on
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]

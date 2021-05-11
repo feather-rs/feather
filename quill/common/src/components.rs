@@ -99,7 +99,7 @@ impl Display for CustomName {
     }
 }
 
-/// Whether an entity is flying (like in creative mode) 
+/// Whether an entity is flying (like in creative mode)
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct CreativeFlying(pub bool);
 

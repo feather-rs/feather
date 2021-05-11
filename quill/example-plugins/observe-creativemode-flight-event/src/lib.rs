@@ -3,10 +3,7 @@ This plugin observers the CreativeFlightEvent printing a msg when someone starts
 flying.
 */
 
-use quill::{
-    events::CreativeFlyingEvent,
-    Game,Plugin,Setup,
-};
+use quill::{events::CreativeFlyingEvent, Game, Plugin, Setup};
 
 quill::plugin!(FlightPlugin);
 

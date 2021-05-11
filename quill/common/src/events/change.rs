@@ -7,7 +7,7 @@ pub struct CreativeFlyingEvent {
 impl CreativeFlyingEvent {
     pub fn new(changed_to: bool) -> Self {
         Self {
-            is_flying: changed_to
+            is_flying: changed_to,
         }
     }
 }

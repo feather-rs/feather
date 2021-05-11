@@ -1,7 +1,7 @@
 mod block_interact;
-mod interact_entity;
 mod change;
+mod interact_entity;
 
 pub use block_interact::{BlockInteractEvent, BlockPlacementEvent};
-pub use interact_entity::InteractEntityEvent;
 pub use change::CreativeFlyingEvent;
+pub use interact_entity::InteractEntityEvent;

@@ -67,7 +67,7 @@ pub fn handle_packet(
         ClientPlayPacket::ClientSettings(packet) => handle_client_settings(server, player, packet),
 
         ClientPlayPacket::PlayerAbilities(packet) => {
-            movement::handle_player_abilities(game, player_id,packet)
+            movement::handle_player_abilities(game, player_id, packet)
         }
 
         ClientPlayPacket::TeleportConfirm(_)
