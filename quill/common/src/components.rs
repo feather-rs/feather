@@ -98,3 +98,9 @@ impl Display for CustomName {
         self.0.fmt(f)
     }
 }
+
+/// Whether an entity is flying (like in creative mode) 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct CreativeFlying(pub bool);
+
+bincode_component_impl!(CreativeFlying);
