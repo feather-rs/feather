@@ -25,6 +25,7 @@ members = [
     "quill/example-plugins/plugin-message",
     "quill/example-plugins/query-entities",
     "quill/example-plugins/simple",
+    "quill/example-plugins/observe-creativemode-flight-event",
 
     # Feather (common and server)
     "feather/utils",
