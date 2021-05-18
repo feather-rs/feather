@@ -1,9 +1,13 @@
 use base::Position;
-use ecs::{EntityRef, SysResult};
+use common::Game;
+use ecs::{Entity, EntityRef, SysResult};
 use protocol::packets::client::{
-    PlayerMovement, PlayerPosition, PlayerPositionAndRotation, PlayerRotation,
+    PlayerAbilities, PlayerMovement, PlayerPosition, PlayerPositionAndRotation, PlayerRotation,
 };
-use quill_common::components::OnGround;
+use quill_common::{
+    components::{CreativeFlying, OnGround},
+    events::CreativeFlyingEvent,
+};
 
 use crate::{ClientId, Server};
 
@@ -87,5 +91,48 @@ fn update_client_position(server: &Server, player: EntityRef, pos: Position) -> 
     if let Some(client) = server.clients.get(*player.get::<ClientId>()?) {
         client.set_client_known_position(pos);
     }
+    Ok(())
+}
+
+/// Handles the PlayerAbilities packet that signals, if the client wants to
+/// start/stop flying (like in creative mode).
+pub fn handle_player_abilities(
+    game: &mut Game,
+    player: Entity,
+    packet: PlayerAbilities,
+) -> SysResult {
+    let flying = game.ecs.get_mut::<CreativeFlying>(player)?.0;
+
+    match packet.flags {
+        0 => {
+            // Flying stopped
+            if flying {
+                // Then it used to fly, therefor we need to trigger a event
+                // The vanilla client is actually quite good at keeping track of sending
+                // this packet only when there is a change, so this if should basically
+                // always trigger.
+                game.ecs
+                    .insert_entity_event(player, CreativeFlyingEvent::new(false))?;
+
+                game.ecs.get_mut::<CreativeFlying>(player)?.0 = false;
+            }
+        }
+        2 => {
+            // Flying started
+            if !flying {
+                // Then it used to not fly, therefor we need to trigger a event.
+                // The vanilla client is actually quite good at keeping track of sending
+                // this packet only when there is a change, so this if should basically
+                // always trigger.
+                game.ecs
+                    .insert_entity_event(player, CreativeFlyingEvent::new(true))?;
+                game.ecs.get_mut::<CreativeFlying>(player)?.0 = true;
+            }
+        }
+        err => {
+            log::error!("Got a unexpected flag in the PlayerAbilities packet. The value was: {} and not 0 or 2.", err)
+        }
+    }
+
     Ok(())
 }

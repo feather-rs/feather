@@ -183,7 +183,10 @@ host_component_enum! {
         Particle = 1005,
         InteractEntityEvent = 1006,
         BlockPlacementEvent = 1007,
-        BlockInteractEvent = 1008
+        BlockInteractEvent = 1008,
+        CreativeFlying = 1009,
+        CreativeFlyingEvent = 1010,
+
     }
 }
 
@@ -303,6 +306,14 @@ macro_rules! pod_component_impl {
 
 pod_component_impl!(Position);
 
+/**
+If you are using this macro and you get the error:
+```
+    error[E0599]: no variant or associated item named `...` found for enum `HostComponent` in the current scope.
+```
+Then you need to go to the top of the file were this macro is defined. There you find the HostCompoent enum, that
+you need to add your component to.
+*/
 macro_rules! bincode_component_impl {
     ($type:ident) => {
         unsafe impl crate::Component for $type {
@@ -336,3 +347,4 @@ bincode_component_impl!(Particle);
 bincode_component_impl!(InteractEntityEvent);
 bincode_component_impl!(BlockPlacementEvent);
 bincode_component_impl!(BlockInteractEvent);
+bincode_component_impl!(CreativeFlyingEvent);
