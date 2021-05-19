@@ -914,6 +914,8 @@ dependencies = [
  "bytes 0.5.6",
  "cfb8",
  "feather-base",
+ "feather-blocks",
+ "feather-generated",
  "flate2",
  "hematite-nbt",
  "num-traits",
@@ -1795,6 +1797,13 @@ name = "object"
 version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a9a7ab5d64814df0fe4a4b5ead45ed6c5f181ee3ff04ba344313a6c80446c5d4"
+
+[[package]]
+name = "observe-creativemode-flight-event"
+version = "0.1.0"
+dependencies = [
+ "quill",
+]
 
 [[package]]
 name = "once_cell"
