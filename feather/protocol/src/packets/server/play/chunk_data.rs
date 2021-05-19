@@ -193,7 +193,7 @@ impl Readable for ChunkData {
             }
         }
 
-        VarInt::read(buffer, version)?.0; // Size of following array
+        VarInt::read(buffer, version)?; // Size of following array
 
         for i in 0..16 {
             if (primary_bit_mask & (1 << i)) != 0 {
