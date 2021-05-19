@@ -142,6 +142,7 @@ where
         self.heights.set(index, height as u64);
     }
 
+    /// Proxy compatibility. Please don't use!
     pub fn set_height_index(&mut self, index: usize, height: i64) {
         self.heights.as_u64_vec()[index] = height as u64;
     }
