@@ -6,8 +6,6 @@ client and server and prints out packets going over the network.
 This tool is useful when figuring out how Minecraft implements features
 over the protocol.
 
-NOTE: some packets aren't fully implemented yet and thus will either only print a list of bytes or in the case of `ChunkData` and `UpdateLight` crash the proxy. (Feel free to contribute 😊)
-
 #### Usage
 
 To set up the proxy with a vanilla server and client:

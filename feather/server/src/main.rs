@@ -17,7 +17,7 @@ const CONFIG_PATH: &str = "config.toml";
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    println!("Loading configuration");
+    log::info!("Loading configuration");
     let config =
         feather_server::config::load(CONFIG_PATH).context("failed to load configuration file")?;
     logging::init(config.log.level);
