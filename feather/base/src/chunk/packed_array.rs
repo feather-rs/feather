@@ -166,7 +166,7 @@ impl PackedArray {
         self.bits_per_value
     }
 
-    /// Proxy Compatibility. Please don't use!
+    #[cfg(feature = "proxy")]
     pub fn set_bits_per_value(&mut self, new_value: usize) {
         self.bits_per_value = new_value;
     }
@@ -176,7 +176,7 @@ impl PackedArray {
         &self.bits
     }
 
-    /// Proxy Compatibility. Please don't use!
+    #[cfg(feature = "proxy")]
     pub fn as_u64_mut_vec(&mut self) -> &mut Vec<u64> {
         &mut self.bits
     }

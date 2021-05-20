@@ -147,6 +147,7 @@ fn encode_section(
 }
 
 impl Readable for ChunkData {
+    #[cfg(feature = "proxy")]
     fn read(buffer: &mut std::io::Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where
         Self: Sized,
@@ -234,6 +235,14 @@ impl Readable for ChunkData {
             chunk: Arc::new(RwLock::new(chunk)),
             kind: chunk_data_kind,
         })
+    }
+
+    #[cfg(not(feature = "proxy"))]
+    fn read(_buffer: &mut std::io::Cursor<&[u8]>, _version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        None
     }
 }
 

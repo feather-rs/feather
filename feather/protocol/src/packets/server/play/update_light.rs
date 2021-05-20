@@ -59,6 +59,7 @@ fn encode_light(light: &PackedArray, buffer: &mut Vec<u8>, version: ProtocolVers
 }
 
 impl Readable for UpdateLight {
+    #[cfg(feature = "proxy")]
     fn read(
         buffer: &mut std::io::Cursor<&[u8]>,
         version: crate::ProtocolVersion,
@@ -126,5 +127,16 @@ impl Readable for UpdateLight {
         Ok(Self {
             chunk: Arc::new(RwLock::new(chunk)),
         })
+    }
+
+    #[cfg(not(feature = "proxy"))]
+    fn read(
+        _buffer: &mut std::io::Cursor<&[u8]>,
+        _version: crate::ProtocolVersion,
+    ) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        None
     }
 }

@@ -5,7 +5,7 @@ authors = ["caelunshun <caelunshun@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-feather-protocol = { path = "../../feather/protocol" }
+feather-protocol = { path = "../../feather/protocol", features = ["proxy"] }
 async-executor = "1"
 async-io = "1"
 futures-lite = "1"

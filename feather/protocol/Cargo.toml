@@ -21,3 +21,6 @@ parking_lot = "0.11" # Arc<RwLock<Chunk>> compat
 serde = "1"
 thiserror = "1"
 uuid = "0.8"
+
+[features]
+proxy = ["base/proxy"]
