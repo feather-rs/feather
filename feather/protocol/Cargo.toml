@@ -8,14 +8,19 @@ edition = "2018"
 aes = "0.5"
 anyhow = "1"
 base = { path = "../base", package = "feather-base" }
+blocks = { path = "../blocks", package = "feather-blocks" }
 bytemuck = "1"
 byteorder = "1"
 bytes = "0.5"
 cfb8 = "0.5"
 flate2 = "1"
+generated = { path = "../generated", package = "feather-generated" }
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
 num-traits = "0.2"
 parking_lot = "0.11" # Arc<RwLock<Chunk>> compat
 serde = "1"
 thiserror = "1"
 uuid = "0.8"
+
+[features]
+proxy = ["base/proxy"]

@@ -16,7 +16,7 @@ pub fn load(path: &str) -> anyhow::Result<Config> {
     let default_config = DEFAULT_CONFIG;
 
     if !path.exists() {
-        println!("Creating default config");
+        log::info!("Creating default config");
         fs::write(path, default_config)?;
     }
 

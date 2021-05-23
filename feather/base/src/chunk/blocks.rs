@@ -51,8 +51,18 @@ impl BlockStore {
         &self.blocks
     }
 
+    #[cfg(feature = "proxy")]
+    pub fn data_mut(&mut self) -> &mut PackedArray {
+        &mut self.blocks
+    }
+
     pub fn palette(&self) -> Option<&Palette> {
         self.palette.as_ref()
+    }
+
+    #[cfg(feature = "proxy")]
+    pub fn palette_mut(&mut self) -> Option<&mut Palette> {
+        self.palette.as_mut()
     }
 
     fn count_air_blocks(blocks: &PackedArray, palette: &Option<Palette>) -> u32 {
@@ -71,6 +81,11 @@ impl BlockStore {
 
     pub fn air_blocks(&self) -> u32 {
         self.air_block_count
+    }
+
+    #[cfg(feature = "proxy")]
+    pub fn set_air_blocks(&mut self, new_value: u32) {
+        self.air_block_count = new_value;
     }
 
     pub fn block_at(&self, x: usize, y: usize, z: usize) -> Option<BlockId> {

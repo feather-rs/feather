@@ -1,6 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 
-use base::{chunk::PackedArray, Chunk};
+use base::{chunk::PackedArray, Chunk, ChunkPosition, ChunkSection};
 use parking_lot::RwLock;
 
 use crate::{io::VarInt, ProtocolVersion, Readable, Writeable};
@@ -58,14 +58,74 @@ fn encode_light(light: &PackedArray, buffer: &mut Vec<u8>, version: ProtocolVers
     buffer.extend_from_slice(light_data);
 }
 
+#[cfg(feature = "proxy")]
 impl Readable for UpdateLight {
     fn read(
-        _buffer: &mut std::io::Cursor<&[u8]>,
-        _version: crate::ProtocolVersion,
+        buffer: &mut std::io::Cursor<&[u8]>,
+        version: crate::ProtocolVersion,
     ) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
-        todo!()
+        let mut chunk = Chunk::new(ChunkPosition {
+            x: VarInt::read(buffer, version)?.0,
+            z: VarInt::read(buffer, version)?.0,
+        });
+
+        let _trust_edges = bool::read(buffer, version)?;
+
+        let sky_light_mask = VarInt::read(buffer, version)?.0;
+        let block_light_mask = VarInt::read(buffer, version)?.0;
+        let _empty_sky_light_mask = VarInt::read(buffer, version)?;
+        let _empty_block_light_mask = VarInt::read(buffer, version)?;
+
+        for i in 0..18 {
+            if (sky_light_mask & (1 << i)) != 0 {
+                let probably_2048 = VarInt::read(buffer, version)?.0 as usize;
+                assert_eq!(probably_2048, 2048);
+                let mut bytes: Vec<u8> = Vec::new();
+                for _ in 0..probably_2048 {
+                    bytes.push(u8::read(buffer, version)?);
+                }
+                let mut bytes = bytes.iter();
+                if chunk.section(i + 1).is_none() {
+                    chunk.set_section_at(i as isize, Some(ChunkSection::default()));
+                }
+                if let Some(section) = chunk.section_mut(i + 1) {
+                    for x in 0..16 {
+                        for y in 0..16 {
+                            for z in 0..16 {
+                                section.set_sky_light_at(x, y, z, *bytes.next().unwrap_or(&15));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for i in 0..18 {
+            if (block_light_mask & (1 << i)) != 0 {
+                let probably_2048 = VarInt::read(buffer, version)?.0 as usize;
+                assert_eq!(probably_2048, 2048);
+                let mut bytes: Vec<u8> = Vec::new();
+                for _ in 0..probably_2048 {
+                    bytes.push(u8::read(buffer, version)?);
+                }
+                let mut bytes = bytes.iter();
+                if let Some(section) = chunk.section_mut(i) {
+                    for x in 0..16 {
+                        for y in 0..16 {
+                            for z in 0..16 {
+                                section.set_block_light_at(x, y, z, *bytes.next().unwrap_or(&15));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(Self {
+            chunk: Arc::new(RwLock::new(chunk)),
+        })
     }
 }

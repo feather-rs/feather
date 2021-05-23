@@ -142,6 +142,11 @@ where
         self.heights.set(index, height as u64);
     }
 
+    #[cfg(feature = "proxy")]
+    pub fn set_height_index(&mut self, index: usize, height: i64) {
+        self.heights.as_u64_mut_vec()[index] = height as u64;
+    }
+
     pub fn height(&self, x: usize, z: usize) -> Option<usize> {
         let index = self.index(x, z);
         self.heights.get(index).map(|x| x as usize)

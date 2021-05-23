@@ -166,9 +166,19 @@ impl PackedArray {
         self.bits_per_value
     }
 
+    #[cfg(feature = "proxy")]
+    pub fn set_bits_per_value(&mut self, new_value: usize) {
+        self.bits_per_value = new_value;
+    }
+
     /// Gets the raw `u64` data.
     pub fn as_u64_slice(&self) -> &[u64] {
         &self.bits
+    }
+
+    #[cfg(feature = "proxy")]
+    pub fn as_u64_mut_vec(&mut self) -> &mut Vec<u64> {
+        &mut self.bits
     }
 
     fn mask(&self) -> u64 {
