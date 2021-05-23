@@ -44,9 +44,8 @@ Memory usage in Feather is proportional to the number of loaded chunks, not play
 until the players start to spread out. In the 1,000,000 entities test, it uses 400 MiB of RAM without any chunks loaded.
 
 ### Running
-We offer precompiled binaries for Windows, Linux, and macOS at [GitHub Releases](https://github.com/feather-rs/feather/releases).
-
-NB: these binaries are currently outdated. We intend to make another release shortly.
+We offer precompiled binaries for Windows, Linux, and macOS at [GitHub Actions](https://github.com/feather-rs/feather/actions/workflows/main.yml).
+NB: Do **NOT** use github releases, they are majorly outdated
 
 To run Feather:
 * Extract the downloaded archive.
