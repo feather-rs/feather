@@ -118,9 +118,7 @@ pub struct PotionEffect {
 pub struct PotionEffects(pub Vec<PotionEffect>);
 bincode_component_impl!(PotionEffects);
 
-
 /// Wheather an entity is sneaking, like in pressing shift.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Sneaking(pub bool);
 bincode_component_impl!(Sneaking);
-
