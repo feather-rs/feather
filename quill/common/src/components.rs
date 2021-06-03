@@ -104,3 +104,15 @@ impl Display for CustomName {
 pub struct CreativeFlying(pub bool);
 
 bincode_component_impl!(CreativeFlying);
+type EPotionEffect = libcraft_effects::PotionEffect;
+#[derive(Clone, Debug, Hash, Serialize, Deserialize)]
+pub struct PotionEffect {
+    effect: EPotionEffect,
+    amplifier: u8,
+    duration: u32,
+    particle: bool,
+    icon: bool, // show effect icon.
+}
+#[derive(Clone, Debug, Hash, Serialize, Deserialize)]
+pub struct PotionEffects(pub Vec<PotionEffect>);
+bincode_component_impl!(PotionEffects);

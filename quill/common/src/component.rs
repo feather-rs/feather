@@ -186,7 +186,7 @@ host_component_enum! {
         BlockInteractEvent = 1008,
         CreativeFlying = 1009,
         CreativeFlyingEvent = 1010,
-
+        PotionEffects = 1011,
     }
 }
 
