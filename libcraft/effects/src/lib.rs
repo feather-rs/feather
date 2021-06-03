@@ -1,5 +1,5 @@
+use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
-use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
 pub enum PotionEffect {

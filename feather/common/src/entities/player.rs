@@ -1,7 +1,10 @@
 use anyhow::bail;
 use base::EntityKind;
 use ecs::{EntityBuilder, SysResult};
-use quill_common::{components::{CreativeFlying, PotionEffects}, entities::Player};
+use quill_common::{
+    components::{CreativeFlying, PotionEffects},
+    entities::Player,
+};
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);
