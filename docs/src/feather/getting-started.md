@@ -20,7 +20,7 @@ then follow the onscreen instructions.
 
 ## Commands
 ### Init
-To create a server in an exisiting directory
+To create a server in an existing directory
 ```sh
 feather init [path]
 ```
@@ -28,7 +28,7 @@ This command will create a new feather server in the current directory.
 Give a path as an argument to create in the given directory.
 
 ### Start
-To start a server in an exisiting directory
+To start a server in an existing directory
 ```sh
 feather start [path]
 ```

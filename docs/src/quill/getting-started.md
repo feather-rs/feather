@@ -29,7 +29,7 @@ cargo install cargo-quill
 ```
 
 ## Creating a new plugin
-To create a new plugin in an exisiting directory
+To create a new plugin in an existing directory
 ```sh
 cargo quill init [path]
 ```

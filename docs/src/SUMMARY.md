@@ -16,7 +16,7 @@
         - [Best practices]()
         - [Bad practices]()
     - [Logging and debugging]()
-    - [Text]()
+    - [Text](quill/text.md)
     - [Commands](quill/commands.md)
         - [Custom parser]()
     - [Events]()

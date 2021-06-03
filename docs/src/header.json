@@ -1,0 +1,34 @@
+
+// schema.rs
+
+mod world {
+    struct BlockPostion {
+        x: u32,
+        y: u32,
+        z: u32,
+    }
+}
+
+struct Health {
+    value: u32,
+    max: u32,
+}
+
+struct Player;
+
+type set_block = fn(BlockPosition, Block) -> bool;
+
+struct MyExport {
+    field_a: u32,
+}
+
+// import.rs
+pub mod world {
+    use schema::world::BlockPosition;
+}
+pub use schema::Health;
+pub use schema::Player;
+pub use schema::set_block;
+
+// export.rs
+pub use schema::MyExport;
