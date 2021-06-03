@@ -1,13 +1,17 @@
 use anyhow::bail;
 use base::EntityKind;
 use ecs::{EntityBuilder, SysResult};
-use quill_common::{components::CreativeFlying, entities::Player};
+use quill_common::{
+    components::{CreativeFlying, Sneaking},
+    entities::Player,
+};
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);
     builder
         .add(Player)
         .add(CreativeFlying(false))
+        .add(Sneaking(false))
         .add(EntityKind::Player);
 }
 

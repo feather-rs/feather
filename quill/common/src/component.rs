@@ -186,6 +186,9 @@ host_component_enum! {
         BlockInteractEvent = 1008,
         CreativeFlying = 1009,
         CreativeFlyingEvent = 1010,
+        Sneaking = 1011,
+        SneakEvent = 1012,
+
 
     }
 }
@@ -348,3 +351,4 @@ bincode_component_impl!(InteractEntityEvent);
 bincode_component_impl!(BlockPlacementEvent);
 bincode_component_impl!(BlockInteractEvent);
 bincode_component_impl!(CreativeFlyingEvent);
+bincode_component_impl!(SneakEvent);
