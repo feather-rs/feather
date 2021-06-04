@@ -10,12 +10,12 @@ use crate::host_function::{NativeHostFunction, WasmHostFunction};
 
 mod block;
 mod component;
+mod effects;
 mod entity;
 mod entity_builder;
 mod plugin_message;
 mod query;
 mod system;
-mod effects;
 
 macro_rules! host_calls {
     (

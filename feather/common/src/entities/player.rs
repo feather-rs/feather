@@ -2,7 +2,7 @@ use anyhow::bail;
 use base::EntityKind;
 use ecs::{EntityBuilder, SysResult};
 use quill_common::{
-    components::{CreativeFlying, PotionEffects, Sneaking},
+    components::{CreativeFlying, Sneaking},
     entities::Player,
 };
 

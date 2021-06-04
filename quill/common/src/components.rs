@@ -106,16 +106,18 @@ pub struct CreativeFlying(pub bool);
 
 bincode_component_impl!(CreativeFlying);
 
-type EPotionEffect = libcraft_effects::PotionEffect;
-#[derive(Clone, Debug, Hash, Serialize, Deserialize)]
+type EffectKind = libcraft_effects::PotionEffect;
+#[derive(Clone, Debug, Hash, Serialize, PartialEq, Eq, Deserialize)]
 pub struct PotionEffect {
-    effect: EPotionEffect,
+    effect: EffectKind,
     amplifier: u8,
     duration: u32,
     particle: bool,
-    icon: bool, // show effect icon.
+    ambient: bool, // given from beacon or not.
+    icon: bool,    // show effect icon.
 }
-#[derive(Clone, Debug, Hash, Serialize, Deserialize)]
+
+#[derive(Clone, Debug, Serialize, PartialEq, Eq, Deserialize)]
 pub struct PotionEffects(pub HashSet<PotionEffect>);
 bincode_component_impl!(PotionEffects);
 
