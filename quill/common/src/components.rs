@@ -10,6 +10,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 use smartstring::{LazyCompact, SmartString};
+use std::collections::HashSet;
 
 /// Whether an entity is touching the ground.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -115,7 +116,7 @@ pub struct PotionEffect {
     icon: bool, // show effect icon.
 }
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
-pub struct PotionEffects(pub Vec<PotionEffect>);
+pub struct PotionEffects(pub HashSet<PotionEffect>);
 bincode_component_impl!(PotionEffects);
 
 /// Wheather an entity is sneaking, like in pressing shift.

@@ -15,6 +15,7 @@ mod entity_builder;
 mod plugin_message;
 mod query;
 mod system;
+mod effects;
 
 macro_rules! host_calls {
     (

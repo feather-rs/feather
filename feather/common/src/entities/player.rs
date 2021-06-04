@@ -11,7 +11,6 @@ pub fn build_default(builder: &mut EntityBuilder) {
     builder
         .add(Player)
         .add(CreativeFlying(false))
-        .add(PotionEffects(vec![]))
         .add(Sneaking(false))
         .add(EntityKind::Player);
 }
