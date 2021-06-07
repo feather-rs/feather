@@ -1,7 +1,10 @@
 use common::Game;
 use ecs::{Entity, SysResult};
 use protocol::packets::client::{EntityAction, EntityActionKind};
-use quill_common::{components::Sneaking, events::SneakEvent};
+use quill_common::{
+    components::{Sneaking, Sprinting},
+    events::{SneakEvent, SprintEvent},
+};
 
 ///  From [wiki](https://wiki.vg/Protocol#Entity_Action)
 ///  Sent by the client to indicate that it has performed certain actions:
@@ -36,10 +39,20 @@ pub fn handle_entity_action(game: &mut Game, player: Entity, packet: EntityActio
             // a notice that bed state might have changed.
         }
         EntityActionKind::StartSprinting => {
-            //TODO issue #423
+            let is_sprinting = game.ecs.get_mut::<Sprinting>(player)?.0;
+            if !is_sprinting {
+                game.ecs
+                    .insert_entity_event(player, SprintEvent::new(true))?;
+                game.ecs.get_mut::<Sprinting>(player)?.0 = true;
+            }
         }
         EntityActionKind::StopSprinting => {
-            //TODO issue #423
+            let is_sprinting = game.ecs.get_mut::<Sprinting>(player)?.0;
+            if is_sprinting {
+                game.ecs
+                    .insert_entity_event(player, SprintEvent::new(false))?;
+                game.ecs.get_mut::<Sprinting>(player)?.0 = false;
+            }
         }
         EntityActionKind::StartHorseJump => {
             //TODO issue #423
