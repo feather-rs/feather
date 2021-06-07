@@ -91,11 +91,7 @@ where
     }
 
     fn borrowed_mut(ty: HostComponent) -> bool {
-        if ty == T::host_component() {
-            true
-        } else {
-            false
-        }
+        ty == T::host_component()
     }
 
     unsafe fn get_unchecked(
@@ -182,13 +178,11 @@ where
         Q::add_component_types(&mut component_types);
 
         for (component_type, count) in component_types.clone().into_iter().counts() {
-            if count > 1 {
-                if Q::borrowed_mut(component_type) {
-                    panic!(
-                        "{:?} was borrowed mutably and immutably at the same time",
-                        component_type
-                    )
-                }
+            if count > 1 && Q::borrowed_mut(component_type) {
+                panic!(
+                    "{:?} was borrowed mutably and immutably at the same time",
+                    component_type
+                )
             }
         }
 
