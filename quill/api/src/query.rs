@@ -1,6 +1,10 @@
 //! Query for all entities with a certain set of components.
 
-use std::{marker::PhantomData, mem::MaybeUninit, ops::{Deref, DerefMut}};
+use std::{
+    marker::PhantomData,
+    mem::MaybeUninit,
+    ops::{Deref, DerefMut},
+};
 
 use quill_common::{entity::QueryData, Component, HostComponent, PointerMut};
 
@@ -29,7 +33,7 @@ pub trait Query {
         data: &QueryData,
         component_index: &mut usize,
         component_offsets: &mut [usize],
-        entity: Entity
+        entity: Entity,
     ) -> Self::Target;
 }
 
@@ -53,7 +57,7 @@ where
         data: &QueryData,
         component_index: &mut usize,
         component_offsets: &mut [usize],
-        _: Entity
+        _: Entity,
     ) -> Self::Target {
         let component_len = *((data.component_lens.as_mut_ptr()).add(*component_index)) as usize;
         let component_ptr =
@@ -85,7 +89,7 @@ where
     fn add_component_types(types: &mut Vec<HostComponent>) {
         types.push(T::host_component());
     }
-    
+
     fn borrowed_mut(ty: HostComponent) -> bool {
         if ty == T::host_component() {
             true
@@ -98,7 +102,7 @@ where
         data: &QueryData,
         component_index: &mut usize,
         component_offsets: &mut [usize],
-        entity: Entity
+        entity: Entity,
     ) -> Self::Target {
         let component_len = *((data.component_lens.as_mut_ptr()).add(*component_index)) as usize;
         let component_ptr =
@@ -148,8 +152,6 @@ macro_rules! impl_query_tuple {
     }
 }
 
-
-
 impl_query_tuple!(A, B);
 impl_query_tuple!(A, B, C);
 impl_query_tuple!(A, B, C, D);
@@ -182,7 +184,10 @@ where
         for (component_type, count) in component_types.clone().into_iter().counts() {
             if count > 1 {
                 if Q::borrowed_mut(component_type) {
-                    panic!("{:?} was borrowed mutably and immutably at the same time", component_type)
+                    panic!(
+                        "{:?} was borrowed mutably and immutably at the same time",
+                        component_type
+                    )
                 }
             }
         }
@@ -214,7 +219,7 @@ where
     Q: Query,
 {
     type Item = (Entity, Q::Target);
- 
+
     fn next(&mut self) -> Option<Self::Item> {
         if self.entity_index >= self.data.num_entities as usize {
             return None;
@@ -229,7 +234,7 @@ where
                 &self.data,
                 &mut component_index,
                 &mut self.component_offsets,
-                Entity::new(entity.id())
+                Entity::new(entity.id()),
             )
         };
 
