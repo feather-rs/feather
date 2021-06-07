@@ -108,12 +108,19 @@ pub struct CreativeFlying(pub bool);
 bincode_component_impl!(CreativeFlying);
 
 #[derive(Copy, Clone, Debug, Hash, Serialize, PartialEq, Eq, Deserialize)]
+
+/// Storing Potion effects info.
 pub struct PotionApplication {
+    /// Strength Level of effect.
     pub amplifier: u8,
+    /// Tick-based duration of the effect.
     pub duration: u32,
+    /// Whether spawn particles or not.
     pub particle: bool,
-    pub ambient: bool, // given from beacon or not.
-    pub icon: bool,    // show effect icon.
+    /// Whether the effect was given by a beacon or not.
+    pub ambient: bool,
+    /// Show effect icon or not.
+    pub icon: bool,
 }
 
 impl Ord for PotionApplication {
