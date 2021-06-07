@@ -94,7 +94,7 @@ fn update_client_position(server: &Server, player: EntityRef, pos: Position) -> 
     Ok(())
 }
 
-/// Handles the PlayerAbilities packet that signals, if the client wants to
+/// Handles the PlayerAbilities packet that signals that the client wants to
 /// start/stop flying (like in creative mode).
 pub fn handle_player_abilities(
     game: &mut Game,

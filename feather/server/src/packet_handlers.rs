@@ -16,6 +16,7 @@ use quill_common::components::Name;
 
 use crate::{NetworkId, Server};
 
+mod entity_action;
 mod interaction;
 pub mod inventory;
 mod movement;
@@ -70,6 +71,10 @@ pub fn handle_packet(
             movement::handle_player_abilities(game, player_id, packet)
         }
 
+        ClientPlayPacket::EntityAction(packet) => {
+            entity_action::handle_entity_action(game, player_id, packet)
+        }
+
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
         | ClientPlayPacket::SetDifficulty(_)
@@ -88,7 +93,6 @@ pub fn handle_packet(
         | ClientPlayPacket::SteerBoat(_)
         | ClientPlayPacket::PickItem(_)
         | ClientPlayPacket::CraftRecipeRequest(_)
-        | ClientPlayPacket::EntityAction(_)
         | ClientPlayPacket::SteerVehicle(_)
         | ClientPlayPacket::SetDisplayedRecipe(_)
         | ClientPlayPacket::SetRecipeBookState(_)
