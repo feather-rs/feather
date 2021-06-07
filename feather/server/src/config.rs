@@ -11,19 +11,21 @@ use crate::{favicon::Favicon, Options};
 const DEFAULT_CONFIG: &str = include_str!("../config.toml");
 
 /// Loads the config, creating a default config if needed.
-pub fn load(path: &str) -> anyhow::Result<Config> {
+pub fn load(path: &str) -> anyhow::Result<(Config, bool)> {
     let path = Path::new(path);
     let default_config = DEFAULT_CONFIG;
+    let mut is_created = false;
 
     if !path.exists() {
         log::info!("Creating default config");
         fs::write(path, default_config)?;
+        is_created = true;
     }
 
     let config_string = fs::read_to_string(path)?;
     let config: Config = toml::from_str(&config_string).context("invalid config.toml file")?;
 
-    Ok(config)
+    Ok((config, is_created))
 }
 
 #[derive(Debug, Deserialize)]
