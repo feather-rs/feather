@@ -38,20 +38,13 @@ pub fn handle_entity_action(game: &mut Game, player: Entity, packet: EntityActio
             // and all players are kicked out of the bed. We have to seperatly send out
             // a notice that bed state might have changed.
         }
-        EntityActionKind::StartSprinting => {
+        EntityActionKind::StartSprinting | EntityActionKind::StopSprinting => {
+            let start_sprinting = matches!(EntityActionKind::StartSprinting, packet.action_id);
             let is_sprinting = game.ecs.get_mut::<Sprinting>(player)?.0;
-            if !is_sprinting {
+            if is_sprinting != start_sprinting {
                 game.ecs
-                    .insert_entity_event(player, SprintEvent::new(true))?;
-                game.ecs.get_mut::<Sprinting>(player)?.0 = true;
-            }
-        }
-        EntityActionKind::StopSprinting => {
-            let is_sprinting = game.ecs.get_mut::<Sprinting>(player)?.0;
-            if is_sprinting {
-                game.ecs
-                    .insert_entity_event(player, SprintEvent::new(false))?;
-                game.ecs.get_mut::<Sprinting>(player)?.0 = false;
+                    .insert_entity_event(player, SprintEvent::new(start_sprinting))?;
+                game.ecs.get_mut::<Sprinting>(player)?.0 = start_sprinting;
             }
         }
         EntityActionKind::StartHorseJump => {
