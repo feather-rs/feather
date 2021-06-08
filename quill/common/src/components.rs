@@ -110,8 +110,8 @@ bincode_component_impl!(CreativeFlying);
 pub struct Sneaking(pub bool);
 bincode_component_impl!(Sneaking);
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 /// A component on players that tracks if they are sprinting or not.
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Sprinting(pub bool);
 impl Sprinting {
     pub fn new(value: bool) -> Self {
