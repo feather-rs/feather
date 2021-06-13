@@ -46,5 +46,6 @@ members = [
     "tools/proxy",
 ]
 
-[profile.release]
-debug = true
+# No longer need to use release for "development":
+[profile.dev.package."*"]
+opt-level = 2
