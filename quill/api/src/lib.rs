@@ -94,10 +94,11 @@ macro_rules! plugin {
         #[doc(hidden)]
         #[cfg(target_arch = "wasm32")]
         pub unsafe extern "C" fn quill_setup() {
-            let plugin = $plugin::enable(&mut $crate::Game::new(), &mut $crate::Setup::new());
+            let plugin: $plugin =
+                quill::Plugin::enable(&mut $crate::Game::new(), &mut $crate::Setup::new());
             PLUGIN = Some(plugin);
         }
-
+        
         #[no_mangle]
         #[doc(hidden)]
         #[cfg(not(target_arch = "wasm32"))]
@@ -115,7 +116,8 @@ macro_rules! plugin {
             $crate::sys::init_host_vtable(&vtable)
                 .expect("invalid vtable (check that the plugin and host are up to date)");
 
-            let plugin = $plugin::enable(&mut $crate::Game::new(), &mut $crate::Setup::new());
+            let plugin: $plugin =
+                quill::Plugin::enable(&mut $crate::Game::new(), &mut $crate::Setup::new());
             PLUGIN = Some(plugin);
         }
 
