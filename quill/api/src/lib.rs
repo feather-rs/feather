@@ -115,7 +115,8 @@ macro_rules! plugin {
             $crate::sys::init_host_vtable(&vtable)
                 .expect("invalid vtable (check that the plugin and host are up to date)");
 
-            let plugin = $plugin::enable(&mut $crate::Game::new(), &mut $crate::Setup::new());
+            let plugin: $plugin =
+                quill::Plugin::enable(&mut $crate::Game::new(), &mut $crate::Setup::new());
             PLUGIN = Some(plugin);
         }
 
