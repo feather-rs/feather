@@ -40,7 +40,7 @@ pub struct Game {
 impl Game {
     /// For Quill internal use only. Do not call.
     #[doc(hidden)]
-    #[allow(clippy::clippy::new_without_default)]
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             _not_send_sync: PhantomData,
