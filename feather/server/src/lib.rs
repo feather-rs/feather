@@ -98,11 +98,7 @@ impl Server {
     pub fn accept_new_players(&mut self) -> Vec<ClientId> {
         let mut clients = Vec::new();
         for player in self.new_players.clone().try_iter() {
-            if let Some(cl) = self
-                .clients
-                .iter()
-                .find(|x| *x.username() == player.username)
-            {
+            if let Some(cl) = self.clients.iter().find(|x| x.uuid() == player.uuid) {
                 cl.disconnect("Logged in from another location!");
             }
             let id = self.create_client(player);
