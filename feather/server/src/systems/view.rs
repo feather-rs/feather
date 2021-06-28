@@ -40,9 +40,9 @@ fn send_new_chunks(game: &mut Game, server: &mut Server) -> SysResult {
         .query::<(&ClientId, &ViewUpdateEvent, &Position)>()
         .iter()
     {
-        // As each iteration takes a while, it can happen that a player
-        // disconnects while the loop is still running. So we should
-        // actually check if he is still there.
+        // As ecs removes the client one tick after it gets removed here, it can
+        // happen that a client is still listed in the ecs but actually removed here so
+        // we need to check if the client is actually still there.
         if let Some(client) = server.clients.get(client_id) {
             client.update_own_chunk(event.new_view.center());
             update_chunks(
