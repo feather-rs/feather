@@ -4,6 +4,7 @@ flying.
 */
 
 use quill::{
+    components::Sprinting,
     events::{CreativeFlyingEvent, SneakEvent},
     Game, Plugin, Setup,
 };
@@ -16,6 +17,7 @@ impl Plugin for FlightPlugin {
     fn enable(_game: &mut Game, setup: &mut Setup<Self>) -> Self {
         setup.add_system(flight_observer_system);
         setup.add_system(sneak_observer_system);
+        setup.add_system(sprinting_observer_system);
         FlightPlugin {}
     }
 
@@ -38,6 +40,14 @@ fn sneak_observer_system(_plugin: &mut FlightPlugin, game: &mut Game) {
             player.send_message("Enjoy sneaking!");
         } else {
             player.send_message("How was it to be sneaking?");
+        }
+    }
+}
+
+fn sprinting_observer_system(_plugin: &mut FlightPlugin, game: &mut Game) {
+    for (player, sprinting) in game.query::<&Sprinting>() {
+        if sprinting.0 {
+            player.send_message("Are you sprinting?");
         }
     }
 }

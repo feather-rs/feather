@@ -1,7 +1,10 @@
 use common::Game;
 use ecs::{Entity, SysResult};
 use protocol::packets::client::{EntityAction, EntityActionKind};
-use quill_common::{components::Sneaking, events::SneakEvent};
+use quill_common::{
+    components::{Sneaking, Sprinting},
+    events::{SneakEvent, SprintEvent},
+};
 
 ///  From [wiki](https://wiki.vg/Protocol#Entity_Action)
 ///  Sent by the client to indicate that it has performed certain actions:
@@ -35,11 +38,14 @@ pub fn handle_entity_action(game: &mut Game, player: Entity, packet: EntityActio
             // and all players are kicked out of the bed. We have to seperatly send out
             // a notice that bed state might have changed.
         }
-        EntityActionKind::StartSprinting => {
-            //TODO issue #423
-        }
-        EntityActionKind::StopSprinting => {
-            //TODO issue #423
+        EntityActionKind::StartSprinting | EntityActionKind::StopSprinting => {
+            let start_sprinting = matches!(packet.action_id, EntityActionKind::StartSprinting);
+            let is_sprinting = game.ecs.get_mut::<Sprinting>(player)?.0;
+            if is_sprinting != start_sprinting {
+                game.ecs
+                    .insert_entity_event(player, SprintEvent::new(start_sprinting))?;
+                game.ecs.get_mut::<Sprinting>(player)?.0 = start_sprinting;
+            }
         }
         EntityActionKind::StartHorseJump => {
             //TODO issue #423

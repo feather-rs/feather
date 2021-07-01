@@ -29,3 +29,16 @@ impl SneakEvent {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SprintEvent {
+    pub is_sprinting: bool,
+}
+
+impl SprintEvent {
+    pub fn new(changed_to: bool) -> Self {
+        Self {
+            is_sprinting: changed_to,
+        }
+    }
+}
