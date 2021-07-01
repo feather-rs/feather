@@ -10,7 +10,7 @@ If you want to work on the codebase, please keep the following in mind:
 
 ## Notes to your code
 
-For notes to your code check the Checklist from [`pull_request_template.md`](docs/pull_request_template.md)
+For notes to your code check the Checklist from [`pull_request_template.md`](.github/pull_request_template.md)
 
 
 

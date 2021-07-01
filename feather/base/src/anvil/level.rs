@@ -193,7 +193,7 @@ mod tests {
         assert!(!level.hardcore);
         assert!(level.initialized);
         assert_eq!(level.last_played, 1_560_968_104_655);
-        assert_eq!(level.raining, false);
+        assert!(!level.raining);
         assert_eq!(level.rain_time, 61872);
         assert_eq!(level.spawn_x, 0);
         assert_eq!(level.spawn_y, 70);

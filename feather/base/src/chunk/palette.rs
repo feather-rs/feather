@@ -17,7 +17,7 @@ impl Default for Palette {
     }
 }
 
-#[allow(clippy::clippy::len_without_is_empty)] // palette is never empty
+#[allow(clippy::len_without_is_empty)] // palette is never empty
 impl Palette {
     /// Creates an empty palette.
     pub fn new() -> Self {

@@ -98,7 +98,7 @@ macro_rules! plugin {
                 quill::Plugin::enable(&mut $crate::Game::new(), &mut $crate::Setup::new());
             PLUGIN = Some(plugin);
         }
-        
+
         #[no_mangle]
         #[doc(hidden)]
         #[cfg(not(target_arch = "wasm32"))]
