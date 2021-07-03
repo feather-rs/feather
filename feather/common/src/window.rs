@@ -4,7 +4,7 @@ use anyhow::{anyhow, bail};
 use base::{Area, Item, ItemStack};
 
 use ecs::SysResult;
-pub use generated::Window as BackingWindow;
+pub use generated::HostWindow as BackingWindow;
 use generated::WindowError;
 use parking_lot::MutexGuard;
 
@@ -380,7 +380,7 @@ enum Mouse {
 
 #[cfg(test)]
 mod tests {
-    use base::{Inventory, Item};
+    use base::{HostInventory, Item};
 
     use super::*;
 
@@ -467,7 +467,7 @@ mod tests {
 
     #[test]
     fn window_shift_click_full_hotbar() {
-        let inventory = Inventory::player();
+        let inventory = HostInventory::player();
         for i in 0..9 {
             *inventory.item(Area::Hotbar, i).unwrap() = Some(ItemStack::new(Item::EnderPearl, 1));
         }
@@ -488,7 +488,7 @@ mod tests {
 
     #[test]
     fn window_shift_click_available_item_in_hotbar() {
-        let inventory = Inventory::player();
+        let inventory = HostInventory::player();
         *inventory.item(Area::Hotbar, 3).unwrap() = Some(ItemStack::new(Item::Stone, 4));
         *inventory.item(Area::Storage, 3).unwrap() = Some(ItemStack::new(Item::Stone, 7));
         let mut window = Window::new(BackingWindow::Player {
@@ -514,7 +514,7 @@ mod tests {
 
     #[test]
     fn window_shift_click_empty_hotbar() {
-        let inventory = Inventory::player();
+        let inventory = HostInventory::player();
         *inventory.item(Area::Storage, 3).unwrap() = Some(ItemStack::new(Item::Stone, 7));
         let mut window = Window::new(BackingWindow::Player {
             player: inventory.new_handle(),
@@ -588,7 +588,7 @@ mod tests {
 
     fn window() -> Window {
         Window::new(BackingWindow::Player {
-            player: Inventory::player(),
+            player: HostInventory::player(),
         })
     }
 }

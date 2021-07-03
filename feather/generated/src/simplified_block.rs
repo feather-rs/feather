@@ -1,6 +1,8 @@
 // This file is @generated. Please do not edit.
 use crate::BlockKind;
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[allow(unused_imports)]
+use serde::{Deserialize, Serialize};
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum SimplifiedBlockKind {
     Air,
     Planks,

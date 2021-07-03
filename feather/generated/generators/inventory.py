@@ -33,17 +33,23 @@ for name, window in data['windows'].items():
 
 output = common.generate_enum("Area", areas)
 
-window = "#[derive(Debug, Clone)] pub enum Window {"
-index_to_slot = "#[allow(unused_comparisons)] pub fn index_to_slot(&self, index: usize) -> Option<(&crate::Inventory, Area, usize)> { match self {"
-slot_to_index = "pub fn slot_to_index(&self, inventory: &crate::Inventory, area: Area, slot: usize) -> Option<usize> { match self {"
+host_window = "#[derive(Debug, Clone)] pub enum HostWindow {"
+window = "#[derive(Debug, Clone, Serialize, Deserialize)] pub enum Window {"
+window_kind = "#[derive(Debug, Clone, Serialize, Deserialize)] pub enum WindowKind {"
+index_to_slot = "#[allow(unused_comparisons)] pub fn index_to_slot(&self, index: usize) -> Option<(&crate::HostInventory, Area, usize)> { match self {"
+slot_to_index = "pub fn slot_to_index(&self, inventory: &crate::HostInventory, area: Area, slot: usize) -> Option<usize> { match self {"
 
 for variant in windows:
+    host_window += f"{variant} {{"
     window += f"{variant} {{"
+    window_kind += f"{variant},"
     for inventory in inventories[variant]:
+        host_window += f"{inventory}: crate::HostInventory,"
         window += f"{inventory}: crate::Inventory,"
+    host_window += "},"
     window += "},"
 
-    match_pattern = f"Window::{variant} {{"
+    match_pattern = f"HostWindow::{variant} {{"
     for inventory in inventories[variant]:
         match_pattern += f"{inventory},"
     match_pattern += "}"
@@ -79,13 +85,17 @@ for variant in windows:
     slot_to_index += "else { None } },"
 
 
+host_window += "}"
+window_kind += "}"
 window += "}"
 index_to_slot += "} }"
 slot_to_index += "} }"
 
+output += window_kind
 output += window
-output += f"impl Window {{ {index_to_slot} {slot_to_index} }}"
-output += common.generate_enum_property("Window", "name", "&str", names, False, "&'static str", True)
+output += host_window
+output += f"impl HostWindow {{ {index_to_slot} {slot_to_index} }}"
+output += common.generate_enum_property("HostWindow", "name", "&str", names, False, "&'static str", True)
 
 # Inventories
 inventories = []
@@ -99,7 +109,7 @@ for name, areas in data['inventories'].items():
     inventories.append(inv)
 
 
-output += "#[derive(Debug, Clone)] pub enum InventoryBacking<T> {"
+output += "#[derive(Debug, Clone, Serialize, Deserialize)] pub enum InventoryBacking<T> {"
 for inventory in inventories:
     variant = inventory['variant']
     output += f"{variant} {{"
@@ -145,6 +155,6 @@ for inventory in inventories:
 get_area_fn += "} }"
 get_areas_fn += "} }"
 output += f"impl <T> InventoryBacking<T> {{ {get_area_fn} {get_areas_fn} {constructor_fns} }}"
-output += f"impl crate::Inventory {{ {inventory_constructor_fns} }}"
+output += f"impl crate::HostInventory {{ {inventory_constructor_fns} }}"
 
 common.output("src/inventory.rs", output)

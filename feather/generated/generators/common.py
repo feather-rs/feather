@@ -30,6 +30,8 @@ def load_feather_json(name):
 def output(path, content):
     f = open(path, "w")
     f.write("// This file is @generated. Please do not edit.\n")
+    f.write("#[allow(unused_imports)]\n")
+    f.write("use serde::{Serialize, Deserialize};")
     f.write(content)
     f.close()
 
@@ -113,7 +115,7 @@ def generate_enum(name, variants):
         body += f"{variant},"
 
     return f"""
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
     pub enum {name} {{
         {body}
     }}

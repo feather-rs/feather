@@ -78,7 +78,7 @@ fn _handle_click_window(player: &EntityRef, packet: &ClickWindow) -> SysResult {
 
 #[cfg(test)]
 mod tests {
-    use base::{Inventory, Item, ItemStack};
+    use base::{HostInventory, Item, ItemStack};
     use common::Game;
 
     use super::*;
@@ -109,8 +109,8 @@ mod tests {
         let mut game = Game::new();
         let entity = game.ecs.spawn((
             Window::new(BackingWindow::Generic9x3 {
-                player: Inventory::player(),
-                block: Inventory::chest(),
+                player: HostInventory::player(),
+                block: HostInventory::chest(),
             }),
             Gamemode::Creative,
         ));
@@ -156,7 +156,7 @@ mod tests {
 
     fn player_window() -> Window {
         Window::new(BackingWindow::Player {
-            player: Inventory::player(),
+            player: HostInventory::player(),
         })
     }
 }
