@@ -1,5 +1,6 @@
 #[macro_use]
 mod utils;
+pub mod bundle;
 #[macro_use]
 pub mod component;
 pub mod block;
@@ -13,6 +14,7 @@ use std::marker::PhantomData;
 
 use bytemuck::{Pod, Zeroable};
 
+pub use bundle::ComponentBundle;
 pub use component::{Component, HostComponent};
 pub use entity::EntityId;
 
