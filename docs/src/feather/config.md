@@ -1,0 +1,57 @@
+# Config
+
+```toml
+# Configuration for the Feather server.
+
+[network]
+address = "0.0.0.0"
+port = 25565
+# Packets with a size more than or equal to this value will be sent compressed.
+# Compressing packets reduces bandwidth usage but increases CPU activity.
+compression_threshold = 256
+
+[server]
+online_mode = true
+motd = "A Feather server"
+max_players = 16
+default_gamemode = "creative"
+view_distance = 12
+
+[log]
+# If you prefer less verbose logs, switch this to "info."
+# For development, it might be useful to set this to "trace."
+level = "debug"
+
+# Unimplemented
+[resource_pack]
+# Server resource pack which is sent to players
+# upon joining. Set this to an empty string to disable.
+url = ""
+# Optional SHA1 hash of the resource pack file.
+hash = ""
+
+# Unimplemented
+[world]
+# The name of the directory containing the world.
+name = "world"
+# The generator to use if the world does not exist.
+# Implemented values are: default, flat
+generator = "default"
+# The seed to use if the world does not exist.
+# Leaving this value empty will generate a random seed.
+# If this value is not a valid integer (i64), the string
+# will be converted using a hash function.
+seed = ""
+
+[proxy]
+# Select the IP forwarding mode that is used by proxies like BungeeCord or Velocity.
+# Valid values are
+# - "none" - for usage without a proxy
+# - "bungee" - for BungeeCord/Waterfall/Travertine
+# - "velocity" - for Velocity style proxies
+proxy_mode = "none"
+
+# For Velocity, you must specify the forwarding-secret from Velocity's velocity.toml file.
+velocity_secret = ""
+
+```
