@@ -40,12 +40,10 @@ fn test_system(plugin: &mut SimplePlugin, game: &mut Game) {
                 .finish();
         }
     }
-    for (entity, (position, _cow)) in game.query::<(&Position, &Cow)>() {
-        entity.set(Position {
-            y: position.y + 0.1,
-            ..position
-        });
+    for (_, (mut position, _)) in game.query::<(&mut Position, &Cow)>() {
+        position.y += 0.1;
     }
+
     plugin.tick_counter += 1;
 }
 
