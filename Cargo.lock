@@ -1406,6 +1406,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "libcraft-effects"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "libcraft-generators"
 version = "0.1.0"
 dependencies = [
@@ -2067,6 +2074,7 @@ dependencies = [
  "bincode",
  "bytemuck",
  "libcraft-core",
+ "libcraft-effects",
  "libcraft-particles",
  "libcraft-text",
  "quill",

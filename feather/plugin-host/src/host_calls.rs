@@ -16,6 +16,7 @@ mod plugin_message;
 mod query;
 mod system;
 
+
 macro_rules! host_calls {
     (
         $($name:literal => $function:ident),* $(,)?

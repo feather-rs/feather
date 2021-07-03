@@ -10,6 +10,8 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 use smartstring::{LazyCompact, SmartString};
+use std::cmp::Ordering;
+use std::collections::BTreeSet;
 
 /// Whether an entity is touching the ground.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -104,6 +106,81 @@ impl Display for CustomName {
 pub struct CreativeFlying(pub bool);
 
 bincode_component_impl!(CreativeFlying);
+
+#[derive(Copy, Clone, Debug, Hash, Serialize, PartialEq, Eq, Deserialize)]
+
+/// Storing Potion effects info.
+pub struct PotionApplication {
+    /// Strength Level of effect.
+    pub amplifier: u8,
+    /// Tick-based duration of the effect.
+    pub duration: u32,
+    /// Whether spawn particles or not.
+    pub particle: bool,
+    /// Whether the effect was given by a beacon or not.
+    pub ambient: bool,
+    /// Show effect icon or not.
+    pub icon: bool,
+}
+
+impl Ord for PotionApplication {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.amplifier > other.amplifier || self.duration > other.duration {
+            Ordering::Greater
+        } else if self.amplifier == self.amplifier || self.duration == other.duration {
+            Ordering::Equal
+        } else {
+            Ordering::Less
+        }
+    }
+}
+impl PartialOrd for PotionApplication {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+macro_rules! impl_effect {
+    ($ident:ident) => {
+        #[derive(Serialize, Deserialize, Eq, PartialEq, Hash)]
+        pub struct $ident(BTreeSet<PotionApplication>);
+        impl $ident {}
+        bincode_component_impl!($ident);
+    };
+}
+
+impl_effect!(Speed);
+impl_effect!(Slowness);
+impl_effect!(Haste);
+impl_effect!(MiningFatigue);
+impl_effect!(Strength);
+impl_effect!(InstantHealth);
+impl_effect!(InstantDamage);
+impl_effect!(JumpBoost);
+impl_effect!(Nausea);
+impl_effect!(Regeneration);
+impl_effect!(Resistance);
+impl_effect!(FireResistance);
+impl_effect!(WaterBreathing);
+impl_effect!(Invisibility);
+impl_effect!(Blindness);
+impl_effect!(NightVision);
+impl_effect!(Hunger);
+impl_effect!(Weakness);
+impl_effect!(Poison);
+impl_effect!(WitherEffect);
+impl_effect!(HealthBoost);
+impl_effect!(Absorption);
+impl_effect!(Saturation);
+impl_effect!(Glowing);
+impl_effect!(Levitation);
+impl_effect!(Luck);
+impl_effect!(BadLuck);
+impl_effect!(SlowFalling);
+impl_effect!(ConduitPower);
+impl_effect!(DolphinsGrace);
+impl_effect!(BadOmen);
+impl_effect!(HeroOfTheVillage);
 
 /// Wheather an entity is sneaking, like in pressing shift.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
