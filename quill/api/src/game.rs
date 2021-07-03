@@ -5,11 +5,9 @@ use libcraft_core::{BlockPosition, ChunkPosition, Position, CHUNK_HEIGHT};
 use libcraft_particles::Particle;
 use quill_common::entity_init::EntityInit;
 
-use crate::{
-    query::{Query, QueryIter},
-    EntityBuilder,
-};
+use crate::{query::QueryIter, EntityBuilder};
 use crate::{Entity, EntityId};
+use quill_common::entity::FromQuery;
 
 /// Error returned when getting or setting a block fails.
 #[derive(Debug, thiserror::Error)]
@@ -109,7 +107,16 @@ impl Game {
     ///    println!("Found an entity with position {:?} and UUID {}", position, uuid);
     /// }
     /// ```
-    pub fn query<Q: Query>(&self) -> QueryIter<Q> {
+    ///
+    /// Iterate over all player entities, and send them messages:
+    /// ```no_run
+    /// use quill::entities::Player;
+    /// # let game: quill::Game = unimplemented!();
+    /// for (_entity, player) in game.query::<Player>() {
+    ///    player.send_message("Hello world");
+    /// }
+    /// ```
+    pub fn query<Q: FromQuery>(&self) -> QueryIter<Q> {
         QueryIter::new()
     }
 

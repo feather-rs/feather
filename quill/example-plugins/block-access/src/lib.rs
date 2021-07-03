@@ -18,7 +18,7 @@ impl Plugin for BlockAccess {
 fn system(_plugin: &mut BlockAccess, game: &mut Game) {
     // Set the blocks each player is standing on
     // to bedrock.
-    for (_entity, (_, pos)) in game.query::<(&Player, &Position)>() {
+    for (_entity, (_, pos)) in game.query::<(Player, &Position)>() {
         let block_pos = pos.block();
 
         game.set_block(block_pos, BlockState::from_id(33).unwrap())

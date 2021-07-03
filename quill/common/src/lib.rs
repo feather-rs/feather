@@ -14,6 +14,7 @@ use std::marker::PhantomData;
 use bytemuck::{Pod, Zeroable};
 
 pub use component::{Component, HostComponent};
+pub use entities::HasEntityId;
 pub use entity::EntityId;
 
 /// Wrapper type that enforces 64-bit pointers
