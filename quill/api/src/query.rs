@@ -4,7 +4,7 @@ use std::{marker::PhantomData, mem::MaybeUninit};
 
 use quill_common::{entity::QueryData, Component, HostComponent, PointerMut};
 
-use crate::{Entity, EntityId};
+use crate::{Entity, EntityId, Tuple};
 
 /// A type that can be used for a query.
 ///
@@ -65,24 +65,19 @@ where
 macro_rules! impl_query_tuple {
     ($($query:ident),* $(,)?) => {
         impl <$($query: Query),*> Query for ($($query,)*) {
-            type Item = ($($query::Item),*);
+            type Item = ($($query::Item,)*);
             fn add_component_types(types: &mut Vec<HostComponent>) {
-                $(
-                    $query::add_component_types(types);
-                )*
+                $($query::add_component_types(types);)*
             }
 
             unsafe fn get_unchecked(data: &QueryData, component_index: &mut usize, component_offsets: &mut [usize]) -> Self::Item {
-                (
-                    $(
-                        $query::get_unchecked(data, component_index, component_offsets)
-                    ),*
-                )
+                ($($query::get_unchecked(data, component_index, component_offsets),)*)
             }
         }
     }
 }
 
+impl_query_tuple!(A);
 impl_query_tuple!(A, B);
 impl_query_tuple!(A, B, C);
 impl_query_tuple!(A, B, C, D);
@@ -137,6 +132,7 @@ where
 impl<Q> Iterator for QueryIter<Q>
 where
     Q: Query,
+    <Q as Query>::Item: Tuple,
 {
     type Item = (Entity, Q::Item);
 

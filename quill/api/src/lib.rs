@@ -4,12 +4,15 @@ pub mod entities;
 mod entity;
 mod entity_builder;
 mod game;
+pub mod hlist;
 pub mod query;
+pub mod send_message;
 mod setup;
 
 pub use entity::{Entity, EntityId};
 pub use entity_builder::EntityBuilder;
 pub use game::Game;
+pub use hlist::*;
 pub use setup::Setup;
 
 #[doc(inline)]

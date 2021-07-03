@@ -16,7 +16,7 @@ impl Plugin for BlockPlace {
 }
 
 fn system(_plugin: &mut BlockPlace, game: &mut Game) {
-    for (_entity, _event) in game.query::<&BlockPlacementEvent>() {
+    for (_entity, _event) in game.query::<(&BlockPlacementEvent,)>() {
         println!("A client has placed a block!");
     }
 }
