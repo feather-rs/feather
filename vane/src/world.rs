@@ -1,4 +1,4 @@
-use std::{any::type_name, borrow::Cow, iter, marker::PhantomData};
+use std::{any::type_name, borrow::Cow, iter, marker::PhantomData, mem};
 
 use ahash::AHashMap;
 use itertools::Either;
@@ -8,6 +8,7 @@ use crate::{
     component::{Component, ComponentMeta},
     entity::{Entities, EntityId},
     entity_builder::EntityBuilder,
+    event::EventTracker,
     query::{QueryDriverIter, QueryTuple},
     storage::SparseSetStorage,
     BorrowError, QueryDriver, Ref, RefMut,
@@ -38,6 +39,7 @@ pub struct EntityDead;
 pub struct World {
     components: Components,
     entities: Entities,
+    event_tracker: EventTracker,
 }
 
 impl World {
@@ -139,7 +141,7 @@ impl World {
     }
 
     /// Despawns an entity. Future access to the entity
-    /// will result in `EntityDead`.
+    /// will result in `EntityDead`
     ///
     /// Time complexity: O(n) with respect to the total number of components
     /// stored in this ECS.
@@ -153,6 +155,14 @@ impl World {
         }
 
         Ok(())
+    }
+
+    /// Defers removing an entity until before the next time this system
+    /// runs, allowing it to be observed by systems one last time.
+    pub fn defer_despawn(&mut self, entity: EntityId) {
+        // a bit of a hack - but this will change once
+        // hecs allows taking out components of a despawned entity
+        self.event_tracker.insert_event(entity);
     }
 
     /// Queries for all entities that have the given set of components.
@@ -176,6 +186,41 @@ impl World {
     /// Iterates over all alive entities in this world.
     pub fn iter(&self) -> impl Iterator<Item = EntityId> + '_ {
         self.entities.iter()
+    }
+
+    /// Creates an event not related to any entity. Use
+    /// `insert_entity_event` for events regarding specific
+    /// entities (`PlayerJoinEvent`, `EntityDamageEvent`, etc...)
+    pub fn insert_event<T: Component>(&mut self, event: T) {
+        let entity = self.spawn_bundle((event,));
+        self.event_tracker.insert_event(entity);
+    }
+
+    /// Adds an event component to an entity and schedules
+    /// it to be removed immeditately before the current system
+    /// runs again. Thus, all systems have exactly one chance
+    /// to observe the event before it is dropped.
+    pub fn insert_entity_event<T: Component>(
+        &mut self,
+        entity: EntityId,
+        event: T,
+    ) -> Result<(), EntityDead> {
+        self.insert(entity, event)?;
+        self.event_tracker.insert_entity_event::<T>(entity);
+        Ok(())
+    }
+
+    /// Sets the index of the currently executing system,
+    /// used for event tracking.
+    pub fn set_current_system_index(&mut self, index: usize) {
+        self.event_tracker.set_current_system_index(index);
+    }
+
+    /// Should be called before each system runs.
+    pub fn remove_old_events(&mut self) {
+        let mut tracker = mem::take(&mut self.event_tracker);
+        tracker.remove_old_events(self);
+        self.event_tracker = tracker;
     }
 
     fn check_entity(&self, entity: EntityId) -> Result<(), EntityDead> {

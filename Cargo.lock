@@ -817,7 +817,6 @@ dependencies = [
  "anyhow",
  "feather-base",
  "feather-blocks",
- "feather-ecs",
  "feather-generated",
  "feather-utils",
  "flume",
@@ -828,6 +827,7 @@ dependencies = [
  "quill-common",
  "smartstring",
  "uuid",
+ "vane",
 ]
 
 [[package]]
@@ -3033,8 +3033,10 @@ name = "vane"
 version = "0.1.0"
 dependencies = [
  "ahash 0.7.2",
+ "anyhow",
  "arrayvec",
  "itertools 0.10.0",
+ "log",
  "once_cell",
  "thiserror",
  "thread_local",

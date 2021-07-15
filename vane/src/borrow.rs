@@ -16,7 +16,7 @@ pub struct BorrowFlag {
 const MUTABLE_SENTINEL: u8 = u8::MAX;
 
 #[derive(Debug, thiserror::Error)]
-#[error("borrow conflict or too many borrows (more than 127 Ref<T>s)")]
+#[error("borrow conflict or too many borrows (more than 254 Ref<T>s)")]
 pub struct BorrowError;
 
 impl BorrowFlag {
@@ -45,6 +45,7 @@ impl BorrowFlag {
     pub fn unborrow(&self) {
         let flag = self.flag.get();
         debug_assert!(flag > 0);
+        debug_assert!(flag != MUTABLE_SENTINEL);
         self.flag.set(flag - 1);
     }
 

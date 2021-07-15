@@ -6,8 +6,10 @@ edition = "2018"
 
 [dependencies]
 ahash = "0.7"
+anyhow = "1"
 arrayvec = "0.5"
 itertools = "0.10"
+log = "0.4"
 once_cell = "1"
 thiserror = "1"
 thread_local= "1"

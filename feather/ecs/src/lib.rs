@@ -138,13 +138,7 @@ impl Ecs {
         self.world.despawn(entity)
     }
 
-    /// Defers removing an entity until before the next time this system
-    /// runs, allowing it to be observed by systems one last time.
-    pub fn defer_despawn(&mut self, entity: Entity) {
-        // a bit of a hack - but this will change once
-        // hecs allows taking out components of a despawned entity
-        self.event_tracker.insert_event(entity);
-    }
+
 
     /// Returns an iterator over all entities that match a query parameter.
     pub fn query<Q: Query>(&self) -> QueryBorrow<Q> {
@@ -156,16 +150,7 @@ impl Ecs {
         self.world.query_dynamic(types)
     }
 
-    /// Sets the index of the currently executing system,
-    /// used for event tracking.
-    pub fn set_current_system_index(&mut self, index: usize) {
-        self.event_tracker.set_current_system_index(index);
-    }
 
-    /// Should be called before each system runs.
-    pub fn remove_old_events(&mut self) {
-        self.event_tracker.remove_old_events(&mut self.world);
-    }
 
     /// Enables change tracking for `T` components.
     ///
