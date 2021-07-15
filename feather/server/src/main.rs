@@ -7,7 +7,6 @@ use common::{
 };
 use ecs::SystemExecutor;
 use feather_server::Server;
-use plugin_host::PluginManager;
 
 mod logging;
 
@@ -37,7 +36,7 @@ fn init_game(server: Server) -> anyhow::Result<Game> {
     let mut game = Game::new();
     init_systems(&mut game, server);
     init_world_source(&mut game);
-    init_plugin_manager(&mut game)?;
+    // init_plugin_manager(&mut game)?;
     Ok(game)
 }
 
@@ -65,14 +64,14 @@ fn init_world_source(game: &mut Game) {
     game.level = Level::with_source(world_source);
 }
 
-fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
+/*fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
     let mut plugin_manager = PluginManager::new();
     plugin_manager.load_dir(game, PLUGINS_DIRECTORY)?;
 
     let plugin_manager_rc = Rc::new(RefCell::new(plugin_manager));
     game.insert_resource(plugin_manager_rc);
     Ok(())
-}
+}*/
 
 fn print_systems(systems: &SystemExecutor<Game>) {
     let systems: Vec<&str> = systems.system_names().collect();

@@ -11,5 +11,6 @@ arrayvec = "0.5"
 itertools = "0.10"
 log = "0.4"
 once_cell = "1"
+serde = { version = "1", features = [ "derive" ] }
 thiserror = "1"
 thread_local= "1"

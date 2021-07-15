@@ -86,7 +86,9 @@ mod tests {
     #[test]
     fn creative_inventory_action_survival_mode() {
         let mut game = Game::new();
-        let entity = game.world.spawn((Gamemode::Survival, player_window()));
+        let entity = game
+            .world
+            .spawn_bundle((Gamemode::Survival, player_window()));
         let player = game.world.entity(entity).unwrap();
 
         let packet = CreativeInventoryAction {
@@ -107,7 +109,7 @@ mod tests {
     #[test]
     fn creative_inventory_action_non_player_window() {
         let mut game = Game::new();
-        let entity = game.world.spawn((
+        let entity = game.world.spawn_bundle((
             Window::new(BackingWindow::Generic9x3 {
                 player: Inventory::player(),
                 block: Inventory::chest(),
@@ -134,7 +136,9 @@ mod tests {
     #[test]
     fn creative_inventory_action() {
         let mut game = Game::new();
-        let entity = game.world.spawn((Gamemode::Creative, player_window()));
+        let entity = game
+            .world
+            .spawn_bundle((Gamemode::Creative, player_window()));
         let player = game.world.entity(entity).unwrap();
 
         let packet = CreativeInventoryAction {

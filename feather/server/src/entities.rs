@@ -25,7 +25,7 @@ pub fn add_entity_components(builder: &mut EntityBuilder, init: &EntityInit) {
     if !builder.has::<NetworkId>() {
         builder.add(NetworkId::new());
     }
-    builder.add(PreviousPosition(*builder.get::<Position>().unwrap()));
+    builder.add(PreviousPosition(builder.get::<Position>().unwrap()));
     add_spawn_packet(builder, init);
 }
 

@@ -28,7 +28,7 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 
 fn broadcast_block_changes(game: &mut Game, server: &mut Server) -> SysResult {
     for (_, event) in game.world.query::<&BlockChangeEvent>().iter() {
-        broadcast_block_change(event, game, server);
+        broadcast_block_change(&*event, game, server);
     }
     Ok(())
 }

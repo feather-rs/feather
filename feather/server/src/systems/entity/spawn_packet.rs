@@ -21,9 +21,8 @@ pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
 /// System to spawn entities on clients when they become visible,
 /// and despawn entities when they become invisible, based on the client's view.
 pub fn update_visible_entities(game: &mut Game, server: &mut Server) -> SysResult {
-    for (player, (event, &client_id)) in game.world.query::<(&ViewUpdateEvent, &ClientId)>().iter()
-    {
-        let client = match server.clients.get(client_id) {
+    for (player, (event, client_id)) in game.world.query::<(&ViewUpdateEvent, &ClientId)>().iter() {
+        let client = match server.clients.get(*client_id) {
             Some(client) => client,
             None => continue,
         };
@@ -37,7 +36,7 @@ pub fn update_visible_entities(game: &mut Game, server: &mut Server) -> SysResul
                         spawn_packet
                             .send(&entity_ref, client)
                             .context("failed to send spawn packet")?;
-                    }
+                    };
                 }
             }
         }
@@ -59,13 +58,13 @@ pub fn update_visible_entities(game: &mut Game, server: &mut Server) -> SysResul
 
 /// System to send an entity to clients when it is created.
 fn send_entities_when_created(game: &mut Game, server: &mut Server) -> SysResult {
-    for (entity, (_event, &position, spawn_packet)) in game
+    for (entity, (_event, position, spawn_packet)) in game
         .world
         .query::<(&EntityCreateEvent, &Position, &SpawnPacketSender)>()
         .iter()
     {
         let entity_ref = game.world.entity(entity)?;
-        server.broadcast_nearby_with(position, |client| {
+        server.broadcast_nearby_with(*position, |client| {
             spawn_packet
                 .send(&entity_ref, client)
                 .expect("failed to create spawn packet")
@@ -77,12 +76,12 @@ fn send_entities_when_created(game: &mut Game, server: &mut Server) -> SysResult
 
 /// System to unload an entity on clients when it is removed.
 fn unload_entities_when_removed(game: &mut Game, server: &mut Server) -> SysResult {
-    for (_, (_event, &position, &network_id)) in game
+    for (_, (_event, position, network_id)) in game
         .world
         .query::<(&EntityRemoveEvent, &Position, &NetworkId)>()
         .iter()
     {
-        server.broadcast_nearby_with(position, |client| client.unload_entity(network_id));
+        server.broadcast_nearby_with(*position, |client| client.unload_entity(*network_id));
     }
 
     Ok(())
@@ -90,7 +89,7 @@ fn unload_entities_when_removed(game: &mut Game, server: &mut Server) -> SysResu
 
 /// System to send/unsend entities on clients when the entity changes chunks.
 fn update_entities_on_chunk_cross(game: &mut Game, server: &mut Server) -> SysResult {
-    for (entity, (event, spawn_packet, &network_id)) in game
+    for (entity, (event, spawn_packet, network_id)) in game
         .world
         .query::<(&ChunkCrossEvent, &SpawnPacketSender, &NetworkId)>()
         .iter()
@@ -110,7 +109,7 @@ fn update_entities_on_chunk_cross(game: &mut Game, server: &mut Server) -> SysRe
 
         for left_client in old_clients.difference(&new_clients) {
             if let Some(client) = server.clients.get(*left_client) {
-                client.unload_entity(network_id);
+                client.unload_entity(*network_id);
             }
         }
 

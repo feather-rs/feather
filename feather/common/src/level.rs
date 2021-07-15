@@ -1,7 +1,7 @@
 use ahash::{AHashMap, AHashSet};
 use base::{BlockPosition, Chunk, ChunkPosition, CHUNK_HEIGHT};
 use blocks::BlockId;
-use ecs::Ecs;
+use ecs::World;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::sync::Arc;
 
@@ -52,7 +52,7 @@ impl Level {
 
     /// Loads any chunks that have been loaded asynchronously
     /// after a call to [`queue_chunk_load`].
-    pub fn load_chunks(&mut self, ecs: &mut Ecs) {
+    pub fn load_chunks(&mut self, ecs: &mut World) {
         while let Some(loaded) = self.world_source.poll_loaded_chunk() {
             self.loading_chunks.remove(&loaded.pos);
             if self.canceled_chunk_loads.remove(&loaded.pos) {

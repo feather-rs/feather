@@ -8,7 +8,7 @@ use std::{
 
 use ahash::AHashMap;
 use base::ChunkPosition;
-use ecs::{Entity, SysResult, SystemExecutor};
+use ecs::{EntityId, SysResult, SystemExecutor};
 use utils::vec_remove_item;
 
 use crate::{
@@ -113,7 +113,7 @@ impl ChunkTickets {
 /// Currently just represents an entity, the player
 /// that is keeping this chunk loaded.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-struct Ticket(Entity);
+struct Ticket(EntityId);
 
 /// System to populate chunk tickets based on players' views.
 fn update_tickets_for_players(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {

@@ -12,6 +12,7 @@ libcraft-particles = { path = "../../libcraft/particles" }
 serde = { version = "1", features = ["derive"] }
 smartstring = { version = "0.2", features = ["serde"] }
 uuid = { version = "0.8", features = ["serde"] }
+vane = { path = "../../vane" }
 
 [dev-dependencies]
 quill = { path = "../api" }

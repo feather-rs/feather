@@ -1,6 +1,6 @@
 use base::{Position, Text};
 use common::{chat::ChatKind, Game};
-use ecs::{Entity, EntityRef, SysResult};
+use ecs::{EntityId, EntityRef, SysResult};
 use interaction::{
     handle_held_item_change, handle_interact_entity, handle_player_block_placement,
     handle_player_digging,
@@ -24,7 +24,7 @@ mod movement;
 pub fn handle_packet(
     game: &mut Game,
     server: &mut Server,
-    player_id: Entity,
+    player_id: EntityId,
     packet: ClientPlayPacket,
 ) -> SysResult {
     let player = game.world.entity(player_id)?;

@@ -44,7 +44,9 @@ pub fn handle_player_position(
     pos.y = packet.feet_y;
     pos.z = packet.z;
     player.get_mut::<OnGround>()?.0 = packet.on_ground;
-    update_client_position(server, player, *pos)?;
+    let pos_copy = *pos;
+    drop(pos);
+    update_client_position(server, player, pos_copy)?;
     Ok(())
 }
 
@@ -63,7 +65,9 @@ pub fn handle_player_position_and_rotation(
     pos.yaw = packet.yaw;
     pos.pitch = packet.pitch;
     player.get_mut::<OnGround>()?.0 = packet.on_ground;
-    update_client_position(server, player, *pos)?;
+    let pos_copy = *pos;
+    drop(pos);
+    update_client_position(server, player, pos_copy)?;
     Ok(())
 }
 
@@ -79,7 +83,9 @@ pub fn handle_player_rotation(
     pos.yaw = packet.yaw;
     pos.pitch = packet.pitch;
     player.get_mut::<OnGround>()?.0 = packet.on_ground;
-    update_client_position(server, player, *pos)?;
+    let pos_copy = *pos;
+    drop(pos);
+    update_client_position(server, player, pos_copy)?;
     Ok(())
 }
 

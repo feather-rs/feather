@@ -2,23 +2,20 @@ use crate::{ClientId, NetworkId, Server};
 use common::entities::player::HotbarSlot;
 use common::interactable::InteractableRegistry;
 use common::Game;
-use ecs::{Entity, EntityRef, SysResult};
+use ecs::{EntityId, EntityRef, SysResult};
 use libcraft_core::{BlockFace as LibcraftBlockFace, Hand};
 use libcraft_core::{InteractionType, Vec3f};
 use protocol::packets::client::{
     BlockFace, HeldItemChange, InteractEntity, InteractEntityKind, PlayerBlockPlacement,
     PlayerDigging, PlayerDiggingStatus,
 };
-use quill_common::{
-    events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent},
-    EntityId,
-};
+use quill_common::events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent};
 /// Handles the player block placement packet. Currently just removes the block client side for the player.
 pub fn handle_player_block_placement(
     game: &mut Game,
     _server: &mut Server,
     packet: PlayerBlockPlacement,
-    player: Entity,
+    player: EntityId,
 ) -> SysResult {
     let hand = match packet.hand {
         0 => Hand::Main,
@@ -110,7 +107,11 @@ pub fn handle_player_block_placement(
 /// * Shooting arrows.
 /// * Eating.
 /// * Swapping items between the main and off hand.
-pub fn handle_player_digging(game: &mut Game, packet: PlayerDigging, _player: Entity) -> SysResult {
+pub fn handle_player_digging(
+    game: &mut Game,
+    packet: PlayerDigging,
+    _player: EntityId,
+) -> SysResult {
     log::trace!("Got player digging with status {:?}", packet.status);
     match packet.status {
         PlayerDiggingStatus::StartDigging | PlayerDiggingStatus::CancelDigging => {
@@ -125,11 +126,11 @@ pub fn handle_interact_entity(
     game: &mut Game,
     _server: &mut Server,
     packet: InteractEntity,
-    player: Entity,
+    player: EntityId,
 ) -> SysResult {
     let target = {
         let mut found_entity = None;
-        for (entity, &network_id) in game.world.query::<&NetworkId>().iter() {
+        for (entity, network_id) in game.world.query::<&NetworkId>().iter() {
             if network_id.0 == packet.entity_id {
                 found_entity = Some(entity);
                 break;
@@ -152,14 +153,14 @@ pub fn handle_interact_entity(
 
     let event = match packet.kind {
         InteractEntityKind::Attack => InteractEntityEvent {
-            target: EntityId(target.id() as u64),
+            target,
             ty: InteractionType::Attack,
             target_pos: None,
             hand: None,
             sneaking: packet.sneaking,
         },
         InteractEntityKind::Interact => InteractEntityEvent {
-            target: EntityId(target.id() as u64),
+            target,
             ty: InteractionType::Interact,
             target_pos: None,
             hand: None,
@@ -178,7 +179,7 @@ pub fn handle_interact_entity(
             };
 
             InteractEntityEvent {
-                target: EntityId(target.id() as u64),
+                target,
                 ty: InteractionType::Attack,
                 target_pos: Some(Vec3f::new(
                     target_x as f32,
@@ -216,7 +217,7 @@ mod tests {
     #[test]
     fn held_item_change() {
         let mut game = Game::new();
-        let entity = game.world.spawn((HotbarSlot::new(0),));
+        let entity = game.world.spawn_bundle((HotbarSlot::new(0),));
         let player = game.world.entity(entity).unwrap();
 
         let packet = HeldItemChange { slot: 8 };

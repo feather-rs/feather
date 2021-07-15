@@ -9,12 +9,12 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 }
 
 fn send_plugin_message_packets(game: &mut Game, server: &mut Server) -> SysResult {
-    for (_, (&client_id, event)) in game
+    for (_, (client_id, event)) in game
         .world
         .query::<(&ClientId, &PluginMessageEvent)>()
         .iter()
     {
-        if let Some(client) = server.clients.get(client_id) {
+        if let Some(client) = server.clients.get(*client_id) {
             client.send_plugin_message(event.channel.clone(), event.data.clone());
         }
     }

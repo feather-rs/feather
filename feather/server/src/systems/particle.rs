@@ -10,9 +10,9 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 fn send_particle_packets(game: &mut Game, server: &mut Server) -> SysResult {
     let mut entities = Vec::new();
 
-    for (entity, (&particle, &position)) in game.world.query::<(&Particle, &Position)>().iter() {
-        server.broadcast_nearby_with(position, |client| {
-            client.send_particle(&particle, &position);
+    for (entity, (particle, position)) in game.world.query::<(&Particle, &Position)>().iter() {
+        server.broadcast_nearby_with(*position, |client| {
+            client.send_particle(&*particle, &*position);
         });
 
         entities.push(entity);

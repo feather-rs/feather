@@ -19,7 +19,7 @@ pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
 /// Updates players' views when they change chunks.
 fn update_player_views(game: &mut Game) -> SysResult {
     let mut events = Vec::new();
-    for (player, (view, &position, name)) in
+    for (player, (mut view, position, name)) in
         game.world.query::<(&mut View, &Position, &Name)>().iter()
     {
         if position.chunk() != view.center() {
@@ -43,12 +43,12 @@ fn update_player_views(game: &mut Game) -> SysResult {
 /// Triggers a ViewUpdateEvent when a player joins the game.
 fn update_view_on_join(game: &mut Game) -> SysResult {
     let mut events = Vec::new();
-    for (player, (&view, name, _)) in game
+    for (player, (view, name, _)) in game
         .world
         .query::<(&View, &Name, &PlayerJoinEvent)>()
         .iter()
     {
-        let event = ViewUpdateEvent::new(View::empty(), view);
+        let event = ViewUpdateEvent::new(View::empty(), *view);
         events.push((player, event));
         log::trace!("View of {} has been updated (player joined)", name);
     }

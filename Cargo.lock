@@ -935,8 +935,6 @@ dependencies = [
  "crossbeam-utils",
  "feather-base",
  "feather-common",
- "feather-ecs",
- "feather-plugin-host",
  "feather-protocol",
  "feather-utils",
  "fern",
@@ -962,6 +960,7 @@ dependencies = [
  "toml",
  "ureq 2.0.2",
  "uuid",
+ "vane",
  "vec-arena",
 ]
 
@@ -2062,6 +2061,7 @@ dependencies = [
  "serde",
  "smartstring",
  "uuid",
+ "vane",
 ]
 
 [[package]]
@@ -3038,6 +3038,7 @@ dependencies = [
  "itertools 0.10.0",
  "log",
  "once_cell",
+ "serde",
  "thiserror",
  "thread_local",
 ]

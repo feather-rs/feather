@@ -1,8 +1,11 @@
+use serde::{Deserialize, Serialize};
+
 /// The ID of an entity.
 ///
 /// Pass this struct to various methods on the `Ecs`
 /// to access the entity's components.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(C)]
 pub struct EntityId {
     index: u32,
     generation: u32,

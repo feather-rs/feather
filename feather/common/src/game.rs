@@ -2,8 +2,8 @@ use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
 use base::{BlockId, BlockPosition, ChunkPosition, Position, Text};
 use ecs::{
-    Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult,
-    SystemExecutor,
+    EntityBuilder, EntityDead, EntityId, HasResources, HasWorld, Resources, SysResult,
+    SystemExecutor, World,
 };
 use quill_common::{entities::Player, entity_init::EntityInit};
 
@@ -19,7 +19,7 @@ type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, &EntityInit)>;
 /// Stores the entire state of a Minecraft game.
 ///
 /// This contains:
-/// * A [`World`](vane::Ecs) containing entities.
+/// * A [`World`](ecs::World) containing entities.
 /// * A [`Level`] containing blocks.
 /// * A [`Resources`](ecs::Resources) containing additional, user-defined data.
 /// * A [`SystemExecutor`] to run systems.
@@ -31,7 +31,10 @@ pub struct Game {
     /// Contains chunks and blocks.
     pub level: Level,
     /// Contains entities, including players.
-    pub world: Ecs,
+    ///
+    /// Also contains standalone events, which are entities
+    /// with a single component.
+    pub world: World,
     /// Contains systems.
     pub system_executor: Rc<RefCell<SystemExecutor<Game>>>,
 
@@ -62,7 +65,7 @@ impl Game {
     pub fn new() -> Self {
         Self {
             level: Level::new(),
-            world: Ecs::new(),
+            world: World::new(),
             system_executor: Rc::new(RefCell::new(SystemExecutor::new())),
             resources: Arc::new(Resources::new()),
             chunk_entities: ChunkEntities::default(),
@@ -117,8 +120,8 @@ impl Game {
     /// Spawns an entity and returns its [`Entity`](ecs::Entity) handle.
     ///
     /// Also triggers necessary events, like `EntitySpawnEvent` and `PlayerJoinEvent`.
-    pub fn spawn_entity(&mut self, mut builder: EntityBuilder) -> Entity {
-        let entity = self.world.spawn(builder.build());
+    pub fn spawn_entity(&mut self, mut builder: EntityBuilder) -> EntityId {
+        let entity = self.world.spawn_builder(&mut builder);
         self.entity_builder = builder;
 
         self.trigger_entity_spawn_events(entity);
@@ -134,7 +137,7 @@ impl Game {
         self.entity_spawn_callbacks = callbacks;
     }
 
-    fn trigger_entity_spawn_events(&mut self, entity: Entity) {
+    fn trigger_entity_spawn_events(&mut self, entity: EntityId) {
         self.world
             .insert_entity_event(entity, EntityCreateEvent)
             .unwrap();
@@ -147,7 +150,7 @@ impl Game {
 
     /// Causes the given entity to be removed on the next tick.
     /// In the meantime, triggers `EntityRemoveEvent`.
-    pub fn remove_entity(&mut self, entity: Entity) -> Result<(), NoSuchEntity> {
+    pub fn remove_entity(&mut self, entity: EntityId) -> Result<(), EntityDead> {
         self.world.defer_despawn(entity);
         self.world.insert_entity_event(entity, EntityRemoveEvent)
     }
@@ -156,13 +159,13 @@ impl Game {
     /// a `ChatBox` component (usually just players).
     pub fn broadcast_chat(&self, kind: ChatKind, message: impl Into<Text>) {
         let message = message.into();
-        for (_, mailbox) in self.world.query::<&mut ChatBox>().iter() {
+        for (_, mut mailbox) in self.world.query::<&mut ChatBox>().iter() {
             mailbox.send(ChatMessage::new(kind, message.clone()));
         }
     }
 
     /// Utility method to send a message to an entity.
-    pub fn send_message(&mut self, entity: Entity, message: ChatMessage) -> SysResult {
+    pub fn send_message(&mut self, entity: EntityId, message: ChatMessage) -> SysResult {
         let mut mailbox = self.world.get_mut::<ChatBox>(entity)?;
         mailbox.send(message);
         Ok(())
@@ -226,12 +229,12 @@ impl HasResources for Game {
     }
 }
 
-impl HasEcs for Game {
-    fn ecs(&self) -> &Ecs {
+impl HasWorld for Game {
+    fn world(&self) -> &World {
         &self.world
     }
 
-    fn ecs_mut(&mut self) -> &mut Ecs {
+    fn world_mut(&mut self) -> &mut World {
         &mut self.world
     }
 }

@@ -45,8 +45,8 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
 fn handle_packets(game: &mut Game, server: &mut Server) -> SysResult {
     let mut packets = Vec::new();
 
-    for (player, &client_id) in game.world.query::<&ClientId>().iter() {
-        if let Some(client) = server.clients.get(client_id) {
+    for (player, client_id) in game.world.query::<&ClientId>().iter() {
+        if let Some(client) = server.clients.get(*client_id) {
             for packet in client.received_packets() {
                 packets.push((player, packet));
             }

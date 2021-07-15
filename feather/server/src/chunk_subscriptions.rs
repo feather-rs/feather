@@ -34,28 +34,28 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 
 fn update_chunk_subscriptions(game: &mut Game, server: &mut Server) -> SysResult {
     // Update players whose views have changed
-    for (_, (event, &client_id)) in game.world.query::<(&ViewUpdateEvent, &ClientId)>().iter() {
+    for (_, (event, client_id)) in game.world.query::<(&ViewUpdateEvent, &ClientId)>().iter() {
         for new_chunk in event.new_view.difference(event.old_view) {
             server
                 .chunk_subscriptions
                 .chunks
                 .entry(new_chunk)
                 .or_default()
-                .push(client_id);
+                .push(*client_id);
         }
         for old_chunk in event.old_view.difference(event.new_view) {
-            remove_subscription(server, old_chunk, client_id);
+            remove_subscription(server, old_chunk, *client_id);
         }
     }
 
     // Update players that have left
-    for (_, (_event, &client_id, &view)) in game
+    for (_, (_event, client_id, view)) in game
         .world
         .query::<(&EntityRemoveEvent, &ClientId, &View)>()
         .iter()
     {
         for chunk in view.iter() {
-            remove_subscription(server, chunk, client_id);
+            remove_subscription(server, chunk, *client_id);
         }
     }
 

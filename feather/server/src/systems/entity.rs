@@ -17,16 +17,16 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
 
 /// Sends entity movement packets.
 fn send_entity_movement(game: &mut Game, server: &mut Server) -> SysResult {
-    for (_, (&position, prev_position, &on_ground, &network_id)) in game
+    for (_, (position, mut prev_position, on_ground, network_id)) in game
         .world
         .query::<(&Position, &mut PreviousPosition, &OnGround, &NetworkId)>()
         .iter()
     {
-        if position != prev_position.0 {
-            server.broadcast_nearby_with(position, |client| {
-                client.update_entity_position(network_id, position, on_ground);
+        if *position != prev_position.0 {
+            server.broadcast_nearby_with(*position, |client| {
+                client.update_entity_position(*network_id, *position, *on_ground);
             });
-            prev_position.0 = position;
+            prev_position.0 = *position;
         }
     }
     Ok(())

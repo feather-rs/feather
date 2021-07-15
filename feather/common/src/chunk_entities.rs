@@ -1,6 +1,6 @@
 use ahash::AHashMap;
 use base::{ChunkPosition, Position};
-use ecs::{Entity, SysResult, SystemExecutor};
+use ecs::{EntityId, SysResult, SystemExecutor};
 use utils::vec_remove_item;
 
 use crate::{
@@ -15,12 +15,12 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 /// A spatial index to look up entities within a given chunk.
 #[derive(Default)]
 pub struct ChunkEntities {
-    entities: AHashMap<ChunkPosition, Vec<Entity>>,
+    entities: AHashMap<ChunkPosition, Vec<EntityId>>,
 }
 
 impl ChunkEntities {
     /// Returns the entities in the given chunk.
-    pub fn entities_in_chunk(&self, chunk: ChunkPosition) -> &[Entity] {
+    pub fn entities_in_chunk(&self, chunk: ChunkPosition) -> &[EntityId] {
         self.entities
             .get(&chunk)
             .map(Vec::as_slice)
@@ -29,7 +29,7 @@ impl ChunkEntities {
 
     fn update(
         &mut self,
-        entity: Entity,
+        entity: EntityId,
         old_chunk: Option<ChunkPosition>,
         new_chunk: ChunkPosition,
     ) {
@@ -42,7 +42,7 @@ impl ChunkEntities {
         self.entities.entry(new_chunk).or_default().push(entity);
     }
 
-    fn remove_entity(&mut self, entity: Entity, chunk: ChunkPosition) {
+    fn remove_entity(&mut self, entity: EntityId, chunk: ChunkPosition) {
         if let Some(vec) = self.entities.get_mut(&chunk) {
             vec_remove_item(vec, &entity);
         }
@@ -52,7 +52,7 @@ impl ChunkEntities {
 fn update_chunk_entities(game: &mut Game) -> SysResult {
     // Entities that have crossed chunks
     let mut events = Vec::new();
-    for (entity, (old_chunk, &position)) in
+    for (entity, (mut old_chunk, position)) in
         game.world.query::<(&mut ChunkPosition, &Position)>().iter()
     {
         let new_chunk = position.chunk();
@@ -76,8 +76,7 @@ fn update_chunk_entities(game: &mut Game) -> SysResult {
 
     // Entities that have been created
     let mut insertions = Vec::new();
-    for (entity, (_event, &position)) in
-        game.world.query::<(&EntityCreateEvent, &Position)>().iter()
+    for (entity, (_event, position)) in game.world.query::<(&EntityCreateEvent, &Position)>().iter()
     {
         let chunk = position.chunk();
         game.chunk_entities.update(entity, None, chunk);
@@ -89,12 +88,12 @@ fn update_chunk_entities(game: &mut Game) -> SysResult {
     }
 
     // Entities that have been destroyed
-    for (entity, (_event, &chunk)) in game
+    for (entity, (_event, chunk)) in game
         .world
         .query::<(&EntityRemoveEvent, &ChunkPosition)>()
         .iter()
     {
-        game.chunk_entities.remove_entity(entity, chunk);
+        game.chunk_entities.remove_entity(entity, *chunk);
     }
 
     Ok(())
