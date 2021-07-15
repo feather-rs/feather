@@ -57,6 +57,22 @@ impl EntityBuilder {
             .any(|entry| entry.component_meta.type_id == TypeId::of::<T>())
     }
 
+    /// Gets the given component from the builder.
+    ///
+    /// For soundness reasons, `T` must be `Copy`.
+    ///
+    /// Time complexity: O(n) with respect to the number of components.
+    pub fn get<T: Copy + Component>(&self) -> Option<T> {
+        let entry = self
+            .entries
+            .iter()
+            .find(|e| e.component_meta.type_id == TypeId::of::<T>());
+
+        entry.map(|entry| unsafe {
+            ptr::read_unaligned(self.components.as_ptr().add(entry.offset).cast::<T>())
+        })
+    }
+
     /// Spawns the entity builder into an `Ecs`.
     pub fn spawn_into(&mut self, ecs: &mut World) -> EntityId {
         ecs.spawn_builder(self)
@@ -118,6 +134,8 @@ mod tests {
         let mut builder = EntityBuilder::new();
 
         builder.add(10i32).add("a string".to_owned()).add(50usize);
+
+        assert_eq!(builder.get::<i32>(), Some(10));
 
         unsafe {
             let mut iter = builder.drain();
