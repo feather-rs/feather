@@ -846,18 +846,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "feather-ecs"
-version = "0.1.0"
-dependencies = [
- "ahash 0.7.2",
- "anyhow",
- "feather-utils",
- "hecs",
- "log",
- "thiserror",
-]
-
-[[package]]
 name = "feather-generated"
 version = "0.1.0"
 dependencies = [
@@ -879,7 +867,6 @@ dependencies = [
  "bytemuck",
  "feather-base",
  "feather-common",
- "feather-ecs",
  "feather-plugin-host-macros",
  "libloading 0.7.0",
  "log",
@@ -888,6 +875,7 @@ dependencies = [
  "quill-plugin-format",
  "serde",
  "tempfile",
+ "vane",
  "vec-arena",
  "wasmer",
  "wasmer-wasi",
@@ -1178,9 +1166,6 @@ name = "hashbrown"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
-dependencies = [
- "ahash 0.4.7",
-]
 
 [[package]]
 name = "heck"
@@ -1189,14 +1174,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "87cbf45460356b7deeb5e3415b5563308c0a9b057c85e12b06ad551f98d0a6ac"
 dependencies = [
  "unicode-segmentation",
-]
-
-[[package]]
-name = "hecs"
-version = "0.3.2"
-source = "git+https://github.com/feather-rs/feather-hecs#824712c4e4ab658e75fabf2a91a54f9d1c0b1790"
-dependencies = [
- "hashbrown",
 ]
 
 [[package]]

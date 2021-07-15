@@ -12,7 +12,7 @@ bumpalo = "3"
 bytemuck = "1"
 feather-base = { path = "../base" }
 feather-common = { path = "../common" }
-feather-ecs = { path = "../ecs" }
+vane = { path = "../../vane" }
 feather-plugin-host-macros = { path = "macros" }
 
 libloading = "0.7"

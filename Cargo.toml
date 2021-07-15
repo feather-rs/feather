@@ -31,7 +31,6 @@ members = [
     "feather/blocks",
     "feather/blocks/generator",
     "feather/base",
-    "feather/ecs",
     "feather/datapacks",
     "feather/worldgen",
     "feather/common",
