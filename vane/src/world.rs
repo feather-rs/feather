@@ -8,6 +8,7 @@ use crate::{
     component::{Component, ComponentMeta},
     entity::{Entities, EntityId},
     entity_builder::EntityBuilder,
+    entity_ref::EntityRef,
     event::EventTracker,
     query::{QueryDriverIter, QueryTuple},
     storage::SparseSetStorage,
@@ -71,6 +72,12 @@ impl World {
     pub fn get_mut<T: Component>(&self, entity: EntityId) -> Result<RefMut<T>, ComponentError> {
         self.check_entity(entity)?;
         self.components.get_mut(entity.index())
+    }
+
+    /// Gets an `EntityRef` to the given entity.
+    pub fn entity(&self, entity_id: EntityId) -> Result<EntityRef, EntityDead> {
+        self.check_entity(entity_id)?;
+        Ok(EntityRef::new(entity_id, self))
     }
 
     /// Inserts a component for an entity.

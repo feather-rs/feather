@@ -12,6 +12,7 @@ mod query;
 mod resources;
 mod storage;
 mod system;
+mod entity_ref;
 mod world;
 
 pub use borrow::{BorrowError, BorrowFlag, Ref, RefMut};
