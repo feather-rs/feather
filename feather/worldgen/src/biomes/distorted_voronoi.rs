@@ -1,5 +1,6 @@
 use crate::voronoi::VoronoiGrid;
-use crate::{BiomeGenerator, ChunkBiomes};
+use crate::BiomeGenerator;
+use base::chunk::BiomeStore;
 use base::{Biome, ChunkPosition};
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
@@ -10,10 +11,10 @@ use rand_xorshift::XorShiftRng;
 pub struct DistortedVoronoiBiomeGenerator;
 
 impl BiomeGenerator for DistortedVoronoiBiomeGenerator {
-    fn generate_for_chunk(&self, chunk: ChunkPosition, seed: u64) -> ChunkBiomes {
+    fn generate_for_chunk(&self, chunk: ChunkPosition, seed: u64) -> BiomeStore {
         let mut voronoi = VoronoiGrid::new(384, seed);
 
-        let mut biomes = ChunkBiomes::from_array([Biome::Plains; 16 * 16]); // Will be overridden
+        let mut biomes = BiomeStore::default(); // Will be overridden
 
         // Noise is used to distort each coordinate.
         /*let x_noise =
@@ -25,8 +26,8 @@ impl BiomeGenerator for DistortedVoronoiBiomeGenerator {
                 .with_seed(seed as i32 + 2)
                 .generate_scaled(-4.0, 4.0);*/
 
-        for x in 0..16 {
-            for z in 0..16 {
+        for x in 0..4 {
+            for z in 0..4 {
                 // Apply distortion to coordinate before passing to voronoi
                 // generator.
                 //let distort_x = x_noise[(z << 4) | x] as i32 * 8;
@@ -36,8 +37,8 @@ impl BiomeGenerator for DistortedVoronoiBiomeGenerator {
                 let distort_z = 0;
 
                 let (closest_x, closest_y) = voronoi.get(
-                    (chunk.x * 16) + x as i32 + distort_x,
-                    (chunk.z * 16) + z as i32 + distort_z,
+                    (chunk.x * 16) + x as i32 * 4 + distort_x,
+                    (chunk.z * 16) + z as i32 * 4 + distort_z,
                 );
 
                 // Shift around the closest_x and closest_y values
@@ -52,7 +53,9 @@ impl BiomeGenerator for DistortedVoronoiBiomeGenerator {
 
                     let biome = Biome::from_id(shifted % 60).unwrap();
                     if is_biome_allowed(biome) {
-                        biomes.set_biome_at(x, z, biome);
+                        for y in 0..64 {
+                            biomes.set(x, y, z, biome);
+                        }
                         break;
                     }
                 }
@@ -96,15 +99,17 @@ mod tests {
         println!("{:?}", biomes);
 
         let mut num_plains = 0;
-        for x in 0..16 {
-            for z in 0..16 {
-                if biomes.biome_at(x, z) == Biome::Plains {
-                    num_plains += 1;
+        for x in 0..4 {
+            for z in 0..4 {
+                for y in 0..64 {
+                    if biomes.get(x, y, z) == Biome::Plains {
+                        num_plains += 1;
+                    }
                 }
             }
         }
 
-        assert_ne!(num_plains, 16 * 16);
+        assert_ne!(num_plains, 4 * 64 * 4);
     }
 
     #[test]
@@ -120,9 +125,11 @@ mod tests {
         for _ in 0..5 {
             let next = gen.generate_for_chunk(chunk, seed);
 
-            for x in 0..16 {
-                for z in 0..16 {
-                    assert_eq!(first.biome_at(x, z), next.biome_at(x, z));
+            for x in 0..4 {
+                for z in 0..4 {
+                    for y in 0..64 {
+                        assert_eq!(first.get(x, y, z), next.get(x, y, z));
+                    }
                 }
             }
         }

@@ -191,7 +191,7 @@ fn column_parameters(biomes: &NearbyBiomes, x: usize, z: usize) -> (f32, f32) {
             let abs_x = x + block_x;
             let abs_z = z + block_z;
 
-            let biome = biomes.biome_at(abs_x, abs_z);
+            let biome = biomes.get_at_block(abs_x, 0, abs_z);
             let (amplitude, midpoint) = biome_parameters(biome);
 
             let weight = ELEVATION_WEIGHT[(block_x + 9) as usize][(block_z + 9) as usize];

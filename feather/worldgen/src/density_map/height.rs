@@ -35,7 +35,7 @@ impl DensityMapGenerator for HeightMapGenerator {
         let mut density_map = BitVec::from_vec(vec![0u8; 16 * 256 * 16 / 8]);
         for x in 0..16 {
             for z in 0..16 {
-                let biome = biomes.biome_at(x, z);
+                let biome = biomes.get_at_block(x, 0, z);
                 let index = (z << 4) | x;
                 let mut elevation = elevation[index].abs() * 400.0;
                 let detail = detail[index] * 50.0;

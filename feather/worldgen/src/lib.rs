@@ -142,13 +142,6 @@ impl WorldGenerator for ComposableGenerator {
 
         let mut chunk = Chunk::new(position);
         *chunk.biomes_mut() = *biomes.center();
-        for x in 0..4 {
-            for z in 0..4 {
-                chunk
-                    .biomes_mut()
-                    .set(x, 0, z, biomes.get_at_block(x, 0, z));
-            }
-        }
 
         self.composition.generate_for_chunk(
             &mut chunk,

@@ -1,9 +1,9 @@
 use base::{Chunk, ChunkPosition};
 
 pub mod flat;
+pub mod generating;
 pub mod null;
 pub mod region;
-pub mod generating;
 
 /// A chunk loaded from a [`WorldSource`].
 pub struct LoadedChunk {

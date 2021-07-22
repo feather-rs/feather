@@ -1,7 +1,7 @@
-use std::{sync::Arc};
+use std::sync::Arc;
 
 use base::ChunkPosition;
-use flume::{Receiver, Sender, unbounded};
+use flume::{unbounded, Receiver, Sender};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use worldgen::{ComposableGenerator, WorldGenerator};
 
@@ -10,7 +10,7 @@ use super::{ChunkLoadResult, LoadedChunk, WorldSource};
 pub struct GeneratingWorldSource {
     _thread_pool: ThreadPool,
     send: Sender<ChunkPosition>,
-    recv: Receiver<LoadedChunk>
+    recv: Receiver<LoadedChunk>,
 }
 
 impl Default for GeneratingWorldSource {
@@ -21,11 +21,13 @@ impl Default for GeneratingWorldSource {
 
 impl GeneratingWorldSource {
     pub fn new<G>(generator: Arc<G>) -> Self
-    where G: WorldGenerator + 'static {
+    where
+        G: WorldGenerator + 'static,
+    {
         let (send_pos, recv_pos) = unbounded::<ChunkPosition>();
         let (send_gen, recv_gen) = unbounded::<LoadedChunk>();
         let thread_pool = ThreadPoolBuilder::default()
-            .thread_name(|i| { format!("World gen #{}", i) } )
+            .thread_name(|i| format!("World gen #{}", i))
             .build()
             .unwrap();
         for _ in 0..thread_pool.current_num_threads() {
@@ -36,8 +38,8 @@ impl GeneratingWorldSource {
                 for pos in recv.iter() {
                     let chunk = gen.generate_chunk(pos);
                     let loaded = LoadedChunk {
-                        pos, 
-                        result: ChunkLoadResult::Loaded { chunk }
+                        pos,
+                        result: ChunkLoadResult::Loaded { chunk },
                     };
                     send.send(loaded).unwrap();
                 }
@@ -46,7 +48,7 @@ impl GeneratingWorldSource {
         Self {
             _thread_pool: thread_pool,
             send: send_pos,
-            recv: recv_gen
+            recv: recv_gen,
         }
     }
 
@@ -63,5 +65,4 @@ impl WorldSource for GeneratingWorldSource {
     fn poll_loaded_chunk(&mut self) -> Option<LoadedChunk> {
         self.recv.try_recv().ok()
     }
-    
 }

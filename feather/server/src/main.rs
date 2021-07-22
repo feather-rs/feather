@@ -2,11 +2,14 @@ use std::{cell::RefCell, rc::Rc};
 
 use anyhow::Context;
 use common::{
-    world_source::{flat::FlatWorldSource, region::RegionWorldSource, generating::GeneratingWorldSource, null::NullWorldSource, WorldSource},
+    world_source::{
+        flat::FlatWorldSource, generating::GeneratingWorldSource, null::NullWorldSource,
+        region::RegionWorldSource, WorldSource,
+    },
     Game, TickLoop, World,
 };
 use ecs::SystemExecutor;
-use feather_server::{Server, config};
+use feather_server::{config, Server};
 use plugin_host::PluginManager;
 
 mod logging;
@@ -72,7 +75,7 @@ fn init_world_source(game: &mut Game, options: config::World) {
     let world_source = match &options.generator[..] {
         "default" => region_source.with_fallback(GeneratingWorldSource::default_with_seed(seed)),
         "flat" => region_source.with_fallback(FlatWorldSource::new()),
-        _ => region_source.with_fallback(NullWorldSource::default())
+        _ => region_source.with_fallback(NullWorldSource::default()),
     };
     game.world = World::with_source(world_source);
 }

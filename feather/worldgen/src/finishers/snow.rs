@@ -1,5 +1,5 @@
-use crate::{ChunkBiomes, FinishingGenerator, TopBlocks};
-use base::{Biome, BlockId, Chunk};
+use crate::{FinishingGenerator, TopBlocks};
+use base::{chunk::BiomeStore, Biome, BlockId, Chunk};
 
 /// Finisher for generating snow on top of snow biomes.
 #[derive(Default)]
@@ -9,13 +9,13 @@ impl FinishingGenerator for SnowFinisher {
     fn generate_for_chunk(
         &self,
         chunk: &mut Chunk,
-        biomes: &ChunkBiomes,
+        biomes: &BiomeStore,
         top_blocks: &TopBlocks,
         _seed: u64,
     ) {
         for x in 0..16 {
             for z in 0..16 {
-                if !is_snowy_biome(biomes.biome_at(x, z)) {
+                if !is_snowy_biome(biomes.get_at_block(x, 0, z)) {
                     continue;
                 }
 

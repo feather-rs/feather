@@ -1,8 +1,8 @@
 //! Composition generator, used to populate chunks with blocks
 //! based on the density and biome values.
 
-use crate::{block_index, util, ChunkBiomes, CompositionGenerator, SEA_LEVEL};
-use base::{Biome, BlockId, Chunk, ChunkPosition};
+use crate::{block_index, util, CompositionGenerator, SEA_LEVEL};
+use base::{chunk::BiomeStore, Biome, BlockId, Chunk, ChunkPosition};
 use bitvec::order::LocalBits;
 use bitvec::slice::BitSlice;
 use rand::{Rng, SeedableRng};
@@ -19,7 +19,7 @@ impl CompositionGenerator for BasicCompositionGenerator {
         &self,
         chunk: &mut Chunk,
         _pos: ChunkPosition,
-        biomes: &ChunkBiomes,
+        biomes: &BiomeStore,
         density: &BitSlice<LocalBits, u8>,
         seed: u64,
     ) {
@@ -29,7 +29,14 @@ impl CompositionGenerator for BasicCompositionGenerator {
         // stone.
         for x in 0..16 {
             for z in 0..16 {
-                basic_composition_for_column(x, z, chunk, density, seed, biomes.biome_at(x, z));
+                basic_composition_for_column(
+                    x,
+                    z,
+                    chunk,
+                    density,
+                    seed,
+                    biomes.get_at_block(x, 0, z),
+                );
             }
         }
     }
