@@ -12,7 +12,7 @@ online_mode = true
 motd = "A Feather server"
 max_players = 16
 default_gamemode = "creative"
-view_distance = 12
+view_distance = 32
 
 [log]
 # If you prefer less verbose logs, switch this to "info".
@@ -27,7 +27,6 @@ url = ""
 # Optional SHA1 hash of the resource pack file.
 hash = ""
 
-# UNIMPLEMENTED
 [world]
 # The name of the directory containing the world.
 name = "world"

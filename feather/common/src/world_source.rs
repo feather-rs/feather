@@ -3,6 +3,7 @@ use base::{Chunk, ChunkPosition};
 pub mod flat;
 pub mod null;
 pub mod region;
+pub mod generating;
 
 /// A chunk loaded from a [`WorldSource`].
 pub struct LoadedChunk {
