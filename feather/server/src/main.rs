@@ -4,8 +4,8 @@ use anyhow::Context;
 use base::anvil::level::SuperflatGeneratorOptions;
 use common::{
     world_source::{
-        generating::GeneratingWorldSource, null::NullWorldSource,
-        region::RegionWorldSource, WorldSource,
+        generating::GeneratingWorldSource, null::NullWorldSource, region::RegionWorldSource,
+        WorldSource,
     },
     Game, TickLoop, World,
 };
@@ -75,7 +75,9 @@ fn init_world_source(game: &mut Game, options: config::World) {
 
     let world_source = match &options.generator[..] {
         "default" => region_source.with_fallback(GeneratingWorldSource::default_with_seed(seed)),
-        "flat" => region_source.with_fallback(GeneratingWorldSource::new(SuperflatWorldGenerator::new(SuperflatGeneratorOptions::default()))),
+        "flat" => region_source.with_fallback(GeneratingWorldSource::new(
+            SuperflatWorldGenerator::new(SuperflatGeneratorOptions::default()),
+        )),
         _ => region_source.with_fallback(NullWorldSource::default()),
     };
     game.world = World::with_source(world_source);

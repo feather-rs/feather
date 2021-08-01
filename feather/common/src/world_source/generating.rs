@@ -24,7 +24,8 @@ impl GeneratingWorldSource {
     {
         let (send_pos, recv_pos) = unbounded::<ChunkPosition>();
         let (send_gen, recv_gen) = unbounded::<LoadedChunk>();
-        for _ in 0..8 { // FIXME: do not hardcode '8' as a magic number
+        for _ in 0..8 {
+            // FIXME: do not hardcode '8' as a magic number
             let send = send_gen.clone();
             let recv = recv_pos.clone();
             let gen = generator.clone();
@@ -44,7 +45,7 @@ impl GeneratingWorldSource {
             recv: recv_gen,
         }
     }
-    pub fn new<G>(generator: G) -> Self 
+    pub fn new<G>(generator: G) -> Self
     where
         G: WorldGenerator + 'static,
     {

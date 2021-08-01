@@ -146,7 +146,8 @@ fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> V
                 let density_2 = density_noise_2[index] * 50.0;
 
                 // Average between two density values based on choice weight.
-                result[index] = lerp(density_1, density_2, choice) * 0.2 + height_offset * 2.0 + height;
+                result[index] =
+                    lerp(density_1, density_2, choice) * 0.2 + height_offset * 2.0 + height;
             }
         }
     }
