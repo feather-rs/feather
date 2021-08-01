@@ -943,6 +943,7 @@ dependencies = [
  "feather-plugin-host",
  "feather-protocol",
  "feather-utils",
+ "feather-worldgen",
  "fern",
  "flate2",
  "flume",

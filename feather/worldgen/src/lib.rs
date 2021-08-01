@@ -27,7 +27,6 @@ use num_traits::ToPrimitive;
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
 use smallvec::SmallVec;
-use std::fmt;
 pub use superflat::SuperflatWorldGenerator;
 
 /// Sea-level height.
@@ -336,15 +335,13 @@ impl NearbyBiomes {
         let oz = oz.to_isize().unwrap();
 
         let x = ox + 16;
-        let y = oy;
         let z = oz + 16;
 
         let chunk_x = (x / 16) as usize;
-        let chunk_y = (y / 16) as usize;
         let chunk_z = (z / 16) as usize;
 
         let mut local_x = (ox % 16).abs() as usize;
-        let mut local_y = (oy % 16).abs() as usize;
+        let local_y = (oy % 16).abs() as usize;
         let mut local_z = (oz % 16).abs() as usize;
 
         if ox < 0 {

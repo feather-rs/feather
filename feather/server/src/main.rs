@@ -1,9 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
 use anyhow::Context;
+use base::anvil::level::SuperflatGeneratorOptions;
 use common::{
     world_source::{
-        flat::FlatWorldSource, generating::GeneratingWorldSource, null::NullWorldSource,
+        generating::GeneratingWorldSource, null::NullWorldSource,
         region::RegionWorldSource, WorldSource,
     },
     Game, TickLoop, World,
@@ -11,11 +12,11 @@ use common::{
 use ecs::SystemExecutor;
 use feather_server::{config, Server};
 use plugin_host::PluginManager;
+use worldgen::SuperflatWorldGenerator;
 
 mod logging;
 
 const PLUGINS_DIRECTORY: &str = "plugins";
-const WORLD_DIRECTORY: &str = "world";
 const CONFIG_PATH: &str = "config.toml";
 
 #[tokio::main]
@@ -74,7 +75,7 @@ fn init_world_source(game: &mut Game, options: config::World) {
 
     let world_source = match &options.generator[..] {
         "default" => region_source.with_fallback(GeneratingWorldSource::default_with_seed(seed)),
-        "flat" => region_source.with_fallback(FlatWorldSource::new()),
+        "flat" => region_source.with_fallback(GeneratingWorldSource::new(SuperflatWorldGenerator::new(SuperflatGeneratorOptions::default()))),
         _ => region_source.with_fallback(NullWorldSource::default()),
     };
     game.world = World::with_source(world_source);
