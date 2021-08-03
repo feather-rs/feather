@@ -7,8 +7,9 @@ use worldgen::{ComposableGenerator, WorldGenerator};
 use super::{ChunkLoadResult, LoadedChunk, WorldSource};
 
 pub struct GeneratingWorldSource {
-    send: Sender<ChunkPosition>,
+    send: Sender<LoadedChunk>,
     recv: Receiver<LoadedChunk>,
+    generator: Arc<dyn WorldGenerator>
 }
 
 impl Default for GeneratingWorldSource {
@@ -22,27 +23,11 @@ impl GeneratingWorldSource {
     where
         G: WorldGenerator + 'static,
     {
-        let (send_pos, recv_pos) = unbounded::<ChunkPosition>();
         let (send_gen, recv_gen) = unbounded::<LoadedChunk>();
-        for _ in 0..8 {
-            // FIXME: do not hardcode '8' as a magic number
-            let send = send_gen.clone();
-            let recv = recv_pos.clone();
-            let gen = generator.clone();
-            rayon::spawn(move || {
-                for pos in recv.iter() {
-                    let chunk = gen.generate_chunk(pos);
-                    let loaded = LoadedChunk {
-                        pos,
-                        result: ChunkLoadResult::Loaded { chunk },
-                    };
-                    send.send(loaded).unwrap();
-                }
-            });
-        }
         Self {
-            send: send_pos,
+            send: send_gen,
             recv: recv_gen,
+            generator
         }
     }
     pub fn new<G>(generator: G) -> Self
@@ -58,7 +43,16 @@ impl GeneratingWorldSource {
 
 impl WorldSource for GeneratingWorldSource {
     fn queue_load(&mut self, pos: ChunkPosition) {
-        self.send.send(pos).unwrap()
+        let send = self.send.clone();
+        let gen = self.generator.clone();
+        rayon::spawn(move || {
+            let chunk = gen.generate_chunk(pos);
+            let loaded = LoadedChunk {
+                pos,
+                result: ChunkLoadResult::Loaded { chunk },
+            };
+            send.send(loaded).unwrap();
+        });
     }
 
     fn poll_loaded_chunk(&mut self) -> Option<LoadedChunk> {

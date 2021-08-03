@@ -12,7 +12,7 @@ online_mode = true
 motd = "A Feather server"
 max_players = 16
 default_gamemode = "creative"
-view_distance = 32
+view_distance = 12
 
 [log]
 # If you prefer less verbose logs, switch this to "info".
