@@ -9,7 +9,7 @@ use super::{ChunkLoadResult, LoadedChunk, WorldSource};
 pub struct GeneratingWorldSource {
     send: Sender<LoadedChunk>,
     recv: Receiver<LoadedChunk>,
-    generator: Arc<dyn WorldGenerator>
+    generator: Arc<dyn WorldGenerator>,
 }
 
 impl Default for GeneratingWorldSource {
@@ -27,7 +27,7 @@ impl GeneratingWorldSource {
         Self {
             send: send_gen,
             recv: recv_gen,
-            generator
+            generator,
         }
     }
     pub fn new<G>(generator: G) -> Self
