@@ -1,5 +1,5 @@
 use crate::util::shuffle_seed_for_chunk;
-use crate::{ChunkBiomes, FinishingGenerator, TopBlocks};
+use crate::{BiomeStore, FinishingGenerator, TopBlocks};
 use base::{Biome, BlockId, Chunk};
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
@@ -13,7 +13,7 @@ impl FinishingGenerator for ClumpedFoliageFinisher {
     fn generate_for_chunk(
         &self,
         chunk: &mut Chunk,
-        biomes: &ChunkBiomes,
+        biomes: &BiomeStore,
         top_blocks: &TopBlocks,
         seed: u64,
     ) {
@@ -28,7 +28,7 @@ impl FinishingGenerator for ClumpedFoliageFinisher {
 
         for x in 0..16 {
             for z in 0..16 {
-                let biome = biomes.biome_at(x, z);
+                let biome = biomes.get_at_block(x, 0, z);
 
                 if let Some(block) = biome_clump_block(biome) {
                     if rng.gen_range(0, 48) == 0 {
@@ -41,7 +41,7 @@ impl FinishingGenerator for ClumpedFoliageFinisher {
                             let pos_x = cmp::max(0, cmp::min(x as i32 + offset_x, 15)) as usize;
                             let pos_z = cmp::max(0, cmp::min(z as i32 + offset_z, 15)) as usize;
 
-                            if chunk.biomes().get(pos_x, 0, pos_z) != biome {
+                            if chunk.biomes().get_at_block(pos_x, 0, pos_z) != biome {
                                 return; // Don't generate block outside this biome
                             }
 

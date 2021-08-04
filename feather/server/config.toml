@@ -27,7 +27,6 @@ url = ""
 # Optional SHA1 hash of the resource pack file.
 hash = ""
 
-# UNIMPLEMENTED
 [world]
 # The name of the directory containing the world.
 name = "world"

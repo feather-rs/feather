@@ -14,7 +14,7 @@ pub const BIOMES_PER_CHUNK: usize = (CHUNK_WIDTH / BIOME_SAMPLE_RATE)
 /// biome grid sampled in 4x4x4 blocks. We
 /// do the same, though right now Feather
 /// only uses 2D biomes.
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct BiomeStore {
     biomes: [Biome; BIOMES_PER_CHUNK],
 }
@@ -57,6 +57,10 @@ impl BiomeStore {
     pub fn get(&self, x: usize, y: usize, z: usize) -> Biome {
         let index = self.index(x, y, z);
         self.biomes[index]
+    }
+
+    pub fn get_at_block(&self, x: usize, y: usize, z: usize) -> Biome {
+        self.get(x / 4, y / 4, z / 4)
     }
 
     /// Gets biome data as a raw slice.

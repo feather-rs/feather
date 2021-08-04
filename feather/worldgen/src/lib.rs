@@ -14,6 +14,7 @@ mod superflat;
 mod util;
 pub mod voronoi;
 
+use base::chunk::BiomeStore;
 use base::{Biome, BlockId, Chunk, ChunkPosition};
 pub use biomes::{DistortedVoronoiBiomeGenerator, TwoLevelBiomeGenerator};
 use bitvec::vec::BitVec;
@@ -26,7 +27,6 @@ use num_traits::ToPrimitive;
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
 use smallvec::SmallVec;
-use std::fmt;
 pub use superflat::SuperflatWorldGenerator;
 
 /// Sea-level height.
@@ -133,24 +133,19 @@ impl WorldGenerator for ComposableGenerator {
                 biomes.push(self.biome.generate_for_chunk(pos, biome_seed));
             }
         }
-        let biomes = NearbyBiomes::from_vec(biomes);
+        let biomes = NearbyBiomes::from_slice(&biomes[..]).unwrap();
 
         let density_map =
             self.density_map
                 .generate_for_chunk(position, &biomes, seed_shuffler.gen());
 
         let mut chunk = Chunk::new(position);
-
-        for x in 0..16 {
-            for z in 0..16 {
-                chunk.biomes_mut().set(x, 0, z, biomes.biome_at(x, z));
-            }
-        }
+        *chunk.biomes_mut() = *biomes.center();
 
         self.composition.generate_for_chunk(
             &mut chunk,
             position,
-            &biomes.biomes[4], // Center chunk
+            &biomes.biome_stores[4], // Center chunk
             density_map.as_bitslice(),
             seed_shuffler.gen(),
         );
@@ -175,7 +170,7 @@ impl WorldGenerator for ComposableGenerator {
         for finisher in &self.finishers {
             finisher.generate_for_chunk(
                 &mut chunk,
-                &biomes.biomes[4],
+                &biomes.biome_stores[4],
                 &top_blocks,
                 seed_shuffler.gen(),
             );
@@ -189,7 +184,7 @@ impl WorldGenerator for ComposableGenerator {
 pub trait BiomeGenerator: Send + Sync {
     /// Generates the biomes for a given chunk.
     /// This function should be deterministic.
-    fn generate_for_chunk(&self, chunk: ChunkPosition, seed: u64) -> ChunkBiomes;
+    fn generate_for_chunk(&self, chunk: ChunkPosition, seed: u64) -> BiomeStore;
 }
 
 /// A generator which generates the density map for a chunk.
@@ -216,7 +211,7 @@ pub trait CompositionGenerator: Send + Sync {
         &self,
         chunk: &mut Chunk,
         pos: ChunkPosition,
-        biomes: &ChunkBiomes,
+        biomes: &BiomeStore,
         density: &BitSlice<LocalBits, u8>,
         seed: u64,
     );
@@ -231,7 +226,7 @@ pub trait FinishingGenerator: Send + Sync {
     fn generate_for_chunk(
         &self,
         chunk: &mut Chunk,
-        biomes: &ChunkBiomes,
+        biomes: &BiomeStore,
         top_blocks: &TopBlocks,
         seed: u64,
     );
@@ -267,40 +262,78 @@ impl TopBlocks {
         self.top_blocks[x + (z << 4)] = top as u8;
     }
 }
-
 /// Represents the biomes in a 3x3 grid of chunks,
 /// centered on the chunk currently being generated.
 pub struct NearbyBiomes {
     /// 2D array of chunk biomes. The chunk biomes
     /// for a given chunk position relative to the center
     /// chunk can be obtained using (x + 1) + (z + 1) * 3.
-    pub biomes: Vec<ChunkBiomes>,
+    pub biome_stores: [BiomeStore; 3 * 3],
 }
 
 impl NearbyBiomes {
-    pub fn from_vec(biomes: Vec<ChunkBiomes>) -> Self {
-        Self { biomes }
+    pub fn from_slice(biome_store_slice: &[BiomeStore]) -> Option<Self> {
+        let mut biome_stores = [BiomeStore::new(Biome::Badlands); 9];
+        if biome_store_slice.len() != biome_stores.len() {
+            return None;
+        }
+
+        biome_stores.clone_from_slice(biome_store_slice);
+        Some(Self { biome_stores })
     }
 
-    /// Gets the biome at the given column position.
+    /// Gets the biome at the given coordinates.
     ///
-    /// The column position is an offset from the
-    /// bottom-left corner of the center chunk.
-    pub fn biome_at<N: ToPrimitive>(&self, x: N, z: N) -> Biome {
-        let (index, local_x, local_z) = self.index(x, z);
+    /// # Panics
+    /// Panics if `x >= 16`, `z >= 16`, or `y >= 256`.
+    pub fn get_at_block<N: ToPrimitive>(&self, x: N, y: N, z: N) -> Biome {
+        let (index, local_x, local_y, local_z) = self.index(x, y, z);
 
-        self.biomes[index].biome_at(local_x, local_z)
+        self.biome_stores[index].get_at_block(local_x, local_y, local_z)
     }
 
-    pub fn set_biome_at<N: ToPrimitive>(&mut self, x: N, z: N, biome: Biome) {
-        let (index, local_x, local_z) = self.index(x, z);
+    /// Gets the biome at the given coordinates, in multiples
+    /// of 4 blocks.
+    ///
+    /// # Panics
+    /// Panics if `x >= 4`, `z >= 4`, or `y >= 64`.
+    pub fn get<N: ToPrimitive>(&self, x: N, y: N, z: N) -> Biome {
+        let (index, local_x, local_y, local_z) = self.index(
+            x.to_isize().unwrap() * 4,
+            y.to_isize().unwrap() * 4,
+            z.to_isize().unwrap() * 4,
+        );
 
-        self.biomes[index].set_biome_at(local_x, local_z, biome);
+        self.biome_stores[index].get(local_x / 4, local_y / 4, local_z / 4)
     }
 
-    fn index<N: ToPrimitive>(&self, ox: N, oz: N) -> (usize, usize, usize) {
+    /// Sets the biome at the given coordinates, in multiples
+    /// of 4 blocks.
+    ///
+    /// # Panics
+    /// Panics if `x >= 4`, `z >= 4`, or `y >= 64`.
+    pub fn set<N: ToPrimitive>(&mut self, x: N, y: N, z: N, biome: Biome) {
+        let (index, local_x, local_y, local_z) = self.index(
+            x.to_isize().unwrap() * 4,
+            y.to_isize().unwrap() * 4,
+            z.to_isize().unwrap() * 4,
+        );
+
+        self.biome_stores[index].set(local_x / 4, local_y / 4, local_z / 4, biome);
+    }
+    pub fn center(&self) -> &BiomeStore {
+        &self.biome_stores[4]
+    }
+    pub fn center_mut(&mut self) -> &mut BiomeStore {
+        &mut self.biome_stores[4]
+    }
+    /// Returns a tuple of (chunk_index, local_x, local_y, local_z)
+    fn index<N: ToPrimitive>(&self, ox: N, oy: N, oz: N) -> (usize, usize, usize, usize) {
+        // FIXME: Does this function need to so complicated?
         let ox = ox.to_isize().unwrap();
+        let oy = oy.to_isize().unwrap();
         let oz = oz.to_isize().unwrap();
+
         let x = ox + 16;
         let z = oz + 16;
 
@@ -308,6 +341,7 @@ impl NearbyBiomes {
         let chunk_z = (z / 16) as usize;
 
         let mut local_x = (ox % 16).abs() as usize;
+        let local_y = (oy % 16).abs() as usize;
         let mut local_z = (oz % 16).abs() as usize;
 
         if ox < 0 {
@@ -317,69 +351,16 @@ impl NearbyBiomes {
             local_z = 16 - local_z;
         }
 
-        (chunk_x + chunk_z * 3, local_x, local_z)
+        (chunk_x + chunk_z * 3, local_x, local_y, local_z)
     }
 }
-
-/// Represents the biomes of a chunk.
-pub struct ChunkBiomes {
-    /// 2D array of biome values. The biome for a given
-    /// column local to the chunk can be indexed using
-    /// (x << 4) | z.
-    biomes: [Biome; 16 * 16],
-}
-
-impl ChunkBiomes {
-    /// Creates a `ChunkBiomes` wrapping the given array of biomes.
-    #[inline]
-    pub fn from_array(biomes: [Biome; 16 * 16]) -> Self {
-        Self { biomes }
-    }
-
-    /// Gets the biome for the given column index.
-    ///
-    /// # Panics
-    /// Panics if `x >= 16 | z >= 16`.
-    pub fn biome_at(&self, x: usize, z: usize) -> Biome {
-        assert!(x < 16 && z < 16);
-
-        let index = Self::index(x, z);
-        self.biomes[index]
-    }
-
-    /// Sets the biome for the given column index.
-    ///
-    /// # Panics
-    /// Panics if `x >= 16 | z >= 16`.
-    pub fn set_biome_at(&mut self, x: usize, z: usize, biome: Biome) {
-        assert!(x < 16 && z < 16);
-
-        let index = Self::index(x, z);
-        self.biomes[index] = biome;
-    }
-
-    fn index(x: usize, z: usize) -> usize {
-        (x << 4) | z
-    }
-}
-
-impl fmt::Debug for ChunkBiomes {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        for i in 0..256 {
-            write!(f, "{:?}, ", self.biomes[i])?;
-        }
-
-        Ok(())
-    }
-}
-
 /// A biome generator which always generates plains.
 #[derive(Debug, Default)]
 pub struct StaticBiomeGenerator;
 
 impl BiomeGenerator for StaticBiomeGenerator {
-    fn generate_for_chunk(&self, _chunk: ChunkPosition, _seed: u64) -> ChunkBiomes {
-        ChunkBiomes::from_array([Biome::Plains; 16 * 16])
+    fn generate_for_chunk(&self, _chunk: ChunkPosition, _seed: u64) -> BiomeStore {
+        BiomeStore::new(Biome::Plains)
     }
 }
 
@@ -388,7 +369,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[ignore] // TODO (1.16): account for new 3D biomes
     fn test_reproducability() {
         let seeds: [u64; 4] = [std::u64::MAX, 3243, 0, 100];
 
@@ -413,9 +393,15 @@ mod tests {
     fn test_chunks_eq(a: &Chunk, b: &Chunk) {
         for x in 0..16 {
             for z in 0..16 {
-                assert_eq!(a.biomes().get(x, 0, z), b.biomes().get(x, 0, z));
                 for y in 0..256 {
                     assert_eq!(a.block_at(x, y, z), b.block_at(x, y, z));
+                }
+            }
+        }
+        for x in 0..4 {
+            for z in 0..4 {
+                for y in 0..64 {
+                    assert_eq!(a.biomes().get(x, y, z), b.biomes().get(x, y, z));
                 }
             }
         }
@@ -434,15 +420,15 @@ mod tests {
 
     #[test]
     fn test_chunk_biomes() {
-        let biomes = [Biome::Plains; 16 * 16];
+        let mut biomes = BiomeStore::new(Biome::Plains);
 
-        let mut biomes = ChunkBiomes::from_array(biomes);
-
-        for x in 0..16 {
-            for z in 0..16 {
-                assert_eq!(biomes.biome_at(x, z), Biome::Plains);
-                biomes.set_biome_at(x, z, Biome::Ocean);
-                assert_eq!(biomes.biome_at(x, z), Biome::Ocean);
+        for x in 0..4 {
+            for z in 0..4 {
+                for y in 0..64 {
+                    assert_eq!(biomes.get(x, y, z), Biome::Plains);
+                    biomes.set(x, y, z, Biome::Ocean);
+                    assert_eq!(biomes.get(x, y, z), Biome::Ocean);
+                }
             }
         }
     }
@@ -453,9 +439,11 @@ mod tests {
 
         let biomes = gen.generate_for_chunk(ChunkPosition::new(0, 0), 0);
 
-        for x in 0..16 {
-            for z in 0..16 {
-                assert_eq!(biomes.biome_at(x, z), Biome::Plains);
+        for x in 0..4 {
+            for z in 0..4 {
+                for y in 0..64 {
+                    assert_eq!(biomes.get(x, y, z), Biome::Plains);
+                }
             }
         }
     }
@@ -463,21 +451,21 @@ mod tests {
     #[test]
     fn test_nearby_biomes() {
         let biomes = vec![
-            ChunkBiomes::from_array([Biome::Plains; 256]),
-            ChunkBiomes::from_array([Biome::Swamp; 256]),
-            ChunkBiomes::from_array([Biome::Savanna; 256]),
-            ChunkBiomes::from_array([Biome::BirchForest; 256]),
-            ChunkBiomes::from_array([Biome::DarkForest; 256]),
-            ChunkBiomes::from_array([Biome::Mountains; 256]),
-            ChunkBiomes::from_array([Biome::Ocean; 256]),
-            ChunkBiomes::from_array([Biome::Desert; 256]),
-            ChunkBiomes::from_array([Biome::Taiga; 256]),
+            BiomeStore::new(Biome::Plains),
+            BiomeStore::new(Biome::Swamp),
+            BiomeStore::new(Biome::Savanna),
+            BiomeStore::new(Biome::BirchForest),
+            BiomeStore::new(Biome::DarkForest),
+            BiomeStore::new(Biome::Mountains),
+            BiomeStore::new(Biome::Ocean),
+            BiomeStore::new(Biome::Desert),
+            BiomeStore::new(Biome::Taiga),
         ];
-        let biomes = NearbyBiomes::from_vec(biomes);
+        let biomes = NearbyBiomes::from_slice(&biomes[..]).unwrap();
 
-        assert_eq!(biomes.biome_at(0, 0), Biome::DarkForest);
-        assert_eq!(biomes.biome_at(16, 16), Biome::Taiga);
-        assert_eq!(biomes.biome_at(-1, -1), Biome::Plains);
-        assert_eq!(biomes.biome_at(-1, 0), Biome::BirchForest);
+        assert_eq!(biomes.get_at_block(0, 0, 0), Biome::DarkForest);
+        assert_eq!(biomes.get_at_block(16, 0, 16), Biome::Taiga);
+        assert_eq!(biomes.get_at_block(-1, 0, -1), Biome::Plains);
+        assert_eq!(biomes.get_at_block(-1, 0, 0), Biome::BirchForest);
     }
 }

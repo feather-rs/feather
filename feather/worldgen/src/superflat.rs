@@ -6,6 +6,12 @@ pub struct SuperflatWorldGenerator {
     pub options: SuperflatGeneratorOptions,
 }
 
+impl SuperflatWorldGenerator {
+    pub fn new(options: SuperflatGeneratorOptions) -> Self {
+        Self { options }
+    }
+}
+
 impl WorldGenerator for SuperflatWorldGenerator {
     fn generate_chunk(&self, position: ChunkPosition) -> Chunk {
         let biome = Biome::from_name(self.options.biome.as_str()).unwrap_or(Biome::Plains);
@@ -16,7 +22,9 @@ impl WorldGenerator for SuperflatWorldGenerator {
             if layer.height == 0 {
                 continue;
             }
-            let layer_block = BlockId::from_identifier(layer.block.as_str());
+            // FIXME: get rid of this hack by having a constistent naming convention - Item::name() returns `stone` but BlockId::from_identifier requires `minecraft:stone`
+            let layer_block =
+                BlockId::from_identifier(("minecraft:".to_owned() + &layer.block).as_str());
             if let Some(layer_block) = layer_block {
                 for y in y_counter..(y_counter + layer.height) {
                     for x in 0..16 {
@@ -27,7 +35,7 @@ impl WorldGenerator for SuperflatWorldGenerator {
                 }
             } else {
                 // Skip this layer
-                log::debug!("Failed to generate layer: unknown block {}", layer.block);
+                log::warn!("Failed to generate layer: unknown block {}", layer.block);
             }
 
             y_counter += layer.height;
@@ -44,7 +52,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[ignore] // TODO (1.16): account for new 3D biomes
     pub fn test_worldgen_flat() {
         let options = SuperflatGeneratorOptions {
             biome: Biome::Mountains.name().to_owned(),
@@ -72,7 +79,7 @@ mod tests {
                         BlockId::air()
                     );
                 }
-                assert_eq!(chunk.biomes().get(x, 0, z), Biome::Mountains);
+                assert_eq!(chunk.biomes().get_at_block(x, 0, z), Biome::Mountains);
             }
         }
     }

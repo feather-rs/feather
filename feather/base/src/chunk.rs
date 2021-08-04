@@ -126,6 +126,7 @@ impl Chunk {
     /// Sets the block at the given position within this chunk.
     ///
     /// Returns `None` if the coordinates are out of bounds.
+    /// FIXME: Do not update heightmap when it is not neccessary
     pub fn set_block_at(&mut self, x: usize, y: usize, z: usize, block: BlockId) -> Option<()> {
         let old_block = self.block_at(x, y, z)?;
         let section = self.section_for_y_mut(y)?;
