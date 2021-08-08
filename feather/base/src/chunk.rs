@@ -1,6 +1,6 @@
 use std::usize;
 
-use ::blocks::{BlockId, HIGHEST_ID};
+use ::blocks::BlockId;
 
 use generated::Biome;
 
@@ -376,6 +376,7 @@ impl ChunkSection {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::HIGHEST_ID;
 
     #[test]
     fn chunk_new() {
