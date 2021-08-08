@@ -243,6 +243,14 @@ impl RegionHandle {
         Ok((chunk, level.entities.clone(), level.block_entities.clone()))
     }
 
+    /// Checks if the specified chunk position is generated in this region.
+    /// # Panics
+    /// Panics if the specified chunk position is not within this
+    /// region file.
+    pub fn check_chunk_existence(&self, pos: ChunkPosition) -> bool {
+        self.header.location_for_chunk(pos).exists()
+    }
+
     /// Saves the given chunk to this region file. The header will be updated
     /// accordingly and saved as well.
     ///

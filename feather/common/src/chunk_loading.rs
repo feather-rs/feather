@@ -12,6 +12,7 @@ use ecs::{Entity, SysResult, SystemExecutor};
 use utils::vec_remove_item;
 
 use crate::{
+    chunk_worker::LoadRequest,
     events::{EntityRemoveEvent, ViewUpdateEvent},
     Game,
 };
@@ -131,7 +132,7 @@ fn update_tickets_for_players(game: &mut Game, state: &mut ChunkLoadState) -> Sy
 
             // Load if needed
             if !game.world.is_chunk_loaded(new_chunk) && !game.world.is_chunk_loading(new_chunk) {
-                game.world.queue_chunk_load(new_chunk);
+                game.world.queue_chunk_load(LoadRequest { pos: new_chunk });
             }
         }
     }
@@ -155,7 +156,7 @@ fn unload_chunks(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
             continue;
         }
 
-        game.world.unload_chunk(unload.pos);
+        game.world.unload_chunk(unload.pos)?;
     }
     Ok(())
 }
@@ -172,6 +173,5 @@ fn remove_dead_entities(game: &mut Game, state: &mut ChunkLoadState) -> SysResul
 
 /// System to call `World::load_chunks` each tick
 fn load_chunks(game: &mut Game, _state: &mut ChunkLoadState) -> SysResult {
-    game.world.load_chunks(&mut game.ecs);
-    Ok(())
+    game.world.load_chunks(&mut game.ecs)
 }

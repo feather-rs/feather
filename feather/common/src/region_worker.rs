@@ -5,45 +5,13 @@ use std::{
 };
 
 use ahash::AHashMap;
-use base::{
-    anvil::region::{RegionHandle, RegionPosition},
-    ChunkPosition,
+use base::anvil::{
+    self,
+    region::{RegionHandle, RegionPosition},
 };
 use flume::{Receiver, Sender};
 
-use super::{ChunkLoadResult, LoadedChunk, WorldSource};
-
-/// World source loading from a vanilla (Anvil) world.
-pub struct RegionWorldSource {
-    request_sender: Sender<ChunkPosition>,
-    result_receiver: Receiver<LoadedChunk>,
-}
-
-impl RegionWorldSource {
-    pub fn new(world_dir: impl Into<PathBuf>) -> Self {
-        let (request_sender, request_receiver) = flume::unbounded();
-        let (worker, result_receiver) = Worker::new(world_dir.into(), request_receiver);
-
-        worker.start();
-
-        Self {
-            request_sender,
-            result_receiver,
-        }
-    }
-}
-
-impl WorldSource for RegionWorldSource {
-    fn queue_load(&mut self, pos: ChunkPosition) {
-        self.request_sender
-            .send(pos)
-            .expect("chunk worker panicked");
-    }
-
-    fn poll_loaded_chunk(&mut self) -> Option<super::LoadedChunk> {
-        self.result_receiver.try_recv().ok()
-    }
-}
+use crate::chunk_worker::{ChunkLoadResult, LoadRequest, LoadedChunk, SaveRequest, WorkerRequest};
 
 /// Duration to keep a region file open when not in use.
 const CACHE_TIME: Duration = Duration::from_secs(60);
@@ -66,19 +34,19 @@ impl OpenRegionFile {
     }
 }
 
-struct Worker {
-    request_receiver: Receiver<ChunkPosition>,
-    result_sender: Sender<LoadedChunk>,
+pub struct RegionWorker {
+    request_receiver: Receiver<WorkerRequest>,
+    result_sender: Sender<ChunkLoadResult>,
     world_dir: PathBuf,
     region_files: AHashMap<RegionPosition, OpenRegionFile>,
     last_cache_update: Instant,
 }
 
-impl Worker {
+impl RegionWorker {
     pub fn new(
         world_dir: PathBuf,
-        request_receiver: Receiver<ChunkPosition>,
-    ) -> (Self, Receiver<LoadedChunk>) {
+        request_receiver: Receiver<WorkerRequest>,
+    ) -> (Self, Receiver<ChunkLoadResult>) {
         let (result_sender, result_receiver) = flume::bounded(256);
         (
             Self {
@@ -102,8 +70,11 @@ impl Worker {
     fn run(mut self) {
         log::info!("Chunk worker started");
         loop {
-            match self.request_receiver.recv_timeout(Duration::from_secs(30)) {
-                Ok(pos) => self.load_chunk(pos),
+            match self.request_receiver.recv_timeout(CACHE_TIME) {
+                Ok(req) => match req {
+                    WorkerRequest::Load(load) => self.load_chunk(load),
+                    WorkerRequest::Save(save) => self.save_chunk(save).unwrap(),
+                },
                 Err(flume::RecvTimeoutError::Timeout) => (),
                 Err(flume::RecvTimeoutError::Disconnected) => {
                     log::info!("Chunk worker shutting down");
@@ -114,26 +85,46 @@ impl Worker {
         }
     }
 
-    fn load_chunk(&mut self, pos: ChunkPosition) {
-        let result = self.get_chunk_load_result(pos);
-        let _ = self.result_sender.send(LoadedChunk { pos, result });
+    fn save_chunk(&mut self, req: SaveRequest) -> anyhow::Result<()> {
+        let reg_pos = RegionPosition::from_chunk(req.pos);
+        let handle = &mut match self.region_file_handle(reg_pos) {
+            Some(h) => h,
+            None => {
+                let new_handle = anvil::region::create_region(&self.world_dir, reg_pos)?;
+                self.region_files
+                    .insert(reg_pos, OpenRegionFile::new(new_handle));
+                self.region_file_handle(reg_pos).unwrap()
+            }
+        }
+        .handle;
+        handle.save_chunk(&req.chunk, &req.entities[..], &req.block_entities[..])?;
+        Ok(())
     }
 
-    fn get_chunk_load_result(&mut self, pos: ChunkPosition) -> ChunkLoadResult {
+    fn load_chunk(&mut self, req: LoadRequest) {
+        let result = self.get_chunk_load_result(req);
+        let _ = self.result_sender.send(result);
+    }
+
+    fn get_chunk_load_result(&mut self, req: LoadRequest) -> ChunkLoadResult {
+        let pos = req.pos;
         let region = RegionPosition::from_chunk(pos);
         let file = match self.region_file_handle(region) {
             Some(file) => file,
-            None => return ChunkLoadResult::Missing,
+            None => return ChunkLoadResult::Missing(pos),
         };
 
         let chunk = match file.handle.load_chunk(pos) {
             Ok((chunk, _, _)) => chunk,
-            Err(e) => return ChunkLoadResult::Error(e.into()),
+            Err(e) => match e {
+                anvil::region::Error::ChunkNotExist => return ChunkLoadResult::Missing(pos),
+                err => return ChunkLoadResult::Error(err.into()),
+            },
         };
 
         file.last_used = Instant::now();
 
-        ChunkLoadResult::Loaded { chunk }
+        ChunkLoadResult::Loaded(LoadedChunk { pos, chunk })
     }
 
     fn region_file_handle(&mut self, region: RegionPosition) -> Option<&mut OpenRegionFile> {

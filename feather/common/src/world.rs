@@ -1,13 +1,14 @@
 use ahash::{AHashMap, AHashSet};
 use base::{BlockPosition, Chunk, ChunkPosition, CHUNK_HEIGHT};
 use blocks::BlockId;
-use ecs::Ecs;
+use ecs::{Ecs, SysResult};
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
+use worldgen::{ComposableGenerator, WorldGenerator};
 
 use crate::{
+    chunk_worker::{ChunkWorker, LoadRequest, SaveRequest},
     events::ChunkLoadEvent,
-    world_source::{null::NullWorldSource, ChunkLoadResult, WorldSource},
 };
 
 /// Stores all blocks and chunks in a world,
@@ -18,7 +19,7 @@ use crate::{
 /// This does not store entities; it only contains blocks.
 pub struct World {
     chunk_map: ChunkMap,
-    world_source: Box<dyn WorldSource>,
+    chunk_worker: ChunkWorker,
     loading_chunks: AHashSet<ChunkPosition>,
     canceled_chunk_loads: AHashSet<ChunkPosition>,
 }
@@ -27,7 +28,10 @@ impl Default for World {
     fn default() -> Self {
         Self {
             chunk_map: ChunkMap::new(),
-            world_source: Box::new(NullWorldSource::default()),
+            chunk_worker: ChunkWorker::new(
+                "world",
+                Arc::new(ComposableGenerator::default_with_seed(0)),
+            ),
             loading_chunks: AHashSet::new(),
             canceled_chunk_loads: AHashSet::new(),
         }
@@ -39,43 +43,32 @@ impl World {
         Self::default()
     }
 
-    /// Creates a `World` from a `WorldSource` for loading chunks.
-    pub fn with_source(world_source: impl WorldSource + 'static) -> Self {
+    pub fn with_gen_and_path(
+        generator: Arc<dyn WorldGenerator>,
+        world_dir: impl Into<PathBuf>,
+    ) -> Self {
         Self {
-            world_source: Box::new(world_source),
+            chunk_worker: ChunkWorker::new(world_dir, generator),
             ..Default::default()
         }
     }
 
     /// Queues the given chunk to be loaded.
-    pub fn queue_chunk_load(&mut self, pos: ChunkPosition) {
-        self.loading_chunks.insert(pos);
-        self.world_source.queue_load(pos);
+    pub fn queue_chunk_load(&mut self, req: LoadRequest) {
+        self.loading_chunks.insert(req.pos);
+        self.chunk_worker.queue_load(req);
     }
 
     /// Loads any chunks that have been loaded asynchronously
     /// after a call to [`World::queue_chunk_load`].
-    pub fn load_chunks(&mut self, ecs: &mut Ecs) {
-        while let Some(loaded) = self.world_source.poll_loaded_chunk() {
+    pub fn load_chunks(&mut self, ecs: &mut Ecs) -> SysResult {
+        while let Some(loaded) = self.chunk_worker.poll_loaded_chunk()? {
             self.loading_chunks.remove(&loaded.pos);
             if self.canceled_chunk_loads.remove(&loaded.pos) {
                 continue;
             }
+            let chunk = loaded.chunk;
 
-            let chunk = match loaded.result {
-                ChunkLoadResult::Missing => {
-                    log::debug!(
-                        "Chunk {:?} is missing; using default empty chunk",
-                        loaded.pos
-                    );
-                    Chunk::new(loaded.pos)
-                }
-                ChunkLoadResult::Error(e) => {
-                    log::error!("Failed to load chunk {:?}: {:?}", loaded.pos, e);
-                    continue;
-                }
-                ChunkLoadResult::Loaded { chunk } => chunk,
-            };
             self.chunk_map.insert_chunk(chunk);
             ecs.insert_event(ChunkLoadEvent {
                 chunk: Arc::clone(&self.chunk_map.0[&loaded.pos]),
@@ -83,16 +76,27 @@ impl World {
             });
             log::trace!("Loaded chunk {:?}", loaded.pos);
         }
+        Ok(())
     }
 
     /// Unloads the given chunk.
-    pub fn unload_chunk(&mut self, pos: ChunkPosition) {
+    pub fn unload_chunk(&mut self, pos: ChunkPosition) -> anyhow::Result<()> {
+        if let Some((pos, arc)) = self.chunk_map.0.remove_entry(&pos) {
+            let chunk = arc.read().clone(); // FIXME: cloning an entire chunk is pretty slow
+            self.chunk_worker.queue_chunk_save(SaveRequest {
+                pos,
+                chunk,
+                entities: vec![],
+                block_entities: vec![],
+            })
+        }
         self.chunk_map.remove_chunk(pos);
         if self.is_chunk_loading(pos) {
             self.canceled_chunk_loads.insert(pos);
         }
 
         log::trace!("Unloaded chunk {:?}", pos);
+        Ok(())
     }
 
     /// Returns whether the given chunk is loaded.
