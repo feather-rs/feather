@@ -1,7 +1,6 @@
 use std::usize;
 
 use ::blocks::BlockId;
-
 use generated::Biome;
 
 use crate::ChunkPosition;
