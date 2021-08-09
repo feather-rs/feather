@@ -88,7 +88,7 @@ impl Readable for UpdateLight {
                     bytes.push(u8::read(buffer, version)?);
                 }
                 let mut bytes = bytes.iter();
-                if chunk.section(i + 1).is_none() {
+                if chunk.section(i).is_none() {
                     chunk.set_section_at(i as isize, Some(ChunkSection::default()));
                 }
                 if let Some(section) = chunk.section_mut(i + 1) {
