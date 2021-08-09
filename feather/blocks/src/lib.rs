@@ -21,7 +21,7 @@ static VANILLA_ID_TABLE: Lazy<Vec<Vec<u16>>> = Lazy::new(|| {
     bincode::deserialize(bytes).expect("failed to deserialize generated vanilla ID table (bincode)")
 });
 
-const HIGHEST_ID: u16 = 8596;
+pub const HIGHEST_ID: u16 = 17111;
 
 static FROM_VANILLA_ID_TABLE: Lazy<Vec<BlockId>> = Lazy::new(|| {
     let mut res = vec![BlockId::default(); u16::max_value() as usize];
@@ -169,6 +169,14 @@ mod tests {
 
         block.set_instrument(Instrument::Basedrum);
         assert_eq!(block.instrument(), Some(Instrument::Basedrum));
+    }
+
+    #[test]
+    fn highest_id() {
+        assert_eq!(
+            HIGHEST_ID,
+            *VANILLA_ID_TABLE.last().unwrap().last().unwrap()
+        )
     }
 
     #[test]
