@@ -90,7 +90,7 @@ impl PropertyStore {
                 let possible_values = possible_value_sets.into_iter().next().unwrap();
                 map.insert(
                     name.to_owned(),
-                    Self::prop_from_possible_values_and_name(&name, &name, possible_values),
+                    Self::prop_from_possible_values_and_name(name, name, possible_values),
                 );
             } else {
                 // There are multiple variants of this property, each with their own set of values.
@@ -122,7 +122,7 @@ impl PropertyStore {
 
                     map.insert(
                         new_name.to_owned(),
-                        Self::prop_from_possible_values_and_name(&new_name, &name, possible_values),
+                        Self::prop_from_possible_values_and_name(new_name, name, possible_values),
                     );
                 }
             }

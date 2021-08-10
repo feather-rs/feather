@@ -34,7 +34,7 @@ impl DensityMapGenerator for DensityMapGeneratorImpl {
     ) -> BitVec<LocalBits, u8> {
         let mut density = BitVec::from_vec(vec![0u8; 16 * 256 * 16 / 8]);
 
-        let uninterpolated_densities = generate_density(chunk, &biomes, seed);
+        let uninterpolated_densities = generate_density(chunk, biomes, seed);
         let noise = NoiseLerper::new(&uninterpolated_densities)
             .with_offset(chunk.x, chunk.z)
             .generate();
@@ -116,7 +116,7 @@ fn generate_density(chunk: ChunkPosition, biomes: &NearbyBiomes, seed: u64) -> V
     for subx in 0..DENSITY_WIDTH {
         for subz in 0..DENSITY_WIDTH {
             // TODO: average nearby biome parameters
-            let (amplitude, midpoint) = column_parameters(&biomes, subx, subz);
+            let (amplitude, midpoint) = column_parameters(biomes, subx, subz);
 
             let height = height_noise[(subz * len) + subx] * 3.0;
 
