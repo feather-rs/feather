@@ -281,7 +281,7 @@ fn compute_server_hash(shared_secret: CryptKey) -> String {
     hasher.update(b""); // server ID - always empty
     hasher.update(&shared_secret);
     hasher.update(&*RSA_KEY_ENCODED);
-    hexdigest(&hasher.finalize().as_slice())
+    hexdigest(hasher.finalize().as_slice())
 }
 
 // Non-standard hex digest used by Minecraft.

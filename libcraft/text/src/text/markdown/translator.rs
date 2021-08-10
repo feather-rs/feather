@@ -90,7 +90,7 @@ pub fn apply_tokens(tokens: Vec<Token>) -> Result<TextComponent, TextMarkupError
                     }
                 },
                 (_, _, event_name) => {
-                    let ty = parse_event_type_word(&event_name);
+                    let ty = parse_event_type_word(event_name);
                     match &call.args {
                         Some(v) => {
                             let action = parse_event_action_word(&v[0]);
