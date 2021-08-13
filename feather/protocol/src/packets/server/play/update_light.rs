@@ -1,13 +1,12 @@
 use std::{fmt::Debug, sync::Arc};
 
-use base::{chunk::PackedArray, Chunk, ChunkPosition, ChunkSection};
-use parking_lot::RwLock;
+use base::{chunk::PackedArray, Chunk, ChunkHandle, ChunkLock, ChunkPosition, ChunkSection};
 
 use crate::{io::VarInt, ProtocolVersion, Readable, Writeable};
 
 #[derive(Clone)]
 pub struct UpdateLight {
-    pub chunk: Arc<RwLock<Chunk>>,
+    pub chunk: ChunkHandle,
 }
 
 impl Debug for UpdateLight {
@@ -125,7 +124,7 @@ impl Readable for UpdateLight {
         }
 
         Ok(Self {
-            chunk: Arc::new(RwLock::new(chunk)),
+            chunk: Arc::new(ChunkLock::new(chunk, true)),
         })
     }
 }

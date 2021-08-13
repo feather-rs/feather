@@ -3,7 +3,7 @@ use std::{path::PathBuf, sync::Arc};
 use anyhow::bail;
 use base::{
     anvil::{block_entity::BlockEntityData, entity::EntityData},
-    Chunk, ChunkPosition,
+    Chunk, ChunkHandle, ChunkPosition,
 };
 use flume::{Receiver, Sender};
 use worldgen::WorldGenerator;
@@ -34,7 +34,7 @@ pub enum ChunkLoadResult {
 #[derive(Debug)]
 pub struct SaveRequest {
     pub pos: ChunkPosition,
-    pub chunk: Chunk,
+    pub chunk: ChunkHandle,
     pub entities: Vec<EntityData>,
     pub block_entities: Vec<BlockEntityData>,
 }

@@ -97,7 +97,11 @@ impl RegionWorker {
             }
         }
         .handle;
-        handle.save_chunk(&req.chunk, &req.entities[..], &req.block_entities[..])?;
+        handle.save_chunk(
+            &req.chunk.read(),
+            &req.entities[..],
+            &req.block_entities[..],
+        )?;
         Ok(())
     }
 

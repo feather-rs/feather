@@ -356,6 +356,6 @@ pub fn on_chunk_load_send_to_clients(
 }
 
 /// Creates a chunk data packet for the given chunk.
-fn create_chunk_data(chunk: Arc<RwLock<Chunk>>) -> ChunkData {
+fn create_chunk_data(chunk: ChunkHandle) -> ChunkData {
     ChunkData { chunk }
 }

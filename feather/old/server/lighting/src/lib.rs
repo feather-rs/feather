@@ -107,7 +107,7 @@ pub enum Request {
     /// Notifies the worker of a new loaded chunk.
     LoadChunk {
         pos: ChunkPosition,
-        handle: Arc<RwLock<Chunk>>,
+        handle: ChunkHandle,
     },
     /// Notifies the worker that a chunk was unloaded.
     UnloadChunk { pos: ChunkPosition },

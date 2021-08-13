@@ -11,11 +11,13 @@ use serde::{Deserialize, Serialize};
 
 pub mod anvil;
 pub mod chunk;
+pub mod chunk_lock;
 pub mod inventory;
 pub mod metadata;
 
 pub use blocks::*;
 pub use chunk::{Chunk, ChunkSection, CHUNK_HEIGHT, CHUNK_WIDTH};
+pub use chunk_lock::*;
 pub use generated::{Area, Biome, EntityKind, Inventory, Item, ItemStack};
 pub use libcraft_blocks::{BlockKind, BlockState};
 pub use libcraft_core::{position, vec3, BlockPosition, ChunkPosition, Gamemode, Position, Vec3d};

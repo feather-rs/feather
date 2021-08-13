@@ -1,12 +1,13 @@
 use ahash::{AHashMap, AHashSet};
-use base::{BlockPosition, Chunk, ChunkPosition, CHUNK_HEIGHT};
+use base::{BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, CHUNK_HEIGHT};
 use blocks::BlockId;
 use ecs::{Ecs, SysResult};
-use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
 use std::{path::PathBuf, sync::Arc};
 use worldgen::{ComposableGenerator, WorldGenerator};
 
 use crate::{
+    chunk_cache::ChunkCache,
     chunk_worker::{ChunkWorker, LoadRequest, SaveRequest},
     events::ChunkLoadEvent,
 };
@@ -19,6 +20,7 @@ use crate::{
 /// This does not store entities; it only contains blocks.
 pub struct World {
     chunk_map: ChunkMap,
+    cache: ChunkCache,
     chunk_worker: ChunkWorker,
     loading_chunks: AHashSet<ChunkPosition>,
     canceled_chunk_loads: AHashSet<ChunkPosition>,
@@ -32,6 +34,7 @@ impl Default for World {
                 "world",
                 Arc::new(ComposableGenerator::default_with_seed(0)),
             ),
+            cache: ChunkCache::new(),
             loading_chunks: AHashSet::new(),
             canceled_chunk_loads: AHashSet::new(),
         }
@@ -53,10 +56,19 @@ impl World {
         }
     }
 
-    /// Queues the given chunk to be loaded.
+    /// Queues the given chunk to be loaded. If the chunk was cached, it is loaded immediately.
     pub fn queue_chunk_load(&mut self, req: LoadRequest) {
-        self.loading_chunks.insert(req.pos);
-        self.chunk_worker.queue_load(req);
+        let pos = req.pos;
+        if self.cache.contains(&pos) {
+            // Move the chunk from the cache to the map
+            self.chunk_map
+                .0
+                .insert(pos, self.cache.remove(pos).unwrap());
+            self.chunk_map.chunk_handle_at(pos).unwrap().set_loaded();
+        } else {
+            self.loading_chunks.insert(req.pos);
+            self.chunk_worker.queue_load(req);
+        }
     }
 
     /// Loads any chunks that have been loaded asynchronously
@@ -81,14 +93,15 @@ impl World {
 
     /// Unloads the given chunk.
     pub fn unload_chunk(&mut self, pos: ChunkPosition) -> anyhow::Result<()> {
-        if let Some((pos, arc)) = self.chunk_map.0.remove_entry(&pos) {
-            let chunk = arc.read().clone(); // FIXME: cloning an entire chunk is pretty slow
+        if let Some((pos, handle)) = self.chunk_map.0.remove_entry(&pos) {
+            handle.set_unloaded()?;
             self.chunk_worker.queue_chunk_save(SaveRequest {
                 pos,
-                chunk,
+                chunk: handle.clone(),
                 entities: vec![],
                 block_entities: vec![],
-            })
+            });
+            self.cache.insert(pos, handle);
         }
         self.chunk_map.remove_chunk(pos);
         if self.is_chunk_loading(pos) {
@@ -138,7 +151,7 @@ impl World {
     }
 }
 
-pub type ChunkMapInner = AHashMap<ChunkPosition, Arc<RwLock<Chunk>>>;
+pub type ChunkMapInner = AHashMap<ChunkPosition, ChunkHandle>;
 
 /// This struct stores all the chunks on the server,
 /// so it allows access to blocks and lighting data.
@@ -166,11 +179,11 @@ impl ChunkMap {
     /// Retrieves a handle to the chunk at the given
     /// position, or `None` if it is not loaded.
     pub fn chunk_at_mut(&self, pos: ChunkPosition) -> Option<RwLockWriteGuard<Chunk>> {
-        self.0.get(&pos).map(|lock| lock.write())
+        self.0.get(&pos).map(|lock| lock.write()).flatten()
     }
 
     /// Returns an `Arc<RwLock<Chunk>>` at the given position.
-    pub fn chunk_handle_at(&self, pos: ChunkPosition) -> Option<Arc<RwLock<Chunk>>> {
+    pub fn chunk_handle_at(&self, pos: ChunkPosition) -> Option<ChunkHandle> {
         self.0.get(&pos).map(Arc::clone)
     }
 
@@ -194,14 +207,14 @@ impl ChunkMap {
     }
 
     /// Returns an iterator over chunks.
-    pub fn iter_chunks(&self) -> impl IntoIterator<Item = &Arc<RwLock<Chunk>>> {
+    pub fn iter_chunks(&self) -> impl IntoIterator<Item = &ChunkHandle> {
         self.0.values()
     }
 
     /// Inserts a new chunk into the chunk map.
     pub fn insert_chunk(&mut self, chunk: Chunk) {
         self.0
-            .insert(chunk.position(), Arc::new(RwLock::new(chunk)));
+            .insert(chunk.position(), Arc::new(ChunkLock::new(chunk, true)));
     }
 
     /// Removes the chunk at the given position, returning `true` if it existed.

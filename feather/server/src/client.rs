@@ -7,8 +7,8 @@ use std::{
 
 use ahash::AHashSet;
 use base::{
-    BlockId, BlockPosition, Chunk, ChunkPosition, EntityKind, EntityMetadata, Gamemode, ItemStack,
-    Position, ProfileProperty, Text,
+    BlockId, BlockPosition, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode,
+    ItemStack, Position, ProfileProperty, Text,
 };
 use common::{
     chat::{ChatKind, ChatMessage},
@@ -16,7 +16,6 @@ use common::{
 };
 use flume::{Receiver, Sender};
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
-use parking_lot::RwLock;
 use protocol::{
     packets::{
         self,
@@ -257,7 +256,7 @@ impl Client {
         });
     }
 
-    pub fn send_chunk(&self, chunk: &Arc<RwLock<Chunk>>) {
+    pub fn send_chunk(&self, chunk: &ChunkHandle) {
         self.chunk_send_queue.borrow_mut().push_back(ChunkData {
             chunk: Arc::clone(chunk),
             kind: ChunkDataKind::LoadChunk,
@@ -267,7 +266,7 @@ impl Client {
             .insert(chunk.read().position());
     }
 
-    pub fn overwrite_chunk_sections(&self, chunk: &Arc<RwLock<Chunk>>, sections: Vec<usize>) {
+    pub fn overwrite_chunk_sections(&self, chunk: &ChunkHandle, sections: Vec<usize>) {
         self.send_packet(ChunkData {
             chunk: Arc::clone(chunk),
             kind: ChunkDataKind::OverwriteChunk { sections },

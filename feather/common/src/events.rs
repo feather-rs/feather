@@ -1,7 +1,4 @@
-use std::sync::Arc;
-
-use base::{Chunk, ChunkPosition};
-use parking_lot::RwLock;
+use base::{ChunkHandle, ChunkPosition};
 
 use crate::view::View;
 
@@ -57,7 +54,7 @@ pub struct ChunkCrossEvent {
 #[derive(Debug)]
 pub struct ChunkLoadEvent {
     pub position: ChunkPosition,
-    pub chunk: Arc<RwLock<Chunk>>,
+    pub chunk: ChunkHandle,
 }
 
 /// Triggered when an error occurs while loading a chunk.

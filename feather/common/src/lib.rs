@@ -22,6 +22,8 @@ pub mod events;
 pub mod chunk_worker;
 mod region_worker;
 
+pub mod chunk_cache;
+
 pub mod world;
 pub use world::World;
 
