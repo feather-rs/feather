@@ -158,6 +158,7 @@ fn unload_chunks(game: &mut Game, state: &mut ChunkLoadState) -> SysResult {
 
         game.world.unload_chunk(unload.pos)?;
     }
+    game.world.cache.purge_unused();
     Ok(())
 }
 

@@ -20,7 +20,7 @@ use crate::{
 /// This does not store entities; it only contains blocks.
 pub struct World {
     chunk_map: ChunkMap,
-    cache: ChunkCache,
+    pub cache: ChunkCache,
     chunk_worker: ChunkWorker,
     loading_chunks: AHashSet<ChunkPosition>,
     canceled_chunk_loads: AHashSet<ChunkPosition>,
