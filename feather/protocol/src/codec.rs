@@ -2,7 +2,7 @@ use crate::{io::VarInt, ProtocolVersion, Readable, Writeable};
 use aes::Aes128;
 use bytes::BytesMut;
 use cfb8::{
-    stream_cipher::{NewStreamCipher, StreamCipher},
+    cipher::{AsyncStreamCipher, NewCipher},
     Cfb8,
 };
 use flate2::{
@@ -42,7 +42,7 @@ impl MinecraftCodec {
     /// Enables encryption with the provided key.
     pub fn enable_encryption(&mut self, key: CryptKey) {
         // yes, Mojang uses the same nonce for each packet. don't ask me why.
-        self.cryptor = Some(AesCfb8::new_var(&key, &key).expect("key size is invalid"));
+        self.cryptor = Some(AesCfb8::new_from_slices(&key, &key).expect("key size is invalid"));
         self.crypt_key = Some(key);
     }
 
@@ -57,7 +57,7 @@ impl MinecraftCodec {
         MinecraftCodec {
             cryptor: self
                 .crypt_key
-                .map(|key| AesCfb8::new_var(&key, &key).expect("key size is invalid")),
+                .map(|key| AesCfb8::new_from_slices(&key, &key).expect("key size is invalid")),
             crypt_key: self.crypt_key,
             compression: self.compression,
             received_buf: BytesMut::new(),
