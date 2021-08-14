@@ -849,7 +849,7 @@ dependencies = [
  "serde_json",
  "smartstring",
  "thiserror",
- "ureq 1.5.4",
+ "ureq",
  "zip",
 ]
 
@@ -971,7 +971,7 @@ dependencies = [
  "sha-1",
  "tokio",
  "toml",
- "ureq 2.0.2",
+ "ureq",
  "uuid",
  "vec-arena",
 ]
@@ -2037,15 +2037,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "qstring"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d464fae65fff2680baf48019211ce37aaec0c78e9264c84a3e484717f965104e"
-dependencies = [
- "percent-encoding",
-]
-
-[[package]]
 name = "query-entities"
 version = "0.1.0"
 dependencies = [
@@ -3000,26 +2991,9 @@ checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
 
 [[package]]
 name = "ureq"
-version = "1.5.4"
+version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "294b85ef5dbc3670a72e82a89971608a1fcc4ed5c7c5a2895230d31a95f0569b"
-dependencies = [
- "base64",
- "chunked_transfer",
- "log",
- "once_cell",
- "qstring",
- "rustls",
- "url",
- "webpki",
- "webpki-roots",
-]
-
-[[package]]
-name = "ureq"
-version = "2.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6585dcbf3483242f77b502864478ede62431baf3442b99367d3456ec20c1707b"
+checksum = "2475a6781e9bc546e7b64f4013d2f4032c8c6a40fcffd7c6f4ee734a890972ab"
 dependencies = [
  "base64",
  "chunked_transfer",
