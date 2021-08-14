@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 ahash = "0.4"
 anyhow = "1"
-arrayvec = { version = "0.5", features = [ "serde" ] }
+arrayvec = { version = "0.7", features = [ "serde" ] }
 bitflags = "1"
 bitvec = "0.21"
 blocks = { path = "../blocks", package = "feather-blocks" }
