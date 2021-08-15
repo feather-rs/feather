@@ -7,7 +7,10 @@ use std::{
 use ahash::AHashMap;
 use base::{ChunkHandle, ChunkPosition};
 
+#[cfg(not(test))]
 const CACHE_TIME: Duration = Duration::from_secs(30);
+#[cfg(test)]
+const CACHE_TIME: Duration = Duration::from_millis(500);
 
 /// This struct contains chunks that were unloaded but remain in memory in case they are needed.
 #[derive(Default)]
@@ -72,9 +75,15 @@ impl ChunkCache {
     }
     /// Inserts a chunk handle into the cache, returning the previous handle if there was one.
     pub fn insert(&mut self, pos: ChunkPosition, handle: ChunkHandle) -> Option<ChunkHandle> {
+        self.unload_queue.push_back(pos);
         self.map
             .insert(pos, (Instant::now() + CACHE_TIME, handle))
             .map(|(_, handle)| handle)
+    }
+    /// Inserts a chunk handle into the cache. Reads the chunk's position by locking it. Blocks.
+    pub fn insert_read_pos(&mut self, handle: ChunkHandle) -> Option<ChunkHandle> {
+        let pos = handle.read().position();
+        self.insert(pos, handle)
     }
     /// Removes the chunk handle at the given position, returning the handle if it was cached.
     pub fn remove(&mut self, pos: ChunkPosition) -> Option<ChunkHandle> {
@@ -83,5 +92,59 @@ impl ChunkCache {
     /// Returns the chunk handle at the given position, if there was one.
     pub fn get(&mut self, pos: ChunkPosition) -> Option<ChunkHandle> {
         self.map.get(&pos).map(|(_, handle)| handle.clone())
+    }
+    pub fn len(&self) -> usize {
+        self.map.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.map.is_empty()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{sync::Arc, thread::sleep};
+
+    use base::{Chunk, ChunkHandle, ChunkLock, ChunkPosition};
+
+    use super::{CACHE_TIME, ChunkCache};
+
+    #[test]
+    fn purge_unused() {
+        let mut cache = ChunkCache::new();
+        let mut stored_handles: Vec<ChunkHandle> = vec![];
+        let mut used_count = 0;
+        for i in 0..100 {
+            let handle = Arc::new(ChunkLock::new(Chunk::new(ChunkPosition::new(i, 0)), false));
+            if rand::random::<bool>() { // clone this handle and pretend it is used
+                used_count += 1;
+                stored_handles.push(handle.clone());
+            }
+            assert!(cache.insert_read_pos(handle).is_none());
+        }
+        assert_eq!(cache.len(), 100);
+        cache.purge_unused();
+        assert_eq!(cache.len(), used_count);
+    }
+    #[test]
+    fn purge_old_unused() {
+        let mut cache = ChunkCache::new();
+        let mut stored_handles: Vec<ChunkHandle> = vec![];
+        let mut used_count = 0;
+        for i in 0..100 {
+            let handle = Arc::new(ChunkLock::new(Chunk::new(ChunkPosition::new(i, 0)), false));
+            if rand::random::<bool>() { // clone this handle and pretend it is used
+                used_count += 1;
+                stored_handles.push(handle.clone());
+            }
+            assert!(cache.insert_read_pos(handle).is_none());
+        }
+        cache.purge_old_unused();
+        assert_eq!(cache.len(), 100);
+        sleep(CACHE_TIME);
+        sleep(CACHE_TIME);
+        assert_eq!(cache.len(), 100);
+        cache.purge_old_unused();
+        assert_eq!(cache.len(), used_count);
     }
 }

@@ -76,3 +76,56 @@ impl ChunkLock {
         self.lock.is_locked()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::{thread::{JoinHandle, sleep, spawn}, time::Duration};
+
+    use libcraft_core::ChunkPosition;
+
+    use super::*;
+    fn empty_lock(x: i32, z: i32, loaded: bool) -> ChunkLock {
+        ChunkLock::new(Chunk::new(ChunkPosition::new(x, z)), loaded)
+    }
+    #[test]
+    fn normal_function() {
+        let lock = empty_lock(0, 0, true);
+        for _ in 0..100 { // It should be possible to lock in any way
+            if rand::random::<bool>() {
+                let _guard = lock.try_read().unwrap();
+            } else {
+                let _guard = lock.try_write().unwrap();
+            }
+        }
+    }
+    #[test]
+    fn cannot_write_unloaded() {
+        let lock = empty_lock(0, 0, false);
+        assert!(lock.try_write().is_none())
+    }
+    #[test]
+    fn can_read_unloaded() {
+        let lock = empty_lock(0, 0, false);
+        assert!(lock.try_read().is_some())
+    }
+    #[test]
+    fn multithreaded() {
+        let lock = Arc::new(empty_lock(0, 0, true));
+        let mut handles: Vec<JoinHandle<()>> = vec![];
+        for _ in 0..20 {
+            let l = lock.clone();
+            handles.push(spawn(move || {
+                while let Some(guard) = l.write() {
+                    sleep(Duration::from_millis(10));
+                    drop(guard)
+                }
+            }))
+        }
+        sleep(Duration::from_millis(1000));
+        lock.set_unloaded().unwrap_or(()); // Discard error
+        for h in handles {
+            h.join().unwrap() // Wait for all threads to stop
+        }
+    }
+
+}
