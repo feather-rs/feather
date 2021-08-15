@@ -107,7 +107,7 @@ mod tests {
 
     use base::{Chunk, ChunkHandle, ChunkLock, ChunkPosition};
 
-    use super::{CACHE_TIME, ChunkCache};
+    use super::{ChunkCache, CACHE_TIME};
 
     #[test]
     fn purge_unused() {
@@ -116,7 +116,8 @@ mod tests {
         let mut used_count = 0;
         for i in 0..100 {
             let handle = Arc::new(ChunkLock::new(Chunk::new(ChunkPosition::new(i, 0)), false));
-            if rand::random::<bool>() { // clone this handle and pretend it is used
+            if rand::random::<bool>() {
+                // clone this handle and pretend it is used
                 used_count += 1;
                 stored_handles.push(handle.clone());
             }
@@ -133,7 +134,8 @@ mod tests {
         let mut used_count = 0;
         for i in 0..100 {
             let handle = Arc::new(ChunkLock::new(Chunk::new(ChunkPosition::new(i, 0)), false));
-            if rand::random::<bool>() { // clone this handle and pretend it is used
+            if rand::random::<bool>() {
+                // clone this handle and pretend it is used
                 used_count += 1;
                 stored_handles.push(handle.clone());
             }

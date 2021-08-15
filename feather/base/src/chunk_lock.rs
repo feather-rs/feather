@@ -79,7 +79,10 @@ impl ChunkLock {
 
 #[cfg(test)]
 mod tests {
-    use std::{thread::{JoinHandle, sleep, spawn}, time::Duration};
+    use std::{
+        thread::{sleep, spawn, JoinHandle},
+        time::Duration,
+    };
 
     use libcraft_core::ChunkPosition;
 
@@ -90,7 +93,8 @@ mod tests {
     #[test]
     fn normal_function() {
         let lock = empty_lock(0, 0, true);
-        for _ in 0..100 { // It should be possible to lock in any way
+        for _ in 0..100 {
+            // It should be possible to lock in any way
             if rand::random::<bool>() {
                 let _guard = lock.try_read().unwrap();
             } else {
@@ -127,5 +131,4 @@ mod tests {
             h.join().unwrap() // Wait for all threads to stop
         }
     }
-
 }
