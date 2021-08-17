@@ -35,7 +35,7 @@ fn download_jar(base: &Path) -> anyhow::Result<File> {
     log::info!("Downloading vanilla server JAR from {}", JAR_URL);
     let mut data = ureq::get(JAR_URL)
         .timeout(Duration::from_secs(10))
-        .call()
+        .call()?
         .into_reader();
 
     let downloaded_dir = base.join("downloaded");

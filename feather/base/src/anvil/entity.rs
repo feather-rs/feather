@@ -86,11 +86,11 @@ impl EntityData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseEntityData {
     #[serde(rename = "Pos")]
-    pub position: ArrayVec<[f64; 3]>,
+    pub position: ArrayVec<f64, 3>,
     #[serde(rename = "Rotation")]
-    pub rotation: ArrayVec<[f32; 2]>,
+    pub rotation: ArrayVec<f32, 2>,
     #[serde(rename = "Motion")]
-    pub velocity: ArrayVec<[f64; 3]>,
+    pub velocity: ArrayVec<f64, 3>,
 }
 
 #[derive(Error, Debug, PartialEq, Eq)]
