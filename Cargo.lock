@@ -861,6 +861,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "parking_lot",
+ "serde",
  "thiserror",
  "vek",
 ]

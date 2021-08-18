@@ -1,4 +1,6 @@
 // This file is @generated. Please do not edit.
+#[allow(unused_imports)]
+use serde::{Deserialize, Serialize};
 #[derive(
     num_derive::FromPrimitive,
     num_derive::ToPrimitive,
@@ -10,6 +12,8 @@
     Hash,
     PartialOrd,
     Ord,
+    Serialize,
+    Deserialize,
 )]
 pub enum BlockKind {
     Air,

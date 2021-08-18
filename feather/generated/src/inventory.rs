@@ -1,6 +1,7 @@
 // This file is @generated. Please do not edit.
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[allow(unused_imports)]
+use serde::{Deserialize, Serialize};
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Area {
     Storage,
     CraftingOutput,
@@ -42,7 +43,33 @@ pub enum Area {
     StonecutterInput,
     StonecutterOutput,
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum WindowKind {
+    Player,
+    Generic9x1,
+    Generic9x2,
+    Generic9x3,
+    Generic9x4,
+    Generic9x5,
+    Generic9x6,
+    Generic3x3,
+    Crafting,
+    Furnace,
+    BlastFurnace,
+    Smoker,
+    Enchantment,
+    BrewingStand,
+    Beacon,
+    Anvil,
+    Hopper,
+    ShulkerBox,
+    Cartography,
+    Grindstone,
+    Lectern,
+    Loom,
+    Stonecutter,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Window {
     Player {
         player: crate::Inventory,
@@ -137,11 +164,106 @@ pub enum Window {
         player: crate::Inventory,
     },
 }
-impl Window {
+#[derive(Debug, Clone)]
+pub enum HostWindow {
+    Player {
+        player: crate::HostInventory,
+    },
+    Generic9x1 {
+        block: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Generic9x2 {
+        block: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Generic9x3 {
+        block: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Generic9x4 {
+        block: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Generic9x5 {
+        block: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Generic9x6 {
+        left_chest: crate::HostInventory,
+        right_chest: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Generic3x3 {
+        block: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Crafting {
+        crafting_table: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Furnace {
+        furnace: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    BlastFurnace {
+        blast_furnace: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Smoker {
+        smoker: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Enchantment {
+        enchantment_table: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    BrewingStand {
+        brewing_stand: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Beacon {
+        beacon: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Anvil {
+        anvil: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Hopper {
+        hopper: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    ShulkerBox {
+        shulker_box: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Cartography {
+        cartography_table: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Grindstone {
+        grindstone: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Lectern {
+        lectern: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Loom {
+        loom: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+    Stonecutter {
+        stonecutter: crate::HostInventory,
+        player: crate::HostInventory,
+    },
+}
+impl HostWindow {
     #[allow(unused_comparisons)]
-    pub fn index_to_slot(&self, index: usize) -> Option<(&crate::Inventory, Area, usize)> {
+    pub fn index_to_slot(&self, index: usize) -> Option<(&crate::HostInventory, Area, usize)> {
         match self {
-            Window::Player { player } => {
+            HostWindow::Player { player } => {
                 if index >= 0 && index < 1 {
                     let area = Area::CraftingOutput;
                     let slot = index - 0;
@@ -182,7 +304,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic9x1 { block, player } => {
+            HostWindow::Generic9x1 { block, player } => {
                 if index >= 0 && index < 9 {
                     let area = Area::Storage;
                     let slot = index - 0;
@@ -199,7 +321,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic9x2 { block, player } => {
+            HostWindow::Generic9x2 { block, player } => {
                 if index >= 0 && index < 18 {
                     let area = Area::Storage;
                     let slot = index - 0;
@@ -216,7 +338,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic9x3 { block, player } => {
+            HostWindow::Generic9x3 { block, player } => {
                 if index >= 0 && index < 27 {
                     let area = Area::Storage;
                     let slot = index - 0;
@@ -233,7 +355,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic9x4 { block, player } => {
+            HostWindow::Generic9x4 { block, player } => {
                 if index >= 0 && index < 36 {
                     let area = Area::Storage;
                     let slot = index - 0;
@@ -250,7 +372,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic9x5 { block, player } => {
+            HostWindow::Generic9x5 { block, player } => {
                 if index >= 0 && index < 45 {
                     let area = Area::Storage;
                     let slot = index - 0;
@@ -267,7 +389,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic9x6 {
+            HostWindow::Generic9x6 {
                 left_chest,
                 right_chest,
                 player,
@@ -292,7 +414,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic3x3 { block, player } => {
+            HostWindow::Generic3x3 { block, player } => {
                 if index >= 0 && index < 9 {
                     let area = Area::Storage;
                     let slot = index - 0;
@@ -309,7 +431,7 @@ impl Window {
                     None
                 }
             }
-            Window::Crafting {
+            HostWindow::Crafting {
                 crafting_table,
                 player,
             } => {
@@ -333,7 +455,7 @@ impl Window {
                     None
                 }
             }
-            Window::Furnace { furnace, player } => {
+            HostWindow::Furnace { furnace, player } => {
                 if index >= 0 && index < 1 {
                     let area = Area::FurnaceIngredient;
                     let slot = index - 0;
@@ -358,7 +480,7 @@ impl Window {
                     None
                 }
             }
-            Window::BlastFurnace {
+            HostWindow::BlastFurnace {
                 blast_furnace,
                 player,
             } => {
@@ -386,7 +508,7 @@ impl Window {
                     None
                 }
             }
-            Window::Smoker { smoker, player } => {
+            HostWindow::Smoker { smoker, player } => {
                 if index >= 0 && index < 1 {
                     let area = Area::FurnaceIngredient;
                     let slot = index - 0;
@@ -411,7 +533,7 @@ impl Window {
                     None
                 }
             }
-            Window::Enchantment {
+            HostWindow::Enchantment {
                 enchantment_table,
                 player,
             } => {
@@ -435,7 +557,7 @@ impl Window {
                     None
                 }
             }
-            Window::BrewingStand {
+            HostWindow::BrewingStand {
                 brewing_stand,
                 player,
             } => {
@@ -463,7 +585,7 @@ impl Window {
                     None
                 }
             }
-            Window::Beacon { beacon, player } => {
+            HostWindow::Beacon { beacon, player } => {
                 if index >= 0 && index < 1 {
                     let area = Area::BeaconPayment;
                     let slot = index - 0;
@@ -480,7 +602,7 @@ impl Window {
                     None
                 }
             }
-            Window::Anvil { anvil, player } => {
+            HostWindow::Anvil { anvil, player } => {
                 if index >= 0 && index < 1 {
                     let area = Area::AnvilInput1;
                     let slot = index - 0;
@@ -505,7 +627,7 @@ impl Window {
                     None
                 }
             }
-            Window::Hopper { hopper, player } => {
+            HostWindow::Hopper { hopper, player } => {
                 if index >= 0 && index < 4 {
                     let area = Area::Storage;
                     let slot = index - 0;
@@ -522,7 +644,7 @@ impl Window {
                     None
                 }
             }
-            Window::ShulkerBox {
+            HostWindow::ShulkerBox {
                 shulker_box,
                 player,
             } => {
@@ -542,7 +664,7 @@ impl Window {
                     None
                 }
             }
-            Window::Cartography {
+            HostWindow::Cartography {
                 cartography_table,
                 player,
             } => {
@@ -570,7 +692,7 @@ impl Window {
                     None
                 }
             }
-            Window::Grindstone { grindstone, player } => {
+            HostWindow::Grindstone { grindstone, player } => {
                 if index >= 0 && index < 1 {
                     let area = Area::GrindstoneInput1;
                     let slot = index - 0;
@@ -595,7 +717,7 @@ impl Window {
                     None
                 }
             }
-            Window::Lectern { lectern, player } => {
+            HostWindow::Lectern { lectern, player } => {
                 if index >= 0 && index < 1 {
                     let area = Area::LecternBook;
                     let slot = index - 0;
@@ -612,7 +734,7 @@ impl Window {
                     None
                 }
             }
-            Window::Loom { loom, player } => {
+            HostWindow::Loom { loom, player } => {
                 if index >= 0 && index < 1 {
                     let area = Area::LoomBanner;
                     let slot = index - 0;
@@ -641,7 +763,7 @@ impl Window {
                     None
                 }
             }
-            Window::Stonecutter {
+            HostWindow::Stonecutter {
                 stonecutter,
                 player,
             } => {
@@ -669,12 +791,12 @@ impl Window {
     }
     pub fn slot_to_index(
         &self,
-        inventory: &crate::Inventory,
+        inventory: &crate::HostInventory,
         area: Area,
         slot: usize,
     ) -> Option<usize> {
         match self {
-            Window::Player { player } => {
+            HostWindow::Player { player } => {
                 if area == Area::CraftingOutput && player.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::CraftingInput && player.ptr_eq(inventory) {
@@ -697,7 +819,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic9x1 { block, player } => {
+            HostWindow::Generic9x1 { block, player } => {
                 if area == Area::Storage && block.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
@@ -708,7 +830,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic9x2 { block, player } => {
+            HostWindow::Generic9x2 { block, player } => {
                 if area == Area::Storage && block.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
@@ -719,7 +841,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic9x3 { block, player } => {
+            HostWindow::Generic9x3 { block, player } => {
                 if area == Area::Storage && block.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
@@ -730,7 +852,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic9x4 { block, player } => {
+            HostWindow::Generic9x4 { block, player } => {
                 if area == Area::Storage && block.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
@@ -741,7 +863,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic9x5 { block, player } => {
+            HostWindow::Generic9x5 { block, player } => {
                 if area == Area::Storage && block.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
@@ -752,7 +874,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic9x6 {
+            HostWindow::Generic9x6 {
                 left_chest,
                 right_chest,
                 player,
@@ -769,7 +891,7 @@ impl Window {
                     None
                 }
             }
-            Window::Generic3x3 { block, player } => {
+            HostWindow::Generic3x3 { block, player } => {
                 if area == Area::Storage && block.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
@@ -780,7 +902,7 @@ impl Window {
                     None
                 }
             }
-            Window::Crafting {
+            HostWindow::Crafting {
                 crafting_table,
                 player,
             } => {
@@ -796,7 +918,7 @@ impl Window {
                     None
                 }
             }
-            Window::Furnace { furnace, player } => {
+            HostWindow::Furnace { furnace, player } => {
                 if area == Area::FurnaceIngredient && furnace.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::FurnaceFuel && furnace.ptr_eq(inventory) {
@@ -811,7 +933,7 @@ impl Window {
                     None
                 }
             }
-            Window::BlastFurnace {
+            HostWindow::BlastFurnace {
                 blast_furnace,
                 player,
             } => {
@@ -829,7 +951,7 @@ impl Window {
                     None
                 }
             }
-            Window::Smoker { smoker, player } => {
+            HostWindow::Smoker { smoker, player } => {
                 if area == Area::FurnaceIngredient && smoker.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::FurnaceFuel && smoker.ptr_eq(inventory) {
@@ -844,7 +966,7 @@ impl Window {
                     None
                 }
             }
-            Window::Enchantment {
+            HostWindow::Enchantment {
                 enchantment_table,
                 player,
             } => {
@@ -860,7 +982,7 @@ impl Window {
                     None
                 }
             }
-            Window::BrewingStand {
+            HostWindow::BrewingStand {
                 brewing_stand,
                 player,
             } => {
@@ -878,7 +1000,7 @@ impl Window {
                     None
                 }
             }
-            Window::Beacon { beacon, player } => {
+            HostWindow::Beacon { beacon, player } => {
                 if area == Area::BeaconPayment && beacon.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
@@ -889,7 +1011,7 @@ impl Window {
                     None
                 }
             }
-            Window::Anvil { anvil, player } => {
+            HostWindow::Anvil { anvil, player } => {
                 if area == Area::AnvilInput1 && anvil.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::AnvilInput2 && anvil.ptr_eq(inventory) {
@@ -904,7 +1026,7 @@ impl Window {
                     None
                 }
             }
-            Window::Hopper { hopper, player } => {
+            HostWindow::Hopper { hopper, player } => {
                 if area == Area::Storage && hopper.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
@@ -915,7 +1037,7 @@ impl Window {
                     None
                 }
             }
-            Window::ShulkerBox {
+            HostWindow::ShulkerBox {
                 shulker_box,
                 player,
             } => {
@@ -929,7 +1051,7 @@ impl Window {
                     None
                 }
             }
-            Window::Cartography {
+            HostWindow::Cartography {
                 cartography_table,
                 player,
             } => {
@@ -947,7 +1069,7 @@ impl Window {
                     None
                 }
             }
-            Window::Grindstone { grindstone, player } => {
+            HostWindow::Grindstone { grindstone, player } => {
                 if area == Area::GrindstoneInput1 && grindstone.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::GrindstoneInput2 && grindstone.ptr_eq(inventory) {
@@ -962,7 +1084,7 @@ impl Window {
                     None
                 }
             }
-            Window::Lectern { lectern, player } => {
+            HostWindow::Lectern { lectern, player } => {
                 if area == Area::LecternBook && lectern.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
@@ -973,7 +1095,7 @@ impl Window {
                     None
                 }
             }
-            Window::Loom { loom, player } => {
+            HostWindow::Loom { loom, player } => {
                 if area == Area::LoomBanner && loom.ptr_eq(inventory) {
                     Some(slot + 0)
                 } else if area == Area::LoomDye && loom.ptr_eq(inventory) {
@@ -990,7 +1112,7 @@ impl Window {
                     None
                 }
             }
-            Window::Stonecutter {
+            HostWindow::Stonecutter {
                 stonecutter,
                 player,
             } => {
@@ -1011,37 +1133,37 @@ impl Window {
 }
 #[allow(warnings)]
 #[allow(clippy::all)]
-impl Window {
-    /// Returns the `name` property of this `Window`.
+impl HostWindow {
+    /// Returns the `name` property of this `HostWindow`.
     pub fn name(&self) -> &'static str {
         match self {
-            Window::Player { .. } => "player",
-            Window::Generic9x1 { .. } => "generic_9x1",
-            Window::Generic9x2 { .. } => "generic_9x2",
-            Window::Generic9x3 { .. } => "generic_9x3",
-            Window::Generic9x4 { .. } => "generic_9x4",
-            Window::Generic9x5 { .. } => "generic_9x5",
-            Window::Generic9x6 { .. } => "generic_9x6",
-            Window::Generic3x3 { .. } => "generic_3x3",
-            Window::Crafting { .. } => "crafting",
-            Window::Furnace { .. } => "furnace",
-            Window::BlastFurnace { .. } => "blast_furnace",
-            Window::Smoker { .. } => "smoker",
-            Window::Enchantment { .. } => "enchantment",
-            Window::BrewingStand { .. } => "brewing_stand",
-            Window::Beacon { .. } => "beacon",
-            Window::Anvil { .. } => "anvil",
-            Window::Hopper { .. } => "hopper",
-            Window::ShulkerBox { .. } => "shulker_box",
-            Window::Cartography { .. } => "cartography",
-            Window::Grindstone { .. } => "grindstone",
-            Window::Lectern { .. } => "lectern",
-            Window::Loom { .. } => "loom",
-            Window::Stonecutter { .. } => "stonecutter",
+            HostWindow::Player { .. } => "player",
+            HostWindow::Generic9x1 { .. } => "generic_9x1",
+            HostWindow::Generic9x2 { .. } => "generic_9x2",
+            HostWindow::Generic9x3 { .. } => "generic_9x3",
+            HostWindow::Generic9x4 { .. } => "generic_9x4",
+            HostWindow::Generic9x5 { .. } => "generic_9x5",
+            HostWindow::Generic9x6 { .. } => "generic_9x6",
+            HostWindow::Generic3x3 { .. } => "generic_3x3",
+            HostWindow::Crafting { .. } => "crafting",
+            HostWindow::Furnace { .. } => "furnace",
+            HostWindow::BlastFurnace { .. } => "blast_furnace",
+            HostWindow::Smoker { .. } => "smoker",
+            HostWindow::Enchantment { .. } => "enchantment",
+            HostWindow::BrewingStand { .. } => "brewing_stand",
+            HostWindow::Beacon { .. } => "beacon",
+            HostWindow::Anvil { .. } => "anvil",
+            HostWindow::Hopper { .. } => "hopper",
+            HostWindow::ShulkerBox { .. } => "shulker_box",
+            HostWindow::Cartography { .. } => "cartography",
+            HostWindow::Grindstone { .. } => "grindstone",
+            HostWindow::Lectern { .. } => "lectern",
+            HostWindow::Loom { .. } => "loom",
+            HostWindow::Stonecutter { .. } => "stonecutter",
         }
     }
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum InventoryBacking<T> {
     Player {
         crafting_input: [T; 4],
@@ -1189,7 +1311,7 @@ impl<T> InventoryBacking<T> {
         }
     }
 }
-impl crate::Inventory {
+impl crate::HostInventory {
     pub fn player() -> Self {
         Self {
             backing: std::sync::Arc::new(InventoryBacking::player()),

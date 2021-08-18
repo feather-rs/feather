@@ -1,4 +1,4 @@
-use base::{Inventory, Position, Text};
+use base::{HostInventory, Position, Text};
 use common::{
     chat::{ChatKind, ChatPreference},
     entities::player::HotbarSlot,
@@ -31,7 +31,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
 
     let mut builder = game.create_entity_builder(Position::default(), EntityInit::Player);
 
-    let inventory = Inventory::player();
+    let inventory = HostInventory::player();
     let window = Window::new(BackingWindow::Player {
         player: inventory.new_handle(),
     });
