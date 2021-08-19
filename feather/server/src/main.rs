@@ -39,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
 fn init_game(server: Server, config: &Config) -> anyhow::Result<Game> {
     let mut game = Game::new();
     init_systems(&mut game, server);
-    init_world_source(&mut game, &config);
+    init_world_source(&mut game, config);
     init_plugin_manager(&mut game)?;
     Ok(game)
 }
