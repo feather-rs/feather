@@ -1,13 +1,12 @@
 use std::{fmt::Debug, sync::Arc};
 
-use base::{chunk::PackedArray, Chunk, ChunkPosition, ChunkSection};
-use parking_lot::RwLock;
+use base::{chunk::PackedArray, Chunk, ChunkHandle, ChunkLock, ChunkPosition, ChunkSection};
 
 use crate::{io::VarInt, ProtocolVersion, Readable, Writeable};
 
 #[derive(Clone)]
 pub struct UpdateLight {
-    pub chunk: Arc<RwLock<Chunk>>,
+    pub chunk: ChunkHandle,
 }
 
 impl Debug for UpdateLight {
@@ -88,7 +87,7 @@ impl Readable for UpdateLight {
                     bytes.push(u8::read(buffer, version)?);
                 }
                 let mut bytes = bytes.iter();
-                if chunk.section(i + 1).is_none() {
+                if chunk.section(i).is_none() {
                     chunk.set_section_at(i as isize, Some(ChunkSection::default()));
                 }
                 if let Some(section) = chunk.section_mut(i + 1) {
@@ -125,7 +124,7 @@ impl Readable for UpdateLight {
         }
 
         Ok(Self {
-            chunk: Arc::new(RwLock::new(chunk)),
+            chunk: Arc::new(ChunkLock::new(chunk, true)),
         })
     }
 }

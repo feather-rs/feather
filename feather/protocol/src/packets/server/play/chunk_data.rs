@@ -4,10 +4,9 @@ use std::{
     sync::Arc,
 };
 
-use base::{Chunk, ChunkPosition, ChunkSection};
+use base::{Chunk, ChunkHandle, ChunkLock, ChunkPosition, ChunkSection};
 use blocks::BlockId;
 use generated::Biome;
-use parking_lot::RwLock;
 use serde::{
     de,
     de::{SeqAccess, Visitor},
@@ -37,7 +36,7 @@ pub enum ChunkDataKind {
 #[derive(Clone)]
 pub struct ChunkData {
     /// The chunk to send.
-    pub chunk: Arc<RwLock<Chunk>>,
+    pub chunk: ChunkHandle,
 
     /// Whether this packet will load a chunk on
     /// the client or overwrite an existing one.
@@ -198,7 +197,7 @@ impl Readable for ChunkData {
 
         for i in 0..16 {
             if (primary_bit_mask & (1 << i)) != 0 {
-                if chunk.section(i + 1).is_none() {
+                if chunk.section(i).is_none() {
                     chunk.set_section_at(i as isize, Some(ChunkSection::default()));
                 }
                 if let Some(section) = chunk.section_mut(i + 1) {
@@ -232,7 +231,7 @@ impl Readable for ChunkData {
         VarInt::read(buffer, version)?; // Block entities length, redundant for feather right now
 
         Ok(Self {
-            chunk: Arc::new(RwLock::new(chunk)),
+            chunk: Arc::new(ChunkLock::new(chunk, true)),
             kind: chunk_data_kind,
         })
     }

@@ -243,6 +243,14 @@ impl RegionHandle {
         Ok((chunk, level.entities.clone(), level.block_entities.clone()))
     }
 
+    /// Checks if the specified chunk position is generated in this region.
+    /// # Panics
+    /// Panics if the specified chunk position is not within this
+    /// region file.
+    pub fn check_chunk_existence(&self, pos: ChunkPosition) -> bool {
+        self.header.location_for_chunk(pos).exists()
+    }
+
     /// Saves the given chunk to this region file. The header will be updated
     /// accordingly and saved as well.
     ///
@@ -387,7 +395,7 @@ fn read_section_into_chunk(section: &mut LevelSection, chunk: &mut Chunk) -> Res
 
     let chunk_section = ChunkSection::new(blocks, light);
 
-    chunk.set_section_at(section.y as isize, Some(chunk_section));
+    chunk.set_section_at_raw(section.y as isize, Some(chunk_section));
 
     Ok(())
 }

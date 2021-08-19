@@ -1817,7 +1817,7 @@ pub struct KeepAliveClientbound {
 
 #[derive(Default, AsAny, Clone)]
 pub struct ChunkData {
-    pub chunk: Arc<RwLock<Chunk>>,
+    pub chunk: ChunkHandle,
 }
 
 impl Packet for ChunkData {

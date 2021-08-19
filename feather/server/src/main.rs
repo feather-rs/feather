@@ -1,18 +1,12 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, sync::Arc};
 
 use anyhow::Context;
 use base::anvil::level::SuperflatGeneratorOptions;
-use common::{
-    world_source::{
-        generating::GeneratingWorldSource, null::NullWorldSource, region::RegionWorldSource,
-        WorldSource,
-    },
-    Game, TickLoop, World,
-};
+use common::{Game, TickLoop, World};
 use ecs::SystemExecutor;
-use feather_server::{config, Server};
+use feather_server::{config::Config, Server};
 use plugin_host::PluginManager;
-use worldgen::SuperflatWorldGenerator;
+use worldgen::{ComposableGenerator, SuperflatWorldGenerator, WorldGenerator};
 
 mod logging;
 
@@ -35,17 +29,17 @@ async fn main() -> anyhow::Result<()> {
     let options = config.to_options();
     let server = Server::bind(options).await?;
 
-    let game = init_game(server, config.world)?;
+    let game = init_game(server, &config)?;
 
     run(game);
 
     Ok(())
 }
 
-fn init_game(server: Server, world_options: config::World) -> anyhow::Result<Game> {
+fn init_game(server: Server, config: &Config) -> anyhow::Result<Game> {
     let mut game = Game::new();
     init_systems(&mut game, server);
-    init_world_source(&mut game, world_options);
+    init_world_source(&mut game, config);
     init_plugin_manager(&mut game)?;
     Ok(game)
 }
@@ -64,23 +58,21 @@ fn init_systems(game: &mut Game, server: Server) {
     game.system_executor = Rc::new(RefCell::new(systems));
 }
 
-fn init_world_source(game: &mut Game, options: config::World) {
+fn init_world_source(game: &mut Game, config: &Config) {
     // Load chunks from the world save first,
     // and fall back to generating a superflat
     // world otherwise. This is a placeholder:
     // we don't have proper world generation yet.
-    let region_source = RegionWorldSource::new(options.name);
 
     let seed = 42; // FIXME: load from the level file
 
-    let world_source = match &options.generator[..] {
-        "default" => region_source.with_fallback(GeneratingWorldSource::default_with_seed(seed)),
-        "flat" => region_source.with_fallback(GeneratingWorldSource::new(
-            SuperflatWorldGenerator::new(SuperflatGeneratorOptions::default()),
+    let generator: Arc<dyn WorldGenerator> = match &config.world.generator[..] {
+        "flat" => Arc::new(SuperflatWorldGenerator::new(
+            SuperflatGeneratorOptions::default(),
         )),
-        _ => region_source.with_fallback(NullWorldSource::default()),
+        _ => Arc::new(ComposableGenerator::default_with_seed(seed)),
     };
-    game.world = World::with_source(world_source);
+    game.world = World::with_gen_and_path(generator, config.world.name.clone());
 }
 
 fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
