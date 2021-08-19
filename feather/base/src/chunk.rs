@@ -7,7 +7,7 @@ use crate::ChunkPosition;
 
 /// The number of bits used for each block
 /// in the global palette.
-pub const GLOBAL_BITS_PER_BLOCK: u8 = 14;
+pub const GLOBAL_BITS_PER_BLOCK: u8 = 15;
 
 /// The minimum bits per block allowed when
 /// using a section palette.
@@ -380,6 +380,7 @@ impl ChunkSection {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::HIGHEST_ID;
 
     #[test]
     fn chunk_new() {
@@ -612,5 +613,11 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn global_bits() {
+        //The highest block state id must fit into GLOBAL_BITS_PER_BLOCK
+        assert_eq!(HIGHEST_ID >> GLOBAL_BITS_PER_BLOCK, 0)
     }
 }

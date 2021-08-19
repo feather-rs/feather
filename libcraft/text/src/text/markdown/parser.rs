@@ -84,8 +84,8 @@ pub fn tokens_to_text(tokens: Vec<LexToken>) -> Token {
 
     for tok in &tokens {
         match &tok.tok {
-            LexTokenType::Word(word) => s.push_str(&word),
-            LexTokenType::Space(space) => s.push_str(&space),
+            LexTokenType::Word(word) => s.push_str(word),
+            LexTokenType::Space(space) => s.push_str(space),
             _ => unreachable!(),
         }
     }

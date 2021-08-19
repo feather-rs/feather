@@ -72,7 +72,7 @@ impl Build {
     }
 
     pub fn module_path(&self, cargo_meta: &Metadata, plugin_meta: &PluginMetadata) -> PathBuf {
-        let target_dir = self.target_dir(&cargo_meta);
+        let target_dir = self.target_dir(cargo_meta);
         let module_filename = plugin_meta.identifier.replace("-", "_");
 
         let module_extension = self.module_extension();
