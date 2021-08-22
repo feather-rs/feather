@@ -268,11 +268,6 @@ impl Chunk {
         self.sections[(y + 1) as usize] = section;
     }
 
-    /// Directly sets the section at index `y` without offseting it. Useful when loading from region files
-    pub fn set_section_at_raw(&mut self, y: isize, section: Option<ChunkSection>) {
-        self.sections[y as usize] = section;
-    }
-
     /// Gets the sections of this chunk.
     pub fn sections(&self) -> &[Option<ChunkSection>] {
         &self.sections
