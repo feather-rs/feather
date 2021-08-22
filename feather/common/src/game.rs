@@ -9,7 +9,7 @@ use quill_common::{entities::Player, entity_init::EntityInit};
 
 use crate::{
     chat::{ChatKind, ChatMessage},
-    chunk_entities::ChunkEntities,
+    chunk::entities::ChunkEntities,
     events::{BlockChangeEvent, EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent},
     ChatBox, World,
 };

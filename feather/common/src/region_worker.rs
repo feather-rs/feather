@@ -11,7 +11,7 @@ use base::anvil::{
 };
 use flume::{Receiver, Sender};
 
-use crate::chunk_worker::{ChunkLoadResult, LoadRequest, LoadedChunk, SaveRequest, WorkerRequest};
+use crate::chunk::worker::{ChunkLoadResult, LoadRequest, LoadedChunk, SaveRequest, WorkerRequest};
 
 /// Duration to keep a region file open when not in use.
 const CACHE_TIME: Duration = Duration::from_secs(60);
