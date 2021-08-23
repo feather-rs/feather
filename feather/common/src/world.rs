@@ -7,8 +7,8 @@ use std::{path::PathBuf, sync::Arc};
 use worldgen::{ComposableGenerator, WorldGenerator};
 
 use crate::{
-    chunk_cache::ChunkCache,
-    chunk_worker::{ChunkWorker, LoadRequest, SaveRequest},
+    chunk::cache::ChunkCache,
+    chunk::worker::{ChunkWorker, LoadRequest, SaveRequest},
     events::ChunkLoadEvent,
 };
 

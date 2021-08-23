@@ -12,7 +12,7 @@ use ecs::{Entity, SysResult, SystemExecutor};
 use utils::vec_remove_item;
 
 use crate::{
-    chunk_worker::LoadRequest,
+    chunk::worker::LoadRequest,
     events::{EntityRemoveEvent, ViewUpdateEvent},
     Game,
 };
