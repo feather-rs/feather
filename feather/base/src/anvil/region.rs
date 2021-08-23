@@ -395,7 +395,7 @@ fn read_section_into_chunk(section: &mut LevelSection, chunk: &mut Chunk) -> Res
 
     let chunk_section = ChunkSection::new(blocks, light);
 
-    chunk.set_section_at_raw(section.y as isize, Some(chunk_section));
+    chunk.set_section_at(section.y as isize, Some(chunk_section));
 
     Ok(())
 }
@@ -420,7 +420,7 @@ fn chunk_to_chunk_root(
                 .map(|(y, mut section)| {
                     let palette = convert_palette(&mut section);
                     LevelSection {
-                        y: y as i8,
+                        y: (y as i8) - 1,
                         states: section
                             .blocks()
                             .data()
