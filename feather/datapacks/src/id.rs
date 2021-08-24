@@ -29,6 +29,20 @@ impl NamespacedId {
     pub fn name(&self) -> &str {
         &self.name
     }
+
+    pub fn from_parts(namespace: &str, name: &str) -> Result<Self, ParseError> {
+        let namespace = if namespace.is_empty() {
+            DEFAULT_NAMESPACE
+        } else {
+            namespace
+        };
+        validate_namespace(namespace)?;
+        validate_name(name)?;
+        Ok(Self {
+            namespace: SmartString::from(namespace),
+            name: SmartString::from(name),
+        })
+    }
 }
 
 /// Error returned when a namespaced ID was formatted incorrectly.
