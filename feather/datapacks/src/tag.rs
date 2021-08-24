@@ -27,25 +27,29 @@ impl TagRegistryBuilder {
             ..Default::default()
         }
     }
-    pub fn from_dir(dir: &Path, namespace: &str) -> Result<Self, crate::Error> {
+    pub fn add_tags_from_dir(&mut self, dir: &Path, namespace: &str) -> Result<(), crate::Error> {
         assert!(dir.is_dir());
-        let mut this = Self::new();
         let blocks = dir.join("blocks");
         let entity_types = dir.join("entity_types");
         let fluids = dir.join("fluids");
         let items = dir.join("items");
         if blocks.exists() {
-            Self::fill_map(&blocks, &mut this.block_map, namespace)?;
+            Self::fill_map(&blocks, &mut self.block_map, namespace)?;
         }
         if entity_types.exists() {
-            Self::fill_map(&entity_types, &mut this.entity_map, namespace)?;
+            Self::fill_map(&entity_types, &mut self.entity_map, namespace)?;
         }
         if fluids.exists() {
-            Self::fill_map(&fluids, &mut this.fluid_map, namespace)?;
+            Self::fill_map(&fluids, &mut self.fluid_map, namespace)?;
         }
         if items.exists() {
-            Self::fill_map(&items, &mut this.item_map, namespace)?;
+            Self::fill_map(&items, &mut self.item_map, namespace)?;
         }
+        Ok(())
+    }
+    pub fn from_dir(dir: &Path, namespace: &str) -> Result<Self, crate::Error> {
+        let mut this = Self::new();
+        this.add_tags_from_dir(dir, namespace)?;
         Ok(this)
     }
     fn fill_map(
@@ -205,7 +209,7 @@ impl TagRegistry {
         f: &mut std::fmt::Formatter<'_>,
     ) -> std::fmt::Result {
         let mut m = map.iter().collect::<Vec<_>>();
-        m.sort_by(|a, b| { a.0.cmp(b.0) });
+        m.sort_by(|a, b| a.0.cmp(b.0));
         for (a, b) in m {
             writeln!(f, "{}: ", a)?;
             let mut n = b.iter().collect::<Vec<_>>();

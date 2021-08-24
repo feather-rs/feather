@@ -13,13 +13,12 @@ use id::ParseError;
 use serde::Deserialize;
 use smartstring::{LazyCompact, SmartString};
 
-
 mod id;
 pub use id::NamespacedId;
 
 pub mod tag;
-pub use tag::{TagRegistry, TagRegistryBuilder};
 use tag::LoopError;
+pub use tag::{TagRegistry, TagRegistryBuilder};
 
 /// The default namespace for resource locations (NamespacedIds).
 pub const DEFAULT_NAMESPACE: &str = "minecraft";
