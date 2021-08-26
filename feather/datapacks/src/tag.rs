@@ -1,11 +1,16 @@
 use std::{
-    borrow::Borrow, collections::VecDeque, fmt::Display, fs::File, io::Read, path::Path,
-    str::FromStr,
+    borrow::Borrow, cell::RefCell, collections::VecDeque, fmt::Display, fs::File, io::Read,
+    path::Path, str::FromStr,
 };
 
 use crate::NamespacedId;
 use ahash::{AHashMap, AHashSet};
-use feather_generated::{BlockKind, EntityKind, Item};
+use blocks::BlockId;
+use generated::{BlockKind, EntityKind, Item};
+use protocol::{
+    packets::server::{AllTags, Tag},
+    VarInt,
+};
 use serde::Deserialize;
 use smartstring::{Compact, SmartString};
 use thiserror::Error;
@@ -122,7 +127,6 @@ impl TagRegistryBuilder {
         assert!(target.insert(tag.clone(), Default::default()).is_none());
         // Parse all child tags
         for child in set.iter().filter_map(|s| s.strip_prefix('#')) {
-            println!("{}", child);
             let child = NamespacedId::from_str(child)?;
             if !target.contains_key(&child) {
                 // Skip already parsed tags
@@ -130,7 +134,7 @@ impl TagRegistryBuilder {
                 Self::parse_rec(child.clone(), stack, source, target)?;
             }
             for element in target.get(&child).unwrap().clone() {
-                // Insert freshly child entry
+                // Insert child entry
                 target.get_mut(&tag).unwrap().insert(element);
             }
         }
@@ -159,12 +163,14 @@ impl TagRegistryBuilder {
         Ok(res)
     }
 }
+/// A registry for keeping track of tags.
 #[derive(Debug, Default)]
 pub struct TagRegistry {
-    pub block_map: AHashMap<NamespacedId, AHashSet<NamespacedId>>,
-    pub entity_map: AHashMap<NamespacedId, AHashSet<NamespacedId>>,
-    pub fluid_map: AHashMap<NamespacedId, AHashSet<NamespacedId>>,
-    pub item_map: AHashMap<NamespacedId, AHashSet<NamespacedId>>,
+    block_map: AHashMap<NamespacedId, AHashSet<NamespacedId>>,
+    entity_map: AHashMap<NamespacedId, AHashSet<NamespacedId>>,
+    fluid_map: AHashMap<NamespacedId, AHashSet<NamespacedId>>,
+    item_map: AHashMap<NamespacedId, AHashSet<NamespacedId>>,
+    cached_packet: RefCell<Option<Box<AllTags>>>,
 }
 impl TagRegistry {
     pub fn new() -> Self {
@@ -204,7 +210,75 @@ impl TagRegistry {
             | self.fluid_map.get(&tag).map(|s| s.get(&thing)).is_some()
             | self.item_map.get(&tag).map(|s| s.get(&thing)).is_some()
     }
-    fn k(
+    /// Provides an `AllTags` packet for sending to the client. This tag is cached to save some performance.
+    pub fn all_tags(&self) -> AllTags {
+        let mut inner = self.cached_packet.borrow_mut();
+        if inner.is_some() {
+            inner.as_ref().unwrap().as_ref().to_owned()
+        } else {
+            let tags = self.build_tags_packet();
+            *inner = Some(Box::new(tags.clone()));
+            tags
+        }
+    }
+    fn build_tags_packet(&self) -> AllTags {
+        let mut block_tags = vec![];
+        let mut entity_tags = vec![];
+        let mut fluid_tags = vec![];
+        let mut item_tags = vec![];
+        for (tag_name, block_names) in &self.block_map {
+            block_tags.push(Tag {
+                name: tag_name.to_string(),
+                entries: block_names
+                    .iter()
+                    .map(|e| VarInt(generated::BlockKind::from_name(e.name()).unwrap().id() as i32))
+                    .collect(),
+            });
+        }
+        for (tag_name, entity_names) in &self.entity_map {
+            entity_tags.push(Tag {
+                name: tag_name.to_string(),
+                entries: entity_names
+                    .iter()
+                    .map(
+                        |e| VarInt(generated::EntityKind::from_name(e.name()).unwrap().id() as i32),
+                    )
+                    .collect(),
+            });
+        }
+        for (tag_name, fluid_names) in &self.fluid_map {
+            let mut entries = vec![];
+            for entry in fluid_names {
+                let block = match BlockId::from_identifier(&entry.to_string()) {
+                    Some(s) => s,
+                    None => BlockId::from_identifier(&entry.to_string().replace("flowing_", ""))
+                        .unwrap()
+                        .with_water_level(1),
+                };
+                entries.push(VarInt(block.vanilla_fluid_id().unwrap() as i32));
+            }
+            fluid_tags.push(Tag {
+                name: tag_name.to_string(),
+                entries,
+            });
+        }
+        for (tag_name, item_names) in &self.item_map {
+            item_tags.push(Tag {
+                name: tag_name.to_string(),
+                entries: item_names
+                    .iter()
+                    .map(|e| VarInt(generated::Item::from_name(e.name()).unwrap().id() as i32))
+                    .collect(),
+            });
+        }
+        AllTags {
+            block_tags,
+            item_tags,
+            fluid_tags,
+            entity_tags,
+        }
+    }
+    fn display_helper(
         map: &AHashMap<NamespacedId, AHashSet<NamespacedId>>,
         f: &mut std::fmt::Formatter<'_>,
     ) -> std::fmt::Result {
@@ -223,10 +297,10 @@ impl TagRegistry {
 }
 impl Display for TagRegistry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Self::k(&self.block_map, f)?;
-        Self::k(&self.entity_map, f)?;
-        Self::k(&self.fluid_map, f)?;
-        Self::k(&self.item_map, f)?;
+        Self::display_helper(&self.block_map, f)?;
+        Self::display_helper(&self.entity_map, f)?;
+        Self::display_helper(&self.fluid_map, f)?;
+        Self::display_helper(&self.item_map, f)?;
 
         Ok(())
     }

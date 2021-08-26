@@ -26,7 +26,7 @@ fn poll_new_players(game: &mut Game, server: &mut Server) -> SysResult {
 
 fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) -> SysResult {
     let client = server.clients.get(client_id).unwrap();
-    client.send_join_game(server.options.default_gamemode);
+    client.send_join_game(server.options.default_gamemode, game);
     client.send_brand();
 
     let mut builder = game.create_entity_builder(Position::default(), EntityInit::Player);
