@@ -11,11 +11,11 @@ new_line = "\n"
 quotes = "\""
 f.write("use std::str::FromStr;\n")
 for (tags, enum_name) in zip(tag_list_list, enum_names):
-    f.write("#[derive(Copy,Clone,Debug,PartialEq,Eq)]\n")
+    f.write("#[derive(Copy, Clone, Debug, PartialEq, Eq)]\n")
     f.write(f"pub enum {enum_name} {{{new_line}")
     for s in tags:
         camelcase = ''.join(map(str.title, s[:-5].split('_')))
-        f.write(f"    {camelcase}, {new_line}")
+        f.write(f"    {camelcase},{new_line}")
     f.write(f"}}{new_line}{new_line}")
 for (tags, enum_name) in zip(tag_list_list, enum_names):
     f.write(f"impl {enum_name} {{{new_line}")
@@ -24,7 +24,7 @@ for (tags, enum_name) in zip(tag_list_list, enum_names):
     for s in tags:
         snakecase = s[:-5]
         camelcase = ''.join(map(str.title, snakecase.split('_')))
-        f.write(f"            {enum_name}::{camelcase} => {quotes}{snakecase}{quotes}, {new_line}")
+        f.write(f"            {enum_name}::{camelcase} => {quotes}{snakecase}{quotes},{new_line}")
     f.write("        }\n    }\n")
     f.write("    pub fn namespaced_name(&self) -> crate::NamespacedId {\n")
     f.write("        crate::NamespacedId::from_str(self.name()).unwrap()\n")
