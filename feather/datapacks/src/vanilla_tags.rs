@@ -1,3 +1,4 @@
+use std::str::FromStr;
 #[derive(Copy,Clone,Debug,PartialEq,Eq)]
 pub enum VanillaBlockTags {
     AcaciaLogs, 

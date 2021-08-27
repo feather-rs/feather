@@ -23,6 +23,8 @@ pub mod tag;
 use tag::LoopError;
 pub use tag::{TagRegistry, TagRegistryBuilder};
 
+mod vanilla_tags;
+
 pub mod recipe;
 pub use recipe::RecipeRegistry;
 

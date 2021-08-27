@@ -15,6 +15,8 @@ use serde::Deserialize;
 use smartstring::{Compact, SmartString};
 use thiserror::Error;
 use walkdir::WalkDir;
+
+pub use crate::vanilla_tags::*;
 /// The tag registry builder's purpose is to serve as a stepping stone to construct the full tag registry.
 /// Once all datapacks are loaded, the builder resolves all tag "symlinks".
 /// An example of this behaviour is the tag `#minecraft:fences`, which includes `minecraft:nether_brick_fence` and `#minecraft:wooden_fences`.

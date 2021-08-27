@@ -9,6 +9,7 @@ enum_names = ("VanillaBlockTags", "VanillaEntityTypes", "VanillaFluidTags", "Van
 f = open("src/vanilla_tags.rs", "w")
 new_line = "\n"
 quotes = "\""
+f.write("use std::str::FromStr;\n")
 for (tags, enum_name) in zip(tag_list_list, enum_names):
     f.write("#[derive(Copy,Clone,Debug,PartialEq,Eq)]\n")
     f.write(f"pub enum {enum_name} {{{new_line}")
