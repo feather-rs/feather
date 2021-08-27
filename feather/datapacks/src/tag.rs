@@ -193,36 +193,56 @@ impl TagRegistry {
             ..Default::default()
         }
     }
-    pub fn check_block_tag(&self, block: BlockKind, tag: &NamespacedId) -> bool {
+    pub fn check_block_tag<T>(&self, block: BlockKind, tag: &T) -> bool
+    where
+        T: Into<NamespacedId> + Clone,
+    {
         self.block_map
-            .get(tag)
+            .get(&tag.clone().into())
             .map(|set| set.get(&NamespacedId::from_str(block.name()).unwrap()))
+            .flatten()
             .is_some()
     }
-    pub fn check_entity_tag(&self, entity: EntityKind, tag: &NamespacedId) -> bool {
+    pub fn check_entity_tag<T>(&self, entity: EntityKind, tag: &T) -> bool
+    where
+        T: Into<NamespacedId> + Clone,
+    {
         self.entity_map
-            .get(tag)
+            .get(&tag.clone().into())
             .map(|set| set.get(&NamespacedId::from_str(entity.name()).unwrap()))
+            .flatten()
             .is_some()
     }
-    pub fn check_fluid_tag(&self, fluid: impl Borrow<str>, tag: &NamespacedId) -> bool {
+    pub fn check_fluid_tag<T>(&self, fluid: BlockKind, tag: &T) -> bool
+    where
+        T: Into<NamespacedId> + Clone,
+    {
         self.fluid_map
-            .get(tag)
-            .map(|set| set.get(&NamespacedId::from_str(fluid.borrow()).unwrap()))
+            .get(&tag.clone().into())
+            .map(|set| set.get(&NamespacedId::from_str(fluid.name()).unwrap()))
+            .flatten()
             .is_some()
     }
-    pub fn check_item_tag(&self, item: Item, tag: &NamespacedId) -> bool {
+    pub fn check_item_tag<T>(&self, item: Item, tag: &T) -> bool
+    where
+        T: Into<NamespacedId> + Clone,
+    {
         self.item_map
-            .get(tag)
+            .get(&tag.clone().into())
             .map(|set| set.get(&NamespacedId::from_str(item.name()).unwrap()))
+            .flatten()
             .is_some()
     }
-    pub fn check_for_any_tag(&self, thing: impl Borrow<str>, tag: &NamespacedId) -> bool {
+    pub fn check_for_any_tag<T>(&self, thing: impl Borrow<str>, tag: &T) -> bool
+    where
+        T: Into<NamespacedId> + Clone,
+    {
         let thing = NamespacedId::from_str(thing.borrow()).unwrap();
-        self.block_map.get(tag).map(|s| s.get(&thing)).is_some()
-            | self.entity_map.get(tag).map(|s| s.get(&thing)).is_some()
-            | self.fluid_map.get(tag).map(|s| s.get(&thing)).is_some()
-            | self.item_map.get(tag).map(|s| s.get(&thing)).is_some()
+        let tag = tag.clone().into();
+        self.block_map.get(&tag).map(|s| s.get(&thing)).is_some()
+            | self.entity_map.get(&tag).map(|s| s.get(&thing)).is_some()
+            | self.fluid_map.get(&tag).map(|s| s.get(&thing)).is_some()
+            | self.item_map.get(&tag).map(|s| s.get(&thing)).is_some()
     }
     /// Provides an `AllTags` packet for sending to the client. This tag is cached to save some performance.
     pub fn all_tags(&self) -> AllTags {
