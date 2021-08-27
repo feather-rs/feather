@@ -16,16 +16,22 @@ use smartstring::{LazyCompact, SmartString};
 mod id;
 pub use id::NamespacedId;
 
+mod serde_helpers;
+pub(crate) use serde_helpers::*;
+
 pub mod tag;
 use tag::LoopError;
 pub use tag::{TagRegistry, TagRegistryBuilder};
+
+pub mod recipe;
+pub use recipe::RecipeRegistry;
 
 /// The default namespace for resource locations (NamespacedIds).
 pub const DEFAULT_NAMESPACE: &str = "minecraft";
 
 use thiserror::Error;
 #[derive(Error, Debug)]
-pub enum Error {
+pub enum TagLoadError {
     #[error("invalid namespaced id: {0}")]
     Parse(#[from] ParseError),
     #[error(transparent)]
@@ -36,6 +42,15 @@ pub enum Error {
     FoundLoop(#[from] LoopError),
     #[error("invalid tag link: {0} references {1}")]
     InvalidLink(NamespacedId, NamespacedId),
+    #[error("json parsing error: {0}")]
+    Json(#[from] serde_json::Error),
+}
+#[derive(Error, Debug)]
+pub enum RecipeLoadError {
+    #[error("invalid namespaced id: {0}")]
+    Parse(#[from] ParseError),
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
     #[error("json parsing error: {0}")]
     Json(#[from] serde_json::Error),
 }

@@ -89,6 +89,9 @@ fn init_registries(game: &mut Game) -> anyhow::Result<()> {
         "minecraft",
     )?
     .build()?;
+    game.recipe_registry = datapacks::recipe::RecipeRegistry::from_dir(std::path::Path::new(
+        "./feather/datapacks/minecraft/data/minecraft/recipes",
+    ))?;
     Ok(())
 }
 

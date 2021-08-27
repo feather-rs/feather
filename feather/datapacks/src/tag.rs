@@ -32,7 +32,11 @@ impl TagRegistryBuilder {
             ..Default::default()
         }
     }
-    pub fn add_tags_from_dir(&mut self, dir: &Path, namespace: &str) -> Result<(), crate::Error> {
+    pub fn add_tags_from_dir(
+        &mut self,
+        dir: &Path,
+        namespace: &str,
+    ) -> Result<(), crate::TagLoadError> {
         assert!(dir.is_dir());
         let blocks = dir.join("blocks");
         let entity_types = dir.join("entity_types");
@@ -52,7 +56,7 @@ impl TagRegistryBuilder {
         }
         Ok(())
     }
-    pub fn from_dir(dir: &Path, namespace: &str) -> Result<Self, crate::Error> {
+    pub fn from_dir(dir: &Path, namespace: &str) -> Result<Self, crate::TagLoadError> {
         let mut this = Self::new();
         this.add_tags_from_dir(dir, namespace)?;
         Ok(this)
@@ -61,13 +65,14 @@ impl TagRegistryBuilder {
         dir: &Path,
         map: &mut AHashMap<NamespacedId, AHashSet<SmartString<Compact>>>,
         namespace: &str,
-    ) -> Result<(), crate::Error> {
+    ) -> Result<(), crate::TagLoadError> {
         for entry in WalkDir::new(dir).into_iter() {
             let entry = entry?;
             let entry = entry.path();
             if !entry.is_file() {
                 continue;
             }
+            log::trace!("{}", entry.to_string_lossy());
             let path_to_file = entry.parent().unwrap();
             let file_name = entry.file_stem().unwrap();
             let tag_name = std::borrow::Cow::Owned(
@@ -85,7 +90,10 @@ impl TagRegistryBuilder {
         }
         Ok(())
     }
-    fn fill_set(file: &Path, set: &mut AHashSet<SmartString<Compact>>) -> Result<(), crate::Error> {
+    fn fill_set(
+        file: &Path,
+        set: &mut AHashSet<SmartString<Compact>>,
+    ) -> Result<(), crate::TagLoadError> {
         assert!(file.is_file());
         let mut s = String::new();
         File::open(file).unwrap().read_to_string(&mut s).unwrap();
@@ -101,7 +109,7 @@ impl TagRegistryBuilder {
     fn parse(
         source: &AHashMap<NamespacedId, AHashSet<SmartString<Compact>>>,
         target: &mut AHashMap<NamespacedId, AHashSet<NamespacedId>>,
-    ) -> Result<(), crate::Error> {
+    ) -> Result<(), crate::TagLoadError> {
         let mut stack = VecDeque::new();
         for tag in source.keys().cloned() {
             if target.contains_key(&tag) {
@@ -116,13 +124,18 @@ impl TagRegistryBuilder {
         stack: &mut VecDeque<NamespacedId>,
         source: &AHashMap<NamespacedId, AHashSet<SmartString<Compact>>>,
         target: &mut AHashMap<NamespacedId, AHashSet<NamespacedId>>,
-    ) -> Result<(), crate::Error> {
+    ) -> Result<(), crate::TagLoadError> {
         if stack.contains(&tag) {
             return Err(LoopError(stack.iter().cloned().collect()).into());
         }
         let set = match source.get(&tag) {
             Some(s) => s,
-            None => return Err(crate::Error::InvalidLink(stack.pop_back().unwrap(), tag)),
+            None => {
+                return Err(crate::TagLoadError::InvalidLink(
+                    stack.pop_back().unwrap(),
+                    tag,
+                ))
+            }
         };
         assert!(target.insert(tag.clone(), Default::default()).is_none());
         // Parse all child tags
@@ -154,7 +167,7 @@ impl TagRegistryBuilder {
 
         Ok(())
     }
-    pub fn build(self) -> Result<TagRegistry, crate::Error> {
+    pub fn build(self) -> Result<TagRegistry, crate::TagLoadError> {
         let mut res = TagRegistry::new();
         Self::parse(&self.block_map, &mut res.block_map)?;
         Self::parse(&self.entity_map, &mut res.entity_map)?;
@@ -178,37 +191,36 @@ impl TagRegistry {
             ..Default::default()
         }
     }
-    pub fn check_block_tag(&self, block: BlockKind, tag: impl Into<NamespacedId>) -> bool {
+    pub fn check_block_tag(&self, block: BlockKind, tag: &NamespacedId) -> bool {
         self.block_map
-            .get(&tag.into())
+            .get(tag)
             .map(|set| set.get(&NamespacedId::from_str(block.name()).unwrap()))
             .is_some()
     }
-    pub fn check_entity_tag(&self, entity: EntityKind, tag: impl Into<NamespacedId>) -> bool {
+    pub fn check_entity_tag(&self, entity: EntityKind, tag: &NamespacedId) -> bool {
         self.entity_map
-            .get(&tag.into())
+            .get(tag)
             .map(|set| set.get(&NamespacedId::from_str(entity.name()).unwrap()))
             .is_some()
     }
-    pub fn check_fluid_tag(&self, fluid: impl Borrow<str>, tag: impl Into<NamespacedId>) -> bool {
+    pub fn check_fluid_tag(&self, fluid: impl Borrow<str>, tag: &NamespacedId) -> bool {
         self.fluid_map
-            .get(&tag.into())
+            .get(tag)
             .map(|set| set.get(&NamespacedId::from_str(fluid.borrow()).unwrap()))
             .is_some()
     }
-    pub fn check_item_tag(&self, item: Item, tag: impl Into<NamespacedId>) -> bool {
+    pub fn check_item_tag(&self, item: Item, tag: &NamespacedId) -> bool {
         self.item_map
-            .get(&tag.into())
+            .get(tag)
             .map(|set| set.get(&NamespacedId::from_str(item.name()).unwrap()))
             .is_some()
     }
-    pub fn check_for_any_tag(&self, thing: impl Borrow<str>, tag: impl Into<NamespacedId>) -> bool {
+    pub fn check_for_any_tag(&self, thing: impl Borrow<str>, tag: &NamespacedId) -> bool {
         let thing = NamespacedId::from_str(thing.borrow()).unwrap();
-        let tag = tag.into();
-        self.block_map.get(&tag).map(|s| s.get(&thing)).is_some()
-            | self.entity_map.get(&tag).map(|s| s.get(&thing)).is_some()
-            | self.fluid_map.get(&tag).map(|s| s.get(&thing)).is_some()
-            | self.item_map.get(&tag).map(|s| s.get(&thing)).is_some()
+        self.block_map.get(tag).map(|s| s.get(&thing)).is_some()
+            | self.entity_map.get(tag).map(|s| s.get(&thing)).is_some()
+            | self.fluid_map.get(tag).map(|s| s.get(&thing)).is_some()
+            | self.item_map.get(tag).map(|s| s.get(&thing)).is_some()
     }
     /// Provides an `AllTags` packet for sending to the client. This tag is cached to save some performance.
     pub fn all_tags(&self) -> AllTags {
