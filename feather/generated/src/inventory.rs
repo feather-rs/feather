@@ -1052,6 +1052,7 @@ pub enum InventoryBacking<T> {
         boots: [T; 1],
         storage: [T; 27],
         hotbar: [T; 9],
+        offhand: [T; 1],
     },
     Chest {
         storage: [T; 27],
@@ -1078,6 +1079,7 @@ impl<T> InventoryBacking<T> {
                 boots,
                 storage,
                 hotbar,
+                offhand,
             } => match area {
                 Area::CraftingInput => Some(crafting_input.as_ref()),
                 Area::CraftingOutput => Some(crafting_output.as_ref()),
@@ -1087,6 +1089,7 @@ impl<T> InventoryBacking<T> {
                 Area::Boots => Some(boots.as_ref()),
                 Area::Storage => Some(storage.as_ref()),
                 Area::Hotbar => Some(hotbar.as_ref()),
+                Area::Offhand => Some(offhand.as_ref()),
                 _ => None,
             },
             InventoryBacking::Chest { storage } => match area {
@@ -1116,7 +1119,7 @@ impl<T> InventoryBacking<T> {
     pub fn areas(&self) -> &'static [Area] {
         match self {
             InventoryBacking::Player { .. } => {
-                static AREAS: [Area; 8] = [
+                static AREAS: [Area; 9] = [
                     Area::CraftingInput,
                     Area::CraftingOutput,
                     Area::Helmet,
@@ -1125,6 +1128,7 @@ impl<T> InventoryBacking<T> {
                     Area::Boots,
                     Area::Storage,
                     Area::Hotbar,
+                    Area::Offhand,
                 ];
                 &AREAS
             }
@@ -1159,6 +1163,7 @@ impl<T> InventoryBacking<T> {
             boots: Default::default(),
             storage: Default::default(),
             hotbar: Default::default(),
+            offhand: Default::default(),
         }
     }
     pub fn chest() -> Self

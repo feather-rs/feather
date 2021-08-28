@@ -350,6 +350,17 @@ impl BlockPosition {
             z: self.z,
         }
     }
+    
+    pub fn adjacent(self, face: BlockFace) -> Self {
+        match face {
+            BlockFace::Bottom => self.down(),
+            BlockFace::Top => self.up(),
+            BlockFace::North => self.north(),
+            BlockFace::South => self.south(),
+            BlockFace::West => self.west(),
+            BlockFace::East => self.east(),
+        }
+    }
 }
 
 impl Add<BlockPosition> for BlockPosition {
@@ -421,7 +432,7 @@ impl From<BlockPosition> for ChunkPosition {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum BlockFace {
     Bottom,
     Top,
