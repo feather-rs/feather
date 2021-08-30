@@ -441,3 +441,16 @@ pub enum BlockFace {
     West,
     East,
 }
+
+impl BlockFace {
+    pub fn opposite(self) -> Self {
+        match self {
+            BlockFace::Bottom => BlockFace::Top,
+            BlockFace::Top => BlockFace::Bottom,
+            BlockFace::North => BlockFace::South,
+            BlockFace::South => BlockFace::North,
+            BlockFace::West => BlockFace::East,
+            BlockFace::East => BlockFace::West,
+        }
+    }
+}
