@@ -350,7 +350,7 @@ impl BlockPosition {
             z: self.z,
         }
     }
-    
+
     pub fn adjacent(self, face: BlockFace) -> Self {
         match face {
             BlockFace::Bottom => self.down(),
