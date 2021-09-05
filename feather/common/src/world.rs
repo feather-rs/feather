@@ -1,9 +1,9 @@
 use ahash::{AHashMap, AHashSet};
 use base::{
-    BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, FacingCardinal,
-    FacingCardinalAndDown, FacingCubic, CHUNK_HEIGHT,
+    categories::SupportType, BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition,
+    FacingCardinal, FacingCardinalAndDown, FacingCubic, CHUNK_HEIGHT,
 };
-use blocks::BlockId;
+use blocks::{BlockId, BlockKind};
 use ecs::{Ecs, SysResult};
 use libcraft_core::BlockFace;
 use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
@@ -171,6 +171,17 @@ impl World {
         self.adjacent_block_cubic(pos, dir.to_facing_cubic())
     }
 
+    pub fn get_facing_block(&self, pos: BlockPosition) -> Option<BlockId> {
+        let block = self.block_at(pos)?;
+        let a = block.facing_cardinal().map(FacingCardinal::to_facing_cubic);
+        let b = block
+            .facing_cardinal_and_down()
+            .map(FacingCardinalAndDown::to_facing_cubic);
+        let c = block.facing_cubic();
+        let dir = [a, b, c].iter().find_map(|&e| e)?;
+        self.adjacent_block_cubic(pos, dir)
+    }
+
     pub fn set_block_adjacent_cubic(
         &self,
         pos: BlockPosition,
@@ -206,6 +217,47 @@ impl World {
         dir: FacingCardinalAndDown,
     ) -> bool {
         self.set_block_adjacent_cubic(pos, block, dir.to_facing_cubic())
+    }
+
+    pub fn check_block_stability(&self, block: BlockId, pos: BlockPosition) -> Option<bool> {
+        Some(if let Some(support_type) = block.support_type() {
+            use generated::SimplifiedBlockKind::*;
+            let block_under = self.block_at(pos.down());
+            let block_facing = self.get_facing_block(pos);
+            match support_type {
+                SupportType::OnSolid => block_under?.is_solid(),
+                SupportType::OnDesertBlocks => matches!(
+                    block_under?.simplified_kind(),
+                    Sand | RedSand | Dirt | CoarseDirt | Podzol | Teracotta
+                ),
+                SupportType::OnDirtBlocks => matches!(
+                    block_under?.simplified_kind(),
+                    Dirt | GrassBlock | CoarseDirt | Podzol | Farmland
+                ),
+                SupportType::OnFarmland => block_under?.simplified_kind() == Farmland,
+                SupportType::OnSoulSand => block_under?.simplified_kind() == SoulSand,
+                SupportType::OnWater => block_under?.simplified_kind() == Water,
+                SupportType::FacingSolid => block_facing?.is_solid(),
+                SupportType::FacingJungleWood => matches!(
+                    block_facing?.kind(),
+                    BlockKind::JungleLog
+                        | BlockKind::StrippedJungleLog
+                        | BlockKind::JungleWood
+                        | BlockKind::StrippedJungleWood
+                ),
+                SupportType::OnOrFacingSolid => true, // TODO: Everything
+                SupportType::CactusLike => true,
+                SupportType::ChorusFlowerLike => true,
+                SupportType::ChorusPlantLike => true,
+                SupportType::MushroomLike => true,
+                SupportType::SnowLike => true,
+                SupportType::SugarCaneLike => true,
+                SupportType::TripwireHookLike => true,
+                SupportType::VineLike => true,
+            }
+        } else {
+            true
+        })
     }
 
     /// Returns the chunk map.

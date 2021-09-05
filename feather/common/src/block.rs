@@ -122,8 +122,11 @@ fn place_block(
         // FIXME: Somehow check if block would collide with any entities
         return None;
     }
-    world.set_block_at(target, block);
+    if !world.check_block_stability(block, target)? {
+        return None;
+    }
     if place_top {
+        world.set_block_at(target, block);
         world.set_block_at(
             target.up(),
             block.with_half_upper_lower(HalfUpperLower::Upper),
@@ -133,6 +136,16 @@ fn place_block(
             BlockChangeEvent::single(target.up()),
         ])
     } else if place_head {
+        let face = match block.facing_cardinal()? {
+            FacingCardinal::North => BlockFace::North,
+            FacingCardinal::South => BlockFace::South,
+            FacingCardinal::West => BlockFace::West,
+            FacingCardinal::East => BlockFace::East,
+        };
+        if !world.check_block_stability(block, target.adjacent(face))? {
+            return None;
+        }
+        world.set_block_at(target, block);
         world.set_block_adjacent_cardinal(
             target,
             block.with_part(base::Part::Head),
@@ -140,14 +153,10 @@ fn place_block(
         );
         Some(vec![
             BlockChangeEvent::single(target),
-            BlockChangeEvent::single(target.adjacent(match block.facing_cardinal()? {
-                FacingCardinal::North => BlockFace::North,
-                FacingCardinal::South => BlockFace::South,
-                FacingCardinal::West => BlockFace::West,
-                FacingCardinal::East => BlockFace::East,
-            })),
+            BlockChangeEvent::single(target.adjacent(face)),
         ])
     } else {
+        world.set_block_at(target, block);
         Some(vec![BlockChangeEvent::single(target)])
     }
 }
