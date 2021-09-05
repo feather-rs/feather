@@ -3,8 +3,9 @@ use crate::entities::player::HotbarSlot;
 use crate::events::BlockChangeEvent;
 use crate::{Game, World};
 use base::{
-    Area, BlockId, Face, FacingCardinalAndDown, FacingCubic, Gamemode, HalfTopBottom,
-    HalfUpperLower, Inventory, Item, ItemStack, Position, SimplifiedBlockKind, SlabKind,
+    Area, BlockId, BlockPosition, Face, FacingCardinal, FacingCardinalAndDown, FacingCubic,
+    Gamemode, HalfTopBottom, HalfUpperLower, Hinge, Inventory, Item, ItemStack, Position,
+    SimplifiedBlockKind, SlabKind,
 };
 use blocks::BlockKind;
 use ecs::{SysResult, SystemExecutor};
@@ -71,6 +72,7 @@ fn place_block(
     let mut block = block;
     let player_dir_ordered = ordered_directions(player_pos);
     set_face(&mut block, &player_dir_ordered, placement);
+    rotate_8dir(&mut block, player_pos);
     let target = if slab_to_place(&mut block, target_block1, placement)
         | waterlog(&mut block, target_block1)
         | ((target_block1.kind() != block.kind()) & target_block1.is_replaceable())
@@ -89,10 +91,23 @@ fn place_block(
             return None;
         }
     };
+    door_hinge(&mut block, target, &placement.cursor_position, world);
     let place_top = match top_half(block) {
         Some(_) => {
             if !world.block_at(target.up())?.is_replaceable() {
                 // Short circuits if upper block is > 256
+                return None;
+            }
+            true
+        }
+        None => false,
+    };
+    let place_head = match bed_head(block) {
+        Some(_) => {
+            if !world
+                .adjacent_block_cardinal(target, block.facing_cardinal()?)?
+                .is_replaceable()
+            {
                 return None;
             }
             true
@@ -117,9 +132,84 @@ fn place_block(
             BlockChangeEvent::single(target),
             BlockChangeEvent::single(target.up()),
         ])
+    } else if place_head {
+        world.set_block_adjacent_cardinal(
+            target,
+            block.with_part(base::Part::Head),
+            block.facing_cardinal()?,
+        );
+        Some(vec![
+            BlockChangeEvent::single(target),
+            BlockChangeEvent::single(target.adjacent(match block.facing_cardinal()? {
+                FacingCardinal::North => BlockFace::North,
+                FacingCardinal::South => BlockFace::South,
+                FacingCardinal::West => BlockFace::West,
+                FacingCardinal::East => BlockFace::East,
+            })),
+        ])
     } else {
         Some(vec![BlockChangeEvent::single(target)])
     }
+}
+#[allow(clippy::float_cmp)]
+fn door_hinge(
+    block: &mut BlockId,
+    pos: BlockPosition,
+    cursor_pos: &[f32],
+    world: &World,
+) -> Option<()> {
+    let cardinal = block.facing_cardinal()?;
+    let left = cardinal.left();
+    let right = cardinal.right();
+    let is_door = |block: BlockId| {
+        use SimplifiedBlockKind::*;
+        matches!(
+            block.simplified_kind(),
+            WoodenDoor | IronDoor | WarpedDoor | CrimsonDoor
+        )
+    };
+    let lb = world.adjacent_block_cardinal(pos, left)?;
+    let rb = world.adjacent_block_cardinal(pos, right)?;
+    if is_door(lb) && lb.kind() == block.kind() {
+        block.set_hinge(Hinge::Right);
+        return Some(());
+    }
+    if is_door(rb) && rb.kind() == block.kind() {
+        block.set_hinge(Hinge::Left);
+        return Some(());
+    }
+    let lt = world.adjacent_block_cardinal(pos.up(), left)?;
+    let rt = world.adjacent_block_cardinal(pos.up(), right)?;
+    let solid_left = is_block_solid(lb) | is_block_solid(lt);
+    let solid_right = is_block_solid(rb) | is_block_solid(rt);
+    if solid_left && !solid_right {
+        block.set_hinge(Hinge::Left);
+        return Some(());
+    }
+    if solid_right && !solid_left {
+        block.set_hinge(Hinge::Right);
+        return Some(());
+    }
+    let relevant_axis = match cardinal {
+        FacingCardinal::North => cursor_pos[0],
+        FacingCardinal::South => 1.0 - cursor_pos[0],
+        FacingCardinal::West => cursor_pos[2],
+        FacingCardinal::East => 1.0 - cursor_pos[2],
+    };
+    block.set_hinge(if relevant_axis < 0.5 {
+        Hinge::Left
+    } else {
+        Hinge::Right
+    });
+    Some(())
+}
+
+fn is_block_solid(block: BlockId) -> bool {
+    block.is_solid()
+        && !matches!(
+            block.slab_kind(),
+            Some(SlabKind::Bottom) | Some(SlabKind::Top)
+        )
 }
 
 fn top_half(block: BlockId) -> Option<BlockId> {
@@ -128,6 +218,18 @@ fn top_half(block: BlockId) -> Option<BlockId> {
     } else {
         None
     }
+}
+
+fn bed_head(block: BlockId) -> Option<BlockId> {
+    if block.has_part() {
+        Some(block.with_part(base::Part::Head))
+    } else {
+        None
+    }
+}
+
+fn rotate_8dir(block: &mut BlockId, player_pos: Position) {
+    block.set_rotation(((player_pos.yaw + 180.0) / 22.5).round() as i32);
 }
 
 pub fn ordered_directions(pos: Position) -> [FacingCubic; 6] {
@@ -248,56 +350,65 @@ fn waterlog(block: &mut BlockId, target: BlockId) -> bool {
     succ
 }
 
+fn is_player_relative(kind: SimplifiedBlockKind) -> bool {
+    use SimplifiedBlockKind::*;
+    matches!(
+        kind,
+        Dispenser
+            | StickyPiston
+            | Piston
+            | CommandBlock
+            | Observer
+            | Dropper
+            | Furnace
+            | Smoker
+            | Chest
+            | TrappedChest
+            | BlastFurnace
+            | CarvedPumpkin
+            | JackOLantern
+            | BeeNest
+            | Beehive
+            | EndPortalFrame
+            | Anvil
+            | EnderChest
+            | Bed
+            | Loom
+            | Banner
+            | Sign
+            | FenceGate
+            | Repeater
+            | Comparator
+            | Lectern
+            | Rail
+            | PoweredRail
+            | ActivatorRail
+            | DetectorRail
+            | Stonecutter
+            | WoodenDoor
+            | IronDoor
+            | WarpedDoor
+            | CrimsonDoor
+    )
+}
+
+fn reverse_direction(kind: SimplifiedBlockKind) -> bool {
+    use SimplifiedBlockKind::*;
+    matches!(
+        kind,
+        Observer | Bed | FenceGate | WoodenDoor | IronDoor | WarpedDoor | CrimsonDoor
+    )
+}
+
 fn set_face(
     block: &mut BlockId,
     player_directions: &[FacingCubic],
     placement: &BlockPlacementEvent,
 ) {
-    println!("{:?}", player_directions);
     if !matches!(placement.face, BlockFace::Top) {
         make_wall_block(block);
     }
-    let player_relative = {
-        use SimplifiedBlockKind::*;
-        matches!(
-            block.simplified_kind(),
-            Dispenser
-                | StickyPiston
-                | Piston
-                | CommandBlock
-                | Observer
-                | Dropper
-                | Furnace
-                | Smoker
-                | Chest
-                | TrappedChest
-                | BlastFurnace
-                | CarvedPumpkin
-                | JackOLantern
-                | BeeNest
-                | Beehive
-                | EndPortalFrame
-                | Anvil
-                | EnderChest
-                | Bed
-                | Loom
-                | Banner
-                | Sign
-                | FenceGate
-                | Repeater
-                | Comparator
-                | Lectern
-                | Rail
-                | PoweredRail
-                | ActivatorRail
-                | DetectorRail
-                | Stonecutter
-                | WoodenDoor
-                | IronDoor
-                | WarpedDoor
-                | CrimsonDoor
-        )
-    };
+    let player_relative = is_player_relative(block.simplified_kind());
     let cubic_facing = match player_relative {
         true => player_directions[0].opposite(),
         false => match placement.face {
@@ -310,11 +421,7 @@ fn set_face(
         },
     };
     let cubic_facing = {
-        use SimplifiedBlockKind::*;
-        if matches!(
-            block.simplified_kind(),
-            Observer | Bed | FenceGate | WoodenDoor | IronDoor | WarpedDoor | CrimsonDoor
-        ) {
+        if reverse_direction(block.simplified_kind()) {
             cubic_facing.opposite()
         } else {
             cubic_facing
@@ -330,8 +437,7 @@ fn set_face(
     });
     let cardinal = cubic_facing.to_facing_cardinal().unwrap_or_else(|| {
         if player_relative {
-            if matches!(block.simplified_kind(), SimplifiedBlockKind::FenceGate) {
-                // Only fencegate accepts cardinal direction
+            if reverse_direction(block.simplified_kind()) {
                 player_directions[1]
             } else {
                 player_directions[1].opposite()
@@ -355,19 +461,14 @@ fn set_face(
             .unwrap_or(FacingCardinalAndDown::Down),
     );
     block.set_facing_cubic(cubic_facing);
-    set_top_down(block, placement);
-}
-
-fn set_top_down(block: &mut BlockId, placement: &BlockPlacementEvent) -> bool {
     block.set_half_top_bottom(match placement.face {
         BlockFace::Top => HalfTopBottom::Bottom,
         BlockFace::Bottom => HalfTopBottom::Top,
         _ => match placement.cursor_position[1] {
             y if y <= 0.5 => HalfTopBottom::Bottom,
-            y if y > 0.5 => HalfTopBottom::Top,
-            _ => return false,
+            _ => HalfTopBottom::Top,
         },
-    })
+    });
 }
 
 fn make_wall_block(block: &mut BlockId) {

@@ -1,7 +1,11 @@
 use ahash::{AHashMap, AHashSet};
-use base::{BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, CHUNK_HEIGHT};
+use base::{
+    BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, FacingCardinal,
+    FacingCardinalAndDown, FacingCubic, CHUNK_HEIGHT,
+};
 use blocks::BlockId;
 use ecs::{Ecs, SysResult};
+use libcraft_core::BlockFace;
 use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
 use std::{path::PathBuf, sync::Arc};
 use worldgen::{ComposableGenerator, WorldGenerator};
@@ -138,6 +142,70 @@ impl World {
     /// are out of bounds, `None` is returned.
     pub fn block_at(&self, pos: BlockPosition) -> Option<BlockId> {
         self.chunk_map.block_at(pos)
+    }
+
+    pub fn adjacent_block_cubic(&self, pos: BlockPosition, dir: FacingCubic) -> Option<BlockId> {
+        self.block_at(pos.adjacent(match dir {
+            FacingCubic::North => BlockFace::North,
+            FacingCubic::East => BlockFace::East,
+            FacingCubic::South => BlockFace::South,
+            FacingCubic::West => BlockFace::West,
+            FacingCubic::Up => BlockFace::Top,
+            FacingCubic::Down => BlockFace::Bottom,
+        }))
+    }
+
+    pub fn adjacent_block_cardinal(
+        &self,
+        pos: BlockPosition,
+        dir: FacingCardinal,
+    ) -> Option<BlockId> {
+        self.adjacent_block_cubic(pos, dir.to_facing_cubic())
+    }
+
+    pub fn adjacent_block_cardinal_and_down(
+        &self,
+        pos: BlockPosition,
+        dir: FacingCardinalAndDown,
+    ) -> Option<BlockId> {
+        self.adjacent_block_cubic(pos, dir.to_facing_cubic())
+    }
+
+    pub fn set_block_adjacent_cubic(
+        &self,
+        pos: BlockPosition,
+        block: BlockId,
+        dir: FacingCubic,
+    ) -> bool {
+        self.set_block_at(
+            pos.adjacent(match dir {
+                FacingCubic::North => BlockFace::North,
+                FacingCubic::East => BlockFace::East,
+                FacingCubic::South => BlockFace::South,
+                FacingCubic::West => BlockFace::West,
+                FacingCubic::Up => BlockFace::Top,
+                FacingCubic::Down => BlockFace::Bottom,
+            }),
+            block,
+        )
+    }
+
+    pub fn set_block_adjacent_cardinal(
+        &self,
+        pos: BlockPosition,
+        block: BlockId,
+        dir: FacingCardinal,
+    ) -> bool {
+        self.set_block_adjacent_cubic(pos, block, dir.to_facing_cubic())
+    }
+
+    pub fn set_block_adjacent_cardinal_and_down(
+        &self,
+        pos: BlockPosition,
+        block: BlockId,
+        dir: FacingCardinalAndDown,
+    ) -> bool {
+        self.set_block_adjacent_cubic(pos, block, dir.to_facing_cubic())
     }
 
     /// Returns the chunk map.
