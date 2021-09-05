@@ -24,10 +24,6 @@ impl HotbarSlot {
         Self(id)
     }
 
-    pub fn default() -> Self {
-        Self(0)
-    }
-
     pub fn get(&self) -> usize {
         self.0
     }
@@ -39,5 +35,11 @@ impl HotbarSlot {
 
         self.0 = id;
         Ok(())
+    }
+}
+
+impl Default for HotbarSlot {
+    fn default() -> Self {
+        HotbarSlot(0)
     }
 }

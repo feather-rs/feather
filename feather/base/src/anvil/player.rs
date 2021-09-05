@@ -1,13 +1,15 @@
-use generated::{Item, ItemStack};
-use nbt::Value;
-use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     fs,
     fs::File,
     path::{Path, PathBuf},
 };
+
+use nbt::Value;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+use generated::{Item, ItemStack};
 
 use crate::inventory::*;
 
@@ -22,10 +24,29 @@ pub struct PlayerData {
 
     #[serde(rename = "playerGameType")]
     pub gamemode: i32,
+    #[serde(rename = "previousPlayerGameType")]
+    pub previous_gamemode: i32,
     #[serde(rename = "Inventory")]
     pub inventory: Vec<InventorySlot>,
     #[serde(rename = "SelectedItemSlot")]
     pub held_item: i32,
+    pub abilities: PlayerAbilities,
+}
+
+/// Represents player's abilities (flying, invulnerability, speed, etc.)
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerAbilities {
+    #[serde(rename = "walkSpeed")]
+    pub walk_speed: f32,
+    #[serde(rename = "flySpeed")]
+    pub fly_speed: f32,
+    #[serde(rename = "mayfly")]
+    pub may_fly: bool,
+    pub flying: bool,
+    #[serde(rename = "mayBuild")]
+    pub may_build: bool,
+    pub instabuild: bool,
+    pub invulnerable: bool,
 }
 
 /// Represents a single inventory slot (including position index).
@@ -159,14 +180,17 @@ fn file_path(world_dir: &Path, uuid: Uuid) -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::collections::HashMap;
+    use std::io::Cursor;
+
+    use num_traits::ToPrimitive;
+
     use crate::{
         inventory::{SLOT_ARMOR_CHEST, SLOT_ARMOR_FEET, SLOT_ARMOR_HEAD, SLOT_ARMOR_LEGS},
         Gamemode,
     };
-    use num_traits::ToPrimitive;
-    use std::collections::HashMap;
-    use std::io::Cursor;
+
+    use super::*;
 
     #[test]
     fn test_deserialize_player() {
@@ -174,6 +198,10 @@ mod tests {
 
         let player: PlayerData = nbt::from_gzip_reader(&mut cursor).unwrap();
         assert_eq!(player.gamemode, Gamemode::Creative.to_i32().unwrap());
+        assert_eq!(
+            player.previous_gamemode,
+            Gamemode::Spectator.to_i32().unwrap()
+        );
         assert_eq!(player.inventory[0].item, "minecraft:diamond_shovel");
         assert_eq!(player.inventory[0].nbt, Some(ItemNbt { damage: Some(3) }));
     }

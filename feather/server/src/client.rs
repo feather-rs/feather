@@ -6,6 +6,10 @@ use std::{
 };
 
 use ahash::AHashSet;
+use flume::{Receiver, Sender};
+use uuid::Uuid;
+use vec_arena::Arena;
+
 use base::{
     BlockId, BlockPosition, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode,
     ItemStack, Position, ProfileProperty, Text,
@@ -14,8 +18,8 @@ use common::{
     chat::{ChatKind, ChatMessage},
     Window,
 };
-use flume::{Receiver, Sender};
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
+use protocol::packets::server::{HeldItemChange, PlayerAbilities};
 use protocol::{
     packets::{
         self,
@@ -28,9 +32,10 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
-use quill_common::components::OnGround;
-use uuid::Uuid;
-use vec_arena::Arena;
+use quill_common::components::{
+    CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable, OnGround,
+    PreviousGamemode, WalkSpeed,
+};
 
 use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
 
@@ -178,7 +183,7 @@ impl Client {
         self.sent_entities.borrow().contains(&network_id)
     }
 
-    pub fn send_join_game(&self, gamemode: Gamemode) {
+    pub fn send_join_game(&self, gamemode: Gamemode, previous_gamemode: PreviousGamemode) {
         log::trace!("Sending Join Game to {}", self.username);
         // Use the dimension codec sent by the default vanilla server. (Data acquired via tools/proxy)
         let dimension_codec = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
@@ -194,7 +199,7 @@ impl Client {
             entity_id: self.network_id.0,
             is_hardcore: false,
             gamemode,
-            previous_gamemode: 0,
+            previous_gamemode,
             world_names: vec!["world".to_owned()],
             dimension_codec: Nbt(dimension_codec),
             dimension: Nbt(dimension),
@@ -518,6 +523,39 @@ impl Client {
             entity_id: netowrk_id.0,
             entries: entity_metadata,
         });
+    }
+
+    pub fn send_abilities(
+        &self,
+        invulnerable: Invulnerable,
+        is_flying: CreativeFlying,
+        allow_flying: CanCreativeFly,
+        instabreak: Instabreak,
+        flying_speed: CreativeFlyingSpeed,
+        walk_speed: WalkSpeed,
+    ) {
+        let mut bitfield = 0;
+        if *invulnerable {
+            bitfield |= 1 << 0;
+        }
+        if *is_flying {
+            bitfield |= 1 << 1;
+        }
+        if *allow_flying {
+            bitfield |= 1 << 2;
+        }
+        if *instabreak {
+            bitfield |= 1 << 3;
+        }
+        self.send_packet(PlayerAbilities {
+            flags: bitfield,
+            flying_speed: *flying_speed,
+            fov_modifier: *walk_speed,
+        });
+    }
+
+    pub fn set_hotbar_slot(&self, slot: u8) {
+        self.send_packet(HeldItemChange { slot });
     }
 
     fn register_entity(&self, network_id: NetworkId) {

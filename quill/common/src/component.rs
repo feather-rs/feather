@@ -188,6 +188,14 @@ host_component_enum! {
         CreativeFlyingEvent = 1010,
         Sneaking = 1011,
         SneakEvent = 1012,
+        PreviousGamemode = 1013,
+        Health = 1014,
+        WalkSpeed = 1015,
+        CreativeFlyingSpeed = 1016,
+        CanCreativeFly = 1017,
+        CanBuild = 1018,
+        Instabreak = 1019,
+        Invulnerable = 1020,
 
 
     }
