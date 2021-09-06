@@ -16,7 +16,7 @@ use smartstring::{Compact, SmartString};
 use thiserror::Error;
 use walkdir::WalkDir;
 
-pub use crate::vanilla_tags::*;
+pub use generated::vanilla_tags::*;
 /// The tag registry builder's purpose is to serve as a stepping stone to construct the full tag registry.
 /// Once all datapacks are loaded, the builder resolves all tag "symlinks".
 /// An example of this behaviour is the tag `#minecraft:fences`, which includes `minecraft:nether_brick_fence` and `#minecraft:wooden_fences`.
@@ -352,5 +352,25 @@ impl Display for LoopError {
             writeln!(f, "{}", entry)?;
         }
         Ok(())
+    }
+}
+impl From<VanillaBlockTags> for crate::NamespacedId {
+    fn from(tag: VanillaBlockTags) -> Self {
+        NamespacedId::from_str(tag.name()).unwrap()
+    }
+}
+impl From<VanillaEntityTypes> for crate::NamespacedId {
+    fn from(tag: VanillaEntityTypes) -> Self {
+        NamespacedId::from_str(tag.name()).unwrap()
+    }
+}
+impl From<VanillaFluidTags> for crate::NamespacedId {
+    fn from(tag: VanillaFluidTags) -> Self {
+        NamespacedId::from_str(tag.name()).unwrap()
+    }
+}
+impl From<VanillaItemTags> for crate::NamespacedId {
+    fn from(tag: VanillaItemTags) -> Self {
+        NamespacedId::from_str(tag.name()).unwrap()
     }
 }

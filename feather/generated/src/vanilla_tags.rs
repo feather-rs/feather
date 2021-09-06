@@ -1,4 +1,4 @@
-use std::str::FromStr;
+// This file is @generated. Please do not edit.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum VanillaBlockTags {
     AcaciaLogs,
@@ -253,18 +253,10 @@ impl VanillaBlockTags {
             VanillaBlockTags::Wool => "wool",
         }
     }
-    pub fn namespaced_name(&self) -> crate::NamespacedId {
-        crate::NamespacedId::from_str(self.name()).unwrap()
-    }
 }
 impl From<VanillaBlockTags> for &'static str {
     fn from(tag: VanillaBlockTags) -> Self {
         tag.name()
-    }
-}
-impl From<VanillaBlockTags> for crate::NamespacedId {
-    fn from(tag: VanillaBlockTags) -> Self {
-        tag.namespaced_name()
     }
 }
 impl VanillaEntityTypes {
@@ -277,18 +269,10 @@ impl VanillaEntityTypes {
             VanillaEntityTypes::Skeletons => "skeletons",
         }
     }
-    pub fn namespaced_name(&self) -> crate::NamespacedId {
-        crate::NamespacedId::from_str(self.name()).unwrap()
-    }
 }
 impl From<VanillaEntityTypes> for &'static str {
     fn from(tag: VanillaEntityTypes) -> Self {
         tag.name()
-    }
-}
-impl From<VanillaEntityTypes> for crate::NamespacedId {
-    fn from(tag: VanillaEntityTypes) -> Self {
-        tag.namespaced_name()
     }
 }
 impl VanillaFluidTags {
@@ -298,18 +282,10 @@ impl VanillaFluidTags {
             VanillaFluidTags::Water => "water",
         }
     }
-    pub fn namespaced_name(&self) -> crate::NamespacedId {
-        crate::NamespacedId::from_str(self.name()).unwrap()
-    }
 }
 impl From<VanillaFluidTags> for &'static str {
     fn from(tag: VanillaFluidTags) -> Self {
         tag.name()
-    }
-}
-impl From<VanillaFluidTags> for crate::NamespacedId {
-    fn from(tag: VanillaFluidTags) -> Self {
-        tag.namespaced_name()
     }
 }
 impl VanillaItemTags {
@@ -371,17 +347,9 @@ impl VanillaItemTags {
             VanillaItemTags::Wool => "wool",
         }
     }
-    pub fn namespaced_name(&self) -> crate::NamespacedId {
-        crate::NamespacedId::from_str(self.name()).unwrap()
-    }
 }
 impl From<VanillaItemTags> for &'static str {
     fn from(tag: VanillaItemTags) -> Self {
         tag.name()
-    }
-}
-impl From<VanillaItemTags> for crate::NamespacedId {
-    fn from(tag: VanillaItemTags) -> Self {
-        tag.namespaced_name()
     }
 }
