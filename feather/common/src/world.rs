@@ -1,9 +1,11 @@
+use std::{path::PathBuf, sync::Arc};
+
 use ahash::{AHashMap, AHashSet};
+use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
+
 use base::{BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, CHUNK_HEIGHT};
 use blocks::BlockId;
 use ecs::{Ecs, SysResult};
-use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
-use std::{path::PathBuf, sync::Arc};
 use worldgen::{ComposableGenerator, WorldGenerator};
 
 use crate::{
@@ -24,6 +26,7 @@ pub struct World {
     chunk_worker: ChunkWorker,
     loading_chunks: AHashSet<ChunkPosition>,
     canceled_chunk_loads: AHashSet<ChunkPosition>,
+    pub time: WorldTime,
 }
 
 impl Default for World {
@@ -37,6 +40,10 @@ impl Default for World {
             cache: ChunkCache::new(),
             loading_chunks: AHashSet::new(),
             canceled_chunk_loads: AHashSet::new(),
+            time: WorldTime {
+                world_age: 0,
+                time: 0,
+            },
         }
     }
 }
@@ -239,6 +246,48 @@ fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
     )
 }
 
+/// This struct stores world time
+pub struct WorldTime {
+    world_age: u64,
+    time: u64,
+}
+
+impl WorldTime {
+    pub const DAY_TICKS: u64 = 24000;
+
+    /// Real world time which is not affected by commands and plugins
+    pub fn world_age(&self) -> u64 {
+        self.world_age
+    }
+
+    /// World time
+    pub fn time(&self) -> u64 {
+        self.time
+    }
+
+    /// Time of day (0-23999)
+    pub fn time_of_day(&self) -> u64 {
+        self.time % WorldTime::DAY_TICKS
+    }
+    /// Gets world days. It's not the actual world age,
+    /// to get real world days use [`world_time.world_age()`](WorldTime::world_age) / [`WorldTime::DAY_TICKS`](WorldTime::DAY_TICKS)
+    pub fn days(&self) -> u64 {
+        self.time / WorldTime::DAY_TICKS
+    }
+
+    /// Sets server-side world time. If you want to set world time both server-side and client-side,
+    /// you probably want to use [`game.set_time`](crate::Game::set_time)
+    pub fn set_time(&mut self, time: u64) {
+        self.time = time
+    }
+
+    /// Increases server-side time by 1 tick
+    pub fn increment(&mut self) {
+        self.set_time(self.time() + 1);
+        self.world_age += 1;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -252,5 +301,20 @@ mod tests {
 
         assert!(world.block_at(BlockPosition::new(0, -1, 0)).is_none());
         assert!(world.block_at(BlockPosition::new(0, 0, 0)).is_some());
+    }
+
+    #[test]
+    fn time() {
+        let mut time = WorldTime {
+            world_age: 0,
+            time: 0,
+        };
+        time.set_time(WorldTime::DAY_TICKS * 2 - 1);
+        assert_eq!(time.time_of_day(), WorldTime::DAY_TICKS - 1);
+        time.increment();
+        assert_eq!(time.days(), 2);
+        assert_eq!(time.time_of_day(), 0);
+        assert_eq!(time.time(), WorldTime::DAY_TICKS * 2);
+        assert_eq!(time.world_age(), 1);
     }
 }

@@ -7,7 +7,9 @@ use common::{
 };
 use ecs::{SysResult, SystemExecutor};
 
-use crate::{entities::SpawnPacketSender, ClientId, NetworkId, Server};
+use crate::entities::SpawnPacketSender;
+use crate::Server;
+use quill_common::components::{ClientId, NetworkId};
 
 pub fn register(_game: &mut Game, systems: &mut SystemExecutor<Game>) {
     systems

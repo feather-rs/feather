@@ -5,32 +5,29 @@
 
 #![allow(clippy::unnecessary_wraps)] // systems are required to return Results
 
-mod game;
+pub use chat::ChatBox;
 use ecs::SystemExecutor;
 pub use game::Game;
-
-mod tick_loop;
 pub use tick_loop::TickLoop;
+pub use window::Window;
+pub use world::World;
 
+mod game;
+mod tick_loop;
 pub mod view;
 
-pub mod window;
-pub use window::Window;
-
 pub mod events;
+pub mod window;
 
 pub mod chunk;
 mod region_worker;
 
-pub mod world;
-pub use world::World;
-
 pub mod chat;
-pub use chat::ChatBox;
-
 pub mod entities;
+pub mod world;
 
 pub mod interactable;
+pub mod player_count;
 
 /// Registers gameplay systems with the given `Game` and `SystemExecutor`.
 pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {

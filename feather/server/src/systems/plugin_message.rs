@@ -1,6 +1,7 @@
-use crate::{ClientId, Server};
+use crate::Server;
 use common::{events::PluginMessageEvent, Game};
 use ecs::{SysResult, SystemExecutor};
+use quill_common::components::ClientId;
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems

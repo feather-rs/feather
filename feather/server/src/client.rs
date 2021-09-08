@@ -6,15 +6,14 @@ use std::{
 };
 
 use ahash::AHashSet;
+use flume::{Receiver, Sender};
+use uuid::Uuid;
+use vec_arena::Arena;
+
 use base::{
     BlockId, BlockPosition, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode,
     ItemStack, Position, ProfileProperty, Text,
 };
-use common::{
-    chat::{ChatKind, ChatMessage},
-    Window,
-};
-use flume::{Receiver, Sender};
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use protocol::{
     packets::{
@@ -28,18 +27,17 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
-use quill_common::components::OnGround;
-use uuid::Uuid;
-use vec_arena::Arena;
+use quill_common::components::{ClientId, NetworkId, OnGround};
 
-use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
+use crate::initial_handler::NewPlayer;
+use crate::options::Options;
+use common::chat::{ChatKind, ChatMessage};
+use common::world::WorldTime;
+use common::Window;
+use protocol::packets::server::{ChangeGameState, TimeUpdate};
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
-
-/// ID of a client. Can be reused.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct ClientId(usize);
 
 /// Stores all `Client`s.
 #[derive(Default)]
@@ -313,6 +311,10 @@ impl Client {
         self.send_packet(PlayerInfo::RemovePlayers(vec![uuid]));
     }
 
+    pub fn change_player_tablist_gamemode(&self, uuid: Uuid, gamemode: Gamemode) {
+        self.send_packet(PlayerInfo::UpdateGamemodes(vec![(uuid, gamemode)]));
+    }
+
     pub fn unload_entity(&self, id: NetworkId) {
         log::trace!("Unloading {:?} on {}", id, self.username);
         self.sent_entities.borrow_mut().remove(&id);
@@ -518,6 +520,20 @@ impl Client {
             entity_id: netowrk_id.0,
             entries: entity_metadata,
         });
+    }
+
+    pub fn change_gamemode(&self, gamemode: Gamemode) {
+        self.send_packet(ChangeGameState {
+            reason: 3,
+            value: gamemode as u8 as f32,
+        })
+    }
+
+    pub fn send_time(&self, time: &WorldTime) {
+        self.send_packet(TimeUpdate {
+            world_age: time.world_age(),
+            time_of_day: time.time(),
+        })
     }
 
     fn register_entity(&self, network_id: NetworkId) {

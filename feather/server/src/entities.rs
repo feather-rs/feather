@@ -3,7 +3,8 @@ use ecs::{EntityBuilder, EntityRef, SysResult};
 use quill_common::entity_init::EntityInit;
 use uuid::Uuid;
 
-use crate::{Client, NetworkId};
+use crate::client::Client;
+use quill_common::components::NetworkId;
 
 /// Component that sends the spawn packet for an entity
 /// using its components.

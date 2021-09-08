@@ -1,13 +1,12 @@
 use std::{net::SocketAddr, sync::Arc};
 
+use crate::connection_worker::Worker;
+use crate::initial_handler::NewPlayer;
+use crate::options::Options;
 use anyhow::Context;
+use common::player_count::PlayerCount;
 use flume::Sender;
 use tokio::net::{TcpListener, TcpStream};
-
-use crate::{
-    connection_worker::Worker, initial_handler::NewPlayer, options::Options,
-    player_count::PlayerCount,
-};
 
 /// Listens for and accepts incoming connections.
 pub struct Listener {

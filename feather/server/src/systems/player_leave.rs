@@ -1,9 +1,8 @@
+use crate::Server;
 use base::Text;
 use common::{chat::ChatKind, Game};
 use ecs::{SysResult, SystemExecutor};
-use quill_common::components::Name;
-
-use crate::{ClientId, Server};
+use quill_common::components::{ClientId, Name};
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems

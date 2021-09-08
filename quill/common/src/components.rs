@@ -3,6 +3,7 @@
 //! See the [entities module](crate::entities) for entity-specific
 //! components.
 
+use std::sync::atomic::{AtomicI32, Ordering};
 use std::{
     fmt::Display,
     ops::{Deref, DerefMut},
@@ -119,3 +120,24 @@ impl Sprinting {
     }
 }
 bincode_component_impl!(Sprinting);
+
+/// An entity's ID used by the protocol
+/// in `entity_id` fields.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct NetworkId(pub i32);
+
+impl NetworkId {
+    /// Creates a new, unique network ID.
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        static NEXT: AtomicI32 = AtomicI32::new(0);
+        // In theory, this can overflow if the server
+        // creates 4 billion entities. The hope is that
+        // old entities will have died out at that point.
+        Self(NEXT.fetch_add(1, Ordering::SeqCst))
+    }
+}
+
+/// ID of a client. Can be reused.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct ClientId(pub usize);

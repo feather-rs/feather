@@ -12,9 +12,10 @@ use protocol::{
     },
     ClientPlayPacket,
 };
-use quill_common::components::Name;
+use quill_common::components::{Name, NetworkId};
 
-use crate::{NetworkId, Server};
+use crate::Server;
+use commands::CommandState;
 
 mod entity_action;
 mod interaction;
@@ -45,7 +46,10 @@ pub fn handle_packet(
 
         ClientPlayPacket::Animation(packet) => handle_animation(server, player, packet),
 
-        ClientPlayPacket::ChatMessage(packet) => handle_chat_message(game, player, packet),
+        ClientPlayPacket::ChatMessage(packet) => {
+            drop(player);
+            handle_chat_message(game, player_id, packet)
+        }
 
         ClientPlayPacket::PlayerDigging(packet) => handle_player_digging(game, packet, player_id),
 
@@ -130,10 +134,20 @@ fn handle_animation(
     Ok(())
 }
 
-fn handle_chat_message(game: &Game, player: EntityRef, packet: client::ChatMessage) -> SysResult {
-    let name = player.get::<Name>()?;
-    let message = Text::translate_with("chat.type.text", vec![name.to_string(), packet.message]);
-    game.broadcast_chat(ChatKind::PlayerChat, message);
+fn handle_chat_message(
+    game: &mut Game,
+    player_id: Entity,
+    packet: client::ChatMessage,
+) -> SysResult {
+    if packet.message.starts_with('/') {
+        CommandState::new().dispatch(game, player_id, &packet.message[1..])
+    } else {
+        let player = game.ecs.entity(player_id)?;
+        let name = player.get::<Name>()?;
+        let message =
+            Text::translate_with("chat.type.text", vec![name.to_string(), packet.message]);
+        game.broadcast_chat(ChatKind::PlayerChat, message);
+    }
     Ok(())
 }
 

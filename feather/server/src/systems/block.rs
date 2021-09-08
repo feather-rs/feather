@@ -13,12 +13,11 @@
 //! like WorldEdit. This module chooses the optimal packet from
 //! the above three options to achieve ideal performance.
 
+use crate::Server;
 use ahash::AHashMap;
 use base::{chunk::SECTION_VOLUME, position, ChunkPosition, CHUNK_WIDTH};
 use common::{events::BlockChangeEvent, Game};
 use ecs::{SysResult, SystemExecutor};
-
-use crate::Server;
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems

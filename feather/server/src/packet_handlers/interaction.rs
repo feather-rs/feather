@@ -1,4 +1,4 @@
-use crate::{ClientId, NetworkId, Server};
+use crate::Server;
 use common::entities::player::HotbarSlot;
 use common::interactable::InteractableRegistry;
 use common::Game;
@@ -9,10 +9,12 @@ use protocol::packets::client::{
     BlockFace, HeldItemChange, InteractEntity, InteractEntityKind, PlayerBlockPlacement,
     PlayerDigging, PlayerDiggingStatus,
 };
+use quill_common::components::{ClientId, NetworkId};
 use quill_common::{
     events::{BlockInteractEvent, BlockPlacementEvent, InteractEntityEvent},
     EntityId,
 };
+
 /// Handles the player block placement packet. Currently just removes the block client side for the player.
 pub fn handle_player_block_placement(
     game: &mut Game,

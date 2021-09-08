@@ -13,6 +13,7 @@ use crate::{
     events::{BlockChangeEvent, EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent},
     ChatBox, World,
 };
+use quill_common::events::TimeUpdateEvent;
 
 type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, &EntityInit)>;
 
@@ -228,6 +229,15 @@ impl Game {
     /// necessary block updates.
     pub fn break_block(&mut self, pos: BlockPosition) -> bool {
         self.set_block(pos, BlockId::air())
+    }
+
+    /// Sets the world time and notifies players
+    pub fn set_time(&mut self, time: u64) {
+        self.ecs.insert_event(TimeUpdateEvent {
+            old: self.world.time.time(),
+            new: time,
+        });
+        self.world.time.set_time(time);
     }
 }
 

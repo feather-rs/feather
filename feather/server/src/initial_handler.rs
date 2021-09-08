@@ -1,12 +1,19 @@
 //! Initial handling of a connection.
 
-use crate::{connection_worker::Worker, favicon::Favicon};
+use std::convert::TryInto;
+
 use anyhow::bail;
-use base::{ProfileProperty, Text};
 use flume::{Receiver, Sender};
 use md5::Digest;
 use num_bigint::BigInt;
 use once_cell::sync::Lazy;
+use rand::rngs::OsRng;
+use rsa::{PaddingScheme, PublicKeyParts, RSAPrivateKey};
+use serde::{Deserialize, Serialize};
+use sha1::Sha1;
+use uuid::Uuid;
+
+use base::{ProfileProperty, Text};
 use protocol::{
     codec::CryptKey,
     packets::{
@@ -18,14 +25,11 @@ use protocol::{
     ClientHandshakePacket, ClientLoginPacket, ClientPlayPacket, ClientStatusPacket,
     ServerLoginPacket, ServerPlayPacket, ServerStatusPacket,
 };
-use rand::rngs::OsRng;
-use rsa::{PaddingScheme, PublicKeyParts, RSAPrivateKey};
-use serde::{Deserialize, Serialize};
-use sha1::Sha1;
-use std::convert::TryInto;
-use uuid::Uuid;
+
+use crate::connection_worker::Worker;
 
 use self::proxy::ProxyData;
+use crate::favicon::Favicon;
 
 const SERVER_NAME: &str = "Feather 1.16.5";
 const PROTOCOL_VERSION: i32 = 754;

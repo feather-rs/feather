@@ -9,7 +9,8 @@ use common::{
 use ecs::{SysResult, SystemExecutor};
 use quill_common::{components::Name, entity_init::EntityInit};
 
-use crate::{ClientId, Server};
+use crate::Server;
+use quill_common::components::ClientId;
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems.group::<Server>().add_system(poll_new_players);

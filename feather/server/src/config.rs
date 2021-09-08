@@ -3,10 +3,11 @@
 use std::{fs, net::Ipv4Addr, path::Path, str::FromStr};
 
 use anyhow::Context;
-use base::Gamemode;
 use serde::{Deserialize, Deserializer};
 
-use crate::{favicon::Favicon, Options};
+use crate::favicon::Favicon;
+use crate::options::Options;
+use base::Gamemode;
 
 const DEFAULT_CONFIG: &str = include_str!("../config.toml");
 

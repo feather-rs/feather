@@ -1,6 +1,5 @@
-use base::Gamemode;
-
 use crate::favicon::Favicon;
+use base::Gamemode;
 
 /// Options for building a [`Server`](crate::Server).
 #[derive(Debug, Clone)]

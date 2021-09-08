@@ -1,13 +1,8 @@
+use io::ErrorKind;
 use std::{fmt::Debug, io, net::SocketAddr, sync::Arc, time::Duration};
 
-use base::Text;
 use flume::{Receiver, Sender};
 use futures_lite::FutureExt;
-use io::ErrorKind;
-use protocol::{
-    codec::CryptKey, packets::server::Disconnect, ClientPlayPacket, MinecraftCodec, Readable,
-    ServerPlayPacket, Writeable,
-};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{
@@ -17,11 +12,15 @@ use tokio::{
     time::timeout,
 };
 
-use crate::{
-    initial_handler::{InitialHandling, NewPlayer},
-    options::Options,
-    player_count::PlayerCount,
+use base::Text;
+use protocol::{
+    codec::CryptKey, packets::server::Disconnect, ClientPlayPacket, MinecraftCodec, Readable,
+    ServerPlayPacket, Writeable,
 };
+
+use crate::initial_handler::{InitialHandling, NewPlayer};
+use crate::options::Options;
+use common::player_count::PlayerCount;
 
 /// Tokio task which handles a connection and processes
 /// packets.

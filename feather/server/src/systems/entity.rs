@@ -4,9 +4,10 @@
 use base::Position;
 use common::Game;
 use ecs::{SysResult, SystemExecutor};
-use quill_common::components::OnGround;
+use quill_common::components::{NetworkId, OnGround};
 
-use crate::{entities::PreviousPosition, NetworkId, Server};
+use crate::entities::PreviousPosition;
+use crate::Server;
 
 mod spawn_packet;
 
