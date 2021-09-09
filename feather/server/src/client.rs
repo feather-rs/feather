@@ -32,10 +32,7 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
-use quill_common::components::{
-    CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable, OnGround,
-    PreviousGamemode, WalkSpeed,
-};
+use quill_common::components::{OnGround, PreviousGamemode};
 
 use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
 
@@ -525,32 +522,24 @@ impl Client {
         });
     }
 
-    pub fn send_abilities(
-        &self,
-        invulnerable: Invulnerable,
-        is_flying: CreativeFlying,
-        allow_flying: CanCreativeFly,
-        instabreak: Instabreak,
-        flying_speed: CreativeFlyingSpeed,
-        walk_speed: WalkSpeed,
-    ) {
+    pub fn send_abilities(&self, abilities: &base::anvil::player::PlayerAbilities) {
         let mut bitfield = 0;
-        if *invulnerable {
+        if *abilities.invulnerable {
             bitfield |= 1 << 0;
         }
-        if *is_flying {
+        if *abilities.is_flying {
             bitfield |= 1 << 1;
         }
-        if *allow_flying {
+        if *abilities.may_fly {
             bitfield |= 1 << 2;
         }
-        if *instabreak {
+        if *abilities.instabreak {
             bitfield |= 1 << 3;
         }
         self.send_packet(PlayerAbilities {
             flags: bitfield,
-            flying_speed: *flying_speed,
-            fov_modifier: *walk_speed,
+            flying_speed: *abilities.fly_speed,
+            fov_modifier: *abilities.walk_speed,
         });
     }
 

@@ -10,13 +10,17 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use generated::{Item, ItemStack};
+use quill_common::components::{
+    CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable,
+    WalkSpeed,
+};
 
 use crate::inventory::*;
 
 use super::entity::{AnimalData, ItemNbt};
 
 /// Represents the contents of a player data file.
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerData {
     // Inherit base entity data
     #[serde(flatten)]
@@ -34,19 +38,21 @@ pub struct PlayerData {
 }
 
 /// Represents player's abilities (flying, invulnerability, speed, etc.)
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerAbilities {
     #[serde(rename = "walkSpeed")]
-    pub walk_speed: f32,
+    pub walk_speed: WalkSpeed,
     #[serde(rename = "flySpeed")]
-    pub fly_speed: f32,
+    pub fly_speed: CreativeFlyingSpeed,
     #[serde(rename = "mayfly")]
-    pub may_fly: bool,
-    pub flying: bool,
+    pub may_fly: CanCreativeFly,
+    #[serde(rename = "flying")]
+    pub is_flying: CreativeFlying,
     #[serde(rename = "mayBuild")]
-    pub may_build: bool,
-    pub instabuild: bool,
-    pub invulnerable: bool,
+    pub may_build: CanBuild,
+    #[serde(rename = "instabuild")]
+    pub instabreak: Instabreak,
+    pub invulnerable: Invulnerable,
 }
 
 /// Represents a single inventory slot (including position index).

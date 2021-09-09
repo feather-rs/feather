@@ -780,6 +780,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "parking_lot",
+ "quill-common",
  "rand 0.8.3",
  "rand_pcg",
  "serde",

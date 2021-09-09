@@ -1,5 +1,7 @@
-use base::inventory::{SLOT_HOTBAR_OFFSET, SLOT_INVENTORY_OFFSET};
-use base::{Area, Gamemode, Inventory, Item, ItemStack, Position, Text};
+use log::debug;
+
+use base::anvil::player::PlayerAbilities;
+use base::{Gamemode, Inventory, ItemStack, Position, Text};
 use common::{
     chat::{ChatKind, ChatPreference},
     entities::player::HotbarSlot,
@@ -33,6 +35,9 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     let client = server.clients.get(client_id).unwrap();
 
     let player_data = game.world.load_player_data(client.uuid());
+    if player_data.is_err() {
+        debug!("{} is a new player", client.username())
+    }
     let gamemode = player_data
         .as_ref()
         .map(|data| Gamemode::from_id(data.gamemode as u8).expect("Unsupported gamemode"))
@@ -46,52 +51,11 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     client.send_brand();
 
     // Abilities
-    let walk_speed = player_data
-        .as_ref()
-        .map(|data| WalkSpeed(data.abilities.walk_speed))
-        .unwrap_or_default();
-    let fly_speed = player_data
-        .as_ref()
-        .map(|data| CreativeFlyingSpeed(data.abilities.fly_speed))
-        .unwrap_or_default();
-    let is_flying = CreativeFlying(
-        player_data
-            .as_ref()
-            .map(|data| data.abilities.flying)
-            .unwrap_or(gamemode == Gamemode::Spectator),
+    let abilities = player_abilities_or_default(
+        player_data.as_ref().map(|data| data.abilities.clone()).ok(),
+        gamemode,
     );
-    let can_fly = CanCreativeFly(
-        player_data
-            .as_ref()
-            .map(|data| data.abilities.may_fly)
-            .unwrap_or(gamemode == Gamemode::Creative || gamemode == Gamemode::Spectator),
-    );
-    let can_build = CanBuild(
-        player_data
-            .as_ref()
-            .map(|data| data.abilities.may_build)
-            .unwrap_or(gamemode == Gamemode::Creative || gamemode == Gamemode::Survival),
-    );
-    let instabreak = Instabreak(
-        player_data
-            .as_ref()
-            .map(|data| data.abilities.instabuild)
-            .unwrap_or(gamemode == Gamemode::Creative),
-    );
-    let invulnerable = Invulnerable(
-        player_data
-            .as_ref()
-            .map(|data| data.abilities.invulnerable)
-            .unwrap_or(gamemode == Gamemode::Creative || gamemode == Gamemode::Spectator),
-    );
-    client.send_abilities(
-        invulnerable,
-        is_flying,
-        can_fly,
-        instabreak,
-        fly_speed,
-        walk_speed,
-    );
+    client.send_abilities(&abilities);
 
     let hotbar_slot = player_data
         .as_ref()
@@ -114,34 +78,16 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     );
 
     let inventory = Inventory::player();
-    if let Ok(data) = player_data.as_ref() {
-        for slot in data.inventory.iter() {
-            let slot_num = slot.slot as usize;
-            if let Some(item) = Item::from_name(&slot.item) {
-                let item_stack = if slot_num > SLOT_HOTBAR_OFFSET {
-                    inventory.item(Area::Hotbar, slot_num - SLOT_HOTBAR_OFFSET)
-                } else if slot_num > SLOT_INVENTORY_OFFSET {
-                    inventory.item(Area::Storage, slot_num - SLOT_INVENTORY_OFFSET)
-                } else {
-                    None
-                };
-                if let Some(mut item_stack) = item_stack {
-                    *item_stack = Some(ItemStack {
-                        item,
-                        count: slot.count as u32,
-                        damage: slot
-                            .nbt
-                            .as_ref()
-                            .map(|nbt| nbt.damage.map(|damage| damage as u32))
-                            .unwrap_or(None),
-                    });
-                }
-            }
-        }
-    }
     let window = Window::new(BackingWindow::Player {
         player: inventory.new_handle(),
     });
+    if let Ok(data) = player_data.as_ref() {
+        for slot in data.inventory.iter() {
+            window
+                .set_item(slot.slot as usize, Some(ItemStack::from(slot)))
+                .unwrap();
+        }
+    }
 
     client.send_window_items(&window);
 
@@ -167,13 +113,13 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
                 .map(|data| data.animal.health)
                 .unwrap_or(20.0),
         ))
-        .add(walk_speed)
-        .add(fly_speed)
-        .add(is_flying)
-        .add(can_fly)
-        .add(can_build)
-        .add(instabreak)
-        .add(invulnerable);
+        .add(abilities.walk_speed)
+        .add(abilities.fly_speed)
+        .add(abilities.is_flying)
+        .add(abilities.may_fly)
+        .add(abilities.may_build)
+        .add(abilities.instabreak)
+        .add(abilities.invulnerable);
 
     game.spawn_entity(builder);
 
@@ -185,4 +131,19 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
 fn broadcast_player_join(game: &mut Game, username: &str) {
     let message = Text::translate_with("multiplayer.player.joined", vec![username.to_owned()]);
     game.broadcast_chat(ChatKind::System, message);
+}
+
+fn player_abilities_or_default(
+    data: Option<PlayerAbilities>,
+    gamemode: Gamemode,
+) -> PlayerAbilities {
+    data.unwrap_or(PlayerAbilities {
+        walk_speed: WalkSpeed::default(),
+        fly_speed: CreativeFlyingSpeed::default(),
+        may_fly: CanCreativeFly(matches!(gamemode, Gamemode::Creative | Gamemode::Spectator)),
+        is_flying: CreativeFlying(matches!(gamemode, Gamemode::Spectator)),
+        may_build: CanBuild(!matches!(gamemode, Gamemode::Adventure)),
+        instabreak: Instabreak(matches!(gamemode, Gamemode::Creative)),
+        invulnerable: Invulnerable(matches!(gamemode, Gamemode::Creative | Gamemode::Spectator)),
+    })
 }

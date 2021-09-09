@@ -35,7 +35,7 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
             can_fly,
             is_flying,
             can_build,
-            instabuild,
+            instabreak,
             invulnerable,
             hotbar_slot,
             inventory,
@@ -68,51 +68,23 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
             game.world
                 .save_player_data(
                     client.uuid(),
-                    &PlayerData {
-                        animal: AnimalData {
-                            base: BaseEntityData {
-                                position: [position.x, position.y, position.z].into(),
-                                rotation: [position.yaw, position.pitch].into(),
-                                velocity: [0.0, 0.0, 0.0].into(),
-                            },
-                            health: **health,
+                    &create_player_data(
+                        *position,
+                        *gamemode,
+                        *previous_gamemode,
+                        *health,
+                        PlayerAbilities {
+                            walk_speed: *walk_speed,
+                            fly_speed: *fly_speed,
+                            may_fly: *can_fly,
+                            is_flying: *is_flying,
+                            may_build: *can_build,
+                            instabreak: *instabreak,
+                            invulnerable: *invulnerable,
                         },
-                        gamemode: gamemode.to_i32().unwrap(),
-                        previous_gamemode: previous_gamemode.id() as i32,
-                        inventory: inventory
-                            .to_vec()
-                            .iter()
-                            .enumerate()
-                            .filter_map(|(slot, maybe_item)| {
-                                maybe_item.as_ref().map(|item| (slot, item))
-                            })
-                            .map(|(slot, item)| InventorySlot {
-                                count: item.count as i8,
-                                slot: slot as i8,
-                                item: item.item.name().to_owned(),
-                                nbt: {
-                                    let nbt = ItemNbt {
-                                        damage: item.damage.map(|damage| damage as i32),
-                                    };
-                                    if nbt.damage.is_none() {
-                                        None
-                                    } else {
-                                        Some(nbt)
-                                    }
-                                },
-                            })
-                            .collect(),
-                        held_item: hotbar_slot.get() as i32,
-                        abilities: PlayerAbilities {
-                            walk_speed: **walk_speed,
-                            fly_speed: **fly_speed,
-                            may_fly: **can_fly,
-                            flying: **is_flying,
-                            may_build: **can_build,
-                            instabuild: **instabuild,
-                            invulnerable: **invulnerable,
-                        },
-                    },
+                        *hotbar_slot,
+                        inventory,
+                    ),
                 )
                 .unwrap_or_else(|e| panic!("Couldn't save data for {}: {}", client.username(), e));
             server.remove_client(client_id);
@@ -129,4 +101,50 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
 fn broadcast_player_leave(game: &Game, username: &Name) {
     let message = Text::translate_with("multiplayer.player.left", vec![username.to_string()]);
     game.broadcast_chat(ChatKind::System, message);
+}
+
+fn create_player_data(
+    position: Position,
+    gamemode: Gamemode,
+    previous_gamemode: PreviousGamemode,
+    health: Health,
+    abilities: PlayerAbilities,
+    hotbar_slot: HotbarSlot,
+    inventory: &Inventory,
+) -> PlayerData {
+    PlayerData {
+        animal: AnimalData {
+            base: BaseEntityData {
+                position: [position.x, position.y, position.z].into(),
+                rotation: [position.yaw, position.pitch].into(),
+                velocity: [0.0, 0.0, 0.0].into(),
+            },
+            health: *health,
+        },
+        gamemode: gamemode.to_i32().unwrap(),
+        previous_gamemode: previous_gamemode.id() as i32,
+        inventory: inventory
+            .to_vec()
+            .iter()
+            .enumerate()
+            .filter_map(|(slot, maybe_item)| maybe_item.as_ref().map(|item| (slot, item)))
+            .map(|(slot, item)| InventorySlot {
+                count: item.count as i8,
+                slot: slot as i8,
+                item: item.item.name().to_owned(),
+                nbt: {
+                    let nbt = ItemNbt {
+                        damage: item.damage.map(|damage| damage as i32),
+                    };
+                    if nbt.damage.is_none() {
+                        None
+                    } else {
+                        Some(nbt)
+                    }
+                },
+            })
+            .collect(),
+        held_item: hotbar_slot.get() as i32,
+        abilities,
+    }
 }
