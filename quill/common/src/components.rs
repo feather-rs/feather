@@ -263,3 +263,24 @@ impl PreviousGamemode {
 )]
 pub struct Health(pub f32);
 bincode_component_impl!(Health);
+
+/// A component on players that tracks if they are sprinting or not.
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    derive_more::Deref,
+    derive_more::DerefMut,
+)]
+pub struct Sprinting(pub bool);
+impl Sprinting {
+    pub fn new(value: bool) -> Self {
+        Sprinting(value)
+    }
+}
+bincode_component_impl!(Sprinting);
