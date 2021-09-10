@@ -753,6 +753,7 @@ dependencies = [
  "hematite-nbt",
  "libcraft-blocks",
  "libcraft-core",
+ "libcraft-inventory",
  "libcraft-items",
  "libcraft-particles",
  "libcraft-text",
@@ -1414,6 +1415,14 @@ dependencies = [
  "libcraft-blocks",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "libcraft-inventory"
+version = "0.1.0"
+dependencies = [
+ "libcraft-items",
+ "parking_lot",
 ]
 
 [[package]]

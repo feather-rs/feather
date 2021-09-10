@@ -18,7 +18,8 @@ libcraft-blocks = { path = "../../libcraft/blocks" }
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-items = { path = "../../libcraft/items" }
 libcraft-particles = { path = "../../libcraft/particles" }
-libcraft-text = { path = "../../libcraft/text" } 
+libcraft-text = { path = "../../libcraft/text" }
+libcraft-inventory = { path = "../../libcraft/inventory" } 
 nom = "5"
 nom_locate = "2"
 num-derive = "0.3"
