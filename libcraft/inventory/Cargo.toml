@@ -1,0 +1,11 @@
+[package]
+name = "libcraft-inventory"
+version = "0.1.0"
+authors = ["Tracreed <davidalasow@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libcraft-items = { path = "../items" }
+parking_lot = "0.11"
