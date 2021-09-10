@@ -1,4 +1,4 @@
-use generated::Biome;
+use libcraft_core::Biome;
 
 use crate::{CHUNK_HEIGHT, CHUNK_WIDTH};
 

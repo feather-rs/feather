@@ -7,9 +7,9 @@ edition = "2018"
 [dependencies]
 anyhow = "1"
 bincode = "1"
-feather-generated = { path = "../generated" }
 num-traits = "0.2"
 once_cell = { version = "1" }
 serde = { version = "1", features = [ "derive" ] }
 thiserror = "1"
 vek = "0.14"
+libcraft-blocks = { path = "../../libcraft/blocks" }

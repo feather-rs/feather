@@ -14,13 +14,16 @@ byteorder = "1"
 bytes = "0.5"
 cfb8 = "0.7"
 flate2 = "1"
-generated = { path = "../generated", package = "feather-generated" }
+
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
 num-traits = "0.2"
 parking_lot = "0.11" # Arc<RwLock<Chunk>> compat
 serde = "1"
 thiserror = "1"
 uuid = "0.8"
+libcraft-core = { path = "../../libcraft/core" }
+
+
 
 [features]
 proxy = ["base/proxy"]

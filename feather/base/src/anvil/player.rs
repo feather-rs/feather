@@ -1,4 +1,5 @@
-use generated::{Item, ItemStack};
+//use generated::{Item, ItemStack};
+use libcraft_items::{Item, ItemStack};
 use nbt::Value;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -72,9 +73,9 @@ impl InventorySlot {
             Some(nbt)
         };
         Self {
-            count: stack.count as i8,
+            count: stack.count() as i8,
             slot,
-            item: stack.item.name().to_owned(),
+            item: stack.item().name().to_owned(),
             nbt,
         }
     }
@@ -188,8 +189,8 @@ mod tests {
         };
 
         let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.item, Item::Feather);
-        assert_eq!(item_stack.count, 1);
+        assert_eq!(item_stack.item(), Item::Feather);
+        assert_eq!(item_stack.count(), 1);
     }
 
     #[test]
@@ -202,9 +203,9 @@ mod tests {
         };
 
         let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.item, Item::DiamondAxe);
-        assert_eq!(item_stack.count, 1);
-        assert_eq!(item_stack.damage, Some(42));
+        assert_eq!(item_stack.item(), Item::DiamondAxe);
+        assert_eq!(item_stack.count(), 1);
+        assert_eq!(item_stack.get_damage(), Some(42));
     }
 
     #[test]
@@ -217,7 +218,7 @@ mod tests {
         };
 
         let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.item, Item::Air);
+        assert_eq!(item_stack.item(), Item::Air);
     }
 
     #[test]

@@ -4,7 +4,7 @@
 
 use crate::{BlockPosition, Direction};
 use bitflags::bitflags;
-use generated::ItemStack;
+use libcraft_items::ItemStack;
 use std::collections::BTreeMap;
 use uuid::Uuid;
 
