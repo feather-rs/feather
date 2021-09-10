@@ -62,3 +62,51 @@ impl Inventory {
         self.clone()
     }
 }
+
+
+
+#[derive(Debug)]
+pub enum WindowError {
+    OutOfBounds(usize),
+}
+
+impl std::fmt::Display for WindowError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::OutOfBounds(value) => {
+                f.write_fmt(format_args!("Slot index {} is out of bounds", value))
+            }
+        }   
+    }
+}
+
+impl Window {
+    /// Gets the item at the provided protocol index.
+    /// Returns an error if index is invalid.
+    pub fn item(&self, index: usize) -> Result<MutexGuard<Option<ItemStack>>, WindowError> {
+        let (inventory, area, slot) = self
+            .index_to_slot(index)
+            .ok_or(WindowError::OutOfBounds(index))?;
+        inventory
+            .item(area, slot)
+            .ok_or(WindowError::OutOfBounds(index))
+    }
+
+    /// Sets the item at the provided protocol index.
+    /// Returns an error if the index is invalid.
+    pub fn set_item(&self, index: usize, item: Option<ItemStack>) -> Result<(), WindowError> {
+        *self.item(index)? = item;
+        Ok(())
+    }
+
+    /// Gets a vector of all items in this window.
+    pub fn to_vec(&self) -> Vec<Option<ItemStack>> {
+        let mut i = 0;
+        let mut vec = Vec::new();
+        while let Ok(item) = self.item(i) {
+            vec.push(item.clone());
+            i += 1;
+        }
+        vec
+    }
+}

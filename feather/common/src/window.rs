@@ -4,8 +4,8 @@ use anyhow::{anyhow, bail};
 use base::{Area, Item, ItemStack};
 
 use ecs::SysResult;
-pub use generated::Window as BackingWindow;
-use generated::WindowError;
+pub use libcraft_inventory::Window as BackingWindow;
+use libcraft_inventory::WindowError;
 use parking_lot::MutexGuard;
 
 /// A player's window. Wraps one or more inventories and handles

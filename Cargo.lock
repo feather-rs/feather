@@ -818,6 +818,7 @@ dependencies = [
  "flume",
  "itertools 0.10.0",
  "libcraft-core",
+ "libcraft-inventory",
  "log",
  "parking_lot",
  "quill-common",

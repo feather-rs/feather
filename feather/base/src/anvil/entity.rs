@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use arrayvec::ArrayVec;
 use libcraft_items::{Item,ItemStack, ItemStackMeta};
 use serde::ser::Error;
@@ -239,16 +241,15 @@ impl ItemNbt {
     pub fn item_stack(nbt: &Option<Self>, item: Item, count: u8) -> ItemStack {
         ItemStack {
             item,
-            count,
+            count: (count as u32).try_into().unwrap(),
             meta: Some(ItemStackMeta {
-
+                title: item.display_name().to_owned(),
+                lore: String::new(),
+                damage : nbt.as_ref().and_then(|item_nbt| item_nbt.damage.map(|x| x as u32) ),
+                repair_cost: None,
+                enchantments: vec![],
             }),
         }
-        // ItemStack {
-        //     count: count as u32,
-        //     item,
-        //     damage: nbt.as_ref().map(|n| n.damage).flatten().map(|x| x as u32),
-        // }
     }
 }
 
@@ -259,7 +260,7 @@ where
     fn from(s: S) -> Self {
         let stack = s.borrow();
         Self {
-            damage: stack.damage.map(|d| d as i32),
+            damage: stack.damage_taken().map(|d| d as i32),
         }
     }
 }

@@ -3,6 +3,7 @@
 
 use crate::{Enchantment, Item};
 use core::fmt::Display;
+use std::convert::TryInto;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fmt;
@@ -279,6 +280,13 @@ impl ItemStack {
             None => false,
         }
     }
+
+    /// Returns the amount of damage the items have taken. 
+    pub fn damage_taken(&self) -> Option<u32> {
+        self.meta.as_ref().map_or(Some(0), |meta| {
+            meta.damage
+        })
+    }
 }
 
 /// An error type that may be returned when performing
@@ -299,3 +307,63 @@ impl Display for ItemStackError {
 }
 
 impl Error for ItemStackError {}
+
+
+pub struct ItemStackBuilder {
+    item: Item,
+    count: NonZeroU32,
+    meta: Option<ItemStackMeta>,
+}
+
+impl ItemStackBuilder {
+
+    pub fn new() -> Self {
+        Self {
+            item : Item::Stone,
+            count : 1.try_into().unwrap(),
+            meta : None,
+        }
+    }
+
+    pub fn with_item(item: Item) -> Self {
+        Self {
+            item,
+            count: 1.try_into().unwrap(),
+            meta: None,
+        }
+    }
+
+    pub fn item(self, item: Item) -> Self {
+        Self {
+            item, 
+            ..
+            self
+        }
+    }
+
+    // panics if the count is zero
+    pub fn count(self, count: u32) -> Self {
+        Self {
+            count: count.try_into().unwrap(),
+            ..
+            self
+        }
+    }
+
+
+    pub fn title(self, title: impl AsRef<str>) -> Self {
+        Self {
+            meta: ItemStackMeta {
+                title: "".to_owned(),
+                lore: "".to_owned(),
+                damage: None,
+                repair_cost: None,
+                enchantments: Vec::new(),
+            },
+            ..
+            self
+        }
+    } 
+
+}
+

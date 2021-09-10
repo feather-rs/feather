@@ -20,8 +20,7 @@ pub use chunk::{Chunk, ChunkSection, CHUNK_HEIGHT, CHUNK_WIDTH};
 pub use chunk_lock::*;
 
 
-pub use generated::{Area, Inventory};
-
+pub use libcraft_inventory::{Area, Inventory};
 pub use libcraft_blocks::{BlockKind, BlockState};
 pub use libcraft_core::{position, vec3, BlockPosition, ChunkPosition, Gamemode, Position, Vec3d, Biome, EntityKind};
 pub use libcraft_particles::{Particle, ParticleKind};
