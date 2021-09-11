@@ -47,7 +47,7 @@ mod tests {
     use super::CraftingRecipe;
 
     #[test]
-    fn serialize() {
+    fn deserialize() {
         let json = r#"
         {
             "type": "minecraft:crafting_shaped",
@@ -75,6 +75,7 @@ mod tests {
             }
         }
         "#;
-        CraftingRecipe::Deserialize(json.to_string());
+        let recipe = CraftingRecipe::Deserialize(json.to_string()).unwrap();
+        
     }
 }
