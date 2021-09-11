@@ -165,3 +165,9 @@ impl Hunger {
         }
     }
 }
+
+impl Default for Hunger {
+    fn default() -> Self {
+        Self::new()
+    }
+}
