@@ -158,6 +158,14 @@ impl ItemStack {
         Ok(self.item)
     }
 
+    /// Gets the `ItemStack` and returns it.
+    pub fn get_item(&self) -> ItemStack {
+        ItemStack{
+            count: 1.try_into().unwrap(),
+            ..self.clone()
+        }
+    }
+
     /// Sets the item type for this `ItemStack`. Does not check if
     /// the new item type stack size will be lower than the current
     /// item count. Returns the new item type.

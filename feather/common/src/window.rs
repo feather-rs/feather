@@ -44,7 +44,7 @@ impl Window {
         match (slot_item.as_mut(), self.cursor_item.as_mut()) {
             (Some(slot_item), Some(cursor_item)) => {
                 if cursor_item.has_same_type(slot_item) {
-                    slot_item.merge_with(cursor_item);
+                    slot_item.merge_with(cursor_item).unwrap();
                 } else {
                     mem::swap(slot_item, cursor_item);
                 }
@@ -71,15 +71,17 @@ impl Window {
         match (slot_item.as_mut(), self.cursor_item.as_mut()) {
             (Some(slot_item), Some(cursor_item)) => {
                 if slot_item.has_same_type(cursor_item) {
-                    cursor_item.transfer_to(1, slot_item);
+                    cursor_item.transfer_to(1, slot_item).unwrap();
                 } else {
                     mem::swap(slot_item, cursor_item);
                 }
             }
             (Some(slot_item), None) => {
-                let (left, right) = slot_item.split_half();
+                let (left, _) = slot_item.split_half();
+                self.cursor_item = left;
+
                 //Some(slot_item.take_half())
-                todo!()
+                //todo!()
             }
             (None, Some(cursor_item)) => {
                 //*slot_item = Some(cursor_item.take(1)),
@@ -375,17 +377,19 @@ impl PaintState {
                 for slot in self.slots {
                     let mut item = window.inner.item(slot)?;
 
-                    match item.as_mut() {
-                        Some(item) => {
-                            cursor_item.transfer_to(1, item);
-                        }
+                    let item = match item.as_mut() {
+                        Some(item) => item,
                         None => {
-                            cursor_item.remove(1).unwrap();
-                            let mut new_item_stack = cursor_item.clone();
-                            new_item_stack.set_count(1).unwrap(); // Safe
-                            cursor_item.remove(1).unwrap(); // This is unsafe, but i dont know what to do.
-                            *item = Some(new_item_stack);
+                            println!("{:?}", cursor_item.remove(1));
+                            println!("{:?}", cursor_item);
+                            println!("{:?}", cursor_item.remove(0).unwrap());
+                            //cursor_item.remove(1).unwrap();
+                            //let new_item_stack = cursor_item.get_item();
+                            //new_item_stack.set_count(1).unwrap(); // Safe
+                            //cursor_item.remove(1).unwrap(); // This is unsafe, but i dont know what to do.
+                            item = Some(cursor_item.get_item());
                         }
+                        cursor_item.transfer_to(1, item);
                     }
                 }
             }
