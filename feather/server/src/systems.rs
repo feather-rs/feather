@@ -40,6 +40,7 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
     entity::register(game, systems);
     chat::register(game, systems);
     particle::register(systems);
+    plugin_message::register(systems);
     health::register(game, systems);
 
     systems.group::<Server>().add_system(tick_clients);
