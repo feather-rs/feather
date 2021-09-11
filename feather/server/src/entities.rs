@@ -26,6 +26,7 @@ pub fn add_entity_components(builder: &mut EntityBuilder, init: &EntityInit) {
         builder.add(NetworkId::new());
     }
     builder.add(PreviousPosition(*builder.get::<Position>().unwrap()));
+    builder.add(FallDistance(0.0));
     add_spawn_packet(builder, init);
 }
 
@@ -57,3 +58,8 @@ fn spawn_living_entity(entity: &EntityRef, client: &Client) -> SysResult {
     client.send_living_entity(network_id, uuid, pos, kind);
     Ok(())
 }
+
+/// Increasing distance of an entity falling. Used to calculate
+/// fall damage for entities with health.
+#[derive(Copy, Clone, Debug)]
+pub struct FallDistance(pub f64);

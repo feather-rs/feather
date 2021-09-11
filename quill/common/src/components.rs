@@ -119,3 +119,46 @@ impl Sprinting {
     }
 }
 bincode_component_impl!(Sprinting);
+
+/// An entity's health.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Health {
+    pub health: u32,
+    pub max_health: u32,
+}
+
+impl Health {
+    /// Creates a new `Health` object with both health
+    /// and max_health initialized to the given value.
+    pub fn new(max_health: u32) -> Self {
+        Self {
+            health: max_health,
+            max_health,
+        }
+    }
+
+    /// Reduce the health by at most the amount `damage`. If
+    /// the subtraction would underflow, health is set to 0.
+    pub fn deal_damage(&mut self, damage: u32) {
+        self.health = self.health.saturating_sub(damage);
+    }
+
+    /// TODO
+    pub fn regenerate() {
+        todo!()
+    }
+}
+
+pub struct Hunger {
+    pub food: u32,
+    pub saturation: u32,
+}
+
+impl Hunger {
+    pub fn new() -> Self {
+        Self {
+            food: 20,
+            saturation: 5,
+        }
+    }
+}

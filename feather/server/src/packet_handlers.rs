@@ -17,6 +17,7 @@ use quill_common::components::Name;
 use crate::{NetworkId, Server};
 
 mod entity_action;
+mod health;
 mod interaction;
 pub mod inventory;
 mod movement;
@@ -75,10 +76,13 @@ pub fn handle_packet(
             entity_action::handle_entity_action(game, player_id, packet)
         }
 
+        ClientPlayPacket::ClientStatus(packet) => {
+            health::handle_client_status(game, server, player_id, packet)
+        }
+
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
         | ClientPlayPacket::SetDifficulty(_)
-        | ClientPlayPacket::ClientStatus(_)
         | ClientPlayPacket::TabComplete(_)
         | ClientPlayPacket::WindowConfirmation(_)
         | ClientPlayPacket::ClickWindowButton(_)
