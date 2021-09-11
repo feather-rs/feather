@@ -1446,6 +1446,11 @@ dependencies = [
 [[package]]
 name = "libcraft-recipes"
 version = "0.1.0"
+dependencies = [
+ "libcraft-items",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "libcraft-text"
