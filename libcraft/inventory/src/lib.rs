@@ -3,7 +3,7 @@ mod inventory;
 use parking_lot::{Mutex, MutexGuard};
 use std::{error::Error, sync::Arc};
 
-pub use inventory::{Window, Area, InventoryBacking};
+pub use inventory::{Area, InventoryBacking, Window};
 
 use libcraft_items::ItemStack;
 
@@ -63,8 +63,6 @@ impl Inventory {
     }
 }
 
-
-
 #[derive(Debug)]
 pub enum WindowError {
     OutOfBounds(usize),
@@ -76,7 +74,7 @@ impl std::fmt::Display for WindowError {
             Self::OutOfBounds(value) => {
                 f.write_fmt(format_args!("Slot index {} is out of bounds", value))
             }
-        }   
+        }
     }
 }
 

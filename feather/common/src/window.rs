@@ -80,7 +80,7 @@ impl Window {
                 let (left, right) = slot_item.split_half();
                 //Some(slot_item.take_half())
                 todo!()
-            },
+            }
             (None, Some(cursor_item)) => {
                 //*slot_item = Some(cursor_item.take(1)),
                 todo!()
@@ -137,7 +137,7 @@ impl Window {
                     new_stack.set_count(1);
                     slot_item.transfer_to(u32::MAX, &mut new_stack);
                     new_stack.remove(1);
-                    
+
                     *stack = Some(new_stack);
                     break;
                 }
@@ -360,12 +360,11 @@ impl PaintState {
                         amount
                     };
 
-
-                    let mut taken_items = &mut cursor_item.clone();
+                    let mut taken_items = cursor_item.clone();
                     taken_items.set_count(amount);
                     cursor_item.remove(amount)?;
 
-                    window.inner.set_item(slot, Some(*taken_items))?;
+                    window.inner.set_item(slot, Some(taken_items))?;
 
                     // window
                     //     .inner
@@ -378,14 +377,14 @@ impl PaintState {
 
                     match item.as_mut() {
                         Some(item) => {
-                            cursor_item.transfer_to(1,item);
-                        },
+                            cursor_item.transfer_to(1, item);
+                        }
                         None => {
-                            cursor_item.remove(1);
-                            let new_item_stack = &mut cursor_item.clone();
+                            cursor_item.remove(1).unwrap();
+                            let mut new_item_stack = cursor_item.clone();
                             new_item_stack.set_count(1).unwrap(); // Safe
                             cursor_item.remove(1).unwrap(); // This is unsafe, but i dont know what to do.
-                            *item = Some(*new_item_stack);
+                            *item = Some(new_item_stack);
                         }
                     }
                 }
@@ -453,7 +452,10 @@ mod tests {
         window.set_item(0, Some(stack)).unwrap();
 
         window.right_click(0).unwrap();
-        assert_eq!(window.cursor_item, Some(ItemStack::new(Item::GlassPane, 9).unwrap()));
+        assert_eq!(
+            window.cursor_item,
+            Some(ItemStack::new(Item::GlassPane, 9).unwrap())
+        );
         assert_eq!(
             window.item(0).unwrap().as_ref(),
             Some(&ItemStack::new(Item::GlassPane, 8).unwrap())
@@ -494,9 +496,11 @@ mod tests {
     fn window_shift_click_full_hotbar() {
         let inventory = Inventory::player();
         for i in 0..9 {
-            *inventory.item(Area::Hotbar, i).unwrap() = Some(ItemStack::new(Item::EnderPearl, 1).unwrap());
+            *inventory.item(Area::Hotbar, i).unwrap() =
+                Some(ItemStack::new(Item::EnderPearl, 1).unwrap());
         }
-        *inventory.item(Area::Storage, 0).unwrap() = Some(ItemStack::new(Item::AcaciaSign, 1).unwrap());
+        *inventory.item(Area::Storage, 0).unwrap() =
+            Some(ItemStack::new(Item::AcaciaSign, 1).unwrap());
         let mut window = Window::new(BackingWindow::Player {
             player: inventory.new_handle(),
         });
@@ -581,7 +585,10 @@ mod tests {
                 Some(&ItemStack::new(Item::Stone, 21).unwrap())
             );
         }
-        assert_eq!(window.cursor_item, Some(ItemStack::new(Item::Stone, 1).unwrap()));
+        assert_eq!(
+            window.cursor_item,
+            Some(ItemStack::new(Item::Stone, 1).unwrap())
+        );
     }
 
     #[test]
@@ -608,7 +615,10 @@ mod tests {
             window.item(5).unwrap().as_ref(),
             Some(&ItemStack::new(Item::Stone, 1).unwrap())
         );
-        assert_eq!(window.cursor_item, Some(ItemStack::new(Item::Stone, 62).unwrap()));
+        assert_eq!(
+            window.cursor_item,
+            Some(ItemStack::new(Item::Stone, 62).unwrap())
+        );
     }
 
     fn window() -> Window {

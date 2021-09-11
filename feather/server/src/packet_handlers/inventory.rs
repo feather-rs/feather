@@ -91,7 +91,7 @@ mod tests {
 
         let packet = CreativeInventoryAction {
             slot: 10,
-            clicked_item: Some(ItemStack::new(Item::Diamond, 64)),
+            clicked_item: Some(ItemStack::new(Item::Diamond, 64).unwrap()),
         };
         handle_creative_inventory_action(player, packet).unwrap_err();
 
@@ -118,7 +118,7 @@ mod tests {
 
         let packet = CreativeInventoryAction {
             slot: 5,
-            clicked_item: Some(ItemStack::new(Item::Diamond, 64)),
+            clicked_item: Some(ItemStack::new(Item::Diamond, 64).unwrap()),
         };
         handle_creative_inventory_action(player, packet).unwrap_err();
 
@@ -139,7 +139,7 @@ mod tests {
 
         let packet = CreativeInventoryAction {
             slot: 5,
-            clicked_item: Some(ItemStack::new(Item::Diamond, 64)),
+            clicked_item: Some(ItemStack::new(Item::Diamond, 64).unwrap()),
         };
         handle_creative_inventory_action(player, packet).unwrap();
 
@@ -150,7 +150,7 @@ mod tests {
                 .item(5)
                 .unwrap()
                 .clone(),
-            Some(ItemStack::new(Item::Diamond, 64))
+            Some(ItemStack::new(Item::Diamond, 64).unwrap())
         );
     }
 

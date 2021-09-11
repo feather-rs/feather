@@ -9,7 +9,15 @@ use base::{
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 use serde::{de::DeserializeOwned, Serialize};
-use std::{borrow::Cow, collections::BTreeMap, convert::{TryFrom, TryInto}, io::{self, Cursor, Read, Write}, iter, marker::PhantomData, num::{NonZeroU32, TryFromIntError}};
+use std::{
+    borrow::Cow,
+    collections::BTreeMap,
+    convert::{TryFrom, TryInto},
+    io::{self, Cursor, Read, Write},
+    iter,
+    marker::PhantomData,
+    num::{NonZeroU32, TryFromIntError},
+};
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -547,17 +555,16 @@ impl Readable for Slot {
 
             // Todo fix: Panics if count is zero
             Ok(Some(
-                ItemStackBuilder::
-                    with_item(item)
+                ItemStackBuilder::with_item(item)
                     .count(count)
-                    .apply_damage(tags.map(|t| t.damage).flatten().map(|d| d as u32)).into()
-                ))
+                    .apply_damage(tags.map(|t| t.damage).flatten().map(|d| d as u32))
+                    .into(),
+            ))
             //     ItemStack {
             //     item,
             //     count,
             //     damage: tags.map(|t| t.damage).flatten().map(|d| d as u32),
             // }
-            
         } else {
             Ok(None)
         }
@@ -571,7 +578,7 @@ impl Writeable for Slot {
         if let Some(stack) = self {
             VarInt(stack.item().id() as i32).write(buffer, version)?;
             (stack.count() as u8).write(buffer, version)?;
-            
+
             let tags: ItemNbt = stack.into();
             if tags != ItemNbt::default() {
                 dbg!();

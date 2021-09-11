@@ -148,4 +148,4 @@ get_areas_fn += "} }"
 output += f"impl <T> InventoryBacking<T> {{ {get_area_fn} {get_areas_fn} {constructor_fns} }}"
 output += f"impl crate::Inventory {{ {inventory_constructor_fns} }}"
 
-common.output(Path("/inventory/src/inventory.rs"), output)
+common.output("inventory/src/inventory.rs", output)

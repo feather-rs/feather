@@ -3,8 +3,8 @@
 
 use crate::{Enchantment, Item};
 use core::fmt::Display;
-use std::convert::TryInto;
 use serde::{Deserialize, Serialize};
+use std::convert::TryInto;
 use std::error::Error;
 use std::fmt;
 use std::num::NonZeroU32;
@@ -201,7 +201,6 @@ impl ItemStack {
         self.split((self.count.get() + 1) / 2).unwrap()
     }
 
-
     /// Splits this `ItemStack` by removing the
     /// specified amount. Returns the taken part.
     pub fn split(
@@ -282,11 +281,9 @@ impl ItemStack {
         }
     }
 
-    /// Returns the amount of damage the items have taken. 
+    /// Returns the amount of damage the items have taken.
     pub fn damage_taken(&self) -> Option<u32> {
-        self.meta.as_ref().map_or(Some(0), |meta| {
-            meta.damage
-        })
+        self.meta.as_ref().map_or(Some(0), |meta| meta.damage)
     }
 }
 
@@ -310,7 +307,6 @@ impl Display for ItemStackError {
 impl Error for ItemStackError {}
 
 impl ItemStackMeta {
-
     pub fn new(item: Item) -> Self {
         Self {
             title: item.name().to_owned(),
@@ -327,14 +323,13 @@ pub struct ItemStackBuilder {
     count: NonZeroU32,
     meta: Option<ItemStackMeta>,
 }
-// Todo: implement all 
+// Todo: implement all
 impl ItemStackBuilder {
-
     pub fn new() -> Self {
         Self {
-            item : Item::Stone,
-            count : 1.try_into().unwrap(),
-            meta : None,
+            item: Item::Stone,
+            count: 1.try_into().unwrap(),
+            meta: None,
         }
     }
 
@@ -347,22 +342,16 @@ impl ItemStackBuilder {
     }
 
     pub fn item(self, item: Item) -> Self {
-        Self {
-            item, 
-            ..
-            self
-        }
+        Self { item, ..self }
     }
 
     // panics if the count is zero
     pub fn count(self, count: u32) -> Self {
         Self {
             count: count.try_into().unwrap(),
-            ..
-            self
+            ..self
         }
     }
-
 
     pub fn title(self, title: impl AsRef<str>) -> Self {
         Self {
@@ -373,21 +362,20 @@ impl ItemStackBuilder {
                 repair_cost: None,
                 enchantments: Vec::new(),
             }),
-            ..
-            self
+            ..self
         }
-    } 
+    }
 
     pub fn damage(mut self, damage: u32) -> Self {
         let mut meta = self.meta.unwrap_or(ItemStackMeta::new(self.item));
         meta.damage = Some(damage);
-        
+
         self.meta = Some(meta);
         self
     }
 
     /// If damage is some, then its value is applied, else this is a no-op.
-    pub fn apply_damage(self, damage: Option<u32>) ->  Self {
+    pub fn apply_damage(self, damage: Option<u32>) -> Self {
         match damage {
             Some(damage) => self.damage(damage),
             None => self,
@@ -397,10 +385,7 @@ impl ItemStackBuilder {
     pub fn same_meta_as(mut self, other: &Self) -> Self {
         self.meta = other.meta.clone();
         self
-    } 
-
-    
-
+    }
 }
 
 impl From<ItemStackBuilder> for ItemStack {
@@ -411,4 +396,4 @@ impl From<ItemStackBuilder> for ItemStack {
             meta: it.meta,
         }
     }
-} 
+}

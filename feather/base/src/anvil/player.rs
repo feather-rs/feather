@@ -252,7 +252,10 @@ mod tests {
             };
             assert_eq!(slot.convert_index().unwrap(), expected);
             assert_eq!(
-                InventorySlot::from_network_index(expected, ItemStack::new(Item::Stone, 1).unwrap()),
+                InventorySlot::from_network_index(
+                    expected,
+                    ItemStack::new(Item::Stone, 1).unwrap()
+                ),
                 Some(slot),
             );
         }
