@@ -1,4 +1,4 @@
-use std::mem;
+use std::{mem, num::NonZeroU32};
 
 use anyhow::{anyhow, bail};
 use base::{Area, Item, ItemStack, ItemStackBuilder};
@@ -376,20 +376,24 @@ impl PaintState {
             Mouse::Right => {
                 for slot in self.slots {
                     let mut item = window.inner.item(slot)?;
+                    println!("{:?}", cursor_item);
 
-                    let item = match item.as_mut() {
-                        Some(item) => item,
+                    match item.as_mut() {
+                        Some(item) => {
+                            cursor_item.transfer_to(1, item).unwrap();
+                        },
                         None => {
+                            println!("{:?}", slot);
                             println!("{:?}", cursor_item.remove(1));
                             println!("{:?}", cursor_item);
                             println!("{:?}", cursor_item.remove(0).unwrap());
                             //cursor_item.remove(1).unwrap();
                             //let new_item_stack = cursor_item.get_item();
+                            let new_item = ItemStack::new(cursor_item.item(), 1).unwrap();
                             //new_item_stack.set_count(1).unwrap(); // Safe
                             //cursor_item.remove(1).unwrap(); // This is unsafe, but i dont know what to do.
-                            item = Some(cursor_item.get_item());
+                            *item = Some(new_item);
                         }
-                        cursor_item.transfer_to(1, item);
                     }
                 }
             }
