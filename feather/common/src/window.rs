@@ -1,7 +1,7 @@
 use std::mem;
 
 use anyhow::{anyhow, bail};
-use base::{Area, Item, ItemStack, ItemStackBuilder};
+use base::{Area, Item, ItemStack};
 
 use ecs::SysResult;
 pub use libcraft_inventory::Window as BackingWindow;
