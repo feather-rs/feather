@@ -332,8 +332,8 @@ impl PaintState {
 
         match self.mouse {
             Mouse::Left => {
-                let amount = cursor_item.count / self.slots.len() as u32;
-                let mut remainder = cursor_item.count % self.slots.len() as u32;
+                let amount = cursor_item.count() / self.slots.len() as u32;
+                let mut remainder = cursor_item.count() % self.slots.len() as u32;
 
                 for slot in self.slots {
                     if window.inner.item(slot)?.is_some() {
@@ -347,6 +347,7 @@ impl PaintState {
                         remainder -= amount;
                         amount
                     };
+
                     window
                         .inner
                         .set_item(slot, Some(cursor_item.take(amount)))?;
@@ -391,7 +392,7 @@ mod tests {
         window.left_click(0).unwrap();
         assert_eq!(window.cursor_item, None);
 
-        let stack = ItemStack::new(Item::Diamond, 32);
+        let stack = ItemStack::new(Item::Diamond, 32).unwrap();
         window.set_item(0, Some(stack.clone())).unwrap();
         window.left_click(0).unwrap();
 
@@ -407,7 +408,7 @@ mod tests {
     fn window_left_click_same_item() {
         let mut window = window();
 
-        let item = ItemStack::new(Item::AcaciaSlab, 32);
+        let item = ItemStack::new(Item::AcaciaSlab, 32).unwrap();
         window.set_item(0, Some(item.clone())).unwrap();
         window.left_click(0).unwrap();
 
@@ -417,46 +418,46 @@ mod tests {
         assert_eq!(window.cursor_item, None);
         assert_eq!(
             window.item(1).unwrap().as_ref(),
-            Some(&ItemStack::new(Item::AcaciaSlab, 64))
+            Some(&ItemStack::new(Item::AcaciaSlab, 64).unwrap())
         );
     }
 
     #[test]
     fn window_right_click_pick_up_half() {
         let mut window = window();
-        let stack = ItemStack::new(Item::GlassPane, 17);
+        let stack = ItemStack::new(Item::GlassPane, 17).unwrap();
         window.set_item(0, Some(stack)).unwrap();
 
         window.right_click(0).unwrap();
-        assert_eq!(window.cursor_item, Some(ItemStack::new(Item::GlassPane, 9)));
+        assert_eq!(window.cursor_item, Some(ItemStack::new(Item::GlassPane, 9).unwrap()));
         assert_eq!(
             window.item(0).unwrap().as_ref(),
-            Some(&ItemStack::new(Item::GlassPane, 8))
+            Some(&ItemStack::new(Item::GlassPane, 8).unwrap())
         );
     }
 
     #[test]
     fn window_right_click_drop_one_item() {
         let mut window = window();
-        let stack = ItemStack::new(Item::GlassPane, 17);
+        let stack = ItemStack::new(Item::GlassPane, 17).unwrap();
         window.cursor_item = Some(stack);
 
         window.right_click(1).unwrap();
         assert_eq!(
             window.cursor_item,
-            Some(ItemStack::new(Item::GlassPane, 16))
+            Some(ItemStack::new(Item::GlassPane, 16).unwrap())
         );
         assert_eq!(
             window.item(1).unwrap().as_ref(),
-            Some(&ItemStack::new(Item::GlassPane, 1))
+            Some(&ItemStack::new(Item::GlassPane, 1).unwrap())
         );
     }
 
     #[test]
     fn window_right_click_swap() {
         let mut window = window();
-        let stack1 = ItemStack::new(Item::GlassPane, 17);
-        let stack2 = ItemStack::new(Item::Diamond, 2);
+        let stack1 = ItemStack::new(Item::GlassPane, 17).unwrap();
+        let stack2 = ItemStack::new(Item::Diamond, 2).unwrap();
         window.cursor_item = Some(stack1.clone());
         window.set_item(0, Some(stack2.clone())).unwrap();
 
@@ -469,9 +470,9 @@ mod tests {
     fn window_shift_click_full_hotbar() {
         let inventory = Inventory::player();
         for i in 0..9 {
-            *inventory.item(Area::Hotbar, i).unwrap() = Some(ItemStack::new(Item::EnderPearl, 1));
+            *inventory.item(Area::Hotbar, i).unwrap() = Some(ItemStack::new(Item::EnderPearl, 1).unwrap());
         }
-        *inventory.item(Area::Storage, 0).unwrap() = Some(ItemStack::new(Item::AcaciaSign, 1));
+        *inventory.item(Area::Storage, 0).unwrap() = Some(ItemStack::new(Item::AcaciaSign, 1).unwrap());
         let mut window = Window::new(BackingWindow::Player {
             player: inventory.new_handle(),
         });
@@ -482,15 +483,15 @@ mod tests {
         window.shift_click(index).unwrap();
         assert_eq!(
             window.item(index).unwrap().as_ref(),
-            Some(&ItemStack::new(Item::AcaciaSign, 1))
+            Some(&ItemStack::new(Item::AcaciaSign, 1).unwrap())
         );
     }
 
     #[test]
     fn window_shift_click_available_item_in_hotbar() {
         let inventory = Inventory::player();
-        *inventory.item(Area::Hotbar, 3).unwrap() = Some(ItemStack::new(Item::Stone, 4));
-        *inventory.item(Area::Storage, 3).unwrap() = Some(ItemStack::new(Item::Stone, 7));
+        *inventory.item(Area::Hotbar, 3).unwrap() = Some(ItemStack::new(Item::Stone, 4).unwrap());
+        *inventory.item(Area::Storage, 3).unwrap() = Some(ItemStack::new(Item::Stone, 7).unwrap());
         let mut window = Window::new(BackingWindow::Player {
             player: inventory.new_handle(),
         });
@@ -507,7 +508,7 @@ mod tests {
             .unwrap();
         assert_eq!(
             window.item(hotbar_index).unwrap().as_ref(),
-            Some(&ItemStack::new(Item::Stone, 11))
+            Some(&ItemStack::new(Item::Stone, 11).unwrap())
         );
         assert!(window.item(index).unwrap().is_none());
     }
@@ -515,7 +516,7 @@ mod tests {
     #[test]
     fn window_shift_click_empty_hotbar() {
         let inventory = Inventory::player();
-        *inventory.item(Area::Storage, 3).unwrap() = Some(ItemStack::new(Item::Stone, 7));
+        *inventory.item(Area::Storage, 3).unwrap() = Some(ItemStack::new(Item::Stone, 7).unwrap());
         let mut window = Window::new(BackingWindow::Player {
             player: inventory.new_handle(),
         });
@@ -531,7 +532,7 @@ mod tests {
             .unwrap();
         assert_eq!(
             window.item(hotbar_index).unwrap().as_ref(),
-            Some(&ItemStack::new(Item::Stone, 7))
+            Some(&ItemStack::new(Item::Stone, 7).unwrap())
         );
         assert!(window.item(storage_index).unwrap().is_none());
     }
@@ -540,7 +541,7 @@ mod tests {
     fn left_mouse_paint() {
         let mut window = window();
         window
-            .set_item(0, Some(ItemStack::new(Item::Stone, 64)))
+            .set_item(0, Some(ItemStack::new(Item::Stone, 64).unwrap()))
             .unwrap();
         window.left_click(0).unwrap();
 
@@ -553,20 +554,20 @@ mod tests {
         for &slot in &[0, 1, 5] {
             assert_eq!(
                 window.item(slot).unwrap().as_ref(),
-                Some(&ItemStack::new(Item::Stone, 21))
+                Some(&ItemStack::new(Item::Stone, 21).unwrap())
             );
         }
-        assert_eq!(window.cursor_item, Some(ItemStack::new(Item::Stone, 1)));
+        assert_eq!(window.cursor_item, Some(ItemStack::new(Item::Stone, 1).unwrap()));
     }
 
     #[test]
     fn right_mouse_paint() {
         let mut window = window();
         window
-            .set_item(0, Some(ItemStack::new(Item::Stone, 64)))
+            .set_item(0, Some(ItemStack::new(Item::Stone, 64).unwrap()))
             .unwrap();
         window
-            .set_item(4, Some(ItemStack::new(Item::Stone, 3)))
+            .set_item(4, Some(ItemStack::new(Item::Stone, 3).unwrap()))
             .unwrap();
         window.left_click(0).unwrap();
 
@@ -577,13 +578,13 @@ mod tests {
 
         assert_eq!(
             window.item(4).unwrap().as_ref(),
-            Some(&ItemStack::new(Item::Stone, 4))
+            Some(&ItemStack::new(Item::Stone, 4).unwrap())
         );
         assert_eq!(
             window.item(5).unwrap().as_ref(),
-            Some(&ItemStack::new(Item::Stone, 1))
+            Some(&ItemStack::new(Item::Stone, 1).unwrap())
         );
-        assert_eq!(window.cursor_item, Some(ItemStack::new(Item::Stone, 62)));
+        assert_eq!(window.cursor_item, Some(ItemStack::new(Item::Stone, 62).unwrap()));
     }
 
     fn window() -> Window {

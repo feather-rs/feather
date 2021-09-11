@@ -205,7 +205,7 @@ mod tests {
         let item_stack: ItemStack = slot.into();
         assert_eq!(item_stack.item(), Item::DiamondAxe);
         assert_eq!(item_stack.count(), 1);
-        assert_eq!(item_stack.get_damage(), Some(42));
+        assert_eq!(item_stack.damage_taken(), Some(42));
     }
 
     #[test]
@@ -252,7 +252,7 @@ mod tests {
             };
             assert_eq!(slot.convert_index().unwrap(), expected);
             assert_eq!(
-                InventorySlot::from_network_index(expected, ItemStack::new(Item::Stone, 1)),
+                InventorySlot::from_network_index(expected, ItemStack::new(Item::Stone, 1).unwrap()),
                 Some(slot),
             );
         }

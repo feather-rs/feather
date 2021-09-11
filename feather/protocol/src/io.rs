@@ -4,20 +4,12 @@ use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
 use base::{
     anvil::entity::ItemNbt, metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata,
-    Gamemode, Item, ItemStack,
+    Gamemode, Item, ItemStack, ItemStackBuilder,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
 use serde::{de::DeserializeOwned, Serialize};
-use std::{
-    borrow::Cow,
-    collections::BTreeMap,
-    convert::{TryFrom, TryInto},
-    io::{self, Cursor, Read, Write},
-    iter,
-    marker::PhantomData,
-    num::TryFromIntError,
-};
+use std::{borrow::Cow, collections::BTreeMap, convert::{TryFrom, TryInto}, io::{self, Cursor, Read, Write}, iter, marker::PhantomData, num::{NonZeroU32, TryFromIntError}};
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -553,11 +545,19 @@ impl Readable for Slot {
             let item = Item::from_id(item_id.try_into()?)
                 .ok_or_else(|| anyhow!("unknown item ID {}", item_id))?;
 
-            Ok(Some(ItemStack {
-                item,
-                count,
-                damage: tags.map(|t| t.damage).flatten().map(|d| d as u32),
-            }))
+            // Todo fix: Panics if count is zero
+            Ok(Some(
+                ItemStackBuilder::
+                    with_item(item)
+                    .count(count)
+                    .apply_damage(tags.map(|t| t.damage).flatten().map(|d| d as u32)).into()
+                ))
+            //     ItemStack {
+            //     item,
+            //     count,
+            //     damage: tags.map(|t| t.damage).flatten().map(|d| d as u32),
+            // }
+            
         } else {
             Ok(None)
         }
@@ -569,9 +569,9 @@ impl Writeable for Slot {
         self.is_some().write(buffer, version)?;
 
         if let Some(stack) = self {
-            VarInt(stack.item.id() as i32).write(buffer, version)?;
-            (stack.count as u8).write(buffer, version)?;
-
+            VarInt(stack.item().id() as i32).write(buffer, version)?;
+            (stack.count() as u8).write(buffer, version)?;
+            
             let tags: ItemNbt = stack.into();
             if tags != ItemNbt::default() {
                 dbg!();

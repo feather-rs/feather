@@ -201,6 +201,7 @@ impl ItemStack {
         self.split((self.count.get() + 1) / 2).unwrap()
     }
 
+
     /// Splits this `ItemStack` by removing the
     /// specified amount. Returns the taken part.
     pub fn split(
@@ -308,13 +309,25 @@ impl Display for ItemStackError {
 
 impl Error for ItemStackError {}
 
+impl ItemStackMeta {
+
+    pub fn new(item: Item) -> Self {
+        Self {
+            title: item.name().to_owned(),
+            lore: "".to_owned(),
+            damage: None,
+            repair_cost: None,
+            enchantments: vec![],
+        }
+    }
+}
 
 pub struct ItemStackBuilder {
     item: Item,
     count: NonZeroU32,
     meta: Option<ItemStackMeta>,
 }
-
+// Todo: implement all 
 impl ItemStackBuilder {
 
     pub fn new() -> Self {
@@ -353,17 +366,44 @@ impl ItemStackBuilder {
 
     pub fn title(self, title: impl AsRef<str>) -> Self {
         Self {
-            meta: ItemStackMeta {
-                title: "".to_owned(),
+            meta: Some(ItemStackMeta {
+                title: title.as_ref().to_owned(),
                 lore: "".to_owned(),
                 damage: None,
                 repair_cost: None,
                 enchantments: Vec::new(),
-            },
+            }),
             ..
             self
         }
     } 
 
+    pub fn damage(mut self, damage: u32) -> Self {
+        let mut meta = self.meta.unwrap_or(ItemStackMeta::new(self.item));
+        meta.damage = Some(damage);
+        
+        self.meta = Some(meta);
+        self
+    }
+
+    /// If damage is some, then its value is applied, else this is a no-op.
+    pub fn apply_damage(self, damage: Option<u32>) ->  Self {
+        match damage {
+            Some(damage) => self.damage(damage),
+            None => self,
+        }
+    }
+
+    
+
 }
 
+impl From<ItemStackBuilder> for ItemStack {
+    fn from(it: ItemStackBuilder) -> Self {
+        Self {
+            item: it.item,
+            count: it.count,
+            meta: it.meta,
+        }
+    }
+} 

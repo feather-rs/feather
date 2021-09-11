@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 
 use arrayvec::ArrayVec;
-use libcraft_items::{Item,ItemStack, ItemStackMeta};
+use libcraft_items::{Item,ItemStack, ItemStackMeta, ItemStackBuilder};
 use serde::ser::Error;
 use serde::{Deserialize, Serialize, Serializer};
 use thiserror::Error;
@@ -238,18 +238,27 @@ pub struct ItemNbt {
 
 impl ItemNbt {
     /// Create an `ItemStack` of the specified item and amount, setting any nbt present.
+    /// Panics if count is zero.
     pub fn item_stack(nbt: &Option<Self>, item: Item, count: u8) -> ItemStack {
-        ItemStack {
-            item,
-            count: (count as u32).try_into().unwrap(),
-            meta: Some(ItemStackMeta {
-                title: item.display_name().to_owned(),
-                lore: String::new(),
-                damage : nbt.as_ref().and_then(|item_nbt| item_nbt.damage.map(|x| x as u32) ),
-                repair_cost: None,
-                enchantments: vec![],
-            }),
+
+        match nbt {
+            Some(ItemNbt{damage: Some(damage)}) => {
+                ItemStackBuilder::
+                    with_item(item)
+                    .count(count as u32)
+                    .damage(damage.clone().try_into().unwrap())
+                    .into()
+            },
+
+            Some(ItemNbt{damage: None}) | None=> {
+                ItemStackBuilder::
+                    with_item(item)
+                    .count(count as u32)
+                    .into()
+            },
         }
+
+        
     }
 }
 

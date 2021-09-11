@@ -24,7 +24,7 @@ pub use libcraft_inventory::{Area, Inventory};
 pub use libcraft_blocks::{BlockKind, BlockState};
 pub use libcraft_core::{position, vec3, BlockPosition, ChunkPosition, Gamemode, Position, Vec3d, Biome, EntityKind};
 pub use libcraft_particles::{Particle, ParticleKind};
-pub use libcraft_items::{Item, ItemStack};
+pub use libcraft_items::{Item, ItemStack, ItemStackBuilder};
 pub use libcraft_text::{deserialize_text, Text, Title};
 #[doc(inline)]
 pub use metadata::EntityMetadata;

@@ -1,7 +1,7 @@
 mod inventory;
 
 use parking_lot::{Mutex, MutexGuard};
-use std::sync::Arc;
+use std::{error::Error, sync::Arc};
 
 pub use inventory::{Window, Area, InventoryBacking};
 
@@ -79,6 +79,8 @@ impl std::fmt::Display for WindowError {
         }   
     }
 }
+
+impl Error for WindowError {}
 
 impl Window {
     /// Gets the item at the provided protocol index.
