@@ -44,7 +44,7 @@ impl Window {
         match (slot_item.as_mut(), self.cursor_item.as_mut()) {
             (Some(slot_item), Some(cursor_item)) => {
                 if cursor_item.has_same_type(slot_item) {
-                    slot_item.merge_with(cursor_item);
+                    slot_item.merge_with(cursor_item).unwrap();
                 } else {
                     mem::swap(slot_item, cursor_item);
                 }
@@ -71,17 +71,17 @@ impl Window {
         match (slot_item.as_mut(), self.cursor_item.as_mut()) {
             (Some(slot_item), Some(cursor_item)) => {
                 if slot_item.has_same_type(cursor_item) {
-                    cursor_item.transfer_to(1, slot_item);
+                    cursor_item.transfer_to(1, slot_item).unwrap();
                 } else {
                     mem::swap(slot_item, cursor_item);
                 }
             }
             (Some(slot_item), None) => {
-                let (left, right) = slot_item.split_half();
+                let (_left, _right) = slot_item.split_half();
                 //Some(slot_item.take_half())
                 todo!()
             }
-            (None, Some(cursor_item)) => {
+            (None, Some(_cursor_item)) => {
                 //*slot_item = Some(cursor_item.take(1)),
                 todo!()
             }
@@ -123,7 +123,7 @@ impl Window {
             while let Some(mut stack) = inventory.item(area, i) {
                 if let Some(stack) = stack.as_mut() {
                     if stack.has_same_type(slot_item) {
-                        slot_item.transfer_to(u32::MAX, stack);
+                        slot_item.transfer_to(u32::MAX, stack).unwrap();
                     }
                 }
                 i += 1;
@@ -134,9 +134,9 @@ impl Window {
             while let Some(mut stack) = inventory.item(area, i) {
                 if stack.is_none() {
                     let mut new_stack = slot_item.clone();
-                    new_stack.set_count(1);
-                    slot_item.transfer_to(u32::MAX, &mut new_stack);
-                    new_stack.remove(1);
+                    new_stack.set_count(1).unwrap();
+                    slot_item.transfer_to(u32::MAX, &mut new_stack).unwrap();
+                    new_stack.remove(1).unwrap();
 
                     *stack = Some(new_stack);
                     break;
@@ -361,7 +361,7 @@ impl PaintState {
                     };
 
                     let mut taken_items = cursor_item.clone();
-                    taken_items.set_count(amount);
+                    taken_items.set_count(amount).unwrap();
                     cursor_item.remove(amount)?;
 
                     window.inner.set_item(slot, Some(taken_items))?;
@@ -377,7 +377,7 @@ impl PaintState {
 
                     match item.as_mut() {
                         Some(item) => {
-                            cursor_item.transfer_to(1, item);
+                            cursor_item.transfer_to(1, item).unwrap();
                         }
                         None => {
                             cursor_item.remove(1).unwrap();
