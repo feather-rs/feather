@@ -2,10 +2,10 @@ use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
 use base::{BlockId, BlockPosition, ChunkPosition, Position, Text, Title};
 use ecs::{
-    Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult,
-    SystemExecutor,
+    Ecs, Entity, EntityBuilder, EntityRef, HasEcs, HasResources, NoSuchEntity, Resources,
+    SysResult, SystemExecutor,
 };
-use quill_common::{entities::Player, entity_init::EntityInit};
+use quill_common::{components::Health, entities::Player, entity_init::EntityInit};
 
 use crate::{
     chat::{ChatKind, ChatMessage},
@@ -228,6 +228,13 @@ impl Game {
     /// necessary block updates.
     pub fn break_block(&mut self, pos: BlockPosition) -> bool {
         self.set_block(pos, BlockId::air())
+    }
+
+    pub fn reset_player(&self, player: EntityRef) {
+        match player.get_mut::<Health>() {
+            Ok(mut health) => *health = Health::new(20),
+            Err(_) => (),
+        }
     }
 }
 
