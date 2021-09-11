@@ -8,10 +8,27 @@ pub fn register(_: &mut Game, systems: &mut SystemExecutor<Game>) {
 }
 
 fn update_health(game: &mut Game, server: &mut Server) -> SysResult {
-    for (_, (client_id, health)) in game.ecs.query::<(&ClientId, &mut Health)>().iter() {
-        if let Some(client) = server.clients.get(*client_id) {
-            client.update_health(&health);
+    let mut entities = Vec::new();
+
+    for (entity, health) in game.ecs.query::<&Health>().iter() {
+        match game.ecs.get::<ClientId>(entity) {
+            // Entity is player
+            Ok(client_id) => {
+                if let Some(client) = server.clients.get(*client_id) {
+                    client.update_health(&health);
+                }
+            }
+            Err(_) => {
+                if health.health == 0 {
+                    entities.push(entity);
+                }
+            }
         }
+    }
+
+    // Destroy all entities with 0 health (that are not players).
+    for entity in entities {
+        game.remove_entity(entity)?;
     }
 
     Ok(())
