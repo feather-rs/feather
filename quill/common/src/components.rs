@@ -143,9 +143,12 @@ impl Health {
         self.health = self.health.saturating_sub(damage);
     }
 
-    /// TODO
-    pub fn regenerate() {
-        todo!()
+    /// Increase the health to at most `max_health` of `Health`.
+    pub fn regenerate(&mut self, health: u32) {
+        self.health = match self.health + health {
+            health if health > self.max_health => self.max_health,
+            health => health,
+        }
     }
 }
 
