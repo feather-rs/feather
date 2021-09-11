@@ -1,7 +1,7 @@
 use std::mem;
 
 use anyhow::{anyhow, bail};
-use base::{Area, Item, ItemStack};
+use base::{Area, Item, ItemStack, ItemStackBuilder};
 
 use ecs::SysResult;
 pub use libcraft_inventory::Window as BackingWindow;
@@ -76,8 +76,15 @@ impl Window {
                     mem::swap(slot_item, cursor_item);
                 }
             }
-            (Some(slot_item), None) => self.cursor_item = Some(slot_item.take_half()),
-            (None, Some(cursor_item)) => *slot_item = Some(cursor_item.take(1)),
+            (Some(slot_item), None) => {
+                let (left, right) = slot_item.split_half();
+                //Some(slot_item.take_half())
+                todo!()
+            },
+            (None, Some(cursor_item)) => {
+                //*slot_item = Some(cursor_item.take(1)),
+                todo!()
+            }
             (None, None) => (),
         }
 
@@ -126,7 +133,12 @@ impl Window {
             i = 0;
             while let Some(mut stack) = inventory.item(area, i) {
                 if stack.is_none() {
-                    *stack = Some(slot_item.take(u32::MAX));
+                    let mut new_stack = slot_item.clone();
+                    new_stack.set_count(1);
+                    slot_item.transfer_to(u32::MAX, &mut new_stack);
+                    new_stack.remove(1);
+                    
+                    *stack = Some(new_stack);
                     break;
                 }
                 i += 1;
@@ -348,22 +360,34 @@ impl PaintState {
                         amount
                     };
 
-                    window
-                        .inner
-                        .set_item(slot, Some(cursor_item.take(amount)))?;
+
+                    let mut taken_items = &mut cursor_item.clone();
+                    taken_items.set_count(amount);
+                    cursor_item.remove(amount)?;
+
+                    window.inner.set_item(slot, Some(*taken_items))?;
+
+                    // window
+                    //     .inner
+                    //     .set_item(slot, Some(cursor_item.take(amount)))?;
                 }
             }
             Mouse::Right => {
                 for slot in self.slots {
                     let mut item = window.inner.item(slot)?;
-                    let item = match item.as_mut() {
-                        Some(item) => item,
+
+                    match item.as_mut() {
+                        Some(item) => {
+                            cursor_item.transfer_to(1,item);
+                        },
                         None => {
-                            *item = Some(cursor_item.take(0));
-                            item.as_mut().unwrap()
+                            cursor_item.remove(1);
+                            let new_item_stack = &mut cursor_item.clone();
+                            new_item_stack.set_count(1).unwrap(); // Safe
+                            cursor_item.remove(1).unwrap(); // This is unsafe, but i dont know what to do.
+                            *item = Some(*new_item_stack);
                         }
-                    };
-                    cursor_item.transfer_to(1, &mut *item);
+                    }
                 }
             }
         }

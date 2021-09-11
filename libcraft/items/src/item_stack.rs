@@ -394,6 +394,11 @@ impl ItemStackBuilder {
         }
     }
 
+    pub fn same_meta_as(mut self, other: &Self) -> Self {
+        self.meta = other.meta.clone();
+        self
+    } 
+
     
 
 }

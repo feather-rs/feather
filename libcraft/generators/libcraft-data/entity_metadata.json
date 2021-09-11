@@ -1,0 +1,347 @@
+{
+    "entity": {
+        "fields": {
+            "bitmask": {
+                "type": "u8",
+                "default": 0
+            },
+            "air_ticks": {
+                "type": "VarInt",
+                "default": 300
+            },
+            "custom_name": {
+                "type": "OptChat",
+                "default": ""
+            },
+            "is_custom_name_visible": {
+                "type": "bool",
+                "default": false
+            },
+            "is_silent": {
+                "type": "bool",
+                "default": false
+            },
+            "is_gravity_disabled": {
+                "type": "bool",
+                "default": false
+            },
+            "pose": {
+                "type": "Pose",
+                "default": "Pose::Standing"
+            }
+        }
+    },
+    "thrown_egg": {
+        "extends": "entity",
+        "fields": {
+            "item": {
+                "type": "Slot",
+                "default": "None"
+            }
+        }
+    },
+    "thrown_ender_pearl": {
+        "extends": "entity",
+        "fields": {
+            "item": {
+                "type": "Slot",
+                "default": "None"
+            }
+        }
+    },
+    "thrown_experience_bottle": {
+        "extends": "entity",
+        "fields": {
+            "item": {
+                "type": "Slot",
+                "default": "None"
+            }
+        }
+    },
+    "thrown_potion": {
+        "extends": "entity",
+        "fields": {
+            "item": {
+                "type": "Slot",
+                "default": "None"
+            }
+        }
+    },
+    "snowball": {
+        "extends": "entity",
+        "fields": {
+            "item": {
+                "type": "Slot",
+                "default": "None"
+            }
+        }
+    },
+    "eye_of_ender": {
+        "extends": "entity",
+        "fields": {
+            "item": {
+                "type": "Slot",
+                "default": "None"
+            }
+        }
+    },
+    "falling_block": {
+        "extends": "entity",
+        "fields": {
+            "spawn_position": {
+                "type": "BlockPosition",
+                "default": "BlockPosition::new(0, 0, 0)"
+            }
+        }
+    },
+    "area_effect_cloud": {
+        "extends": "enity",
+        "fields": {
+            "radius": {
+                "type": "f32",
+                "default": 0.5
+            },
+            "color": {
+                "type": "VarInt",
+                "default": 0
+            },
+            "is_single_point": {
+                "type": "bool",
+                "default": false
+            },
+            "particle": {
+                "type": "Particle",
+                "default": "Particle::Effect"
+            }
+        }
+    },
+    "fishing_hook": {
+        "extends": "entity",
+        "fields": {
+            "hooked_entity_id": {
+                "type": "VarInt",
+                "default": 0
+            }
+        }
+    },
+    "abstract_arrow": {
+        "extends": "entity",
+        "fields": {
+            "bitmask": {
+                "type": "u8",
+                "default": 0
+            },
+            "owner": {
+                "type": "OptUuid",
+                "default": "None"
+            },
+            "piercing_level": {
+                "type": "u8",
+                "default": 0
+            }
+        }
+    },
+    "arrow": {
+        "extends": "abstract_arrow",
+        "fields": {
+            "color": {
+                "type": "VarInt",
+                "default": -1
+            }
+        }
+    },
+    "spectral_arrow": {
+        "extends": "abstract_arrow"
+    },
+    "thrown_trident": {
+        "extends": "abstract_arrow",
+        "fields": {
+            "loyalty_level": {
+                "type": "VarInt",
+                "default": 0
+            },
+            "has_enchantment_glint": {
+                "type": "bool",
+                "default": false
+            }
+        }
+    },
+    "boat": {
+        "extends": "entity",
+        "fields": {
+            "time_since_last_hit": {
+                "type": "VarInt",
+                "default": 0
+            },
+            "forward_direction": {
+                "type": "VarInt",
+                "default": 1
+            },
+            "damage_taken": {
+                "type": "f32",
+                "default": 0.0
+            },
+            "wood_kind": {
+                "type": "WoodKind",
+                "default": "WoodKind::Oak"
+            },
+            "is_left_paddle_turning": {
+                "type": "bool",
+                "default": false
+            },
+            "is_right_paddle_turning": {
+                "type": "bool",
+                "default": false
+            },
+            "splash_timer": {
+                "type": "VarInt",
+                "default": 0
+            }
+        }
+    },
+    "end_crystal": {
+        "extends": "entity",
+        "fields": {
+            "beam_target": {
+                "type": "Option<BlockPosition>",
+                "default": "None"
+            },
+            "show_bottom": {
+                "type": "bool",
+                "default": true
+            }
+        }
+    },
+    "dragon_fireball": {
+        "extends": "entity"
+    },
+    "small_fireball": {
+        "extends": "entity",
+        "fields": {
+            "item": {
+                "type": "Slot",
+                "default": "None"
+            }
+        }
+    },
+    "fireball": {
+        "extends": "entity",
+        "fields": {
+            "item": {
+                "type": "Slot",
+                "default": "None"
+            }
+        }
+    },
+    "wither_skull": {
+        "extends": "entity",
+        "fields": {
+            "is_invulnerable": {
+                "type": "bool",
+                "default": false
+            }
+        }
+    },
+    "firework_rocket": {
+        "extends": "entity",
+        "fields": {
+            "firework": {
+                "type": "Slot",
+                "default": "None"
+            },
+            "user_entity_id": {
+                "type": "Option<VarInt>",
+                "default": "None"
+            },
+            "is_shot_at_angle": {
+                "type": "bool",
+                "default": false
+            }
+        }
+    },
+    "item_frame": {
+        "extends": "entity",
+        "fields": {
+            "item": {
+                "type": "Slot",
+                "default": "None"
+            },
+            "rotation": {
+                "type": "VarInt",
+                "default": 0
+            }
+        }
+    },
+    "item": {
+        "extends": "entity",
+        "fields": {
+            "item": {
+                "type": "Slot",
+                "default": "None"
+            }
+        }
+    },
+    "living_entity": {
+        "extends": "entity",
+        "fields": {
+            "hand_states": {
+                "type": "u8",
+                "default": 0
+            },
+            "health": {
+                "type": "f32",
+                "default": 1.0
+            },
+            "potion_effect_color": {
+                "type": "VarInt",
+                "default": 0
+            },
+            "is_potion_effect_ambient": {
+                "type": "bool",
+                "default": false
+            },
+            "arrows_stuck": {
+                "type": "VarInt",
+                "default": 0
+            },
+            "absorption_health": {
+                "type": "VarInt",
+                "default": 0
+            },
+            "bed_sleeping_in": {
+                "type": "Option<BlockPosition>",
+                "default": "None"
+            }
+        }
+    },
+    "player": {
+        "extends": "living_entity",
+        "fields": {
+            "additional_hearts": {
+                "type": "f32",
+                "default": 0.0
+            },
+            "score": {
+                "type": "VarInt",
+                "default": 0
+            },
+            "displayed_skin_parts": {
+                "type": "u8",
+                "default": 0
+            },
+            "main_hand": {
+                "type": "Hand",
+                "default": "Hand::Right"
+            },
+            "left_shoulder_parrot": {
+                "type": "Nbt",
+                "default": "Nbt::new(())"
+            },
+            "right_shoulder_parrot": {
+                "type": "Nbt",
+                "default": "Nbt::new(())"
+            }
+        }
+    }
+}
+
