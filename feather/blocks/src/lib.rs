@@ -94,7 +94,6 @@ impl BlockId {
         VANILLA_ID_TABLE[self.kind as u16 as usize][self.state as usize]
     }
 
-    /*
     /// Returns the vanilla fluid ID for this block in case it is a fluid.
     /// The fluid ID is used in the Tags packet.
     pub fn vanilla_fluid_id(self) -> Option<u16> {
@@ -112,7 +111,6 @@ impl BlockId {
             None
         }
     }
-    */
 
     /// Returns the block corresponding to the given vanilla ID.
     ///

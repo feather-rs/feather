@@ -51,6 +51,7 @@ uuid = "0.8"
 vec-arena = "1"
 libcraft-core = { path = "../../libcraft/core" }
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
+datapacks = { path = "../datapacks", package = "feather-datapacks" }
 
 [features]
 default = [ "plugin-cranelift" ]
