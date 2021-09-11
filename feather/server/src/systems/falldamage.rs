@@ -26,7 +26,7 @@ fn calculate_falldamage(game: &mut Game, _: &mut Server) -> SysResult {
             false => {
                 let new_distance = prev_position.0.y - position.y;
 
-                fall_distance.0 += new_distance.abs();
+                fall_distance.0 += new_distance;
             }
             // Apply fall damage.
             true => {
