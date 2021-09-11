@@ -231,9 +231,8 @@ impl Game {
     }
 
     pub fn reset_player(&self, player: EntityRef) {
-        match player.get_mut::<Health>() {
-            Ok(mut health) => *health = Health::new(20),
-            Err(_) => (),
+        if let Ok(mut health) = player.get_mut::<Health>() {
+            *health = Health::new(20);
         }
     }
 }
