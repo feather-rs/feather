@@ -4,7 +4,7 @@ use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
 use base::{
     anvil::entity::ItemNbt, metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata,
-    Gamemode, Item, ItemStack, ItemStackBuilder,
+    Gamemode, Item, ItemStackBuilder,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -16,7 +16,7 @@ use std::{
     io::{self, Cursor, Read, Write},
     iter,
     marker::PhantomData,
-    num::{NonZeroU32, TryFromIntError},
+    num::TryFromIntError,
 };
 use thiserror::Error;
 use uuid::Uuid;

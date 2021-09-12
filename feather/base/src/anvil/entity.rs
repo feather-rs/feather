@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 
 use arrayvec::ArrayVec;
-use libcraft_items::{Item, ItemStack, ItemStackBuilder, ItemStackMeta};
+use libcraft_items::{Item, ItemStack, ItemStackBuilder};
 use serde::ser::Error;
 use serde::{Deserialize, Serialize, Serializer};
 use thiserror::Error;
