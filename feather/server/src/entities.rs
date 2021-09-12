@@ -59,7 +59,6 @@ fn spawn_living_entity(entity: &EntityRef, client: &Client) -> SysResult {
     Ok(())
 }
 
-/// Increasing distance of an entity falling. Used to calculate
-/// fall damage for entities with health.
+/// Distance fallen since an entity was on ground.
 #[derive(Copy, Clone, Debug)]
 pub struct FallDistance(pub f64);

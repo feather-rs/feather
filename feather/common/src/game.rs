@@ -230,6 +230,7 @@ impl Game {
         self.set_block(pos, BlockId::air())
     }
 
+    /// Reset the players state, preparing it for respawn.
     pub fn reset_player(&self, player: EntityRef) -> SysResult {
         let mut health = player.get_mut::<Health>()?;
         *health = Health::new(20);

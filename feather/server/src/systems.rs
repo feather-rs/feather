@@ -35,7 +35,7 @@ pub fn register(server: Server, game: &mut Game, systems: &mut SystemExecutor<Ga
     tablist::register(systems);
     block::register(systems);
 
-    // Falldamage must be processed before PreviousPosition is updated (entity).
+    // Falldamage must be processed before PreviousPosition is updated (entity system).
     falldamage::register(game, systems);
     entity::register(game, systems);
     chat::register(game, systems);
