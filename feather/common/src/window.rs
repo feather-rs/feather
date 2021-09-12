@@ -1,11 +1,7 @@
 use std::{mem, num::NonZeroU32};
 
 use anyhow::{anyhow, bail};
-<<<<<<< HEAD
 use base::{Area, Item, ItemStack, ItemStackBuilder, ItemStackError};
-=======
-use base::{Area, Item, ItemStack};
->>>>>>> a6971fdcae0162049e4d99bd9a5793e190c8382b
 
 use ecs::SysResult;
 pub use libcraft_inventory::Window as BackingWindow;
@@ -46,17 +42,10 @@ impl Window {
         // * Either the cursor slot or the clicked slot is empty; swap the two.
         // * Both slots are present but are of different types; swap the two.
         // * Both slots are present and have the same type; merge the two.
-<<<<<<< HEAD
         match (slot_item, self.cursor_item) {
             (Filled(slot_item), Filled(cursor_item)) => {
                 if cursor_item.has_same_type(&slot_item) {
                     slot_item.merge_with(&mut cursor_item).unwrap();
-=======
-        match (slot_item.as_mut(), self.cursor_item.as_mut()) {
-            (Some(slot_item), Some(cursor_item)) => {
-                if cursor_item.has_same_type(slot_item) {
-                    slot_item.merge_with(cursor_item).unwrap();
->>>>>>> a6971fdcae0162049e4d99bd9a5793e190c8382b
                 } else {
                     mem::swap(&mut slot_item, &mut cursor_item);
                 }
@@ -79,25 +68,17 @@ impl Window {
         // * Cursor slot is present and clicked slot has the same item type; drop one item in the clicked slot.
         // * Clicked slot is present but cursor slot is not; move half the items into the cursor slot.
         // * Both slots are present but differ in type; swap the two.
-<<<<<<< HEAD
         match (slot_item, self.cursor_item) {
             (Filled(slot_item), Filled(cursor_item)) => {
                 if slot_item.has_same_type(&cursor_item) {
                     if let Err(e) = cursor_item.transfer_to(1, &mut slot_item) {
                         self.cursor_item = None;
                     }
-=======
-        match (slot_item.as_mut(), self.cursor_item.as_mut()) {
-            (Some(slot_item), Some(cursor_item)) => {
-                if slot_item.has_same_type(cursor_item) {
-                    cursor_item.transfer_to(1, slot_item).unwrap();
->>>>>>> a6971fdcae0162049e4d99bd9a5793e190c8382b
                 } else {
                     mem::swap(slot_item, cursor_item);
                 }
             }
             (Some(slot_item), None) => {
-<<<<<<< HEAD
                 let (_, right) = slot_item.take_half();
                 self.cursor_item = Some(right);
             }
@@ -108,15 +89,6 @@ impl Window {
                 if let Err(_) = cursor_item.remove(1) {
                     self.cursor_item = None;
                 };
-=======
-                let (_left, _right) = slot_item.split_half();
-                //Some(slot_item.take_half())
-                todo!()
-            }
-            (None, Some(_cursor_item)) => {
-                //*slot_item = Some(cursor_item.take(1)),
-                todo!()
->>>>>>> a6971fdcae0162049e4d99bd9a5793e190c8382b
             }
             (None, None) => (),
         }
@@ -385,19 +357,12 @@ impl PaintState {
 
         let items_cursor = window.cursor_item().unwrap().count();
 
-<<<<<<< HEAD
         // This can't be zero because items_cursor is the count of an ItemStack and ItemStack is NonZeroU32.
         let items_per_slot =  (items_cursor / slots).max(1);
-=======
-                    let mut taken_items = cursor_item.clone();
-                    taken_items.set_count(amount).unwrap();
-                    cursor_item.remove(amount)?;
->>>>>>> a6971fdcae0162049e4d99bd9a5793e190c8382b
 
         self.move_items_into_slots(window, items_per_slot);
     }
 
-<<<<<<< HEAD
     /// `items_per_slot` has to be NonZero.
     fn move_items_into_slots(&self, window: &mut Window, items_per_slot: u32) {
         debug_assert!(items_per_slot > 0);
@@ -410,32 +375,10 @@ impl PaintState {
                 Some(slot) => {
                     if slot.item() == window.cursor_item().unwrap().item() {
                         window.cursor_item = window.cursor_item().unwrap().drain_into_bounded(items_per_slot, slot).unwrap();
-=======
-                    // window
-                    //     .inner
-                    //     .set_item(slot, Some(cursor_item.take(amount)))?;
-                }
-            }
-            Mouse::Right => {
-                for slot in self.slots {
-                    let mut item = window.inner.item(slot)?;
-
-                    match item.as_mut() {
-                        Some(item) => {
-                            cursor_item.transfer_to(1, item).unwrap();
-                        }
-                        None => {
-                            cursor_item.remove(1).unwrap();
-                            let mut new_item_stack = cursor_item.clone();
-                            new_item_stack.set_count(1).unwrap(); // Safe
-                            cursor_item.remove(1).unwrap(); // This is unsafe, but i dont know what to do.
-                            *item = Some(new_item_stack);
-                        }
->>>>>>> a6971fdcae0162049e4d99bd9a5793e190c8382b
                     }
                 },
                 None => {
-                    let mut new_slot_stack = window.cursor_item.take(items_per_slot.min(window.cursor_item.));
+                    let mut new_slot_stack = window.cursor_item.take(items_per_slot.min(window.cursor_item.count()));
                     new_slot_stack.set_count(1).unwrap();
                     // new_slot_stack will always increase by one or more even if cursor_item ends up becoming none.
                     window.cursor_item = window.cursor_item().unwrap().drain_into_bounded(items_per_slot, &mut new_slot_stack).unwrap();
