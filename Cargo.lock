@@ -819,6 +819,7 @@ dependencies = [
  "itertools 0.10.0",
  "libcraft-core",
  "libcraft-inventory",
+ "libcraft-items",
  "log",
  "parking_lot",
  "quill-common",

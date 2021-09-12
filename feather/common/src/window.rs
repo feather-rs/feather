@@ -1,11 +1,12 @@
 use std::{mem, num::NonZeroU32};
 
 use anyhow::{anyhow, bail};
-use base::{Area, Item, ItemStack, ItemStackBuilder};
+use base::{Area, Item, ItemStack, ItemStackBuilder, ItemStackError};
 
 use ecs::SysResult;
 pub use libcraft_inventory::Window as BackingWindow;
-use libcraft_inventory::WindowError;
+use libcraft_inventory::{WindowError};
+use libcraft_items::InventorySlot::{self, Filled, Empty};
 use parking_lot::MutexGuard;
 
 /// A player's window. Wraps one or more inventories and handles
@@ -18,7 +19,7 @@ pub struct Window {
     /// The backing window (contains the `Inventory`s)
     inner: BackingWindow,
     /// The item currently held by the player's cursor.
-    cursor_item: Option<ItemStack>,
+    cursor_item: InventorySlot,
     /// Current painting state (mouse drag)
     paint_state: Option<PaintState>,
 }
@@ -28,70 +29,71 @@ impl Window {
     pub fn new(inner: BackingWindow) -> Self {
         Self {
             inner,
-            cursor_item: None,
+            cursor_item: Empty,
             paint_state: None,
         }
     }
 
     /// Left-click a slot in the window.
     pub fn left_click(&mut self, slot: usize) -> SysResult {
-        let mut slot_item = self.inner.item(slot)?;
+        let mut slot_item = *self.inner.item(slot)?;
 
         // Cases:
         // * Either the cursor slot or the clicked slot is empty; swap the two.
         // * Both slots are present but are of different types; swap the two.
         // * Both slots are present and have the same type; merge the two.
-        match (slot_item.as_mut(), self.cursor_item.as_mut()) {
-            (Some(slot_item), Some(cursor_item)) => {
-                if cursor_item.has_same_type(slot_item) {
-                    slot_item.merge_with(cursor_item).unwrap();
+        match (slot_item, self.cursor_item) {
+            (Filled(slot_item), Filled(cursor_item)) => {
+                if cursor_item.has_same_type(&slot_item) {
+                    slot_item.merge_with(&mut cursor_item).unwrap();
                 } else {
-                    mem::swap(slot_item, cursor_item);
+                    mem::swap(&mut slot_item, &mut cursor_item);
                 }
             }
-            (Some(_), None) => self.cursor_item = slot_item.take(),
-            (None, Some(_)) => *slot_item = self.cursor_item.take(),
-            (None, None) => (),
+            (Filled(_), Empty) => self.cursor_item = slot_item.take_all(),
+            (Empty, Filled(_)) => slot_item = self.cursor_item.take_all(),
+            (Empty, Empty) => (),
         }
 
         drop(slot_item);
-        self.refresh();
 
         Ok(())
     }
 
     /// Right-clicks a slot in the window.
     pub fn right_click(&mut self, slot: usize) -> SysResult {
-        let mut slot_item = self.inner.item(slot)?;
+        let mut slot_item = *self.inner.item(slot)?;
 
         // Cases:
         // * Cursor slot is present and clicked slot has the same item type; drop one item in the clicked slot.
         // * Clicked slot is present but cursor slot is not; move half the items into the cursor slot.
         // * Both slots are present but differ in type; swap the two.
-        match (slot_item.as_mut(), self.cursor_item.as_mut()) {
-            (Some(slot_item), Some(cursor_item)) => {
-                if slot_item.has_same_type(cursor_item) {
-                    cursor_item.transfer_to(1, slot_item).unwrap();
+        match (slot_item, self.cursor_item) {
+            (Filled(slot_item), Filled(cursor_item)) => {
+                if slot_item.has_same_type(&cursor_item) {
+                    if let Err(e) = cursor_item.transfer_to(1, &mut slot_item) {
+                        self.cursor_item = None;
+                    }
                 } else {
                     mem::swap(slot_item, cursor_item);
                 }
             }
             (Some(slot_item), None) => {
-                let (left, _) = slot_item.split_half();
-                self.cursor_item = left;
-
-                //Some(slot_item.take_half())
-                //todo!()
+                let (_, right) = slot_item.take_half();
+                self.cursor_item = Some(right);
             }
             (None, Some(cursor_item)) => {
-                //*slot_item = Some(cursor_item.take(1)),
-                todo!()
+                let new_slot_stack = cursor_item.clone();
+                new_slot_stack.set_count(1).unwrap();
+                *slot_item = Some(new_slot_stack);
+                if let Err(_) = cursor_item.remove(1) {
+                    self.cursor_item = None;
+                };
             }
             (None, None) => (),
         }
 
         drop(slot_item);
-        self.refresh();
 
         Ok(())
     }
@@ -188,24 +190,6 @@ impl Window {
     /// Gets the item currently held in the cursor.
     pub fn cursor_item(&self) -> Option<ItemStack> {
         self.cursor_item.clone()
-    }
-
-    /// Refreshes items by fixing item stacks with count=0.
-    fn refresh(&mut self) {
-        Self::refresh_item(&mut self.cursor_item);
-        let mut i = 0;
-        while let Ok(mut slot) = self.inner.item(i) {
-            Self::refresh_item(&mut *slot);
-            i += 1;
-        }
-    }
-
-    fn refresh_item(item: &mut Option<ItemStack>) {
-        if let Some(inner) = item {
-            if inner.count() == 0 {
-                *item = None;
-            }
-        }
     }
 
     pub fn item(&self, index: usize) -> Result<MutexGuard<Option<ItemStack>>, WindowError> {
@@ -339,68 +323,74 @@ impl PaintState {
     }
 
     pub fn finish(self, window: &mut Window) -> SysResult {
-        let cursor_item = match &mut window.cursor_item {
-            Some(item) => item,
+        let mut cursor_item = match &window.cursor_item {
+            Some(item) => Some(item),
             None => bail!("cannot paint without cursor item"),
         };
 
         match self.mouse {
-            Mouse::Left => {
-                let amount = cursor_item.count() / self.slots.len() as u32;
-                let mut remainder = cursor_item.count() % self.slots.len() as u32;
+            Mouse::Left => self.handle_left_drag(window),
+            Mouse::Right => self.handle_right_drag(window),
+        }
+        Ok(())
+    }
 
-                for slot in self.slots {
-                    if window.inner.item(slot)?.is_some() {
-                        bail!("attempted to overwrite item");
-                    }
-
-                    let amount = if amount > 0 {
-                        amount
-                    } else {
-                        let amount = 1.min(remainder);
-                        remainder -= amount;
-                        amount
-                    };
-
-                    let mut taken_items = cursor_item.clone();
-                    taken_items.set_count(amount);
-                    cursor_item.remove(amount)?;
-
-                    window.inner.set_item(slot, Some(taken_items))?;
-
-                    // window
-                    //     .inner
-                    //     .set_item(slot, Some(cursor_item.take(amount)))?;
-                }
+    /**
+        Splits cursor items evenly into every selected slot.
+        Remainder of even split ends up in `window.cursor_item`.
+    */
+    fn handle_left_drag(&self, window: &mut Window) {
+        // Number of slots that can contain cursors item kind.
+        let slots = self.slots.iter().filter(|s| {
+            // unwrap is safe because index is valid.
+            match *window.inner.item(**s).unwrap() {
+                InventorySlot::Filled(item_stack) => {
+                    item_stack.has_same_type(&window.cursor_item().unwrap())
+                },
+                Empty => true,
             }
-            Mouse::Right => {
-                for slot in self.slots {
-                    let mut item = window.inner.item(slot)?;
-                    println!("{:?}", cursor_item);
+        }).count() as u32;
+        
+        // If slots is 0 that means there are no slots to put items into.
+        // So the cursor keeps all the items.
+        if slots == 0 {return};
 
-                    match item.as_mut() {
-                        Some(item) => {
-                            cursor_item.transfer_to(1, item).unwrap();
-                        },
-                        None => {
-                            println!("{:?}", slot);
-                            println!("{:?}", cursor_item.remove(1));
-                            println!("{:?}", cursor_item);
-                            println!("{:?}", cursor_item.remove(0).unwrap());
-                            //cursor_item.remove(1).unwrap();
-                            //let new_item_stack = cursor_item.get_item();
-                            let new_item = ItemStack::new(cursor_item.item(), 1).unwrap();
-                            //new_item_stack.set_count(1).unwrap(); // Safe
-                            //cursor_item.remove(1).unwrap(); // This is unsafe, but i dont know what to do.
-                            *item = Some(new_item);
-                        }
+        let items_cursor = window.cursor_item().unwrap().count();
+
+        // This can't be zero because items_cursor is the count of an ItemStack and ItemStack is NonZeroU32.
+        let items_per_slot =  (items_cursor / slots).max(1);
+
+        self.move_items_into_slots(window, items_per_slot);
+    }
+
+    /// `items_per_slot` has to be NonZero.
+    fn move_items_into_slots(&self, window: &mut Window, items_per_slot: u32) {
+        debug_assert!(items_per_slot > 0);
+        for slot_index in &self.slots {
+            if window.cursor_item().is_none() {
+                // We exit because we've exhausted cursor_item.
+                break
+            };
+            match &mut *window.inner.item(*slot_index).unwrap() {
+                Some(slot) => {
+                    if slot.item() == window.cursor_item().unwrap().item() {
+                        window.cursor_item = window.cursor_item().unwrap().drain_into_bounded(items_per_slot, slot).unwrap();
                     }
-                }
+                },
+                None => {
+                    let mut new_slot_stack = window.cursor_item.take(items_per_slot.min(window.cursor_item.));
+                    new_slot_stack.set_count(1).unwrap();
+                    // new_slot_stack will always increase by one or more even if cursor_item ends up becoming none.
+                    window.cursor_item = window.cursor_item().unwrap().drain_into_bounded(items_per_slot, &mut new_slot_stack).unwrap();
+                    new_slot_stack.remove(1).unwrap();
+                    window.inner.set_item(*slot_index, Some(new_slot_stack)).unwrap();
+                },
             }
         }
+    }
 
-        window.refresh();
-        Ok(())
+    fn handle_right_drag(&self, window: &mut Window) {
+
     }
 }
 
@@ -603,7 +593,7 @@ mod tests {
     fn right_mouse_paint() {
         let mut window = window();
         window
-            .set_item(0, Some(ItemStack::new(Item::Stone, 64).unwrap()))
+            .set_item(0, Some(ItemStack::new(Item::Stone, 2).unwrap()))
             .unwrap();
         window
             .set_item(4, Some(ItemStack::new(Item::Stone, 3).unwrap()))
@@ -625,7 +615,7 @@ mod tests {
         );
         assert_eq!(
             window.cursor_item,
-            Some(ItemStack::new(Item::Stone, 62).unwrap())
+            Some(ItemStack::new(Item::Stone, 1).unwrap())
         );
     }
 

@@ -205,23 +205,16 @@ impl ItemStack {
     /// removed half. If the amount is odd, `self`
     /// will be left with the least items. Returns the taken
     /// half.
-    pub fn split_half(&mut self) -> (Option<ItemStack>, ItemStack) {
-        self.split((self.count.get() + 1) / 2).unwrap()
+    pub fn take_half(self) -> (Option<ItemStack>, ItemStack) {
+        let half = (self.count.get() + 1) / 2;
+        self.take(NonZeroU32::new(half).unwrap())
     }
 
     /// Splits this `ItemStack` by removing the
     /// specified amount. Returns the taken part.
-    pub fn split(
-        &mut self,
-        amount: u32,
-    ) -> Result<(Option<ItemStack>, ItemStack), (ItemStack, ItemStackError)> {
-        let amount = NonZeroU32::new(amount);
-        if amount.is_none() {
-            return Err((self.clone(), ItemStackError::EmptyStack));
-        }
-        let amount = amount.unwrap();
+    pub fn take(mut self, amount: NonZeroU32,) -> (Option<ItemStack>, ItemStack) {
         if self.count < amount {
-            return Err((self.clone(), ItemStackError::NotEnoughAmount));
+            return (None, self);
         }
         let count_left: u32 = self.count.get() - amount.get();
         let taken = ItemStack {
@@ -229,14 +222,7 @@ impl ItemStack {
             ..self.clone()
         };
         self.count = NonZeroU32::new(count_left).unwrap();
-        Ok((
-            if count_left == 0 {
-                None
-            } else {
-                Some(self.clone())
-            },
-            taken,
-        ))
+        (Some(self), taken)
     }
 
     /// Merges another `ItemStack` with this one.
@@ -265,9 +251,31 @@ impl ItemStack {
         if other.count.get() + transfer > i32::MAX as u32 {
             return Err(ItemStackError::ClientOverflow);
         }
-        self.count = NonZeroU32::new(transfer).unwrap();
+
+        self.count = NonZeroU32::new(self.count.get() - transfer).unwrap();
         other.count = NonZeroU32::new(other.count.get() + transfer).unwrap();
         Ok(())
+    }
+
+    pub fn drain_into_bounded(mut self, n: u32, other: &mut Self) -> Result<Option<Self>, ItemStackError> {
+        if !self.has_same_type(other) {
+            return Err(ItemStackError::IncompatibleStacks);
+        }
+
+        // Stack size is the same for both self and other because they are the same type.
+        let stack_size = self.item.stack_size();
+        let space_in_other = stack_size - other.count();
+        let items_in_self = self.count();
+        let moving_items = space_in_other.min(n).min(items_in_self);
+
+        other.set_count(moving_items + other.count()).unwrap();
+        
+        if self.count() - moving_items == 0 {
+            Ok(None)
+        } else {
+            self.set_count(moving_items - items_in_self).unwrap();
+            Ok(Some(self))
+        }
     }
 
     /// Damages the item by the specified amount.

@@ -5,9 +5,9 @@ use std::{error::Error, sync::Arc};
 
 pub use inventory::{Area, InventoryBacking, Window};
 
-use libcraft_items::ItemStack;
+use libcraft_items::{InventorySlot, ItemStack};
 
-type Slot = Mutex<Option<ItemStack>>;
+type Slot = Mutex<InventorySlot>;
 
 /// A handle to an inventory.
 ///
@@ -38,20 +38,9 @@ impl Inventory {
     /// # Note
     /// _Never_ keep two returned `MutexGuard`s for the same inventory alive
     /// at once. Deadlocks are not fun.
-    pub fn item(&self, area: Area, slot: usize) -> Option<MutexGuard<Option<ItemStack>>> {
+    pub fn item(&self, area: Area, slot: usize) -> Option<MutexGuard<InventorySlot>> {
         let slice = self.backing.area_slice(area)?;
         slice.get(slot).map(Mutex::lock)
-    }
-
-    /// Gets all the items in this inventory.
-    pub fn to_vec(&self) -> Vec<Option<ItemStack>> {
-        let mut vec = Vec::new();
-        for area in self.backing.areas() {
-            for item in self.backing.area_slice(*area).unwrap() {
-                vec.push(item.lock().clone());
-            }
-        }
-        vec
     }
 
     /// Creates a new handle to the same inventory.
@@ -83,7 +72,7 @@ impl Error for WindowError {}
 impl Window {
     /// Gets the item at the provided protocol index.
     /// Returns an error if index is invalid.
-    pub fn item(&self, index: usize) -> Result<MutexGuard<Option<ItemStack>>, WindowError> {
+    pub fn item(&self, index: usize) -> Result<MutexGuard<InventorySlot>, WindowError> {
         let (inventory, area, slot) = self
             .index_to_slot(index)
             .ok_or(WindowError::OutOfBounds(index))?;
@@ -94,19 +83,8 @@ impl Window {
 
     /// Sets the item at the provided protocol index.
     /// Returns an error if the index is invalid.
-    pub fn set_item(&self, index: usize, item: Option<ItemStack>) -> Result<(), WindowError> {
+    pub fn set_item(&self, index: usize, item: InventorySlot) -> Result<(), WindowError> {
         *self.item(index)? = item;
         Ok(())
-    }
-
-    /// Gets a vector of all items in this window.
-    pub fn to_vec(&self) -> Vec<Option<ItemStack>> {
-        let mut i = 0;
-        let mut vec = Vec::new();
-        while let Ok(item) = self.item(i) {
-            vec.push(item.clone());
-            i += 1;
-        }
-        vec
     }
 }
