@@ -15,7 +15,7 @@ fn update_health(game: &mut Game, server: &mut Server) -> SysResult {
             // Entity is player
             Ok(client_id) => {
                 if let Some(client) = server.clients.get(*client_id) {
-                    client.update_health(&health);
+                    client.update_health(health);
                 }
             }
             Err(_) => {
