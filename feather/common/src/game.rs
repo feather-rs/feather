@@ -230,10 +230,10 @@ impl Game {
         self.set_block(pos, BlockId::air())
     }
 
-    pub fn reset_player(&self, player: EntityRef) {
-        if let Ok(mut health) = player.get_mut::<Health>() {
-            *health = Health::new(20);
-        }
+    pub fn reset_player(&self, player: EntityRef) -> SysResult {
+        let mut health = player.get_mut::<Health>()?;
+        *health = Health::new(20);
+        Ok(())
     }
 }
 
