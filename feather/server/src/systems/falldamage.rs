@@ -2,7 +2,7 @@ use crate::{
     entities::{FallDistance, PreviousPosition},
     Game, Server,
 };
-use base::Position;
+use base::{Gamemode, Position};
 use ecs::{SysResult, SystemExecutor};
 use quill_common::components::{Health, OnGround};
 
@@ -11,7 +11,7 @@ pub fn register(_: &mut Game, systems: &mut SystemExecutor<Game>) {
 }
 
 fn calculate_falldamage(game: &mut Game, _: &mut Server) -> SysResult {
-    for (_, (position, prev_position, on_ground, fall_distance, health)) in game
+    for (entity, (position, prev_position, on_ground, fall_distance, health)) in game
         .ecs
         .query::<(
             &Position,
@@ -22,9 +22,17 @@ fn calculate_falldamage(game: &mut Game, _: &mut Server) -> SysResult {
         )>()
         .iter()
     {
+        // Only calculate fall damage for players that are Survival/Adventure mode.
+        if let Ok(gamemode) = game.ecs.get::<Gamemode>(entity) {
+            if *gamemode != Gamemode::Survival && *gamemode != Gamemode::Adventure {
+                continue;
+            }
+        }
+
         match on_ground.0 {
             false => {
-                let new_distance = prev_position.0.y - position.y;
+                // Prevent negative fall damage to accumulate while flying upwards/jumping.
+                let new_distance = f64::max(0.0, prev_position.0.y - position.y);
 
                 fall_distance.0 += new_distance;
             }
