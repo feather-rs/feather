@@ -31,10 +31,13 @@ fn calculate_falldamage(game: &mut Game, _: &mut Server) -> SysResult {
 
         match on_ground.0 {
             false => {
-                // Prevent negative fall damage to accumulate while flying upwards/jumping.
-                let new_distance = f64::max(0.0, prev_position.0.y - position.y);
+                let new_distance = prev_position.0.y - position.y;
 
-                fall_distance.0 += new_distance;
+                match new_distance < 0.0 {
+                    // Reset fall distance when the player moves upwards.
+                    true => fall_distance.0 = 0.0,
+                    false => fall_distance.0 += new_distance,
+                }
             }
             // Apply fall damage.
             true => {
