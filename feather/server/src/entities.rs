@@ -1,6 +1,6 @@
 use base::{EntityKind, Position};
 use ecs::{EntityBuilder, EntityRef, SysResult};
-use quill_common::entity_init::EntityInit;
+use quill_common::{components::Health, entity_init::EntityInit};
 use uuid::Uuid;
 
 use crate::{Client, NetworkId};
@@ -25,8 +25,13 @@ pub fn add_entity_components(builder: &mut EntityBuilder, init: &EntityInit) {
     if !builder.has::<NetworkId>() {
         builder.add(NetworkId::new());
     }
+
+    // Track fall damage for the entities with `Health`.
+    if builder.has::<Health>() {
+        builder.add(FallDistance(0.0));
+    }
+
     builder.add(PreviousPosition(*builder.get::<Position>().unwrap()));
-    builder.add(FallDistance(0.0));
     add_spawn_packet(builder, init);
 }
 
