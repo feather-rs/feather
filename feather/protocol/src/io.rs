@@ -20,6 +20,7 @@ use std::{
 };
 use thiserror::Error;
 use uuid::Uuid;
+use libcraft_items::InventorySlot::*;
 
 /// Trait implemented for types which can be read
 /// from a buffer.
@@ -554,7 +555,7 @@ impl Readable for Slot {
                 .ok_or_else(|| anyhow!("unknown item ID {}", item_id))?;
 
             // Todo fix: Panics if count is zero
-            Ok(Some(
+            Ok(Filled(
                 ItemStackBuilder::with_item(item)
                     .count(count)
                     .apply_damage(tags.map(|t| t.damage).flatten().map(|d| d as u32))
@@ -566,16 +567,16 @@ impl Readable for Slot {
             //     damage: tags.map(|t| t.damage).flatten().map(|d| d as u32),
             // }
         } else {
-            Ok(None)
+            Ok(Empty)
         }
     }
 }
 
 impl Writeable for Slot {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
-        self.is_some().write(buffer, version)?;
+        self.is_filled().write(buffer, version)?;
 
-        if let Some(stack) = self {
+        if let Filled(stack) = self {
             VarInt(stack.item().id() as i32).write(buffer, version)?;
             (stack.count() as u8).write(buffer, version)?;
 

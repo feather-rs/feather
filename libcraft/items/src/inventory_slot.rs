@@ -17,6 +17,15 @@ impl Default for InventorySlot {
     }
 }
 
+impl From<Option<ItemStack>> for InventorySlot {
+    fn from(it: Option<ItemStack>) -> Self {
+        match it {
+            Some(item) => InventorySlot::Filled(item),
+            None => InventorySlot::Empty,
+        }
+    }
+}
+
 impl InventorySlot {
     /// Tries to take all items from the `InventorySlot`.
     /// If the `InventorySlot` is filled returns the `ItemStack`.
@@ -53,14 +62,26 @@ impl InventorySlot {
 
     /// Transfers up to `n` items to `other`.
     pub fn transfer_to(&mut self, n: NonZeroU32, other: &mut Self) {
-        let taken = other.take(n);
-        match (self, other) {
+        let _taken = other.take(n);
+        match (&self, other) {
             (InventorySlot::Filled(us), InventorySlot::Filled(them)) if us.has_same_type(them) => {
-                them.add(self.take(n).count());
+                them.add(self.take(n).count()).unwrap();
             },
             _ => {
-                
+
             }
         }
+    }
+
+    /// Checks if the `InventorySlot` is empty
+    pub fn is_empty(&self) -> bool {
+        match self {
+            InventorySlot::Filled(_) => false,
+            InventorySlot::Empty => true,
+        }
+    }
+
+    pub fn is_filled(&self) -> bool {
+        !self.is_empty()
     }
 }

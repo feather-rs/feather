@@ -226,14 +226,13 @@ impl ItemStack {
     }
 
     /// Merges another `ItemStack` with this one.
-    pub fn merge_with(&mut self, other: &mut Self) -> Result<(), ItemStackError> {
-        if !self.has_same_type_and_damage(other) {
+    pub fn merge_with(&mut self, other: Self) -> Result<(), ItemStackError> {
+        if !self.has_same_type_and_damage(&other) {
             return Err(ItemStackError::IncompatibleStacks);
         }
         let new_count = (self.count.get() + other.count.get()).min(self.item.stack_size());
-        let amount_added = new_count - self.count.get();
         self.count = NonZeroU32::new(new_count).unwrap();
-        other.count = NonZeroU32::new(other.count() - amount_added).unwrap();
+        //other.count = NonZeroU32::new(other.count() - amount_added).unwrap();
         Ok(())
     }
 

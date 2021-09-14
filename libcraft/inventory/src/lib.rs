@@ -5,7 +5,7 @@ use std::{error::Error, sync::Arc};
 
 pub use inventory::{Area, InventoryBacking, Window};
 
-use libcraft_items::{InventorySlot, ItemStack};
+use libcraft_items::{InventorySlot};
 
 type Slot = Mutex<InventorySlot>;
 
@@ -86,5 +86,15 @@ impl Window {
     pub fn set_item(&self, index: usize, item: InventorySlot) -> Result<(), WindowError> {
         *self.item(index)? = item;
         Ok(())
+    }
+
+    pub fn to_vec(&self) -> Vec<InventorySlot> {
+        let mut i = 0;
+        let mut vec = Vec::new();
+        while let Ok(item) = self.item(i) {
+            vec.push(item.clone());
+            i += 1;
+        }
+        vec
     }
 }

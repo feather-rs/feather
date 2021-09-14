@@ -4,7 +4,7 @@
 
 use crate::{BlockPosition, Direction};
 use bitflags::bitflags;
-use libcraft_items::ItemStack;
+use libcraft_items::{InventorySlot};
 use std::collections::BTreeMap;
 use uuid::Uuid;
 
@@ -44,7 +44,7 @@ pub enum MetaEntry {
     String(String),
     Chat(String),
     OptChat(OptChat),
-    Slot(Option<ItemStack>),
+    Slot(InventorySlot),
     Boolean(bool),
     Rotation(f32, f32, f32),
     Position(BlockPosition),
@@ -119,7 +119,7 @@ impl ToMetaEntry for OptChat {
     }
 }
 
-impl ToMetaEntry for Option<ItemStack> {
+impl ToMetaEntry for InventorySlot {
     fn to_meta_entry(&self) -> MetaEntry {
         MetaEntry::Slot(self.clone())
     }
