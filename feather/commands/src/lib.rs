@@ -15,6 +15,7 @@ use ecs::{Ecs, Entity};
 use impls::*;
 
 mod arguments;
+mod entity_selector_format;
 mod impls;
 
 /// Dumb workaround for a certain lifetime issue.
@@ -153,11 +154,9 @@ impl CommandState {
         };
 
         match self.dispatcher.dispatch(&mut ctx, command) {
-            Ok(ok) => {
-                if let Some(msg) = ok {
-                    if let Ok(mut chat) = ctx.ecs.get_mut::<ChatBox>(sender) {
-                        chat.send_system(Text::from(msg));
-                    }
+            Ok(Some(msg)) => {
+                if let Ok(mut chat) = ctx.ecs.get_mut::<ChatBox>(sender) {
+                    chat.send_system(Text::from(msg));
                 }
             }
 
@@ -172,6 +171,7 @@ impl CommandState {
                     chat.send_system(msg);
                 }
             }
+            _ => (),
         }
     }
 }

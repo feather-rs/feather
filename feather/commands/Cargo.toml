@@ -14,6 +14,7 @@ rand = "0.7"
 vek = "0.10"
 uuid = { version = "0.8", features = ["v3"] }
 tokio = { version = "0.2", features = ["full"] }
+serde = { version = "1", features = [ "derive" ] }
 base = { path = "../base", package = "feather-base" }
 common = { path = "../common", package = "feather-common" }
 ecs = { path = "../ecs", package = "feather-ecs" }
