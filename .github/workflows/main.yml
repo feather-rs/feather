@@ -66,23 +66,36 @@ jobs:
           command: fmt
           args: --all -- --check
 
-      - name: Run cargo clippy
-        uses: actions-rs/cargo@v1
+      - name: Annotate commit with clippy warnings
+        uses: actions-rs/clippy-check@v1
         with:
-          command: clippy
-          args: -- -D warnings
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features
+
+      - name: Security audit
+        uses: actions-rs/audit-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-apple-darwin
-          - aarch64-apple-darwin
-          - x86_64-pc-windows-msvc
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            use-cross: true
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            use-cross: false
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            use-cross: false
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            cross: false
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -97,6 +110,6 @@ jobs:
       - name: Run cargo build
         uses: actions-rs/cargo@v1
         with:
-          use-cross: true
+          use-cross: ${{ matrix.use-cross }}
           command: build
           args: --target=${{ matrix.target }}
