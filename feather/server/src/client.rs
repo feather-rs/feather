@@ -8,13 +8,14 @@ use std::{
 use ahash::AHashSet;
 use base::{
     BlockId, BlockPosition, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode,
-    ItemStack, Position, ProfileProperty, Text,
+    Position, ProfileProperty, Text,
 };
 use common::{
     chat::{ChatKind, ChatMessage},
     Window,
 };
 use flume::{Receiver, Sender};
+use libcraft_items::InventorySlot;
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use protocol::{
     packets::{
@@ -482,7 +483,7 @@ impl Client {
         self.send_packet(packet);
     }
 
-    pub fn set_slot(&self, slot: i16, item: Option<ItemStack>) {
+    pub fn set_slot(&self, slot: i16, item: InventorySlot) {
         log::trace!("Setting slot {} of {} to {:?}", slot, self.username, item);
         self.send_packet(SetSlot {
             window_id: 0,
@@ -506,7 +507,7 @@ impl Client {
         })
     }
 
-    pub fn set_cursor_slot(&self, item: Option<ItemStack>) {
+    pub fn set_cursor_slot(&self, item: InventorySlot) {
         log::trace!("Setting cursor slot of {} to {:?}", self.username, item);
         self.set_slot(-1, item);
     }

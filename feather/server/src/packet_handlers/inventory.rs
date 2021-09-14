@@ -22,7 +22,7 @@ pub fn handle_creative_inventory_action(
 
         window
             .inner()
-            .set_item(packet.slot as usize, packet.clicked_item)?;
+            .set_item(packet.slot as usize, packet.clicked_item.into())?;
     }
 
     Ok(())
@@ -47,7 +47,7 @@ pub fn handle_click_window(
     if packet.slot >= 0 {
         client.set_slot(packet.slot, window.item(packet.slot as usize)?.clone());
     }
-    client.set_cursor_slot(window.cursor_item());
+    client.set_cursor_slot(window.cursor_item().clone());
 
     client.send_window_items(&*window);
 
@@ -80,6 +80,7 @@ fn _handle_click_window(player: &EntityRef, packet: &ClickWindow) -> SysResult {
 mod tests {
     use base::{Inventory, Item, ItemStack};
     use common::Game;
+    use libcraft_items::InventorySlot;
 
     use super::*;
 
@@ -91,7 +92,7 @@ mod tests {
 
         let packet = CreativeInventoryAction {
             slot: 10,
-            clicked_item: Some(ItemStack::new(Item::Diamond, 64).unwrap()),
+            clicked_item: InventorySlot::Filled(ItemStack::new(Item::Diamond, 64).unwrap()),
         };
         handle_creative_inventory_action(player, packet).unwrap_err();
 
@@ -101,7 +102,7 @@ mod tests {
             .unwrap()
             .item(10)
             .unwrap()
-            .is_none());
+            .is_empty());
     }
 
     #[test]
@@ -118,7 +119,7 @@ mod tests {
 
         let packet = CreativeInventoryAction {
             slot: 5,
-            clicked_item: Some(ItemStack::new(Item::Diamond, 64).unwrap()),
+            clicked_item: InventorySlot::Filled(ItemStack::new(Item::Diamond, 64).unwrap()),
         };
         handle_creative_inventory_action(player, packet).unwrap_err();
 
@@ -128,7 +129,7 @@ mod tests {
             .unwrap()
             .item(5)
             .unwrap()
-            .is_none());
+            .is_empty());
     }
 
     #[test]
@@ -139,7 +140,7 @@ mod tests {
 
         let packet = CreativeInventoryAction {
             slot: 5,
-            clicked_item: Some(ItemStack::new(Item::Diamond, 64).unwrap()),
+            clicked_item: InventorySlot::Filled(ItemStack::new(Item::Diamond, 64).unwrap()),
         };
         handle_creative_inventory_action(player, packet).unwrap();
 
@@ -150,7 +151,7 @@ mod tests {
                 .item(5)
                 .unwrap()
                 .clone(),
-            Some(ItemStack::new(Item::Diamond, 64).unwrap())
+            InventorySlot::Filled(ItemStack::new(Item::Diamond, 64).unwrap())
         );
     }
 

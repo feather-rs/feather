@@ -49,6 +49,7 @@ utils = { path = "../utils", package = "feather-utils" }
 uuid = "0.8"
 vec-arena = "1"
 libcraft-core = { path = "../../libcraft/core" }
+libcraft-items = { path = "../../libcraft/items" }
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
 
 [features]
