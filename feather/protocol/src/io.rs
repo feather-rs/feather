@@ -646,7 +646,7 @@ fn read_meta_entry(
         } else {
             None
         }),
-        13 => MetaEntry::OptBlockId( {
+        13 => MetaEntry::OptBlockId({
             let id = VarInt::read(buffer, version)?.0;
             if id == 0 {
                 None
@@ -747,7 +747,7 @@ fn write_meta_entry(
             VarInt(*villager_type).write(buffer, version)?;
             VarInt(*villager_profession).write(buffer, version)?;
             VarInt(*level).write(buffer, version)?;
-        },
+        }
         MetaEntry::OptVarInt(ox) => {
             if let Some(x) = ox {
                 true.write(buffer, version)?;
