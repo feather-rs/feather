@@ -7,13 +7,14 @@ use lieutenant::command;
 use smallvec::SmallVec;
 use thiserror::Error;
 
-use base::{Gamemode, Inventory, Item, Position, Text, TextComponentBuilder, TextValue};
-use common::ChatBox;
+use base::{Gamemode, Item, Position, Text, TextComponentBuilder, TextValue};
+use common::{ChatBox, Window};
 use ecs::{Ecs, Entity};
 use quill_common::components::{ClientId, Name};
 use quill_common::entities::Player;
-use quill_common::events::{GamemodeUpdateEvent, TimeUpdateEvent};
+use quill_common::events::{GamemodeUpdateEvent, InventoryUpdateEvent, TimeUpdateEvent};
 
+use crate::arguments::find_selected_entities;
 use crate::{
     arguments::{
         Coordinates, EntitySelector, ItemArgument, ParsedGamemode, PositiveI32Argument,
@@ -32,7 +33,8 @@ pub enum TpError {
 
 #[command(usage = "tp|teleport <destination>")]
 pub fn tp_1(ctx: &mut CommandCtx, destination: EntitySelector) -> anyhow::Result<Option<String>> {
-    if let Some(first) = destination.entities.first() {
+    let entities = find_selected_entities(ctx, &destination.requirements)?;
+    if let Some(first) = entities.first() {
         if let Ok(pos) = ctx.ecs.get::<Position>(*first).map(|r| *r) {
             teleport_entity_to_pos(&ctx.ecs, ctx.sender, pos);
         }
@@ -67,20 +69,18 @@ pub fn tp_3(
     targets: EntitySelector,
     location: Coordinates,
 ) -> anyhow::Result<Option<String>> {
-    if targets.entities.is_empty() {
+    let entities = find_selected_entities(ctx, &targets.requirements)?;
+    if entities.is_empty() {
         Err(TpError::NoMatchingEntities.into())
     } else {
-        for entity in &targets.entities {
+        for entity in &entities {
             teleport_entity(&ctx.ecs, *entity, location);
         }
 
-        let position = ctx
-            .ecs
-            .get::<Position>(*targets.entities.first().unwrap())
-            .unwrap();
+        let position = ctx.ecs.get::<Position>(*entities.first().unwrap()).unwrap();
         Ok(Some(format!(
             "Teleported {0} to {1}, {2}, {3}",
-            targets.entities_to_string(ctx, false),
+            targets.entities_to_string(ctx, &entities.into_vec(), false),
             position.x,
             position.y,
             position.z
@@ -94,23 +94,24 @@ pub fn tp_4(
     targets: EntitySelector,
     destination: EntitySelector,
 ) -> anyhow::Result<Option<String>> {
-    if destination.entities.len() > 1 {
+    let entities = find_selected_entities(ctx, &targets.requirements)?;
+    if entities.len() > 1 {
         Err(TpError::TooManyEntities.into())
-    } else if let Some(Ok(location)) = destination
-        .entities
+    } else if let Some(Ok(location)) = entities
         .first()
         .map(|e| ctx.ecs.get::<Position>(*e).map(|r| *r))
     {
-        if targets.entities.is_empty() {
+        if entities.is_empty() {
             Err(TpError::NoMatchingEntities.into())
         } else {
-            for entity in &targets.entities {
+            for entity in &entities {
                 teleport_entity_to_pos(&ctx.ecs, *entity, location);
             }
+            let entities = entities.into_vec();
             Ok(Some(format!(
                 "Teleported {0} to {1}",
-                targets.entities_to_string(ctx, false),
-                destination.entities_to_string(ctx, false)
+                targets.entities_to_string(ctx, &entities, false),
+                destination.entities_to_string(ctx, &entities, false)
             )))
         }
     } else {
@@ -151,16 +152,17 @@ pub fn gamemode_2(
     gamemode: ParsedGamemode,
     target: EntitySelector,
 ) -> anyhow::Result<Option<String>> {
-    for entity in &target.entities {
+    let entities = find_selected_entities(ctx, &target.requirements)?;
+    for entity in &entities {
         update_gamemode(ctx, gamemode.0, *entity)
     }
 
-    if target.entities.len() == 1 && *target.entities.first().unwrap() == ctx.sender {
+    if entities.len() == 1 && *entities.first().unwrap() == ctx.sender {
         return Ok(Some(format!("Set own gamemode to {:?} Mode", gamemode.0)));
     }
     Ok(Some(format!(
         "Changed gamemode of {} to {:?} Mode",
-        target.entities_to_string(ctx, false),
+        target.entities_to_string(ctx, &entities.into_vec(), false),
         gamemode.0
     )))
 }
@@ -190,6 +192,7 @@ pub fn whisper(
     target: EntitySelector,
     message: TextArgument,
 ) -> anyhow::Result<Option<String>> {
+    let entities = find_selected_entities(ctx, &target.requirements)?;
     let sender_name = if let Ok(sender_name) = ctx.ecs.get::<Name>(ctx.sender) {
         (**sender_name).to_owned()
     } else {
@@ -204,7 +207,7 @@ pub fn whisper(
     // Tracks if there needs to be "and" before the next player added to the response message
     let mut needs_and = false;
 
-    for entity in target.entities {
+    for entity in entities {
         if let Ok(mut chat) = ctx.ecs.get_mut::<ChatBox>(ctx.sender) {
             chat.send_system(
                 Text::from(format!(
@@ -311,13 +314,14 @@ fn kick_players(
     targets: &EntitySelector,
     reason: Text,
 ) -> anyhow::Result<Option<String>> {
-    for entity in &targets.entities {
+    let entities = find_selected_entities(ctx, &targets.requirements)?;
+    for entity in &entities {
         if ctx.ecs.get::<Player>(*entity).is_err() {
             return Err(KickError::NoEntities.into());
         }
     }
 
-    for entity in &targets.entities {
+    for entity in &entities {
         let name = (**ctx.ecs.get::<Name>(*entity).unwrap()).to_owned();
         let _client_id = ctx.ecs.get::<ClientId>(*entity).unwrap();
 
@@ -373,7 +377,7 @@ pub fn clear_1(ctx: &mut CommandCtx) -> anyhow::Result<Option<String>> {
         // Go through the player's inventory and set all the slots to no items.
         // Also, keep track of how many items we delete.
         let mut count = 0;
-        clear_items(ctx, ctx.sender, None, i32::MAX, &mut count);
+        clear_items(ctx, ctx.sender, None, i32::MAX, &mut count)?;
         // If count is zero, the player's inventory was empty and the command fails
         // "No items were found on player {0}."
         if count == 0 {
@@ -394,27 +398,31 @@ pub fn clear_1(ctx: &mut CommandCtx) -> anyhow::Result<Option<String>> {
 
 #[command(usage = "clear <targets>")]
 pub fn clear_2(ctx: &mut CommandCtx, targets: EntitySelector) -> anyhow::Result<Option<String>> {
+    let entities = find_selected_entities(ctx, &targets.requirements)?;
     let mut players = true;
-    for entity in &targets.entities {
+    for entity in &entities {
         players &= ctx.ecs.get::<Player>(*entity).is_ok();
     }
     if players {
         let mut count = 0;
-        for entity in &targets.entities {
-            clear_items(ctx, *entity, None, i32::MAX, &mut count);
+        for entity in &entities {
+            clear_items(ctx, *entity, None, i32::MAX, &mut count)?;
         }
         // If count is zero, the everybody's inventory was empty and the command fails
         // "No items were found on {0} players."
         if count == 0 {
-            return Err(
-                ClearError::NoItemsMultiplayer(targets.entities_to_string(ctx, true)).into(),
-            );
+            return Err(ClearError::NoItemsMultiplayer(targets.entities_to_string(
+                ctx,
+                &entities.into_vec(),
+                true,
+            ))
+            .into());
         }
         // If the count is not zero, we return the count of items we deleted. Command succeeds.
         // "Removed {1} items from {0} players"
         Ok(Some(format!(
             "Removed {1} items from {0}",
-            targets.entities_to_string(ctx, true),
+            targets.entities_to_string(ctx, &entities.into_vec(), true),
             count
         )))
     } else {
@@ -428,27 +436,31 @@ pub fn clear_3(
     targets: EntitySelector,
     item: ItemArgument,
 ) -> anyhow::Result<Option<String>> {
+    let entities = find_selected_entities(ctx, &targets.requirements)?;
     let mut players = true;
-    for entity in &targets.entities {
+    for entity in &entities {
         players &= ctx.ecs.get::<Player>(*entity).is_ok();
     }
     if players {
         let mut count = 0;
-        for entity in &targets.entities {
-            clear_items(ctx, *entity, Some(item.0), i32::MAX, &mut count);
+        for entity in &entities {
+            clear_items(ctx, *entity, Some(item.0), i32::MAX, &mut count)?;
         }
         // If count is zero, the everybody's inventory was empty and the command fails
         // "No items were found on {0} players."
         if count == 0 {
-            return Err(
-                ClearError::NoItemsMultiplayer(targets.entities_to_string(ctx, true)).into(),
-            );
+            return Err(ClearError::NoItemsMultiplayer(targets.entities_to_string(
+                ctx,
+                &entities.into_vec(),
+                true,
+            ))
+            .into());
         }
         // If the count is not zero, we return the count of items we deleted. Command succeeds.
         // "Removed {1} items from {0} players"
         Ok(Some(format!(
             "Removed {1} items from {0}",
-            targets.entities_to_string(ctx, true),
+            targets.entities_to_string(ctx, &entities.into_vec(), true),
             count
         )))
     } else {
@@ -463,27 +475,31 @@ pub fn clear_4(
     item: ItemArgument,
     maxcount: PositiveI32Argument,
 ) -> anyhow::Result<Option<String>> {
+    let entities = find_selected_entities(ctx, &targets.requirements)?;
     let mut players = true;
-    for entity in &targets.entities {
+    for entity in &entities {
         players &= ctx.ecs.get::<Player>(*entity).is_ok();
     }
     if players {
         let mut count = 0;
-        for entity in &targets.entities {
-            clear_items(ctx, *entity, Some(item.0), maxcount.0, &mut count);
+        for entity in &entities {
+            clear_items(ctx, *entity, Some(item.0), maxcount.0, &mut count)?;
         }
         // If count is zero, the everybody's inventory was empty and the command fails
         // "No items were found on {0} players."
         if count == 0 {
-            return Err(
-                ClearError::NoItemsMultiplayer(targets.entities_to_string(ctx, true)).into(),
-            );
+            return Err(ClearError::NoItemsMultiplayer(targets.entities_to_string(
+                ctx,
+                &entities.into_vec(),
+                true,
+            ))
+            .into());
         }
         // If maxcount is 0, we report not that we removed items, only that we found them.
         if maxcount.0 == 0 {
             Ok(Some(format!(
                 "Found {1} matching items on {0}",
-                targets.entities_to_string(ctx, true),
+                targets.entities_to_string(ctx, &entities.into_vec(), true),
                 count
             )))
         } else {
@@ -491,7 +507,7 @@ pub fn clear_4(
             // "Removed {1} items from {0} players"
             Ok(Some(format!(
                 "Removed {1} items from {0}",
-                targets.entities_to_string(ctx, true),
+                targets.entities_to_string(ctx, &entities.into_vec(), true),
                 count
             )))
         }
@@ -509,10 +525,10 @@ fn clear_items(
     item: Option<Item>,
     maxcount: i32,
     count: &mut i32,
-) {
-    let inventory = ctx.ecs.get_mut::<Inventory>(player).unwrap();
+) -> anyhow::Result<()> {
+    let inventory = ctx.ecs.get_mut::<Window>(player).unwrap();
     let mut changed_items: SmallVec<[usize; 2]> = SmallVec::new();
-    for (index, slot) in inventory.to_vec().into_iter().enumerate() {
+    for (index, slot) in inventory.inner().to_vec().into_iter().enumerate() {
         if let Some(mut stack) = slot {
             if let Some(item_inner) = item {
                 if stack.item != item_inner {
@@ -523,13 +539,11 @@ fn clear_items(
                 *count += stack.count as i32;
             } else if (stack.count as i32) <= maxcount - *count {
                 *count += stack.count as i32;
-                //*inventory.item(index.area, index.slot).unwrap() = None;
+                inventory.set_item(index, None)?;
                 changed_items.push(index);
             } else {
                 stack.count -= (maxcount - *count) as u32;
-                //*inventory
-                //    .item(index.area, index.slot)
-                //    .unwrap() = stack;
+                inventory.set_item(index, Some(stack))?;
                 *count = maxcount;
                 changed_items.push(index);
                 break;
@@ -540,14 +554,11 @@ fn clear_items(
     drop(inventory);
 
     if !changed_items.is_empty() {
-        //ctx.game.handle(
-        //    &mut *ctx.ecs,
-        //    InventoryUpdateEvent {
-        //        entity: player,
-        //        slots: changed_items,
-        //    },
-        //);
+        ctx.ecs
+            .insert_entity_event(player, InventoryUpdateEvent(changed_items.into_vec()))?;
     }
+
+    Ok(())
 }
 
 #[command(usage = "seed")]
@@ -559,6 +570,7 @@ pub fn seed(ctx: &mut CommandCtx) -> anyhow::Result<Option<String>> {
                 + Text::from(world_seed.to_string())
                     .green()
                     .on_click_copy_to_clipboard(world_seed.to_string())
+                    .on_hover_show_text(TextValue::translate("chat.copy.click"))
                 + Text::from("]"),
         );
     }
@@ -679,17 +691,18 @@ pub fn ban_players(
     reason: String,
     _by_ip: bool,
 ) -> anyhow::Result<Option<String>> {
-    if targets.entities.is_empty() {
+    let entities = find_selected_entities(ctx, &targets.requirements)?;
+    if entities.is_empty() {
         return Err(BanError::NoTargets.into());
     }
 
-    for entity in &targets.entities {
+    for entity in &entities {
         if ctx.ecs.get::<Player>(*entity).is_ok() {
             return Err(BanError::NotPlayer.into());
         }
     }
 
-    for entity in &targets.entities {
+    for entity in &entities {
         {
             //let mut bi_lock = ctx.game.resources.get_mut::<WrappedBanInfo>();
             //let mut ban_info = bi_lock.write().unwrap();

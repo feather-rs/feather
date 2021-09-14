@@ -1,6 +1,7 @@
 pub use block_interact::{BlockInteractEvent, BlockPlacementEvent};
 pub use change::{
-    CreativeFlyingEvent, GamemodeUpdateEvent, SneakEvent, SprintEvent, TimeUpdateEvent,
+    CreativeFlyingEvent, GamemodeUpdateEvent, InventoryUpdateEvent, SneakEvent, SprintEvent,
+    TimeUpdateEvent,
 };
 pub use interact_entity::InteractEntityEvent;
 

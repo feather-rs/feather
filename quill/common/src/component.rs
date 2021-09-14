@@ -192,6 +192,7 @@ host_component_enum! {
         SprintEvent = 1014,
         GamemodeUpdateEvent = 1015,
         TimeUpdateEvent = 1016,
+        InventoryUpdateEvent = 1017,
 
 
     }
@@ -359,3 +360,4 @@ bincode_component_impl!(SneakEvent);
 bincode_component_impl!(SprintEvent);
 bincode_component_impl!(GamemodeUpdateEvent);
 bincode_component_impl!(TimeUpdateEvent);
+bincode_component_impl!(InventoryUpdateEvent);

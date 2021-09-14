@@ -55,3 +55,6 @@ pub struct TimeUpdateEvent {
     pub old: u64,
     pub new: u64,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct InventoryUpdateEvent(pub Vec<usize>);

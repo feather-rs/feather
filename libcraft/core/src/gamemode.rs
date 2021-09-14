@@ -1,5 +1,6 @@
 use num_derive::{FromPrimitive, ToPrimitive};
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 /// A gamemode.
 #[derive(
@@ -24,5 +25,31 @@ impl Gamemode {
             3 => Gamemode::Spectator,
             _ => return None,
         })
+    }
+}
+
+impl FromStr for Gamemode {
+    type Err = ();
+
+    fn from_str(input: &str) -> Result<Self, <Self as FromStr>::Err> {
+        match input.to_ascii_lowercase().as_str() {
+            "survival" => Ok(Gamemode::Survival),
+            "creative" => Ok(Gamemode::Creative),
+            "adventure" => Ok(Gamemode::Adventure),
+            "spectator" => Ok(Gamemode::Spectator),
+            _ => Err(()),
+        }
+    }
+}
+
+impl ToString for Gamemode {
+    fn to_string(&self) -> String {
+        match self {
+            Gamemode::Survival => "survival",
+            Gamemode::Creative => "creative",
+            Gamemode::Adventure => "adventure",
+            Gamemode::Spectator => "spectator",
+        }
+        .to_owned()
     }
 }

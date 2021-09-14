@@ -861,6 +861,7 @@ dependencies = [
  "lieutenant",
  "quill-common",
  "rand 0.7.3",
+ "serde",
  "smallvec",
  "thiserror",
  "tokio 0.2.25",

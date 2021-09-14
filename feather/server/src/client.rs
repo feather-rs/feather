@@ -14,7 +14,11 @@ use base::{
     BlockId, BlockPosition, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode,
     ItemStack, Position, ProfileProperty, Text,
 };
+use common::chat::{ChatKind, ChatMessage};
+use common::world::WorldTime;
+use common::Window;
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
+use protocol::packets::server::{ChangeGameState, TimeUpdate};
 use protocol::{
     packets::{
         self,
@@ -31,10 +35,6 @@ use quill_common::components::{ClientId, NetworkId, OnGround};
 
 use crate::initial_handler::NewPlayer;
 use crate::options::Options;
-use common::chat::{ChatKind, ChatMessage};
-use common::world::WorldTime;
-use common::Window;
-use protocol::packets::server::{ChangeGameState, TimeUpdate};
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
@@ -480,6 +480,21 @@ impl Client {
         let packet = WindowItems {
             window_id: 0,
             items: window.inner().to_vec(),
+        };
+        self.send_packet(packet);
+    }
+
+    pub fn send_slot_item(&self, window_id: u8, slot: i16, item: Option<ItemStack>) {
+        log::trace!(
+            "Updating slot {} in window {} for {}",
+            slot,
+            window_id,
+            self.username
+        );
+        let packet = SetSlot {
+            window_id,
+            slot,
+            slot_data: item,
         };
         self.send_packet(packet);
     }
