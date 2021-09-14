@@ -1,6 +1,7 @@
 use std::{mem, num::NonZeroU32};
 
 use anyhow::{anyhow, bail};
+
 use base::{Area, Item, ItemStack, ItemStackBuilder, ItemStackError};
 
 use ecs::SysResult;
@@ -48,6 +49,7 @@ impl Window {
             (Filled(slot_stack), Filled(cursor_stack)) => {
                 if cursor_stack.has_same_type(slot_stack) {
                     slot_stack.merge_with(cursor_stack).unwrap();
+
                 } else {
                     mem::swap(slot_stack, cursor_stack);
                 }
@@ -366,9 +368,9 @@ impl PaintState {
 
         // This can't be zero because items_cursor is the count of an ItemStack and ItemStack is NonZeroU32.
         let items_per_slot =  (items_cursor / slots).max(1);
-
         self.move_items_into_slots(window, items_per_slot);
     }
+
 
     /// `items_per_slot` has to be NonZero.
     fn move_items_into_slots(&self, window: &mut Window, items_per_slot: u32) {
@@ -386,6 +388,7 @@ impl PaintState {
                 Filled(slot) => {
                     if slot.item() == cursor_item.item() {
                         window.cursor_item = Filled((*cursor_item).drain_into_bounded(items_per_slot, slot).unwrap().unwrap());
+
                     }
                 },
                 Empty => {
