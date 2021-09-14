@@ -1,4 +1,4 @@
-name: Linux release
+name: Release
 on:
   push:
     branches:
@@ -12,43 +12,24 @@ jobs:
       matrix:
         target:
           - x86_64-unknown-linux-gnu
-          - armv7-unknown-linux-gnueabihf
-          - aarch64-linux-android
-          - aarch64-unknown-linux-gnu
-          - aarch64-unknown-linux-musl
-          - powerpc64-unknown-linux-gnu
-          - x86_64-unknown-linux-musl
-          - i686-unknown-linux-gnu
-          - arm-unknown-linux-gnueabi
-          - arm-unknown-linux-gnueabihf
-          - x86_64-unknown-freebsd
-          - x86_64-unknown-netbsd
-          - x86_64-unknown-illumos
-          - powerpc-unknown-linux-gnu
-          - powerpc64le-unknown-linux-gnu
-          - mips-unknown-linux-gnu
-          - mips64-unknown-linux-gnuabi64
-          - mipsel-unknown-linux-gnu
-          - mips64el-unknown-linux-gnuabi64
-          - s390x-unknown-linux-gnu
-          - arm-linux-androideabi
-          - armv7-linux-androideabi
-          - i686-linux-android
-          - x86_64-linux-android
-          - riscv64gc-unknown-linux-gnu
           - x86_64-apple-darwin
           - aarch64-apple-darwin
           - x86_64-pc-windows-msvc
-          - i686-pc-windows-msvc
-          - x86_64-pc-windows-gnu
-          - i686-pc-windows-gnu
+      
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - uses: actions-rs/cargo@v1
+          target: ${{ matrix.target }}
+          override: true
+
+      - name: Run cargo build
+        uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: build
-          args: --release --target ${{ matrix.target }}
+          args: --release --target=${{ matrix.target }}
