@@ -90,6 +90,11 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
+          
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
 
   build:
     name: Cargo build & test
@@ -139,8 +144,3 @@ jobs:
           use-cross: ${{ matrix.use-cross }}
           command: build
           args: --target=${{ matrix.target }}
-      
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
