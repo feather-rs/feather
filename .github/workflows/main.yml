@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
-        
+
       - uses: Swatinem/rust-cache@v1
 
       - name: Install stable toolchain
@@ -143,7 +143,7 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: stable-${{ matrix.target }}
           target: ${{ matrix.target }}
           override: true
 
