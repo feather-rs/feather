@@ -125,15 +125,19 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
+            toolchain: stable
             target: x86_64-unknown-linux-gnu
             use-cross: true
           - os: macos-latest
+            toolchain: stable
             target: x86_64-apple-darwin
             use-cross: false
           - os: macos-latest
+            toolchain: nightly
             target: aarch64-apple-darwin
             use-cross: false
           - os: windows-latest
+            toolchain: stable
             target: x86_64-pc-windows-msvc
             cross: false
     steps:
@@ -143,9 +147,18 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: ${{ matrix.toolchain }}
           target: ${{ matrix.target }}
           override: true
+
+      - name: aarch64-specific items
+        run: |
+          # Use the beta compiler
+          sudo xcode-select -s /Applications/Xcode_12.2.app/Contents/Developer/
+          # Set SDK environment variables
+          echo "SDKROOT=$(xcrun -sdk macosx11.0 --show-sdk-path)" >> $GITHUB_ENV
+          echo "MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx11.0 --show-sdk-platform-version)" >> $GITHUB_ENV
+        if: matrix.target == 'aarch64-apple-darwin'
 
       - uses: Swatinem/rust-cache@v1
 
