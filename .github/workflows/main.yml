@@ -133,7 +133,7 @@ jobs:
             target: x86_64-apple-darwin
             use-cross: false
           - os: macos-latest
-            toolchain: nightly
+            toolchain: stable
             target: aarch64-apple-darwin
             use-cross: false
           - os: windows-latest
@@ -147,6 +147,7 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: ${{ matrix.toolchain }}
           target: ${{ matrix.target }}
           override: true
