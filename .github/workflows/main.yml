@@ -51,7 +51,7 @@ jobs:
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+          args: --all-targets --all-features -- -D warnings
 
   audit:
     name: Cargo audit
@@ -75,6 +75,22 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  test:
+    name: Cargo test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - uses: Swatinem/rust-cache@v1
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
   build:
     name: Cargo build & test
     runs-on: ${{ matrix.os }}
@@ -83,19 +99,15 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            toolchain: stable
             target: x86_64-unknown-linux-gnu
             use-cross: true
           - os: macos-latest
-            toolchain: stable
             target: x86_64-apple-darwin
             use-cross: false
           - os: macos-latest
-            toolchain: stable
             target: aarch64-apple-darwin
             use-cross: false
           - os: windows-latest
-            toolchain: stable
             target: x86_64-pc-windows-msvc
             cross: false
     steps:
@@ -106,7 +118,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: ${{ matrix.toolchain }}
+          toolchain: stable
           target: ${{ matrix.target }}
           override: true
 
