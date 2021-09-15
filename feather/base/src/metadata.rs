@@ -54,7 +54,7 @@ pub enum MetaEntry {
     OptBlockId(Option<i32>),
     Nbt(nbt::Blob),
     Particle,
-    VillagerData,
+    VillagerData(i32, i32, i32),
     OptVarInt(OptVarInt),
     Pose(i32),
 }
@@ -78,7 +78,7 @@ impl MetaEntry {
             MetaEntry::OptBlockId(_) => 13,
             MetaEntry::Nbt(_) => 14,
             MetaEntry::Particle => 15,
-            MetaEntry::VillagerData => 16,
+            MetaEntry::VillagerData(_, _, _) => 16,
             MetaEntry::OptVarInt(_) => 17,
             MetaEntry::Pose(_) => 18,
         }

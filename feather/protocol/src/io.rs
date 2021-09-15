@@ -646,18 +646,28 @@ fn read_meta_entry(
         } else {
             None
         }),
-        13 => MetaEntry::OptBlockId(if bool::read(buffer, version)? {
-            Some(VarInt::read(buffer, version)?.0)
-        } else {
-            None
+        13 => MetaEntry::OptBlockId({
+            let id = VarInt::read(buffer, version)?.0;
+            if id == 0 {
+                None
+            } else {
+                Some(id)
+            }
         }),
         14 => MetaEntry::Nbt(Nbt::read(buffer, version)?.0),
         15 => MetaEntry::Particle,
-        16 => MetaEntry::VillagerData,
-        17 => MetaEntry::OptVarInt(if bool::read(buffer, version)? {
-            Some(VarInt::read(buffer, version)?.0)
-        } else {
-            None
+        16 => MetaEntry::VillagerData(
+            VarInt::read(buffer, version)?.0,
+            VarInt::read(buffer, version)?.0,
+            VarInt::read(buffer, version)?.0,
+        ),
+        17 => MetaEntry::OptVarInt({
+            let varint = VarInt::read(buffer, version)?.0;
+            if varint == 0 {
+                None
+            } else {
+                Some(varint - 1)
+            }
         }),
         18 => MetaEntry::Pose(VarInt::read(buffer, version)?.0),
         x => bail!("invalid entity metadata entry ID {}", x),
@@ -733,7 +743,11 @@ fn write_meta_entry(
         }
         MetaEntry::Nbt(val) => Nbt(val).write(buffer, version)?,
         MetaEntry::Particle => unimplemented!("entity metadata with particles"),
-        MetaEntry::VillagerData => unimplemented!("entity metadata with villager data"),
+        MetaEntry::VillagerData(villager_type, villager_profession, level) => {
+            VarInt(*villager_type).write(buffer, version)?;
+            VarInt(*villager_profession).write(buffer, version)?;
+            VarInt(*level).write(buffer, version)?;
+        }
         MetaEntry::OptVarInt(ox) => {
             if let Some(x) = ox {
                 true.write(buffer, version)?;
