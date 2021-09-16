@@ -5,7 +5,7 @@ use std::{error::Error, sync::Arc};
 
 pub use inventory::{Area, InventoryBacking, Window};
 
-use libcraft_items::{InventorySlot};
+use libcraft_items::InventorySlot;
 
 type Slot = Mutex<InventorySlot>;
 

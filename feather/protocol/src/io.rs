@@ -7,6 +7,7 @@ use base::{
     Gamemode, Item, ItemStackBuilder,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use libcraft_items::InventorySlot::*;
 use num_traits::{FromPrimitive, ToPrimitive};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
@@ -20,7 +21,6 @@ use std::{
 };
 use thiserror::Error;
 use uuid::Uuid;
-use libcraft_items::InventorySlot::*;
 
 /// Trait implemented for types which can be read
 /// from a buffer.

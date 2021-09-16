@@ -160,7 +160,7 @@ impl ItemStack {
 
     /// Gets the `ItemStack` and returns it.
     pub fn get_item(&self) -> ItemStack {
-        ItemStack{
+        ItemStack {
             count: 1.try_into().unwrap(),
             ..self.clone()
         }
@@ -212,7 +212,7 @@ impl ItemStack {
 
     /// Splits this `ItemStack` by removing the
     /// specified amount. Returns the taken part.
-    pub fn take(mut self, amount: NonZeroU32,) -> (Option<ItemStack>, ItemStack) {
+    pub fn take(mut self, amount: NonZeroU32) -> (Option<ItemStack>, ItemStack) {
         if self.count < amount {
             return (None, self);
         }
@@ -256,7 +256,11 @@ impl ItemStack {
         Ok(())
     }
 
-    pub fn drain_into_bounded(mut self, n: u32, other: &mut Self) -> Result<Option<Self>, ItemStackError> {
+    pub fn drain_into_bounded(
+        mut self,
+        n: u32,
+        other: &mut Self,
+    ) -> Result<Option<Self>, ItemStackError> {
         if !self.has_same_type(other) {
             return Err(ItemStackError::IncompatibleStacks);
         }
@@ -268,7 +272,7 @@ impl ItemStack {
         let moving_items = space_in_other.min(n).min(items_in_self);
 
         other.set_count(moving_items + other.count()).unwrap();
-        
+
         if self.count() - moving_items == 0 {
             Ok(None)
         } else {
@@ -299,6 +303,24 @@ impl ItemStack {
     /// Returns the amount of damage the items have taken.
     pub fn damage_taken(&self) -> Option<u32> {
         self.meta.as_ref().map_or(Some(0), |meta| meta.damage)
+    }
+
+    /// Returns true is the contents of other could be merged with the contents
+    /// of self. This does not look at the item count, just the kind.
+    /// Items can be merged when they have the same kind, damage, and enchantment.
+    /// If a item has a stacksize of one then it can never be stacked.
+    pub fn stackable_types(&self, other: &Self) -> bool {
+        self.has_same_type(other) &&
+        // Todo: make this function check that the items have same name
+        // if you rename a item, then it does not stack with items that
+        // dont share the rename. Someone need to explore this further.
+        self.stack_size() > 1 &&
+        other.stack_size() > 1
+    }
+
+    /// How many items could be stacked together
+    pub fn stack_size(&self) -> u32 {
+        self.item.stack_size()
     }
 }
 
