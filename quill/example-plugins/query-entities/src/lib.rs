@@ -38,13 +38,7 @@ impl Plugin for QueryEntities {
 fn query_system(plugin: &mut QueryEntities, game: &mut Game) {
     // Make the piglin brutes float into the air.
     plugin.tick_counter += 1;
-    for (entity, (position, _piglin_brute)) in game.query::<(&Position, &PiglinBrute)>() {
-        // Mutable access to components through queries
-        // is not yet implemented, so we have to set
-        // the component directly.
-        entity.set(Position {
-            y: position.y + 0.1 * ((plugin.tick_counter as f64 / 20.0).sin() + 1.0),
-            ..position
-        });
+    for (_, (mut position, _piglin_brute)) in game.query::<(&mut Position, &PiglinBrute)>() {
+        position.y += 0.1 * ((plugin.tick_counter as f64 / 20.0).sin() + 1.0);
     }
 }
