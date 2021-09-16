@@ -7,7 +7,7 @@ use base::{Area, Item};
 use ecs::SysResult;
 pub use libcraft_inventory::Window as BackingWindow;
 use libcraft_inventory::WindowError;
-use libcraft_items::InventorySlot::{self, Empty, Filled};
+use libcraft_items::InventorySlot::{self, Empty};
 use parking_lot::MutexGuard;
 
 /// A player's window. Wraps one or more inventories and handles
@@ -565,15 +565,15 @@ mod tests {
         assert_eq!(window.cursor_item, Empty);
 
         let stack = ItemStack::new(Item::Diamond, 32).unwrap();
-        window.set_item(0, Filled(stack.clone())).unwrap();
+        window.set_item(0, InventorySlot::Filled(stack.clone())).unwrap();
         window.left_click(0).unwrap();
 
-        assert_eq!(window.cursor_item, Filled(stack.clone()));
+        assert_eq!(window.cursor_item, InventorySlot::Filled(stack.clone()));
         assert!(window.item(0).unwrap().is_empty());
 
         window.left_click(1).unwrap();
         assert_eq!(window.cursor_item, Empty);
-        assert_eq!(*window.item(1).unwrap(), Filled(stack));
+        assert_eq!(*window.item(1).unwrap(), InventorySlot::Filled(stack));
     }
 
     #[test]
@@ -581,16 +581,16 @@ mod tests {
         let mut window = window();
 
         let item = ItemStack::new(Item::AcaciaSlab, 32).unwrap();
-        window.set_item(0, Filled(item.clone())).unwrap();
+        window.set_item(0, InventorySlot::Filled(item.clone())).unwrap();
         window.left_click(0).unwrap();
 
-        window.set_item(1, Filled(item)).unwrap();
+        window.set_item(1, InventorySlot::Filled(item)).unwrap();
         window.left_click(1).unwrap();
 
         assert_eq!(window.cursor_item, Empty);
         assert_eq!(
             *window.item(1).unwrap(),
-            Filled(ItemStack::new(Item::AcaciaSlab, 64).unwrap())
+            InventorySlot::Filled(ItemStack::new(Item::AcaciaSlab, 64).unwrap())
         );
     }
 
@@ -605,16 +605,16 @@ mod tests {
     fn window_right_click_pick_up_half() {
         let mut window = window();
         let stack = ItemStack::new(Item::GlassPane, 17).unwrap();
-        window.set_item(0, Filled(stack)).unwrap();
+        window.set_item(0, InventorySlot::Filled(stack)).unwrap();
 
         window.right_click(0).unwrap();
         assert_eq!(
             window.cursor_item,
-            Filled(ItemStack::new(Item::GlassPane, 9).unwrap())
+            InventorySlot::Filled(ItemStack::new(Item::GlassPane, 9).unwrap())
         );
         assert_eq!(
             *window.item(0).unwrap(),
-            Filled(ItemStack::new(Item::GlassPane, 8).unwrap())
+            InventorySlot::Filled(ItemStack::new(Item::GlassPane, 8).unwrap())
         );
     }
 
@@ -622,16 +622,16 @@ mod tests {
     fn window_right_click_drop_one_item() {
         let mut window = window();
         let stack = ItemStack::new(Item::GlassPane, 17).unwrap();
-        window.cursor_item = Filled(stack);
+        window.cursor_item = InventorySlot::Filled(stack);
 
         window.right_click(1).unwrap();
         assert_eq!(
             window.cursor_item,
-            Filled(ItemStack::new(Item::GlassPane, 16).unwrap())
+            InventorySlot::Filled(ItemStack::new(Item::GlassPane, 16).unwrap())
         );
         assert_eq!(
             *window.item(1).unwrap(),
-            Filled(ItemStack::new(Item::GlassPane, 1).unwrap())
+            InventorySlot::Filled(ItemStack::new(Item::GlassPane, 1).unwrap())
         );
     }
 
@@ -640,12 +640,12 @@ mod tests {
         let mut window = window();
         let stack1 = ItemStack::new(Item::GlassPane, 17).unwrap();
         let stack2 = ItemStack::new(Item::Diamond, 2).unwrap();
-        window.cursor_item = Filled(stack1.clone());
-        window.set_item(0, Filled(stack2.clone())).unwrap();
+        window.cursor_item = InventorySlot::Filled(stack1.clone());
+        window.set_item(0, InventorySlot::Filled(stack2.clone())).unwrap();
 
         window.right_click(0).unwrap();
-        assert_eq!(window.cursor_item, Filled(stack2));
-        assert_eq!(*window.item(0).unwrap(), Filled(stack1));
+        assert_eq!(window.cursor_item, InventorySlot::Filled(stack2));
+        assert_eq!(*window.item(0).unwrap(), InventorySlot::Filled(stack1));
     }
 
     #[test]
@@ -653,10 +653,10 @@ mod tests {
         let inventory = Inventory::player();
         for i in 0..9 {
             *inventory.item(Area::Hotbar, i).unwrap() =
-                Filled(ItemStack::new(Item::EnderPearl, 1).unwrap());
+            InventorySlot::Filled(ItemStack::new(Item::EnderPearl, 1).unwrap());
         }
         *inventory.item(Area::Storage, 0).unwrap() =
-            Filled(ItemStack::new(Item::AcaciaSign, 1).unwrap());
+        InventorySlot::Filled(ItemStack::new(Item::AcaciaSign, 1).unwrap());
         let mut window = Window::new(BackingWindow::Player {
             player: inventory.new_handle(),
         });
@@ -667,7 +667,7 @@ mod tests {
         window.shift_click(index).unwrap();
         assert_eq!(
             *window.item(index).unwrap(),
-            Filled(ItemStack::new(Item::AcaciaSign, 1).unwrap())
+            InventorySlot::Filled(ItemStack::new(Item::AcaciaSign, 1).unwrap())
         );
     }
 
@@ -675,9 +675,9 @@ mod tests {
     fn window_shift_click_available_item_in_hotbar() {
         let inventory = Inventory::player();
 
-        *inventory.item(Area::Hotbar, 3).unwrap() = Filled(ItemStack::new(Item::Stone, 4).unwrap());
+        *inventory.item(Area::Hotbar, 3).unwrap() = InventorySlot::Filled(ItemStack::new(Item::Stone, 4).unwrap());
         *inventory.item(Area::Storage, 3).unwrap() =
-            Filled(ItemStack::new(Item::Stone, 7).unwrap());
+        InventorySlot::Filled(ItemStack::new(Item::Stone, 7).unwrap());
 
         let mut window = Window::new(BackingWindow::Player {
             player: inventory.new_handle(),
@@ -699,7 +699,7 @@ mod tests {
 
         assert_eq!(
             *window.item(hotbar_index).unwrap(),
-            Filled(ItemStack::new(Item::Stone, 11).unwrap())
+            InventorySlot::Filled(ItemStack::new(Item::Stone, 11).unwrap())
         );
         assert!(window.item(index).unwrap().is_empty());
     }
@@ -708,7 +708,7 @@ mod tests {
     fn window_shift_click_empty_hotbar() {
         let inventory = Inventory::player();
         *inventory.item(Area::Storage, 3).unwrap() =
-            Filled(ItemStack::new(Item::Stone, 7).unwrap());
+        InventorySlot::Filled(ItemStack::new(Item::Stone, 7).unwrap());
         let mut window = Window::new(BackingWindow::Player {
             player: inventory.new_handle(),
         });
@@ -724,7 +724,7 @@ mod tests {
             .unwrap();
         assert_eq!(
             *window.item(hotbar_index).unwrap(),
-            Filled(ItemStack::new(Item::Stone, 7).unwrap())
+            InventorySlot::Filled(ItemStack::new(Item::Stone, 7).unwrap())
         );
         assert!(window.item(storage_index).unwrap().is_empty());
     }
@@ -733,7 +733,7 @@ mod tests {
     fn left_mouse_paint() {
         let mut window = window();
         window
-            .set_item(0, Filled(ItemStack::new(Item::Stone, 64).unwrap()))
+            .set_item(0, InventorySlot::Filled(ItemStack::new(Item::Stone, 64).unwrap()))
             .unwrap();
         window.left_click(0).unwrap();
 
@@ -746,12 +746,12 @@ mod tests {
         for &slot in &[0, 1, 5] {
             assert_eq!(
                 *window.item(slot).unwrap(),
-                Filled(ItemStack::new(Item::Stone, 21).unwrap())
+                InventorySlot::Filled(ItemStack::new(Item::Stone, 21).unwrap())
             );
         }
         assert_eq!(
             window.cursor_item,
-            Filled(ItemStack::new(Item::Stone, 1).unwrap())
+            InventorySlot::Filled(ItemStack::new(Item::Stone, 1).unwrap())
         );
     }
 
@@ -759,10 +759,10 @@ mod tests {
     fn right_mouse_paint() {
         let mut window = window();
         window
-            .set_item(0, Filled(ItemStack::new(Item::Stone, 2).unwrap()))
+            .set_item(0, InventorySlot::Filled(ItemStack::new(Item::Stone, 2).unwrap()))
             .unwrap();
         window
-            .set_item(4, Filled(ItemStack::new(Item::Stone, 3).unwrap()))
+            .set_item(4, InventorySlot::Filled(ItemStack::new(Item::Stone, 3).unwrap()))
             .unwrap();
         window.left_click(0).unwrap();
 
@@ -773,11 +773,11 @@ mod tests {
 
         assert_eq!(
             *window.item(4).unwrap(),
-            Filled(ItemStack::new(Item::Stone, 4).unwrap())
+            InventorySlot::Filled(ItemStack::new(Item::Stone, 4).unwrap())
         );
         assert_eq!(
             *window.item(5).unwrap(),
-            Filled(ItemStack::new(Item::Stone, 1).unwrap())
+            InventorySlot::Filled(ItemStack::new(Item::Stone, 1).unwrap())
         );
         assert_eq!(window.cursor_item, InventorySlot::Empty);
     }
