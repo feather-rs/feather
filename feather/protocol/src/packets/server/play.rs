@@ -375,7 +375,7 @@ packets! {
         entity_id i32;
         is_hardcore bool;
         gamemode Gamemode;
-        previous_gamemode PreviousGamemode; // can be -1 if "not set," otherwise corresponds to a gamemode ID
+        previous_gamemode PreviousGamemode; // can be -1 if "not set", otherwise corresponds to a gamemode ID
         world_names VarIntPrefixedVec<String>;
 
         dimension_codec Nbt<Blob>;
