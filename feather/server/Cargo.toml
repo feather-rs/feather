@@ -30,6 +30,7 @@ hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
 log = "0.4"
 md-5 = "0.9"
 num-bigint = "0.4"
+num-traits = "0.2"
 once_cell = "1"
 parking_lot = "0.11"
 plugin-host = { path = "../plugin-host", package = "feather-plugin-host" }

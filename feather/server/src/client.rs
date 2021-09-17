@@ -6,6 +6,9 @@ use std::{
 };
 
 use ahash::AHashSet;
+use flume::{Receiver, Sender};
+use uuid::Uuid;
+
 use base::{
     BlockId, BlockPosition, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode,
     ItemStack, Position, ProfileProperty, Text,
@@ -14,8 +17,8 @@ use common::{
     chat::{ChatKind, ChatMessage},
     Window,
 };
-use flume::{Receiver, Sender};
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
+use protocol::packets::server::{HeldItemChange, PlayerAbilities};
 use protocol::{
     packets::{
         self,
@@ -28,8 +31,7 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
-use quill_common::components::OnGround;
-use uuid::Uuid;
+use quill_common::components::{OnGround, PreviousGamemode};
 
 use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
 use slab::Slab;
@@ -186,7 +188,12 @@ impl Client {
         self.network_id = Some(network_id);
     }
 
-    pub fn send_join_game(&self, gamemode: Gamemode, game: &common::Game) {
+    pub fn send_join_game(
+        &self,
+        gamemode: Gamemode,
+        previous_gamemode: PreviousGamemode,
+        game: &common::Game,
+    ) {
         log::trace!("Sending Join Game to {}", self.username);
         // Use the dimension codec sent by the default vanilla server. (Data acquired via tools/proxy)
         let dimension_codec = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
@@ -202,7 +209,7 @@ impl Client {
             entity_id: self.network_id.expect("No network id! Use client.set_network_id(NetworkId) before calling this method.").0,
             is_hardcore: false,
             gamemode,
-            previous_gamemode: 0,
+            previous_gamemode,
             world_names: vec!["world".to_owned()],
             dimension_codec: Nbt(dimension_codec),
             dimension: Nbt(dimension),
@@ -528,6 +535,31 @@ impl Client {
             entity_id: netowrk_id.0,
             entries: entity_metadata,
         });
+    }
+
+    pub fn send_abilities(&self, abilities: &base::anvil::player::PlayerAbilities) {
+        let mut bitfield = 0;
+        if *abilities.invulnerable {
+            bitfield |= 1 << 0;
+        }
+        if *abilities.is_flying {
+            bitfield |= 1 << 1;
+        }
+        if *abilities.may_fly {
+            bitfield |= 1 << 2;
+        }
+        if *abilities.instabreak {
+            bitfield |= 1 << 3;
+        }
+        self.send_packet(PlayerAbilities {
+            flags: bitfield,
+            flying_speed: *abilities.fly_speed,
+            fov_modifier: *abilities.walk_speed,
+        });
+    }
+
+    pub fn set_hotbar_slot(&self, slot: u8) {
+        self.send_packet(HeldItemChange { slot });
     }
 
     fn register_entity(&self, network_id: NetworkId) {
