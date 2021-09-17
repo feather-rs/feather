@@ -30,9 +30,9 @@ use protocol::{
 };
 use quill_common::components::OnGround;
 use uuid::Uuid;
-use vec_arena::Arena;
 
 use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
+use slab::Slab;
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
@@ -44,7 +44,7 @@ pub struct ClientId(usize);
 /// Stores all `Client`s.
 #[derive(Default)]
 pub struct Clients {
-    arena: Arena<Client>,
+    slab: Slab<Client>,
 }
 
 impl Clients {
@@ -53,19 +53,19 @@ impl Clients {
     }
 
     pub fn insert(&mut self, client: Client) -> ClientId {
-        ClientId(self.arena.insert(client))
+        ClientId(self.slab.insert(client))
     }
 
     pub fn remove(&mut self, id: ClientId) -> Option<Client> {
-        self.arena.remove(id.0)
+        self.slab.try_remove(id.0)
     }
 
     pub fn get(&self, id: ClientId) -> Option<&Client> {
-        self.arena.get(id.0)
+        self.slab.get(id.0)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &'_ Client> + '_ {
-        self.arena.iter().map(|(_i, client)| client)
+        self.slab.iter().map(|(_i, client)| client)
     }
 }
 
