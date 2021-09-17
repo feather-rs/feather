@@ -134,6 +134,10 @@ impl Client {
         &self.profile
     }
 
+    pub fn network_id(&self) -> Option<NetworkId> {
+        self.network_id
+    }
+
     pub fn uuid(&self) -> Uuid {
         self.uuid
     }
