@@ -32,11 +32,23 @@ fn poll_new_players(game: &mut Game, server: &mut Server) -> SysResult {
 }
 
 fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) -> SysResult {
-    let mut builder = game.create_entity_builder(Position::default(), EntityInit::Player);
     let client = server.clients.get_mut(client_id).unwrap();
+    let player_data = game.world.load_player_data(client.uuid());
+    let mut builder = game.create_entity_builder(
+        player_data
+            .as_ref()
+            .map(|data| Position {
+                x: data.animal.base.position[0],
+                y: data.animal.base.position[1],
+                z: data.animal.base.position[2],
+                yaw: data.animal.base.rotation[0],
+                pitch: data.animal.base.rotation[1],
+            })
+            .unwrap_or_default(),
+        EntityInit::Player,
+    );
     client.set_network_id(*builder.get::<NetworkId>().unwrap());
 
-    let player_data = game.world.load_player_data(client.uuid());
     if player_data.is_err() {
         debug!("{} is a new player", client.username())
     }
@@ -64,20 +76,6 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .map(|data| HotbarSlot::new(data.held_item as usize))
         .unwrap_or_default();
     client.set_hotbar_slot(hotbar_slot.get() as u8);
-
-    let mut builder = game.create_entity_builder(
-        player_data
-            .as_ref()
-            .map(|data| Position {
-                x: data.animal.base.position[0],
-                y: data.animal.base.position[1],
-                z: data.animal.base.position[2],
-                yaw: data.animal.base.rotation[0],
-                pitch: data.animal.base.rotation[1],
-            })
-            .unwrap_or_default(),
-        EntityInit::Player,
-    );
 
     let inventory = Inventory::player();
     let window = Window::new(BackingWindow::Player {
