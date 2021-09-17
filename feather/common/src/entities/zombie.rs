@@ -1,8 +1,11 @@
 use base::EntityKind;
 use ecs::EntityBuilder;
-use quill_common::entities::Zombie;
+use quill_common::{components::Health, entities::Zombie};
 
 pub fn build_default(builder: &mut EntityBuilder) {
     super::build_default(builder);
-    builder.add(Zombie).add(EntityKind::Zombie);
+    builder
+        .add(Zombie)
+        .add(Health::new(20))
+        .add(EntityKind::Zombie);
 }
