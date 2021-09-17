@@ -199,11 +199,11 @@ impl Client {
         let dimension_codec = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
             "../../../assets/dimension_codec.nbt"
         )))
-            .expect("dimension codec asset is malformed");
+        .expect("dimension codec asset is malformed");
         let dimension = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
             "../../../assets/dimension.nbt"
         )))
-            .expect("dimension asset is malformed");
+        .expect("dimension asset is malformed");
 
         self.send_packet(JoinGame {
             entity_id: self.network_id.expect("No network id! Use client.set_network_id(NetworkId) before calling this method.").0,
