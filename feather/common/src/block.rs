@@ -465,7 +465,7 @@ fn set_face(
     });
     block.set_axis_xyz(cubic_facing.axis());
     block.set_facing_cardinal_and_down(
-        cubic_facing
+        cubic_facing.opposite()
             .to_facing_cardinal_and_down()
             .unwrap_or(FacingCardinalAndDown::Down),
     );
