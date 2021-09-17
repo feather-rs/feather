@@ -22,9 +22,8 @@ impl WorldGenerator for SuperflatWorldGenerator {
             if layer.height == 0 {
                 continue;
             }
-            // FIXME: get rid of this hack by having a constistent naming convention - Item::name() returns `stone` but BlockId::from_identifier requires `minecraft:stone`
-            let layer_block =
-                BlockId::from_identifier(("minecraft:".to_owned() + &layer.block).as_str());
+            // FIXME: get rid of this hack by having a consistent naming convention - Item::name() returns `stone` but BlockId::from_identifier requires `minecraft:stone`
+            let layer_block = BlockId::from_identifier(&format!("minecraft:{}", layer.block));
             if let Some(layer_block) = layer_block {
                 for y in y_counter..(y_counter + layer.height) {
                     for x in 0..16 {
