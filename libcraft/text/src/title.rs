@@ -28,6 +28,7 @@ impl Title {
     };
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for Title {
     fn default() -> Self {
         Title {
