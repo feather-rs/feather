@@ -22,37 +22,49 @@ fn calculate_falldamage(game: &mut Game, _: &mut Server) -> SysResult {
         )>()
         .iter()
     {
-        // Only calculate fall damage for players that are Survival/Adventure mode.
-        if let Ok(gamemode) = game.ecs.get::<Gamemode>(entity) {
-            if *gamemode != Gamemode::Survival && *gamemode != Gamemode::Adventure {
-                continue;
-            }
-        }
+        match game.ecs.get::<Gamemode>(entity) {
+            // Entity is player
+            Ok(gamemode) => match *gamemode {
+                // Only Survival/Adventure mode affected by fall damage.
+                // Fall damage for players is based on velocity (WIP).
+                Gamemode::Survival | Gamemode::Adventure => match on_ground.0 {
+                    false => {
+                        let new_distance = prev_position.0.y - position.y;
+                        fall_distance.0 += new_distance;
+                    }
 
-        match on_ground.0 {
-            false => {
-                let new_distance = prev_position.0.y - position.y;
+                    true => {
+                        let damage = (fall_distance.0.ceil() as u32).saturating_sub(3);
+                        health.deal_damage(damage);
 
-                match new_distance < 0.0 {
-                    // Reset fall distance when the player moves upwards.
-                    true => fall_distance.0 = 0.0,
-                    false => fall_distance.0 += new_distance,
+                        #[cfg(debug_assertions)]
+                        if fall_distance.0 > 0.0 {
+                            log::debug!("Entity fell {:?} ({:?} damage)", fall_distance, damage);
+                        }
+
+                        // Reset fall distance.
+                        fall_distance.0 = 0.0;
+                    }
+                },
+                _ => (),
+            },
+            // Other entities have fall damage based on distance. Moving upwards (+Y) does
+            // not reduce the accumulated fall damage.
+            Err(_) => match on_ground.0 {
+                false => fall_distance.0 += (prev_position.0.y - position.y).max(0.0),
+                true => {
+                    let damage = (fall_distance.0.ceil() as u32).saturating_sub(3);
+                    health.deal_damage(damage);
+
+                    #[cfg(debug_assertions)]
+                    if fall_distance.0 > 0.0 {
+                        log::debug!("Entity fell {:?} ({:?} damage)", fall_distance, damage);
+                    }
+
+                    // Reset fall distance.
+                    fall_distance.0 = 0.0;
                 }
-            }
-            // Apply fall damage.
-            true => {
-                let damage = (fall_distance.0.ceil() as u32).saturating_sub(3);
-
-                health.deal_damage(damage);
-
-                #[cfg(debug_assertions)]
-                if fall_distance.0 > 0.0 {
-                    log::debug!("Entity fell {:?} ({:?} damage)", fall_distance, damage);
-                }
-
-                // Reset fall distance.
-                fall_distance.0 = 0.0;
-            }
+            },
         }
     }
 
