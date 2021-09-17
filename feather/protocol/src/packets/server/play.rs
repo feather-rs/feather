@@ -14,7 +14,7 @@ mod update_light;
 packets! {
     SpawnEntity {
         entity_id VarInt;
-        uuid String;
+        uuid Uuid;
         kind VarInt;
         x f64;
         y f64;
@@ -305,6 +305,7 @@ packets! {
 
     EntityStatus {
         entity_id i32;
+        // status changes meaning depending on entity Type
         status i8;
     }
 
@@ -331,7 +332,7 @@ packets! {
     }
 
     ChangeGameState {
-        reason u8;
+        reason StateReason;
         value f32;
     }
 
@@ -353,6 +354,22 @@ packets! {
     }
 }
 
+def_enum! {
+    StateReason (i8) {
+        0 = NoRespawnBlock,
+        1 = EndRaining,
+        2 = BeginningRain,
+        3 = ChangeGameMode,
+        4 = WinGame,
+        5 = DemoEvent,
+        6 = ArrowHitPlayer,
+        7 = RainLevelChange,
+        8 = ThunderLevelChange,
+        9 = PufferfishSting,
+        10 = ElderGuardianAppearance,
+        11 = EnableRespawnScreen,
+    }
+}
 packets! {
     JoinGame {
         entity_id i32;
@@ -870,7 +887,7 @@ def_enum! {
             z f64;
             old_diameter f64;
             new_diameter f64;
-            speed u64;
+            speed VarLong;
             portal_teeport_boundary VarInt;
             warning_time VarInt;
             warning_blocks VarInt;

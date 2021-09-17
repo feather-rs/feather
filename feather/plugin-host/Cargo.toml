@@ -23,8 +23,8 @@ quill-plugin-format = { path = "../../quill/plugin-format" }
 serde = "1"
 tempfile = "3"
 vec-arena = "1"
-wasmer = { version = "1", default-features = false, features = [ "jit" ] }
-wasmer-wasi = { version = "1", default-features = false }
+wasmer = { version = "2", default-features = false, features = [ "jit" ] }
+wasmer-wasi = { version = "2", default-features = false }
 
 [features]
 llvm = [ "wasmer/llvm" ]

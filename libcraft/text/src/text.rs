@@ -316,7 +316,7 @@ impl<'a> From<&Translate> for String {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "action", content = "value")]
+#[serde(tag = "action", content = "value", rename_all = "snake_case")]
 // TODO: Accept any json primitive as string
 pub enum Click {
     OpenUrl(Cow<'static, str>),
@@ -1138,14 +1138,14 @@ mod tests {
 
     #[test]
     fn text_text_color() -> Result<(), Box<dyn Error>> {
-        let text_orignal: Text = Text::from("hello world") * Color::DarkRed;
+        let text_original: Text = Text::from("hello world") * Color::DarkRed;
 
-        let text_json = serde_json::to_string(&text_orignal)?;
+        let text_json = serde_json::to_string(&text_original)?;
 
         assert_eq!(&text_json, r#"{"text":"hello world","color":"dark_red"}"#);
 
         let text: Text = serde_json::from_str(&text_json)?;
-        assert_eq!(text_orignal, text);
+        assert_eq!(text_original, text);
 
         Ok(())
     }
@@ -1200,5 +1200,18 @@ mod tests {
         let root_json = String::from(root);
 
         assert_eq!(root_json, r#"{"text":"hello"}"#);
+    }
+
+    #[test]
+    fn text_hover_and_click() -> Result<(), Box<dyn Error>> {
+        let text = Text::from("hello")
+            .on_hover_show_text("hover")
+            .on_click_run_command("/say hello");
+        assert_eq!(
+            serde_json::to_string(&text)?,
+            r#"{"text":"hello","clickEvent":{"action":"run_command","value":"/say hello"},"hoverEvent":{"action":"show_text","value":"hover"}}"#
+        );
+
+        Ok(())
     }
 }
