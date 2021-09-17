@@ -2063,7 +2063,7 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "bytemuck",
- "itertools 0.10.0",
+ "itertools",
  "libcraft-blocks",
  "libcraft-core",
  "libcraft-particles",

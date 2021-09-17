@@ -180,7 +180,12 @@ impl Client {
         self.sent_entities.borrow().contains(&network_id)
     }
 
-    pub fn send_join_game(&self, gamemode: Gamemode, previous_gamemode: PreviousGamemode, game: &common::Game) {
+    pub fn send_join_game(
+        &self,
+        gamemode: Gamemode,
+        previous_gamemode: PreviousGamemode,
+        game: &common::Game,
+    ) {
         log::trace!("Sending Join Game to {}", self.username);
         // Use the dimension codec sent by the default vanilla server. (Data acquired via tools/proxy)
         let dimension_codec = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
