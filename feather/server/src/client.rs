@@ -65,7 +65,7 @@ impl Clients {
     }
 
     pub fn get_mut(&mut self, id: ClientId) -> Option<&mut Client> {
-        self.arena.get_mut(id.0)
+        self.slab.get_mut(id.0)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &'_ Client> + '_ {
