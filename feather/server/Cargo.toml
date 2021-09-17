@@ -48,7 +48,7 @@ toml = "0.5"
 ureq = { version = "2", features = [ "json" ] }
 utils = { path = "../utils", package = "feather-utils" }
 uuid = "0.8"
-vec-arena = "1"
+slab = "0.4"
 libcraft-core = { path = "../../libcraft/core" }
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
 datapacks = { path = "../datapacks", package = "feather-datapacks" }

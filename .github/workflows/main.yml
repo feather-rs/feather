@@ -119,6 +119,10 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+      - uses: Swatinem/rust-cache@v1
+        with:
+          sharedKey: ${{ matrix.target }}
+
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -135,8 +139,6 @@ jobs:
           echo "SDKROOT=$(xcrun -sdk macosx11.0 --show-sdk-path)" >> $GITHUB_ENV
           echo "MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx11.0 --show-sdk-platform-version)" >> $GITHUB_ENV
         if: matrix.target == 'aarch64-apple-darwin'
-
-      - uses: Swatinem/rust-cache@v1
 
       - name: Run cargo build
         uses: actions-rs/cargo@v1

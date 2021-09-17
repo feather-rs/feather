@@ -16,7 +16,7 @@ use quill_common::components::{
 };
 use quill_common::{components::Name, entity_init::EntityInit};
 
-use crate::{ClientId, Server};
+use crate::{ClientId, NetworkId, Server};
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems.group::<Server>().add_system(poll_new_players);
@@ -32,7 +32,9 @@ fn poll_new_players(game: &mut Game, server: &mut Server) -> SysResult {
 }
 
 fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) -> SysResult {
-    let client = server.clients.get(client_id).unwrap();
+    let mut builder = game.create_entity_builder(Position::default(), EntityInit::Player);
+    let client = server.clients.get_mut(client_id).unwrap();
+    client.set_network_id(*builder.get::<NetworkId>().unwrap());
 
     let player_data = game.world.load_player_data(client.uuid());
     if player_data.is_err() {
@@ -92,7 +94,6 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     client.send_window_items(&window);
 
     builder
-        .add(client.network_id())
         .add(client_id)
         .add(View::new(
             Position::default().chunk(),

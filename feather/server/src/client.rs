@@ -8,7 +8,6 @@ use std::{
 use ahash::AHashSet;
 use flume::{Receiver, Sender};
 use uuid::Uuid;
-use vec_arena::Arena;
 
 use base::{
     BlockId, BlockPosition, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode,
@@ -35,6 +34,7 @@ use protocol::{
 use quill_common::components::{OnGround, PreviousGamemode};
 
 use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
+use slab::Slab;
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
@@ -46,7 +46,7 @@ pub struct ClientId(usize);
 /// Stores all `Client`s.
 #[derive(Default)]
 pub struct Clients {
-    arena: Arena<Client>,
+    slab: Slab<Client>,
 }
 
 impl Clients {
@@ -55,19 +55,23 @@ impl Clients {
     }
 
     pub fn insert(&mut self, client: Client) -> ClientId {
-        ClientId(self.arena.insert(client))
+        ClientId(self.slab.insert(client))
     }
 
     pub fn remove(&mut self, id: ClientId) -> Option<Client> {
-        self.arena.remove(id.0)
+        self.slab.try_remove(id.0)
     }
 
     pub fn get(&self, id: ClientId) -> Option<&Client> {
-        self.arena.get(id.0)
+        self.slab.get(id.0)
+    }
+
+    pub fn get_mut(&mut self, id: ClientId) -> Option<&mut Client> {
+        self.slab.get_mut(id.0)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &'_ Client> + '_ {
-        self.arena.iter().map(|(_i, client)| client)
+        self.slab.iter().map(|(_i, client)| client)
     }
 }
 
@@ -85,7 +89,7 @@ pub struct Client {
 
     teleport_id_counter: Cell<i32>,
 
-    network_id: NetworkId,
+    network_id: Option<NetworkId>,
     sent_entities: RefCell<AHashSet<NetworkId>>,
 
     knows_position: Cell<bool>,
@@ -101,14 +105,14 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(player: NewPlayer, options: Arc<Options>, network_id: NetworkId) -> Self {
+    pub fn new(player: NewPlayer, options: Arc<Options>) -> Self {
         Self {
             packets_to_send: player.packets_to_send,
             received_packets: player.received_packets,
             options,
             username: player.username,
             teleport_id_counter: Cell::new(0),
-            network_id,
+            network_id: None,
             profile: player.profile,
             uuid: player.uuid,
             sent_entities: RefCell::new(AHashSet::new()),
@@ -132,7 +136,7 @@ impl Client {
         &self.profile
     }
 
-    pub fn network_id(&self) -> NetworkId {
+    pub fn network_id(&self) -> Option<NetworkId> {
         self.network_id
     }
 
@@ -180,6 +184,10 @@ impl Client {
         self.sent_entities.borrow().contains(&network_id)
     }
 
+    pub fn set_network_id(&mut self, network_id: NetworkId) {
+        self.network_id = Some(network_id);
+    }
+
     pub fn send_join_game(
         &self,
         gamemode: Gamemode,
@@ -191,14 +199,14 @@ impl Client {
         let dimension_codec = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
             "../../../assets/dimension_codec.nbt"
         )))
-        .expect("dimension codec asset is malformed");
+            .expect("dimension codec asset is malformed");
         let dimension = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
             "../../../assets/dimension.nbt"
         )))
-        .expect("dimension asset is malformed");
+            .expect("dimension asset is malformed");
 
         self.send_packet(JoinGame {
-            entity_id: self.network_id.0,
+            entity_id: self.network_id.expect("No network id! Use client.set_network_id(NetworkId) before calling this method.").0,
             is_hardcore: false,
             gamemode,
             previous_gamemode,
@@ -380,7 +388,7 @@ impl Client {
         position: Position,
         on_ground: OnGround,
     ) {
-        if network_id == self.network_id {
+        if self.network_id == Some(network_id) {
             // This entity is the client. Only update
             // the position if it has changed from the client's
             // known position.
@@ -414,7 +422,7 @@ impl Client {
     }
 
     pub fn send_entity_animation(&self, network_id: NetworkId, animation: Animation) {
-        if network_id == self.network_id {
+        if self.network_id == Some(network_id) {
             return;
         }
         self.send_packet(EntityAnimation {
