@@ -25,10 +25,6 @@ impl HotbarSlot {
         Self(id)
     }
 
-    pub fn default() -> Self {
-        Self(0)
-    }
-
     pub fn get(&self) -> usize {
         self.0
     }
@@ -40,5 +36,12 @@ impl HotbarSlot {
 
         self.0 = id;
         Ok(())
+    }
+}
+
+#[allow(clippy::derivable_impls)]
+impl Default for HotbarSlot {
+    fn default() -> Self {
+        Self(0)
     }
 }
