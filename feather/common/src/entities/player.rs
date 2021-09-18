@@ -42,6 +42,6 @@ impl HotbarSlot {
 #[allow(clippy::derivable_impls)]
 impl Default for HotbarSlot {
     fn default() -> Self {
-        Self(0)
+        HotbarSlot(0)
     }
 }

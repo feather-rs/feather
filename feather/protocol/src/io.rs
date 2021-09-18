@@ -8,6 +8,7 @@ use base::{
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
+use quill_common::components::PreviousGamemode;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     borrow::Cow,
@@ -885,5 +886,20 @@ impl Writeable for Gamemode {
         (id as u8).write(buffer, version)?;
 
         Ok(())
+    }
+}
+
+impl Readable for PreviousGamemode {
+    fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        Ok(Self::from_id(i8::read(buffer, version)?))
+    }
+}
+
+impl Writeable for PreviousGamemode {
+    fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
+        self.id().write(buffer, version)
     }
 }

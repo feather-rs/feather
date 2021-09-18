@@ -1,7 +1,15 @@
-use base::Text;
+use num_traits::cast::ToPrimitive;
+
+use base::anvil::entity::{AnimalData, BaseEntityData, ItemNbt};
+use base::anvil::player::{InventorySlot, PlayerAbilities, PlayerData};
+use base::{Gamemode, Inventory, Position, Text};
+use common::entities::player::HotbarSlot;
 use common::{chat::ChatKind, Game};
 use ecs::{SysResult, SystemExecutor};
-use quill_common::components::Name;
+use quill_common::components::{
+    CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Health, Instabreak,
+    Invulnerable, Name, PreviousGamemode, WalkSpeed,
+};
 
 use crate::{ClientId, Server};
 
@@ -13,12 +21,73 @@ pub fn register(systems: &mut SystemExecutor<Game>) {
 
 fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResult {
     let mut entities_to_remove = Vec::new();
-    for (player, (&client_id, name)) in game.ecs.query::<(&ClientId, &Name)>().iter() {
+    for (
+        player,
+        (
+            &client_id,
+            name,
+            position,
+            gamemode,
+            previous_gamemode,
+            health,
+            walk_speed,
+            fly_speed,
+            can_fly,
+            is_flying,
+            can_build,
+            instabreak,
+            invulnerable,
+            hotbar_slot,
+            inventory,
+        ),
+    ) in game
+        .ecs
+        .query::<(
+            &ClientId,
+            &Name,
+            &Position,
+            &Gamemode,
+            &PreviousGamemode,
+            &Health,
+            &WalkSpeed,
+            &CreativeFlyingSpeed,
+            &CanCreativeFly,
+            &CreativeFlying,
+            &CanBuild,
+            &Instabreak,
+            &Invulnerable,
+            &HotbarSlot,
+            &Inventory,
+        )>()
+        .iter()
+    {
         let client = server.clients.get(client_id).unwrap();
         if client.is_disconnected() {
-            server.remove_client(client_id);
             entities_to_remove.push(player);
             broadcast_player_leave(game, name);
+            game.world
+                .save_player_data(
+                    client.uuid(),
+                    &create_player_data(
+                        *position,
+                        *gamemode,
+                        *previous_gamemode,
+                        *health,
+                        PlayerAbilities {
+                            walk_speed: *walk_speed,
+                            fly_speed: *fly_speed,
+                            may_fly: *can_fly,
+                            is_flying: *is_flying,
+                            may_build: *can_build,
+                            instabreak: *instabreak,
+                            invulnerable: *invulnerable,
+                        },
+                        *hotbar_slot,
+                        inventory,
+                    ),
+                )
+                .unwrap_or_else(|e| panic!("Couldn't save data for {}: {}", client.username(), e));
+            server.remove_client(client_id);
         }
     }
 
@@ -32,4 +101,50 @@ fn remove_disconnected_clients(game: &mut Game, server: &mut Server) -> SysResul
 fn broadcast_player_leave(game: &Game, username: &Name) {
     let message = Text::translate_with("multiplayer.player.left", vec![username.to_string()]);
     game.broadcast_chat(ChatKind::System, message);
+}
+
+fn create_player_data(
+    position: Position,
+    gamemode: Gamemode,
+    previous_gamemode: PreviousGamemode,
+    health: Health,
+    abilities: PlayerAbilities,
+    hotbar_slot: HotbarSlot,
+    inventory: &Inventory,
+) -> PlayerData {
+    PlayerData {
+        animal: AnimalData {
+            base: BaseEntityData {
+                position: [position.x, position.y, position.z].into(),
+                rotation: [position.yaw, position.pitch].into(),
+                velocity: [0.0, 0.0, 0.0].into(),
+            },
+            health: *health,
+        },
+        gamemode: gamemode.to_i32().unwrap(),
+        previous_gamemode: previous_gamemode.id() as i32,
+        inventory: inventory
+            .to_vec()
+            .iter()
+            .enumerate()
+            .filter_map(|(slot, maybe_item)| maybe_item.as_ref().map(|item| (slot, item)))
+            .map(|(slot, item)| InventorySlot {
+                count: item.count as i8,
+                slot: slot as i8,
+                item: item.item.name().to_owned(),
+                nbt: {
+                    let nbt = ItemNbt {
+                        damage: item.damage.map(|damage| damage as i32),
+                    };
+                    if nbt.damage.is_none() {
+                        None
+                    } else {
+                        Some(nbt)
+                    }
+                },
+            })
+            .collect(),
+        held_item: hotbar_slot.get() as i32,
+        abilities,
+    }
 }
