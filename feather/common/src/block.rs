@@ -13,7 +13,6 @@ use libcraft_core::{BlockFace, EntityKind};
 use quill_common::events::BlockPlacementEvent;
 use vek::Rect3;
 
-
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems.add_system(block_placement);
 }
@@ -41,7 +40,14 @@ pub fn block_placement(game: &mut Game) -> SysResult {
             Some(s) => s,
             None => continue,
         };
-        if let Some(s) = place_block(&mut game.world, *pos, &game.chunk_entities, block, event, &game.ecs) {
+        if let Some(s) = place_block(
+            &mut game.world,
+            *pos,
+            &game.chunk_entities,
+            block,
+            event,
+            &game.ecs,
+        ) {
             match *gamemode {
                 Gamemode::Survival | Gamemode::Adventure => decrease_slot(&mut slot),
                 _ => {}
@@ -139,11 +145,7 @@ fn place_block(
             entity_rect.y = entity_position.y;
             entity_rect.z = entity_position.z - (entity_rect.d / 2.0);
 
-            if block_rect.collides_with_rect3(entity_rect) {
-                true
-            } else {
-                false
-            }
+            block_rect.collides_with_rect3(entity_rect)
         })
     {
         return None;
