@@ -65,7 +65,7 @@ fn place_block(
     chunk_entities: &ChunkEntities,
     block: BlockId,
     placement: &BlockPlacementEvent,
-    game: &Ecs,
+    ecs: &Ecs,
 ) -> Option<Vec<BlockChangeEvent>> {
     let target1 = placement.location;
     let target_block1 = world.block_at(target1)?;
@@ -123,8 +123,8 @@ fn place_block(
         .entities_in_chunk(target.chunk())
         .iter()
         .any(|_entity| {
-            let entity_position = game.get::<Position>(*_entity).unwrap();
-            let entity_kind = *game.get::<EntityKind>(*_entity).unwrap();
+            let entity_position = ecs.get::<Position>(*_entity).unwrap();
+            let entity_kind = *ecs.get::<EntityKind>(*_entity).unwrap();
             let block_rect: Rect3<f64, f64> = vek::Rect3 {
                 x: target.x.into(),
                 y: target.y.into(),
