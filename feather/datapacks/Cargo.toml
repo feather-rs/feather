@@ -1,16 +1,21 @@
 [package]
 name = "feather-datapacks"
 version = "0.1.0"
-authors = [ "caelunshun <caelunshun@gmail.com>" ]
+authors = [ "koskja <koskja224@gmail.com>", "caelunshun <caelunshun@gmail.com>" ]
 edition = "2018"
 
 [dependencies]
 ahash = "0.4"
-anyhow = "1"
 log = "0.4"
 serde = { version = "1", features = [ "derive" ] }
 serde_json = "1"
 smartstring = { version = "0.2", features = [ "serde" ] }
 thiserror = "1"
-ureq = { version = "2", default-features = false, features = [ "tls" ] }
-zip = "0.5"
+generated = { path = "../generated", package = "feather-generated" }
+blocks = { path = "../blocks", package = "feather-blocks"}
+protocol = { path = "../protocol", package = "feather-protocol" }
+walkdir = "2.3.2"
+
+[build-dependencies]
+vanilla-assets = { path = "./vanilla_assets", package = "feather-vanilla-assets" }
+anyhow = "1"
