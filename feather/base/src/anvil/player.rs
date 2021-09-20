@@ -10,7 +10,6 @@ use nbt::Value;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use generated::{Item, ItemStack};
 use quill_common::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable,
     WalkSpeed,

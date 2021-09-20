@@ -1,8 +1,12 @@
-use generated::{Item, ItemStack};
+use std::{convert::TryInto, num::NonZeroU32};
+
+use libcraft_items::{Item, ItemStack, ItemStackBuilder};
 use serde::{Deserialize, Serialize};
 
-pub fn default_count() -> u32 {
-    1
+pub fn default_count() -> NonZeroU32 {
+    unsafe { // because i can.
+        NonZeroU32::new_unchecked(1)
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
@@ -12,24 +16,23 @@ pub struct SerdeItem(Item);
 pub struct SerdeItemStack {
     pub item: SerdeItem,
     #[serde(default = "default_count")]
-    pub count: u32,
+    pub count: NonZeroU32,
     pub damage: Option<u32>,
 }
 impl From<SerdeItemStack> for ItemStack {
     fn from(s: SerdeItemStack) -> Self {
-        Self {
-            item: s.item.into(),
-            count: s.count,
-            damage: s.damage,
-        }
-    }
+        ItemStackBuilder::with_item(s.item.into())
+            .count(s.count.into())
+            .into()
+    }   
 }
 impl From<ItemStack> for SerdeItemStack {
     fn from(s: ItemStack) -> Self {
+        
         Self {
-            item: s.item.into(),
-            count: s.count,
-            damage: s.damage,
+            item: s.item().into(),
+            count: s.count().try_into().unwrap(),
+            damage: s.damage_taken(),
         }
     }
 }

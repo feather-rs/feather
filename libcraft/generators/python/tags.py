@@ -1,10 +1,15 @@
 from os import listdir
 import common
-prefix = "../datapacks/minecraft/data/minecraft/tags/"
-block_tags = listdir(prefix + "blocks")
-entity_types = listdir(prefix + "entity_types")
-fluid_tags = listdir(prefix + "fluids")
-item_tags = listdir(prefix + "items")
+from pathlib import Path
+
+prefix = Path(__file__).parent / "../../../feather/datapacks/minecraft/data/minecraft/tags"
+output_path = Path(__file__).parent / "../../tags/src/vanilla_tags.rs"
+
+
+block_tags = listdir(prefix / "blocks")
+entity_types = listdir(prefix / "entity_types")
+fluid_tags = listdir(prefix / "fluids")
+item_tags = listdir(prefix / "items")
 tag_list_list = (block_tags, entity_types, fluid_tags, item_tags)
 enum_names = ("VanillaBlockTags", "VanillaEntityTypes", "VanillaFluidTags", "VanillaItemTags")
 new_line = "\n"
@@ -30,4 +35,5 @@ for (tags, enum_name) in zip(tag_list_list, enum_names):
     output += f"    fn from(tag: {enum_name}) -> Self {{{new_line}"
     output += "        tag.name()\n"
     output += "    }\n}\n"
-common.output("src/vanilla_tags.rs", output)
+
+common.output(output_path, output)

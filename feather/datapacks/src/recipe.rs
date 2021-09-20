@@ -1,7 +1,7 @@
-use std::{collections::HashMap, fs::File, io::Read, path::Path};
+use std::{collections::HashMap, fs::File, io::Read, num::NonZeroU32, path::Path};
 
 use crate::{NamespacedId, SerdeItem, SerdeItemStack, TagRegistry};
-use generated::{Item, ItemStack};
+use libcraft_items::{Item, ItemStack, ItemStackBuilder};
 use serde::{Deserialize, Serialize};
 use smartstring::{Compact, SmartString};
 /// A registry for keeping track of recipes.
@@ -231,7 +231,7 @@ pub struct StonecuttingRecipe {
     group: Option<SmartString<Compact>>,
     ingredient: Ingredient,
     result: SerdeItem,
-    count: u32,
+    count: NonZeroU32,
 }
 impl SmeltingRecipe {
     pub fn matches(&self, item: Item, tag_registry: &TagRegistry) -> bool {
@@ -340,11 +340,11 @@ impl StonecuttingRecipe {
     }
     pub fn match_self(&self, item: Item, tag_registry: &TagRegistry) -> Option<ItemStack> {
         if self.matches(item, tag_registry) {
-            Some(ItemStack {
-                item: self.result.into(),
-                count: self.count,
-                damage: None,
-            })
+            Some(
+                ItemStackBuilder::with_item(self.result.into())
+                    .count(self.count.into())
+                    .into()
+            )
         } else {
             None
         }

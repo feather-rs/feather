@@ -844,9 +844,12 @@ dependencies = [
  "ahash 0.4.7",
  "anyhow",
  "feather-blocks",
- "feather-generated",
  "feather-protocol",
  "feather-vanilla-assets",
+ "libcraft-blocks",
+ "libcraft-core",
+ "libcraft-items",
+ "libcraft-tags",
  "log",
  "serde",
  "serde_json",
@@ -1439,6 +1442,10 @@ dependencies = [
  "ordinalizer",
  "serde",
 ]
+
+[[package]]
+name = "libcraft-tags"
+version = "0.1.0"
 
 [[package]]
 name = "libcraft-text"

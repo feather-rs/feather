@@ -7,6 +7,7 @@ members = [
     "libcraft/items",
     "libcraft/macros",
     "libcraft/particles",
+    "libcraft/tags",
     "libcraft/text",
     "libcraft/inventory",
 
@@ -30,7 +31,6 @@ members = [
 
     # Feather (common and server)
     "feather/utils",
-    #"feather/generated",
     "feather/blocks",
     "feather/blocks/generator",
     "feather/base",

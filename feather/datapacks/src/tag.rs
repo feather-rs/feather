@@ -6,7 +6,9 @@ use std::{
 use crate::NamespacedId;
 use ahash::{AHashMap, AHashSet};
 use blocks::BlockId;
-use generated::{BlockKind, EntityKind, Item};
+use libcraft_blocks::BlockKind;
+use libcraft_items::Item;
+use libcraft_core::EntityKind;
 use protocol::{
     packets::server::{AllTags, Tag},
     VarInt,
@@ -16,7 +18,9 @@ use smartstring::{Compact, SmartString};
 use thiserror::Error;
 use walkdir::WalkDir;
 
-pub use generated::vanilla_tags::*;
+use libcraft_tags::*;
+
+
 /// The tag registry builder's purpose is to serve as a stepping stone to construct the full tag registry.
 /// Once all datapacks are loaded, the builder resolves all tag "symlinks".
 /// An example of this behaviour is the tag `#minecraft:fences`, which includes `minecraft:nether_brick_fence` and `#minecraft:wooden_fences`.
@@ -265,7 +269,7 @@ impl TagRegistry {
                 name: tag_name.to_string(),
                 entries: block_names
                     .iter()
-                    .map(|e| VarInt(generated::BlockKind::from_name(e.name()).unwrap().id() as i32))
+                    .map(|e| VarInt(BlockKind::from_name(e.name()).unwrap().id() as i32))
                     .collect(),
             });
         }
@@ -275,7 +279,7 @@ impl TagRegistry {
                 entries: entity_names
                     .iter()
                     .map(
-                        |e| VarInt(generated::EntityKind::from_name(e.name()).unwrap().id() as i32),
+                        |e| VarInt(EntityKind::from_name(e.name()).unwrap().id() as i32),
                     )
                     .collect(),
             });
@@ -301,7 +305,7 @@ impl TagRegistry {
                 name: tag_name.to_string(),
                 entries: item_names
                     .iter()
-                    .map(|e| VarInt(generated::Item::from_name(e.name()).unwrap().id() as i32))
+                    .map(|e| VarInt(Item::from_name(e.name()).unwrap().id() as i32))
                     .collect(),
             });
         }
