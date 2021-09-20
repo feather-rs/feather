@@ -43,6 +43,19 @@ impl Inventory {
         slice.get(slot).map(Mutex::lock)
     }
 
+    pub fn to_vec(&self) -> Vec<InventorySlot> {
+        let mut vec = Vec::new();
+        for area in self.backing.areas() {
+            for items in self.backing.area_slice(*area) {
+                for item in items {
+                    let i = item.lock();
+                    vec.push(i.clone());
+                }
+            }
+        }
+        vec
+    }
+
     /// Creates a new handle to the same inventory.
     ///
     /// This operation is the same as calling `clone()`, but it's more explicit

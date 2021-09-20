@@ -787,4 +787,11 @@ mod tests {
             player: Inventory::player(),
         })
     }
+
+    #[test]
+    fn set_item_test() {
+        let window = window();
+
+        window.set_item(45, InventorySlot::new(Item::Stone, 1)).unwrap();
+    }
 }
