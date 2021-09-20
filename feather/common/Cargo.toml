@@ -23,4 +23,5 @@ libcraft-inventory = { path = "../../libcraft/inventory" }
 libcraft-items = { path = "../../libcraft/items" }
 rayon = "1.5"
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
+datapacks = { path = "../datapacks", package = "feather-datapacks" }
 rand = "0.8"

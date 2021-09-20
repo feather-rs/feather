@@ -1,19 +1,20 @@
 use anyhow::bail;
+
 use base::{BlockState, EntityMetadata, Gamemode, ParticleKind, ProfileProperty};
-
-use super::*;
-use crate::{io::VarLong, Readable, Writeable};
-
-mod chunk_data;
 pub use chunk_data::{ChunkData, ChunkDataKind};
-
-mod update_light;
+use quill_common::components::PreviousGamemode;
 pub use update_light::UpdateLight;
 
+use crate::{io::VarLong, Readable, Writeable};
+
+use super::*;
+
+mod chunk_data;
+mod update_light;
 packets! {
     SpawnEntity {
         entity_id VarInt;
-        uuid String;
+        uuid Uuid;
         kind VarInt;
         x f64;
         y f64;
@@ -304,6 +305,7 @@ packets! {
 
     EntityStatus {
         entity_id i32;
+        // status changes meaning depending on entity Type
         status i8;
     }
 
@@ -330,7 +332,7 @@ packets! {
     }
 
     ChangeGameState {
-        reason u8;
+        reason StateReason;
         value f32;
     }
 
@@ -352,12 +354,28 @@ packets! {
     }
 }
 
+def_enum! {
+    StateReason (i8) {
+        0 = NoRespawnBlock,
+        1 = EndRaining,
+        2 = BeginningRain,
+        3 = ChangeGameMode,
+        4 = WinGame,
+        5 = DemoEvent,
+        6 = ArrowHitPlayer,
+        7 = RainLevelChange,
+        8 = ThunderLevelChange,
+        9 = PufferfishSting,
+        10 = ElderGuardianAppearance,
+        11 = EnableRespawnScreen,
+    }
+}
 packets! {
     JoinGame {
         entity_id i32;
         is_hardcore bool;
         gamemode Gamemode;
-        previous_gamemode u8; // can be 255 if "not set," otherwise corresponds to a gamemode ID
+        previous_gamemode PreviousGamemode; // can be -1 if "not set", otherwise corresponds to a gamemode ID
         world_names VarIntPrefixedVec<String>;
 
         dimension_codec Nbt<Blob>;
@@ -869,7 +887,7 @@ def_enum! {
             z f64;
             old_diameter f64;
             new_diameter f64;
-            speed u64;
+            speed VarLong;
             portal_teeport_boundary VarInt;
             warning_time VarInt;
             warning_blocks VarInt;
