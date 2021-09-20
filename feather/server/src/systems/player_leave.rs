@@ -127,14 +127,21 @@ fn create_player_data(
             .to_vec()
             .iter()
             .enumerate()
-            .filter_map(|(slot, maybe_item)| maybe_item.as_ref().map(|item| (slot, item)))
+            .filter(| (_, item)| item.is_filled())
+            .map(|(slot, item) | {
+                if let libcraft_items::InventorySlot::Filled(item) = item {
+                    (slot, item)
+                } else {
+                    unreachable!()
+                }
+            })
             .map(|(slot, item)| InventorySlot {
-                count: item.count as i8,
+                count: item.count() as i8,
                 slot: slot as i8,
-                item: item.item.name().to_owned(),
+                item: item.item().name().to_owned(),
                 nbt: {
                     let nbt = ItemNbt {
-                        damage: item.damage.map(|damage| damage as i32),
+                        damage: item.damage_taken().map(|damage| damage as i32),
                     };
                     if nbt.damage.is_none() {
                         None
