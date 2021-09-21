@@ -9,6 +9,7 @@ use crate::{ClientId, Server};
 pub fn handle_creative_inventory_action(
     player: EntityRef,
     packet: CreativeInventoryAction,
+    server: Option<&mut Server>,
 ) -> SysResult {
     if *player.get::<Gamemode>()? != Gamemode::Creative {
         bail!("cannot use Creative Inventory Action outside of creative mode");
@@ -23,6 +24,12 @@ pub fn handle_creative_inventory_action(
         window
             .inner()
             .set_item(packet.slot as usize, packet.clicked_item)?;
+
+        if server.is_some() {
+            let client_id = *player.get::<ClientId>()?;
+            let client = server.unwrap().clients.get(client_id).unwrap();
+            client.send_window_items(&window);
+        }
     }
 
     Ok(())
@@ -93,7 +100,7 @@ mod tests {
             slot: 10,
             clicked_item: Some(ItemStack::new(Item::Diamond, 64)),
         };
-        handle_creative_inventory_action(player, packet).unwrap_err();
+        handle_creative_inventory_action(player, packet, None).unwrap_err();
 
         assert!(game
             .ecs
@@ -120,7 +127,7 @@ mod tests {
             slot: 5,
             clicked_item: Some(ItemStack::new(Item::Diamond, 64)),
         };
-        handle_creative_inventory_action(player, packet).unwrap_err();
+        handle_creative_inventory_action(player, packet, None).unwrap_err();
 
         assert!(game
             .ecs
@@ -141,7 +148,7 @@ mod tests {
             slot: 5,
             clicked_item: Some(ItemStack::new(Item::Diamond, 64)),
         };
-        handle_creative_inventory_action(player, packet).unwrap();
+        handle_creative_inventory_action(player, packet, None).unwrap();
 
         assert_eq!(
             game.ecs
