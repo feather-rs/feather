@@ -15,6 +15,8 @@ mod item;
 mod particle;
 #[allow(clippy::all)]
 mod simplified_block;
+#[allow(clippy::all)]
+pub mod vanilla_tags;
 
 pub use biome::Biome;
 pub use block::BlockKind;

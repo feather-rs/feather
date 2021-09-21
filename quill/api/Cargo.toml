@@ -15,4 +15,5 @@ quill-sys = { path = "../sys" }
 quill-common = { path = "../common" }
 thiserror = "1"
 uuid = "0.8"
+itertools = "0.10.0"
 

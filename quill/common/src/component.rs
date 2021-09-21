@@ -190,9 +190,17 @@ host_component_enum! {
         SneakEvent = 1012,
         Sprinting = 1013,
         SprintEvent = 1014,
-        GamemodeUpdateEvent = 1015,
-        TimeUpdateEvent = 1016,
-        InventoryUpdateEvent = 1017,
+        PreviousGamemode = 1015,
+        Health = 1016,
+        WalkSpeed = 1017,
+        CreativeFlyingSpeed = 1018,
+        CanCreativeFly = 1019,
+        CanBuild = 1020,
+        Instabreak = 1021,
+        Invulnerable = 1022,
+        GamemodeUpdateEvent = 1023,
+        TimeUpdateEvent = 1024,
+        InventoryUpdateEvent = 1025,
 
 
     }

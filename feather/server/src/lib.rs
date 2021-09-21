@@ -12,7 +12,7 @@ use common::Game;
 use ecs::SystemExecutor;
 use initial_handler::NewPlayer;
 pub use options::Options;
-use quill_common::components::{ClientId, NetworkId};
+use quill_common::components::ClientId;
 use systems::view::WaitingChunks;
 
 use crate::listener::Listener;
@@ -114,15 +114,9 @@ impl Server {
         }
     }
 
-    /// Allocates a `NetworkId` for an entity.
-    pub fn create_network_id(&mut self) -> NetworkId {
-        NetworkId::new()
-    }
-
     fn create_client(&mut self, player: NewPlayer) -> ClientId {
         log::debug!("Creating client for {}", player.username);
-        let network_id = self.create_network_id();
-        let client = Client::new(player, Arc::clone(&self.options), network_id);
+        let client = Client::new(player, Arc::clone(&self.options));
         self.clients.insert(client)
     }
 

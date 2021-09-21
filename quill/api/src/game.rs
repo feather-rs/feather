@@ -109,7 +109,7 @@ impl Game {
     ///    println!("Found an entity with position {:?} and UUID {}", position, uuid);
     /// }
     /// ```
-    pub fn query<Q: Query>(&self) -> QueryIter<Q> {
+    pub fn query<Q: Query>(&mut self) -> QueryIter<Q> {
         QueryIter::new()
     }
 

@@ -1,20 +1,13 @@
 //! The implementations of various commands.
 
-use std::net::{IpAddr, SocketAddr};
-use std::str::FromStr;
-
+use commands::arguments::{StringArgument, StringProperties};
 use commands::command;
 use commands::dispatcher::CommandDispatcher;
-use commands::arguments::{StringArgument, StringProperties};
-use smallvec::SmallVec;
 use thiserror::Error;
 
-use base::{Gamemode, Item, Position, Text, TextComponentBuilder, TextValue};
-use common::{ChatBox, Window};
-use ecs::{Ecs, Entity};
-use quill_common::components::{ClientId, Name};
-use quill_common::entities::Player;
-use quill_common::events::{GamemodeUpdateEvent, InventoryUpdateEvent, TimeUpdateEvent};
+use base::Text;
+use common::ChatBox;
+use quill_common::components::Name;
 
 use crate::CommandCtx;
 
@@ -32,11 +25,11 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         "text": StringArgument::new(StringProperties::GreedyPhrase) => action: String,
         ctx {
             let command_output = {
-                let name = ctx.ecs.get::<Name>(ctx.sender);
+                let name = ctx.game.ecs.get::<Name>(ctx.sender);
                 let sender_name = name.as_deref().map_or("@", |n| n);
                 Text::from(format!("* {} {}", sender_name, action))
             };
-            ctx.ecs
+            ctx.game.ecs
                 .query::<&mut ChatBox>()
                 .iter()
                 .for_each(|(_, chat_box)| chat_box.send_chat(command_output.clone()));

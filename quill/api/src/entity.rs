@@ -70,11 +70,11 @@ impl Entity {
         }
     }
 
-    /// Sets or replaces a component of this entity.
+    /// Inserts or replaces a component of this entity.
     ///
     /// If the entity already has this component,
     /// the component is overwritten.
-    pub fn set<T: Component>(&self, component: T) {
+    pub fn insert<T: Component>(&self, component: T) {
         let host_component = T::host_component();
         let bytes = component.to_cow_bytes();
 

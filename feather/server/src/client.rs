@@ -7,18 +7,22 @@ use std::{
 
 use ahash::AHashSet;
 use flume::{Receiver, Sender};
+use slab::Slab;
 use uuid::Uuid;
-use vec_arena::Arena;
 
 use base::{
     BlockId, BlockPosition, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode,
     ItemStack, Position, ProfileProperty, Text,
 };
-use common::chat::{ChatKind, ChatMessage};
 use common::world::WorldTime;
-use common::Window;
+use common::{
+    chat::{ChatKind, ChatMessage},
+    Window,
+};
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
-use protocol::packets::server::{ChangeGameState, TimeUpdate};
+use protocol::packets::server::{
+    ChangeGameState, HeldItemChange, PlayerAbilities, StateReason, TimeUpdate,
+};
 use protocol::{
     packets::{
         self,
@@ -31,10 +35,9 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
-use quill_common::components::{ClientId, NetworkId, OnGround};
+use quill_common::components::{ClientId, NetworkId, OnGround, PreviousGamemode};
 
-use crate::initial_handler::NewPlayer;
-use crate::options::Options;
+use crate::{initial_handler::NewPlayer, Options};
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
@@ -42,7 +45,7 @@ const MAX_CHUNKS_PER_TICK: usize = 10;
 /// Stores all `Client`s.
 #[derive(Default)]
 pub struct Clients {
-    arena: Arena<Client>,
+    slab: Slab<Client>,
 }
 
 impl Clients {
@@ -51,19 +54,23 @@ impl Clients {
     }
 
     pub fn insert(&mut self, client: Client) -> ClientId {
-        ClientId(self.arena.insert(client))
+        ClientId(self.slab.insert(client))
     }
 
     pub fn remove(&mut self, id: ClientId) -> Option<Client> {
-        self.arena.remove(id.0)
+        self.slab.try_remove(id.0)
     }
 
     pub fn get(&self, id: ClientId) -> Option<&Client> {
-        self.arena.get(id.0)
+        self.slab.get(id.0)
+    }
+
+    pub fn get_mut(&mut self, id: ClientId) -> Option<&mut Client> {
+        self.slab.get_mut(id.0)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &'_ Client> + '_ {
-        self.arena.iter().map(|(_i, client)| client)
+        self.slab.iter().map(|(_i, client)| client)
     }
 }
 
@@ -81,7 +88,7 @@ pub struct Client {
 
     teleport_id_counter: Cell<i32>,
 
-    network_id: NetworkId,
+    network_id: Option<NetworkId>,
     sent_entities: RefCell<AHashSet<NetworkId>>,
 
     knows_position: Cell<bool>,
@@ -97,14 +104,14 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(player: NewPlayer, options: Arc<Options>, network_id: NetworkId) -> Self {
+    pub fn new(player: NewPlayer, options: Arc<Options>) -> Self {
         Self {
             packets_to_send: player.packets_to_send,
             received_packets: player.received_packets,
             options,
             username: player.username,
             teleport_id_counter: Cell::new(0),
-            network_id,
+            network_id: None,
             profile: player.profile,
             uuid: player.uuid,
             sent_entities: RefCell::new(AHashSet::new()),
@@ -128,7 +135,7 @@ impl Client {
         &self.profile
     }
 
-    pub fn network_id(&self) -> NetworkId {
+    pub fn network_id(&self) -> Option<NetworkId> {
         self.network_id
     }
 
@@ -176,7 +183,16 @@ impl Client {
         self.sent_entities.borrow().contains(&network_id)
     }
 
-    pub fn send_join_game(&self, gamemode: Gamemode) {
+    pub fn set_network_id(&mut self, network_id: NetworkId) {
+        self.network_id = Some(network_id);
+    }
+
+    pub fn send_join_game(
+        &self,
+        gamemode: Gamemode,
+        previous_gamemode: PreviousGamemode,
+        game: &common::Game,
+    ) {
         log::trace!("Sending Join Game to {}", self.username);
         // Use the dimension codec sent by the default vanilla server. (Data acquired via tools/proxy)
         let dimension_codec = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
@@ -189,10 +205,10 @@ impl Client {
         .expect("dimension asset is malformed");
 
         self.send_packet(JoinGame {
-            entity_id: self.network_id.0,
+            entity_id: self.network_id.expect("No network id! Use client.set_network_id(NetworkId) before calling this method.").0,
             is_hardcore: false,
             gamemode,
-            previous_gamemode: 0,
+            previous_gamemode,
             world_names: vec!["world".to_owned()],
             dimension_codec: Nbt(dimension_codec),
             dimension: Nbt(dimension),
@@ -205,6 +221,8 @@ impl Client {
             is_debug: false,
             is_flat: false,
         });
+
+        self.send_packet(game.tag_registry.all_tags());
     }
 
     pub fn send_brand(&self) {
@@ -373,7 +391,7 @@ impl Client {
         position: Position,
         on_ground: OnGround,
     ) {
-        if network_id == self.network_id {
+        if self.network_id == Some(network_id) {
             // This entity is the client. Only update
             // the position if it has changed from the client's
             // known position.
@@ -407,7 +425,7 @@ impl Client {
     }
 
     pub fn send_entity_animation(&self, network_id: NetworkId, animation: Animation) {
-        if network_id == self.network_id {
+        if self.network_id == Some(network_id) {
             return;
         }
         self.send_packet(EntityAnimation {
@@ -537,9 +555,34 @@ impl Client {
         });
     }
 
+    pub fn send_abilities(&self, abilities: &base::anvil::player::PlayerAbilities) {
+        let mut bitfield = 0;
+        if *abilities.invulnerable {
+            bitfield |= 1 << 0;
+        }
+        if *abilities.is_flying {
+            bitfield |= 1 << 1;
+        }
+        if *abilities.may_fly {
+            bitfield |= 1 << 2;
+        }
+        if *abilities.instabreak {
+            bitfield |= 1 << 3;
+        }
+        self.send_packet(PlayerAbilities {
+            flags: bitfield,
+            flying_speed: *abilities.fly_speed,
+            fov_modifier: *abilities.walk_speed,
+        });
+    }
+
+    pub fn set_hotbar_slot(&self, slot: u8) {
+        self.send_packet(HeldItemChange { slot });
+    }
+
     pub fn change_gamemode(&self, gamemode: Gamemode) {
         self.send_packet(ChangeGameState {
-            reason: 3,
+            reason: StateReason::ChangeGameMode,
             value: gamemode as u8 as f32,
         })
     }

@@ -3,6 +3,9 @@ use std::{path::PathBuf, sync::Arc};
 use ahash::{AHashMap, AHashSet};
 use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
 
+use uuid::Uuid;
+
+use base::anvil::player::PlayerData;
 use base::{BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, CHUNK_HEIGHT};
 use blocks::BlockId;
 use ecs::{Ecs, SysResult};
@@ -26,6 +29,7 @@ pub struct World {
     chunk_worker: ChunkWorker,
     loading_chunks: AHashSet<ChunkPosition>,
     canceled_chunk_loads: AHashSet<ChunkPosition>,
+    world_dir: PathBuf,
     pub time: WorldTime,
 }
 
@@ -40,6 +44,7 @@ impl Default for World {
             cache: ChunkCache::new(),
             loading_chunks: AHashSet::new(),
             canceled_chunk_loads: AHashSet::new(),
+            world_dir: "world".into(),
             time: WorldTime {
                 world_age: 0,
                 time: 0,
@@ -55,9 +60,10 @@ impl World {
 
     pub fn with_gen_and_path(
         generator: Arc<dyn WorldGenerator>,
-        world_dir: impl Into<PathBuf>,
+        world_dir: impl Into<PathBuf> + Clone,
     ) -> Self {
         Self {
+            world_dir: world_dir.clone().into(),
             chunk_worker: ChunkWorker::new(world_dir, generator),
             ..Default::default()
         }
@@ -155,6 +161,17 @@ impl World {
     /// Mutably gets the chunk map.
     pub fn chunk_map_mut(&mut self) -> &mut ChunkMap {
         &mut self.chunk_map
+    }
+
+    pub fn load_player_data(&self, uuid: Uuid) -> anyhow::Result<PlayerData> {
+        Ok(base::anvil::player::load_player_data(
+            &self.world_dir,
+            uuid,
+        )?)
+    }
+
+    pub fn save_player_data(&self, uuid: Uuid, data: &PlayerData) -> anyhow::Result<()> {
+        base::anvil::player::save_player_data(&self.world_dir, uuid, data)
     }
 }
 

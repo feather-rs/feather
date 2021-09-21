@@ -43,6 +43,7 @@ const WASM_FEATURES: Features = Features {
     module_linking: false,
     multi_memory: false,
     memory64: false,
+    exceptions: true,
 };
 
 /// Unique ID of a plugin.
@@ -135,7 +136,7 @@ impl PluginManager {
 fn compiler_config() -> impl CompilerConfig {
     use wasmer::{Cranelift, CraneliftOptLevel};
     let mut cfg = Cranelift::new();
-    cfg.opt_level(CraneliftOptLevel::Speed).enable_simd(true);
+    cfg.opt_level(CraneliftOptLevel::Speed);
     cfg
 }
 

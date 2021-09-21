@@ -6,10 +6,9 @@ use std::sync::Arc;
 
 use commands::dispatcher::CommandDispatcher;
 
-use base::{Text, TextComponentBuilder, TextValue};
-use common::{ChatBox, Game, World};
-use ecs::{Ecs, Entity};
-use impls::*;
+use base::{Text, TextComponentBuilder};
+use common::{ChatBox, Game};
+use ecs::Entity;
 
 mod impls;
 
@@ -46,7 +45,7 @@ unsafe impl<T> Sync for LifetimelessMut<T> where T: Sync {}
 
 /// Context passed into a command. This value can be used
 /// for access to game and entity data, such as components.
-pub struct CommandCtx {
+pub struct CommandCtx<'a> {
     /// The entity which triggered the command.
     ///
     /// _Not necessarily a player_. If the command was executed
@@ -59,23 +58,21 @@ pub struct CommandCtx {
     /// and command implementations should account for this.
     pub sender: Entity,
     /// The game state.
-    pub ecs: LifetimelessMut<Ecs>,
-    /// The game world.
-    pub world: LifetimelessMut<World>,
+    pub game: &'a mut Game,
 }
 
 /// State storing all registered commands.
-pub struct CommandState {
-    dispatcher: Arc<CommandDispatcher<CommandCtx>>,
+pub struct CommandState<'a> {
+    dispatcher: Arc<CommandDispatcher<CommandCtx<'a>>>,
 }
 
-impl Default for CommandState {
+impl Default for CommandState<'_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl CommandState {
+impl<'a> CommandState<'a> {
     /// Initializes the command state.
     pub fn new() -> Self {
         let mut dispatcher = CommandDispatcher::<CommandCtx>::new();
@@ -88,25 +85,26 @@ impl CommandState {
     }
 
     /// Dispatches a command.
-    pub fn dispatch(&self, game: &mut Game, sender: Entity, command: &str) {
-        let mut ctx = CommandCtx {
-            ecs: LifetimelessMut(&mut game.ecs),
-            world: LifetimelessMut(&mut game.world),
-            sender,
-        };
+    pub fn dispatch(self, game: &'a mut Game, sender: Entity, command: &str) {
+        let ctx = CommandCtx { game, sender };
 
-        if !self.dispatcher.execute_command(command, ctx) {
-            if let Ok(mut chat) = game.ecs.get_mut::<ChatBox>(sender) {
+        if self.dispatcher.find_command(command).is_none() {
+            if let Ok(mut chat) = ctx.game.ecs.get_mut::<ChatBox>(sender) {
                 chat.send_system(
                     Text::translate("command.unknown.command")
-                        .push_extra(Text::Array(vec![
-                            Text::of("\n/").gray(),
-                            Text::of(command.to_string()).underlined(),
-                            Text::translate("command.context.here").italic()
-                        ]).on_click_suggest_command(format!("/{}", command)))
+                        .push_extra(
+                            Text::Array(vec![
+                                Text::of("\n/").gray(),
+                                Text::of(command.to_string()).underlined(),
+                                Text::translate("command.context.here").italic(),
+                            ])
+                            .on_click_suggest_command(format!("/{}", command)),
+                        )
                         .red(),
                 );
             }
+        } else {
+            self.dispatcher.execute_command(command, ctx);
         }
     }
 }
