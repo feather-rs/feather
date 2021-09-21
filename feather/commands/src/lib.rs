@@ -1,21 +1,16 @@
-//! Implements the Feather command dispatching framework,
-//! based on our `lieutenant` library (a Rust fork
-//! of Mojang's [brigadier](https://github.com/Mojang/brigadier).
-//!
-//! Also implements vanilla commands not defined by plugins.
+//! Implements the Feather command dispatching framework
+//! and vanilla commands not defined by plugins.
 
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
-use lieutenant::CommandDispatcher;
+use commands::dispatcher::CommandDispatcher;
 
 use base::{Text, TextComponentBuilder};
 use common::{ChatBox, Game, World};
 use ecs::{Ecs, Entity};
 use impls::*;
 
-mod arguments;
-mod entity_selector_format;
 mod impls;
 
 /// Dumb workaround for a certain lifetime issue.
@@ -69,19 +64,6 @@ pub struct CommandCtx {
     pub world: LifetimelessMut<World>,
 }
 
-impl lieutenant::Context for CommandCtx {
-    type Error = anyhow::Error;
-    type Ok = Option<String>;
-}
-
-macro_rules! commands {
-    ($dispatcher:ident : $($command:expr,)*) => {
-        $(
-            $dispatcher.register($command).unwrap();
-        )*
-    }
-}
-
 /// State storing all registered commands.
 pub struct CommandState {
     dispatcher: Arc<CommandDispatcher<CommandCtx>>,
@@ -98,47 +80,7 @@ impl CommandState {
     pub fn new() -> Self {
         let mut dispatcher = CommandDispatcher::<CommandCtx>::new();
 
-        commands! {
-            dispatcher:
-                tp_1,
-                tp_2,
-                tp_3,
-                tp_4,
-
-                gamemode_1,
-                gamemode_2,
-
-                whisper,
-                say,
-                me,
-
-                kick_1,
-                kick_2,
-
-                stop,
-
-                clear_1,
-                clear_2,
-                clear_3,
-                clear_4,
-
-                seed,
-
-                ban_withreason,
-                ban_noreason,
-                banip_withreason,
-                banip_noreason,
-                banip_withreason_ip,
-                banip_noreason_ip,
-
-                pardon,
-                pardonip,
-
-                time_query,
-                time_add,
-                time_set_0,
-                time_set_1,
-        }
+        impls::register_all(&mut dispatcher);
 
         Self {
             dispatcher: Arc::new(dispatcher),
@@ -153,25 +95,10 @@ impl CommandState {
             sender,
         };
 
-        match self.dispatcher.dispatch(&mut ctx, command) {
-            Ok(Some(msg)) => {
-                if let Ok(mut chat) = ctx.ecs.get_mut::<ChatBox>(sender) {
-                    chat.send_system(Text::from(msg));
-                }
+        if !self.dispatcher.execute_command(command, ctx) {
+            if let Ok(mut chat) = game.ecs.get_mut::<ChatBox>(sender) {
+                chat.send_system(Text::from("Unknown command."));
             }
-
-            Err(errs) => {
-                let msg = if let Some(last) = errs.last() {
-                    Text::from(last.to_string()).red()
-                } else {
-                    Text::from("Unknown command.")
-                };
-
-                if let Ok(mut chat) = game.ecs.get_mut::<ChatBox>(sender) {
-                    chat.send_system(msg);
-                }
-            }
-            _ => (),
         }
     }
 }

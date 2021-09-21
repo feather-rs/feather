@@ -6,14 +6,14 @@ edition = "2018"
 
 [dependencies]
 
-lieutenant = { git = "https://github.com/feather-rs/lieutenant", rev = "83a8bebdf031f9ca83ace8511fa417001a65a243" }
+commands = { path = "../../../commands" }
 smallvec = "1.4"
 anyhow = "1.0"
 thiserror = "1.0"
 rand = "0.7"
 vek = "0.10"
-uuid = { version = "0.8", features = ["v3"] }
-tokio = { version = "0.2", features = ["full"] }
+uuid = { version = "0.8", features = [ "v3" ] }
+tokio = { version = "0.2", features = [ "full" ] }
 serde = { version = "1", features = [ "derive" ] }
 base = { path = "../base", package = "feather-base" }
 common = { path = "../common", package = "feather-common" }
