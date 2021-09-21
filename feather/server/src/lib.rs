@@ -16,6 +16,7 @@ use quill_common::components::ClientId;
 use systems::view::WaitingChunks;
 
 use crate::listener::Listener;
+use commands::CommandDispatcher;
 
 mod chunk_subscriptions;
 pub mod client;
@@ -53,7 +54,7 @@ impl Server {
     /// Starts a server with the given `Options`.
     ///
     /// Must be called within the context of a Tokio runtime.
-    pub async fn bind(options: Options) -> anyhow::Result<Self> {
+    pub async fn bind(options: Options) -> anyhow::Result<Server> {
         let options = Arc::new(options);
         let player_count = PlayerCount::new(options.max_players);
 
@@ -80,7 +81,9 @@ impl Server {
     /// Links this server with a `Game` so that players connecting
     /// to the server become part of this `Game`.
     pub fn link_with_game(self, game: &mut Game, systems: &mut SystemExecutor<Game>) {
-        systems::register(self, game, systems);
+        let mut dispatcher = CommandDispatcher::new();
+        commands::register_vanilla_commands(&mut dispatcher);
+        systems::register(self, dispatcher, game, systems);
         game.add_entity_spawn_callback(entities::add_entity_components);
     }
 

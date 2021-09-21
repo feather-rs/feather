@@ -827,9 +827,9 @@ version = "0.6.0"
 dependencies = [
  "anyhow",
  "commands",
- "feather-base",
  "feather-common",
  "feather-ecs",
+ "libcraft-text",
  "quill-common",
  "rand 0.7.3",
  "serde",

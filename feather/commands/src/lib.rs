@@ -2,13 +2,12 @@
 //! and vanilla commands not defined by plugins.
 
 use std::ops::{Deref, DerefMut};
-use std::sync::Arc;
 
-use commands::dispatcher::CommandDispatcher;
+pub use commands::dispatcher::CommandDispatcher;
 
-use base::{Text, TextComponentBuilder};
 use common::{ChatBox, Game};
 use ecs::Entity;
+use libcraft_text::{Text, TextComponentBuilder};
 
 mod impls;
 
@@ -45,7 +44,7 @@ unsafe impl<T> Sync for LifetimelessMut<T> where T: Sync {}
 
 /// Context passed into a command. This value can be used
 /// for access to game and entity data, such as components.
-pub struct CommandCtx<'a> {
+pub struct CommandCtx {
     /// The entity which triggered the command.
     ///
     /// _Not necessarily a player_. If the command was executed
@@ -58,53 +57,41 @@ pub struct CommandCtx<'a> {
     /// and command implementations should account for this.
     pub sender: Entity,
     /// The game state.
-    pub game: &'a mut Game,
+    pub game: LifetimelessMut<Game>,
 }
 
-/// State storing all registered commands.
-pub struct CommandState<'a> {
-    dispatcher: Arc<CommandDispatcher<CommandCtx<'a>>>,
+pub fn register_vanilla_commands(dispatcher: &mut CommandDispatcher<CommandCtx>) {
+    impls::register_all(dispatcher)
 }
 
-impl Default for CommandState<'_> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+pub fn dispatch_command(
+    dispatcher: &CommandDispatcher<CommandCtx>,
+    game: &mut Game,
+    sender: Entity,
+    command: &str,
+) -> bool {
+    let ctx = CommandCtx {
+        game: LifetimelessMut(game),
+        sender,
+    };
 
-impl<'a> CommandState<'a> {
-    /// Initializes the command state.
-    pub fn new() -> Self {
-        let mut dispatcher = CommandDispatcher::<CommandCtx>::new();
-
-        impls::register_all(&mut dispatcher);
-
-        Self {
-            dispatcher: Arc::new(dispatcher),
+    if dispatcher.find_command(command).is_none() {
+        if let Ok(mut chat) = ctx.game.ecs.get_mut::<ChatBox>(sender) {
+            chat.send_system(
+                Text::translate("command.unknown.command")
+                    .push_extra(
+                        Text::Array(vec![
+                            Text::of("\n/").gray(),
+                            Text::of(command.to_string()).underlined(),
+                            Text::translate("command.context.here").italic(),
+                        ])
+                        .on_click_suggest_command(format!("/{}", command)),
+                    )
+                    .red(),
+            );
         }
-    }
-
-    /// Dispatches a command.
-    pub fn dispatch(self, game: &'a mut Game, sender: Entity, command: &str) {
-        let ctx = CommandCtx { game, sender };
-
-        if self.dispatcher.find_command(command).is_none() {
-            if let Ok(mut chat) = ctx.game.ecs.get_mut::<ChatBox>(sender) {
-                chat.send_system(
-                    Text::translate("command.unknown.command")
-                        .push_extra(
-                            Text::Array(vec![
-                                Text::of("\n/").gray(),
-                                Text::of(command.to_string()).underlined(),
-                                Text::translate("command.context.here").italic(),
-                            ])
-                            .on_click_suggest_command(format!("/{}", command)),
-                        )
-                        .red(),
-                );
-            }
-        } else {
-            self.dispatcher.execute_command(command, ctx);
-        }
+        false
+    } else {
+        dispatcher.execute_command(command, ctx)
     }
 }

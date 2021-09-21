@@ -5,7 +5,7 @@ use commands::command;
 use commands::dispatcher::CommandDispatcher;
 use thiserror::Error;
 
-use base::Text;
+use libcraft_text::Text;
 use common::ChatBox;
 use quill_common::components::Name;
 

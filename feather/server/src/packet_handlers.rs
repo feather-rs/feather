@@ -1,6 +1,6 @@
 use base::{Position, Text};
 use common::{chat::ChatKind, Game};
-use ecs::{Entity, EntityRef, SysResult};
+use ecs::{Entity, EntityRef, SysResult, HasResources};
 use interaction::{
     handle_held_item_change, handle_interact_entity, handle_player_block_placement,
     handle_player_digging,
@@ -15,7 +15,7 @@ use protocol::{
 use quill_common::components::{Name, NetworkId};
 
 use crate::Server;
-use commands::CommandState;
+use commands::{CommandDispatcher, CommandCtx};
 
 mod entity_action;
 mod interaction;
@@ -140,7 +140,7 @@ fn handle_chat_message(
     packet: client::ChatMessage,
 ) -> SysResult {
     if packet.message.starts_with('/') {
-        CommandState::new().dispatch(game, player_id, &packet.message[1..])
+        commands::dispatch_command(&*game.resources().get::<CommandDispatcher<CommandCtx>>().unwrap(), game, player_id, &packet.message[1..]);
     } else {
         let player = game.ecs.entity(player_id)?;
         let name = player.get::<Name>()?;
