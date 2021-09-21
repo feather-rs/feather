@@ -11,6 +11,7 @@ use super::*;
 
 mod chunk_data;
 mod update_light;
+
 packets! {
     SpawnEntity {
         entity_id VarInt;
@@ -230,25 +231,10 @@ packets! {
 
     TabCompleteMatch {
         value String;
-        has_tooltip bool;
         tooltip Option<String>;
     }
 
     DeclareCommands {
-        // (not implemented)
-        __todo__ LengthInferredVecU8;
-        /* nodes LengthPrefixedVec<CommandNode>;
-        root_index VarInt; */
-    }
-
-    CommandNode {
-        flags u8;
-        children VarIntPrefixedVec<VarInt>;
-        redirect_node Option<VarInt>;
-        name Option<String>;
-        parser Option<String>;
-        // TODO: handle properties, which vary depending on the value of `parser`.
-        // This can be handled with an enum.
         __todo__ LengthInferredVecU8;
     }
 

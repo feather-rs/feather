@@ -14,6 +14,7 @@ use base::{
     BlockId, BlockPosition, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode,
     ItemStack, Position, ProfileProperty, Text,
 };
+use commands::{CommandCtx, CommandDispatcher};
 use common::world::WorldTime;
 use common::{
     chat::{ChatKind, ChatMessage},
@@ -21,7 +22,8 @@ use common::{
 };
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use protocol::packets::server::{
-    ChangeGameState, HeldItemChange, PlayerAbilities, StateReason, TimeUpdate,
+    ChangeGameState, DeclareCommands, HeldItemChange, PlayerAbilities, StateReason, TabComplete,
+    TabCompleteMatch, TimeUpdate,
 };
 use protocol::{
     packets::{
@@ -591,6 +593,30 @@ impl Client {
         self.send_packet(TimeUpdate {
             world_age: time.world_age(),
             time_of_day: time.time(),
+        })
+    }
+
+    pub fn send_commands(&self, commands: &CommandDispatcher<CommandCtx>) {
+        self.send_packet(DeclareCommands {
+            __todo__: commands.packet().unwrap(),
+        })
+    }
+
+    pub fn send_tab_completions(
+        &self,
+        transaction_id: i32,
+        completions: Vec<(String, Option<String>)>,
+        start: usize,
+        length: usize,
+    ) {
+        self.send_packet(TabComplete {
+            id: transaction_id.into(),
+            start: (start as i32).into(),
+            length: (length as i32).into(),
+            matches: completions
+                .into_iter()
+                .map(|(value, tooltip)| TabCompleteMatch { value, tooltip })
+                .collect(),
         })
     }
 

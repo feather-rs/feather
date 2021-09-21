@@ -18,6 +18,7 @@ use quill_common::{components::Name, entity_init::EntityInit};
 
 use crate::Server;
 use quill_common::components::{ClientId, NetworkId};
+use commands::{CommandDispatcher, CommandCtx};
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems.group::<Server>().add_system(poll_new_players);
@@ -64,6 +65,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
 
     client.send_join_game(gamemode, previous_gamemode, game);
     client.send_brand();
+    client.send_commands(&*game.resources.get::<CommandDispatcher<CommandCtx>>().unwrap());
 
     // Abilities
     let abilities = player_abilities_or_default(

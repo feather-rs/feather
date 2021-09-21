@@ -22,7 +22,7 @@ pub enum TpError {
 pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
     command!(dispatcher,
         "me",
-        "text": StringArgument::new(StringProperties::GreedyPhrase) => action: String,
+        "text": StringArgument::new(StringProperties::GreedyPhrase), "none" => action: String,
         ctx {
             let command_output = {
                 let name = ctx.game.ecs.get::<Name>(ctx.sender);

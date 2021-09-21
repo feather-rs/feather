@@ -1,6 +1,7 @@
 use base::{Position, Text};
+use commands::{CommandCtx, CommandDispatcher};
 use common::{chat::ChatKind, Game};
-use ecs::{Entity, EntityRef, SysResult, HasResources};
+use ecs::{Entity, EntityRef, HasResources, SysResult};
 use interaction::{
     handle_held_item_change, handle_interact_entity, handle_player_block_placement,
     handle_player_digging,
@@ -12,10 +13,9 @@ use protocol::{
     },
     ClientPlayPacket,
 };
-use quill_common::components::{Name, NetworkId};
+use quill_common::components::{ClientId, Name, NetworkId};
 
 use crate::Server;
-use commands::{CommandDispatcher, CommandCtx};
 
 mod entity_action;
 mod interaction;
@@ -79,11 +79,12 @@ pub fn handle_packet(
             entity_action::handle_entity_action(game, player_id, packet)
         }
 
+        ClientPlayPacket::TabComplete(packet) => tab_complete(game, server, player, packet),
+
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
         | ClientPlayPacket::SetDifficulty(_)
         | ClientPlayPacket::ClientStatus(_)
-        | ClientPlayPacket::TabComplete(_)
         | ClientPlayPacket::WindowConfirmation(_)
         | ClientPlayPacket::ClickWindowButton(_)
         | ClientPlayPacket::CloseWindow(_)
@@ -140,7 +141,15 @@ fn handle_chat_message(
     packet: client::ChatMessage,
 ) -> SysResult {
     if packet.message.starts_with('/') {
-        commands::dispatch_command(&*game.resources().get::<CommandDispatcher<CommandCtx>>().unwrap(), game, player_id, &packet.message[1..]);
+        commands::dispatch_command(
+            &*game
+                .resources()
+                .get::<CommandDispatcher<CommandCtx>>()
+                .unwrap(),
+            game,
+            player_id,
+            &packet.message[1..],
+        );
     } else {
         let player = game.ecs.entity(player_id)?;
         let name = player.get::<Name>()?;
@@ -160,5 +169,25 @@ fn handle_client_settings(
     server.broadcast_with(|client| {
         client.send_player_model_flags(network_id, packet.displayed_skin_parts)
     });
+    Ok(())
+}
+
+fn tab_complete(
+    game: &Game,
+    server: &Server,
+    player: EntityRef,
+    packet: client::TabComplete,
+) -> SysResult {
+    let completions = game
+        .resources
+        .get::<CommandDispatcher<CommandCtx>>()
+        .unwrap()
+        .tab_complete(&packet.text)
+        .unwrap_or_else(|| vec![]);
+    server
+        .clients
+        .get(*player.get::<ClientId>().unwrap())
+        .unwrap()
+        .send_tab_completions(packet.transaction_id, completions, packet.text.rfind(' ').unwrap_or(1), packet.text.len() - packet.text.rfind(' ').unwrap_or(1));
     Ok(())
 }
