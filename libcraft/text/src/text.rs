@@ -938,6 +938,13 @@ impl Text {
         Text::from(text)
     }
 
+    pub fn translate<A>(translate: A) -> Self
+        where
+            A: Into<Translate>,
+    {
+        Text::from(TextValue::translate(translate))
+    }
+
     pub fn translate_with<A, B>(translate: A, with: B) -> Self
     where
         A: Into<Translate>,
