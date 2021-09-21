@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use commands::dispatcher::CommandDispatcher;
 
-use base::{Text, TextComponentBuilder};
+use base::{Text, TextComponentBuilder, TextValue};
 use common::{ChatBox, Game, World};
 use ecs::{Ecs, Entity};
 use impls::*;
@@ -97,7 +97,15 @@ impl CommandState {
 
         if !self.dispatcher.execute_command(command, ctx) {
             if let Ok(mut chat) = game.ecs.get_mut::<ChatBox>(sender) {
-                chat.send_system(Text::from("Unknown command."));
+                chat.send_system(
+                    Text::translate("command.unknown.command")
+                        .push_extra(Text::Array(vec![
+                            Text::of("\n/").gray(),
+                            Text::of(command.to_string()).underlined(),
+                            Text::translate("command.context.here").italic()
+                        ]).on_click_suggest_command(format!("/{}", command)))
+                        .red(),
+                );
             }
         }
     }
