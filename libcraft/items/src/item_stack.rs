@@ -55,7 +55,13 @@ pub struct ItemStackMeta {
 
 impl Default for ItemStackMeta {
     fn default() -> Self {
-        Self { title: Default::default(), lore: Default::default(), damage: Default::default(), repair_cost: Default::default(), enchantments: Default::default() }
+        Self {
+            title: Default::default(),
+            lore: Default::default(),
+            damage: Default::default(),
+            repair_cost: Default::default(),
+            enchantments: Default::default(),
+        }
     }
 }
 
@@ -369,7 +375,11 @@ pub struct ItemStackBuilder {
 
 impl Default for ItemStackBuilder {
     fn default() -> Self {
-        Self { item: Item::Stone, count: 1.try_into().unwrap(), meta: Default::default() }
+        Self {
+            item: Item::Stone,
+            count: 1.try_into().unwrap(),
+            meta: Default::default(),
+        }
     }
 }
 // Todo: implement all
