@@ -210,7 +210,7 @@ impl Window {
         ];
 
         for &area in &areas_to_try {
-            if area == slot_area || !will_accept(area, &slot_item) {
+            if area == slot_area || !will_accept(area, slot_item) {
                 continue;
             }
 
@@ -230,7 +230,7 @@ impl Window {
 
         if slot_item.is_filled() {
             for &area in &areas_to_try {
-                if area == slot_area || !will_accept(area, &slot_item) {
+                if area == slot_area || !will_accept(area, slot_item) {
                     continue;
                 }
 
@@ -509,7 +509,7 @@ impl PaintState {
             .filter(|s| {
                 // unwrap is safe because index is valid.
                 let slot = &*window.inner.item(**s).unwrap();
-                slot.is_mergable(&window.cursor_item())
+                slot.is_mergable(window.cursor_item())
             })
             .count() as u32;
 
@@ -529,7 +529,7 @@ impl PaintState {
     fn move_items_into_slots(&self, window: &mut Window, items_per_slot: u32) {
         for s in &self.slots {
             let slot = &mut *window.inner.item(*s).unwrap();
-            if !slot.is_mergable(&window.cursor_item()) {
+            if !slot.is_mergable(window.cursor_item()) {
                 continue;
             }
 

@@ -245,7 +245,7 @@ impl ItemNbt {
                 damage: Some(damage),
             }) => ItemStackBuilder::with_item(item)
                 .count(count as u32)
-                .damage(damage.clone().try_into().unwrap())
+                .damage((*damage).try_into().unwrap())
                 .into(),
 
             Some(ItemNbt { damage: None }) | None => {
