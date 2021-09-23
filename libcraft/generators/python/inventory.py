@@ -32,7 +32,8 @@ for name, window in data['windows'].items():
         slot_counter += number_of_slots
     area_offsets[variant] = ao
 
-output = common.generate_enum("Area", areas)
+output = "#![allow(clippy::all)]\n"
+output += common.generate_enum("Area", areas)
 
 window = "#[derive(Debug, Clone)] pub enum Window {"
 index_to_slot = "#[allow(unused_comparisons)] pub fn index_to_slot(&self, index: usize) -> Option<(&crate::Inventory, Area, usize)> { match self {"

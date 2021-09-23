@@ -1,4 +1,5 @@
 // This file is @generated. Please do not edit.
+#![allow(clippy::all)]
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum Area {
