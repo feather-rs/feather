@@ -144,7 +144,7 @@ impl Window {
             Window::Player { player } => {
                 if (0..1).contains(&index) {
                     let area = Area::CraftingOutput;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((player, area, slot))
                 } else if (1..5).contains(&index) {
                     let area = Area::CraftingInput;
@@ -185,7 +185,7 @@ impl Window {
             Window::Generic9x1 { block, player } => {
                 if (0..9).contains(&index) {
                     let area = Area::Storage;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((block, area, slot))
                 } else if (9..36).contains(&index) {
                     let area = Area::Storage;
@@ -202,7 +202,7 @@ impl Window {
             Window::Generic9x2 { block, player } => {
                 if (0..18).contains(&index) {
                     let area = Area::Storage;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((block, area, slot))
                 } else if (18..45).contains(&index) {
                     let area = Area::Storage;
@@ -219,7 +219,7 @@ impl Window {
             Window::Generic9x3 { block, player } => {
                 if (0..27).contains(&index) {
                     let area = Area::Storage;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((block, area, slot))
                 } else if (27..54).contains(&index) {
                     let area = Area::Storage;
@@ -236,7 +236,7 @@ impl Window {
             Window::Generic9x4 { block, player } => {
                 if (0..36).contains(&index) {
                     let area = Area::Storage;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((block, area, slot))
                 } else if (36..63).contains(&index) {
                     let area = Area::Storage;
@@ -253,7 +253,7 @@ impl Window {
             Window::Generic9x5 { block, player } => {
                 if (0..45).contains(&index) {
                     let area = Area::Storage;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((block, area, slot))
                 } else if (45..72).contains(&index) {
                     let area = Area::Storage;
@@ -274,7 +274,7 @@ impl Window {
             } => {
                 if (0..27).contains(&index) {
                     let area = Area::Storage;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((left_chest, area, slot))
                 } else if (27..54).contains(&index) {
                     let area = Area::Storage;
@@ -295,7 +295,7 @@ impl Window {
             Window::Generic3x3 { block, player } => {
                 if (0..9).contains(&index) {
                     let area = Area::Storage;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((block, area, slot))
                 } else if (9..36).contains(&index) {
                     let area = Area::Storage;
@@ -315,7 +315,7 @@ impl Window {
             } => {
                 if (0..1).contains(&index) {
                     let area = Area::CraftingOutput;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((crafting_table, area, slot))
                 } else if (1..10).contains(&index) {
                     let area = Area::CraftingInput;
@@ -336,7 +336,7 @@ impl Window {
             Window::Furnace { furnace, player } => {
                 if (0..1).contains(&index) {
                     let area = Area::FurnaceIngredient;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((furnace, area, slot))
                 } else if (1..2).contains(&index) {
                     let area = Area::FurnaceFuel;
@@ -364,7 +364,7 @@ impl Window {
             } => {
                 if (0..1).contains(&index) {
                     let area = Area::FurnaceIngredient;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((blast_furnace, area, slot))
                 } else if (1..2).contains(&index) {
                     let area = Area::FurnaceFuel;
@@ -389,7 +389,7 @@ impl Window {
             Window::Smoker { smoker, player } => {
                 if (0..1).contains(&index) {
                     let area = Area::FurnaceIngredient;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((smoker, area, slot))
                 } else if (1..2).contains(&index) {
                     let area = Area::FurnaceFuel;
@@ -417,7 +417,7 @@ impl Window {
             } => {
                 if (0..1).contains(&index) {
                     let area = Area::EnchantmentItem;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((enchantment_table, area, slot))
                 } else if (1..2).contains(&index) {
                     let area = Area::EnchantmentLapis;
@@ -441,7 +441,7 @@ impl Window {
             } => {
                 if (0..3).contains(&index) {
                     let area = Area::BrewingBottle;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((brewing_stand, area, slot))
                 } else if (3..4).contains(&index) {
                     let area = Area::BrewingIngredient;
@@ -466,7 +466,7 @@ impl Window {
             Window::Beacon { beacon, player } => {
                 if (0..1).contains(&index) {
                     let area = Area::BeaconPayment;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((beacon, area, slot))
                 } else if (1..28).contains(&index) {
                     let area = Area::Storage;
@@ -483,7 +483,7 @@ impl Window {
             Window::Anvil { anvil, player } => {
                 if (0..1).contains(&index) {
                     let area = Area::AnvilInput1;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((anvil, area, slot))
                 } else if (1..2).contains(&index) {
                     let area = Area::AnvilInput2;
@@ -508,7 +508,7 @@ impl Window {
             Window::Hopper { hopper, player } => {
                 if (0..4).contains(&index) {
                     let area = Area::Storage;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((hopper, area, slot))
                 } else if (4..31).contains(&index) {
                     let area = Area::Storage;
@@ -528,7 +528,7 @@ impl Window {
             } => {
                 if (0..27).contains(&index) {
                     let area = Area::Storage;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((shulker_box, area, slot))
                 } else if (27..54).contains(&index) {
                     let area = Area::Storage;
@@ -548,7 +548,7 @@ impl Window {
             } => {
                 if (0..1).contains(&index) {
                     let area = Area::CartographyMap;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((cartography_table, area, slot))
                 } else if (1..2).contains(&index) {
                     let area = Area::CartographyPaper;
@@ -573,7 +573,7 @@ impl Window {
             Window::Grindstone { grindstone, player } => {
                 if (0..1).contains(&index) {
                     let area = Area::GrindstoneInput1;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((grindstone, area, slot))
                 } else if (1..2).contains(&index) {
                     let area = Area::GrindstoneInput2;
@@ -598,7 +598,7 @@ impl Window {
             Window::Lectern { lectern, player } => {
                 if (0..1).contains(&index) {
                     let area = Area::LecternBook;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((lectern, area, slot))
                 } else if (1..28).contains(&index) {
                     let area = Area::Storage;
@@ -615,7 +615,7 @@ impl Window {
             Window::Loom { loom, player } => {
                 if (0..1).contains(&index) {
                     let area = Area::LoomBanner;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((loom, area, slot))
                 } else if (1..2).contains(&index) {
                     let area = Area::LoomDye;
@@ -647,7 +647,7 @@ impl Window {
             } => {
                 if (0..1).contains(&index) {
                     let area = Area::StonecutterInput;
-                    let slot = index - 0;
+                    let slot = index;
                     Some((stonecutter, area, slot))
                 } else if (1..2).contains(&index) {
                     let area = Area::StonecutterOutput;

@@ -58,10 +58,13 @@ for variant in windows:
 
         area_in_inventory = common.camel_case(area_in_inventory)
         max_slot = slot_offset + number_of_slots
+        slot_offset_operation = ""
+        if slot_offset != 0:
+            slot_offset_operation += f" - {slot_offset}"
         index_to_slot += f"""
         if ({slot_offset}..{max_slot}).contains(&index) {{
             let area = Area::{area_in_inventory};
-            let slot = index - {slot_offset};
+            let slot = index{slot_offset_operation};
             Some(({inventory}, area, slot))
         }}   
         """
