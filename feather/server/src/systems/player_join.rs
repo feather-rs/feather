@@ -2,23 +2,19 @@ use log::debug;
 
 use base::anvil::player::PlayerAbilities;
 use base::{Gamemode, Inventory, ItemStack, Position, Text};
-use common::{
-    chat::{ChatKind, ChatPreference},
-    entities::player::HotbarSlot,
-    view::View,
-    window::BackingWindow,
-    ChatBox, Game, Window,
-};
+use commands::{CommandCtx, CommandDispatcher};
+use common::{entities::player::HotbarSlot, view::View, window::BackingWindow, Game, Window};
 use ecs::{SysResult, SystemExecutor};
 use quill_common::components::{
-    CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Health, Instabreak,
-    Invulnerable, PreviousGamemode, WalkSpeed,
+    CanBuild, CanCreativeFly, ChatBox, ChatKind, ChatPreference, CreativeFlying,
+    CreativeFlyingSpeed, Health, Instabreak, Invulnerable, Name, PreviousGamemode, WalkSpeed,
 };
-use quill_common::{components::Name, entity_init::EntityInit};
+use quill_common::{
+    components::{ClientId, NetworkId},
+    entity_init::EntityInit,
+};
 
 use crate::Server;
-use quill_common::components::{ClientId, NetworkId};
-use commands::{CommandDispatcher, CommandCtx};
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems.group::<Server>().add_system(poll_new_players);
@@ -65,7 +61,12 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
 
     client.send_join_game(gamemode, previous_gamemode, game);
     client.send_brand();
-    client.send_commands(&*game.resources.get::<CommandDispatcher<CommandCtx>>().unwrap());
+    client.send_commands(
+        &*game
+            .resources
+            .get::<CommandDispatcher<CommandCtx>>()
+            .unwrap(),
+    );
 
     // Abilities
     let abilities = player_abilities_or_default(

@@ -9,7 +9,6 @@ edition = "2018"
 commands = { path = "../../../commands" }
 smallvec = "1.4"
 anyhow = "1.0"
-thiserror = "1.0"
 rand = "0.7"
 vek = "0.10"
 uuid = { version = "0.8", features = [ "v3" ] }

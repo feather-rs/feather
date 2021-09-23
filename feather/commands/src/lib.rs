@@ -5,9 +5,10 @@ use std::ops::{Deref, DerefMut};
 
 pub use commands::dispatcher::CommandDispatcher;
 
-use common::{ChatBox, Game};
+use common::Game;
 use ecs::Entity;
 use libcraft_text::{Text, TextComponentBuilder};
+use quill_common::components::ChatBox;
 
 mod impls;
 

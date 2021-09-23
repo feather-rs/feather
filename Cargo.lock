@@ -266,6 +266,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9df67f7bf9ef8498769f994239c45613ef0c5899415fb58e9add412d2c1a538"
 
 [[package]]
+name = "bungeecord-servers-plugin"
+version = "0.1.0"
+dependencies = [
+ "commands",
+ "quill",
+]
+
+[[package]]
 name = "bytecount"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -834,7 +842,6 @@ dependencies = [
  "rand 0.7.3",
  "serde",
  "smallvec",
- "thiserror",
  "tokio 0.2.25",
  "uuid",
  "vek 0.10.4",
@@ -846,6 +853,7 @@ version = "0.1.0"
 dependencies = [
  "ahash 0.7.4",
  "anyhow",
+ "crossbeam-utils",
  "feather-base",
  "feather-blocks",
  "feather-datapacks",
@@ -915,13 +923,16 @@ dependencies = [
  "bincode",
  "bumpalo",
  "bytemuck",
+ "commands",
  "feather-base",
+ "feather-commands",
  "feather-common",
  "feather-ecs",
  "feather-plugin-host-macros",
  "libloading",
  "log",
  "paste 1.0.5",
+ "quill",
  "quill-common",
  "quill-plugin-format",
  "serde",
@@ -2189,6 +2200,7 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "bytemuck",
+ "commands",
  "itertools",
  "libcraft-blocks",
  "libcraft-core",
@@ -2233,8 +2245,10 @@ dependencies = [
 name = "quill-sys"
 version = "0.1.0"
 dependencies = [
+ "commands",
  "quill-common",
  "quill-sys-macros",
+ "slab",
 ]
 
 [[package]]

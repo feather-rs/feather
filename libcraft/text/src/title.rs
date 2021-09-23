@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 // Based on https://wiki.vg/index.php?title=Protocol&oldid=16459#Title
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Title {
     pub title: Option<String>,
     pub sub_title: Option<String>,

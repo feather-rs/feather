@@ -16,10 +16,7 @@ use base::{
 };
 use commands::{CommandCtx, CommandDispatcher};
 use common::world::WorldTime;
-use common::{
-    chat::{ChatKind, ChatMessage},
-    Window,
-};
+use common::Window;
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use protocol::packets::server::{
     ChangeGameState, DeclareCommands, HeldItemChange, PlayerAbilities, StateReason, TabComplete,
@@ -37,7 +34,9 @@ use protocol::{
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
-use quill_common::components::{ClientId, NetworkId, OnGround, PreviousGamemode};
+use quill_common::components::{
+    ChatKind, ChatMessage, ClientId, NetworkId, OnGround, PreviousGamemode,
+};
 
 use crate::{initial_handler::NewPlayer, Options};
 
@@ -610,9 +609,9 @@ impl Client {
         length: usize,
     ) {
         self.send_packet(TabComplete {
-            id: transaction_id.into(),
-            start: (start as i32).into(),
-            length: (length as i32).into(),
+            id: transaction_id,
+            start: start as i32,
+            length: length as i32,
             matches: completions
                 .into_iter()
                 .map(|(value, tooltip)| TabCompleteMatch { value, tooltip })

@@ -3,10 +3,10 @@
 use std::time::{Duration, Instant};
 
 use crate::Server;
+use commands::{CommandCtx, CommandDispatcher};
 use common::Game;
 use ecs::{SysResult, SystemExecutor};
 use quill_common::components::{ClientId, Name};
-use commands::{CommandDispatcher, CommandCtx};
 
 mod block;
 mod chat;
@@ -22,7 +22,12 @@ mod time;
 pub mod view;
 
 /// Registers systems for a `Server` with a `Game`.
-pub fn register(server: Server, dispatcher: CommandDispatcher<CommandCtx>, game: &mut Game, systems: &mut SystemExecutor<Game>) {
+pub fn register(
+    server: Server,
+    dispatcher: CommandDispatcher<CommandCtx>,
+    game: &mut Game,
+    systems: &mut SystemExecutor<Game>,
+) {
     game.insert_resource(server);
     game.insert_resource(dispatcher);
 

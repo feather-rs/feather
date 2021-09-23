@@ -3,21 +3,11 @@
 use commands::arguments::{StringArgument, StringProperties};
 use commands::command;
 use commands::dispatcher::CommandDispatcher;
-use thiserror::Error;
 
 use libcraft_text::Text;
-use common::ChatBox;
-use quill_common::components::Name;
+use quill_common::components::{ChatBox, Name};
 
 use crate::CommandCtx;
-
-#[derive(Debug, Error)]
-pub enum TpError {
-    #[error("No entity was found")]
-    NoMatchingEntities,
-    #[error("Only one entity is allowed, but the provided selector allows for more than one")]
-    TooManyEntities,
-}
 
 pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
     command!(dispatcher,

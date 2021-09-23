@@ -1,6 +1,6 @@
 use base::{Position, Text};
 use commands::{CommandCtx, CommandDispatcher};
-use common::{chat::ChatKind, Game};
+use common::Game;
 use ecs::{Entity, EntityRef, HasResources, SysResult};
 use interaction::{
     handle_held_item_change, handle_interact_entity, handle_player_block_placement,
@@ -13,7 +13,8 @@ use protocol::{
     },
     ClientPlayPacket,
 };
-use quill_common::components::{ClientId, Name, NetworkId};
+use quill_common::components::{ChatKind, ClientId, Name, NetworkId};
+use quill_common::events::PluginMessageReceiveEvent;
 
 use crate::Server;
 
@@ -79,7 +80,9 @@ pub fn handle_packet(
             entity_action::handle_entity_action(game, player_id, packet)
         }
 
-        ClientPlayPacket::TabComplete(packet) => tab_complete(game, server, player, packet),
+        ClientPlayPacket::TabComplete(packet) => handle_tab_complete(game, server, player, packet),
+
+        ClientPlayPacket::PluginMessage(packet) => handle_plugin_message(game, player_id, packet),
 
         ClientPlayPacket::TeleportConfirm(_)
         | ClientPlayPacket::QueryBlockNbt(_)
@@ -88,7 +91,6 @@ pub fn handle_packet(
         | ClientPlayPacket::WindowConfirmation(_)
         | ClientPlayPacket::ClickWindowButton(_)
         | ClientPlayPacket::CloseWindow(_)
-        | ClientPlayPacket::PluginMessage(_)
         | ClientPlayPacket::EditBook(_)
         | ClientPlayPacket::QueryEntityNbt(_)
         | ClientPlayPacket::GenerateStructure(_)
@@ -172,7 +174,7 @@ fn handle_client_settings(
     Ok(())
 }
 
-fn tab_complete(
+fn handle_tab_complete(
     game: &Game,
     server: &Server,
     player: EntityRef,
@@ -182,12 +184,32 @@ fn tab_complete(
         .resources
         .get::<CommandDispatcher<CommandCtx>>()
         .unwrap()
-        .tab_complete(&packet.text)
-        .unwrap_or_else(|| vec![]);
+        .tab_complete(&packet.text[1..])
+        .unwrap_or_default();
     server
         .clients
         .get(*player.get::<ClientId>().unwrap())
         .unwrap()
-        .send_tab_completions(packet.transaction_id, completions, packet.text.rfind(' ').unwrap_or(1), packet.text.len() - packet.text.rfind(' ').unwrap_or(1));
+        .send_tab_completions(
+            packet.transaction_id,
+            completions,
+            packet.text.rfind(' ').unwrap_or(1) + 1,
+            packet.text.len() - packet.text.rfind(' ').unwrap_or(1) - 1,
+        );
+    Ok(())
+}
+
+fn handle_plugin_message(
+    game: &mut Game,
+    player_id: Entity,
+    packet: client::PluginMessage,
+) -> SysResult {
+    game.ecs.insert_entity_event(
+        player_id,
+        PluginMessageReceiveEvent {
+            channel: packet.channel,
+            data: packet.data,
+        },
+    )?;
     Ok(())
 }

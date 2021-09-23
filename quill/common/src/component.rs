@@ -201,6 +201,8 @@ host_component_enum! {
         GamemodeUpdateEvent = 1023,
         TimeUpdateEvent = 1024,
         InventoryUpdateEvent = 1025,
+        ChatBox = 1026,
+        PluginMessageReceiveEvent = 1027,
 
 
     }
@@ -369,3 +371,4 @@ bincode_component_impl!(SprintEvent);
 bincode_component_impl!(GamemodeUpdateEvent);
 bincode_component_impl!(TimeUpdateEvent);
 bincode_component_impl!(InventoryUpdateEvent);
+bincode_component_impl!(PluginMessageReceiveEvent);

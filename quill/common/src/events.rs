@@ -4,7 +4,9 @@ pub use change::{
     TimeUpdateEvent,
 };
 pub use interact_entity::InteractEntityEvent;
+pub use plugin_message::{PluginMessageReceiveEvent, PluginMessageSendEvent};
 
 mod block_interact;
 mod change;
 mod interact_entity;
+mod plugin_message;

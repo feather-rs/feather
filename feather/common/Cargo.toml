@@ -24,3 +24,6 @@ rayon = "1.5"
 worldgen = { path = "../worldgen", package = "feather-worldgen" }
 datapacks = { path = "../datapacks", package = "feather-datapacks" }
 rand = "0.8"
+
+[dev-dependencies]
+crossbeam-utils = "0.8.5"

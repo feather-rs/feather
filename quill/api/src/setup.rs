@@ -1,15 +1,20 @@
 use std::marker::PhantomData;
 
+use commands::dispatcher::CommandDispatcher;
+
+use quill_common::PointerMut;
+
+use crate::command::CommandContext;
 use crate::Game;
 
 /// Struct passed to your plugin's `enable()` function.
 ///
 /// Allows you to register systems, etc.
-pub struct Setup<Plugin> {
+pub struct Setup<Plugin: crate::Plugin> {
     _marker: PhantomData<Plugin>,
 }
 
-impl<Plugin> Setup<Plugin> {
+impl<Plugin: crate::Plugin> Setup<Plugin> {
     /// For Quill internal use only. Do not call.
     #[doc(hidden)]
     #[allow(clippy::new_without_default)]
@@ -34,6 +39,29 @@ impl<Plugin> Setup<Plugin> {
             quill_sys::register_system(system_data.into(), name.as_ptr().into(), name.len() as u32);
         }
 
+        self
+    }
+
+    /// Perform various actions on command dispatcher: Register commands, tab-completions, etc.
+    pub fn with_dispatcher(
+        &mut self,
+        f: impl FnOnce(&mut CommandDispatcher<CommandContext>),
+    ) -> &mut Self {
+        let mut dispatcher = CommandDispatcher::new();
+
+        f(&mut dispatcher);
+
+        let (nodes, executors, tab_completers) = dispatcher.split();
+        let nodes: Vec<_> = nodes.into_iter().map(|(_, a)| a).collect();
+        let executors: Vec<_> = executors.into_iter().map(|(_, a)| a).collect();
+        // SAFETY: references are always valid pointers
+        unsafe {
+            quill_sys::modify_command_executor(
+                PointerMut::new(&nodes as *const _ as *mut _),
+                PointerMut::new(&executors as *const _ as *mut _),
+                PointerMut::new(&tab_completers as *const _ as *mut _),
+            );
+        }
         self
     }
 }

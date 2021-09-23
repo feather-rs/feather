@@ -94,6 +94,10 @@ impl Plugin {
             }
         })
     }
+
+    pub fn enter<R>(&self, game: &mut Game, callback: impl FnOnce() -> R) -> R {
+        self.context.enter(game, callback)
+    }
 }
 
 enum Inner {

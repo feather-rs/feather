@@ -1,8 +1,8 @@
-use feather_common::events::PluginMessageEvent;
 use feather_ecs::Entity;
 use feather_plugin_host_macros::host_function;
 
 use crate::context::{PluginContext, PluginPtr};
+use quill::events::{PluginMessageReceiveEvent, PluginMessageSendEvent};
 
 #[host_function]
 pub fn plugin_message_send(
@@ -17,7 +17,7 @@ pub fn plugin_message_send(
     let data = cx.read_bytes(data_ptr, data_len)?;
 
     let entity = Entity::from_bits(entity);
-    let event = PluginMessageEvent { channel, data };
+    let event = PluginMessageSendEvent { channel, data };
     cx.game_mut().ecs.insert_entity_event(entity, event)?;
 
     Ok(())

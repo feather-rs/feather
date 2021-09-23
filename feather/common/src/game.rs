@@ -9,11 +9,11 @@ use ecs::{
 use quill_common::{entities::Player, entity_init::EntityInit};
 
 use crate::{
-    chat::{ChatKind, ChatMessage},
     chunk::entities::ChunkEntities,
     events::{BlockChangeEvent, EntityCreateEvent, EntityRemoveEvent, PlayerJoinEvent},
-    ChatBox, World,
+    World,
 };
+use quill_common::components::{ChatBox, ChatKind, ChatMessage};
 use quill_common::events::TimeUpdateEvent;
 
 type EntitySpawnCallback = Box<dyn FnMut(&mut EntityBuilder, &EntityInit)>;

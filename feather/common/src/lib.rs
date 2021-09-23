@@ -5,7 +5,6 @@
 
 #![allow(clippy::unnecessary_wraps)] // systems are required to return Results
 
-pub use chat::ChatBox;
 use ecs::SystemExecutor;
 pub use game::Game;
 pub use tick_loop::TickLoop;
@@ -22,7 +21,6 @@ pub mod window;
 pub mod chunk;
 mod region_worker;
 
-pub mod chat;
 pub mod entities;
 pub mod world;
 

@@ -90,7 +90,7 @@ extern "C" {
     /// The given message should be in the JSON format.
     ///
     /// Does nothing if the entity does not exist or it does not have the `Chat` component.
-    pub fn entity_send_message(entity: EntityId, message_ptr: Pointer<u8>, message_len: u32);
+    pub fn entity_send_message(entity: EntityId, message_ptr: Pointer<u8>);
 
     /// Sends a title to an entity.
     ///
@@ -173,5 +173,16 @@ extern "C" {
         channel_len: u32,
         data_ptr: Pointer<u8>,
         data_len: u32,
+    );
+
+    /// Modifies command executor. `executors` have quill's CommandContexts
+    ///
+    /// Arguments are emptied after this call
+    /// TODO change pointers types to allow them to be called from other languages
+    /// but I can't test wasm because it doesn't compile on latest rust version
+    pub fn modify_command_executor(
+        nodes_ptr: PointerMut<u8>,
+        executors_ptr: PointerMut<u8>,
+        tab_completers_ptr: PointerMut<u8>,
     );
 }

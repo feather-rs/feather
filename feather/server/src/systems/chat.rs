@@ -1,7 +1,7 @@
 use crate::Server;
-use common::{chat::ChatPreference, ChatBox, Game};
+use common::Game;
 use ecs::{EntityBuilder, SysResult, SystemExecutor};
-use quill_common::components::ClientId;
+use quill_common::components::{ChatBox, ChatPreference, ClientId};
 
 /// Marker component for the console entity.
 struct Console;
