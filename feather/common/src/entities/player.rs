@@ -17,7 +17,7 @@ pub fn build_default(builder: &mut EntityBuilder) {
 }
 
 /// The hotbar slot a player's cursor is currently on
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
 pub struct HotbarSlot(usize);
 
 impl HotbarSlot {
@@ -36,11 +36,5 @@ impl HotbarSlot {
 
         self.0 = id;
         Ok(())
-    }
-}
-
-impl Default for HotbarSlot {
-    fn default() -> Self {
-        HotbarSlot(0)
     }
 }
