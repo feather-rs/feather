@@ -46,7 +46,7 @@ impl Inventory {
     pub fn to_vec(&self) -> Vec<InventorySlot> {
         let mut vec = Vec::new();
         for area in self.backing.areas() {
-            for items in self.backing.area_slice(*area) {
+            if let Some(items) = self.backing.area_slice(*area) {
                 for item in items {
                     let i = item.lock();
                     vec.push(i.clone());
