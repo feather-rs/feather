@@ -32,8 +32,7 @@ for name, window in data['windows'].items():
         slot_counter += number_of_slots
     area_offsets[variant] = ao
 
-output = "#![allow(clippy::all)]\n"
-output += common.generate_enum("Area", areas)
+output = common.generate_enum("Area", areas)
 
 window = "#[derive(Debug, Clone)] pub enum Window {"
 index_to_slot = "#[allow(unused_comparisons)] pub fn index_to_slot(&self, index: usize) -> Option<(&crate::Inventory, Area, usize)> { match self {"
@@ -60,7 +59,7 @@ for variant in windows:
         area_in_inventory = common.camel_case(area_in_inventory)
         max_slot = slot_offset + number_of_slots
         index_to_slot += f"""
-        if index >= {slot_offset} && index < {max_slot} {{
+        if ({slot_offset}..{max_slot}).contains(&index) {{
             let area = Area::{area_in_inventory};
             let slot = index - {slot_offset};
             Some(({inventory}, area, slot))
