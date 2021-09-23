@@ -22,7 +22,7 @@ pub fn handle_creative_inventory_action(
 
         window
             .inner()
-            .set_item(packet.slot as usize, packet.clicked_item.into())?;
+            .set_item(packet.slot as usize, packet.clicked_item)?;
     }
 
     Ok(())

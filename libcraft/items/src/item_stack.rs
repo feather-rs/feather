@@ -34,7 +34,7 @@ pub struct ItemStack {
 /// * Item damage (Optional)
 /// * Item repair cost (Optional)
 /// * Item enchantments
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "PascalCase")]
 pub struct ItemStackMeta {
     /// The displayed title (name) of the associated `ItemStack`.
@@ -51,18 +51,6 @@ pub struct ItemStackMeta {
 
     /// The enchantments applied to this `ItemStack`.
     enchantments: Vec<Enchantment>,
-}
-
-impl Default for ItemStackMeta {
-    fn default() -> Self {
-        Self {
-            title: Default::default(),
-            lore: Default::default(),
-            damage: Default::default(),
-            repair_cost: Default::default(),
-            enchantments: Default::default(),
-        }
-    }
 }
 
 impl ItemStack {
