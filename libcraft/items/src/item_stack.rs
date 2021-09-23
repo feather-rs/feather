@@ -53,6 +53,12 @@ pub struct ItemStackMeta {
     enchantments: Vec<Enchantment>,
 }
 
+impl Default for ItemStackMeta {
+    fn default() -> Self {
+        Self { title: Default::default(), lore: Default::default(), damage: Default::default(), repair_cost: Default::default(), enchantments: Default::default() }
+    }
+}
+
 impl ItemStack {
     /// Creates a new `ItemStack` with the default name (title)
     /// no lore, no damage, no repair cost and no enchantments.
@@ -360,6 +366,12 @@ pub struct ItemStackBuilder {
     count: NonZeroU32,
     meta: Option<ItemStackMeta>,
 }
+
+impl Default for ItemStackBuilder {
+    fn default() -> Self {
+        Self { item: Item::Stone, count: 1.try_into().unwrap(), meta: Default::default() }
+    }
+}
 // Todo: implement all
 impl ItemStackBuilder {
     pub fn new() -> Self {
@@ -404,7 +416,7 @@ impl ItemStackBuilder {
     }
 
     pub fn damage(mut self, damage: u32) -> Self {
-        let mut meta = self.meta.unwrap_or(ItemStackMeta::new(self.item));
+        let mut meta = self.meta.unwrap_or_default();
         meta.damage = Some(damage);
 
         self.meta = Some(meta);
