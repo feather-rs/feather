@@ -75,7 +75,10 @@ for variant in windows:
         first = False
 
         area_in_inventory = common.camel_case(area_in_inventory)
-        slot_to_index += f"if area == Area::{area_in_inventory} && {inventory}.ptr_eq(inventory) {{ Some(slot + {slot_offset}) }}"
+        if slot_offset == 0:
+            slot_to_index += f"if area == Area::{area_in_inventory} && {inventory}.ptr_eq(inventory) {{ Some(slot) }}"
+        else:
+            slot_to_index += f"if area == Area::{area_in_inventory} && {inventory}.ptr_eq(inventory) {{ Some(slot + {slot_offset}) }}"
 
     slot_to_index += "else { None } },"
 

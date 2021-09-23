@@ -676,7 +676,7 @@ impl Window {
         match self {
             Window::Player { player } => {
                 if area == Area::CraftingOutput && player.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::CraftingInput && player.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::Helmet && player.ptr_eq(inventory) {
@@ -699,7 +699,7 @@ impl Window {
             }
             Window::Generic9x1 { block, player } => {
                 if area == Area::Storage && block.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
                     Some(slot + 9)
                 } else if area == Area::Hotbar && player.ptr_eq(inventory) {
@@ -710,7 +710,7 @@ impl Window {
             }
             Window::Generic9x2 { block, player } => {
                 if area == Area::Storage && block.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
                     Some(slot + 18)
                 } else if area == Area::Hotbar && player.ptr_eq(inventory) {
@@ -721,7 +721,7 @@ impl Window {
             }
             Window::Generic9x3 { block, player } => {
                 if area == Area::Storage && block.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
                     Some(slot + 27)
                 } else if area == Area::Hotbar && player.ptr_eq(inventory) {
@@ -732,7 +732,7 @@ impl Window {
             }
             Window::Generic9x4 { block, player } => {
                 if area == Area::Storage && block.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
                     Some(slot + 36)
                 } else if area == Area::Hotbar && player.ptr_eq(inventory) {
@@ -743,7 +743,7 @@ impl Window {
             }
             Window::Generic9x5 { block, player } => {
                 if area == Area::Storage && block.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
                     Some(slot + 45)
                 } else if area == Area::Hotbar && player.ptr_eq(inventory) {
@@ -758,7 +758,7 @@ impl Window {
                 player,
             } => {
                 if area == Area::Storage && left_chest.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::Storage && right_chest.ptr_eq(inventory) {
                     Some(slot + 27)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
@@ -771,7 +771,7 @@ impl Window {
             }
             Window::Generic3x3 { block, player } => {
                 if area == Area::Storage && block.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
                     Some(slot + 9)
                 } else if area == Area::Hotbar && player.ptr_eq(inventory) {
@@ -785,7 +785,7 @@ impl Window {
                 player,
             } => {
                 if area == Area::CraftingOutput && crafting_table.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::CraftingInput && crafting_table.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
@@ -798,7 +798,7 @@ impl Window {
             }
             Window::Furnace { furnace, player } => {
                 if area == Area::FurnaceIngredient && furnace.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::FurnaceFuel && furnace.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::FurnaceOutput && furnace.ptr_eq(inventory) {
@@ -816,7 +816,7 @@ impl Window {
                 player,
             } => {
                 if area == Area::FurnaceIngredient && blast_furnace.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::FurnaceFuel && blast_furnace.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::FurnaceOutput && blast_furnace.ptr_eq(inventory) {
@@ -831,7 +831,7 @@ impl Window {
             }
             Window::Smoker { smoker, player } => {
                 if area == Area::FurnaceIngredient && smoker.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::FurnaceFuel && smoker.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::FurnaceOutput && smoker.ptr_eq(inventory) {
@@ -849,7 +849,7 @@ impl Window {
                 player,
             } => {
                 if area == Area::EnchantmentItem && enchantment_table.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::EnchantmentLapis && enchantment_table.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
@@ -865,7 +865,7 @@ impl Window {
                 player,
             } => {
                 if area == Area::BrewingBottle && brewing_stand.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::BrewingIngredient && brewing_stand.ptr_eq(inventory) {
                     Some(slot + 3)
                 } else if area == Area::BrewingBlazePowder && brewing_stand.ptr_eq(inventory) {
@@ -880,7 +880,7 @@ impl Window {
             }
             Window::Beacon { beacon, player } => {
                 if area == Area::BeaconPayment && beacon.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::Hotbar && player.ptr_eq(inventory) {
@@ -891,7 +891,7 @@ impl Window {
             }
             Window::Anvil { anvil, player } => {
                 if area == Area::AnvilInput1 && anvil.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::AnvilInput2 && anvil.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::AnvilOutput && anvil.ptr_eq(inventory) {
@@ -906,7 +906,7 @@ impl Window {
             }
             Window::Hopper { hopper, player } => {
                 if area == Area::Storage && hopper.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
                     Some(slot + 4)
                 } else if area == Area::Hotbar && player.ptr_eq(inventory) {
@@ -920,7 +920,7 @@ impl Window {
                 player,
             } => {
                 if area == Area::Storage && shulker_box.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
                     Some(slot + 27)
                 } else if area == Area::Hotbar && player.ptr_eq(inventory) {
@@ -934,7 +934,7 @@ impl Window {
                 player,
             } => {
                 if area == Area::CartographyMap && cartography_table.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::CartographyPaper && cartography_table.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::CartographyOutput && cartography_table.ptr_eq(inventory) {
@@ -949,7 +949,7 @@ impl Window {
             }
             Window::Grindstone { grindstone, player } => {
                 if area == Area::GrindstoneInput1 && grindstone.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::GrindstoneInput2 && grindstone.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::GrindstoneOutput && grindstone.ptr_eq(inventory) {
@@ -964,7 +964,7 @@ impl Window {
             }
             Window::Lectern { lectern, player } => {
                 if area == Area::LecternBook && lectern.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::Hotbar && player.ptr_eq(inventory) {
@@ -975,7 +975,7 @@ impl Window {
             }
             Window::Loom { loom, player } => {
                 if area == Area::LoomBanner && loom.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::LoomDye && loom.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::LoomPattern && loom.ptr_eq(inventory) {
@@ -995,7 +995,7 @@ impl Window {
                 player,
             } => {
                 if area == Area::StonecutterInput && stonecutter.ptr_eq(inventory) {
-                    Some(slot + 0)
+                    Some(slot)
                 } else if area == Area::StonecutterOutput && stonecutter.ptr_eq(inventory) {
                     Some(slot + 1)
                 } else if area == Area::Storage && player.ptr_eq(inventory) {
