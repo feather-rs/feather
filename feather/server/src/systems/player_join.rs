@@ -85,7 +85,10 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     if let Ok(data) = player_data.as_ref() {
         for slot in data.inventory.iter() {
             window
-                .set_item(slot.slot as usize, InventorySlot::Filled(ItemStack::from(slot)))
+                .set_item(
+                    slot.slot as usize,
+                    InventorySlot::Filled(ItemStack::from(slot)),
+                )
                 .unwrap();
         }
     }

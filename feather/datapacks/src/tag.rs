@@ -7,8 +7,8 @@ use crate::NamespacedId;
 use ahash::{AHashMap, AHashSet};
 use blocks::BlockId;
 use libcraft_blocks::BlockKind;
-use libcraft_items::Item;
 use libcraft_core::EntityKind;
+use libcraft_items::Item;
 use protocol::{
     packets::server::{AllTags, Tag},
     VarInt,
@@ -19,7 +19,6 @@ use thiserror::Error;
 use walkdir::WalkDir;
 
 use libcraft_tags::*;
-
 
 /// The tag registry builder's purpose is to serve as a stepping stone to construct the full tag registry.
 /// Once all datapacks are loaded, the builder resolves all tag "symlinks".
@@ -278,9 +277,7 @@ impl TagRegistry {
                 name: tag_name.to_string(),
                 entries: entity_names
                     .iter()
-                    .map(
-                        |e| VarInt(EntityKind::from_name(e.name()).unwrap().id() as i32),
-                    )
+                    .map(|e| VarInt(EntityKind::from_name(e.name()).unwrap().id() as i32))
                     .collect(),
             });
         }

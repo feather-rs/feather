@@ -127,8 +127,8 @@ fn create_player_data(
             .to_vec()
             .iter()
             .enumerate()
-            .filter(| (_, item)| item.is_filled())
-            .map(|(slot, item) | {
+            .filter(|(_, item)| item.is_filled())
+            .map(|(slot, item)| {
                 if let libcraft_items::InventorySlot::Filled(item) = item {
                     (slot, item)
                 } else {

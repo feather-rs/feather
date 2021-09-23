@@ -4,7 +4,8 @@ use libcraft_items::{Item, ItemStack, ItemStackBuilder};
 use serde::{Deserialize, Serialize};
 
 pub fn default_count() -> NonZeroU32 {
-    unsafe { // because i can.
+    unsafe {
+        // because i can.
         NonZeroU32::new_unchecked(1)
     }
 }
@@ -24,11 +25,10 @@ impl From<SerdeItemStack> for ItemStack {
         ItemStackBuilder::with_item(s.item.into())
             .count(s.count.into())
             .into()
-    }   
+    }
 }
 impl From<ItemStack> for SerdeItemStack {
     fn from(s: ItemStack) -> Self {
-        
         Self {
             item: s.item().into(),
             count: s.count().try_into().unwrap(),

@@ -343,7 +343,7 @@ impl StonecuttingRecipe {
             Some(
                 ItemStackBuilder::with_item(self.result.into())
                     .count(self.count.into())
-                    .into()
+                    .into(),
             )
         } else {
             None
