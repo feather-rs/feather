@@ -188,12 +188,7 @@ impl Client {
         self.network_id = Some(network_id);
     }
 
-    pub fn send_join_game(
-        &self,
-        gamemode: Gamemode,
-        previous_gamemode: PreviousGamemode,
-        game: &common::Game,
-    ) {
+    pub fn send_join_game(&self, gamemode: Gamemode, previous_gamemode: PreviousGamemode) {
         log::trace!("Sending Join Game to {}", self.username);
         // Use the dimension codec sent by the default vanilla server. (Data acquired via tools/proxy)
         let dimension_codec = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
@@ -222,8 +217,6 @@ impl Client {
             is_debug: false,
             is_flat: false,
         });
-
-        self.send_packet(game.tag_registry.all_tags());
     }
 
     pub fn send_brand(&self) {
