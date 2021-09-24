@@ -24,9 +24,9 @@ pub struct MissingComponent(&'static str);
 ///
 /// Use [`crate::Game::entity`] to get an `Entity` instance.
 ///
-/// An `Entity` be sent or shared between threads. However,
+/// An `Entity` can't be sent or shared between threads. However,
 /// an [`EntityId`] can.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct Entity {
     id: EntityId,

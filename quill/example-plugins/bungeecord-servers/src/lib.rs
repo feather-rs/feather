@@ -1,6 +1,4 @@
-use std::cell::RefCell;
 use std::io::{Cursor, ErrorKind, Read, Write};
-use std::rc::Rc;
 
 use commands::arguments::*;
 use commands::command;
@@ -14,32 +12,27 @@ const BUNGEECORD: &str = "bungeecord:main";
 quill::plugin!(BungeecordServersPlugin);
 
 struct BungeecordServersPlugin {
-    servers: Rc<RefCell<Option<Vec<String>>>>,
-    server: Rc<RefCell<Option<String>>>,
+    servers: Option<Vec<String>>,
+    server: Option<String>,
     tick_counter: Option<usize>,
 }
 
 impl Plugin for BungeecordServersPlugin {
     fn enable(_game: &mut Game, setup: &mut Setup<Self>) -> Self {
         let plugin = BungeecordServersPlugin {
-            servers: Rc::new(RefCell::new(None)),
-            server: Rc::new(RefCell::new(None)),
+            servers: None,
+            server: None,
             tick_counter: Some(0),
         };
 
         setup.add_system(get_servers);
 
-        let servers = plugin.servers.clone();
-        let server = plugin.server.clone();
-        let servers2 = plugin.servers.clone();
-        let server2 = plugin.server.clone();
         setup.with_dispatcher(move |dispatcher| {
-            dispatcher.register_tab_completion("bungeecord_servers:servers_without_this", Box::new(move |text| {
-                servers2
-                    .borrow()
+            dispatcher.register_tab_completion("bungeecord_servers:servers_without_this", Box::new(move |text, context| {
+                context.plugin.servers
                     .iter()
                     .flatten()
-                    .filter(|&s| Some(s) != server2.borrow().as_ref() && s.starts_with(text))
+                    .filter(|&s| Some(s) != context.plugin.server.as_ref() && s.starts_with(text))
                     .map(|s| (s.clone(), None))
                     .collect()
             }));
@@ -47,9 +40,10 @@ impl Plugin for BungeecordServersPlugin {
                 "test",
                 "server": StringArgument::new(StringProperties::GreedyPhrase), "bungeecord_servers:servers_without_this" => target_server: String,
                 context {
-                    if server.borrow().is_some() && *server.borrow().as_ref().unwrap() == target_server {
+                    let (server, servers) = (context.plugin.server.as_ref(), context.plugin.servers.as_ref());
+                    if server.is_some() && *server.unwrap() == target_server {
                         context.caller.send_message(format!("You are already on {}", target_server));
-                    } else if servers.borrow().is_none() || servers.borrow().as_ref().unwrap().contains(&target_server) {
+                    } else if servers.is_some() && servers.unwrap().contains(&target_server) {
                         context.caller.send_message(format!("Sending you to {}", target_server));
                         if let Caller::Player(entity) = context.caller {
                             context.game.send_plugin_message(entity.id(), BUNGEECORD, &{
@@ -64,14 +58,15 @@ impl Plugin for BungeecordServersPlugin {
                     } else {
                         context.caller.send_message(
                             Text::of(format!("Server \"{}\" doesn't exist! Choose one of these:", target_server))
-                                .extra(servers.borrow()
-                                    .as_ref()
-                                    .unwrap()
-                                    .iter()
-                                    .filter(|s| server.borrow().is_none() || server.borrow().as_ref().unwrap() != *s)
-                                    .map(|server| Text::of(format!(" [{}]", server))
-                                        .on_hover_show_text("Click here!")
-                                        .on_click_run_command(format!("/test {}", server)))));
+                                .extra(servers
+                                    .map(|servers| servers
+                                        .iter()
+                                        .filter(|s| server.is_none() || server.unwrap() != *s)
+                                        .map(|server| Text::of(format!(" [{}]", server))
+                                            .on_hover_show_text("Click here!")
+                                            .on_click_run_command(format!("/test {}", server)))
+                                        .collect())
+                                    .unwrap_or_else(|| vec![Text::of(" (not found any servers). Are you running a bungeecord server?")])));
                     }
                     Ok(())
                 }
@@ -85,13 +80,13 @@ impl Plugin for BungeecordServersPlugin {
 }
 
 fn get_servers(plugin: &mut BungeecordServersPlugin, game: &mut Game) {
-    if plugin.servers.borrow().is_none() || plugin.server.borrow().is_none() {
+    if plugin.servers.is_none() || plugin.server.is_none() {
         if let Some(a) = plugin.tick_counter.as_mut() {
             *a += 1;
         }
         if plugin.tick_counter.unwrap() % 10 == 0 {
             if let Some((player, _)) = game.query::<&Player>().next() {
-                if plugin.servers.borrow().is_none() {
+                if plugin.servers.is_none() {
                     game.send_plugin_message(
                         player.id(),
                         BUNGEECORD,
@@ -102,7 +97,7 @@ fn get_servers(plugin: &mut BungeecordServersPlugin, game: &mut Game) {
                         }[..],
                     );
                 }
-                if plugin.server.borrow().is_none() {
+                if plugin.server.is_none() {
                     game.send_plugin_message(
                         player.id(),
                         BUNGEECORD,
@@ -120,7 +115,7 @@ fn get_servers(plugin: &mut BungeecordServersPlugin, game: &mut Game) {
                 let mut data = Cursor::new(plugin_message.data);
                 match read_string(&mut data).unwrap().as_str() {
                     "GetServers" => {
-                        *(*plugin.servers).borrow_mut() = Some(
+                        plugin.servers = Some(
                             read_string(&mut data)
                                 .unwrap()
                                 .split(", ")
@@ -129,7 +124,7 @@ fn get_servers(plugin: &mut BungeecordServersPlugin, game: &mut Game) {
                         );
                     }
                     "GetServer" => {
-                        *(*plugin.server).borrow_mut() = Some(read_string(&mut data).unwrap());
+                        plugin.server = Some(read_string(&mut data).unwrap());
                     }
                     _ => (),
                 }

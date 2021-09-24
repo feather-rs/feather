@@ -1,4 +1,5 @@
 use std::marker::PhantomData;
+use std::mem::ManuallyDrop;
 
 use commands::dispatcher::CommandDispatcher;
 
@@ -45,7 +46,7 @@ impl<Plugin: crate::Plugin> Setup<Plugin> {
     /// Perform various actions on command dispatcher: Register commands, tab-completions, etc.
     pub fn with_dispatcher(
         &mut self,
-        f: impl FnOnce(&mut CommandDispatcher<CommandContext>),
+        f: impl FnOnce(&mut CommandDispatcher<CommandContext<Plugin>>),
     ) -> &mut Self {
         let mut dispatcher = CommandDispatcher::new();
 
@@ -54,12 +55,25 @@ impl<Plugin: crate::Plugin> Setup<Plugin> {
         let (nodes, executors, tab_completers) = dispatcher.split();
         let nodes: Vec<_> = nodes.into_iter().map(|(_, a)| a).collect();
         let executors: Vec<_> = executors.into_iter().map(|(_, a)| a).collect();
-        // SAFETY: references are always valid pointers
+        let tab_completers: Vec<_> = tab_completers.into_iter().collect();
+
+        let (nodes, executors, tab_completers) = (
+            ManuallyDrop::new(nodes),
+            ManuallyDrop::new(executors),
+            ManuallyDrop::new(tab_completers),
+        );
+        // SAFETY: passing raw vec data to recreate the vec on host
         unsafe {
             quill_sys::modify_command_executor(
-                PointerMut::new(&nodes as *const _ as *mut _),
-                PointerMut::new(&executors as *const _ as *mut _),
-                PointerMut::new(&tab_completers as *const _ as *mut _),
+                PointerMut::new(nodes.as_ptr() as *const _ as *mut _),
+                nodes.len() as u32,
+                nodes.capacity() as u32,
+                PointerMut::new(executors.as_ptr() as *const _ as *mut _),
+                executors.len() as u32,
+                executors.capacity() as u32,
+                PointerMut::new(tab_completers.as_ptr() as *const _ as *mut _),
+                tab_completers.len() as u32,
+                tab_completers.capacity() as u32,
             );
         }
         self

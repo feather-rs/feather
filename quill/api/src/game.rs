@@ -33,6 +33,7 @@ pub struct EntityRemoved;
 ///
 /// A `Game` is passed to systems when they run.
 #[derive(Debug)]
+#[repr(C)]
 pub struct Game {
     _not_send_sync: PhantomData<*mut ()>,
 }

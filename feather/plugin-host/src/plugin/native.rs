@@ -1,8 +1,12 @@
+use std::mem::ManuallyDrop;
 use std::{io::Write, sync::Arc};
 
-use anyhow::Context;
+use anyhow::{bail, Context};
+use commands::dispatcher::Args;
 use libloading::Library;
 use tempfile::{NamedTempFile, TempPath};
+
+use quill::CommandContext;
 
 use crate::context::{PluginContext, PluginPtrMut};
 
@@ -27,6 +31,28 @@ pub struct NativePlugin {
     /// Parameters:
     /// 1. Plugin data pointer for this system
     run_system: unsafe extern "C" fn(*mut u8),
+
+    /// The plugin's exported quill_run_command function.
+    ///
+    /// Parameters:
+    /// 1. Plugin data pointer for the command executor
+    /// 2. Arguments buffer pointer
+    /// 3. Arguments length
+    /// 4. Pointer to the command context
+    ///
+    /// Returns: command response (should be casted to bool)
+    run_command: unsafe extern "C" fn(*mut u8, *mut u8, u32, *mut u8) -> u32,
+
+    /// The plugin's exported quill_run_command function.
+    ///
+    /// Parameters:
+    /// 1. Plugin data pointer for the command executor
+    /// 2. Text buffer pointer
+    /// 3. Text length
+    /// 4. Pointer to the command context
+    ///
+    /// Returns: command completions Vec<(String, is_some, optional String)>
+    run_command_completer: unsafe extern "C" fn(*mut u8, *mut u8, u32, *mut u8) -> (u32, u32, u32),
 }
 
 impl NativePlugin {
@@ -55,12 +81,24 @@ impl NativePlugin {
                 .get("quill_run_system".as_bytes())
                 .context("plugin is missing quill_run_system export")?
         };
+        let run_command = unsafe {
+            *library
+                .get("quill_run_command".as_bytes())
+                .context("plugin is missing quill_run_command export")?
+        };
+        let run_command_completer = unsafe {
+            *library
+                .get("quill_run_command_completer".as_bytes())
+                .context("plugin is missing quill_run_command export")?
+        };
 
         Ok(Self {
             tempfile: path,
             library,
             enable,
             run_system,
+            run_command,
+            run_command_completer,
         })
     }
 
@@ -86,7 +124,78 @@ impl NativePlugin {
     }
 
     pub fn run_system(&self, data: PluginPtrMut<u8>) {
-        // SAFETY: we assume the plugin is sound.
         unsafe { (self.run_system)(data.as_native()) }
+    }
+
+    pub fn run_command(
+        &self,
+        data_ptr: PluginPtrMut<u8>,
+        mut args: Args,
+        ctx: CommandContext<()>,
+    ) -> anyhow::Result<bool> {
+        // SAFETY: we assume the plugin is sound.
+        // Using ManuallyDrop because plugins should always drop args
+        Ok(
+            match unsafe {
+                let args = ManuallyDrop::new(args);
+                (self.run_command)(
+                    data_ptr.as_native(),
+                    args.as_ptr() as *const _ as *mut _,
+                    args.len() as u32,
+                    &ctx as *const _ as *mut _,
+                )
+            } {
+                0 => false,
+                1 => true,
+                _ => bail!("Invalid bool returned from function"),
+            },
+        )
+    }
+
+    pub fn run_command_completer(
+        &self,
+        data_ptr: PluginPtrMut<u8>,
+        text: &str,
+        ctx: CommandContext<()>,
+    ) -> anyhow::Result<Vec<(String, Option<String>)>> {
+        // SAFETY: Text should be dropped on plugin side
+        let mut text = ManuallyDrop::new(text.to_string());
+
+        // SAFETY: we assume the plugin is sound.
+        let (ptr, len, cap) = unsafe {
+            (self.run_command_completer)(
+                data_ptr.as_native(),
+                text.as_mut_ptr(),
+                text.len() as u32,
+                &ctx as *const _ as *mut _,
+            )
+        };
+
+        // SAFETY: assuming plugin sent valid data
+        Ok(unsafe {
+            Vec::from_raw_parts(
+                ptr as *mut ((*mut u8, u32, u32), bool, (*mut u8, u32, u32)),
+                len as usize,
+                cap as usize,
+            )
+            .into_iter()
+            .map(
+                |((comp, comp_len, comp_cap), is_some, (tooltip, tooltip_len, tooltip_cap))| {
+                    (
+                        String::from_raw_parts(comp, comp_len as usize, comp_cap as usize),
+                        if is_some {
+                            Some(String::from_raw_parts(
+                                tooltip,
+                                tooltip_len as usize,
+                                tooltip_cap as usize,
+                            ))
+                        } else {
+                            None
+                        },
+                    )
+                },
+            )
+            .collect()
+        })
     }
 }

@@ -1,19 +1,20 @@
 //! A WebAssembly-based plugin API for Minecraft servers.
 
-pub mod command;
-pub mod entities;
-mod entity;
-mod entity_builder;
-mod game;
-pub mod query;
-mod setup;
+// Needed for macros
+#[doc(hidden)]
+pub extern crate bincode;
+#[doc(hidden)]
+pub extern crate quill_sys as sys;
+
+#[doc(hidden)]
+pub use commands;
+#[doc(inline)]
+pub use uuid::Uuid;
 
 pub use command::*;
 pub use entity::{Entity, EntityId};
 pub use entity_builder::EntityBuilder;
 pub use game::Game;
-pub use setup::Setup;
-
 #[doc(inline)]
 pub use libcraft_blocks::{BlockKind, BlockState};
 #[doc(inline)]
@@ -22,17 +23,17 @@ pub use libcraft_core::{BlockPosition, ChunkPosition, Gamemode, Position};
 pub use libcraft_particles::{Particle, ParticleKind};
 #[doc(inline)]
 pub use libcraft_text::*;
-
 #[doc(inline)]
 pub use quill_common::{components, entity_init::EntityInit, events, Component};
-#[doc(inline)]
-pub use uuid::Uuid;
+pub use setup::Setup;
 
-// Needed for macros
-#[doc(hidden)]
-pub extern crate bincode;
-#[doc(hidden)]
-pub extern crate quill_sys as sys;
+pub mod command;
+pub mod entities;
+mod entity;
+mod entity_builder;
+mod game;
+pub mod query;
+mod setup;
 
 /// Implement this trait for your plugin's struct.
 pub trait Plugin: Sized {
@@ -91,6 +92,8 @@ macro_rules! plugin {
         // guarantees it will not invoke plugin systems outside of the main thread.
         static mut PLUGIN: Option<$plugin> = None;
 
+        type CommandContext<'a> = $crate::CommandContext<'a, $plugin>;
+
         // Exports to the host required for all plugins
         #[no_mangle]
         #[doc(hidden)]
@@ -144,6 +147,75 @@ macro_rules! plugin {
             let system = &mut *data.cast::<Box<dyn FnMut(&mut $plugin, &mut $crate::Game)>>();
             let plugin = PLUGIN.as_mut().expect("quill_setup never called");
             system(plugin, &mut $crate::Game::new());
+        }
+
+        #[no_mangle]
+        #[doc(hidden)]
+        pub unsafe extern "C" fn quill_run_command(
+            data: *mut u8,
+            args: *mut u8,
+            args_len: u32,
+            ctx: *mut u8,
+        ) -> u32 {
+            let executor = &*data.cast::<Box<
+                dyn Fn($crate::commands::dispatcher::Args, $crate::CommandContext<$plugin>) -> bool,
+            >>();
+            let ctx = &*ctx.cast::<$crate::CommandContext<()>>();
+            let ctx = $crate::CommandContext {
+                game: $crate::Game::new(),
+                caller: ctx.caller.clone(),
+                plugin: PLUGIN.as_mut().expect("quill_setup never called"),
+            };
+            let args = Vec::from_raw_parts(
+                args as *mut Box<dyn std::any::Any>,
+                args_len as usize,
+                args_len as usize,
+            );
+            executor(args, ctx) as u32
+        }
+
+        #[no_mangle]
+        #[doc(hidden)]
+        pub unsafe extern "C" fn quill_run_command_completer(
+            data: *mut u8,
+            text: *mut u8,
+            text_len: u32,
+            ctx: *mut u8,
+        ) -> (u32, u32, u32) {
+            let complete =
+                &*data.cast::<Box<
+                    dyn Fn(&str, $crate::CommandContext<$plugin>) -> Vec<(String, Option<String>)>,
+                >>();
+            let ctx = &*ctx.cast::<$crate::CommandContext<()>>();
+            let ctx = $crate::CommandContext {
+                game: Game::new(),
+                caller: ctx.caller.clone(),
+                plugin: PLUGIN.as_mut().expect("quill_setup never called"),
+            };
+            let text = String::from_raw_parts(text, text_len as usize, text_len as usize);
+            let completions = complete(&text, ctx)
+                .into_iter()
+                .map(|(c, t)| {
+                    (
+                        (c.as_ptr(), c.len(), c.capacity()),
+                        t.is_some(),
+                        if t.is_none() {
+                            (0, 0, 0)
+                        } else {
+                            (
+                                t.as_ref().unwrap().as_ptr() as usize as u32,
+                                t.as_ref().unwrap().len() as u32,
+                                t.as_ref().unwrap().capacity() as u32,
+                            )
+                        },
+                    )
+                })
+                .collect::<Vec<_>>();
+            (
+                completions.as_ptr() as usize as u32,
+                completions.len() as u32,
+                completions.capacity() as u32,
+            )
         }
 
         /// Never called by Quill, but this is needed

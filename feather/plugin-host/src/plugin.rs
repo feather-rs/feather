@@ -1,7 +1,12 @@
 use std::sync::Arc;
 
 use anyhow::bail;
+use commands::dispatcher::Args;
+
+use feather_commands::CommandCtx;
 use feather_common::Game;
+use quill::{Caller, CommandContext};
+use quill_common::EntityId;
 use quill_plugin_format::{PluginFile, PluginMetadata, PluginTarget, Triple};
 
 use crate::{
@@ -92,6 +97,49 @@ impl Plugin {
                 n.run_system(data);
                 Ok(())
             }
+        })
+    }
+
+    pub fn run_command(
+        &self,
+        data: PluginPtrMut<u8>,
+        args: Args,
+        mut context: CommandCtx,
+    ) -> anyhow::Result<bool> {
+        let caller = Caller::from(Some(EntityId(context.sender.to_bits())));
+        self.context.enter(&mut *context.game, || {
+            let ctx = CommandContext {
+                game: quill::Game::new(),
+                caller,
+                // Command context with the plugin will be created on the plugin side
+                plugin: &(),
+            };
+            match &self.inner {
+                Inner::Wasm(w) => w.run_command(data, args, ctx),
+                Inner::Native(n) => n.run_command(data, args, ctx),
+            }
+        })
+    }
+
+    pub fn run_command_completer(
+        &self,
+        data: PluginPtrMut<u8>,
+        text: &str,
+        context: &mut CommandCtx,
+    ) -> Vec<(String, Option<String>)> {
+        let caller = Caller::from(Some(EntityId(context.sender.to_bits())));
+        self.context.enter(&mut *context.game, || {
+            let ctx = CommandContext {
+                game: quill::Game::new(),
+                caller,
+                // Command context with the plugin will be created on the plugin side
+                plugin: &(),
+            };
+            match &self.inner {
+                Inner::Wasm(w) => w.run_command_completer(data, text, ctx),
+                Inner::Native(n) => n.run_command_completer(data, text, ctx),
+            }
+            .unwrap_or_default()
         })
     }
 

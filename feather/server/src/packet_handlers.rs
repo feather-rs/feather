@@ -80,7 +80,9 @@ pub fn handle_packet(
             entity_action::handle_entity_action(game, player_id, packet)
         }
 
-        ClientPlayPacket::TabComplete(packet) => handle_tab_complete(game, server, player, packet),
+        ClientPlayPacket::TabComplete(packet) => {
+            handle_tab_complete(game, server, player_id, packet)
+        }
 
         ClientPlayPacket::PluginMessage(packet) => handle_plugin_message(game, player_id, packet),
 
@@ -175,17 +177,21 @@ fn handle_client_settings(
 }
 
 fn handle_tab_complete(
-    game: &Game,
+    game: &mut Game,
     server: &Server,
-    player: EntityRef,
+    player_id: Entity,
     packet: client::TabComplete,
 ) -> SysResult {
-    let completions = game
-        .resources
-        .get::<CommandDispatcher<CommandCtx>>()
-        .unwrap()
-        .tab_complete(&packet.text[1..])
-        .unwrap_or_default();
+    let completions = commands::tab_complete(
+        &*game
+            .resources()
+            .get::<CommandDispatcher<CommandCtx>>()
+            .unwrap(),
+        game,
+        player_id,
+        &packet.text[1..],
+    );
+    let player = game.ecs.entity(player_id).unwrap();
     server
         .clients
         .get(*player.get::<ClientId>().unwrap())

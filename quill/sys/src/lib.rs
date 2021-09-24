@@ -176,13 +176,24 @@ extern "C" {
     );
 
     /// Modifies command executor. `executors` have quill's CommandContexts
-    ///
     /// Arguments are emptied after this call
-    /// TODO change pointers types to allow them to be called from other languages
-    /// but I can't test wasm because it doesn't compile on latest rust version
+    ///
+    /// Arguments:
+    /// Nodes: Vec<CommandNode>
+    /// Executors: Vec<Box<dyn Fn(Args, CommandContext) -> bool>>>
+    /// Tab completers: Vec<(String, Box<dyn Fn(&str, CommandContext) -> Vec<(String, Option<String>)>>)>
+    ///
+    /// Arguments are dropped on the host, so you shouldn't drop them after calling this method
+    #[allow(clippy::too_many_arguments)]
     pub fn modify_command_executor(
         nodes_ptr: PointerMut<u8>,
+        nodes_len: u32,
+        nodes_cap: u32,
         executors_ptr: PointerMut<u8>,
+        executors_len: u32,
+        executors_cap: u32,
         tab_completers_ptr: PointerMut<u8>,
+        tab_completers_len: u32,
+        tab_completers_cap: u32,
     );
 }

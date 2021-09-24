@@ -1,10 +1,16 @@
+use std::mem::ManuallyDrop;
 use std::sync::Arc;
 
-use quill_plugin_format::PluginMetadata;
+use anyhow::bail;
+use commands::dispatcher::Args;
 use wasmer::{
     ChainableNamedResolver, Features, Function, ImportObject, Instance, Module, NativeFunc, Store,
 };
 use wasmer_wasi::{WasiEnv, WasiState, WasiVersion};
+
+use quill::CommandContext;
+use quill_common::{Pointer, PointerMut};
+use quill_plugin_format::PluginMetadata;
 
 use crate::{
     context::{PluginContext, PluginPtr, PluginPtrMut},
@@ -21,7 +27,15 @@ pub struct WasmPlugin {
     enable: Function,
 
     /// Exported function to run a system given its data pointer.
-    run_system: NativeFunc<u32>,
+    run_system: NativeFunc<(u32)>,
+
+    /// Exported function to run a command executor given its data pointer, args, args length,
+    /// command context pointer and return command execution result (should be casted to bool).
+    run_command: NativeFunc<(u32, u32, u32, u32), u32>,
+
+    /// Exported function to run a command completer given its data pointer, text, text length,
+    /// command context pointer and return command completions: Vec<(String, is_some, optional String)>.
+    run_command_completer: NativeFunc<(u32, u32, u32, u32), (u32, u32, u32)>,
 }
 
 impl WasmPlugin {
@@ -46,12 +60,24 @@ impl WasmPlugin {
             .get_function("quill_run_system")?
             .native()?
             .clone();
+        let run_command = instance
+            .exports
+            .get_function("quill_run_command")?
+            .native()?
+            .clone();
+        let run_command_completer = instance
+            .exports
+            .get_function("quill_run_command_completer")?
+            .native()?
+            .clone();
         let enable = instance.exports.get_function("quill_setup")?.clone();
 
         Ok(Self {
             instance,
-            run_system,
             enable,
+            run_system,
+            run_command,
+            run_command_completer,
         })
     }
 
@@ -63,6 +89,70 @@ impl WasmPlugin {
     pub fn run_system(&self, data_ptr: PluginPtrMut<u8>) -> anyhow::Result<()> {
         self.run_system.call(data_ptr.ptr as u32)?;
         Ok(())
+    }
+
+    pub fn run_command(
+        &self,
+        data_ptr: PluginPtrMut<u8>,
+        args: Args,
+        ctx: CommandContext<()>,
+    ) -> anyhow::Result<bool> {
+        // SAFETY: Arguments should be dropped on plugin side
+        let args = ManuallyDrop::new(args);
+        match self.run_command.call(
+            data_ptr.ptr as u32,
+            args.as_ptr() as usize as u32,
+            args.len() as u32,
+            &ctx as *const _ as usize as u32,
+        )? {
+            0 => Ok(false),
+            1 => Ok(true),
+            _ => bail!("Invalid bool returned from function"),
+        }
+    }
+
+    pub fn run_command_completer(
+        &self,
+        data_ptr: PluginPtrMut<u8>,
+        text: &str,
+        ctx: CommandContext<()>,
+    ) -> anyhow::Result<Vec<(String, Option<String>)>> {
+        // SAFETY: Text should be dropped on plugin side
+        let text = ManuallyDrop::new(text.to_string());
+
+        let (ptr, len, cap) = self.run_command_completer.call(
+            data_ptr.ptr as u32,
+            text.as_ptr() as usize as u32,
+            text.len() as u32,
+            &ctx as *const _ as usize as u32,
+        )?;
+
+        // SAFETY: assuming plugin sent valid data
+        Ok(unsafe {
+            Vec::from_raw_parts(
+                ptr as *mut ((*mut u8, u32, u32), bool, (*mut u8, u32, u32)),
+                len as usize,
+                cap as usize,
+            )
+            .into_iter()
+            .map(
+                |((comp, comp_len, comp_cap), is_some, (tooltip, tooltip_len, tooltip_cap))| {
+                    (
+                        String::from_raw_parts(comp, comp_len as usize, comp_cap as usize),
+                        if is_some {
+                            Some(String::from_raw_parts(
+                                tooltip,
+                                tooltip_len as usize,
+                                tooltip_cap as usize,
+                            ))
+                        } else {
+                            None
+                        },
+                    )
+                },
+            )
+            .collect()
+        })
     }
 }
 

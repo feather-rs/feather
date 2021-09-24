@@ -9,7 +9,8 @@ use quill_common::{EntityId, Pointer};
 use crate::Entity;
 use crate::Game;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+#[repr(C)]
 pub enum Caller {
     Player(Entity),
     Terminal,
@@ -39,7 +40,9 @@ impl Caller {
 }
 
 /// This is what is passed into the command when its called.
-pub struct CommandContext {
+#[repr(C)]
+pub struct CommandContext<'a, Plugin> {
     pub game: Game,
     pub caller: Caller,
+    pub plugin: &'a Plugin,
 }

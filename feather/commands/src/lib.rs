@@ -96,3 +96,20 @@ pub fn dispatch_command(
         dispatcher.execute_command(command, ctx)
     }
 }
+
+pub fn tab_complete(
+    dispatcher: &CommandDispatcher<CommandCtx>,
+    game: &mut Game,
+    sender: Entity,
+    prompt: &str,
+) -> Vec<(String, Option<String>)> {
+    dispatcher
+        .tab_complete(
+            prompt,
+            CommandCtx {
+                sender,
+                game: LifetimelessMut(game),
+            },
+        )
+        .unwrap_or_default()
+}
