@@ -222,8 +222,6 @@ impl Client {
             is_debug: false,
             is_flat: false,
         });
-
-        self.send_packet(game.tag_registry.all_tags());
     }
 
     pub fn send_brand(&self) {
