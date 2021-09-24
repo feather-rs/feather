@@ -7,6 +7,7 @@ use common::{
     ChatBox, Game, Window,
 };
 use ecs::{SysResult, SystemExecutor};
+use libcraft_core::EntityKind;
 use quill_common::{components::Name, entity_init::EntityInit};
 
 use crate::{ClientId, Server};
@@ -52,7 +53,8 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .add(ChatBox::new(ChatPreference::All))
         .add(inventory)
         .add(window)
-        .add(HotbarSlot::default());
+        .add(HotbarSlot::default())
+        .add(EntityKind::Player);
 
     game.spawn_entity(builder);
 

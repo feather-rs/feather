@@ -8,9 +8,10 @@ use base::{
     SimplifiedBlockKind, SlabKind,
 };
 use blocks::BlockKind;
-use ecs::{SysResult, SystemExecutor};
-use libcraft_core::BlockFace;
+use ecs::{Ecs, SysResult, SystemExecutor};
+use libcraft_core::{BlockFace, EntityKind};
 use quill_common::events::BlockPlacementEvent;
+use vek::Rect3;
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems.add_system(block_placement);
@@ -39,7 +40,14 @@ pub fn block_placement(game: &mut Game) -> SysResult {
             Some(s) => s,
             None => continue,
         };
-        if let Some(s) = place_block(&mut game.world, *pos, &game.chunk_entities, block, event) {
+        if let Some(s) = place_block(
+            &mut game.world,
+            *pos,
+            &game.chunk_entities,
+            block,
+            event,
+            &game.ecs,
+        ) {
             match *gamemode {
                 Gamemode::Survival | Gamemode::Adventure => decrease_slot(&mut slot),
                 _ => {}
@@ -63,6 +71,7 @@ fn place_block(
     chunk_entities: &ChunkEntities,
     block: BlockId,
     placement: &BlockPlacementEvent,
+    ecs: &Ecs,
 ) -> Option<Vec<BlockChangeEvent>> {
     let target1 = placement.location;
     let target_block1 = world.block_at(target1)?;
@@ -114,12 +123,31 @@ fn place_block(
         }
         None => false,
     };
+    // This works but there is a discrepancy between when the place block event is fired and getting the entity location.
+    // that makes it possible to place a block at the right exact moment and have the server believe it wasn't blocked.
     if chunk_entities
         .entities_in_chunk(target.chunk())
         .iter()
-        .any(|_entity| false)
+        .any(|_entity| {
+            let entity_position = ecs.get::<Position>(*_entity).unwrap();
+            let entity_kind = *ecs.get::<EntityKind>(*_entity).unwrap();
+            let block_rect: Rect3<f64, f64> = vek::Rect3 {
+                x: target.x.into(),
+                y: target.y.into(),
+                z: target.z.into(),
+                w: 1.0,
+                h: 1.0,
+                d: 1.0,
+            };
+
+            let mut entity_rect = entity_kind.bounding_box().into_rect3();
+            entity_rect.x = entity_position.x - (entity_rect.w / 2.0);
+            entity_rect.y = entity_position.y;
+            entity_rect.z = entity_position.z - (entity_rect.d / 2.0);
+
+            block_rect.collides_with_rect3(entity_rect)
+        })
     {
-        // FIXME: Somehow check if block would collide with any entities
         return None;
     }
     if !world.check_block_stability(block, target)? {
