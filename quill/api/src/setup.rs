@@ -52,7 +52,7 @@ impl<Plugin: crate::Plugin> Setup<Plugin> {
 
         f(&mut dispatcher);
 
-        let (nodes, executors, tab_completers) = dispatcher.split();
+        let (nodes, executors, tab_completers) = dispatcher.to_parts();
         let nodes: Vec<_> = nodes.into_iter().map(|(_, a)| a).collect();
         let executors: Vec<_> = executors.into_iter().map(|(_, a)| a).collect();
         let tab_completers: Vec<_> = tab_completers.into_iter().collect();
