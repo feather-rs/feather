@@ -210,12 +210,8 @@ impl ChunkMap {
     pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockId> {
         check_coords(pos)?;
 
-        // It's okay to do this here because we already know the
-        // position is valid because we got it as a `ValidBlockPosition`
-        let block_position = pos.into();
-
-        let (x, y, z) = chunk_relative_pos(block_position);
-        self.chunk_at(block_position.into())
+        let (x, y, z) = chunk_relative_pos(pos.into());
+        self.chunk_at(pos.chunk())
             .map(|chunk| chunk.block_at(x, y, z))
             .flatten()
     }
@@ -225,13 +221,9 @@ impl ChunkMap {
             return false;
         }
 
-        // It's okay to do this here because we already know the
-        // position is valid because we got it as a `ValidBlockPosition`
-        let block_position = pos.into();
+        let (x, y, z) = chunk_relative_pos(pos.into());
 
-        let (x, y, z) = chunk_relative_pos(block_position);
-
-        self.chunk_at_mut(block_position.into())
+        self.chunk_at_mut(pos.chunk())
             .map(|mut chunk| chunk.set_block_at(x, y, z, block))
             .is_some()
     }
