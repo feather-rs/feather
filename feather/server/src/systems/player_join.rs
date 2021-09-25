@@ -62,7 +62,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .map(|data| PreviousGamemode::from_id(data.previous_gamemode as i8))
         .unwrap_or(PreviousGamemode(None));
 
-    client.send_join_game(gamemode, previous_gamemode, game);
+    client.send_join_game(gamemode, previous_gamemode);
     client.send_brand();
 
     // Abilities

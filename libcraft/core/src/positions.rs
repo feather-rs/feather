@@ -350,6 +350,18 @@ impl BlockPosition {
             z: self.z,
         }
     }
+
+    /// Returns `true` if the [`BlockPosition`] is valid.
+    ///
+    /// Minecraft defines a valid block position with the following limits:
+    /// - X (-33554432 to 33554431)
+    /// - Y (-2048 to 2047)
+    /// - Z (-33554432 to 33554431)
+    pub fn valid(self) -> bool {
+        (-33554432 <= self.x && self.x <= 33554431)
+            && (-2048 <= self.y && self.y <= 2047)
+            && (-33554432 <= self.z && self.z <= 33554431)
+    }
 }
 
 impl Add<BlockPosition> for BlockPosition {

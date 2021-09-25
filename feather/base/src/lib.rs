@@ -10,11 +10,13 @@ use num_derive::{FromPrimitive, ToPrimitive};
 use serde::{Deserialize, Serialize};
 
 pub mod anvil;
+mod block;
 pub mod chunk;
 pub mod chunk_lock;
 pub mod inventory;
 pub mod metadata;
 
+pub use block::{BlockPositionValidationError, ValidBlockPosition};
 pub use blocks::*;
 pub use chunk::{Chunk, ChunkSection, CHUNK_HEIGHT, CHUNK_WIDTH};
 pub use chunk_lock::*;
