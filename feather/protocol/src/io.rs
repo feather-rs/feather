@@ -4,7 +4,7 @@ use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
 use base::{
     anvil::entity::ItemNbt, metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata,
-    Gamemode, Item, ItemStack,
+    Gamemode, Item, ItemStack, ValidBlockPosition,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use num_traits::{FromPrimitive, ToPrimitive};
@@ -632,9 +632,9 @@ fn read_meta_entry(
             f32::read(buffer, version)?,
             f32::read(buffer, version)?,
         ),
-        9 => MetaEntry::Position(BlockPosition::read(buffer, version)?),
+        9 => MetaEntry::Position(ValidBlockPosition::read(buffer, version)?),
         10 => MetaEntry::OptPosition(if bool::read(buffer, version)? {
-            Some(BlockPosition::read(buffer, version)?)
+            Some(ValidBlockPosition::read(buffer, version)?)
         } else {
             None
         }),
@@ -782,7 +782,7 @@ impl Writeable for Uuid {
     }
 }
 
-impl Readable for BlockPosition {
+impl Readable for ValidBlockPosition {
     fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where
         Self: Sized,
@@ -793,15 +793,15 @@ impl Readable for BlockPosition {
         let y = (val & 0xFFF) as i32;
         let z = (val << 26 >> 38) as i32;
 
-        Ok(BlockPosition { x, y, z })
+        Ok(BlockPosition { x, y, z }.try_into()?)
     }
 }
 
-impl Writeable for BlockPosition {
+impl Writeable for ValidBlockPosition {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
-        let val = ((self.x as u64 & 0x3FFFFFF) << 38)
-            | ((self.z as u64 & 0x3FFFFFF) << 12)
-            | (self.y as u64 & 0xFFF);
+        let val = ((self.x() as u64 & 0x3FFFFFF) << 38)
+            | ((self.z() as u64 & 0x3FFFFFF) << 12)
+            | (self.y() as u64 & 0xFFF);
         val.write(buffer, version)?;
 
         Ok(())

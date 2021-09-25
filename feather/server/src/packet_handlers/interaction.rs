@@ -80,7 +80,7 @@ pub fn handle_player_block_placement(
         // Handle this as a block interaction
         let event = BlockInteractEvent {
             hand,
-            location: packet.position,
+            location: packet.position.into(),
             face,
             cursor_position,
             inside_block: packet.inside_block,
@@ -91,7 +91,7 @@ pub fn handle_player_block_placement(
         // Handle this as a block placement
         let event = BlockPlacementEvent {
             hand,
-            location: packet.position,
+            location: packet.position.into(),
             face,
             cursor_position,
             inside_block: packet.inside_block,

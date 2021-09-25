@@ -29,6 +29,7 @@ pub fn download_vanilla_assets(base: &Path) -> anyhow::Result<()> {
             DOWNLOAD_TIMEOUT_MINUTES
         ))
         .context("please make sure you have an Internet connection.")?;
+
     // NB: JAR files are just glorified ZIP files, so we can use the zip crate
     // to process the data.
     let mut zip = ZipArchive::new(jar)?;
@@ -74,12 +75,7 @@ fn download_jar(base: &Path) -> anyhow::Result<File> {
 
     let downloaded_dir = base.join("downloaded");
     fs::create_dir_all(&downloaded_dir)?;
-    let mut file = fs::OpenOptions::new()
-        .write(true)
-        .read(true)
-        .truncate(true)
-        .create(true)
-        .open(downloaded_dir.join(JAR_NAME))?;
+    let mut file = File::create(downloaded_dir.join(JAR_NAME))?;
 
     io::copy(&mut data, &mut file)?;
     Ok(file)
@@ -101,14 +97,10 @@ fn create_minecraft_datapack(base: &Path, zip: &mut ZipArchive<File>) -> anyhow:
 
     // copy data directory
     let mut files = Vec::new();
-    for file_name in zip
-        .file_names()
-        .map(|s| s.to_owned())
-        .collect::<Vec<String>>()
-    {
-        let path = Path::new(&file_name);
-        if path.starts_with("data") && zip.by_name(&file_name)?.is_file() {
-            let path_in_target = target.join(path);
+    for file_name in zip.file_names() {
+        let path = Path::new(file_name);
+        let path_in_target = fs::canonicalize(target.join(path))?;
+        if path.starts_with("data") && path_in_target.starts_with(&target) {
             files.push((file_name.to_owned(), path_in_target));
         }
     }

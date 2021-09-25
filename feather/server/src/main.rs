@@ -38,7 +38,6 @@ async fn main() -> anyhow::Result<()> {
 
 fn init_game(server: Server, config: &Config) -> anyhow::Result<Game> {
     let mut game = Game::new();
-    init_registries(&mut game)?;
     init_systems(&mut game, server);
     init_world_source(&mut game, config);
     init_plugin_manager(&mut game)?;
@@ -61,7 +60,9 @@ fn init_systems(game: &mut Game, server: Server) {
 
 fn init_world_source(game: &mut Game, config: &Config) {
     // Load chunks from the world save first,
-    // and fall back to generating a world otherwise.
+    // and fall back to generating a superflat
+    // world otherwise. This is a placeholder:
+    // we don't have proper world generation yet.
 
     let seed = 42; // FIXME: load from the level file
 
@@ -80,18 +81,6 @@ fn init_plugin_manager(game: &mut Game) -> anyhow::Result<()> {
 
     let plugin_manager_rc = Rc::new(RefCell::new(plugin_manager));
     game.insert_resource(plugin_manager_rc);
-    Ok(())
-}
-
-fn init_registries(game: &mut Game) -> anyhow::Result<()> {
-    game.tag_registry = datapacks::TagRegistryBuilder::from_dir(
-        std::path::Path::new("./feather/datapacks/minecraft/data/minecraft/tags"),
-        "minecraft",
-    )?
-    .build()?;
-    game.recipe_registry = datapacks::recipe::RecipeRegistry::from_dir(std::path::Path::new(
-        "./feather/datapacks/minecraft/data/minecraft/recipes",
-    ))?;
     Ok(())
 }
 
