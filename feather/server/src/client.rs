@@ -10,8 +10,8 @@ use flume::{Receiver, Sender};
 use uuid::Uuid;
 
 use base::{
-    BlockId, BlockPosition, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode,
-    ItemStack, Position, ProfileProperty, Text, ValidBlockPosition,
+    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, ItemStack, Position,
+    ProfileProperty, Text, ValidBlockPosition,
 };
 use common::{
     chat::{ChatKind, ChatMessage},

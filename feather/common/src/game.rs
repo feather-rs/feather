@@ -1,6 +1,6 @@
 use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
-use base::{BlockId, BlockPosition, ChunkPosition, Position, Text, Title, ValidBlockPosition};
+use base::{BlockId, ChunkPosition, Position, Text, Title, ValidBlockPosition};
 use ecs::{
     Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult,
     SystemExecutor,

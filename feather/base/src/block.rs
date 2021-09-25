@@ -106,27 +106,27 @@ impl TryFrom<BlockPosition> for ValidBlockPosition {
     }
 }
 
-impl Into<BlockPosition> for ValidBlockPosition {
-    fn into(self) -> BlockPosition {
+impl From<ValidBlockPosition> for BlockPosition {
+    fn from(position: ValidBlockPosition) -> Self {
         BlockPosition {
-            x: self.x,
-            y: self.y,
-            z: self.z,
+            x: position.x,
+            y: position.y,
+            z: position.z,
         }
     }
 }
 
-impl Into<ChunkPosition> for ValidBlockPosition {
-    fn into(self) -> ChunkPosition {
-        let block_position: BlockPosition = self.into();
-        block_position.into()
+impl From<ValidBlockPosition> for ChunkPosition {
+    fn from(position: ValidBlockPosition) -> Self {
+        let position: BlockPosition = position.into();
+        position.into()
     }
 }
 
-impl Into<Position> for ValidBlockPosition {
-    fn into(self) -> Position {
-        let block_position: BlockPosition = self.into();
-        block_position.into()
+impl From<ValidBlockPosition> for Position {
+    fn from(position: ValidBlockPosition) -> Self {
+        let position: BlockPosition = position.into();
+        position.into()
     }
 }
 

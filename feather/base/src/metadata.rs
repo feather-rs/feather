@@ -2,7 +2,7 @@
 //! metadata format. See <https://wiki.vg/Entity_metadata>
 //! for the specification.
 
-use crate::{BlockPosition, Direction, ValidBlockPosition};
+use crate::{Direction, ValidBlockPosition};
 use bitflags::bitflags;
 use generated::ItemStack;
 use std::collections::BTreeMap;
