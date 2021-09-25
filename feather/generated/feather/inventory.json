@@ -62,7 +62,8 @@
             "leggings": 1,
             "boots": 1,
             "storage": 27,
-            "hotbar": 9
+            "hotbar": 9,
+            "offhand": 1
         },
         "chest": {
             "storage": 27
