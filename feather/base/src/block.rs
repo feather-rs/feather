@@ -135,3 +135,29 @@ pub enum BlockPositionValidationError {
     #[error("coordinate {0:?} out of range")]
     OutOfRange(BlockPosition),
 }
+
+#[cfg(test)]
+mod tests {
+
+    use std::convert::TryInto;
+
+    use libcraft_core::BlockPosition;
+
+    use crate::ValidBlockPosition;
+
+    #[test]
+    #[should_panic]
+    fn check_out_of_bounds_up() {
+        let block_position = BlockPosition::new(0, 39483298, 0);
+
+        <BlockPosition as TryInto<ValidBlockPosition>>::try_into(block_position).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn check_out_of_bounds_down() {
+        let block_position = BlockPosition::new(0, -39483298, 0);
+
+        <BlockPosition as TryInto<ValidBlockPosition>>::try_into(block_position).unwrap();
+    }
+}
