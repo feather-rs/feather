@@ -1,6 +1,6 @@
 use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
-use base::{BlockId, BlockPosition, ChunkPosition, Position, Text, Title};
+use base::{BlockId, BlockPosition, ChunkPosition, Position, Text, Title, ValidBlockPosition};
 use ecs::{
     Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult,
     SystemExecutor,
@@ -181,14 +181,14 @@ impl Game {
     }
 
     /// Gets the block at the given position.
-    pub fn block(&self, pos: BlockPosition) -> Option<BlockId> {
+    pub fn block(&self, pos: ValidBlockPosition) -> Option<BlockId> {
         self.world.block_at(pos)
     }
 
     /// Sets the block at the given position.
     ///
     /// Triggers necessary `BlockChangeEvent`s.
-    pub fn set_block(&mut self, pos: BlockPosition, block: BlockId) -> bool {
+    pub fn set_block(&mut self, pos: ValidBlockPosition, block: BlockId) -> bool {
         let was_successful = self.world.set_block_at(pos, block);
         if was_successful {
             self.ecs.insert_event(BlockChangeEvent::single(pos));
@@ -226,7 +226,7 @@ impl Game {
 
     /// Breaks the block at the given position, propagating any
     /// necessary block updates.
-    pub fn break_block(&mut self, pos: BlockPosition) -> bool {
+    pub fn break_block(&mut self, pos: ValidBlockPosition) -> bool {
         self.set_block(pos, BlockId::air())
     }
 }
