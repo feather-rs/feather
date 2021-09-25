@@ -32,6 +32,7 @@ smallvec = "1"
 thiserror = "1"
 uuid = { version = "0.8", features = [ "serde" ] }
 vek = "0.14"
+bytemuck = { version = "1", features = ["derive"] }
 
 [dev-dependencies]
 rand = "0.8"

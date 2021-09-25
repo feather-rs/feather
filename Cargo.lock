@@ -753,6 +753,7 @@ dependencies = [
  "arrayvec 0.7.1",
  "bitflags",
  "bitvec",
+ "bytemuck",
  "byteorder",
  "feather-blocks",
  "feather-generated",

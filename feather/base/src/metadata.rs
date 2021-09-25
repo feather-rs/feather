@@ -2,7 +2,7 @@
 //! metadata format. See <https://wiki.vg/Entity_metadata>
 //! for the specification.
 
-use crate::{BlockPosition, Direction};
+use crate::{Direction, ValidBlockPosition};
 use bitflags::bitflags;
 use generated::ItemStack;
 use std::collections::BTreeMap;
@@ -47,8 +47,8 @@ pub enum MetaEntry {
     Slot(Option<ItemStack>),
     Boolean(bool),
     Rotation(f32, f32, f32),
-    Position(BlockPosition),
-    OptPosition(Option<BlockPosition>),
+    Position(ValidBlockPosition),
+    OptPosition(Option<ValidBlockPosition>),
     Direction(Direction),
     OptUuid(OptUuid),
     OptBlockId(Option<i32>),
@@ -131,7 +131,7 @@ impl ToMetaEntry for bool {
     }
 }
 
-impl ToMetaEntry for BlockPosition {
+impl ToMetaEntry for ValidBlockPosition {
     fn to_meta_entry(&self) -> MetaEntry {
         MetaEntry::Position(*self)
     }

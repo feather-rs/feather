@@ -10,8 +10,8 @@ use flume::{Receiver, Sender};
 use uuid::Uuid;
 
 use base::{
-    BlockId, BlockPosition, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode,
-    ItemStack, Position, ProfileProperty, Text,
+    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, ItemStack, Position,
+    ProfileProperty, Text, ValidBlockPosition,
 };
 use common::{
     chat::{ChatKind, ChatMessage},
@@ -283,7 +283,7 @@ impl Client {
         });
     }
 
-    pub fn send_block_change(&self, position: BlockPosition, new_block: BlockId) {
+    pub fn send_block_change(&self, position: ValidBlockPosition, new_block: BlockId) {
         self.send_packet(BlockChange {
             position,
             block: new_block,
