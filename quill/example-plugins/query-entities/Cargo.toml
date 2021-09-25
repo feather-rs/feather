@@ -1,0 +1,12 @@
+[package]
+name = "query-entities"
+version = "0.1.0"
+authors = ["Caelum van Ispelen <caelum12321@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+quill = { path = "../../api" }
+rand = "0.8"

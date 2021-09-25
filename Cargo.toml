@@ -1,52 +1,51 @@
 [workspace]
 members = [
-    "api",
+    # libcraft
+    "libcraft/core",
+    "libcraft/blocks",
+    "libcraft/generators",
+    "libcraft/items",
+    "libcraft/macros",
+    "libcraft/particles",
+    "libcraft/text",
 
-    "core",
-    "core/anvil",
-    "core/blocks",
-    "core/blocks/generator",
-    "core/biomes",
-    "core/chunk",
-    "core/chunk_map",
-    "core/entity_metadata",
-    "core/item_block",
-    "core/items",
-    "core/loot",
-    "core/loot/model",
-    "core/misc",
-    "core/inventory",
-    "core/network",
-    "core/text",
-    "core/util",
+    # Quill
+    "quill/sys-macros",
+    "quill/sys",
+    "quill/common",
+    "quill/api",
+    "quill/plugin-format",
+    "quill/cargo-quill",
 
-    "definitions",
-    "definitions/generator",
+    # Quill example plugins
+    "quill/example-plugins/titles",
+    "quill/example-plugins/block-access",
+    "quill/example-plugins/block-place",
+    "quill/example-plugins/particle-example",
+    "quill/example-plugins/plugin-message",
+    "quill/example-plugins/query-entities",
+    "quill/example-plugins/simple",
+    "quill/example-plugins/observe-creativemode-flight-event",
 
-    "server",
-    "server/template",
-    "server/block",
-    "server/chat",
-    "server/chunk",
-    "server/commands",
-    "server/config",
-    "server/entity",
-    "server/lighting",
-    "server/network",
-    "server/packet_buffer",
-    "server/physics",
-    "server/player",
-    "server/test",
-    "server/types",
-    "server/util",
-    "server/weather",
-    "server/worldgen",
+    # Feather (common and server)
+    "feather/utils",
+    "feather/generated",
+    "feather/blocks",
+    "feather/blocks/generator",
+    "feather/base",
+    "feather/ecs",
+    "feather/datapacks",
+    "feather/worldgen",
+    "feather/common",
+    "feather/protocol",
+    "feather/plugin-host/macros",
+    "feather/plugin-host",
+    "feather/server",
 
-    "codegen",
-    "data",
-    "data/macro"
+    # Other
+    "tools/proxy",
 ]
 
-# To make sure the server isn't dirt slow in debug mode.
-[profile.dev]
-opt-level = 1
+# No longer need to use release for "development":
+[profile.dev.package."*"]
+opt-level = 2

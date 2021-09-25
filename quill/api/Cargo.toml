@@ -1,0 +1,19 @@
+[package]
+name = "quill"
+version = "0.1.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+libcraft-core = { path = "../../libcraft/core" }
+libcraft-particles = { path = "../../libcraft/particles" }
+libcraft-blocks = { path = "../../libcraft/blocks" }
+libcraft-text = { path = "../../libcraft/text" }
+bincode = "1"
+bytemuck = "1"
+quill-sys = { path = "../sys" }
+quill-common = { path = "../common" }
+thiserror = "1"
+uuid = "0.8"
+itertools = "0.10.0"
+

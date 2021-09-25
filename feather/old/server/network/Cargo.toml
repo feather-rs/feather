@@ -1,0 +1,32 @@
+[package]
+name = "feather-server-network"
+version = "0.6.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-core = { path = "../../core" }
+feather-server-types = { path = "../types" }
+feather-server-util = { path = "../util" }
+
+fecs = { git = "https://github.com/feather-rs/fecs", rev = "0c4838d65b41ca059012b6e9147eabf0c275a731" }
+tokio = { version = "0.2", features = ["full"] }
+tokio-util = { version = "0.3", features = ["codec"] }
+flume = "0.7"
+derivative = "2.1"
+mojang-api = "0.6"
+parking_lot = "0.10"
+log = "0.4"
+once_cell = "1.3"
+futures = "0.3"
+anyhow = "1.0"
+thiserror = "1.0"
+serde_json = "1.0"
+num-bigint-dig = "0.6"
+uuid = { version = "0.8", features = ["v3"] }
+md5 = "0.7"
+
+# Crypto
+rsa = "0.2"
+rsa-der = "0.2"
+rand = "0.7"

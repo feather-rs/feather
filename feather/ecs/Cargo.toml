@@ -1,0 +1,14 @@
+[package]
+name = "feather-ecs"
+version = "0.1.0"
+authors = [ "caelunshun <caelunshun@gmail.com>" ]
+edition = "2018"
+
+[dependencies]
+ahash = "0.7"
+anyhow = "1"
+hecs = { git = "https://github.com/feather-rs/feather-hecs" }
+log = "0.4"
+thiserror = "1"
+utils = { path = "../utils", package = "feather-utils" }
+

@@ -1,0 +1,11 @@
+[package]
+name = "particle-example"
+version = "0.1.0"
+authors = ["Gijs de Jong <berichtaangijs@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+quill = { path = "../../api" }

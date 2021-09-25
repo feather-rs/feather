@@ -1,0 +1,15 @@
+[package]
+name = "libcraft-particles"
+version = "0.1.0"
+authors = ["Gijs de Jong <berichtaangijs@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+
+libcraft-blocks = { path = "../blocks"}
+libcraft-items = { path = "../items" }
+ordinalizer = "0.1.0"
+bytemuck = { version = "1", features = ["derive"] }
+num-derive = "0.3"
+num-traits = "0.2"
+serde = { version = "1", features = ["derive"] }

@@ -1,0 +1,22 @@
+[package]
+name = "feather-core"
+version = "0.6.0"
+authors = ["caelunshun <caelunshun@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+feather-anvil = { path = "./anvil" }
+feather-biomes = { path = "./biomes" }
+feather-blocks = { path = "./blocks" }
+feather-chunk = { path = "./chunk" }
+feather-chunk-map = { path = "./chunk_map" }
+feather-entity-metadata = { path = "./entity_metadata" }
+feather-game-rules = { path = "./game_rules" }
+feather-inventory = { path = "./inventory" }
+feather-item-block = { path = "./item_block" }
+feather-items = { path = "./items" }
+feather-loot = { path = "./loot" }
+feather-misc = { path = "./misc" }
+feather-protocol = { path = "./protocol" }
+feather-text = { path = "./text" }
+feather-util = { path = "./util" }

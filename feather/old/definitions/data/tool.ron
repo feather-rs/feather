@@ -1,0 +1,118 @@
+Multiple([
+    Enum(
+        name: "tool",
+        variants: [
+            "axe",
+            "pickaxe",
+            "shovel",
+            "hoe",
+            "sword",
+            "shears",
+        ]
+    ),
+    Enum(
+        name: "tool_material",
+        variants: [
+            "wooden",
+            "stone",
+            "iron",
+            "diamond",
+            "golden",
+        ]
+    ),
+    Property(
+        on: "item",
+        name: "tool",
+        type: Custom("tool"),
+        mapping: {
+            "${tool_material}_${tool}": "${tool}",
+            "shears": "shears",
+
+        }
+    ),
+    Property(
+        on: "item",
+        name: "tool_material",
+        type: Custom("tool_material"),
+        mapping: {
+            "${tool_material}_${tool}": "${tool_material}",
+        }
+    ),
+    Property(
+        on: "tool_material",
+        name: "dig_multiplier",
+        type: f64,
+        mapping: {
+            "wooden": 2,
+            "stone": 4,
+            "iron": 6,
+            "diamond": 8,
+            "golden": 12,
+        }
+    ),
+    Property(
+        on: "item",
+        name: "durability",
+        type: u32,
+        // https://minecraft.gamepedia.com/Item_durability
+        mapping: {
+            "leather_helmet": 55,
+            "leather_chestplate": 80,
+            "leather_leggings": 75,
+            "leather_boots": 65,
+            "golden_helmet": 77,
+            "golden_chestplate": 112,
+            "golden_leggings": 105,
+            "golden_boots": 91,
+            "chainmail_helmet": 165,
+            "chainmail_chestplate": 240,
+            "chainmail_leggings": 225,
+            "chainmail_boots": 195,
+            "iron_helmet": 165,
+            "iron_chestplate": 240,
+            "iron_leggings": 225,
+            "iron_boots": 195,
+            "diamond_helmet": 363,
+            "diamond_chestplate": 528,
+            "diamond_leggings": 495,
+            "diamond_boots": 429,
+            "golden_${tool}": 32,
+            "wooden_${tool}": 59,
+            "stone_${tool}": 131,
+            "iron_${tool}": 250,
+            "diamond_${tool}": 1561,
+            "fishing_rod": 64,
+            "flint_and_steel": 64,
+            "carrot_on_a_stick": 25,
+            "shears": 238,
+            "shield": 336,
+            "bow": 384,
+            "trident": 250,
+            "elytra": 432,
+        }
+    ),
+    // Defines the "best tool" to mine a block.
+    Property(
+        on: "block_kind",
+        name: "best_tool",
+        type: Custom("tool"),
+        mapping: {
+            // TODO
+            ["dirt", "grass_block", "sand", "red_sand"]: "shovel",
+            ["stone", "cobblestone", "sandstone"]: "pickaxe",
+        },
+    ),
+    // Defines whether the best tool is required
+    // for the block to be harvested. If this is
+    // true, and a player is not holding
+    // the needed tool, then progress is slowed
+    // and the block yields no drops.
+    Property(
+        on: "block_kind",
+        name: "best_tool_required",
+        type: bool,
+        mapping: {
+            ["cobblestone", "stone", "sandstone"]: true,
+        },
+    ),
+])
