@@ -26,8 +26,10 @@ pub fn handle_client_status(
 
             // Recreate the player for all clients.
             server.broadcast_nearby_with(*position, |client| {
-                if client.network_id() != *network_id {
-                    client.send_player(*network_id, *uuid, *position);
+                if let Some(client_network_id) = client.network_id() {
+                    if client_network_id != *network_id {
+                        client.send_player(*network_id, *uuid, *position);
+                    }
                 }
             });
         }

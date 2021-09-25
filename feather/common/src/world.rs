@@ -1,9 +1,15 @@
+use std::{path::PathBuf, sync::Arc};
+
 use ahash::{AHashMap, AHashSet};
-use base::{BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, CHUNK_HEIGHT};
+use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
+use uuid::Uuid;
+
+use base::anvil::player::PlayerData;
+use base::{
+    BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, ValidBlockPosition, CHUNK_HEIGHT,
+};
 use blocks::BlockId;
 use ecs::{Ecs, SysResult};
-use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
-use std::{path::PathBuf, sync::Arc};
 use worldgen::{ComposableGenerator, WorldGenerator};
 
 use crate::{
@@ -24,6 +30,7 @@ pub struct World {
     chunk_worker: ChunkWorker,
     loading_chunks: AHashSet<ChunkPosition>,
     canceled_chunk_loads: AHashSet<ChunkPosition>,
+    world_dir: PathBuf,
 }
 
 impl Default for World {
@@ -37,6 +44,7 @@ impl Default for World {
             cache: ChunkCache::new(),
             loading_chunks: AHashSet::new(),
             canceled_chunk_loads: AHashSet::new(),
+            world_dir: "world".into(),
         }
     }
 }
@@ -48,9 +56,10 @@ impl World {
 
     pub fn with_gen_and_path(
         generator: Arc<dyn WorldGenerator>,
-        world_dir: impl Into<PathBuf>,
+        world_dir: impl Into<PathBuf> + Clone,
     ) -> Self {
         Self {
+            world_dir: world_dir.clone().into(),
             chunk_worker: ChunkWorker::new(world_dir, generator),
             ..Default::default()
         }
@@ -128,7 +137,7 @@ impl World {
     /// if its chunk was not loaded or the coordinates
     /// are out of bounds and thus no operation
     /// was performed.
-    pub fn set_block_at(&self, pos: BlockPosition, block: BlockId) -> bool {
+    pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockId) -> bool {
         self.chunk_map.set_block_at(pos, block)
     }
 
@@ -136,7 +145,7 @@ impl World {
     /// location. If the chunk in which the block
     /// exists is not loaded or the coordinates
     /// are out of bounds, `None` is returned.
-    pub fn block_at(&self, pos: BlockPosition) -> Option<BlockId> {
+    pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockId> {
         self.chunk_map.block_at(pos)
     }
 
@@ -148,6 +157,17 @@ impl World {
     /// Mutably gets the chunk map.
     pub fn chunk_map_mut(&mut self) -> &mut ChunkMap {
         &mut self.chunk_map
+    }
+
+    pub fn load_player_data(&self, uuid: Uuid) -> anyhow::Result<PlayerData> {
+        Ok(base::anvil::player::load_player_data(
+            &self.world_dir,
+            uuid,
+        )?)
+    }
+
+    pub fn save_player_data(&self, uuid: Uuid, data: &PlayerData) -> anyhow::Result<()> {
+        base::anvil::player::save_player_data(&self.world_dir, uuid, data)
     }
 }
 
@@ -187,21 +207,23 @@ impl ChunkMap {
         self.0.get(&pos).map(Arc::clone)
     }
 
-    pub fn block_at(&self, pos: BlockPosition) -> Option<BlockId> {
+    pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockId> {
         check_coords(pos)?;
-        let (x, y, z) = chunk_relative_pos(pos);
-        self.chunk_at(pos.into())
+
+        let (x, y, z) = chunk_relative_pos(pos.into());
+        self.chunk_at(pos.chunk())
             .map(|chunk| chunk.block_at(x, y, z))
             .flatten()
     }
 
-    pub fn set_block_at(&self, pos: BlockPosition, block: BlockId) -> bool {
+    pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockId) -> bool {
         if check_coords(pos).is_none() {
             return false;
         }
-        let (x, y, z) = chunk_relative_pos(pos);
 
-        self.chunk_at_mut(pos.into())
+        let (x, y, z) = chunk_relative_pos(pos.into());
+
+        self.chunk_at_mut(pos.chunk())
             .map(|mut chunk| chunk.set_block_at(x, y, z, block))
             .is_some()
     }
@@ -223,8 +245,8 @@ impl ChunkMap {
     }
 }
 
-fn check_coords(pos: BlockPosition) -> Option<()> {
-    if pos.y >= 0 && pos.y < CHUNK_HEIGHT as i32 {
+fn check_coords(pos: ValidBlockPosition) -> Option<()> {
+    if pos.y() >= 0 && pos.y() < CHUNK_HEIGHT as i32 {
         Some(())
     } else {
         None
@@ -241,6 +263,8 @@ fn chunk_relative_pos(block_pos: BlockPosition) -> (usize, usize, usize) {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryInto;
+
     use super::*;
 
     #[test]
@@ -250,7 +274,11 @@ mod tests {
             .chunk_map_mut()
             .insert_chunk(Chunk::new(ChunkPosition::new(0, 0)));
 
-        assert!(world.block_at(BlockPosition::new(0, -1, 0)).is_none());
-        assert!(world.block_at(BlockPosition::new(0, 0, 0)).is_some());
+        assert!(world
+            .block_at(BlockPosition::new(0, -1, 0).try_into().unwrap())
+            .is_none());
+        assert!(world
+            .block_at(BlockPosition::new(0, 0, 0).try_into().unwrap())
+            .is_some());
     }
 }

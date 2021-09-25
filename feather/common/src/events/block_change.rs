@@ -1,8 +1,8 @@
-use std::iter;
+use std::{convert::TryInto, iter};
 
 use base::{
     chunk::{SECTION_HEIGHT, SECTION_VOLUME},
-    BlockPosition, ChunkPosition,
+    BlockPosition, ChunkPosition, ValidBlockPosition,
 };
 use itertools::Either;
 
@@ -18,7 +18,7 @@ pub struct BlockChangeEvent {
 
 impl BlockChangeEvent {
     /// Creates an event affecting a single block.
-    pub fn single(pos: BlockPosition) -> Self {
+    pub fn single(pos: ValidBlockPosition) -> Self {
         Self {
             changes: BlockChanges::Single { pos },
         }
@@ -42,7 +42,7 @@ impl BlockChangeEvent {
     }
 
     /// Returns an iterator over block positions affected by this block change.
-    pub fn iter_changed_blocks(&self) -> impl Iterator<Item = BlockPosition> + '_ {
+    pub fn iter_changed_blocks(&self) -> impl Iterator<Item = ValidBlockPosition> + '_ {
         match &self.changes {
             BlockChanges::Single { pos } => Either::Left(iter::once(*pos)),
             BlockChanges::FillChunkSection { chunk, section } => {
@@ -60,7 +60,7 @@ impl BlockChangeEvent {
     ) -> impl Iterator<Item = (ChunkPosition, usize, usize)> + '_ {
         match &self.changes {
             BlockChanges::Single { pos } => {
-                iter::once((pos.chunk(), pos.y as usize / SECTION_HEIGHT, 1))
+                iter::once((pos.chunk(), pos.y() as usize / SECTION_HEIGHT, 1))
             }
             BlockChanges::FillChunkSection { chunk, section } => {
                 iter::once((*chunk, *section as usize, SECTION_VOLUME))
@@ -69,7 +69,10 @@ impl BlockChangeEvent {
     }
 }
 
-fn iter_section_blocks(chunk: ChunkPosition, section: u32) -> impl Iterator<Item = BlockPosition> {
+fn iter_section_blocks(
+    chunk: ChunkPosition,
+    section: u32,
+) -> impl Iterator<Item = ValidBlockPosition> {
     (0..16)
         .flat_map(|x| (0..16).map(move |y| (x, y)))
         .flat_map(|(x, y)| (0..16).map(move |z| (x, y, z)))
@@ -77,14 +80,16 @@ fn iter_section_blocks(chunk: ChunkPosition, section: u32) -> impl Iterator<Item
             let x = dx + chunk.x * 16;
             let y = dy + section as i32 * 16;
             let z = dz + chunk.z * 16;
-            BlockPosition::new(x, y, z)
+
+            // It's safe to unwrap because we are working from a valid source of block positions
+            BlockPosition::new(x, y, z).try_into().unwrap()
         })
 }
 
 #[derive(Debug, Clone)]
 enum BlockChanges {
     /// A single block change.
-    Single { pos: BlockPosition },
+    Single { pos: ValidBlockPosition },
     /// A whole chunk section was filled with the same block.
     FillChunkSection { chunk: ChunkPosition, section: u32 },
 }
@@ -98,7 +103,7 @@ mod tests {
 
     #[test]
     fn create_single() {
-        let pos = BlockPosition::new(5, 64, 9);
+        let pos = BlockPosition::new(5, 64, 9).try_into().unwrap();
         let event = BlockChangeEvent::single(pos);
         assert_eq!(event.count(), 1);
         assert_eq!(event.iter_changed_blocks().collect::<Vec<_>>(), vec![pos]);
@@ -123,9 +128,9 @@ mod tests {
 
     #[test]
     fn test_iter_section_blocks() {
-        let blocks: Vec<BlockPosition> =
+        let blocks: Vec<ValidBlockPosition> =
             iter_section_blocks(ChunkPosition::new(-1, -2), 5).collect();
-        let unique_blocks: AHashSet<BlockPosition> = blocks.iter().copied().collect();
+        let unique_blocks: AHashSet<ValidBlockPosition> = blocks.iter().copied().collect();
 
         assert_eq!(blocks.len(), unique_blocks.len());
         assert_eq!(blocks.len(), SECTION_VOLUME);
@@ -134,7 +139,7 @@ mod tests {
             for y in 80..96 {
                 for z in -32..-16 {
                     assert!(
-                        unique_blocks.contains(&BlockPosition::new(x, y, z)),
+                        unique_blocks.contains(&BlockPosition::new(x, y, z).try_into().unwrap()),
                         "{}, {}, {}",
                         x,
                         y,
