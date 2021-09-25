@@ -7,7 +7,6 @@ members = [
     "libcraft/items",
     "libcraft/macros",
     "libcraft/particles",
-    "libcraft/tags",
     "libcraft/text",
     "libcraft/inventory",
 

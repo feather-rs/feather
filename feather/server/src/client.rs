@@ -10,7 +10,7 @@ use flume::{Receiver, Sender};
 use uuid::Uuid;
 
 use base::{
-    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, ItemStack, Position,
+    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Position,
     ProfileProperty, Text, ValidBlockPosition,
 };
 use common::{

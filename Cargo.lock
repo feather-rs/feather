@@ -1427,10 +1427,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "libcraft-tags"
-version = "0.1.0"
-
-[[package]]
 name = "libcraft-text"
 version = "0.1.0"
 dependencies = [

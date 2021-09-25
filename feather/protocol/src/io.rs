@@ -4,7 +4,7 @@ use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
 use base::{
     anvil::entity::ItemNbt, metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata,
-    Gamemode, Item, ItemStack, ValidBlockPosition,
+    Gamemode, Item, ItemStackBuilder, ValidBlockPosition,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use libcraft_items::InventorySlot::*;
