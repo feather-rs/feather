@@ -10,6 +10,7 @@ world/
 feather/downloaded
 feather/datapacks/minecraft/
 /config.toml
+/plugins
 
 # Python cache files (libcraft)
 **/__pycache__/
