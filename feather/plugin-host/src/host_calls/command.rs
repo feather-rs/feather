@@ -35,7 +35,7 @@ pub fn modify_command_executor(
     // SAFETY: Plugins should pass valid raw vec data.
     let (nodes, executors, tab_completers) = unsafe {
         let nodes = Vec::from_raw_parts(
-            nodes.as_native() as *mut Box<CommandNode<Box<dyn ArgumentParser>>>,
+            nodes.as_native() as *mut CommandNode,
             nodes_len as usize,
             nodes_cap as usize,
         );

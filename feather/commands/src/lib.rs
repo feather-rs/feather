@@ -40,9 +40,6 @@ impl<T> DerefMut for LifetimelessMut<T> {
     }
 }
 
-unsafe impl<T> Send for LifetimelessMut<T> where T: Send {}
-unsafe impl<T> Sync for LifetimelessMut<T> where T: Sync {}
-
 /// Context passed into a command. This value can be used
 /// for access to game and entity data, such as components.
 pub struct CommandCtx {
