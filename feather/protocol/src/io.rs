@@ -562,11 +562,6 @@ impl Readable for Slot {
                     .apply_damage(tags.map(|t| t.damage).flatten().map(|d| d as u32))
                     .into(),
             ))
-            //     ItemStack {
-            //     item,
-            //     count,
-            //     damage: tags.map(|t| t.damage).flatten().map(|d| d as u32),
-            // }
         } else {
             Ok(Empty)
         }
