@@ -18,22 +18,26 @@ use common::{
     Window,
 };
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
-use protocol::packets::server::{HeldItemChange, PlayerAbilities};
+use protocol::packets::server::{
+    EntityPosition, EntityPositionAndRotation, HeldItemChange, PlayerAbilities,
+};
 use protocol::{
     packets::{
         self,
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
-            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityTeleport, JoinGame,
-            KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SendEntityMetadata,
-            SpawnPlayer, Title, UnloadChunk, UpdateViewPosition, WindowItems,
+            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, JoinGame, KeepAlive,
+            PlayerInfo, PlayerPositionAndLook, PluginMessage, SendEntityMetadata, SpawnPlayer,
+            Title, UnloadChunk, UpdateViewPosition, WindowItems,
         },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
 use quill_common::components::{OnGround, PreviousGamemode};
 
-use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
+use crate::{
+    entities::PreviousPosition, initial_handler::NewPlayer, network_id_registry::NetworkId, Options,
+};
 use slab::Slab;
 
 /// Max number of chunks to send to a client per tick.
@@ -379,6 +383,7 @@ impl Client {
         &self,
         network_id: NetworkId,
         position: Position,
+        prev_position: PreviousPosition,
         on_ground: OnGround,
     ) {
         if self.network_id == Some(network_id) {
@@ -390,23 +395,35 @@ impl Client {
             }
             return;
         }
-        // Consider using the relative movement packets in the future.
-        // (Entity Teleport works fine, but the relative movement packets
-        // save bandwidth.)
-        self.send_packet(EntityTeleport {
-            entity_id: network_id.0,
-            x: position.x,
-            y: position.y,
-            z: position.z,
-            yaw: position.yaw,
-            pitch: position.pitch,
-            on_ground: on_ground.0,
-        });
-        // Needed for head orientation
-        self.send_packet(EntityHeadLook {
-            entity_id: network_id.0,
-            head_yaw: position.yaw,
-        });
+
+        let no_change_yaw = (position.yaw - prev_position.0.yaw).abs() < 0.001;
+        let no_change_pitch = (position.pitch - prev_position.0.pitch).abs() < 0.001;
+
+        if no_change_yaw && no_change_pitch {
+            self.send_packet(EntityPosition {
+                entity_id: network_id.0,
+                delta_x: ((position.x * 32.0 - prev_position.0.x * 32.0) * 128.0) as i16,
+                delta_y: ((position.y * 32.0 - prev_position.0.y * 32.0) * 128.0) as i16,
+                delta_z: ((position.z * 32.0 - prev_position.0.z * 32.0) * 128.0) as i16,
+                on_ground: on_ground.0,
+            });
+        } else {
+            self.send_packet(EntityPositionAndRotation {
+                entity_id: network_id.0,
+                delta_x: ((position.x * 32.0 - prev_position.0.x * 32.0) * 128.0) as i16,
+                delta_y: ((position.y * 32.0 - prev_position.0.y * 32.0) * 128.0) as i16,
+                delta_z: ((position.z * 32.0 - prev_position.0.z * 32.0) * 128.0) as i16,
+                yaw: position.yaw,
+                pitch: position.pitch,
+                on_ground: on_ground.0,
+            });
+
+            // Needed for head orientation
+            self.send_packet(EntityHeadLook {
+                entity_id: network_id.0,
+                head_yaw: position.yaw,
+            });
+        }
     }
 
     pub fn send_keepalive(&self) {
