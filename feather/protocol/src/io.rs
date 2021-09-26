@@ -575,7 +575,6 @@ impl Writeable for Slot {
 
             let tags: ItemNbt = stack.into();
             if tags != ItemNbt::default() {
-                dbg!();
                 Nbt(tags).write(buffer, version)?;
             } else {
                 0u8.write(buffer, version)?; // TAG_End
