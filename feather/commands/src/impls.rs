@@ -17,7 +17,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             let command_output = {
                 let name = ctx.game.ecs.get::<Name>(ctx.sender);
                 let sender_name = name.as_deref().map_or("@", |n| n);
-                Text::from(format!("* {} {}", sender_name, action))
+                Text::translate_with("chat.type.emote", vec![sender_name.to_owned(), action])
             };
             ctx.game.ecs
                 .query::<&mut ChatBox>()
