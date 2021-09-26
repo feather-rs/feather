@@ -17,7 +17,7 @@ pub fn build_default(builder: &mut EntityBuilder) {
 }
 
 /// The hotbar slot a player's cursor is currently on
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub struct HotbarSlot(usize);
 
 impl HotbarSlot {
