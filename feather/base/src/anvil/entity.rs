@@ -238,7 +238,9 @@ pub struct ItemNbt {
 
 impl ItemNbt {
     /// Create an `ItemStack` of the specified item and amount, setting any nbt present.
-    /// Panics if count is zero.
+    ///
+    /// # Panics
+    /// Panics if `count` is zero.
     pub fn item_stack(nbt: &Option<Self>, item: Item, count: u8) -> ItemStack {
         match nbt {
             Some(ItemNbt {
