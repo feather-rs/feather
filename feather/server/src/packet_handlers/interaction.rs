@@ -139,7 +139,7 @@ pub fn handle_player_digging(
 
             let client_id = *game.ecs.get::<ClientId>(player)?;
             let client = server.clients.get(client_id).unwrap();
-            
+
             client.send_window_items(&window);
 
             Ok(())
