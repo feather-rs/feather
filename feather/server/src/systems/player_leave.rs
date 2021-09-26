@@ -127,11 +127,14 @@ fn create_player_data(
             .to_vec()
             .iter()
             .enumerate()
+            // Here we filter out all empty slots.
             .filter(|(_, item)| item.is_filled())
             .map(|(slot, item)| {
                 if let libcraft_items::InventorySlot::Filled(item) = item {
                     (slot, item)
                 } else {
+                    // In the earlier filter we filter out all slots that aren't filled.
+                    // So in this step getting a empty slot should be impossible.
                     unreachable!()
                 }
             })
