@@ -237,7 +237,7 @@ pub struct ItemNbt {
 }
 
 impl ItemNbt {
-    /// Create an `ItemStack` of the specified item and amount, setting any nbt present.
+    /// Create an `ItemStack` of the specified item and amount, setting any NBT present.
     ///
     /// # Panics
     /// Panics if `count` is zero.
