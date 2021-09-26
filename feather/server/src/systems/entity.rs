@@ -24,7 +24,7 @@ fn send_entity_movement(game: &mut Game, server: &mut Server) -> SysResult {
     {
         if position != prev_position.0 {
             server.broadcast_nearby_with(position, |client| {
-                client.update_entity_position(network_id, position, on_ground);
+                client.update_entity_position(network_id, position, *prev_position, on_ground);
             });
             prev_position.0 = position;
         }
