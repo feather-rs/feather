@@ -62,7 +62,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .map(|data| PreviousGamemode::from_id(data.previous_gamemode as i8))
         .unwrap_or(PreviousGamemode(None));
 
-    client.send_join_game(gamemode, previous_gamemode, game);
+    client.send_join_game(gamemode, previous_gamemode);
     client.send_brand();
 
     // Abilities
@@ -75,7 +75,7 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
     let hotbar_slot = player_data
         .as_ref()
         .map(|data| HotbarSlot::new(data.held_item as usize))
-        .unwrap_or_default();
+        .unwrap_or_else(|_e| HotbarSlot::new(0));
     client.set_hotbar_slot(hotbar_slot.get() as u8);
 
     let inventory = Inventory::player();

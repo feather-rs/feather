@@ -1,3 +1,5 @@
+use base::ValidBlockPosition;
+
 use super::*;
 use crate::packets::server::Hand;
 
@@ -8,7 +10,7 @@ packets! {
 
     QueryBlockNbt {
         transaction_id VarInt;
-        position BlockPosition;
+        position ValidBlockPosition;
     }
 
     QueryEntityNbt {
@@ -114,7 +116,7 @@ def_enum! {
 
 packets! {
     GenerateStructure {
-        position BlockPosition;
+        position ValidBlockPosition;
         levels VarInt;
         keep_jigsaws bool;
     }
@@ -192,7 +194,7 @@ packets! {
 
     PlayerDigging {
         status PlayerDiggingStatus;
-        position BlockPosition;
+        position ValidBlockPosition;
         face BlockFace;
     }
 }
@@ -277,7 +279,7 @@ packets! {
     }
 
     UpdateCommandBlock {
-        position BlockPosition;
+        position ValidBlockPosition;
         command String;
         mode VarInt;
         flags u8;
@@ -295,7 +297,7 @@ packets! {
     }
 
     UpdateJigsawBlock {
-        position BlockPosition;
+        position ValidBlockPosition;
         name String;
         target String;
         pool String;
@@ -304,7 +306,7 @@ packets! {
     }
 
     UpdateStructureBlock {
-        position BlockPosition;
+        position ValidBlockPosition;
         action VarInt;
         mode VarInt;
         name String;
@@ -323,7 +325,7 @@ packets! {
     }
 
     UpdateSign {
-        position BlockPosition;
+        position ValidBlockPosition;
         line_1 String;
         line_2 String;
         line_3 String;
@@ -340,7 +342,7 @@ packets! {
 
     PlayerBlockPlacement {
         hand VarInt;
-        position BlockPosition;
+        position ValidBlockPosition;
         face BlockFace;
         cursor_position_x f32;
         cursor_position_y f32;

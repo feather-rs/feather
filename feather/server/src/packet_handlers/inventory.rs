@@ -9,6 +9,7 @@ use crate::{ClientId, Server};
 pub fn handle_creative_inventory_action(
     player: EntityRef,
     packet: CreativeInventoryAction,
+    server: &mut Server,
 ) -> SysResult {
     if *player.get::<Gamemode>()? != Gamemode::Creative {
         bail!("cannot use Creative Inventory Action outside of creative mode");
@@ -23,6 +24,12 @@ pub fn handle_creative_inventory_action(
         window
             .inner()
             .set_item(packet.slot as usize, packet.clicked_item)?;
+
+        // Sends the client updates about window changes.
+        // Is required to make delete inventory button reflect in-game.
+        let client_id = *player.get::<ClientId>()?;
+        let client = server.clients.get(client_id).unwrap();
+        client.send_window_items(&window);
     }
 
     Ok(())
@@ -74,90 +81,4 @@ fn _handle_click_window(player: &EntityRef, packet: &ClickWindow) -> SysResult {
     };
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use base::{Inventory, Item, ItemStack};
-    use common::Game;
-    use libcraft_items::InventorySlot;
-
-    use super::*;
-
-    #[test]
-    fn creative_inventory_action_survival_mode() {
-        let mut game = Game::new();
-        let entity = game.ecs.spawn((Gamemode::Survival, player_window()));
-        let player = game.ecs.entity(entity).unwrap();
-
-        let packet = CreativeInventoryAction {
-            slot: 10,
-            clicked_item: InventorySlot::Filled(ItemStack::new(Item::Diamond, 64).unwrap()),
-        };
-        handle_creative_inventory_action(player, packet).unwrap_err();
-
-        assert!(game
-            .ecs
-            .get::<Window>(entity)
-            .unwrap()
-            .item(10)
-            .unwrap()
-            .is_empty());
-    }
-
-    #[test]
-    fn creative_inventory_action_non_player_window() {
-        let mut game = Game::new();
-        let entity = game.ecs.spawn((
-            Window::new(BackingWindow::Generic9x3 {
-                player: Inventory::player(),
-                block: Inventory::chest(),
-            }),
-            Gamemode::Creative,
-        ));
-        let player = game.ecs.entity(entity).unwrap();
-
-        let packet = CreativeInventoryAction {
-            slot: 5,
-            clicked_item: InventorySlot::Filled(ItemStack::new(Item::Diamond, 64).unwrap()),
-        };
-        handle_creative_inventory_action(player, packet).unwrap_err();
-
-        assert!(game
-            .ecs
-            .get::<Window>(entity)
-            .unwrap()
-            .item(5)
-            .unwrap()
-            .is_empty());
-    }
-
-    #[test]
-    fn creative_inventory_action() {
-        let mut game = Game::new();
-        let entity = game.ecs.spawn((Gamemode::Creative, player_window()));
-        let player = game.ecs.entity(entity).unwrap();
-
-        let packet = CreativeInventoryAction {
-            slot: 5,
-            clicked_item: InventorySlot::Filled(ItemStack::new(Item::Diamond, 64).unwrap()),
-        };
-        handle_creative_inventory_action(player, packet).unwrap();
-
-        assert_eq!(
-            game.ecs
-                .get::<Window>(entity)
-                .unwrap()
-                .item(5)
-                .unwrap()
-                .clone(),
-            InventorySlot::Filled(ItemStack::new(Item::Diamond, 64).unwrap())
-        );
-    }
-
-    fn player_window() -> Window {
-        Window::new(BackingWindow::Player {
-            player: Inventory::player(),
-        })
-    }
 }
