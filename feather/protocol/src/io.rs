@@ -833,7 +833,11 @@ impl Readable for Angle {
 
 impl Writeable for Angle {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
-        let val = (self.0 / 360.0 * 256.0).round() as u8;
+        let temp = (256.0 / 360.0) * (self.0 % 360.0);
+        // Wrap negative values 'x' in the range [-256.0 to 0] to the
+        // correct angle in the range [0 to 256.0 ) by changing 'x' to
+        // x = 256.0 - x
+        let val = ((temp + 256.0) % 256.0) as u8;
         val.write(buffer, version)?;
 
         Ok(())
