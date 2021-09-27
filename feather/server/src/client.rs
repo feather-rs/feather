@@ -548,7 +548,7 @@ impl Client {
     }
 
     pub fn send_entity_metadata(&self, network_id: NetworkId, metadata: EntityMetadata) {
-        if self.network_id().unwrap() == network_id {
+        if self.network_id == Some(network_id) {
             return;
         }
         self.send_packet(SendEntityMetadata {
