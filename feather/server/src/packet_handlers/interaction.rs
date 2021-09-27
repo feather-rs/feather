@@ -131,11 +131,13 @@ pub fn handle_player_digging(
             let hotbar_index = SLOT_HOTBAR_OFFSET + hotbar_slot;
             let offhand_index = SLOT_OFFHAND;
 
-            let hotbar_item = window.item(hotbar_index)?.clone();
-            let offhand_item = window.item(offhand_index)?.clone();
+            let mut hotbar_item = window.item(hotbar_index)?;
+            let mut offhand_item = window.item(offhand_index)?;
 
-            window.set_item(hotbar_index, offhand_item)?;
-            window.set_item(offhand_index, hotbar_item)?;
+            std::mem::swap(&mut *hotbar_item, &mut *offhand_item);
+
+            drop(hotbar_item);
+            drop(offhand_item);
 
             let client_id = *game.ecs.get::<ClientId>(player)?;
             let client = server.clients.get(client_id).unwrap();
