@@ -1,7 +1,8 @@
 use crate::{ClientId, NetworkId, Server};
+use base::inventory::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
 use common::entities::player::HotbarSlot;
 use common::interactable::InteractableRegistry;
-use common::Game;
+use common::{Game, Window};
 use ecs::{Entity, EntityRef, SysResult};
 use libcraft_core::{BlockFace as LibcraftBlockFace, Hand};
 use libcraft_core::{InteractionType, Vec3f};
@@ -110,11 +111,38 @@ pub fn handle_player_block_placement(
 /// * Shooting arrows.
 /// * Eating.
 /// * Swapping items between the main and off hand.
-pub fn handle_player_digging(game: &mut Game, packet: PlayerDigging, _player: Entity) -> SysResult {
+pub fn handle_player_digging(
+    game: &mut Game,
+    server: &mut Server,
+    packet: PlayerDigging,
+    player: Entity,
+) -> SysResult {
     log::trace!("Got player digging with status {:?}", packet.status);
     match packet.status {
         PlayerDiggingStatus::StartDigging | PlayerDiggingStatus::CancelDigging => {
             game.break_block(packet.position);
+            Ok(())
+        }
+        PlayerDiggingStatus::SwapItemInHand => {
+            let window = game.ecs.get::<Window>(player)?;
+
+            let hotbar_slot = game.ecs.get::<HotbarSlot>(player)?.get();
+
+            let hotbar_index = SLOT_HOTBAR_OFFSET + hotbar_slot;
+            let offhand_index = SLOT_OFFHAND;
+
+            {
+                let mut hotbar_item = window.item(hotbar_index)?;
+                let mut offhand_item = window.item(offhand_index)?;
+
+                std::mem::swap(&mut *hotbar_item, &mut *offhand_item);
+            }
+
+            let client_id = *game.ecs.get::<ClientId>(player)?;
+            let client = server.clients.get(client_id).unwrap();
+
+            client.send_window_items(&window);
+
             Ok(())
         }
         _ => Ok(()),
