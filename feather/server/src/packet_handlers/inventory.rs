@@ -52,9 +52,9 @@ pub fn handle_click_window(
     let window = player.get::<Window>()?;
 
     if packet.slot >= 0 {
-        client.set_slot(packet.slot, window.item(packet.slot as usize)?.clone());
+        client.set_slot(packet.slot, &*window.item(packet.slot as usize)?);
     }
-    client.set_cursor_slot(window.cursor_item().clone());
+    client.set_cursor_slot(window.cursor_item());
 
     client.send_window_items(&*window);
 
