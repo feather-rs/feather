@@ -947,7 +947,7 @@ packets! {
 #[derive(Debug, Clone)]
 pub struct EntityEquipment {
     pub entity_id: i32,
-    pub entries: Vec<EquipmentEntry>,
+    pub entries: Vec<EquipmentEntry>, // cannot be empty (if nothing is equipped, send an empty main hand)
 }
 
 impl Readable for EntityEquipment {

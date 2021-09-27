@@ -1,16 +1,18 @@
 //! Sends entity-related packets to clients.
 //! Spawn packets, position updates, equipment, animations, etc.
 
+use std::ops::Deref;
 use base::{
     metadata::{EntityBitMask, Pose, META_INDEX_ENTITY_BITMASK, META_INDEX_POSE},
-    EntityMetadata, Position,
+    Area, EntityMetadata, Inventory, Position,
 };
-use common::Game;
+use common::{entities::player::HotbarSlot, Game};
 use ecs::{SysResult, SystemExecutor};
 use quill_common::{
     components::{OnGround, Sprinting},
     events::{SneakEvent, SprintEvent},
 };
+use protocol::packets::server::{EquipmentEntry, EquipmentSlot::{MainHand, OffHand, Boots, Leggings, Chestplate, Helmet}};
 
 use crate::{entities::PreviousPosition, NetworkId, Server};
 
@@ -22,7 +24,8 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
         .group::<Server>()
         .add_system(send_entity_movement)
         .add_system(send_entity_sneak_metadata)
-        .add_system(send_entity_sprint_metadata);
+        .add_system(send_entity_sprint_metadata)
+        .add_system(send_equipment_when_changed);
 }
 
 /// Sends entity movement packets.
@@ -86,6 +89,33 @@ fn send_entity_sprint_metadata(game: &mut Game, server: &mut Server) -> SysResul
         server.broadcast_nearby_with(position, |client| {
             client.send_entity_metadata(network_id, metadata.clone());
         });
+    }
+    Ok(())
+}
+
+/// Sends [EntityEquipment](protocol::packets::server::play::EntityEquipment) packets every 10 ticks.
+/// Makes sounds and drives you crazy.
+fn send_equipment_when_changed(game: &mut Game, server: &mut Server) -> SysResult {
+    //TODO this should be replaced with something smarter that detects visible changes in inventory slots
+    if game.tick_count % 10 == 0 {
+        for (_, (&position, &hotbar_slot, inventory, &network_id)) in game
+            .ecs
+            .query::<(&Position, &HotbarSlot, &Inventory, &NetworkId)>()
+            .iter()
+        {            
+            //TODO this is madness
+            let mut equipment = Vec::<EquipmentEntry>::new();
+            equipment.push(EquipmentEntry { slot: MainHand, item: inventory.item(Area::Hotbar, hotbar_slot.get()).unwrap().deref().clone() });
+            equipment.push(EquipmentEntry { slot: OffHand, item: inventory.item(Area::Offhand, 0).unwrap().deref().clone() });
+            equipment.push(EquipmentEntry { slot: Boots, item: inventory.item(Area::Boots, 0).unwrap().deref().clone() });
+            equipment.push(EquipmentEntry { slot: Leggings, item: inventory.item(Area::Leggings, 0).unwrap().deref().clone() });
+            equipment.push(EquipmentEntry { slot: Chestplate, item: inventory.item(Area::Chestplate, 0).unwrap().deref().clone() });
+            equipment.push(EquipmentEntry { slot: Helmet, item: inventory.item(Area::Helmet, 0).unwrap().deref().clone() });
+
+            server.broadcast_nearby_with(position, |client| {
+                client.send_entity_equipment(network_id, equipment.clone());
+            });
+        }
     }
     Ok(())
 }

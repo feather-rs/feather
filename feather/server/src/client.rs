@@ -27,7 +27,7 @@ use protocol::{
         self,
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
-            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, JoinGame, KeepAlive,
+            DestroyEntities, Disconnect, EntityAnimation, EntityEquipment, EntityHeadLook, EquipmentEntry, JoinGame, KeepAlive,
             PlayerInfo, PlayerPositionAndLook, PluginMessage, SendEntityMetadata, SpawnPlayer,
             Title, UnloadChunk, UpdateViewPosition, WindowItems,
         },
@@ -539,11 +539,11 @@ impl Client {
         self.set_slot(-1, item);
     }
 
-    pub fn send_player_model_flags(&self, netowrk_id: NetworkId, model_flags: u8) {
+    pub fn send_player_model_flags(&self, network_id: NetworkId, model_flags: u8) {
         let mut entity_metadata = EntityMetadata::new();
         entity_metadata.set(16, model_flags);
         self.send_packet(SendEntityMetadata {
-            entity_id: netowrk_id.0,
+            entity_id: network_id.0,
             entries: entity_metadata,
         });
     }
@@ -556,6 +556,13 @@ impl Client {
             entity_id: network_id.0,
             entries: metadata,
         });
+    }
+
+    pub fn send_entity_equipment(&self, network_id: NetworkId, equipment: Vec<EquipmentEntry>) {
+        self.send_packet(EntityEquipment {
+            entity_id: network_id.0,
+            entries: equipment,
+        })
     }
 
     pub fn send_abilities(&self, abilities: &base::anvil::player::PlayerAbilities) {
