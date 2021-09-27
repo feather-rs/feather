@@ -547,6 +547,16 @@ impl Client {
         });
     }
 
+    pub fn send_entity_metadata(&self, network_id: NetworkId, metadata: EntityMetadata) {
+        if self.network_id().unwrap() == network_id {
+            return;
+        }
+        self.send_packet(SendEntityMetadata {
+            entity_id: network_id.0,
+            entries: metadata,
+        });
+    }
+
     pub fn send_abilities(&self, abilities: &base::anvil::player::PlayerAbilities) {
         let mut bitfield = 0;
         if *abilities.invulnerable {
