@@ -20,7 +20,7 @@ pub const META_INDEX_IS_CUSTOM_NAME_VISIBLE: u8 = 3;
 pub const META_INDEX_IS_SILENT: u8 = 4;
 pub const META_INDEX_NO_GRAVITY: u8 = 5;
 
-pub const META_INDEX_ITEM_SLOT: u8 = 6;
+pub const META_INDEX_POSE: u8 = 6;
 
 pub const META_INDEX_FALLING_BLOCK_SPAWN_POSITION: u8 = 7;
 
@@ -82,6 +82,30 @@ impl MetaEntry {
             MetaEntry::OptVarInt(_) => 17,
             MetaEntry::Pose(_) => 18,
         }
+    }
+}
+
+pub enum Pose {
+    Standing,
+    FallFlying,
+    Sleeping,
+    Swimming,
+    SpinAttack,
+    Sneaking,
+    Dying,
+}
+
+impl ToMetaEntry for Pose {
+    fn to_meta_entry(&self) -> MetaEntry {
+        MetaEntry::Pose(match self {
+            Self::Standing => 0,
+            Self::FallFlying => 1,
+            Self::Sleeping => 2,
+            Self::Swimming => 3,
+            Self::SpinAttack => 4,
+            Self::Sneaking => 5,
+            Self::Dying => 6,
+        })
     }
 }
 
