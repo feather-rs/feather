@@ -3,12 +3,16 @@
 
 use std::ops::{Deref, DerefMut};
 
+use commands::arguments::{EntitySelector, EntitySelectorPredicate, EntitySelectorSorting};
 pub use commands::dispatcher::CommandDispatcher;
+use uuid::Uuid;
 
 use common::Game;
-use ecs::Entity;
+use ecs::{Entity, EntityRef};
+use feather_generated::EntityKind;
+use libcraft_core::Position;
 use libcraft_text::{Text, TextComponentBuilder};
-use quill_common::components::ChatBox;
+use quill_common::components::{ChatBox, CustomName, Gamemode, Name};
 
 mod impls;
 
@@ -56,6 +60,176 @@ pub struct CommandCtx {
     pub sender: Entity,
     /// The game state.
     pub game: LifetimelessMut<Game>,
+}
+
+impl CommandCtx {
+    pub fn find_entities_by_selector(&self, selector: &EntitySelector) -> Vec<Entity> {
+        match selector {
+            EntitySelector::Selector(selector) => {
+                let sender_position = self
+                    .game
+                    .ecs
+                    .get::<Position>(self.sender)
+                    .map(|pos| (*pos).clone())
+                    .unwrap_or_default();
+                let mut sort = EntitySelectorSorting::Arbitrary;
+                let mut entities = if selector.contains(&EntitySelectorPredicate::Sender) {
+                    vec![self.sender]
+                } else {
+                    self.game
+                        .ecs
+                        .query::<&EntityKind>()
+                        .iter()
+                        .map(|(e, _)| e)
+                        .collect()
+                }
+                .into_iter()
+                .map(|entity_id| (entity_id, self.game.ecs.entity(entity_id).unwrap()))
+                .filter(|(_, entity)| {
+                    let pos = entity.get::<Position>().unwrap();
+
+                    let mut origin = sender_position.clone();
+                    let mut dpos = [None; 3];
+                    let mut distance = None;
+
+                    for filter in selector {
+                        if !match filter {
+                            EntitySelectorPredicate::Type(t) => entity
+                                .get::<EntityKind>()
+                                .map(|k| k.name() == t.name())
+                                .unwrap_or(false),
+                            EntitySelectorPredicate::Advancements(_) => todo!(),
+                            EntitySelectorPredicate::Distance(d) => {
+                                distance = Some(d.clone());
+                                true
+                            }
+                            EntitySelectorPredicate::Dx(x) => {
+                                dpos[0] = Some(*x);
+                                true
+                            }
+                            EntitySelectorPredicate::Dy(y) => {
+                                dpos[1] = Some(*y);
+                                true
+                            }
+                            EntitySelectorPredicate::Dz(z) => {
+                                dpos[2] = Some(*z);
+                                true
+                            }
+                            EntitySelectorPredicate::Gamemode(mode) => entity
+                                .get::<Gamemode>()
+                                .map(|m| mode.0 == (m.to_string() == mode.1.to_string()))
+                                .unwrap_or(false),
+                            EntitySelectorPredicate::Level(_) => todo!(),
+                            EntitySelectorPredicate::Limit(_) => true,
+                            EntitySelectorPredicate::Name(name) => entity
+                                .get::<Name>()
+                                .map(|name| (***name).to_string())
+                                .or(entity.get::<CustomName>().map(|name| (***name).to_string()))
+                                .map(|n| name.0 == (n == name.1))
+                                .unwrap_or(false),
+                            EntitySelectorPredicate::Predicate(_) => todo!(),
+                            EntitySelectorPredicate::Scores(_) => todo!(),
+                            EntitySelectorPredicate::Sort(s) => {
+                                sort = s.clone();
+                                true
+                            }
+                            EntitySelectorPredicate::Tag(_) => todo!(),
+                            EntitySelectorPredicate::Team(_) => todo!(),
+                            EntitySelectorPredicate::X(x) => {
+                                origin.x = *x;
+                                true
+                            }
+                            EntitySelectorPredicate::Y(y) => {
+                                origin.y = *y;
+                                true
+                            }
+                            EntitySelectorPredicate::Z(z) => {
+                                origin.z = *z;
+                                true
+                            }
+                            EntitySelectorPredicate::XRotation(x_rot) => x_rot.contains(&pos.pitch),
+                            EntitySelectorPredicate::YRotation(y_rot) => y_rot.contains(&pos.yaw),
+                            EntitySelectorPredicate::Sender => true,
+                        } {
+                            return false;
+                        }
+                    }
+                    // TODO use Aabb when it's a component
+                    if let Some(dx) = dpos[0] {
+                        let range = if dx > 0.0 {
+                            origin.x..origin.x + dx
+                        } else {
+                            origin.x + dx..origin.x
+                        };
+                        if !range.contains(&pos.x) {
+                            return false;
+                        }
+                    }
+                    if let Some(dy) = dpos[1] {
+                        let range = if dy > 0.0 {
+                            origin.y..origin.y + dy
+                        } else {
+                            origin.y + dy..origin.y
+                        };
+                        if !range.contains(&pos.y) {
+                            return false;
+                        }
+                    }
+                    if let Some(dz) = dpos[2] {
+                        let range = if dz > 0.0 {
+                            origin.z..origin.z + dz
+                        } else {
+                            origin.z + dz..origin.z
+                        };
+                        if !range.contains(&pos.z) {
+                            return false;
+                        }
+                    }
+                    if dpos.iter().all(Option::is_none) && distance.is_some() {
+                        if !distance.unwrap().contains(&pos.distance_to(origin)) {
+                            return false;
+                        }
+                    }
+                    true
+                })
+                .collect::<Vec<_>>();
+                entities.sort_by(|(entity_id, entity), (entity_id2, entity2)| {
+                    let by = |entity_id: &Entity, entity: &EntityRef| match sort {
+                        EntitySelectorSorting::Nearest => entity
+                            .get::<Position>()
+                            .unwrap()
+                            .distance_to(sender_position),
+                        EntitySelectorSorting::Furthest => -entity
+                            .get::<Position>()
+                            .unwrap()
+                            .distance_to(sender_position),
+                        EntitySelectorSorting::Random => rand::random(),
+                        EntitySelectorSorting::Arbitrary => entity_id.id() as f64,
+                    };
+                    by(entity_id, entity)
+                        .partial_cmp(&by(entity_id2, entity2))
+                        .unwrap()
+                });
+                entities.into_iter().map(|(entity_id, _)| entity_id).collect()
+            }
+            EntitySelector::Name(name) => self
+                .game
+                .ecs
+                .query::<&Name>()
+                .iter()
+                .filter(|(_, n)| &***n == name)
+                .map(|(e, _)| e)
+                .collect(),
+            EntitySelector::Uuid(uuid) => self
+                .game
+                .ecs
+                .query::<&Uuid>()
+                .iter()
+                .filter(|(_, id)| *id == uuid)
+                .map(|(e, _)| e)
+                .collect(),
+        }
+    }
 }
 
 pub fn register_vanilla_commands(dispatcher: &mut CommandDispatcher<CommandCtx>) {

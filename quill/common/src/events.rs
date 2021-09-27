@@ -1,10 +1,7 @@
-pub use block_interact::{BlockInteractEvent, BlockPlacementEvent};
-pub use change::{
-    CreativeFlyingEvent, GamemodeUpdateEvent, InventoryUpdateEvent, SneakEvent, SprintEvent,
-    TimeUpdateEvent,
-};
-pub use interact_entity::InteractEntityEvent;
-pub use plugin_message::{PluginMessageReceiveEvent, PluginMessageSendEvent};
+pub use block_interact::*;
+pub use change::*;
+pub use interact_entity::*;
+pub use plugin_message::*;
 
 mod block_interact;
 mod change;

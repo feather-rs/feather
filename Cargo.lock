@@ -472,12 +472,13 @@ dependencies = [
 [[package]]
 name = "commands"
 version = "0.1.0"
-source = "git+https://github.com/Iaiao/commands?rev=a4ddd2b88c75a6f8e5071b600ba4ec60170d56a0#a4ddd2b88c75a6f8e5071b600ba4ec60170d56a0"
+source = "git+https://github.com/Iaiao/commands?rev=7f7e4be2f7ea864399633b6a6ba4602872b42797#7f7e4be2f7ea864399633b6a6ba4602872b42797"
 dependencies = [
  "anyhow",
  "log",
  "serde",
  "slab",
+ "uuid",
 ]
 
 [[package]]
@@ -838,6 +839,8 @@ dependencies = [
  "commands",
  "feather-common",
  "feather-ecs",
+ "feather-generated",
+ "libcraft-core",
  "libcraft-text",
  "quill-common",
  "rand 0.7.3",

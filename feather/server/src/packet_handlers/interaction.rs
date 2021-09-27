@@ -115,7 +115,7 @@ pub fn handle_player_block_placement(
 pub fn handle_player_digging(game: &mut Game, packet: PlayerDigging, _player: Entity) -> SysResult {
     log::trace!("Got player digging with status {:?}", packet.status);
     match packet.status {
-        PlayerDiggingStatus::StartDigging | PlayerDiggingStatus::CancelDigging => {
+        PlayerDiggingStatus::FinishDigging => {
             game.break_block(packet.position);
             Ok(())
         }

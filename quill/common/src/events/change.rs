@@ -4,6 +4,7 @@ All events in this file are triggered when there is a change in a certain value.
 
 use libcraft_core::Gamemode;
 use serde::{Deserialize, Serialize};
+use crate::components::PreviousGamemode;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CreativeFlyingEvent {
@@ -46,7 +47,7 @@ impl SprintEvent {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GamemodeUpdateEvent {
-    pub old: Gamemode,
+    pub old: PreviousGamemode,
     pub new: Gamemode,
 }
 
@@ -58,3 +59,6 @@ pub struct TimeUpdateEvent {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InventoryUpdateEvent(pub Vec<usize>);
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct InstabreakChangeEvent(pub bool);

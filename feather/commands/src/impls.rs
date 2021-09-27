@@ -1,15 +1,19 @@
 //! The implementations of various commands.
 
-use commands::arguments::{StringArgument, StringProperties};
+use commands::arguments::*;
 use commands::command;
-use commands::dispatcher::CommandDispatcher;
+use commands::dispatcher::{CommandDispatcher, CreateCommand};
+use commands::node::CompletionType;
 
+use ecs::{Ecs, Entity};
 use libcraft_text::Text;
-use quill_common::components::{ChatBox, Name};
+use quill_common::components::{ChatBox, Gamemode, Name, PreviousGamemode};
+use quill_common::events::GamemodeUpdateEvent;
 
 use crate::CommandCtx;
 
 pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
+    // /me
     command!(dispatcher,
         "me",
         "text": StringArgument::new(StringProperties::GreedyPhrase), "none" => action: String,
@@ -25,7 +29,57 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 .for_each(|(_, chat_box)| chat_box.send_chat(command_output.clone()));
             Ok(())
         }
-    )
+    );
+
+    // /gamemode
+    dispatcher
+        .create_command("gamemode")
+        .unwrap()
+        .with(|command| gamemode_command(command, "survival", Gamemode::Survival))
+        .with(|command| gamemode_command(command, "creative", Gamemode::Creative))
+        .with(|command| gamemode_command(command, "adventure", Gamemode::Adventure))
+        .with(|command| gamemode_command(command, "spectator", Gamemode::Spectator));
+    fn gamemode_command(command: &mut CreateCommand<CommandCtx>, s: &str, gamemode: Gamemode) {
+        command
+            .with_subcommand(s)
+            .with(|dispatcher| {
+                dispatcher
+                    .with_argument(
+                        "target",
+                        Box::new(EntityArgument::PLAYERS),
+                        CompletionType::Custom("entity".to_string()),
+                    )
+                    .executes(move |args, mut context| {
+                        let mut args = args.into_iter();
+                        let selector = args.next().unwrap().downcast::<EntitySelector>().unwrap();
+                        let targets = context.find_entities_by_selector(&selector);
+                        for target in targets {
+                            if update_gamemode(&mut context.game.ecs, gamemode, target).is_err() {
+                                return false;
+                            }
+                        }
+                        true
+                    });
+            })
+            .executes(move |_, mut context| {
+                update_gamemode(&mut context.game.ecs, gamemode, context.sender).is_ok()
+            });
+    }
+    fn update_gamemode(ecs: &mut Ecs, gamemode: Gamemode, entity: Entity) -> anyhow::Result<()> {
+        let mut new_mut = ecs.get_mut::<Gamemode>(entity)?;
+        let mut old_mut = ecs.get_mut::<PreviousGamemode>(entity)?;
+
+        *old_mut = PreviousGamemode(Some(*new_mut));
+        *new_mut = gamemode;
+
+        let (old, new) = (old_mut.clone(), new_mut.clone());
+        drop(new_mut);
+        drop(old_mut);
+
+        ecs.insert_entity_event(entity, GamemodeUpdateEvent { old, new })?;
+
+        Ok(())
+    }
 }
 
 // #[command(usage = "tp|teleport <destination>")]
@@ -134,49 +188,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
 //     //let _ = game.ecs.entity(entity).add(Teleported);
 // }
 //
-// #[command(usage = "gamemode <gamemode>")]
-// pub fn gamemode_1(
-//     ctx: &mut CommandCtx,
-//     gamemode: ParsedGamemode,
-// ) -> anyhow::Result<Option<String>> {
-//     update_gamemode(ctx, gamemode.0, ctx.sender);
-//     Ok(Some(format!("Set own gamemode to {:?} Mode", gamemode.0)))
-// }
-//
-// #[command(usage = "gamemode <gamemode> <target>")]
-// pub fn gamemode_2(
-//     ctx: &mut CommandCtx,
-//     gamemode: ParsedGamemode,
-//     target: EntitySelector,
-// ) -> anyhow::Result<Option<String>> {
-//     let entities = find_selected_entities(ctx, &target.requirements)?;
-//     for entity in &entities {
-//         update_gamemode(ctx, gamemode.0, *entity)
-//     }
-//
-//     if entities.len() == 1 && *entities.first().unwrap() == ctx.sender {
-//         return Ok(Some(format!("Set own gamemode to {:?} Mode", gamemode.0)));
-//     }
-//     Ok(Some(format!(
-//         "Changed gamemode of {} to {:?} Mode",
-//         target.entities_to_string(ctx, &entities.into_vec(), false),
-//         gamemode.0
-//     )))
-// }
-//
-// fn update_gamemode(ctx: &mut CommandCtx, gamemode: Gamemode, entity: Entity) {
-//     let event = if let Ok(mut old) = ctx.ecs.get_mut::<Gamemode>(ctx.sender) {
-//         let old_val = *old;
-//         *old = gamemode;
-//
-//         let event = GamemodeUpdateEvent {
-//             old: old_val,
-//             new: gamemode,
-//         };
-//         Some(event)
-//     } else {
-//         None
-//     };
 //
 //     if let Some(event) = event {
 //         ctx.ecs.insert_entity_event(entity, event).unwrap();
@@ -255,22 +266,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
 //     let command_output = Text::from(format!("[{}] {}", sender_name, message.0));
 //
 //     drop(name);
-//
-//     ctx.ecs
-//         .query::<&mut ChatBox>()
-//         .iter()
-//         .for_each(|(_, chat_box)| chat_box.send_chat(command_output.clone()));
-//
-//     Ok(None)
-// }
-//
-// #[command(usage = "me <action>")]
-// pub fn me(ctx: &mut CommandCtx, action: TextArgument) -> anyhow::Result<Option<String>> {
-//     let command_output = {
-//         let name = ctx.ecs.get::<Name>(ctx.sender);
-//         let sender_name = name.as_deref().map_or("@", |n| n);
-//         Text::from(format!("* {} {}", sender_name, action.as_ref()))
-//     };
 //
 //     ctx.ecs
 //         .query::<&mut ChatBox>()

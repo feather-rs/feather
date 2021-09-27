@@ -9,7 +9,7 @@ use std::sync::atomic::{AtomicI32, Ordering};
 use serde::{Deserialize, Serialize};
 use smartstring::{LazyCompact, SmartString};
 
-use libcraft_core::Gamemode;
+pub use libcraft_core::Gamemode;
 use libcraft_text::{Text, Title};
 
 /// Whether an entity is touching the ground.

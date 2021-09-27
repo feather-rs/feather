@@ -203,6 +203,7 @@ host_component_enum! {
         InventoryUpdateEvent = 1025,
         ChatBox = 1026,
         PluginMessageReceiveEvent = 1027,
+        InstabreakChangeEvent = 1028,
 
 
     }
@@ -372,3 +373,4 @@ bincode_component_impl!(GamemodeUpdateEvent);
 bincode_component_impl!(TimeUpdateEvent);
 bincode_component_impl!(InventoryUpdateEvent);
 bincode_component_impl!(PluginMessageReceiveEvent);
+bincode_component_impl!(InstabreakChangeEvent);
