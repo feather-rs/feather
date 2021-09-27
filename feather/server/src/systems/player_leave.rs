@@ -128,30 +128,28 @@ fn create_player_data(
             .iter()
             .enumerate()
             // Here we filter out all empty slots.
-            .filter(|(_, item)| item.is_filled())
-            .map(|(slot, item)| {
-                if let libcraft_items::InventorySlot::Filled(item) = item {
-                    (slot, item)
-                } else {
-                    // In the earlier filter we filter out all slots that aren't filled.
-                    // So in this step getting a empty slot should be impossible.
-                    unreachable!()
-                }
-            })
-            .map(|(slot, item)| InventorySlot {
-                count: item.count() as i8,
-                slot: slot as i8,
-                item: item.item().name().to_owned(),
-                nbt: {
-                    let nbt = ItemNbt {
-                        damage: item.damage_taken().map(|damage| damage as i32),
-                    };
-                    if nbt.damage.is_none() {
+            .filter_map(|(slot, item)| {
+                match item {
+                    libcraft_items::InventorySlot::Filled(item) => Some(InventorySlot {
+                        count: item.count() as i8,
+                        slot: slot as i8,
+                        item: item.item().name().to_owned(),
+                        nbt: {
+                            let nbt = ItemNbt {
+                                damage: item.damage_taken().map(|damage| damage as i32),
+                            };
+                            if nbt.damage.is_none() {
+                                None
+                            } else {
+                                Some(nbt)
+                            }
+                        },
+                    }),
+                    libcraft_items::InventorySlot::Empty => {
+                        // Empty items are filtered out.
                         None
-                    } else {
-                        Some(nbt)
                     }
-                },
+                }
             })
             .collect(),
         held_item: hotbar_slot.get() as i32,
