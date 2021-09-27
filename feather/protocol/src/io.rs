@@ -559,7 +559,7 @@ impl Readable for Slot {
             Ok(Filled(
                 ItemStackBuilder::with_item(item)
                     .count(count)
-                    .apply_damage(tags.map(|t| t.damage).flatten().map(|d| d as u32))
+                    .apply_damage(tags.map(|t| t.damage).flatten())
                     .into(),
             ))
         } else {

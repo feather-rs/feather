@@ -44,7 +44,7 @@ pub struct ItemStackMeta {
     lore: String,
 
     /// The damage taken by the `ItemStack`.
-    damage: Option<u32>,
+    damage: Option<i32>,
 
     /// The cost of repairing the `ItemStack`.
     repair_cost: Option<u32>,
@@ -283,7 +283,7 @@ impl ItemStack {
 
     /// Damages the item by the specified amount.
     /// If this function returns `true`, then the item is broken.
-    pub fn damage(&mut self, amount: u32) -> bool {
+    pub fn damage(&mut self, amount: i32) -> bool {
         if self.meta.is_none() {
             return false;
         }
@@ -291,7 +291,9 @@ impl ItemStack {
             Some(damage) => {
                 *damage += amount;
                 if let Some(durability) = self.item.durability() {
-                    *damage >= durability
+                    // This unwrap would only fail if our generated file contains an erroneous
+                    // default damage value.
+                    *damage >= durability.try_into().unwrap()
                 } else {
                     false
                 }
@@ -301,7 +303,7 @@ impl ItemStack {
     }
 
     /// Returns the amount of damage the items have taken.
-    pub fn damage_taken(&self) -> Option<u32> {
+    pub fn damage_taken(&self) -> Option<i32> {
         self.meta.as_ref().map_or(Some(0), |meta| meta.damage)
     }
 
@@ -370,7 +372,8 @@ impl Default for ItemStackBuilder {
         }
     }
 }
-// Todo: implement all
+
+// Todo: implement all fields.
 impl ItemStackBuilder {
     pub fn new() -> Self {
         Self {
@@ -413,7 +416,7 @@ impl ItemStackBuilder {
         }
     }
 
-    pub fn damage(mut self, damage: u32) -> Self {
+    pub fn damage(mut self, damage: i32) -> Self {
         let mut meta = self.meta.unwrap_or_default();
         meta.damage = Some(damage);
 
@@ -422,7 +425,7 @@ impl ItemStackBuilder {
     }
 
     /// If damage is some, then its value is applied, else this is a no-op.
-    pub fn apply_damage(self, damage: Option<u32>) -> Self {
+    pub fn apply_damage(self, damage: Option<i32>) -> Self {
         match damage {
             Some(damage) => self.damage(damage),
             None => self,

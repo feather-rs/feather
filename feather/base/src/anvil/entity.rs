@@ -1,5 +1,3 @@
-use std::convert::TryInto;
-
 use arrayvec::ArrayVec;
 use libcraft_items::{Item, ItemStack, ItemStackBuilder};
 use serde::ser::Error;
@@ -247,7 +245,7 @@ impl ItemNbt {
                 damage: Some(damage),
             }) => ItemStackBuilder::with_item(item)
                 .count(count as u32)
-                .damage((*damage).try_into().unwrap())
+                .damage(*damage)
                 .into(),
 
             Some(ItemNbt { damage: None }) | None => {
