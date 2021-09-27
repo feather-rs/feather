@@ -43,7 +43,7 @@ struct Property {
     /// CamelCase name of this property if it were a struct or enum.
     ///
     /// Often prefixed with the name of the block to which this property belongs.
-    name_camel_case: Ident,
+    _name_camel_case: Ident,
     /// The kind of this property.
     kind: PropertyKind,
     /// Possible values of this property.

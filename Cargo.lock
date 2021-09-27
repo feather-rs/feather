@@ -756,10 +756,10 @@ dependencies = [
  "bytemuck",
  "byteorder",
  "feather-blocks",
- "feather-generated",
  "hematite-nbt",
  "libcraft-blocks",
  "libcraft-core",
+ "libcraft-inventory",
  "libcraft-items",
  "libcraft-particles",
  "libcraft-text",
@@ -787,7 +787,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
- "feather-generated",
+ "libcraft-blocks",
  "num-traits",
  "once_cell",
  "serde",
@@ -821,12 +821,13 @@ dependencies = [
  "feather-base",
  "feather-blocks",
  "feather-ecs",
- "feather-generated",
  "feather-utils",
  "feather-worldgen",
  "flume",
  "itertools",
  "libcraft-core",
+ "libcraft-inventory",
+ "libcraft-items",
  "log",
  "parking_lot",
  "quill-common",
@@ -861,17 +862,6 @@ dependencies = [
  "hecs",
  "log",
  "thiserror",
-]
-
-[[package]]
-name = "feather-generated"
-version = "0.1.0"
-dependencies = [
- "num-derive",
- "num-traits",
- "parking_lot",
- "thiserror",
- "vek",
 ]
 
 [[package]]
@@ -921,9 +911,10 @@ dependencies = [
  "cfb8",
  "feather-base",
  "feather-blocks",
- "feather-generated",
  "flate2",
  "hematite-nbt",
+ "libcraft-core",
+ "libcraft-items",
  "num-traits",
  "parking_lot",
  "quill-common",
@@ -955,6 +946,7 @@ dependencies = [
  "futures-lite",
  "hematite-nbt",
  "libcraft-core",
+ "libcraft-items",
  "log",
  "md-5",
  "num-bigint 0.4.2",
@@ -1395,6 +1387,14 @@ dependencies = [
  "libcraft-blocks",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "libcraft-inventory"
+version = "0.1.0"
+dependencies = [
+ "libcraft-items",
+ "parking_lot",
 ]
 
 [[package]]

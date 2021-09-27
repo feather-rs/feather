@@ -4,9 +4,10 @@ use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
 use base::{
     anvil::entity::ItemNbt, metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata,
-    Gamemode, Item, ItemStack, ValidBlockPosition,
+    Gamemode, Item, ItemStackBuilder, ValidBlockPosition,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use libcraft_items::InventorySlot::*;
 use num_traits::{FromPrimitive, ToPrimitive};
 use quill_common::components::PreviousGamemode;
 use serde::{de::DeserializeOwned, Serialize};
@@ -554,24 +555,26 @@ impl Readable for Slot {
             let item = Item::from_id(item_id.try_into()?)
                 .ok_or_else(|| anyhow!("unknown item ID {}", item_id))?;
 
-            Ok(Some(ItemStack {
-                item,
-                count,
-                damage: tags.map(|t| t.damage).flatten().map(|d| d as u32),
-            }))
+            // Todo fix: Panics if count is zero
+            Ok(Filled(
+                ItemStackBuilder::with_item(item)
+                    .count(count)
+                    .apply_damage(tags.map(|t| t.damage).flatten())
+                    .into(),
+            ))
         } else {
-            Ok(None)
+            Ok(Empty)
         }
     }
 }
 
 impl Writeable for Slot {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
-        self.is_some().write(buffer, version)?;
+        self.is_filled().write(buffer, version)?;
 
-        if let Some(stack) = self {
-            VarInt(stack.item.id() as i32).write(buffer, version)?;
-            (stack.count as u8).write(buffer, version)?;
+        if let Filled(stack) = self {
+            VarInt(stack.item().id() as i32).write(buffer, version)?;
+            (stack.count() as u8).write(buffer, version)?;
 
             let tags: ItemNbt = stack.into();
             if tags != ItemNbt::default() {

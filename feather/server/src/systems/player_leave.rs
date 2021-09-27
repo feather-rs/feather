@@ -127,21 +127,29 @@ fn create_player_data(
             .to_vec()
             .iter()
             .enumerate()
-            .filter_map(|(slot, maybe_item)| maybe_item.as_ref().map(|item| (slot, item)))
-            .map(|(slot, item)| InventorySlot {
-                count: item.count as i8,
-                slot: slot as i8,
-                item: item.item.name().to_owned(),
-                nbt: {
-                    let nbt = ItemNbt {
-                        damage: item.damage.map(|damage| damage as i32),
-                    };
-                    if nbt.damage.is_none() {
+            // Here we filter out all empty slots.
+            .filter_map(|(slot, item)| {
+                match item {
+                    libcraft_items::InventorySlot::Filled(item) => Some(InventorySlot {
+                        count: item.count() as i8,
+                        slot: slot as i8,
+                        item: item.item().name().to_owned(),
+                        nbt: {
+                            let nbt = ItemNbt {
+                                damage: item.damage_taken().map(|damage| damage as i32),
+                            };
+                            if nbt.damage.is_none() {
+                                None
+                            } else {
+                                Some(nbt)
+                            }
+                        },
+                    }),
+                    libcraft_items::InventorySlot::Empty => {
+                        // Empty items are filtered out.
                         None
-                    } else {
-                        Some(nbt)
                     }
-                },
+                }
             })
             .collect(),
         held_item: hotbar_slot.get() as i32,

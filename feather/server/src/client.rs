@@ -10,13 +10,14 @@ use flume::{Receiver, Sender};
 use uuid::Uuid;
 
 use base::{
-    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, ItemStack, Position,
+    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Position,
     ProfileProperty, Text, ValidBlockPosition,
 };
 use common::{
     chat::{ChatKind, ChatMessage},
     Window,
 };
+use libcraft_items::InventorySlot;
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
 use protocol::packets::server::{
     EntityPosition, EntityPositionAndRotation, HeldItemChange, PlayerAbilities,
@@ -509,12 +510,12 @@ impl Client {
         self.send_packet(packet);
     }
 
-    pub fn set_slot(&self, slot: i16, item: Option<ItemStack>) {
+    pub fn set_slot(&self, slot: i16, item: &InventorySlot) {
         log::trace!("Setting slot {} of {} to {:?}", slot, self.username, item);
         self.send_packet(SetSlot {
             window_id: 0,
             slot,
-            slot_data: item,
+            slot_data: item.clone(),
         });
     }
 
@@ -533,7 +534,7 @@ impl Client {
         })
     }
 
-    pub fn set_cursor_slot(&self, item: Option<ItemStack>) {
+    pub fn set_cursor_slot(&self, item: &InventorySlot) {
         log::trace!("Setting cursor slot of {} to {:?}", self.username, item);
         self.set_slot(-1, item);
     }
