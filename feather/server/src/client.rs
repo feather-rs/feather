@@ -12,7 +12,6 @@ use uuid::Uuid;
 use crate::{
     entities::PreviousPosition, initial_handler::NewPlayer, network_id_registry::NetworkId, Options,
 };
-use anyhow::anyhow;
 use base::{
     Area, BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Inventory,
     Position, ProfileProperty, Text, ValidBlockPosition,
@@ -569,7 +568,6 @@ impl Client {
         if self.network_id == Some(network_id) {
             return;
         }
-        log::debug!("Sending entity equipment packet");
 
         let mut equipment = Vec::<EquipmentEntry>::new();
         if let Some(m) = inventory.item(Area::Hotbar, hotbar_slot.get()) {
@@ -610,13 +608,10 @@ impl Client {
         };
 
         if equipment.is_empty() {
-            log::warn!("could not get entity equipment");
-        } else {
-            self.send_packet(EntityEquipment {
-                entity_id: network_id.0,
-                entries: equipment,
-            });
+            log::warn!("Could not get entity equipment");
         }
+
+        self.send_packet(EntityEquipment::new(network_id.0, equipment));
     }
 
     pub fn send_abilities(&self, abilities: &base::anvil::player::PlayerAbilities) {

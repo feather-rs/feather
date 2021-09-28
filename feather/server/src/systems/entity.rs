@@ -1,17 +1,12 @@
 //! Sends entity-related packets to clients.
 //! Spawn packets, position updates, equipment, animations, etc.
 
-use anyhow::anyhow;
 use base::{
     metadata::{EntityBitMask, Pose, META_INDEX_ENTITY_BITMASK, META_INDEX_POSE},
-    Area, EntityMetadata, Inventory, Position,
+    EntityMetadata, Position,
 };
-use common::{entities::player::HotbarSlot, Game};
+use common::Game;
 use ecs::{SysResult, SystemExecutor};
-use protocol::packets::server::{
-    EquipmentEntry,
-    EquipmentSlot::{Boots, Chestplate, Helmet, Leggings, MainHand, OffHand},
-};
 use quill_common::{
     components::{OnGround, Sprinting},
     events::{SneakEvent, SprintEvent},

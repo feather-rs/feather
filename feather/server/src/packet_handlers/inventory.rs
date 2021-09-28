@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail};
+use anyhow::bail;
 use base::{Area, Gamemode, Inventory, Position};
 use common::{entities::player::HotbarSlot, window::BackingWindow, Window};
 use ecs::{EntityRef, SysResult};

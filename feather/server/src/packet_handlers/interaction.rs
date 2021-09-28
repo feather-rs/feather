@@ -1,7 +1,7 @@
 use crate::{ClientId, NetworkId, Server};
 use base::{
     inventory::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND},
-    Area, Inventory, Position,
+    Inventory, Position,
 };
 use common::entities::player::HotbarSlot;
 use common::interactable::InteractableRegistry;
@@ -248,28 +248,4 @@ pub fn handle_held_item_change(
     });
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use common::Game;
-    use protocol::packets::client::HeldItemChange;
-
-    use super::*;
-
-    #[test]
-    fn held_item_change() {
-        let mut game = Game::new();
-        let entity = game.ecs.spawn((HotbarSlot::new(0),));
-        let player = game.ecs.entity(entity).unwrap();
-
-        let packet = HeldItemChange { slot: 8 };
-
-        handle_held_item_change(player, packet).unwrap();
-
-        assert_eq!(
-            *game.ecs.get::<HotbarSlot>(entity).unwrap(),
-            HotbarSlot::new(8)
-        );
-    }
 }
