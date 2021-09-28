@@ -62,7 +62,7 @@ pub fn handle_packet(
             handle_player_block_placement(game, server, packet, player_id)
         }
 
-        ClientPlayPacket::HeldItemChange(packet) => handle_held_item_change(player, packet),
+        ClientPlayPacket::HeldItemChange(packet) => handle_held_item_change(server, player, packet),
         ClientPlayPacket::InteractEntity(packet) => {
             handle_interact_entity(game, server, packet, player_id)
         }

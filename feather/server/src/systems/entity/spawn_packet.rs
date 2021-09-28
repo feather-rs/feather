@@ -1,7 +1,8 @@
 use ahash::AHashSet;
 use anyhow::Context;
-use base::Position;
+use base::{Inventory, Position};
 use common::{
+    entities::player::HotbarSlot,
     events::{ChunkCrossEvent, EntityCreateEvent, EntityRemoveEvent, ViewUpdateEvent},
     Game,
 };
@@ -37,6 +38,16 @@ pub fn update_visible_entities(game: &mut Game, server: &mut Server) -> SysResul
                             .send(&entity_ref, client)
                             .context("failed to send spawn packet")?;
                     }
+
+                    // Send an entity equipment packet to nearby players
+                    //TODO this will result in an error if the entity is not a player
+                    let position = *entity_ref.get::<Position>()?;
+                    let network_id = *entity_ref.get::<NetworkId>()?;
+                    let inventory = entity_ref.get::<Inventory>()?;
+                    let hotbar_slot = entity_ref.get::<HotbarSlot>()?;
+                    server.broadcast_nearby_with(position, |client| {
+                        client.send_entity_equipment(network_id, &inventory, &hotbar_slot);
+                    });
                 }
             }
         }
