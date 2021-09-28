@@ -9,12 +9,17 @@ use ahash::AHashSet;
 use flume::{Receiver, Sender};
 use uuid::Uuid;
 
+use crate::{
+    entities::PreviousPosition, initial_handler::NewPlayer, network_id_registry::NetworkId, Options,
+};
+use anyhow::anyhow;
 use base::{
-    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Position,
-    ProfileProperty, Text, ValidBlockPosition,
+    Area, BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Inventory,
+    Position, ProfileProperty, Text, ValidBlockPosition,
 };
 use common::{
     chat::{ChatKind, ChatMessage},
+    entities::player::HotbarSlot,
     Window,
 };
 use libcraft_items::InventorySlot;
@@ -27,18 +32,15 @@ use protocol::{
         self,
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
-            DestroyEntities, Disconnect, EntityAnimation, EntityEquipment, EntityHeadLook, EquipmentEntry, JoinGame, KeepAlive,
-            PlayerInfo, PlayerPositionAndLook, PluginMessage, SendEntityMetadata, SpawnPlayer,
-            Title, UnloadChunk, UpdateViewPosition, WindowItems,
+            DestroyEntities, Disconnect, EntityAnimation, EntityEquipment, EntityHeadLook,
+            EquipmentEntry, EquipmentSlot::{Boots, Chestplate, Helmet, Leggings, MainHand, OffHand},
+            JoinGame, KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage,
+            SendEntityMetadata, SpawnPlayer, Title, UnloadChunk, UpdateViewPosition, WindowItems,
         },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
 use quill_common::components::{OnGround, PreviousGamemode};
-
-use crate::{
-    entities::PreviousPosition, initial_handler::NewPlayer, network_id_registry::NetworkId, Options,
-};
 use slab::Slab;
 
 /// Max number of chunks to send to a client per tick.
@@ -558,11 +560,63 @@ impl Client {
         });
     }
 
-    pub fn send_entity_equipment(&self, network_id: NetworkId, equipment: Vec<EquipmentEntry>) {
-        self.send_packet(EntityEquipment {
-            entity_id: network_id.0,
-            entries: equipment,
-        })
+    pub fn send_entity_equipment(
+        &self,
+        network_id: NetworkId,
+        inventory: &Inventory,
+        hotbar_slot: &HotbarSlot,
+    ) {
+        if self.network_id == Some(network_id) {
+            return;
+        }
+        log::debug!("Sending entity equipment packet");
+
+        let mut equipment = Vec::<EquipmentEntry>::new();
+        if let Some(m) = inventory.item(Area::Hotbar, hotbar_slot.get()) {
+            equipment.push(EquipmentEntry {
+                slot: MainHand,
+                item: m.clone(),
+            })
+        };
+        if let Some(m) = inventory.item(Area::Offhand, 0) {
+            equipment.push(EquipmentEntry {
+                slot: OffHand,
+                item: m.clone(),
+            })
+        };
+        if let Some(m) = inventory.item(Area::Boots, 0) {
+            equipment.push(EquipmentEntry {
+                slot: Boots,
+                item: m.clone(),
+            })
+        };
+        if let Some(m) = inventory.item(Area::Leggings, 0) {
+            equipment.push(EquipmentEntry {
+                slot: Leggings,
+                item: m.clone(),
+            })
+        };
+        if let Some(m) = inventory.item(Area::Chestplate, 0) {
+            equipment.push(EquipmentEntry {
+                slot: Chestplate,
+                item: m.clone(),
+            })
+        };
+        if let Some(m) = inventory.item(Area::Helmet, 0) {
+            equipment.push(EquipmentEntry {
+                slot: Helmet,
+                item: m.clone(),
+            })
+        };
+
+        if equipment.is_empty() {
+            log::warn!("could not get entity equipment");
+        } else {
+            self.send_packet(EntityEquipment {
+                entity_id: network_id.0,
+                entries: equipment,
+            });
+        }
     }
 
     pub fn send_abilities(&self, abilities: &base::anvil::player::PlayerAbilities) {

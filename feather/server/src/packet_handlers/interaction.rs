@@ -1,5 +1,8 @@
 use crate::{ClientId, NetworkId, Server};
-use base::inventory::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND};
+use base::{
+    inventory::{SLOT_HOTBAR_OFFSET, SLOT_OFFHAND},
+    Area, Inventory, Position,
+};
 use common::entities::player::HotbarSlot;
 use common::interactable::InteractableRegistry;
 use common::{Game, Window};
@@ -224,13 +227,26 @@ pub fn handle_interact_entity(
     Ok(())
 }
 
-pub fn handle_held_item_change(player: EntityRef, packet: HeldItemChange) -> SysResult {
+pub fn handle_held_item_change(
+    server: &mut Server,
+    player: EntityRef,
+    packet: HeldItemChange,
+) -> SysResult {
     let new_id = packet.slot as usize;
     let mut slot = player.get_mut::<HotbarSlot>()?;
 
     log::trace!("Got player slot change from {} to {}", slot.get(), new_id);
 
     slot.set(new_id)?;
+
+    // Send an entity equipment packet to nearby players
+    let position = *player.get::<Position>()?;
+    let network_id = *player.get::<NetworkId>()?;
+    let inventory = player.get::<Inventory>()?;
+    server.broadcast_nearby_with(position, |client| {
+        client.send_entity_equipment(network_id, &inventory, &slot);
+    });
+
     Ok(())
 }
 
