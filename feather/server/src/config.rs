@@ -1,6 +1,6 @@
 //! Loads an `Options` from a TOML config.
 
-use std::{fs, net::Ipv4Addr, path::Path, str::FromStr};
+use std::{fs, net::IpAddr, path::Path, str::FromStr};
 
 use anyhow::Context;
 use base::Gamemode;
@@ -78,7 +78,7 @@ impl Config {
 
 #[derive(Debug, Deserialize)]
 pub struct Network {
-    pub address: Ipv4Addr,
+    pub address: IpAddr,
     pub port: u16,
     pub compression_threshold: i32,
 }
