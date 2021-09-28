@@ -32,7 +32,8 @@ use protocol::{
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
             DestroyEntities, Disconnect, EntityAnimation, EntityEquipment, EntityHeadLook,
-            EquipmentEntry, EquipmentSlot::{Boots, Chestplate, Helmet, Leggings, MainHand, OffHand},
+            EquipmentEntry,
+            EquipmentSlot::{Boots, Chestplate, Helmet, Leggings, MainHand, OffHand},
             JoinGame, KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage,
             SendEntityMetadata, SpawnPlayer, Title, UnloadChunk, UpdateViewPosition, WindowItems,
         },

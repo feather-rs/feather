@@ -1,7 +1,11 @@
 use ahash::AHashSet;
 use anyhow::Context;
 use base::{Inventory, Position};
-use common::{Game, entities::player::HotbarSlot, events::{ChunkCrossEvent, EntityCreateEvent, EntityRemoveEvent, ViewUpdateEvent}};
+use common::{
+    entities::player::HotbarSlot,
+    events::{ChunkCrossEvent, EntityCreateEvent, EntityRemoveEvent, ViewUpdateEvent},
+    Game,
+};
 use ecs::{SysResult, SystemExecutor};
 
 use crate::{entities::SpawnPacketSender, ClientId, NetworkId, Server};

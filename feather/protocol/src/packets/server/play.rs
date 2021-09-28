@@ -7,7 +7,10 @@ pub use chunk_data::{ChunkData, ChunkDataKind};
 use quill_common::components::PreviousGamemode;
 pub use update_light::UpdateLight;
 
-use crate::{io::VarLong, InventorySlot::Empty, packets::server::EquipmentSlot::MainHand, Readable, Writeable};
+use crate::{
+    io::VarLong, packets::server::EquipmentSlot::MainHand, InventorySlot::Empty, Readable,
+    Writeable,
+};
 
 use super::*;
 
@@ -950,7 +953,7 @@ pub struct EntityEquipment {
     /// The entries in this `EntityEquipment` packet
     ///
     /// Must not be empty. If nothing is equipped, send an empty main hand.
-    pub entries: Vec<EquipmentEntry>,
+    entries: Vec<EquipmentEntry>,
 }
 
 impl EntityEquipment {
