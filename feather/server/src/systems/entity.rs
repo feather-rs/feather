@@ -1,7 +1,6 @@
 //! Sends entity-related packets to clients.
 //! Spawn packets, position updates, equipment, animations, etc.
 
-use std::ops::Deref;
 use base::{
     metadata::{EntityBitMask, Pose, META_INDEX_ENTITY_BITMASK, META_INDEX_POSE},
     Area, EntityMetadata, Inventory, Position,
@@ -13,6 +12,7 @@ use quill_common::{
     events::{SneakEvent, SprintEvent},
 };
 use protocol::packets::server::{EquipmentEntry, EquipmentSlot::{MainHand, OffHand, Boots, Leggings, Chestplate, Helmet}};
+use anyhow::anyhow;
 
 use crate::{entities::PreviousPosition, NetworkId, Server};
 
@@ -102,16 +102,15 @@ fn send_equipment_when_changed(game: &mut Game, server: &mut Server) -> SysResul
             .ecs
             .query::<(&Position, &HotbarSlot, &Inventory, &NetworkId)>()
             .iter()
-        {            
-            //TODO this is madness
+        {
             let mut equipment = Vec::<EquipmentEntry>::new();
-            equipment.push(EquipmentEntry { slot: MainHand, item: inventory.item(Area::Hotbar, hotbar_slot.get()).unwrap().deref().clone() });
-            equipment.push(EquipmentEntry { slot: OffHand, item: inventory.item(Area::Offhand, 0).unwrap().deref().clone() });
-            equipment.push(EquipmentEntry { slot: Boots, item: inventory.item(Area::Boots, 0).unwrap().deref().clone() });
-            equipment.push(EquipmentEntry { slot: Leggings, item: inventory.item(Area::Leggings, 0).unwrap().deref().clone() });
-            equipment.push(EquipmentEntry { slot: Chestplate, item: inventory.item(Area::Chestplate, 0).unwrap().deref().clone() });
-            equipment.push(EquipmentEntry { slot: Helmet, item: inventory.item(Area::Helmet, 0).unwrap().deref().clone() });
-
+            equipment.push(EquipmentEntry { slot: MainHand, item: inventory.item(Area::Hotbar, hotbar_slot.get()).ok_or(anyhow!("can't get main-hand"))?.clone() });
+            equipment.push(EquipmentEntry { slot: OffHand, item: inventory.item(Area::Offhand, 0).ok_or(anyhow!("can't get off-hand"))?.clone() });
+            equipment.push(EquipmentEntry { slot: Boots, item: inventory.item(Area::Boots, 0).ok_or(anyhow!("can't get boots"))?.clone() });
+            equipment.push(EquipmentEntry { slot: Leggings, item: inventory.item(Area::Leggings, 0).ok_or(anyhow!("can't get leggings"))?.clone() });
+            equipment.push(EquipmentEntry { slot: Chestplate, item: inventory.item(Area::Chestplate, 0).ok_or(anyhow!("can't get chestplate"))?.clone() });
+            equipment.push(EquipmentEntry { slot: Helmet, item: inventory.item(Area::Helmet, 0).ok_or(anyhow!("can't get main helmet"))?.clone() });
+            
             server.broadcast_nearby_with(position, |client| {
                 client.send_entity_equipment(network_id, equipment.clone());
             });
