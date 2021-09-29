@@ -517,7 +517,7 @@ impl Client {
         let dimension = nbt::Blob::from_reader(&mut Cursor::new(include_bytes!(
             "../../../assets/dimension.nbt"
         )))
-        .expect("dimenstion asset is malformed");
+        .expect("dimension asset is malformed");
 
         self.send_packet(Respawn {
             dimension: Nbt(dimension),
