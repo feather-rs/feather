@@ -28,8 +28,8 @@ pub fn add_entity_components(builder: &mut EntityBuilder, init: &EntityInit) {
         builder.add(NetworkId::new());
     }
 
-    let prev_position = builder.get::<Position>().unwrap().clone();
-    let on_ground = builder.get::<OnGround>().unwrap().clone();
+    let prev_position = *builder.get::<Position>().unwrap();
+    let on_ground = *builder.get::<OnGround>().unwrap();
 
     builder
         .add(PreviousPosition(prev_position))
