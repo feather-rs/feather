@@ -353,6 +353,9 @@ impl Window {
         self.inner.item(index)
     }
 
+    /// Sets an [`InventorySlot`] at the index.
+    /// # Error
+    /// Returns an error if the index is [`WindowError::OutOfBounds`]
     pub fn set_item(&self, index: usize, item: InventorySlot) -> Result<(), WindowError> {
         self.inner.set_item(index, item)
     }
