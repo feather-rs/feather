@@ -15,11 +15,14 @@ impl SpawnPacketSender {
     }
 }
 
-/// Stores the position of an entity on
+/// Stores the [`Position`] of an entity on
 /// the previous tick. Used to determine
 /// when to send movement updates.
 #[derive(Copy, Clone, Debug)]
 pub struct PreviousPosition(pub Position);
+/// Stores the [`OnGround`] status of an entity on
+/// the previous tick. Used to determine
+/// what movement packet to send.
 #[derive(Copy, Clone, Debug)]
 pub struct PreviousOnGround(pub OnGround);
 
