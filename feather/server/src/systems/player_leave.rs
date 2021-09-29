@@ -1,6 +1,6 @@
 use num_traits::cast::ToPrimitive;
 
-use base::anvil::entity::{AnimalData, BaseEntityData, ItemNbt};
+use base::anvil::entity::{AnimalData, BaseEntityData};
 use base::anvil::player::{InventorySlot, PlayerAbilities, PlayerData};
 use base::{Gamemode, Inventory, Position, Text};
 use common::entities::player::HotbarSlot;
@@ -130,21 +130,16 @@ fn create_player_data(
             // Here we filter out all empty slots.
             .filter_map(|(slot, item)| {
                 match item {
-                    libcraft_items::InventorySlot::Filled(item) => Some(InventorySlot {
-                        count: item.count() as i8,
-                        slot: slot as i8,
-                        item: item.item().name().to_owned(),
-                        nbt: {
-                            let nbt = ItemNbt {
-                                damage: item.damage_taken().map(|damage| damage as i32),
-                            };
-                            if nbt.damage.is_none() {
+                    libcraft_items::InventorySlot::Filled(item) => {
+                        let res = InventorySlot::from_network_index(slot, item);
+                        match res {
+                            Some(i) => Some(i),
+                            None => {
+                                log::error!("Failed to convert the slot into anvil format.");
                                 None
-                            } else {
-                                Some(nbt)
                             }
-                        },
-                    }),
+                        }
+                    }
                     libcraft_items::InventorySlot::Empty => {
                         // Empty items are filtered out.
                         None
