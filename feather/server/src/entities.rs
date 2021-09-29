@@ -1,6 +1,6 @@
 use base::{EntityKind, Position};
 use ecs::{EntityBuilder, EntityRef, SysResult};
-use quill_common::entity_init::EntityInit;
+use quill_common::{components::OnGround, entity_init::EntityInit};
 use uuid::Uuid;
 
 use crate::{Client, NetworkId};
@@ -20,12 +20,20 @@ impl SpawnPacketSender {
 /// when to send movement updates.
 #[derive(Copy, Clone, Debug)]
 pub struct PreviousPosition(pub Position);
+#[derive(Copy, Clone, Debug)]
+pub struct PreviousOnGround(pub OnGround);
 
 pub fn add_entity_components(builder: &mut EntityBuilder, init: &EntityInit) {
     if !builder.has::<NetworkId>() {
         builder.add(NetworkId::new());
     }
-    builder.add(PreviousPosition(*builder.get::<Position>().unwrap()));
+
+    let prev_position = builder.get::<Position>().unwrap().clone();
+    let on_ground = builder.get::<OnGround>().unwrap().clone();
+
+    builder
+        .add(PreviousPosition(prev_position))
+        .add(PreviousOnGround(on_ground));
     add_spawn_packet(builder, init);
 }
 
