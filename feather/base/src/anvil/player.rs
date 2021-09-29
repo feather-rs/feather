@@ -71,7 +71,7 @@ pub struct InventorySlot {
 
 impl InventorySlot {
     /// Converts an `ItemStack` and network protocol index into an `InventorySlot`.
-    pub fn from_network_index(network: usize, stack: ItemStack) -> Option<Self> {
+    pub fn from_network_index(network: usize, stack: &ItemStack) -> Option<Self> {
         let slot = if SLOT_HOTBAR_OFFSET <= network && network < SLOT_HOTBAR_OFFSET + HOTBAR_SIZE {
             // Hotbar
             (network - SLOT_HOTBAR_OFFSET) as i8
@@ -91,7 +91,7 @@ impl InventorySlot {
     }
 
     /// Converts an `ItemStack` and inventory position index into an `InventorySlot`.
-    pub fn from_inventory_index(slot: i8, stack: ItemStack) -> Self {
+    pub fn from_inventory_index(slot: i8, stack: &ItemStack) -> Self {
         let nbt = stack.clone().into();
         let nbt = if nbt == Default::default() {
             None
@@ -287,7 +287,7 @@ mod tests {
             assert_eq!(
                 InventorySlot::from_network_index(
                     expected,
-                    ItemStack::new(Item::Stone, 1).unwrap()
+                    &ItemStack::new(Item::Stone, 1).unwrap()
                 ),
                 Some(slot),
             );

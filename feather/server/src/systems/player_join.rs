@@ -83,12 +83,17 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         player: inventory.new_handle(),
     });
     if let Ok(data) = player_data.as_ref() {
-        for slot in data.inventory.iter() {
+        for inventory_slot in data.inventory.iter() {
+            let net_slot = inventory_slot.convert_index();
+            let slot = match net_slot {
+                Some(slot) => slot,
+                None => {
+                    log::error!("Failed to convert saved slot into network slot");
+                    continue;
+                }
+            };
             window
-                .set_item(
-                    slot.slot as usize,
-                    InventorySlot::Filled(ItemStack::from(slot)),
-                )
+                .set_item(slot, InventorySlot::Filled(ItemStack::from(inventory_slot)))
                 .unwrap();
         }
     }
