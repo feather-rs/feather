@@ -23,6 +23,10 @@ pub struct PreviousPosition(pub Position);
 #[derive(Copy, Clone, Debug)]
 pub struct PreviousOnGround(pub OnGround);
 
+/// Adds components to all entities before creation.
+///
+/// # Panics
+/// Panics if the default components are missing.
 pub fn add_entity_components(builder: &mut EntityBuilder, init: &EntityInit) {
     if !builder.has::<NetworkId>() {
         builder.add(NetworkId::new());
