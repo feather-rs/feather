@@ -12,7 +12,10 @@ use quill_common::{
     events::{SneakEvent, SprintEvent},
 };
 
-use crate::{entities::PreviousPosition, NetworkId, Server};
+use crate::{
+    entities::{PreviousOnGround, PreviousPosition},
+    NetworkId, Server,
+};
 
 mod spawn_packet;
 
@@ -27,16 +30,31 @@ pub fn register(game: &mut Game, systems: &mut SystemExecutor<Game>) {
 
 /// Sends entity movement packets.
 fn send_entity_movement(game: &mut Game, server: &mut Server) -> SysResult {
-    for (_, (&position, prev_position, &on_ground, &network_id)) in game
+    for (_, (&position, prev_position, &on_ground, &network_id, prev_on_ground)) in game
         .ecs
-        .query::<(&Position, &mut PreviousPosition, &OnGround, &NetworkId)>()
+        .query::<(
+            &Position,
+            &mut PreviousPosition,
+            &OnGround,
+            &NetworkId,
+            &mut PreviousOnGround,
+        )>()
         .iter()
     {
         if position != prev_position.0 {
             server.broadcast_nearby_with(position, |client| {
-                client.update_entity_position(network_id, position, *prev_position, on_ground);
+                client.update_entity_position(
+                    network_id,
+                    position,
+                    *prev_position,
+                    on_ground,
+                    *prev_on_ground,
+                );
             });
             prev_position.0 = position;
+        }
+        if on_ground != prev_on_ground.0 {
+            prev_on_ground.0 = on_ground;
         }
     }
     Ok(())
