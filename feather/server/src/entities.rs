@@ -26,15 +26,14 @@ pub struct PreviousPosition(pub Position);
 #[derive(Copy, Clone, Debug)]
 pub struct PreviousOnGround(pub OnGround);
 
-/// Adds components to all entities before creation.
-///
-/// # Panics
-/// Panics if the default components are missing.
 pub fn add_entity_components(builder: &mut EntityBuilder, init: &EntityInit) {
     if !builder.has::<NetworkId>() {
         builder.add(NetworkId::new());
     }
 
+    // can't panic because this is only called after both position and onground is added to all entities.
+    // Position is added in the caller of this function and on_ground is added in the
+    // build default function. All entity builder functions call the build default function.
     let prev_position = *builder.get::<Position>().unwrap();
     let on_ground = *builder.get::<OnGround>().unwrap();
 
