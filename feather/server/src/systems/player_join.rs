@@ -92,6 +92,8 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
                     continue;
                 }
             };
+
+            // This can't fail since the earlier match filters out all incorrect indexes.
             window
                 .set_item(slot, InventorySlot::Filled(ItemStack::from(inventory_slot)))
                 .unwrap();
