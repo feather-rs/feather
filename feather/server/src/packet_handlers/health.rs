@@ -7,22 +7,22 @@ use uuid::Uuid;
 pub fn handle_client_status(
     game: &mut Game,
     server: &mut Server,
-    player_id: Entity,
+    player: Entity,
     packet: ClientStatus,
 ) -> SysResult {
     match packet {
         ClientStatus::PerformRespawn => {
-            let client_id = game.ecs.get::<ClientId>(player_id).unwrap();
+            let client_id = game.ecs.get::<ClientId>(player)?;
             let client = server.clients.get(*client_id).unwrap();
 
             client.respawn_player(server.options.default_gamemode);
 
-            let player = game.ecs.entity(player_id)?;
-            game.reset_player(player)?;
+            let player_entity = game.ecs.entity(player)?;
+            game.reset_player(player_entity)?;
 
-            let network_id = game.ecs.get::<NetworkId>(player_id).unwrap();
-            let position = game.ecs.get::<Position>(player_id).unwrap();
-            let uuid = game.ecs.get::<Uuid>(player_id).unwrap();
+            let network_id = game.ecs.get::<NetworkId>(player)?;
+            let position = game.ecs.get::<Position>(player)?;
+            let uuid = game.ecs.get::<Uuid>(player)?;
 
             // Recreate the player for all clients.
             server.broadcast_nearby_with(*position, |client| {
