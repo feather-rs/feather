@@ -1,6 +1,8 @@
 use anyhow::bail;
 
-use base::{BlockState, EntityMetadata, Gamemode, ParticleKind, ProfileProperty};
+use base::{
+    BlockState, EntityMetadata, Gamemode, ParticleKind, ProfileProperty, ValidBlockPosition,
+};
 pub use chunk_data::{ChunkData, ChunkDataKind};
 use quill_common::components::PreviousGamemode;
 pub use update_light::UpdateLight;
@@ -55,7 +57,7 @@ packets! {
         entity_id VarInt;
         entity_uuid Uuid;
         motive VarInt;
-        location BlockPosition;
+        location ValidBlockPosition;
         direction PaintingDirection;
     }
 }
@@ -109,7 +111,7 @@ packets! {
     }
 
     AcknowledgePlayerDigging {
-        position BlockPosition;
+        position ValidBlockPosition;
         block BlockId;
         status PlayerDiggingStatus;
         successful bool;
@@ -127,25 +129,25 @@ def_enum! {
 packets! {
     BlockBreakAnimation {
         entity_id VarInt;
-        position BlockPosition;
+        position ValidBlockPosition;
         destroy_stage u8;
     }
 
     BlockEntityData {
-        position BlockPosition;
+        position ValidBlockPosition;
         action u8;
         data Nbt<Blob>;
     }
 
     BlockAction {
-        position BlockPosition;
+        position ValidBlockPosition;
         action_id u8;
         action_param u8;
         block_type VarInt;
     }
 
     BlockChange {
-        position BlockPosition;
+        position ValidBlockPosition;
         block BlockId;
     }
 
@@ -334,7 +336,7 @@ packets! {
 
     Effect {
         effect_id i32;
-        position BlockPosition;
+        position ValidBlockPosition;
         data i32;
         disable_relative_volume bool;
     }
@@ -459,7 +461,7 @@ packets! {
     }
 
     OpenSignEditor {
-        position BlockPosition;
+        position ValidBlockPosition;
     }
 
     CraftRecipeResponse {
@@ -1084,7 +1086,7 @@ packets! {
     }
 
     SpawnPosition {
-        position BlockPosition;
+        position ValidBlockPosition;
     }
 
     TimeUpdate {

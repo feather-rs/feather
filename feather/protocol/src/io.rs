@@ -4,9 +4,10 @@ use crate::{ProtocolVersion, Slot};
 use anyhow::{anyhow, bail, Context};
 use base::{
     anvil::entity::ItemNbt, metadata::MetaEntry, BlockId, BlockPosition, Direction, EntityMetadata,
-    Gamemode, Item, ItemStack,
+    Gamemode, Item, ItemStackBuilder, ValidBlockPosition,
 };
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use libcraft_items::InventorySlot::*;
 use num_traits::{FromPrimitive, ToPrimitive};
 use quill_common::components::PreviousGamemode;
 use serde::{de::DeserializeOwned, Serialize};
@@ -554,28 +555,29 @@ impl Readable for Slot {
             let item = Item::from_id(item_id.try_into()?)
                 .ok_or_else(|| anyhow!("unknown item ID {}", item_id))?;
 
-            Ok(Some(ItemStack {
-                item,
-                count,
-                damage: tags.map(|t| t.damage).flatten().map(|d| d as u32),
-            }))
+            // Todo fix: Panics if count is zero
+            Ok(Filled(
+                ItemStackBuilder::with_item(item)
+                    .count(count)
+                    .apply_damage(tags.map(|t| t.damage).flatten())
+                    .into(),
+            ))
         } else {
-            Ok(None)
+            Ok(Empty)
         }
     }
 }
 
 impl Writeable for Slot {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
-        self.is_some().write(buffer, version)?;
+        self.is_filled().write(buffer, version)?;
 
-        if let Some(stack) = self {
-            VarInt(stack.item.id() as i32).write(buffer, version)?;
-            (stack.count as u8).write(buffer, version)?;
+        if let Filled(stack) = self {
+            VarInt(stack.item().id() as i32).write(buffer, version)?;
+            (stack.count() as u8).write(buffer, version)?;
 
             let tags: ItemNbt = stack.into();
             if tags != ItemNbt::default() {
-                dbg!();
                 Nbt(tags).write(buffer, version)?;
             } else {
                 0u8.write(buffer, version)?; // TAG_End
@@ -632,9 +634,9 @@ fn read_meta_entry(
             f32::read(buffer, version)?,
             f32::read(buffer, version)?,
         ),
-        9 => MetaEntry::Position(BlockPosition::read(buffer, version)?),
+        9 => MetaEntry::Position(ValidBlockPosition::read(buffer, version)?),
         10 => MetaEntry::OptPosition(if bool::read(buffer, version)? {
-            Some(BlockPosition::read(buffer, version)?)
+            Some(ValidBlockPosition::read(buffer, version)?)
         } else {
             None
         }),
@@ -782,7 +784,7 @@ impl Writeable for Uuid {
     }
 }
 
-impl Readable for BlockPosition {
+impl Readable for ValidBlockPosition {
     fn read(buffer: &mut Cursor<&[u8]>, version: ProtocolVersion) -> anyhow::Result<Self>
     where
         Self: Sized,
@@ -793,15 +795,15 @@ impl Readable for BlockPosition {
         let y = (val & 0xFFF) as i32;
         let z = (val << 26 >> 38) as i32;
 
-        Ok(BlockPosition { x, y, z })
+        Ok(BlockPosition { x, y, z }.try_into()?)
     }
 }
 
-impl Writeable for BlockPosition {
+impl Writeable for ValidBlockPosition {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
-        let val = ((self.x as u64 & 0x3FFFFFF) << 38)
-            | ((self.z as u64 & 0x3FFFFFF) << 12)
-            | (self.y as u64 & 0xFFF);
+        let val = ((self.x() as u64 & 0x3FFFFFF) << 38)
+            | ((self.z() as u64 & 0x3FFFFFF) << 12)
+            | (self.y() as u64 & 0xFFF);
         val.write(buffer, version)?;
 
         Ok(())
@@ -833,7 +835,11 @@ impl Readable for Angle {
 
 impl Writeable for Angle {
     fn write(&self, buffer: &mut Vec<u8>, version: ProtocolVersion) -> anyhow::Result<()> {
-        let val = (self.0 / 360.0 * 256.0).round() as u8;
+        let temp = (256.0 / 360.0) * (self.0 % 360.0);
+        // Wrap negative values 'x' in the range [-256.0 to 0] to the
+        // correct angle in the range [0 to 256.0 ) by changing 'x' to
+        // x = 256.0 - x
+        let val = ((temp + 256.0) % 256.0) as u8;
         val.write(buffer, version)?;
 
         Ok(())

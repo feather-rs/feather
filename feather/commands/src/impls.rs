@@ -1,7 +1,5 @@
 //! The implementations of various commands.
 
-use std::str::FromStr;
-
 use commands::arguments::*;
 use commands::command;
 use commands::dispatcher::{CommandDispatcher, CreateCommand};
@@ -10,14 +8,13 @@ use smallvec::SmallVec;
 
 use common::{Game, Window};
 use ecs::{Ecs, Entity};
-use feather_datapacks::NamespacedId;
-use feather_generated::ItemStack;
 use libcraft_text::{Text, TextComponentBuilder};
 use quill_common::components::{ChatBox, Gamemode, Name, PreviousGamemode};
 use quill_common::entities::Player;
 use quill_common::events::{GamemodeUpdateEvent, InventoryUpdateEvent};
 
 use crate::CommandCtx;
+use libcraft_items::{InventorySlot, ItemStack};
 
 pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
     // /me
@@ -412,7 +409,7 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         let mut changed_items: SmallVec<[usize; 2]> = SmallVec::new();
         // TODO don't clone items, they may have big NBT tags
         for (index, slot) in inventory.inner().to_vec().into_iter().enumerate() {
-            if let Some(mut stack) = slot {
+            if let InventorySlot::Filled(mut stack) = slot {
                 if let Some(predicate) = item.as_ref() {
                     if !item_matches(&ctx.game, &stack, predicate) {
                         continue;
@@ -420,14 +417,14 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 }
                 let max_count = max_count.unwrap_or(i32::MAX);
                 if max_count == 0 {
-                    *count += stack.count as i32;
-                } else if (stack.count as i32) <= max_count - *count {
-                    *count += stack.count as i32;
-                    inventory.set_item(index, None)?;
+                    *count += stack.count() as i32;
+                } else if (stack.count() as i32) <= max_count - *count {
+                    *count += stack.count() as i32;
+                    inventory.set_item(index, InventorySlot::Empty)?;
                     changed_items.push(index);
                 } else {
-                    stack.count -= (max_count - *count) as u32;
-                    inventory.set_item(index, Some(stack))?;
+                    stack.set_count(stack.count() - (max_count - *count) as u32)?;
+                    inventory.set_item(index, InventorySlot::Filled(stack))?;
                     *count = max_count;
                     changed_items.push(index);
                     break;
@@ -443,14 +440,18 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         Ok(())
     }
 
-    fn item_matches(game: &Game, item: &ItemStack, predicate: &ItemPredicate) -> bool {
+    fn item_matches(_game: &Game, item: &ItemStack, predicate: &ItemPredicate) -> bool {
         #[allow(clippy::needless_bool)]
         if !match &predicate.predicate_type {
-            ItemPredicateType::Tag(s) => game.tag_registry.check_item_tag(
+            ItemPredicateType::Tag(_s) =>
+            /*game.tag_registry.check_item_tag(
                 item.item,
                 &NamespacedId::from_str(s.to_string().as_str()).unwrap(),
-            ),
-            ItemPredicateType::Item(s) => item.item.name() == s.value(),
+            )*/
+            {
+                unimplemented!()
+            }
+            ItemPredicateType::Item(s) => item.item().name() == s.value(),
         } {
             false
         } else {

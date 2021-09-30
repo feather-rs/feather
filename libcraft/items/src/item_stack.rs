@@ -4,6 +4,7 @@
 use crate::{Enchantment, Item};
 use core::fmt::Display;
 use serde::{Deserialize, Serialize};
+use std::convert::TryInto;
 use std::error::Error;
 use std::fmt;
 use std::num::NonZeroU32;
@@ -33,7 +34,7 @@ pub struct ItemStack {
 /// * Item damage (Optional)
 /// * Item repair cost (Optional)
 /// * Item enchantments
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "PascalCase")]
 pub struct ItemStackMeta {
     /// The displayed title (name) of the associated `ItemStack`.
@@ -43,7 +44,7 @@ pub struct ItemStackMeta {
     lore: String,
 
     /// The damage taken by the `ItemStack`.
-    damage: Option<u32>,
+    damage: Option<i32>,
 
     /// The cost of repairing the `ItemStack`.
     repair_cost: Option<u32>,
@@ -157,6 +158,14 @@ impl ItemStack {
         Ok(self.item)
     }
 
+    /// Gets the `ItemStack` and returns it.
+    pub fn get_item(&self) -> ItemStack {
+        ItemStack {
+            count: 1.try_into().unwrap(),
+            ..self.clone()
+        }
+    }
+
     /// Sets the item type for this `ItemStack`. Does not check if
     /// the new item type stack size will be lower than the current
     /// item count. Returns the new item type.
@@ -196,23 +205,16 @@ impl ItemStack {
     /// removed half. If the amount is odd, `self`
     /// will be left with the least items. Returns the taken
     /// half.
-    pub fn split_half(&mut self) -> (Option<ItemStack>, ItemStack) {
-        self.split((self.count.get() + 1) / 2).unwrap()
+    pub fn take_half(self) -> (Option<ItemStack>, ItemStack) {
+        let half = (self.count.get() + 1) / 2;
+        self.take(NonZeroU32::new(half).unwrap())
     }
 
     /// Splits this `ItemStack` by removing the
     /// specified amount. Returns the taken part.
-    pub fn split(
-        &mut self,
-        amount: u32,
-    ) -> Result<(Option<ItemStack>, ItemStack), (ItemStack, ItemStackError)> {
-        let amount = NonZeroU32::new(amount);
-        if amount.is_none() {
-            return Err((self.clone(), ItemStackError::EmptyStack));
-        }
-        let amount = amount.unwrap();
+    pub fn take(mut self, amount: NonZeroU32) -> (Option<ItemStack>, ItemStack) {
         if self.count < amount {
-            return Err((self.clone(), ItemStackError::NotEnoughAmount));
+            return (None, self);
         }
         let count_left: u32 = self.count.get() - amount.get();
         let taken = ItemStack {
@@ -220,25 +222,17 @@ impl ItemStack {
             ..self.clone()
         };
         self.count = NonZeroU32::new(count_left).unwrap();
-        Ok((
-            if count_left == 0 {
-                None
-            } else {
-                Some(self.clone())
-            },
-            taken,
-        ))
+        (Some(self), taken)
     }
 
     /// Merges another `ItemStack` with this one.
-    pub fn merge_with(&mut self, other: &mut Self) -> Result<(), ItemStackError> {
-        if !self.has_same_type_and_damage(other) {
+    pub fn merge_with(&mut self, other: Self) -> Result<(), ItemStackError> {
+        if !self.has_same_type_and_damage(&other) {
             return Err(ItemStackError::IncompatibleStacks);
         }
         let new_count = (self.count.get() + other.count.get()).min(self.item.stack_size());
-        let amount_added = new_count - self.count.get();
         self.count = NonZeroU32::new(new_count).unwrap();
-        other.count = NonZeroU32::new(other.count() - amount_added).unwrap();
+        //other.count = NonZeroU32::new(other.count() - amount_added).unwrap();
         Ok(())
     }
 
@@ -256,14 +250,40 @@ impl ItemStack {
         if other.count.get() + transfer > i32::MAX as u32 {
             return Err(ItemStackError::ClientOverflow);
         }
-        self.count = NonZeroU32::new(transfer).unwrap();
+
+        self.count = NonZeroU32::new(self.count.get() - transfer).unwrap();
         other.count = NonZeroU32::new(other.count.get() + transfer).unwrap();
         Ok(())
     }
 
+    pub fn drain_into_bounded(
+        mut self,
+        n: u32,
+        other: &mut Self,
+    ) -> Result<Option<Self>, ItemStackError> {
+        if !self.has_same_type(other) {
+            return Err(ItemStackError::IncompatibleStacks);
+        }
+
+        // Stack size is the same for both self and other because they are the same type.
+        let stack_size = self.item.stack_size();
+        let space_in_other = stack_size - other.count();
+        let items_in_self = self.count();
+        let moving_items = space_in_other.min(n).min(items_in_self);
+
+        other.set_count(moving_items + other.count()).unwrap();
+
+        if self.count() - moving_items == 0 {
+            Ok(None)
+        } else {
+            self.set_count(moving_items - items_in_self).unwrap();
+            Ok(Some(self))
+        }
+    }
+
     /// Damages the item by the specified amount.
     /// If this function returns `true`, then the item is broken.
-    pub fn damage(&mut self, amount: u32) -> bool {
+    pub fn damage(&mut self, amount: i32) -> bool {
         if self.meta.is_none() {
             return false;
         }
@@ -271,13 +291,38 @@ impl ItemStack {
             Some(damage) => {
                 *damage += amount;
                 if let Some(durability) = self.item.durability() {
-                    *damage >= durability
+                    // This unwrap would only fail if our generated file contains an erroneous
+                    // default damage value.
+                    *damage >= durability.try_into().unwrap()
                 } else {
                     false
                 }
             }
             None => false,
         }
+    }
+
+    /// Returns the amount of damage the items have taken.
+    pub fn damage_taken(&self) -> Option<i32> {
+        self.meta.as_ref().map_or(Some(0), |meta| meta.damage)
+    }
+
+    /// Returns true is the contents of other could be merged with the contents
+    /// of self. This does not look at the item count, just the kind.
+    /// Items can be merged when they have the same kind, damage, and enchantment.
+    /// If a item has a stacksize of one then it can never be stacked.
+    pub fn stackable_types(&self, other: &Self) -> bool {
+        self.has_same_type(other) &&
+        // Todo: make this function check that the items have same name
+        // if you rename a item, then it does not stack with items that
+        // dont share the rename. Someone need to explore this further.
+        self.stack_size() > 1 &&
+        other.stack_size() > 1
+    }
+
+    /// How many items could be stacked together
+    pub fn stack_size(&self) -> u32 {
+        self.item.stack_size()
     }
 }
 
@@ -299,3 +344,106 @@ impl Display for ItemStackError {
 }
 
 impl Error for ItemStackError {}
+
+impl ItemStackMeta {
+    pub fn new(item: Item) -> Self {
+        Self {
+            title: item.name().to_owned(),
+            lore: "".to_owned(),
+            damage: None,
+            repair_cost: None,
+            enchantments: vec![],
+        }
+    }
+}
+
+pub struct ItemStackBuilder {
+    item: Item,
+    count: NonZeroU32,
+    meta: Option<ItemStackMeta>,
+}
+
+impl Default for ItemStackBuilder {
+    fn default() -> Self {
+        Self {
+            item: Item::Stone,
+            count: 1.try_into().unwrap(),
+            meta: Default::default(),
+        }
+    }
+}
+
+// Todo: implement all fields.
+impl ItemStackBuilder {
+    pub fn new() -> Self {
+        Self {
+            item: Item::Stone,
+            count: 1.try_into().unwrap(),
+            meta: None,
+        }
+    }
+
+    pub fn with_item(item: Item) -> Self {
+        Self {
+            item,
+            count: 1.try_into().unwrap(),
+            meta: None,
+        }
+    }
+
+    pub fn item(self, item: Item) -> Self {
+        Self { item, ..self }
+    }
+
+    // panics if the count is zero
+    pub fn count(self, count: u32) -> Self {
+        Self {
+            count: count.try_into().unwrap(),
+            ..self
+        }
+    }
+
+    pub fn title(self, title: impl AsRef<str>) -> Self {
+        Self {
+            meta: Some(ItemStackMeta {
+                title: title.as_ref().to_owned(),
+                lore: "".to_owned(),
+                damage: None,
+                repair_cost: None,
+                enchantments: Vec::new(),
+            }),
+            ..self
+        }
+    }
+
+    pub fn damage(mut self, damage: i32) -> Self {
+        let mut meta = self.meta.unwrap_or_default();
+        meta.damage = Some(damage);
+
+        self.meta = Some(meta);
+        self
+    }
+
+    /// If damage is some, then its value is applied, else this is a no-op.
+    pub fn apply_damage(self, damage: Option<i32>) -> Self {
+        match damage {
+            Some(damage) => self.damage(damage),
+            None => self,
+        }
+    }
+
+    pub fn same_meta_as(mut self, other: &Self) -> Self {
+        self.meta = other.meta.clone();
+        self
+    }
+}
+
+impl From<ItemStackBuilder> for ItemStack {
+    fn from(it: ItemStackBuilder) -> Self {
+        Self {
+            item: it.item,
+            count: it.count,
+            meta: it.meta,
+        }
+    }
+}

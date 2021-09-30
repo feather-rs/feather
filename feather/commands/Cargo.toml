@@ -18,6 +18,6 @@ common = { path = "../common", package = "feather-common" }
 ecs = { path = "../ecs", package = "feather-ecs" }
 quill-common = { path = "../../quill/common" }
 libcraft-text = { path = "../../libcraft/text" }
-feather-generated = { path = "../generated" }
+libcraft-items = { path = "../../libcraft/items" }
 libcraft-core = { path = "../../libcraft/core" }
 feather-datapacks = { path = "../datapacks" }

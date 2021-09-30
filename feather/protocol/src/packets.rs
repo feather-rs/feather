@@ -286,7 +286,7 @@ pub trait VariantOf<Enum> {
 
 use crate::io::{Angle, LengthInferredVecU8, Nbt, ShortPrefixedVec, VarInt, VarIntPrefixedVec};
 use crate::Slot;
-use base::{BlockId, BlockPosition};
+use base::BlockId;
 use nbt::Blob;
 use uuid::Uuid;
 

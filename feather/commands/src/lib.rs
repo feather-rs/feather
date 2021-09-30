@@ -9,8 +9,7 @@ use uuid::Uuid;
 
 use common::Game;
 use ecs::{Entity, EntityRef};
-use feather_generated::EntityKind;
-use libcraft_core::Position;
+use libcraft_core::{EntityKind, Position};
 use libcraft_text::{Text, TextComponentBuilder};
 use quill_common::components::{ChatBox, CustomName, Gamemode, Name};
 

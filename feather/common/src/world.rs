@@ -6,7 +6,9 @@ use parking_lot::{RwLockReadGuard, RwLockWriteGuard};
 use uuid::Uuid;
 
 use base::anvil::player::PlayerData;
-use base::{BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, CHUNK_HEIGHT};
+use base::{
+    BlockPosition, Chunk, ChunkHandle, ChunkLock, ChunkPosition, ValidBlockPosition, CHUNK_HEIGHT,
+};
 use blocks::BlockId;
 use ecs::{Ecs, SysResult};
 use worldgen::{ComposableGenerator, WorldGenerator};
@@ -141,7 +143,7 @@ impl World {
     /// if its chunk was not loaded or the coordinates
     /// are out of bounds and thus no operation
     /// was performed.
-    pub fn set_block_at(&self, pos: BlockPosition, block: BlockId) -> bool {
+    pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockId) -> bool {
         self.chunk_map.set_block_at(pos, block)
     }
 
@@ -149,7 +151,7 @@ impl World {
     /// location. If the chunk in which the block
     /// exists is not loaded or the coordinates
     /// are out of bounds, `None` is returned.
-    pub fn block_at(&self, pos: BlockPosition) -> Option<BlockId> {
+    pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockId> {
         self.chunk_map.block_at(pos)
     }
 
@@ -211,21 +213,23 @@ impl ChunkMap {
         self.0.get(&pos).map(Arc::clone)
     }
 
-    pub fn block_at(&self, pos: BlockPosition) -> Option<BlockId> {
+    pub fn block_at(&self, pos: ValidBlockPosition) -> Option<BlockId> {
         check_coords(pos)?;
-        let (x, y, z) = chunk_relative_pos(pos);
-        self.chunk_at(pos.into())
+
+        let (x, y, z) = chunk_relative_pos(pos.into());
+        self.chunk_at(pos.chunk())
             .map(|chunk| chunk.block_at(x, y, z))
             .flatten()
     }
 
-    pub fn set_block_at(&self, pos: BlockPosition, block: BlockId) -> bool {
+    pub fn set_block_at(&self, pos: ValidBlockPosition, block: BlockId) -> bool {
         if check_coords(pos).is_none() {
             return false;
         }
-        let (x, y, z) = chunk_relative_pos(pos);
 
-        self.chunk_at_mut(pos.into())
+        let (x, y, z) = chunk_relative_pos(pos.into());
+
+        self.chunk_at_mut(pos.chunk())
             .map(|mut chunk| chunk.set_block_at(x, y, z, block))
             .is_some()
     }
@@ -247,8 +251,8 @@ impl ChunkMap {
     }
 }
 
-fn check_coords(pos: BlockPosition) -> Option<()> {
-    if pos.y >= 0 && pos.y < CHUNK_HEIGHT as i32 {
+fn check_coords(pos: ValidBlockPosition) -> Option<()> {
+    if pos.y() >= 0 && pos.y() < CHUNK_HEIGHT as i32 {
         Some(())
     } else {
         None
@@ -307,6 +311,8 @@ impl WorldTime {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryInto;
+
     use super::*;
 
     #[test]
@@ -316,8 +322,12 @@ mod tests {
             .chunk_map_mut()
             .insert_chunk(Chunk::new(ChunkPosition::new(0, 0)));
 
-        assert!(world.block_at(BlockPosition::new(0, -1, 0)).is_none());
-        assert!(world.block_at(BlockPosition::new(0, 0, 0)).is_some());
+        assert!(world
+            .block_at(BlockPosition::new(0, -1, 0).try_into().unwrap())
+            .is_none());
+        assert!(world
+            .block_at(BlockPosition::new(0, 0, 0).try_into().unwrap())
+            .is_some());
     }
 
     #[test]

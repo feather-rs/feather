@@ -1,3 +1,4 @@
+use libcraft_items::{Item, ItemStack};
 use std::{
     collections::HashMap,
     fs,
@@ -9,7 +10,6 @@ use nbt::Value;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use generated::{Item, ItemStack};
 use quill_common::components::{
     CanBuild, CanCreativeFly, CreativeFlying, CreativeFlyingSpeed, Instabreak, Invulnerable,
     WalkSpeed,
@@ -70,8 +70,8 @@ pub struct InventorySlot {
 }
 
 impl InventorySlot {
-    /// Converts an `ItemStack` and network protocol index into an `InventorySlot`.
-    pub fn from_network_index(network: usize, stack: ItemStack) -> Option<Self> {
+    /// Converts an [`ItemStack`] and network protocol index into an [`InventorySlot`].
+    pub fn from_network_index(network: usize, stack: &ItemStack) -> Option<Self> {
         let slot = if SLOT_HOTBAR_OFFSET <= network && network < SLOT_HOTBAR_OFFSET + HOTBAR_SIZE {
             // Hotbar
             (network - SLOT_HOTBAR_OFFSET) as i8
@@ -90,8 +90,8 @@ impl InventorySlot {
         Some(Self::from_inventory_index(slot, stack))
     }
 
-    /// Converts an `ItemStack` and inventory position index into an `InventorySlot`.
-    pub fn from_inventory_index(slot: i8, stack: ItemStack) -> Self {
+    /// Converts an [`ItemStack`] and inventory position index into an [`InventorySlot`].
+    pub fn from_inventory_index(slot: i8, stack: &ItemStack) -> Self {
         let nbt = stack.clone().into();
         let nbt = if nbt == Default::default() {
             None
@@ -99,9 +99,9 @@ impl InventorySlot {
             Some(nbt)
         };
         Self {
-            count: stack.count as i8,
+            count: stack.count() as i8,
             slot,
-            item: stack.item.name().to_owned(),
+            item: stack.item().name().to_owned(),
             nbt,
         }
     }
@@ -222,8 +222,8 @@ mod tests {
         };
 
         let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.item, Item::Feather);
-        assert_eq!(item_stack.count, 1);
+        assert_eq!(item_stack.item(), Item::Feather);
+        assert_eq!(item_stack.count(), 1);
     }
 
     #[test]
@@ -236,9 +236,9 @@ mod tests {
         };
 
         let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.item, Item::DiamondAxe);
-        assert_eq!(item_stack.count, 1);
-        assert_eq!(item_stack.damage, Some(42));
+        assert_eq!(item_stack.item(), Item::DiamondAxe);
+        assert_eq!(item_stack.count(), 1);
+        assert_eq!(item_stack.damage_taken(), Some(42));
     }
 
     #[test]
@@ -251,7 +251,7 @@ mod tests {
         };
 
         let item_stack: ItemStack = slot.into();
-        assert_eq!(item_stack.item, Item::Air);
+        assert_eq!(item_stack.item(), Item::Air);
     }
 
     #[test]
@@ -285,7 +285,10 @@ mod tests {
             };
             assert_eq!(slot.convert_index().unwrap(), expected);
             assert_eq!(
-                InventorySlot::from_network_index(expected, ItemStack::new(Item::Stone, 1)),
+                InventorySlot::from_network_index(
+                    expected,
+                    &ItemStack::new(Item::Stone, 1).unwrap()
+                ),
                 Some(slot),
             );
         }

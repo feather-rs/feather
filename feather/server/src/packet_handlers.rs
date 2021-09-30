@@ -52,10 +52,12 @@ pub fn handle_packet(
             handle_chat_message(game, player_id, packet)
         }
 
-        ClientPlayPacket::PlayerDigging(packet) => handle_player_digging(game, packet, player_id),
+        ClientPlayPacket::PlayerDigging(packet) => {
+            handle_player_digging(game, server, packet, player_id)
+        }
 
         ClientPlayPacket::CreativeInventoryAction(packet) => {
-            inventory::handle_creative_inventory_action(player, packet)
+            inventory::handle_creative_inventory_action(player, packet, server)
         }
         ClientPlayPacket::ClickWindow(packet) => {
             inventory::handle_click_window(server, player, packet)

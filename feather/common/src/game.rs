@@ -1,7 +1,6 @@
 use std::{cell::RefCell, mem, rc::Rc, sync::Arc};
 
-use base::{BlockId, BlockPosition, ChunkPosition, Position, Text, Title};
-use datapacks::{RecipeRegistry, TagRegistry};
+use base::{BlockId, ChunkPosition, Position, Text, Title, ValidBlockPosition};
 use ecs::{
     Ecs, Entity, EntityBuilder, HasEcs, HasResources, NoSuchEntity, Resources, SysResult,
     SystemExecutor,
@@ -56,10 +55,6 @@ pub struct Game {
     entity_spawn_callbacks: Vec<EntitySpawnCallback>,
 
     entity_builder: EntityBuilder,
-
-    pub tag_registry: TagRegistry,
-
-    pub recipe_registry: RecipeRegistry,
 }
 
 impl Default for Game {
@@ -80,8 +75,6 @@ impl Game {
             tick_count: 0,
             entity_spawn_callbacks: Vec::new(),
             entity_builder: EntityBuilder::new(),
-            tag_registry: TagRegistry::new(),
-            recipe_registry: RecipeRegistry::new(),
         }
     }
 
@@ -112,7 +105,7 @@ impl Game {
         self.entity_spawn_callbacks.push(Box::new(callback));
     }
 
-    /// Creates an emtpy entity builder to create entities in
+    /// Creates an empty entity builder to create entities in
     /// the ecs world.
     pub fn create_empty_entity_builder(&mut self) -> EntityBuilder {
         mem::take(&mut self.entity_builder)
@@ -189,14 +182,14 @@ impl Game {
     }
 
     /// Gets the block at the given position.
-    pub fn block(&self, pos: BlockPosition) -> Option<BlockId> {
+    pub fn block(&self, pos: ValidBlockPosition) -> Option<BlockId> {
         self.world.block_at(pos)
     }
 
     /// Sets the block at the given position.
     ///
     /// Triggers necessary `BlockChangeEvent`s.
-    pub fn set_block(&mut self, pos: BlockPosition, block: BlockId) -> bool {
+    pub fn set_block(&mut self, pos: ValidBlockPosition, block: BlockId) -> bool {
         let was_successful = self.world.set_block_at(pos, block);
         if was_successful {
             self.ecs.insert_event(BlockChangeEvent::single(pos));
@@ -234,7 +227,7 @@ impl Game {
 
     /// Breaks the block at the given position, propagating any
     /// necessary block updates.
-    pub fn break_block(&mut self, pos: BlockPosition) -> bool {
+    pub fn break_block(&mut self, pos: ValidBlockPosition) -> bool {
         self.set_block(pos, BlockId::air())
     }
 

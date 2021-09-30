@@ -1,5 +1,5 @@
 use arrayvec::ArrayVec;
-use generated::{Item, ItemStack};
+use libcraft_items::{Item, ItemStack, ItemStackBuilder};
 use serde::ser::Error;
 use serde::{Deserialize, Serialize, Serializer};
 use thiserror::Error;
@@ -219,8 +219,8 @@ where
             Some(nbt)
         };
         Self {
-            count: stack.count as i8,
-            item: stack.item.name().to_owned(),
+            count: stack.count() as i8,
+            item: stack.item().name().to_owned(),
             nbt,
         }
     }
@@ -235,12 +235,22 @@ pub struct ItemNbt {
 }
 
 impl ItemNbt {
-    /// Create an `ItemStack` of the specified item and amount, setting any nbt present.
+    /// Create an `ItemStack` of the specified item and amount, setting any NBT present.
+    ///
+    /// # Panics
+    /// Panics if `count` is zero.
     pub fn item_stack(nbt: &Option<Self>, item: Item, count: u8) -> ItemStack {
-        ItemStack {
-            count: count as u32,
-            item,
-            damage: nbt.as_ref().map(|n| n.damage).flatten().map(|x| x as u32),
+        match nbt {
+            Some(ItemNbt {
+                damage: Some(damage),
+            }) => ItemStackBuilder::with_item(item)
+                .count(count as u32)
+                .damage(*damage)
+                .into(),
+
+            Some(ItemNbt { damage: None }) | None => {
+                ItemStackBuilder::with_item(item).count(count as u32).into()
+            }
         }
     }
 }
@@ -252,7 +262,7 @@ where
     fn from(s: S) -> Self {
         let stack = s.borrow();
         Self {
-            damage: stack.damage.map(|d| d as i32),
+            damage: stack.damage_taken().map(|d| d as i32),
         }
     }
 }

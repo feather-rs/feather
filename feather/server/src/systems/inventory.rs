@@ -19,7 +19,11 @@ fn inventory_change(game: &mut Game, server: &mut Server) -> SysResult {
             client.send_slot_item(
                 0,
                 *slot as i16,
-                window.item(*slot).ok().map(|item| item.clone()).flatten(),
+                window
+                    .item(*slot)
+                    .ok()
+                    .map(|item| item.clone())
+                    .unwrap_or_default(),
             )
         }
     }
