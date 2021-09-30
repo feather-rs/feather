@@ -2,9 +2,9 @@
 All events in this file are triggered when there is a change in a certain value.
 */
 
+use crate::components::PreviousGamemode;
 use libcraft_core::Gamemode;
 use serde::{Deserialize, Serialize};
-use crate::components::PreviousGamemode;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CreativeFlyingEvent {

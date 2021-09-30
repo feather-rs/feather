@@ -63,6 +63,13 @@ pub struct CommandCtx {
 }
 
 impl CommandCtx {
+    pub fn send_message(&self, message: impl Into<Text>) {
+        self.game
+            .ecs
+            .get_mut::<ChatBox>(self.sender)
+            .unwrap()
+            .send_system(message)
+    }
     pub fn find_entities_by_selector(&self, selector: &EntitySelector) -> Vec<Entity> {
         match selector {
             EntitySelector::Selector(selector) => {
@@ -70,7 +77,7 @@ impl CommandCtx {
                     .game
                     .ecs
                     .get::<Position>(self.sender)
-                    .map(|pos| (*pos).clone())
+                    .map(|pos| *pos)
                     .unwrap_or_default();
                 let mut sort = EntitySelectorSorting::Arbitrary;
                 let mut entities = if selector.contains(&EntitySelectorPredicate::Sender) {
@@ -88,7 +95,7 @@ impl CommandCtx {
                 .filter(|(_, entity)| {
                     let pos = entity.get::<Position>().unwrap();
 
-                    let mut origin = sender_position.clone();
+                    let mut origin = sender_position;
                     let mut dpos = [None; 3];
                     let mut distance = None;
 
@@ -124,7 +131,9 @@ impl CommandCtx {
                             EntitySelectorPredicate::Name(name) => entity
                                 .get::<Name>()
                                 .map(|name| (***name).to_string())
-                                .or(entity.get::<CustomName>().map(|name| (***name).to_string()))
+                                .or_else(|_| {
+                                    entity.get::<CustomName>().map(|name| (***name).to_string())
+                                })
                                 .map(|n| name.0 == (n == name.1))
                                 .unwrap_or(false),
                             EntitySelectorPredicate::Predicate(_) => todo!(),
@@ -185,10 +194,11 @@ impl CommandCtx {
                             return false;
                         }
                     }
-                    if dpos.iter().all(Option::is_none) && distance.is_some() {
-                        if !distance.unwrap().contains(&pos.distance_to(origin)) {
-                            return false;
-                        }
+                    if dpos.iter().all(Option::is_none)
+                        && distance.is_some()
+                        && !distance.unwrap().contains(&pos.distance_to(origin))
+                    {
+                        return false;
                     }
                     true
                 })
@@ -210,7 +220,10 @@ impl CommandCtx {
                         .partial_cmp(&by(entity_id2, entity2))
                         .unwrap()
                 });
-                entities.into_iter().map(|(entity_id, _)| entity_id).collect()
+                entities
+                    .into_iter()
+                    .map(|(entity_id, _)| entity_id)
+                    .collect()
             }
             EntitySelector::Name(name) => self
                 .game

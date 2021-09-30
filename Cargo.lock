@@ -472,10 +472,11 @@ dependencies = [
 [[package]]
 name = "commands"
 version = "0.1.0"
-source = "git+https://github.com/Iaiao/commands?rev=7f7e4be2f7ea864399633b6a6ba4602872b42797#7f7e4be2f7ea864399633b6a6ba4602872b42797"
+source = "git+https://github.com/Iaiao/commands?rev=52f643f9d91c369601a85fa794502c508984f4ff#52f643f9d91c369601a85fa794502c508984f4ff"
 dependencies = [
  "anyhow",
  "log",
+ "quartz_nbt",
  "serde",
  "slab",
  "uuid",
@@ -838,6 +839,7 @@ dependencies = [
  "anyhow",
  "commands",
  "feather-common",
+ "feather-datapacks",
  "feather-ecs",
  "feather-generated",
  "libcraft-core",
@@ -2184,6 +2186,29 @@ name = "ptr_meta_derive"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "16b845dbfca988fa33db069c0e230574d15a3088f147a87b64c7589eb662c9ac"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "quartz_nbt"
+version = "0.2.4"
+source = "git+https://github.com/Iaiao/quartz_nbt?branch=parse_and_size#d4b6e302a61ec2a6c98fea3c5b325beb5fd9292b"
+dependencies = [
+ "anyhow",
+ "byteorder",
+ "cesu8",
+ "flate2",
+ "quartz_nbt_macros",
+ "serde",
+]
+
+[[package]]
+name = "quartz_nbt_macros"
+version = "0.1.1"
+source = "git+https://github.com/Iaiao/quartz_nbt?branch=parse_and_size#d4b6e302a61ec2a6c98fea3c5b325beb5fd9292b"
 dependencies = [
  "proc-macro2",
  "quote",

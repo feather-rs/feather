@@ -1,14 +1,21 @@
 //! The implementations of various commands.
 
+use std::str::FromStr;
+
 use commands::arguments::*;
 use commands::command;
 use commands::dispatcher::{CommandDispatcher, CreateCommand};
 use commands::node::CompletionType;
+use smallvec::SmallVec;
 
+use common::{Game, Window};
 use ecs::{Ecs, Entity};
-use libcraft_text::Text;
+use feather_datapacks::NamespacedId;
+use feather_generated::ItemStack;
+use libcraft_text::{Text, TextComponentBuilder};
 use quill_common::components::{ChatBox, Gamemode, Name, PreviousGamemode};
-use quill_common::events::GamemodeUpdateEvent;
+use quill_common::entities::Player;
+use quill_common::events::{GamemodeUpdateEvent, InventoryUpdateEvent};
 
 use crate::CommandCtx;
 
@@ -72,13 +79,384 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
         *old_mut = PreviousGamemode(Some(*new_mut));
         *new_mut = gamemode;
 
-        let (old, new) = (old_mut.clone(), new_mut.clone());
+        let (old, new) = (*old_mut, *new_mut);
         drop(new_mut);
         drop(old_mut);
 
         ecs.insert_entity_event(entity, GamemodeUpdateEvent { old, new })?;
 
         Ok(())
+    }
+
+    // /clear
+    dispatcher
+        .create_command("clear")
+        .unwrap()
+        .with(|command| {
+            command.executes(|_, mut context| {
+                if context.game.ecs.get::<Player>(context.sender).is_ok() {
+                    // Go through the player's inventory and set all the slots to no items.
+                    // Also, keep track of how many items we delete.
+                    let mut count = 0;
+                    let sender = context.sender;
+                    if clear_items(&mut context, sender, None, None, &mut count).is_err() {
+                        return false;
+                    }
+                    // If count is zero, the player's inventory was empty and the command fails
+                    // "No items were found on player {0}."
+                    if count == 0 {
+                        context.send_message(
+                            Text::translate_with(
+                                "clear.failed.single",
+                                vec![(&***context.game.ecs.get::<Name>(context.sender).unwrap())
+                                    .to_string()],
+                            )
+                            .red(),
+                        );
+                        return false;
+                    }
+                    // If the count is not zero, we return the count of items we deleted. Command succeeds.
+                    // "Removed {1} items from player {0}"
+                    context.send_message(Text::translate_with(
+                        "commands.clear.success.single",
+                        vec![
+                            count.to_string(),
+                            (&***context.game.ecs.get::<Name>(context.sender).unwrap()).to_string(),
+                        ],
+                    ));
+                    true
+                } else {
+                    // TODO add this check to the dispatcher
+                    context.send_message(Text::translate("permissions.requires.player").red());
+                    false
+                }
+            })
+        })
+        .with(|command| {
+            command
+                .with_argument(
+                    "target",
+                    Box::new(EntityArgument::PLAYERS),
+                    CompletionType::Custom("entity".to_string()),
+                )
+                .executes(|args, mut context| {
+                    let mut args = args.into_iter();
+                    let selector = *args.next().unwrap().downcast::<EntitySelector>().unwrap();
+
+                    let entities = context.find_entities_by_selector(&selector);
+                    let mut count = 0;
+                    for entity in &entities {
+                        if clear_items(&mut context, *entity, None, None, &mut count).is_err() {
+                            return false;
+                        }
+                    }
+
+                    match (count, entities.len()) {
+                        (0, 1) => {
+                            context.send_message(
+                                Text::translate_with(
+                                    "clear.failed.single",
+                                    vec![(&***context
+                                        .game
+                                        .ecs
+                                        .get::<Name>(*entities.first().unwrap())
+                                        .unwrap())
+                                        .to_string()],
+                                )
+                                .red(),
+                            );
+                            false
+                        }
+                        (0, entities) => {
+                            context.send_message(
+                                Text::translate_with(
+                                    "clear.failed.multiple",
+                                    vec![entities.to_string()],
+                                )
+                                .red(),
+                            );
+                            false
+                        }
+                        (count, 1) => {
+                            context.send_message(Text::translate_with(
+                                "commands.clear.success.single",
+                                vec![
+                                    count.to_string(),
+                                    (&***context
+                                        .game
+                                        .ecs
+                                        .get::<Name>(*entities.first().unwrap())
+                                        .unwrap())
+                                        .to_string(),
+                                ],
+                            ));
+                            true
+                        }
+                        (count, entities) => {
+                            context.send_message(Text::translate_with(
+                                "commands.clear.success.multiple",
+                                vec![count.to_string(), entities.to_string()],
+                            ));
+                            false
+                        }
+                    }
+                })
+        })
+        .with(|command| {
+            command
+                .with_argument(
+                    "target",
+                    Box::new(EntityArgument::PLAYERS),
+                    CompletionType::Custom("entity".to_string()),
+                )
+                .with_argument(
+                    "item",
+                    Box::new(ItemPredicateArgument),
+                    CompletionType::Custom("item_predicate".to_string()),
+                )
+                .executes(|args, mut context| {
+                    let mut args = args.into_iter();
+                    let selector = *args.next().unwrap().downcast::<EntitySelector>().unwrap();
+                    let item = *args.next().unwrap().downcast::<ItemPredicate>().unwrap();
+
+                    let entities = context.find_entities_by_selector(&selector);
+                    let mut count = 0;
+                    for entity in &entities {
+                        if clear_items(&mut context, *entity, Some(&item), None, &mut count)
+                            .is_err()
+                        {
+                            return false;
+                        }
+                    }
+
+                    match (count, entities.len()) {
+                        (0, 1) => {
+                            context.send_message(
+                                Text::translate_with(
+                                    "clear.failed.single",
+                                    vec![(&***context
+                                        .game
+                                        .ecs
+                                        .get::<Name>(*entities.first().unwrap())
+                                        .unwrap())
+                                        .to_string()],
+                                )
+                                .red(),
+                            );
+                            false
+                        }
+                        (0, entities) => {
+                            context.send_message(
+                                Text::translate_with(
+                                    "clear.failed.multiple",
+                                    vec![entities.to_string()],
+                                )
+                                .red(),
+                            );
+                            false
+                        }
+                        (count, 1) => {
+                            context.send_message(Text::translate_with(
+                                "commands.clear.success.single",
+                                vec![
+                                    count.to_string(),
+                                    (&***context
+                                        .game
+                                        .ecs
+                                        .get::<Name>(*entities.first().unwrap())
+                                        .unwrap())
+                                        .to_string(),
+                                ],
+                            ));
+                            true
+                        }
+                        (count, entities) => {
+                            context.send_message(Text::translate_with(
+                                "commands.clear.success.multiple",
+                                vec![count.to_string(), entities.to_string()],
+                            ));
+                            false
+                        }
+                    }
+                })
+        })
+        .with(|command| {
+            command
+                .with_argument(
+                    "target",
+                    Box::new(EntityArgument::PLAYERS),
+                    CompletionType::Custom("entity".to_string()),
+                )
+                .with_argument(
+                    "item",
+                    Box::new(ItemPredicateArgument),
+                    CompletionType::Custom("item_predicate".to_string()),
+                )
+                .with_argument(
+                    "maxCount",
+                    Box::new(IntegerArgument::new(0..=i32::MAX)),
+                    CompletionType::Custom("none".to_string()),
+                )
+                .executes(|args, mut context| {
+                    let mut args = args.into_iter();
+                    let selector = *args.next().unwrap().downcast::<EntitySelector>().unwrap();
+                    let item = *args.next().unwrap().downcast::<ItemPredicate>().unwrap();
+                    let max_count = *args.next().unwrap().downcast::<i32>().unwrap();
+
+                    let entities = context.find_entities_by_selector(&selector);
+                    let mut count = 0;
+                    for entity in &entities {
+                        if clear_items(
+                            &mut context,
+                            *entity,
+                            Some(&item),
+                            Some(max_count),
+                            &mut count,
+                        )
+                        .is_err()
+                        {
+                            return false;
+                        }
+                    }
+
+                    if max_count == 0 {
+                        match (count, entities.len()) {
+                            (count, 1) => {
+                                context.send_message(Text::translate_with(
+                                    "commands.clear.test.single",
+                                    vec![
+                                        count.to_string(),
+                                        (&***context
+                                            .game
+                                            .ecs
+                                            .get::<Name>(*entities.first().unwrap())
+                                            .unwrap())
+                                            .to_string(),
+                                    ],
+                                ));
+                                true
+                            }
+                            (count, entities) => {
+                                context.send_message(Text::translate_with(
+                                    "commands.clear.test.multiple",
+                                    vec![count.to_string(), entities.to_string()],
+                                ));
+                                false
+                            }
+                        }
+                    } else {
+                        match (count, entities.len()) {
+                            (0, 1) => {
+                                context.send_message(
+                                    Text::translate_with(
+                                        "clear.failed.single",
+                                        vec![(&***context
+                                            .game
+                                            .ecs
+                                            .get::<Name>(*entities.first().unwrap())
+                                            .unwrap())
+                                            .to_string()],
+                                    )
+                                    .red(),
+                                );
+                                false
+                            }
+                            (0, entities) => {
+                                context.send_message(
+                                    Text::translate_with(
+                                        "clear.failed.multiple",
+                                        vec![entities.to_string()],
+                                    )
+                                    .red(),
+                                );
+                                false
+                            }
+                            (count, 1) => {
+                                context.send_message(Text::translate_with(
+                                    "commands.clear.success.single",
+                                    vec![
+                                        count.to_string(),
+                                        (&***context
+                                            .game
+                                            .ecs
+                                            .get::<Name>(*entities.first().unwrap())
+                                            .unwrap())
+                                            .to_string(),
+                                    ],
+                                ));
+                                true
+                            }
+                            (count, entities) => {
+                                context.send_message(Text::translate_with(
+                                    "commands.clear.success.multiple",
+                                    vec![count.to_string(), entities.to_string()],
+                                ));
+                                false
+                            }
+                        }
+                    }
+                })
+        });
+
+    /// Go through a player's inventory and set all the slots that match "item" to empty, up to maxcount items removed.
+    /// Also, keep track of how many items we delete total in the variable count.
+    /// Will panic if entity does not have an inventory
+    fn clear_items(
+        ctx: &mut CommandCtx,
+        player: Entity,
+        item: Option<&ItemPredicate>,
+        max_count: Option<i32>,
+        count: &mut i32,
+    ) -> anyhow::Result<()> {
+        let inventory = ctx.game.ecs.get_mut::<Window>(player).unwrap();
+        let mut changed_items: SmallVec<[usize; 2]> = SmallVec::new();
+        // TODO don't clone items, they may have big NBT tags
+        for (index, slot) in inventory.inner().to_vec().into_iter().enumerate() {
+            if let Some(mut stack) = slot {
+                if let Some(predicate) = item.as_ref() {
+                    if !item_matches(&ctx.game, &stack, predicate) {
+                        continue;
+                    }
+                }
+                let max_count = max_count.unwrap_or(i32::MAX);
+                if max_count == 0 {
+                    *count += stack.count as i32;
+                } else if (stack.count as i32) <= max_count - *count {
+                    *count += stack.count as i32;
+                    inventory.set_item(index, None)?;
+                    changed_items.push(index);
+                } else {
+                    stack.count -= (max_count - *count) as u32;
+                    inventory.set_item(index, Some(stack))?;
+                    *count = max_count;
+                    changed_items.push(index);
+                    break;
+                }
+            }
+        }
+        drop(inventory);
+        if !changed_items.is_empty() {
+            ctx.game
+                .ecs
+                .insert_entity_event(player, InventoryUpdateEvent(changed_items.into_vec()))?;
+        }
+        Ok(())
+    }
+
+    fn item_matches(game: &Game, item: &ItemStack, predicate: &ItemPredicate) -> bool {
+        #[allow(clippy::needless_bool)]
+        if !match &predicate.predicate_type {
+            ItemPredicateType::Tag(s) => game.tag_registry.check_item_tag(
+                item.item,
+                &NamespacedId::from_str(s.to_string().as_str()).unwrap(),
+            ),
+            ItemPredicateType::Item(s) => item.item.name() == s.value(),
+        } {
+            false
+        } else {
+            // TODO compare nbt tags
+            true
+        }
     }
 }
 
@@ -346,211 +724,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
 //     //    .try_send(())?;
 //
 //     Ok(None)
-// }
-//
-// #[allow(clippy::enum_variant_names)]
-// #[derive(Debug, Error)]
-// pub enum ClearError {
-//     #[error("command has to be run from a player")]
-//     NotPlayer,
-//     #[error("No items were found on player {0}")]
-//     NoItems(String),
-//     #[error("No items were found on {0}")]
-//     NoItemsMultiplayer(String),
-//     #[error(
-//         "Only players may be affected by this command, but the provided selector includes entities"
-//     )]
-//     NoEntities,
-// }
-//
-// #[command(usage = "clear")]
-// pub fn clear_1(ctx: &mut CommandCtx) -> anyhow::Result<Option<String>> {
-//     if ctx.ecs.get::<Player>(ctx.sender).is_ok() {
-//         // Go through the player's inventory and set all the slots to no items.
-//         // Also, keep track of how many items we delete.
-//         let mut count = 0;
-//         clear_items(ctx, ctx.sender, None, i32::MAX, &mut count)?;
-//         // If count is zero, the player's inventory was empty and the command fails
-//         // "No items were found on player {0}."
-//         if count == 0 {
-//             let name = ctx.ecs.get::<Name>(ctx.sender).unwrap();
-//             return Err(ClearError::NoItems((**name).to_owned()).into());
-//         }
-//         // If the count is not zero, we return the count of items we deleted. Command succeeds.
-//         // "Removed {1} items from player {0}"
-//         Ok(Some(format!(
-//             "Removed {1} items from player {0}",
-//             *ctx.ecs.get::<Name>(ctx.sender).unwrap(),
-//             count
-//         )))
-//     } else {
-//         Err(ClearError::NotPlayer.into())
-//     }
-// }
-//
-// #[command(usage = "clear <targets>")]
-// pub fn clear_2(ctx: &mut CommandCtx, targets: EntitySelector) -> anyhow::Result<Option<String>> {
-//     let entities = find_selected_entities(ctx, &targets.requirements)?;
-//     let mut players = true;
-//     for entity in &entities {
-//         players &= ctx.ecs.get::<Player>(*entity).is_ok();
-//     }
-//     if players {
-//         let mut count = 0;
-//         for entity in &entities {
-//             clear_items(ctx, *entity, None, i32::MAX, &mut count)?;
-//         }
-//         // If count is zero, the everybody's inventory was empty and the command fails
-//         // "No items were found on {0} players."
-//         if count == 0 {
-//             return Err(ClearError::NoItemsMultiplayer(targets.entities_to_string(
-//                 ctx,
-//                 &entities.into_vec(),
-//                 true,
-//             ))
-//             .into());
-//         }
-//         // If the count is not zero, we return the count of items we deleted. Command succeeds.
-//         // "Removed {1} items from {0} players"
-//         Ok(Some(format!(
-//             "Removed {1} items from {0}",
-//             targets.entities_to_string(ctx, &entities.into_vec(), true),
-//             count
-//         )))
-//     } else {
-//         Err(ClearError::NoEntities.into())
-//     }
-// }
-//
-// #[command(usage = "clear <targets> <item>")]
-// pub fn clear_3(
-//     ctx: &mut CommandCtx,
-//     targets: EntitySelector,
-//     item: ItemArgument,
-// ) -> anyhow::Result<Option<String>> {
-//     let entities = find_selected_entities(ctx, &targets.requirements)?;
-//     let mut players = true;
-//     for entity in &entities {
-//         players &= ctx.ecs.get::<Player>(*entity).is_ok();
-//     }
-//     if players {
-//         let mut count = 0;
-//         for entity in &entities {
-//             clear_items(ctx, *entity, Some(item.0), i32::MAX, &mut count)?;
-//         }
-//         // If count is zero, the everybody's inventory was empty and the command fails
-//         // "No items were found on {0} players."
-//         if count == 0 {
-//             return Err(ClearError::NoItemsMultiplayer(targets.entities_to_string(
-//                 ctx,
-//                 &entities.into_vec(),
-//                 true,
-//             ))
-//             .into());
-//         }
-//         // If the count is not zero, we return the count of items we deleted. Command succeeds.
-//         // "Removed {1} items from {0} players"
-//         Ok(Some(format!(
-//             "Removed {1} items from {0}",
-//             targets.entities_to_string(ctx, &entities.into_vec(), true),
-//             count
-//         )))
-//     } else {
-//         Err(ClearError::NoEntities.into())
-//     }
-// }
-//
-// #[command(usage = "clear <targets> <item> <maxcount>")]
-// pub fn clear_4(
-//     ctx: &mut CommandCtx,
-//     targets: EntitySelector,
-//     item: ItemArgument,
-//     maxcount: PositiveI32Argument,
-// ) -> anyhow::Result<Option<String>> {
-//     let entities = find_selected_entities(ctx, &targets.requirements)?;
-//     let mut players = true;
-//     for entity in &entities {
-//         players &= ctx.ecs.get::<Player>(*entity).is_ok();
-//     }
-//     if players {
-//         let mut count = 0;
-//         for entity in &entities {
-//             clear_items(ctx, *entity, Some(item.0), maxcount.0, &mut count)?;
-//         }
-//         // If count is zero, the everybody's inventory was empty and the command fails
-//         // "No items were found on {0} players."
-//         if count == 0 {
-//             return Err(ClearError::NoItemsMultiplayer(targets.entities_to_string(
-//                 ctx,
-//                 &entities.into_vec(),
-//                 true,
-//             ))
-//             .into());
-//         }
-//         // If maxcount is 0, we report not that we removed items, only that we found them.
-//         if maxcount.0 == 0 {
-//             Ok(Some(format!(
-//                 "Found {1} matching items on {0}",
-//                 targets.entities_to_string(ctx, &entities.into_vec(), true),
-//                 count
-//             )))
-//         } else {
-//             // If the count is not zero, we return the count of items we deleted. Command succeeds.
-//             // "Removed {1} items from {0} players"
-//             Ok(Some(format!(
-//                 "Removed {1} items from {0}",
-//                 targets.entities_to_string(ctx, &entities.into_vec(), true),
-//                 count
-//             )))
-//         }
-//     } else {
-//         Err(ClearError::NoEntities.into())
-//     }
-// }
-//
-// /// Go through a player's inventory and set all the slots that match "item" to empty, up to maxcount items removed.
-// /// Also, keep track of how many items we delete total in the variable count.
-// /// Will panic if entity does not have an inventory
-// fn clear_items(
-//     ctx: &mut CommandCtx,
-//     player: Entity,
-//     item: Option<Item>,
-//     maxcount: i32,
-//     count: &mut i32,
-// ) -> anyhow::Result<()> {
-//     let inventory = ctx.ecs.get_mut::<Window>(player).unwrap();
-//     let mut changed_items: SmallVec<[usize; 2]> = SmallVec::new();
-//     for (index, slot) in inventory.inner().to_vec().into_iter().enumerate() {
-//         if let Some(mut stack) = slot {
-//             if let Some(item_inner) = item {
-//                 if stack.item != item_inner {
-//                     continue;
-//                 }
-//             }
-//             if maxcount == 0 {
-//                 *count += stack.count as i32;
-//             } else if (stack.count as i32) <= maxcount - *count {
-//                 *count += stack.count as i32;
-//                 inventory.set_item(index, None)?;
-//                 changed_items.push(index);
-//             } else {
-//                 stack.count -= (maxcount - *count) as u32;
-//                 inventory.set_item(index, Some(stack))?;
-//                 *count = maxcount;
-//                 changed_items.push(index);
-//                 break;
-//             }
-//         }
-//     }
-//
-//     drop(inventory);
-//
-//     if !changed_items.is_empty() {
-//         ctx.ecs
-//             .insert_entity_event(player, InventoryUpdateEvent(changed_items.into_vec()))?;
-//     }
-//
-//     Ok(())
 // }
 //
 // #[command(usage = "seed")]
