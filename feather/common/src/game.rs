@@ -104,7 +104,7 @@ impl Game {
         self.entity_spawn_callbacks.push(Box::new(callback));
     }
 
-    /// Creates an emtpy entity builder to create entities in
+    /// Creates an empty entity builder to create entities in
     /// the ecs world.
     pub fn create_empty_entity_builder(&mut self) -> EntityBuilder {
         mem::take(&mut self.entity_builder)
