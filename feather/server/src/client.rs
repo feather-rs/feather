@@ -10,30 +10,38 @@ use flume::{Receiver, Sender};
 use uuid::Uuid;
 
 use base::{
-    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, ItemStack, Position,
+    BlockId, ChunkHandle, ChunkPosition, EntityKind, EntityMetadata, Gamemode, Position,
     ProfileProperty, Text, ValidBlockPosition,
 };
 use common::{
     chat::{ChatKind, ChatMessage},
     Window,
 };
+use libcraft_items::InventorySlot;
 use packets::server::{Particle, SetSlot, SpawnLivingEntity, UpdateLight, WindowConfirmation};
-use protocol::packets::server::{HeldItemChange, PlayerAbilities};
+use protocol::packets::server::{
+    EntityPosition, EntityPositionAndRotation, EntityTeleport, HeldItemChange, PlayerAbilities,
+};
 use protocol::{
     packets::{
         self,
         server::{
             AddPlayer, Animation, BlockChange, ChatPosition, ChunkData, ChunkDataKind,
-            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, EntityTeleport, JoinGame,
-            KeepAlive, PlayerInfo, PlayerPositionAndLook, PluginMessage, SendEntityMetadata,
-            SpawnPlayer, Title, UnloadChunk, UpdateViewPosition, WindowItems,
+            DestroyEntities, Disconnect, EntityAnimation, EntityHeadLook, JoinGame, KeepAlive,
+            PlayerInfo, PlayerPositionAndLook, PluginMessage, SendEntityMetadata, SpawnPlayer,
+            Title, UnloadChunk, UpdateViewPosition, WindowItems,
         },
     },
     ClientPlayPacket, Nbt, ProtocolVersion, ServerPlayPacket, Writeable,
 };
 use quill_common::components::{OnGround, PreviousGamemode};
 
-use crate::{initial_handler::NewPlayer, network_id_registry::NetworkId, Options};
+use crate::{
+    entities::{PreviousOnGround, PreviousPosition},
+    initial_handler::NewPlayer,
+    network_id_registry::NetworkId,
+    Options,
+};
 use slab::Slab;
 
 /// Max number of chunks to send to a client per tick.
@@ -379,7 +387,9 @@ impl Client {
         &self,
         network_id: NetworkId,
         position: Position,
+        prev_position: PreviousPosition,
         on_ground: OnGround,
+        prev_on_ground: PreviousOnGround,
     ) {
         if self.network_id == Some(network_id) {
             // This entity is the client. Only update
@@ -390,23 +400,50 @@ impl Client {
             }
             return;
         }
-        // Consider using the relative movement packets in the future.
-        // (Entity Teleport works fine, but the relative movement packets
-        // save bandwidth.)
-        self.send_packet(EntityTeleport {
-            entity_id: network_id.0,
-            x: position.x,
-            y: position.y,
-            z: position.z,
-            yaw: position.yaw,
-            pitch: position.pitch,
-            on_ground: on_ground.0,
-        });
-        // Needed for head orientation
-        self.send_packet(EntityHeadLook {
-            entity_id: network_id.0,
-            head_yaw: position.yaw,
-        });
+
+        let no_change_yaw = (position.yaw - prev_position.0.yaw).abs() < 0.001;
+        let no_change_pitch = (position.pitch - prev_position.0.pitch).abs() < 0.001;
+
+        // If the entity jumps or falls we should send a teleport packet instead to keep relative movement in sync.
+        if on_ground != prev_on_ground.0 {
+            self.send_packet(EntityTeleport {
+                entity_id: network_id.0,
+                x: position.x,
+                y: position.y,
+                z: position.z,
+                yaw: position.yaw,
+                pitch: position.pitch,
+                on_ground: *on_ground,
+            });
+
+            return;
+        }
+
+        if no_change_yaw && no_change_pitch {
+            self.send_packet(EntityPosition {
+                entity_id: network_id.0,
+                delta_x: ((position.x * 32.0 - prev_position.0.x * 32.0) * 128.0) as i16,
+                delta_y: ((position.y * 32.0 - prev_position.0.y * 32.0) * 128.0) as i16,
+                delta_z: ((position.z * 32.0 - prev_position.0.z * 32.0) * 128.0) as i16,
+                on_ground: on_ground.0,
+            });
+        } else {
+            self.send_packet(EntityPositionAndRotation {
+                entity_id: network_id.0,
+                delta_x: ((position.x * 32.0 - prev_position.0.x * 32.0) * 128.0) as i16,
+                delta_y: ((position.y * 32.0 - prev_position.0.y * 32.0) * 128.0) as i16,
+                delta_z: ((position.z * 32.0 - prev_position.0.z * 32.0) * 128.0) as i16,
+                yaw: position.yaw,
+                pitch: position.pitch,
+                on_ground: on_ground.0,
+            });
+
+            // Needed for head orientation
+            self.send_packet(EntityHeadLook {
+                entity_id: network_id.0,
+                head_yaw: position.yaw,
+            });
+        }
     }
 
     pub fn send_keepalive(&self) {
@@ -492,12 +529,12 @@ impl Client {
         self.send_packet(packet);
     }
 
-    pub fn set_slot(&self, slot: i16, item: Option<ItemStack>) {
+    pub fn set_slot(&self, slot: i16, item: &InventorySlot) {
         log::trace!("Setting slot {} of {} to {:?}", slot, self.username, item);
         self.send_packet(SetSlot {
             window_id: 0,
             slot,
-            slot_data: item,
+            slot_data: item.clone(),
         });
     }
 
@@ -516,7 +553,7 @@ impl Client {
         })
     }
 
-    pub fn set_cursor_slot(&self, item: Option<ItemStack>) {
+    pub fn set_cursor_slot(&self, item: &InventorySlot) {
         log::trace!("Setting cursor slot of {} to {:?}", self.username, item);
         self.set_slot(-1, item);
     }
@@ -527,6 +564,16 @@ impl Client {
         self.send_packet(SendEntityMetadata {
             entity_id: netowrk_id.0,
             entries: entity_metadata,
+        });
+    }
+
+    pub fn send_entity_metadata(&self, network_id: NetworkId, metadata: EntityMetadata) {
+        if self.network_id == Some(network_id) {
+            return;
+        }
+        self.send_packet(SendEntityMetadata {
+            entity_id: network_id.0,
+            entries: metadata,
         });
     }
 

@@ -1,6 +1,6 @@
 use num_traits::cast::ToPrimitive;
 
-use base::anvil::entity::{AnimalData, BaseEntityData, ItemNbt};
+use base::anvil::entity::{AnimalData, BaseEntityData};
 use base::anvil::player::{InventorySlot, PlayerAbilities, PlayerData};
 use base::{Gamemode, Inventory, Position, Text};
 use common::entities::player::HotbarSlot;
@@ -127,21 +127,24 @@ fn create_player_data(
             .to_vec()
             .iter()
             .enumerate()
-            .filter_map(|(slot, maybe_item)| maybe_item.as_ref().map(|item| (slot, item)))
-            .map(|(slot, item)| InventorySlot {
-                count: item.count as i8,
-                slot: slot as i8,
-                item: item.item.name().to_owned(),
-                nbt: {
-                    let nbt = ItemNbt {
-                        damage: item.damage.map(|damage| damage as i32),
-                    };
-                    if nbt.damage.is_none() {
-                        None
-                    } else {
-                        Some(nbt)
+            // Here we filter out all empty slots.
+            .filter_map(|(slot, item)| {
+                match item {
+                    libcraft_items::InventorySlot::Filled(item) => {
+                        let res = InventorySlot::from_network_index(slot, item);
+                        match res {
+                            Some(i) => Some(i),
+                            None => {
+                                log::error!("Failed to convert the slot into anvil format.");
+                                None
+                            }
+                        }
                     }
-                },
+                    libcraft_items::InventorySlot::Empty => {
+                        // Empty items are filtered out.
+                        None
+                    }
+                }
             })
             .collect(),
         held_item: hotbar_slot.get() as i32,

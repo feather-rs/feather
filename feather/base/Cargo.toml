@@ -12,13 +12,15 @@ bitflags = "1"
 bitvec = "0.21"
 blocks = { path = "../blocks", package = "feather-blocks" }
 byteorder = "1"
-generated = { path = "../generated", package = "feather-generated" }
 hematite-nbt = { git = "https://github.com/PistonDevelopers/hematite_nbt" }
+
 libcraft-blocks = { path = "../../libcraft/blocks" }
 libcraft-core = { path = "../../libcraft/core" }
 libcraft-items = { path = "../../libcraft/items" }
 libcraft-particles = { path = "../../libcraft/particles" }
-libcraft-text = { path = "../../libcraft/text" } 
+libcraft-text = { path = "../../libcraft/text" }
+libcraft-inventory = { path = "../../libcraft/inventory" } 
+
 nom = "5"
 nom_locate = "2"
 num-derive = "0.3"

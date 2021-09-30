@@ -4,7 +4,7 @@
 
 use crate::{Direction, ValidBlockPosition};
 use bitflags::bitflags;
-use generated::ItemStack;
+use libcraft_items::InventorySlot;
 use std::collections::BTreeMap;
 use uuid::Uuid;
 
@@ -20,7 +20,7 @@ pub const META_INDEX_IS_CUSTOM_NAME_VISIBLE: u8 = 3;
 pub const META_INDEX_IS_SILENT: u8 = 4;
 pub const META_INDEX_NO_GRAVITY: u8 = 5;
 
-pub const META_INDEX_ITEM_SLOT: u8 = 6;
+pub const META_INDEX_POSE: u8 = 6;
 
 pub const META_INDEX_FALLING_BLOCK_SPAWN_POSITION: u8 = 7;
 
@@ -44,7 +44,7 @@ pub enum MetaEntry {
     String(String),
     Chat(String),
     OptChat(OptChat),
-    Slot(Option<ItemStack>),
+    Slot(InventorySlot),
     Boolean(bool),
     Rotation(f32, f32, f32),
     Position(ValidBlockPosition),
@@ -85,6 +85,30 @@ impl MetaEntry {
     }
 }
 
+pub enum Pose {
+    Standing,
+    FallFlying,
+    Sleeping,
+    Swimming,
+    SpinAttack,
+    Sneaking,
+    Dying,
+}
+
+impl ToMetaEntry for Pose {
+    fn to_meta_entry(&self) -> MetaEntry {
+        MetaEntry::Pose(match self {
+            Self::Standing => 0,
+            Self::FallFlying => 1,
+            Self::Sleeping => 2,
+            Self::Swimming => 3,
+            Self::SpinAttack => 4,
+            Self::Sneaking => 5,
+            Self::Dying => 6,
+        })
+    }
+}
+
 pub trait ToMetaEntry {
     fn to_meta_entry(&self) -> MetaEntry;
 }
@@ -119,7 +143,7 @@ impl ToMetaEntry for OptChat {
     }
 }
 
-impl ToMetaEntry for Option<ItemStack> {
+impl ToMetaEntry for InventorySlot {
     fn to_meta_entry(&self) -> MetaEntry {
         MetaEntry::Slot(self.clone())
     }

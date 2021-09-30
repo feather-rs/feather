@@ -10,7 +10,7 @@ use super::{block_entity::BlockEntityData, entity::EntityData};
 use bitvec::{bitvec, vec::BitVec};
 use blocks::BlockId;
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use generated::Biome;
+use libcraft_core::Biome;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
