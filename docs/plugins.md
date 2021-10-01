@@ -33,7 +33,7 @@ When building a plugin it can either be done in `release` or `debug` mode. By de
 
 Once finished the command will have created a file ending in '.plugin'. It is placed in either `/target/release` or `/target/debug` depending on if the release flag is provided. 
 
-To test the plugin a feather server binary is needed. Inside the folder where the binary located, you need to locate or create a folder called `plugins`. Put the '.plugin' there and run the server.
+To test the plugin, a feather server binary is needed. Inside the folder where the binary is located, create a folder `plugins` (if it doesn't already exist). Put the '.plugin' there and run the server.
 
 
 
