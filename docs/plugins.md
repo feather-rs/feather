@@ -4,7 +4,7 @@ Feather has support for plugins. They can either be run as native code, or throu
 ## Getting Started
 
 # Building and Running
-To build a quill plugin you will need a tool called [cargo-quill](https://github.com/¨-rs/feather/tree/main/quill/cargo-quill). To install cargo quill you need the [rust build tools](https://www.rust-lang.org/tools/install), and clone Feathers [git repository](https://github.com/feather-rs/feather).
+To build a quill plugin you will need a tool called [cargo-quill](https://github.com/¨-rs/feather/tree/main/quill/cargo-quill). To install cargo quill you need the [rust build tools](https://www.rust-lang.org/tools/install), and clone Feather's [git repository](https://github.com/feather-rs/feather).
 
 Once that is setup, locate the folder `feather/quill/cargo_quill` in a terminal. Then run the following command.
 
