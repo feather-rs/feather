@@ -28,7 +28,7 @@ cargo-quill build
 ```
 
 
-When building a plugin it can either be done in `release` or `debug` mode. By default it builds in debug mode, but if passed the `--release` flag it builds it in release mode. Debug mode creates slower plugins, however they are built a lot faster, making it quicker to get started. The --native option changs what the plugin is compiled into. By default it compiles to a wasm plugin, but --native gives the native version.
+By default, the plugin will be built in `debug` mode. The build process will be fast, but the plugin itself will be slower. By specifying the `--release` flag, you can build the plugin in `release` mode, which will take longer, but results in a faster plugin. Without any other flags, the plugin will be compiled to a wasm plugin. If you want to compile it to native code, add the `--native` flag.
 
 
 Once finished the command will have created a file ending in '.plugin'. It is placed in either `/target/release` or `/target/debug` depending on if the release flag is provided. 
