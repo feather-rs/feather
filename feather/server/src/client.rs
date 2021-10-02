@@ -560,6 +560,7 @@ impl Client {
         });
     }
 
+    // TODO this probably needs to be more general (i.e. applicable for all entities and not just players)
     pub fn send_entity_equipment(
         &self,
         network_id: NetworkId,

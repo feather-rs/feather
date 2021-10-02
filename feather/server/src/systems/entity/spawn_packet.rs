@@ -7,6 +7,7 @@ use common::{
     Game,
 };
 use ecs::{SysResult, SystemExecutor};
+use quill_common::entities::Player;
 
 use crate::{entities::SpawnPacketSender, ClientId, NetworkId, Server};
 
@@ -39,15 +40,17 @@ pub fn update_visible_entities(game: &mut Game, server: &mut Server) -> SysResul
                             .context("failed to send spawn packet")?;
                     }
 
-                    // Send an entity equipment packet to nearby players
-                    //TODO this will result in an error if the entity is not a player
-                    let position = *entity_ref.get::<Position>()?;
-                    let network_id = *entity_ref.get::<NetworkId>()?;
-                    let inventory = entity_ref.get::<Inventory>()?;
-                    let hotbar_slot = entity_ref.get::<HotbarSlot>()?;
-                    server.broadcast_nearby_with(position, |client| {
-                        client.send_entity_equipment(network_id, &inventory, &hotbar_slot);
-                    });
+                    // If the current entity is a player, send an entity equipment packet to nearby players
+                    // TODO this should also update other entities
+                    if entity_ref.get::<Player>().is_ok() {
+                        let position = *entity_ref.get::<Position>()?;
+                        let network_id = *entity_ref.get::<NetworkId>()?;
+                        let inventory = entity_ref.get::<Inventory>()?;
+                        let hotbar_slot = entity_ref.get::<HotbarSlot>()?;
+                        server.broadcast_nearby_with(position, |client| {
+                            client.send_entity_equipment(network_id, &inventory, &hotbar_slot);
+                        });    
+                    }
                 }
             }
         }
