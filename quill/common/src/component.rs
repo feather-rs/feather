@@ -204,7 +204,10 @@ host_component_enum! {
         ChatBox = 1026,
         PluginMessageReceiveEvent = 1027,
         InstabreakChangeEvent = 1028,
-        RealIp = 1029,
+        FlyingAbilityChangeEvent = 1029,
+        BuildingAbilityChangeEvent = 1030,
+        InvulnerabilityChangeEvent = 1031,
+        RealIp = 1032,
 
 
     }
@@ -375,3 +378,6 @@ bincode_component_impl!(TimeUpdateEvent);
 bincode_component_impl!(InventoryUpdateEvent);
 bincode_component_impl!(PluginMessageReceiveEvent);
 bincode_component_impl!(InstabreakChangeEvent);
+bincode_component_impl!(FlyingAbilityChangeEvent);
+bincode_component_impl!(BuildingAbilityChangeEvent);
+bincode_component_impl!(InvulnerabilityChangeEvent);

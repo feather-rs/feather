@@ -3,6 +3,7 @@ All events in this file are triggered when there is a change in a certain value.
 */
 
 use crate::components::PreviousGamemode;
+use derive_more::Deref;
 use libcraft_core::Gamemode;
 use serde::{Deserialize, Serialize};
 
@@ -60,5 +61,14 @@ pub struct TimeUpdateEvent {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InventoryUpdateEvent(pub Vec<usize>);
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Deref)]
 pub struct InstabreakChangeEvent(pub bool);
+
+#[derive(Debug, Serialize, Deserialize, Clone, Deref)]
+pub struct FlyingAbilityChangeEvent(pub bool);
+
+#[derive(Debug, Serialize, Deserialize, Clone, Deref)]
+pub struct BuildingAbilityChangeEvent(pub bool);
+
+#[derive(Debug, Serialize, Deserialize, Clone, Deref)]
+pub struct InvulnerabilityChangeEvent(pub bool);

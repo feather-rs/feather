@@ -7,7 +7,10 @@ use quill_common::components::{
     CanBuild, CanCreativeFly, ClientId, CreativeFlying, CreativeFlyingSpeed, Instabreak,
     Invulnerable, WalkSpeed,
 };
-use quill_common::events::{CreativeFlyingEvent, GamemodeUpdateEvent, InstabreakChangeEvent};
+use quill_common::events::{
+    BuildingAbilityChangeEvent, CreativeFlyingEvent, FlyingAbilityChangeEvent, GamemodeUpdateEvent,
+    InstabreakChangeEvent, InvulnerabilityChangeEvent,
+};
 
 use crate::Server;
 
@@ -174,6 +177,39 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
         } else {
             game.ecs
                 .insert_entity_event(entity, InstabreakChangeEvent(false))
+                .unwrap();
+        }
+    }
+    for (entity, may_fly) in may_fly_changes {
+        if may_fly {
+            game.ecs
+                .insert_entity_event(entity, FlyingAbilityChangeEvent(true))
+                .unwrap();
+        } else {
+            game.ecs
+                .insert_entity_event(entity, FlyingAbilityChangeEvent(false))
+                .unwrap();
+        }
+    }
+    for (entity, build) in build_changes {
+        if build {
+            game.ecs
+                .insert_entity_event(entity, BuildingAbilityChangeEvent(true))
+                .unwrap();
+        } else {
+            game.ecs
+                .insert_entity_event(entity, BuildingAbilityChangeEvent(false))
+                .unwrap();
+        }
+    }
+    for (entity, invulnerable) in invulnerability_changes {
+        if invulnerable {
+            game.ecs
+                .insert_entity_event(entity, InvulnerabilityChangeEvent(true))
+                .unwrap();
+        } else {
+            game.ecs
+                .insert_entity_event(entity, InvulnerabilityChangeEvent(false))
                 .unwrap();
         }
     }
