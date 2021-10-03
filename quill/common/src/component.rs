@@ -204,6 +204,7 @@ host_component_enum! {
         ChatBox = 1026,
         PluginMessageReceiveEvent = 1027,
         InstabreakChangeEvent = 1028,
+        RealIp = 1029,
 
 
     }

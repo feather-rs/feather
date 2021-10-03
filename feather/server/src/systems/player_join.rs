@@ -9,7 +9,8 @@ use ecs::{SysResult, SystemExecutor};
 use libcraft_items::InventorySlot;
 use quill_common::components::{
     CanBuild, CanCreativeFly, ChatBox, ChatKind, ChatPreference, CreativeFlying,
-    CreativeFlyingSpeed, Health, Instabreak, Invulnerable, Name, PreviousGamemode, WalkSpeed,
+    CreativeFlyingSpeed, Health, Instabreak, Invulnerable, Name, PreviousGamemode, RealIp,
+    WalkSpeed,
 };
 use quill_common::{
     components::{ClientId, NetworkId},
@@ -143,7 +144,8 @@ fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) 
         .add(abilities.may_fly)
         .add(abilities.may_build)
         .add(abilities.instabreak)
-        .add(abilities.invulnerable);
+        .add(abilities.invulnerable)
+        .add(RealIp(client.real_ip()));
 
     game.spawn_entity(builder);
 

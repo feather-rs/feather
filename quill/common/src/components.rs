@@ -11,6 +11,7 @@ use smartstring::{LazyCompact, SmartString};
 
 pub use libcraft_core::Gamemode;
 use libcraft_text::{Text, Title};
+use std::net::IpAddr;
 
 /// Whether an entity is touching the ground.
 #[derive(
@@ -426,3 +427,9 @@ pub enum ChatPreference {
     /// Receive all messages.
     All,
 }
+
+/// A player's real ip address
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, derive_more::Deref)]
+pub struct RealIp(pub IpAddr);
+
+bincode_component_impl!(RealIp);
