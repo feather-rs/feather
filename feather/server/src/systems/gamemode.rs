@@ -13,6 +13,7 @@ use quill_common::events::{
 };
 
 use crate::Server;
+use base::anvil::player::PlayerAbilities;
 
 pub fn register(systems: &mut SystemExecutor<Game>) {
     systems.group::<Server>().add_system(gamemode_change);
@@ -29,8 +30,8 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
         (
             event,
             &client_id,
-            &_walk_speed,
-            &_fly_speed,
+            &walk_speed,
+            &fly_speed,
             mut may_fly,
             mut is_flying,
             mut instabreak,
@@ -143,20 +144,19 @@ fn gamemode_change(game: &mut Game, server: &mut Server) -> SysResult {
             .get(client_id)
             .unwrap()
             .change_gamemode(event.new);
-        // TODO is this needed?
-        //server
-        //    .clients
-        //    .get(client_id)
-        //    .unwrap()
-        //    .send_abilities(&PlayerAbilities {
-        //        walk_speed,
-        //        fly_speed,
-        //        may_fly: *may_fly,
-        //        is_flying: *is_flying,
-        //        may_build: *may_build,
-        //        instabreak: *instabreak,
-        //        invulnerable: *invulnerable,
-        //    });
+        server
+            .clients
+            .get(client_id)
+            .unwrap()
+            .send_abilities(&PlayerAbilities {
+                walk_speed,
+                fly_speed,
+                may_fly: *may_fly,
+                is_flying: *is_flying,
+                may_build: *may_build,
+                instabreak: *instabreak,
+                invulnerable: *invulnerable,
+            });
     }
     for (entity, flying) in fly_changes {
         if flying {
