@@ -1,10 +1,10 @@
 use std::fmt::{Debug, Formatter};
 use std::io::Cursor;
 use std::net::IpAddr;
-use std::ops::Deref;
+use std::ops::{Add, Deref};
 use std::path::Path;
 
-use chrono::{DateTime, FixedOffset};
+use chrono::{DateTime, Duration, Local};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -15,17 +15,44 @@ pub struct BanList {
 }
 
 impl BanList {
-    pub fn get(&self, uuid: &Uuid, ip: &IpAddr) -> Option<BanReason> {
+    /// Ban the player. Returns false if the player is already banned
+    pub fn ban(
+        &mut self,
+        uuid: Uuid,
+        name: String,
+        by: Option<String>,
+        reason: BanReason,
+        duration: impl Into<Option<Duration>>,
+    ) -> bool {
+        if self.banned_players.iter().any(|e| e.value.0 == uuid) {
+            false
+        } else {
+            let time = Local::now().into();
+            self.banned_players.push(BanEntry {
+                value: (uuid, name),
+                banned: time,
+                source: by,
+                expires: duration.into().map(|duration| time.clone().add(duration)),
+                reason,
+            });
+            true
+        }
+    }
+
+    /// Returns none if not banned
+    pub fn get_ban_reason(&self, uuid: &Uuid) -> Option<BanReason> {
         self.banned_players
             .iter()
             .find(|entry| entry.value.0 == *uuid)
             .map(|entry| entry.reason.clone())
-            .or_else(|| {
-                self.banned_ips
-                    .iter()
-                    .find(|entry| entry.value == *ip)
-                    .map(|entry| entry.reason.clone())
-            })
+    }
+
+    /// Returns none if not banned
+    pub fn get_ip_ban_reason(&self, ip: &IpAddr) -> Option<BanReason> {
+        self.banned_ips
+            .iter()
+            .find(|entry| entry.value == *ip)
+            .map(|entry| entry.reason.clone())
     }
 }
 
@@ -33,16 +60,22 @@ impl BanList {
 pub struct BanEntry<T> {
     value: T,
     /// Timestamp when the player/ip was banned
-    banned: DateTime<FixedOffset>,
+    banned: DateTime<Local>,
     /// Some if banned by a player, None if banned by console
     source: Option<String>,
     /// Timestamp when the player/ip should be unbanned
-    expires: Option<DateTime<FixedOffset>>,
+    expires: Option<DateTime<Local>>,
     reason: BanReason,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct BanReason(String);
+
+impl BanReason {
+    pub fn new(s: impl ToString) -> BanReason {
+        BanReason(s.to_string())
+    }
+}
 
 impl Deref for BanReason {
     type Target = String;
@@ -103,13 +136,16 @@ pub fn read_banlist(server_dir: impl AsRef<Path>) -> BanList {
         .map(|entry| BanEntry {
             value: (entry.uuid, entry.name),
             banned: DateTime::parse_from_str(&entry.created, DATETIME_FORMAT)
-                .expect("Invalid datetime format in banned-players.json"),
+                .expect("Invalid datetime format in banned-players.json")
+                .into(),
             source: if entry.source == "Server" {
                 None
             } else {
                 Some(entry.source)
             },
-            expires: DateTime::parse_from_str(&entry.expires, DATETIME_FORMAT).ok(),
+            expires: DateTime::parse_from_str(&entry.expires, DATETIME_FORMAT)
+                .map(Into::into)
+                .ok(),
             reason: BanReason(entry.reason),
         })
         .collect();
@@ -131,13 +167,16 @@ pub fn read_banlist(server_dir: impl AsRef<Path>) -> BanList {
         .map(|entry| BanEntry {
             value: entry.ip,
             banned: DateTime::parse_from_str(&entry.created, DATETIME_FORMAT)
-                .expect("Invalid datetime format in banned-ips.json"),
+                .expect("Invalid datetime format in banned-ips.json")
+                .into(),
             source: if entry.source == "Server" {
                 None
             } else {
                 Some(entry.source)
             },
-            expires: DateTime::parse_from_str(&entry.expires, DATETIME_FORMAT).ok(),
+            expires: DateTime::parse_from_str(&entry.expires, DATETIME_FORMAT)
+                .map(Into::into)
+                .ok(),
             reason: BanReason(entry.reason),
         })
         .collect();

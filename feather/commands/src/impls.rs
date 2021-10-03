@@ -8,13 +8,16 @@ use smallvec::SmallVec;
 
 use common::{Game, Window};
 use ecs::{Ecs, Entity};
+use libcraft_items::{InventorySlot, ItemStack};
 use libcraft_text::{Text, TextComponentBuilder};
 use quill_common::components::{ChatBox, Gamemode, Name, PreviousGamemode};
 use quill_common::entities::Player;
 use quill_common::events::{GamemodeUpdateEvent, InventoryUpdateEvent};
 
 use crate::CommandCtx;
-use libcraft_items::{InventorySlot, ItemStack};
+use common::banlist::{BanList, BanReason};
+use std::ops::Deref;
+use uuid::Uuid;
 
 pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
     // /me
@@ -459,6 +462,70 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
             true
         }
     }
+
+    // TODO use Message arguments instead of string
+    dispatcher
+        .create_command("ban")
+        .unwrap()
+        .with_argument(
+            "targets",
+            Box::new(EntityArgument::PLAYERS),
+            CompletionType::Custom("entity".to_string()),
+        )
+        .with(|command| {
+            command.executes(|args, mut ctx| {
+                let mut args = args.into_iter();
+                let targets = ctx.find_entities_by_selector(
+                    &*args.next().unwrap().downcast::<EntitySelector>().unwrap(),
+                );
+
+                ban_players(&mut ctx, targets, BanReason::default());
+                true
+            })
+        })
+        .with(|command| {
+            command
+                .with_argument(
+                    "reason",
+                    Box::new(StringArgument::new(StringProperties::GreedyPhrase)),
+                    CompletionType::Custom("none".to_string()),
+                )
+                .executes(|args, mut ctx| {
+                    let mut args = args.into_iter();
+                    let targets = ctx.find_entities_by_selector(
+                        &*args.next().unwrap().downcast::<EntitySelector>().unwrap(),
+                    );
+                    let reason =
+                        BanReason::new(&*args.next().unwrap().downcast::<String>().unwrap());
+
+                    ban_players(&mut ctx, targets, reason);
+                    true
+                })
+        });
+
+    fn ban_players(ctx: &mut CommandCtx, players: Vec<Entity>, reason: BanReason) {
+        let sender = ctx.sender;
+        let source = ctx.game.ecs.get::<Name>(sender).map(|s| s.to_string()).ok();
+        for target in players {
+            // TODO ban offline players
+            let uuid = ctx.game.ecs.get::<Uuid>(target).unwrap().deref().clone();
+            let name = ctx.game.ecs.get::<Name>(target).unwrap().to_string();
+            if ctx.game.resources.get_mut::<BanList>().unwrap().ban(
+                uuid,
+                name.clone(),
+                source.clone(),
+                reason.clone(),
+                None,
+            ) {
+                ctx.send_message(Text::translate_with(
+                    "commands.ban.success",
+                    vec![name, reason.to_string()],
+                ));
+            } else {
+                ctx.send_message(Text::translate("commands.ban.failed").red());
+            }
+        }
+    }
 }
 
 // #[command(usage = "tp|teleport <destination>")]
@@ -740,244 +807,6 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
 //                 + Text::from("]"),
 //         );
 //     }
-//     Ok(None)
-// }
-//
-// #[derive(Debug, Error)]
-// pub enum BanError {
-//     #[error(
-//         "Only players may be affected by this command, but the provided selector includes entities"
-//     )]
-//     NotPlayer,
-//     #[error("Already banned")]
-//     NoTargets,
-// }
-//
-// #[command(usage = "ban <targets> <reason>")]
-// pub fn ban_withreason(
-//     ctx: &mut CommandCtx,
-//     targets: EntitySelector,
-//     reason: TextArgument,
-// ) -> anyhow::Result<Option<String>> {
-//     ban_players(ctx, targets, reason.0, false)
-// }
-//
-// #[command(usage = "ban <targets>")]
-// pub fn ban_noreason(
-//     ctx: &mut CommandCtx,
-//     targets: EntitySelector,
-// ) -> anyhow::Result<Option<String>> {
-//     ban_players(ctx, targets, "Banned by an operator.".to_owned(), false)
-// }
-//
-// #[command(usage = "ban-ip <targets> <reason>")]
-// pub fn banip_withreason(
-//     ctx: &mut CommandCtx,
-//     targets: EntitySelector,
-//     reason: TextArgument,
-// ) -> anyhow::Result<Option<String>> {
-//     ban_players(ctx, targets, reason.0, true)
-// }
-//
-// #[command(usage = "ban-ip <targets>")]
-// pub fn banip_noreason(
-//     ctx: &mut CommandCtx,
-//     targets: EntitySelector,
-// ) -> anyhow::Result<Option<String>> {
-//     ban_players(ctx, targets, "Banned by an operator.".to_owned(), true)
-// }
-//
-// #[derive(Debug, Error)]
-// pub enum BanIpError {
-//     #[error("Not a valid IP Address.")]
-//     InvalidIp,
-// }
-//
-// #[command(usage = "ban-ip <ip> <reason>")]
-// pub fn banip_withreason_ip(
-//     ctx: &mut CommandCtx,
-//     ip: String,
-//     reason: TextArgument,
-// ) -> anyhow::Result<Option<String>> {
-//     ban_ip(ctx, ip, reason.0)
-// }
-//
-// #[command(usage = "ban-ip <ip>")]
-// pub fn banip_noreason_ip(ctx: &mut CommandCtx, ip: String) -> anyhow::Result<Option<String>> {
-//     ban_ip(ctx, ip, "IP Banned by an operator.".to_string())
-// }
-//
-// pub fn ban_ip(ctx: &mut CommandCtx, ip: String, reason: String) -> anyhow::Result<Option<String>> {
-//     let ip = IpAddr::from_str(&ip).map_err(|_| BanIpError::InvalidIp)?;
-//
-//     {
-//         // TODO
-//         //let mut bi_lock = ctx.game.resources.get_mut::<WrappedBanInfo>();
-//         //let mut ban_info = bi_lock.write().unwrap();
-//
-//         //ban_info.ip_bans.insert(
-//         //    ip,
-//         //    Ban {
-//         //        reason: reason.clone(),
-//         //        expires_after: None,
-//         //    },
-//         //);
-//     }
-//
-//     if let Ok(mut chat) = ctx.ecs.get_mut::<ChatBox>(ctx.sender) {
-//         let ban_confirm = Text::translate_with(
-//             "commands.ban.success",
-//             vec![Text::from(ip.to_string()), Text::from(reason)],
-//         );
-//         chat.send_system(ban_confirm);
-//     }
-//
-//     let ent = ctx
-//         .ecs
-//         .query::<&SocketAddr>()
-//         .iter()
-//         .find(|(_, x)| x.ip() == ip)
-//         .map(|(e, _)| e);
-//
-//     if let Some(_ent) = ent {
-//         //ctx.game.disconnect_and_log(
-//         //    ent,
-//         //    &mut ctx.ecs,
-//         //    &Text::from(reason),
-//         //    "Banned by an operator.",
-//         //);
-//     }
-//
-//     Ok(None)
-// }
-//
-// pub fn ban_players(
-//     ctx: &mut CommandCtx,
-//     targets: EntitySelector,
-//     reason: String,
-//     _by_ip: bool,
-// ) -> anyhow::Result<Option<String>> {
-//     let entities = find_selected_entities(ctx, &targets.requirements)?;
-//     if entities.is_empty() {
-//         return Err(BanError::NoTargets.into());
-//     }
-//
-//     for entity in &entities {
-//         if ctx.ecs.get::<Player>(*entity).is_ok() {
-//             return Err(BanError::NotPlayer.into());
-//         }
-//     }
-//
-//     for entity in &entities {
-//         {
-//             //let mut bi_lock = ctx.game.resources.get_mut::<WrappedBanInfo>();
-//             //let mut ban_info = bi_lock.write().unwrap();
-//             //
-//             //if by_ip {
-//             //    let ip = ctx.ecs.get::<SocketAddr>(*entity).unwrap();
-//             //
-//             //    ban_info.ip_bans.insert(
-//             //        ip.ip(),
-//             //        Ban {
-//             //            reason: reason.clone(),
-//             //            expires_after: None,
-//             //        },
-//             //    );
-//             //} else {
-//             //    let uuid = ctx.ecs.get::<Uuid>(*entity).unwrap();
-//             //
-//             //    ban_info.uuid_bans.insert(
-//             //        uuid.to_hyphenated_ref().to_string(),
-//             //        Ban {
-//             //            reason: reason.clone(),
-//             //            expires_after: None,
-//             //        },
-//             //    );
-//             //}
-//         }
-//
-//         let name = (**ctx.ecs.get::<Name>(*entity).unwrap()).to_owned();
-//         if let Ok(mut chat) = ctx.ecs.get_mut::<ChatBox>(ctx.sender) {
-//             let ban_confirm = Text::translate_with(
-//                 "commands.ban.success",
-//                 vec![Text::from(name), Text::from(reason.clone())],
-//             );
-//             chat.send_system(ban_confirm);
-//         }
-//
-//         //ctx.game.disconnect_and_log(
-//         //    *entity,
-//         //    &mut ctx.ecs,
-//         //    &Text::from(reason.clone()),
-//         //    "Banned by an operator.",
-//         //);
-//     }
-//
-//     Ok(None)
-// }
-//
-// #[derive(Debug, Error)]
-// pub enum PardonError {
-//     #[error("Couldn't find that players UUID, Have they changed name?")]
-//     NotPlayer,
-// }
-//
-// #[command(usage = "pardon <name>")]
-// pub fn pardon(ctx: &mut CommandCtx, name: TextArgument) -> anyhow::Result<Option<String>> {
-//     // Get UUID from name
-//     //let online_mode = ctx.game.shared.config.server.online_mode;
-//     //let uuid = if online_mode {
-//     //    Runtime::new()
-//     //        .unwrap()
-//     //        .block_on(name_to_uuid_online(&name.0))
-//     //} else {
-//     //    Some(name_to_uuid_offline(&name.0))
-//     //};
-//
-//     //let uuid = match uuid {
-//     //    Some(uuid) => uuid,
-//     //    None => return Err(PardonError::NotPlayer.into()),
-//     //};
-//
-//     //{
-//     //    let bi_lock = ctx.game.resources.get::<WrappedBanInfo>();
-//     //    let mut ban_info = bi_lock.write().unwrap();
-//     //    ban_info
-//     //        .uuid_bans
-//     //        .remove(&uuid.to_hyphenated_ref().to_string());
-//     //}
-//
-//     if let Ok(mut chat) = ctx.ecs.get_mut::<ChatBox>(ctx.sender) {
-//         let kick_confirm =
-//             Text::translate_with("commands.pardon.success", vec![Text::from(name.0)]);
-//         chat.send_system(kick_confirm);
-//     }
-//
-//     Ok(None)
-// }
-//
-// #[derive(Debug, Error)]
-// pub enum PardonIpError {
-//     #[error("Invalid IP Address")]
-//     NotIp,
-// }
-//
-// #[command(usage = "pardon-ip <ip>")]
-// pub fn pardonip(ctx: &mut CommandCtx, ip: String) -> anyhow::Result<Option<String>> {
-//     // Try to parse ip
-//     let _addr = IpAddr::from_str(&ip).map_err(|_| PardonIpError::NotIp)?;
-//
-//     //{
-//     //    let mut bi_lock = ctx.game.resources.get_mut::<WrappedBanInfo>();
-//     //    let mut ban_info = bi_lock.write().unwrap();
-//     //    ban_info.ip_bans.remove(&addr);
-//     //}
-//
-//     if let Ok(mut chat) = ctx.ecs.get_mut::<ChatBox>(ctx.sender) {
-//         let kick_confirm = Text::translate_with("commands.pardon.success", vec![Text::from(ip)]);
-//         chat.send_system(kick_confirm);
-//     }
-//
 //     Ok(None)
 // }
 //
