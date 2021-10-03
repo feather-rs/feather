@@ -1,11 +1,12 @@
-use libcraft_items::InventorySlot;
 use log::debug;
 
 use base::anvil::player::PlayerAbilities;
 use base::{Gamemode, Inventory, ItemStack, Position, Text};
 use commands::{CommandCtx, CommandDispatcher};
+use common::banlist::BanList;
 use common::{entities::player::HotbarSlot, view::View, window::BackingWindow, Game, Window};
 use ecs::{SysResult, SystemExecutor};
+use libcraft_items::InventorySlot;
 use quill_common::components::{
     CanBuild, CanCreativeFly, ChatBox, ChatKind, ChatPreference, CreativeFlying,
     CreativeFlyingSpeed, Health, Instabreak, Invulnerable, Name, PreviousGamemode, WalkSpeed,
@@ -32,6 +33,15 @@ fn poll_new_players(game: &mut Game, server: &mut Server) -> SysResult {
 
 fn accept_new_player(game: &mut Game, server: &mut Server, client_id: ClientId) -> SysResult {
     let client = server.clients.get_mut(client_id).unwrap();
+    let banlist = game.resources.get::<BanList>().unwrap();
+    if let Some(reason) = banlist.get(&client.uuid(), &client.real_ip()) {
+        client.disconnect(Text::translate_with(
+            "multiplayer.disconnect.banned.reason",
+            vec![reason.to_string()],
+        ));
+        return Ok(());
+    }
+    drop(banlist);
     let player_data = game.world.load_player_data(client.uuid());
     let mut builder = game.create_entity_builder(
         player_data

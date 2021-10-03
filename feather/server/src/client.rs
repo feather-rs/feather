@@ -44,6 +44,7 @@ use crate::{
 };
 use common::Window;
 use slab::Slab;
+use std::net::IpAddr;
 
 /// Max number of chunks to send to a client per tick.
 const MAX_CHUNKS_PER_TICK: usize = 10;
@@ -107,6 +108,9 @@ pub struct Client {
     client_known_position: Cell<Option<Position>>,
 
     disconnected: Cell<bool>,
+
+    /// Player's real IP address
+    real_ip: IpAddr,
 }
 
 impl Client {
@@ -126,6 +130,7 @@ impl Client {
             chunk_send_queue: RefCell::new(VecDeque::new()),
             client_known_position: Cell::new(None),
             disconnected: Cell::new(false),
+            real_ip: player.ip,
         }
     }
 
@@ -151,6 +156,10 @@ impl Client {
 
     pub fn username(&self) -> &str {
         &self.username
+    }
+
+    pub fn real_ip(&self) -> IpAddr {
+        self.real_ip
     }
 
     pub fn received_packets(&self) -> impl Iterator<Item = ClientPlayPacket> + '_ {
@@ -664,10 +673,10 @@ impl Client {
         let _ = self.packets_to_send.try_send(packet.into());
     }
 
-    pub fn disconnect(&self, reason: &str) {
+    pub fn disconnect(&self, reason: impl Into<Text>) {
         self.disconnected.set(true);
         self.send_packet(Disconnect {
-            reason: Text::from(reason.to_owned()).to_string(),
+            reason: Into::<Text>::into(reason).to_string(),
         });
     }
 }

@@ -860,6 +860,7 @@ version = "0.1.0"
 dependencies = [
  "ahash 0.7.4",
  "anyhow",
+ "chrono",
  "crossbeam-utils",
  "feather-base",
  "feather-blocks",
@@ -877,6 +878,8 @@ dependencies = [
  "quill-common",
  "rand 0.8.4",
  "rayon",
+ "serde",
+ "serde_json",
  "smartstring",
  "uuid",
 ]

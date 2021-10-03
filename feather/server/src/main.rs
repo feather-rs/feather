@@ -2,6 +2,7 @@ use std::{cell::RefCell, rc::Rc, sync::Arc};
 
 use anyhow::Context;
 use base::anvil::level::SuperflatGeneratorOptions;
+use common::banlist::read_banlist;
 use common::{Game, TickLoop, World};
 use ecs::SystemExecutor;
 use feather_server::{config::Config, Server};
@@ -39,6 +40,7 @@ async fn main() -> anyhow::Result<()> {
 fn init_game(server: Server, config: &Config) -> anyhow::Result<Game> {
     let mut game = Game::new();
     init_systems(&mut game, server);
+    init_banlist(&mut game);
     init_world_source(&mut game, config);
     init_plugin_manager(&mut game)?;
     Ok(game)
@@ -56,6 +58,10 @@ fn init_systems(game: &mut Game, server: Server) {
     print_systems(&systems);
 
     game.system_executor = Rc::new(RefCell::new(systems));
+}
+
+fn init_banlist(game: &mut Game) {
+    game.insert_resource(read_banlist("."));
 }
 
 fn init_world_source(game: &mut Game, config: &Config) {

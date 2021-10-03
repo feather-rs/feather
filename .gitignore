@@ -9,8 +9,11 @@
 world/
 feather/downloaded
 feather/datapacks/minecraft/
-/config.toml
-/plugins
+config.toml
+plugins
+banned-players.json
+banned-ips.json
+usercache.json
 
 # Python cache files (libcraft)
 **/__pycache__/

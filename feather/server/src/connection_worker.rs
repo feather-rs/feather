@@ -21,6 +21,7 @@ use protocol::{
 use crate::initial_handler::{InitialHandling, NewPlayer};
 use crate::options::Options;
 use common::player_count::PlayerCount;
+use std::net::IpAddr;
 
 /// Tokio task which handles a connection and processes
 /// packets.
@@ -38,6 +39,7 @@ pub struct Worker {
     packets_to_send_tx: Sender<ServerPlayPacket>,
     received_packets_rx: Receiver<ClientPlayPacket>,
     new_players: Sender<NewPlayer>,
+    ip: IpAddr,
 }
 
 impl Worker {
@@ -48,6 +50,7 @@ impl Worker {
         player_count: PlayerCount,
         new_players: Sender<NewPlayer>,
     ) -> Self {
+        let ip = stream.peer_addr().unwrap().ip();
         let (reader, writer) = stream.into_split();
 
         let (received_packets_tx, received_packets_rx) = flume::bounded(32);
@@ -63,6 +66,7 @@ impl Worker {
             packets_to_send_tx,
             received_packets_rx,
             new_players,
+            ip,
         }
     }
 
@@ -157,6 +161,10 @@ impl Worker {
 
     pub fn received_packets(&self) -> Receiver<ClientPlayPacket> {
         self.received_packets_rx.clone()
+    }
+
+    pub fn ip(&self) -> &IpAddr {
+        &self.ip
     }
 }
 

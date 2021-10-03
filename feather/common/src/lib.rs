@@ -24,6 +24,7 @@ mod region_worker;
 pub mod entities;
 pub mod world;
 
+pub mod banlist;
 pub mod interactable;
 pub mod player_count;
 
