@@ -1,23 +1,25 @@
 //! The implementations of various commands.
 
+use std::net::{IpAddr, ToSocketAddrs};
+use std::ops::Deref;
+
 use commands::arguments::*;
 use commands::command;
 use commands::dispatcher::{CommandDispatcher, CreateCommand};
 use commands::node::CompletionType;
 use smallvec::SmallVec;
+use uuid::Uuid;
 
+use common::banlist::{BanList, BanReason};
 use common::{Game, Window};
 use ecs::{Ecs, Entity};
 use libcraft_items::{InventorySlot, ItemStack};
 use libcraft_text::{Text, TextComponentBuilder};
-use quill_common::components::{ChatBox, Gamemode, Name, PreviousGamemode};
+use quill_common::components::{ChatBox, Gamemode, Name, PreviousGamemode, RealIp};
 use quill_common::entities::Player;
 use quill_common::events::{GamemodeUpdateEvent, InventoryUpdateEvent};
 
 use crate::CommandCtx;
-use common::banlist::{BanList, BanReason};
-use std::ops::Deref;
-use uuid::Uuid;
 
 pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
     // /me
@@ -525,6 +527,86 @@ pub fn register_all(dispatcher: &mut CommandDispatcher<CommandCtx>) {
                 ctx.send_message(Text::translate("commands.ban.failed").red());
             }
         }
+    }
+
+    // TODO use Message arguments instead of string
+    // TODO use Ip and Name arguments instead of string (can't find Ip argument on wiki.vg)
+    dispatcher
+        .create_command("ban-ip")
+        .unwrap()
+        .with_argument(
+            "targets",
+            Box::new(StringArgument::new(StringProperties::SingleWord)),
+            CompletionType::Custom("player_names".to_string()),
+        )
+        .with(|command| {
+            command.executes(|args, mut ctx| {
+                let mut args = args.into_iter();
+                ban_ip(
+                    &mut ctx,
+                    args.next()
+                        .unwrap()
+                        .downcast::<String>()
+                        .unwrap()
+                        .to_string(),
+                    BanReason::default(),
+                )
+            })
+        })
+        .with(|command| {
+            command
+                .with_argument(
+                    "reason",
+                    Box::new(StringArgument::new(StringProperties::GreedyPhrase)),
+                    CompletionType::Custom("none".to_string()),
+                )
+                .executes(|args, mut ctx| {
+                    let mut args = args.into_iter();
+                    let targets = args
+                        .next()
+                        .unwrap()
+                        .downcast::<String>()
+                        .unwrap()
+                        .to_string();
+                    let reason =
+                        BanReason::new(&*args.next().unwrap().downcast::<String>().unwrap());
+
+                    ban_ip(&mut ctx, targets, reason)
+                })
+        });
+
+    fn ban_ip(ctx: &mut CommandCtx, ip: String, reason: BanReason) -> bool {
+        let sender = ctx.sender;
+        let source = ctx.game.ecs.get::<Name>(sender).map(|s| s.to_string()).ok();
+        let ip = if let Ok(ip) = ip.parse() {
+            ip
+        } else if let Some(target) = ctx
+            .game
+            .ecs
+            .query::<(&Player, &Name)>()
+            .iter()
+            .find(|(_, (_, name))| ****name == ip)
+            .map(|(e, _)| e)
+        {
+            ctx.game.ecs.get::<RealIp>(target).unwrap().0
+        } else {
+            return false;
+        };
+
+        if ctx.game.resources.get_mut::<BanList>().unwrap().ban_ip(
+            ip,
+            source.clone(),
+            reason.clone(),
+            None,
+        ) {
+            ctx.send_message(Text::translate_with(
+                "commands.banip.success",
+                vec![ip.to_string(), reason.to_string()],
+            ));
+        } else {
+            ctx.send_message(Text::translate("commands.banip.failed").red());
+        }
+        true
     }
 }
 

@@ -38,6 +38,28 @@ impl BanList {
             true
         }
     }
+    /// Ban the IP address. Returns false if the ip is already banned
+    pub fn ban_ip(
+        &mut self,
+        ip: IpAddr,
+        by: Option<String>,
+        reason: BanReason,
+        duration: impl Into<Option<Duration>>,
+    ) -> bool {
+        if self.banned_ips.iter().any(|e| e.value == ip) {
+            false
+        } else {
+            let time = Local::now().into();
+            self.banned_ips.push(BanEntry {
+                value: ip,
+                banned: time,
+                source: by,
+                expires: duration.into().map(|duration| time.clone().add(duration)),
+                reason,
+            });
+            true
+        }
+    }
 
     /// Returns none if not banned
     pub fn get_ban_reason(&self, uuid: &Uuid) -> Option<BanReason> {
